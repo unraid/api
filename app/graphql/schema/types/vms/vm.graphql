@@ -1,0 +1,31 @@
+type Vm {
+    uuid: ID!
+    osType: String
+    autostart: Boolean
+    maxMemory: Int
+    schedulerType: String
+    schedulerParameters: SchedulerParameters
+    securityLabel: SecurityLabel
+    name: String
+    state: String
+    memory: Int
+    vcpus: Int
+    cpuTime: Int
+}
+
+type SchedulerParameters {
+    cpu_shares: Int
+    vcpu_period: Int
+    vcpu_quota: Int
+    emulator_period: Int
+    emulator_quota: Int
+    global_period: Int
+    global_quota: Int
+    iothread_period: Int
+    iothread_quota: Int
+}
+
+type SecurityLabel {
+    label: String
+    enforcing: Boolean
+}

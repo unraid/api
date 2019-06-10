@@ -1,0 +1,11 @@
+type Plugin {
+    name: String
+    private: Boolean
+    author: String
+    unraid: UnraidPlugin
+    dependencies: [JSON]
+}
+
+type UnraidPlugin {
+    id: ID!
+}

@@ -1,0 +1,18 @@
+type Info {
+    array: InfoArray @func(module: "info/get-array", result:"json")
+}
+
+type InfoArray {
+    capacity: InfoArrayCapacity
+}
+
+type InfoArrayCapacity {
+    bytes: Capacity
+    disks: Capacity
+}
+
+type Capacity {
+    free: Long
+    used: Long
+    total: Long
+}

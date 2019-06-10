@@ -1,0 +1,16 @@
+type Share {
+    name: String
+    free: Int
+    size: Int
+    include: [String]
+    exclude: [String]
+    cache: Boolean
+    nameOrig: String
+    comment: String
+    allocator: String
+    splitLevel: String
+    floor: String
+    cow: String
+    color: String
+    luksStatus: String
+}

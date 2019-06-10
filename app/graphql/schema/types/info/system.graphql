@@ -1,0 +1,12 @@
+type Info {
+    system: System @func(module: "info/get-system", result:"json")
+}
+
+type System {
+    manufacturer: String
+    model: String
+    version: String
+    serial: String
+    uuid: String
+    sku: String
+}

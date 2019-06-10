@@ -1,0 +1,8 @@
+type Info {
+    apps: InfoApps @func(module: "info/get-apps", result:"json")
+}
+
+type InfoApps {
+    installed: Int
+    started: Int
+}

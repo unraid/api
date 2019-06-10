@@ -1,0 +1,7 @@
+type Device {
+    id: String!
+    tag: String
+    device: String
+    sectors: String
+    sectorSize: String
+}

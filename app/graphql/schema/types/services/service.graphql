@@ -1,0 +1,5 @@
+type Service {
+    name: String
+    online: Boolean!
+    uptime: Long
+}

@@ -1,0 +1,8 @@
+"""A local user account"""
+type User {
+    id: String!
+    """A unique name for the user"""
+    name: String
+    description: String
+    password: Boolean
+}

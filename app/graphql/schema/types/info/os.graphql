@@ -1,0 +1,17 @@
+type Info {
+    os: Os @func(module: "info/get-os", result:"json")
+}
+
+type Os {
+    platform: String
+    distro: String
+    release: String
+    codename: String
+    kernel: String
+    arch: String
+    hostname: String
+    codepage: String
+    logofile: String
+    serial: String
+    build: String
+}
