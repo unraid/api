@@ -1,0 +1,22 @@
+{
+  "dependencies": {
+    "am": "^1.0.1",
+    "apollo-datasource-rest": "^0.5.0",
+    "apollo-server-express": "^2.6.2",
+    "bolus": "https://github.com/omgimalexis/bolus",
+    "camelcase": "^5.3.1",
+    "core": "ssh://git@github.com:unraid/core.git",
+    "express": "^4.17.1",
+    "got": "^9.6.0",
+    "graphql": "^14.3.1",
+    "graphql-directive": "^0.2.1",
+    "graphql-type-json": "^0.3.0",
+    "graphql-type-long": "^0.1.1",
+    "graphql-type-uuid": "^0.2.0",
+    "lodash.get": "^4.4.2",
+    "merge-graphql-schemas": "^1.5.8",
+    "p-props": "^3.0.1",
+    "stoppable": "^1.1.0",
+    "utils": "https://github.com/unraid/utils"
+  }
+}
