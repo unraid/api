@@ -6,12 +6,12 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "GPL-2.0-only",
   "dependencies": {
+    "@unraid/core": "ssh://git@github.com:unraid/core.git",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.5.0",
     "apollo-server-express": "^2.6.2",
     "bolus": "https://github.com/omgimalexis/bolus",
     "camelcase": "^5.3.1",
-    "core": "ssh://git@github.com:unraid/core.git",
     "express": "^4.17.1",
     "got": "^9.6.0",
     "graphql": "^14.3.1",
