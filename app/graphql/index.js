@@ -141,7 +141,7 @@ module.exports = function ($injector, glob, get, graphql, graphqlDirective, merg
 			let apiKey;
 
 			if (!token) {
-				throw new Error('Missing apikey.');
+				throw new AppError('Missing apikey.');
 			}
 
 			if (apiManager.expired('my_servers')) {
@@ -155,7 +155,7 @@ module.exports = function ($injector, glob, get, graphql, graphqlDirective, merg
 			}
 
 			if (!apiManager.isValid('my_servers', token)) {
-				throw new Error('Invalid apikey.');
+				throw new AppError('Invalid apikey.');
 			}
 		}
 	};
