@@ -18,5 +18,28 @@
     "p-props": "^3.0.1",
     "stoppable": "^1.1.0",
     "utils": "https://github.com/unraid/utils"
-  }
+  },
+  "devDependencies": {
+    "bundle-dependencies": "^1.0.2"
+  },
+  "bundledDependencies": [
+    "am",
+    "apollo-datasource-rest",
+    "apollo-server-express",
+    "bolus",
+    "camelcase",
+    "core",
+    "express",
+    "got",
+    "graphql",
+    "graphql-directive",
+    "graphql-type-json",
+    "graphql-type-long",
+    "graphql-type-uuid",
+    "lodash.get",
+    "merge-graphql-schemas",
+    "p-props",
+    "stoppable",
+    "utils"
+  ]
 }
