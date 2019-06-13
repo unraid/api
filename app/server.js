@@ -3,7 +3,7 @@
  */
 module.exports = function ($injector, fs, net, express, config, log, getEndpoints, stoppable) {
     const app = express();
-    const port = config.get('port');
+    const port = config.get('graphql-api-port');
     let server;
 
     const ApolloServer = $injector.resolve('apollo-server-express').ApolloServer;
@@ -24,7 +24,7 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
         if (err.stack) {
             err.stackTrace = err.stack;
         }
-        res.status(500).send(err);
+        res.status(error.status || 500).send(err);
     });
 
     // Return an object with start and stop methods.
