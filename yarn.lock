@@ -1079,7 +1079,7 @@ core-util-is@~1.0.0:
 
 "core@ssh://git@github.com:unraid/core.git":
   version "0.0.1"
-  resolved "ssh://git@github.com:unraid/core.git#70ffcb0fc6232fde08f0043538e2442a1a0596d1"
+  resolved "ssh://git@github.com:unraid/core.git#db42df4336ea7fdaf69db122be25c94bb5c3d637"
   dependencies:
     bolus "https://github.com/omgimalexis/bolus"
     camelcase "^5.3.1"
