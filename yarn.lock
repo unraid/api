@@ -278,7 +278,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#34b9b8dcbbcaabb9bb25a4f508a4c5af6ff91f64"
+  resolved "ssh://git@github.com:unraid/core.git#84cefa4f0dd89c4b75115726332c75fb74ea55bb"
   dependencies:
     bolus "https://github.com/omgimalexis/bolus"
     camelcase "^5.3.1"
@@ -289,6 +289,7 @@
     execa "^1.0.0"
     express-list-endpoints "^4.0.1"
     flatten "^1.0.2"
+    fs-extra "^8.0.1"
     fs-proxy "^1.8.1"
     get-server-address "^1.0.1"
     glob "^7.1.4"
@@ -302,6 +303,7 @@
     pify "^4.0.1"
     ps-list "^6.3.0"
     systeminformation "^4.9.0"
+    tempy "^0.3.0"
     tracer "^0.9.8"
     upcast "^4.0.0"
 
@@ -1700,6 +1702,15 @@ fs-constants@^1.0.0:
   resolved "https://registry.yarnpkg.com/fs-constants/-/fs-constants-1.0.0.tgz#6be0de9be998ce16af8afc24497b9ee9b7ccd9ad"
   integrity sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==
 
+fs-extra@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/fs-extra/-/fs-extra-8.0.1.tgz#90294081f978b1f182f347a440a209154344285b"
+  integrity sha512-W+XLrggcDzlle47X/XnS7FXrXu9sDo+Ze9zpndeBxdgv88FHLm1HtmkhEwavruS6koanBjp098rUpHs65EmG7A==
+  dependencies:
+    graceful-fs "^4.1.2"
+    jsonfile "^4.0.0"
+    universalify "^0.1.0"
+
 fs-minipass@^1.2.5:
   version "1.2.6"
   resolved "https://registry.yarnpkg.com/fs-minipass/-/fs-minipass-1.2.6.tgz#2c5cc30ded81282bfe8a0d7c7c1853ddeb102c07"
@@ -1852,7 +1863,7 @@ got@^9.6.0:
     to-readable-stream "^1.0.0"
     url-parse-lax "^3.0.0"
 
-graceful-fs@^4.1.11, graceful-fs@^4.1.2:
+graceful-fs@^4.1.11, graceful-fs@^4.1.2, graceful-fs@^4.1.6:
   version "4.1.15"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.15.tgz#ffb703e1066e8a0eeaa4c8b80ba9253eeefbfb00"
   integrity sha512-6uHUhOPEBgQ24HM+r6b/QwWfZq+yiFcipKFrOFiBEnWdy5sdzYoi+pJeQaPI5qOLRFqWmAXUPQNsielzdLoecA==
@@ -2320,6 +2331,13 @@ json-buffer@3.0.0:
   version "3.0.0"
   resolved "https://registry.yarnpkg.com/json-buffer/-/json-buffer-3.0.0.tgz#5b1f397afc75d677bde8bcfc0e47e1f9a3d9a898"
   integrity sha1-Wx85evx11ne96Lz8Dkfh+aPZqJg=
+
+jsonfile@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/jsonfile/-/jsonfile-4.0.0.tgz#8771aae0799b64076b76640fca058f9c10e33ecb"
+  integrity sha1-h3Gq4HmbZAdrdmQPygWPnBDjPss=
+  optionalDependencies:
+    graceful-fs "^4.1.6"
 
 jsonparse@^1.2.0:
   version "1.3.1"
@@ -3946,6 +3964,15 @@ tempy@^0.2.1:
     temp-dir "^1.0.0"
     unique-string "^1.0.0"
 
+tempy@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/tempy/-/tempy-0.3.0.tgz#6f6c5b295695a16130996ad5ab01a8bd726e8bf8"
+  integrity sha512-WrH/pui8YCwmeiAoxV+lpRH9HpRtgBhSR2ViBPgpGb/wnYDzp21R4MN45fsCGvLROvY67o3byhJRYRONJyImVQ==
+  dependencies:
+    temp-dir "^1.0.0"
+    type-fest "^0.3.1"
+    unique-string "^1.0.0"
+
 text-hex@1.0.x:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/text-hex/-/text-hex-1.0.0.tgz#69dc9c1b17446ee79a92bf5b884bb4b9127506f5"
@@ -4052,6 +4079,11 @@ type-check@~0.3.2:
   dependencies:
     prelude-ls "~1.1.2"
 
+type-fest@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.3.1.tgz#63d00d204e059474fe5e1b7c011112bbd1dc29e1"
+  integrity sha512-cUGJnCdr4STbePCgqNFbpVNCepa+kAVohJs1sLhxzdH+gnEoOd8VhbYa7pD3zZYGiURWM2xzEII3fQcRizDkYQ==
+
 type-is@^1.6.16, type-is@~1.6.17, type-is@~1.6.18:
   version "1.6.18"
   resolved "https://registry.yarnpkg.com/type-is/-/type-is-1.6.18.tgz#4e552cd05df09467dcbc4ef739de89f2cf37c131"
@@ -4091,6 +4123,11 @@ unique-string@^1.0.0:
   integrity sha1-nhBXzKhRq7kzmPizOuGHuZyuwRo=
   dependencies:
     crypto-random-string "^1.0.0"
+
+universalify@^0.1.0:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz#b646f69be3942dabcecc9d6639c80dc105efaa66"
+  integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
 
 unix-dgram@^2.0.2:
   version "2.0.3"
