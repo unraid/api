@@ -11,7 +11,6 @@
  */
 
  module.exports = function ($injector, glob, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, loadState, AppError) {
-	const apiManager = new ApiManager();
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;
@@ -156,17 +155,19 @@
 				throw new AppError('Missing apikey.');
 			}
 
-			if (apiManager.expired('my_servers')) {
+			if (ApiManager.expired('my_servers')) {
 				try {
 					apiKey = loadState('/boot/config/plugins/dynamix/dynamix.cfg').remote.apikey;
 				} catch (error) {
 					throw new AppError('My servers api key is missing, did you register your server?');
 				}
 
-				apiManager.add('my_servers', apiKey);
+				if (apiKey) {
+					ApiManager.add('my_servers', apiKey);
+				}
 			}
 
-			if (!apiManager.isValid('my_servers', token)) {
+			if (!ApiManager.isValid('my_servers', token)) {
 				throw new AppError('Invalid apikey.');
 			}
 		}

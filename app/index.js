@@ -64,21 +64,23 @@ am(async () => {
     const core = $injector.resolve('core');
 
     // Load core
-    await core.load();
+    await core.load().catch(coreError => {
+        try {
+            // Handler non fatal errors
+            $injector.resolve('globalErrorHandler')(coreError);
+        } catch (error) {
+            throw coreError;
+        }
+    });
 
     // Load server
     await core.loadServer('graphql-api');
 }, error => {
-    try {
-        // Run global error handler
-        $injector.resolve('globalErrorHandler')(error);
-    } catch (error) {
-        // We should only end here if core has an issue loading
+    // We should only end here if core has an issue loading
 
-        // Log last error
-        console.error(error);
+    // Log last error
+    console.error(error);
 
-        // Kill applicaiton
-        process.exit(1);
-    }
+    // Kill applicaiton
+    process.exit(1);
 });
