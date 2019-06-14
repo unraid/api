@@ -278,7 +278,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#cb50a8c73a9c24501b6fb37f027a89e61d502b1a"
+  resolved "ssh://git@github.com:unraid/core.git#239ff52f0efc35d582b89f22c083c2feb282695a"
   dependencies:
     bolus "https://github.com/omgimalexis/bolus"
     camelcase "^5.3.1"
@@ -296,6 +296,7 @@
     is-relative "^1.0.0"
     micromongo-class "ssh://git@github.com:omgimalexis/micromongo-class"
     ms "^2.1.2"
+    mustache "^3.0.1"
     os-uptime "^2.0.2"
     p-props "^3.0.1"
     pify "^4.0.1"
@@ -2734,6 +2735,11 @@ ms@^2.1.1, ms@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
+
+mustache@^3.0.1:
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/mustache/-/mustache-3.0.1.tgz#873855f23aa8a95b150fb96d9836edbc5a1d248a"
+  integrity sha512-jFI/4UVRsRYdUbuDTKT7KzfOp7FiD5WzYmmwNwXyUVypC0xjoTL78Fqc0jHUPIvvGD+6DQSPHIt1NE7D1ArsqA==
 
 mute-stream@~0.0.4:
   version "0.0.8"
