@@ -1,11 +1,10 @@
 type Plugin {
     name: String
-    private: Boolean
-    author: String
-    unraid: UnraidPlugin
-    dependencies: [JSON]
+    isActive: Boolean
+    modules: [PluginModule]
 }
 
-type UnraidPlugin {
-    id: ID!
+type PluginModule {
+    filePath: String
+    isActive: Boolean
 }

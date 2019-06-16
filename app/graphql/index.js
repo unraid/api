@@ -42,9 +42,8 @@
 			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices", result:"json")
 			user(id: String!): User @func(module: "users/user/get-user", result:"json")
 			users: [User!]! @func(module: "get-users", result:"json")
-
-
 			plugins: [Plugin] @func(module: "get-plugins", result:"json")
+			pluginModule(plugin: String!, module: String!): JSON @func(result:"json")
 			service(name: String!): Service @func(module: "services/name/get-service", result:"json")
 			services: [Service] @func(module: "get-services", result:"json")
 			shares: [Share] @func(module: "get-shares", result:"json")
@@ -89,33 +88,35 @@
 		async func(resolve, obj, directiveArgs, context, info) {
 			const path = $injector.resolve('path');
 			const paths = $injector.resolve('paths');
+			const createContextParams = args => args.map(param => {
+				// Return string
+				if (param.value.kind === 'StringValue') {
+					return {
+						[param.name.value]: param.value.value
+					};
+				}
+
+				// Lookup value mapping
+				return {
+					[param.name.value]: info.variableValues[param.value.name.value]
+				};
+			})
+				.reduce((current, next) => ({ ...current, ...next }), {});
+			const args = info.fieldNodes.length >= 1 ? info.fieldNodes[0].arguments : [];
+			const params = createContextParams(args);
 			const { module: wantedModule, result: wantedResult } = directiveArgs;
 			const coreCwd = path.join(paths.get('core'), 'modules');
-			const funcPath = path.join(coreCwd, wantedModule);
-			const { variableValues } = info;
-			const args = info.fieldNodes.length >= 1 ? info.fieldNodes[0].arguments : [];
-
-			// Create context params
-			const params = args
-				.map(param => {
-					// Return string
-					if (param.value.kind === 'StringValue') {
-						return {
-							[param.name.value]: param.value.value
-						};
-					}
-
-					// Lookup value mapping
-					return {
-						[param.name.value]: variableValues[param.value.name.value]
-					};
-				})
-				.reduce((current, next) => ({ ...current, ...next }), {});
+			const pluginCwd = paths.get('plugins');
+			const { plugin: pluginName, module: pluginModuleName, ...rest } = params;
+			const contextParams = pluginName ? rest : params;
+			const modulePath = pluginName ? path.join(pluginCwd, pluginName) : coreCwd;
+			const subModulePath = pluginName ? path.join('modules', pluginModuleName) : wantedModule;
+			const funcPath = path.join(modulePath, subModulePath);
 
 			// Create func locals
 			const locals = {
 				context: {
-					params
+					params: contextParams
 				}
 			};
 
@@ -124,7 +125,10 @@
 
 			// Run function
 			return Promise.resolve(func)
-				.then(result => {
+				.then(async result => {
+					// If function's result is a function or promise run/resolve it
+					result = await Promise.resolve(result).then(result => typeof result === 'function' ? result() : result);
+
 					// Get wanted result type
 					result = result[wantedResult];
 
