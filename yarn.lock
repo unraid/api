@@ -278,17 +278,19 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#a6d95335f43223aeb010b3df679241f866294a21"
+  resolved "ssh://git@github.com:unraid/core.git#37f763d176ae16ab76a2dc49413cf9d460778b03"
   dependencies:
     bolus "https://github.com/omgimalexis/bolus"
     camelcase "^5.3.1"
     camelcase-keys "^5.2.0"
     clean-cache "^1.0.2"
     conf-cfg-ini "https://github.com/omgimalexis/conf-cfg-ini"
+    deepmerge "^3.2.1"
     dockerode "^2.5.8"
     execa "^1.0.0"
     express-list-endpoints "^4.0.1"
     flatten "^1.0.2"
+    fromentries "^1.1.0"
     fs-extra "^8.0.1"
     fs-proxy "^1.8.1"
     get-server-address "^1.0.1"
@@ -299,6 +301,7 @@
     ms "^2.1.2"
     mustache "^3.0.1"
     os-uptime "^2.0.2"
+    p-iteration "^1.1.8"
     p-props "^3.0.1"
     pify "^4.0.1"
     ps-list "^6.3.0"
@@ -1228,6 +1231,11 @@ deepmerge@^2.2.1:
   resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-2.2.1.tgz#5d3ff22a01c00f645405a2fbc17d0778a1801170"
   integrity sha512-R9hc1Xa/NOBi9WRVUWg19rl1UB7Tt4kuPd+thNJgFZoxXsTz7ncaPaeIm+40oSGuP33DfMb4sZt1QIGiJzC4EA==
 
+deepmerge@^3.2.1:
+  version "3.2.1"
+  resolved "https://registry.yarnpkg.com/deepmerge/-/deepmerge-3.2.1.tgz#76a1f47854bcfcd66ee9a948d110540a8e12b261"
+  integrity sha512-+hbDSzTqEW0fWgnlKksg7XAOtT+ddZS5lHZJ6f6MdixRs9wQy+50fm1uUCVb1IkvjLUYX/SfFO021ZNwriURTw==
+
 defer-to-connect@^1.0.1:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/defer-to-connect/-/defer-to-connect-1.0.2.tgz#4bae758a314b034ae33902b5aac25a8dd6a8633e"
@@ -1691,6 +1699,11 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
+
+fromentries@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/fromentries/-/fromentries-1.1.0.tgz#621687fd011650fa39a44f46eac6617b812c6b80"
+  integrity sha512-lNaxBVxKFZ9IZthqw+YcHjdf40U5x0L0u8D7i06Z2DpWH2hClmn5sHekzJEa40rElz/w9mWGBAp5Ik3maRsLyQ==
 
 fs-capacitor@^2.0.1:
   version "2.0.4"
@@ -3037,6 +3050,11 @@ p-finally@^1.0.0:
   version "1.0.0"
   resolved "https://registry.yarnpkg.com/p-finally/-/p-finally-1.0.0.tgz#3fbcfb15b899a44123b34b6dcc18b724336a2cae"
   integrity sha1-P7z7FbiZpEEjs0ttzBi3JDNqLK4=
+
+p-iteration@^1.1.8:
+  version "1.1.8"
+  resolved "https://registry.yarnpkg.com/p-iteration/-/p-iteration-1.1.8.tgz#14df726d55af368beba81bcc92a26bb1b48e714a"
+  integrity sha512-IMFBSDIYcPNnW7uWYGrBqmvTiq7W0uB0fJn6shQZs7dlF3OvrHOre+JT9ikSZ7gZS3vWqclVgoQSvToJrns7uQ==
 
 p-map@^2.0.0:
   version "2.1.0"
