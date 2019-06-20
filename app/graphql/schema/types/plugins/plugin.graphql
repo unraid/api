@@ -1,6 +1,7 @@
 type Plugin {
     name: String
     isActive: Boolean
+    disabled: Boolean!
     modules: [PluginModule]
 }
 
