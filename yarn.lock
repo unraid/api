@@ -278,7 +278,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#acfaff77e104169bf3edaf3beef86cad87dd4fa7"
+  resolved "ssh://git@github.com:unraid/core.git#7de1d73b306d1ae296323390e46ef5eb1162ae76"
   dependencies:
     bolus "https://github.com/omgimalexis/bolus"
     camelcase "^5.3.1"
