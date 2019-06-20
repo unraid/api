@@ -10,7 +10,7 @@
  * all copies or substantial portions of the Software.
  */
 
-module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, loadState, AppError, PluginManager, FileMissingError) {
+module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, loadState, AppError, PluginManager, PluginError) {
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;
@@ -112,8 +112,11 @@ module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, 
 
 			// If we're looking for a plugin verifiy it's installed and active first
 			if (params.plugin) {
+				if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
+					throw new PluginError('Plugin not installed.');
+				}
 				if (!PluginManager.isActive(pluginName, pluginModuleName)) {
-					throw new AppError('Plugin has been disabled.');
+					throw new PluginError('Plugin disabled.');
 				}
 
 				const pluginModule = PluginManager.get(pluginName, pluginModuleName);
@@ -129,15 +132,9 @@ module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, 
 				}
 			};
 
-			// Check if file exists before running
-			if (!fs.existsSync(funcPath)) {
-				throw new FileMissingError(funcPath);
-			}
-
 			// Resolve func
 			let func;
 			try {
-				log.info({funcPath, locals});
 				func = $injector.resolvePath(funcPath, locals);
 			} catch (error) {
 				throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
@@ -173,25 +170,12 @@ module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, 
 		resolvers,
 		context: ({ req }) => {
 			const token = req.headers['x-api-key'];
-			let apiKey;
 
 			if (!token) {
 				throw new AppError('Missing apikey.');
 			}
 
-			if (ApiManager.expired('my_servers')) {
-				try {
-					apiKey = loadState('/boot/config/plugins/dynamix/dynamix.cfg').remote.apikey;
-				} catch (error) {
-					throw new AppError('My servers api key is missing, did you register your server?');
-				}
-
-				if (apiKey) {
-					ApiManager.add('my_servers', apiKey);
-				}
-			}
-
-			if (!ApiManager.isValid('my_servers', token)) {
+			if (!ApiManager.isValid(token)) {
 				throw new AppError('Invalid apikey.');
 			}
 		}
