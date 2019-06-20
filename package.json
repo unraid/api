@@ -25,8 +25,7 @@
     "lodash.get": "^4.4.2",
     "merge-graphql-schemas": "^1.5.8",
     "p-props": "^3.0.1",
-    "stoppable": "^1.1.0",
-    "utils": "https://github.com/unraid/utils"
+    "stoppable": "^1.1.0"
   },
   "devDependencies": {
     "bundle-dependencies": "^1.0.2"
