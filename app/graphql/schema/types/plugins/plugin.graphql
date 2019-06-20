@@ -5,6 +5,7 @@ type Plugin {
 }
 
 type PluginModule {
+    name: String!
     filePath: String
-    isActive: Boolean
+    isActive: Boolean!
 }

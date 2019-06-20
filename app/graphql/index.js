@@ -10,7 +10,7 @@
  * all copies or substantial portions of the Software.
  */
 
- module.exports = function ($injector, glob, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, loadState, AppError) {
+module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, loadState, AppError, PluginManager, FileMissingError) {
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;
@@ -43,7 +43,7 @@
 			user(id: String!): User @func(module: "users/user/get-user", result:"json")
 			users: [User!]! @func(module: "get-users", result:"json")
 			plugins: [Plugin] @func(module: "get-plugins", result:"json")
-			pluginModule(plugin: String!, module: String!): JSON @func(result:"json")
+			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result:"json")
 			service(name: String!): Service @func(module: "services/name/get-service", result:"json")
 			services: [Service] @func(module: "get-services", result:"json")
 			shares: [Share] @func(module: "get-shares", result:"json")
@@ -89,29 +89,38 @@
 			const path = $injector.resolve('path');
 			const paths = $injector.resolve('paths');
 			const createContextParams = args => args.map(param => {
-				// Return string
-				if (param.value.kind === 'StringValue') {
+				// Lookup value mapping
+				if (param.value.kind === 'Variable') {
 					return {
-						[param.name.value]: param.value.value
+						[param.name.value]: info.variableValues[param.value.name.value]
 					};
 				}
 
-				// Lookup value mapping
+				// Return value
 				return {
-					[param.name.value]: info.variableValues[param.value.name.value]
+					[param.name.value]: param.value.value
 				};
 			})
 				.reduce((current, next) => ({ ...current, ...next }), {});
 			const args = info.fieldNodes.length >= 1 ? info.fieldNodes[0].arguments : [];
-			const params = createContextParams(args);
-			const { module: wantedModule, result: wantedResult } = directiveArgs;
+			const { module: moduleName, result: resultType } = directiveArgs;
 			const coreCwd = path.join(paths.get('core'), 'modules');
-			const pluginCwd = paths.get('plugins');
-			const { plugin: pluginName, module: pluginModuleName, ...rest } = params;
-			const contextParams = pluginName ? rest : params;
-			const modulePath = pluginName ? path.join(pluginCwd, pluginName) : coreCwd;
-			const subModulePath = pluginName ? path.join('modules', pluginModuleName) : wantedModule;
-			const funcPath = path.join(modulePath, subModulePath);
+			const params = createContextParams(args);
+			const { plugin: pluginName, module: pluginModuleName, result: pluginType, ...rest } = params;
+			let contextParams = params;
+			let funcPath = path.join(coreCwd, moduleName + '.js');
+
+			// If we're looking for a plugin verifiy it's installed and active first
+			if (params.plugin) {
+				if (!PluginManager.isActive(pluginName, pluginModuleName)) {
+					throw new AppError('Plugin has been disabled.');
+				}
+
+				const pluginModule = PluginManager.get(pluginName, pluginModuleName);
+				// Update plugin module params and funcPath
+				contextParams = rest.params || {};
+				funcPath = pluginModule.filePath;
+			}
 
 			// Create func locals
 			const locals = {
@@ -120,8 +129,19 @@
 				}
 			};
 
+			// Check if file exists before running
+			if (!fs.existsSync(funcPath)) {
+				throw new FileMissingError(funcPath);
+			}
+
 			// Resolve func
-			const func = $injector.resolvePath(funcPath, locals);
+			let func;
+			try {
+				log.info({funcPath, locals});
+				func = $injector.resolvePath(funcPath, locals);
+			} catch (error) {
+				throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+			}
 
 			// Run function
 			return Promise.resolve(func)
@@ -130,18 +150,18 @@
 					result = await Promise.resolve(result).then(result => typeof result === 'function' ? result() : result);
 
 					// Get wanted result type
-					result = result[wantedResult];
+					result = result[pluginType || resultType];
 
 					// Allow fields to be extracted
 					if (directiveArgs.extractFromResponse) {
 						result = get(result, directiveArgs.extractFromResponse);
 					}
 
-					log.debug('Module: %s Result: %s', wantedModule, JSON.stringify(result, null, 2))
+					log.debug(`${pluginName ? 'Plugin: ' + pluginName + ' ' : ''}Module: %s Result: %s`, pluginModuleName || moduleName, JSON.stringify(result, null, 2))
 					return result;
 				})
 				.catch(error => {
-					log.debug('Module: %s Error: %s', wantedModule, error.message);
+					log.debug('%s: %s Error: %s', pluginName ? 'Plugin' : 'Module', pluginName || wantedModule, error.message);
 					return error;
 				});
 		}
