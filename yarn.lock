@@ -187,7 +187,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#83836819926a64436268b794dc22fcdc6e80a314"
+  resolved "ssh://git@github.com:unraid/core.git#b83ac7a793188d27fb57fa5daa00f483c055b6d3"
   dependencies:
     better-stack-traces "^1.1.0"
     bolus "https://github.com/omgimalexis/bolus"
@@ -202,7 +202,7 @@
     flatten "^1.0.2"
     fromentries "^1.1.0"
     fs-extra "^8.0.1"
-    fs-proxy "^1.8.1"
+    fs-proxy "ssh://git@github.com/OmgImAlexis/fs-proxy"
     get-server-address "^1.0.1"
     glob "^7.1.4"
     ini "^1.3.5"
@@ -1012,6 +1012,13 @@ fs-proxy@^1.8.1:
   resolved "https://registry.yarnpkg.com/fs-proxy/-/fs-proxy-1.8.1.tgz#fff97574d50abdd3c9ee8e86d6e458b528136051"
   integrity sha1-//l1dNUKvdPJ7o6G1uRYtSgTYFE=
   dependencies:
+    deep-assign "^2.0.0"
+
+"fs-proxy@ssh://git@github.com/OmgImAlexis/fs-proxy":
+  version "1.8.1"
+  resolved "ssh://git@github.com/OmgImAlexis/fs-proxy#013de45d35c12b214cd181807c582a7ebe343d01"
+  dependencies:
+    chokidar "^3.0.1"
     deep-assign "^2.0.0"
 
 fs.realpath@^1.0.0:
