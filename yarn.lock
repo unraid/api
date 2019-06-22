@@ -187,7 +187,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#0b964bb92dcfcc131b1c89643095ccaf451bb5c4"
+  resolved "ssh://git@github.com:unraid/core.git#2330083022d6e679eed2b6d0e9267bfc4c48f420"
   dependencies:
     better-stack-traces "^1.1.0"
     bolus "https://github.com/omgimalexis/bolus"
@@ -195,7 +195,6 @@
     camelcase-keys "^5.2.0"
     chokidar "^3.0.1"
     clean-cache "^1.0.2"
-    conf-cfg-ini "https://github.com/omgimalexis/conf-cfg-ini"
     deepmerge "^3.2.1"
     dockerode "^2.5.8"
     execa "^1.0.0"
@@ -210,6 +209,7 @@
     is-relative "^1.0.0"
     micromongo-class "ssh://git@github.com:omgimalexis/micromongo-class"
     ms "^2.1.2"
+    multi-ini "^2.0.0"
     mustache "^3.0.1"
     os-uptime "^2.0.2"
     p-iteration "^1.1.8"
@@ -1435,7 +1435,7 @@ lodash.sortby@^4.7.0:
   resolved "https://registry.yarnpkg.com/lodash.sortby/-/lodash.sortby-4.7.0.tgz#edd14c824e2cc9c1e0b0a1b42bb5210516a42438"
   integrity sha1-7dFMgk4sycHgsKG0K7UhBRakJDg=
 
-lodash@^4.17.11:
+lodash@^4.0.0, lodash@^4.17.11:
   version "4.17.11"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.11.tgz#b39ea6229ef607ecd89e2c8df12536891cac9b8d"
   integrity sha512-cQKh8igo5QUhZ7lg38DYWAxMvjSAKG0A8wGSVimP07SIUEK2UO+arSRKbRZWtelMtN5V0Hkwh5ryOto/SshYIg==
@@ -1577,6 +1577,13 @@ ms@^2.1.1, ms@^2.1.2:
   version "2.1.2"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.2.tgz#d09d1f357b443f493382a8eb3ccd183872ae6009"
   integrity sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==
+
+multi-ini@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/multi-ini/-/multi-ini-2.0.0.tgz#a82d912c7695d2dbabaf798fade81174430b933f"
+  integrity sha512-1f8ARxyQesSeRrBNRC0lwD5nDa9cJj/TI0t7vamGrpVRKAlWhM+4gTJbreFJge+rJ27f7zMbahDoND16cYmOzg==
+  dependencies:
+    lodash "^4.0.0"
 
 mustache@^3.0.1:
   version "3.0.1"
