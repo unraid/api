@@ -17,7 +17,8 @@ module.exports = {
         },
         env_production: {
             PORT: '/var/run/graphql-api.sock',
-            NODE_ENV: 'production'
+            NODE_ENV: 'production',
+            BETTER_STACK_TRACES: true
         }
     }]
 };
