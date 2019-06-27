@@ -158,7 +158,7 @@ module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, 
 					return result;
 				})
 				.catch(error => {
-					log.debug('%s: %s Error: %s', pluginName ? 'Plugin' : 'Module', pluginName || wantedModule, error.message);
+					log.debug('%s: %s Error: %s', pluginName ? 'Plugin' : 'Module', pluginName || moduleName, error.message);
 					return error;
 				});
 		}
