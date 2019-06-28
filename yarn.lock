@@ -214,7 +214,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#03c17f4c7fae0aeabe8a969a871718e25928ab06"
+  resolved "ssh://git@github.com:unraid/core.git#190e0f01ced1319102c99a6f39c158a534621ee5"
   dependencies:
     better-stack-traces "^1.1.0"
     bolus "https://github.com/omgimalexis/bolus"
