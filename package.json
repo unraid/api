@@ -47,7 +47,6 @@
     "lodash.get",
     "merge-graphql-schemas",
     "p-props",
-    "stoppable",
-    "utils"
+    "stoppable"
   ]
 }
