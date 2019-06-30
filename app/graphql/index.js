@@ -10,7 +10,7 @@
  * all copies or substantial portions of the Software.
  */
 
-module.exports = function ($injector, fs, glob, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, loadState, AppError, PluginManager, PluginError) {
+module.exports = function ($injector, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, AppError, PluginManager, PluginError) {
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;

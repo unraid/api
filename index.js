@@ -10,4 +10,8 @@
  * all copies or substantial portions of the Software.
  */
 
+// Set process title
+process.title = require('./package.json').name.split('/')[1];
+
+// Boot app
 require('./app');
