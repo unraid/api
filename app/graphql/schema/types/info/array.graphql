@@ -2,7 +2,13 @@ type Info {
     array: InfoArray @func(module: "info/get-array", result:"json")
 }
 
+enum InfoArrayState {
+    started
+    stopped
+}
+
 type InfoArray {
+    state: InfoArrayState
     capacity: InfoArrayCapacity
 }
 

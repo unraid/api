@@ -1,11 +1,16 @@
+"""A virtual machine"""
 type Vm {
     uuid: ID!
+    """Operating system type"""
     osType: String
+    """If the vm should auto-start when the server boots"""
     autostart: Boolean
+    """Max memory in bytes"""
     maxMemory: Int
     schedulerType: String
     schedulerParameters: SchedulerParameters
     securityLabel: SecurityLabel
+    """A friendly name for the vm"""
     name: String
     state: String
     memory: Int
