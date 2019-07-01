@@ -33,6 +33,7 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 		}
 
 		type Query {
+			"""Current user"""
 			me: User
 			app(id: String!): App @func(module: "apps/app/get-app")
 			apps: [App!]! @func(module: "get-apps", result: "json")

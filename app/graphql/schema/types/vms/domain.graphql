@@ -1,5 +1,5 @@
 type Vms {
-    domains: Domain @func(module: "vms/get-domains", result: "json")
+    domains: [Domain] @func(module: "vms/get-domains", result: "json")
 }
 
 """A virtual machine"""
