@@ -205,7 +205,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#c5aab1c92b129cae4242eacabc649557215bad81"
+  resolved "ssh://git@github.com:unraid/core.git#c5bcb84826db10cddcd1632660d6436ad2830aa6"
   dependencies:
     better-stack-traces "^1.1.0"
     bolus "https://github.com/omgimalexis/bolus"
@@ -246,6 +246,7 @@
     temp-write "^4.0.0"
     tracer "^0.9.8"
     upcast "^4.0.0"
+    validator "^11.0.0"
 
 "@wry/equality@^0.1.2":
   version "0.1.9"
@@ -3255,6 +3256,11 @@ validate-npm-package-license@^3.0.1:
   dependencies:
     spdx-correct "^3.0.0"
     spdx-expression-parse "^3.0.0"
+
+validator@^11.0.0:
+  version "11.0.0"
+  resolved "https://registry.yarnpkg.com/validator/-/validator-11.0.0.tgz#fb10128bfb1fd14ce4ed36b79fc94289eae70667"
+  integrity sha512-+wnGLYqaKV2++nUv60uGzUJyJQwYVOin6pn1tgEiFCeCQO60yeu3Og9/yPccbBX574kxIcEJicogkzx6s6eyag==
 
 vary@^1, vary@~1.1.2:
   version "1.1.2"
