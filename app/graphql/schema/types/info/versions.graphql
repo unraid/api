@@ -1,5 +1,5 @@
 type Info {
-    versions: Versions @func(module: "info/get-versions", result:"json")
+    versions: Versions @func(module: "info/get-versions", result: "json")
 }
 
 type Versions {

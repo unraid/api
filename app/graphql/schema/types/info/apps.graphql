@@ -1,5 +1,5 @@
 type Info {
-    apps: InfoApps @func(module: "info/get-apps", result:"json")
+    apps: InfoApps @func(module: "info/get-apps", result: "json")
 }
 
 type InfoApps {

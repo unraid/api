@@ -43,7 +43,8 @@ $injector.registerImports({
     mergeGraphqlSchemas: 'merge-graphql-schemas',
     GraphQLJSON: 'graphql-type-json',
     GraphQLLong: 'graphql-type-long',
-    GraphQLUUID: 'graphql-type-uuid'
+    GraphQLUUID: 'graphql-type-uuid',
+    gql: 'graphql-tag'
 }, module);
 
 // Register all of the single js files as modules.

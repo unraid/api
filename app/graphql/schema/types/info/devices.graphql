@@ -1,5 +1,5 @@
 type Info {
-    devices: Devices @func(module: "info/get-devices", result:"json")
+    devices: Devices @func(module: "info/get-devices", result: "json")
 }
 
 type Devices {

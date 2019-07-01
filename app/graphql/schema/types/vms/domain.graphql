@@ -1,5 +1,9 @@
+type Vms {
+    domains: Domain @func(module: "vms/get-domains", result: "json")
+}
+
 """A virtual machine"""
-type Vm {
+type Domain {
     uuid: ID!
     """Operating system type"""
     osType: String

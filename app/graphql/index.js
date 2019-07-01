@@ -10,12 +10,12 @@
  * all copies or substantial portions of the Software.
  */
 
-module.exports = function ($injector, get, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, AppError, PluginManager, PluginError) {
+module.exports = function ($injector, get, gql, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, AppError, PluginManager, PluginError) {
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;
 
-	const types = mergeTypes([`
+	const types = mergeTypes([gql`
 		scalar JSON
 		scalar Long
 		scalar UUID
@@ -35,19 +35,21 @@ module.exports = function ($injector, get, graphql, graphqlDirective, mergeGraph
 		type Query {
 			me: User
 			app(id: String!): App @func(module: "apps/app/get-app")
-			apps: [App!]! @func(module: "get-apps", result:"json")
+			apps: [App!]! @func(module: "get-apps", result: "json")
 			device(id: String!): Device @func(module: "devices/device/get-device")
-			devices: [Device!]! @func(module: "get-devices", result:"json")
+			devices: [Device!]! @func(module: "get-devices", result: "json")
 			info: Info @container
-			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices", result:"json")
-			user(id: String!): User @func(module: "users/user/get-user", result:"json")
-			users: [User!]! @func(module: "get-users", result:"json")
-			plugins: [Plugin] @func(module: "get-plugins", result:"json")
-			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result:"json")
-			service(name: String!): Service @func(module: "services/name/get-service", result:"json")
-			services: [Service] @func(module: "get-services", result:"json")
-			shares: [Share] @func(module: "get-shares", result:"json")
-			vars: Vars @func(module: "get-vars", result:"json")
+			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices", result: "json")
+			user(id: String!): User @func(module: "users/user/get-user", result: "json")
+			users: [User!]! @func(module: "get-users", result: "json")
+			plugins: [Plugin] @func(module: "get-plugins", result: "json")
+			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
+			service(name: String!): Service @func(module: "services/name/get-service", result: "json")
+			services: [Service] @func(module: "get-services", result: "json")
+			shares: [Share] @func(module: "get-shares", result: "json")
+			vars: Vars @func(module: "get-vars", result: "json")
+			vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain", result: "json")
+			vms: Vms @container
 		}
 	`, typeDefs]);
 
@@ -110,7 +112,7 @@ module.exports = function ($injector, get, graphql, graphqlDirective, mergeGraph
 			let contextParams = params;
 			let funcPath = path.join(coreCwd, moduleName + '.js');
 
-			// If we're looking for a plugin verifiy it's installed and active first
+			// If we're looking for a plugin verify it's installed and active first
 			if (params.plugin) {
 				if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
 					throw new PluginError('Plugin not installed.');

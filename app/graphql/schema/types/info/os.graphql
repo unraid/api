@@ -1,5 +1,5 @@
 type Info {
-    os: Os @func(module: "info/get-os", result:"json")
+    os: Os @func(module: "info/get-os", result: "json")
 }
 
 type Os {
