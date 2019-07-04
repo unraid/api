@@ -29,27 +29,29 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 		directive @container on FIELD_DEFINITION
 
 		type Mutation {
-			login(username: String): String
+			login(username: String!): String
+			"""Install plugin via npm"""
+			addPlugin(name: String!, version: String): JSON @func(module: "add-plugin")
+			updatePlugin(name: String!, version: String): JSON
+			removePlugin(name: String!): JSON
 		}
 
 		type Query {
 			"""Current user"""
 			me: User
-			app(id: String!): App @func(module: "apps/app/get-app")
-			apps: [App!]! @func(module: "get-apps", result: "json")
 			device(id: String!): Device @func(module: "devices/device/get-device")
-			devices: [Device!]! @func(module: "get-devices", result: "json")
+			devices: [Device!]! @func(module: "get-devices")
 			info: Info @container
-			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices", result: "json")
-			user(id: String!): User @func(module: "users/user/get-user", result: "json")
-			users: [User!]! @func(module: "get-users", result: "json")
-			plugins: [Plugin] @func(module: "get-plugins", result: "json")
+			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices")
+			user(id: String!): User @func(module: "users/user/get-user")
+			users: [User!]! @func(module: "get-users")
+			plugins: [Plugin] @func(module: "get-plugins")
 			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
-			service(name: String!): Service @func(module: "services/name/get-service", result: "json")
-			services: [Service] @func(module: "get-services", result: "json")
-			shares: [Share] @func(module: "get-shares", result: "json")
-			vars: Vars @func(module: "get-vars", result: "json")
-			vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain", result: "json")
+			service(name: String!): Service @func(module: "services/name/get-service")
+			services: [Service] @func(module: "get-services")
+			shares: [Share] @func(module: "get-shares")
+			vars: Vars @func(module: "get-vars")
+			vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain")
 			vms: Vms @container
 		}
 	`, typeDefs]);
@@ -129,9 +131,14 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			}
 
 			// Create func locals
+			const operations = {
+				mutation: 'data',
+				query: 'params'
+			};
+			const { operation } = info.operation;
 			const locals = {
 				context: {
-					params: contextParams
+					[operations[operation]]: contextParams
 				}
 			};
 
@@ -149,8 +156,8 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 					// If function's result is a function or promise run/resolve it
 					result = await Promise.resolve(result).then(result => typeof result === 'function' ? result() : result);
 
-					// Get wanted result type
-					result = result[pluginType || resultType];
+					// Get wanted result type or fall back to json
+					result = result[pluginType || resultType || 'json'];
 
 					// Allow fields to be extracted
 					if (directiveArgs.extractFromResponse) {
