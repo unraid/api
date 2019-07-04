@@ -3,7 +3,9 @@ type Info {
 }
 
 enum InfoArrayState {
+    """Array is started"""
     started
+    """Array is stopped"""
     stopped
 }
 

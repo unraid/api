@@ -2,6 +2,13 @@ type Vms {
     domains: [Domain] @func(module: "vms/get-domains", result: "json")
 }
 
+enum VmState {
+    """Machine is stopped"""
+    shut_off
+    """Machine is running"""
+    running
+}
+
 """A virtual machine"""
 type Domain {
     uuid: ID!
@@ -16,7 +23,7 @@ type Domain {
     securityLabel: SecurityLabel
     """A friendly name for the vm"""
     name: String
-    state: String
+    state: VmState
     memory: Int
     vcpus: Int
     cpuTime: Int
