@@ -22,6 +22,8 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 
 		directive @func(
 			module: String
+			data: JSON
+			query: JSON
 			result: String
 			extractFromResponse: String
 		) on FIELD_DEFINITION
@@ -32,26 +34,45 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			login(username: String!): String
 			"""Install plugin via npm"""
 			addPlugin(name: String!, version: String): JSON @func(module: "add-plugin")
+			"""Update plugin installed via npm"""
 			updatePlugin(name: String!, version: String): JSON
+			"""Uninstall plugin"""
 			removePlugin(name: String!): JSON
+			"""Start array"""
+			startArray: JSON @func(module: "array/update-array", data: { state: "start" })
+			"""Stop array"""
+			stopArray: JSON @func(module: "array/update-array", data: { state: "stop" })
 		}
 
 		type Query {
 			"""Current user"""
 			me: User
 			device(id: String!): Device @func(module: "devices/device/get-device")
-			devices: [Device!]! @func(module: "get-devices")
+			"""Docker container"""
+			dockerContainer(id: String!): DockerContainer! @func(module: "docker/get-container")
+			"""All Docker containers"""
+			dockerContainers(all: Boolean): [DockerContainer]! @func(module: "docker/get-containers")
+			"""Docker network"""
+			dockerNetwork(id: String!): DockerNetwork! @func(module: "docker/get-network")
+			"""All Docker networks"""
+			dockerNetworks(all: Boolean): [DockerNetwork]! @func(module: "docker/get-networks")
+			devices: [Device]! @func(module: "get-devices")
 			info: Info @container
 			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices")
+			"""User account"""
 			user(id: String!): User @func(module: "users/user/get-user")
+			"""User accounts"""
 			users: [User!]! @func(module: "get-users")
 			plugins: [Plugin] @func(module: "get-plugins")
 			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 			service(name: String!): Service @func(module: "services/name/get-service")
 			services: [Service] @func(module: "get-services")
+			"""Network Share"""
 			shares: [Share] @func(module: "get-shares")
 			vars: Vars @func(module: "get-vars")
+			"""Virtual machine"""
 			vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain")
+			"""Virtual machines"""
 			vms: Vms @container
 		}
 	`, typeDefs]);
@@ -112,11 +133,18 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			const coreCwd = path.join(paths.get('core'), 'modules');
 			const params = createContextParams(args);
 			const { plugin: pluginName, module: pluginModuleName, result: pluginType, ...rest } = params;
-			let contextParams = params;
+			let query = {
+				...directiveArgs.query,
+				...(rest.query || { ...rest })
+			};
+			let data = {
+				...directiveArgs.data,
+				...(rest.data || { ...rest })
+			};
 			let funcPath = path.join(coreCwd, moduleName + '.js');
 
 			// If we're looking for a plugin verify it's installed and active first
-			if (params.plugin) {
+			if (pluginName) {
 				if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
 					throw new PluginError('Plugin not installed.');
 				}
@@ -125,20 +153,15 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 				}
 
 				const pluginModule = PluginManager.get(pluginName, pluginModuleName);
-				// Update plugin module params and funcPath
-				contextParams = rest.params || {};
+				// Update plugin funcPath
 				funcPath = pluginModule.filePath;
 			}
 
 			// Create func locals
-			const operations = {
-				mutation: 'data',
-				query: 'params'
-			};
-			const { operation } = info.operation;
 			const locals = {
 				context: {
-					[operations[operation]]: contextParams
+					query,
+					data
 				}
 			};
 

@@ -1,0 +1,17 @@
+type DockerNetwork {
+    name: String
+    id: String
+    created: String
+    scope: String
+    driver: String
+    enableIPv6: Boolean!
+    ipam: JSON
+    internal: Boolean!
+    attachable: Boolean!
+    ingress: Boolean!
+    configFrom: JSON
+    configOnly: Boolean!
+    containers: JSON
+    options: JSON
+    labels: JSON
+}

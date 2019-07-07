@@ -1,0 +1,49 @@
+enum ContainerPortType {
+    tcp
+    udp
+}
+
+type ContainerPort {
+    ip: String!
+    privatePort: Int
+    publicPort: Int
+    type: ContainerPortType
+}
+
+enum ContainerState {
+    running
+    exited
+}
+
+type ContainerHostConfig {
+    networkMode: String!
+}
+
+type ContainerMount {
+    type: String!
+    name: String!
+    source: String!
+    destination: String!
+    driver: String!
+    mode: String!
+    rw: Boolean!
+    propagation: String!
+}
+
+type DockerContainer {
+    id: ID!
+    names: [String!]
+    image: String!
+    imageId: String!
+    command: String!
+    created: Int!
+    ports: [ContainerPort]
+    sizeRootFs: Int!
+    labels: JSON
+    state: ContainerState
+    status: String!
+    hostConfig: ContainerHostConfig
+    networkSettings: JSON
+    mounts: [JSON]
+    autoStart: Boolean!
+}
