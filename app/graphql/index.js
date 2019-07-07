@@ -14,8 +14,7 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;
-
-	const types = mergeTypes([gql`
+	const types = [gql`
 		scalar JSON
 		scalar Long
 		scalar UUID
@@ -60,9 +59,10 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			info: Info @container
 			unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices")
 			"""User account"""
-			user(id: String!): User @func(module: "users/user/get-user")
+			user(id: String!): User @func(module: "users/id/get-user")
 			"""User accounts"""
 			users: [User!]! @func(module: "get-users")
+			"""Core plugins"""
 			plugins: [Plugin] @func(module: "get-plugins")
 			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 			service(name: String!): Service @func(module: "services/name/get-service")
@@ -75,9 +75,32 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			"""Virtual machines"""
 			vms: Vms @container
 		}
-	`, typeDefs]);
+	`];
 
-	const schema = buildSchema(types);
+	// Add debug defs in dev mode
+	if (process.env.NODE_ENV === 'development') {
+		const debugDefs = gql`
+			# Test query
+			input testQueryInput {
+				state: String!
+				optional: Boolean
+			}
+			type Query {
+				testQuery(id: String!, red: String, input: testQueryInput): JSON @func(module: "debug/return-context", result: "json")
+			}
+
+			# Test mutation
+			input testMutationInput {
+				state: String!
+			}
+			type Mutation {
+				testMutation(id: String!, input: testMutationInput, red: String!): JSON @func(module: "debug/return-context", result: "json")
+			}
+		`;
+		types.push(debugDefs);
+	}
+
+	const schema = buildSchema(mergeTypes([...types, typeDefs]));
 
 	addDirectiveResolveFunctionsToSchema(schema, {
 		/**
@@ -114,7 +137,7 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 		async func(resolve, obj, directiveArgs, context, info) {
 			const path = $injector.resolve('path');
 			const paths = $injector.resolve('paths');
-			const createContextParams = args => args.map(param => {
+			const mapQueryVars = args => args.map(param => {
 				// Lookup value mapping
 				if (param.value.kind === 'Variable') {
 					return {
@@ -131,15 +154,15 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			const args = info.fieldNodes.length >= 1 ? info.fieldNodes[0].arguments : [];
 			const { module: moduleName, result: resultType } = directiveArgs;
 			const coreCwd = path.join(paths.get('core'), 'modules');
-			const params = createContextParams(args);
-			const { plugin: pluginName, module: pluginModuleName, result: pluginType, ...rest } = params;
+			const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = mapQueryVars(args);
+			const operationType = info.operation.operation;
 			let query = {
 				...directiveArgs.query,
-				...(rest.query || { ...rest })
+				...(operationType === 'query' ? input : {})
 			};
 			let data = {
 				...directiveArgs.data,
-				...(rest.data || { ...rest })
+				...(operationType === 'mutation' ? input : {})
 			};
 			let funcPath = path.join(coreCwd, moduleName + '.js');
 
@@ -158,9 +181,12 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			}
 
 			// Create func locals
+			// If query    @func(param_1, param_2, input: query?)
+			// If mutation @func(param_1, param_2, input: data)
 			const locals = {
 				context: {
 					query,
+					params,
 					data
 				}
 			};
