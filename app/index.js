@@ -29,12 +29,12 @@ $injector.registerImports([
     'graphql',
     'deepmerge',
     'stoppable'
-], module);
+]);
 
 // Register modules that need require and not import
 $injector.registerRequires([
     'graphql'
-], module);
+]);
 
 // Register the imported modules with custom names.
 $injector.registerImports({
@@ -45,7 +45,7 @@ $injector.registerImports({
     GraphQLLong: 'graphql-type-long',
     GraphQLUUID: 'graphql-type-uuid',
     gql: 'graphql-tag'
-}, module);
+});
 
 // Register all of the single js files as modules.
 $injector.registerPath([

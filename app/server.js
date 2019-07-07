@@ -10,7 +10,7 @@
  * all copies or substantial portions of the Software.
  */
 
- /**
+/**
  * The Graphql server.
  */
 module.exports = function ($injector, fs, net, express, config, log, getEndpoints, stoppable) {
@@ -26,17 +26,17 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
     graphApp.applyMiddleware({ app });
 
     // List all endpoints at start of server
-    app.get('/', (req, res, next) => {
+    app.get('/', (_, res) => {
         return res.send(getEndpoints(app));
     });
 
     // Handle errors by logging them and returning a 500.
-    app.use(function (err, req, res, next) {
-        log.error(err);
-        if (err.stack) {
-            err.stackTrace = err.stack;
+    app.use(function (error, _, res, _) {
+        log.error(error);
+        if (error.stack) {
+            error.stackTrace = error.stack;
         }
-        res.status(error.status || 500).send(err);
+        res.status(error.status || 500).send(error);
     });
 
     // Return an object with start and stop methods.
@@ -44,9 +44,9 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
         start() {
             server = stoppable(app.listen(port, () => {
                 // Downgrade process user to owner of this file
-                return fs.stat(__filename, (err, stats) => {
-                    if (err) {
-                        throw err;
+                return fs.stat(__filename, (error, stats) => {
+                    if (error) {
+                        throw error;
                     }
 
                     return process.setuid(stats.uid);
@@ -92,9 +92,9 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
         },
         stop() {
             // Stop the server from accepting new connections and close existing connections
-            return server.close(err => {
-                if (err) {
-                    log.error(err);
+            return server.close(error => {
+                if (error) {
+                    log.error(error);
                     // Exit with error (code 1)
                     // eslint-disable-next-line
                     process.exit(1);
