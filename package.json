@@ -28,6 +28,9 @@
     "p-props": "^3.0.1",
     "stoppable": "^1.1.0"
   },
+  "optionalDependencies": {
+    "libvirt": "^1.2.1"
+  },
   "devDependencies": {
     "bundle-dependencies": "^1.0.2"
   },
