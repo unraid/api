@@ -6,7 +6,7 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "GPL-2.0-only",
   "scripts": {
-    "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ nodemon  --signal SIGINT index.js"
+    "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js"
   },
   "dependencies": {
     "@unraid/core": "ssh://git@github.com:unraid/core.git",
