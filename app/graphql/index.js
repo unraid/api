@@ -43,6 +43,10 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			stopArray: JSON @func(module: "array/update-array", data: { state: "stop" })
 		}
 
+		input usersInput {
+			slim: Boolean
+		}
+
 		type Query {
 			"""Current user"""
 			me: User
@@ -61,8 +65,8 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			"""User account"""
 			user(id: String!): User @func(module: "users/id/get-user")
 			"""User accounts"""
-			users: [User!]! @func(module: "get-users")
-			"""Core plugins"""
+			users(input: usersInput): [User!]! @func(module: "get-users", query: { slim: false })
+			"""Node plugins"""
 			plugins: [Plugin] @func(module: "get-plugins")
 			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 			service(name: String!): Service @func(module: "services/name/get-service")
