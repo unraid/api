@@ -4,5 +4,6 @@ type User {
     """A unique name for the user"""
     name: String
     description: String
+    """If the account has a password set"""
     password: Boolean
 }
