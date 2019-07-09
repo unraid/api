@@ -31,7 +31,7 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
     });
 
     // Handle errors by logging them and returning a 500.
-    app.use(function (error, _, res, _) {
+    app.use(function (error, _, res, __) {
         log.error(error);
         if (error.stack) {
             error.stackTrace = error.stack;
