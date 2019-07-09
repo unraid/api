@@ -1,3 +1,8 @@
+type Query {
+    device(id: String!): Device @func(module: "devices/device/get-device")
+    devices: [Device]! @func(module: "get-devices")
+}
+
 type Device {
     id: String!
     tag: String

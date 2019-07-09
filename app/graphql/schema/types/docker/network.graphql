@@ -1,3 +1,10 @@
+type Query {
+    """Docker network"""
+    dockerNetwork(id: String!): DockerNetwork! @func(module: "docker/get-network")
+    """All Docker networks"""
+    dockerNetworks(all: Boolean): [DockerNetwork]! @func(module: "docker/get-networks")
+}
+
 type DockerNetwork {
     name: String
     id: String

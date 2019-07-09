@@ -1,5 +1,5 @@
 type Info {
-    array: InfoArray @func(module: "info/get-array", result: "json")
+    array: InfoArray @func(module: "info/get-array")
 }
 
 enum InfoArrayState {

@@ -1,5 +1,12 @@
+type Query {
+    """Virtual machine"""
+    vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain")
+    """Virtual machines"""
+    vms: Vms @container
+}
+
 type Vms {
-    domains: [Domain] @func(module: "vms/get-domains", result: "json")
+    domains: [Domain] @func(module: "vms/get-domains")
 }
 
 enum VmState {

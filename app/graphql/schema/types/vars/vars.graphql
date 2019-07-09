@@ -1,3 +1,7 @@
+type Query {
+    vars: Vars @func(module: "get-vars")
+}
+
 type Vars {
     version: String
     maxArraysz: Int

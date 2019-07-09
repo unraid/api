@@ -1,3 +1,19 @@
+type Query {
+    """Node plugins"""
+    plugins: [Plugin] @func(module: "get-plugins")
+}
+
+type Mutation {
+    """Install plugin via npm"""
+    addPlugin(name: String!, version: String): JSON @func(module: "add-plugin")
+
+    """Update plugin installed via npm"""
+    updatePlugin(name: String!, version: String): JSON
+
+    """Uninstall plugin"""
+    removePlugin(name: String!): JSON
+}
+
 type Plugin {
     name: String
     isActive: Boolean

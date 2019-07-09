@@ -1,3 +1,8 @@
+type Query {
+    service(name: String!): Service @func(module: "services/name/get-service")
+    services: [Service] @func(module: "get-services")
+}
+
 type Service {
     name: String
     online: Boolean!

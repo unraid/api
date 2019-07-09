@@ -1,8 +1,11 @@
 type Info {
-    apps: InfoApps @func(module: "info/get-apps", result: "json")
+    """Stats on docker containers"""
+    apps: InfoApps @func(module: "info/get-apps")
 }
 
 type InfoApps {
+    """How many docker containers are installed"""
     installed: Int
+    """How many docker containers are running"""
     started: Int
 }

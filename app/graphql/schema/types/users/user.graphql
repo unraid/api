@@ -1,3 +1,27 @@
+input usersInput {
+    slim: Boolean
+}
+
+type Query {
+    """Current user"""
+    me: User
+    """User account"""
+    user(id: String!): User @func(module: "users/id/get-user")
+    """User accounts"""
+    users(input: usersInput): [User!]! @func(module: "get-users", query: { slim: false })
+}
+
+input addUserInput {
+    name: String!
+    password: String!
+    description: String
+}
+
+type Mutation {
+    """Add a new user"""
+    addUser(input: addUserInput!): User @func(module: "add-user")
+}
+
 """A local user account"""
 type User {
     id: String!

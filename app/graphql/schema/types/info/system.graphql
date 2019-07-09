@@ -1,5 +1,5 @@
 type Info {
-    system: System @func(module: "info/get-system", result: "json")
+    system: System @func(module: "info/get-system")
 }
 
 type System {

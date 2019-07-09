@@ -1,3 +1,10 @@
+type Query {
+    """Docker container"""
+    dockerContainer(id: String!): DockerContainer! @func(module: "docker/get-container")
+    """All Docker containers"""
+    dockerContainers(all: Boolean): [DockerContainer]! @func(module: "docker/get-containers")
+}
+
 enum ContainerPortType {
     tcp
     udp

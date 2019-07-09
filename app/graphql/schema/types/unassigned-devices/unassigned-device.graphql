@@ -1,3 +1,7 @@
+type Query {
+    unassignedDevices: [UnassignedDevice] @func(module: "get-unassigned-devices")
+}
+
 type UnassignedDevice {
     devlinks: String
     devname: String

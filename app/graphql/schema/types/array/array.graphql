@@ -1,0 +1,43 @@
+type Query {
+    array: Array @func(module: "get-array")
+}
+
+type Mutation {
+    """Start array"""
+    startArray: JSON @func(module: "array/update-array", data: { state: "start" })
+    """Stop array"""
+    stopArray: JSON @func(module: "array/update-array", data: { state: "stop" })
+
+    """Start parity check"""
+    startPartityCheck: JSON @func(module: "array/update-parity", data: { state: "start" })
+    """Cancel parity check"""
+    cancelPartityCheck: JSON @func(module: "array/update-parity", data: { state: "cancel" })
+}
+
+type Array {
+    state: ArrayState!
+    capacity: ArrayCapacity!
+    drives: [Drive]
+}
+
+enum ArrayState {
+    """Array is started"""
+    started
+    """Array is stopped"""
+    stopped
+}
+
+type ArrayCapacity {
+    bytes: Capacity
+    disks: Capacity
+}
+
+type Capacity {
+    free: Long
+    used: Long
+    total: Long
+}
+
+type Drive {
+    x: String
+}

@@ -1,3 +1,8 @@
+type Query {
+    """Network Share"""
+    shares: [Share] @func(module: "get-shares")
+}
+
 type Share {
     name: String
     free: Int

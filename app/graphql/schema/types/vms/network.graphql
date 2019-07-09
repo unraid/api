@@ -1,0 +1,9 @@
+type Query {
+    """Virtual network for vms"""
+    vmNetwork(name: String!): JSON @func(module: "vms/domains/network/get-network")
+    # """Virtual networks for vms"""
+    # vmNetworks: [VmNetwork]
+}
+
+# type VmNetwork {
+# }
