@@ -1,11 +1,13 @@
 type Query {
+    """Single disk"""
     disk(id: String!): Disk @func(module: "disks/id/get-disk")
+    """Mulitiple disks"""
     disks: [Disk]! @func(module: "get-disks")
 }
 
 type Mutation {
-    mountDisk: Disk
-    unmountDisk: Disk
+    mountDisk(id: String!): Disk
+    unmountDisk(id: String!): Disk
 }
 
 type Disk {
@@ -23,19 +25,19 @@ type Disk {
     numErrors: Int!
     type: DiskType!
     color: String!
-    fsStatus: DiskFsStatus!
-    luksState: String!
-    comment: String!
+    fsStatus: String
+    luksState: String
+    comment: String
     exportable: Boolean!
     fsType: DiskFsType!
     fsColor: DiskFsColor!
     fsSize: Int!
     fsFree: Int!
-    spindownDelay: String!
-    spinupGroup: String!
-    deviceSb: String!
-    idSb: String!
-    sizeSb: Int!
+    spindownDelay: String
+    spinupGroup: String
+    deviceSb: String
+    idSb: String
+    sizeSb: Int
 }
 
 enum DiskStatus {
@@ -44,10 +46,8 @@ enum DiskStatus {
 
 enum DiskType {
     Data
-}
-
-enum DiskFsStatus {
-    Mounted
+    Parity
+    Flash
 }
 
 enum DiskFsType {
@@ -56,4 +56,9 @@ enum DiskFsType {
 
 enum DiskFsColor {
     green_on
+    green_off
+    yellow_on
+    yellow_off
+    red_on
+    red_off
 }

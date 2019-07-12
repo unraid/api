@@ -7,18 +7,30 @@ type Mutation {
     startArray: JSON @func(module: "array/update-array", data: { state: "start" })
     """Stop array"""
     stopArray: JSON @func(module: "array/update-array", data: { state: "stop" })
+
+    """Add new disk to array"""
+    addDiskToArray(input: arrayDiskInput): Array @func(module: "array/add-disk")
+    """Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error."""
+    removeDiskFromArray(input: arrayDiskInput): Array @func(module: "array/add-disk")
+}
+
+input arrayDiskInput {
+    id: String!
+    slot: Int | String
 }
 
 type Array {
     state: ArrayState!
+    """Current array capacity"""
     capacity: ArrayCapacity!
+    """Disks in the current array"""
     disks: [Disk]
 }
 
 enum ArrayState {
-    """Array is started"""
+    """Array is running"""
     started
-    """Array is stopped"""
+    """Array has stopped"""
     stopped
 }
 
