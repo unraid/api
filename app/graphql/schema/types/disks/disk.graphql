@@ -1,5 +1,5 @@
 type Query {
-    disk(id: String!): Disk @func(module: "disks/disk/get-disk")
+    disk(id: String!): Disk @func(module: "disks/id/get-disk")
     disks: [Disk]! @func(module: "get-disks")
 }
 
