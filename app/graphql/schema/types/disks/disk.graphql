@@ -1,0 +1,59 @@
+type Query {
+    disk(id: String!): Disk @func(module: "disks/disk/get-disk")
+    disks: [Disk]! @func(module: "get-disks")
+}
+
+type Mutation {
+    mountDisk: Disk
+    unmountDisk: Disk
+}
+
+type Disk {
+    idx: String!
+    name: String!
+    device: String!
+    id: String!
+    size: Int!
+    status: DiskStatus!
+    rotational: Boolean!
+    format: String!
+    temp: Int!
+    numReads: Int!
+    numWrites: Int!
+    numErrors: Int!
+    type: DiskType!
+    color: String!
+    fsStatus: DiskFsStatus!
+    luksState: String!
+    comment: String!
+    exportable: Boolean!
+    fsType: DiskFsType!
+    fsColor: DiskFsColor!
+    fsSize: Int!
+    fsFree: Int!
+    spindownDelay: String!
+    spinupGroup: String!
+    deviceSb: String!
+    idSb: String!
+    sizeSb: Int!
+}
+
+enum DiskStatus {
+    DISK_OK
+}
+
+enum DiskType {
+    Data
+}
+
+enum DiskFsStatus {
+    Mounted
+}
+
+enum DiskFsType {
+    xfs
+}
+
+enum DiskFsColor {
+    green_on
+}
