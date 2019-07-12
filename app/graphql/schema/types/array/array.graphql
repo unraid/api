@@ -7,17 +7,12 @@ type Mutation {
     startArray: JSON @func(module: "array/update-array", data: { state: "start" })
     """Stop array"""
     stopArray: JSON @func(module: "array/update-array", data: { state: "stop" })
-
-    """Start parity check"""
-    startPartityCheck: JSON @func(module: "array/update-parity", data: { state: "start" })
-    """Cancel parity check"""
-    cancelPartityCheck: JSON @func(module: "array/update-parity", data: { state: "cancel" })
 }
 
 type Array {
     state: ArrayState!
     capacity: ArrayCapacity!
-    drives: [Drive]
+    disks: [Disk]
 }
 
 enum ArrayState {
@@ -38,6 +33,52 @@ type Capacity {
     total: Long
 }
 
-type Drive {
-    x: String
+type Disk {
+    idx: String!
+    name: String!
+    device: String!
+    id: String!
+    size: Int!
+    status: DiskStatus!
+    rotational: Boolean!
+    format: String!
+    temp: Int!
+    numReads: Int!
+    numWrites: Int!
+    numErrors: Int!
+    type: DiskType!
+    color: String!
+    fsStatus: DiskFsStatus!
+    luksState: String!
+    comment: String!
+    exportable: Boolean!
+    fsType: DiskFsType!
+    fsColor: DiskFsColor!
+    fsSize: Int!
+    fsFree: Int!
+    spindownDelay: String!
+    spinupGroup: String!
+    deviceSb: String!
+    idSb: String!
+    sizeSb: Int!
+}
+
+enum DiskStatus {
+    DISK_OK
+}
+
+enum DiskType {
+    Data
+}
+
+enum DiskFsStatus {
+    Mounted
+}
+
+enum DiskFsType {
+    xfs
+}
+
+enum DiskFsColor {
+    green_on
 }
