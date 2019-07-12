@@ -158,7 +158,18 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 			try {
 				func = $injector.resolvePath(funcPath, locals);
 			} catch (error) {
-				throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+				// Rethrow clean error message about module being missing
+				if (error.code === 'MODULE_NOT_FOUND') {
+					throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+				}
+				
+				// In production let's just throw an internal error
+				if (process.env.NODE_ENV === 'production') {
+					throw new AppError('Internal error occured');
+				}
+
+				// Otherwise re-throw actual error
+				throw error;
 			}
 
 			// Run function
