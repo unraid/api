@@ -205,7 +205,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#c91d855b91b94ae625752c61c78a6f2231d13efb"
+  resolved "ssh://git@github.com:unraid/core.git#2a4e86642fe7054df8b7a9bfdb494cc9b35b9ec2"
   dependencies:
     better-stack-traces "^1.1.0"
     bolus "https://github.com/omgimalexis/bolus"
@@ -214,6 +214,7 @@
     chokidar "^3.0.1"
     clean-cache "https://github.com/OmgImAlexis/clean-cache"
     clear-module "^3.2.0"
+    cli-table "^0.3.1"
     deepmerge "^3.2.1"
     dl-tgz "^0.7.1"
     dockerode "^2.5.8"
@@ -773,6 +774,13 @@ clear-module@^3.2.0:
     parent-module "^1.0.1"
     resolve-from "^4.0.0"
 
+cli-table@^0.3.1:
+  version "0.3.1"
+  resolved "https://registry.yarnpkg.com/cli-table/-/cli-table-0.3.1.tgz#f53b05266a8b1a0b934b3d0821e6e2dc5914ae23"
+  integrity sha1-9TsFJmqLGguTSz0IIebi3FkUriM=
+  dependencies:
+    colors "1.0.3"
+
 cliui@^3.2.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/cliui/-/cliui-3.2.0.tgz#120601537a916d29940f934da3b48d585a39213d"
@@ -806,6 +814,11 @@ collection-visit@^1.0.0:
   dependencies:
     map-visit "^1.0.0"
     object-visit "^1.0.0"
+
+colors@1.0.3:
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/colors/-/colors-1.0.3.tgz#0433f44d809680fdeb60ed260f1b0c262e82a40b"
+  integrity sha1-BDP0TYCWgP3rYO0mDxsMJi6CpAs=
 
 colors@1.3.3:
   version "1.3.3"
