@@ -16,7 +16,7 @@ type Mutation {
 
 input arrayDiskInput {
     id: String!
-    slot: Int | String
+    slot: Int
 }
 
 type Array {
