@@ -36,6 +36,9 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 
 		type Mutation {
 			login(username: String!, password: String!): String
+
+			shutdown: String
+			reboot: String
 		}
 	`];
 
