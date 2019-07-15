@@ -151,9 +151,13 @@ type Vars {
     fsNumMounted: Int
     fsNumUnmountable: Int
     fsUnmountableMask: String
+    """Total amount of user shares"""
     shareCount: Int
+    """Total amount shares with SMB enabled"""
     shareSmbCount: Int
+    """Total amount shares with NFS enabled"""
     shareNfsCount: Int
+    """Total amount shares with AFP enabled"""
     shareAfpCount: Int
     shareMoverActive: Boolean
     csrfToken: String
