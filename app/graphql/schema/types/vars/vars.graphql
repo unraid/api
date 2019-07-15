@@ -109,7 +109,7 @@ type Vars {
     regGuid: String
     """Registation type"""
     regTy: registationType
-    """Registation owner""""
+    """Registation owner"""
     regTo: String
     regTm: String
     regTm2: String
