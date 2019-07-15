@@ -160,12 +160,12 @@ type Vars {
     uptime: String!
 }
 
-type mdState {
+enum mdState {
     SWAP_DSBL
     STARTED
 }
 
-type registationType {
+enum registationType {
     Basic
     Plus
     Pro
