@@ -3,9 +3,11 @@ type Query {
 }
 
 type Vars {
+    """Unraid version"""
     version: String
     maxArraysz: Int
     maxCachesz: Int
+    """Machine hostname"""
     name: String
     timeZone: String
     comment: String
@@ -16,10 +18,15 @@ type Vars {
     hideDotFiles: Boolean
     localMaster: Boolean
     enableFruit: String
+    """Should a NTP server be used for time sync?"""
     useNtp: Boolean
+    """NTP Server 1"""
     ntpServer1: String
+    """NTP Server 2"""
     ntpServer2: String
+    """NTP Server 3"""
     ntpServer3: String
+    """NTP Server 4"""
     ntpServer4: String
     domainLogin: String
     sysModel: String
@@ -27,10 +34,13 @@ type Vars {
     sysCacheSlots: Int
     sysFlashSlots: Int
     useSsl: Boolean
+    """Port for the webui via HTTP"""
     port: Int
+    """Port for the webui via HTTPS"""
     portssl: Int
     localTld: String
     bindMgt: Boolean
+    """Should telnet be enabled?"""
     useTelnet: Boolean
     porttelnet: Int
     useSsh: Boolean
@@ -60,7 +70,7 @@ type Vars {
     mdSyncThreshDefault: Int
     mdSyncThreshStatus: String
     mdWriteMethod: Int
-    mdWriteMethodDefault: Int
+    mdWriteMethodDefault: String
     mdWriteMethodStatus: String
     shareDisk: String
     shareUser: String
@@ -97,7 +107,9 @@ type Vars {
     regCheck: String
     regFile: String
     regGuid: String
-    regTy: String
+    """Registation type"""
+    regTy: registationType
+    """""""
     regTo: String
     regTm: String
     regTm2: String
@@ -132,7 +144,9 @@ type Vars {
     cacheNumDevices: Int
     cacheSbNumDisks: Int
     fsState: String
+    """Human friendly string of array events happening"""
     fsProgress: String
+    """Percentage from 0 - 100 while upgrading a disk or swapping parity drives"""
     fsCopyPrcnt: Int
     fsNumMounted: Int
     fsNumUnmountable: Int
@@ -144,4 +158,15 @@ type Vars {
     shareMoverActive: Boolean
     csrfToken: String
     uptime: String!
+}
+
+type mdState {
+    SWAP_DSBL
+    STARTED
+}
+
+type registationType {
+    Basic
+    Plus
+    Pro
 }
