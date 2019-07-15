@@ -4,9 +4,9 @@ type Query {
 
 type Mutation {
     """Start array"""
-    startArray: JSON @func(module: "array/update-array", data: { state: "start" })
+    startArray: Array @func(module: "array/update-array", data: { state: "start" })
     """Stop array"""
-    stopArray: JSON @func(module: "array/update-array", data: { state: "stop" })
+    stopArray: Array @func(module: "array/update-array", data: { state: "stop" })
 
     """Add new disk to array"""
     addDiskToArray(input: arrayDiskInput): Array @func(module: "array/add-disk")
@@ -20,6 +20,11 @@ input arrayDiskInput {
 }
 
 type Array {
+    """Array state before this query/mutation"""
+    previousState: ArrayState
+    """Array state after this query/mutation"""
+    pendingState: ArrayPendingState
+    """Current array state"""
     state: ArrayState!
     """Current array capacity"""
     capacity: ArrayCapacity!
@@ -32,6 +37,13 @@ enum ArrayState {
     started
     """Array has stopped"""
     stopped
+}
+
+enum ArrayPendingState {
+    """Array is starting"""
+    starting
+    """Array is stopping"""
+    stopping
 }
 
 type ArrayCapacity {

@@ -8,6 +8,8 @@ type Query {
 type Mutation {
     mountDisk(id: String!): Disk
     unmountDisk(id: String!): Disk
+
+    clearDiskStatistics(id: String!): JSON
 }
 
 type Disk {
