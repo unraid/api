@@ -4,13 +4,13 @@ type Query {
 
 type Mutation {
     """Start parity check"""
-    startPartityCheck(correct: Boolean): JSON @func(module: "array/update-parity-check", data: { state: "start" })
+    startParityCheck(correct: Boolean): JSON @func(module: "array/update-parity-check", data: { state: "start" })
     """Pause parity check"""
-    pausePartityCheck: JSON @func(module: "array/update-parity-check", data: { state: "pause" })
+    pauseParityCheck: JSON @func(module: "array/update-parity-check", data: { state: "pause" })
     """Resume parity check"""
-    resumePartityCheck: JSON @func(module: "array/update-parity-check", data: { state: "resume" })
+    resumeParityCheck: JSON @func(module: "array/update-parity-check", data: { state: "resume" })
     """Cancel parity check"""
-    cancelPartityCheck: JSON @func(module: "array/update-parity-check", data: { state: "cancel" })
+    cancelParityCheck: JSON @func(module: "array/update-parity-check", data: { state: "cancel" })
 }
 
 type ParityCheck {
