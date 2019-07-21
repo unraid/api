@@ -1,4 +1,5 @@
 type Query {
+    """An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks."""
     array: Array @func(module: "get-array")
 }
 
@@ -15,7 +16,9 @@ type Mutation {
 }
 
 input arrayDiskInput {
+    """Disk ID"""
     id: String!
+    """The slot for the disk"""
     slot: Int
 }
 

@@ -13,6 +13,7 @@ type Mutation {
 }
 
 type Disk {
+    """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53."""
     idx: String!
     name: String!
     device: String!
@@ -22,8 +23,11 @@ type Disk {
     rotational: Boolean!
     format: String!
     temp: Int!
+    """Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time."""
     numReads: Int!
+    """Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time."""
     numWrites: Int!
+    """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
     numErrors: Int!
     type: DiskType!
     color: String!
@@ -31,6 +35,7 @@ type Disk {
     luksState: String
     comment: String
     exportable: Boolean!
+    """Indicates the file system detected in partition 1 of the device."""
     fsType: DiskFsType!
     fsColor: DiskFsColor!
     fsSize: Int!
