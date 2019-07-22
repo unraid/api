@@ -1,16 +1,23 @@
 type Query {
-    """Network Share"""
+    """Network Shares"""
     shares: [Share] @func(module: "get-shares")
 }
 
+"""Network Share"""
 type Share {
+    """Display name"""
     name: String
+    """Free space in bytes"""
     free: Int
+    """Total size in bytes"""
     size: Int
+    """Disks that're included in this share"""
     include: [String]
+    """Disks that're excluded from this share"""
     exclude: [String]
     cache: Boolean
     nameOrig: String
+    """User comment"""
     comment: String
     allocator: String
     splitLevel: String
