@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@unraid/core": "ssh://git@github.com:unraid/core.git",
+    "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.5.0",
     "apollo-server-express": "^2.6.2",

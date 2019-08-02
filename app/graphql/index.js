@@ -10,7 +10,22 @@
  * all copies or substantial portions of the Software.
  */
 
-module.exports = function ($injector, get, gql, graphql, graphqlDirective, mergeGraphqlSchemas, ApiManager, log, typeDefs, resolvers, AppError, PluginManager, PluginError) {
+module.exports = function (
+	$injector,
+	ApiManager,
+	AppError,
+	get,
+	gql,
+	graphql,
+	graphqlDirective,
+	log,
+	mergeGraphqlSchemas,
+	PluginError,
+	PluginManager,
+	resolvers,
+	typeDefs,
+	Users
+) {
 	const { buildSchema } = graphql;
 	const { addDirectiveResolveFunctionsToSchema } = graphqlDirective;
 	const { mergeTypes } = mergeGraphqlSchemas;
@@ -29,7 +44,13 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 
 		directive @container on FIELD_DEFINITION
 
+		type welcome {
+			message: String!
+		}
+
 		type Query {
+			# This should always be available even for guest users
+			welcome: welcome! @func(module: "get-welcome")
 			info: Info @container
 			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 		}
@@ -42,16 +63,16 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 		}
 	`];
 
-	// Add debug defs in dev mode
+	// Add test defs in dev mode
 	if (process.env.NODE_ENV === 'development') {
-		const debugDefs = gql`
+		const testDefs = gql`
 			# Test query
 			input testQueryInput {
 				state: String!
 				optional: Boolean
 			}
 			type Query {
-				testQuery(id: String!, red: String, input: testQueryInput): JSON @func(module: "debug/return-context")
+				testQuery(id: String!, input: testQueryInput): JSON @func(module: "debug/return-context")
 			}
 
 			# Test mutation
@@ -59,7 +80,25 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 				state: String!
 			}
 			type Mutation {
-				testMutation(id: String!, input: testMutationInput, red: String!): JSON @func(module: "debug/return-context")
+				testMutation(id: String!, input: testMutationInput): JSON @func(module: "debug/get-context")
+			}
+		`;
+		types.push(testDefs);
+	}
+
+	// Add debug defs to all envs apart from production
+	if (process.env.NODE_ENV !== 'production') {
+		const debugDefs = gql`
+			# Debug query
+			type Context {
+				query: JSON
+				params: JSON
+				data: JSON
+				user: JSON
+			}
+
+			type Query {
+				context: Context @func(module: "debug/get-context")
 			}
 		`;
 		types.push(debugDefs);
@@ -152,7 +191,8 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 				context: {
 					query,
 					params,
-					data
+					data,
+					user: context.user
 				}
 			};
 
@@ -175,6 +215,9 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 				throw error;
 			}
 
+			const pluginOrModule = pluginName ? 'Plugin:' : 'Module:';
+			const pluginOrModuleName = pluginModuleName || moduleName;
+
 			// Run function
 			return Promise.resolve(func)
 				.then(async result => {
@@ -189,11 +232,18 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 						result = get(result, directiveArgs.extractFromResponse);
 					}
 
-					log.debug(`${pluginName ? 'Plugin: ' + pluginName + ' ' : ''}Module: %s Result: %s`, pluginModuleName || moduleName, JSON.stringify(result, null, 2))
+					log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result)
 					return result;
 				})
 				.catch(error => {
-					log.debug('%s: %s Error: %s', pluginName ? 'Plugin' : 'Module', pluginName || moduleName, error.message);
+					// Ensure we aren't leaking anything in production
+					if (process.env.NODE_ENV === 'production') {
+						log.debug(pluginOrModule, pluginOrModuleName, 'Error:', error.message);
+						return new Error(error.message);
+					}
+
+					const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
+					logger(pluginOrModule, pluginOrModuleName, 'Error:', error.message);
 					return error;
 				});
 		}
@@ -204,15 +254,21 @@ module.exports = function ($injector, get, gql, graphql, graphqlDirective, merge
 		types,
 		resolvers,
 		context: ({ req }) => {
-			const token = req.headers['x-api-key'];
+			const apiKey = req.headers['x-api-key'];
 
-			if (!token) {
+			if (!apiKey) {
 				throw new AppError('Missing apikey.');
 			}
 
-			if (!ApiManager.isValid(token)) {
+			if (!ApiManager.isValid(apiKey)) {
 				throw new AppError('Invalid apikey.');
 			}
+
+			const user = Users.findOne({ apiKey }) || { name: 'guest', apiKey, role: 'guest' };
+
+			return {
+				user
+			};
 		}
 	};
 }
