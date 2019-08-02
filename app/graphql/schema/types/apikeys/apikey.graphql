@@ -1,0 +1,21 @@
+input apiKeyInput {
+    password: String!
+}
+
+type Query {
+    """Get all apikeys"""
+    apiKeys: [ApiKey] @func(module: "get-apikeys")
+}
+
+type Mutation {
+    """Get user apikey"""
+    authenticate(name: String, input: apiKeyInput): ApiKey @func(module: "apikeys/name/get-apikey")
+}
+
+type ApiKey {
+    name: String!
+    key: String!
+    description: String
+    scopes: JSON!
+    expiresAt: Long!
+}
