@@ -1,0 +1,35 @@
+input scopesInput {
+    apiKey: String!
+}
+
+type Query {
+    scopes: JSON @func(module: "get-scopes")
+}
+
+input addScopeInput {
+    """Scope name"""
+    name: String!
+    """Scope description"""
+    description: String
+}
+
+input addScopeToApiKeyInput {
+    """Scope name"""
+    name: String!
+    apiKey: String!
+}
+
+type Mutation {
+    """Add a new permission scope"""
+    addScope(input: addScopeInput!): Scope @func(module: "add-scope")
+    """Add a new permission scope to apiKey"""
+    addScopeToApiKey(input: addScopeToApiKeyInput!): Scope @func(module: "apikeys/name/add-scope")
+}
+
+"""A permission scope"""
+type Scope {
+    """A unique name for the scope"""
+    name: String
+    """A user friendly description"""
+    description: String
+}
