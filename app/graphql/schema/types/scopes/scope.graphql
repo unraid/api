@@ -1,9 +1,10 @@
-input scopesInput {
-    apiKey: String!
+type Permissions {
+    scopes: JSON
+    grants: JSON
 }
 
 type Query {
-    scopes: JSON @func(module: "get-scopes")
+    permissions: Permissions @func(module: "get-permissions")
 }
 
 input addScopeInput {
