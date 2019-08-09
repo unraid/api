@@ -269,7 +269,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#22a1551647b5954b9a6976cf7091998bee97a640"
+  resolved "ssh://git@github.com:unraid/core.git#3a1c80d401bbca8b282ef003e030c9d406a24732"
   dependencies:
     accesscontrol "^2.2.1"
     bcryptjs "^2.4.3"
