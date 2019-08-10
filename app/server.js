@@ -41,7 +41,62 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
 
     // Return an object with start and stop methods.
     return {
-        start() {
+        async start() {
+            // Generate types and schema for core modules
+            // {
+            //     const jsdocx = $injector.resolve('jsdoc-x');
+            //     const path = $injector.resolve('path');
+            //     const paths = $injector.resolve('paths');
+            //     const moduleDir = path.join(paths.get('core'), '/modules/');
+                
+            //     console.info('----------------------------')
+            //     console.info('Parsing core modules')
+            //     const docs = jsdocx.parse(`${moduleDir}/**/*.js`)
+            //         .then(docs => {
+            //             console.log('%s', JSON.stringify(docs, null, 0))
+            //             // const x = gql`
+            //             //     type Disk {
+            //             //         id: String!
+            //             //     }
+            //             // `;
+            //         })
+            //         .catch(error => console.error(error.stack));
+            //     console.info('----------------------------')
+            // }
+            // (() => {
+            //     const documentedTypeDefs = docs
+            //         .filter(doc => !doc.undocumented)
+            //         .filter(doc => doc.kind === 'typedef')
+            //         .filter(doc => !doc.type.names.find(name => name.startsWith('Array')));
+
+            //     documentedTypeDefs.map(doc => {
+            //         const props = doc.properties ? Object.values(doc.properties).map(prop => {
+            //             const desc = prop.description ? ('"""' + prop.description + '"""') : '';
+            //             const reservedWords = {
+            //                 boolean: 'Boolean',
+            //                 number: 'Number',
+            //                 string: 'String'
+            //             };
+            //             const propType = prop.type.names[0];
+            //             const type = Object.keys(reservedWords).includes(propType) ? reservedWords[propType] : propType;
+
+            //             if (doc.name === 'DeviceInfo') {
+            //                 console.log({ doc });
+            //             }
+
+            //             return `${desc}\n${prop.name}: ${prop.optional ? '[' : ''}${type || 'JSON'}${!prop.optional ? '!' : ']'}`;
+            //         }) : [];
+            //         const template = `
+            //     type ${doc.name} {
+            //         ${props.join('\n')}
+            //     }
+            // `;
+
+            //         return template;
+            //     })
+            //         .forEach(doc => console.info('%s', doc));
+            // })()
+
             server = stoppable(app.listen(port, () => {
                 // Downgrade process user to owner of this file
                 return fs.stat(__filename, (error, stats) => {
