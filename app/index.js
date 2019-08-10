@@ -58,7 +58,7 @@ $injector.registerPath([
 ], defaultName => camelcase(defaultName));
 
 // Register core
-$injector.registerPath(path.resolve(process.env.CORE_CWD || path.join(__dirname, '../node_modules/@unraid/core')));
+$injector.registerPath(path.resolve(process.env.PATHS_CORE || path.join(__dirname, '../node_modules/@unraid/core')));
 
 // Boot app
 am(async () => {
