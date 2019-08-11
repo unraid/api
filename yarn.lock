@@ -274,7 +274,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#acc04a3909e06a81d5865baf7736a7ce6b0dd86b"
+  resolved "ssh://git@github.com:unraid/core.git#5a5f9d333910f317c218a315e226c46fdd221715"
   dependencies:
     accesscontrol "^2.2.1"
     bcryptjs "^2.4.3"
@@ -292,7 +292,7 @@
     execa "^1.0.0"
     express-list-endpoints "^4.0.1"
     flatten "^1.0.2"
-    fromentries "^1.1.0"
+    fromentries "^1.2.0"
     fs-extra "^8.0.1"
     fs-proxy "ssh://git@github.com/OmgImAlexis/fs-proxy"
     get-server-address "^1.0.1"
@@ -1596,6 +1596,11 @@ fromentries@^1.1.0:
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/fromentries/-/fromentries-1.1.0.tgz#621687fd011650fa39a44f46eac6617b812c6b80"
   integrity sha512-lNaxBVxKFZ9IZthqw+YcHjdf40U5x0L0u8D7i06Z2DpWH2hClmn5sHekzJEa40rElz/w9mWGBAp5Ik3maRsLyQ==
+
+fromentries@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/fromentries/-/fromentries-1.2.0.tgz#e6aa06f240d6267f913cea422075ef88b63e7897"
+  integrity sha512-33X7H/wdfO99GdRLLgkjUrD4geAFdq/Uv0kl3HD4da6HDixd2GUg8Mw7dahLCV9r/EARkmtYBB6Tch4EEokFTQ==
 
 fs-capacitor@^2.0.4:
   version "2.0.4"
