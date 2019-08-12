@@ -4,17 +4,17 @@
   "main": "index.js",
   "repository": "git@github.com:unraid/graphql-api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
-  "license": "GPL-2.0-only",
+  "license": "UNLICENSED",
   "scripts": {
     "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js"
   },
   "dependencies": {
-    "@unraid/core": "ssh://git@github.com:unraid/core.git",
+    "@unraid/core": "unraid/core#58e793b",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.6.1",
     "apollo-server-express": "^2.8.1",
-    "bolus": "https://github.com/omgimalexis/bolus",
+    "bolus": "OmgImAlexis/bolus#41c4fe1",
     "camelcase": "^5.3.1",
     "express": "^4.17.1",
     "got": "^9.6.0",
