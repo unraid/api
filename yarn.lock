@@ -274,7 +274,7 @@
 
 "@unraid/core@ssh://git@github.com:unraid/core.git":
   version "1.0.0"
-  resolved "ssh://git@github.com:unraid/core.git#5a5f9d333910f317c218a315e226c46fdd221715"
+  resolved "ssh://git@github.com:unraid/core.git#aa058230e1b2bdf69d7b2c5904c816a457dd3446"
   dependencies:
     accesscontrol "^2.2.1"
     bcryptjs "^2.4.3"
@@ -1591,11 +1591,6 @@ fresh@0.5.2:
   version "0.5.2"
   resolved "https://registry.yarnpkg.com/fresh/-/fresh-0.5.2.tgz#3d8cadd90d976569fa835ab1f8e4b23a105605a7"
   integrity sha1-PYyt2Q2XZWn6g1qx+OSyOhBWBac=
-
-fromentries@^1.1.0:
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/fromentries/-/fromentries-1.1.0.tgz#621687fd011650fa39a44f46eac6617b812c6b80"
-  integrity sha512-lNaxBVxKFZ9IZthqw+YcHjdf40U5x0L0u8D7i06Z2DpWH2hClmn5sHekzJEa40rElz/w9mWGBAp5Ik3maRsLyQ==
 
 fromentries@^1.2.0:
   version "1.2.0"
