@@ -362,14 +362,14 @@
   dependencies:
     "@types/node" "*"
 
-"@unraid/core@unraid/core#56ee29e":
+"@unraid/core@unraid/core#3639d66":
   version "1.0.0"
-  resolved "git+ssh://git@github.com/unraid/core.git#56ee29ef46111cf7c96ec01c4b7b080b31ad00d1"
+  resolved "git+ssh://git@github.com/unraid/core.git#3639d6608c992deb409d3880359f243f5b52b537"
   dependencies:
     accesscontrol "^2.2.1"
     bcryptjs "^2.4.3"
     better-stack-traces "^1.1.0"
-    bolus OmgImAlexis/bolus#8545881
+    bolus OmgImAlexis/bolus#71e4d3c
     camelcase "^5.3.1"
     camelcase-keys "^5.2.0"
     chokidar "^3.0.1"
@@ -878,9 +878,9 @@ body-parser@1.19.0, body-parser@^1.18.3:
     raw-body "2.4.0"
     type-is "~1.6.17"
 
-bolus@OmgImAlexis/bolus#8545881:
+bolus@OmgImAlexis/bolus#71e4d3c:
   version "0.5.1"
-  resolved "https://codeload.github.com/OmgImAlexis/bolus/tar.gz/85458816e8c3f6e12ce495f51912626313e5aa40"
+  resolved "https://codeload.github.com/OmgImAlexis/bolus/tar.gz/71e4d3c15be30826835c20a91fffed30164f8e35"
   dependencies:
     esm "^3.2.25"
     glob-all "^3.0.1"

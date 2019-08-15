@@ -9,7 +9,7 @@
     "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js"
   },
   "dependencies": {
-    "@unraid/core": "unraid/core#56ee29e",
+    "@unraid/core": "unraid/core#3639d66",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.6.1",
