@@ -878,13 +878,6 @@ body-parser@1.19.0, body-parser@^1.18.3:
     raw-body "2.4.0"
     type-is "~1.6.17"
 
-bolus@OmgImAlexis/bolus#41c4fe1:
-  version "0.5.1"
-  resolved "https://codeload.github.com/OmgImAlexis/bolus/tar.gz/41c4fe1ef4c67e3458a23126d22e847dbe744195"
-  dependencies:
-    esm "^3.2.25"
-    glob-all "^3.0.1"
-
 bolus@OmgImAlexis/bolus#8545881:
   version "0.5.1"
   resolved "https://codeload.github.com/OmgImAlexis/bolus/tar.gz/85458816e8c3f6e12ce495f51912626313e5aa40"

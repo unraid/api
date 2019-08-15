@@ -14,7 +14,6 @@
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.6.1",
     "apollo-server-express": "^2.8.1",
-    "bolus": "OmgImAlexis/bolus#41c4fe1",
     "camelcase": "^5.3.1",
     "express": "^4.17.1",
     "got": "^9.6.0",
