@@ -6,7 +6,7 @@
 /**
  * The Graphql server.
  */
-module.exports = function ($injector, fs, net, express, config, log, getEndpoints, stoppable) {
+module.exports = function ($injector, fs, net, express, config, log, getEndpoints, stoppable, http) {
     const app = express();
     const port = config.get('graphql-api-port');
     let server;
@@ -90,7 +90,11 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
             //         .forEach(doc => console.info('%s', doc));
             // })()
 
-            server = stoppable(app.listen(port, () => {
+            const httpServer = http.createServer(app);
+
+            graphApp.installSubscriptionHandlers(httpServer);
+
+            server = stoppable(httpServer.listen(port, () => {
                 // Downgrade process user to owner of this file
                 return fs.stat(__filename, (error, stats) => {
                     if (error) {

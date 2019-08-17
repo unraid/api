@@ -13,6 +13,7 @@
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.6.1",
+    "apollo-server": "^2.8.1",
     "apollo-server-express": "^2.8.1",
     "camelcase": "^5.3.1",
     "express": "^4.17.1",
@@ -26,7 +27,8 @@
     "lodash.get": "^4.4.2",
     "merge-graphql-schemas": "^1.7.0",
     "p-props": "^3.0.1",
-    "stoppable": "^1.1.0"
+    "stoppable": "^1.1.0",
+    "subscriptions-transport-ws": "^0.9.16"
   },
   "optionalDependencies": {},
   "devDependencies": {

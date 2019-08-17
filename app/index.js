@@ -17,11 +17,14 @@ const $injector = new Injector();
 // Register the imported modules with default names.
 $injector.registerImports([
     'net',
+    'http',
     'express',
+    'apollo-server',
     'apollo-server-express',
     'graphql',
     'deepmerge',
-    'stoppable'
+    'stoppable',
+    'graphql-tools'
 ]);
 
 // Register modules that need require and not import
@@ -43,6 +46,7 @@ $injector.registerImports({
 // Register all of the single js files as modules.
 $injector.registerPath([
     '*.js',
+    'graphql/*.js'
 ], defaultName => camelcase(defaultName));
 
 // Register graphql schema

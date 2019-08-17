@@ -3,6 +3,10 @@ type Query {
     services: [Service] @func(module: "get-services")
 }
 
+type Subscription {
+    services: [Service]
+}
+
 type Service {
     name: String
     online: Boolean!
