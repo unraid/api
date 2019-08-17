@@ -35,9 +35,6 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 					return pubsub.asyncIterator('ping');
 				}
 			},
-			welcome: {
-				subscribe: () => pubsub.asyncIterator('welcome')
-			},
 			services: {
 				subscribe: () => pubsub.asyncIterator('services')
 			},

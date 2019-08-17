@@ -15,6 +15,15 @@ type Mutation {
     removeDiskFromArray(input: arrayDiskInput): Array @func(module: "array/add-disk")
 }
 
+type ArraySubscription {
+    mutation: UpdateOnlyMutationType!
+    node: Array!
+}
+
+type Subscription {
+    array: ArraySubscription
+}
+
 input arrayDiskInput {
     """Disk ID"""
     id: String!

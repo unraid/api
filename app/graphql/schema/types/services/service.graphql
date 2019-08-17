@@ -3,8 +3,18 @@ type Query {
     services: [Service] @func(module: "get-services")
 }
 
+type ServiceSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: Service!
+}
+type ServicesSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: [Service]!
+}
+
 type Subscription {
-    services: [Service]
+    service(id: ID!): ServiceSubscription
+    services: ServicesSubscription
 }
 
 type Service {

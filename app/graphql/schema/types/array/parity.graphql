@@ -13,6 +13,15 @@ type Mutation {
     cancelParityCheck: JSON @func(module: "array/update-parity-check", data: { state: "cancel" })
 }
 
+type ParityHistorySubscription {
+    mutation: MutationType!
+    node: ParityCheck!
+}
+
+type Subscription {
+    parityHistory: ParityHistorySubscription
+}
+
 type ParityCheck {
     date: String!
     duration: Int!

@@ -2,6 +2,15 @@ type Query {
     vars: Vars @func(module: "get-vars")
 }
 
+type VarsSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: Vars!
+}
+
+type Subscription {
+    vars(id: ID!): VarsSubscription
+}
+
 type Vars {
     """Unraid version"""
     version: String

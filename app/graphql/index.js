@@ -61,16 +61,8 @@ module.exports = function (
 			DELETED
 		}
 
-		"""
-		This can only be updated.
-		"""
 		enum UpdateOnlyMutationType {
 			UPDATED
-		}
-
-		type WelcomeSubscription {
-			mutation: MutationType!
-			node: Welcome!
 		}
 
 		type PingSubscription {
@@ -79,7 +71,6 @@ module.exports = function (
 		}
 
 		type Subscription {
-			welcome: WelcomeSubscription!
 			ping: PingSubscription!
 		}
 	`];

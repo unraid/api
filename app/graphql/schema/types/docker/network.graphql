@@ -5,6 +5,20 @@ type Query {
     dockerNetworks(all: Boolean): [DockerNetwork]! @func(module: "docker/get-networks")
 }
 
+type DockerNetworkSubscription {
+    mutation: MutationType!
+    node: DockerNetwork!
+}
+type DockerNetworksSubscription {
+    mutation: MutationType!
+    node: [DockerNetwork]!
+}
+
+type Subscription {
+    dockerNetwork(id: ID!): DockerNetworkSubscription
+    dockerNetworks: DockerNetworksSubscription
+}
+
 type DockerNetwork {
     name: String
     id: String
