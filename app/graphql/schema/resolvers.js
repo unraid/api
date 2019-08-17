@@ -6,7 +6,7 @@
 module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
 
 	// Send test message every 1 second for 10 seconds.
-	const startPing = (interval, length) => {
+	const startPing = (interval = 1000, length = 10000) => {
 		const _interval = setInterval(() => {
 			pubsub.publish('ping', { ping: 'PONG' });
 		}, interval);
