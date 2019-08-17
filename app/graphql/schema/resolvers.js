@@ -21,8 +21,8 @@ module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
 	};
 
 	// // Recieve test messages.
-	// pubsub.subscribe('ping', (...rest) => {
-	// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
+	// pubsub.subscribe('users', (...rest) => {
+	// 	console.log(`CHANNEL: users DATA: ${JSON.stringify(rest, null, 2)}`);
 	// })
 
 	return {
