@@ -24,7 +24,8 @@ $injector.registerImports([
     'graphql',
     'deepmerge',
     'stoppable',
-    'graphql-tools'
+    'graphql-tools',
+    'graphql-subscriptions'
 ]);
 
 // Register modules that need require and not import

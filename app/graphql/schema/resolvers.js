@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
 	// Send test message every 1 second for 10 seconds.
 	const startPing = (interval = 1000, length = 10000) => {
 		const _interval = setInterval(() => {
@@ -21,9 +21,11 @@ module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
 	};
 
 	// // Recieve test messages.
-	// pubsub.subscribe('users', (...rest) => {
+	// pubsub.subscribe('me', (...rest) => {
 	// 	console.log(`CHANNEL: users DATA: ${JSON.stringify(rest, null, 2)}`);
 	// })
+
+	const { withFilter } = $injector.resolve('graphql-subscriptions');
 
 	return {
 		Subscription: {
@@ -44,6 +46,10 @@ module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
 			},
 			users: {
 				subscribe: () => pubsub.asyncIterator('users')
+			},
+			me: {
+				subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
+				resolve: payload => payload.user
 			}
 		},
 		JSON: GraphQLJSON,

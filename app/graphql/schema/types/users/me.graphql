@@ -14,3 +14,12 @@ type Me implements UserAccount {
     role: String!
     permissions: JSON
 }
+
+type MeSubscription {
+    mutation: UpdateOnlyMutationType
+    node: Me
+}
+
+type Subscription {
+    me: MeSubscription
+}
