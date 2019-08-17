@@ -4,11 +4,15 @@
  */
 
 module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
-
 	// Send test message every 1 second for 10 seconds.
 	const startPing = (interval = 1000, length = 10000) => {
 		const _interval = setInterval(() => {
-			pubsub.publish('ping', { ping: 'PONG' });
+			pubsub.publish('ping', {
+				ping: {
+					mutation: 'UPDATED',
+					node: 'PONG'
+				}
+			});
 		}, interval);
 
 		setTimeout(() => {
@@ -34,6 +38,12 @@ module.exports = function (GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub) {
 			},
 			services: {
 				subscribe: () => pubsub.asyncIterator('services')
+			},
+			user: {
+				subscribe: () => pubsub.asyncIterator('user')
+			},
+			users: {
+				subscribe: () => pubsub.asyncIterator('users')
 			}
 		},
 		JSON: GraphQLJSON,

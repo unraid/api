@@ -55,9 +55,25 @@ module.exports = function (
 			reboot: String
 		}
 
+		enum MutationType {
+			CREATED
+			UPDATED
+			DELETED
+		}
+
+		type WelcomeSubscription {
+			mutation: MutationType!
+			node: Welcome!
+		}
+
+		type PingSubscription {
+			mutation: MutationType!
+			node: String!
+		}
+
 		type Subscription {
-			welcome: Welcome!
-			ping: String! @subscription(channel: "ping")
+			welcome: WelcomeSubscription!
+			ping: PingSubscription!
 		}
 	`];
 
@@ -151,24 +167,9 @@ module.exports = function (
 			field.resolve = function (source, directiveArgs, context, info) {
 				const path = $injector.resolve('path');
 				const paths = $injector.resolve('paths');
-				const mapQueryVars = args => args.map(param => {
-					// Lookup value mapping
-					if (param.value.kind === 'Variable') {
-						return {
-							[param.name.value]: info.variableValues[param.value.name.value]
-						};
-					}
-
-					// Return value
-					return {
-						[param.name.value]: param.value.value
-					};
-				})
-					.reduce((current, next) => ({ ...current, ...next }), {});
-
 				const { module: moduleName, result: resultType } = args;
 				const coreCwd = path.join(paths.get('core'), 'modules');
-				const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = mapQueryVars(info.fieldNodes.length >= 1 ? info.fieldNodes[0].arguments : []);
+				const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = directiveArgs;
 				const operationType = info.operation.operation;
 				let query = {
 					...directiveArgs.query,
