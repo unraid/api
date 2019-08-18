@@ -2,7 +2,7 @@ type Query {
     """Virtual machine"""
     vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain")
     """Virtual machines"""
-    vms: Vms @container
+    vms: Vms
 }
 
 type Vms {

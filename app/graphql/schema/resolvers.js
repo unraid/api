@@ -28,6 +28,10 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 	const { withFilter } = $injector.resolve('graphql-subscriptions');
 
 	return {
+		Query: {
+			info: () => ({}),
+			vms: () => ({})
+		},
 		Subscription: {
 			ping: {
 				subscribe: () => {

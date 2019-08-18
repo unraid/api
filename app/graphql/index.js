@@ -35,8 +35,6 @@ module.exports = function (
 			channel: String!
 		) on FIELD_DEFINITION
 
-		directive @container on FIELD_DEFINITION
-
 		type Welcome {
 			message: String!
 		}
@@ -44,7 +42,7 @@ module.exports = function (
 		type Query {
 			# This should always be available even for guest users
 			welcome: Welcome! @func(module: "get-welcome")
-			info: Info @container
+			info: Info!
 			pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 		}
 
@@ -133,16 +131,6 @@ module.exports = function (
 	]);
 
 	const { SchemaDirectiveVisitor } = $injector.resolve('graphql-tools');
-
-	/**
-	 * Container for nested queries
-	 *
-	 */
-	class ContainerDirective extends SchemaDirectiveVisitor {
-		visitFieldDefinition(field) {
-			field.resolve = async () => ({});
-		}
-	}
 
 	/**
 	 * Func directive
@@ -270,7 +258,6 @@ module.exports = function (
 		typeDefs: types,
 		resolvers,
 		schemaDirectives: {
-			constainer: ContainerDirective,
 			func: FuncDirective
 		}
 	});
