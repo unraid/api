@@ -70,8 +70,14 @@ module.exports = function (
 			node: String!
 		}
 
+		type InfoSubscription {
+			mutation: MutationType!
+			node: Info!
+		}
+
 		type Subscription {
 			ping: PingSubscription!
+			info: InfoSubscription!
 		}
 	`];
 

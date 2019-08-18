@@ -47,6 +47,9 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 			me: {
 				subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
 				resolve: payload => payload.user
+			},
+			info: {
+				subscribe: () => pubsub.asyncIterator('info')
 			}
 		},
 		JSON: GraphQLJSON,
