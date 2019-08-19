@@ -5,5 +5,15 @@ type Query {
     # vmNetworks: [VmNetwork]
 }
 
-# type VmNetwork {
-# }
+type VmNetwork {
+    __placeholderType: String
+}
+
+type VmNetworksSubscription {
+    mutation: MutationType!
+    node: [VmNetwork!]
+}
+
+type Subscription {
+    vmNetworks: VmNetworksSubscription!
+}

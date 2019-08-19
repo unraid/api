@@ -1,12 +1,21 @@
 type Query {
     """Virtual machine"""
-    vm(name: String!): Domain @func(module: "vms/domains/domain/get-domain")
+    vm(name: String!): VmDomain! @func(module: "vms/domains/domain/get-domain")
     """Virtual machines"""
     vms: Vms
 }
 
 type Vms {
-    domains: [Domain] @func(module: "vms/get-domains")
+    domains: [VmDomain!] @func(module: "vms/get-domains")
+}
+
+type VmDomainSubscription {
+    mutation: MutationType!
+    node: [VmDomain!]
+}
+
+type Subscription {
+    vms: VmDomainSubscription!
 }
 
 enum VmState {
@@ -17,7 +26,7 @@ enum VmState {
 }
 
 """A virtual machine"""
-type Domain {
+type VmDomain {
     uuid: ID!
     """Operating system type"""
     osType: String

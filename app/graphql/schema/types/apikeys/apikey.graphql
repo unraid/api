@@ -20,6 +20,15 @@ type Mutation {
     updateApikey(name: String!, input: updateApikeyInput): ApiKey @func(module: "apikeys/name/update-apikey")
 }
 
+type ApikeysSubscription {
+    mutation: MutationType!
+    node: ApiKey
+}
+
+type Subscription {
+    apikeys: ApikeysSubscription
+}
+
 type ApiKey {
     name: String!
     key: String!

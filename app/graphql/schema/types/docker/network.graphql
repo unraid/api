@@ -1,6 +1,6 @@
 type Query {
     """Docker network"""
-    dockerNetwork(id: String!): DockerNetwork! @func(module: "docker/get-network")
+    dockerNetwork(id: ID!): DockerNetwork! @func(module: "docker/get-network")
     """All Docker networks"""
     dockerNetworks(all: Boolean): [DockerNetwork]! @func(module: "docker/get-networks")
 }
@@ -21,7 +21,7 @@ type Subscription {
 
 type DockerNetwork {
     name: String
-    id: String
+    id: ID
     created: String
     scope: String
     driver: String

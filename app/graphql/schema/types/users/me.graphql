@@ -8,7 +8,7 @@ type Query {
 
 """The current user"""
 type Me implements UserAccount {
-    id: String!
+    id: ID!
     name: String!
     description: String!
     role: String!
@@ -16,7 +16,7 @@ type Me implements UserAccount {
 }
 
 type MeSubscription {
-    mutation: UpdateOnlyMutationType
+    mutation: UpdateOnlyMutationType!
     node: Me
 }
 

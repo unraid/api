@@ -1,5 +1,5 @@
 interface UserAccount {
-    id: String!
+    id: ID!
     name: String!
     description: String!
     role: String!
@@ -11,7 +11,7 @@ input usersInput {
 
 type Query {
     """User account"""
-    user(id: String!): User @func(module: "users/id/get-user")
+    user(id: ID!): User @func(module: "users/id/get-user")
     """User accounts"""
     users(input: usersInput): [User!]! @func(module: "get-users", query: { slim: false })
 }
@@ -43,13 +43,13 @@ type UsersSubscription {
 }
 
 type Subscription {
-    user(id: String!): UserSubscription
+    user(id: ID!): UserSubscription
     users: UsersSubscription
 }
 
 """A local user account"""
 type User implements UserAccount {
-    id: String!
+    id: ID!
     """A unique name for the user"""
     name: String!
     description: String!

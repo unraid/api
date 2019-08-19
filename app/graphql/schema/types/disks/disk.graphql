@@ -1,15 +1,15 @@
 type Query {
     """Single disk"""
-    disk(id: String!): Disk @func(module: "disks/id/get-disk")
+    disk(id: ID!): Disk @func(module: "disks/id/get-disk")
     """Mulitiple disks"""
     disks: [Disk]! @func(module: "get-disks")
 }
 
 type Mutation {
-    mountDisk(id: String!): Disk
-    unmountDisk(id: String!): Disk
+    mountDisk(id: ID!): Disk
+    unmountDisk(id: ID!): Disk
 
-    clearDiskStatistics(id: String!): JSON
+    clearDiskStatistics(id: ID!): JSON
 }
 
 type Disk {
@@ -17,7 +17,7 @@ type Disk {
     idx: String!
     name: String!
     device: String!
-    id: String!
+    id: ID!
     size: Int!
     status: DiskStatus!
     rotational: Boolean!

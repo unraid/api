@@ -94,7 +94,7 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
 
             graphApp.installSubscriptionHandlers(httpServer);
 
-            server = stoppable(httpServer.listen(port, () => {
+            server = stoppable(httpServer).listen(port, () => {
                 // Downgrade process user to owner of this file
                 return fs.stat(__filename, (error, stats) => {
                     if (error) {
@@ -103,7 +103,7 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
 
                     return process.setuid(stats.uid);
                 });
-            }));
+            });
 
             // Port is a UNIX socket file
             if (isNaN(parseInt(port, 10))) {

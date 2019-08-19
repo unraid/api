@@ -10,7 +10,7 @@ type Devices {
 }
 
 type Gpu {
-    id: String!
+    id: ID!
     type: String!
     typeid: String!
     vendorname: String!
@@ -35,7 +35,7 @@ type Network {
 }
 
 type Pci {
-    id: String
+    id: ID!
     type: String
     typeid: String
     vendorname: String
@@ -47,6 +47,6 @@ type Pci {
 }
 
 type Usb {
-    id: String
+    id: ID!
     name: String
 }
