@@ -9,7 +9,7 @@ type ServiceSubscription {
 }
 type ServicesSubscription {
     mutation: UpdateOnlyMutationType!
-    node: [Service]!
+    node: [Service!]
 }
 
 type Subscription {

@@ -25,7 +25,8 @@ $injector.registerImports([
     'deepmerge',
     'stoppable',
     'graphql-tools',
-    'graphql-subscriptions'
+    'graphql-subscriptions',
+    'set-interval-async/dynamic'
 ]);
 
 // Register modules that need require and not import
@@ -43,6 +44,8 @@ $injector.registerImports({
     GraphQLUUID: 'graphql-type-uuid',
     gql: 'graphql-tag'
 });
+
+$injector.registerValue('setIntervalAsync', $injector.resolve('set-interval-async/dynamic').setIntervalAsync);
 
 // Register all of the single js files as modules.
 $injector.registerPath([

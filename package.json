@@ -27,6 +27,7 @@
     "lodash.get": "^4.4.2",
     "merge-graphql-schemas": "^1.7.0",
     "p-props": "^3.0.1",
+    "set-interval-async": "^1.0.26",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.16"
   },
