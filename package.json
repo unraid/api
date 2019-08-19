@@ -37,21 +37,25 @@
   },
   "bundledDependencies": [
     "@unraid/core",
+    "accesscontrol",
     "am",
     "apollo-datasource-rest",
+    "apollo-server",
     "apollo-server-express",
-    "bolus",
     "camelcase",
     "express",
     "got",
     "graphql",
     "graphql-directive",
+    "graphql-tag",
     "graphql-type-json",
     "graphql-type-long",
     "graphql-type-uuid",
     "lodash.get",
     "merge-graphql-schemas",
     "p-props",
-    "stoppable"
+    "set-interval-async",
+    "stoppable",
+    "subscriptions-transport-ws"
   ]
 }
