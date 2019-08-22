@@ -3,6 +3,20 @@ type Query {
     shares: [Share] @func(module: "get-shares")
 }
 
+type ShareSubscription {
+    mutation: MutationType!
+    node: Share!
+}
+type SharesSubscription {
+    mutation: MutationType!
+    node: [Share!]
+}
+
+type Subscription {
+    share(id: ID!): ShareSubscription
+    shares: SharesSubscription
+}
+
 """Network Share"""
 type Share {
     """Display name"""

@@ -6,7 +6,7 @@ type Query {
 }
 
 type VmNetwork {
-    __placeholderType: String
+    _placeholderType: String
 }
 
 type VmNetworksSubscription {

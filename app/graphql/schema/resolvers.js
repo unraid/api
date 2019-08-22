@@ -150,6 +150,16 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 		},
 		JSON: GraphQLJSON,
 		Long: GraphQLLong,
-		UUID: GraphQLUUID
+		UUID: GraphQLUUID,
+		UserAccount: {
+			__resolveType(obj, context, info) {
+				// Only a user has a password field, the current user aka "me" doesn't.
+				if (obj.password) {
+					return 'User';
+				}
+
+				return 'Me';
+			}
+		}
 	};
 };
