@@ -69,4 +69,4 @@ jobs:
       with:
         args: unraid-*.tgz
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_DEPLOY_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
