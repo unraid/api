@@ -1,0 +1,48 @@
+name: CI
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Installing node deps
+      run: npm install
+    - name: Linting
+      run: npm run lint
+    # Waiting on https://github.com/nektos/act/issues/74 and https://github.com/nektos/act/issues/76
+    #   uses: stoe/xo-action@v1.0.1
+  release:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Installing node deps
+      run: npm install
+    - name: Packing release
+      run: npm pack
+    - name: Uploading release to Github
+      uses: JasonEtco/upload-to-release@master
+      with:
+        args: unraid-*.tgz
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_DEPLOY_KEY }}
