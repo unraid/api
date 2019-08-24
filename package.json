@@ -1,12 +1,13 @@
 {
   "name": "@unraid/graphql-api",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "repository": "git@github.com:unraid/graphql-api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js"
+    "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js",
+    "test": "exit 0"
   },
   "dependencies": {
     "@unraid/core": "unraid/core#2c9580c",
