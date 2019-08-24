@@ -16,6 +16,18 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Add SSH deploy key
+      run: |
+        mkdir ~/.ssh/
+        # Add keys
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY_PUB }}" > ~/.ssh/id_rsa.pub
+        # Verifiy keys
+        ssh-keygen -l -f ~/.ssh/id_rsa.pub
+        # Add github.com to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        # Set correct permissions
+        chmod 600 ~/.ssh/id_rsa
     - name: Installing node deps
       run: npm install
     - name: Linting
@@ -36,6 +48,18 @@ jobs:
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+    - name: Add SSH deploy key
+      run: |
+        mkdir ~/.ssh/
+        # Add keys
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY_PUB }}" > ~/.ssh/id_rsa.pub
+        # Verifiy keys
+        ssh-keygen -l -f ~/.ssh/id_rsa.pub
+        # Add github.com to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        # Set correct permissions
+        chmod 600 ~/.ssh/id_rsa
     - name: Installing node deps
       run: npm install
     - name: Packing release
