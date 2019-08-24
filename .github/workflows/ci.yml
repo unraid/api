@@ -67,6 +67,6 @@ jobs:
     - name: Uploading release to Github
       uses: JasonEtco/upload-to-release@master
       with:
-        args: unraid-*.tgz
+        args: unraid-graphql-api-*.tgz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
