@@ -65,7 +65,7 @@ jobs:
     - name: Packing release
       run: npm pack
     - name: Uploading release to Github
-      uses: JasonEtco/upload-to-release@master
+      uses: OmgImAlexis/upload-to-release@master
       with:
         args: unraid-graphql-api-*.tgz
       env:
