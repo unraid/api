@@ -7,7 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js",
-    "test": "exit 0"
+    "test": "exit 0",
+    "lint": "exit 0"
   },
   "dependencies": {
     "@unraid/core": "unraid/core#2c9580c",

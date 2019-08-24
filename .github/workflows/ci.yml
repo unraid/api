@@ -42,10 +42,6 @@ jobs:
         node-version: [10.x]
 
     steps:
-    - name: Check if tag
-      run: |
-        # Bail if this push doesn't include a tag
-        [[ "$GITHUB_REF" != refs/tags/* ]] && echo "${GITHUB_REF} is not a tag, exiting..." && exit 78
     - name: Checkout repo
       uses: actions/checkout@v1
     - name: Use Node.js ${{ matrix.node-version }}
