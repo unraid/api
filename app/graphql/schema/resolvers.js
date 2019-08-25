@@ -3,17 +3,18 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager) {
 	const publish = (channel, mutation, {
 		node = undefined,
 		moduleToRun = undefined,
+		filePath,
 		interval = 1000,
 		total = 1,
 		forever = false
 	}) => {
 		const createTimer = () => {
 			const timer = setIntervalAsync(async () => {
-				if (!moduleToRun) {
+				if (!moduleToRun && !filePath) {
 					pubsub.publish(channel, {
 						[channel]: {
 							mutation,
@@ -26,11 +27,16 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 
 				try {
 					// Run module
-					const result = await $injector.resolveModule(`module:${moduleToRun}`);
+					let result = await (filePath ? $injector.resolvePath(filePath) : $injector.resolveModule(`module:${moduleToRun}`));
+
+					// Run resolved function if it returns one.
+					if (typeof result === 'function') {
+						result = result();
+					}
 
 					// Update "node"
 					pubsub.publish(channel, {
-						[channel]: {
+						pluginModule: {
 							mutation,
 							node: result.json
 						}
@@ -44,7 +50,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 			return timer;
 		};
 
-		const alreadyRunning = moduleToRun && $injector._graph[`timer:${moduleToRun}`] !== undefined;
+		const alreadyRunning = (filePath && $injector._graph[`timer:${filePath}`]) || (moduleToRun && $injector._graph[`timer:${moduleToRun}`]);
 
 		if (!alreadyRunning) {
 			const timer = createTimer();
@@ -59,7 +65,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 			// Save timer incase we need to clear it later
 			// For example when all users disconnect from the server
 			if (forever) {
-				$injector.registerValue(`timer:${moduleToRun}`, timer);
+				$injector.registerValue(`timer:${filePath || moduleToRun}`, timer);
 			}
 		}
 	};
@@ -117,7 +123,12 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				...createBasicSubscription('docker/networks', 'docker/get-networks')
 			},
 			info: {
-				...createBasicSubscription('info', 'get-info')
+				apps: createBasicSubscription('info/apps', 'info/get-apps'),
+				cpu: createBasicSubscription('info/cpu', 'info/get-cpu'),
+				devices: createBasicSubscription('info/devices', 'info/get-devices'),
+				display: createBasicSubscription('info/display', 'info/get-display'),
+				os: createBasicSubscription('info/os', 'info/get-os'),
+				versions: createBasicSubscription('info/versions', 'info/get-versions')
 			},
 			me: {
 				subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
@@ -146,6 +157,28 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 			},
 			vms: {
 				...createBasicSubscription('vms/domains', 'vms/get-domains')
+			},
+			pluginModule: {
+				subscribe: (rootValue, directiveArgs, context, info) => {
+					const { plugin: pluginName, module: pluginModuleName } = directiveArgs;
+					const name = `${pluginName}/${pluginModuleName}`;
+
+					// Verify plugin is installed and active
+					if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
+						throw new PluginError('Plugin not installed.');
+					}
+					if (!PluginManager.isActive(pluginName, pluginModuleName)) {
+						throw new PluginError('Plugin disabled.');
+					}
+
+					const filePath = PluginManager.get(pluginName, pluginModuleName).filePath;
+
+					publish(name, 'UPDATED', {
+						filePath,
+						forever: true
+					});
+					return pubsub.asyncIterator(name);
+				}
 			}
 		},
 		JSON: GraphQLJSON,

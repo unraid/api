@@ -73,9 +73,15 @@ module.exports = function (
 			node: Info!
 		}
 
+		type PluginModuleSubscription {
+			mutation: MutationType!
+			node: JSON!
+		}
+
 		type Subscription {
 			ping: PingSubscription!
 			info: InfoSubscription!
+			pluginModule(plugin: String!, module: String!, params: JSON, result: String): PluginModuleSubscription!
 		}
 	`];
 
