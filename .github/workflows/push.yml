@@ -1,0 +1,36 @@
+name: CI
+
+on: [push]
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - uses: actions/checkout@v1
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+    - name: Add SSH deploy key
+      run: |
+        mkdir ~/.ssh/
+        # Add keys
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY_PUB }}" > ~/.ssh/id_rsa.pub
+        # Verifiy keys
+        ssh-keygen -l -f ~/.ssh/id_rsa.pub
+        # Add github.com to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        # Set correct permissions
+        chmod 600 ~/.ssh/id_rsa
+    - name: Installing node deps
+      run: npm install
+    - name: Linting
+      run: npm run lint
+    # Waiting on https://github.com/nektos/act/issues/74 and https://github.com/nektos/act/issues/76
+    #   uses: stoe/xo-action@v1.0.1
