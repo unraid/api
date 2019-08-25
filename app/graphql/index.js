@@ -277,22 +277,31 @@ module.exports = function (
 			throw new AppError('Invalid apikey.');
 		}
 	};
+	
+	// Connected ws clients
+	const clients = new Map();
 
 	return {
 		schema,
 		types,
 		resolvers,
 		subscriptions: {
-			onConnect: connectionParams => {
-				console.log(`Subscription client connected using Apollo server's built-in SubscriptionServer.`)
+			onConnect: (connectionParams, webSocket) => {
 				const apiKey = connectionParams['x-api-key'];
 				ensureApiKey(apiKey);
 
 				const user = Users.findOne({ apiKey }) || { name: 'guest', apiKey, role: 'guest' };
 
+				log.debug(`<ws> ${user.name} connected.`);
+				clients.set(webSocket, user);
+
 				return {
 					user
 				};
+			},
+			onDisconnect: webSocket => {
+				const user = clients.get(webSocket);
+				log.debug(`<ws> ${user.name} disconnected.`);
 			}
 		},
 		context: ({ req, connection }) => {

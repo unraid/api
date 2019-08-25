@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log) {
 	const publish = (channel, mutation, {
 		node = undefined,
 		moduleToRun = undefined,
@@ -34,15 +34,29 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 						result = result();
 					}
 
+					if (filePath) {
+						const [pluginName, moduleName] = channel.split('/');
+						log.debug('Plugin:', pluginName, 'Module:', moduleName, 'Result:', result);
+					} else {
+						log.debug('Module:', channel, 'Result:', result);
+					}
+
 					// Update "node"
 					pubsub.publish(channel, {
-						pluginModule: {
+						[filePath ? 'pluginModule' : channel]: {
 							mutation,
 							node: result.json
 						}
 					});
 				} catch (error) {
-					console.error(error);
+					// Ensure we aren't leaking anything in production
+					if (process.env.NODE_ENV === 'production') {
+						log.debug('Error:', error.message);
+					}
+
+					const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
+					logger('Error:', error.message);
+
 					clearInterval(timer);
 				}
 			}, interval);
