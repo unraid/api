@@ -31,6 +31,8 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
     - name: Installing node deps
       run: npm install
+    - name: Packing release
+      run: npm pack
     - name: Uploading release to Github
       uses: skx/github-action-publish-binaries@master
       with:
