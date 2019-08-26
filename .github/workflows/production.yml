@@ -34,7 +34,7 @@ jobs:
     - name: Packing release
       run: npm pack
     - name: Uploading release to Github
-      uses: skx/github-action-publish-binaries@master
+      uses: OmgImAlexis/upload-to-release@master
       with:
         args: unraid-graphql-api-*.tgz
       env:
