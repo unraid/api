@@ -302,6 +302,11 @@ module.exports = function (
 			onDisconnect: webSocket => {
 				const user = clients.get(webSocket);
 				log.debug(`<ws> ${user.name} disconnected.`);
+
+				// If we don't wait a tick `user` becomes undefined.
+				process.nextTick(() => {
+					clients.delete(webSocket);
+				});
 			}
 		},
 		context: ({ req, connection }) => {

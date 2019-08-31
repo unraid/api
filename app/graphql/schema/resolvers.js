@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log, fromEntries, asyncMap, delay) {
 	const publish = (channel, mutation, {
 		node = undefined,
 		moduleToRun = undefined,
@@ -137,12 +137,63 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				...createBasicSubscription('docker/networks', 'docker/get-networks')
 			},
 			info: {
-				apps: createBasicSubscription('info/apps', 'info/get-apps'),
-				cpu: createBasicSubscription('info/cpu', 'info/get-cpu'),
-				devices: createBasicSubscription('info/devices', 'info/get-devices'),
-				display: createBasicSubscription('info/display', 'info/get-display'),
-				os: createBasicSubscription('info/os', 'info/get-os'),
-				versions: createBasicSubscription('info/versions', 'info/get-versions')
+				subscribe: () => pubsub.asyncIterator('info'),
+				close() {
+					console.debug('Clearing info subscription timers');
+
+					// Clear all info subscription timers
+					Object.entries($injector._graph).filter(([ name ]) => {
+						return name.startsWith('timer:info');
+					}).map(([name, timer]) => {
+						console.debug(`Clearing ${name} subscription timer`);
+						clearInterval(timer);
+					});
+				}
+				// subscribe: async () => {
+				// 	const infoFields = [
+				// 		'apps',
+				// 		'cpu',
+				// 		'devices',
+				// 		'display',
+				// 		'os',
+				// 		'versions'
+				// 	];
+
+				// 	const infoModules = infoFields.map(field => [field, $injector.resolveModule(`module:info/get-${field}`)]);
+				// 	let run = 0;
+
+				// 	return {
+				// 		async next() {
+				// 			// Await each field to get new value
+				// 			const values = fromEntries(await asyncMap(infoModules, async ([field, _module]) => {
+				// 				return [field, await _module.then(result => result.json)];
+				// 			}));
+							
+				// 			const result = {
+				// 				value: {
+				// 					info: {
+				// 						mutation: 'UPDATED',
+				// 						node: {
+				// 							...values
+				// 						}
+				// 					}
+				// 				},
+				// 				done: false
+				// 			};
+
+				// 			run = run + 1;
+				// 			console.log(`Run ${run}, ${Object.keys(values)}`);
+				// 			// Kill after 10
+				// 			if (run >= 10) {
+				// 				return { value: null, done: true };
+				// 			}
+				// 			return result;
+				// 		},
+				// 		[Symbol.asyncIterator]() {
+				// 			return this;
+				// 		}
+				// 	};
+				// }
 			},
 			me: {
 				subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
