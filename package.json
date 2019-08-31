@@ -11,7 +11,7 @@
     "lint": "exit 0"
   },
   "dependencies": {
-    "@unraid/core": "unraid/core#2c9580c",
+    "@unraid/core": "unraid/core#f174fe3",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.6.1",
