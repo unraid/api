@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log, fromEntries, asyncMap, delay) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log, fromEntries, asyncMap, delay, dee) {
 	const publish = (channel, mutation, {
 		node = undefined,
 		moduleToRun = undefined,
@@ -112,6 +112,24 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 		}
 	};
 
+	// On Docker event update info with { apps: { installed, started } }
+	const updateIterator = async () => {
+		const { json } = await $injector.resolveModule(`module:info/get-apps`);
+		pubsub.publish('info', {
+			info: {
+				mutation: 'UPDATED',
+				node: {
+					...json
+				}
+			}
+		});
+	};
+
+	dee.on('start', updateIterator);
+	dee.on('stop', updateIterator);
+
+	dee.listen();
+
 	return {
 		Query: {
 			info: () => ({}),
@@ -137,18 +155,18 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				...createBasicSubscription('docker/networks', 'docker/get-networks')
 			},
 			info: {
-				subscribe: () => pubsub.asyncIterator('info'),
-				close() {
-					console.debug('Clearing info subscription timers');
+				subscribe: () => pubsub.asyncIterator('info')
+				// close() {
+				// 	console.debug('Clearing info subscription timers');
 
-					// Clear all info subscription timers
-					Object.entries($injector._graph).filter(([ name ]) => {
-						return name.startsWith('timer:info');
-					}).map(([name, timer]) => {
-						console.debug(`Clearing ${name} subscription timer`);
-						clearInterval(timer);
-					});
-				}
+				// 	// Clear all info subscription timers
+				// 	Object.entries($injector._graph).filter(([ name ]) => {
+				// 		return name.startsWith('timer:info');
+				// 	}).map(([name, timer]) => {
+				// 		console.debug(`Clearing ${name} subscription timer`);
+				// 		clearInterval(timer);
+				// 	});
+				// }
 				// subscribe: async () => {
 				// 	const infoFields = [
 				// 		'apps',

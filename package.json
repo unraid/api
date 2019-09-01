@@ -11,6 +11,7 @@
     "lint": "exit 0"
   },
   "dependencies": {
+    "@gridplus/docker-events": "^1.0.0",
     "@unraid/core": "unraid/core#f174fe3",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",

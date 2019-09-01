@@ -18,15 +18,15 @@ const $injector = new Injector();
 $injector.registerImports([
     'net',
     'http',
-    'express',
-    'apollo-server',
     'apollo-server-express',
-    'graphql',
+    'apollo-server',
     'deepmerge',
-    'stoppable',
-    'graphql-tools',
+    'express',
     'graphql-subscriptions',
-    'set-interval-async/dynamic'
+    'graphql-tools',
+    'graphql',
+    'set-interval-async/dynamic',
+    'stoppable'
 ]);
 
 // Register modules that need require and not import
@@ -36,13 +36,14 @@ $injector.registerRequires([
 
 // Register the imported modules with custom names.
 $injector.registerImports({
+    dee: '@gridplus/docker-events',
     get: 'lodash.get',
+    gql: 'graphql-tag',
     graphqlDirective: 'graphql-directive',
-    mergeGraphqlSchemas: 'merge-graphql-schemas',
     GraphQLJSON: 'graphql-type-json',
     GraphQLLong: 'graphql-type-long',
     GraphQLUUID: 'graphql-type-uuid',
-    gql: 'graphql-tag'
+    mergeGraphqlSchemas: 'merge-graphql-schemas'
 });
 
 $injector.registerValue('setIntervalAsync', $injector.resolve('set-interval-async/dynamic').setIntervalAsync);
