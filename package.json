@@ -36,7 +36,8 @@
   },
   "optionalDependencies": {},
   "devDependencies": {
-    "bundle-dependencies": "^1.0.2"
+    "bundle-dependencies": "^1.0.2",
+    "modclean": "^3.0.0-beta.1"
   },
   "bundledDependencies": [
     "@unraid/core",
