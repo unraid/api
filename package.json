@@ -1,6 +1,6 @@
 {
   "name": "@unraid/graphql-api",
-  "version": "1.0.10",
+  "version": "1.0.12",
   "main": "index.js",
   "repository": "git@github.com:unraid/graphql-api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js",
     "test": "exit 0",
-    "lint": "exit 0"
+    "lint": "exit 0",
+    "build": "modclean --no-progress --run --path ."
   },
   "dependencies": {
     "@gridplus/docker-events": "^1.0.0",
@@ -36,7 +37,8 @@
   },
   "optionalDependencies": {},
   "devDependencies": {
-    "bundle-dependencies": "^1.0.2"
+    "bundle-dependencies": "^1.0.2",
+    "modclean": "^3.0.0-beta.1"
   },
   "bundledDependencies": [
     "@unraid/core",

@@ -1,6 +1,8 @@
 name: Production
 
-on: [release]
+on:
+  release:
+    types: [created]
 
 jobs:
   release:
@@ -31,6 +33,8 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
     - name: Installing node deps
       run: npm install
+    - name: Remove unneeded files
+      run: npm run build
     - name: Packing release
       run: npm pack
     - name: Uploading release to Github
