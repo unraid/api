@@ -8,7 +8,8 @@
   "scripts": {
     "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js",
     "test": "exit 0",
-    "lint": "exit 0"
+    "lint": "exit 0",
+    "build": "modclean --no-progress --run --path ."
   },
   "dependencies": {
     "@gridplus/docker-events": "^1.0.0",
