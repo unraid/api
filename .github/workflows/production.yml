@@ -1,9 +1,8 @@
 name: Production
 
 on:
-  push:
-    tags:
-      - '*'
+  release:
+    types: [created]
 
 jobs:
   release:
