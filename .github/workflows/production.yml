@@ -32,7 +32,7 @@ jobs:
     - name: Installing node deps
       run: npm install
     - name: Remove unneeded files
-      run: modclean --no-progress --run --path .
+      run: npm run build
     - name: Packing release
       run: npm pack
     - name: Uploading release to Github
