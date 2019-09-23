@@ -13,12 +13,12 @@ type Mutation {
 }
 
 type Disk {
-    """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53."""
-    idx: String!
+    """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54."""
+    slot: Long!
     name: String!
     device: String!
     id: ID!
-    size: Int!
+    size: Long!
     status: DiskStatus!
     rotational: Boolean!
     format: String!
@@ -37,15 +37,15 @@ type Disk {
     """Indicates if the disk should be exported as a network share."""
     exportable: Boolean!
     """Indicates the file system detected in partition 1 of the device."""
-    fsType: DiskFsType!
-    fsColor: DiskFsColor!
-    fsSize: Int!
-    fsFree: Int!
+    fsType: DiskFsType
+    fsColor: DiskFsColor
+    fsSize: Long
+    fsFree: Long
     spindownDelay: String
     spinupGroup: String
     deviceSb: String
     idSb: String
-    sizeSb: Int
+    sizeSb: Long
 }
 
 enum DiskStatus {
@@ -59,10 +59,14 @@ enum DiskType {
     Parity
     """Flash disk"""
     Flash
+    """Cache disk"""
+    Cache
 }
 
 enum DiskFsType {
     xfs
+    btrfs
+    vfat
 }
 
 enum DiskFsColor {

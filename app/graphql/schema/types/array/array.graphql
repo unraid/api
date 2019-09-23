@@ -42,6 +42,8 @@ type Array {
     capacity: ArrayCapacity!
     """Disks in the current array"""
     disks: [Disk]
+    """Caches in the current array"""
+    caches: [Disk]
 }
 
 enum ArrayState {
