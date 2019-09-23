@@ -13,6 +13,11 @@ type Mutation {
     addDiskToArray(input: arrayDiskInput): Array @func(module: "array/add-disk")
     """Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error."""
     removeDiskFromArray(input: arrayDiskInput): Array @func(module: "array/add-disk")
+
+    mountArrayDisk(id: ID!): Disk
+    unmountArrayDisk(id: ID!): Disk
+
+    clearArrayDiskStatistics(id: ID!): JSON
 }
 
 type ArraySubscription {
@@ -41,9 +46,9 @@ type Array {
     """Current array capacity"""
     capacity: ArrayCapacity!
     """Disks in the current array"""
-    disks: [Disk]
+    disks: [ArrayDisk]
     """Caches in the current array"""
-    caches: [Disk]
+    caches: [ArrayDisk]
 }
 
 enum ArrayState {
@@ -69,4 +74,72 @@ type Capacity {
     free: Long
     used: Long
     total: Long
+}
+
+type ArrayDisk {
+    """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54."""
+    slot: Long!
+    name: String!
+    device: String!
+    id: ID!
+    size: Long!
+    status: ArrayDiskStatus!
+    rotational: Boolean!
+    format: String!
+    temp: Int!
+    """Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time."""
+    numReads: Int!
+    """Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time."""
+    numWrites: Int!
+    """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
+    numErrors: Int!
+    type: ArrayDiskType!
+    color: String!
+    fsStatus: String
+    luksState: String
+    comment: String
+    """Indicates if the disk should be exported as a network share."""
+    exportable: Boolean!
+    """Indicates the file system detected in partition 1 of the device."""
+    fsType: ArrayDiskFsType
+    fsColor: ArrayDiskFsColor
+    fsSize: Long
+    fsFree: Long
+    spindownDelay: String
+    spinupGroup: String
+    deviceSb: String
+    idSb: String
+    sizeSb: Long
+}
+
+enum ArrayDiskStatus {
+    DISK_OK
+}
+
+enum ArrayDiskType {
+    """Data disk"""
+    Data
+    """Parity disk"""
+    Parity
+    """Flash disk"""
+    Flash
+    """Cache disk"""
+    Cache
+}
+
+enum ArrayDiskFsType {
+    xfs
+    btrfs
+    vfat
+}
+
+enum ArrayDiskFsColor {
+    """Disk is OK and running"""
+    green_on
+    """Disk is OK and not running"""
+    green_off
+    yellow_on
+    yellow_off
+    red_on
+    red_off
 }

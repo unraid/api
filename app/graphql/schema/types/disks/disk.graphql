@@ -4,78 +4,45 @@ type Query {
     """Mulitiple disks"""
     disks: [Disk]! @func(module: "get-disks")
 }
-
-type Mutation {
-    mountDisk(id: ID!): Disk
-    unmountDisk(id: ID!): Disk
-
-    clearDiskStatistics(id: ID!): JSON
-}
-
 type Disk {
-    """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54."""
-    slot: Long!
-    name: String!
+    # /dev/sdb
     device: String!
-    id: ID!
+    # SSD
+    type: String!
+    # Samsung_SSD_860_QVO_1TB
+    name: String!
+    # Samsung
+    vendor: String!
+    # 1000204886016
     size: Long!
-    status: DiskStatus!
-    rotational: Boolean!
-    format: String!
-    temp: Int!
-    """Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time."""
-    numReads: Int!
-    """Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time."""
-    numWrites: Int!
-    """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
-    numErrors: Int!
-    type: DiskType!
-    color: String!
-    fsStatus: String
-    luksState: String
-    comment: String
-    """Indicates if the disk should be exported as a network share."""
-    exportable: Boolean!
-    """Indicates the file system detected in partition 1 of the device."""
-    fsType: DiskFsType
-    fsColor: DiskFsColor
-    fsSize: Long
-    fsFree: Long
-    spindownDelay: String
-    spinupGroup: String
-    deviceSb: String
-    idSb: String
-    sizeSb: Long
+    # -1
+    bytesPerSector: Long!
+    # -1
+    totalCylinders: Long!
+    # -1
+    totalHeads: Long!
+    # -1
+    totalSectors: Long!
+    # -1
+    totalTracks: Long!
+    # -1
+    tracksPerCylinder: Long!
+    # -1
+    sectorsPerTrack: Long!
+    # 1B6Q
+    firmwareRevision: String!
+    # S4CZNF0M807232N
+    serialNum: String!
+    interfaceType: DiskInterfaceType!
+    smartStatus: DiskSmartStatus!
 }
 
-enum DiskStatus {
-    DISK_OK
+enum DiskInterfaceType {
+    SAS
+    SATA
+    USB
 }
 
-enum DiskType {
-    """Data disk"""
-    Data
-    """Parity disk"""
-    Parity
-    """Flash disk"""
-    Flash
-    """Cache disk"""
-    Cache
-}
-
-enum DiskFsType {
-    xfs
-    btrfs
-    vfat
-}
-
-enum DiskFsColor {
-    """Disk is OK and running"""
-    green_on
-    """Disk is OK and not running"""
-    green_off
-    yellow_on
-    yellow_off
-    red_on
-    red_off
+enum DiskSmartStatus {
+    Ok
 }
