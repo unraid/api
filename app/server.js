@@ -114,7 +114,7 @@ module.exports = function ($injector, fs, net, express, config, log, getEndpoint
                     }
 
                     // Set permissions
-                    return fs.chmodSync(port, 777);
+                    return fs.chmodSync(port, 660);
                 });
 
                 // Double-check EADDRINUSE
