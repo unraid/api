@@ -101,7 +101,7 @@ type ArrayDisk {
     """Indicates if the disk should be exported as a network share."""
     exportable: Boolean!
     """Indicates the file system detected in partition 1 of the device."""
-    fsType: ArrayDiskFsType
+    fsType: DiskFsType
     fsColor: ArrayDiskFsColor
     fsSize: Long
     fsFree: Long
@@ -125,12 +125,6 @@ enum ArrayDiskType {
     Flash
     """Cache disk"""
     Cache
-}
-
-enum ArrayDiskFsType {
-    xfs
-    btrfs
-    vfat
 }
 
 enum ArrayDiskFsColor {

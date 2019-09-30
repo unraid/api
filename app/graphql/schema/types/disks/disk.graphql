@@ -35,6 +35,20 @@ type Disk {
     serialNum: String!
     interfaceType: DiskInterfaceType!
     smartStatus: DiskSmartStatus!
+    temperature: Long!
+    partitions: [DiskPartition!]
+}
+
+type DiskPartition {
+    name: String!
+    fsType: DiskFsType!
+    size: Long!
+}
+
+enum DiskFsType {
+    xfs
+    btrfs
+    vfat
 }
 
 enum DiskInterfaceType {
