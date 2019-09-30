@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log, fromEntries, asyncMap, delay, dee) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log, PluginError, dee) {
 	const publish = (channel, mutation, {
 		node = undefined,
 		moduleToRun = undefined,
