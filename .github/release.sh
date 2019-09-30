@@ -34,7 +34,7 @@ if [[ ! -z "$IS_TAG" ]]; then
         echo "----------"
         cat release.md
     else
-        hub release create -a unraid-$REPO-*.tgz -F release.md -p $RELEASE_TAG
+        hub release create -a unraid-$REPO-*.tgz -F release.md $RELEASE_TAG
     fi
 else
     # Otherwise upload files to the rolling release
