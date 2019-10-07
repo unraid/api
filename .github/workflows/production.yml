@@ -2,24 +2,21 @@ name: Production
 
 on:
   push:
-    branches:    
+    branches:
       - master
-
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [10.x]
 
     steps:
     - name: Checkout repo
       uses: actions/checkout@v1
+
     - name: Use Node.js ${{ matrix.node-version }}
       uses: actions/setup-node@v1
       with:
         node-version: ${{ matrix.node-version }}
+
     - name: Add SSH deploy key
       run: |
         mkdir ~/.ssh/
@@ -32,17 +29,95 @@ jobs:
         ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
         # Set correct permissions
         chmod 600 ~/.ssh/id_rsa
+
     - name: Installing node deps
       run: npm install
+
+    - name: Test
+      run: npm test
+    #   uses: omgimalexis/ava-action@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  lint:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Add SSH deploy key
+      run: |
+        mkdir ~/.ssh/
+        # Add keys
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY_PUB }}" > ~/.ssh/id_rsa.pub
+        # Verifiy keys
+        ssh-keygen -l -f ~/.ssh/id_rsa.pub
+        # Add github.com to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        # Set correct permissions
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Installing node deps
+      run: npm install
+
+    - name: Lint
+      uses: omgimalexis/xo-action@master
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  release:
+    runs-on: ubuntu-latest
+
+    needs: [lint, test]
+
+    strategy:
+      matrix:
+        node-version: [10.x]
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Add SSH deploy key
+      run: |
+        mkdir ~/.ssh/
+        # Add keys
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.GITHUB_READONLY_DEPLOY_KEY_PUB }}" > ~/.ssh/id_rsa.pub
+        # Verifiy keys
+        ssh-keygen -l -f ~/.ssh/id_rsa.pub
+        # Add github.com to known hosts
+        ssh-keyscan -t rsa github.com >> ~/.ssh/known_hosts
+        # Set correct permissions
+        chmod 600 ~/.ssh/id_rsa
+
+    - name: Installing node deps
+      run: npm install
+
     - name: Remove unneeded files
       run: npm run build
+
     - name: Packing release
       run: npm pack
-    - name: Install hub
-      uses: geertvdc/setup-hub@master
-    - name: Create the release
+
+    - name: Release to Github and s3
+      uses: unraid/release-action@master
       env:
         GITHUB_USER: ${{ secrets.GITHUB_USER }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         REPO: ${{ github.repository }}
-      run: .github/release.sh
+        AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        AWS_ACCESS_KEY_SECRET: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
+        AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
