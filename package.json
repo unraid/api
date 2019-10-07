@@ -43,6 +43,7 @@
   "optionalDependencies": {},
   "devDependencies": {
     "bundle-dependencies": "^1.0.2",
+    "cz-conventional-changelog": "3.0.2",
     "modclean": "^3.0.0-beta.1"
   },
   "bundledDependencies": [
@@ -68,5 +69,10 @@
     "set-interval-async",
     "stoppable",
     "subscriptions-transport-ws"
-  ]
+  ],
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
 }
