@@ -1,0 +1,7 @@
+type Info {
+    memory: JSON @func(module: "info/get-memory")
+}
+
+# type InfoMemory {
+
+# }

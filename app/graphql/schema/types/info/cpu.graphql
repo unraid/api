@@ -1,0 +1,39 @@
+type Info {
+    cpu: InfoCpu @func(module: "info/get-cpu")
+}
+
+type InfoCpu {
+    # 'Intel®'
+    manufacturer: String!
+    # 'Xeon® L5640'
+    brand: String!
+    # 'GenuineIntel'
+    vendor: String!
+    # '6'
+    family: String!
+    # '44'
+    model: String!
+    # '2'
+    stepping: Int!
+    # ''
+    revision: String!
+    # ''
+    voltage: Float
+    # '2.27'
+    speed: Float!
+    # '1.60'
+    speedmin: Float!
+    # '2.26'
+    speedmax: Float!
+    # 12
+    threads: Int!
+    # 6
+    cores: Int!
+    # 1
+    processors: Long!
+    # 'LGA1366'
+    socket: String!
+    # { l1d: 196608, l1i: 196608, l2: 1, l3: 12 }
+    cache: JSON!
+    flags: [String!]
+}
