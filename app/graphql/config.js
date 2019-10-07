@@ -14,21 +14,21 @@ const MYSERVERS_WS_PROTO = process.env.MYSERVERS_WS_PROTO || 'ws';
 const MYSERVERS_URI = process.env.MYSERVERS_URI || env ? 'unix:/var/run/api.sock:/' : (`${MYSERVERS_API_PROTO}://${MYSERVERS_HOST}:${MYSERVERS_PORT}`);
 
 const config = {
-    graphql: {
-        port: GRAPHQL_PORT,
-        host: GRAPHQL_HOST
-    },
-    myservers: {
-        port: MYSERVERS_PORT,
-        host: MYSERVERS_HOST,
-        ws: {
-            proto: MYSERVERS_WS_PROTO
-        },
-        api: {
-            proto: MYSERVERS_API_PROTO,
-            uri: MYSERVERS_URI
-        }
-    }
+	graphql: {
+		port: GRAPHQL_PORT,
+		host: GRAPHQL_HOST
+	},
+	myservers: {
+		port: MYSERVERS_PORT,
+		host: MYSERVERS_HOST,
+		ws: {
+			proto: MYSERVERS_WS_PROTO
+		},
+		api: {
+			proto: MYSERVERS_API_PROTO,
+			uri: MYSERVERS_URI
+		}
+	}
 };
 
 module.exports = config;

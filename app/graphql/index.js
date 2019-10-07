@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+// eslint-disable-next-line max-params
 module.exports = function (
 	$injector,
 	ApiManager,
@@ -17,7 +18,7 @@ module.exports = function (
 	typeDefs,
 	Users
 ) {
-	const { mergeTypes } = mergeGraphqlSchemas;
+	const {mergeTypes} = mergeGraphqlSchemas;
 	const baseTypes = [gql`
 		scalar JSON
 		scalar Long
@@ -136,7 +137,7 @@ module.exports = function (
 		typeDefs
 	]);
 
-	const { SchemaDirectiveVisitor } = $injector.resolve('graphql-tools');
+	const {SchemaDirectiveVisitor} = $injector.resolve('graphql-tools');
 
 	/**
 	 * Func directive
@@ -161,19 +162,19 @@ module.exports = function (
 	 */
 	class FuncDirective extends SchemaDirectiveVisitor {
 		visitFieldDefinition(field) {
-			const { args } = this;
+			const {args} = this;
 			field.resolve = function (source, directiveArgs, context, info) {
 				const path = $injector.resolve('path');
 				const paths = $injector.resolve('paths');
-				const { module: moduleName, result: resultType } = args;
+				const {module: moduleName, result: resultType} = args;
 				const coreCwd = path.join(paths.get('core'), 'modules');
-				const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = directiveArgs;
+				const {plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params} = directiveArgs;
 				const operationType = info.operation.operation;
-				let query = {
+				const query = {
 					...directiveArgs.query,
 					...(operationType === 'query' ? input : {})
 				};
-				let data = {
+				const data = {
 					...directiveArgs.data,
 					...(operationType === 'mutation' ? input : {})
 				};
@@ -184,6 +185,7 @@ module.exports = function (
 					if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
 						throw new PluginError('Plugin not installed.');
 					}
+
 					if (!PluginManager.isActive(pluginName, pluginModuleName)) {
 						throw new PluginError('Plugin disabled.');
 					}
@@ -241,7 +243,7 @@ module.exports = function (
 							result = get(result, directiveArgs.extractFromResponse);
 						}
 
-						log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result)
+						log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result);
 						return result;
 					})
 					.catch(error => {
@@ -259,7 +261,7 @@ module.exports = function (
 		}
 	}
 
-	const { makeExecutableSchema } = $injector.resolve('graphql-tools');
+	const {makeExecutableSchema} = $injector.resolve('graphql-tools');
 	const schema = makeExecutableSchema({
 		typeDefs: types,
 		resolvers,
@@ -277,7 +279,7 @@ module.exports = function (
 			throw new AppError('Invalid apikey.');
 		}
 	};
-	
+
 	// Connected ws clients
 	const clients = new Map();
 
@@ -290,7 +292,7 @@ module.exports = function (
 				const apiKey = connectionParams['x-api-key'];
 				ensureApiKey(apiKey);
 
-				const user = Users.findOne({ apiKey }) || { name: 'guest', apiKey, role: 'guest' };
+				const user = Users.findOne({apiKey}) || {name: 'guest', apiKey, role: 'guest'};
 
 				log.debug(`<ws> ${user.name} connected.`);
 				clients.set(webSocket, user);
@@ -300,31 +302,31 @@ module.exports = function (
 				};
 			},
 			onDisconnect: webSocket => {
-//				const user = clients.get(webSocket);
-//				log.debug(`<ws> ${user.name} disconnected.`);
-//
-//				// If we don't wait a tick `user` becomes undefined.
+				//				Const user = clients.get(webSocket);
+				//				log.debug(`<ws> ${user.name} disconnected.`);
+				//
+				//				// If we don't wait a tick `user` becomes undefined.
 				process.nextTick(() => {
 					clients.delete(webSocket);
 				});
 			}
 		},
-		context: ({ req, connection }) => {
+		context: ({req, connection}) => {
 			if (connection) {
-				// check connection for metadata
+				// Check connection for metadata
 				return {
 					...connection.context
 				};
-			} else {
-				const apiKey = req.headers['x-api-key'];
-				ensureApiKey(apiKey);
-
-				const user = Users.findOne({ apiKey }) || { name: 'guest', apiKey, role: 'guest' };
-
-				return {
-					user
-				};
 			}
+
+			const apiKey = req.headers['x-api-key'];
+			ensureApiKey(apiKey);
+
+			const user = Users.findOne({apiKey}) || {name: 'guest', apiKey, role: 'guest'};
+
+			return {
+				user
+			};
 		}
 	};
-}
+};

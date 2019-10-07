@@ -98,7 +98,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 	// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
 	// });
 
-	const { withFilter } = $injector.resolve('graphql-subscriptions');
+	const {withFilter} = $injector.resolve('graphql-subscriptions');
 
 	const createBasicSubscription = (name, moduleToRun) => {
 		return {
@@ -109,12 +109,12 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				});
 				return pubsub.asyncIterator(name);
 			}
-		}
+		};
 	};
 
 	// On Docker event update info with { apps: { installed, started } }
 	const updateIterator = async () => {
-		const { json } = await $injector.resolveModule(`module:info/get-apps`);
+		const {json} = await $injector.resolveModule('module:info/get-apps');
 		pubsub.publish('info', {
 			info: {
 				mutation: 'UPDATED',
@@ -156,7 +156,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 			},
 			info: {
 				subscribe: () => pubsub.asyncIterator('info')
-				// close() {
+				// Close() {
 				// 	console.debug('Clearing info subscription timers');
 
 				// 	// Clear all info subscription timers
@@ -186,7 +186,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				// 			const values = fromEntries(await asyncMap(infoModules, async ([field, _module]) => {
 				// 				return [field, await _module.then(result => result.json)];
 				// 			}));
-							
+
 				// 			const result = {
 				// 				value: {
 				// 					info: {
@@ -242,19 +242,20 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				...createBasicSubscription('vms/domains', 'vms/get-domains')
 			},
 			pluginModule: {
-				subscribe: (rootValue, directiveArgs, context, info) => {
-					const { plugin: pluginName, module: pluginModuleName } = directiveArgs;
+				subscribe: (rootValue, directiveArgs) => {
+					const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
 					const name = `${pluginName}/${pluginModuleName}`;
 
 					// Verify plugin is installed and active
 					if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
 						throw new PluginError('Plugin not installed.');
 					}
+
 					if (!PluginManager.isActive(pluginName, pluginModuleName)) {
 						throw new PluginError('Plugin disabled.');
 					}
 
-					const filePath = PluginManager.get(pluginName, pluginModuleName).filePath;
+					const {filePath} = PluginManager.get(pluginName, pluginModuleName);
 
 					publish(name, 'UPDATED', {
 						filePath,
@@ -268,7 +269,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 		Long: GraphQLLong,
 		UUID: GraphQLUUID,
 		UserAccount: {
-			__resolveType(obj, context, info) {
+			__resolveType(obj) {
 				// Only a user has a password field, the current user aka "me" doesn't.
 				if (obj.password) {
 					return 'User';
