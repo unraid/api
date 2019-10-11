@@ -31,7 +31,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
 
     - name: Installing node deps
-      run: npm install
+      run: npm ci
 
     - name: Test
       run: npm test
