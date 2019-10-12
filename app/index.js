@@ -21,7 +21,6 @@ $injector.registerImports([
 	'http',
 	'apollo-server-express',
 	'apollo-server',
-	'deepmerge',
 	'express',
 	'graphql-subscriptions',
 	'graphql-tools',
