@@ -3,7 +3,6 @@
  * Written by: Alexis Tyler
  */
 
-// eslint-disable-next-line max-params
 module.exports = function (
 	$injector,
 	ApiManager,

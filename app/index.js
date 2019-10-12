@@ -72,7 +72,7 @@ am(async () => {
 		try {
 			// Handler non fatal errors
 			$injector.resolve('globalErrorHandler')(coreError);
-		} catch (error) {
+		} catch {
 			throw coreError;
 		}
 	});

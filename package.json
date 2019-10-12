@@ -44,10 +44,12 @@
   "devDependencies": {
     "@commitlint/cli": "^8.2.0",
     "@commitlint/config-conventional": "^8.2.0",
+    "ava": "^2.4.0",
     "bundle-dependencies": "^1.0.2",
     "cz-conventional-changelog": "3.0.2",
     "husky": "^3.0.8",
-    "modclean": "^3.0.0-beta.1"
+    "modclean": "^3.0.0-beta.1",
+    "xo": "^0.25.3"
   },
   "bundledDependencies": [
     "@gridplus/docker-events",
@@ -82,5 +84,10 @@
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
-  }
+  },
+  "xo": {
+ "rules": {
+      "max-params": 0
+}
+}
 }
