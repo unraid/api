@@ -15,10 +15,14 @@ module.exports = {
 			PORT: '/var/run/graphql-api.sock',
 			NODE_ENV: 'safe-mode'
 		},
-		env_production: {
+		env_debug: {
 			PORT: '/var/run/graphql-api.sock',
 			NODE_ENV: 'production',
-			BETTER_STACK_TRACES: true
+			DEBUG: true
+		},
+		env_production: {
+			PORT: '/var/run/graphql-api.sock',
+			NODE_ENV: 'production'
 		}
 	}]
 };

@@ -15,7 +15,8 @@ module.exports = function (
 	PluginManager,
 	resolvers,
 	typeDefs,
-	Users
+	Users,
+	config
 ) {
 	const {mergeTypes} = mergeGraphqlSchemas;
 	const baseTypes = [gql`
@@ -282,7 +283,10 @@ module.exports = function (
 	// Connected ws clients
 	const clients = new Map();
 
+	const { debug } = config;
 	return {
+		introspection: debug,
+		playground: debug,
 		schema,
 		types,
 		resolvers,

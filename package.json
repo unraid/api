@@ -8,7 +8,8 @@
   "scripts": {
     "release": "standard-version",
     "commit": "npx git-cz",
-    "dev": "STATES_CWD=$(pwd)/../core/test/fixtures/states CORE_CWD=$(pwd)/../core/ PLUGINS_CWD=$(pwd)/../plugins/ nodemon -e js,graphql  --signal SIGINT index.js",
+    "update-env": "cp .env.test .env && sed -i '' \"s|\\$(pwd)|$(pwd)|g\" .env",
+    "dev": "npm run update-env && node-env-run --exec 'nodemon -e js,graphql --signal SIGINT index.js'",
     "test": "exit 0",
     "lint": "exit 0",
     "build": "modclean --no-progress --run --path ."
@@ -50,6 +51,7 @@
     "cz-conventional-changelog": "3.0.2",
     "husky": "^3.0.8",
     "modclean": "^3.0.0-beta.1",
+    "node-env-run": "^3.0.2",
     "standard-version": "^7.0.0",
     "xo": "^0.25.3"
   },
