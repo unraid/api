@@ -49,7 +49,7 @@
     "ava": "^2.4.0",
     "bundle-dependencies": "^1.0.2",
     "cz-conventional-changelog": "3.0.2",
-    "husky": "^3.0.8",
+    "husky": "^3.0.9",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^3.0.2",
     "standard-version": "^7.0.0",
