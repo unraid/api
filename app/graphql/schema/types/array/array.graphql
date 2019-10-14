@@ -45,10 +45,14 @@ type Array {
     state: ArrayState!
     """Current array capacity"""
     capacity: ArrayCapacity!
-    """Disks in the current array"""
-    disks: [ArrayDisk]
+    """Current boot disk"""
+    boot: ArrayDataDisk
+    """Parity disks in the current array"""
+    parities: [ArrayDataDisk]
+    """Data disks in the current array"""
+    disks: [ArrayDataDisk]
     """Caches in the current array"""
-    caches: [ArrayDisk]
+    caches: [ArrayDataDisk]
 }
 
 enum ArrayState {
@@ -76,7 +80,7 @@ type Capacity {
     total: Long
 }
 
-type ArrayDisk {
+type ArrayDataDisk {
     """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54."""
     slot: Long!
     name: String!
@@ -111,6 +115,9 @@ type ArrayDisk {
     idSb: String
     sizeSb: Long
 }
+
+# type ArrayParityDisk {}
+# type ArrayCacheDisk {}
 
 enum ArrayDiskStatus {
     DISK_OK
