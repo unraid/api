@@ -283,7 +283,7 @@ module.exports = function (
 	// Connected ws clients
 	const clients = new Map();
 
-	const { debug } = config;
+	const {debug} = config;
 	return {
 		introspection: debug,
 		playground: debug,
