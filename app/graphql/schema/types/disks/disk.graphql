@@ -55,8 +55,10 @@ enum DiskInterfaceType {
     SAS
     SATA
     USB
+    UNKNOWN
 }
 
 enum DiskSmartStatus {
     Ok
+    Unknown
 }
