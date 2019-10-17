@@ -96,7 +96,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 			forever
 		});
 	};
-	
+
 	// Send test message every 1 second for 10 seconds.
 	const startPing = async (interval = 1000, total = 10) => {
 		await run('ping', 'UPDATED', {
