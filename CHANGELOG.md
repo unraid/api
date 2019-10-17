@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.0.0](https://github.com/unraid/graphql-api/compare/v1.2.2...v2.0.0) (2019-10-17)
+
+
+### ⚠ BREAKING CHANGES
+
+* **module:graphql/schema/resolvers:** Reduces CPU usage when on my_servers.
+
+### Bug Fixes
+
+* **module:graphql/schema/resolvers:** remove unneeded await ([8b1dd10](https://github.com/unraid/graphql-api/commit/8b1dd104462a3db5599419b7730848350197c492))
+
 ### [1.2.2](https://github.com/unraid/graphql-api/compare/v1.2.1...v1.2.2) (2019-10-17)
 
 ### [1.2.1](https://github.com/unraid/graphql-api/compare/v1.2.0...v1.2.1) (2019-10-17)
