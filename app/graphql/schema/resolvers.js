@@ -116,7 +116,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 	const createBasicSubscription = (name, moduleToRun) => {
 		return {
 			subscribe: async () => {
-				await run(name, 'UPDATED', {
+				run(name, 'UPDATED', {
 					moduleToRun,
 					forever: true
 				});
