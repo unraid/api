@@ -11,7 +11,7 @@
     "update-env": "cp .env.test .env && sed -i '' \"s|\\$(pwd)|$(pwd)|g\" .env",
     "dev": "npm run update-env && node-env-run --exec 'nodemon -e js,graphql --signal SIGINT index.js'",
     "test": "exit 0",
-    "lint": "exit 0",
+    "lint": "xo",
     "build": "modclean --no-progress --run --path ."
   },
   "files": [
