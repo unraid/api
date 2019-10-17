@@ -3,90 +3,103 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, setIntervalAsync, PluginManager, log, PluginError, dee) {
-	const publish = (channel, mutation, {
-		node = undefined,
-		moduleToRun = undefined,
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, PluginManager, log, PluginError, dee) {
+	const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+	/**
+	 * Run a module and update pubsub
+	 *
+	 * @param {String} channel
+	 * @param {String} mutation
+	 * @param {Object} options
+	 * @param {String} [options.node]
+	 * @param {String} [options.moduleToRun]
+	 * @param {String} [options.filePath]
+	 * @param {Number} [options.interval = 1000]
+	 * @param {Number} [options.total = 1]
+	 * @param {Boolean} [options.forever = false]
+	 */
+	const run = async (channel, mutation, {
+		node,
+		moduleToRun,
 		filePath,
-		interval = 1000,
-		total = 1,
 		forever = false
 	}) => {
-		const createTimer = () => {
-			const timer = setIntervalAsync(async () => {
-				if (!moduleToRun && !filePath) {
-					pubsub.publish(channel, {
-						[channel]: {
-							mutation,
-							node
-						}
-					});
+		/**
+		 * @type {Map}
+		 */
+		const wsClients = $injector.resolve('ws-clients?');
 
-					return;
+		// If there are no clients to broadcast to
+		// then we might as well skip this run
+		if (wsClients && wsClients.size === 0) {
+			return;
+		}
+
+		if (!moduleToRun && !filePath) {
+			pubsub.publish(channel, {
+				[channel]: {
+					mutation,
+					node
 				}
+			});
 
-				try {
-					// Run module
-					let result = await (filePath ? $injector.resolvePath(filePath) : $injector.resolveModule(`module:${moduleToRun}`));
+			return;
+		}
 
-					// Run resolved function if it returns one.
-					if (typeof result === 'function') {
-						result = result();
-					}
+		try {
+			// Run module
+			let result = await (filePath ? $injector.resolvePath(filePath) : $injector.resolveModule(`module:${moduleToRun}`));
 
-					if (filePath) {
-						const [pluginName, moduleName] = channel.split('/');
-						log.debug('Plugin:', pluginName, 'Module:', moduleName, 'Result:', result);
-					} else {
-						log.debug('Module:', channel, 'Result:', result);
-					}
-
-					// Update "node"
-					pubsub.publish(channel, {
-						[filePath ? 'pluginModule' : channel]: {
-							mutation,
-							node: result.json
-						}
-					});
-				} catch (error) {
-					// Ensure we aren't leaking anything in production
-					if (process.env.NODE_ENV === 'production') {
-						log.debug('Error:', error.message);
-					}
-
-					const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
-					logger('Error:', error.message);
-
-					clearInterval(timer);
-				}
-			}, interval);
-
-			return timer;
-		};
-
-		const alreadyRunning = (filePath && $injector._graph[`timer:${filePath}`]) || (moduleToRun && $injector._graph[`timer:${moduleToRun}`]);
-
-		if (!alreadyRunning) {
-			const timer = createTimer();
-
-			// Clear timer eventually
-			if (!forever) {
-				setTimeout(() => {
-					clearInterval(timer);
-				}, interval * total);
+			// Run resolved function if it returns one.
+			if (typeof result === 'function') {
+				result = result();
 			}
 
-			// Save timer incase we need to clear it later
-			// For example when all users disconnect from the server
-			if (forever) {
-				$injector.registerValue(`timer:${filePath || moduleToRun}`, timer);
+			if (filePath) {
+				const [pluginName, moduleName] = channel.split('/');
+				log.debug('Plugin:', pluginName, 'Module:', moduleName, 'Result:', result);
+			} else {
+				log.debug('Module:', channel, 'Result:', result);
+			}
+
+			// Update pubsub channel
+			pubsub.publish(channel, {
+				[filePath ? 'pluginModule' : channel]: {
+					mutation,
+					node: result.json
+				}
+			});
+		} catch (error) {
+			// Ensure we aren't leaking anything in production
+			if (process.env.NODE_ENV === 'production') {
+				log.debug('Error:', error.message);
+			} else {
+				const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
+				logger('Error:', error.message);
 			}
 		}
-	};
 
+		// Bail
+		if (!forever) {
+			return;
+		}
+
+		// Wait for CPU to chill
+		await sleep(1000);
+
+		// Re-run
+		await run(channel, mutation, {
+			node,
+			moduleToRun,
+			filePath,
+			forever
+		});
+	};
+	
 	// Send test message every 1 second for 10 seconds.
-	const startPing = (interval = 1000, total = 10) => {
-		publish('ping', 'UPDATED', {
+	const startPing = async (interval = 1000, total = 10) => {
+		await run('ping', 'UPDATED', {
 			node: 'PONG!',
 			interval,
 			total
@@ -102,8 +115,8 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 
 	const createBasicSubscription = (name, moduleToRun) => {
 		return {
-			subscribe: () => {
-				publish(name, 'UPDATED', {
+			subscribe: async () => {
+				await run(name, 'UPDATED', {
 					moduleToRun,
 					forever: true
 				});
@@ -242,7 +255,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				...createBasicSubscription('vms/domains', 'vms/get-domains')
 			},
 			pluginModule: {
-				subscribe: (rootValue, directiveArgs) => {
+				subscribe: async (rootValue, directiveArgs) => {
 					const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
 					const name = `${pluginName}/${pluginModuleName}`;
 
@@ -257,7 +270,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 
 					const {filePath} = PluginManager.get(pluginName, pluginModuleName);
 
-					publish(name, 'UPDATED', {
+					await run(name, 'UPDATED', {
 						filePath,
 						forever: true
 					});
