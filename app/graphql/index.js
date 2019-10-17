@@ -311,6 +311,8 @@ module.exports = function (
 				//				// If we don't wait a tick `user` becomes undefined.
 				process.nextTick(() => {
 					clients.delete(webSocket);
+
+					$injector.registerValue('ws-clients', clients);
 				});
 			}
 		},
