@@ -254,7 +254,7 @@ module.exports = function (
 						}
 
 						const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
-						logger(pluginOrModule, pluginOrModuleName, 'Error:', error.message);
+						logger(pluginOrModule, pluginOrModuleName, 'Error:', error);
 						return error;
 					});
 			};
