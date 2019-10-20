@@ -3,11 +3,21 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, PluginManager, log, PluginError, dee, Bottleneck, sleep, debugTimer, setIntervalAsync) {
+module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, PluginManager, log, PluginError, dee, Bottleneck, sleep, debugTimer) {
 	// Once per second
 	const limiter = new Bottleneck({
 		minTime: 1
 	});
+
+	const handleResult = async possibleResult => {
+		// Await resolved function if it returns one.
+		if (typeof possibleResult === 'function') {
+			const result = await possibleResult();
+			return result;
+		}
+
+		return possibleResult;
+	};
 
 	/**
 	 * Run a module and update pubsub
@@ -52,31 +62,23 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 
 		try {
 			// Run module
-			const result = await new Promise(async resolve => {
+			const result = await new Promise(resolve => {
 				if (filePath) {
 					debugTimer(`run:${filePath}`);
-					const result = await $injector.resolvePath(filePath, {
+					const promise = $injector.resolvePath(filePath, {
 						context
 					});
 
-					return resolve(result);
+					return resolve(promise);
 				}
 
 				debugTimer(`run:${moduleToRun}`);
-				const result = await $injector.resolveModule(`module:${moduleToRun}`, {
+				const promise = $injector.resolveModule(`module:${moduleToRun}`, {
 					context
 				});
 
-				return resolve(result);
-			}).then(async possibleResult => {
-				// Await resolved function if it returns one.
-				if (typeof possibleResult === 'function') {
-					const result = await possibleResult();
-					return result;
-				}
-
-				return possibleResult;
-			});
+				return resolve(promise);
+			}).then(handleResult);
 
 			if (filePath) {
 				const [pluginName, moduleName] = channel.split('/');
@@ -197,7 +199,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 						await run('services', 'UPDATED', {
 							moduleToRun: 'get-services'
 						});
-					}), 100);
+					}), 500);
 					return pubsub.asyncIterator('services');
 				}
 			},
