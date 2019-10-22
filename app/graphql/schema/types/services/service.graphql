@@ -18,7 +18,8 @@ type Subscription {
 }
 
 type Service {
-    name: String
-    online: Boolean!
-    uptime: Long
+    name: String!
+    online: Boolean
+    uptime: Int
+    version: String
 }
