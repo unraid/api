@@ -22,7 +22,11 @@ module.exports = {
 		},
 		env_production: {
 			PORT: '/var/run/graphql-api.sock',
-			NODE_ENV: 'production'
+			NODE_ENV: 'production',
+			error_file: '/var/log/graphql-api/error.log',
+			out_file: '/var/log/graphql-api/out.log',
+			exp_backoff_restart_delay: 100,
+			max_memory_restart: '300M',
 		}
 	}]
 };
