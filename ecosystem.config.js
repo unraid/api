@@ -26,7 +26,7 @@ module.exports = {
 			error_file: '/var/log/graphql-api/error.log',
 			out_file: '/var/log/graphql-api/out.log',
 			exp_backoff_restart_delay: 100,
-			max_memory_restart: '300M',
+			max_memory_restart: '300M'
 		}
 	}]
 };
