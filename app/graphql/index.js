@@ -249,7 +249,7 @@ module.exports = function (
 					.catch(error => {
 						// Ensure we aren't leaking anything in production
 						if (process.env.NODE_ENV === 'production') {
-							log.debug(pluginOrModule, pluginOrModuleName, 'Error:', error.message);
+							log.error(pluginOrModule, pluginOrModuleName, 'Error:', error.message);
 							return new Error(error.message);
 						}
 
