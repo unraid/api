@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.7](https://github.com/unraid/graphql-api/compare/v2.0.6...v2.0.7) (2019-10-26)
+
+
+### Bug Fixes
+
+* **deps:** update @unraid/core as it adds the missing abort-controller ([5b21941](https://github.com/unraid/graphql-api/commit/5b21941ba51032c937279eb228b11466b4159b6d))
+
 ### [2.0.6](https://github.com/unraid/graphql-api/compare/v2.0.5...v2.0.6) (2019-10-26)
 
 ### [2.0.5](https://github.com/unraid/graphql-api/compare/v2.0.4...v2.0.5) (2019-10-25)
