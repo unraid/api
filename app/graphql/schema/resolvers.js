@@ -3,7 +3,38 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pubsub, PluginManager, log, PluginError, dee, Bottleneck, sleep, debugTimer) {
+module.exports = function(
+	$injector,
+	GraphQLJSON,
+	GraphQLLong,
+	GraphQLUUID,
+	pubsub,
+	PluginManager,
+	log,
+	PluginError,
+	dee,
+	Bottleneck,
+	debugTimer,
+	bus,
+	setIntervalAsync
+) {
+	// Only allows function to publish to pubsub when clients are online
+	// the reason we do this is otherwise pubsub will cause a memory leak
+	const canPublishToClients = () => {
+		/**
+		 * @type {Map}
+		 */
+		const wsClients = $injector.resolve('ws-clients?');
+
+		// If there are no clients to broadcast to
+		// then we might as well skip this run
+		if (wsClients && wsClients.size === 0) {
+			return false;
+		}
+
+		return true;
+	};
+
 	// Once per second
 	const limiter = new Bottleneck({
 		minTime: 1
@@ -38,14 +69,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 		filePath,
 		context = {}
 	}) => {
-		/**
-		 * @type {Map}
-		 */
-		const wsClients = $injector.resolve('ws-clients?');
-
-		// If there are no clients to broadcast to
-		// then we might as well skip this run
-		if (wsClients && wsClients.size === 0) {
+		if (!canPublishToClients()) {
 			return;
 		}
 
@@ -121,14 +145,12 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 	// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
 	// });
 
-	const processDisks = async () => {
+	pubsub.subscribe('disks', limiter.wrap(async () => {
 		await run('array', 'UPDATED', {
 			moduleToRun: 'get-array',
 			context: {}
 		});
-	};
-
-	pubsub.subscribe('disks', limiter.wrap(processDisks));
+	}));
 
 	const {withFilter} = $injector.resolve('graphql-subscriptions');
 
@@ -139,7 +161,11 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 	});
 
 	// On Docker event update info with { apps: { installed, started } }
-	const updateIterator = async () => {
+	const updatePubsub = async () => {
+		if (!canPublishToClients()) {
+			return;
+		}
+
 		const {json} = await $injector.resolveModule('module:info/get-apps');
 		pubsub.publish('info', {
 			info: {
@@ -151,10 +177,33 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 		});
 	};
 
-	dee.on('start', updateIterator);
-	dee.on('stop', updateIterator);
+	dee.on('start', updatePubsub);
+	dee.on('stop', updatePubsub);
 
 	dee.listen();
+
+	bus.on('*', (...args) => {
+		if (!canPublishToClients()) {
+			return;
+		}
+		const {
+			[args.length - 1]: last,
+			...rest
+		} = args;
+
+		pubsub.publish(...Object.values(rest));
+	});
+
+	// This needs to be fixed to run from events
+	setIntervalAsync(async () => {
+		if (!canPublishToClients()) {
+			return;
+		}
+
+		await run('services', 'UPDATED', {
+			moduleToRun: 'get-services'
+		});
+	}, 1000);
 
 	return {
 		Query: {
@@ -192,16 +241,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				}
 			},
 			services: {
-				// ...createBasicSubscription('services', 'get-services')
-				subscribe: () => {
-					// This needs to be fixed to run from events
-					setInterval(limiter.wrap(async () => {
-						await run('services', 'UPDATED', {
-							moduleToRun: 'get-services'
-						});
-					}), 500);
-					return pubsub.asyncIterator('services');
-				}
+				...createBasicSubscription('services')
 			},
 			shares: {
 				...createBasicSubscription('shares')
@@ -219,7 +259,7 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 				...createBasicSubscription('vms/domains')
 			},
 			pluginModule: {
-				subscribe: async (rootValue, directiveArgs) => {
+				subscribe: async (_, directiveArgs) => {
 					const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
 					const name = `${pluginName}/${pluginModuleName}`;
 
@@ -232,15 +272,8 @@ module.exports = function ($injector, GraphQLJSON, GraphQLLong, GraphQLUUID, pub
 						throw new PluginError('Plugin disabled.');
 					}
 
-					const {filePath} = PluginManager.get(pluginName, pluginModuleName);
-
-					// Ensure we start the run after we return
-					process.nextTick(() => {
-						run(name, 'UPDATED', {
-							filePath
-						});
-					});
-
+					// It's up to the plugin to publish new data as needed
+					// so we'll just return the Iterator
 					return pubsub.asyncIterator(name);
 				}
 			}
