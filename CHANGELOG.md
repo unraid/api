@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.10](https://github.com/unraid/graphql-api/compare/v2.0.9...v2.0.10) (2019-10-31)
+
+
+### Bug Fixes
+
+* **module:graphql/schema/resolvers:** fix memory leak ([fa60021](https://github.com/unraid/graphql-api/commit/fa6002112d9bf8327765a54d31a373cfae33d2f4))
+
 ### [2.0.9](https://github.com/unraid/graphql-api/compare/v2.0.8...v2.0.9) (2019-10-27)
 
 ### [2.0.8](https://github.com/unraid/graphql-api/compare/v2.0.7...v2.0.8) (2019-10-27)
