@@ -282,6 +282,7 @@ module.exports = function (
 
 	// Connected ws clients
 	const clients = new Map();
+	$injector.registerValue('ws-clients', clients);
 
 	const {debug} = config;
 	return {
@@ -299,6 +300,7 @@ module.exports = function (
 
 				log.debug(`<ws> ${user.name} connected.`);
 				clients.set(webSocket, user);
+				$injector.registerValue('ws-clients', clients);
 
 				return {
 					user
