@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-module.exports = function(
+module.exports = function (
 	$injector,
 	GraphQLJSON,
 	GraphQLLong,
@@ -186,6 +186,7 @@ module.exports = function(
 		if (!canPublishToClients()) {
 			return;
 		}
+
 		const {
 			[args.length - 1]: last,
 			...rest
