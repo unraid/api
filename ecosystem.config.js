@@ -14,12 +14,12 @@ module.exports = {
 		'env_safe-mode': {
 			PORT: '/var/run/graphql-api.sock',
 			NODE_ENV: 'safe-mode',
-			node_args: ['--max_old_space_size=100', '--optimize_for_size', '--always_compact']
+			node_args: ['--max_old_space_size=200', '--optimize_for_size', '--always_compact']
 		},
 		env_debug: {
 			PORT: '/var/run/graphql-api.sock',
 			NODE_ENV: 'production',
-			node_args: ['--max_old_space_size=100', '--optimize_for_size', '--always_compact'],
+			node_args: ['--max_old_space_size=200', '--optimize_for_size', '--always_compact'],
 			DEBUG: true
 		},
 		env_production: {
@@ -28,7 +28,7 @@ module.exports = {
 			error_file: '/var/log/graphql-api/error.log',
 			out_file: '/var/log/graphql-api/out.log',
 			exp_backoff_restart_delay: 100,
-			node_args: ['--max_old_space_size=100', '--optimize_for_size', '--always_compact']
+			node_args: ['--max_old_space_size=200', '--optimize_for_size', '--always_compact']
 		}
 	}]
 };
