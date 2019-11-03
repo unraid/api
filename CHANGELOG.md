@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.18](https://github.com/unraid/graphql-api/compare/v2.0.17...v2.0.18) (2019-11-03)
+
+
+### Bug Fixes
+
+* **ecosystem:** increase allowed memory heap from 100 to 200 ([35dccce](https://github.com/unraid/graphql-api/commit/35dcccec32c0184b2af6788b61f9b64a485570d2))
+
 ### [2.0.17](https://github.com/unraid/graphql-api/compare/v2.0.16...v2.0.17) (2019-11-03)
 
 
