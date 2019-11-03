@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.16](https://github.com/unraid/graphql-api/compare/v2.0.15...v2.0.16) (2019-11-03)
+
+
+### Bug Fixes
+
+* **modules:graphql/schema/resolvers:** reduce disks memory usage ([6d9b40b](https://github.com/unraid/graphql-api/commit/6d9b40b010f5b6debd6948c87d6a2e5bbeaeb3b7))
+
 ### [2.0.15](https://github.com/unraid/graphql-api/compare/v2.0.14...v2.0.15) (2019-11-03)
 
 
