@@ -28,7 +28,7 @@ module.exports = function (
 
 		// If there are no clients to broadcast to
 		// then we might as well skip this run
-		if (wsClients && wsClients.size === 0) {
+		if (!wsClients || wsClients.size === 0) {
 			return false;
 		}
 
@@ -37,7 +37,8 @@ module.exports = function (
 
 	// Once per second
 	const limiter = new Bottleneck({
-		minTime: 1
+		minTime: 1,
+		strategy: 'BLOCK'
 	});
 
 	const handleResult = async possibleResult => {
@@ -145,7 +146,7 @@ module.exports = function (
 	// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
 	// });
 
-	pubsub.subscribe('disks', limiter.wrap(async () => {
+	bus.on('disks', limiter.wrap(async () => {
 		await run('array', 'UPDATED', {
 			moduleToRun: 'get-array',
 			context: {}
