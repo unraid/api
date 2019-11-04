@@ -6,13 +6,19 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "release": "standard-version",
+    "build": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
-    "update-env": "cp .env.test .env && sed -i '' \"s|\\$(pwd)|$(pwd)|g\" .env",
-    "dev": "npm run update-env && node-env-run --exec 'nodemon -e js,graphql --signal SIGINT index.js'",
+    "lint": "xo --verbose",
+    "lint:quiet": "xo --quiet",
+    "lint:fix": "xo --fix",
     "test": "exit 0",
-    "lint": "xo",
-    "build": "modclean --no-progress --run --path ."
+    "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
+    "cover:unit": "nyc --silent npm run test:unit",
+    "cover:integration": "nyc --silent --no-clean npm run test:integration",
+    "cover:report": "nyc report --reporter=lcov --reporter=text",
+    "patch": "npm-run-all patch:**",
+    "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.js",
+    "release": "standard-version"
   },
   "files": [
     "app/**/*",
