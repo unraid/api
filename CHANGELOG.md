@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.19](https://github.com/unraid/graphql-api/compare/v2.0.18...v2.0.19) (2019-11-04)
+
+
+### Bug Fixes
+
+* **subscriptions-transport-ws:** patch duplicate subscriptions ([c0d9825](https://github.com/unraid/graphql-api/commit/c0d9825f5802653e25a1fd6fe1255d1724cc27e0))
+
 ### [2.0.18](https://github.com/unraid/graphql-api/compare/v2.0.17...v2.0.18) (2019-11-03)
 
 
