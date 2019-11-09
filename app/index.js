@@ -5,7 +5,7 @@
 
 const path = require('path');
 const am = require('am');
-const camelcase = require('camelcase');
+const camelCase = require('camelcase');
 // eslint-disable-next-line import/no-extraneous-dependencies
 const Injector = require('bolus');
 
@@ -52,12 +52,12 @@ $injector.registerValue('setIntervalAsync', $injector.resolve('set-interval-asyn
 $injector.registerPath([
 	'*.js',
 	'graphql/*.js'
-], defaultName => camelcase(defaultName));
+], defaultName => camelCase(defaultName));
 
 // Register graphql schema
 $injector.registerPath([
 	'./graphql/schema/**/*.js'
-], defaultName => camelcase(defaultName));
+], defaultName => camelCase(defaultName));
 
 // Register core
 $injector.registerPath(path.resolve(process.env.PATHS_CORE || path.join(__dirname, '../node_modules/@unraid/core')));
@@ -78,6 +78,9 @@ am(async () => {
 
 	// Load server
 	await core.loadServer('graphql-api');
+
+	// Load pm2 metrics reporters
+	await core.loadMetrics('graphql-api');
 }, error => {
 	// We should only end here if core has an issue loading
 
