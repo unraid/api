@@ -153,7 +153,7 @@ module.exports = function (
 		});
 	}));
 
-	const { withFilter } = $injector.resolve('graphql-subscriptions');
+	const {withFilter} = $injector.resolve('graphql-subscriptions');
 
 	const createBasicSubscription = name => ({
 		subscribe: async () => {
@@ -167,7 +167,7 @@ module.exports = function (
 			return;
 		}
 
-		const { json } = await $injector.resolveModule('module:info/get-apps');
+		const {json} = await $injector.resolveModule('module:info/get-apps');
 		pubsub.publish('info', {
 			info: {
 				mutation: 'UPDATED',
@@ -263,7 +263,7 @@ module.exports = function (
 			},
 			pluginModule: {
 				subscribe: async (_, directiveArgs) => {
-					const { plugin: pluginName, module: pluginModuleName } = directiveArgs;
+					const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
 					const name = `${pluginName}/${pluginModuleName}`;
 
 					// Verify plugin is installed and active
