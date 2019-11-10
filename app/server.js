@@ -11,6 +11,20 @@ module.exports = function ($injector, path, fs, net, express, config, log, getEn
 	const port = config.get('graphql-api-port');
 	const {ApolloServer} = $injector.resolve('apollo-server-express');
 	const graphql = $injector.resolvePath(path.join(__dirname, '/graphql'));
+	let machineId;
+
+	app.use(async (req, res, next) => {
+		// Only get the machine ID on first request
+		// We do this to avoid using async in the main server function
+		if (!machineId) {
+			machineId = await $injector.resolveModule('module:info/get-machine-id').then(result => result.json);
+		}
+
+		// Update header with machine ID
+		res.set('x-machine-id', machineId);
+
+		next();
+	});
 
 	// Mount graph endpoint
 	const graphApp = new ApolloServer(graphql);
