@@ -17,6 +17,7 @@ module.exports = function ($injector, path, fs, net, express, config, log, getEn
 		// Only get the machine ID on first request
 		// We do this to avoid using async in the main server function
 		if (!machineId) {
+			// eslint-disable-next-line require-atomic-updates
 			machineId = await $injector.resolveModule('module:info/get-machine-id').then(result => result.json);
 		}
 
