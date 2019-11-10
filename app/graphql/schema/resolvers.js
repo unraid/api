@@ -146,14 +146,14 @@ module.exports = function (
 	// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
 	// });
 
-	bus.on('disks', limiter.wrap(async () => {
+	pubsub.subscribe('disks', limiter.wrap(async () => {
 		await run('array', 'UPDATED', {
 			moduleToRun: 'get-array',
 			context: {}
 		});
 	}));
 
-	const {withFilter} = $injector.resolve('graphql-subscriptions');
+	const { withFilter } = $injector.resolve('graphql-subscriptions');
 
 	const createBasicSubscription = name => ({
 		subscribe: async () => {
@@ -167,7 +167,7 @@ module.exports = function (
 			return;
 		}
 
-		const {json} = await $injector.resolveModule('module:info/get-apps');
+		const { json } = await $injector.resolveModule('module:info/get-apps');
 		pubsub.publish('info', {
 			info: {
 				mutation: 'UPDATED',
@@ -183,6 +183,7 @@ module.exports = function (
 
 	dee.listen();
 
+	// Republish bus events to pubsub when clients connect
 	bus.on('*', (...args) => {
 		if (!canPublishToClients()) {
 			return;
@@ -262,7 +263,7 @@ module.exports = function (
 			},
 			pluginModule: {
 				subscribe: async (_, directiveArgs) => {
-					const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
+					const { plugin: pluginName, module: pluginModuleName } = directiveArgs;
 					const name = `${pluginName}/${pluginModuleName}`;
 
 					// Verify plugin is installed and active
