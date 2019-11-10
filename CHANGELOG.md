@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.0.23](https://github.com/unraid/graphql-api/compare/v2.0.22...v2.0.23) (2019-11-10)
+
+
+### Bug Fixes
+
+* **module:graphql/schema/resolvers:** only update when clients connect ([22ff4c1](https://github.com/unraid/graphql-api/commit/22ff4c14d138aa9d288dfb31ee6716c7f8efebc1))
+
 ### [2.0.22](https://github.com/unraid/graphql-api/compare/v2.0.21...v2.0.22) (2019-11-09)
 
 ### [2.0.21](https://github.com/unraid/graphql-api/compare/v2.0.20...v2.0.21) (2019-11-04)
