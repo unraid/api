@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.1.0](https://github.com/unraid/graphql-api/compare/v2.0.23...v2.1.0) (2019-11-10)
+
+
+### Features
+
+* **module:app/server:** add x-machine-id to header ([8e29f5f](https://github.com/unraid/graphql-api/commit/8e29f5fc1f4384a3b1e8c06ea380c36a4329ad15))
+* **schema:info/machine-id:** added machineId to info ([beaad40](https://github.com/unraid/graphql-api/commit/beaad40ac750d3c4d38e754b7a2084947294cd47))
+
 ### [2.0.23](https://github.com/unraid/graphql-api/compare/v2.0.22...v2.0.23) (2019-11-10)
 
 
