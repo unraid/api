@@ -219,7 +219,7 @@ module.exports = function (
 
 					// In production let's just throw an internal error
 					if (process.env.NODE_ENV === 'production') {
-						throw new AppError('Internal error occured');
+						throw new AppError('Internal error occurred');
 					}
 
 					// Otherwise re-throw actual error
