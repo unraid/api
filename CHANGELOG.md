@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.2](https://github.com/unraid/graphql-api/compare/v2.1.1...v2.1.2) (2019-11-11)
+
+
+### Bug Fixes
+
+* **ecosystem:** remove node_args and cleanup formatting ([b3a284b](https://github.com/unraid/graphql-api/commit/b3a284bfcbab10384c69d9c2fb54ac6bfe92a29e))
+
 ### [2.1.1](https://github.com/unraid/graphql-api/compare/v2.1.0...v2.1.1) (2019-11-10)
 
 ## [2.1.0](https://github.com/unraid/graphql-api/compare/v2.0.23...v2.1.0) (2019-11-10)
