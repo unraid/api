@@ -1,35 +1,36 @@
 /* eslint-disable camelcase */
 
+const common = {
+	// Default values
+	name: 'graphql-api',
+	script: './index.js',
+	watch: false,
+	wait_ready: true,
+	listen_timeout: 3000,
+	error_file: '/var/log/graphql-api.log',
+	out_file: '/var/log/graphql-api.log',
+	exp_backoff_restart_delay: 100,
+	max_memory_restart: '200M',
+	PORT: '/var/run/graphql-api.sock',
+	NODE_ENV: 'production'
+};
+
+const envs = {
+	env_development: {
+		PORT: 5000,
+		NODE_ENV: 'development'
+	},
+	'env_safe-mode': {
+		NODE_ENV: 'safe-mode'
+	},
+	env_debug: {
+		DEBUG: true
+	}
+};
+
 module.exports = {
 	apps: [{
-		name: 'graphql-api',
-		script: './index.js',
-		watch: false,
-		wait_ready: true,
-		listen_timeout: 3000,
-		env: {
-			PORT: 5000,
-			NODE_ENV: 'development'
-		},
-		'env_safe-mode': {
-			PORT: '/var/run/graphql-api.sock',
-			NODE_ENV: 'safe-mode',
-			node_args: ['--optimize_for_size', '--always_compact']
-		},
-		env_debug: {
-			PORT: '/var/run/graphql-api.sock',
-			NODE_ENV: 'production',
-			node_args: ['--optimize_for_size', '--always_compact'],
-			DEBUG: true
-		},
-		env_production: {
-			PORT: '/var/run/graphql-api.sock',
-			NODE_ENV: 'production',
-			error_file: '/var/log/graphql-api/error.log',
-			out_file: '/var/log/graphql-api/out.log',
-			exp_backoff_restart_delay: 100,
-			max_memory_restart: '200M',
-			node_args: ['--optimize_for_size', '--always_compact']
-		}
+		...common,
+		...envs
 	}]
 };
