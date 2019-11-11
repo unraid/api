@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.4](https://github.com/unraid/graphql-api/compare/v2.1.3...v2.1.4) (2019-11-11)
+
+
+### Bug Fixes
+
+* **ecosystem:** disable extra logging in production ([fbb8989](https://github.com/unraid/graphql-api/commit/fbb8989378aa1d4d47956c6d8e80dad6b770288b))
+
 ### [2.1.3](https://github.com/unraid/graphql-api/compare/v2.1.2...v2.1.3) (2019-11-11)
 
 ### [2.1.2](https://github.com/unraid/graphql-api/compare/v2.1.1...v2.1.2) (2019-11-11)
