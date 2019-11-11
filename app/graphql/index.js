@@ -163,7 +163,7 @@ module.exports = function (
 	class FuncDirective extends SchemaDirectiveVisitor {
 		visitFieldDefinition(field) {
 			const {args} = this;
-			field.resolve = function (source, directiveArgs, context, info) {
+			field.resolve = async function (source, directiveArgs, context, info) {
 				const path = $injector.resolve('path');
 				const paths = $injector.resolve('paths');
 				const {module: moduleName, result: resultType} = args;
@@ -211,9 +211,9 @@ module.exports = function (
 				let func;
 				try {
 					func = $injector.resolvePath(funcPath, locals);
-				} catch (error) {
+				} catch (error_) {
 					// Rethrow clean error message about module being missing
-					if (error.code === 'MODULE_NOT_FOUND') {
+					if (error_.code === 'MODULE_NOT_FOUND') {
 						throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
 					}
 
@@ -223,40 +223,45 @@ module.exports = function (
 					}
 
 					// Otherwise re-throw actual error
-					throw error;
+					throw error_;
 				}
 
 				const pluginOrModule = pluginName ? 'Plugin:' : 'Module:';
 				const pluginOrModuleName = pluginModuleName || moduleName;
 
 				// Run function
-				return Promise.resolve(func)
-					.then(async result => {
-						// If function's result is a function or promise run/resolve it
-						result = await Promise.resolve(result).then(result => typeof result === 'function' ? result() : result);
-
-						// Get wanted result type or fall back to json
-						result = result[pluginType || resultType || 'json'];
-
-						// Allow fields to be extracted
-						if (directiveArgs.extractFromResponse) {
-							result = get(result, directiveArgs.extractFromResponse);
-						}
-
-						log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result);
-						return result;
-					})
-					.catch(error => {
+				let [error, result] = await Promise.resolve(func)
+					.then(result => [undefined, result])
+					.catch(error_ => {
 						// Ensure we aren't leaking anything in production
 						if (process.env.NODE_ENV === 'production') {
-							log.error(pluginOrModule, pluginOrModuleName, 'Error:', error.message);
-							return new Error(error.message);
+							log.error(pluginOrModule, pluginOrModuleName, 'Error:', error_.message);
+							return [new Error(error_.message)];
 						}
 
-						const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
-						logger(pluginOrModule, pluginOrModuleName, 'Error:', error);
-						return error;
+						const logger = log[error_.status && error_.status >= 400 ? 'error' : 'warn'];
+						logger(pluginOrModule, pluginOrModuleName, 'Error:', error_);
+						return [error_];
 					});
+
+				// Bail if we can't get the method to run
+				if (error) {
+					return error;
+				}
+
+				// If the method's result is a function or promise run/resolve it
+				result = await Promise.resolve(result).then(result => typeof result === 'function' ? result() : result);
+
+				// Get wanted result type or fallback to json
+				result = result[pluginType || resultType || 'json'];
+
+				// Allow fields to be extracted
+				if (directiveArgs.extractFromResponse) {
+					result = get(result, directiveArgs.extractFromResponse);
+				}
+
+				log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result);
+				return result;
 			};
 		}
 	}
