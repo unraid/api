@@ -8,12 +8,11 @@ module.exports = function (
 	GraphQLJSON,
 	GraphQLLong,
 	GraphQLUUID,
-	pubsub,
 	PluginManager,
+	pubsub,
 	log,
 	PluginError,
 	dee,
-	Bottleneck,
 	debugTimer,
 	bus,
 	setIntervalAsync
@@ -34,12 +33,6 @@ module.exports = function (
 
 		return true;
 	};
-
-	// Once per second
-	const limiter = new Bottleneck({
-		minTime: 1,
-		strategy: 'BLOCK'
-	});
 
 	const handleResult = async possibleResult => {
 		// Await resolved function if it returns one.
@@ -141,19 +134,20 @@ module.exports = function (
 		});
 	};
 
-	// Recieve test messages.
+	// Receive test messages.
 	// pubsub.subscribe('ping', (...rest) => {
 	// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
 	// });
 
-	pubsub.subscribe('disks', limiter.wrap(async () => {
+	// Update array values when disks change
+	bus.on('disks', async () => {
 		await run('array', 'UPDATED', {
 			moduleToRun: 'get-array',
 			context: {}
 		});
-	}));
+	});
 
-	const {withFilter} = $injector.resolve('graphql-subscriptions');
+	// const {withFilter} = $injector.resolve('graphql-subscriptions');
 
 	const createBasicSubscription = name => ({
 		subscribe: async () => {
@@ -184,18 +178,19 @@ module.exports = function (
 	dee.listen();
 
 	// Republish bus events to pubsub when clients connect
-	bus.on('*', (...args) => {
-		if (!canPublishToClients()) {
-			return;
-		}
+	// We need to filter to only the endpoint that're currently connected
+	// bus.on('*', (...args) => {
+	// 	if (!canPublishToClients()) {
+	// 		return;
+	// 	}
 
-		const {
-			[args.length - 1]: last,
-			...rest
-		} = args;
+	// 	const {
+	// 		[args.length - 1]: last,
+	// 		...rest
+	// 	} = args;
 
-		pubsub.publish(...Object.values(rest));
-	});
+	// 	pubsub.publish(...Object.values(rest));
+	// });
 
 	// This needs to be fixed to run from events
 	setIntervalAsync(async () => {
@@ -233,10 +228,10 @@ module.exports = function (
 			info: {
 				...createBasicSubscription('info')
 			},
-			me: {
-				subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
-				resolve: payload => payload.user
-			},
+			// me: {
+			// 	subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
+			// 	resolve: payload => payload.user
+			// },
 			ping: {
 				subscribe: () => {
 					startPing();
