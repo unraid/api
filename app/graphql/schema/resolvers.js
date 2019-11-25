@@ -147,8 +147,6 @@ module.exports = function (
 		});
 	});
 
-	// const {withFilter} = $injector.resolve('graphql-subscriptions');
-
 	const createBasicSubscription = name => ({
 		subscribe: async () => {
 			return pubsub.asyncIterator(name);
@@ -228,10 +226,6 @@ module.exports = function (
 			info: {
 				...createBasicSubscription('info')
 			},
-			// me: {
-			// 	subscribe: withFilter(() => pubsub.asyncIterator('user'), (payload, _, context) => payload.user.node.id === context.user.id),
-			// 	resolve: payload => payload.user
-			// },
 			ping: {
 				subscribe: () => {
 					startPing();
