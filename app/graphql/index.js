@@ -285,10 +285,6 @@ module.exports = function (
 		}
 	};
 
-	// Connected ws clients
-	const clients = new Map();
-	$injector.registerValue('ws-clients', clients);
-
 	const {debug} = config;
 	return {
 		introspection: debug,
@@ -297,30 +293,21 @@ module.exports = function (
 		types,
 		resolvers,
 		subscriptions: {
-			onConnect: (connectionParams, webSocket) => {
+			onConnect: connectionParams => {
 				const apiKey = connectionParams['x-api-key'];
 				ensureApiKey(apiKey);
 
 				const user = Users.findOne({apiKey}) || {name: 'guest', apiKey, role: 'guest'};
 
-				log.debug(`<ws> ${user.name} connected.`);
-				clients.set(webSocket, user);
-				$injector.registerValue('ws-clients', clients);
+				log.info(`<ws> ${user.name} connected.`);
 
 				return {
 					user
 				};
 			},
-			onDisconnect: webSocket => {
-				//				Const user = clients.get(webSocket);
-				//				log.debug(`<ws> ${user.name} disconnected.`);
-				//
-				//				// If we don't wait a tick `user` becomes undefined.
-				process.nextTick(() => {
-					clients.delete(webSocket);
-
-					$injector.registerValue('ws-clients', clients);
-				});
+			onDisconnect: async (_, context) => {
+				const initialContext = await context.initPromise;
+				log.info(`<ws> ${initialContext.user.name} disconnected.`);
 			}
 		},
 		context: ({req, connection}) => {
