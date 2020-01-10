@@ -78,9 +78,6 @@ am(async () => {
 
 	// Load server
 	await core.loadServer('graphql-api');
-
-	// Load pm2 metrics reporters
-	await core.loadMetrics('graphql-api');
 }, error => {
 	// We should only end here if core has an issue loading
 
