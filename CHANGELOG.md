@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.6](https://github.com/unraid/graphql-api/compare/v2.1.5...v2.1.6) (2020-01-10)
+
+
+### Bug Fixes
+
+* **module:graphql/index:** replace user onConnect/onDisconnect logging ([5971fce](https://github.com/unraid/graphql-api/commit/5971fce4e7953609635cd018072c1b768a28a6a1))
+
 ### [2.1.5](https://github.com/unraid/graphql-api/compare/v2.1.4...v2.1.5) (2019-11-25)
 
 ### [2.1.4](https://github.com/unraid/graphql-api/compare/v2.1.3...v2.1.4) (2019-11-11)
