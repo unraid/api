@@ -20,17 +20,6 @@ module.exports = function (
 	// Only allows function to publish to pubsub when clients are online
 	// the reason we do this is otherwise pubsub will cause a memory leak
 	const canPublishToClients = () => {
-		/**
-		 * @type {Map}
-		 */
-		const wsClients = $injector.resolve('ws-clients?');
-
-		// If there are no clients to broadcast to
-		// then we might as well skip this run
-		if (!wsClients || wsClients.size === 0) {
-			return false;
-		}
-
 		return true;
 	};
 
