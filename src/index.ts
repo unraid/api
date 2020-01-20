@@ -9,6 +9,9 @@ import { server } from './server';
 
 // Boot app
 am(async () => {
+	// Load core
+	await core.core.load();
+
 	// Load server
 	await core.loadServer('graphql-api', server);
 }, error => {
