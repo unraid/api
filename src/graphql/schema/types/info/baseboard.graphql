@@ -1,0 +1,14 @@
+type Info {
+    baseboard: Baseboard @func(module: "getBaseboard")
+}
+
+type Baseboard {
+    # Dell Inc.
+    manufacturer: String!
+    # 0MD99X
+    model: String
+    # A07
+    version: String
+    serial: String
+    assetTag: String
+}

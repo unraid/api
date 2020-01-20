@@ -1,0 +1,4 @@
+type Info {
+    """Machine ID"""
+    machineId: ID @func(module: "getMachineId")
+}

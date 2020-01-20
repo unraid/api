@@ -1,0 +1,41 @@
+type Info {
+    memory: InfoMemory @func(module: "getMemory")
+}
+
+type InfoMemory {
+    max: Long!
+    total: Long!
+    free: Long!
+    used: Long!
+    active: Long!
+    available: Long!
+    buffcache: Long!
+    swaptotal: Long!
+    swapused: Long!
+    swapfree: Long!
+    layout: [MemoryLayout!]
+}
+
+type MemoryLayout {
+    size: Long!
+    bank: String
+    type: MemoryType
+    clockSpeed: Long
+    formFactor: MemoryFormFactor
+    manufacturer: String
+    partNum: String
+    serialNum: String
+    voltageConfigured: Long
+    voltageMin: Long
+    voltageMax: Long
+}
+
+enum MemoryType {
+    DDR2
+    DDR3
+    DDR4
+}
+
+enum MemoryFormFactor {
+    DIMM
+}

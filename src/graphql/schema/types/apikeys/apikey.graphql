@@ -1,0 +1,38 @@
+input authenticateInput {
+    password: String!
+}
+
+input updateApikeyInput {
+    description: String
+    expiresAt: Long!
+}
+
+type Query {
+    """Get all apikeys"""
+    apiKeys: [ApiKey] @func(module: "getApikeys")
+}
+
+type Mutation {
+    """Get user apikey"""
+    getApiKey(name: String!, input: authenticateInput): ApiKey @func(module: "getApikey")
+
+    """Update apikey"""
+    updateApikey(name: String!, input: updateApikeyInput): ApiKey @func(module: "updateApikey")
+}
+
+type ApikeysSubscription {
+    mutation: MutationType!
+    node: ApiKey
+}
+
+type Subscription {
+    apikeys: ApikeysSubscription
+}
+
+type ApiKey {
+    name: String!
+    key: String!
+    description: String
+    scopes: JSON!
+    expiresAt: Long!
+}

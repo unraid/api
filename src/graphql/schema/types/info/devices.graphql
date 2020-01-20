@@ -1,0 +1,53 @@
+type Info {
+    # @todo finish this
+    devices: Devices @func(module: "info/get-devices")
+}
+
+type Devices {
+    gpu: [Gpu]
+    network: [Network]
+    pci: [Pci]
+    usb: [Usb]
+}
+
+type Gpu {
+    id: ID!
+    type: String!
+    typeid: String!
+    vendorname: String!
+    productid: String!
+    blacklisted: Boolean!
+    class: String!
+}  
+
+type Network {
+    iface: String
+    ifaceName: String
+    ipv4: String
+    ipv6: String
+    mac: String
+    internal: String
+    operstate: String
+    type: String
+    duplex: String
+    mtu: String
+    speed: String
+    carrierChanges: String
+}
+
+type Pci {
+    id: ID!
+    type: String
+    typeid: String
+    vendorname: String
+    vendorid: String
+    productname: String
+    productid: String
+    blacklisted: String
+    class: String
+}
+
+type Usb {
+    id: ID!
+    name: String
+}

@@ -1,0 +1,26 @@
+type Query {
+    # @todo finish this
+    service(name: String!): Service @func(module: "services/name/get-service")
+    services: [Service] @func(module: "getServices")
+}
+
+type ServiceSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: Service!
+}
+type ServicesSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: [Service!]
+}
+
+type Subscription {
+    service(id: ID!): ServiceSubscription
+    services: ServicesSubscription
+}
+
+type Service {
+    name: String!
+    online: Boolean
+    uptime: Int
+    version: String
+}
