@@ -1,0 +1,20 @@
+type Query {
+    # @todo finish this
+    """Virtual network for vms"""
+    vmNetwork(name: String!): JSON @func(module: "vms/domains/network/get-network")
+    # """Virtual networks for vms"""
+    # vmNetworks: [VmNetwork]
+}
+
+type VmNetwork {
+    _placeholderType: String
+}
+
+type VmNetworksSubscription {
+    mutation: MutationType!
+    node: [VmNetwork!]
+}
+
+type Subscription {
+    vmNetworks: VmNetworksSubscription!
+}

@@ -1,0 +1,38 @@
+type Query {
+    """Docker network"""
+    dockerNetwork(id: ID!): DockerNetwork! @func(module: "getDockerNetwork")
+    """All Docker networks"""
+    dockerNetworks(all: Boolean): [DockerNetwork]! @func(module: "getDockerNetworks")
+}
+
+type DockerNetworkSubscription {
+    mutation: MutationType!
+    node: DockerNetwork!
+}
+type DockerNetworksSubscription {
+    mutation: MutationType!
+    node: [DockerNetwork]!
+}
+
+type Subscription {
+    dockerNetwork(id: ID!): DockerNetworkSubscription
+    dockerNetworks: DockerNetworksSubscription
+}
+
+type DockerNetwork {
+    name: String
+    id: ID
+    created: String
+    scope: String
+    driver: String
+    enableIPv6: Boolean!
+    ipam: JSON
+    internal: Boolean!
+    attachable: Boolean!
+    ingress: Boolean!
+    configFrom: JSON
+    configOnly: Boolean!
+    containers: JSON
+    options: JSON
+    labels: JSON
+}

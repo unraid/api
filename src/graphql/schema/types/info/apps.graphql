@@ -1,0 +1,11 @@
+type Info {
+    """Count of docker containers"""
+    apps: InfoApps @func(module: "getAppCount")
+}
+
+type InfoApps {
+    """How many docker containers are installed"""
+    installed: Int
+    """How many docker containers are running"""
+    started: Int
+}

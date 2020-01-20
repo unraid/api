@@ -56,3 +56,6 @@ typings/
 
 # Temp dir for tests
 test/__temp__/*
+
+# Built files
+dist

@@ -1,0 +1,31 @@
+type Query {
+    parityHistory: [ParityCheck] @func(module: "getParityHistory")
+}
+
+type Mutation {
+    """Start parity check"""
+    startParityCheck(correct: Boolean): JSON @func(module: "updateParityCheck", data: { state: "start" })
+    """Pause parity check"""
+    pauseParityCheck: JSON @func(module: "updateParityCheck", data: { state: "pause" })
+    """Resume parity check"""
+    resumeParityCheck: JSON @func(module: "updateParityCheck", data: { state: "resume" })
+    """Cancel parity check"""
+    cancelParityCheck: JSON @func(module: "updateParityCheck", data: { state: "cancel" })
+}
+
+type ParityHistorySubscription {
+    mutation: MutationType!
+    node: ParityCheck!
+}
+
+type Subscription {
+    parityHistory: ParityHistorySubscription
+}
+
+type ParityCheck {
+    date: String!
+    duration: Int!
+    speed: String!
+    status: String!
+    errors: String!
+}

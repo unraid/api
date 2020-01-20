@@ -1,0 +1,25 @@
+type Query {
+    """Current user account"""
+    me: Me @func(module: "getMe")
+}
+
+# type Mutation {
+# }
+
+"""The current user"""
+type Me implements UserAccount {
+    id: ID!
+    name: String!
+    description: String!
+    role: String!
+    permissions: JSON
+}
+
+type MeSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: Me
+}
+
+type Subscription {
+    me: MeSubscription
+}

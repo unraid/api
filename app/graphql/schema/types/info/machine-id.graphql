@@ -1,4 +1,0 @@
-type Info {
-    """Machine ID"""
-    machineId: ID @func(module: "info/get-machine-id")
-}

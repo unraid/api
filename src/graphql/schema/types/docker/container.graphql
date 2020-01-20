@@ -1,0 +1,70 @@
+type Query {
+    """Docker container"""
+    dockerContainer(id: ID!): DockerContainer! @func(module: "getDockerContainer")
+    """All Docker containers"""
+    dockerContainers(all: Boolean): [DockerContainer]! @func(module: "getDockerContainers")
+}
+
+type DockerContainerSubscription {
+    mutation: MutationType!
+    node: DockerContainer!
+}
+type DockerContainersSubscription {
+    mutation: MutationType!
+    node: [DockerContainer]!
+}
+
+type Subscription {
+    dockerContainer(id: ID!): DockerContainerSubscription
+    dockerContainers: DockerContainersSubscription
+}
+
+enum ContainerPortType {
+    tcp
+    udp
+}
+
+type ContainerPort {
+    ip: String!
+    privatePort: Int
+    publicPort: Int
+    type: ContainerPortType
+}
+
+enum ContainerState {
+    running
+    exited
+}
+
+type ContainerHostConfig {
+    networkMode: String!
+}
+
+type ContainerMount {
+    type: String!
+    name: String!
+    source: String!
+    destination: String!
+    driver: String!
+    mode: String!
+    rw: Boolean!
+    propagation: String!
+}
+
+type DockerContainer {
+    id: ID!
+    names: [String!]
+    image: String!
+    imageId: String!
+    command: String!
+    created: Int!
+    ports: [ContainerPort]
+    sizeRootFs: Int!
+    labels: JSON
+    state: ContainerState
+    status: String!
+    hostConfig: ContainerHostConfig
+    networkSettings: JSON
+    mounts: [JSON]
+    autoStart: Boolean!
+}
