@@ -18,7 +18,7 @@ type InfoCpu {
     # ''
     revision: String!
     # ''
-    voltage: Float
+    voltage: String
     # '2.27'
     speed: Float!
     # '1.60'

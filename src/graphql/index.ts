@@ -13,8 +13,8 @@ import gql from 'graphql-tag';
 import { typeDefs, resolvers } from './schema';
 import { increaseWsConectionCount, decreaseWsConectionCount } from '../ws';
 
-const { apiManager, errors, log, states, config } = core;
-const { AppError, FatalAppError } = errors;
+const { apiManager, errors, log, states, config, pluginManager } = core;
+const { AppError, FatalAppError, PluginError } = errors;
 const { usersState } = states;
 
 const baseTypes = [gql`
@@ -135,6 +135,26 @@ const types = mergeTypes([
 	typeDefs
 ]);
 
+const getCoreModule = (moduleName) => {
+	if (!Object.keys(core.modules).includes(moduleName)) {
+		throw new FatalAppError(`"${moduleName}" is not a valid core module.`);
+	}
+
+	return core.modules[moduleName];
+};
+
+const getPluginModule = (pluginName, pluginModuleName) => {
+	if (!pluginManager.isInstalled(pluginName, pluginModuleName)) {
+		throw new PluginError('Plugin not installed.');
+	}
+
+	if (!pluginManager.isActive(pluginName, pluginModuleName)) {
+		throw new PluginError('Plugin disabled.');
+	}
+
+	return pluginManager.get(pluginName, pluginModuleName);
+};
+
 /**
  * Func directive
  *
@@ -171,24 +191,6 @@ class FuncDirective extends SchemaDirectiveVisitor {
 				...directiveArgs.data,
 				...(operationType === 'mutation' ? input : {})
 			};
-			// let funcPath = path.join(coreCwd, moduleName + '.js');
-
-			// If we're looking for a plugin verify it's installed and active first
-			// if (pluginName) {
-			// 	if (!PluginManager.isInstalled(pluginName, pluginModuleName)) {
-			// 		throw new PluginError('Plugin not installed.');
-			// 	}
-
-			// 	if (!PluginManager.isActive(pluginName, pluginModuleName)) {
-			// 		throw new PluginError('Plugin disabled.');
-			// 	}
-
-			// 	const pluginModule = PluginManager.get(pluginName, pluginModuleName);
-			// 	// Update plugin funcPath
-			// 	funcPath = pluginModule.filePath;
-			// }
-
-			// Create func context
 			// If query    @func(param_1, param_2, input: query?)
 			// If mutation @func(param_1, param_2, input: data)
 			const context = {
@@ -201,15 +203,15 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			// Resolve func
 			let func;
 
-			if (!Object.keys(core.modules).includes(moduleName)) {
-				throw new FatalAppError(`"${moduleName}" is not a valid core module.`);
-			}
-
 			try {
-				func = core.modules[moduleName]
-			} catch (error_) {
+				if (pluginName) {
+					func = getPluginModule(pluginName, pluginModuleName);
+				} else {
+					func = getCoreModule(moduleName);
+				}
+			} catch (error) {
 				// Rethrow clean error message about module being missing
-				if (error_.code === 'MODULE_NOT_FOUND') {
+				if (error.code === 'MODULE_NOT_FOUND') {
 					throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
 				}
 
@@ -219,14 +221,14 @@ class FuncDirective extends SchemaDirectiveVisitor {
 				}
 
 				// Otherwise re-throw actual error
-				throw error_;
+				throw error;
 			}
 
 			const pluginOrModule = pluginName ? 'Plugin:' : 'Module:';
 			const pluginOrModuleName = pluginModuleName || moduleName;
 
 			// Run function
-			let [error, result] = await Promise.resolve(func(context))
+			let [error, result] = await Promise.resolve(func(context, core))
 				.then(result => [undefined, result])
 				.catch(error_ => {
 					// Ensure we aren't leaking anything in production

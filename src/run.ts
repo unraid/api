@@ -1,4 +1,4 @@
-import { CoreResult } from '@unraid/core/interfaces';
+import { CoreResult } from '@unraid/core/dist/interfaces';
 import * as core from '@unraid/core'
 import { getWsConectionCount } from './ws';
 
@@ -43,7 +43,6 @@ export const run = async (channel: string, mutation: string, options: RunOptions
     const {
         node,
         moduleToRun,
-        // moduleToRun,
         // filePath,
         context
     } = options;
@@ -62,11 +61,6 @@ export const run = async (channel: string, mutation: string, options: RunOptions
             debugTimer(`run:${moduleToRun.name}`);
             return resolve(moduleToRun(context));
         });
-
-        // if (filePath) {
-        // 	const [pluginName, moduleName] = channel.split('/');
-        // 	log.debug('Plugin:', pluginName, 'Module:', moduleName, 'Result:', result);
-        // }
 
         log.debug('Module:', moduleToRun.name, 'Result:', result.json);
 
