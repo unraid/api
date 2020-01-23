@@ -6,7 +6,8 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && npm run copy-schemas",
+    "copy-schemas": "cpx src/**/*.graphql dist/src",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
     "lint": "xo --verbose",
@@ -58,6 +59,7 @@
     "@commitlint/config-conventional": "^8.3.4",
     "ava": "^2.4.0",
     "bundle-dependencies": "^1.0.2",
+    "cpx": "1.5.0",
     "cz-conventional-changelog": "3.0.2",
     "husky": "^4.0.4",
     "modclean": "^3.0.0-beta.1",
