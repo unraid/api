@@ -27,7 +27,7 @@
   ],
   "dependencies": {
     "@gridplus/docker-events": "^1.0.0",
-    "@unraid/core": "github:unraid/core#feature/add-better-typing",
+    "@unraid/core": "github:unraid/core",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
     "apollo-datasource-rest": "^0.6.11",

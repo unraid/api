@@ -202,10 +202,13 @@ class FuncDirective extends SchemaDirectiveVisitor {
 
 			// Resolve func
 			let func;
-
 			try {
 				if (pluginName) {
-					func = getPluginModule(pluginName, pluginModuleName);
+					const { filePath } = getPluginModule(pluginName, pluginModuleName);
+					const pluginModule = require(filePath);
+					// The file will either use a default export or a named one
+					// If it's named it should be the same as a module name
+					func = typeof pluginModule === 'function' ? pluginModule : pluginModule[pluginModuleName];
 				} else {
 					func = getCoreModule(moduleName);
 				}
