@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.12](https://github.com/unraid/graphql-api/compare/v2.1.11...v2.1.12) (2020-01-23)
+
+
+### Bug Fixes
+
+* add missing graphql files ([02f32f5](https://github.com/unraid/graphql-api/commit/02f32f5f1140d8057b72542ef8ec9ae02193790f))
+
 ### [2.1.11](https://github.com/unraid/graphql-api/compare/v2.1.10...v2.1.11) (2020-01-23)
 
 
