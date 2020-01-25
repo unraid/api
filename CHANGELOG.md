@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.13](https://github.com/unraid/graphql-api/compare/v2.1.12...v2.1.13) (2020-01-25)
+
+
+### Bug Fixes
+
+* replace machineId module with util and fix graphql subscriptions ([158bf6c](https://github.com/unraid/graphql-api/commit/158bf6c864e3f0f6c379df4a9d9ce5fbd4e8db42))
+
 ### [2.1.12](https://github.com/unraid/graphql-api/compare/v2.1.11...v2.1.12) (2020-01-23)
 
 
