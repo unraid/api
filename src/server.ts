@@ -12,13 +12,12 @@ import { ApolloServer } from 'apollo-server-express';
 import core from '@unraid/core';
 import { graphql } from './graphql';
 
-const { log, config, utils, modules } = core;
+const { log, config, utils } = core;
 const { getEndpoints } = utils;
 
 /**
  * The Graphql server.
  */
-// module.exports = function (config, log, getEndpoints, stoppable, http) {
 const app = express();
 const port = String(config.get('graphql-api-port'));
 let machineId;
@@ -28,7 +27,7 @@ app.use(async (req, res, next) => {
 	// We do this to avoid using async in the main server function
 	if (!machineId) {
 		// eslint-disable-next-line require-atomic-updates
-		machineId = await modules.getMachineId().then(result => result.json);
+		machineId = await utils.getMachineId();
 	}
 
 	// Update header with machine ID

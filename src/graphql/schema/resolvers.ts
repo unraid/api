@@ -13,35 +13,22 @@ import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { run, canPublishToClients, updatePubsub } from '../../run';
 
-const { pluginManager, pubsub, utils, log, bus, errors } = core;
-const { PluginError } = errors;
-
-// Send test message every 1 second for 10 seconds.
-const startPing = async (interval = 1000, total = 10) => {
-	await run('ping', 'UPDATED', {
-		node: 'PONG!',
-		interval,
-		total
-	});
-};
-
-// Receive test messages.
-// pubsub.subscribe('ping', (...rest) => {
-// 	console.log(`CHANNEL: ping DATA: ${JSON.stringify(rest, null, 2)}`);
-// });
+const { pluginManager, pubsub, utils, log, bus, errors, states } = core;
+const { ensurePermission } = utils;
+const { usersState } = states;
+const { AppError, PluginError } = errors;
 
 // Update array values when disks change
 bus.on('disks', async () => {
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
 	await run('array', 'UPDATED', {
 		moduleToRun: core.modules.getArray,
-		context: {}
+		context: {
+			user
+		}
 	});
-});
-
-const createBasicSubscription = name => ({
-	subscribe: async () => {
-		return pubsub.asyncIterator(name);
-	}
 });
 
 // On Docker event update info with { apps: { installed, started } }
@@ -59,31 +46,44 @@ dee.on('stop', updatePubsubWithDockerEvent);
 
 dee.listen();
 
-// Republish bus events to pubsub when clients connect
-// We need to filter to only the endpoint that're currently connected
-// bus.on('*', (...args) => {
-// 	if (!canPublishToClients()) {
-// 		return;
-// 	}
-
-// 	const {
-// 		[args.length - 1]: last,
-// 		...rest
-// 	} = args;
-
-// 	pubsub.publish(...Object.values(rest));
-// });
-
 // This needs to be fixed to run from events
 setIntervalAsync(async () => {
 	if (!canPublishToClients()) {
 		return;
 	}
 
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
 	await run('services', 'UPDATED', {
-		moduleToRun: core.modules.getServices
+		moduleToRun: core.modules.getServices,
+		context: {
+			user
+		}
 	});
 }, 1000);
+
+/**
+ * Create a pubsub subscription.
+ * @param channel The pubsub channel to subscribe to.
+ * @param resource The access-control permission resource to check against.
+ */
+const createSubscription = (channel, resource?) => ({
+	subscribe(_, __, context) {
+		if (!context.user) {
+			throw new AppError('<ws> No user found in context.');
+		}
+
+		// Check the user has permissison to subscribe to this endpoint
+		ensurePermission(context.user, {
+			resource: resource || channel,
+			action: 'read',
+			possession: 'any'
+		});
+
+		return pubsub.asyncIterator(channel);
+	}
+});
 
 export const resolvers = {
 	Query: {
@@ -93,46 +93,46 @@ export const resolvers = {
 	Subscription: {
 		apikeys: {
 			// Not sure how we're going to secure this
-			...createBasicSubscription('apikeys')
+			...createSubscription('apikeys')
 		},
 		array: {
-			...createBasicSubscription('array')
+			...createSubscription('array')
 		},
-		devices: {
-			...createBasicSubscription('devices')
-		},
+		// devices: {
+		// 	...createSubscription('device')
+		// },
 		dockerContainers: {
-			...createBasicSubscription('docker/containers')
+			...createSubscription('docker/container')
 		},
 		dockerNetworks: {
-			...createBasicSubscription('docker/networks')
+			...createSubscription('docker/network')
 		},
 		info: {
-			...createBasicSubscription('info')
+			...createSubscription('info')
 		},
 		ping: {
-			subscribe: () => {
-				startPing();
-				return pubsub.asyncIterator('ping');
-			}
+			// subscribe: () => {
+			// 	// startPing();
+			// 	return pubsub.asyncIterator('ping');
+			// }
 		},
 		services: {
-			...createBasicSubscription('services')
+			...createSubscription('services')
 		},
 		shares: {
-			...createBasicSubscription('shares')
+			...createSubscription('shares')
 		},
 		unassignedDevices: {
-			...createBasicSubscription('devices/unassigned')
+			...createSubscription('devices/unassigned')
 		},
 		users: {
-			...createBasicSubscription('users')
+			...createSubscription('users')
 		},
 		vars: {
-			...createBasicSubscription('vars')
+			...createSubscription('vars')
 		},
 		vms: {
-			...createBasicSubscription('vms/domains')
+			...createSubscription('vms/domains')
 		},
 		pluginModule: {
 			subscribe: async (_, directiveArgs) => {

@@ -31,8 +31,6 @@ export const updatePubsub = (channel, mutation, node) => {
 interface RunOptions {
     node?: string
     moduleToRun?: Function
-    interval?: number
-    total?: number
     context?: any
 }
 
@@ -43,7 +41,6 @@ export const run = async (channel: string, mutation: string, options: RunOptions
     const {
         node,
         moduleToRun,
-        // filePath,
         context
     } = options;
 
@@ -66,7 +63,6 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 
         // Update pubsub channel
         pubsub.publish(channel, {
-            // [filePath ? 'pluginModule' : channel]: {
             [channel]: {
                 mutation,
                 node: result.json
