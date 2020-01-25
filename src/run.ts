@@ -62,12 +62,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
         log.debug('Module:', moduleToRun.name, 'Result:', result.json);
 
         // Update pubsub channel
-        pubsub.publish(channel, {
-            [channel]: {
-                mutation,
-                node: result.json
-            }
-        });
+        updatePubsub(channel, mutation, result.json);
     } catch (error) {
         // Ensure we aren't leaking anything in production
         if (process.env.NODE_ENV === 'production') {

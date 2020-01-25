@@ -32,17 +32,20 @@ bus.on('disks', async () => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-const updatePubsubWithDockerEvent = async () => {
+dee.on('*', async (data) => {
+	// Only listen to container events
+	if (data.Type !== 'container') {
+		return;
+	}
+
+	// Don't publish when we have no clients
 	if (!canPublishToClients()) {
 		return;
 	}
 
 	const { json } = await core.modules.getApps();
 	updatePubsub('info', 'UPDATED', json);
-};
-
-dee.on('start', updatePubsubWithDockerEvent);
-dee.on('stop', updatePubsubWithDockerEvent);
+});
 
 dee.listen();
 

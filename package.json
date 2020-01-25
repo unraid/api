@@ -26,7 +26,7 @@
     "dist"
   ],
   "dependencies": {
-    "@gridplus/docker-events": "^1.0.0",
+    "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
     "@unraid/core": "github:unraid/core",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.1",
