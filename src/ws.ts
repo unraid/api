@@ -41,8 +41,10 @@ export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
  * @param ws
  */
 export const wsHasConnected = (id: string) => {
-    subscriptions[id].total = 0;
-    subscriptions[id].channels = [];
+    subscriptions[id] = {
+        total:  0,
+        channels: []
+    };
 };
 
 /**

@@ -6,6 +6,7 @@
 import get from 'lodash.get';
 // @ts-ignore
 // import * as core from '../../../core/src/index';
+import uuid from 'uuid/v4';
 import core from '@unraid/core';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
 import { mergeTypes } from 'merge-graphql-schemas';
@@ -298,13 +299,13 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		onConnect: (connectionParams, websocket) => {
+		onConnect: connectionParams => {
 			const apiKey = connectionParams['x-api-key'];
 
 			ensureApiKey(apiKey);
 
 			const user = usersState.findOne({apiKey}) || { name: 'guest', apiKey, role: 'guest' };
-			const websocketId = websocket.upgradeReq.headers['sec-websocket-key'];
+			const websocketId = uuid();
 
 			log.info(`<ws> ${user.name}[${websocketId}] connected.`);
 
@@ -312,7 +313,8 @@ export const graphql = {
 			wsHasConnected(websocketId);
 
 			return {
-				user
+				user,
+				websocketId
 			};
 		},
 		onDisconnect: async (_, websocketContext) => {
@@ -332,14 +334,12 @@ export const graphql = {
 		}
 
 		const apiKey = req.headers['x-api-key'];
-		const websocketId = req.headers['sec-websocket-key'];
 		ensureApiKey(apiKey);
 
 		const user = usersState.findOne({apiKey}) || {name: 'guest', apiKey, role: 'guest'};
 
 		return {
-			user,
-			websocketId
+			user
 		};
 	}
 };
