@@ -1,22 +1,15 @@
 import { CoreResult } from '@unraid/core/dist/interfaces';
 import * as core from '@unraid/core'
-import { getWsConectionCount } from './ws';
+import { canPublishToChannel } from './ws';
 
 const { pubsub, utils, log } = core;
 const { debugTimer } = utils;
-
-// Only allows function to publish to pubsub when clients are online
-// the reason we do this is otherwise pubsub will cause a memory leak
-export const canPublishToClients = () => {
-    const connectionCount = getWsConectionCount();
-    return connectionCount >= 1;
-};
 
 /**
  * Update pubsub.
  */
 export const updatePubsub = (channel, mutation, node) => {
-    if (!canPublishToClients()) {
+    if (!canPublishToChannel(channel)) {
         return;
     }
 
@@ -44,7 +37,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
         context
     } = options;
 
-    if (!canPublishToClients()) {
+    if (!canPublishToChannel(channel)) {
         return;
     }
 

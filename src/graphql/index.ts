@@ -11,7 +11,7 @@ import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';
 import { typeDefs, resolvers } from './schema';
-import { increaseWsConectionCount, decreaseWsConectionCount } from '../ws';
+import { userHasConnected, userHasDisconnected } from '../ws';
 
 const { apiManager, errors, log, states, config, pluginManager } = core;
 const { AppError, FatalAppError, PluginError } = errors;
@@ -307,19 +307,19 @@ export const graphql = {
 
 			log.info(`<ws> ${user.name} connected.`);
 
-			// Update ws connection count
-			increaseWsConectionCount();
+			// Update ws connection count and other needed values
+			userHasConnected(user);
 
 			return {
 				user
 			};
 		},
 		onDisconnect: async (_, websocketContext) => {
-			const initialContext = await websocketContext.initPromise;
-			log.info(`<ws> ${initialContext.user.name} disconnected.`);
+			const { user } = await websocketContext.initPromise;
+			log.info(`<ws> ${user.name} disconnected.`);
 
-			// Update ws connection count
-			decreaseWsConectionCount();
+			// Update ws connection count and other needed values
+			userHasDisconnected(user);
 		}
 	},
 	context: ({req, connection}) => {

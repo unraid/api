@@ -11,7 +11,8 @@ import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
-import { run, canPublishToClients, updatePubsub } from '../../run';
+import { run, updatePubsub } from '../../run';
+import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
 
 const { pluginManager, pubsub, utils, log, bus, errors, states } = core;
 const { ensurePermission } = utils;
@@ -39,7 +40,7 @@ dee.on('*', async (data) => {
 	}
 
 	// Don't publish when we have no clients
-	if (!canPublishToClients()) {
+	if (!canPublishToChannel('info')) {
 		return;
 	}
 
@@ -51,7 +52,7 @@ dee.listen();
 
 // This needs to be fixed to run from events
 setIntervalAsync(async () => {
-	if (!canPublishToClients()) {
+	if (!canPublishToChannel('services')) {
 		return;
 	}
 
@@ -84,6 +85,7 @@ const createSubscription = (channel, resource?) => ({
 			possession: 'any'
 		});
 
+		hasSubscribedToChannel(context.user, channel);
 		return pubsub.asyncIterator(channel);
 	}
 });
@@ -114,8 +116,9 @@ export const resolvers = {
 			...createSubscription('info')
 		},
 		ping: {
-			// subscribe: () => {
+			// subscribe: (_, __, context) => {
 			// 	// startPing();
+			// hasSubscribedToChannel(context.user, 'ping');
 			// 	return pubsub.asyncIterator('ping');
 			// }
 		},
@@ -138,9 +141,9 @@ export const resolvers = {
 			...createSubscription('vms/domains')
 		},
 		pluginModule: {
-			subscribe: async (_, directiveArgs) => {
+			subscribe: async (_, directiveArgs, context) => {
 				const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
-				const name = `${pluginName}/${pluginModuleName}`;
+				const channel = `${pluginName}/${pluginModuleName}`;
 
 				// Verify plugin is installed and active
 				if (!pluginManager.isInstalled(pluginName, pluginModuleName)) {
@@ -153,7 +156,8 @@ export const resolvers = {
 
 				// It's up to the plugin to publish new data as needed
 				// so we'll just return the Iterator
-				return pubsub.asyncIterator(name);
+				hasSubscribedToChannel(context.user, channel);
+				return pubsub.asyncIterator(channel);
 			}
 		}
 	},
