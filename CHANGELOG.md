@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.20](https://github.com/unraid/graphql-api/compare/v2.1.19...v2.1.20) (2020-01-26)
+
+
+### Bug Fixes
+
+* ensure we're using the websocketId for the subcriptions count check ([9e5207c](https://github.com/unraid/graphql-api/commit/9e5207c12d97026475f591bf04bf397d2793a23c))
+
 ### [2.1.19](https://github.com/unraid/graphql-api/compare/v2.1.18...v2.1.19) (2020-01-26)
 
 
