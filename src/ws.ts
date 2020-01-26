@@ -1,4 +1,7 @@
 import { User } from '@unraid/core/dist/interfaces';
+import core from '@unraid/core';
+
+const { log } = core;
 
 let connectionCount = 0;
 const channelSubscriptions = {};
@@ -78,9 +81,11 @@ export const canPublishToChannel = (channel: string) => {
     }
 
     // No ws connections to this channel
-    if (getWsConectionCountInChannel(channel) === 0) {
+    const channelConnectionCount = getWsConectionCountInChannel(channel);
+    if (channelConnectionCount === 0) {
         return false;
     }
 
+    log.debug(`Allowing publish to "${channel}" as there are ${channelConnectionCount} user${channelConnectionCount === 1 ? '' : 's'}`);
     return true;
 };
