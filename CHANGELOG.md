@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.19](https://github.com/unraid/graphql-api/compare/v2.1.18...v2.1.19) (2020-01-26)
+
+
+### Bug Fixes
+
+* switch to using autogen id for each websocket connection ([0a9f49f](https://github.com/unraid/graphql-api/commit/0a9f49fadb30b6cb26f830c4ce8a5582c1c2516e))
+
 ### [2.1.18](https://github.com/unraid/graphql-api/compare/v2.1.17...v2.1.18) (2020-01-26)
 
 ### [2.1.17](https://github.com/unraid/graphql-api/compare/v2.1.16...v2.1.17) (2020-01-26)
