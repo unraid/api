@@ -11,7 +11,7 @@ import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';
 import { typeDefs, resolvers } from './schema';
-import { userHasConnected, userHasDisconnected } from '../ws';
+import { wsHasConnected, wsHasDisconnected } from '../ws';
 
 const { apiManager, errors, log, states, config, pluginManager } = core;
 const { AppError, FatalAppError, PluginError } = errors;
@@ -308,18 +308,18 @@ export const graphql = {
 			log.info(`<ws> ${user.name} connected.`);
 
 			// Update ws connection count and other needed values
-			userHasConnected(user);
+			wsHasConnected();
 
 			return {
 				user
 			};
 		},
 		onDisconnect: async (_, websocketContext) => {
-			const { user } = await websocketContext.initPromise;
+			const { user, websocketId } = await websocketContext.initPromise;
 			log.info(`<ws> ${user.name} disconnected.`);
 
 			// Update ws connection count and other needed values
-			userHasDisconnected(user);
+			wsHasDisconnected(websocketId);
 		}
 	},
 	context: ({req, connection}) => {
@@ -331,12 +331,14 @@ export const graphql = {
 		}
 
 		const apiKey = req.headers['x-api-key'];
+		const websocketId = req.headers['sec-websocket-key'];
 		ensureApiKey(apiKey);
 
 		const user = usersState.findOne({apiKey}) || {name: 'guest', apiKey, role: 'guest'};
 
 		return {
-			user
+			user,
+			websocketId
 		};
 	}
 };
