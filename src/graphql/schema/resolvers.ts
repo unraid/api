@@ -85,7 +85,7 @@ const createSubscription = (channel, resource?) => ({
 			possession: 'any'
 		});
 
-		hasSubscribedToChannel(context.user, channel);
+		hasSubscribedToChannel(context.websocketId, channel);
 		return pubsub.asyncIterator(channel);
 	}
 });
@@ -118,7 +118,7 @@ export const resolvers = {
 		ping: {
 			// subscribe: (_, __, context) => {
 			// 	// startPing();
-			// hasSubscribedToChannel(context.user, 'ping');
+			// hasSubscribedToChannel(context.websocketId, 'ping');
 			// 	return pubsub.asyncIterator('ping');
 			// }
 		},
@@ -156,7 +156,7 @@ export const resolvers = {
 
 				// It's up to the plugin to publish new data as needed
 				// so we'll just return the Iterator
-				hasSubscribedToChannel(context.user, channel);
+				hasSubscribedToChannel(context.websocketId, channel);
 				return pubsub.asyncIterator(channel);
 			}
 		}

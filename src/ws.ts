@@ -2,60 +2,37 @@ import core from '@unraid/core';
 
 const { log } = core;
 
-let connectionCount = 0;
-const channelSubscriptions = {};
-const wsSubscriptions = {};
+interface subscription {
+    total: number
+    channels: string[]
+}
+
+const subscriptions: {
+    [key: string]: subscription
+} = {};
 
 /**
  * Return current ws connection count.
  */
-export const getWsConectionCount = () => connectionCount;
+export const getWsConectionCount = () => {
+    return Object.values(subscriptions).filter(subscription => subscription.total >= 1).length;
+};
 
 /**
  * Return current ws connection count in channel.
  */
 export const getWsConectionCountInChannel = (channel: string) => {
-    return channelSubscriptions[channel].total;
-};
-
-/**
- * Increase ws connection count by 1.
- */
-export const increaseWsConectionCount = () => {
-    connectionCount++;
-    return connectionCount;
-};
-
-/**
- * Decrease ws connection count by 1.
- */
-export const decreaseWsConectionCount = () => {
-    connectionCount--;
-    return connectionCount;
+    return Object.values(subscriptions).filter(subscription => subscription.channels.includes(channel)).length;
 };
 
 export const hasSubscribedToChannel = (id: string, channel: string) => {
-    // Total ws connections per channel
-    if (!channelSubscriptions[channel]) {
-        channelSubscriptions[channel] = {
-            total: 0
-        };
-    }
-    channelSubscriptions[channel].total++;
-
-    // All subscriptions for this websocket
-    if (!wsSubscriptions[id]) {
-        wsSubscriptions[id] = [channel];
-    }
-    wsSubscriptions[id] = [
-        ...wsSubscriptions[id],
-        channel
-    ];
+    subscriptions[id].total++;
+    subscriptions[id].channels.push(channel);
 };
 
 export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
-    channelSubscriptions[channel].total--;
-    wsSubscriptions[id] = wsSubscriptions[id].filter(existingChannel => existingChannel !== channel);
+    subscriptions[id].total--;
+    subscriptions[id].channels = subscriptions[id].channels.filter(existingChannel => existingChannel !== channel);
 };
 
 /**
@@ -63,8 +40,9 @@ export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
  *
  * @param ws
  */
-export const wsHasConnected = () => {
-    increaseWsConectionCount();
+export const wsHasConnected = (id: string) => {
+    subscriptions[id].total = 0;
+    subscriptions[id].channels = [];
 };
 
 /**
@@ -73,12 +51,8 @@ export const wsHasConnected = () => {
  * @param ws
  */
 export const wsHasDisconnected = (id: string) => {
-    decreaseWsConectionCount();
-
-    // Update the total for each channel
-    wsSubscriptions[id].forEach((channel: string) => {
-        hasUnsubscribedFromChannel(id, channel);
-    });
+    subscriptions[id].total = 0;
+    subscriptions[id].channels = [];
 };
 
 // Only allows function to publish to pubsub when clients are online and are connected to the specific channel
@@ -96,6 +70,6 @@ export const canPublishToChannel = (channel: string) => {
     }
 
     const plural = channelConnectionCount !== 1;
-    log.debug(`Allowing publish to "${channel}" as there ${plural ? 'are' : 'is'} ${channelConnectionCount} connection ${plural ? 's' : ''} in that channel.`);
+    log.debug(`Allowing publish to "${channel}" as there ${plural ? 'are' : 'is'} ${channelConnectionCount} connection${plural ? 's' : ''} in that channel.`);
     return true;
 };

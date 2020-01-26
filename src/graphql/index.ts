@@ -298,17 +298,18 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		onConnect: connectionParams => {
+		onConnect: (connectionParams, websocket) => {
 			const apiKey = connectionParams['x-api-key'];
 
 			ensureApiKey(apiKey);
 
 			const user = usersState.findOne({apiKey}) || { name: 'guest', apiKey, role: 'guest' };
+			const websocketId = websocket.upgradeReq.headers['sec-websocket-key'];
 
-			log.info(`<ws> ${user.name} connected.`);
+			log.info(`<ws> ${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
-			wsHasConnected();
+			wsHasConnected(websocketId);
 
 			return {
 				user
@@ -316,7 +317,7 @@ export const graphql = {
 		},
 		onDisconnect: async (_, websocketContext) => {
 			const { user, websocketId } = await websocketContext.initPromise;
-			log.info(`<ws> ${user.name} disconnected.`);
+			log.info(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);
