@@ -318,7 +318,18 @@ export const graphql = {
 			};
 		},
 		onDisconnect: async (_, websocketContext) => {
-			const { user, websocketId } = await websocketContext.initPromise;
+			const context = await websocketContext.initPromise;
+
+			// The websocket has disconnected before init event has resolved
+			// @see: https://github.com/apollographql/subscriptions-transport-ws/issues/349
+			if (context === true) {
+				// This seems to also happen if a tab is left open and then a server starts up
+				// The tab hits the server over and over again without sending init
+				log.debug('<ws> unknown[unknown] disconnected.');
+				return;
+			}
+
+			const { user, websocketId } = context;
 			log.info(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values
