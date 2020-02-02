@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.22](https://github.com/unraid/graphql-api/compare/v2.1.21...v2.1.22) (2020-02-02)
+
+
+### Bug Fixes
+
+* **schema/info/versions:** fix typo ([b8aed46](https://github.com/unraid/graphql-api/commit/b8aed4671c1ad053ec19e38968edec67df6e3505))
+* **typescript:** remove src from the dist directory on build ([6317020](https://github.com/unraid/graphql-api/commit/63170201c46d3d4ea4697c14ebb7a6d8c0b42399))
+* **websocket:** bail if the ws is unknown as they have no context ([9e4bd1a](https://github.com/unraid/graphql-api/commit/9e4bd1a54056e2cb73e412f5036550c355607ee3))
+
 ### [2.1.21](https://github.com/unraid/graphql-api/compare/v2.1.20...v2.1.21) (2020-01-27)
 
 ### [2.1.20](https://github.com/unraid/graphql-api/compare/v2.1.19...v2.1.20) (2020-01-26)
