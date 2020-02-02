@@ -2,11 +2,18 @@ const path = require('path');
 const cluster = require('cluster');
 
 // Show real stack trace in development
-if (process.env.NODE_ENV !== 'production') {
-    require('source-map-support').install({
-        handleUncaughtExceptions: false
-    });
+if (process.env.NODE_ENV === 'development') {
+    try {
+        require('source-map-support').install({
+            handleUncaughtExceptions: false
+        });
+    } catch {
+        console.error(`Could not load "source-map-supoort", do you have it installed?`);
+    }
 }
+
+// Set current working directory
+process.chdir(__dirname);
 
 const RESTART_ATTEMPTS = 10;
 let currentRestartAttempt = 0;
@@ -43,7 +50,8 @@ if (cluster.isWorker) {
 
     try {
         require(mainPath);
-    } catch {
+    } catch (error) {
+        console.error(error);
         console.error(`Could not load main field "${mainPath}".`);
         process.exit(1);
     }
