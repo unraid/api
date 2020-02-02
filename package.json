@@ -6,8 +6,8 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "tsc && npm run copy-schemas",
-    "copy-schemas": "cpx src/**/*.graphql dist/src",
+    "build": "tsc",
+    "copy-schemas": "cpx src/**/*.graphql dist",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
     "lint": "xo --verbose",
@@ -23,7 +23,8 @@
     "release": "standard-version"
   },
   "files": [
-    "dist"
+    "dist",
+    "index.js"
   ],
   "dependencies": {
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
@@ -64,6 +65,7 @@
     "husky": "^4.0.4",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^3.0.2",
+    "source-map-support": "0.5.16",
     "standard-version": "^7.0.1",
     "typescript": "3.7.5",
     "xo": "^0.25.3"
