@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.1.26](https://github.com/unraid/graphql-api/compare/v2.1.25...v2.1.26) (2020-02-03)
+
+
+### Bug Fixes
+
+* make sure master doesnt die when worker does ([19d6501](https://github.com/unraid/graphql-api/commit/19d650197679c4c943ca07db5ab52d5eca80c6fc))
+
 ### [2.1.25](https://github.com/unraid/graphql-api/compare/v2.1.24...v2.1.25) (2020-02-02)
 
 ### [2.1.24](https://github.com/unraid/graphql-api/compare/v2.1.23...v2.1.24) (2020-02-02)
