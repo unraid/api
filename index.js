@@ -17,6 +17,9 @@ let currentWorker;
 
 // Master
 if (cluster.isMaster) {
+    // Set process name so we can easily find it
+    process.title = 'gql-supervisor';
+
     // Show real stack trace in development
     if (process.env.NODE_ENV === 'development') {
         try {
