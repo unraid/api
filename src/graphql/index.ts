@@ -153,6 +153,10 @@ const getPluginModule = (pluginName, pluginModuleName) => {
 		throw new PluginError('Plugin disabled.');
 	}
 
+	if (!pluginModuleName) {
+		return pluginManager.get(pluginName);
+	}
+
 	return pluginManager.get(pluginName, pluginModuleName);
 };
 
@@ -205,6 +209,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			let func;
 			try {
 				if (pluginName) {
+					// @ts-ignore
 					const { filePath } = getPluginModule(pluginName, pluginModuleName);
 					const pluginModule = require(filePath);
 					// The file will either use a default export or a named one
@@ -301,11 +306,19 @@ export const graphql = {
 	subscriptions: {
 		onConnect: connectionParams => {
 			const apiKey = connectionParams['x-api-key'];
+			const websocketId = uuid();
 
 			ensureApiKey(apiKey);
 
-			const user = usersState.findOne({apiKey}) || { name: 'guest', apiKey, role: 'guest' };
-			const websocketId = uuid();
+			let user = { name: 'guest', role: 'guest' };
+			const keyName = apiManager.getNameFromKey(apiKey);
+
+			if (keyName) {
+				const foundUser = usersState.findOne({ id: apiManager.getKey(keyName) });
+				if (foundUser) {
+					user = foundUser;
+				}
+			}
 
 			log.info(`<ws> ${user.name}[${websocketId}] connected.`);
 
