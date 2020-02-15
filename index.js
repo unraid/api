@@ -15,9 +15,37 @@ const RESTART_ATTEMPTS = 10;
 let currentRestartAttempt = 0;
 let currentWorker;
 
+const onWorkerExit = (_, code) => {
+    // Reload worker
+    if (code === null || code === 0) {
+        const newWorker = cluster.fork();
+        newWorker.once('online', () => {
+            currentRestartAttempt = 0;
+            currentWorker = newWorker;
+        });
+        return;
+    }
+
+    // Unknown error, kill process
+    // @see https://github.com/nodejs/node-v0.x-archive/blob/master/doc/api/process.markdown#exit-codes
+    if (code !== 7) {
+        process.exit(code);
+    }
+
+    // Too many restarts, kill process
+    if (currentRestartAttempt >= RESTART_ATTEMPTS) {
+        log.debug(`No restart attempts left. Exiting.`);
+        process.exit(1);
+    }
+
+    // Known error restart worker
+    currentRestartAttempt++;
+    currentWorker = cluster.fork();
+};
+
 // Master
 if (cluster.isMaster) {
-    // Set process name so we can easily find it
+    // Set process name
     process.title = 'gql-supervisor';
 
     // Show real stack trace in development
@@ -34,32 +62,18 @@ if (cluster.isMaster) {
     log.info(`<master> pid = ${process.pid}`);
     currentWorker = cluster.fork();
 
-    cluster.on('exit', (_, code) => {
-        if (code === null || code === 0) {
-            const newWorker = cluster.fork();
-            newWorker.once('online', () => {
-                currentWorker = newWorker;
-            });
-            return;
-        }
-
-        if (code !== 7) {
-            process.exit(code);
-        }
-
-        if (currentRestartAttempt >= RESTART_ATTEMPTS) {
-            log.debug(`No restart attempts left. Exiting.`);
-            process.exit(1);
-        }
-
-        currentRestartAttempt++;
-        currentWorker = cluster.fork();
-    });
+    cluster.on('exit', onWorkerExit);
 
     // Allow reload on SIGHUP
     process.on('SIGHUP', () => {
         log.debug('<master> Reloading worker');
         currentWorker.send('shutdown');
+    });
+
+    // Toggle debug logs
+    process.on('SIGUSR1', () => {
+        log.debug('<master> Updating log level.');
+        currentWorker.send('SIGUSR1');
     });
 }
 
