@@ -297,28 +297,35 @@ const ensureApiKey = (apiKeyToCheck: string) => {
 
 const debug = config.get('debug') === true;
 
+const apiKeyToUser = (apiKey: string) => {
+	ensureApiKey(apiKey);
+
+	const keyName = apiManager.getNameFromKey(apiKey);
+
+	if (keyName) {
+		const id = apiManager.getKey(keyName)?.userId;
+		const foundUser = usersState.findOne({ id });
+		if (foundUser) {
+			return foundUser;
+		}
+	}
+
+	return { name: 'guest', role: 'guest' };
+};
+
 export const graphql = {
 	introspection: debug,
-	playground: debug,
+	playground: debug ? {
+		subscriptionEndpoint: '/graph',
+	} : false,
 	schema,
 	types,
 	resolvers,
 	subscriptions: {
 		onConnect: connectionParams => {
 			const apiKey = connectionParams['x-api-key'];
+			const user = apiKeyToUser(apiKey);
 			const websocketId = uuid();
-
-			ensureApiKey(apiKey);
-
-			let user = { name: 'guest', role: 'guest' };
-			const keyName = apiManager.getNameFromKey(apiKey);
-
-			if (keyName) {
-				const foundUser = usersState.findOne({ id: apiManager.getKey(keyName) });
-				if (foundUser) {
-					user = foundUser;
-				}
-			}
 
 			log.info(`<ws> ${user.name}[${websocketId}] connected.`);
 
@@ -358,9 +365,7 @@ export const graphql = {
 		}
 
 		const apiKey = req.headers['x-api-key'];
-		ensureApiKey(apiKey);
-
-		const user = usersState.findOne({apiKey}) || {name: 'guest', apiKey, role: 'guest'};
+		const user = apiKeyToUser(apiKey);
 
 		return {
 			user
