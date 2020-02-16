@@ -14,8 +14,14 @@ process.chdir(__dirname);
 const RESTART_ATTEMPTS = 10;
 let currentRestartAttempt = 0;
 let currentWorker;
+let restart = true;
 
+// @see https://github.com/nodejs/node-v0.x-archive/blob/master/doc/api/process.markdown#exit-codes
 const onWorkerExit = (_, code) => {
+    if (!restart) {
+        process.exit(0);
+    }
+
     // Reload worker
     if (code === null || code === 0) {
         const newWorker = cluster.fork();
@@ -24,12 +30,6 @@ const onWorkerExit = (_, code) => {
             currentWorker = newWorker;
         });
         return;
-    }
-
-    // Unknown error, kill process
-    // @see https://github.com/nodejs/node-v0.x-archive/blob/master/doc/api/process.markdown#exit-codes
-    if (code !== 7) {
-        process.exit(code);
     }
 
     // Too many restarts, kill process
@@ -74,6 +74,13 @@ if (cluster.isMaster) {
     process.on('SIGUSR1', () => {
         log.debug('<master> Updating log level.');
         currentWorker.send('SIGUSR1');
+    });
+
+    // Kill all workers then exit gracefully
+    process.on('SIGTERM', () => {
+        log.info(`Killing worker`);
+        restart = false;
+        currentWorker.send('shutdown');
     });
 }
 
