@@ -7,7 +7,7 @@ Graphql-api wrapper around [@unraid/core](https://github.com/unraid/core).
 Ensure you have the latest version of the unraid.net plugin.
 This script should be run automatically on every boot.
 ```bash
-/etc/rc.d/rc.unraid.net install
+/etc/rc.d/rc.unraid-api install
 ```
 
 ## Connecting
@@ -19,6 +19,10 @@ See https://graphql.org/learn/serving-over-http/#http-methods-headers-and-body
 
 ### WS
 If you're using the ApolloClient please see https://github.com/apollographql/subscriptions-transport-ws#full-websocket-transport otherwise see https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md
+
+## Logs
+
+If installed on a unraid machine logs can be accessed via `/etc/rc.d/rc.unraid-api logs` or directly at `/var/run/graphql-api.log`; otherwise please see stdout.
 
 ## License
 Copyright 2019 Lime Technology Inc. All rights reserved.
