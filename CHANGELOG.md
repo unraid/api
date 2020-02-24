@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.2.0](https://github.com/unraid/graphql-api/compare/v2.1.29...v2.2.0) (2020-02-24)
+
+
+### Features
+
+* enable log debug toggling and cleanup exit code ([9590ebc](https://github.com/unraid/graphql-api/commit/9590ebc7c5a67901bd40fd56e3ae3033041005cb))
+
+
+### Bug Fixes
+
+* allow master process to kill worker ([26e0598](https://github.com/unraid/graphql-api/commit/26e05986d0d02bcb80611c443a8e74eb42f85a67))
+
 ### [2.1.29](https://github.com/unraid/graphql-api/compare/v2.1.28...v2.1.29) (2020-02-14)
 
 
