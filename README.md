@@ -24,5 +24,41 @@ If you're using the ApolloClient please see https://github.com/apollographql/sub
 
 If installed on a unraid machine logs can be accessed via `/etc/rc.d/rc.unraid-api logs` or directly at `/var/run/graphql-api.log`; otherwise please see stdout.
 
+Debug logs can be enabled via `/etc/rc.d/rc.unraid-api debug` or by sending a USR2 signal to the supervisor process.
+
+## Playground
+
+The playground can be enabled via `DEBUG=true /etc/rc.d/rc.unraid-api start`.
+To get your api key open a terminal on your server and run `cat /boot/config/plugins/dynamix/dynamix.cfg | grep apikey= | cut -d '"' -f2`. Add that api key in the "HTTP headers" panel of the playground.
+
+```json
+{
+  "x-api-key":"__REPLACE_ME_WITH_API_KEY__"
+}
+```
+
+Next add the query you want to run and hit the play icon.
+```gql
+query welcome {
+  welcome {
+    message
+  }
+}
+```
+
+You should get something like this back.
+```json
+{
+  "data": {
+    "welcome": {
+      "message": "Welcome root to this Unraid 6.8.0 server"
+    }
+  }
+}
+```
+
+Click the "Schema" and "Docs" button on the right side of the playground to learn more.
+For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/graphql-voyager/).
+
 ## License
 Copyright 2019 Lime Technology Inc. All rights reserved.

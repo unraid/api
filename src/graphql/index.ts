@@ -342,7 +342,7 @@ export const graphql = {
 
 			// The websocket has disconnected before init event has resolved
 			// @see: https://github.com/apollographql/subscriptions-transport-ws/issues/349
-			if (context === true) {
+			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
 				log.debug('<ws> unknown[unknown] disconnected.');

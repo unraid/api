@@ -2,21 +2,30 @@ input authenticateInput {
     password: String!
 }
 
+input addApiKeyInput {
+    name: String
+    key: String
+    userId: String
+}
+
 input updateApikeyInput {
     description: String
     expiresAt: Long!
 }
 
 type Query {
-    """Get all apikeys"""
+    """Get all API keys"""
     apiKeys: [ApiKey] @func(module: "getApikeys")
 }
 
 type Mutation {
-    """Get user apikey"""
+    """Get an existing API key"""
     getApiKey(name: String!, input: authenticateInput): ApiKey @func(module: "getApikey")
 
-    """Update apikey"""
+    """Create a new API key"""
+    addApikey(name: String!, input: updateApikeyInput): ApiKey @func(module: "addApikey")
+
+    """Update an existing API key"""
     updateApikey(name: String!, input: updateApikeyInput): ApiKey @func(module: "updateApikey")
 }
 

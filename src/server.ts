@@ -13,25 +13,24 @@ import core from '@unraid/core';
 import { graphql } from './graphql';
 
 const { log, config, utils } = core;
-const { getEndpoints } = utils;
+const { getEndpoints, globalErrorHandler, exitApp } = utils;
 
 /**
  * The Graphql server.
  */
 const app = express();
 const port = String(config.get('graphql-api-port'));
-let machineId;
 
 app.use(async (req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
-	if (!machineId) {
+	if (!app.get('x-machine-id')) {
 		// eslint-disable-next-line require-atomic-updates
-		machineId = await utils.getMachineId();
+		app.set('x-machine-id', await utils.getMachineId());
 	}
 
 	// Update header with machine ID
-	res.set('x-machine-id', machineId);
+	res.set('x-machine-id', app.get('x-machine-id'));
 
 	next();
 });
@@ -108,7 +107,13 @@ if (isNaN(parseInt(port, 10))) {
 	process.on('uncaughtException', (error: NodeJS.ErrnoException) => {
 		// Skip EADDRINUSE as it's already handled above
 		if (error.code !== 'EADDRINUSE') {
-			throw error;
+			globalErrorHandler(error);
+		}
+	});
+
+	process.on('unhandledRejection', error => {
+		if (error instanceof Error) {
+			globalErrorHandler(error);
 		}
 	});
 }
@@ -133,20 +138,19 @@ export const server = {
 	},
 	stop() {
 		// Stop the server from accepting new connections and close existing connections
-		return stoppableServer.close(error => {
-			if (error) {
-				log.error(error);
-				// Exit with error (code 1)
-				// eslint-disable-next-line unicorn/no-process-exit
-				process.exit(1);
-			}
+		stoppableServer.stop(globalErrorHandler);
 
-			const name = process.title;
-			const serverName = `@unraid/${name}`;
-			log.info(`Successfully stopped ${serverName}`);
+		const name = process.title;
+		const serverName = `@unraid/${name}`;
 
-			// Gracefully exit
-			process.exitCode = 0;
-		});
+		// Unlink socket file
+		if (isNaN(parseInt(port, 10))) {
+			fs.unlinkSync(port);
+		}
+
+		log.info(`Successfully stopped ${serverName}`);
+
+		// Gracefully exit
+		exitApp();
 	}
 };
