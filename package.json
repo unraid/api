@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
-    "@unraid/core": "github:unraid/core#master",
+    "@unraid/core": "git+ssh://git@github.com/unraid/core.git",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.2",
     "apollo-datasource-rest": "^0.7.0",
