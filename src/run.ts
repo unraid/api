@@ -1,4 +1,4 @@
-import { CoreResult } from '@unraid/core/dist/interfaces';
+import { CoreResult } from '@unraid/core/dist/types';
 import * as core from '@unraid/core'
 import { canPublishToChannel } from './ws';
 
