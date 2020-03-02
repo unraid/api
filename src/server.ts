@@ -8,12 +8,15 @@ import net from 'net';
 import stoppable from 'stoppable';
 import express from 'express';
 import http from 'http';
-import { ApolloServer } from 'apollo-server-express';
+import WebSocket from 'ws';
 import core from '@unraid/core';
+import { DynamixConfig } from '@unraid/core/dist/types';
+import { createServer } from './patched-install-subscription-handlers';
 import { graphql } from './graphql';
 
-const { log, config, utils } = core;
-const { getEndpoints, globalErrorHandler, exitApp } = utils;
+const { log, config, utils, paths, errors } = core;
+const { getEndpoints, globalErrorHandler, exitApp, loadState, sleep } = utils;
+const { AppError } = errors;
 
 /**
  * The Graphql server.
@@ -36,7 +39,7 @@ app.use(async (req, res, next) => {
 });
 
 // Mount graph endpoint
-const graphApp = new ApolloServer(graphql);
+const graphApp = createServer(graphql);
 graphApp.applyMiddleware({app});
 
 // List all endpoints at start of server
@@ -118,13 +121,56 @@ if (isNaN(parseInt(port, 10))) {
 	});
 }
 
+// Main ws server
+const wsServer = new WebSocket.Server({ noServer: true });
+
 // Add graphql subscription handlers
-graphApp.installSubscriptionHandlers(stoppableServer);
+graphApp.installSubscriptionHandlers(wsServer);
+
+/**
+ * Connect to unraid's proxy server
+ */
+const connectToMothership = async () => {
+	const filePath = paths.get('dynamix-config')!;
+	const { remote } = loadState<DynamixConfig>(filePath);
+
+	if (!remote.apikey) {
+		// @TODO: Wait for apikey to be valid
+		// @TODO: Reload client on key change
+		throw new AppError('No valid API key, cannot connect to mothership.');
+	}
+
+	// Connect to mothership
+	const mothership = new WebSocket('wss://proxy.unraid.net', ['graphql-ws'], {
+		headers: {
+			'x-api-key': remote.apikey,
+			// This is required otherwise the proxy will think we're a client
+			'x-powered-by': 'unraid'
+		}
+	});
+
+	mothership.on('open', () => {
+		// Connect mothership to the internal ws server
+		wsServer.emit('connection', mothership);
+	});
+	mothership.on('error', console.error);
+	mothership.on('close', () => { console.info('closed'); });
+};
 
 // Return an object with a server and start/stop async methods.
 export const server = {
 	server: stoppableServer,
 	async start() {
+		const retryConnection = async error => {
+			log.debug(error);
+			await sleep(5);
+			await connectToMothership().catch(retryConnection);
+		};
+
+		// Start mothership connection
+		connectToMothership().catch(retryConnection);
+
+		// Start http server		
 		return stoppableServer.listen(port, () => {
 			// Downgrade process user to owner of this file
 			return fs.stat(__filename, (error, stats) => {
@@ -137,8 +183,11 @@ export const server = {
 		});
 	},
 	stop() {
-		// Stop the server from accepting new connections and close existing connections
+		// Stop http server from accepting new connections and close existing connections
 		stoppableServer.stop(globalErrorHandler);
+
+		// Stop ws server
+		wsServer.close();
 
 		const name = process.title;
 		const serverName = `@unraid/${name}`;
