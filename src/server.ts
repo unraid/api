@@ -10,12 +10,13 @@ import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import core from '@unraid/core';
-import { DynamixConfig } from '@unraid/core/dist/types';
+import { DynamixConfig, Var } from '@unraid/core/dist/types';
 import { createServer } from './patched-install-subscription-handlers';
 import { graphql } from './graphql';
 
-const { log, config, utils, paths, errors } = core;
+const { log, config, utils, paths, errors, states } = core;
 const { getEndpoints, globalErrorHandler, exitApp, loadState, sleep } = utils;
+const { varState } = states;
 const { AppError } = errors;
 
 /**
@@ -134,18 +135,21 @@ const connectToMothership = async () => {
 	const filePath = paths.get('dynamix-config')!;
 	const { remote } = loadState<DynamixConfig>(filePath);
 
-	if (!remote.apikey) {
-		// @TODO: Wait for apikey to be valid
-		// @TODO: Reload client on key change
-		throw new AppError('No valid API key, cannot connect to mothership.');
-	}
+	const apiKey = remote.apiKey || '';
+	const keyFile = fs.readFileSync(varState.data?.regFile, 'utf-8');
+	const serverName = `${varState.data?.name}`;
+	const lanIp = `${varState.data?.name}`;
+	const machineId = `${await utils.getMachineId()}`;
 
 	// Connect to mothership
 	const mothership = new WebSocket('wss://proxy.unraid.net', ['graphql-ws'], {
 		headers: {
-			'x-api-key': remote.apikey,
-			// This is required otherwise the proxy will think we're a client
-			'x-powered-by': 'unraid'
+			'x-api-key': apiKey,
+			'x-flash-guid': varState.data?.flashGuid,
+			'x-key-file': keyFile,
+			'x-server-name': serverName,
+			'x-lan-ip': lanIp,
+			'x-machine-id': machineId
 		}
 	});
 
