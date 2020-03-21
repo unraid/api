@@ -1,0 +1,932 @@
+<?xml version='1.0' standalone='yes'?>
+
+<!DOCTYPE PLUGIN [
+<!ENTITY name      "dynamix.unraid.net">
+<!ENTITY launch    "Unraid.net">
+<!ENTITY author    "limetech">
+<!ENTITY version   "2020.03.20">
+<!ENTITY pluginURL "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
+<!ENTITY graphql-api "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-graphql-api-v2.2.1.tgz">
+<!ENTITY plugins     "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-v1.1.5.tgz">
+]>
+
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta1" icon="globe">
+
+<CHANGES>
+##&name;
+
+###&version;
+- initial release
+</CHANGES>
+
+<!-- check for plugin update -->
+<FILE Run="/bin/bash" Method="install remove">
+<INLINE>
+if [ -e /etc/rc.d/rc.unraid-api ]; then
+  /etc/rc.d/rc.unraid-api stop
+  rm -f /etc/rc.d/rc.unraid-api
+  mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php- /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php
+  mv -f /usr/local/emhttp/plugins/dynamix/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
+  mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+  rm -rf /boot/config/plugins/Unraid.net
+  rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
+fi
+</INLINE>
+</FILE>
+
+<!-- unraid-api -->
+<FILE Name="/boot/config/plugins/Unraid.net/unraid-graphql-api.tgz">
+<URL>&graphql-api;</URL>
+</FILE>
+<!-- plugins -->
+<FILE Name="/boot/config/plugins/Unraid.net/unraid-plugins.tgz">
+<URL>&plugins;</URL>
+</FILE>
+
+<FILE Name="/etc/rc.d/rc.unraid-api" Mode="0755">
+<INLINE>
+<![CDATA[
+#!/bin/bash
+# unraid-api-handler
+downloads=(graphql-api plugins)
+node_apps=(graphql-api)
+mode="production"
+if [[ $* == *--mode\=dev* ]]; then
+  mode="development"
+fi
+status() {
+  local supervisor_pid=$(ps -C gql-supervisor --no-headers -o pid | xargs)
+  local graphql_api_pid=$(ps -C graphql-api --no-headers -o pid | xargs)
+  if [[ $supervisor_pid ]]; then
+    echo "The supervisor($supervisor_pid) process is running."
+
+    if [[ $graphql_api_pid ]]; then
+      echo "Graphql-api($graphql_api_pid) is running."
+    fi
+  else
+    if [ -S "/var/run/graphql-api.sock" ]; then
+      echo "Graphql-api($graphql_api_pid) is running but we can't find the supervisor process."
+    else
+      echo "No processes are running."
+    fi
+  fi
+}
+version() {
+  # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
+  local graphql_version=$(grep '"version"' /usr/local/node/graphql-api/package.json | cut -d '"' -f 4)
+  local plugins_version=$(grep '"version"' /usr/local/node/plugins/package.json | cut -d '"' -f 4)
+
+  echo "Grahpql-api v$graphql_version"
+  echo "Offical plugins v$plugins_version"
+}
+start() {
+  local supervisor_pid=$(ps -C gql-supervisor --no-headers -o pid | xargs)
+  if [[ $supervisor_pid ]]; then
+    echo "The supervisor($supervisor_pid) process is already running, please wait or try the \"reload\" command."
+    exit 1
+  else
+    for i in ${node_apps[@]}; do
+      NODE_ENV=$(echo $mode) nohup node /usr/local/node/${i}/index.js >/var/log/${i}.log 2>&1 &
+    done
+    exit 0
+  fi
+}
+stop() {
+  for i in ${node_apps[@]}; do
+    pkill ${i}
+  done
+}
+reload() {
+  kill -SIGHUP $(ps -C gql-supervisor --no-headers -o pid)
+}
+logs() {
+  if [ -f "/var/log/graphql-api.log" ]; then
+    tail -f /var/log/graphql-api.log
+  else 
+    echo "Process hasn't been started yet, try the \"start\" command."
+  fi
+}
+install() {
+  mkdir -p /usr/local/node
+  for i in ${downloads[@]}; do
+    tar -C /usr/local/node -xf /boot/config/plugins/Unraid.net/unraid-${i}.tgz
+    rm -rf /usr/local/node/${i}
+    mv /usr/local/node/package /usr/local/node/${i}
+  done
+  start
+}
+uninstall() {
+  stop
+  for i in ${node_apps[@]}; do
+    rm -rf /usr/local/node/${i}
+  done
+  rm -rf /var/run/graphql-api.sock
+}
+case "$1" in
+'status')
+  status
+  ;;
+'version')
+  version
+  ;;
+'start')
+  start
+  ;;
+'stop')
+  stop
+  ;;
+'reload')
+  reload
+  ;;
+'logs')
+  logs
+  ;;
+'install')
+  install
+  ;;
+'uninstall')
+  uninstall
+  ;;
+*)
+  echo "usage $0 status|start|stop|reload|logs|install|uninstall"
+esac
+]]>
+</INLINE>
+</FILE>
+
+<!-- README FILE -->
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/README.md">
+<INLINE>
+**Unraid.net**
+
+Unraid.net provides access to a set web-based services:
+
+* Server status such as online/offline, storage used/available, etc.
+* Links for local and remote access to your server webGUI.
+* Backup and Restore of your USB Flash boot device.
+* much more to come
+
+A server is registered using your Unraid Community Forum credentials.  Registered servers appear under the My Servers forum sub-menu.
+
+This is work in progress. Use this for testing purposes only!
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/Unraid.net.page">
+<INLINE>
+<![CDATA[
+Menu="NetworkServices"
+Title="Unraid.net"
+Icon="icon-u-globe"
+Tag="globe"
+---
+<?PHP
+/* Copyright 2005-2018, Lime Technology
+ * Copyright 2012-2018, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+// more:
+// - if someone deletes the dynamic.cfg or directly edits [remote] section therein, it may be possible
+// that server will appear 'unregistered' in webgui but not on My Servers.
+// - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
+// now can remotely access using url that matches their cert. This is probably a bug here, but we might
+// want to rework this somewhat to explicitly enable this 'feature' (remote access using user-provided cert).
+
+$keyfile = @file_get_contents($var['regFILE']);
+if ($keyfile !== false)
+  $keyfile = @base64_encode($keyfile);
+
+if (empty($remote)) {
+    $remote = [
+        "apikey" => "",
+        "wanaccess" => "no",
+        "wanport" => "443"
+    ];
+}
+if (empty($remote['wanport'])) {
+    $remote['wanport'] = 443;
+}
+
+$hasCert = file_exists('/boot/config/ssl/certs/certificate_bundle.pem');
+$isRegistered = !empty($remote['apikey']);
+$boolWebUIAuth = $isRegistered || file_exists('/etc/nginx/htpasswd');
+
+$isActivated = false;
+$isUptodate = false;
+if ($isRegistered) {
+  exec("/usr/bin/php -f $docroot/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php status", $output, $retval);
+  $isActivated = ($retval == 0);
+  if ($isActivated) $isUptodate = empty($output);
+}
+?>
+<script>
+function registerServer(button) {
+    var oldlabel = $.trim($(button).text());
+
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "Sorry, an error ("+status+") occurred registering this server. " +
+                  "The error is: "+obj.error+".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal('Oops',msg,'error');
+    };
+
+    var success = function(data) {
+        if (data.apikey) {
+            $.post('/webGui/include/Dispatcher.php',{
+                "#cfg": "/boot/config/plugins/dynamix/dynamix.cfg",
+                "remote_apikey": data.apikey,
+                "remote_wanaccess": $('#wanaccess').val(),
+                "remote_wanport": $('#wanport').val()
+            });
+            $(button).prop("disabled", false).html(oldlabel);
+<?if(!$isRegistered):?>
+            swal({title:"",text:"Your server has been registered",type:"success",allowEscapeKey:false},function(){button.form.submit();});
+<?else:?>
+            button.form.submit();
+<?endif?>
+        } else {
+            failure({"status": 403, "responseJSON": {"error": "Unable to register this Unraid Server"}});
+        }
+    };
+
+    $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> "+oldlabel+"ing");
+    $.post("/webGui/include/UpdateDNS.php",{username:$('#ips_username').val(),password:$('#ips_password').val(),externalport:$('#wanport').val(),remoteaccess:$('#wanaccess').val()},success).fail(failure);
+}
+
+function unregisterServer(button) {
+    var oldlabel = $.trim($(button).text());
+
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "Sorry, an error ("+status+") occurred unregistering this server. " +
+                  "The error is: "+obj.error+".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal('Oops',msg,'error');
+    };
+
+    var success = function(data) {
+        $.post('/webGui/include/Dispatcher.php',{
+            "#cfg": "/boot/config/plugins/dynamix/dynamix.cfg",
+            "remote_apikey": "",
+            "remote_wanaccess": $('#wanaccess').val(),
+            "remote_wanport": $('#wanport').val()
+        });
+        $(button).prop("disabled", false).html(oldlabel);
+        swal({title:"",text:"Your server has been unregistered",type:"success",allowEscapeKey:false},function(){button.form.submit();});
+    };
+
+    swal({title:"Remove Registration",text:"Are you sure you want to unregister your server?",type:'warning',confirmButtonText:'Unregister',showCancelButton:true},function(){
+        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> "+oldlabel+"ing");
+        $.post("https://keys.lime-technology.com/account/server/unregister",{keyfile:"<?=$keyfile?>"},success).fail(failure);
+    });
+}
+
+function dnsCheckServer(button) {
+    var oldlabel = $.trim($(button).text());
+
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "Sorry, an error ("+status+") occurred checking this server. " +
+                  "The error is: "+obj.error+".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal('Oops',msg,'error');
+    };
+
+    var success = function(data) {
+        $(button).prop("disabled", false).html(oldlabel);
+        if (data.status) {
+            swal("","Your Unraid Server is reachable from the internet","success");
+        } else {
+            swal("Oops","This Unraid Server was unreachable from the outside","error");
+        }
+    };
+
+    $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> "+oldlabel+"ing");
+    $.post("https://keys.lime-technology.com/account/server/checkdns",{externalport:$('#wanport').val(),keyfile:"<?=$keyfile?>"},success).fail(failure);
+}
+
+function changeRemoteAccess(dropdown) {
+    if ($(dropdown).val() == 'yes') {
+        $("#wanpanel").slideDown('fast');
+    } else {
+        $("#wanpanel").slideUp('fast');
+    }
+}
+
+function enableFlashBackup(button) {
+    var oldlabel = $.trim($(button).text());
+
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "Sorry, an error ("+status+") occurred enabling Flash backup. " +
+                  "The error is: "+obj.error+".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal({title:"",text:msg,type:"error",allowEscapeKey:false},function(){button.form.submit();});
+    };
+
+    var success = function(data) {
+        $(button).prop("disabled", false).html(oldlabel);
+        button.form.submit();
+    };
+
+    if (oldlabel == 'Activate') {
+        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Activating");
+        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"activate"},success).fail(failure);
+    }
+    if (oldlabel == 'Deactivate') {
+        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Deactivating");
+        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+    }
+    if (oldlabel == 'Update') {
+        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Updating");
+        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"update"},success).fail(failure);
+    }
+    if (oldlabel == 'Reinitialize') {
+        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Reinitializing");
+        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"reinit"},success).fail(failure);
+    }
+    if (oldlabel == 'Deactivate') {
+        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Deactivating");
+        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+    }
+    if (oldlabel == 'Changes') {
+        openBox("/webGui/include/gitstatus.php", "Changes", 600,600, false);
+    }
+}
+</script>
+<form markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
+<?if(!$isRegistered):?>
+Unraid.net Status:
+: <span class='orange p0'>Unregistered</span>
+
+Unraid.net Username:
+: <input type="text" id="ips_username" value="">
+
+Unraid.net Password:
+: <input type="password" id="ips_password" value="">
+
+<?else:?>
+Unraid.net Status:
+: <span class='green p0'>Registered</span>
+
+<?endif?>
+<?if($hasCert):?>
+Allow Remote Access:
+: <select id="wanaccess" size="1" class="narrow" onchange="changeRemoteAccess(this)">
+  <?=mk_option($remote['wanaccess'], "no", "No")?>
+  <?=mk_option($remote['wanaccess'], "yes", "Yes")?>
+  </select>
+
+<div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
+WAN Port:
+: <?if(!$boolWebUIAuth):?><input type="hidden" id="wanport" value="0"><span><i class="fa fa-warning icon warning"></i> Disabled until your root user account is password-protected</span><?else:?><input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">Check</button><?endif?>
+
+> WAN Port is the external TCP port number setup on your router to NAT/Port Forward traffic from the internet to this
+> Unraid server SSL port for secure web traffic.
+</div>
+<?else:?>
+<input type="hidden" id="wanaccess" value="no">
+<input type="hidden" id="wanport" value="0">
+<?endif?>
+&nbsp;
+: <button type="button" onclick="registerServer(this)"><?=$isRegistered?'Apply':'Register'?></button><?if($isRegistered):?><button type="button" onclick="unregisterServer(this)">Unregister</button><?endif?>
+
+</form>
+<?if($isRegistered):?>
+<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
+<?if(!$isActivated):?>
+Flash backup:
+: <span class='orange p0'>Not activated</span>
+
+&nbsp;
+: <button type="button" onclick="enableFlashBackup(this)">Activate</button>
+
+> Click Activate to set up a local git repo for your local USB Flash boot device and connect to a dedicated remote on unraid.net tied tothis server.
+
+<?else:?>
+Flash backup:
+: <span class='green p0'>Activated:</span> <?if(!$isUptodate):?><span class='orange p0'>Not up-to-date</span><?else:?><span class='green p0'>Up-to-date</span><?endif?>
+
+<?if(!$isUptodate):?>
+&nbsp;
+: <button type="button" onclick="enableFlashBackup(this)">Update</button> <button type="button" onclick="enableFlashBackup(this)">Changes</button>
+
+> The Not Up-to-date status indicates there are local files which are changed vs. the remote on unraid.net.
+
+> Click Update to push changes to the remote.
+
+> Click Changes to see what has changed.
+
+<?else:?>
+&nbsp;
+: <button type="button" disabled>Update</button>
+
+> The Up-to-date status indicates your local configuration matches that stored on the unraid.net remote.
+
+<?endif?>
+&nbsp;
+: <button type="button" onclick="enableFlashBackup(this)">Deactivate</button> <button type="button" onclick="enableFlashBackup(this)">Reinitialize</button>
+
+> Click Deactivate to pause communication with your remote on unraid.net.
+
+> Click Reinitialize to erase all change history in both local and unraid.net remote.
+
+<?endif?>
+</form>
+<?endif?>
+]]>
+</INLINE>
+</FILE>
+
+<!-- Preserve in case plugin is removed -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php-
+</INLINE>
+</FILE>
+<FILE Name="/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php">
+<INLINE>
+<![CDATA[
+<?PHP
+/* Copyright 2005-2018, Lime Technology
+ * Copyright 2012-2018, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+$cli = php_sapi_name()=='cli';
+
+function response_complete($httpcode, $result, $cli_success_msg='') {
+  global $cli;
+  if ($cli) {
+    $json = @json_decode($result,true);
+    if (!empty($json['error'])) {
+      echo 'Error: '.$json['error'].PHP_EOL;
+      exit(1);
+    }
+    exit($cli_success_msg.PHP_EOL);
+  }
+  header('Content-Type: application/json');
+  http_response_code($httpcode);
+  exit((string)$result);
+}
+
+// remoteaccess, externalport, (if registering) username, password
+extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (empty($remote)) {
+  $remote = [
+    "apikey" => "",
+    "wanaccess" => "no",
+    "wanport" => "443"
+  ];
+}
+if (empty($remote['wanport'])) {
+  $remote['wanport'] = 443;
+}
+if ($cli) {
+  $remoteaccess = $remote['wanaccess'];
+  $externalport = $remote['wanport'];
+  $username = '';
+  $password = '';
+} else {
+  $remoteaccess = $_POST['remoteaccess'];
+  $externalport = $_POST['externalport'];
+  $username = $_POST['username'];
+  $password = $_POST['password'];
+}
+$isRegistered = !empty($remote['apikey']);
+
+// protocol, hostname, internalport
+list($protocol, $hostname, $internalport) = explode(":", rtrim(file_get_contents("/var/run/nginx.origin")));
+$hostname = substr($hostname, 2);
+
+if (!$isRegistered && empty($username) && !preg_match('/.*\.unraid\.net$/', $hostname)) {
+  response_complete(406, '{"error":"Nothing to do"}');
+}
+
+// keyfile
+$var = parse_ini_file('/var/local/emhttp/var.ini');
+$keyfile = @file_get_contents($var['regFILE']);
+if ($keyfile === false) {
+  response_complete(406, '{"error":"Registration key required"}');
+}
+$keyfile = @base64_encode($keyfile);
+
+// internalip
+extract(parse_ini_file('/var/local/emhttp/network.ini',true));
+$internalip = $eth0['IPADDR:0'];
+
+$ch = curl_init('https://keys.lime-technology.com/account/server/register');
+curl_setopt($ch, CURLOPT_POST, 1);
+
+if (!$isRegistered && empty($username)) {
+  curl_setopt($ch, CURLOPT_POSTFIELDS, [
+    'internalip' => $internalip,
+    'keyfile' => $keyfile
+  ]);
+} else {
+  // servername, servercomment
+  $servername = $var['NAME'];
+  $servercomment = $var['COMMENT'];
+  if (empty($username)) {
+    curl_setopt($ch, CURLOPT_POSTFIELDS, [
+      'servername' => $servername,
+      'servercomment' => $servercomment,
+      'protocol' => $protocol,
+      'hostname' => $hostname,
+      'internalport' => $internalport,
+      'internalip' => $internalip,
+      'remoteaccess' => $remoteaccess,
+      'externalport' => $externalport,
+      'keyfile' => $keyfile
+    ]);
+  } else {
+    curl_setopt($ch, CURLOPT_POSTFIELDS, [
+      'servername' => $servername,
+      'servercomment' => $servercomment,
+      'protocol' => $protocol,
+      'hostname' => $hostname,
+      'internalport' => $internalport,
+      'internalip' => $internalip,
+      'remoteaccess' => $remoteaccess,
+      'externalport' => $externalport,
+      'username' => $username,
+      'password' => $password,
+      'keyfile' => $keyfile
+    ]);
+  }
+}
+
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($ch);
+$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$error = curl_error($ch);
+curl_close($ch);
+
+if ($result === false) {
+  response_complete(500, '{"error":"'.$error.'"}');
+}
+
+response_complete($httpcode, $result, 'success');
+?>
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php">
+<INLINE>
+<![CDATA[
+<?PHP
+/* Copyright 2005-2018, Lime Technology
+ * Copyright 2012-2018, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+$cli = php_sapi_name()=='cli';
+
+function response_complete($httpcode, $result, $cli_success_msg='') {
+  global $cli;
+  if ($cli) {
+    $json = @json_decode($result,true);
+    if (!empty($json['error'])) {
+      echo 'Error: '.$json['error'].PHP_EOL;
+      exit(1);
+    }
+    if (!empty($cli_success_msg)) $cli_success_msg .= PHP_EOL;
+    exit($cli_success_msg);
+  }
+  header('Content-Type: application/json');
+  http_response_code($httpcode);
+  exit((string)$result);
+}
+
+// command
+//  init (default)
+//  activate
+//  status
+//  update
+//  reinit
+//  deactivate
+if ($cli) {
+  if ($argc > 1) $command = $argv[1];
+} else {
+  $command = $_POST['command'];
+}
+if (empty($command)) $command='init';
+
+// keyfile
+$var = parse_ini_file("/var/local/emhttp/var.ini");
+$keyfile = @file_get_contents($var['regFILE']);
+if ($keyfile === false) {
+  response_complete(406, '{"error":"Registration key required"}');
+}
+$keyfile = @base64_encode($keyfile);
+
+// check if activated
+if ($command != 'activate') {
+  exec('git -C /boot config --get remote.origin.url', $config_output, $return_var);
+  if (($return_var != 0) || (strpos($config_output[0],'backup.unraid.net') === false)) {
+    response_complete(406, '{"error":"Not activated"}');
+  }
+}
+
+// if deactivate command, just remove our origin
+if ($command == 'deactivate') {
+  exec('git --git-dir /boot/.git remote remove origin &>/dev/null');
+  response_complete(200, '{}');
+}
+
+// build a list of sha256 hashes of the bzfiles
+$bzfilehashes = [];
+$allbzfiles = ['bzimage','bzfirmware','bzmodules','bzroot','bzroot-gui'];
+foreach ($allbzfiles as $bzfile) {
+  $sha256 = trim(@file_get_contents("/boot/$bzfile.sha256"));
+  if (strlen($sha256) != 64) {
+    response_complete(406, '{"error":"Invalid or missing '.$bzfile.'.sha256 file"}');
+  }
+  $bzfilehashes[] = $sha256;
+}
+
+$ch = curl_init('https://keys.lime-technology.com/backup/flash/activate');
+curl_setopt($ch, CURLOPT_POST, 1);
+curl_setopt($ch, CURLOPT_POSTFIELDS, [
+  'keyfile' => $keyfile,
+  'version' => $var['version'],
+  'bzfiles' => implode(',', $bzfilehashes)
+]);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+$result = curl_exec($ch);
+$httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$error = curl_error($ch);
+curl_close($ch);
+
+if ($result === false) {
+  response_complete(500, '{"error":"'.$error.'"}');
+}
+
+$json = json_decode($result, true);
+if (empty($json) || empty($json['ssh_privkey'])) {
+  response_complete(406, $result);
+}
+
+// save the public and private keys
+if (!file_exists('/root/.ssh')) {
+  mkdir('/root/.ssh', 0700);
+}
+file_put_contents('/root/.ssh/unraidbackup_id_ed25519', $json['ssh_privkey']);
+chmod('/root/.ssh/unraidbackup_id_ed25519', 0600);
+file_put_contents('/root/.ssh/unraidbackup_id_ed25519.pub', $json['ssh_pubkey']);
+chmod('/root/.ssh/unraidbackup_id_ed25519.pub', 0644);
+
+// add configuration to use our keys
+if (!file_exists('/root/.ssh/config') || strpos(file_get_contents('/root/.ssh/config'),'Host backup.unraid.net') === false) {
+  file_put_contents('/root/.ssh/config', 'Host backup.unraid.net
+IdentityFile ~/.ssh/unraidbackup_id_ed25519
+IdentitiesOnly yes
+', FILE_APPEND);
+  chmod('/root/.ssh/config', 0644);
+}
+
+// add our server as a known host
+if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),'backup.unraid.net,54.70.72.154') === false) {
+  file_put_contents('/root/.ssh/known_hosts', 'backup.unraid.net,54.70.72.154 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKrKXKQwPZTY25MoveIw7fZ3IoZvvffnItrx6q7nkNriDMr2WAsoxu0DrU2QrSLH5zFF1ibv4tChS1hOpiYObiI=', FILE_APPEND);
+  chmod('/root/.ssh/known_hosts', 0644);
+}
+
+// blow away existing repo if reinit command
+if ($command == 'reinit') {
+  exec('rm -rf /boot/.git');
+}
+
+// ensure git repo is setup on the flash drive
+if (!file_exists('/boot/.git/info/exclude')) {
+  exec('git init /boot &>/dev/null');
+}
+
+// setup git ignore for files we dont need in the flash backup
+if (strpos(file_get_contents('/boot/.git/info/exclude'),'Unraid') === false) {
+  file_put_contents('/boot/.git/info/exclude', '# Unraid OS Flash Backup
+
+# Blacklist everything
+/*
+
+# Whitelist selected root files
+!*.sha256
+!changes.txt
+!license.txt
+
+!EFI*/
+EFI*/boot/*
+!EFI*/boot/syslinux.cfg
+
+!syslinux/
+syslinux/*
+!syslinux/syslinux.cfg
+!syslinux/syslinux.cfg-
+
+# Whitelist entire config directory
+!config/
+#  except for selected files
+config/drift
+config/plugins/unRAIDServer.plg
+config/random-seed
+config/shadow
+config/smbpasswd
+config/wireguard/privatekey
+');
+}
+
+// ensure git user is configured
+exec('git --git-dir /boot/.git config user.email \'gitbot@unraid.net\' &>/dev/null');
+exec('git --git-dir /boot/.git config user.name \'gitbot\' &>/dev/null');
+
+// ensure upstream git server is configured and in-sync
+exec('git --git-dir /boot/.git remote add -f -t master -m master origin git@backup.unraid.net:~/flash.git &>/dev/null');
+if ($command != 'reinit') {
+  exec('git --git-dir /boot/.git reset origin/master &>/dev/null');
+  exec('git --git-dir /boot/.git checkout -B master origin/master &>/dev/null');
+}
+
+// establish status
+exec('git -C /boot status --porcelain', $status_output, $return_var);
+if ($return_var != 0) {
+  response_complete(406, '{"error":"'.${status_output[0]}.'"}');
+}
+
+if ($command == 'status') {
+  $data = implode("\n", $status_output);
+  response_complete($httpcode, '{"data":"'.$data.'"}', $data);
+}
+
+if (($command == 'update') || ($command == 'reinit')) {
+  // push changes upstream
+  if (!empty($status_output)) {
+    exec('git -C /boot add -A &>/dev/null');
+    if ($command == 'reinit') {
+      exec('git -C /boot commit -m \'Initial commit\' &>/dev/null');
+      exec('git -C /boot push --force origin master &>/dev/null');
+    } else {
+      exec('git -C /boot commit -m \'Config change\' &>/dev/null');
+      exec('git -C /boot push &>/dev/null');
+    }
+  }
+}
+
+response_complete($httpcode, '{}');
+?>
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/RegWizard.php">
+<INLINE>
+<![CDATA[
+<style>
+#sb-title {display:none}
+#sb-info {display:none}
+#sb-wrapper {overflow:hidden}
+#sb-overlay {opacity:0.8 !important}
+</style>
+<script markdown="0">
+function showRegWizard() {
+  <? $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']); ?>
+  Shadowbox.open({
+    content:'https://forums.unraid.net/launchpad-overlay/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&site='+location.origin, 
+    player:'iframe', 
+    options: {modal: true, animate: true, displayNav: false}
+  });
+}
+function hideRegWizard() {
+  Shadowbox.close();
+  var data = {};
+  data['#file'] = 'dynamix/dynamix.cfg';
+  data['#section'] = 'wizard';
+  data['hideWizard'] = 1;
+  $.post('/update.php',data,function() {
+    console.log('dynamix/dynamix.cfg: Updated hideWizard under [wizard] section');
+  });
+}
+function handleMessage(e) {
+  //if (e.origin != "http://child.com") { return; }
+  if (e.data == "CLOSE_SHADOWBOX") {
+    hideRegWizard();
+    return;
+  }
+
+  var data = JSON.parse(e.data);
+
+  switch (data.event) {
+    case "CLOSE_SHADOWBOX":
+      hideRegWizard();
+      break;
+    case "REG_WIZARD":
+      if (data.license) {
+        $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
+          console.log('New license key installed: ' + data.license);
+        }).fail(function() {
+          console.error('Failed to license new key: ' + data.license);
+        });
+      }
+      if (data.apikey) {
+        var data = {};
+        data['#file'] = 'dynamix/dynamix.cfg';
+        data['#section'] = 'remote';
+        data['apikey'] = data.apikey;
+        $.post('/update.php',data,function() {
+          console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+        }).fail(function() {
+          console.error('Failed to update apikey under [remote] section');
+        });
+      }
+      break;
+    case "INSTALL_KEY":
+    case "KEY_PURCHASE":
+      if (data.license) {
+        $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
+          console.log('New license key installed: ' + data.license);
+        }).fail(function() {
+          console.error('Failed to license new key: ' + data.license);
+        });
+      } else {
+        console.error('KEY_PURCHASE event fired! but missing license data:');
+        console.log(data);
+      }
+      hideRegWizard();
+      break;
+    default:
+      console.error('Unhandled event \'' + data.event + '\' fired. data:');
+      console.log(data);
+      break;
+  }
+}
+window.addEventListener('message', handleMessage, false);
+<? if (empty($wizard['hideWizard'])) { ?>
+$(function() { 
+  setTimeout(function() { showWizard(); }, 100);
+});
+<? } ?>
+</script>
+]]>
+</INLINE>
+</FILE>
+
+<!-- Preserve in case plugin is removed -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+cp -f /usr/local/emhttp/plugins/dynamix/Registration.page /usr/local/emhttp/plugins/dynamix/Registration.page-
+
+cat <<EOF >> /usr/local/emhttp/plugins/dynamix/Registration.page
+
+&nbsp;
+: <input type="button" value="Open Registration Wizard" onclick="showRegWizard();">
+EOF
+]]>
+</INLINE>
+</FILE>
+
+<!-- Preserve in case plugin is removed -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+cp -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-
+
+cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- | sed -e 's/<\/head>/<? include "\/usr\/local\/emhttp\/plugins\/dynamix.unraid.net\/include\/RegWizard.php" ?>\n<\/head>/g' > /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+]]>
+</INLINE>
+</FILE>
+
+<!-- gitty up -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+echo "/etc/rc.d/rc.unraid-api install" | at -M now + 1 min
+</INLINE>
+</FILE>
+
+</PLUGIN>
