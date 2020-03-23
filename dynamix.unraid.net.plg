@@ -4,7 +4,7 @@
 <!ENTITY name      "dynamix.unraid.net">
 <!ENTITY launch    "Unraid.net">
 <!ENTITY author    "limetech">
-<!ENTITY version   "2020.03.20">
+<!ENTITY version   "2020.03.22">
 <!ENTITY pluginURL "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
 <!ENTITY graphql-api "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-graphql-api-v2.2.1.tgz">
 <!ENTITY plugins     "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-v1.1.5.tgz">
@@ -846,13 +846,6 @@ function handleMessage(e) {
       hideRegWizard();
       break;
     case "REG_WIZARD":
-      if (data.license) {
-        $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
-          console.log('New license key installed: ' + data.license);
-        }).fail(function() {
-          console.error('Failed to license new key: ' + data.license);
-        });
-      }
       if (data.apikey) {
         var data = {};
         data['#file'] = 'dynamix/dynamix.cfg';
@@ -864,12 +857,23 @@ function handleMessage(e) {
           console.error('Failed to update apikey under [remote] section');
         });
       }
+      if (data.license) {
+        hideRegWizard();
+        $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
+          console.log('New license key installed: ' + data.license);
+          location = '/Main';
+        }).fail(function() {
+          console.error('Failed to license new key: ' + data.license);
+        });
+      }
       break;
     case "INSTALL_KEY":
     case "KEY_PURCHASE":
       if (data.license) {
+        hideRegWizard();
         $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
           console.log('New license key installed: ' + data.license);
+          location = '/Main';
         }).fail(function() {
           console.error('Failed to license new key: ' + data.license);
         });
@@ -877,7 +881,6 @@ function handleMessage(e) {
         console.error('KEY_PURCHASE event fired! but missing license data:');
         console.log(data);
       }
-      hideRegWizard();
       break;
     default:
       console.error('Unhandled event \'' + data.event + '\' fired. data:');
