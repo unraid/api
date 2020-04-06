@@ -10,14 +10,13 @@ import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import core from '@unraid/core';
-import { DynamixConfig, Var } from '@unraid/core/dist/types';
+import { DynamixConfig } from '@unraid/core/dist/types';
 import { createServer } from './patched-install-subscription-handlers';
 import { graphql } from './graphql';
 
-const { log, config, utils, paths, errors, states } = core;
+const { log, config, utils, paths, states } = core;
 const { getEndpoints, globalErrorHandler, exitApp, loadState, sleep } = utils;
 const { varState } = states;
-const { AppError } = errors;
 
 /**
  * The Graphql server.
@@ -132,13 +131,10 @@ graphApp.installSubscriptionHandlers(wsServer);
  * Connect to unraid's proxy server
  */
 const connectToMothership = async () => {
-	const filePath = paths.get('dynamix-config')!;
-	const { remote } = loadState<DynamixConfig>(filePath);
-
-	const apiKey = remote.apiKey || '';
+	const apiKey = loadState<DynamixConfig>(paths.get('dynamix-config')!).remote.apikey || '';
 	const keyFile = fs.readFileSync(varState.data?.regFile, 'utf-8');
 	const serverName = `${varState.data?.name}`;
-	const lanIp = `${varState.data?.name}`;
+	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
 
 	// Connect to mothership
@@ -159,6 +155,10 @@ const connectToMothership = async () => {
 	});
 	mothership.on('error', console.error);
 	mothership.on('close', () => { console.info('closed'); });
+	mothership.on('message', (data) => {
+		console.log(data);
+		// wsServer.emit('');
+	});
 };
 
 // Return an object with a server and start/stop async methods.
