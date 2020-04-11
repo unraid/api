@@ -161,11 +161,10 @@ const connectToMothership = async () => {
 	});
 };
 
-// Return an object with a server and start/stop async methods.
 export const server = {
 	server: stoppableServer,
 	async start() {
-		const retryConnection = async error => {
+		const retryConnection = async (error: NodeJS.ErrnoException) => {
 			log.debug(error);
 			await sleep(5);
 			await connectToMothership().catch(retryConnection);

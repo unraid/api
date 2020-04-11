@@ -14,7 +14,7 @@ am(async () => {
 
 	// Load server
 	await core.loadServer('graphql-api', server);
-}, error => {
+}, (error: NodeJS.ErrnoException) => {
 	// We should only end here if core has an issue loading
 
 	// Log last error
