@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.3.0](https://github.com/unraid/graphql-api/compare/v2.2.1...v2.3.0) (2020-04-11)
+
+
+### Features
+
+* add proxy support (part 1) ([5389db1](https://github.com/unraid/graphql-api/commit/5389db148b4ca10b6328c9451aee30cc9b2dadb8))
+
+
+### Bug Fixes
+
+* **plg:** add template vars ([ddac833](https://github.com/unraid/graphql-api/commit/ddac833f5f5f9f55a41f49cfe75c243bca93e339))
+* add lan-ip and fix tsc not finishing ([f603e02](https://github.com/unraid/graphql-api/commit/f603e02b5353f769ff59a1d2e75095a6a7e461a8))
+* **mothership:** add lanIp and remove x-powered-by ([4a09df5](https://github.com/unraid/graphql-api/commit/4a09df5575c88ec8aa3795a75421703e4c4d45cf))
+
 ### [2.2.1](https://github.com/unraid/graphql-api/compare/v2.2.0...v2.2.1) (2020-02-24)
 
 ## [2.2.0](https://github.com/unraid/graphql-api/compare/v2.1.29...v2.2.0) (2020-02-24)
