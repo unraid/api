@@ -79,7 +79,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [10.x]
+        node-version: [13.x]
 
     steps:
     - name: Checkout repo
