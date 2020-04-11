@@ -4,10 +4,10 @@
 <!ENTITY name      "dynamix.unraid.net">
 <!ENTITY launch    "Unraid.net">
 <!ENTITY author    "limetech">
-<!ENTITY version   "2020.03.22">
+<!ENTITY version   "{{ plg_version }}">
 <!ENTITY pluginURL "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
-<!ENTITY graphql-api "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-graphql-api-v2.2.1.tgz">
-<!ENTITY plugins     "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-v1.1.5.tgz">
+<!ENTITY graphql-api "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-graphql-api-{{ node_graphql_api_version }}.tgz">
+<!ENTITY plugins     "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-{{ node_plugins_version }}.tgz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta1" icon="globe">
