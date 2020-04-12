@@ -124,6 +124,13 @@ if (isNaN(parseInt(port, 10))) {
 // Main ws server
 const wsServer = new WebSocket.Server({ noServer: true });
 
+// Add ws upgrade functionality back in.
+stoppableServer.on('upgrade', (request, socket, head) => {
+	wsServer.handleUpgrade(request, socket, head, ws => {
+		wsServer.emit('connection', ws);
+	});
+});
+
 // Add graphql subscription handlers
 graphApp.installSubscriptionHandlers(wsServer);
 
@@ -142,7 +149,7 @@ const connectToMothership = async () => {
 		headers: {
 			'x-api-key': apiKey,
 			'x-flash-guid': varState.data?.flashGuid,
-			'x-key-file': keyFile,
+			// 'x-key-file': keyFile ?? '',
 			'x-server-name': serverName,
 			'x-lan-ip': lanIp,
 			'x-machine-id': machineId
@@ -164,16 +171,29 @@ const connectToMothership = async () => {
 export const server = {
 	server: stoppableServer,
 	async start() {
+		const maxRetries = 10;
+		let retries = 0;
 		const retryConnection = async (error: NodeJS.ErrnoException) => {
-			log.debug(error);
+			// Bail on max retries
+			if (retries >= maxRetries) {
+				process.exit(1);
+			}
+
+			// Log error
+			log.debug(error.message);
+
+			// Retry
+			retries++;
 			await sleep(5);
 			await connectToMothership().catch(retryConnection);
 		};
 
 		// Start mothership connection
-		connectToMothership().catch(retryConnection);
+		await connectToMothership().catch(retryConnection).then(() => {
+			log.debug('Connected to mothership.');
+		});
 
-		// Start http server		
+		// Start http server
 		return stoppableServer.listen(port, () => {
 			// Downgrade process user to owner of this file
 			return fs.stat(__filename, (error, stats) => {

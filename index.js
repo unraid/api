@@ -55,7 +55,7 @@ if (cluster.isMaster) {
                 handleUncaughtExceptions: false
             });
         } catch {
-            log.error(`Could not load "source-map-supoort", do you have it installed?`);
+            log.error(`Could not load "source-map-support", do you have it installed?`);
         }
     }
 
