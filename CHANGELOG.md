@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.3.2](https://github.com/unraid/graphql-api/compare/v2.3.1...v2.3.2) (2020-04-13)
+
+
+### Bug Fixes
+
+* added subscriptions back to wsServer and other misc changes ([70472ed](https://github.com/unraid/graphql-api/commit/70472ed20a71b5cdd21ef148a4ae9535b8aa3f55))
+
 ### [2.3.1](https://github.com/unraid/graphql-api/compare/v2.3.0...v2.3.1) (2020-04-11)
 
 ## [2.3.0](https://github.com/unraid/graphql-api/compare/v2.2.1...v2.3.0) (2020-04-11)
