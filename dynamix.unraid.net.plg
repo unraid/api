@@ -23,7 +23,7 @@
 <FILE Run="/bin/bash" Method="install remove">
 <INLINE>
 if [ -e /etc/rc.d/rc.unraid-api ]; then
-  /etc/rc.d/rc.unraid-api stop
+  /etc/rc.d/rc.unraid-api uninstall
   rm -f /etc/rc.d/rc.unraid-api
   mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php- /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php
   mv -f /usr/local/emhttp/plugins/dynamix/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
@@ -117,6 +117,7 @@ install() {
 }
 uninstall() {
   stop
+  sleep 1
   for i in ${node_apps[@]}; do
     rm -rf /usr/local/node/${i}
   done
