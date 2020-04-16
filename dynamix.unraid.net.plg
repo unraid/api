@@ -940,8 +940,8 @@ $arr['flashproduct'] = $var['flashProduct'];
 $arr['flashvendor'] = $var['flashVendor'];
 $arr['servername'] = $var['NAME'];
 $arr['serverip'] = $_SERVER['SERVER_ADDR'];
-$arr['internalport'] = $_SERVER['SERVER_PORT'];
-$arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
+//$arr['internalport'] = $_SERVER['SERVER_PORT'];
+//$arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
 
 echo json_encode($arr);
 ?>
