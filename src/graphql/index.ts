@@ -6,7 +6,7 @@
 import get from 'lodash.get';
 // @ts-ignore
 // import * as core from '../../../core/src/index';
-import uuid from 'uuid/v4';
+import { v4 as uuid } from 'uuid';
 import core from '@unraid/core';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
 import { mergeTypes } from 'merge-graphql-schemas';
@@ -339,6 +339,14 @@ export const graphql = {
 		},
 		onDisconnect: async (_, websocketContext) => {
 			const context = await websocketContext.initPromise;
+
+			// This is the internal mothership connection
+			// This should only disconnect if mothership restarts
+			// or the network link reconnects
+			if (websocketContext.socket.url === 'wss://proxy.unraid.net') {
+				log.debug('Mothership disconnected.');
+				return;
+			}
 
 			// The websocket has disconnected before init event has resolved
 			// @see: https://github.com/apollographql/subscriptions-transport-ws/issues/349

@@ -19,6 +19,39 @@ const { getEndpoints, globalErrorHandler, exitApp, loadState, sleep } = utils;
 const { varState } = states;
 
 /**
+ * One second in milliseconds.
+ */
+const ONE_SECOND = 1000;
+/**
+ * One minute in milliseconds.
+ */
+const ONE_MINUTE = 60 * ONE_SECOND;
+/**
+ * Ten minutes in milliseconds.
+ */
+const TEN_MINUTES = 10 * ONE_MINUTE;
+
+/**
+ * Get a number between the lowest and highest value.
+ * @param low Lowest value.
+ * @param high Highest value.
+ */
+const getNumberBetween = (low: number, high: number) => Math.floor(Math.random() * (high - low + 1) + low);
+
+/**
+ * Create a jitter of +/- 20%.
+ */
+const applyJitter = (value: number) => {
+	const jitter = getNumberBetween(80, 120) / 100;
+	return Math.floor(value * jitter);
+};
+
+const backoff = (attempt: number, maxDelay: number, multiplier: number) => {
+	const delay = applyJitter((Math.pow(2.0, attempt) - 1.0) * 0.5);
+	return Math.round(Math.min(delay * multiplier, maxDelay));
+};
+
+/**
  * The Graphql server.
  */
 const app = express();
@@ -50,7 +83,7 @@ app.get('/', (_, res) => {
 // Handle errors by logging them and returning a 500.
 // eslint-disable-next-line no-unused-vars
 app.use((error, _, res, __) => {
-	core.log.error(error);
+	log.error(error);
 	if (error.stack) {
 		error.stackTrace = error.stack;
 	}
@@ -137,9 +170,15 @@ graphApp.installSubscriptionHandlers(wsServer);
 /**
  * Connect to unraid's proxy server
  */
-const connectToMothership = async () => {
+const connectToMothership = async (currentRetryAttempt: number = 0) => {
+	let retryAttempt = currentRetryAttempt;
+
+	if (retryAttempt >= 1) {
+		log.debug(`Reconnecting to mothership, attempt ${retryAttempt}.`);
+	}
+	
 	const apiKey = loadState<DynamixConfig>(paths.get('dynamix-config')!).remote.apikey || '';
-	const keyFile = fs.readFileSync(varState.data?.regFile, 'utf-8');
+	const keyFile = fs.readFileSync(varState.data?.regFile).toString('base64');
 	const serverName = `${varState.data?.name}`;
 	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
@@ -149,19 +188,68 @@ const connectToMothership = async () => {
 		headers: {
 			'x-api-key': apiKey,
 			'x-flash-guid': varState.data?.flashGuid,
-			// 'x-key-file': keyFile ?? '',
+			'x-key-file': keyFile ?? '',
 			'x-server-name': serverName,
 			'x-lan-ip': lanIp,
 			'x-machine-id': machineId
 		}
 	});
 
-	mothership.on('open', () => {
+	interface WebSocketWithHeartBeat extends WebSocket {
+		pingTimeout?: NodeJS.Timeout
+	}
+
+	function heartbeat(this: WebSocketWithHeartBeat) {
+		if (this.pingTimeout) {
+			clearTimeout(this.pingTimeout);
+		}
+
+		// Use `WebSocket#terminate()`, which immediately destroys the connection,
+		// instead of `WebSocket#close()`, which waits for the close timer.
+		// Delay should be equal to the interval at which your server
+		// sends out pings plus a conservative assumption of the latency.
+		this.pingTimeout = setTimeout(() => {
+			this.terminate();
+		}, 30000 + 1000);
+	}
+
+	mothership.on('open', function() {
+		log.debug('Connected to mothership.');
+
+		// Reset retry attempts
+		retryAttempt = 0;
+
 		// Connect mothership to the internal ws server
 		wsServer.emit('connection', mothership);
+
+		// Start ping/pong
+		heartbeat.bind(this);
 	});
-	mothership.on('error', console.error);
-	mothership.on('close', () => { console.info('closed'); });
+	mothership.on('close', async function (this: WebSocketWithHeartBeat) {
+		if (this.pingTimeout) {
+			clearTimeout(this.pingTimeout);
+		}
+
+		// Clear all listeners before running this again
+		mothership.removeAllListeners();
+
+		// Reconnect
+		setTimeout(async () => {
+			await connectToMothership(retryAttempt + 1);
+		}, backoff(retryAttempt, ONE_MINUTE, 2));
+	});
+
+	mothership.on('error', error => {
+		// Mothership is down
+		if (error.message.includes('502')) {
+			return;
+		}
+
+		log.error(error.message);
+	});
+
+	mothership.on('ping', heartbeat);
+
 	mothership.on('message', (data) => {
 		console.log(data);
 		// wsServer.emit('');
@@ -171,27 +259,8 @@ const connectToMothership = async () => {
 export const server = {
 	server: stoppableServer,
 	async start() {
-		const maxRetries = 10;
-		let retries = 0;
-		const retryConnection = async (error: NodeJS.ErrnoException) => {
-			// Bail on max retries
-			if (retries >= maxRetries) {
-				process.exit(1);
-			}
-
-			// Log error
-			log.debug(error.message);
-
-			// Retry
-			retries++;
-			await sleep(5);
-			await connectToMothership().catch(retryConnection);
-		};
-
 		// Start mothership connection
-		await connectToMothership().catch(retryConnection).then(() => {
-			log.debug('Connected to mothership.');
-		});
+		await connectToMothership();
 
 		// Start http server
 		return stoppableServer.listen(port, () => {
