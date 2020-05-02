@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.4.0](https://github.com/unraid/graphql-api/compare/v2.3.3-rolling-20200425020507...v2.4.0) (2020-05-02)
+
+
+### Features
+
+* **mothership:** add message support ([70d14c7](https://github.com/unraid/graphql-api/commit/70d14c72efe06e15655b4ee132cfda750871e1c1))
+
 ### [2.3.3](https://github.com/unraid/graphql-api/compare/v2.3.2-rolling-20200416175601...v2.3.3) (2020-04-17)
 
 ### [2.3.2](https://github.com/unraid/graphql-api/compare/v2.3.1...v2.3.2) (2020-04-13)
