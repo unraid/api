@@ -5,6 +5,7 @@
 
 import fs from 'fs';
 import net from 'net';
+import request = require('request');
 import stoppable from 'stoppable';
 import express from 'express';
 import http from 'http';
@@ -250,9 +251,51 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 
 	mothership.on('ping', heartbeat);
 
-	mothership.on('message', (data) => {
-		console.log(data);
-		// wsServer.emit('');
+	interface Message {
+		type: 'query' | 'mutation' | 'start' | 'stop';
+		payload: {
+			operationName: any;
+			variables: {};
+			query: string;
+		}
+	};
+
+	mothership.on('message', async (data: string) => {
+		try {
+			const message: Message = JSON.parse(data);
+
+			// Proxy this to the http endpoint
+			if (message.type === 'query' || message.type === 'mutation') {
+				request.post('http://unix:/var/run/graphql-api.sock:/graphql', {
+					body: JSON.stringify({
+						operationName: null,
+						variables: {},
+						query: message.payload.query
+					}),
+					headers: {
+						Accept: '*/*',
+						'Content-Type': 'application/json',
+						'x-api-key': apiKey
+					}
+				}, (error, response) => {
+					if (error) {
+						log.error(error);
+						return;
+					}
+
+					mothership.send(JSON.stringify({
+						type: 'data',
+						payload: {
+							data: JSON.parse(response.body).data
+						}
+					}));
+				});
+			}
+		} catch (error) {
+			// Something weird happened while processing the message
+			// This is likely a malformed message
+			log.error(error);
+		}
 	});
 };
 

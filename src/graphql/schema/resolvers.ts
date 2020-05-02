@@ -11,7 +11,7 @@ import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
-import { run, updatePubsub } from '../../run';
+import { run, publish } from '../../run';
 import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
 
 const { pluginManager, pubsub, utils, log, bus, errors, states } = core;
@@ -45,7 +45,7 @@ dee.on('*', async (data) => {
 	}
 
 	const { json } = await core.modules.getApps();
-	updatePubsub('info', 'UPDATED', json);
+	publish('info', 'UPDATED', json);
 });
 
 dee.listen();
@@ -98,7 +98,7 @@ export const resolvers = {
 	Subscription: {
 		apikeys: {
 			// Not sure how we're going to secure this
-			...createSubscription('apikeys')
+			// ...createSubscription('apikeys')
 		},
 		array: {
 			...createSubscription('array')

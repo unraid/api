@@ -6,23 +6,30 @@ const { pubsub, utils, log } = core;
 const { debugTimer } = utils;
 
 /**
- * Update pubsub.
+ * Publish update to topic channel.
  */
-export const updatePubsub = (channel, mutation, node) => {
-    if (!canPublishToChannel(channel)) {
-        return;
+export const publish = (channel: string, mutation: string, node?: {}) => {
+    if (!node) {
+        throw new Error('Data missing?');
     }
 
-    pubsub.publish(channel, {
+    const data = {
         [channel]: {
             mutation,
             node
         }
-    });
+    };
+
+    if (!canPublishToChannel(channel)) {
+        return;
+    }
+
+    // Update clients
+    pubsub.publish(channel, data);
 };
 
 interface RunOptions {
-    node?: string
+    node?: {}
     moduleToRun?: Function
     context?: any
 }
@@ -37,12 +44,8 @@ export const run = async (channel: string, mutation: string, options: RunOptions
         context
     } = options;
 
-    if (!canPublishToChannel(channel)) {
-        return;
-    }
-
     if (!moduleToRun) {
-        return updatePubsub(channel, mutation, node);
+        return publish(channel, mutation, node);
     }
 
     try {
@@ -54,8 +57,8 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 
         log.debug('Module:', moduleToRun.name, 'Result:', result.json);
 
-        // Update pubsub channel
-        updatePubsub(channel, mutation, result.json);
+        // Save result
+        publish(channel, mutation, result.json);
     } catch (error) {
         // Ensure we aren't leaking anything in production
         if (process.env.NODE_ENV === 'production') {
@@ -68,3 +71,4 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 
     debugTimer(`run:${moduleToRun.name}`);
 };
+
