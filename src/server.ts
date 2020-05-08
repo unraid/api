@@ -283,12 +283,18 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 						return;
 					}
 
-					mothership.send(JSON.stringify({
-						type: 'data',
-						payload: {
-							data: JSON.parse(response.body).data
-						}
-					}));
+					try {
+						const data = JSON.parse(response.body).data;
+						const payload = { data };
+						log.debug('Sending payload to mothership', payload);
+						mothership.send(JSON.stringify({
+							type: 'data',
+							payload
+						}));
+					} catch (error) {
+						log.error(error);
+						mothership.close();
+					}
 				});
 			}
 		} catch (error) {
