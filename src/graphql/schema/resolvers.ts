@@ -12,6 +12,7 @@ import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { run, publish } from '../../run';
+import { cache } from '../../cache';
 import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
 
 const { pluginManager, pubsub, utils, log, bus, errors, states } = core;
@@ -19,8 +20,8 @@ const { ensurePermission } = utils;
 const { usersState } = states;
 const { AppError, PluginError } = errors;
 
-// Update array values when disks change
-bus.on('disks', async () => {
+// Update array values when slots change
+bus.on('slots', async () => {
 	// @todo: Create a system user for this
 	const user = usersState.findOne({ name: 'root' });
 
@@ -93,7 +94,15 @@ const createSubscription = (channel, resource?) => ({
 export const resolvers = {
 	Query: {
 		info: () => ({}),
-		vms: () => ({})
+		vms: () => ({}),
+		server(name: string) {
+			// Single server
+			// return cache.get();
+		},
+		servers() {
+			// All servers
+			return cache.data;
+		}
 	},
 	Subscription: {
 		apikeys: {
@@ -124,6 +133,9 @@ export const resolvers = {
 		},
 		services: {
 			...createSubscription('services')
+		},
+		servers: {
+			...createSubscription('servers')
 		},
 		shares: {
 			...createSubscription('shares')

@@ -1,0 +1,28 @@
+type Query {
+    server(name: String!): Server @func(module: "servers/name/get-server")
+    servers: [Server] @func(module: "getServers")
+}
+
+type ServerSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: Server!
+}
+type ServersSubscription {
+    mutation: UpdateOnlyMutationType!
+    node: [Server!]
+}
+
+type Subscription {
+    server(name: String!): ServerSubscription
+    servers: ServersSubscription
+}
+
+type Status = 'Online' | 'Offline';
+
+type Server {
+    name: String!
+    status: Status!
+    wanIp: String!
+    localUrl: String!
+    remoteUrl: String!
+}

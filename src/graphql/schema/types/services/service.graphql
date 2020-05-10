@@ -14,7 +14,7 @@ type ServicesSubscription {
 }
 
 type Subscription {
-    service(id: ID!): ServiceSubscription
+    service(name: String!): ServiceSubscription
     services: ServicesSubscription
 }
 
