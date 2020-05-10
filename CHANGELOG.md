@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.3](https://github.com/unraid/graphql-api/compare/v2.4.2...v2.4.3) (2020-05-10)
+
+
+### Bug Fixes
+
+* **type:** ensure keyFile and x-flash-guid aren't ever undefined ([ae8e019](https://github.com/unraid/graphql-api/commit/ae8e019f1bff4dd87f537e1a3d37fe16f3b7a577))
+
 ### [2.4.2](https://github.com/unraid/graphql-api/compare/v2.4.1...v2.4.2) (2020-05-10)
 
 
