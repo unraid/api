@@ -179,7 +179,7 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 	}
 	
 	const apiKey = loadState<DynamixConfig>(paths.get('dynamix-config')!).remote.apikey || '';
-	const keyFile = fs.readFileSync(varState.data?.regFile).toString('base64');
+	const keyFile = varState.data?.regFile ? fs.readFileSync(varState.data?.regFile).toString('base64') : '';
 	const serverName = `${varState.data?.name}`;
 	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
@@ -188,7 +188,7 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 	const mothership = new WebSocket('wss://proxy.unraid.net', ['graphql-ws'], {
 		headers: {
 			'x-api-key': apiKey,
-			'x-flash-guid': varState.data?.flashGuid,
+			'x-flash-guid': varState.data?.flashGuid ?? '',
 			'x-key-file': keyFile ?? '',
 			'x-server-name': serverName,
 			'x-lan-ip': lanIp,
