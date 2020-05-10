@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.5](https://github.com/unraid/graphql-api/compare/v2.4.4...v2.4.5) (2020-05-10)
+
+
+### Bug Fixes
+
+* use full hub token ([56abfc0](https://github.com/unraid/graphql-api/commit/56abfc0df8b2514556f52628d2c1d50ddc8afc37))
+
 ### [2.4.4](https://github.com/unraid/graphql-api/compare/v2.4.3...v2.4.4) (2020-05-10)
 
 ### [2.4.3](https://github.com/unraid/graphql-api/compare/v2.4.2...v2.4.3) (2020-05-10)
