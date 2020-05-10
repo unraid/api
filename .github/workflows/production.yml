@@ -122,8 +122,8 @@ jobs:
     - name: Release to Github and s3
       uses: unraid/release-action@master
       env:
-        GITHUB_USER: ${{ secrets.GITHUB_USER }}
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_USER: "unraid"
+        GITHUB_TOKEN: ${{ secrets.HUB_TOKEN }}
         REPO: ${{ github.repository }}
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_ACCESS_KEY_SECRET: ${{ secrets.AWS_ACCESS_KEY_SECRET }}
