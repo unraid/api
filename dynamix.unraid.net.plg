@@ -118,6 +118,7 @@ install() {
 uninstall() {
   stop
   sleep 1
+  killall gql-supervisor
   for i in ${node_apps[@]}; do
     rm -rf /usr/local/node/${i}
   done
