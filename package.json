@@ -43,6 +43,7 @@
     "graphql-type-uuid": "^0.2.0",
     "lodash.get": "^4.4.2",
     "merge-graphql-schemas": "^1.7.8",
+    "mqtt": "github:OmgImAlexis/MQTT.js",
     "node-cache": "5.1.0",
     "set-interval-async": "^1.0.32",
     "stoppable": "^1.1.0",
