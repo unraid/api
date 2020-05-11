@@ -17,11 +17,11 @@ type Subscription {
     servers: ServersSubscription
 }
 
-type Status = 'Online' | 'Offline';
+# type Status = 'Online' | 'Offline';
 
 type Server {
     name: String!
-    status: Status!
+    status: String!
     wanIp: String!
     localUrl: String!
     remoteUrl: String!
