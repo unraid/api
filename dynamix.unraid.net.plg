@@ -118,6 +118,7 @@ install() {
 uninstall() {
   stop
   sleep 1
+  killall gql-supervisor
   for i in ${node_apps[@]}; do
     rm -rf /usr/local/node/${i}
   done
@@ -816,7 +817,7 @@ response_complete($httpcode, '{}');
 function showRegWizard() {
   <? $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']); ?>
   Shadowbox.open({
-    content:'https://dev.d1eohvtyc6gnee.amplifyapp.com/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin, 
+    content:'https://dev.d1eohvtyc6gnee.amplifyapp.com/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
     player: 'iframe',
     options: {modal: true, animate: false, displayNav: false, overlayOpacity: 0.8, viewportPadding: 0, showMovieControls: false}
   });
@@ -843,7 +844,11 @@ function handleMessage(e) {
       break;
     case "REG_WIZARD":
       if (data.apikey) {
-        $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey}, function() {
+        var postargs = {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey};
+        if (data.email) {
+          postargs['email'] = data.email;
+        }
+        $.post('/update.php', postargs, function() {
           console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
         }).fail(function() {
           console.error('Failed to update apikey under [remote] section');
