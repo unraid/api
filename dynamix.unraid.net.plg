@@ -55,8 +55,8 @@ if [[ $* == *--mode\=dev* ]]; then
   mode="development"
 fi
 status() {
-  local supervisor_pid=$(ps -C gql-supervisor --no-headers -o pid | xargs)
-  local graphql_api_pid=$(ps -C graphql-api --no-headers -o pid | xargs)
+  local supervisor_pid=$(pidof gql-supervisor)
+  local graphql_api_pid=$(pidof graphql-api)
   if [[ $supervisor_pid ]]; then
     echo "The supervisor($supervisor_pid) process is running."
 
@@ -80,7 +80,7 @@ version() {
   echo "Offical plugins v$plugins_version"
 }
 start() {
-  local supervisor_pid=$(ps -C gql-supervisor --no-headers -o pid | xargs)
+  local supervisor_pid=$(pidof gql-supervisor)
   if [[ $supervisor_pid ]]; then
     echo "The supervisor($supervisor_pid) process is already running, please wait or try the \"reload\" command."
     exit 1
@@ -92,12 +92,10 @@ start() {
   fi
 }
 stop() {
-  for i in ${node_apps[@]}; do
-    pkill ${i}
-  done
+  kill $(pidof gql-supervisor)
 }
 reload() {
-  kill -SIGHUP $(ps -C gql-supervisor --no-headers -o pid)
+  kill -SIGHUP $(pidof gql-supervisor)
 }
 logs() {
   if [ -f "/var/log/graphql-api.log" ]; then
@@ -118,7 +116,6 @@ install() {
 uninstall() {
   stop
   sleep 1
-  killall gql-supervisor
   for i in ${node_apps[@]}; do
     rm -rf /usr/local/node/${i}
   done
