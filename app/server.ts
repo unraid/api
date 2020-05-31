@@ -7,8 +7,11 @@ import fs from 'fs';
 import net from 'net';
 import request from 'request';
 import stoppable from 'stoppable';
+import chokidar from 'chokidar';
 import express from 'express';
 import http from 'http';
+import waitFor from 'p-wait-for';
+import dotProp from 'dot-prop';
 import WebSocket from 'ws';
 import { log, config, utils, paths, states } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
@@ -167,10 +170,14 @@ stoppableServer.on('upgrade', (request, socket, head) => {
 // Add graphql subscription handlers
 graphApp.installSubscriptionHandlers(wsServer);
 
+let mothership;
+
 /**
  * Connect to unraid's proxy server
  */
 const connectToMothership = async (currentRetryAttempt: number = 0) => {
+	// Kill the last connection first
+	await disconnectFromMothership();
 	let retryAttempt = currentRetryAttempt;
 
 	if (retryAttempt >= 1) {
@@ -184,7 +191,8 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 	const machineId = `${await utils.getMachineId()}`;
 
 	// Connect to mothership
-	const mothership = new WebSocket('wss://proxy.unraid.net', ['graphql-ws'], {
+	// Keep reference outside this scope so we can disconnect later
+	mothership = new WebSocket('wss://proxy.unraid.net', ['graphql-ws'], {
 		headers: {
 			'x-api-key': apiKey,
 			'x-flash-guid': varState.data?.flashGuid ?? '',
@@ -223,6 +231,7 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 		wsServer.emit('connection', mothership);
 
 		// Start ping/pong
+		// @ts-ignore
 		heartbeat.bind(this);
 	});
 	mothership.on('close', async function (this: WebSocketWithHeartBeat) {
@@ -304,11 +313,47 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 	});
 };
 
+const disconnectFromMothership = async () => {
+	if (mothership) {
+		log.debug('Disconnecting from the proxy server.');
+		try {
+			mothership.close();
+			mothership = undefined;
+		} catch {}
+	}
+};
+
 export const server = {
 	server: stoppableServer,
 	async start() {
-		// Start mothership connection
-		await connectToMothership();
+		const filePath = paths.get('dynamix-config')!;
+		const watcher = chokidar.watch(filePath);
+		const getApiKey = () => dotProp.get(loadState(filePath), 'remote.apikey');
+		const startWatcher = () => {
+			watcher.on('raw', async () => {
+				const key = getApiKey();
+
+				// Try and stop the last connection if it's still open
+				await disconnectFromMothership();
+	
+				log.debug('my_servers API key was updated, restarting proxy connection.');
+				process.nextTick(() => {
+					if (key !== undefined) {
+						connectToMothership();
+					}
+				});
+			});
+		};
+
+		// Once we have a valid key connect to the proxy server
+		waitFor(() => getApiKey() !== undefined, {
+			// Check every 1 second
+			interval: ONE_SECOND
+		}).then(async () => {
+			log.debug('Found my_servers apiKey, starting proxy connection.');
+			await connectToMothership();
+			startWatcher();
+		});
 
 		// Start http server
 		return stoppableServer.listen(port, () => {
