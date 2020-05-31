@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc",
-    "copy-schemas": "cpx src/**/*.graphql dist",
+    "copy-schemas": "cpx app/**/*.graphql dist",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
     "lint": "xo --verbose",
