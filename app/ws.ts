@@ -1,6 +1,4 @@
-import core from '@unraid/core';
-
-const { log } = core;
+import { log } from '@unraid/core';
 
 interface subscription {
     total: number

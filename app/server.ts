@@ -5,18 +5,17 @@
 
 import fs from 'fs';
 import net from 'net';
-import request = require('request');
+import request from 'request';
 import stoppable from 'stoppable';
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import core from '@unraid/core';
-import { DynamixConfig } from '@unraid/core/dist/types';
+import { log, config, utils, paths, states } from '@unraid/core';
+import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { createServer } from './patched-install-subscription-handlers';
 import { graphql } from './graphql';
 
-const { log, config, utils, paths, states } = core;
-const { getEndpoints, globalErrorHandler, exitApp, loadState, sleep } = utils;
+const { getEndpoints, globalErrorHandler, exitApp, loadState } = utils;
 const { varState } = states;
 
 /**

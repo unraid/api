@@ -3,9 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import core from '@unraid/core';
-// @ts-ignore
-// import * as core from '../../../../core/src/index';
+import { pluginManager, pubsub, utils, bus, errors, states, modules } from '@unraid/core';
 import dee from '@gridplus/docker-events';
 import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
@@ -15,7 +13,6 @@ import { run, publish } from '../../run';
 import { cache } from '../../cache';
 import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
 
-const { pluginManager, pubsub, utils, log, bus, errors, states } = core;
 const { ensurePermission } = utils;
 const { usersState } = states;
 const { AppError, PluginError } = errors;
@@ -26,7 +23,7 @@ bus.on('slots', async () => {
 	const user = usersState.findOne({ name: 'root' });
 
 	await run('array', 'UPDATED', {
-		moduleToRun: core.modules.getArray,
+		moduleToRun: modules.getArray,
 		context: {
 			user
 		}
@@ -45,7 +42,7 @@ dee.on('*', async (data) => {
 		return;
 	}
 
-	const { json } = await core.modules.getApps();
+	const { json } = await modules.getApps();
 	publish('info', 'UPDATED', json);
 });
 
@@ -61,7 +58,7 @@ setIntervalAsync(async () => {
 	const user = usersState.findOne({ name: 'root' });
 
 	await run('services', 'UPDATED', {
-		moduleToRun: core.modules.getServices,
+		moduleToRun: modules.getServices,
 		context: {
 			user
 		}
@@ -76,7 +73,7 @@ setIntervalAsync(async () => {
 const createSubscription = (channel, resource?) => ({
 	subscribe(_, __, context) {
 		if (!context.user) {
-			throw new AppError('<ws> No user found in context.');
+			throw new AppError('<ws> No user found in context.', 500);
 		}
 
 		// Check the user has permissison to subscribe to this endpoint
@@ -159,11 +156,11 @@ export const resolvers = {
 
 				// Verify plugin is installed and active
 				if (!pluginManager.isInstalled(pluginName, pluginModuleName)) {
-					throw new PluginError('Plugin not installed.');
+					throw new PluginError('Plugin not installed.', 500);
 				}
 
 				if (!pluginManager.isActive(pluginName, pluginModuleName)) {
-					throw new PluginError('Plugin disabled.');
+					throw new PluginError('Plugin disabled.', 500);
 				}
 
 				// It's up to the plugin to publish new data as needed

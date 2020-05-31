@@ -22,6 +22,12 @@ const onWorkerExit = (_, code) => {
         process.exit(0);
     }
 
+    // Worker killed itself and doesn't want to be restarted
+    if (code === 130) {
+        log.debug(`Worker killed itself intentially. Exiting.`);
+        process.exit(130);
+    }
+
     // Reload worker
     if (code === null || code === 0) {
         const newWorker = cluster.fork();
@@ -88,6 +94,26 @@ if (cluster.isMaster) {
 if (cluster.isWorker) {
     log.info(`<worker> pid = ${process.pid}`);
 
+    const isMissingMainFile = (error) => {
+        // Other error
+        if (error.code !== 'MODULE_NOT_FOUND') {
+            return false;
+        }
+
+        // Missing file but it's multiple levels deep
+        // This likely isn't main
+        if (error.requireStack.length >= 2) {
+            return false;
+        }
+
+        // It's a single require but for another file
+        if (error.requireStack[0] !== __filename) {
+            return false;
+        }
+
+        return true;
+    }
+
     // @ts-ignore
     const package = require('./package.json');
     const { main } = package;
@@ -103,8 +129,10 @@ if (cluster.isWorker) {
         log.info('<worker> loaded');
         require(mainPath);
     } catch (error) {
+        if (isMissingMainFile(error)) {
+            log.error(`<worker> Missing main file "${mainPath}".`);
+            process.exit(130);
+        }
         log.error(error);
-        log.error(`<worker> Could not load main field "${mainPath}".`);
-        process.exit(1);
     }
 }
