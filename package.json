@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
-    "@unraid/core": "github:unraid/core#master",
+    "@unraid/core": "github:unraid/core",
     "accesscontrol": "^2.2.1",
     "am": "^1.0.2",
     "apollo-server": "2.13.1",
@@ -63,6 +63,7 @@
     "source-map-support": "0.5.19",
     "standard-version": "^7.1.0",
     "ts-node": "8.10.1",
+    "tsup": "1.4.12",
     "typescript": "3.8.3",
     "xo": "0.30.0"
   },

@@ -4,17 +4,15 @@
  */
 
 import get from 'lodash.get';
-// @ts-ignore
-// import * as core from '../../../core/src/index';
 import { v4 as uuid } from 'uuid';
-import core from '@unraid/core';
+import * as core from '@unraid/core';
+import { apiManager, errors, log, states, config, pluginManager, modules } from '@unraid/core';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';
 import { typeDefs, resolvers } from './schema';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
 
-const { apiManager, errors, log, states, config, pluginManager } = core;
 const { AppError, FatalAppError, PluginError } = errors;
 const { usersState } = states;
 
@@ -137,11 +135,11 @@ const types = mergeTypes([
 ]);
 
 const getCoreModule = (moduleName) => {
-	if (!Object.keys(core.modules).includes(moduleName)) {
+	if (!Object.keys(modules).includes(moduleName)) {
 		throw new FatalAppError(`"${moduleName}" is not a valid core module.`);
 	}
 
-	return core.modules[moduleName];
+	return modules[moduleName];
 };
 
 const getPluginModule = (pluginName, pluginModuleName) => {

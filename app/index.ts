@@ -4,16 +4,16 @@
  */
 
 import am from 'am';
-import core from '@unraid/core';
+import { core, loadServer } from '@unraid/core';
 import { server } from './server';
 
 // Boot app
 am(async () => {
 	// Load core
-	await core.core.load();
+	await core.load();
 
 	// Load server
-	await core.loadServer('graphql-api', server);
+	await loadServer('graphql-api', server);
 }, (error: NodeJS.ErrnoException) => {
 	// We should only end here if core has an issue loading
 

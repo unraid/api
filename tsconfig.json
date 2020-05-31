@@ -1,13 +1,12 @@
 {
 	"include": [
-		"src/**/*",
-		"index.d.ts"
+		"app/**/*"
 	],
 	"exclude": [
 		"node_modules"
 	],
   	"compilerOptions": {
-                "skipLibCheck": true,
+        "skipLibCheck": true,
 		/* Basic Options */
 		// "incremental": true,                   /* Enable incremental compilation */
 		"target": "es2015",                          /* Specify ECMAScript target version: 'ES3' (default), 'ES5', 'ES2015', 'ES2016', 'ES2017', 'ES2018', 'ES2019' or 'ESNEXT'. */
@@ -21,7 +20,7 @@
 		// "sourceMap": true,                     /* Generates corresponding '.map' file. */
 		// "outFile": "./",                       /* Concatenate and emit output to single file. */
 		"outDir": "./dist",                        /* Redirect output structure to the directory. */
-		"rootDir": "./src",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
+		"rootDir": "./app",                       /* Specify the root directory of input files. Use to control the output directory structure with --outDir. */
 		// "composite": true,                     /* Enable project compilation */
 		// "tsBuildInfoFile": "./",               /* Specify file to store incremental compilation information */
 		// "removeComments": true,                /* Do not emit comments to output. */
@@ -70,8 +69,5 @@
 
 		/* Advanced Options */
 	    "forceConsistentCasingInFileNames": true  /* Disallow inconsistently-cased references to the same file. */
-	  },
-	  "typeAcquisition": {
-		  "enable": true
 	  }
 }

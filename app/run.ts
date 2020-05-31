@@ -1,8 +1,7 @@
-import { CoreResult } from '@unraid/core/dist/types';
-import * as core from '@unraid/core'
+import { CoreResult } from '@unraid/core/dist/lib/types';
+import { pubsub, utils, log } from '@unraid/core';
 import { canPublishToChannel } from './ws';
 
-const { pubsub, utils, log } = core;
 const { debugTimer } = utils;
 
 /**
