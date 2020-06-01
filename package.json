@@ -34,6 +34,7 @@
     "apollo-server": "2.13.1",
     "apollo-server-express": "2.13.1",
     "camelcase": "6.0.0",
+    "dot-prop": "^5.2.0",
     "express": "^4.17.1",
     "graphql": "^15.0.0",
     "graphql-directive": "^0.2.1",

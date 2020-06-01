@@ -76,8 +76,8 @@ version() {
   local graphql_version=$(grep '"version"' /usr/local/node/graphql-api/package.json | cut -d '"' -f 4)
   local plugins_version=$(grep '"version"' /usr/local/node/plugins/package.json | cut -d '"' -f 4)
 
-  echo "Grahpql-api v$graphql_version"
-  echo "Offical plugins v$plugins_version"
+  echo "Graphql-api v$graphql_version"
+  echo "Official plugins v$plugins_version"
 }
 start() {
   local supervisor_pid=$(pidof gql-supervisor)
