@@ -17,6 +17,7 @@ import { log, config, utils, paths, states } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { createServer } from './patched-install-subscription-handlers';
 import { graphql } from './graphql';
+import { userCache, CachedUser } from './cache';
 
 const { getEndpoints, globalErrorHandler, exitApp, loadState } = utils;
 const { varState } = states;
@@ -260,11 +261,12 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 	mothership.on('ping', heartbeat);
 
 	interface Message {
-		type: 'query' | 'mutation' | 'start' | 'stop';
+		type: 'query' | 'mutation' | 'start' | 'stop' | 'proxy-data';
 		payload: {
 			operationName: any;
 			variables: {};
 			query: string;
+			data: any;
 		}
 	};
 
@@ -304,6 +306,22 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 						mothership.close();
 					}
 				});
+			}
+
+			const isUserObject = (x): x is CachedUser => {
+				const keys = Object.keys(data);
+				return keys.includes('profile') && keys.includes('servers') && keys.length === 2
+			};
+
+			if (message.type === 'proxy-data') {
+				const { data } = message.payload;
+
+				// Cache the response
+				if (isUserObject(data)) {
+					userCache.set('mine', data);
+					return;
+				}
+				
 			}
 		} catch (error) {
 			// Something weird happened while processing the message

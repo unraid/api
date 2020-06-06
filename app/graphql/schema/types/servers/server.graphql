@@ -1,6 +1,6 @@
 type Query {
-    server(name: String!): Server @func(module: "servers/name/get-server")
-    servers: [Server] @func(module: "getServers")
+    server(name: String!): Server
+    servers: [JSON]
 }
 
 type ServerSubscription {
@@ -19,10 +19,10 @@ type Subscription {
 
 # type Status = 'Online' | 'Offline';
 
-type Server {
-    name: String!
-    status: String!
-    wanIp: String!
-    localUrl: String!
-    remoteUrl: String!
-}
+# type Server {
+#     name: String!
+#     status: String!
+#     wanIp: String!
+#     localUrl: String!
+#     remoteUrl: String!
+# }
