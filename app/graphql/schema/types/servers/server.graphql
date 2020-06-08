@@ -23,12 +23,12 @@ enum Status {
 }
 
 type Server {
-    guid: string;
-    apikey: string;
-    name: string;
-    status: Status;
-    wanip: String;
-    lanip: String;
-    localurl: string;
-    remoteurl: string;
+    guid: String
+    apikey: String
+    name: String
+    status: Status
+    wanip: String
+    lanip: String
+    localurl: String
+    remoteurl: String
 }

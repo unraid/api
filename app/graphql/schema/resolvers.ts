@@ -92,13 +92,23 @@ export const resolvers = {
 	Query: {
 		info: () => ({}),
 		vms: () => ({}),
-		server(name: string) {
-			const mine = userCache.get<CachedUser>('mine');
+		server(_, { name }, context) {
+			ensurePermission(context.user, {
+				resource: 'servers',
+				action: 'read',
+				possession: 'any'
+			});
 
 			// Single server
-			return mine?.servers.find(server => server.name === name);
+			return userCache.get<CachedUser>('mine')?.servers.find(server => server.name === name);
 		},
-		servers() {			
+		servers(_, __, context) {
+			ensurePermission(context.user, {
+				resource: 'servers',
+				action: 'read',
+				possession: 'any'
+			});
+			
 			// All servers
 			return userCache.get<CachedUser>('mine')?.servers;
 		}
