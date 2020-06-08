@@ -276,6 +276,7 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 
 			// Proxy this to the http endpoint
 			if (message.type === 'query' || message.type === 'mutation') {
+				log.debug(`Got a ${message.type} request from mothership, forwarding to socket.`);
 				request.post('http://unix:/var/run/graphql-api.sock:/graphql', {
 					body: JSON.stringify({
 						operationName: null,
@@ -296,7 +297,7 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 					try {
 						const data = JSON.parse(response.body).data;
 						const payload = { data };
-						log.debug('Sending payload to mothership', payload);
+						log.debug('Replying to mothership with payload', payload);
 						mothership.send(JSON.stringify({
 							type: 'data',
 							payload
@@ -308,9 +309,9 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 				});
 			}
 
-			const isUserObject = (x): x is CachedUser => {
+			const isUserObject = (data): data is CachedUser => {
 				const keys = Object.keys(data);
-				return keys.includes('profile') && keys.includes('servers') && keys.length === 2
+				return keys.includes('profile') && keys.includes('servers') && keys.length === 2;
 			};
 
 			if (message.type === 'proxy-data') {

@@ -1,15 +1,15 @@
 type Query {
-    server(name: String!): Server
+    server(name: String!): JSON
     servers: [JSON]
 }
 
 type ServerSubscription {
     mutation: UpdateOnlyMutationType!
-    node: Server!
+    node: JSON!
 }
 type ServersSubscription {
     mutation: UpdateOnlyMutationType!
-    node: [Server!]
+    node: [JSON!]
 }
 
 type Subscription {
@@ -17,12 +17,16 @@ type Subscription {
     servers: ServersSubscription
 }
 
-# type Status = 'Online' | 'Offline';
+type Status = 'online' | 'offline';
+type IpAddress = String;
 
-# type Server {
-#     name: String!
-#     status: String!
-#     wanIp: String!
-#     localUrl: String!
-#     remoteUrl: String!
-# }
+type Server {
+    guid: string;
+    apikey: string;
+    name: string;
+    status: Status;
+    wanip: IpAddress;
+    lanip: IpAddress;
+    localurl: string;
+    remoteurl: string;
+}

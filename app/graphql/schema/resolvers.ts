@@ -10,7 +10,7 @@ import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { run, publish } from '../../run';
-import { userCache } from '../../cache';
+import { userCache, CachedUser } from '../../cache';
 import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
 
 const { ensurePermission } = utils;
@@ -93,66 +93,14 @@ export const resolvers = {
 		info: () => ({}),
 		vms: () => ({}),
 		server(name: string) {
+			const mine = userCache.get<CachedUser>('mine');
+
 			// Single server
-			// return cache.get();
+			return mine?.servers.find(server => server.name === name);
 		},
-		servers() {
-			const mockData = [{
-				online: true,
-				info: {
-					machineId: '38ed954556087cd0921d3ce69adaa57f',
-					apps: {
-						installed: 100,
-						started: 1
-					},
-					versions: {
-						unraid: '6.9.0-beta12'
-					},
-					os: {
-						hostname: 'tower'
-					}
-				},
-				array: {
-					state: 'started',
-					capacity: {
-						bytes: {
-							free: 1222900940800,
-							total: 1347826987008,
-							used: 124926046208
-						}
-					}
-				},
-				services: [
-					{
-					  name: 'emhttpd',
-					  online: true,
-					  version: null
-					},
-					{
-					  name: 'rest-api',
-					  online: false,
-					  version: null
-					},
-					{
-					  name: 'graphql-api',
-					  online: true,
-					  version: '2.4.9'
-					},
-					{
-					  name: 'plugins',
-					  online: null,
-					  version: '1.1.5'
-					}
-				  ],
-				  my_servers: {
-					url: 'case-model.png',
-					serverCase: 'custom'
-				  }
-			}];
-			
+		servers() {			
 			// All servers
-			return userCache.get('mine');
-			// return cache.data;
+			return userCache.get<CachedUser>('mine')?.servers;
 		}
 	},
 	Subscription: {
