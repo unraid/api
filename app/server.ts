@@ -13,9 +13,9 @@ import http from 'http';
 import waitFor from 'p-wait-for';
 import dotProp from 'dot-prop';
 import WebSocket from 'ws';
+import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths, states } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
-import { createServer } from './patched-install-subscription-handlers';
 import { graphql } from './graphql';
 import { userCache, CachedUser } from './cache';
 
@@ -76,7 +76,7 @@ app.use(async (req, res, next) => {
 });
 
 // Mount graph endpoint
-const graphApp = createServer(graphql);
+const graphApp = new ApolloServer(graphql);
 graphApp.applyMiddleware({app});
 
 // List all endpoints at start of server
