@@ -1,15 +1,15 @@
 type Query {
-    server(name: String!): JSON
-    servers: [JSON]
+    server(name: String!): Server
+    servers: [Server]
 }
 
 type ServerSubscription {
     mutation: UpdateOnlyMutationType!
-    node: JSON!
+    node: Server!
 }
 type ServersSubscription {
     mutation: UpdateOnlyMutationType!
-    node: [JSON!]
+    node: [Server!]
 }
 
 type Subscription {
