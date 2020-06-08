@@ -7,6 +7,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "tsc",
+    "bundle-dependencies": "bundle-dependencies update",
     "copy-schemas": "cpx app/**/*.graphql dist",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
@@ -77,6 +78,7 @@
     "apollo-server",
     "apollo-server-express",
     "camelcase",
+    "dot-prop",
     "express",
     "graphql",
     "graphql-directive",
@@ -87,6 +89,7 @@
     "lodash.get",
     "merge-graphql-schemas",
     "node-cache",
+    "p-wait-for",
     "set-interval-async",
     "stoppable",
     "subscriptions-transport-ws"
