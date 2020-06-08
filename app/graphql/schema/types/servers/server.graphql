@@ -17,16 +17,18 @@ type Subscription {
     servers: ServersSubscription
 }
 
-type Status = 'online' | 'offline';
-type IpAddress = String;
+enum Status {
+  online
+  offline
+}
 
 type Server {
     guid: string;
     apikey: string;
     name: string;
     status: Status;
-    wanip: IpAddress;
-    lanip: IpAddress;
+    wanip: String;
+    lanip: String;
     localurl: string;
     remoteurl: string;
 }
