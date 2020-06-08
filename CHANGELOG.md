@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.10](https://github.com/unraid/graphql-api/compare/v2.4.9-rolling-20200608060819...v2.4.10) (2020-06-08)
+
+
+### Bug Fixes
+
+* ensure we only allow permitted access to servers endpoint ([03f3450](https://github.com/unraid/graphql-api/commit/03f3450db6094ec65bdf346c9a9f1f9846cfbf13))
+* **bundled-deps:** add bundle-dependencies to prevent missing deps ([123f1b4](https://github.com/unraid/graphql-api/commit/123f1b45b9103a65e00d87d15dd56136b860d6e4))
+* **graphql:** fix types ([59b5242](https://github.com/unraid/graphql-api/commit/59b5242d674d944afd5175e8d34189b1a5d7f49f))
+* misc changes ([ff48805](https://github.com/unraid/graphql-api/commit/ff48805da11296f274ef463481864f43499a768e))
+
 ### [2.4.9](https://github.com/unraid/graphql-api/compare/v2.4.7-rolling-20200512070304...v2.4.9) (2020-05-12)
 
 ### [2.4.8](https://github.com/unraid/graphql-api/compare/v2.4.7...v2.4.8) (2020-05-12)
