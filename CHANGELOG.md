@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.4.13](https://github.com/unraid/graphql-api/compare/v2.4.12...v2.4.13) (2020-06-12)
+
+
+### Bug Fixes
+
+* **plg:** use urls instead of inline for js files ([c21c51d](https://github.com/unraid/graphql-api/commit/c21c51d0f98cdc52ef67ec4172a1a84f9f807a7d))
+
 ### [2.4.12](https://github.com/unraid/graphql-api/compare/v2.4.11-rolling-20200612065307...v2.4.12) (2020-06-12)
 
 ### [2.4.11](https://github.com/unraid/graphql-api/compare/v2.4.10...v2.4.11) (2020-06-08)
