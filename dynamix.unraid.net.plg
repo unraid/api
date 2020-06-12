@@ -932,6 +932,15 @@ $var = (array)parse_ini_file('state/var.ini');
 $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
 $key_contents = str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
 
+extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (empty($remote)) {
+  $remote = [
+    "apikey" => "",
+    "wanaccess" => "no",
+    "wanport" => "443"
+  ];
+}
+
 $arr = [];
 $arr['event'] = 'STATE';
 $arr['ts'] = time();
@@ -945,6 +954,7 @@ $arr['servername'] = $var['NAME'];
 $arr['serverip'] = $_SERVER['SERVER_ADDR'];
 $arr['internalport'] = $_SERVER['SERVER_PORT'];
 $arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
+$arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
 
 echo json_encode($arr);
 ?>
