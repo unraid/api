@@ -1031,17 +1031,17 @@ unraid-user-profile {
       "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
       "servername" => $var['NAME'],
       "serverip" => $_SERVER['SERVER_ADDR'],
-      "site" => $_SERVER['REQUEST_SCHEME']."://".$_SERVER['SERVER_ADDR'],
+      "site" => $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'],
       "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
-      "reggen" => $var['regGen'],
+      "reggen" => (int)$var['regGen'],
       "registered" => empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1,
       "internalport" => $_SERVER['SERVER_PORT'],
       "protocol" => $_SERVER['REQUEST_SCHEME'],
-      "email" => $remote['email']
+      "email" => ($remote['email']) ? $remote['email'] : ''
     ];
     ?>
     <unraid-user-profile
-      serverstate="<?=rawurlencode(json_encode($serverstate))?>"
+      serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
       serverdesc="<?=$var['COMMENT']?>"
       displaydesc="false"
       serveruptime="<?=str_replace('up ', '', exec('uptime -p'))?>"
