@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.1](https://github.com/unraid/graphql-api/compare/v2.5.0...v2.5.1) (2020-06-13)
+
+
+### Bug Fixes
+
+* **plg:** make profile field data dynamic ([5b34b7e](https://github.com/unraid/graphql-api/commit/5b34b7e6b446893558cea64f2f17e7b45c7a00a8))
+
 ## [2.5.0](https://github.com/unraid/graphql-api/compare/v2.4.13...v2.5.0) (2020-06-12)
 
 
