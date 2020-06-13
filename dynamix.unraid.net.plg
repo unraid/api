@@ -1023,15 +1023,32 @@ unraid-user-profile {
 <INLINE>
 <![CDATA[
     <!-- USER PROFILE COMPONENT -->
+    <?
+    $serverstate = [
+      "flashproduct" => $var['flashProduct'],
+      "flashvendor" => $var['flashVendor'],
+      "guid" => $var['flashGUID'],
+      "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
+      "servername" => $var['NAME'],
+      "serverip" => $_SERVER['SERVER_ADDR'],
+      "site" => $_SERVER['REQUEST_SCHEME']."://".$_SERVER['SERVER_ADDR'],
+      "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
+      "reggen" => $var['regGen'],
+      "registered" => empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1,
+      "internalport" => $_SERVER['SERVER_PORT'],
+      "protocol" => $_SERVER['REQUEST_SCHEME'],
+      "email" => $remote['email']
+    ];
+    ?>
     <unraid-user-profile
-      serverstate="%7B%22flashproduct%22:%22UNZACK_THE_USB%22,%22flashvendor%22:%22ScamDick%22,%22guid%22:%220781-5583-0001-210223123052%22,%22keyfile%22:%22u1IHP3cUPxbqEuYNOK7ENq8OND3CqwZzk8vhPID3I4avhtlWgkoJGAjSuKJcQXNwkaBsTeNybeqxXuY-3yb7dxnq5toCXysrP-EbBRXekDU9TE_GcwLXjBqBIw9cX3oGBMRu8Xl9jQyBkNEjd94GH2Tj-S0LhgU7nEG_dsuE32dteo_WfmPmVfd_kyo9U02HaGVosgg52pZte7YsgRiqrnDiPYcEYm6DQqBCTUHHtFTjWm2HQDTr3iRbYvumZbe6Z0onCmR9IB2kP6-8YH4AGVlwm2s0ylmE9iJ_MrdNG5P5GDUVbVQpwN4UDnzyM_wDAempguOMfW-qSjoluEFiEQ%22,%22servername%22:%22unzack%22,%22serverip%22:%2210.0.0.145%22,%22site%22:%22http://10.0.0.145%22,%22state%22:%22BASIC%22,%22reggen%22:0,%22registered%22:1,%22internalport%22:%2280%22,%22protocol%22:%22http%22,%22email%22:%22%22%7D"
-      serverdesc="daily driver VMs, fully automated media server"
+      serverstate="<?=rawurlencode(json_encode($serverstate))?>"
+      serverdesc="<?=$var['COMMENT']?>"
       displaydesc="false"
-      serveruptime="8 months, 3 days, 8 hours"
+      serveruptime="<?=str_replace('up ', '', exec('uptime -p'))?>"
       username="zspearmint"
-<?php echo ($display['banner']) ? 'banner="' . $display['banner'] . '"' : '' ; ?>
-<?php echo ($header) ? 'textcolor="#' . $header . '"' : '' ; ?>
-<?php echo ($backgnd) ? 'bgcolor="#' . $backgnd . '"' : '' ; ?>
+      banner="<?=($display['banner']) ? $display['banner'] : ''?>"
+      textcolor="<?=($header) ? '#'.$header : ''?>"
+      bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
       theme="<?=$display['theme']?>"
       avatar="https://source.unsplash.com/400x400/?portrait"
       propregisteredservers="%5B%7B%22name%22:%22Akira%22,%22ip%22:%2210.0.0.9%22,%22url%22:%22http://10.0.0.9/%22%7D,%7B%22name%22:%22Daisuke%22,%22ip%22:%2210.0.0.121%22,%22url%22:%22http://10.0.0.121/%22%7D,%7B%22name%22:%22Kaneda%22,%22ip%22:%2210.0.0.22%22,%22url%22:%22http://10.0.0.22/%22%7D,%7B%22name%22:%22Kasumi%22,%22ip%22:%2210.0.0.45%22,%22url%22:%22http://10.0.0.45/%22%7D,%7B%22name%22:%22Kenji%22,%22ip%22:%2210.0.0.92%22,%22url%22:%22http://10.0.0.92/%22%7D,%7B%22name%22:%22Kyo%22,%22ip%22:%2210.0.0.27%22,%22url%22:%22http://10.0.0.27/%22%7D,%7B%22name%22:%22Momoko%22,%22ip%22:%2210.0.0.83%22,%22url%22:%22http://10.0.0.83/%22%7D,%7B%22name%22:%22Shinji%22,%22ip%22:%2210.0.0.65%22,%22url%22:%22http://10.0.0.65/%22%7D,%7B%22name%22:%22Tetsuo%22,%22ip%22:%2210.0.0.10%22,%22url%22:%22http://10.0.0.69/%22%7D,%7B%22name%22:%22Ume%22,%22ip%22:%2210.0.0.87%22,%22url%22:%22http://10.0.0.87/%22%7D,%7B%22name%22:%22Yagami%22,%22ip%22:%2210.0.0.251%22,%22url%22:%22http://10.0.0.251/%22%7D,%7B%22name%22:%22Yuko%22,%22ip%22:%2210.0.0.99%22,%22url%22:%22http://10.0.0.251/%22%7D%5D"></unraid-user-profile>
