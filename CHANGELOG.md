@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.5.2](https://github.com/unraid/graphql-api/compare/v2.5.1...v2.5.2) (2020-06-13)
+
+
+### Bug Fixes
+
+* **plg:** fix a few issues with the serverstate vars ([d4b2249](https://github.com/unraid/graphql-api/commit/d4b224908854a870f1f82176c96b61b4709e186a))
+
 ### [2.5.1](https://github.com/unraid/graphql-api/compare/v2.5.0...v2.5.1) (2020-06-13)
 
 
