@@ -23,13 +23,13 @@ enum Status {
 }
 
 type Owner {
-    username: String;
-    url: String;
-    avatar: String;
+    username: String
+    url: String
+    avatar: String
 }
 
 type Server {
-    owner: Owner[]
+    owner: Owner
     guid: String
     apikey: String
     name: String

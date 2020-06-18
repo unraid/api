@@ -12,10 +12,9 @@ import GraphQLUUID from 'graphql-type-uuid';
 import { run, publish } from '../../run';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
-import { networkState } from '@unraid/core/dist/lib/states';
 
 const { ensurePermission } = utils;
-const { usersState, varState } = states;
+const { usersState, varState, networkState } = states;
 const { AppError, PluginError } = errors;
 
 // Update array values when slots change
@@ -102,17 +101,13 @@ const getServers = (): Server[] => {
 	// Fall back to locally generated data
 	if (servers.length === 0) {
 		const guid = varState?.data?.regGuid;
-		// @todo: Verify this is correct
-		const apikey = apiManager.getValidKeys().find(key => {
-			console.log('----------');
-			console.log(`Sending ${key.name}`);
-			console.table(key);
-			console.log('----------');
-		})?.key.toString();
+		// For now use the my_servers key
+		// Later we should return the correct one for the current user with the correct scope, etc.
+		const apikey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
 		const name = varState?.data?.name;
 		const wanip = null;
-		const lanip = networkState.data['eth0']['ipaddr:0'];
-		const localurl = null;
+		const lanip = networkState.data[0].ipaddr[0];
+		const localurl = `http://${lanip}:${varState?.data?.port}`;
 		const remoteurl = null;
 
 		return [{
