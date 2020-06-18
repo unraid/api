@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.6.1](https://github.com/unraid/graphql-api/compare/v2.6.0...v2.6.1) (2020-06-18)
+
+
+### Bug Fixes
+
+* cleanup servers endpoint ([ce46c63](https://github.com/unraid/graphql-api/commit/ce46c63bd052d27a8884179b952af5724c597bcb))
+* ensure we have local data for server endpoint fallback ([0fd14b7](https://github.com/unraid/graphql-api/commit/0fd14b701b4b8b6211d3d85a2a583b92d7d178fd))
+
 ## [2.6.0](https://github.com/unraid/graphql-api/compare/v2.5.2...v2.6.0) (2020-06-18)
 
 
