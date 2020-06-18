@@ -17,7 +17,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths, states } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { graphql } from './graphql';
-import { userCache, CachedUser } from './cache';
+import { userCache, CachedServer, Owner } from './cache';
 
 const { getEndpoints, globalErrorHandler, exitApp, loadState } = utils;
 const { varState } = states;
@@ -309,7 +309,13 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 				});
 			}
 
-			const isUserObject = (data): data is CachedUser => {
+			interface Server extends Omit<CachedServer, 'owner'>{};
+			interface User {
+				profile: Owner;
+				servers: Server[]
+			}
+
+			const isUserObject = (data): data is User => {
 				const keys = Object.keys(data);
 				return keys.includes('profile') && keys.includes('servers') && keys.length === 2;
 			};
@@ -319,7 +325,16 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 
 				// Cache the response
 				if (isUserObject(data)) {
-					userCache.set('mine', data);
+					const owner = data.profile;
+					const mine = {
+						servers: data.servers.map(server => {
+							return {
+								...server,
+								owner
+							};
+						})
+					};
+					userCache.set('mine', mine);
 					return;
 				}
 				

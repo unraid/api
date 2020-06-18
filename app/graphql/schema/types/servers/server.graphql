@@ -22,7 +22,14 @@ enum Status {
   offline
 }
 
+type Owner {
+    username: String;
+    url: String;
+    avatar: String;
+}
+
 type Server {
+    owner: Owner[]
     guid: String
     apikey: String
     name: String

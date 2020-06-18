@@ -3,18 +3,19 @@
  * Written by: Alexis Tyler
  */
 
-import { pluginManager, pubsub, utils, bus, errors, states, modules } from '@unraid/core';
+import { pluginManager, pubsub, utils, bus, errors, states, modules, apiManager } from '@unraid/core';
 import dee from '@gridplus/docker-events';
 import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { run, publish } from '../../run';
-import { userCache, CachedUser } from '../../cache';
+import { userCache, CachedServer, CachedServers } from '../../cache';
 import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
+import { networkState } from '@unraid/core/dist/lib/states';
 
 const { ensurePermission } = utils;
-const { usersState } = states;
+const { usersState, varState } = states;
 const { AppError, PluginError } = errors;
 
 // Update array values when slots change
@@ -88,6 +89,49 @@ const createSubscription = (channel, resource?) => ({
 	}
 });
 
+// Add null to types
+type makeNullUndefinedAndOptional<T> = {
+	[K in keyof T]?: T[K] | null | undefined;
+};
+
+type Server = makeNullUndefinedAndOptional<CachedServer>;
+
+const getServers = (): Server[] => {
+	const servers = userCache.get<CachedServers>('mine')?.servers ?? [];
+
+	// Fall back to locally generated data
+	if (servers.length === 0) {
+		const guid = varState?.data?.regGuid;
+		// @todo: Verify this is correct
+		const apikey = apiManager.getValidKeys().find(key => {
+			console.log('----------');
+			console.log(`Sending ${key.name}`);
+			console.table(key);
+			console.log('----------');
+		})?.key.toString();
+		const name = varState?.data?.name;
+		const wanip = null;
+		const lanip = networkState.data['eth0']['ipaddr:0'];
+		const localurl = null;
+		const remoteurl = null;
+
+		return [{
+			owner: null,
+			guid,
+			apikey,
+			name,
+			status: 'online',
+			wanip,
+			lanip,
+			localurl,
+			remoteurl
+		}];
+	}
+
+	// Return servers from upstream cache
+	return servers;
+};
+
 export const resolvers = {
 	Query: {
 		info: () => ({}),
@@ -100,7 +144,7 @@ export const resolvers = {
 			});
 
 			// Single server
-			return userCache.get<CachedUser>('mine')?.servers.find(server => server.name === name);
+			return getServers().find(server => server.name === name);
 		},
 		servers(_, __, context) {
 			ensurePermission(context.user, {
@@ -110,7 +154,7 @@ export const resolvers = {
 			});
 			
 			// All servers
-			return userCache.get<CachedUser>('mine')?.servers;
+			return getServers();
 		}
 	},
 	Subscription: {

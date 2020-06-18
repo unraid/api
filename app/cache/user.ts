@@ -6,20 +6,24 @@ type URL = string;
 type IpAddress = string;
 type Status = 'online' | 'offline';
 
-export interface CachedUser {
-    profile: {
-        username: string;
-        url: URL;
-        avatar: URL;
-    },
-    servers: [{
-        guid: string;
-        apikey: string;
-        name: string;
-        status: Status;
-        wanip: IpAddress;
-        lanip: IpAddress;
-        localurl: URL;
-        remoteurl: string
-    }]
+export interface Owner {
+    username: string;
+    url: URL;
+    avatar: URL;
+};
+
+export interface CachedServer {
+    owner: Owner;
+    guid: string;
+    apikey: string;
+    name: string;
+    status: Status;
+    wanip: IpAddress;
+    lanip: IpAddress;
+    localurl: URL;
+    remoteurl: string
+};
+
+export interface CachedServers {
+    servers: [CachedServer]
 };
