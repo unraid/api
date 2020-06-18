@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.6.0](https://github.com/unraid/graphql-api/compare/v2.5.2...v2.6.0) (2020-06-18)
+
+
+### Features
+
+* **plg:** added uptime and expiretime props to user profile component ([847c842](https://github.com/unraid/graphql-api/commit/847c84290f9a893b0e47ce5cf17cd69c66d68739))
+
 ### [2.5.2](https://github.com/unraid/graphql-api/compare/v2.5.1...v2.5.2) (2020-06-13)
 
 
