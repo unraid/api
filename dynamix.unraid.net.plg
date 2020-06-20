@@ -1051,6 +1051,7 @@ unraid-user-profile {
       banner="<?=($display['banner']) ? $display['banner'] : ''?>"
       textcolor="<?=($header) ? '#'.$header : ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
+      apikey="<?=($remote['apikey']) ? $remote['apikey'] : ''?>"
       theme="<?=$display['theme']?>"
       avatar="https://source.unsplash.com/400x400/?portrait"
       propregisteredservers="%5B%7B%22name%22:%22Akira%22,%22ip%22:%2210.0.0.9%22,%22url%22:%22http://10.0.0.9/%22%7D,%7B%22name%22:%22Daisuke%22,%22ip%22:%2210.0.0.121%22,%22url%22:%22http://10.0.0.121/%22%7D,%7B%22name%22:%22Kaneda%22,%22ip%22:%2210.0.0.22%22,%22url%22:%22http://10.0.0.22/%22%7D,%7B%22name%22:%22Kasumi%22,%22ip%22:%2210.0.0.45%22,%22url%22:%22http://10.0.0.45/%22%7D,%7B%22name%22:%22Kenji%22,%22ip%22:%2210.0.0.92%22,%22url%22:%22http://10.0.0.92/%22%7D,%7B%22name%22:%22Kyo%22,%22ip%22:%2210.0.0.27%22,%22url%22:%22http://10.0.0.27/%22%7D,%7B%22name%22:%22Momoko%22,%22ip%22:%2210.0.0.83%22,%22url%22:%22http://10.0.0.83/%22%7D,%7B%22name%22:%22Shinji%22,%22ip%22:%2210.0.0.65%22,%22url%22:%22http://10.0.0.65/%22%7D,%7B%22name%22:%22Tetsuo%22,%22ip%22:%2210.0.0.10%22,%22url%22:%22http://10.0.0.69/%22%7D,%7B%22name%22:%22Ume%22,%22ip%22:%2210.0.0.87%22,%22url%22:%22http://10.0.0.87/%22%7D,%7B%22name%22:%22Yagami%22,%22ip%22:%2210.0.0.251%22,%22url%22:%22http://10.0.0.251/%22%7D,%7B%22name%22:%22Yuko%22,%22ip%22:%2210.0.0.99%22,%22url%22:%22http://10.0.0.251/%22%7D%5D"></unraid-user-profile>
