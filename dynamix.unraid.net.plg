@@ -1040,7 +1040,7 @@ unraid-user-profile {
       "email" => ($remote['email']) ? $remote['email'] : ''
     ];
     ?>
-    <unraid-user-profile
+    <unraid-user-profile id="wc_userprofile"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
       serverdesc="<?=$var['COMMENT']?>"
       displaydesc="false"
