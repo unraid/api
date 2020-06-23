@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.2](https://github.com/unraid/graphql-api/compare/v2.7.1...v2.7.2) (2020-06-23)
+
+
+### Bug Fixes
+
+* **plg:** move js scripts to end of body, remove some unneeded props ([8bb75c4](https://github.com/unraid/graphql-api/commit/8bb75c46a81fea5ca7d83e62a56d9010d8d61487))
+
 ### [2.7.1](https://github.com/unraid/graphql-api/compare/v2.7.0...v2.7.1) (2020-06-23)
 
 
