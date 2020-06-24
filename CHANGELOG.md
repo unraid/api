@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.5](https://github.com/unraid/graphql-api/compare/v2.7.4...v2.7.5) (2020-06-24)
+
+
+### Bug Fixes
+
+* **plg:** missing comma in php ([35467fa](https://github.com/unraid/graphql-api/commit/35467fa2b526e4fa036fa5bed44cb2dc5f3099f3))
+
 ### [2.7.4](https://github.com/unraid/graphql-api/compare/v2.7.3...v2.7.4) (2020-06-24)
 
 ### [2.7.3](https://github.com/unraid/graphql-api/compare/v2.7.2...v2.7.3) (2020-06-24)
