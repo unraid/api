@@ -1037,7 +1037,7 @@ if (!window.Vue) {
       "flashvendor" => $var['flashVendor'],
       "guid" => $var['flashGUID'],
       "internalport" => $_SERVER['SERVER_PORT'],
-      "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))
+      "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
       "protocol" => $_SERVER['REQUEST_SCHEME'],
       "reggen" => (int)$var['regGen'],
       "registered" => empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1,
