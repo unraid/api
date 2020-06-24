@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.3](https://github.com/unraid/graphql-api/compare/v2.7.2...v2.7.3) (2020-06-24)
+
+
+### Bug Fixes
+
+* **plg:** update Amplify URL ([06d7c53](https://github.com/unraid/graphql-api/commit/06d7c53f9930826a13479db3cd3efe1d703dd198))
+
 ### [2.7.2](https://github.com/unraid/graphql-api/compare/v2.7.1...v2.7.2) (2020-06-23)
 
 
