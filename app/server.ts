@@ -260,19 +260,21 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 
 	mothership.on('ping', heartbeat);
 
+	type MessageType = 'query' | 'mutation' | 'start' | 'stop' | 'proxy-data';
 	interface Message {
-		type: 'query' | 'mutation' | 'start' | 'stop' | 'proxy-data';
+		type: MessageType;
 		payload: {
 			operationName: any;
 			variables: {};
 			query: string;
 			data: any;
+			topic?: string;
 		}
 	};
 
-	mothership.on('message', async (data: string) => {
+	mothership.on('message', async (stringifiedData: string) => {
 		try {
-			const message: Message = JSON.parse(data);
+			const message: Message = JSON.parse(stringifiedData);
 
 			// Proxy this to the http endpoint
 			if (message.type === 'query' || message.type === 'mutation') {
@@ -307,37 +309,36 @@ const connectToMothership = async (currentRetryAttempt: number = 0) => {
 						mothership.close();
 					}
 				});
+
+				return;
 			}
 
-			interface Server extends Omit<CachedServer, 'owner'>{};
-			interface User {
-				profile: Owner;
-				servers: Server[]
-			}
-
-			const isUserObject = (data): data is User => {
-				const keys = Object.keys(data);
-				return keys.includes('profile') && keys.includes('servers') && keys.length === 2;
+			type Server = CachedServer;
+			type Servers = Server[];
+			interface ProxyMessage extends Omit<Message, 'payload'> {
+				type: MessageType
+				payload: {
+					topic: 'servers';
+					data: Servers;
+				}
 			};
 
-			if (message.type === 'proxy-data') {
-				const { data } = message.payload;
+			const isProxyMessage = (message): message is ProxyMessage => {
+				const keys = Object.keys(message.payload);
+				return message.type === 'proxy-data' && keys.length === 2 && keys.includes('topic') && keys.includes('payload');
+			};
+			const isServersPayload = (payload): payload is Servers => payload.topic === 'servers';
 
-				// Cache the response
-				if (isUserObject(data)) {
-					const owner = data.profile;
-					const mine = {
-						servers: data.servers.map(server => {
-							return {
-								...server,
-								owner
-							};
-						})
-					};
-					userCache.set('mine', mine);
-					return;
+			if (isProxyMessage(message)) {
+				const payload = message.payload;
+
+				if (isServersPayload(payload)) {
+					const mine = userCache.get<CachedServer>('mine');
+					userCache.set('mine', {
+						...mine,
+						servers: payload
+					});
 				}
-				
 			}
 		} catch (error) {
 			// Something weird happened while processing the message
@@ -362,7 +363,10 @@ export const server = {
 	async start() {
 		const filePath = paths.get('dynamix-config')!;
 		const watcher = chokidar.watch(filePath);
-		const getApiKey = () => dotProp.get(loadState(filePath), 'remote.apikey');
+		const getApiKey = () => {
+			const key = dotProp.get(loadState(filePath), 'remote.apikey');
+			return (key === undefined || String(key).trim() === '') ? undefined : key;
+		};
 		const startWatcher = () => {
 			watcher.on('raw', async () => {
 				const key = getApiKey();
