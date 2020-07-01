@@ -857,6 +857,7 @@ function handleMessage(e) {
         hideRegWizard(function (){
           $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
             console.log('New license key installed: ' + data.license);
+            setTimeout(function(){ window.location.href = '/Main'; }, 500);
           }).fail(function() {
             console.error('Failed to license new key: ' + data.license);
           });
@@ -869,7 +870,7 @@ function handleMessage(e) {
         hideRegWizard(function () {
           $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
             console.log('New license key installed: ' + data.license);
-            setTimeout(function(){ window.location.href = '/Main'; }, 1000);
+            setTimeout(function(){ window.location.href = '/Main'; }, 500);
           }).fail(function() {
             console.error('Failed to license new key: ' + data.license);
           });
