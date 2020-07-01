@@ -849,6 +849,9 @@ function handleMessage(e) {
         }
         $.post('/update.php', postargs, function() {
           console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          if (!data.license) {
+            setTimeout(function(){ window.location.href = '/Main'; }, 500);
+          }
         }).fail(function() {
           console.error('Failed to update apikey under [remote] section');
         });
