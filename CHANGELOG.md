@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.8](https://github.com/unraid/graphql-api/compare/v2.7.7...v2.7.8) (2020-07-02)
+
+
+### Bug Fixes
+
+* **plg:** ensure dynamix.cfg exists ([f8eb9c7](https://github.com/unraid/graphql-api/commit/f8eb9c77fb8fc38dff0aa98903532236d03491b1))
+
 ### [2.7.7](https://github.com/unraid/graphql-api/compare/v2.7.6...v2.7.7) (2020-07-01)
 
 ### [2.7.6](https://github.com/unraid/graphql-api/compare/v2.7.5...v2.7.6) (2020-07-01)
