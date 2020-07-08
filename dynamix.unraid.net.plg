@@ -849,6 +849,9 @@ function handleMessage(e) {
         }
         $.post('/update.php', postargs, function() {
           console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          if (!data.license) {
+            setTimeout(function(){ window.location.href = '/Main'; }, 500);
+          }
         }).fail(function() {
           console.error('Failed to update apikey under [remote] section');
         });
@@ -857,6 +860,7 @@ function handleMessage(e) {
         hideRegWizard(function (){
           $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
             console.log('New license key installed: ' + data.license);
+            setTimeout(function(){ window.location.href = '/Main'; }, 500);
           }).fail(function() {
             console.error('Failed to license new key: ' + data.license);
           });
@@ -869,7 +873,7 @@ function handleMessage(e) {
         hideRegWizard(function () {
           $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
             console.log('New license key installed: ' + data.license);
-            setTimeout(function(){ window.location.href = '/Main'; }, 1000);
+            setTimeout(function(){ window.location.href = '/Main'; }, 500);
           }).fail(function() {
             console.error('Failed to license new key: ' + data.license);
           });
@@ -932,7 +936,9 @@ $var = (array)parse_ini_file('state/var.ini');
 $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
 $key_contents = str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
 
-extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+}
 if (empty($remote)) {
   $remote = [
     "apikey" => "",
@@ -969,12 +975,12 @@ echo json_encode($arr);
 
 
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js">
-<URL>https://feature-user-profile-component.d1eohvtyc6gnee.amplifyapp.com/unraid-user-profile.js</URL>
+<URL>https://registration-dev.unraid.net/unraid-user-profile.js</URL>
 </FILE>
 
 
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js.map">
-<URL>https://feature-user-profile-component.d1eohvtyc6gnee.amplifyapp.com/unraid-user-profile.js.map</URL>
+<URL>https://registration-dev.unraid.net/unraid-user-profile.js.map</URL>
 </FILE>
 
 
@@ -982,17 +988,6 @@ echo json_encode($arr);
 <INLINE>
 <![CDATA[
 <!-- user profile component -->
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<!-- <script src="https://registration-dev.unraid.net/unraid-user-profile.min.js" type="text/javascript"</script -->
-<script src="https://feature-user-profile-component.d1eohvtyc6gnee.amplifyapp.com/unraid-user-profile.js" type="text/javascript"></script>
-<!-- No internet connection fallback to filesystem version -->
-<script type="text/javascript">
-if (!window.Vue) {
-  document.write('<script src="<?autov('/webGui/javascript/vue.min.js') ?>"><\/script>');
-  document.write('<script src="<?autov('/webGui/profile/unraid-user-profile.min.js') ?>"><\/script>');
-}
-</script>
-
 <style>
 #header {
     z-index: 102 !important;
@@ -1018,42 +1013,60 @@ unraid-user-profile {
 </INLINE>
 </FILE>
 
-
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2">
+<INLINE>
+<![CDATA[
+<!-- user profile component -->
+<script src="https://cdn.jsdelivr.net/npm/vue"></script>
+<script src="https://registration-dev.unraid.net/unraid-user-profile.js" type="text/javascript"></script>
+<!-- No internet connection fallback to filesystem version -->
+<script type="text/javascript">
+if (!window.Vue) {
+  document.write('<script src="<?autov('/webGui/javascript/vue.min.js') ?>"><\/script>');
+  document.write('<script src="<?autov('/webGui/profile/unraid-user-profile.min.js') ?>"><\/script>');
+}
+</script>
+<!-- /user profile component -->
+]]>
+</INLINE>
+</FILE>
+
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3">
 <INLINE>
 <![CDATA[
     <!-- USER PROFILE COMPONENT -->
     <?
     $serverstate = [
+      "email" => ($remote['email']) ? $remote['email'] : '',
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "guid" => $var['flashGUID'],
+      "internalport" => $_SERVER['SERVER_PORT'],
       "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
+      "protocol" => $_SERVER['REQUEST_SCHEME'],
+      "reggen" => (int)$var['regGen'],
+      "registered" => empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1,
       "servername" => $var['NAME'],
       "serverip" => $_SERVER['SERVER_ADDR'],
       "site" => $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'],
       "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
-      "reggen" => (int)$var['regGen'],
-      "registered" => empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1,
-      "internalport" => $_SERVER['SERVER_PORT'],
-      "protocol" => $_SERVER['REQUEST_SCHEME'],
-      "email" => ($remote['email']) ? $remote['email'] : ''
     ];
     ?>
     <unraid-user-profile
-      serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
-      serverdesc="<?=$var['COMMENT']?>"
-      displaydesc="false"
-      serveruptime="<?=str_replace('up ', '', exec('uptime -p'))?>"
-      uptime="<?=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')))?>"
-      expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
-      username="zspearmint"
-      banner="<?=($display['banner']) ? $display['banner'] : ''?>"
-      textcolor="<?=($header) ? '#'.$header : ''?>"
-      bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
-      theme="<?=$display['theme']?>"
+      apikey="<?=($remote['apikey']) ? $remote['apikey'] : ''?>"
       avatar="https://source.unsplash.com/400x400/?portrait"
-      propregisteredservers="%5B%7B%22name%22:%22Akira%22,%22ip%22:%2210.0.0.9%22,%22url%22:%22http://10.0.0.9/%22%7D,%7B%22name%22:%22Daisuke%22,%22ip%22:%2210.0.0.121%22,%22url%22:%22http://10.0.0.121/%22%7D,%7B%22name%22:%22Kaneda%22,%22ip%22:%2210.0.0.22%22,%22url%22:%22http://10.0.0.22/%22%7D,%7B%22name%22:%22Kasumi%22,%22ip%22:%2210.0.0.45%22,%22url%22:%22http://10.0.0.45/%22%7D,%7B%22name%22:%22Kenji%22,%22ip%22:%2210.0.0.92%22,%22url%22:%22http://10.0.0.92/%22%7D,%7B%22name%22:%22Kyo%22,%22ip%22:%2210.0.0.27%22,%22url%22:%22http://10.0.0.27/%22%7D,%7B%22name%22:%22Momoko%22,%22ip%22:%2210.0.0.83%22,%22url%22:%22http://10.0.0.83/%22%7D,%7B%22name%22:%22Shinji%22,%22ip%22:%2210.0.0.65%22,%22url%22:%22http://10.0.0.65/%22%7D,%7B%22name%22:%22Tetsuo%22,%22ip%22:%2210.0.0.10%22,%22url%22:%22http://10.0.0.69/%22%7D,%7B%22name%22:%22Ume%22,%22ip%22:%2210.0.0.87%22,%22url%22:%22http://10.0.0.87/%22%7D,%7B%22name%22:%22Yagami%22,%22ip%22:%2210.0.0.251%22,%22url%22:%22http://10.0.0.251/%22%7D,%7B%22name%22:%22Yuko%22,%22ip%22:%2210.0.0.99%22,%22url%22:%22http://10.0.0.251/%22%7D%5D"></unraid-user-profile>
+      banner="<?=($display['banner']) ? $display['banner'] : ''?>"
+      bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
+      displaydesc="false"
+      expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
+      serverdesc="<?=$var['COMMENT']?>"
+      serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
+      textcolor="<?=($header) ? '#'.$header : ''?>"
+      theme="<?=$display['theme']?>"
+      uptime="<?=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')))?>"
+      username="zspearmint"
+      ></unraid-user-profile>
 ]]>
 </INLINE>
 </FILE>
@@ -1082,11 +1095,13 @@ cp -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php /usr/local
 cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- | sed -e 's/<\/head>/<? include "\/usr\/local\/emhttp\/plugins\/dynamix.unraid.net\/include\/RegWizard.php" ?>\n<\/head>/g' > /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 
 sed -i $'/<style>/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
-sed -i $'/<div class="block">/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+sed -i $'/<\/body>/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+sed -i $'/<div class="block">/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 sed -i '/<div class="block">/,/<\/div>/d' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2
+rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3
 ]]>
 </INLINE>
 </FILE>

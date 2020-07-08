@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.8](https://github.com/unraid/graphql-api/compare/v2.7.7...v2.7.8) (2020-07-02)
+
+
+### Bug Fixes
+
+* **plg:** ensure dynamix.cfg exists ([f8eb9c7](https://github.com/unraid/graphql-api/commit/f8eb9c77fb8fc38dff0aa98903532236d03491b1))
+
+### [2.7.7](https://github.com/unraid/graphql-api/compare/v2.7.6...v2.7.7) (2020-07-01)
+
+### [2.7.6](https://github.com/unraid/graphql-api/compare/v2.7.5...v2.7.6) (2020-07-01)
+
+### [2.7.5](https://github.com/unraid/graphql-api/compare/v2.7.4...v2.7.5) (2020-06-24)
+
+
+### Bug Fixes
+
+* **plg:** missing comma in php ([35467fa](https://github.com/unraid/graphql-api/commit/35467fa2b526e4fa036fa5bed44cb2dc5f3099f3))
+
+### [2.7.4](https://github.com/unraid/graphql-api/compare/v2.7.3...v2.7.4) (2020-06-24)
+
+### [2.7.3](https://github.com/unraid/graphql-api/compare/v2.7.2...v2.7.3) (2020-06-24)
+
+
+### Bug Fixes
+
+* **plg:** update Amplify URL ([06d7c53](https://github.com/unraid/graphql-api/commit/06d7c53f9930826a13479db3cd3efe1d703dd198))
+
+### [2.7.2](https://github.com/unraid/graphql-api/compare/v2.7.1...v2.7.2) (2020-06-23)
+
+
+### Bug Fixes
+
+* **plg:** move js scripts to end of body, remove some unneeded props ([8bb75c4](https://github.com/unraid/graphql-api/commit/8bb75c46a81fea5ca7d83e62a56d9010d8d61487))
+
+### [2.7.1](https://github.com/unraid/graphql-api/compare/v2.7.0...v2.7.1) (2020-06-23)
+
+
+### Bug Fixes
+
+* **plg:** added id="wc_userprofile" to UPC ([91d554c](https://github.com/unraid/graphql-api/commit/91d554ce917b01711b8908e63abe9fd8411eb687))
+
+## [2.7.0](https://github.com/unraid/graphql-api/compare/v2.6.2...v2.7.0) (2020-06-20)
+
+
+### Features
+
+* **plg:** add apikey prop ([e040de1](https://github.com/unraid/graphql-api/commit/e040de101342d228f4b820959d18ea41ca3e8271))
+
 ### [2.6.2](https://github.com/unraid/graphql-api/compare/v2.6.1...v2.6.2) (2020-06-19)
 
 ### [2.6.1](https://github.com/unraid/graphql-api/compare/v2.6.0...v2.6.1) (2020-06-18)
