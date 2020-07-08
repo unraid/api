@@ -31,7 +31,7 @@ bus.on('slots', async () => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-dee.on('*', async (data) => {
+dee.on('*', async (data: { Type: string }) => {
 	// Only listen to container events
 	if (data.Type !== 'container') {
 		return;
@@ -65,13 +65,18 @@ setIntervalAsync(async () => {
 	});
 }, 1000);
 
+interface Context {
+	user: any;
+	websocketId: string;
+};
+
 /**
  * Create a pubsub subscription.
  * @param channel The pubsub channel to subscribe to.
  * @param resource The access-control permission resource to check against.
  */
-const createSubscription = (channel, resource?) => ({
-	subscribe(_, __, context) {
+const createSubscription = (channel: string, resource?: string) => ({
+	subscribe(_: unknown, __: unknown, context: Context) {
 		if (!context.user) {
 			throw new AppError('<ws> No user found in context.', 500);
 		}
@@ -131,7 +136,7 @@ export const resolvers = {
 	Query: {
 		info: () => ({}),
 		vms: () => ({}),
-		server(_, { name }, context) {
+		server(_: unknown, { name }, context: Context) {
 			ensurePermission(context.user, {
 				resource: 'servers',
 				action: 'read',
@@ -141,7 +146,7 @@ export const resolvers = {
 			// Single server
 			return getServers().find(server => server.name === name);
 		},
-		servers(_, __, context) {
+		servers(_: unknown, __: unknown, context: Context) {
 			ensurePermission(context.user, {
 				resource: 'servers',
 				action: 'read',
@@ -201,7 +206,7 @@ export const resolvers = {
 			...createSubscription('vms/domains')
 		},
 		pluginModule: {
-			subscribe: async (_, directiveArgs, context) => {
+			subscribe: async (_: unknown, directiveArgs, context: Context) => {
 				const {plugin: pluginName, module: pluginModuleName} = directiveArgs;
 				const channel = `${pluginName}/${pluginModuleName}`;
 

@@ -134,7 +134,7 @@ const types = mergeTypes([
 	typeDefs
 ]);
 
-const getCoreModule = (moduleName) => {
+const getCoreModule = (moduleName: string) => {
 	if (!Object.keys(modules).includes(moduleName)) {
 		throw new FatalAppError(`"${moduleName}" is not a valid core module.`);
 	}
@@ -142,7 +142,7 @@ const getCoreModule = (moduleName) => {
 	return modules[moduleName];
 };
 
-const getPluginModule = (pluginName, pluginModuleName) => {
+const getPluginModule = (pluginName: string, pluginModuleName: string) => {
 	if (!pluginManager.isInstalled(pluginName, pluginModuleName)) {
 		throw new PluginError('Plugin not installed.');
 	}
@@ -181,7 +181,7 @@ const getPluginModule = (pluginName, pluginModuleName) => {
  */
 class FuncDirective extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field) {
-		const {args} = this;
+		const { args } = this;
 		field.resolve = async function (source, directiveArgs, { user }, info) {
 			const {module: moduleName, result: resultType} = args;
 			const {plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params} = directiveArgs;
@@ -235,7 +235,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			const pluginOrModuleName = pluginModuleName || moduleName;
 
 			// Run function
-			let [error, result] = await Promise.resolve(func(context, core))
+			const [error, coreMethodResult] = await Promise.resolve(func(context, core))
 				.then(result => [undefined, result])
 				.catch(error_ => {
 					// Ensure we aren't leaking anything in production
@@ -255,11 +255,13 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			}
 
 			// Get wanted result type or fallback to json
-			result = result[pluginType || resultType || 'json'];
+			let result = coreMethodResult[pluginType || resultType || 'json'];
 
 			// Allow fields to be extracted
 			if (directiveArgs.extractFromResponse) {
-				result = get(result, directiveArgs.extractFromResponse);
+				const extractedField = get(result, directiveArgs.extractFromResponse);
+				log.debug(pluginOrModule, pluginOrModuleName, 'Result:', extractedField);
+				return extractedField;
 			}
 
 			log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result);
@@ -320,7 +322,7 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		onConnect: connectionParams => {
+		onConnect: (connectionParams: { [key: string]: string }) => {
 			const apiKey = connectionParams['x-api-key'];
 			const user = apiKeyToUser(apiKey);
 			const websocketId = uuid();
