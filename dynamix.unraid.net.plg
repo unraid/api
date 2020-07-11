@@ -827,6 +827,8 @@ function hideRegWizard(cb) {
 }
 function handleMessage(e) {
   //if (e.origin != "http://child.com") { return; }
+  if (e.data.length == 0) { return; }
+
   if (e.data == "CLOSE_SHADOWBOX") {
     hideRegWizard();
     return;
