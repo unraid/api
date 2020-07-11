@@ -77,9 +77,9 @@ if (cluster.isMaster) {
     });
 
     // Toggle debug logs
-    process.on('SIGUSR1', () => {
+    process.on('SIGUSR2', () => {
         log.debug('<master> Updating log level.');
-        currentWorker.send('SIGUSR1');
+        currentWorker.send('SIGUSR2');
     });
 
     // Kill all workers then exit gracefully
