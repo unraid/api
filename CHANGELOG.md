@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.9](https://github.com/unraid/graphql-api/compare/v2.7.8...v2.7.9) (2020-07-12)
+
+
+### Bug Fixes
+
+* **sigusr:** switch master -> worker from SIGUSR1 to SIGUSR2 ([ac01c33](https://github.com/unraid/graphql-api/commit/ac01c3321ba6f6bc31b5e5b07b53bd845bfbc6ae))
+* plg: ensure postMessage handler has non-empty data ([5f6bdd8](https://github.com/unraid/graphql-api/commit/5f6bdd8776d7ac64fc9f984f28730031278ff023))
+
 ### [2.7.8](https://github.com/unraid/graphql-api/compare/v2.7.7...v2.7.8) (2020-07-02)
 
 
