@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.7.10](https://github.com/unraid/graphql-api/compare/v2.7.9...v2.7.10) (2020-07-14)
+
+
+### Bug Fixes
+
+* **owner endpoint:** ensure payload is saved correctly for my_servers ([7aeb498](https://github.com/unraid/graphql-api/commit/7aeb498815686e73deb73f2df96ef043a02f1d0b))
+
 ### [2.7.9](https://github.com/unraid/graphql-api/compare/v2.7.8...v2.7.9) (2020-07-12)
 
 
