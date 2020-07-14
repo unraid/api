@@ -80,8 +80,8 @@ interface ProxyMessage extends Omit<Message, 'payload'> {
 };
 
 const isProxyMessage = (message: any): message is ProxyMessage => {
-	const keys = Object.keys(message.payload);
-	return message.type === 'proxy-data' && keys.length === 2 && keys.includes('topic') && keys.includes('payload');
+	const keys = Object.keys(message.payload ?? {});
+	return message.payload && message.type === 'proxy-data' && keys.length === 2 && keys.includes('topic') && keys.includes('data');
 };
 
 const isServersPayload = (payload: any): payload is Servers => payload.topic === 'servers';
@@ -208,7 +208,7 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
 					const mine = userCache.get<CachedServer>('mine');
 					userCache.set('mine', {
 						...mine,
-						servers: payload
+						servers: payload.data
 					});
 				}
 			}
