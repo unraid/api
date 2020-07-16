@@ -816,7 +816,7 @@ response_complete($httpcode, '{}');
 function showRegWizard() {
   <? $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']); ?>
   Shadowbox.open({
-    content:'https://dev.d1eohvtyc6gnee.amplifyapp.com/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
+    content:'https://registration-dev.unraid.net/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
     player: 'iframe',
     options: {modal: true, animate: false, displayNav: false, overlayOpacity: 0.8, viewportPadding: 0, showMovieControls: false}
   });
@@ -992,16 +992,16 @@ echo json_encode($arr);
 <!-- user profile component -->
 <style>
 #header {
-    z-index: 102 !important;
-    display: -webkit-box;
-    display: -ms-flexbox;
-    display: flex;
-    -webkit-box-pack: justify;
-    -ms-flex-pack: justify;
-    justify-content: space-between;
-    -webkit-box-align: center;
-    -ms-flex-align: center;
-    align-items: center;
+  z-index: 102 !important;
+  display: -webkit-box;
+  display: -ms-flexbox;
+  display: flex;
+  -webkit-box-pack: justify;
+  -ms-flex-pack: justify;
+  justify-content: space-between;
+  -webkit-box-align: center;
+  -ms-flex-align: center;
+  align-items: center;
 }
 vue-userprofile,
 unraid-user-profile {
