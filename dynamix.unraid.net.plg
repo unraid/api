@@ -176,7 +176,7 @@ This is work in progress. Use this for testing purposes only!
 <FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/Unraid.net.page">
 <INLINE>
 <![CDATA[
-Menu="NetworkServices"
+Menu="ManagementAccess:100"
 Title="Unraid.net"
 Icon="icon-u-globe"
 Tag="globe"
