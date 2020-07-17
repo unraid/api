@@ -843,13 +843,10 @@ function handleMessage(e) {
   };
 
   const [err, data] = SAFE_JSON_PARSE(e.data);
-  if (err) return console.log('handleMessage', err);
+  if (err) return false; // swallow json parse error
 
   const HANDLE_LICENSES = (data, e) => {
     if (data.license) {
-      // @FIXME - instead of being a callback function of hideRegWizard()
-      // we need to implement a REDIRECT / RELOAD postMessage event so the
-      // launchpad / regwiz doesn't go away before the user closes the pop-up
       $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
         console.log('New license key installed: ' + data.license);
         const payload = { 
@@ -887,9 +884,6 @@ function handleMessage(e) {
         }
         $.post('/update.php', postargs, function() {
           console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
-          //if (!data.license) {
-          //  setTimeout(function(){ window.location.href = '/Main'; }, 500);
-          //}
         }).fail(function() {
           console.error('Failed to update apikey under [remote] section');
         });
