@@ -833,8 +833,44 @@ function handleMessage(e) {
     hideRegWizard();
     return;
   }
+  
+  const SAFE_JSON_PARSE = (str) => {
+    try {
+      return [null, JSON.parse(str)];
+    } catch (err) {
+      return [err];
+    }
+  };
 
-  var data = JSON.parse(e.data);
+  const [err, data] = SAFE_JSON_PARSE(e.data);
+  if (err) return console.log('handleMessage', err);
+
+  const HANDLE_LICENSES = (data, e) => {
+    if (data.license) {
+      // @FIXME - instead of being a callback function of hideRegWizard()
+      // we need to implement a REDIRECT / RELOAD postMessage event so the
+      // launchpad / regwiz doesn't go away before the user closes the pop-up
+      $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
+        console.log('New license key installed: ' + data.license);
+        const payload = { 
+          event: 'LICENSE_SUCCESS',
+          message: 'New license key installed',
+          license: data.license,
+        };
+        e.source.postMessage(JSON.stringify(payload), e.origin);
+      }).fail(function() {
+        console.error('Failed to license new key: ' + data.license);
+        const payload = { 
+          event: 'LICENSE_ERROR',
+          message: 'Failed to license new key',
+          license: data.license,
+        };
+        e.source.postMessage(JSON.stringify(payload), e.origin);
+      });
+    } else {
+      console.error('KEY_PURCHASE event fired! but missing license data:', data);
+    }
+  };
 
   switch (data.event) {
     case "CLOSE_SHADOWBOX":
@@ -851,38 +887,18 @@ function handleMessage(e) {
         }
         $.post('/update.php', postargs, function() {
           console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
-          if (!data.license) {
-            setTimeout(function(){ window.location.href = '/Main'; }, 500);
-          }
+          //if (!data.license) {
+          //  setTimeout(function(){ window.location.href = '/Main'; }, 500);
+          //}
         }).fail(function() {
           console.error('Failed to update apikey under [remote] section');
         });
       }
-      if (data.license) {
-        hideRegWizard(function (){
-          $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
-            console.log('New license key installed: ' + data.license);
-            setTimeout(function(){ window.location.href = '/Main'; }, 500);
-          }).fail(function() {
-            console.error('Failed to license new key: ' + data.license);
-          });
-        });
-      }
+      // duplicate conditional so we don't get the error from HANDLE_LICENSES()
+      if (data.license) HANDLE_LICENSES(data, e);
       break;
-    case "INSTALL_KEY":
     case "KEY_PURCHASE":
-      if (data.license) {
-        hideRegWizard(function () {
-          $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
-            console.log('New license key installed: ' + data.license);
-            setTimeout(function(){ window.location.href = '/Main'; }, 500);
-          }).fail(function() {
-            console.error('Failed to license new key: ' + data.license);
-          });
-        });
-      } else {
-        console.error('KEY_PURCHASE event fired! but missing license data:', data);
-      }
+      HANDLE_LICENSES(data, e);
       break;
     case "GET_STATE":
       $.get('/plugins/dynamix.unraid.net/include/state.php', function(newstate) {
@@ -898,6 +914,10 @@ function handleMessage(e) {
         console.error('Failed to unregister');
       });
       break;
+    case "RELOAD":
+      return window.location.reload();
+    case "REDIRECT_MAIN":
+      return window.location.href = '/Main';
     default:
       console.error('Unhandled event \'' + data.event + '\' fired. data:', data);
       break;
