@@ -368,7 +368,7 @@ function enableFlashBackup(button) {
     }
 }
 </script>
-<form markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
+<form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 <?if(!$isRegistered):?>
 Unraid.net Status:
 : <span class='orange p0'>Not Signed In</span>
