@@ -295,7 +295,7 @@ const ensureApiKey = (apiKeyToCheck: string) => {
 	}
 };
 
-const debug = config.get('debug') === true;
+const debug = config.get('debug');
 
 const apiKeyToUser = (apiKey: string) => {
 	ensureApiKey(apiKey);
