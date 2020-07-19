@@ -56,6 +56,8 @@
   "devDependencies": {
     "@commitlint/cli": "^9.0.1",
     "@commitlint/config-conventional": "^9.0.1",
+    "@types/lodash.get": "^4.4.6",
+    "@types/uuid": "^8.0.0",
     "ava": "^3.10.1",
     "bundle-dependencies": "^1.0.2",
     "cpx": "1.5.0",
