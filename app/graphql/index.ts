@@ -7,7 +7,7 @@ import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '@unraid/core';
 import { apiManager, errors, log, states, config, pluginManager, modules } from '@unraid/core';
-import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools'
+import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';
 import { typeDefs, resolvers } from './schema';
@@ -180,9 +180,9 @@ const getPluginModule = (pluginName: string, pluginModuleName: string) => {
  * including the field name, path to the field from the root, and more.
  */
 class FuncDirective extends SchemaDirectiveVisitor {
-	visitFieldDefinition(field) {
+	visitFieldDefinition(field: { [key: string]: any }) {
 		const { args } = this;
-		field.resolve = async function (source, directiveArgs, { user }, info) {
+		field.resolve = async function (source, directiveArgs: { [key: string]: any }, { user }, info: { [key: string]: any }) {
 			const {module: moduleName, result: resultType} = args;
 			const {plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params} = directiveArgs;
 			const operationType = info.operation.operation;
