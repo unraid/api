@@ -368,10 +368,10 @@ function enableFlashBackup(button) {
     }
 }
 </script>
-<form markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
+<form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 <?if(!$isRegistered):?>
 Unraid.net Status:
-: <span class='orange p0'>Unregistered</span>
+: <span class='orange p0'>Not Signed In</span>
 
 Unraid.net Username:
 : <input type="text" id="ips_username" value="">
@@ -381,7 +381,7 @@ Unraid.net Password:
 
 <?else:?>
 Unraid.net Status:
-: <span class='green p0'>Registered</span>
+: <span class='green p0'>Signed In</span>
 
 <?endif?>
 <?if($hasCert):?>
@@ -403,7 +403,7 @@ WAN Port:
 <input type="hidden" id="wanport" value="0">
 <?endif?>
 &nbsp;
-: <button type="button" onclick="registerServer(this)"><?=$isRegistered?'Apply':'Register'?></button><?if($isRegistered):?><button type="button" onclick="unregisterServer(this)">Unregister</button><?endif?>
+: <button type="button" onclick="registerServer(this)"><?=$isRegistered?'Update':'Sign In'?></button><?if($isRegistered):?><button type="button" onclick="unregisterServer(this)">Sign Out</button><?endif?>
 
 </form>
 <?if($isRegistered):?>
