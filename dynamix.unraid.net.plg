@@ -368,6 +368,10 @@ function enableFlashBackup(button) {
     }
 }
 </script>
+
+<script src="<?autov('/webGui/javascript/vue.min.js') ?>"></script>
+<script src="<?autov('/webGui/profile/unraid-regwiz-auth.min.js') ?>"></script>
+
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 <?if(!$isRegistered):?>
 Unraid.net Status:
@@ -397,7 +401,7 @@ WAN Port:
 <input type="hidden" id="wanport" value="0">
 <?endif?>
 &nbsp;
-: <button type="button" onclick="registerServer(this)"><?=$isRegistered?'Update':'Sign In'?></button><?if($isRegistered):?><button type="button" onclick="unregisterServer(this)">Sign Out</button><?endif?>
+: <unraid-regwiz-auth registered="<? echo $isRegistered ?>"></unraid-regwiz-auth>
 
 </form>
 <?if($isRegistered):?>
@@ -991,6 +995,15 @@ echo json_encode($arr);
 
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js.map">
 <URL>https://registration-dev.unraid.net/unraid-user-profile.js.map</URL>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js">
+<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.js</URL>
+</FILE>
+
+
+<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js.map">
+<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.js.map</URL>
 </FILE>
 
 
