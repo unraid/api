@@ -373,12 +373,6 @@ function enableFlashBackup(button) {
 Unraid.net Status:
 : <span class='orange p0'>Not Signed In</span>
 
-Unraid.net Username:
-: <input type="text" id="ips_username" value="">
-
-Unraid.net Password:
-: <input type="password" id="ips_password" value="">
-
 <?else:?>
 Unraid.net Status:
 : <span class='green p0'>Signed In</span>
