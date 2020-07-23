@@ -987,23 +987,20 @@ echo json_encode($arr);
 <URL>https://cdn.jsdelivr.net/npm/vue</URL>
 </FILE>
 
-
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.js</URL>
+<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js</URL>
 </FILE>
 
-
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.js.map</URL>
+<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js.map</URL>
 </FILE>
 
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js">
-<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.js</URL>
+<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js</URL>
 </FILE>
 
-
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.js.map</URL>
+<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js.map</URL>
 </FILE>
 
 
@@ -1041,7 +1038,7 @@ unraid-user-profile {
 <![CDATA[
 <!-- user profile component -->
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<script src="https://registration-dev.unraid.net/unraid-user-profile.js" type="text/javascript"></script>
+<script src="https://registration-dev.unraid.net/unraid-user-profile.min.js" type="text/javascript"></script>
 <!-- No internet connection fallback to filesystem version -->
 <script type="text/javascript">
 if (!window.Vue) {
