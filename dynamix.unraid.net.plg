@@ -28,6 +28,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php- /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php
   mv -f /usr/local/emhttp/plugins/dynamix/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+  mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
   rm -rf /boot/config/plugins/Unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
@@ -1098,7 +1099,7 @@ if (!window.Vue) {
       avatar="https://source.unsplash.com/400x400/?portrait"
       banner="<?=($display['banner']) ? $display['banner'] : ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
-      displaydesc="false"
+      displaydesc="<?=($display['headerdescription']!='no') ? 'true' : 'false'?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
       serverdesc="<?=$var['COMMENT']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
@@ -1107,6 +1108,20 @@ if (!window.Vue) {
       uptime="<?=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')))?>"
       username="zspearmint"
       ></unraid-user-profile>
+]]>
+</INLINE>
+</FILE>
+
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1">
+<INLINE>
+<![CDATA[
+_(Header show description)_:
+: <select name="headerdescription">
+  <?=mk_option($display['headerdescription'], "yes",_('Yes'))?>
+  <?=mk_option($display['headerdescription'], "no",_('No'))?>
+  </select>
+
 ]]>
 </INLINE>
 </FILE>
@@ -1142,6 +1157,18 @@ sed -i '/<div class="block">/,/<\/div>/d' /usr/local/emhttp/plugins/dynamix/incl
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3
+]]>
+</INLINE>
+</FILE>
+
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+cp -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-
+
+sed -i $'/_(Header custom text color)_/{e cat /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1\n}' /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
+
+rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 ]]>
 </INLINE>
 </FILE>
