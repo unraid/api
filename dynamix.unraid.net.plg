@@ -876,14 +876,24 @@ function handleMessage(e) {
       break;
     case "REG_WIZARD":
       if (data.apikey) {
-        var postargs = {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey};
-        if (data.email) {
-          postargs['email'] = data.email;
-        }
-        $.post('/update.php', postargs, function() {
-          console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+        $.post('https://keys.lime-technology.com/ips/details', {'apikey': data.apikey}, function(details) {
+          var postargs = {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey};
+          if (data.email) {
+            postargs['email'] = data.email;
+          }
+          if (details.username) {
+            postargs['username'] = details.username;
+          }
+          if (details.avatar) {
+            postargs['avatar'] = details.avatar;
+          }
+          $.post('/update.php', postargs, function() {
+            console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          }).fail(function() {
+            console.error('Failed to update apikey under [remote] section');
+          });
         }).fail(function() {
-          console.error('Failed to update apikey under [remote] section');
+          console.error('Failed to retrieve details from key server');
         });
       }
       // duplicate conditional so we don't get the error from HANDLE_LICENSES()
@@ -900,7 +910,7 @@ function handleMessage(e) {
       });
       break;
     case "MYSERVERS_UNREGISTER":
-      $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: ''}, function() {
+      $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: '', username: '', avatar: ''}, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
       }).fail(function() {
         console.error('Failed to unregister');
@@ -956,9 +966,17 @@ if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
 if (empty($remote)) {
   $remote = [
     "apikey" => "",
+    "username" => "",
+    "avatar" => "",
     "wanaccess" => "no",
     "wanport" => "443"
   ];
+}
+if (empty($remote['username'])) {
+  $remote['username'] = '';
+}
+if (empty($remote['avatar'])) {
+  $remote['avatar'] = '';
 }
 
 $arr = [];
@@ -975,6 +993,8 @@ $arr['serverip'] = $_SERVER['SERVER_ADDR'];
 $arr['internalport'] = $_SERVER['SERVER_PORT'];
 $arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
 $arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
+$arr['username'] = $remote['username'];
+$arr['avatar'] = $remote['avatar'];
 
 echo json_encode($arr);
 ?>
