@@ -1096,17 +1096,15 @@ if (!window.Vue) {
     ?>
     <unraid-user-profile
       apikey="<?=($remote['apikey']) ? $remote['apikey'] : ''?>"
-      avatar="https://source.unsplash.com/400x400/?portrait"
       banner="<?=($display['banner']) ? $display['banner'] : ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
-      displaydesc="<?=($display['headerdescription']!='no') ? 'true' : 'false'?>"
+      displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
       serverdesc="<?=$var['COMMENT']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
       textcolor="<?=($header) ? '#'.$header : ''?>"
       theme="<?=$display['theme']?>"
       uptime="<?=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')))?>"
-      username="zspearmint"
       ></unraid-user-profile>
 ]]>
 </INLINE>
@@ -1121,6 +1119,7 @@ _(Header show description)_:
   <?=mk_option($display['headerdescription'], "yes",_('Yes'))?>
   <?=mk_option($display['headerdescription'], "no",_('No'))?>
   </select>
+  
 
 ]]>
 </INLINE>
