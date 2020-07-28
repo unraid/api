@@ -1119,8 +1119,6 @@ _(Header show description)_:
   <?=mk_option($display['headerdescription'], "yes",_('Yes'))?>
   <?=mk_option($display['headerdescription'], "no",_('No'))?>
   </select>
-  
-
 ]]>
 </INLINE>
 </FILE>
@@ -1164,6 +1162,8 @@ rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3
 <INLINE>
 <![CDATA[
 cp -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-
+
+echo -e "\n\n" >> /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 
 sed -i $'/_(Header custom text color)_/{e cat /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1\n}' /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
 
