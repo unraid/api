@@ -815,7 +815,7 @@ response_complete($httpcode, '{}');
 function showRegWizard() {
   <? $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']); ?>
   Shadowbox.open({
-    content:'https://registration-dev.unraid.net/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
+    content:'https://registration-dev.unraid.net/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
     player: 'iframe',
     options: {modal: true, animate: false, displayNav: false, overlayOpacity: 0.8, viewportPadding: 0, showMovieControls: false}
   });
@@ -991,6 +991,7 @@ $arr['flashproduct'] = $var['flashProduct'];
 $arr['flashvendor'] = $var['flashVendor'];
 $arr['servername'] = $var['NAME'];
 $arr['serverip'] = $_SERVER['SERVER_ADDR'];
+$arr['internalip'] = $_SERVER['SERVER_ADDR'];
 $arr['internalport'] = $_SERVER['SERVER_PORT'];
 $arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
 $arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
@@ -1083,6 +1084,7 @@ if (!window.Vue) {
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "guid" => $var['flashGUID'],
+      "internalip" => $_SERVER['SERVER_ADDR'],
       "internalport" => $_SERVER['SERVER_PORT'],
       "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
       "protocol" => $_SERVER['REQUEST_SCHEME'],
