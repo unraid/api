@@ -1,6 +1,6 @@
 {
   "name": "@unraid/graphql-api",
-  "version": "2.7.14",
+  "version": "2.8.0",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/graphql-api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",

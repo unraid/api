@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.8.0](https://github.com/unraid/graphql-api/compare/v2.7.14...v2.8.0) (2020-08-05)
+
+
+### Features
+
+* **plg:** add settings to toggle display description ([dad2757](https://github.com/unraid/graphql-api/commit/dad275738cf67cf0ecd40d652932614e64a80925))
+* **plg:** store avatar url and username in dynamix.cfg ([3bfff0e](https://github.com/unraid/graphql-api/commit/3bfff0e2fff77177f592108e3a54e179209ad5e6))
+* unraid-regwiz-auth web component replace basic sign in/out buttons ([233b66f](https://github.com/unraid/graphql-api/commit/233b66ffb86e6c23b8ed56a63991e8506116b4ab))
+
+
+### Bug Fixes
+
+* **mothership:** cleanup reconnection events ([90209a4](https://github.com/unraid/graphql-api/commit/90209a4816981491ed163a359cecc3845848d3e3))
+* **plg:** add 'internalip' alias for 'serverip' ([57f597f](https://github.com/unraid/graphql-api/commit/57f597f4f4fcc721e43b64c011e331704a29af9d))
+* **plg:** clean up props ([aa8cfd5](https://github.com/unraid/graphql-api/commit/aa8cfd57ded1d46ad31b8c288a74827b833aa437))
+* **plg:** display setting alignment issues ([71c0b09](https://github.com/unraid/graphql-api/commit/71c0b09c52d616e801745dba52933cd501cb402a))
+* min js references for web components ([7f10277](https://github.com/unraid/graphql-api/commit/7f10277aa35b4852107abc54eb7c353879eda720))
+
 ### [2.7.14](https://github.com/unraid/graphql-api/compare/v2.7.13...v2.7.14) (2020-07-19)
 
 
