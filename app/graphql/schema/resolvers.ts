@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { pluginManager, pubsub, utils, bus, errors, states, modules, apiManager } from '@unraid/core';
+import { pluginManager, pubsub, utils, bus, errors, states, modules, apiManager, log } from '@unraid/core';
 import dee from '@gridplus/docker-events';
 import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
@@ -105,6 +105,7 @@ const getServers = (): Server[] => {
 
 	// Fall back to locally generated data
 	if (servers.length === 0) {
+		log.debug('Falling back to local state for /servers endpoint');
 		const guid = varState?.data?.regGuid;
 		// For now use the my_servers key
 		// Later we should return the correct one for the current user with the correct scope, etc.
@@ -116,7 +117,11 @@ const getServers = (): Server[] => {
 		const remoteurl = null;
 
 		return [{
-			owner: null,
+			owner: {
+				username: 'root',
+				url: '',
+				avatar: ''
+			},
 			guid,
 			apikey,
 			name,
@@ -128,12 +133,15 @@ const getServers = (): Server[] => {
 		}];
 	}
 
+	log.debug('Using upstream for /servers endpoint');
+
 	// Return servers from upstream cache
 	return servers;
 };
 
 export const resolvers = {
 	Query: {
+		online: () => true,
 		info: () => ({}),
 		vms: () => ({}),
 		server(_: unknown, { name }, context: Context) {

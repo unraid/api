@@ -1,7 +1,7 @@
 import fs from 'fs';
 import request from 'request';
 import WebSocket from 'ws';
-import { log, utils, paths, states } from '@unraid/core';
+import { log, utils, paths, states, config } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { userCache, CachedServer } from './cache';
 
@@ -88,7 +88,10 @@ const isServersPayload = (payload: any): payload is Servers => payload.topic ===
 
 const forwardMessageToLocalSocket = (message: Message, apiKey: string) => {
 	log.debug(`Got a "${message.type}" request from mothership, forwarding to socket.`);
-	request.post('http://unix:/var/run/graphql-api.sock:/graphql', {
+	const port = config.get('graphql-api-port');
+	const localEndpoint = (!isNaN(port as number)) ? `localhost:${port}` : `unix:${port}:`;
+	const url = `http://${localEndpoint}/graphql`;
+	request.post(url, {
 		body: JSON.stringify({
 			operationName: null,
 			variables: {},
@@ -170,7 +173,7 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
 		}
 
 		// Clear all listeners before running this again
-		mothership.removeAllListeners();
+		mothership?.removeAllListeners();
 
 		// Reconnect
 		setTimeout(async () => {
@@ -224,7 +227,7 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
  * Disconnect from mothership.
  */
 export const disconnectFromMothership = async () => {
-	if (mothership) {
+	if (mothership && mothership.readyState !== 0) {
 		log.debug('Disconnecting from the proxy server.');
 		try {
 			mothership.close();

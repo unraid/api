@@ -40,6 +40,7 @@ const baseTypes = [gql`
 	type Query {
 		# This should always be available even for guest users
 		welcome: Welcome! @func(module: "getWelcome")
+		online: Boolean!
 		info: Info!
 		pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 	}
@@ -279,19 +280,23 @@ const schema = makeExecutableSchema({
 });
 
 const ensureApiKey = (apiKeyToCheck: string) => {
-	// Check there is atleast one valid key
-	if (core.apiManager.getValidKeys().length !== 0) {
-		if (!apiKeyToCheck) {
-			throw new AppError('Missing API key.');
-		}
+	try {
+		// Check there is atleast one valid key
+		if (core.apiManager.getValidKeys().length !== 0) {
+			if (!apiKeyToCheck) {
+				throw new AppError('Missing API key.');
+			}
 
-		if (!apiManager.isValid(apiKeyToCheck)) {
-			throw new AppError('Invalid API key.');
+			if (!apiManager.isValid(apiKeyToCheck)) {
+				throw new AppError('Invalid API key.');
+			}
+		} else {
+			if (process.env.NODE_ENV !== 'development') {
+				throw new AppError('No valid API keys active.');
+			}
 		}
-	} else {
-		if (process.env.NODE_ENV !== 'development') {
-			throw new AppError('No valid API keys active.');
-		}
+	} catch {
+		throw new AppError('Invalid Api key.');
 	}
 };
 

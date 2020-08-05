@@ -150,19 +150,26 @@ export const server = {
 			const key = dotProp.get(loadState(filePath), 'remote.apikey');
 			return (key === undefined || String(key).trim() === '') ? undefined : key;
 		};
-		const startWatcher = () => {
-			watcher.on('raw', async () => {
-				const key = getApiKey();
+		const reconnect = async () => {
+			const key = getApiKey();
 
-				// Try and stop the last connection if it's still open
-				await disconnectFromMothership();
-	
-				log.debug('my_servers API key was updated, restarting proxy connection.');
-				process.nextTick(() => {
-					if (key !== undefined) {
-						connectToMothership(wsServer);
-					}
-				});
+			// Try and stop the last connection if it's still open
+			await disconnectFromMothership();
+
+			log.debug('my_servers API key was updated, restarting proxy connection.');
+			process.nextTick(() => {
+				if (key !== undefined) {
+					connectToMothership(wsServer);
+				}
+			});
+		};
+
+		let timeout: NodeJS.Timeout;
+		// If we detect an event wait 0.5s before doing anything
+		const startWatcher = () => {
+			watcher.on('all', () => {
+				clearTimeout(timeout);
+				timeout = setTimeout(reconnect, 500);
 			});
 		};
 

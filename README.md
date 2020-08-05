@@ -60,5 +60,12 @@ You should get something like this back.
 Click the "Schema" and "Docs" button on the right side of the playground to learn more.
 For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/graphql-voyager/).
 
+# Development
+
+## Running this locally
+```bash
+NCHAN=disable DEBUG=true LOG_LEVEL=info PATHS_STATES=$(pwd)/dev/states PATHS_DYNAMIX_CONFIG=$(pwd)/dev/dynamix.cfg PORT=5000 node index.js
+```
+
 ## License
 Copyright 2019 Lime Technology Inc. All rights reserved.
