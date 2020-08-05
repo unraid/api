@@ -48,6 +48,7 @@
     "merge-graphql-schemas": "^1.7.8",
     "node-cache": "5.1.2",
     "p-wait-for": "^3.1.0",
+    "redact-secrets": "github:omgimalexis/redact-secrets",
     "set-interval-async": "^1.0.33",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.16"
