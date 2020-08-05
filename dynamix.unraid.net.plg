@@ -28,6 +28,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php- /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php
   mv -f /usr/local/emhttp/plugins/dynamix/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+  mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
   rm -rf /boot/config/plugins/Unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
@@ -368,16 +369,14 @@ function enableFlashBackup(button) {
     }
 }
 </script>
+
+<script src="<?autov('/webGui/javascript/vue.min.js') ?>"></script>
+<script src="<?autov('/webGui/profile/unraid-regwiz-auth.min.js') ?>"></script>
+
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 <?if(!$isRegistered):?>
 Unraid.net Status:
 : <span class='orange p0'>Not Signed In</span>
-
-Unraid.net Username:
-: <input type="text" id="ips_username" value="">
-
-Unraid.net Password:
-: <input type="password" id="ips_password" value="">
 
 <?else:?>
 Unraid.net Status:
@@ -403,7 +402,7 @@ WAN Port:
 <input type="hidden" id="wanport" value="0">
 <?endif?>
 &nbsp;
-: <button type="button" onclick="registerServer(this)"><?=$isRegistered?'Update':'Sign In'?></button><?if($isRegistered):?><button type="button" onclick="unregisterServer(this)">Sign Out</button><?endif?>
+: <unraid-regwiz-auth registered="<? echo $isRegistered ?>"></unraid-regwiz-auth>
 
 </form>
 <?if($isRegistered):?>
@@ -816,7 +815,7 @@ response_complete($httpcode, '{}');
 function showRegWizard() {
   <? $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']); ?>
   Shadowbox.open({
-    content:'https://registration-dev.unraid.net/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
+    content:'https://registration-dev.unraid.net/?ts=<?=time()?>&guid=<?=$var['flashGUID']?>&state=<?=$license_state?>&keyfile=<?=str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))))?>&reggen=<?=$var['regGen']?>&flashproduct=<?=$var['flashProduct']?>&flashvendor=<?=$var['flashVendor']?>&registered=<?=empty($remote['apikey'])||empty($var['regFILE'])?0:1?>&servername=<?=$var['NAME']?>&serverip=<?=$_SERVER['SERVER_ADDR']?>&internalip=<?=$_SERVER['SERVER_ADDR']?>&internalport=<?=$_SERVER['SERVER_PORT']?>&protocol=<?=$_SERVER['REQUEST_SCHEME']?>&site='+location.origin+'&email=<?=$remote['email']?>', 
     player: 'iframe',
     options: {modal: true, animate: false, displayNav: false, overlayOpacity: 0.8, viewportPadding: 0, showMovieControls: false}
   });
@@ -878,14 +877,24 @@ function handleMessage(e) {
       break;
     case "REG_WIZARD":
       if (data.apikey) {
-        var postargs = {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey};
-        if (data.email) {
-          postargs['email'] = data.email;
-        }
-        $.post('/update.php', postargs, function() {
-          console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+        $.post('https://keys.lime-technology.com/ips/details', {'apikey': data.apikey}, function(details) {
+          var postargs = {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey};
+          if (data.email) {
+            postargs['email'] = data.email;
+          }
+          if (details.username) {
+            postargs['username'] = details.username;
+          }
+          if (details.avatar) {
+            postargs['avatar'] = details.avatar;
+          }
+          $.post('/update.php', postargs, function() {
+            console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          }).fail(function() {
+            console.error('Failed to update apikey under [remote] section');
+          });
         }).fail(function() {
-          console.error('Failed to update apikey under [remote] section');
+          console.error('Failed to retrieve details from key server');
         });
       }
       // duplicate conditional so we don't get the error from HANDLE_LICENSES()
@@ -902,7 +911,7 @@ function handleMessage(e) {
       });
       break;
     case "MYSERVERS_UNREGISTER":
-      $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: ''}, function() {
+      $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: '', username: '', avatar: ''}, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
       }).fail(function() {
         console.error('Failed to unregister');
@@ -958,9 +967,17 @@ if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
 if (empty($remote)) {
   $remote = [
     "apikey" => "",
+    "username" => "",
+    "avatar" => "",
     "wanaccess" => "no",
     "wanport" => "443"
   ];
+}
+if (empty($remote['username'])) {
+  $remote['username'] = '';
+}
+if (empty($remote['avatar'])) {
+  $remote['avatar'] = '';
 }
 
 $arr = [];
@@ -974,9 +991,12 @@ $arr['flashproduct'] = $var['flashProduct'];
 $arr['flashvendor'] = $var['flashVendor'];
 $arr['servername'] = $var['NAME'];
 $arr['serverip'] = $_SERVER['SERVER_ADDR'];
+$arr['internalip'] = $_SERVER['SERVER_ADDR'];
 $arr['internalport'] = $_SERVER['SERVER_PORT'];
 $arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
 $arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
+$arr['username'] = $remote['username'];
+$arr['avatar'] = $remote['avatar'];
 
 echo json_encode($arr);
 ?>
@@ -989,14 +1009,20 @@ echo json_encode($arr);
 <URL>https://cdn.jsdelivr.net/npm/vue</URL>
 </FILE>
 
-
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.js</URL>
+<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js</URL>
 </FILE>
 
-
 <FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.js.map</URL>
+<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js.map</URL>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js">
+<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js</URL>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js.map">
+<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js.map</URL>
 </FILE>
 
 
@@ -1034,7 +1060,7 @@ unraid-user-profile {
 <![CDATA[
 <!-- user profile component -->
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<script src="https://registration-dev.unraid.net/unraid-user-profile.js" type="text/javascript"></script>
+<script src="https://registration-dev.unraid.net/unraid-user-profile.min.js" type="text/javascript"></script>
 <!-- No internet connection fallback to filesystem version -->
 <script type="text/javascript">
 if (!window.Vue) {
@@ -1058,6 +1084,7 @@ if (!window.Vue) {
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "guid" => $var['flashGUID'],
+      "internalip" => $_SERVER['SERVER_ADDR'],
       "internalport" => $_SERVER['SERVER_PORT'],
       "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
       "protocol" => $_SERVER['REQUEST_SCHEME'],
@@ -1071,18 +1098,29 @@ if (!window.Vue) {
     ?>
     <unraid-user-profile
       apikey="<?=($remote['apikey']) ? $remote['apikey'] : ''?>"
-      avatar="https://source.unsplash.com/400x400/?portrait"
       banner="<?=($display['banner']) ? $display['banner'] : ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
-      displaydesc="false"
+      displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
       serverdesc="<?=$var['COMMENT']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
       textcolor="<?=($header) ? '#'.$header : ''?>"
       theme="<?=$display['theme']?>"
       uptime="<?=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')))?>"
-      username="zspearmint"
       ></unraid-user-profile>
+]]>
+</INLINE>
+</FILE>
+
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1">
+<INLINE>
+<![CDATA[
+_(Header show description)_:
+: <select name="headerdescription">
+  <?=mk_option($display['headerdescription'], "yes",_('Yes'))?>
+  <?=mk_option($display['headerdescription'], "no",_('No'))?>
+  </select>
 ]]>
 </INLINE>
 </FILE>
@@ -1118,6 +1156,20 @@ sed -i '/<div class="block">/,/<\/div>/d' /usr/local/emhttp/plugins/dynamix/incl
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3
+]]>
+</INLINE>
+</FILE>
+
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+cp -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-
+
+echo -e "\n\n" >> /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
+
+sed -i $'/_(Header custom text color)_/{e cat /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1\n}' /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
+
+rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 ]]>
 </INLINE>
 </FILE>
