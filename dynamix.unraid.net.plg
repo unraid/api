@@ -1004,6 +1004,8 @@ echo "🕹️ Start download web component files"
 URL=https://registration-dev.unraid.net/wc/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
+cd /usr/local/emhttp/webGui/profile
+mkdir wc && cd wc
 touch $MANIFEST_TXT
 # fetch manifest
 echo "🎣 Fetch manifest"
