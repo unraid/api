@@ -997,20 +997,33 @@ echo json_encode($arr);
 <URL>https://cdn.jsdelivr.net/npm/vue</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js.map</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js">
-<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js.map</URL>
+<FILE Run="/bin/bash" Method="install Vue.js web component files">
+<INLINE>
+echo "🕹️ Start download web component files"
+URL=https://registration-dev.unraid.net/wc/
+MANIFEST_JSON=manifest.json
+MANIFEST_TXT=manifest.txt
+touch $MANIFEST_TXT
+# fetch manifest
+echo "🎣 Fetch manifest"
+curl --http2 -s ${URL}manifest.json | jq . > $MANIFEST_JSON
+echo "📋 Received manifest"
+# take each key and add it to MANIFEST_TXT
+KEYS=($((<${MANIFEST_JSON} jq -r 'keys | @sh') | tr -d \'\"))
+for ix in ${!KEYS[*]}
+do
+  echo "${URL}${KEYS[$ix]}" >> $MANIFEST_TXT
+  echo "✨ ${URL}${KEYS[$ix]}"
+done
+echo "🚀 Parsed Manifest – init downloads"
+xargs -n 1 curl --http2 -s -O < $MANIFEST_TXT
+echo "✅ Web component files downloaded"
+if [ -f "$MANIFEST_TXT" ]; then
+  echo "🚮 Dump temp files"
+  rm $MANIFEST_TXT
+  rm $MANIFEST_JSON
+fi
+</INLINE>
 </FILE>
 
 
