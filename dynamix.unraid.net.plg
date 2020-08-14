@@ -999,6 +999,7 @@ echo json_encode($arr);
 
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
 <INLINE>
+<![CDATA[
 echo "🕹️ Start download web component files"
 URL=https://registration-dev.unraid.net/wc/
 MANIFEST_JSON=manifest.json
@@ -1023,6 +1024,7 @@ if [ -f "$MANIFEST_TXT" ]; then
   rm $MANIFEST_TXT
   rm $MANIFEST_JSON
 fi
+]]>
 </INLINE>
 </FILE>
 
