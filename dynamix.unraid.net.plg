@@ -370,19 +370,10 @@ function enableFlashBackup(button) {
 }
 </script>
 
-<script src="<?autov('/webGui/javascript/vue.min.js') ?>"></script>
-<script src="<?autov('/webGui/profile/unraid-regwiz-auth.min.js') ?>"></script>
-
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
-<?if(!$isRegistered):?>
 Unraid.net Status:
-: <span class='orange p0'>Not Signed In</span>
+: <unraid-authed registered="<? echo $isRegistered ?>"></unraid-authed>
 
-<?else:?>
-Unraid.net Status:
-: <span class='green p0'>Signed In</span>
-
-<?endif?>
 <?if($hasCert):?>
 Allow Remote Access:
 : <select id="wanaccess" size="1" class="narrow" onchange="changeRemoteAccess(this)">
@@ -401,9 +392,6 @@ WAN Port:
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?endif?>
-&nbsp;
-: <unraid-regwiz-auth registered="<? echo $isRegistered ?>"></unraid-regwiz-auth>
-
 </form>
 <?if($isRegistered):?>
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
@@ -1009,20 +997,37 @@ echo json_encode($arr);
 <URL>https://cdn.jsdelivr.net/npm/vue</URL>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-user-profile.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-user-profile.min.js.map</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js">
-<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/profile/unraid-regwiz-auth.min.js.map">
-<URL>https://registration-dev.unraid.net/unraid-regwiz-auth.min.js.map</URL>
+<FILE Run="/bin/bash" Method="install Vue.js web component files">
+<INLINE>
+<![CDATA[
+echo "🕹️ Start download web component files"
+URL=https://registration-dev.unraid.net/wc/
+MANIFEST_JSON=manifest.json
+MANIFEST_TXT=manifest.txt
+cd /usr/local/emhttp/webGui/profile
+mkdir wc && cd wc
+touch $MANIFEST_TXT
+# fetch manifest
+echo "🎣 Fetch manifest"
+curl --http2 -s ${URL}manifest.json | jq . > $MANIFEST_JSON
+echo "📋 Received manifest"
+# take each key and add it to MANIFEST_TXT
+KEYS=($((<${MANIFEST_JSON} jq -r 'keys | @sh') | tr -d \'\"))
+for ix in ${!KEYS[*]}
+do
+  echo "${URL}${KEYS[$ix]}" >> $MANIFEST_TXT
+  echo "✨ ${URL}${KEYS[$ix]}"
+done
+echo "🚀 Parsed Manifest – init downloads"
+xargs -n 1 curl --http2 -s -O < $MANIFEST_TXT
+echo "✅ Web component files downloaded"
+if [ -f "$MANIFEST_TXT" ]; then
+  echo "🚮 Dump temp files"
+  rm $MANIFEST_TXT
+  rm $MANIFEST_JSON
+fi
+]]>
+</INLINE>
 </FILE>
 
 
@@ -1060,12 +1065,12 @@ unraid-user-profile {
 <![CDATA[
 <!-- user profile component -->
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<script src="https://registration-dev.unraid.net/unraid-user-profile.min.js" type="text/javascript"></script>
+<script src="https://registration-dev.unraid.net/wc/unraid.min.js" type="text/javascript"></script>
 <!-- No internet connection fallback to filesystem version -->
 <script type="text/javascript">
 if (!window.Vue) {
   document.write('<script src="<?autov('/webGui/javascript/vue.min.js') ?>"><\/script>');
-  document.write('<script src="<?autov('/webGui/profile/unraid-user-profile.min.js') ?>"><\/script>');
+  document.write('<script src="<?autov('/webGui/profile/wc/unraid.min.js') ?>"><\/script>');
 }
 </script>
 <!-- /user profile component -->
