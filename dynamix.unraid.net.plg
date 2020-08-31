@@ -32,7 +32,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /boot/config/plugins/Unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
-  rm -rf /usr/local/emhttp/webGui/profile
+  rm -rf /usr/local/emhttp/webGui/wc
 fi
 </INLINE>
 </FILE>
@@ -1004,7 +1004,7 @@ echo "🕹️ Start download web component files"
 URL=https://registration-dev.unraid.net/wc/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
-cd /usr/local/emhttp/webGui/profile
+cd /usr/local/emhttp/webGui
 mkdir wc && cd wc
 touch $MANIFEST_TXT
 # fetch manifest
@@ -1070,7 +1070,7 @@ unraid-user-profile {
 <script type="text/javascript">
 if (!window.Vue) {
   document.write('<script src="<?autov('/webGui/javascript/vue.min.js') ?>"><\/script>');
-  document.write('<script src="<?autov('/webGui/profile/wc/unraid.min.js') ?>"><\/script>');
+  document.write('<script src="<?autov('/webGui/wc/unraid.min.js') ?>"><\/script>');
 }
 </script>
 <!-- /user profile component -->
