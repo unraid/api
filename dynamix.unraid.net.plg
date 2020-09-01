@@ -217,9 +217,9 @@ if (empty($remote['wanport'])) {
     $remote['wanport'] = 443;
 }
 
-$hasCert = file_exists('/boot/config/ssl/certs/certificate_bundle.pem');
+$hasCert = $var['USE_SSL']!='no' && file_exists('/boot/config/ssl/certs/certificate_bundle.pem');
 $isRegistered = !empty($remote['apikey']);
-$boolWebUIAuth = $isRegistered || file_exists('/etc/nginx/htpasswd');
+$boolWebUIAuth = $isRegistered && file_exists('/etc/nginx/htpasswd');
 
 $isActivated = false;
 $isUptodate = false;
@@ -391,6 +391,9 @@ WAN Port:
 <?else:?>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
+Allow Remote Access:
+: <span><i class="fa fa-warning icon warning"></i> Disabled until you Provision a SSL Cert and enable SSL/TLS</span>
+
 <?endif?>
 </form>
 <?if($isRegistered):?>
