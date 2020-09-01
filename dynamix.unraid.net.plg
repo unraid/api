@@ -374,8 +374,16 @@ function enableFlashBackup(button) {
 Unraid.net Status:
 : <unraid-authed registered="<? echo $isRegistered ?>"></unraid-authed>
 
-<?if($hasCert):?>
 Allow Remote Access:
+<?if(!$hasCert):?>
+: <span><i class="fa fa-warning icon warning"></i> Disabled until you Provision a SSL Cert and enable SSL/TLS</span>
+<input type="hidden" id="wanaccess" value="no">
+<input type="hidden" id="wanport" value="0">
+<?elseif(!$boolWebUIAuth):?>
+: <span><i class="fa fa-warning icon warning"></i> Disabled until your root user account is password-protected</span>
+<input type="hidden" id="wanaccess" value="no">
+<input type="hidden" id="wanport" value="0">
+<?else:?>
 : <select id="wanaccess" size="1" class="narrow" onchange="changeRemoteAccess(this)">
   <?=mk_option($remote['wanaccess'], "no", "No")?>
   <?=mk_option($remote['wanaccess'], "yes", "Yes")?>
@@ -383,23 +391,21 @@ Allow Remote Access:
 
 <div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
 WAN Port:
-: <?if(!$boolWebUIAuth):?><input type="hidden" id="wanport" value="0"><span><i class="fa fa-warning icon warning"></i> Disabled until your root user account is password-protected</span><?else:?><input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">Check</button><?endif?>
+: <input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">Check</button>
 
 > WAN Port is the external TCP port number setup on your router to NAT/Port Forward traffic from the internet to this
 > Unraid server SSL port for secure web traffic.
 </div>
-<?else:?>
-<input type="hidden" id="wanaccess" value="no">
-<input type="hidden" id="wanport" value="0">
-Allow Remote Access:
-: <span><i class="fa fa-warning icon warning"></i> Disabled until you Provision a SSL Cert and enable SSL/TLS</span>
 
+&nbsp;
+: <button type="button" onclick="registerServer(this)">Apply</button>
 <?endif?>
 </form>
+
 <?if($isRegistered):?>
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
-<?if(!$isActivated):?>
 Flash backup:
+<?if(!$isActivated):?>
 : <span class='orange p0'>Not activated</span>
 
 &nbsp;
@@ -408,7 +414,6 @@ Flash backup:
 > Click Activate to set up a local git repo for your local USB Flash boot device and connect to a dedicated remote on unraid.net tied tothis server.
 
 <?else:?>
-Flash backup:
 : <span class='green p0'>Activated:</span> <?if(!$isUptodate):?><span class='orange p0'>Not up-to-date</span><?else:?><span class='green p0'>Up-to-date</span><?endif?>
 
 <?if(!$isUptodate):?>
