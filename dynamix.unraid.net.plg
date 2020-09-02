@@ -374,6 +374,7 @@ function enableFlashBackup(button) {
 Unraid.net Status:
 : <unraid-authed registered="<? echo $isRegistered ?>"></unraid-authed>
 
+<?if($isRegistered):?>
 Allow Remote Access:
 <?if(!$hasCert):?>
 : <span><i class="fa fa-warning icon warning"></i> Disabled until you Provision a SSL Cert and enable SSL/TLS</span>
@@ -399,6 +400,7 @@ WAN Port:
 
 &nbsp;
 : <button type="button" onclick="registerServer(this)">Apply</button>
+<?endif?>
 <?endif?>
 </form>
 
