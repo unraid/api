@@ -1,6 +1,7 @@
 import fs from 'fs';
 import request from 'request';
 import WebSocket from 'ws';
+import merge from 'deepmerge';
 import { log, utils, paths, states, config } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { userCache, CachedServer } from './cache';
@@ -208,11 +209,28 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
 				const payload = message.payload;
 
 				if (isServersPayload(payload)) {
-					const mine = userCache.get<CachedServer>('mine');
-					userCache.set('mine', {
-						...mine,
+					const cachedData = userCache.get<CachedServer[]>('mine');
+					const newData = {
 						servers: payload.data
-					});
+					};
+
+					// If we don't have cached data just save this
+					if (!cachedData || cachedData.length === 0) {
+						userCache.set('mine', newData);
+						return;
+					}
+
+					// Loop all new servers and merge new data on top of the cached stuff
+					// This should mean { guid: "1", status: "offline" } should keep
+					// all data but update the "status" field.
+					const mergedData = {
+						servers: newData.servers.map(newServer => {
+							const cachedServer = cachedData?.find(cachedServer => cachedServer.guid === newServer.guid);
+							return cachedServer ? merge(cachedServer, newServer) : newServer;
+						})
+					};
+
+					userCache.set('mine', mergedData);
 				}
 			}
 		} catch (error) {
