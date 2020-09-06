@@ -24,11 +24,27 @@ export const getWsConectionCountInChannel = (channel: string) => {
 };
 
 export const hasSubscribedToChannel = (id: string, channel: string) => {
+    // Setup inital object
+    if (subscriptions[id] === undefined) {
+        subscriptions[id] = {
+            total: 1,
+            channels: [channel]
+        };
+        return;
+    }
     subscriptions[id].total++;
     subscriptions[id].channels.push(channel);
 };
 
 export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
+    // Setup inital object
+    if (subscriptions[id] === undefined) {
+        subscriptions[id] = {
+            total: 0,
+            channels: []
+        };
+        return;
+    }
     subscriptions[id].total--;
     subscriptions[id].channels = subscriptions[id].channels.filter(existingChannel => existingChannel !== channel);
 };
@@ -60,12 +76,14 @@ export const wsHasDisconnected = (id: string) => {
 export const canPublishToChannel = (channel: string) => {
     // No ws connections
     if (getWsConectionCount() === 0) {
+        // log.debug('No ws connections, cannot publish');
         return false;
     }
 
     // No ws connections to this channel
     const channelConnectionCount = getWsConectionCountInChannel(channel);
     if (channelConnectionCount === 0) {
+        // log.debug(`No connections to channel ${channel}`);
         return false;
     }
 

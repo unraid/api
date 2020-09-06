@@ -1,13 +1,13 @@
 import fs from 'fs';
-import request from 'request';
 import WebSocket from 'ws';
-import merge from 'deepmerge';
 import { log, utils, paths, states, config } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
-import { userCache, CachedServer } from './cache';
 
 const { loadState } = utils;
 const { varState } = states;
+
+process.on('uncaughtException', console.log);
+process.on('unhandledRejection', console.log);
 
 /**
  * One second in milliseconds.
@@ -17,6 +17,16 @@ const ONE_SECOND = 1000;
  * One minute in milliseconds.
 */
 const ONE_MINUTE = 60 * ONE_SECOND;
+
+/**
+ * Relay ws link.
+ */
+const RELAY_WS_LINK = process.env.RELAY_WS_LINK ? process.env.RELAY_WS_LINK : 'wss://relay.unraid.net';
+
+/**
+ * Internal ws link.
+ */
+const INTERNAL_WS_LINK = process.env.INTERNAL_WS_LINK ? process.env.INTERNAL_WS_LINK : `ws+unix://${config.get('graphql-api-port')}`;
 
 /**
  * Get a number between the lowest and highest value.
@@ -38,7 +48,7 @@ const backoff = (attempt: number, maxDelay: number, multiplier: number) => {
 	return Math.round(Math.min(delay * multiplier, maxDelay));
 };
 
-let mothership;
+let relay: WebSocket;
 
 interface WebSocketWithHeartBeat extends WebSocket {
 	pingTimeout?: NodeJS.Timeout
@@ -56,78 +66,20 @@ function heartbeat(this: WebSocketWithHeartBeat) {
 	this.pingTimeout = setTimeout(() => {
 		this.terminate();
 	}, 30000 + 1000);
-}
-
-type MessageType = 'query' | 'mutation' | 'start' | 'stop' | 'proxy-data';
-interface Message {
-	type: MessageType;
-	payload: {
-		operationName: any;
-		variables: {};
-		query: string;
-		data: any;
-		topic?: string;
-	}
 };
 
-type Server = CachedServer;
-type Servers = Server[];
-interface ProxyMessage extends Omit<Message, 'payload'> {
-	type: MessageType
-	payload: {
-		topic: 'servers';
-		data: Servers;
-	}
-};
+const readFileIfExists = (filePath: string) => {
+	try {
+		return fs.readFileSync(filePath);
+	} catch {}
 
-const isProxyMessage = (message: any): message is ProxyMessage => {
-	const keys = Object.keys(message.payload ?? {});
-	return message.payload && message.type === 'proxy-data' && keys.length === 2 && keys.includes('topic') && keys.includes('data');
-};
-
-const isServersPayload = (payload: any): payload is Servers => payload.topic === 'servers';
-
-const forwardMessageToLocalSocket = (message: Message, apiKey: string) => {
-	log.debug(`Got a "${message.type}" request from mothership, forwarding to socket.`);
-	const port = config.get('graphql-api-port');
-	const localEndpoint = (!isNaN(port as number)) ? `localhost:${port}` : `unix:${port}:`;
-	const url = `http://${localEndpoint}/graphql`;
-	request.post(url, {
-		body: JSON.stringify({
-			operationName: null,
-			variables: {},
-			query: message.payload.query
-		}),
-		headers: {
-			Accept: '*/*',
-			'Content-Type': 'application/json',
-			'x-api-key': apiKey
-		}
-	}, (error, response) => {
-		if (error) {
-			log.error(error);
-			return;
-		}
-
-		try {
-			const data = JSON.parse(response.body).data;
-			const payload = { data };
-			log.debug('Replying to mothership with payload %o', payload);
-			mothership.send(JSON.stringify({
-				type: 'data',
-				payload
-			}));
-		} catch (error) {
-			log.error(error);
-			mothership.close();
-		}
-	});
+	return Buffer.from('');
 };
 
 /**
  * Connect to unraid's proxy server
  */
-export const connectToMothership = async (wsServer, currentRetryAttempt: number = 0) => {
+export const connectToMothership = async (wsServer: WebSocket.Server, currentRetryAttempt: number = 0) => {
 	// Kill the last connection first
 	await disconnectFromMothership();
 	let retryAttempt = currentRetryAttempt;
@@ -137,14 +89,15 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
 	}
 	
 	const apiKey = loadState<DynamixConfig>(paths.get('dynamix-config')!).remote.apikey || '';
-	const keyFile = varState.data?.regFile ? fs.readFileSync(varState.data?.regFile).toString('base64') : '';
+	const keyFile = varState.data?.regFile ? readFileIfExists(varState.data?.regFile).toString('base64') : '';
 	const serverName = `${varState.data?.name}`;
 	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
+	let localGraphqlApi: WebSocket;
 
-	// Connect to mothership
+	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
-	mothership = new WebSocket('wss://proxy.unraid.net', ['graphql-ws'], {
+	relay = new WebSocket(RELAY_WS_LINK, ['graphql-ws'], {
 		headers: {
 			'x-api-key': apiKey,
 			'x-flash-guid': varState.data?.flashGuid ?? '',
@@ -155,84 +108,118 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
 		}
 	});
 
-	mothership.on('open', function() {
-		log.debug('Connected to mothership.');
+	relay.on('open', async () => {
+		log.debug(`Connected to mothership's relay.`);
 
 		// Reset retry attempts
 		retryAttempt = 0;
 
-		// Connect mothership to the internal ws server
-		wsServer.emit('connection', mothership);
+		// Connect to the internal graphql server
+		localGraphqlApi = new WebSocket(INTERNAL_WS_LINK, ['graphql-ws']);
 
-		// Start ping/pong
-		// @ts-ignore
-		heartbeat.bind(this);
+		// Heartbeat
+		localGraphqlApi.on('ping', () => {
+			heartbeat.bind(localGraphqlApi)();
+		});
+
+		// Errors
+		localGraphqlApi.on('error', error => {
+			log.error('ws:local-relay', 'error', error);
+		});
+		
+		// Connection to local graphql endpoint is "closed"
+		localGraphqlApi.on('close', () => {
+			log.debug('ws:local-relay', 'close');
+		});
+
+		// Connection to local graphql endpoint is "open"
+		localGraphqlApi.on('open', () => {
+			log.debug('ws:local-relay', 'open');
+
+			// Authenticate with ourselves
+			localGraphqlApi.send(JSON.stringify({
+				type: 'connection_init',
+				payload: {
+					'x-api-key': apiKey
+				}
+			}));
+		});
+
+		// Relay message back to mothership
+		localGraphqlApi.on('message', (data) => {
+			try {
+				relay.send(data);
+			} catch (error) {
+				// Relay socket is closed, close internal one
+				if (error.message.includes('WebSocket is not open')) {
+					localGraphqlApi.close();
+				}
+			}
+		});
 	});
-	mothership.on('close', async function (this: WebSocketWithHeartBeat) {
-		if (this.pingTimeout) {
-			clearTimeout(this.pingTimeout);
+
+	// Relay is closed
+	relay.on('close', async function (this: WebSocketWithHeartBeat, ...args) {
+		try {
+			log.debug('Connection closed.', ...args);
+
+			if (this.pingTimeout) {
+				clearTimeout(this.pingTimeout);
+			}
+
+			// Clear all listeners before running this again
+			relay?.removeAllListeners();
+
+			// Close connection to local graphql endpoint
+			localGraphqlApi?.close();
+
+			// Reconnect
+			setTimeout(async () => {
+				await connectToMothership(wsServer, retryAttempt + 1);
+			}, backoff(retryAttempt, ONE_MINUTE, 5));
+		} catch (error) {
+			log.error(error);
 		}
-
-		// Clear all listeners before running this again
-		mothership?.removeAllListeners();
-
-		// Reconnect
-		setTimeout(async () => {
-			await connectToMothership(wsServer, retryAttempt + 1);
-		}, backoff(retryAttempt, ONE_MINUTE, 2));
 	});
 
-	mothership.on('error', error => {
-		// Mothership is down
+	relay.on('error', (error: NodeJS.ErrnoException) => {
+		// The relay is down
 		if (error.message.includes('502')) {
 			return;
 		}
 
-		log.error(error.message);
+		// Connection refused, aka couldn't connect
+		// This is usually because the address is wrong or offline
+		if (error.code === 'ECONNREFUSED') {
+			// @ts-expect-error
+			log.debug(`Couldn't connect to ${error.address}:${error.port}`);
+			return;
+		}
+
+		log.error(error);
 	});
 
-	mothership.on('ping', heartbeat);
+	relay.on('ping', heartbeat);
 
-	mothership.on('message', async (stringifiedData: string) => {
+	const sendMessage = (client, message, timeout = 1000) => {
 		try {
-			const message: Message = JSON.parse(stringifiedData);
-
-			// Proxy this to the http endpoint
-			if (message.type === 'query' || message.type === 'mutation') {
-				forwardMessageToLocalSocket(message, apiKey);
+			if (client.readyState === 0) {
+				setTimeout(() => {
+					sendMessage(client, message, timeout);
+					log.debug('Message sent to mothership.', message)
+				}, timeout);
 				return;
 			}
 
-			log.debug(`Got a "${message.type}" request from mothership, handling internally.`);
+			client.send(message);
+		} catch (error) {
+			log.error('Failed replying to mothership.', error);
+		};
+	};
 
-			if (isProxyMessage(message)) {
-				const payload = message.payload;
-
-				if (isServersPayload(payload)) {
-					const cachedData = userCache.get<CachedServer[]>('mine');
-					const newData = {
-						servers: payload.data
-					};
-
-					// If we don't have cached data just save this
-					if (!cachedData || cachedData.length === 0) {
-						userCache.set('mine', newData);
-						return;
-					}
-
-					// Loop all new servers and merge new data on top of the cached stuff
-					// This should mean { guid: "1", status: "offline" } should keep
-					// all data but update the "status" field.
-					const mergedData = {
-						servers: newData.servers.map(newServer => {
-							const cachedServer = cachedData?.find(cachedServer => cachedServer.guid === newServer.guid);
-							return cachedServer ? merge(cachedServer, newServer) : newServer;
-						})
-					};
-
-					userCache.set('mine', mergedData);
-				}
-			}
+	relay.on('message', async (data: string) => {
+		try {
+			sendMessage(localGraphqlApi, data);
 		} catch (error) {
 			// Something weird happened while processing the message
 			// This is likely a malformed message
@@ -245,11 +232,10 @@ export const connectToMothership = async (wsServer, currentRetryAttempt: number 
  * Disconnect from mothership.
  */
 export const disconnectFromMothership = async () => {
-	if (mothership && mothership.readyState !== 0) {
+	if (relay && relay.readyState !== 0) {
 		log.debug('Disconnecting from the proxy server.');
 		try {
-			mothership.close();
-			mothership = undefined;
+			relay.close();
 		} catch {}
 	}
 };

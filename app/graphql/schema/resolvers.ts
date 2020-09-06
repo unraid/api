@@ -48,6 +48,10 @@ dee.on('*', async (data: { Type: string }) => {
 
 dee.listen();
 
+setInterval(() => {
+	publish('online', 'UPDATED', true);
+}, 1000);
+
 // This needs to be fixed to run from events
 setIntervalAsync(async () => {
 	if (!canPublishToChannel('services')) {
@@ -232,6 +236,9 @@ export const resolvers = {
 				hasSubscribedToChannel(context.websocketId, channel);
 				return pubsub.asyncIterator(channel);
 			}
+		},
+		online: {
+			...createSubscription('online')
 		}
 	},
 	JSON: GraphQLJSON,
