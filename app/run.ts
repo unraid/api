@@ -20,11 +20,15 @@ export const publish = (channel: string, mutation: string, node?: {}) => {
     };
 
     if (!canPublishToChannel(channel)) {
+        // console.log(`can't post to ${channel}`);
         return;
     }
 
     // Update clients
-    pubsub.publish(channel, data);
+    const fieldName = Object.keys(data)[0];
+    pubsub.publish(channel, {
+        [fieldName]: data[fieldName].node
+    });
 };
 
 interface RunOptions {

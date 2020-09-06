@@ -81,6 +81,7 @@ const baseTypes = [gql`
 		ping: PingSubscription!
 		info: InfoSubscription!
 		pluginModule(plugin: String!, module: String!, params: JSON, result: String): PluginModuleSubscription!
+		online: Boolean!
 	}
 `];
 
@@ -182,8 +183,9 @@ const getPluginModule = (pluginName: string, pluginModuleName: string) => {
  */
 class FuncDirective extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field: { [key: string]: any }) {
+		// @ts-ignore
 		const { args } = this;
-		field.resolve = async function (source, directiveArgs: { [key: string]: any }, { user }, info: { [key: string]: any }) {
+		field.resolve = async function (_source, directiveArgs: { [key: string]: any }, { user }, info: { [key: string]: any }) {
 			const {module: moduleName, result: resultType} = args;
 			const {plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params} = directiveArgs;
 			const operationType = info.operation.operation;
@@ -369,19 +371,25 @@ export const graphql = {
 			wsHasDisconnected(websocketId);
 		}
 	},
-	context: ({req, connection}) => {
-		if (connection) {
+	context: ({req, connection, ...args_}, ...args__) => {
+		// Normal Websocket connection
+		if (connection && Object.keys(connection.context).length >= 1) {
 			// Check connection for metadata
 			return {
 				...connection.context
 			};
 		}
 
-		const apiKey = req.headers['x-api-key'];
-		const user = apiKeyToUser(apiKey);
-
-		return {
-			user
-		};
+		// Normal HTTP connection
+		if (req) {
+			const apiKey = req.headers['x-api-key'];
+			const user = apiKeyToUser(apiKey);
+			return {
+				user
+			};
+		}
+		
+		console.log({req, connection, args_, args__});
+		throw new Error('Invalid');
 	}
 };
