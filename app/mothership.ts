@@ -8,8 +8,8 @@ const log = console;
 const { loadState } = utils;
 const { varState } = states;
 
-process.on('uncaughtException', console.log);
-process.on('unhandledRejection', console.log);
+process.on('uncaughtException', log.debug);
+process.on('unhandledRejection', log.debug);
 
 const internalWsAddress = () => {
 	const port = config.get('graphql-api-port');
