@@ -76,14 +76,12 @@ export const wsHasDisconnected = (id: string) => {
 export const canPublishToChannel = (channel: string) => {
     // No ws connections
     if (getWsConectionCount() === 0) {
-        // log.debug('No ws connections, cannot publish');
         return false;
     }
 
     // No ws connections to this channel
     const channelConnectionCount = getWsConectionCountInChannel(channel);
     if (channelConnectionCount === 0) {
-        // log.debug(`No connections to channel ${channel}`);
         return false;
     }
 

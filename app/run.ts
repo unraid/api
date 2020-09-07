@@ -20,7 +20,7 @@ export const publish = (channel: string, mutation: string, node?: {}) => {
     };
 
     if (!canPublishToChannel(channel)) {
-        // console.log(`can't post to ${channel}`);
+        log.debug(`can't post to ${channel}`);
         return;
     }
 

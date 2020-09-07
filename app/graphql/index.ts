@@ -371,7 +371,7 @@ export const graphql = {
 			wsHasDisconnected(websocketId);
 		}
 	},
-	context: ({req, connection, ...args_}, ...args__) => {
+	context: ({ req, connection }) => {
 		// Normal Websocket connection
 		if (connection && Object.keys(connection.context).length >= 1) {
 			// Check connection for metadata
@@ -388,8 +388,7 @@ export const graphql = {
 				user
 			};
 		}
-		
-		console.log({req, connection, args_, args__});
+
 		throw new Error('Invalid');
 	}
 };
