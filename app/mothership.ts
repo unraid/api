@@ -1,13 +1,24 @@
 import fs from 'fs';
 import WebSocket from 'ws';
-import { log, utils, paths, states, config } from '@unraid/core';
+import { utils, paths, states, config } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
+
+const log = console;
 
 const { loadState } = utils;
 const { varState } = states;
 
 process.on('uncaughtException', console.log);
 process.on('unhandledRejection', console.log);
+
+const internalWsAddress = () => {
+	const port = config.get('graphql-api-port');
+	return isNaN(port as any)
+		// Unix Socket
+		? `ws+unix:${port}`
+		// Numbered port
+		: `ws://localhost:${port}`;
+}
 
 /**
  * One second in milliseconds.
@@ -26,7 +37,7 @@ const RELAY_WS_LINK = process.env.RELAY_WS_LINK ? process.env.RELAY_WS_LINK : 'w
 /**
  * Internal ws link.
  */
-const INTERNAL_WS_LINK = process.env.INTERNAL_WS_LINK ? process.env.INTERNAL_WS_LINK : `ws+unix://${config.get('graphql-api-port')}`;
+const INTERNAL_WS_LINK = process.env.INTERNAL_WS_LINK ? process.env.INTERNAL_WS_LINK : internalWsAddress();
 
 /**
  * Get a number between the lowest and highest value.
@@ -80,14 +91,16 @@ const readFileIfExists = (filePath: string) => {
  * Connect to unraid's proxy server
  */
 export const connectToMothership = async (wsServer: WebSocket.Server, currentRetryAttempt: number = 0) => {
-	// Kill the last connection first
-	await disconnectFromMothership();
-	let retryAttempt = currentRetryAttempt;
+	// Kill any existing connection before we proceed
+	if (relay) {
+		await disconnectFromMothership();
+	}
 
+	let retryAttempt = currentRetryAttempt;
 	if (retryAttempt >= 1) {
 		log.debug(`Reconnecting to mothership, attempt ${retryAttempt}.`);
 	}
-	
+
 	const apiKey = loadState<DynamixConfig>(paths.get('dynamix-config')!).remote.apikey || '';
 	const keyFile = varState.data?.regFile ? readFileIfExists(varState.data?.regFile).toString('base64') : '';
 	const serverName = `${varState.data?.name}`;
@@ -178,7 +191,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 				await connectToMothership(wsServer, retryAttempt + 1);
 			}, backoff(retryAttempt, ONE_MINUTE, 5));
 		} catch (error) {
-			log.error(error);
+			log.error('close error', error);
 		}
 	});
 
@@ -196,7 +209,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 			return;
 		}
 
-		log.error(error);
+		log.error('socket error', error);
 	});
 
 	relay.on('ping', heartbeat);
