@@ -217,7 +217,7 @@ if (empty($remote['wanport'])) {
     $remote['wanport'] = 443;
 }
 
-$hasCert = $var['USE_SSL']!='no' && file_exists('/boot/config/ssl/certs/certificate_bundle.pem');
+$hasCert = $var['USE_SSL']=='auto' && file_exists('/boot/config/ssl/certs/certificate_bundle.pem');
 $isRegistered = !empty($remote['apikey']);
 $boolWebUIAuth = $isRegistered && file_exists('/etc/nginx/htpasswd');
 
