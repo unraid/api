@@ -58,7 +58,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
             return resolve(moduleToRun(context));
         });
 
-        log.debug('Module:', moduleToRun.name, 'Result:', result.json);
+        // log.debug('Module:', moduleToRun.name, 'Result:', result.json);
 
         // Save result
         publish(channel, mutation, result.json);

@@ -60,3 +60,6 @@ test/__temp__/*
 
 # Built files
 dist
+
+# Typescript
+typescript

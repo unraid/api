@@ -263,11 +263,11 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			// Allow fields to be extracted
 			if (directiveArgs.extractFromResponse) {
 				const extractedField = get(result, directiveArgs.extractFromResponse);
-				log.debug(pluginOrModule, pluginOrModuleName, 'Result:', extractedField);
+				log.debug(pluginOrModule, pluginOrModuleName, 'Result:', JSON.stringify(extractedField));
 				return extractedField;
 			}
 
-			log.debug(pluginOrModule, pluginOrModuleName, 'Result:', result);
+			log.debug(pluginOrModule, pluginOrModuleName, 'Result:', JSON.stringify(result));
 			return result;
 		};
 	}
