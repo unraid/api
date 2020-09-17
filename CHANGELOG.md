@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.8.3](https://github.com/unraid/graphql-api/compare/v2.8.2-rolling-20200909002219...v2.8.3) (2020-09-17)
+
+
+### Bug Fixes
+
+* make clustering optional ([5b96a74](https://github.com/unraid/graphql-api/commit/5b96a740fa6854b4925942417da3b35912f0e3ad))
+
 ### [2.8.2](https://github.com/unraid/graphql-api/compare/v2.8.1-rolling-20200908223106...v2.8.2) (2020-09-09)
 
 ### [2.8.1](https://github.com/unraid/graphql-api/compare/v2.8.0-rolling-20200904003421...v2.8.1) (2020-09-04)
