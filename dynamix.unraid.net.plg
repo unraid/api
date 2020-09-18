@@ -736,7 +736,7 @@ if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.g
 }
 
 // setup git ignore for files we dont need in the flash backup
-if (strpos(file_get_contents('/boot/.git/info/exclude'),'Unraid') === false) {
+if (strpos(file_get_contents('/boot/.git/info/exclude'),'startup.nsh') === false) {
   file_put_contents('/boot/.git/info/exclude', '# Unraid OS Flash Backup
 
 # Blacklist everything
@@ -746,6 +746,7 @@ if (strpos(file_get_contents('/boot/.git/info/exclude'),'Unraid') === false) {
 !*.sha256
 !changes.txt
 !license.txt
+!startup.nsh
 
 !EFI*/
 EFI*/boot/*
@@ -765,6 +766,9 @@ config/random-seed
 config/shadow
 config/smbpasswd
 config/wireguard/privatekey
+config/plugins/**/*.tgz
+config/plugins/**/*.txz
+config/plugins/**/*.tar.bz2
 ');
 }
 
