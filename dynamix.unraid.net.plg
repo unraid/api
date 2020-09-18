@@ -730,6 +730,11 @@ if (!file_exists('/boot/.git/info/exclude')) {
   exec('git init /boot &>/dev/null');
 }
 
+// setup a nice git description
+if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.git/description'),'Unraid') === false) {
+  file_put_contents('/boot/.git/description', 'Unraid flash drive for '.$var['NAME']."\n");
+}
+
 // setup git ignore for files we dont need in the flash backup
 if (strpos(file_get_contents('/boot/.git/info/exclude'),'Unraid') === false) {
   file_put_contents('/boot/.git/info/exclude', '# Unraid OS Flash Backup
