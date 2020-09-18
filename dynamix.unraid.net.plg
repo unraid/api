@@ -800,10 +800,10 @@ if (($command == 'update') || ($command == 'reinit')) {
     exec('git -C /boot add -A &>/dev/null');
     if ($command == 'reinit') {
       exec('git -C /boot commit -m \'Initial commit\' &>/dev/null');
-      exec('git -C /boot push --force origin master &>/dev/null');
+      exec('git -C /boot push --force --set-upstream origin master &>/dev/null');
     } else {
       exec('git -C /boot commit -m \'Config change\' &>/dev/null');
-      exec('git -C /boot push &>/dev/null');
+      exec('git -C /boot push --set-upstream origin master &>/dev/null');
     }
   }
 }
