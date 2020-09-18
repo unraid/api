@@ -697,10 +697,13 @@ if (empty($json) || empty($json['ssh_privkey'])) {
 if (!file_exists('/root/.ssh')) {
   mkdir('/root/.ssh', 0700);
 }
-file_put_contents('/root/.ssh/unraidbackup_id_ed25519', $json['ssh_privkey']);
-chmod('/root/.ssh/unraidbackup_id_ed25519', 0600);
-file_put_contents('/root/.ssh/unraidbackup_id_ed25519.pub', $json['ssh_pubkey']);
-chmod('/root/.ssh/unraidbackup_id_ed25519.pub', 0644);
+
+if ($json['ssh_privkey'] != file_get_contents('/root/.ssh/unraidbackup_id_ed25519')) {
+  file_put_contents('/root/.ssh/unraidbackup_id_ed25519', $json['ssh_privkey']);
+  chmod('/root/.ssh/unraidbackup_id_ed25519', 0600);
+  file_put_contents('/root/.ssh/unraidbackup_id_ed25519.pub', $json['ssh_pubkey']);
+  chmod('/root/.ssh/unraidbackup_id_ed25519.pub', 0644);
+}
 
 // add configuration to use our keys
 if (!file_exists('/root/.ssh/config') || strpos(file_get_contents('/root/.ssh/config'),'Host backup.unraid.net') === false) {
