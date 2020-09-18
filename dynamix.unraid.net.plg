@@ -731,7 +731,7 @@ if (!file_exists('/boot/.git/info/exclude')) {
 }
 
 // setup a nice git description
-if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.git/description'),'Unraid') === false) {
+if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.git/description'),$var['NAME']) === false) {
   file_put_contents('/boot/.git/description', 'Unraid flash drive for '.$var['NAME']."\n");
 }
 
