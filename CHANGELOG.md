@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.8.4](https://github.com/unraid/graphql-api/compare/v2.8.3...v2.8.4) (2020-09-18)
+
 ### [2.8.3](https://github.com/unraid/graphql-api/compare/v2.8.2-rolling-20200909002219...v2.8.3) (2020-09-17)
 
 
