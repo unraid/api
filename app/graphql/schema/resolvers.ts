@@ -117,8 +117,6 @@ const getServers = async (): Promise<Server[]> => {
 			return [];
 		}
 
-		console.log({servers});
-
 		// @todo: Cache servers
 		// userCache.set<CachedServers>('mine', {
 		// 	servers
