@@ -85,6 +85,7 @@
     "apollo-server",
     "apollo-server-express",
     "camelcase",
+    "cross-fetch",
     "dot-prop",
     "express",
     "graphql",

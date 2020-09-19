@@ -25,5 +25,5 @@ export interface CachedServer {
 };
 
 export interface CachedServers {
-    servers: [CachedServer]
+    servers: CachedServer[]
 };

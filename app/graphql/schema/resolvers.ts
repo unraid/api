@@ -95,20 +95,32 @@ type Server = makeNullUndefinedAndOptional<CachedServer>;
 
 const getServers = async (): Promise<Server[]> => {
 	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
+	if (cachedServers) {
+		return cachedServers;
+	}
+
+	// For now use the my_servers key
+	// Later we should return the correct one for the current user with the correct scope, etc.
+	const apikey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
 
 	// No cached servers found
 	if (!cachedServers) {
 		// Fetch servers from mothership
 		const servers = await fetch(MOTHERSHIP_GRAPHQL_LINK, {
-			method: 'GET',
+			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
 				'Accept': 'application/json',
 			},
 			body: JSON.stringify({
-				query: "{ servers { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }"
+				query: 'query($apikey: String!) { servers @auth(apiKey: $apikey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
+				variables: {
+					apikey
+				}
 			})
-		}).then(r => r.json() as Promise<CachedServer[]>);
+		})
+		.then(r => r.json())
+		.then(({ data }) => data.servers as Promise<CachedServer[]>);
 
 		log.debug('Using upstream for /servers endpoint');
 
@@ -117,10 +129,10 @@ const getServers = async (): Promise<Server[]> => {
 			return [];
 		}
 
-		// @todo: Cache servers
-		// userCache.set<CachedServers>('mine', {
-		// 	servers
-		// })
+		// Cache servers
+		userCache.set<CachedServers>('mine', {
+			servers
+		});
 
 		// Return servers from mothership
 		return servers;
@@ -128,9 +140,6 @@ const getServers = async (): Promise<Server[]> => {
 
 	log.debug('Falling back to local state for /servers endpoint');
 	const guid = varState?.data?.regGuid;
-	// For now use the my_servers key
-	// Later we should return the correct one for the current user with the correct scope, etc.
-	const apikey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
 	const name = varState?.data?.name;
 	const wanip = null;
 	const lanip = networkState.data[0].ipaddr[0];
