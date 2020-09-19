@@ -22,12 +22,12 @@ export const ONE_MINUTE = 60 * ONE_SECOND;
 /**
  * Relay ws link.
  */
-export const MOTHERSHIP_RELAY_WS_LINK = process.env.RELAY_WS_LINK ? process.env.RELAY_WS_LINK : 'wss://mothership.unraid.net/relay';
+export const MOTHERSHIP_RELAY_WS_LINK = process.env.MOTHERSHIP_RELAY_WS_LINK ? process.env.MOTHERSHIP_RELAY_WS_LINK : 'wss://mothership.unraid.net/relay';
 
 /**
  * Graphql link.
  */
-export const MOTHERSHIP_GRAPHQL_LINK = process.env.RELAY_WS_LINK ? process.env.RELAY_WS_LINK : 'https://mothership.unraid.net/graphql';
+export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK ? process.env.MOTHERSHIP_GRAPHQL_LINK : 'https://mothership.unraid.net/graphql';
 
 /**
  * Internal ws link.
