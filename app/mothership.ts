@@ -1,6 +1,7 @@
 import fs from 'fs';
 import WebSocket from 'ws';
-import { utils, paths, states, config } from '@unraid/core';
+import { utils, paths, states } from '@unraid/core';
+import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK } from './consts';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 
 const log = console;
@@ -10,34 +11,6 @@ const { varState } = states;
 
 process.on('uncaughtException', log.debug);
 process.on('unhandledRejection', log.debug);
-
-const internalWsAddress = () => {
-	const port = config.get('graphql-api-port');
-	return isNaN(port as any)
-		// Unix Socket
-		? `ws+unix:${port}`
-		// Numbered port
-		: `ws://localhost:${port}`;
-}
-
-/**
- * One second in milliseconds.
- */
-const ONE_SECOND = 1000;
-/**
- * One minute in milliseconds.
-*/
-const ONE_MINUTE = 60 * ONE_SECOND;
-
-/**
- * Relay ws link.
- */
-const RELAY_WS_LINK = process.env.RELAY_WS_LINK ? process.env.RELAY_WS_LINK : 'wss://relay.unraid.net';
-
-/**
- * Internal ws link.
- */
-const INTERNAL_WS_LINK = process.env.INTERNAL_WS_LINK ? process.env.INTERNAL_WS_LINK : internalWsAddress();
 
 /**
  * Get a number between the lowest and highest value.
@@ -110,7 +83,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 
 	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
-	relay = new WebSocket(RELAY_WS_LINK, ['graphql-ws'], {
+	relay = new WebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
 		headers: {
 			'x-api-key': apiKey,
 			'x-flash-guid': varState.data?.flashGuid ?? '',

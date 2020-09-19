@@ -9,9 +9,11 @@ import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
+import fetch from 'cross-fetch';
 import { run, publish } from '../../run';
 import { userCache, CachedServer, CachedServers } from '../../cache';
-import { hasSubscribedToChannel, canPublishToChannel } from '../../ws';
+import { hasSubscribedToChannel } from '../../ws';
+import { MOTHERSHIP_GRAPHQL_LINK } from '../../consts';
 
 const { ensurePermission } = utils;
 const { usersState, varState, networkState } = states;
@@ -37,11 +39,6 @@ dee.on('*', async (data: { Type: string }) => {
 		return;
 	}
 
-	// Don't publish when we have no clients
-	if (!canPublishToChannel('info')) {
-		return;
-	}
-
 	const { json } = await modules.getApps();
 	publish('info', 'UPDATED', json);
 });
@@ -50,10 +47,6 @@ dee.listen();
 
 // This needs to be fixed to run from events
 setIntervalAsync(async () => {
-	if (!canPublishToChannel('services')) {
-		return;
-	}
-
 	// @todo: Create a system user for this
 	const user = usersState.findOne({ name: 'root' });
 
@@ -100,43 +93,67 @@ type makeNullUndefinedAndOptional<T> = {
 
 type Server = makeNullUndefinedAndOptional<CachedServer>;
 
-const getServers = (): Server[] => {
-	const servers = userCache.get<CachedServers>('mine')?.servers ?? [];
+const getServers = async (): Promise<Server[]> => {
+	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
 
-	// Fall back to locally generated data
-	if (servers.length === 0) {
-		log.debug('Falling back to local state for /servers endpoint');
-		const guid = varState?.data?.regGuid;
-		// For now use the my_servers key
-		// Later we should return the correct one for the current user with the correct scope, etc.
-		const apikey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
-		const name = varState?.data?.name;
-		const wanip = null;
-		const lanip = networkState.data[0].ipaddr[0];
-		const localurl = `http://${lanip}:${varState?.data?.port}`;
-		const remoteurl = null;
-
-		return [{
-			owner: {
-				username: 'root',
-				url: '',
-				avatar: ''
+	// No cached servers found
+	if (!cachedServers) {
+		// Fetch servers from mothership
+		const servers = await fetch(MOTHERSHIP_GRAPHQL_LINK, {
+			method: 'GET',
+			headers: {
+				'Content-Type': 'application/json',
+				'Accept': 'application/json',
 			},
-			guid,
-			apikey,
-			name,
-			status: 'online',
-			wanip,
-			lanip,
-			localurl,
-			remoteurl
-		}];
+			body: JSON.stringify({
+				query: "{ servers { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }"
+			})
+		}).then(r => r.json() as Promise<CachedServer[]>);
+
+		log.debug('Using upstream for /servers endpoint');
+
+		// No servers found
+		if (servers.length === 0) {
+			return [];
+		}
+
+		console.log({servers});
+
+		// @todo: Cache servers
+		// userCache.set<CachedServers>('mine', {
+		// 	servers
+		// })
+
+		// Return servers from mothership
+		return servers;
 	}
 
-	log.debug('Using upstream for /servers endpoint');
+	log.debug('Falling back to local state for /servers endpoint');
+	const guid = varState?.data?.regGuid;
+	// For now use the my_servers key
+	// Later we should return the correct one for the current user with the correct scope, etc.
+	const apikey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
+	const name = varState?.data?.name;
+	const wanip = null;
+	const lanip = networkState.data[0].ipaddr[0];
+	const localurl = `http://${lanip}:${varState?.data?.port}`;
+	const remoteurl = null;
 
-	// Return servers from upstream cache
-	return servers;
+	return [{
+		owner: {
+			username: 'root',
+			url: '',
+			avatar: ''
+		},
+		guid,
+		apikey,
+		name,
+		status: 'online',
+		wanip,
+		lanip,
+		localurl,
+		remoteurl
+	}];
 };
 
 export const resolvers = {
@@ -152,7 +169,7 @@ export const resolvers = {
 			});
 
 			// Single server
-			return getServers().find(server => server.name === name);
+			return getServers().then(server => server.find(server => server.name === name));
 		},
 		servers(_: unknown, __: unknown, context: Context) {
 			ensurePermission(context.user, {

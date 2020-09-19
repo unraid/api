@@ -1,6 +1,5 @@
 import { CoreResult } from '@unraid/core/dist/lib/types';
 import { pubsub, utils, log } from '@unraid/core';
-import { canPublishToChannel } from './ws';
 
 const { debugTimer } = utils;
 
@@ -18,11 +17,6 @@ export const publish = (channel: string, mutation: string, node?: {}) => {
             node
         }
     };
-
-    if (!canPublishToChannel(channel)) {
-        log.debug(`can't post to ${channel}`);
-        return;
-    }
 
     // Update clients
     const fieldName = Object.keys(data)[0];

@@ -1,5 +1,3 @@
-import { log } from '@unraid/core';
-
 interface subscription {
     total: number
     channels: string[]
@@ -69,23 +67,4 @@ export const wsHasConnected = (id: string) => {
 export const wsHasDisconnected = (id: string) => {
     subscriptions[id].total = 0;
     subscriptions[id].channels = [];
-};
-
-// Only allows function to publish to pubsub when clients are online and are connected to the specific channel
-// the reason we do this is otherwise pubsub will cause a memory leak
-export const canPublishToChannel = (channel: string) => {
-    // No ws connections
-    if (getWsConectionCount() === 0) {
-        return false;
-    }
-
-    // No ws connections to this channel
-    const channelConnectionCount = getWsConectionCountInChannel(channel);
-    if (channelConnectionCount === 0) {
-        return false;
-    }
-
-    const plural = channelConnectionCount !== 1;
-    log.debug(`Allowing publish to "${channel}" as there ${plural ? 'are' : 'is'} ${channelConnectionCount} connection${plural ? 's' : ''} in that channel.`);
-    return true;
 };
