@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.8.9](https://github.com/unraid/graphql-api/compare/v2.8.8...v2.8.9) (2020-09-19)
+
+
+### Bug Fixes
+
+* **envs:** incorrect env being used ([49f4f38](https://github.com/unraid/graphql-api/commit/49f4f38324d80f755f389e87be841d8838a1693d))
+
 ### [2.8.8](https://github.com/unraid/graphql-api/compare/v2.8.7...v2.8.8) (2020-09-19)
 
 
