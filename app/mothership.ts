@@ -1,7 +1,7 @@
 import fs from 'fs';
 import WebSocket from 'ws';
 import { utils, paths, states } from '@unraid/core';
-import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK } from './consts';
+import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from './consts';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 
 const log = console;
