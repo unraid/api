@@ -1,13 +1,15 @@
 import fs from 'fs';
 import WebSocket from 'ws';
-import { utils, paths, states } from '@unraid/core';
+import { utils, paths, states, log } from '@unraid/core';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from './consts';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 
-const log = console;
-
 const { loadState } = utils;
 const { varState } = states;
+
+// Websocket closed state
+// https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
+const CLOSED_READY_STATE = 3;
 
 process.on('uncaughtException', log.debug);
 process.on('unhandledRejection', log.debug);
@@ -145,19 +147,34 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	});
 
 	// Relay is closed
-	relay.on('close', async function (this: WebSocketWithHeartBeat, ...args) {
+	relay.on('close', async function (this: WebSocketWithHeartBeat, code, _message) {
 		try {
-			log.debug('Connection closed.', ...args);
+			log.debug('Connection closed with code %s.', code);
 
 			if (this.pingTimeout) {
 				clearTimeout(this.pingTimeout);
 			}
 
+			// Close connection to local graphql endpoint
+			localGraphqlApi?.close();
+
 			// Clear all listeners before running this again
 			relay?.removeAllListeners();
 
-			// Close connection to local graphql endpoint
-			localGraphqlApi?.close();
+			// We likely closed this
+			// This is usually because the API key is updated
+			if (code === 4200) {
+				return;
+			}
+
+			// Http 4XX error
+			if (code >= 4400 && code <= 4499) {
+				// Unauthorized - No API key?
+				if (code === 4401) {
+					log.debug('Invalid API key, waiting for new key...');
+					return;
+				}
+			}
 
 			// Reconnect
 			setTimeout(async () => {
@@ -218,10 +235,11 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
  * Disconnect from mothership.
  */
 export const disconnectFromMothership = async () => {
-	if (relay && relay.readyState !== 0) {
+	if (relay && relay.readyState !== CLOSED_READY_STATE) {
 		log.debug('Disconnecting from the proxy server.');
 		try {
-			relay.close();
+			// 4200 === ok
+			relay.close(4200);
 		} catch {}
 	}
 };
