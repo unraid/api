@@ -1,22 +1,30 @@
 /* eslint-disable camelcase */
+const path = require('path');
 
 const common = {
 	name: 'graphql-api',
-	script: './index.js',
+	script: './dist/index.js',
 	watch: false,
 	wait_ready: true,
 	listen_timeout: 3000,
-	error_file: '/var/log/graphql-api.log',
-	out_file: '/var/log/graphql-api.log',
 	exp_backoff_restart_delay: 100,
-	max_memory_restart: '200M',
-	PORT: '/var/run/graphql-api.sock'
+	max_memory_restart: '200M'
 };
+
+const nonDevelopment = {
+	PORT: '/var/run/graphql-api.sock',
+	error_file: '/var/log/graphql-api.log',
+	out_file: '/var/log/graphql-api.log'
+}
 
 const envs = {
 	env_development: {
 		PORT: 5000,
-		NODE_ENV: 'development'
+		NODE_ENV: 'development',
+		NCHAN: 'disable',
+		PATHS_STATES: path.resolve(__dirname, './dev/states'),
+		PATHS_DYNAMIX_DATA: '/tmp/dynamix/',
+		PATHS_DYNAMIX_CONFIG: path.resolve(__dirname, './dev/dynamix.cfg')
 	},
 	'env_safe-mode': {
 		NODE_ENV: 'safe-mode'
