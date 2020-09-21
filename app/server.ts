@@ -15,7 +15,7 @@ import WebSocket from 'ws';
 import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths } from '@unraid/core';
 import { graphql } from './graphql';
-import { connectToMothership, disconnectFromMothership } from './mothership';
+import { connectToMothership } from './mothership';
 
 const { getEndpoints, globalErrorHandler, exitApp, loadState } = utils;
 
@@ -151,14 +151,9 @@ export const server = {
 			return (key === undefined || String(key).trim() === '') ? undefined : key;
 		};
 		const reconnect = async () => {
-			const key = getApiKey();
-
-			// Try and stop the last connection if it's still open
-			await disconnectFromMothership();
-
 			log.debug('my_servers API key was updated, restarting proxy connection.');
 			process.nextTick(() => {
-				if (key !== undefined) {
+				if (getApiKey() !== undefined) {
 					connectToMothership(wsServer);
 				}
 			});
