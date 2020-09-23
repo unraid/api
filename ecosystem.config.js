@@ -11,12 +11,6 @@ const common = {
 	max_memory_restart: '200M'
 };
 
-const nonDevelopment = {
-	PORT: '/var/run/graphql-api.sock',
-	error_file: '/var/log/graphql-api.log',
-	out_file: '/var/log/graphql-api.log'
-}
-
 const envs = {
 	env_development: {
 		PORT: 5000,
@@ -33,7 +27,8 @@ const envs = {
 		DEBUG: true
 	},
 	env_production: {
-		NODE_ENV: 'production'
+		NODE_ENV: 'production',
+		PORT: '/var/run/graphql-api.sock'
 	}
 };
 
