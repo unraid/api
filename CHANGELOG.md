@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.8.10](https://github.com/unraid/graphql-api/compare/v2.8.9...v2.8.10) (2020-09-24)
+
+
+### Bug Fixes
+
+* ensure we safely close the ws connection ([f700de4](https://github.com/unraid/graphql-api/commit/f700de439a21f02a32b0da9c02ac960e53b4f068))
+* remove double disconnect for relay connection ([e40b2b7](https://github.com/unraid/graphql-api/commit/e40b2b71a6102af37324fccd966992961ee9ab3b))
+* replace worker threads with pm2 ([49db15b](https://github.com/unraid/graphql-api/commit/49db15b7daf4b1f84a93c7af8c64c50c797e7171))
+
 ### [2.8.9](https://github.com/unraid/graphql-api/compare/v2.8.8...v2.8.9) (2020-09-19)
 
 
