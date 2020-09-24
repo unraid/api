@@ -8,7 +8,8 @@ const common = {
 	wait_ready: true,
 	listen_timeout: 3000,
 	exp_backoff_restart_delay: 100,
-	max_memory_restart: '200M'
+	max_memory_restart: '200M',
+	PROCESS_TITLE: 'graphql-api'
 };
 
 const envs = {

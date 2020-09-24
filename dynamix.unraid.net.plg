@@ -52,77 +52,55 @@ fi
 #!/bin/bash
 # unraid-api-handler
 downloads=(graphql-api plugins)
-node_apps=(graphql-api)
 mode="production"
+base_directory="/usr/local/bin"
 if [[ $* == *--mode\=dev* ]]; then
   mode="development"
 fi
 status() {
-  local supervisor_pid=$(pidof gql-supervisor)
   local graphql_api_pid=$(pidof graphql-api)
-  if [[ $supervisor_pid ]]; then
-    echo "The supervisor($supervisor_pid) process is running."
-
-    if [[ $graphql_api_pid ]]; then
-      echo "Graphql-api($graphql_api_pid) is running."
-    fi
+  if [[ $graphql_api_pid ]]; then
+    echo "Graphql-api is running."
   else
-    if [ -S "/var/run/graphql-api.sock" ]; then
-      echo "Graphql-api($graphql_api_pid) is running but we can't find the supervisor process."
-    else
-      echo "No processes are running."
-    fi
+    echo "No processes are running."
   fi
 }
 version() {
   # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
-  local graphql_version=$(grep '"version"' /usr/local/node/graphql-api/package.json | cut -d '"' -f 4)
-  local plugins_version=$(grep '"version"' /usr/local/node/plugins/package.json | cut -d '"' -f 4)
+  local graphql_version=$(grep '"version"' $base_directory/node/graphql-api/package.json | cut -d '"' -f 4)
+  local plugins_version=$(grep '"version"' $base_directory/node/plugins/package.json | cut -d '"' -f 4)
 
   echo "Graphql-api v$graphql_version"
   echo "Official plugins v$plugins_version"
 }
 start() {
-  local supervisor_pid=$(pidof gql-supervisor)
-  if [[ $supervisor_pid ]]; then
-    echo "The supervisor($supervisor_pid) process is already running, please wait or try the \"reload\" command."
-    exit 1
-  else
-    for i in ${node_apps[@]}; do
-      NODE_ENV=$(echo $mode) nohup node /usr/local/node/${i}/index.js >/var/log/${i}.log 2>&1 &
-    done
-    exit 0
-  fi
+  pm2 startOrRestart $base_directory/node/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  exit 0
 }
 stop() {
-  kill $(pidof gql-supervisor)
+  pm2 kill &> /dev/null
+  exit 0
 }
 reload() {
-  kill -SIGHUP $(pidof gql-supervisor)
-}
-logs() {
-  if [ -f "/var/log/graphql-api.log" ]; then
-    tail -f /var/log/graphql-api.log
-  else 
-    echo "Process hasn't been started yet, try the \"start\" command."
-  fi
+  pm2 startOrRestart $base_directory/node/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  exit 0
 }
 install() {
-  mkdir -p /usr/local/node
-  for i in ${downloads[@]}; do
-    tar -C /usr/local/node -xf /boot/config/plugins/Unraid.net/unraid-${i}.tgz
-    rm -rf /usr/local/node/${i}
-    mv /usr/local/node/package /usr/local/node/${i}
+  pm2 kill &> /dev/null
+  for download in ${downloads[@]}; do
+    rm -rf $base_directory/node/${download}
+    mkdir -p $base_directory/node/${download}
+    tar -C $base_directory/node/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
   done
   start
 }
 uninstall() {
   stop
   sleep 1
-  for i in ${node_apps[@]}; do
-    rm -rf /usr/local/node/${i}
+  for download in ${downloads[@]}; do
+    rm -rf $base_directory/node/${download}
   done
-  rm -rf /var/run/graphql-api.sock
+  rm -f /var/run/graphql-api.sock
 }
 case "$1" in
 'status')
@@ -140,9 +118,6 @@ case "$1" in
 'reload')
   reload
   ;;
-'logs')
-  logs
-  ;;
 'install')
   install
   ;;
@@ -150,7 +125,7 @@ case "$1" in
   uninstall
   ;;
 *)
-  echo "usage $0 status|start|stop|reload|logs|install|uninstall"
+  echo "usage $0 status|start|stop|reload|install|uninstall"
 esac
 ]]>
 </INLINE>
