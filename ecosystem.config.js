@@ -3,7 +3,7 @@ const path = require('path');
 
 const common = {
 	name: 'graphql-api',
-	script: './dist/index.js',
+	script: path.resolve(__dirname, './dist/index.js'),
 	watch: false,
 	wait_ready: true,
 	listen_timeout: 3000,
