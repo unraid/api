@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.9.2](https://github.com/unraid/graphql-api/compare/v2.9.1...v2.9.2) (2020-09-25)
+
+
+### Bug Fixes
+
+* move sentry into correct file ([7164e58](https://github.com/unraid/graphql-api/commit/7164e5810df8db20c7808a032a44510e609b1e8c))
+
 ### [2.9.1](https://github.com/unraid/graphql-api/compare/v2.9.0...v2.9.1) (2020-09-25)
 
 
