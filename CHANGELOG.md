@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.9.0](https://github.com/unraid/graphql-api/compare/v2.8.12...v2.9.0) (2020-09-25)
+
+
+### Features
+
+* add Sentry ([b7bba74](https://github.com/unraid/graphql-api/commit/b7bba74e5c3e10e4e4864633542e493b7d597d44))
+
 ### [2.8.12](https://github.com/unraid/graphql-api/compare/v2.8.11...v2.8.12) (2020-09-24)
 
 
