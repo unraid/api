@@ -190,7 +190,7 @@ export const server = {
 			});
 		});
 	},
-	stop() {
+	stop(callback?: () => void) {
 		// Stop http server from accepting new connections and close existing connections
 		stoppableServer.stop(globalErrorHandler);
 
@@ -202,10 +202,17 @@ export const server = {
 
 		// Unlink socket file
 		if (isNaN(parseInt(port, 10))) {
-			fs.unlinkSync(port);
+			try {
+				fs.unlinkSync(port);
+			} catch {}
 		}
 
-		log.info(`Successfully stopped ${serverName}`);
+		// Run callback
+		if (callback) {
+			return callback();
+		}
+
+		log.debug(`Successfully stopped ${serverName}`);
 
 		// Gracefully exit
 		exitApp();

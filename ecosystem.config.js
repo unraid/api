@@ -1,17 +1,6 @@
 /* eslint-disable camelcase */
 const path = require('path');
 
-const common = {
-	name: 'graphql-api',
-	script: path.resolve(__dirname, './dist/index.js'),
-	watch: false,
-	wait_ready: true,
-	listen_timeout: 3000,
-	exp_backoff_restart_delay: 100,
-	max_memory_restart: '200M',
-	PROCESS_TITLE: 'graphql-api'
-};
-
 const envs = {
 	env_development: {
 		PORT: 5000,
@@ -19,7 +8,8 @@ const envs = {
 		NCHAN: 'disable',
 		PATHS_STATES: path.resolve(__dirname, './dev/states'),
 		PATHS_DYNAMIX_DATA: '/tmp/dynamix/',
-		PATHS_DYNAMIX_CONFIG: path.resolve(__dirname, './dev/dynamix.cfg')
+		PATHS_DYNAMIX_CONFIG: path.resolve(__dirname, './dev/dynamix.cfg'),
+		DEBUG: true
 	},
 	'env_safe-mode': {
 		NODE_ENV: 'safe-mode'
@@ -39,7 +29,16 @@ const envs = {
 
 module.exports = {
 	apps: [{
-		...common,
+		name: 'graphql-api',
+		script: path.resolve(__dirname, './index.js'),
+		watch: false,
+		wait_ready: true,
+		listen_timeout: 3000,
+		exp_backoff_restart_delay: 100,
+		max_memory_restart: '200M',
+		env: {
+			PROCESS_TITLE: 'graphql-api'
+		},
 		...envs
 	}]
 };
