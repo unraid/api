@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.9.3](https://github.com/unraid/graphql-api/compare/v2.9.2...v2.9.3) (2020-09-25)
+
+
+### Bug Fixes
+
+* **sentry:** ensure we flush error queue before exiting ([2608e08](https://github.com/unraid/graphql-api/commit/2608e08c9ef9997f216caa83f1abd6adacebb24b))
+
 ### [2.9.2](https://github.com/unraid/graphql-api/compare/v2.9.1...v2.9.2) (2020-09-25)
 
 
