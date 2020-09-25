@@ -53,7 +53,7 @@ fi
 # unraid-api-handler
 downloads=(graphql-api plugins)
 mode="production"
-base_directory="/usr/local/bin"
+base_directory="/usr/local/bin/node"
 if [[ $* == *--mode\=dev* ]]; then
   mode="development"
 fi
@@ -67,30 +67,39 @@ status() {
 }
 version() {
   # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
-  local graphql_version=$(grep '"version"' $base_directory/node/graphql-api/package.json | cut -d '"' -f 4)
-  local plugins_version=$(grep '"version"' $base_directory/node/plugins/package.json | cut -d '"' -f 4)
+  local graphql_version=$(grep '"version"' $base_directory/graphql-api/package.json | cut -d '"' -f 4)
+  local plugins_version=$(grep '"version"' $base_directory/plugins/package.json | cut -d '"' -f 4)
 
   echo "Graphql-api v$graphql_version"
   echo "Official plugins v$plugins_version"
 }
 start() {
-  pm2 startOrRestart $base_directory/node/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  old_working_directory=$(echo $pwd)
+  cd $base_directory
+  pm2 startOrRestart $base_directory/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  cd $old_working_directory
   exit 0
+}
+startdebug() {
+  old_working_directory=$(echo $pwd)
+  cd $base_directory
+  pm2 startOrRestart $base_directory/graphql-api/ecosystem.config.js --env=debug --no-daemon
+  cd $old_working_directory
 }
 stop() {
   pm2 kill &> /dev/null
   exit 0
 }
 reload() {
-  pm2 startOrRestart $base_directory/node/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  pm2 startOrRestart $base_directory/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
   exit 0
 }
 install() {
   pm2 kill &> /dev/null
   for download in ${downloads[@]}; do
-    rm -rf $base_directory/node/${download}
-    mkdir -p $base_directory/node/${download}
-    tar -C $base_directory/node/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
+    rm -rf $base_directory/${download}
+    mkdir -p $base_directory/${download}
+    tar -C $base_directory/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
   done
   start
 }
@@ -98,7 +107,7 @@ uninstall() {
   stop
   sleep 1
   for download in ${downloads[@]}; do
-    rm -rf $base_directory/node/${download}
+    rm -rf $base_directory/${download}
   done
   rm -f /var/run/graphql-api.sock
 }
@@ -111,6 +120,9 @@ case "$1" in
   ;;
 'start')
   start
+  ;;
+'start-debug')
+  startdebug
   ;;
 'stop')
   stop

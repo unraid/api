@@ -5,4 +5,5 @@ try {
     });
 } catch {}
 
+process.chdir(__dirname);
 require('./dist/index');
