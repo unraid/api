@@ -27,6 +27,10 @@ const envs = {
 	env_debug: {
 		DEBUG: true
 	},
+	env_staging: {
+		MOTHERSHIP_RELAY_WS_LINK: 'wss://staging.mothership.unraid.net/relay',
+		SENTRY_DSN: 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sentry.io/5439629'
+	},
 	env_production: {
 		NODE_ENV: 'production',
 		PORT: '/var/run/graphql-api.sock'
