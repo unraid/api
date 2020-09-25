@@ -81,6 +81,7 @@
     "xo": "0.33.1"
   },
   "bundledDependencies": [
+    "@sentry/node",
     "@gridplus/docker-events",
     "@unraid/core",
     "accesscontrol",
