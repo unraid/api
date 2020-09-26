@@ -6,17 +6,22 @@
 import os from 'os';
 import am from 'am';
 import * as Sentry from '@sentry/node';
-import { core, loadServer } from '@unraid/core';
+import { core, loadServer, states } from '@unraid/core';
 import { server } from './server';
 
 // Send errors to server if enabled
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,
 	tracesSampleRate: 1.0,
-	release: require('../package.json').version,
+	release: `graphql-api@${require('../package.json').version}`,
 	environment: process.env.NODE_ENV,
 	serverName: os.hostname(),
     enabled: Boolean(process.env.SENTRY_DSN)
+});
+
+// Set user's ID to their flashGuid
+Sentry.setUser({
+	id: states.varState.data.flashGuid
 });
 
 // Boot app
