@@ -74,28 +74,47 @@ version() {
   echo "Official plugins v$plugins_version"
 }
 start() {
-  old_working_directory=$(echo $pwd)
+  stop
+  local old_working_directory=$(echo $pwd)
   cd $base_directory
-  pm2 startOrRestart $base_directory/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
   cd $old_working_directory
+  sleep 1
+  status
   exit 0
 }
 startdebug() {
-  old_working_directory=$(echo $pwd)
+  stop
+  local old_working_directory=$(echo $pwd)
   cd $base_directory
-  pm2 startOrRestart $base_directory/graphql-api/ecosystem.config.js --env=debug --no-daemon
+  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=debug --no-daemon
   cd $old_working_directory
 }
 stop() {
-  pm2 kill &> /dev/null
-  exit 0
+  local should_kill=$1
+  local graphql_api_pid=$(pidof graphql-api)
+  if [[ $graphql_api_pid ]]; then
+    local parent_pid=$(cat /proc/$graphql_api_pid/status | grep PPid | cut -f2)
+    if [[ $parent_pid ]]; then
+      kill $parent_pid &> /dev/null
+    fi
+  fi
+  sleep 1
+  if [[ $should_kill ]]; then
+    status
+    exit 0
+  fi
 }
 reload() {
-  pm2 startOrRestart $base_directory/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  stop
+  sleep 1
+  start
+  sleep 1
+  status
   exit 0
 }
 install() {
-  pm2 kill &> /dev/null
+  stop
   for download in ${downloads[@]}; do
     rm -rf $base_directory/${download}
     mkdir -p $base_directory/${download}
@@ -125,7 +144,7 @@ case "$1" in
   startdebug
   ;;
 'stop')
-  stop
+  stop true
   ;;
 'reload')
   reload
@@ -137,7 +156,7 @@ case "$1" in
   uninstall
   ;;
 *)
-  echo "usage $0 status|start|stop|reload|install|uninstall"
+  echo "usage $0 status|start|start-debug|stop|reload|install|uninstall"
 esac
 ]]>
 </INLINE>
