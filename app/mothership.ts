@@ -97,7 +97,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	});
 
 	relay.on('open', async () => {
-		log.debug(`Connected to mothership's relay.`);
+		log.debug(`Connected to mothership's relay via ${MOTHERSHIP_RELAY_WS_LINK}.`);
 
 		// Reset retry attempts
 		retryAttempt = 0;

@@ -54,9 +54,6 @@ fi
 downloads=(graphql-api plugins)
 env="production"
 base_directory="/usr/local/bin/node"
-if [[ $* == *--mode\=dev* ]]; then
-  env="development"
-fi
 status() {
   local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
   if [[ $graphql_api_pid ]]; then
@@ -87,7 +84,7 @@ startdebug() {
   stop
   local old_working_directory=$(echo $pwd)
   cd $base_directory
-  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=debug --no-daemon
+  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
   cd $old_working_directory
 }
 stop() {

@@ -1,6 +1,15 @@
 /* eslint-disable camelcase */
 const path = require('path');
 
+const staging = {
+	MOTHERSHIP_RELAY_WS_LINK: 'wss://staging.mothership.unraid.net/relay',
+	SENTRY_DSN: 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sentry.io/5439629'
+};
+const production = {
+	NODE_ENV: 'production',
+	PORT: '/var/run/graphql-api.sock'
+}
+
 const envs = {
 	env_development: {
 		PORT: 5000,
@@ -14,16 +23,15 @@ const envs = {
 	'env_safe-mode': {
 		NODE_ENV: 'safe-mode'
 	},
-	env_debug: {
+	env_staging: staging,
+	'env_staging-debug': {
+		...staging,
+		DEBUG: true,
+	},
+	env_production: production,
+	'env_production-debug': {
+		...production,
 		DEBUG: true
-	},
-	env_staging: {
-		MOTHERSHIP_RELAY_WS_LINK: 'wss://staging.mothership.unraid.net/relay',
-		SENTRY_DSN: 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sentry.io/5439629'
-	},
-	env_production: {
-		NODE_ENV: 'production',
-		PORT: '/var/run/graphql-api.sock'
 	}
 };
 
