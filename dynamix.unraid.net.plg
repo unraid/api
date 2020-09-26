@@ -52,13 +52,13 @@ fi
 #!/bin/bash
 # unraid-api-handler
 downloads=(graphql-api plugins)
-mode="production"
+env="production"
 base_directory="/usr/local/bin/node"
 if [[ $* == *--mode\=dev* ]]; then
-  mode="development"
+  env="development"
 fi
 status() {
-  local graphql_api_pid=$(pidof graphql-api)
+  local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
   if [[ $graphql_api_pid ]]; then
     echo "Graphql-api is running."
   else
@@ -77,7 +77,7 @@ start() {
   stop
   local old_working_directory=$(echo $pwd)
   cd $base_directory
-  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $mode) --no-daemon &> /dev/null &
+  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
   cd $old_working_directory
   sleep 1
   status
@@ -92,7 +92,7 @@ startdebug() {
 }
 stop() {
   local should_kill=$1
-  local graphql_api_pid=$(pidof graphql-api)
+  local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
   if [[ $graphql_api_pid ]]; then
     local parent_pid=$(cat /proc/$graphql_api_pid/status | grep PPid | cut -f2)
     if [[ $parent_pid ]]; then
