@@ -918,7 +918,6 @@ function handleMessage(e) {
     case "REDIRECT_MAIN":
       return window.location.href = '/Main';
     case "STOP_SENDING_SESSION":
-      console.log('pop-up received session');
       break;
     default:
       console.error('Unhandled event \'' + data.event + '\' fired. data:', data);
@@ -1071,7 +1070,7 @@ unraid-user-profile {
 <![CDATA[
 <!-- user profile component -->
 <?if(empty($wizard['hideWizard'])):?>
-<unraid-launchpad openOnLoad="<? echo empty($wizard['hideWizard']) ?>"></unraid-launchpad>
+<unraid-launchpad openonload="<? echo empty($wizard['hideWizard']) ?>"></unraid-launchpad>
 <?endif?>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <?
