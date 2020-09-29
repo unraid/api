@@ -1069,7 +1069,7 @@ unraid-user-profile {
 <INLINE>
 <![CDATA[
 <!-- user profile component -->
-<?if(empty($wizard['hideWizard'])):?>
+<?if(empty($wizard['hideWizard']) || $path=='Tools/Registration'):?>
 <unraid-launchpad token="<? echo $var['csrf_token'] ?>" openonload="<? echo empty($wizard['hideWizard']) ?>"></unraid-launchpad>
 <?endif?>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
