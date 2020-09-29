@@ -593,6 +593,33 @@ response_complete($httpcode, $result, 'success');
 </INLINE>
 </FILE>
 
+<FILE Name="/usr/local/sbin/flash_backup" Mode="0755">
+<INLINE>
+<![CDATA[
+#!/bin/bash
+# This file is /usr/local/sbin/flash_backup
+# It is called from within an inotifywait loop like this:
+#
+# inotifywait -m -r /boot @/boot/.git -e modify -e move -e create -e delete |
+#    while read path action file; do
+#        /usr/local/sbin/flash_backup
+#    done
+
+# use at queue "f" for flash backup
+QUEUE=" -q f "
+
+# delete any at jobs in queue f
+atq ${QUEUE} | while read line; do
+  id=`echo ${line} | cut -d " " -f 1`
+  atrm ${id}
+done
+
+# create a new at job in queue f
+echo "php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update" | at ${QUEUE} now +1 minute
+]]>
+</INLINE>
+</FILE>
+
 <FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php">
 <INLINE>
 <![CDATA[
