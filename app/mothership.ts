@@ -11,9 +11,6 @@ const { varState } = states;
 // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/readyState
 const CLOSED_READY_STATE = 3;
 
-process.on('uncaughtException', log.debug);
-process.on('unhandledRejection', log.debug);
-
 /**
  * Get a number between the lowest and highest value.
  * @param low Lowest value.
