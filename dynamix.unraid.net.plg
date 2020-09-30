@@ -1097,7 +1097,11 @@ unraid-user-profile {
 <![CDATA[
 <!-- user profile component -->
 <?if(empty($wizard['hideWizard']) || $path=='Tools/Registration'):?>
-<unraid-launchpad token="<? echo $var['csrf_token'] ?>" openonload="<? echo empty($wizard['hideWizard']) ?>"></unraid-launchpad>
+<unraid-launchpad
+  openonload="<? echo empty($wizard['hideWizard']) ?>"
+  serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
+  token="<? echo $var['csrf_token'] ?>"
+></unraid-launchpad>
 <?endif?>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <?
@@ -1181,7 +1185,7 @@ cp -f /usr/local/emhttp/plugins/dynamix/Registration.page /usr/local/emhttp/plug
 cat <<EOF >> /usr/local/emhttp/plugins/dynamix/Registration.page
 
 &nbsp;
-: <unraid-open-launchpad></unraid-open-launchpad>
+: <unraid-open-launchpad token="<? echo $var['csrf_token'] ?>"></unraid-open-launchpad>
 EOF
 ]]>
 </INLINE>
