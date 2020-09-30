@@ -1185,7 +1185,7 @@ cp -f /usr/local/emhttp/plugins/dynamix/Registration.page /usr/local/emhttp/plug
 cat <<EOF >> /usr/local/emhttp/plugins/dynamix/Registration.page
 
 &nbsp;
-: <unraid-open-launchpad></unraid-open-launchpad>
+: <unraid-open-launchpad token="<? echo $var['csrf_token'] ?>"></unraid-open-launchpad>
 EOF
 ]]>
 </INLINE>
