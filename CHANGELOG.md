@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.9.8](https://github.com/unraid/graphql-api/compare/v2.9.7...v2.9.8) (2020-09-30)
+
+
+### Bug Fixes
+
+* add missing enum value ([44969dd](https://github.com/unraid/graphql-api/commit/44969dd2a3561d09e13bd8a9a52f80b2c95794de))
+
 ### [2.9.7](https://github.com/unraid/graphql-api/compare/v2.9.6...v2.9.7) (2020-09-26)
 
 ### [2.9.6](https://github.com/unraid/graphql-api/compare/v2.9.5...v2.9.6) (2020-09-26)
