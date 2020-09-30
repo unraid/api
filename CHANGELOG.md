@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.10.0](https://github.com/unraid/graphql-api/compare/v2.9.8...v2.10.0) (2020-09-30)
+
+### [2.9.7-rolling-20200930001048](https://github.com/unraid/graphql-api/compare/v2.9.7-rolling-20200929031135...v2.9.7-rolling-20200930001048) (2020-09-30)
+
+
+### Bug Fixes
+
+* **plg:** add token prop to open launchpad wc ([678e6f3](https://github.com/unraid/graphql-api/commit/678e6f3e457b5a5bdb3daa3eb6d1bd6b78eb9ff1))
+* **plg:launchpad:** include serverstate prop ([7e2adbf](https://github.com/unraid/graphql-api/commit/7e2adbf19f9ee6315153ae2cb7d357ccdd71a998))
+
+### [2.9.7-rolling-20200929031135](https://github.com/unraid/graphql-api/compare/v2.9.7-rolling-20200929025840...v2.9.7-rolling-20200929031135) (2020-09-29)
+
+
+### Features
+
+* **plg:** add /usr/local/sbin/flash_backup script ([a4f513d](https://github.com/unraid/graphql-api/commit/a4f513db049002dd2f72639cf62f19ce8a07669f))
+
+### [2.9.7-rolling-20200929025840](https://github.com/unraid/graphql-api/compare/v2.9.7...v2.9.7-rolling-20200929025840) (2020-09-29)
+
+
+### Bug Fixes
+
+* **plg:** add token prop to <unraid-launchpad> ([f0af006](https://github.com/unraid/graphql-api/commit/f0af006bcaf1869914c77fa46379008289c596b3))
+* **plg:** improve conditional for rendering <unraid-launchpad> ([77718d2](https://github.com/unraid/graphql-api/commit/77718d2677c33341be6b94a3426a4ef24e6e692d))
+* **plg:** self code reivew ([9acfe98](https://github.com/unraid/graphql-api/commit/9acfe98a5e5597f6131f569786cf4c0e0678cefc))
+
 ### [2.9.8](https://github.com/unraid/graphql-api/compare/v2.9.7...v2.9.8) (2020-09-30)
 
 
