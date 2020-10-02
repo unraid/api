@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.1](https://github.com/unraid/graphql-api/compare/v2.10.0...v2.10.1) (2020-10-02)
+
+
+### Bug Fixes
+
+* remove unneeded process handlers ([f5e8d7d](https://github.com/unraid/graphql-api/commit/f5e8d7d8af9249fcaaecd844aea20c34aa80a544))
+* servers endpoint not updating when mothership updates ([d6bf695](https://github.com/unraid/graphql-api/commit/d6bf6951c657892493a75d462aa6c56178aeb8a2))
+
 ## [2.10.0](https://github.com/unraid/graphql-api/compare/v2.9.8...v2.10.0) (2020-09-30)
 
 ### [2.9.7-rolling-20200930001048](https://github.com/unraid/graphql-api/compare/v2.9.7-rolling-20200929031135...v2.9.7-rolling-20200930001048) (2020-09-30)
