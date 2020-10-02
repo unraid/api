@@ -81,7 +81,9 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
 	let localGraphqlApi: WebSocket;
-	let mothershipServersEndpoint;
+	let mothershipServersEndpoint: {
+		unsubscribe: () => void;
+	};
 
 	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
@@ -147,7 +149,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 		});
 
 		// Connect to mothership's "servers" endpoint
-		
+		mothershipServersEndpoint = subscribeToServersEndpoint(apiKey);
 	});
 
 	// Relay is closed
