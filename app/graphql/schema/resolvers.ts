@@ -4,6 +4,7 @@
  */
 
 import { pluginManager, pubsub, utils, bus, errors, states, modules, apiManager, log } from '@unraid/core';
+import * as Sentry from '@sentry/node';
 import dee from '@gridplus/docker-events';
 import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
@@ -101,7 +102,7 @@ const getServers = async (): Promise<Server[]> => {
 
 	// For now use the my_servers key
 	// Later we should return the correct one for the current user with the correct scope, etc.
-	const apikey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
+	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
 
 	// No cached servers found
 	if (!cachedServers) {
@@ -113,19 +114,23 @@ const getServers = async (): Promise<Server[]> => {
 				'Accept': 'application/json',
 			},
 			body: JSON.stringify({
-				query: 'query($apikey: String!) { servers @auth(apiKey: $apikey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
+				query: 'query($apiKey: String!) { servers @auth(apiKey: $apiKey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
 				variables: {
-					apikey
+					apiKey
 				}
 			})
 		})
 		.then(r => r.json())
-		.then(({ data }) => data.servers as Promise<CachedServer[]>);
+		.then(({ data }) => data.servers as Promise<CachedServer[]>)
+		.catch(error => {
+			Sentry.captureException(error);
+			return [];
+		});
 
 		log.debug('Using upstream for /servers endpoint');
 
 		// No servers found
-		if (servers.length === 0) {
+		if (!servers || servers.length === 0) {
 			return [];
 		}
 
@@ -153,7 +158,7 @@ const getServers = async (): Promise<Server[]> => {
 			avatar: ''
 		},
 		guid,
-		apikey,
+		apikey: apiKey,
 		name,
 		status: 'online',
 		wanip,

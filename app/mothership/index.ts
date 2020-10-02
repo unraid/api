@@ -1,8 +1,10 @@
 import fs from 'fs';
 import WebSocket from 'ws';
+import * as Sentry from '@sentry/node';
 import { utils, paths, states, log } from '@unraid/core';
-import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from './consts';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
+import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
+import { subscribeToServersEndpoint } from './subscribe-to-servers-endpoint';
 
 const { loadState } = utils;
 const { varState } = states;
@@ -79,6 +81,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
 	let localGraphqlApi: WebSocket;
+	let mothershipServersEndpoint;
 
 	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
@@ -109,6 +112,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 
 		// Errors
 		localGraphqlApi.on('error', error => {
+            Sentry.captureException(error);
 			log.error('ws:local-relay', 'error', error);
 		});
 		
@@ -127,7 +131,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 				payload: {
 					'x-api-key': apiKey
 				}
-			}));
+            }));
 		});
 
 		// Relay message back to mothership
@@ -141,6 +145,9 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 				}
 			}
 		});
+
+		// Connect to mothership's "servers" endpoint
+		
 	});
 
 	// Relay is closed
@@ -158,6 +165,9 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 			// Clear all listeners before running this again
 			relay?.removeAllListeners();
 
+			// Stop subscriptions with mothership
+			mothershipServersEndpoint.unsubscribe();
+
 			// We likely closed this
 			// This is usually because the API key is updated
 			if (code === 4200) {
@@ -171,7 +181,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 					log.debug('Invalid API key, waiting for new key...');
 					return;
 				}
-			}
+            }
 
 			// Reconnect
 			setTimeout(async () => {

@@ -1,14 +1,16 @@
 /* eslint-disable camelcase */
 const path = require('path');
 
+const SENTRY_DSN = 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sentry.io/5439629';
+
 const staging = {
 	MOTHERSHIP_RELAY_WS_LINK: 'wss://staging.mothership.unraid.net/relay',
-	SENTRY_DSN: 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sentry.io/5439629'
+	SENTRY_DSN
 };
 const production = {
 	NODE_ENV: 'production',
 	PORT: '/var/run/graphql-api.sock'
-}
+};
 
 const envs = {
 	env_development: {
@@ -18,7 +20,8 @@ const envs = {
 		PATHS_STATES: path.resolve(__dirname, './dev/states'),
 		PATHS_DYNAMIX_DATA: '/tmp/dynamix/',
 		PATHS_DYNAMIX_CONFIG: path.resolve(__dirname, './dev/dynamix.cfg'),
-		DEBUG: true
+		DEBUG: true,
+		SENTRY_DSN
 	},
 	'env_safe-mode': {
 		NODE_ENV: 'safe-mode'
@@ -43,7 +46,7 @@ module.exports = {
 		wait_ready: true,
 		listen_timeout: 3000,
 		exp_backoff_restart_delay: 100,
-		max_memory_restart: '200M',
+		max_memory_restart: '150M',
 		env: {
 			PROCESS_TITLE: 'graphql-api'
 		},

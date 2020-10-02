@@ -44,6 +44,7 @@
     "express": "^4.17.1",
     "graphql": "^15.3.0",
     "graphql-directive": "^0.2.1",
+    "graphql-subscriptions-client": "github:OmgImAlexis/graphql-subscriptions-client",
     "graphql-tag": "^2.11.0",
     "graphql-type-json": "^0.3.2",
     "graphql-type-long": "^0.1.1",
