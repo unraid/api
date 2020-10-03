@@ -593,29 +593,79 @@ response_complete($httpcode, $result, 'success');
 </INLINE>
 </FILE>
 
-<FILE Name="/usr/local/sbin/flash_backup" Mode="0755">
+<FILE Name="/etc/rc.d/rc.flash_backup" Mode="0755">
 <INLINE>
 <![CDATA[
 #!/bin/bash
-# This file is /usr/local/sbin/flash_backup
-# It is called from within an inotifywait loop like this:
-#
-# inotifywait -m -r /boot @/boot/.git -e modify -e move -e create -e delete |
-#    while read path action file; do
-#        /usr/local/sbin/flash_backup
-#    done
-
+# This file is /etc/rc.d/rc.flash_backup
 # use at queue "f" for flash backup
 QUEUE=" -q f "
+INOTIFY="inotifywait -m -r /boot @/boot/.git -e modify -e move -e create -e delete"
+status() {
+  local flash_backup_pid=$(pgrep --full "${INOTIFY}")
+  if [[ $flash_backup_pid ]]; then
+    echo "flash backup monitor is running."
+  else
+    echo "No processes are running."
+  fi
+}
+start() {
+  # terminate watcher loop/process
+  pkill --full "${INOTIFY}" &>/dev/null
+  # start watcher loop as background process
+  _watch &>/dev/null &
+  exit 0
+}
+stop() {
+  # terminate watcher loop/process
+  pkill --full "${INOTIFY}" &>/dev/null
+  # remove any queued jobs
+  _removequeue
+  exit 0
+}
+reload() {
+  stop
+  sleep 1
+  start
+  sleep 1
+  status
+  exit 0
+}
+_watch() {
+  # start inotify watcher loop
+  ${INOTIFY} |
+    while read path action file; do
+      _removequeue
 
-# delete any at jobs in queue f
-atq ${QUEUE} | while read line; do
-  id=`echo ${line} | cut -d " " -f 1`
-  atrm ${id}
-done
+      logger '/boot changes detected, (re)starting 1 min countdown before backing up' --tag flash_backup
 
-# create a new at job in queue f
-echo "php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update" | at ${QUEUE} now +1 minute
+      # create a new at job in queue f
+      echo "php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update" | at ${QUEUE} now +1 minute
+    done
+}
+_removequeue() {
+  # delete any at jobs in queue f
+  atq ${QUEUE} | while read line; do
+    id=`echo ${line} | cut -d " " -f 1`
+    atrm ${id}
+  done
+}
+case "$1" in
+'status')
+  status
+  ;;
+'start')
+  start
+  ;;
+'stop')
+  stop true
+  ;;
+'reload')
+  reload
+  ;;
+*)
+  echo "usage $0 status|start|stop|reload"
+esac
 ]]>
 </INLINE>
 </FILE>
