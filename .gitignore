@@ -63,3 +63,6 @@ dist
 
 # Typescript
 typescript
+
+# Ultra runner
+.ultra.cache.json
