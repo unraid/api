@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.5](https://github.com/unraid/graphql-api/compare/v2.10.4-rolling-20201003200559...v2.10.5) (2020-10-04)
+
+
+### Bug Fixes
+
+* add ultra runner to git ignore ([48784eb](https://github.com/unraid/graphql-api/commit/48784eb78a3afe1726833fc2f844da5f6b71b7b7))
+* ensure we re-query the servers endpoint on update ([a9b4e85](https://github.com/unraid/graphql-api/commit/a9b4e8524d913638c698aaefb6fa7576cf9338f0))
+
 ### [2.10.4](https://github.com/unraid/graphql-api/compare/v2.10.3-rolling-20201003110346...v2.10.4) (2020-10-03)
 
 ### [2.10.3](https://github.com/unraid/graphql-api/compare/v2.10.2...v2.10.3) (2020-10-02)
