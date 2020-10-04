@@ -74,7 +74,7 @@ start() {
   stop
   local old_working_directory=$(echo $pwd)
   cd $base_directory
-  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
+  /usr/local/bin/node/graphql-api/node_modules/.bin/pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
   cd $old_working_directory
   sleep 1
   status
@@ -84,7 +84,7 @@ startdebug() {
   stop
   local old_working_directory=$(echo $pwd)
   cd $base_directory
-  pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
+  /usr/local/bin/node/graphql-api/node_modules/.bin/pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
   cd $old_working_directory
 }
 stop() {
