@@ -1,6 +1,7 @@
 import * as Sentry from '@sentry/node';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { CachedServer } from './cache';
+import fetch from 'cross-fetch';
 
 export const getServers = (apiKey: string) => fetch(MOTHERSHIP_GRAPHQL_LINK, {
     method: 'POST',
