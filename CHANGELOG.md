@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.9](https://github.com/unraid/graphql-api/compare/v2.10.8...v2.10.9) (2020-10-04)
+
+
+### Bug Fixes
+
+* use staging server for mothership when connecting to /graphql ([0474bc1](https://github.com/unraid/graphql-api/commit/0474bc147cf7fb8729562f89d1d9c883a3041067))
+
 ### [2.10.8](https://github.com/unraid/graphql-api/compare/v2.10.7...v2.10.8) (2020-10-04)
 
 
