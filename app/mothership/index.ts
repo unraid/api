@@ -84,7 +84,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	let localGraphqlApi: WebSocket;
 	let mothershipServersEndpoints: {
 		unsubscribe: () => void;
-	}[];
+	}[] = [];
 
 	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
