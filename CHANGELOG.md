@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.8](https://github.com/unraid/graphql-api/compare/v2.10.7...v2.10.8) (2020-10-04)
+
+
+### Bug Fixes
+
+* not returning servers object ([d183225](https://github.com/unraid/graphql-api/commit/d183225ad3d9ac7a881e03718ce2c37515325c3c))
+* pm2 path ([e728c6c](https://github.com/unraid/graphql-api/commit/e728c6ca2a72ed23a30a537ae0a795324d07a7f9))
+
 ### [2.10.7](https://github.com/unraid/graphql-api/compare/v2.10.6...v2.10.7) (2020-10-04)
 
 
