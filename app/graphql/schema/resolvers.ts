@@ -4,17 +4,15 @@
  */
 
 import { pluginManager, pubsub, utils, bus, errors, states, modules, apiManager, log } from '@unraid/core';
-import * as Sentry from '@sentry/node';
 import dee from '@gridplus/docker-events';
 import { setIntervalAsync } from 'set-interval-async/dynamic';
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
-import fetch from 'cross-fetch';
 import { run, publish } from '../../run';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { hasSubscribedToChannel } from '../../ws';
-import { MOTHERSHIP_GRAPHQL_LINK } from '../../consts';
+import { getServers as getUserServers } from '../../utils'
 
 const { ensurePermission } = utils;
 const { usersState, varState, networkState } = states;
@@ -102,30 +100,12 @@ const getServers = async (): Promise<Server[]> => {
 
 	// For now use the my_servers key
 	// Later we should return the correct one for the current user with the correct scope, etc.
-	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
+	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
 
 	// No cached servers found
 	if (!cachedServers) {
 		// Fetch servers from mothership
-		const servers = await fetch(MOTHERSHIP_GRAPHQL_LINK, {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'Accept': 'application/json',
-			},
-			body: JSON.stringify({
-				query: 'query($apiKey: String!) { servers @auth(apiKey: $apiKey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
-				variables: {
-					apiKey
-				}
-			})
-		})
-		.then(r => r.json())
-		.then(({ data }) => data.servers as Promise<CachedServer[]>)
-		.catch(error => {
-			Sentry.captureException(error);
-			return [];
-		});
+		const servers = await getUserServers(apiKey);
 
 		log.debug('Using upstream for /servers endpoint');
 
