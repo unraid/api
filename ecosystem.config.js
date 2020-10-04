@@ -5,6 +5,7 @@ const SENTRY_DSN = 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sent
 
 const staging = {
 	MOTHERSHIP_RELAY_WS_LINK: 'wss://staging.mothership.unraid.net/relay',
+	MOTHERSHIP_GRAPHQL_LINK: 'https://staging.mothership.unraid.net/graphql',
 	SENTRY_DSN
 };
 const production = {
