@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.10](https://github.com/unraid/graphql-api/compare/v2.10.9...v2.10.10) (2020-10-04)
+
+
+### Bug Fixes
+
+* ensure mothership endpoints is an array ([c967571](https://github.com/unraid/graphql-api/commit/c9675717f56af7704720a026e154d4ed6ad856b8))
+
 ### [2.10.9](https://github.com/unraid/graphql-api/compare/v2.10.8...v2.10.9) (2020-10-04)
 
 
