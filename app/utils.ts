@@ -18,7 +18,7 @@ export const getServers = (apiKey: string) => fetch(MOTHERSHIP_GRAPHQL_LINK, {
 })
 .then(async response => {
     const data = await response.json();
-    return data.servers as Promise<CachedServer[]>;
+    return data.data.servers as Promise<CachedServer[]>;
 })
 .catch(error => {
     Sentry.captureException(error);
