@@ -601,17 +601,27 @@ response_complete($httpcode, $result, 'success');
 # use at queue "f" for flash backup
 QUEUE=" -q f "
 INOTIFY="inotifywait -m -r /boot @/boot/.git -e modify -e move -e create -e delete"
+TASKCMD="php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update"
 status() {
   local flash_backup_pid=$(pgrep --full "${INOTIFY}")
   if [[ $flash_backup_pid ]]; then
     echo "flash backup monitor is running."
+    atq ${QUEUE} | while read line; do
+      echo "changes detected, backup queued"
+    done
+    exit 0
   else
     echo "No processes are running."
+    exit 1
   fi
 }
 start() {
+  # only run if flash_backup is enabled
+  _enabled || exit 1
   # terminate watcher loop/process
   pkill --full "${INOTIFY}" &>/dev/null
+  # pick up any changes that happened before this script was started
+  echo ${TASKCMD} | at ${QUEUE} now +1 minute
   # start watcher loop as background process
   _watch &>/dev/null &
   exit 0
@@ -619,8 +629,8 @@ start() {
 stop() {
   # terminate watcher loop/process
   pkill --full "${INOTIFY}" &>/dev/null
-  # remove any queued jobs
-  _removequeue
+  # remove any queued jobs and flush changes
+  flush
   exit 0
 }
 reload() {
@@ -631,6 +641,12 @@ reload() {
   status
   exit 0
 }
+flush() {
+  # remove any queued jobs
+  _removequeue
+  # push any changes ad-hoc
+  echo ${TASKCMD} | at ${QUEUE} now
+}
 _watch() {
   # start inotify watcher loop
   ${INOTIFY} |
@@ -640,7 +656,7 @@ _watch() {
       logger '/boot changes detected, (re)starting 1 min countdown before backing up' --tag flash_backup
 
       # create a new at job in queue f
-      echo "php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update" | at ${QUEUE} now +1 minute
+      echo ${TASKCMD} | at ${QUEUE} now +1 minute
     done
 }
 _removequeue() {
@@ -649,6 +665,13 @@ _removequeue() {
     id=`echo ${line} | cut -d " " -f 1`
     atrm ${id}
   done
+}
+_enabled() {
+  local output=$(git -C /boot config --get remote.origin.url)
+  if [[ $output == *"backup.unraid.net"* ]]; then
+    return 0
+  fi
+  return 1
 }
 case "$1" in
 'status')
@@ -663,8 +686,11 @@ case "$1" in
 'reload')
   reload
   ;;
+'flush')
+  flush
+  ;;
 *)
-  echo "usage $0 status|start|stop|reload"
+  echo "usage $0 status|start|stop|reload|flush"
 esac
 ]]>
 </INLINE>
@@ -1278,7 +1304,7 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
-echo "/etc/rc.d/rc.unraid-api install" | at -M now + 1 min
+echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 min
 </INLINE>
 </FILE>
 
