@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.12](https://github.com/unraid/graphql-api/compare/v2.10.11...v2.10.12) (2020-10-05)
+
+
+### Bug Fixes
+
+* allow graphql-api to boot without data disks ([592d089](https://github.com/unraid/graphql-api/commit/592d089cadfed59c92481d2aaeaad686088c6a35))
+
 ### [2.10.11](https://github.com/unraid/graphql-api/compare/v2.10.10...v2.10.11) (2020-10-04)
 
 ### [2.10.10](https://github.com/unraid/graphql-api/compare/v2.10.9...v2.10.10) (2020-10-04)
