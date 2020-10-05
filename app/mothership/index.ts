@@ -5,6 +5,7 @@ import { utils, paths, states, log } from '@unraid/core';
 import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
 import { subscribeToServer } from './subscribe-to-server';
+import { mothershipServersEndpoints } from './mothership-server-endpoints';
 import { getServers as getUserServers } from '../utils';
 
 const { loadState } = utils;
@@ -82,9 +83,6 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	const lanIp = states.networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 	const machineId = `${await utils.getMachineId()}`;
 	let localGraphqlApi: WebSocket;
-	let mothershipServersEndpoints: {
-		unsubscribe: () => void;
-	}[] = [];
 
 	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
@@ -154,7 +152,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 		if (servers) {
 			servers.forEach(server => {
 				// Subscribe to online for each server
-				mothershipServersEndpoints.push(subscribeToServer(server.apikey));
+				mothershipServersEndpoints.set(apiKey, subscribeToServer(server.apikey));
 			});
 		}
 	});
