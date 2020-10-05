@@ -61,7 +61,7 @@ enum ArrayState {
     """Array has stopped"""
     stopped
     """Array has no data disks"""
-    error:no_data_disks
+    no_data_disks
 }
 
 enum ArrayPendingState {
@@ -69,6 +69,8 @@ enum ArrayPendingState {
     starting
     """Array is stopping"""
     stopping
+    """Array has no data disks"""
+    no_data_disks
 }
 
 type ArrayCapacity {
