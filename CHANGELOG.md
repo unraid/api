@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.15](https://github.com/unraid/graphql-api/compare/v2.10.14...v2.10.15) (2020-10-05)
+
+
+### Bug Fixes
+
+* strip error: from array state to fix enum ([c01dda6](https://github.com/unraid/graphql-api/commit/c01dda69e5dab210fd664c1a9c7662bc30fd902e))
+
 ### [2.10.14](https://github.com/unraid/graphql-api/compare/v2.10.13...v2.10.14) (2020-10-05)
 
 ### [2.10.11-rolling-20201004083001](https://github.com/unraid/graphql-api/compare/v2.10.11...v2.10.11-rolling-20201004083001) (2020-10-04)
