@@ -1026,6 +1026,8 @@ function handleMessage(e) {
       return window.location.href = '/Main';
     case "STOP_SENDING_SESSION":
       break;
+    case "PREFLIGHT_REQUEST":
+      break;
     default:
       console.error('Unhandled event \'' + data.event + '\' fired. data:', data);
       break;
