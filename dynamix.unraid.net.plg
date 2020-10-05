@@ -25,6 +25,7 @@
 if [ -e /etc/rc.d/rc.unraid-api ]; then
   /etc/rc.d/rc.unraid-api uninstall
   rm -f /etc/rc.d/rc.unraid-api
+  rm -f /etc/rc.d/rc.flash_backup
   mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php- /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php
   mv -f /usr/local/emhttp/plugins/dynamix/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
@@ -606,9 +607,7 @@ status() {
   local flash_backup_pid=$(pgrep --full "${INOTIFY}")
   if [[ $flash_backup_pid ]]; then
     echo "flash backup monitor is running."
-    atq ${QUEUE} | while read line; do
-      echo "changes detected, backup queued"
-    done
+    _hasqueue && echo "changes detected, backup queued"
     exit 0
   else
     echo "No processes are running."
@@ -620,8 +619,8 @@ start() {
   _enabled || exit 1
   # terminate watcher loop/process
   pkill --full "${INOTIFY}" &>/dev/null
-  # pick up any changes that happened before this script was started
-  echo ${TASKCMD} | at ${QUEUE} now +1 minute
+  # flush: this will ensure we start with a clean repo
+  flush
   # start watcher loop as background process
   _watch &>/dev/null &
   exit 0
@@ -651,13 +650,18 @@ _watch() {
   # start inotify watcher loop
   ${INOTIFY} |
     while read path action file; do
-      _removequeue
-
-      logger '/boot changes detected, (re)starting 1 min countdown before backing up' --tag flash_backup
-
+      #_removequeue
+      #logger '/boot changes detected, (re)starting 1 min countdown before backing up' --tag flash_backup
       # create a new at job in queue f
-      echo ${TASKCMD} | at ${QUEUE} now +1 minute
+      _hasqueue || ( logger 'adding task: ${TASKCMD}' --tag flash_backup; echo ${TASKCMD} | at ${QUEUE} now +1 minute )
     done
+}
+_hasqueue() {
+  # returns false if the queue is empty, true otherwise
+  if [ -z "$(atq ${QUEUE})" ]; then
+    return 1
+  fi
+  return 0
 }
 _removequeue() {
   # delete any at jobs in queue f
