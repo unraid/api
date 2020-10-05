@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.14](https://github.com/unraid/graphql-api/compare/v2.10.13...v2.10.14) (2020-10-05)
+
+### [2.10.11-rolling-20201004083001](https://github.com/unraid/graphql-api/compare/v2.10.11...v2.10.11-rolling-20201004083001) (2020-10-04)
+
+
+### Bug Fixes
+
+* **plg:** rc.flash_backup refactor ([e580d3d](https://github.com/unraid/graphql-api/commit/e580d3dd980875bb65083ff39b21b6c74769f529))
+
 ### [2.10.13](https://github.com/unraid/graphql-api/compare/v2.10.12...v2.10.13) (2020-10-05)
 
 
