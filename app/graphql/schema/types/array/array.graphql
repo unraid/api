@@ -60,6 +60,8 @@ enum ArrayState {
     started
     """Array has stopped"""
     stopped
+    """Array has no data disks"""
+    error:no_data_disks
 }
 
 enum ArrayPendingState {
