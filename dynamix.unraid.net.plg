@@ -952,17 +952,19 @@ function handleMessage(e) {
       $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
         console.log('New license key installed: ' + data.license);
         const payload = { 
-          event: 'LICENSE_SUCCESS',
+          event: 'LICENSE_PINGBACK',
           message: 'New license key installed',
           license: data.license,
+          success: true,
         };
         e.source.postMessage(JSON.stringify(payload), e.origin);
       }).fail(function() {
         console.error('Failed to license new key: ' + data.license);
         const payload = { 
-          event: 'LICENSE_ERROR',
+          event: 'LICENSE_PINGBACK',
           message: 'Failed to license new key',
           license: data.license,
+          success: false,
         };
         e.source.postMessage(JSON.stringify(payload), e.origin);
       });
@@ -993,11 +995,20 @@ function handleMessage(e) {
           }
           $.post('/update.php', postargs, function() {
             console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+            // send a ping back to the regwiz
+            const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', };
+            e.source.postMessage(JSON.stringify(payload), e.origin);
           }).fail(function() {
             console.error('Failed to update apikey under [remote] section');
+            // send a ping back to the regwiz
+            const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', };
+            e.source.postMessage(JSON.stringify(payload), e.origin);
           });
         }).fail(function() {
           console.error('Failed to retrieve details from key server');
+          // send a ping back to the regwiz
+          const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', };
+          e.source.postMessage(JSON.stringify(payload), e.origin);
         });
       }
       // duplicate conditional so we don't get the error from HANDLE_LICENSES()
@@ -1016,8 +1027,14 @@ function handleMessage(e) {
     case "MYSERVERS_UNREGISTER":
       $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: '', username: '', avatar: ''}, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
+        // send a ping back to the regwiz
+        const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', };
+        e.source.postMessage(JSON.stringify(payload), e.origin);
       }).fail(function() {
         console.error('Failed to unregister');
+        // send a ping back to the regwiz
+        const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signOut', };
+        e.source.postMessage(JSON.stringify(payload), e.origin);
       });
       break;
     case "RELOAD":
@@ -1025,6 +1042,8 @@ function handleMessage(e) {
     case "REDIRECT_MAIN":
       return window.location.href = '/Main';
     case "STOP_SENDING_SESSION":
+      break;
+    case "PREFLIGHT_REQUEST":
       break;
     default:
       console.error('Unhandled event \'' + data.event + '\' fired. data:', data);
