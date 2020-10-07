@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.18](https://github.com/unraid/graphql-api/compare/v2.10.17...v2.10.18) (2020-10-07)
+
+### [2.10.16-rolling-20201007054315](https://github.com/unraid/graphql-api/compare/v2.10.16...v2.10.16-rolling-20201007054315) (2020-10-07)
+
+
+### Bug Fixes
+
+* postMessage ping backs to regwiz ([8d2c831](https://github.com/unraid/graphql-api/commit/8d2c83115fe52cc9bcc88d92a65212d0152ef9e4))
+* **plg:** add postMessage listener PREFLIGHT_REQUEST ([ba35341](https://github.com/unraid/graphql-api/commit/ba353411150e69aa1fed2da6d6a59efb974f4c77))
+
 ### [2.10.17](https://github.com/unraid/graphql-api/compare/v2.10.16...v2.10.17) (2020-10-07)
 
 ### [2.10.16](https://github.com/unraid/graphql-api/compare/v2.10.15...v2.10.16) (2020-10-07)
