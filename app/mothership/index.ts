@@ -6,7 +6,7 @@ import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
 import { subscribeToServers } from './subscribe-to-servers';
 
-const { loadState } = utils;
+const { loadState, sleep } = utils;
 const { varState } = states;
 
 // Websocket closed state
@@ -168,13 +168,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 			relay?.removeAllListeners();
 
 			// Stop subscriptions with mothership
-			mothershipServersEndpoint.unsubscribe();
-
-			// We likely closed this
-			// This is usually because the API key is updated
-			if (code === 4200) {
-				return;
-			}
+			mothershipServersEndpoint?.unsubscribe();
 
 			// Http 4XX error
 			if (code >= 4400 && code <= 4499) {
@@ -183,12 +177,21 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 					log.debug('Invalid API key, waiting for new key...');
 					return;
 				}
-            }
+			}
+
+			// We likely closed this
+			// This is usually because the API key is updated
+			if (code === 4200) {
+				// Reconnect
+				connectToMothership(wsServer);
+				return;
+			}
+			
+			// Wait a few seconds
+			await sleep(backoff(retryAttempt, ONE_MINUTE, 5));
 
 			// Reconnect
-			setTimeout(async () => {
-				await connectToMothership(wsServer, retryAttempt + 1);
-			}, backoff(retryAttempt, ONE_MINUTE, 5));
+			await connectToMothership(wsServer, retryAttempt + 1);
 		} catch (error) {
 			log.error('close error', error);
 		}
