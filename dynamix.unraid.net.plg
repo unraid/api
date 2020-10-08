@@ -1024,6 +1024,16 @@ function handleMessage(e) {
         console.error('Failed to get new state: ' + err);
       });
       break;
+    case "SUCCESS_NEW_STATE":
+      $.get('/plugins/dynamix.unraid.net/include/state.php', function(newstate) {
+        // parse response so we can update the event type string to send back
+        const [stateError, stateData] = SAFE_JSON_PARSE(newstate);
+        const newPayload = { ...stateData, event: 'DELIVER_NEW_STATE', success: true };
+        e.source.postMessage(JSON.stringify(newPayload), e.origin);
+      }).fail(function(err) {
+        e.source.postMessage(JSON.stringify({ event: 'DELIVER_NEW_STATE', success: false }), e.origin);
+      });
+      break;
     case "MYSERVERS_UNREGISTER":
       $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: '', username: '', avatar: ''}, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
