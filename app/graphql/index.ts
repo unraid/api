@@ -323,7 +323,7 @@ const apiKeyToUser = (apiKey: string) => {
 export const graphql = {
 	introspection: debug,
 	playground: debug ? {
-		subscriptionEndpoint: '/graph',
+		subscriptionEndpoint: '/graphql',
 	} : false,
 	schema,
 	types,
