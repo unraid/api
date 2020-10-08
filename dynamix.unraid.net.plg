@@ -1194,14 +1194,6 @@ unraid-user-profile {
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2">
 <INLINE>
 <![CDATA[
-<!-- user profile component -->
-<?if(empty($wizard['hideWizard']) || $path=='Tools/Registration'):?>
-<unraid-launchpad
-  openonload="<? echo empty($wizard['hideWizard']) ?>"
-  serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
-  token="<? echo $var['csrf_token'] ?>"
-></unraid-launchpad>
-<?endif?>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <?
 $upc_dev = 0;
@@ -1276,20 +1268,6 @@ _(Header show description)_:
 
 
 <!-- Preserve in case plugin is removed -->
-<FILE Run="/bin/bash" Method="install">
-<INLINE>
-<![CDATA[
-cp -f /usr/local/emhttp/plugins/dynamix/Registration.page /usr/local/emhttp/plugins/dynamix/Registration.page-
-
-cat <<EOF >> /usr/local/emhttp/plugins/dynamix/Registration.page
-
-&nbsp;
-: <unraid-open-launchpad token="<? echo $var['csrf_token'] ?>"></unraid-open-launchpad>
-EOF
-]]>
-</INLINE>
-</FILE>
-
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 <![CDATA[
