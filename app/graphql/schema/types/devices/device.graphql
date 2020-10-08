@@ -12,12 +12,7 @@ type Device {
     sectorSize: String
 }
 
-type DevicesSubscription {
-    mutation: MutationType!
-    node: [Device!]
-}
-
 type Subscription {
-    devices: DevicesSubscription!
-    device(id: ID!): DevicesSubscription!
+    devices: [Device!]
+    device(id: ID!): Device!
 }

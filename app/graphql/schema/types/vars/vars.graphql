@@ -2,13 +2,8 @@ type Query {
     vars: Vars @func(module: "getVars")
 }
 
-type VarsSubscription {
-    mutation: UpdateOnlyMutationType!
-    node: Vars!
-}
-
 type Subscription {
-    vars(id: ID!): VarsSubscription
+    vars(id: ID!): Vars!
 }
 
 type Vars {

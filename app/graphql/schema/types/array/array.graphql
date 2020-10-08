@@ -20,13 +20,8 @@ type Mutation {
     clearArrayDiskStatistics(id: ID!): JSON
 }
 
-type ArraySubscription {
-    mutation: UpdateOnlyMutationType!
-    node: Array!
-}
-
 type Subscription {
-    array: ArraySubscription
+    array: Array!
 }
 
 input arrayDiskInput {

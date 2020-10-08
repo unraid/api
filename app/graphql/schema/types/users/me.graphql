@@ -3,9 +3,6 @@ type Query {
     me: Me @func(module: "getMe")
 }
 
-# type Mutation {
-# }
-
 """The current user"""
 type Me implements UserAccount {
     id: ID!
@@ -15,11 +12,6 @@ type Me implements UserAccount {
     permissions: JSON
 }
 
-type MeSubscription {
-    mutation: UpdateOnlyMutationType!
-    node: Me
-}
-
 type Subscription {
-    me: MeSubscription
+    me: Me
 }

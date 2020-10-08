@@ -3,18 +3,9 @@ type Query {
     servers: [Server]
 }
 
-type ServerSubscription {
-    mutation: UpdateOnlyMutationType!
-    node: Server!
-}
-type ServersSubscription {
-    mutation: UpdateOnlyMutationType!
-    node: [Server!]
-}
-
 type Subscription {
-    server(name: String!): ServerSubscription
-    servers: ServersSubscription
+    server(name: String!): Server!
+    servers: [Server!]
 }
 
 enum Status {

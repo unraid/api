@@ -2,13 +2,8 @@ type Query {
     unassignedDevices: [UnassignedDevice] @func(module: "getUnassignedDevices")
 }
 
-type UnassignedDevicesSubscription {
-    mutation: MutationType!
-    node: [UnassignedDevice!]
-}
-
 type Subscription {
-    unassignedDevices: UnassignedDevicesSubscription
+    unassignedDevices: [UnassignedDevice!]
 }
 
 type UnassignedDevice {

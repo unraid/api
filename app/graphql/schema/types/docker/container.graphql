@@ -5,18 +5,9 @@ type Query {
     dockerContainers(all: Boolean): [DockerContainer]! @func(module: "getDockerContainers")
 }
 
-type DockerContainerSubscription {
-    mutation: MutationType!
-    node: DockerContainer!
-}
-type DockerContainersSubscription {
-    mutation: MutationType!
-    node: [DockerContainer]!
-}
-
 type Subscription {
-    dockerContainer(id: ID!): DockerContainerSubscription
-    dockerContainers: DockerContainersSubscription
+    dockerContainer(id: ID!): DockerContainer!
+    dockerContainers: [DockerContainer]
 }
 
 enum ContainerPortType {

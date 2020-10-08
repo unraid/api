@@ -9,13 +9,8 @@ type Vms {
     domains: [VmDomain!] @func(module: "getDomains")
 }
 
-type VmDomainSubscription {
-    mutation: MutationType!
-    node: [VmDomain!]
-}
-
 type Subscription {
-    vms: VmDomainSubscription!
+    vms: [VmDomain!]
 }
 
 enum VmState {

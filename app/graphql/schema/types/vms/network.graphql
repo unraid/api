@@ -10,11 +10,6 @@ type VmNetwork {
     _placeholderType: String
 }
 
-type VmNetworksSubscription {
-    mutation: MutationType!
-    node: [VmNetwork!]
-}
-
 type Subscription {
-    vmNetworks: VmNetworksSubscription!
+    vmNetworks: [VmNetwork!]
 }

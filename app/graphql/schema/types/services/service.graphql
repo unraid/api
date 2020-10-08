@@ -1,21 +1,11 @@
 type Query {
-    # @todo finish this
     service(name: String!): Service @func(module: "services/name/get-service")
     services: [Service] @func(module: "getServices")
 }
 
-type ServiceSubscription {
-    mutation: UpdateOnlyMutationType!
-    node: Service!
-}
-type ServicesSubscription {
-    mutation: UpdateOnlyMutationType!
-    node: [Service!]
-}
-
 type Subscription {
-    service(name: String!): ServiceSubscription
-    services: ServicesSubscription
+    service(name: String!): [Service!]
+    services: [Service!]
 }
 
 type Service {

@@ -52,35 +52,10 @@ const baseTypes = [gql`
 		reboot: String
 	}
 
-	enum MutationType {
-		CREATED
-		UPDATED
-		DELETED
-	}
-
-	enum UpdateOnlyMutationType {
-		UPDATED
-	}
-
-	type PingSubscription {
-		mutation: MutationType!
-		node: String!
-	}
-
-	type InfoSubscription {
-		mutation: MutationType!
-		node: Info!
-	}
-
-	type PluginModuleSubscription {
-		mutation: MutationType!
-		node: JSON!
-	}
-
 	type Subscription {
-		ping: PingSubscription!
-		info: InfoSubscription!
-		pluginModule(plugin: String!, module: String!, params: JSON, result: String): PluginModuleSubscription!
+		ping: String!
+		info: Info!
+		pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON!
 		online: Boolean!
 	}
 `];

@@ -33,18 +33,9 @@ type Mutation {
     deleteUser(input: deleteUserInput!): User @func(module: "deleteUser")
 }
 
-type UserSubscription {
-    mutation: MutationType!
-    node: User!
-}
-type UsersSubscription {
-    mutation: MutationType!
-    node: [User]!
-}
-
 type Subscription {
-    user(id: ID!): UserSubscription
-    users: UsersSubscription
+    user(id: ID!): User!
+    users: [User]!
 }
 
 """A local user account"""
