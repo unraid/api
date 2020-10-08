@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.10.19](https://github.com/unraid/graphql-api/compare/v2.10.18...v2.10.19) (2020-10-08)
+
+
+### Bug Fixes
+
+* mount subscriptionEndpoint at /graphql ([5fe2f00](https://github.com/unraid/graphql-api/commit/5fe2f0080cbe2db83ba433cdc354ad5658f4a1d0))
+
 ### [2.10.18](https://github.com/unraid/graphql-api/compare/v2.10.17...v2.10.18) (2020-10-07)
 
 ### [2.10.16-rolling-20201007054315](https://github.com/unraid/graphql-api/compare/v2.10.16...v2.10.16-rolling-20201007054315) (2020-10-07)
