@@ -58,7 +58,7 @@ base_directory="/usr/local/bin/node"
 status() {
   local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
   if [[ $graphql_api_pid ]]; then
-    echo "Graphql-api is running."
+    echo "Unraid-api is running in $env mode."
   else
     echo "No processes are running."
   fi
@@ -70,6 +70,22 @@ version() {
 
   echo "Graphql-api v$graphql_version"
   echo "Official plugins v$plugins_version"
+}
+switchenv() {
+  # Get current environment from /etc/rc.d/rc.unraid-api
+  local rcFile="/etc/rc.d/rc.unraid-api"
+  local currentEnv=$(cat $rcFile | grep 'env="' -m 1 | awk -F'"' '$0=$2')
+
+  if [[ $currentEnv = "production" ]]; then
+    echo "Switching from production to staging"
+    sed -i -e '0,/env="production"/s/env="production"/env="staging"/' $rcFile
+  elif [[ $currentEnv = "staging" ]]; then
+    echo "Switching from staging to production"
+    sed -i -e '0,/env="staging"/s/env="staging"/env="production"/' $rcFile
+  fi
+  start
+  sleep 1
+  status
 }
 start() {
   stop
@@ -138,6 +154,9 @@ case "$1" in
 'start')
   start
   ;;
+'switch-env')
+  switchenv
+  ;;
 'start-debug')
   startdebug
   ;;
@@ -154,7 +173,7 @@ case "$1" in
   uninstall
   ;;
 *)
-  echo "usage $0 status|start|start-debug|stop|reload|install|uninstall"
+  echo "usage $0 status|start|switch-env|start-debug|stop|reload|install|uninstall"
 esac
 ]]>
 </INLINE>
