@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.11.1](https://github.com/unraid/graphql-api/compare/v2.11.0...v2.11.1) (2020-10-15)
+
+
+### Bug Fixes
+
+* servers subscription not having data ([72cf071](https://github.com/unraid/graphql-api/commit/72cf07150bb4519769d0f8405fcce07e65e58eb8))
+* wrong env printing after switching env ([a5efa77](https://github.com/unraid/graphql-api/commit/a5efa77933a1a2dca4c940dddd5158a6324d5e7e))
+
 ## [2.11.0](https://github.com/unraid/graphql-api/compare/v2.10.20-rolling-20201013192520...v2.11.0) (2020-10-15)
 
 
