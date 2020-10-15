@@ -149,7 +149,7 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 		});
 
 		// Sub to /servers on mothership
-		mothershipServersEndpoint = subscribeToServers(apiKey)
+		mothershipServersEndpoint = subscribeToServers(apiKey);
 	});
 
 	// Relay is closed
