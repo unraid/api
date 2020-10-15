@@ -38,7 +38,9 @@ export const subscribeToServers = (apiKey: string) => {
             });
         
             // Update subscribers
-            pubsub.publish('servers', JSON.stringify(data.servers));
+            pubsub.publish('servers', {
+                servers: data.servers
+            });
         }
     });
 };

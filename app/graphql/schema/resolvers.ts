@@ -153,7 +153,7 @@ export const resolvers = {
 		online: () => true,
 		info: () => ({}),
 		vms: () => ({}),
-		server(_: unknown, { name }, context: Context) {
+		async server(_: unknown, { name }, context: Context) {
 			ensurePermission(context.user, {
 				resource: 'servers',
 				action: 'read',
