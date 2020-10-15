@@ -80,9 +80,11 @@ switchenv() {
   if [[ $currentEnv = "production" ]]; then
     echo "Switching from production to staging"
     sed -i -e '0,/env="production"/s/env="production"/env="staging"/' $rcFile
+    env="staging"
   elif [[ $currentEnv = "staging" ]]; then
     echo "Switching from staging to production"
     sed -i -e '0,/env="staging"/s/env="staging"/env="production"/' $rcFile
+    env="production"
   fi
   start
   sleep 1
