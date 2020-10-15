@@ -10,7 +10,7 @@
 <!ENTITY plugins     "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-{{ node_plugins_version }}.tgz">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta1" icon="globe">
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta30" icon="globe">
 
 <CHANGES>
 ##&name;
@@ -23,6 +23,7 @@
 <FILE Run="/bin/bash" Method="install remove">
 <INLINE>
 if [ -e /etc/rc.d/rc.unraid-api ]; then
+  /etc/rc.d/rc.flash_backup stop
   /etc/rc.d/rc.unraid-api uninstall
   rm -f /etc/rc.d/rc.unraid-api
   rm -f /etc/rc.d/rc.flash_backup
@@ -620,16 +621,20 @@ response_complete($httpcode, $result, 'success');
 # This file is /etc/rc.d/rc.flash_backup
 # use at queue "f" for flash backup
 QUEUE=" -q f "
-INOTIFY="inotifywait -m -r /boot @/boot/.git -e modify -e move -e create -e delete"
-TASKCMD="php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update"
+TASKNAME="/etc/rc.d/rc.flash_backup watch"
+TASKACTION="php /usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php update"
 status() {
-  local flash_backup_pid=$(pgrep --full "${INOTIFY}")
+  local flash_backup_pid=$(pgrep --full "${TASKNAME}")
   if [[ $flash_backup_pid ]]; then
     echo "flash backup monitor is running."
     _hasqueue && echo "changes detected, backup queued"
     exit 0
   else
-    echo "No processes are running."
+    if _enabled; then
+      echo "flash backup is enabled but the monitor is not running"
+    else
+      echo "flash backup is disabled so the monitor is disabled"
+    fi
     exit 1
   fi
 }
@@ -637,16 +642,16 @@ start() {
   # only run if flash_backup is enabled
   _enabled || exit 1
   # terminate watcher loop/process
-  pkill --full "${INOTIFY}" &>/dev/null
+  pkill --full "${TASKNAME}" &>/dev/null
   # flush: this will ensure we start with a clean repo
   flush
   # start watcher loop as background process
-  _watch &>/dev/null &
+  exec ${TASKNAME} &>/dev/null &
   exit 0
 }
 stop() {
   # terminate watcher loop/process
-  pkill --full "${INOTIFY}" &>/dev/null
+  pkill --full "${TASKNAME}" &>/dev/null
   # remove any queued jobs and flush changes
   flush
   exit 0
@@ -663,17 +668,16 @@ flush() {
   # remove any queued jobs
   _removequeue
   # push any changes ad-hoc
-  echo ${TASKCMD} | at ${QUEUE} now
+  echo ${TASKACTION} | at ${QUEUE} now &>/dev/null
 }
 _watch() {
-  # start inotify watcher loop
-  ${INOTIFY} |
-    while read path action file; do
-      #_removequeue
-      #logger '/boot changes detected, (re)starting 1 min countdown before backing up' --tag flash_backup
-      # create a new at job in queue f
-      _hasqueue || ( logger 'adding task: ${TASKCMD}' --tag flash_backup; echo ${TASKCMD} | at ${QUEUE} now +1 minute )
-    done
+  # start watcher loop
+  while true; do
+    if [ "$(git -C /boot status -s)" ]; then
+      _hasqueue || ( logger "adding task: ${TASKACTION}" --tag flash_backup; echo ${TASKACTION} | at ${QUEUE} now +1 minute &>/dev/null )
+    fi
+    sleep 60;
+  done
 }
 _hasqueue() {
   # returns false if the queue is empty, true otherwise
@@ -704,13 +708,16 @@ case "$1" in
   start
   ;;
 'stop')
-  stop true
+  stop
   ;;
 'reload')
   reload
   ;;
 'flush')
   flush
+  ;;
+'watch')
+  _watch
   ;;
 *)
   echo "usage $0 status|start|stop|reload|flush"
@@ -762,10 +769,13 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 //  deactivate
 if ($cli) {
   if ($argc > 1) $command = $argv[1];
+  if ($argc > 2) $command = $argv[2];
 } else {
   $command = $_POST['command'];
+  $commitmsg = $_POST['commitmsg'];
 }
 if (empty($command)) $command='init';
+if (empty($commitmsg)) $commitmsg='Config change';
 
 // keyfile
 $var = parse_ini_file("/var/local/emhttp/var.ini");
@@ -845,7 +855,7 @@ IdentitiesOnly yes
 
 // add our server as a known host
 if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),'backup.unraid.net,54.70.72.154') === false) {
-  file_put_contents('/root/.ssh/known_hosts', 'backup.unraid.net,54.70.72.154 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKrKXKQwPZTY25MoveIw7fZ3IoZvvffnItrx6q7nkNriDMr2WAsoxu0DrU2QrSLH5zFF1ibv4tChS1hOpiYObiI=', FILE_APPEND);
+  file_put_contents('/root/.ssh/known_hosts', 'backup.unraid.net,54.70.72.154 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKrKXKQwPZTY25MoveIw7fZ3IoZvvffnItrx6q7nkNriDMr2WAsoxu0DrU2QrSLH5zFF1ibv4tChS1hOpiYObiI='."\n", FILE_APPEND);
   chmod('/root/.ssh/known_hosts', 0644);
 }
 
@@ -931,7 +941,7 @@ if (($command == 'update') || ($command == 'reinit')) {
       exec('git -C /boot commit -m \'Initial commit\' &>/dev/null');
       exec('git -C /boot push --force --set-upstream origin master &>/dev/null');
     } else {
-      exec('git -C /boot commit -m \'Config change\' &>/dev/null');
+      exec('git -C /boot commit -m ' . escapeshellarg($commitmsg) . ' &>/dev/null');
       exec('git -C /boot push --set-upstream origin master &>/dev/null');
     }
   }
@@ -1041,6 +1051,16 @@ function handleMessage(e) {
         e.source.postMessage(newstate, e.origin);
       }).fail(function(err) {
         console.error('Failed to get new state: ' + err);
+      });
+      break;
+    case "SUCCESS_NEW_STATE":
+      $.get('/plugins/dynamix.unraid.net/include/state.php', function(newstate) {
+        // parse response so we can update the event type string to send back
+        const [stateError, stateData] = SAFE_JSON_PARSE(newstate);
+        const newPayload = { ...stateData, event: 'DELIVER_NEW_STATE', success: true };
+        e.source.postMessage(JSON.stringify(newPayload), e.origin);
+      }).fail(function(err) {
+        e.source.postMessage(JSON.stringify({ event: 'DELIVER_NEW_STATE', success: false }), e.origin);
       });
       break;
     case "MYSERVERS_UNREGISTER":
@@ -1214,13 +1234,6 @@ unraid-user-profile {
 <INLINE>
 <![CDATA[
 <!-- user profile component -->
-<?if(empty($wizard['hideWizard']) || $path=='Tools/Registration'):?>
-<unraid-launchpad
-  openonload="<? echo empty($wizard['hideWizard']) ?>"
-  serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
-  token="<? echo $var['csrf_token'] ?>"
-></unraid-launchpad>
-<?endif?>
 <script src="https://cdn.jsdelivr.net/npm/vue"></script>
 <?
 $upc_dev = 0;
@@ -1271,6 +1284,7 @@ if (!window.Vue) {
       displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
       serverdesc="<?=$var['COMMENT']?>"
+      servermodel="<?=$var['SYS_MODEL']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
       textcolor="<?=($header) ? '#'.$header : ''?>"
       theme="<?=$display['theme']?>"
@@ -1295,20 +1309,6 @@ _(Header show description)_:
 
 
 <!-- Preserve in case plugin is removed -->
-<FILE Run="/bin/bash" Method="install">
-<INLINE>
-<![CDATA[
-cp -f /usr/local/emhttp/plugins/dynamix/Registration.page /usr/local/emhttp/plugins/dynamix/Registration.page-
-
-cat <<EOF >> /usr/local/emhttp/plugins/dynamix/Registration.page
-
-&nbsp;
-: <unraid-open-launchpad token="<? echo $var['csrf_token'] ?>"></unraid-open-launchpad>
-EOF
-]]>
-</INLINE>
-</FILE>
-
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 <![CDATA[
