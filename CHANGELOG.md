@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.11.0](https://github.com/unraid/graphql-api/compare/v2.10.20-rolling-20201013192520...v2.11.0) (2020-10-15)
+
+
+### Features
+
+* add switch-env to plg rc.d file ([b77f1f5](https://github.com/unraid/graphql-api/commit/b77f1f5a784651080410e1ac0e728b6fe4d974d9))
+
+
+### Bug Fixes
+
+* ensure we send the correct environment field to Sentry ([0e67018](https://github.com/unraid/graphql-api/commit/0e67018abbac9b547881016031fd10081e878b20))
+
 ### [2.10.20](https://github.com/unraid/graphql-api/compare/v2.10.19...v2.10.20) (2020-10-08)
 
 ### [2.10.19](https://github.com/unraid/graphql-api/compare/v2.10.18...v2.10.19) (2020-10-08)
