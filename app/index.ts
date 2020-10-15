@@ -14,7 +14,7 @@ Sentry.init({
 	dsn: process.env.SENTRY_DSN,
 	tracesSampleRate: 1.0,
 	release: `graphql-api@${require('../package.json').version}`,
-	environment: process.env.NODE_ENV,
+	environment: process.env.ENVIRONMENT ?? 'unknown',
 	serverName: os.hostname(),
     enabled: Boolean(process.env.SENTRY_DSN)
 });

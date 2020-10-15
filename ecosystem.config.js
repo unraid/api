@@ -6,11 +6,16 @@ const SENTRY_DSN = 'https://335a7a44d1a048648a585fc4fa053d65@o427961.ingest.sent
 const staging = {
 	MOTHERSHIP_RELAY_WS_LINK: 'wss://staging.mothership.unraid.net/relay',
 	MOTHERSHIP_GRAPHQL_LINK: 'https://staging.mothership.unraid.net/graphql',
-	SENTRY_DSN
+	SENTRY_DSN,
+	ENVIRONMENT: 'staging'
 };
+
 const production = {
 	NODE_ENV: 'production',
-	PORT: '/var/run/graphql-api.sock'
+	ENVIRONMENT: 'production',
+	PORT: '/var/run/graphql-api.sock',
+	out_file: '/dev/null',
+  	error_file: '/dev/null'
 };
 
 const envs = {
@@ -25,17 +30,20 @@ const envs = {
 		SENTRY_DSN
 	},
 	'env_safe-mode': {
-		NODE_ENV: 'safe-mode'
+		NODE_ENV: 'production',
+		ENVIRONMENT: 'safe-mode'
 	},
 	env_staging: staging,
 	'env_staging-debug': {
 		...staging,
 		DEBUG: true,
+		ENVIRONMENT: 'staging-debug'
 	},
 	env_production: production,
 	'env_production-debug': {
 		...production,
-		DEBUG: true
+		DEBUG: true,
+		ENVIRONMENT: 'production-debug'
 	}
 };
 
