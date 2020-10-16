@@ -1263,7 +1263,7 @@ switch (UPC_ENV) {
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
     wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
     break;
-  case 'local':
+  case 'local': // forces load from webGUI filesystem
     vueFile = `/webGui/javascript/vue.js`;
     wcEntryFile = '/webGui/wc/unraid.min.js'; // @TODO / WIP - non-min files aren't downloaded just yet.
     break;
