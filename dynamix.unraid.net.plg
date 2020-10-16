@@ -1240,7 +1240,7 @@ unraid-user-profile {
 <![CDATA[
 <!-- RegWiz -->
 <script type="text/javascript">
-const UPC_ENV = localStorage.getItem('UPC_ENV') ? localStorage.getItem('UPC_ENV') : 'prod';
+const UPC_ENV = localStorage.getItem('UPC_ENV') ? localStorage.getItem('UPC_ENV') : 'prod'; // @TODO - it would be great if this was auto-set when PLG was built
 const VUE_CDN_PREFIX = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
 const injectJS = (src) => {
   if (UPC_ENV !== 'prod') console.debug('[injectJS]', src);
@@ -1256,25 +1256,28 @@ let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
 if (UPC_ENV !== 'prod') console.debug('[UPC_ENV]', UPC_ENV);
 switch (UPC_ENV) {
   case 'stage':
+    // min version of stage
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
     wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
     break;
   case 'stage-debug':
+    // non-min version of stage
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
     wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
     break;
-  case 'local': // forces load from webGUI filesystem
-    vueFile = `/webGui/javascript/vue.js`;
-    wcEntryFile = '/webGui/wc/unraid.min.js'; // @TODO / WIP - non-min files aren't downloaded just yet.
+  case 'local':
+    // forces load from webGUI filesystem
+    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
+    wcEntryFile = '<?autov('/webGui/wc/unraid.min.js') ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
     break;
   case 'dev':
-    vueFile = `<?autov('/webGui/javascript/vue.js') ?>`;
+    // local filesystem Vue.js + external "local" dev server for RegWiz development
+    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
     wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
     break;
   default: // prod
     break;
 }
-
 // add the intended files to the DOM
 injectJS(vueFile);
 // make sure specified vue file is loaded before attempting to 
