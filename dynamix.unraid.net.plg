@@ -1263,15 +1263,15 @@ switch (UPC_ENV) {
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
     wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
     break;
-  case 'dev':
+  case 'local':
     vueFile = `/webGui/javascript/vue.js`;
     wcEntryFile = '/webGui/wc/unraid.min.js'; // @TODO / WIP - non-min files aren't downloaded just yet.
     break;
-  case 'local':
+  case 'dev':
     vueFile = `<?autov('/webGui/javascript/vue.js') ?>`;
     wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
     break;
-  default:
+  default: // prod
     break;
 }
 
