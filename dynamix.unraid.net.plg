@@ -1164,9 +1164,12 @@ echo json_encode($arr);
 </INLINE>
 </FILE>
 
+<FILE Name="/usr/local/emhttp/webGui/javascript/vue.js">
+<URL>https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js</URL>
+</FILE>
 
 <FILE Name="/usr/local/emhttp/webGui/javascript/vue.min.js">
-<URL>https://cdn.jsdelivr.net/npm/vue</URL>
+<URL>https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js</URL>
 </FILE>
 
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
@@ -1190,11 +1193,11 @@ do
   echo "${URL}${KEYS[$ix]}" >> $MANIFEST_TXT
   echo "✨ ${URL}${KEYS[$ix]}"
 done
-echo "🚀 Parsed Manifest – init downloads"
+echo "🚀 Parsed Manifest – start downloads"
 xargs -n 1 curl --http2 -s -O < $MANIFEST_TXT
-echo "✅ Web component files downloaded"
+echo "✅ Registration Wizard files downloaded"
 if [ -f "$MANIFEST_TXT" ]; then
-  echo "🚮 Dump temp files"
+  echo "☄️🚮 Dump temp files"
   rm $MANIFEST_TXT
   rm $MANIFEST_JSON
 fi
@@ -1206,7 +1209,7 @@ fi
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1">
 <INLINE>
 <![CDATA[
-<!-- user profile component -->
+<!-- RegWiz -->
 <style>
 #header {
   z-index: 102 !important;
@@ -1227,7 +1230,7 @@ unraid-user-profile {
   height: 100%;
 }
 </style>
-<!-- /user profile component -->
+<!-- /RegWiz -->
 ]]>
 </INLINE>
 </FILE>
@@ -1235,23 +1238,71 @@ unraid-user-profile {
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2">
 <INLINE>
 <![CDATA[
-<!-- user profile component -->
-<script src="https://cdn.jsdelivr.net/npm/vue"></script>
-<?
-$upc_dev = 0;
-$upc_file = 'https://registration.unraid.net/wc/unraid.min.js';
-if ($upc_dev === 'local') $upc_file = 'https://launchpad.unraid.test:6969/wc/unraid.min.js';
-elseif ($upc_dev) $upc_file = 'https://registration-dev.unraid.net/wc/unraid.min.js';
-?>
-<script src="<? echo $upc_file; ?>"></script>
-<!-- No internet connection fallback to filesystem version -->
+<!-- RegWiz -->
 <script type="text/javascript">
-if (!window.Vue) {
-  document.write('<script src="<?autov('/webGui/javascript/vue.min.js') ?>"><\/script>');
-  document.write('<script src="<?autov('/webGui/wc/unraid.min.js') ?>"><\/script>');
+const UPC_ENV = localStorage.getItem('UPC_ENV') ? localStorage.getItem('UPC_ENV') : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
+const VUE_CDN_PREFIX = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
+const injectJS = (src) => {
+  if (UPC_ENV !== 'production') console.debug('[injectJS]', src);
+  const script = document.createElement('script');
+  script.type = 'text/javascript';
+  script.src = src;
+  document.body.appendChild(script);
+};
+// by default prod is loaded from hosted sources
+let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
+let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
+// determine what source we should use
+if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
+switch (UPC_ENV) {
+  case 'staging':
+    // min version of staging
+    vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
+    break;
+  case 'staging-debug':
+    // non-min version of staging
+    vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
+    break;
+  case 'local':
+    // forces load from webGUI filesystem
+    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
+    wcEntryFile = '<?autov('/webGui/wc/unraid.min.js') ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
+    break;
+  case 'development':
+    // local filesystem Vue.js + external "local" dev server for RegWiz development
+    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
+    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
+    break;
+  default: // prod
+    break;
 }
+// add the intended files to the DOM
+injectJS(vueFile);
+// make sure specified vue file is loaded before attempting to 
+// inject and load web component entry since it relies on Vue.js
+let checkForVue = setInterval(() => {
+  if (!window.Vue) return;
+  clearInterval(checkForVue); // stop checking
+  injectJS(wcEntryFile); // and just inject it already!
+}, 10);
+// start a timer to determine if we need to inject webGUI file system 
+// fallback if we take too long injecting the above
+setTimeout(() => {
+  if (!window.Vue) {
+    if (UPC_ENV !== 'production') console.debug('[UPC] fallback to filesystem JS');
+    clearInterval(checkForVue); // stop initial check
+    injectJS("<?autov('/webGui/javascript/vue.min.js') ?>");
+    checkForVue = setInterval(() => { // reset check
+      if (!window.Vue) return;
+      clearInterval(checkForVue); // stop checking
+      injectJS("<?autov('/webGui/wc/unraid.min.js') ?>"); // and just inject it already!
+    }, 10);
+  }
+}, 2000);
 </script>
-<!-- /user profile component -->
+<!-- /RegWiz -->
 ]]>
 </INLINE>
 </FILE>
@@ -1260,7 +1311,7 @@ if (!window.Vue) {
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3">
 <INLINE>
 <![CDATA[
-    <!-- USER PROFILE COMPONENT -->
+    <!-- RegWiz -->
     <?
     $serverstate = [
       "email" => ($remote['email']) ? $remote['email'] : '',
