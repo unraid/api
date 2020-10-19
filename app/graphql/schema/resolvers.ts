@@ -38,8 +38,17 @@ dee.on('*', async (data: { Type: string }) => {
 		return;
 	}
 
-	const { json } = await modules.getApps();
-	publish('info', 'UPDATED', json);
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
+	if (user) {
+		const { json } = await modules.getAppCount({
+			user
+		});
+		publish('info', 'UPDATED', {
+			apps: json
+		});
+	}
 });
 
 dee.listen();
