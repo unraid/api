@@ -31,6 +31,21 @@ bus.on('slots', async () => {
 	});
 });
 
+// Update info/hostname when hostname changes
+bus.on('varstate', async (_, opts) => {
+	const hostname = opts.varstate.node.name;
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
+	if (user) {
+		publish('info', 'UPDATED', {
+			os: {
+				hostname
+			}
+		});
+	}
+});
+
 // On Docker event update info with { apps: { installed, started } }
 dee.on('*', async (data: { Type: string }) => {
 	// Only listen to container events
