@@ -1229,6 +1229,11 @@ unraid-user-profile {
   margin-left: auto;
   height: 100%;
 }
+
+unraid-launchpad {
+  position: relative;
+  z-index: 10001;
+}
 </style>
 <!-- /RegWiz -->
 ]]>
