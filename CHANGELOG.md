@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.11.2](https://github.com/unraid/graphql-api/compare/v2.11.1-rolling-20201016042757...v2.11.2) (2020-10-19)
+
+
+### Bug Fixes
+
+* docker containers not updating info correctly ([e2aeeb9](https://github.com/unraid/graphql-api/commit/e2aeeb9aa946dc1c565d9c45d273c0ecbbb42305))
+
 ### [2.11.1](https://github.com/unraid/graphql-api/compare/v2.11.0...v2.11.1) (2020-10-15)
 
 
