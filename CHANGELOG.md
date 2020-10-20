@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.12.0](https://github.com/unraid/node-api/compare/v2.11.9...v2.12.0) (2020-10-20)
+
+### [2.11.8-rolling-20201020182621](https://github.com/unraid/node-api/compare/v2.11.8-rolling-20201020090647...v2.11.8-rolling-20201020182621) (2020-10-20)
+
+
+### Features
+
+* async flash backup status ([655238c](https://github.com/unraid/node-api/commit/655238ccd925f23feecbe6c10c51550b01358aa2))
+
+### [2.11.8-rolling-20201020090647](https://github.com/unraid/node-api/compare/v2.11.8-rolling-20201020061418...v2.11.8-rolling-20201020090647) (2020-10-20)
+
+
+### Bug Fixes
+
+* adjust wc copy options ([90f8d8e](https://github.com/unraid/node-api/commit/90f8d8eec66eedecedf56f2dd79c686c2bedff77))
+
 ### [2.11.9](https://github.com/unraid/node-api/compare/v2.11.8...v2.11.9) (2020-10-20)
 
 
