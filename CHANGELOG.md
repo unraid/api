@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.11.6](https://github.com/unraid/node-api/compare/v2.11.5...v2.11.6) (2020-10-20)
+
+
+### Bug Fixes
+
+* prevent killing of pid 1 when running stop ([0c1151e](https://github.com/unraid/node-api/commit/0c1151e43fa50df832ca86c685b2353c9bdce1e2))
+
 ### [2.11.5](https://github.com/unraid/graphql-api/compare/v2.11.4...v2.11.5) (2020-10-20)
 
 ### [2.11.4](https://github.com/unraid/graphql-api/compare/v2.11.3...v2.11.4) (2020-10-20)
