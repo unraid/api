@@ -13,7 +13,7 @@ const staging = {
 const production = {
 	NODE_ENV: 'production',
 	ENVIRONMENT: 'production',
-	PORT: '/var/run/node-api.sock',
+	PORT: '/var/run/unraid-api.sock',
 	out_file: '/dev/null',
   	error_file: '/dev/null'
 };
