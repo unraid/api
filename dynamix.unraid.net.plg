@@ -1,13 +1,15 @@
 <?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
-<!ENTITY name      "dynamix.unraid.net">
-<!ENTITY launch    "Unraid.net">
-<!ENTITY author    "limetech">
-<!ENTITY version   "{{ plg_version }}">
-<!ENTITY pluginURL "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
-<!ENTITY graphql-api "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-graphql-api-{{ node_graphql_api_version }}.tgz">
-<!ENTITY plugins     "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-{{ node_plugins_version }}.tgz">
+<!ENTITY name             "dynamix.unraid.net">
+<!ENTITY launch           "Unraid.net">
+<!ENTITY author           "limetech">
+<!ENTITY version          "{{ plg_version }}">
+<!ENTITY node_api_version "{{ node_api_version }}">
+<!ENTITY plugins_version  "{{ node_plugins_version }}">
+<!ENTITY pluginURL        "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
+<!ENTITY node-api         "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-node-api-&node_api_version;.tgz">
+<!ENTITY plugins          "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-&node_plugins_version;.tgz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta30" icon="globe">
@@ -39,9 +41,9 @@ fi
 </INLINE>
 </FILE>
 
-<!-- unraid-api -->
-<FILE Name="/boot/config/plugins/Unraid.net/unraid-graphql-api.tgz">
-<URL>&graphql-api;</URL>
+<!-- node-api -->
+<FILE Name="/boot/config/plugins/Unraid.net/unraid-node-api.tgz">
+<URL>&node-api;</URL>
 </FILE>
 <!-- plugins -->
 <FILE Name="/boot/config/plugins/Unraid.net/unraid-plugins.tgz">
@@ -53,12 +55,12 @@ fi
 <![CDATA[
 #!/bin/bash
 # unraid-api-handler
-downloads=(graphql-api plugins)
+downloads=(node-api plugins)
 env="production"
-base_directory="/usr/local/bin/node"
+node_base_directory="/usr/local/bin/node"
 status() {
-  local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
-  if [[ $graphql_api_pid ]]; then
+  local node_api_pid=$(pidof node-api | awk '{print $1}')
+  if [[ $node_api_pid ]]; then
     echo "Unraid-api is running in $env mode."
   else
     echo "No processes are running."
@@ -66,10 +68,10 @@ status() {
 }
 version() {
   # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
-  local graphql_version=$(grep '"version"' $base_directory/graphql-api/package.json | cut -d '"' -f 4)
-  local plugins_version=$(grep '"version"' $base_directory/plugins/package.json | cut -d '"' -f 4)
+  local node_api_version=$(grep '"version"' $node_base_directory/node-api/package.json | cut -d '"' -f 4)
+  local plugins_version=$(grep '"version"' $node_base_directory/plugins/package.json | cut -d '"' -f 4)
 
-  echo "Graphql-api v$graphql_version"
+  echo "Node API v$node_api_version"
   echo "Official plugins v$plugins_version"
 }
 switchenv() {
@@ -93,8 +95,8 @@ switchenv() {
 start() {
   stop
   local old_working_directory=$(echo $pwd)
-  cd $base_directory
-  /usr/local/bin/node/graphql-api/node_modules/pm2/bin/pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
+  cd $node_base_directory
+  /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
   cd $old_working_directory
   sleep 1
   status
@@ -103,18 +105,18 @@ start() {
 startdebug() {
   stop
   local old_working_directory=$(echo $pwd)
-  cd $base_directory
-  /usr/local/bin/node/graphql-api/node_modules/pm2/bin/pm2 start $base_directory/graphql-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
+  cd $node_base_directory
+  /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
   cd $old_working_directory
 }
 stop() {
-  local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
-  if [[ $graphql_api_pid ]]; then
-    local parent_pid=$(cat /proc/$graphql_api_pid/status | grep PPid | cut -f2)
+  local node_api_pid=$(pidof node-api | awk '{print $1}')
+  if [[ $node_api_pid ]]; then
+    local parent_pid=$(cat /proc/$node_api_pid/status | grep PPid | cut -f2)
     if [[ $parent_pid ]] && [[ $parent_pid != 1 ]] ; then
       kill $parent_pid &> /dev/null
     else
-      kill $graphql_api_pid &> /dev/null
+      kill $node_api_pid &> /dev/null
     fi
   fi
 }
@@ -127,21 +129,31 @@ reload() {
   exit 0
 }
 install() {
+  # Stop old process
   stop
+
+  # Install node-api and plugins
   for download in ${downloads[@]}; do
-    rm -rf $base_directory/${download}
-    mkdir -p $base_directory/${download}
-    tar -C $base_directory/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
+    rm -rf $node_base_directory/${download}
+    mkdir -p $node_base_directory/${download}
+    tar -C $node_base_directory/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
   done
+
+  # Copy across wc files
+  rm -rf $node_base_directory/${download}
+  mkdir -p $node_base_directory/${download}
+  /boot/config/plugins/Unraid.net/wc
+
+  # Start new process
   start
 }
 uninstall() {
   stop
   sleep 1
   for download in ${downloads[@]}; do
-    rm -rf $base_directory/${download}
+    rm -rf $node_base_directory/${download}
   done
-  rm -f /var/run/graphql-api.sock
+  rm -f /var/run/node-api.sock
 }
 case "$1" in
 'status')
@@ -1199,6 +1211,10 @@ if [ -f "$MANIFEST_TXT" ]; then
   rm $MANIFEST_TXT
   rm $MANIFEST_JSON
 fi
+
+# Copy files to boot
+mkdir -p /boot/config/plugins/Unraid.net/wc
+cp -r /usr/local/emhttp/webGui/wc /boot/config/plugins/Unraid.net/wc
 ]]>
 </INLINE>
 </FILE>
