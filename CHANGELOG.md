@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.11.4](https://github.com/unraid/graphql-api/compare/v2.11.3...v2.11.4) (2020-10-20)
+
+
+### Bug Fixes
+
+* broken varstate ([e099488](https://github.com/unraid/graphql-api/commit/e099488c24fde1aab9d7ed1ad118f23cde4c361d))
+
 ### [2.11.3](https://github.com/unraid/graphql-api/compare/v2.11.2...v2.11.3) (2020-10-19)
 
 
