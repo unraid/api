@@ -140,9 +140,9 @@ install() {
   done
 
   # Copy across wc files
-  rm -rf $node_base_directory/wc
-  mkdir -p $node_base_directory/wc
-  cp -r /boot/config/plugins/Unraid.net/wc $node_base_directory/wc
+  rm -rf /usr/local/emhttp/webGui/wc
+  mkdir -p /usr/local/emhttp/webGui/wc
+  cp -r /boot/config/plugins/Unraid.net/wc /usr/local/emhttp/webGui/wc
 
   # Start new process
   start
