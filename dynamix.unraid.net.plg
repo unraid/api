@@ -253,17 +253,11 @@ if (empty($remote['wanport'])) {
     $remote['wanport'] = 443;
 }
 
-$hasCert = $var['USE_SSL']=='auto' && file_exists('/boot/config/ssl/certs/certificate_bundle.pem');
+$hasCert = $var['USE_SSL']!='no' && 
+           file_exists('/boot/config/ssl/certs/certificate_bundle.pem') &&
+           preg_match('/[0-9a-f]{40}\.unraid\.net$/', exec('openssl x509 -in /boot/config/ssl/certs/certificate_bundle.pem -subject -noout 2>&1'));
 $isRegistered = !empty($remote['apikey']);
 $boolWebUIAuth = $isRegistered && file_exists('/etc/nginx/htpasswd');
-
-$isActivated = false;
-$isUptodate = false;
-if ($isRegistered) {
-  exec("/usr/bin/php -f $docroot/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php status", $output, $retval);
-  $isActivated = ($retval == 0);
-  if ($isActivated) $isUptodate = empty($output);
-}
 ?>
 <script>
 function registerServer(button) {
@@ -404,6 +398,23 @@ function enableFlashBackup(button) {
         openBox("/webGui/include/gitstatus.php", "Changes", 600,600, false);
     }
 }
+
+function buttonStateReset(newstate) {   
+    $('#loadingpanel,#inactivespanel,#activepanel,#changespanel,#uptodatepanel').hide();
+
+    if (newstate['activated']) {
+        $('#activepanel').show();
+
+        if (newstate['uptodate']) {
+            $('#uptodatepanel').show();
+        } else {
+            $('#changespanel').show();
+        }
+    } else {
+        $('#inactivespanel').show();
+    }
+}
+$.get('/plugins/dynamix.unraid.net/include/FlashBackupStatus.php', buttonStateReset, "json");
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
@@ -413,7 +424,7 @@ Unraid.net Status:
 <?if($isRegistered):?>
 Allow Remote Access:
 <?if(!$hasCert):?>
-: <span><i class="fa fa-warning icon warning"></i> Disabled until you Provision a SSL Cert and enable SSL/TLS</span>
+: <span><i class="fa fa-warning icon warning"></i> Disabled until you Provision an unraid.net SSL Cert and set SSL/TLS to Auto</span>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?elseif(!$boolWebUIAuth):?>
@@ -442,8 +453,13 @@ WAN Port:
 
 <?if($isRegistered):?>
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
+<div markdown="1" id="loadingpanel">
 Flash backup:
-<?if(!$isActivated):?>
+: <span class='blue p0'>Loading <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
+
+</div>
+<div markdown="1" id="inactivespanel" style="display:none">
+Flash backup:
 : <span class='orange p0'>Not activated</span>
 
 &nbsp;
@@ -451,10 +467,16 @@ Flash backup:
 
 > Click Activate to set up a local git repo for your local USB Flash boot device and connect to a dedicated remote on unraid.net tied tothis server.
 
-<?else:?>
-: <span class='green p0'>Activated:</span> <?if(!$isUptodate):?><span class='orange p0'>Not up-to-date</span><?else:?><span class='green p0'>Up-to-date</span><?endif?>
+</div>
+<div markdown="1" id="uptodatepanel" style="display:none">
+Flash backup:
+: <span class='green p0'>Activated:</span> <span class='green p0'>Up-to-date</span>
 
-<?if(!$isUptodate):?>
+</div>
+<div markdown="1" id="changespanel" style="display:none">
+Flash backup:
+: <span class='green p0'>Activated:</span> <span class='orange p0'>Not up-to-date</span>
+
 &nbsp;
 : <button type="button" onclick="enableFlashBackup(this)">Update</button> <button type="button" onclick="enableFlashBackup(this)">Changes</button>
 
@@ -464,13 +486,15 @@ Flash backup:
 
 > Click Changes to see what has changed.
 
-<?else:?>
+</div>
+<div markdown="1" id="uptodatepanel" style="display:none">
 &nbsp;
 : <button type="button" disabled>Update</button>
 
 > The Up-to-date status indicates your local configuration matches that stored on the unraid.net remote.
 
-<?endif?>
+</div>
+<div markdown="1" id="activepanel" style="display:none">
 &nbsp;
 : <button type="button" onclick="enableFlashBackup(this)">Deactivate</button> <button type="button" onclick="enableFlashBackup(this)">Reinitialize</button>
 
@@ -478,7 +502,7 @@ Flash backup:
 
 > Click Reinitialize to erase all change history in both local and unraid.net remote.
 
-<?endif?>
+</div>
 </form>
 <?endif?>
 ]]>
@@ -734,6 +758,59 @@ case "$1" in
 *)
   echo "usage $0 status|start|stop|reload|flush"
 esac
+]]>
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/FlashBackupStatus.php">
+<INLINE>
+<![CDATA[
+<?PHP
+/* Copyright 2005-2020, Lime Technology
+ * Copyright 2012-2020, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+}
+if (empty($remote)) {
+  $remote = [
+    "apikey" => "",
+    "username" => "",
+    "avatar" => "",
+    "wanaccess" => "no",
+    "wanport" => "443"
+  ];
+}
+
+$isRegistered = !empty($remote['apikey']);
+$isActivated = false;
+$isUptodate = false;
+if ($isRegistered) {
+  exec("/usr/bin/php -f $docroot/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php status", $output, $retval);
+  $isActivated = ($retval == 0);
+  if ($isActivated) $isUptodate = empty($output);
+}
+
+$arrReturn = [
+  'registered' => $isRegistered,
+  'activated' => $isActivated,
+  'uptodate' => $isUptodate
+];
+
+header('Content-Type: application/json');
+echo json_encode($arrReturn);
+?>
 ]]>
 </INLINE>
 </FILE>
