@@ -1,6 +1,6 @@
-# @unraid/graphql-api
+# @unraid/node-api
 
-Graphql-api wrapper around [@unraid/core](https://github.com/unraid/core).
+Graphql wrapper around [@unraid/core](https://github.com/unraid/core).
 
 ## Installation
 

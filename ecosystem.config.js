@@ -13,7 +13,7 @@ const staging = {
 const production = {
 	NODE_ENV: 'production',
 	ENVIRONMENT: 'production',
-	PORT: '/var/run/graphql-api.sock',
+	PORT: '/var/run/node-api.sock',
 	out_file: '/dev/null',
   	error_file: '/dev/null'
 };
@@ -49,7 +49,7 @@ const envs = {
 
 module.exports = {
 	apps: [{
-		name: 'graphql-api',
+		name: 'node-api',
 		script: path.resolve(__dirname, './index.js'),
 		watch: false,
 		wait_ready: true,
@@ -57,7 +57,7 @@ module.exports = {
 		exp_backoff_restart_delay: 100,
 		max_memory_restart: '150M',
 		env: {
-			PROCESS_TITLE: 'graphql-api'
+			PROCESS_TITLE: 'node-api'
 		},
 		...envs
 	}]
