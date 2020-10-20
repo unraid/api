@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.12.1](https://github.com/unraid/node-api/compare/v2.12.0...v2.12.1) (2020-10-20)
+
+
+### Bug Fixes
+
+* graphql-api -> node-api ([f28f81b](https://github.com/unraid/node-api/commit/f28f81bf70f520b28c8c41879c801b4e33c87324))
+* start-debug not removing correct socket and add report command ([99d4e81](https://github.com/unraid/node-api/commit/99d4e810b924f2d3f02c2e2da9170b0acf1b872c))
+
 ## [2.12.0](https://github.com/unraid/node-api/compare/v2.11.9...v2.12.0) (2020-10-20)
 
 ### [2.11.8-rolling-20201020182621](https://github.com/unraid/node-api/compare/v2.11.8-rolling-20201020090647...v2.11.8-rolling-20201020182621) (2020-10-20)
