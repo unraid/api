@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.11.9](https://github.com/unraid/node-api/compare/v2.11.8...v2.11.9) (2020-10-20)
+
+
+### Bug Fixes
+
+* copy wc files to correct location on install ([bfaa91c](https://github.com/unraid/node-api/commit/bfaa91c237a8532a0cd77ca9605c73b30f97966c))
+* stop wasn't killing process ([b7c213b](https://github.com/unraid/node-api/commit/b7c213b949152ce0842ccedf0ba4997d061c5e1f))
+* use correct port ([36e41dc](https://github.com/unraid/node-api/commit/36e41dc1e25e144037cc332ae72560298b20a7f4))
+
 ### [2.11.8](https://github.com/unraid/node-api/compare/v2.11.7...v2.11.8) (2020-10-20)
 
 ### [2.11.7](https://github.com/unraid/node-api/compare/v2.11.6...v2.11.7) (2020-10-20)
