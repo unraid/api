@@ -140,9 +140,9 @@ install() {
   done
 
   # Copy across wc files
-  rm -rf $node_base_directory/${download}
-  mkdir -p $node_base_directory/${download}
-  /boot/config/plugins/Unraid.net/wc
+  rm -rf $node_base_directory/wc
+  mkdir -p $node_base_directory/wc
+  cp -r /boot/config/plugins/Unraid.net/wc $node_base_directory/wc
 
   # Start new process
   start
@@ -1190,7 +1190,7 @@ URL=https://registration.unraid.net/wc/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
 cd /usr/local/emhttp/webGui
-mkdir wc && cd wc
+rm -rf wc && mkdir wc && cd wc
 touch $MANIFEST_TXT
 # fetch manifest
 echo "🎣 Fetch manifest"
