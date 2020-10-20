@@ -102,6 +102,15 @@ start() {
   status
   exit 0
 }
+report() {
+cat << EOF
+<---- Version ---->
+$(version)
+
+<------ OS ------->
+Unraid v$(source /etc/unraid-version; echo "$version";)
+EOF
+}
 startdebug() {
   stop
   local old_working_directory=$(echo $pwd)
@@ -153,7 +162,7 @@ uninstall() {
   for download in ${downloads[@]}; do
     rm -rf $node_base_directory/${download}
   done
-  rm -f /var/run/node-api.sock
+  rm -f /var/run/unraid-api.sock
 }
 case "$1" in
 'status')
@@ -164,6 +173,9 @@ case "$1" in
   ;;
 'start')
   start
+  ;;
+'report')
+  report
   ;;
 'switch-env')
   switchenv
@@ -186,7 +198,7 @@ case "$1" in
   uninstall
   ;;
 *)
-  echo "usage $0 status|start|switch-env|start-debug|stop|reload|install|uninstall"
+  echo "usage $0 status|start|report|switch-env|start-debug|stop|reload|install|uninstall"
 esac
 ]]>
 </INLINE>
