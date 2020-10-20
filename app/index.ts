@@ -30,7 +30,7 @@ am(async () => {
 	await core.load();
 
 	// Load server
-	await loadServer('graphql-api', server);
+	await loadServer('node-api', server);
 }, async (error: NodeJS.ErrnoException) => {
 	// Send error to server for debugging
 	Sentry.captureException(error);

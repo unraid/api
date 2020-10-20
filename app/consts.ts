@@ -1,7 +1,7 @@
 import { config } from '@unraid/core';
 
 const internalWsAddress = () => {
-	const port = config.get('graphql-api-port');
+	const port = config.get('node-api-port');
 	return isNaN(port as any)
 		// Unix Socket
 		? `ws+unix:${port}`

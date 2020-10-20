@@ -28,7 +28,7 @@ const ONE_SECOND = 1000;
  * The Graphql server.
  */
 const app = express();
-const port = String(config.get('graphql-api-port'));
+const port = String(config.get('node-api-port'));
 
 app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
