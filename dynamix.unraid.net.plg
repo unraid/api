@@ -1,15 +1,15 @@
 <?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
-<!ENTITY name             "dynamix.unraid.net">
-<!ENTITY launch           "Unraid.net">
-<!ENTITY author           "limetech">
-<!ENTITY version          "{{ plg_version }}">
-<!ENTITY node_api_version "{{ node_api_version }}">
-<!ENTITY plugins_version  "{{ node_plugins_version }}">
-<!ENTITY pluginURL        "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
-<!ENTITY node-api         "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-node-api-&node_api_version;.tgz">
-<!ENTITY plugins          "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-&node_plugins_version;.tgz">
+<!ENTITY name                 "dynamix.unraid.net">
+<!ENTITY launch               "Unraid.net">
+<!ENTITY author               "limetech">
+<!ENTITY version              "{{ plg_version }}">
+<!ENTITY node_api_version     "{{ node_api_version }}">
+<!ENTITY node_plugins_version "{{ node_plugins_version }}">
+<!ENTITY pluginURL            "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
+<!ENTITY node-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-node-api-&node_api_version;.tgz">
+<!ENTITY plugins              "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-&node_plugins_version;.tgz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta30" icon="globe">
@@ -142,7 +142,7 @@ install() {
   # Copy across wc files
   rm -rf /usr/local/emhttp/webGui/wc
   mkdir -p /usr/local/emhttp/webGui/wc
-  cp -r /boot/config/plugins/Unraid.net/wc /usr/local/emhttp/webGui/wc
+  cp /boot/config/plugins/Unraid.net/wc/* /usr/local/emhttp/webGui/wc
 
   # Start new process
   start
@@ -1214,7 +1214,7 @@ fi
 
 # Copy files to boot
 mkdir -p /boot/config/plugins/Unraid.net/wc
-cp -r /usr/local/emhttp/webGui/wc /boot/config/plugins/Unraid.net/wc
+cp /usr/local/emhttp/webGui/wc/* /boot/config/plugins/Unraid.net/wc
 ]]>
 </INLINE>
 </FILE>
