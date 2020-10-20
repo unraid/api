@@ -113,10 +113,10 @@ stop() {
   local node_api_pid=$(pidof node-api | awk '{print $1}')
   if [[ $node_api_pid ]]; then
     local parent_pid=$(cat /proc/$node_api_pid/status | grep PPid | cut -f2)
-    if [[ $parent_pid ]] && [[ $parent_pid != 1 ]] ; then
-      kill $parent_pid &> /dev/null
+    if [[ $parent_pid != 1 ]]; then
+      kill -9 $parent_pid &> /dev/null
     else
-      kill $node_api_pid &> /dev/null
+      kill -9 $node_api_pid &> /dev/null
     fi
   fi
 }
