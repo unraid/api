@@ -108,18 +108,14 @@ startdebug() {
   cd $old_working_directory
 }
 stop() {
-  local should_kill=$1
   local graphql_api_pid=$(pidof graphql-api | awk '{print $1}')
   if [[ $graphql_api_pid ]]; then
     local parent_pid=$(cat /proc/$graphql_api_pid/status | grep PPid | cut -f2)
-    if [[ $parent_pid ]]; then
+    if [[ $parent_pid ]] && [[ $parent_pid != 1 ]] ; then
       kill $parent_pid &> /dev/null
+    else
+      kill $graphql_api_pid &> /dev/null
     fi
-  fi
-  sleep 1
-  if [[ $should_kill ]]; then
-    status
-    exit 0
   fi
 }
 reload() {
@@ -164,7 +160,9 @@ case "$1" in
   startdebug
   ;;
 'stop')
-  stop true
+  stop
+  sleep 1
+  status
   ;;
 'reload')
   reload
