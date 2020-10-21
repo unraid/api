@@ -1513,6 +1513,8 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
+sed -i "s@graphql-api.sock@unraid-api.sock@g" /etc/nginx/conf.d/emhttp-servers.conf
+nginx -s reload
 echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 min
 </INLINE>
 </FILE>
