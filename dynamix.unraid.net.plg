@@ -1170,7 +1170,14 @@ function handleMessage(e) {
       });
       break;
     case "MYSERVERS_UNREGISTER":
-      $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: '', username: '', avatar: ''}, function() {
+      $.post('/update.php', {
+        '#file': 'dynamix/dynamix.cfg',
+        '#section': 'remote',
+        apikey: '',
+        avatar: '',
+        email: '',
+        username: '',
+      }, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
         // send a ping back to the regwiz
         const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', };
