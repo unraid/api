@@ -870,7 +870,7 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 //  deactivate
 if ($cli) {
   if ($argc > 1) $command = $argv[1];
-  if ($argc > 2) $command = $argv[2];
+  if ($argc > 2) $commitmsg = $argv[2];
 } else {
   $command = $_POST['command'];
   $commitmsg = $_POST['commitmsg'];
