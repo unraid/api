@@ -894,7 +894,7 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 //  deactivate
 if ($cli) {
   if ($argc > 1) $command = $argv[1];
-  if ($argc > 2) $command = $argv[2];
+  if ($argc > 2) $commitmsg = $argv[2];
 } else {
   $command = $_POST['command'];
   $commitmsg = $_POST['commitmsg'];
@@ -1137,9 +1137,14 @@ function handleMessage(e) {
     case "REG_WIZARD":
       if (data.apikey) {
         $.post('https://keys.lime-technology.com/ips/details', {'apikey': data.apikey}, function(details) {
-          var postargs = {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: data.apikey};
+          var postargs = {
+            '#file': 'dynamix/dynamix.cfg',
+            '#section': 'remote',
+            apikey: data.apikey,
+            regWizTime: Date.now(), // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
+          };
           if (data.email) {
-            postargs['email'] = data.email;
+            postargs['email'] = data.email; // this is also never unset but only "reset" if with instance of sign in
           }
           if (details.username) {
             postargs['username'] = details.username;
@@ -1189,7 +1194,14 @@ function handleMessage(e) {
       });
       break;
     case "MYSERVERS_UNREGISTER":
-      $.post('/update.php', {'#file': 'dynamix/dynamix.cfg', '#section': 'remote', apikey: '', username: '', avatar: ''}, function() {
+      $.post('/update.php', {
+        '#file': 'dynamix/dynamix.cfg',
+        '#section': 'remote',
+        apikey: '',
+        avatar: '',
+        email: '',
+        username: '',
+      }, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
         // send a ping back to the regwiz
         const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', };
@@ -1468,6 +1480,7 @@ setTimeout(() => {
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
       displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
+      reg-wiz-time="<?=($remote['regWizTime']) ? $remote['regWizTime'] : ''?>"
       serverdesc="<?=$var['COMMENT']?>"
       servermodel="<?=$var['SYS_MODEL']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
@@ -1531,6 +1544,8 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
+sed -i "s@graphql-api.sock@unraid-api.sock@g" /etc/nginx/conf.d/emhttp-servers.conf
+nginx -s reload
 echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 min
 </INLINE>
 </FILE>
