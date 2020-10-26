@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.15.0](https://github.com/unraid/node-api/compare/v2.14.0...v2.15.0) (2020-10-26)
+
+### [2.12.1-rolling-20201022224239](https://github.com/unraid/node-api/compare/v2.12.1-rolling-20201022223523...v2.12.1-rolling-20201022224239) (2020-10-22)
+
+
+### Bug Fixes
+
+* **plg:** bug on commit message arg parsing ([6c83673](https://github.com/unraid/node-api/commit/6c83673d20f8bcfa1ac20415fd75994efd42ab75))
+
+### [2.12.1-rolling-20201022223523](https://github.com/unraid/node-api/compare/v2.12.1-rolling-20201021223739...v2.12.1-rolling-20201022223523) (2020-10-22)
+
+
+### Bug Fixes
+
+* **plg:** on sign out remove email dynamix.cfg ([3a697e7](https://github.com/unraid/node-api/commit/3a697e7bb6543a95b4eb8ca26d811ea80d592bb8))
+
+### [2.12.1-rolling-20201021223739](https://github.com/unraid/node-api/compare/v2.12.1-rolling-20201021221003...v2.12.1-rolling-20201021223739) (2020-10-21)
+
+
+### Bug Fixes
+
+* rename graphql-api.sock to unraid-api.sock for old unraid versions ([d133f63](https://github.com/unraid/node-api/commit/d133f637c2cc8fdcd1e3c154f2ceec70d742d072))
+
+### [2.12.1-rolling-20201021221003](https://github.com/unraid/node-api/compare/v2.12.1...v2.12.1-rolling-20201021221003) (2020-10-21)
+
+
+### Features
+
+* **plg:** add regWizTime to know if server ever signed in ([bb87317](https://github.com/unraid/node-api/commit/bb87317c98be2b5af4a849b7a5136f8c4d9d62cc))
+
 ## [2.14.0](https://github.com/unraid/node-api/compare/v2.12.1...v2.14.0) (2020-10-26)
 
 
