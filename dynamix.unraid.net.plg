@@ -7,6 +7,7 @@
 <!ENTITY version              "{{ plg_version }}">
 <!ENTITY node_api_version     "{{ node_api_version }}">
 <!ENTITY node_plugins_version "{{ node_plugins_version }}">
+<!ENTITY env                  "{{ env }}">
 <!ENTITY pluginURL            "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
 <!ENTITY node-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-node-api-&node_api_version;.tgz">
 <!ENTITY plugins              "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-plugins-&node_plugins_version;.tgz">
@@ -49,15 +50,26 @@ fi
 <FILE Name="/boot/config/plugins/Unraid.net/unraid-plugins.tgz">
 <URL>&plugins;</URL>
 </FILE>
+<!-- env -->
+<FILE Name="/boot/config/plugins/Unraid.net/env">
+<INLINE>env="&env;"</INLINE>
+</FILE>
 
 <FILE Name="/etc/rc.d/rc.unraid-api" Mode="0755">
 <INLINE>
 <![CDATA[
 #!/bin/bash
 # unraid-api-handler
+source /boot/config/plugins/Unraid.net/env
 downloads=(node-api plugins)
-env="production"
 node_base_directory="/usr/local/bin/node"
+
+# Only allow specific envs
+if [ "$env" != "staging" ] && [ "$env" != "production" ]; then
+  echo "\"$env\" is an unsupported env. Please use \"staging\" or \"production\"."
+  exit 1
+fi
+
 status() {
   local node_api_pid=$(pidof node-api | awk '{print $1}')
   if [[ $node_api_pid ]]; then
@@ -66,59 +78,63 @@ status() {
     echo "No processes are running."
   fi
 }
-version() {
-  # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
-  local node_api_version=$(grep '"version"' $node_base_directory/node-api/package.json | cut -d '"' -f 4)
-  local plugins_version=$(grep '"version"' $node_base_directory/plugins/package.json | cut -d '"' -f 4)
-
-  echo "Node API v$node_api_version"
-  echo "Official plugins v$plugins_version"
-}
 switchenv() {
-  # Get current environment from /etc/rc.d/rc.unraid-api
-  local rcFile="/etc/rc.d/rc.unraid-api"
-  local currentEnv=$(cat $rcFile | grep 'env="' -m 1 | awk -F'"' '$0=$2')
+  # Get current environment from file
+  local envFile="/boot/config/plugins/Unraid.net/env"
+  local currentEnv=$(source $envFile; echo "$env";)
 
   if [[ $currentEnv = "production" ]]; then
     echo "Switching from production to staging"
-    sed -i -e '0,/env="production"/s/env="production"/env="staging"/' $rcFile
-    env="staging"
+    echo 'env="staging"' > $envFile
   elif [[ $currentEnv = "staging" ]]; then
     echo "Switching from staging to production"
-    sed -i -e '0,/env="staging"/s/env="staging"/env="production"/' $rcFile
-    env="production"
+    echo 'env="production"' > $envFile
   fi
-  start
-  sleep 1
-  status
+  source $envFile;
+  reload
 }
-start() {
-  stop
+_start() {
+  _stop
   local old_working_directory=$(echo $pwd)
+  mkdir -p $node_base_directory
   cd $node_base_directory
   /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
   cd $old_working_directory
+}
+start() {
+  _start
   sleep 1
   status
   exit 0
 }
+_node_api_version() {
+  # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
+  local version=$(grep '"version"' $node_base_directory/node-api/package.json | cut -d '"' -f 4)
+  echo "v$version"
+}
+_plugins_version() {
+  # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
+  local version=$(grep '"version"' $node_base_directory/plugins/package.json | cut -d '"' -f 4)
+  echo "v$version"
+}
 report() {
 cat << EOF
-<---- Version ---->
-$(version)
-
-<------ OS ------->
+<-----UNRAID-API-REPORT----->
+Env $env
+Node API $(_node_api_version)
+Official plugins $(_plugins_version)
 Unraid v$(source /etc/unraid-version; echo "$version";)
+</----UNRAID-API-REPORT----->
 EOF
 }
 startdebug() {
-  stop
+  _stop
   local old_working_directory=$(echo $pwd)
   cd $node_base_directory
   /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
   cd $old_working_directory
 }
-stop() {
+_stop() {
   local node_api_pid=$(pidof node-api | awk '{print $1}')
   if [[ $node_api_pid ]]; then
     local parent_pid=$(cat /proc/$node_api_pid/status | grep PPid | cut -f2)
@@ -129,17 +145,25 @@ stop() {
     fi
   fi
 }
-reload() {
-  stop
+stop() {
+  echo "Stopping Unraid-api"
+  _stop
   sleep 1
-  start
+  status
+  exit 0
+}
+reload() {
+  echo "Reloading Unraid-api"
+  _stop
+  sleep 1
+  _start
   sleep 1
   status
   exit 0
 }
 install() {
   # Stop old process
-  stop
+  _stop
 
   # Install node-api and plugins
   for download in ${downloads[@]}; do
@@ -154,7 +178,12 @@ install() {
   cp /boot/config/plugins/Unraid.net/wc/* /usr/local/emhttp/webGui/wc
 
   # Start new process
-  start
+  _start
+
+  # Wait for inital process to boot
+  sleep 2
+  status
+  exit 0
 }
 uninstall() {
   stop
@@ -167,9 +196,6 @@ uninstall() {
 case "$1" in
 'status')
   status
-  ;;
-'version')
-  version
   ;;
 'start')
   start
@@ -185,8 +211,6 @@ case "$1" in
   ;;
 'stop')
   stop
-  sleep 1
-  status
   ;;
 'reload')
   reload
@@ -870,7 +894,7 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 //  deactivate
 if ($cli) {
   if ($argc > 1) $command = $argv[1];
-  if ($argc > 2) $command = $argv[2];
+  if ($argc > 2) $commitmsg = $argv[2];
 } else {
   $command = $_POST['command'];
   $commitmsg = $_POST['commitmsg'];
