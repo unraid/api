@@ -1131,18 +1131,18 @@ function handleMessage(e) {
           $.post('/update.php', postargs, function() {
             console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
             // send a ping back to the regwiz
-            const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', };
+            const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', webGuiPathname: window.location.pathname };
             e.source.postMessage(JSON.stringify(payload), e.origin);
           }).fail(function() {
             console.error('Failed to update apikey under [remote] section');
             // send a ping back to the regwiz
-            const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', };
+            const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', webGuiPathname: window.location.pathname };
             e.source.postMessage(JSON.stringify(payload), e.origin);
           });
         }).fail(function() {
           console.error('Failed to retrieve details from key server');
           // send a ping back to the regwiz
-          const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', };
+          const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', webGuiPathname: window.location.pathname };
           e.source.postMessage(JSON.stringify(payload), e.origin);
         });
       }
@@ -1180,12 +1180,12 @@ function handleMessage(e) {
       }, function() {
         console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
         // send a ping back to the regwiz
-        const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', };
+        const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', webGuiPathname: window.location.pathname };
         e.source.postMessage(JSON.stringify(payload), e.origin);
       }).fail(function() {
         console.error('Failed to unregister');
         // send a ping back to the regwiz
-        const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signOut', };
+        const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signOut', webGuiPathname: window.location.pathname };
         e.source.postMessage(JSON.stringify(payload), e.origin);
       });
       break;
