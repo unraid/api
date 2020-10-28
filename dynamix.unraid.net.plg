@@ -1310,36 +1310,48 @@ echo json_encode($arr);
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
 <INLINE>
 <![CDATA[
-echo "🕹️ Start download web component files"
-URL=https://registration.unraid.net/wc/
+MANIFEST_JSON_PATH=/boot/config/plugins/Unraid.net/wc/manifest.json
+BASE_URL=https://registration.unraid.net/wc/
+BASE_PATH=/boot/config/plugins/Unraid.net/wc/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
-cd /usr/local/emhttp/webGui
-rm -rf wc && mkdir wc && cd wc
-touch $MANIFEST_TXT
-# fetch manifest
-echo "🎣 Fetch manifest"
-curl --http2 -s ${URL}manifest.json | jq . > $MANIFEST_JSON
-echo "📋 Received manifest"
-# take each key and add it to MANIFEST_TXT
-KEYS=($((<${MANIFEST_JSON} jq -r 'keys | @sh') | tr -d \'\"))
-for ix in ${!KEYS[*]}
-do
-  echo "${URL}${KEYS[$ix]}" >> $MANIFEST_TXT
-  echo "✨ ${URL}${KEYS[$ix]}"
-done
-echo "🚀 Parsed Manifest – start downloads"
-xargs -n 1 curl --http2 -s -O < $MANIFEST_TXT
-echo "✅ Registration Wizard files downloaded"
-if [ -f "$MANIFEST_TXT" ]; then
-  echo "☄️🚮 Dump temp files"
-  rm $MANIFEST_TXT
-  rm $MANIFEST_JSON
+
+# Check if we need to download files
+# On first install we cache these
+if [[ ! -f "$MANIFEST_JSON_PATH" ]]; then
+  echo "🕹️ Start downloading web components"
+
+  # Ensure we start off with a clean dir
+  rm -rf $BASE_PATH && mkdir -p $BASE_PATH && cd $BASE_PATH
+
+  # Fetch the manifest
+  echo "🎣 Fetching manifest"
+  curl --http2 -s ${BASE_URL}$MANIFEST_JSON | jq . > $MANIFEST_JSON
+  echo "📋 Received manifest"
+
+  # Take each key and add it to MANIFEST_TXT
+  KEYS=($((<${MANIFEST_JSON} jq -r 'keys | @sh') | tr -d \'\"))
+  for ix in ${!KEYS[*]}
+  do
+    echo "${BASE_URL}${KEYS[$ix]}" >> $MANIFEST_TXT
+    echo "✨ ${BASE_URL}${KEYS[$ix]}"
+  done
+
+  # Download files from the manifest file
+  echo "🚀 Parsed Manifest – starting downloads"
+  xargs -n 1 curl --http2 -s -O < $MANIFEST_TXT
+
+  # Done
+  echo "✅ Registration Wizard files downloaded"
+  if [ -f "$MANIFEST_TXT" ]; then
+    echo "☄️🚮 Deleted temp files"
+    rm $MANIFEST_TXT
+  fi
 fi
 
-# Copy files to boot
-mkdir -p /boot/config/plugins/Unraid.net/wc
-cp /usr/local/emhttp/webGui/wc/* /boot/config/plugins/Unraid.net/wc
+# Copy files to webGui's public dir
+mkdir -p /usr/local/emhttp/webGui/wc/
+rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/wc/ /usr/local/emhttp/webGui/wc/
 ]]>
 </INLINE>
 </FILE>
