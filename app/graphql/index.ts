@@ -304,12 +304,12 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		onConnect: (connectionParams: { [key: string]: string }) => {
+		onConnect: async (connectionParams: { [key: string]: string }) => {
 			const apiKey = connectionParams['x-api-key'];
 			const user = apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
-			log.info(`<ws> ${user.name}[${websocketId}] connected.`);
+			log.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);
@@ -340,7 +340,7 @@ export const graphql = {
 			}
 
 			const { user, websocketId } = context;
-			log.info(`<ws> ${user.name}[${websocketId}] disconnected.`);
+			log.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);
