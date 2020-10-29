@@ -310,18 +310,19 @@ function registerServer(button) {
 
     var success = function(data) {
         if (data.apikey) {
+            $(button).prop("disabled", false).html(oldlabel);
             $.post('/webGui/include/Dispatcher.php',{
                 "#cfg": "/boot/config/plugins/dynamix/dynamix.cfg",
                 "remote_apikey": data.apikey,
                 "remote_wanaccess": $('#wanaccess').val(),
                 "remote_wanport": $('#wanport').val()
-            });
-            $(button).prop("disabled", false).html(oldlabel);
+            },function(data2) {
 <?if(!$isRegistered):?>
-            swal({title:"",text:"Your server has been registered",type:"success",allowEscapeKey:false},function(){button.form.submit();});
+                swal({title:"",text:"Your server has been registered",type:"success",allowEscapeKey:false},function(){button.form.submit();});
 <?else:?>
-            button.form.submit();
+                button.form.submit();
 <?endif?>
+            });
         } else {
             failure({"status": 403, "responseJSON": {"error": "Unable to register this Unraid Server"}});
         }
@@ -415,20 +416,20 @@ function enableFlashBackup(button) {
         $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"activate"},success).fail(failure);
     }
     if (oldlabel == 'Deactivate') {
-        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Deactivating");
-        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+        swal({title:"Deactivate",text:"Are you sure you want pause communication with your remote flash backup on unraid.net?",type:'warning',confirmButtonText:'Deactivate',showCancelButton:true},function(){
+            $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Deactivating");
+            $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+        });
     }
     if (oldlabel == 'Update') {
         $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Updating");
-        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"update"},success).fail(failure);
+        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"flush"},success).fail(failure);
     }
     if (oldlabel == 'Reinitialize') {
-        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Reinitializing");
-        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"reinit"},success).fail(failure);
-    }
-    if (oldlabel == 'Deactivate') {
-        $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Deactivating");
-        $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+        swal({title:"Reinitialize",text:"Are you sure you want erase all change history in both local and unraid.net remote?",type:'warning',confirmButtonText:'Reinitialize',showCancelButton:true},function(){
+            $(button).prop("disabled", true).html("<i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i> Reinitializing");
+            $.post("/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php",{command:"reinit"},success).fail(failure);
+        });
     }
     if (oldlabel == 'Changes') {
         openBox("/webGui/include/gitstatus.php", "Changes", 600,600, false);
@@ -438,10 +439,16 @@ function enableFlashBackup(button) {
 function buttonStateReset(newstate) {   
     $('#loadingpanel,#inactivespanel,#activepanel,#changespanel,#uptodatepanel').hide();
 
-    if (newstate['activated']) {
+    if (newstate['loading'] && newstate['loading']!='') {
+      $('#loadingtext').text(newstate['loading']);
+      $('#loadingpanel').show();
+      return;
+    }
+
+    if (newstate['activated'] == 'true') {
         $('#activepanel').show();
 
-        if (newstate['uptodate']) {
+        if (newstate['uptodate'] == 'true') {
             $('#uptodatepanel').show();
         } else {
             $('#changespanel').show();
@@ -450,7 +457,7 @@ function buttonStateReset(newstate) {
         $('#inactivespanel').show();
     }
 }
-$.get('/plugins/dynamix.unraid.net/include/FlashBackupStatus.php', buttonStateReset, "json");
+$.post('/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php',{command:"status"});
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
@@ -491,7 +498,7 @@ WAN Port:
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 <div markdown="1" id="loadingpanel">
 Flash backup:
-: <span class='blue p0'>Loading <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
+: <span class='blue p0'><span markdown="1" id="loadingtext">Loading</span> <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>
 
 </div>
 <div markdown="1" id="inactivespanel" style="display:none">
@@ -540,6 +547,18 @@ Flash backup:
 
 </div>
 </form>
+<script>
+var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
+flashbackupsub.on('message', function(data) {
+  var ini = parseINI(data);
+
+  console.info('Flash backup state: ', ini['flashbackup']);
+  buttonStateReset(ini['flashbackup']);
+});
+$(function() {
+  flashbackupsub.start();
+});
+</script>
 <?endif?>
 ]]>
 </INLINE>
@@ -798,59 +817,6 @@ esac
 </INLINE>
 </FILE>
 
-<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/FlashBackupStatus.php">
-<INLINE>
-<![CDATA[
-<?PHP
-/* Copyright 2005-2020, Lime Technology
- * Copyright 2012-2020, Bergware International.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2,
- * as published by the Free Software Foundation.
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- */
-?>
-<?
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-
-if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
-  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
-}
-if (empty($remote)) {
-  $remote = [
-    "apikey" => "",
-    "username" => "",
-    "avatar" => "",
-    "wanaccess" => "no",
-    "wanport" => "443"
-  ];
-}
-
-$isRegistered = !empty($remote['apikey']);
-$isActivated = false;
-$isUptodate = false;
-if ($isRegistered) {
-  exec("/usr/bin/php -f $docroot/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php status", $output, $retval);
-  $isActivated = ($retval == 0);
-  if ($isActivated) $isUptodate = empty($output);
-}
-
-$arrReturn = [
-  'registered' => $isRegistered,
-  'activated' => $isActivated,
-  'uptodate' => $isUptodate
-];
-
-header('Content-Type: application/json');
-echo json_encode($arrReturn);
-?>
-]]>
-</INLINE>
-</FILE>
-
 <FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php">
 <INLINE>
 <![CDATA[
@@ -869,8 +835,26 @@ echo json_encode($arrReturn);
 <?
 $cli = php_sapi_name()=='cli';
 
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+}
+if (empty($remote)) {
+  $remote = [
+    "apikey" => "",
+    "username" => "",
+    "avatar" => "",
+    "wanaccess" => "no",
+    "wanport" => "443"
+  ];
+}
+
 function response_complete($httpcode, $result, $cli_success_msg='') {
   global $cli;
+
+  save_flash_backup_state();
+
   if ($cli) {
     $json = @json_decode($result,true);
     if (!empty($json['error'])) {
@@ -885,11 +869,47 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
   exit((string)$result);
 }
 
+function save_flash_backup_state($loading='') {
+  global $arrState;
+
+  $arrState['loading'] = $loading;
+
+  $text = "[flashbackup]\n";
+  foreach ($arrState as $key => $value) {
+    if ($value === false) $value = 'false';
+    if ($value === true) $value = 'true';
+    $text .= "$key=" . $value . "\n";
+  }
+  file_put_contents('/var/local/emhttp/flashbackup.new', $text);
+  rename('/var/local/emhttp/flashbackup.new', '/var/local/emhttp/flashbackup.ini');
+}
+
+function load_flash_backup_state() {
+  global $remote;
+  global $arrState;
+
+  $arrState = [
+    'activated' => false,
+    'uptodate' => false,
+    'loading' => ''
+  ];
+
+  $arrNewState = parse_ini_file("/var/local/emhttp/flashbackup.ini");
+
+  if ($arrNewState !== false) {
+    $arrState = array_merge($arrState, $arrNewState);
+  }
+
+  $arrState['activated'] = empty($arrState['activated']) ? true : false;
+  $arrState['uptodate'] = empty($arrState['uptodate']) ? true : false;
+  $arrState['registered'] = !empty($remote['apikey']);
+}
 // command
 //  init (default)
 //  activate
 //  status
 //  update
+//  flush
 //  reinit
 //  deactivate
 if ($cli) {
@@ -901,6 +921,28 @@ if ($cli) {
 }
 if (empty($command)) $command='init';
 if (empty($commitmsg)) $commitmsg='Config change';
+
+$loadingMessage = '';
+
+switch ($command) {
+  case 'activate':
+    $loadingMessage = 'Activating';
+    break;
+  case 'deactivate':
+    $loadingMessage = 'Deactivating';
+    break;
+  case 'update':
+    $loadingMessage = 'Updating';
+    break;
+  case 'reinit':
+    $loadingMessage = 'Reinitializing';
+    break;
+  case 'status':
+    $loadingMessage = 'Loading';
+    break;
+}
+
+load_flash_backup_state();
 
 // keyfile
 $var = parse_ini_file("/var/local/emhttp/var.ini");
@@ -918,9 +960,20 @@ if ($command != 'activate') {
   }
 }
 
+// if flush command, invoke our background rc.flash_backup to flush
+if ($command == 'flush') {
+  exec('/etc/rc.d/rc.flash_backup flush &>/dev/null');
+  response_complete(200, '{}');
+}
+
+if (!empty($loadingMessage)) {
+  save_flash_backup_state($loadingMessage);
+}
+
 // if deactivate command, just remove our origin
 if ($command == 'deactivate') {
   exec('git --git-dir /boot/.git remote remove origin &>/dev/null');
+  exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
   response_complete(200, '{}');
 }
 
@@ -1049,9 +1102,14 @@ if ($command != 'reinit') {
 
 // establish status
 exec('git -C /boot status --porcelain', $status_output, $return_var);
+$arrState['activated'] = $return_var==0;
+
 if ($return_var != 0) {
+  $arrState['loading'] = '';
   response_complete(406, '{"error":"'.${status_output[0]}.'"}');
 }
+
+$arrState['uptodate'] = empty($status_output);
 
 if ($command == 'status') {
   $data = implode("\n", $status_output);
@@ -1069,7 +1127,12 @@ if (($command == 'update') || ($command == 'reinit')) {
       exec('git -C /boot commit -m ' . escapeshellarg($commitmsg) . ' &>/dev/null');
       exec('git -C /boot push --set-upstream origin master &>/dev/null');
     }
+    $arrState['uptodate'] = true;
   }
+}
+
+if ($command == 'activate') {
+  exec('/etc/rc.d/rc.flash_backup start &>/dev/null');
 }
 
 response_complete($httpcode, '{}');
