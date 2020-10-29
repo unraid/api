@@ -17,7 +17,7 @@ import { log, config, utils, paths } from '@unraid/core';
 import { graphql } from './graphql';
 import { connectToMothership } from './mothership';
 
-const { getEndpoints, globalErrorHandler, exitApp, loadState } = utils;
+const { getEndpoints, globalErrorHandler, exitApp, loadState, validateApiKeyFormat } = utils;
 
 /**
  * One second in milliseconds.
@@ -163,14 +163,21 @@ export const server = {
 		const filePath = paths.get('dynamix-config')!;
 		const watcher = chokidar.watch(filePath);
 		const getApiKey = () => {
-			const key = dotProp.get(loadState(filePath), 'remote.apikey');
-			return (key === undefined || String(key).trim() === '') ? undefined : key;
+			const apiKey = dotProp.get(loadState(filePath), 'remote.apikey') as string;
+			try {
+				validateApiKeyFormat(apiKey);
+				return apiKey;
+			} catch {}
+
+			return;
 		};
 		const reconnect = async () => {
-			log.debug('my_servers API key was updated, restarting proxy connection.');
 			process.nextTick(() => {
 				if (getApiKey() !== undefined) {
+					log.debug('my_servers API key was updated, restarting proxy connection.');
 					connectToMothership(wsServer);
+				} else {
+					log.debug('my_servers API key was updated, invalid key found.');
 				}
 			});
 		};

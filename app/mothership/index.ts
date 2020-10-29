@@ -6,7 +6,7 @@ import { DynamixConfig } from '@unraid/core/dist/lib/types';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
 import { subscribeToServers } from './subscribe-to-servers';
 
-const { loadState, sleep } = utils;
+const { loadState, sleep, validateApiKeyFormat } = utils;
 const { varState } = states;
 
 // Websocket closed state
@@ -84,6 +84,14 @@ export const connectToMothership = async (wsServer: WebSocket.Server, currentRet
 	let mothershipServersEndpoint: {
 		unsubscribe: () => void;
 	};
+
+	// Ensure API key is in the correct format
+	try {
+		validateApiKeyFormat(apiKey);
+	} catch (error) {
+		log.debug(error.message);
+		return;
+	}
 
 	// Connect to mothership's relay endpoint
 	// Keep reference outside this scope so we can disconnect later
