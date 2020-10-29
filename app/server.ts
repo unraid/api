@@ -44,6 +44,22 @@ app.use(async (_req, res, next) => {
 	next();
 });
 
+// In all environments apart from production add the env to the headers
+if (process.env.ENVIRONMENT !== 'production') {
+	app.use(async (_req, res, next) => {
+		// Only get the machine ID on first request
+		// We do this to avoid using async in the main server function
+		if (!app.get('x-environment')) {
+			app.set('x-environment', process.env.ENVIRONMENT);
+		}
+	
+		// Update header with current environment
+		res.set('x-environment', app.get('x-environment'));
+	
+		next();
+	});
+}
+
 // Mount graph endpoint
 // @ts-expect-error
 const graphApp = new ApolloServer(graphql);
