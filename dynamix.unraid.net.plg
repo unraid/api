@@ -1203,7 +1203,7 @@ function handleMessage(e) {
           '#file': 'dynamix/dynamix.cfg',
           '#section': 'remote',
           apikey: data.apikey,
-          regWizTime: Date.now(), // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
+          regWizTime: `${Date.now()}_${data.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
         };
         if (data.email) {
           postargs['email'] = data.email;
