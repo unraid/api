@@ -33,7 +33,7 @@ const ONE_SECOND = 1000;
  */
 const app = express();
 
-const port = process.env.PORT ?? '0' ?? String(config.get('port'));
+const port = process.env.PORT ?? String(config.get('port'));
 
 app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
