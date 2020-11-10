@@ -1199,35 +1199,28 @@ function handleMessage(e) {
       break;
     case "REG_WIZARD":
       if (data.apikey) {
-        $.post('https://keys.lime-technology.com/ips/details', {'apikey': data.apikey}, function(details) {
-          var postargs = {
-            '#file': 'dynamix/dynamix.cfg',
-            '#section': 'remote',
-            apikey: data.apikey,
-            regWizTime: Date.now(), // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
-          };
-          if (data.email) {
-            postargs['email'] = data.email; // this is also never unset but only "reset" if with instance of sign in
-          }
-          if (details.username) {
-            postargs['username'] = details.username;
-          }
-          if (details.avatar) {
-            postargs['avatar'] = details.avatar;
-          }
-          $.post('/update.php', postargs, function() {
-            console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
-            // send a ping back to the regwiz
-            const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', webGuiPathname: window.location.pathname };
-            e.source.postMessage(JSON.stringify(payload), e.origin);
-          }).fail(function() {
-            console.error('Failed to update apikey under [remote] section');
-            // send a ping back to the regwiz
-            const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', webGuiPathname: window.location.pathname };
-            e.source.postMessage(JSON.stringify(payload), e.origin);
-          });
+        var postargs = {
+          '#file': 'dynamix/dynamix.cfg',
+          '#section': 'remote',
+          apikey: data.apikey,
+          regWizTime: `${Date.now()}_${data.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
+        };
+        if (data.email) {
+          postargs['email'] = data.email;
+        }
+        if (data.username) {
+          postargs['username'] = data.username;
+        }
+        if (data.avatar) {
+          postargs['avatar'] = data.avatar;
+        }
+        $.post('/update.php', postargs, function() {
+          console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          // send a ping back to the regwiz
+          const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', webGuiPathname: window.location.pathname };
+          e.source.postMessage(JSON.stringify(payload), e.origin);
         }).fail(function() {
-          console.error('Failed to retrieve details from key server');
+          console.error('Failed to update apikey under [remote] section');
           // send a ping back to the regwiz
           const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', webGuiPathname: window.location.pathname };
           e.source.postMessage(JSON.stringify(payload), e.origin);
@@ -1619,11 +1612,7 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
-sed -i "s@graphql-api.sock@unraid-api.sock@g" /etc/nginx/conf.d/emhttp-servers.conf
-nginx -s reload
-/etc/rc.d/rc.unraid-api _install;
-/etc/rc.d/rc.unraid-api _start;
-echo "/etc/rc.d/rc.flash_backup start" | at -M now + 1 min
+echo "sed -i "s@graphql-api.sock@unraid-api.sock@g" /etc/nginx/conf.d/emhttp-servers.conf; nginx -s reload; /etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 min
 </INLINE>
 </FILE>
 
