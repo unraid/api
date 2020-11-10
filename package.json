@@ -101,7 +101,7 @@
       "max-params": 0
     }
   },
-  "bundleDependencies": [
+  "bundledDependencies": [
     "@apollo/client",
     "@gridplus/docker-events",
     "@sentry/node",
@@ -111,6 +111,7 @@
     "apollo-server",
     "apollo-server-express",
     "camelcase",
+    "clean-cache",
     "cross-fetch",
     "dot-prop",
     "express",
@@ -129,8 +130,6 @@
     "redact-secrets",
     "set-interval-async",
     "stoppable",
-    "subscriptions-transport-ws",
-    "source-map-support",
-    "clean-cache"
+    "subscriptions-transport-ws"
   ]
 }
