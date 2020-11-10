@@ -16,6 +16,10 @@ import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths } from '@unraid/core';
 import { graphql } from './graphql';
 import { connectToMothership } from './mothership';
+import { init as loadMyServers } from './my_servers';
+
+// @todo: move this
+loadMyServers();
 
 const { getEndpoints, globalErrorHandler, exitApp, loadState, validateApiKeyFormat } = utils;
 
@@ -28,13 +32,13 @@ const ONE_SECOND = 1000;
  * The Graphql server.
  */
 const app = express();
-const port = String(config.get('node-api-port'));
+
+const port = process.env.PORT ?? '0' ?? String(config.get('port'));
 
 app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
 	if (!app.get('x-machine-id')) {
-		// eslint-disable-next-line require-atomic-updates
 		app.set('x-machine-id', await utils.getMachineId());
 	}
 
@@ -158,6 +162,7 @@ stoppableServer.on('upgrade', (request, socket, head) => {
 graphApp.installSubscriptionHandlers(wsServer);
 
 export const server = {
+	httpServer,
 	server: stoppableServer,
 	async start() {
 		const filePath = paths.get('dynamix-config')!;

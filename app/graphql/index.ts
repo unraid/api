@@ -6,11 +6,15 @@
 import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '@unraid/core';
-import { apiManager, errors, log, states, config, pluginManager, modules } from '@unraid/core';
+import { bus, apiManager, errors, log, states, config, pluginManager, modules } from '@unraid/core';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';
-import { typeDefs, resolvers } from './schema';
+import dee from '@gridplus/docker-events';
+import { setIntervalAsync } from 'set-interval-async/dynamic';
+import { run, publish } from '../run';
+import { typeDefs } from './schema';
+import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
 
 const { AppError, FatalAppError, PluginError } = errors;
@@ -257,23 +261,19 @@ const schema = makeExecutableSchema({
 });
 
 const ensureApiKey = (apiKeyToCheck: string) => {
-	try {
-		// Check there is atleast one valid key
-		if (core.apiManager.getValidKeys().length !== 0) {
-			if (!apiKeyToCheck) {
-				throw new AppError('Missing API key.');
-			}
-
-			if (!apiManager.isValid(apiKeyToCheck)) {
-				throw new AppError('Invalid API key.');
-			}
-		} else {
-			if (process.env.NODE_ENV !== 'development') {
-				throw new AppError('No valid API keys active.');
-			}
+	// Check there is atleast one valid key
+	if (core.apiManager.getValidKeys().length !== 0) {
+		if (!apiKeyToCheck) {
+			throw new AppError('Missing API key.');
 		}
-	} catch {
-		throw new AppError('Invalid Api key.');
+
+		if (!apiManager.isValid(apiKeyToCheck)) {
+			throw new AppError('Invalid API key.');
+		}
+	} else {
+		if (process.env.NODE_ENV !== 'development') {
+			throw new AppError('No valid API keys active.');
+		}
 	}
 };
 
@@ -294,6 +294,69 @@ const apiKeyToUser = (apiKey: string) => {
 
 	return { name: 'guest', role: 'guest' };
 };
+
+// Update array values when slots change
+bus.on('slots', async () => {
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
+	await run('array', 'UPDATED', {
+		moduleToRun: modules.getArray,
+		context: {
+			user
+		}
+	});
+});
+
+// Update info/hostname when hostname changes
+bus.on('varstate', async (data) => {
+	const hostname = data.varstate.node.name;
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
+	if (user) {
+		publish('info', 'UPDATED', {
+			os: {
+				hostname
+			}
+		});
+	}
+});
+
+// On Docker event update info with { apps: { installed, started } }
+dee.on('*', async (data: { Type: string }) => {
+	// Only listen to container events
+	if (data.Type !== 'container') {
+		return;
+	}
+
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
+	if (user) {
+		const { json } = await modules.getAppCount({
+			user
+		});
+		publish('info', 'UPDATED', {
+			apps: json
+		});
+	}
+});
+
+dee.listen();
+
+// This needs to be fixed to run from events
+setIntervalAsync(async () => {
+	// @todo: Create a system user for this
+	const user = usersState.findOne({ name: 'root' });
+
+	await run('services', 'UPDATED', {
+		moduleToRun: modules.getServices,
+		context: {
+			user
+		}
+	});
+}, 1000);
 
 export const graphql = {
 	introspection: debug,
@@ -359,6 +422,7 @@ export const graphql = {
 		if (req) {
 			const apiKey = req.headers['x-api-key'];
 			const user = apiKeyToUser(apiKey);
+
 			return {
 				user
 			};

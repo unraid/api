@@ -1,0 +1,18 @@
+type Query {
+    display: Display
+}
+
+type Subscription {
+    display: Display
+}
+
+type Display {
+    case: Case
+}
+
+type Case {
+    icon: String
+    url: String
+    error: String
+    base64: String
+}
