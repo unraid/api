@@ -1334,6 +1334,7 @@ if (empty($remote['avatar'])) {
 $arr = [];
 $arr['event'] = 'STATE';
 $arr['ts'] = time();
+$arr['deviceCount'] = $var['deviceCount'];
 $arr['guid'] = $var['flashGUID'];
 $arr['state'] = $license_state;
 $arr['keyfile'] = $key_contents;
@@ -1526,6 +1527,7 @@ setTimeout(() => {
     <!-- RegWiz -->
     <?
     $serverstate = [
+      "deviceCount" => $var['deviceCount'],
       "email" => ($remote['email']) ? $remote['email'] : '',
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
