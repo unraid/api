@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.3](https://github.com/unraid/node-api/compare/v2.15.2-rolling-20201111005339...v2.15.3) (2020-11-11)
+
 ### [2.15.2](https://github.com/unraid/node-api/compare/v2.15.1...v2.15.2) (2020-11-10)
 
 ### [2.15.1](https://github.com/unraid/node-api/compare/v2.15.0-rolling-20201110215547...v2.15.1) (2020-11-10)
