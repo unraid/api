@@ -45,7 +45,7 @@
     "camelcase": "6.1.0",
     "camelcase-keys": "^6.2.2",
     "chokidar": "^3.4.3",
-    "clean-cache": "OmgImAlexis/clean-cache#master",
+    "clean-cache": "github:OmgImAlexis/clean-cache#master",
     "clear-module": "^4.1.1",
     "cli-table": "^0.3.1",
     "command-exists": "^1.2.9",
