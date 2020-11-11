@@ -894,8 +894,10 @@ function load_flash_backup_state() {
     'loading' => ''
   ];
 
-  $arrNewState = parse_ini_file("/var/local/emhttp/flashbackup.ini");
-
+  $arrNewState = false;
+  if (file_exists('/var/local/emhttp/flashbackup.ini')) {
+    $arrNewState = parse_ini_file('/var/local/emhttp/flashbackup.ini');
+  }
   if ($arrNewState !== false) {
     $arrState = array_merge($arrState, $arrNewState);
   }
@@ -945,6 +947,9 @@ switch ($command) {
 load_flash_backup_state();
 
 // keyfile
+if (!file_exists('/var/local/emhttp/var.ini')) {
+  response_complete(406, '{"error":"Machine still booting"}');
+}
 $var = parse_ini_file("/var/local/emhttp/var.ini");
 $keyfile = @file_get_contents($var['regFILE']);
 if ($keyfile === false) {
@@ -1053,7 +1058,7 @@ if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.g
 }
 
 // setup git ignore for files we dont need in the flash backup
-if (strpos(file_get_contents('/boot/.git/info/exclude'),'startup.nsh') === false) {
+if (strpos(file_get_contents('/boot/.git/info/exclude'),'forcesync') === false) {
   file_put_contents('/boot/.git/info/exclude', '# Unraid OS Flash Backup
 
 # Blacklist everything
@@ -1078,11 +1083,11 @@ syslinux/*
 !config/
 #  except for selected files
 config/drift
+config/forcesync
 config/plugins/unRAIDServer.plg
 config/random-seed
 config/shadow
 config/smbpasswd
-config/wireguard/privatekey
 config/plugins/**/*.tgz
 config/plugins/**/*.txz
 config/plugins/**/*.tar.bz2
@@ -1413,6 +1418,15 @@ rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/wc/ /usr/loc
 </FILE>
 
 
+<FILE Name="/boot/config/plugins/Unraid.net/.gitignore" Method="install">
+<INLINE>
+<![CDATA[
+wc
+]]>
+</INLINE>
+</FILE>
+
+
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1">
 <INLINE>
 <![CDATA[
@@ -1612,7 +1626,11 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
-echo "sed -i "s@graphql-api.sock@unraid-api.sock@g" /etc/nginx/conf.d/emhttp-servers.conf; nginx -s reload; /etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 min
+if [ -f /var/local/emhttp/var.ini ]; then
+  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now
+else
+  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 minute
+fi
 </INLINE>
 </FILE>
 
