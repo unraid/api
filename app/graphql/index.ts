@@ -5,8 +5,8 @@
 
 import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
-import * as core from '@unraid/core';
-import { bus, apiManager, errors, log, states, config, pluginManager, modules } from '@unraid/core';
+import * as core from '../core';
+import { bus, apiManager, errors, log, states, config, pluginManager, modules } from '../core';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';

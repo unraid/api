@@ -13,7 +13,7 @@ import waitFor from 'p-wait-for';
 import dotProp from 'dot-prop';
 import WebSocket from 'ws';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, utils, paths } from '@unraid/core';
+import { log, config, utils, paths } from './core';
 import { graphql } from './graphql';
 import { connectToMothership } from './mothership';
 import { init as loadMyServers } from './my_servers';

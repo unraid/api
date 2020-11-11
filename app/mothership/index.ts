@@ -1,8 +1,8 @@
 import fs from 'fs';
 import WebSocket from 'ws';
 import * as Sentry from '@sentry/node';
-import { utils, paths, states, log } from '@unraid/core';
-import { DynamixConfig } from '@unraid/core/dist/lib/types';
+import { utils, paths, states, log } from '../core';
+import type { DynamixConfig } from '../core/types';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
 import { subscribeToServers } from './subscribe-to-servers';
 

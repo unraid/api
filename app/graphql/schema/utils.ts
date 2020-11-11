@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { pubsub, utils, errors, states, apiManager, log } from '@unraid/core';
+import { pubsub, utils, errors, states, apiManager, log } from '../../core';
 import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils'

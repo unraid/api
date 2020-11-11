@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { pluginManager, pubsub, errors } from '@unraid/core';
+import { pluginManager, pubsub, errors } from '../../../core';
 import { hasSubscribedToChannel } from '../../../ws';
 import { createSubscription, Context } from '../../schema/utils';
 

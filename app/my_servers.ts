@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { utils, log, apiManager, paths, pubsub } from '@unraid/core';
 import path from 'path';
 import chokidar from 'chokidar';
 import waitFor from 'p-wait-for';
 import dotProp from 'dot-prop';
+import { utils, log, apiManager, paths, pubsub } from './core';
 import display from './graphql/resolvers/query/display';
 
 const { validateApiKeyFormat, loadState } = utils;

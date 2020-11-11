@@ -1,5 +1,5 @@
-import { CoreResult } from '@unraid/core/dist/lib/types';
-import { pubsub, utils, log } from '@unraid/core';
+import type { CoreResult } from './core/types';
+import { pubsub, utils, log } from './core';
 
 const { debugTimer } = utils;
 

@@ -1,5 +1,5 @@
 import * as Sentry from '@sentry/node';
-import { pubsub } from '@unraid/core';
+import { pubsub } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../consts';
 import { userCache, CachedServers } from '../cache';

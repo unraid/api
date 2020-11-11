@@ -1,0 +1,11 @@
+/*!
+ * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
+ * Written by: Alexis Tyler
+ */
+
+import { varState } from '../../states';
+
+/**
+ * Is the array running?
+ */
+export const arrayIsRunning = () => varState.data?.mdState.toLowerCase() === 'started';

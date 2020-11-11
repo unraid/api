@@ -1,0 +1,28 @@
+/*!
+ * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
+ * Written by: Alexis Tyler
+ */
+
+import htpasswd from 'htpasswd-js';
+import { paths } from '../../paths';
+
+interface Options {
+	username: string;
+	password: string;
+	file?: string;
+}
+
+/**
+ * Check if the username and password match a htpasswd file.
+ */
+export const checkAuth = async(options: Options): Promise<any> => {
+	const { username, password, file } = options;
+
+	// `valid` will be true if and only if
+	// username and password were correct.
+	return htpasswd.authenticate({
+		username,
+		password,
+		file: file ?? paths.get('htpasswd')
+	});
+};

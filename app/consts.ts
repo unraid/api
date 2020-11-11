@@ -1,4 +1,4 @@
-import { config } from '@unraid/core';
+import { config } from './core/config';
 
 const internalWsAddress = () => {
 	const port = config.get('port');

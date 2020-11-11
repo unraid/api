@@ -5,7 +5,7 @@
 
 import { join } from 'path';
 import { promises as fs, statSync, existsSync } from 'fs';
-import { paths, log } from '@unraid/core';
+import { paths, log } from '../../../core';
 
 // Consts
 const ONE_BYTE = 1;

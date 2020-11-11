@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { utils } from '@unraid/core';
+import { utils } from '../../../core';
 import type { Context } from '../../schema/utils';
 import { getServers } from '../../schema/utils';
 

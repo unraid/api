@@ -6,7 +6,7 @@
 import os from 'os';
 import am from 'am';
 import * as Sentry from '@sentry/node';
-import { core, loadServer, states } from '@unraid/core';
+import { core, loadServer, states } from './core';
 import { server } from './server';
 
 // Send errors to server if enabled
