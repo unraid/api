@@ -367,21 +367,25 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		onConnect: async (connectionParams: { [key: string]: string }) => {
-			const apiKey = connectionParams['x-api-key'];
-			const user = apiKeyToUser(apiKey);
-			const websocketId = uuid();
+		onConnect: async (connectionParams: { [key: string]: string }) => new Promise((resolve, reject) => {
+			try {
+				const apiKey = connectionParams['x-api-key'];
+				const user = apiKeyToUser(apiKey);
+				const websocketId = uuid();
 
-			log.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+				log.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
-			// Update ws connection count and other needed values
-			wsHasConnected(websocketId);
+				// Update ws connection count and other needed values
+				wsHasConnected(websocketId);
 
-			return {
-				user,
-				websocketId
-			};
-		},
+				return resolve({
+					user,
+					websocketId
+				});
+			} catch (error) {
+				reject(error);
+			}
+		}),
 		onDisconnect: async (_, websocketContext) => {
 			const context = await websocketContext.initPromise;
 
