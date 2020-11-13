@@ -3,10 +3,16 @@
  * Written by: Alexis Tyler
  */
 
+import chokidar from 'chokidar';
+import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
+import dotProp from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
 // @ts-ignore
 import { validate as validateArgument } from 'bycontract';
+import { validateApiKeyFormat, loadState } from './utils';
+import { paths } from './paths';
+import { log } from './log';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -14,12 +20,12 @@ export interface CacheItem {
 	/** Owner's id */
 	userId: string;
 	/** The API key. */
-	key: string | number;
+	key: string;
 	/** When the key will expire in human readable form. This will be converted internally to ms. */
 	expiration: string;
 }
 
-export interface AddOptions {
+export interface KeyOptions {
 	/** Owner's id */
 	userId?: string;
 	/** When the key will expire in human readable form. This will be converted internally to ms. */
@@ -28,28 +34,86 @@ export interface AddOptions {
 
 interface ApiKey {
 	name: string;
-	key: string | number;
+	key: string;
 	userId: string;
 	expiresAt: number;
+}
+
+interface Options {
+	watch: boolean;
 }
 
 /**
  * Api manager
  */
-export class ApiManager {
+export class ApiManager extends EventEmitter {
 	private static instance: ApiManager;
 
 	/** Note: Keys expire by default after 365 days. */
 	private readonly keys = new MemoryCache<CacheItem>(Number(toMillisecond('1y')));
 
-	constructor() {
+	constructor(options: Options = { watch: true }) {
+		super({
+			captureRejections: true
+		});
+
+		// Return or create the singleton class
 		if (ApiManager.instance) {
-			// This is needed as this is a singleton class
 			// @eslint-disable-next-line no-constructor-return
 			return ApiManager.instance;
 		}
 
+		// Create singleton
 		ApiManager.instance = this;
+
+		// Watch for changes to the dynamix.cfg file
+		// @todo Move API keys to their own file
+		if (options.watch) {
+			const basePath = paths.get('dynamix-base')!;
+			const configPath = paths.get('dynamix-config')!;
+			chokidar.watch(basePath).on('all', (eventName, filePath) => {
+				if (filePath === configPath) {
+					try {
+						const file = loadState<{ remote: { apikey: string } }>(filePath);
+						const apiKey = dotProp.get(file, 'remote.apikey') as string;
+
+						validateApiKeyFormat(apiKey);
+
+						// Add the new key
+						this.replace('my_servers', apiKey, {
+							userId: '0'
+						});
+					} catch (error) {
+						// File was deleted
+						if (error.code === 'ENOENT') {
+							log.debug('%s was deleted, removing "my_servers" API key.', filePath);
+						} else {
+							log.debug('%s, removing "my_servers" API key.', error.message);
+						}
+
+						// Reset key as it's not valid anymore
+						this.expire('my_servers');
+					};
+				}
+			});
+		}
+	}
+
+	/**
+	 * Replace a key.
+	 * 
+	 * Note: This will bump the expiration by the original length.
+	 */
+	replace(name: string, key: string, options: KeyOptions) {
+		// Delete existing key
+		// @ts-ignore
+		this.keys.items[name] = null;
+
+		// Add new key
+		this.add(name, key, options);
+
+		// Emit update
+		this.emit('replace', name, this.getKey(name));
 	}
 
 	/**
@@ -59,20 +123,25 @@ export class ApiManager {
 	 *
 	 * @memberof ApiManager
 	 */
-	add(name: string, key: string|number, options: AddOptions): void {
+	add(name: string, key: string, options: KeyOptions): void {
 		const { userId, expiration = '1y' } = options;
 
 		validateArgument(name, 'string');
-		validateArgument(key, 'string|number');
+		validateArgument(key, 'string');
 		validateArgument(expiration, 'string|number');
 
 		const ttl = Number(toMillisecond(expiration));
-
-		this.keys.add(name, {
+		const keyObject = {
 			name,
 			key,
 			userId
-		}, ttl);
+		};
+
+		// Add new key
+		this.keys.add(name, keyObject, ttl);
+
+		// Emit update
+		this.emit('add', name, this.getKey(name));
 	}
 
 	/**
@@ -83,9 +152,9 @@ export class ApiManager {
 	 * @returns `true` if the key is valid, otherwise `false`.
 	 * @memberof ApiManager
 	 */
-	isValid(nameOrKey: string|number, key?: string|number): boolean {
-		validateArgument(nameOrKey, 'string|number');
-		validateArgument(key, 'string|number|undefined');
+	isValid(nameOrKey: string, key?: string): boolean {
+		validateArgument(nameOrKey, 'string');
+		validateArgument(key, 'string|undefined');
 
 		if (!key) {
 			try {
@@ -149,6 +218,7 @@ export class ApiManager {
 		validateArgument(name, 'string');
 
 		this.keys.invalidate(name);
+		this.emit('expire', name);
 	}
 
 	/**
@@ -178,8 +248,8 @@ export class ApiManager {
 	 * @returns The API key's machine readable name.
 	 * @memberof ApiManager
 	 */
-	getNameFromKey(key: string|number): string {
-		validateArgument(key, 'string|number');
+	getNameFromKey(key: string): string {
+		validateArgument(key, 'string');
 
 		const keyObject = Object
 			.entries(this.keys.items)

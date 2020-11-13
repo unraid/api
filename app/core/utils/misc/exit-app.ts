@@ -23,7 +23,7 @@ export const exitApp = (error?: Error, exitCode?: number) => {
 		}
 
 		// Log last error
-		log.error(error.message);
+		log.error(error);
 
 		// Kill application
 		process.exitCode = exitCode;

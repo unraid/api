@@ -5,23 +5,31 @@
 
 import fs from 'fs';
 import net from 'net';
+import path from 'path';
 import stoppable from 'stoppable';
 import chokidar from 'chokidar';
 import express from 'express';
 import http from 'http';
-import waitFor from 'p-wait-for';
-import dotProp from 'dot-prop';
 import WebSocket from 'ws';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, utils, paths } from './core';
+import { log, config, utils, paths, pubsub, apiManager } from './core';
+import { getEndpoints, globalErrorHandler, exitApp } from './core/utils';
 import { graphql } from './graphql';
-import { connectToMothership } from './mothership';
-import { init as loadMyServers } from './my_servers';
+import { mothership } from './mothership';
+import display from './graphql/resolvers/query/display';
 
-// @todo: move this
-loadMyServers();
+const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
+const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
 
-const { getEndpoints, globalErrorHandler, exitApp, loadState, validateApiKeyFormat } = utils;
+const updatePubsub = async () => {
+	pubsub.publish('display', {
+		display: await display()
+	});
+};
+
+// Update pub/sub when config/image file is added/updated/removed
+chokidar.watch(configFilePath).on('all', updatePubsub);
+chokidar.watch(customImageFilePath).on('all', updatePubsub);
 
 /**
  * One second in milliseconds.
@@ -165,45 +173,14 @@ export const server = {
 	httpServer,
 	server: stoppableServer,
 	async start() {
-		const filePath = paths.get('dynamix-config')!;
-		const watcher = chokidar.watch(filePath);
-		const getApiKey = () => {
-			const apiKey = dotProp.get(loadState(filePath), 'remote.apikey') as string;
-			try {
-				validateApiKeyFormat(apiKey);
-				return apiKey;
-			} catch {}
+		// If key is in an invalid format disconnect
+		apiManager.on('expire', async () => {
+			await mothership.disconnect();
+		});
 
-			return;
-		};
-		const reconnect = async () => {
-			process.nextTick(() => {
-				if (getApiKey() !== undefined) {
-					log.debug('my_servers API key was updated, restarting proxy connection.');
-					connectToMothership(wsServer);
-				} else {
-					log.debug('my_servers API key was updated, invalid key found.');
-				}
-			});
-		};
-
-		let timeout: NodeJS.Timeout;
-		// If we detect an event wait 0.5s before doing anything
-		const startWatcher = () => {
-			watcher.on('all', () => {
-				clearTimeout(timeout);
-				timeout = setTimeout(reconnect, 500);
-			});
-		};
-
-		// Once we have a valid key connect to the proxy server
-		waitFor(() => getApiKey() !== undefined, {
-			// Check every 1 second
-			interval: ONE_SECOND
-		}).then(async () => {
-			log.debug('Found my_servers apiKey, starting proxy connection.');
-			await connectToMothership(wsServer);
-			startWatcher();
+		// If key looks valid try and connect with it
+		apiManager.on('replace', async () => {
+			await mothership.connect(wsServer);
 		});
 
 		// Start http server
