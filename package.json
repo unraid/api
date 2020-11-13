@@ -38,7 +38,7 @@
     "ain2": "^3.0.0",
     "am": "^1.1.0",
     "apollo-server": "2.18.2",
-    "apollo-server-express": "2.18.2",
+    "apollo-server-express": "2.19.0",
     "async-exit-hook": "^2.0.1",
     "async-mutex": "^0.2.4",
     "bycontract": "^2.0.10",
