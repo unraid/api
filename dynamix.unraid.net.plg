@@ -11,7 +11,7 @@
 <!ENTITY node-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-node-api-&node_api_version;.tgz">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta30" icon="globe">
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta35" icon="globe">
 
 <CHANGES>
 ##&name;
@@ -34,9 +34,77 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
   rm -rf /boot/config/plugins/Unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
+  rm -f /usr/local/emhttp/webGui/javascript/vue.js
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
   rm -rf /usr/local/emhttp/webGui/wc
 fi
+</INLINE>
+</FILE>
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/state.php">
+<INLINE>
+<![CDATA[
+<?PHP
+/* Copyright 2005-2020, Lime Technology
+ * Copyright 2012-2020, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+
+require_once "$docroot/webGui/include/Helpers.php";
+
+$var = (array)parse_ini_file('state/var.ini');
+$license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
+$key_contents = str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
+
+if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+}
+if (empty($remote)) {
+  $remote = [
+    "apikey" => "",
+    "username" => "",
+    "avatar" => "",
+    "wanaccess" => "no",
+    "wanport" => "443"
+  ];
+}
+if (empty($remote['username'])) {
+  $remote['username'] = '';
+}
+if (empty($remote['avatar'])) {
+  $remote['avatar'] = '';
+}
+
+$arr = [];
+$arr['event'] = 'STATE';
+$arr['ts'] = time();
+$arr['guid'] = $var['flashGUID'];
+$arr['state'] = $license_state;
+$arr['keyfile'] = $key_contents;
+$arr['reggen'] = $var['regGen'];
+$arr['flashproduct'] = $var['flashProduct'];
+$arr['flashvendor'] = $var['flashVendor'];
+$arr['servername'] = $var['NAME'];
+$arr['serverip'] = $_SERVER['SERVER_ADDR'];
+$arr['internalip'] = $_SERVER['SERVER_ADDR'];
+$arr['internalport'] = $_SERVER['SERVER_PORT'];
+$arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
+$arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
+$arr['username'] = $remote['username'];
+$arr['avatar'] = $remote['avatar'];
+
+echo json_encode($arr);
+?>
+]]>
 </INLINE>
 </FILE>
 
@@ -961,6 +1029,7 @@ $keyfile = @base64_encode($keyfile);
 if ($command != 'activate') {
   exec('git -C /boot config --get remote.origin.url', $config_output, $return_var);
   if (($return_var != 0) || (strpos($config_output[0],'backup.unraid.net') === false)) {
+    $arrState['activated'] = false;
     response_complete(406, '{"error":"Not activated"}');
   }
 }
@@ -1289,73 +1358,6 @@ function handleMessage(e) {
 }
 window.addEventListener('message', handleMessage, false);
 </script>
-]]>
-</INLINE>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/state.php">
-<INLINE>
-<![CDATA[
-<?PHP
-/* Copyright 2005-2020, Lime Technology
- * Copyright 2012-2020, Bergware International.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2,
- * as published by the Free Software Foundation.
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- */
-?>
-<?
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
-
-require_once "$docroot/webGui/include/Helpers.php";
-
-$var = (array)parse_ini_file('state/var.ini');
-$license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
-$key_contents = str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
-
-if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
-  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
-}
-if (empty($remote)) {
-  $remote = [
-    "apikey" => "",
-    "username" => "",
-    "avatar" => "",
-    "wanaccess" => "no",
-    "wanport" => "443"
-  ];
-}
-if (empty($remote['username'])) {
-  $remote['username'] = '';
-}
-if (empty($remote['avatar'])) {
-  $remote['avatar'] = '';
-}
-
-$arr = [];
-$arr['event'] = 'STATE';
-$arr['ts'] = time();
-$arr['guid'] = $var['flashGUID'];
-$arr['state'] = $license_state;
-$arr['keyfile'] = $key_contents;
-$arr['reggen'] = $var['regGen'];
-$arr['flashproduct'] = $var['flashProduct'];
-$arr['flashvendor'] = $var['flashVendor'];
-$arr['servername'] = $var['NAME'];
-$arr['serverip'] = $_SERVER['SERVER_ADDR'];
-$arr['internalip'] = $_SERVER['SERVER_ADDR'];
-$arr['internalport'] = $_SERVER['SERVER_PORT'];
-$arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
-$arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
-$arr['username'] = $remote['username'];
-$arr['avatar'] = $remote['avatar'];
-
-echo json_encode($arr);
-?>
 ]]>
 </INLINE>
 </FILE>
