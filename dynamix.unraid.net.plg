@@ -162,10 +162,19 @@ _start() {
   cd $node_base_directory
   /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
   cd $old_working_directory
+
+  # wait until node_api_pid exists
+  for i in {1..10}; do
+    local node_api_pid=$(pidof node-api | awk '{print $1}')
+    if [ -n "$node_api_pid" ]; then
+      break
+    fi
+    sleep 1
+  done
 }
 start() {
+  echo "Starting Unraid-api"
   _start
-  sleep 1
   status
   exit 0
 }
@@ -199,21 +208,26 @@ _stop() {
     else
       kill -9 $node_api_pid &> /dev/null
     fi
+    # wait until node_api_pid no longer exists
+    for i in {1..10}; do
+      node_api_pid=$(pidof node-api | awk '{print $1}')
+      if [ -z "$node_api_pid" ]; then
+        break
+      fi
+      sleep 1
+    done
   fi
 }
 stop() {
   echo "Stopping Unraid-api"
   _stop
-  sleep 1
   status
   exit 0
 }
 reload() {
   echo "Reloading Unraid-api"
   _stop
-  sleep 1
   _start
-  sleep 1
   status
   exit 0
 }
@@ -249,7 +263,6 @@ install() {
 }
 uninstall() {
   stop
-  sleep 1
   for download in ${downloads[@]}; do
     rm -rf $node_base_directory/${download}
   done
@@ -1628,11 +1641,15 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
+<![CDATA[
 if [ -f /var/local/emhttp/var.ini ]; then
   echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now
 else
   echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 minute
 fi
+
+git -C /boot rm --cached /boot/config/plugins/Unraid.net/wc/* >/dev/null && echo "Removed old javascript files from repo" || exit 0
+]]>
 </INLINE>
 </FILE>
 
