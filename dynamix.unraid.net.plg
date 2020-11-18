@@ -60,6 +60,9 @@ fi
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/webGui/include/Helpers.php";
+/* add translations */
+$_SERVER['REQUEST_URI'] = '';
+require_once "$docroot/webGui/include/Translations.php";
 
 $var = (array)parse_ini_file('state/var.ini');
 $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
@@ -101,6 +104,7 @@ $arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
 $arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
 $arr['username'] = $remote['username'];
 $arr['avatar'] = $remote['avatar'];
+$arr['locale'] = $_SESSION['locale'] ? $_SESSION['locale'] : 'en_US';
 
 echo json_encode($arr);
 ?>
@@ -1577,6 +1581,7 @@ setTimeout(() => {
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
       displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
+      locale="<?=($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US'?>"
       reg-wiz-time="<?=($remote['regWizTime']) ? $remote['regWizTime'] : ''?>"
       serverdesc="<?=$var['COMMENT']?>"
       servermodel="<?=$var['SYS_MODEL']?>"
