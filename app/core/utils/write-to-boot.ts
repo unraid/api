@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import prettyBytes from 'pretty-bytes';
-import { log } from '../log';
+import { coreLogger } from '../log';
 
 const writeFile = (filePath: string, fileContents: string | Buffer) => {
-    log.debug(`Writing ${prettyBytes(fileContents.length)} to ${filePath}`);
+    coreLogger.debug(`Writing ${prettyBytes(fileContents.length)} to ${filePath}`);
     fs.promises.writeFile(filePath, fileContents);
 }
 

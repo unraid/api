@@ -6,7 +6,9 @@
 import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
-import { bus, apiManager, errors, log, states, config, pluginManager, modules } from '../core';
+import { bus, apiManager, graphqlLogger, config, pluginManager, modules } from '../core';
+import { AppError, FatalAppError, PluginError } from '../core/errors';
+import { usersState } from '../core/states';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { mergeTypes } from 'merge-graphql-schemas';
 import gql from 'graphql-tag';
@@ -16,9 +18,6 @@ import { run, publish } from '../run';
 import { typeDefs } from './schema';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
-
-const { AppError, FatalAppError, PluginError } = errors;
-const { usersState } = states;
 
 const baseTypes = [gql`
 	scalar JSON
@@ -222,12 +221,10 @@ class FuncDirective extends SchemaDirectiveVisitor {
 				.catch(error_ => {
 					// Ensure we aren't leaking anything in production
 					if (process.env.NODE_ENV === 'production') {
-						log.error(pluginOrModule, pluginOrModuleName, 'Error:', error_.message);
+						graphqlLogger.error(pluginOrModule, pluginOrModuleName, 'Error:', error_.message);
 						return [new Error(error_.message)];
 					}
 
-					const logger = log[error_.status && error_.status >= 400 ? 'error' : 'warn'];
-					// logger(pluginOrModule, pluginOrModuleName, 'Error:', error_);
 					return [error_];
 				});
 
@@ -242,11 +239,9 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			// Allow fields to be extracted
 			if (directiveArgs.extractFromResponse) {
 				const extractedField = get(result, directiveArgs.extractFromResponse);
-		//		log.debug(pluginOrModule, pluginOrModuleName, 'Result:', JSON.stringify(extractedField));
 				return extractedField;
 			}
 
-		//	log.debug(pluginOrModule, pluginOrModuleName, 'Result:', JSON.stringify(result));
 			return result;
 		};
 	}
@@ -373,7 +368,7 @@ export const graphql = {
 				const user = apiKeyToUser(apiKey);
 				const websocketId = uuid();
 
-				log.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+				graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
 				// Update ws connection count and other needed values
 				wsHasConnected(websocketId);
@@ -393,7 +388,7 @@ export const graphql = {
 			// This should only disconnect if mothership restarts
 			// or the network link reconnects
 			if (websocketContext.socket.url === 'wss://proxy.unraid.net') {
-				log.debug('Mothership disconnected.');
+				graphqlLogger.debug('Mothership disconnected.');
 				return;
 			}
 
@@ -402,12 +397,12 @@ export const graphql = {
 			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
-				log.debug('<ws> unknown[unknown] disconnected.');
+				graphqlLogger.debug('<ws> unknown[unknown] disconnected.');
 				return;
 			}
 
 			const { user, websocketId } = context;
-			log.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
+			graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);

@@ -12,7 +12,7 @@ import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, utils, paths, pubsub, apiManager } from './core';
+import { log, config, utils, paths, pubsub, apiManager, coreLogger } from './core';
 import { getEndpoints, globalErrorHandler, exitApp } from './core/utils';
 import { graphql } from './graphql';
 import { mothership } from './mothership';
@@ -179,7 +179,7 @@ export const server = {
 		});
 
 		// If key looks valid try and connect with it
-		apiManager.on('replace', async () => {
+		apiManager.on('replace', async (name, { key }) => {
 			await mothership.connect(wsServer);
 		});
 
@@ -202,9 +202,6 @@ export const server = {
 		// Stop ws server
 		wsServer.close();
 
-		const name = process.title;
-		const serverName = `@unraid/${name}`;
-
 		// Unlink socket file
 		if (isNaN(parseInt(port, 10))) {
 			try {
@@ -216,8 +213,6 @@ export const server = {
 		if (callback) {
 			return callback();
 		}
-
-		log.debug(`Successfully stopped ${serverName}`);
 
 		// Gracefully exit
 		exitApp();

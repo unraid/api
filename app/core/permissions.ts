@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { paths } from './paths';
-import { log } from './log';
+import { coreLogger } from './log';
 import { permissions as defaultPermissions } from './default-permissions';
 import { AccessControl } from 'accesscontrol';
 
@@ -78,7 +78,7 @@ Object.entries(getPermissions()).forEach(([roleName, role]) => {
 	}
 });
 
-log.debug('Loaded permissions', JSON.stringify(allPermissions));
+coreLogger.debug('Loaded permissions', JSON.stringify(allPermissions));
 
 export {
 	ac

@@ -6,7 +6,7 @@
 import chokidar from 'chokidar';
 import prettyMilliseconds from 'pretty-ms';
 import { paths } from '../paths';
-import { log } from '../log';
+import { coreLogger } from '../log';
 import { devicesState, networkState, nfsSecState, sharesState, slotsState, smbSecState, usersState, varState, ArrayState, State } from '../states';
 
 const stateMapping = {
@@ -32,13 +32,13 @@ export const states = () => {
 	let timeout: NodeJS.Timeout;
 
 	const reloadState = (state: ArrayState | State) => () => {
-        log.debug(`Reloading state as it's been %s since last event.`, prettyMilliseconds(STATES_RELOAD_TIME_MS));
+        coreLogger.debug(`Reloading state as it's been %s since last event.`, prettyMilliseconds(STATES_RELOAD_TIME_MS));
 
         // Reload state
         try {
             state.reset();
         } catch (error) {
-            console.log('failed resetting state', error);
+            coreLogger.error('failed resetting state', error);
         }
 	};
 
@@ -56,7 +56,7 @@ export const states = () => {
 				ignored: (path: string) => ['node_modules'].some(s => path.includes(s))
 			});
 
-			log.debug(`Watching ${statesCwd}`);
+            coreLogger.debug('Loading watchers for %s', statesCwd);
 
 			// State file has updated, updating state object
 			watcher.on('all', (event, fullPath) => {
@@ -71,7 +71,7 @@ export const states = () => {
 
                 // Update timeout
 				timeout = setTimeout(reloadState(state), STATES_RELOAD_TIME_MS);
-				log.debug('States directory %s has emitted %s event.', fullPath, event);
+				coreLogger.debug('States directory %s has emitted %s event.', fullPath, event);
 			});
 
 			// Save ref for cleanup

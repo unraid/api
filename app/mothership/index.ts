@@ -3,10 +3,11 @@ import WebSocket from 'ws';
 import * as Sentry from '@sentry/node';
 import { Mutex, MutexInterface } from 'async-mutex';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
-import { log, apiManager } from '../core';
-import { sleep, getMachineId } from '../core/utils';
+import { mothershipLogger, apiManager } from '../core';
+import { getMachineId } from '../core/utils';
 import { varState, networkState } from '../core/states';
 import { subscribeToServers } from './subscribe-to-servers';
+import { AppError } from '../core/errors';
 
 /**
  * Get a number between the lowest and highest value.
@@ -79,7 +80,18 @@ class MothershipService {
 		};
 	}
 
+	public isConnectedToRelay() {
+		return this.relay && (this.relay?.readyState !== this.relay?.CLOSED);
+	}
+	
+	public isConnectedToLocalGraphql() {
+		return this.localGraphqlApi && (this.localGraphqlApi?.readyState !== this.localGraphqlApi?.CLOSED);
+	}
+
 	public async connect(wsServer: WebSocket.Server, currentRetryAttempt: number = 0): Promise<void> {
+		this.connectionAttempt++;
+		mothershipLogger.debug('connectionAttempt', this.connectionAttempt);
+
         const lock = await this.getLock();
 		try {
 			const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -87,6 +99,11 @@ class MothershipService {
 			const serverName = `${varState.data?.name}`;
 			const lanIp = networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 			const machineId = `${await getMachineId()}`;
+
+			// This should never happen
+			if (!apiKey) {
+				throw new AppError('API key was removed between the file update event and now.');
+			}
 		
 			// Connect to mothership's relay endpoint
 			this.relay = new WebSocket(this.relayWebsocketLink, ['graphql-ws'], {
@@ -101,7 +118,7 @@ class MothershipService {
 			});
 		
 			this.relay.on('open', async () => {
-				log.debug('Connected to mothership\'s relay via %s.', this.relayWebsocketLink);
+				mothershipLogger.debug('Connected to mothership\'s relay via %s.', this.relayWebsocketLink);
 		
 				// Reset connection attempts
 				this.connectionAttempt = 0;
@@ -119,18 +136,23 @@ class MothershipService {
 				// Errors
 				this.localGraphqlApi.on('error', error => {
 					Sentry.captureException(error);
-					log.error('ws:local-relay', 'error', error);
+					mothershipLogger.error('ws:local-relay', 'error', error);
 				});
 				
 				// Connection to local graphql endpoint is "closed"
 				this.localGraphqlApi.on('close', () => {
-					log.debug('ws:local-relay', 'close');
+					mothershipLogger.debug('ws:local-relay', 'close');
 				});
 		
 				// Connection to local graphql endpoint is "open"
 				this.localGraphqlApi.on('open', () => {
-					log.debug('ws:local-relay', 'open');
+					mothershipLogger.debug('ws:local-relay', 'open');
 		
+					// No API key, close internal connection
+					if (!apiKey) {
+						this.localGraphqlApi?.close();
+					}
+
 					// Authenticate with ourselves
 					this.localGraphqlApi?.send(JSON.stringify({
 						type: 'connection_init',
@@ -160,7 +182,7 @@ class MothershipService {
 			const mothership = this;
 			this.relay.on('close', async function (this: WebSocketWithHeartBeat, code, _message) {
 				try {
-					log.debug('Connection closed with code %s.', code);
+					mothershipLogger.debug('Connection closed with code %s.', code);
 		
 					if (this.pingTimeout) {
 						clearTimeout(this.pingTimeout);
@@ -179,7 +201,7 @@ class MothershipService {
 					if (code >= 4400 && code <= 4499) {
 						// Unauthorized - No API key?
 						if (code === 4401) {
-							log.debug('Invalid API key, waiting for new key...');
+							mothershipLogger.debug('Invalid API key, waiting for new key...');
 							return;
 						}
 					}
@@ -198,7 +220,7 @@ class MothershipService {
 					// Reconnect
 					await mothership.connect(wsServer, currentRetryAttempt + 1);
 				} catch (error) {
-					log.error('close error', error);
+					mothershipLogger.error('close error', error);
 				}
 			});
 		
@@ -212,46 +234,51 @@ class MothershipService {
 				// This is usually because the address is wrong or offline
 				if (error.code === 'ECONNREFUSED') {
 					// @ts-expect-error
-					log.debug(`Couldn't connect to %s:%s`, error.address, error.port);
+					mothershipLogger.debug(`Couldn't connect to %s:%s`, error.address, error.port);
 					return;
 				}
 
 				if (error.toString().includes('WebSocket was closed before the connection was established')) {
-					log.debug(error.message);
+					mothershipLogger.debug(error.message);
 					return;
 				}
 
-				log.error('socket error', error);
+				mothershipLogger.error('socket error', error);
 			});
 		
 			this.relay.on('ping', heartbeat);
 		
-			const sendMessage = (client, message, timeout = 1000) => {
+			const sleep = (number: number) => new Promise(resolve => setTimeout(() => resolve(), number));
+			const sendMessage = async (client?: WebSocketWithHeartBeat, message?: string, timeout = 1000) => {
 				try {
-					if (client.readyState === 0) {
-						setTimeout(() => {
-							sendMessage(client, message, timeout);
-							log.debug('Message sent to mothership.', message)
-						}, timeout);
+					if (!client || client.readyState === 0) {
+						// Wait for $timeout seconds
+						await sleep(timeout);
+
+						// Retry sending
+						await sendMessage(client, message, timeout);
 						return;
 					}
 		
 					client.send(message);
+					mothershipLogger.debug('Message sent to mothership.', message);
 				} catch (error) {
-					log.error('Failed replying to mothership.', error);
+					mothershipLogger.error('Failed replying to mothership.', error);
 				};
 			};
 		
+			// When we get a message from relay send it through to our local graphql instance
 			this.relay.on('message', async (data: string) => {
 				try {
-					sendMessage(this.localGraphqlApi, data);
+					await sendMessage(this.localGraphqlApi, data);
 				} catch (error) {
 					// Something weird happened while processing the message
 					// This is likely a malformed message
-					log.error(error);
+					mothershipLogger.error(error);
 				}
 			});
 		} catch (error) {
+			mothershipLogger.error(error);
 		} finally {
 			lock.release();
 		}

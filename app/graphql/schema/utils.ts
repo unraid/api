@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { pubsub, utils, errors, states, apiManager, log } from '../../core';
+import { pubsub, utils, errors, states, apiManager, graphqlLogger } from '../../core';
 import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils'
@@ -63,7 +63,7 @@ export const getServers = async (): Promise<Server[]> => {
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);
 
-		log.debug('Using upstream for /servers endpoint');
+		graphqlLogger.debug('Using upstream for /servers endpoint');
 
 		// No servers found
 		if (!servers || servers.length === 0) {
@@ -79,7 +79,7 @@ export const getServers = async (): Promise<Server[]> => {
 		return servers;
 	}
 
-	log.debug('Falling back to local state for /servers endpoint');
+	graphqlLogger.debug('Falling back to local state for /servers endpoint');
 	const guid = varState?.data?.regGuid;
 	const name = varState?.data?.name;
 	const wanip = null;

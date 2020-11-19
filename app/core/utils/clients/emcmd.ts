@@ -5,7 +5,7 @@
 
 import request from 'request-promise';
 import { envs } from '../../envs';
-import { log } from '../../log';
+import { coreLogger } from '../../log';
 import { catchHandlers } from '..';
 import { paths } from '../../paths';
 import { varState } from '../../states';
@@ -27,7 +27,7 @@ export const emcmd = async(commands: LooseObject) => {
 	};
 
 	if (dryRun) {
-		log.debug(url, options);
+		coreLogger.debug(url, options);
 
 		// Ensure we only log on dry-run
 		return;

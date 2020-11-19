@@ -13,15 +13,13 @@ import pWaitFor from 'p-wait-for';
 import getServerAddress from 'get-server-address';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
-import { log } from './log';
+import { log, coreLogger } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint, isNchanUp } from './utils';
 import { config } from './config';
 import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
 
-// Has server been started
-let serverUp = false;
 // Have plugins loaded at least once
 let pluginsLoaded = false;
 
@@ -35,22 +33,8 @@ const TEN_SECONDS = 10 * ONE_SECOND;
  * @param all
  * @param filePath
  */
-const loadingLogger = (namespace: string, all: boolean, filePath: string): void => {
-	log.debug('Loading @unraid/core:%s%s from %s', namespace, all ? ':*' : '', filePath);
-};
-
-/**
- * Register core path.
- */
-const loadCorePath = async(): Promise<void> => {
-	const filePath = __dirname;
-
-	// Don't override already set path
-	if (!paths.has('core')) {
-		paths.set('core', filePath);
-	}
-
-	loadingLogger('paths:core', false, paths.get('core')!);
+const loadingLogger = (namespace: string): void => {
+	coreLogger.debug('Loading %s', namespace);
 };
 
 /**
@@ -60,7 +44,7 @@ const loadStatePaths = async(): Promise<void> => {
 	const statesCwd = paths.get('states')!;
 	const cwd = path.join(__dirname, 'states');
 
-	loadingLogger('paths:state', true, cwd);
+	loadingLogger('state paths');
 
 	const states = glob.sync('*.js', { cwd }).map(state => state.replace('.js', ''));
 	states.forEach(state => {
@@ -81,20 +65,26 @@ const loadStatePaths = async(): Promise<void> => {
  * Register all plugins with PluginManager.
  */
 const loadPlugins = async(): Promise<void> => {
-	const pluginsCwd = paths.get('plugins');
-
-	if (config.get('safe-mode') || !pluginsCwd) {
-		log.debug('Skipping loading plugins');
+	// Bail in safe mode
+	if (config.get('safe-mode')) {
+		coreLogger.debug('No plugins have been loaded as you\'re in SAFE MODE');
 		return;
 	}
 
+	// Bail if there isn't a plugins directory
+	if (!paths.get('plugins')) {
+		coreLogger.debug('No plugins have been loaded as there was no plugins directory found.');
+		return;
+	}
+
+	const pluginsCwd = paths.get('plugins')!;
 	const packages = globby
 		.sync(['**/package.json', '!**/node_modules/**'], { cwd: pluginsCwd })
 		// Remove all files
 		.filter(packageName => packageName.includes('/'));
 	const plugins = packages.map(plugin => plugin.replace('/package.json', ''));
 
-	loadingLogger('plugins', false, pluginsCwd);
+	loadingLogger('plugins');
 
 	// Reset caches so plugins can load from fresh state
 	if (pluginsLoaded) {
@@ -108,7 +98,7 @@ const loadPlugins = async(): Promise<void> => {
 			const pluginFiles = globby.sync(['**/*', '!**/node_modules/**'], { cwd });
 			await pIteration.forEach(pluginFiles, pluginFile => {
 				const filePath = path.join(pluginsCwd, pluginFile);
-				log.debug('Clearing plugin file from require cache %s', filePath);
+				coreLogger.debug('Clearing plugin file from require cache %s', filePath);
 				clearModule(filePath);
 			});
 		});
@@ -126,12 +116,12 @@ const loadPlugins = async(): Promise<void> => {
  */
 const loadWatchers = async(): Promise<void> => {
 	if (config.get('safe-mode')) {
-		log.debug('Skipping loading watchers');
+		coreLogger.debug('Skipping loading watchers');
 		return;
 	}
 
 	const watchersCwd = path.join(__dirname, 'watchers');
-	loadingLogger('watchers', true, watchersCwd);
+	loadingLogger('watchers');
 
 	// Start each watcher
 	Object.values(watchers).forEach(watcher => {
@@ -147,19 +137,7 @@ const loadWatchers = async(): Promise<void> => {
  * @private
  */
 const loadApiKeys = async(): Promise<void> => {
-	// @todo: We should keep apikeys saved somewhere
-	// if (!apiManager.getKey('user:root')) {
-	// 	const filePath = paths.get('dynamix-config')!;
-	// 	const config = loadState<DynamixConfig>(filePath);
-	// 	const key = config?.remote?.apikey;
-
-	// 	if (key) {
-	// 		apiManager.add('my_servers', {
-	// 			key,
-	// 			userId: '0'
-	// 		});
-	// 	}
-	// }
+	// @TODO: For each key in a json file load them
 };
 
 /**
@@ -168,7 +146,7 @@ const loadApiKeys = async(): Promise<void> => {
  * @param endpoints
  */
 const connectToNchanEndpoints = async(endpoints: string[]): Promise<void> => {
-	log.debug('Connected to nchan, setting-up endpoints.');
+	coreLogger.debug('Connected to nchan, setting-up endpoints.');
 	const connections = endpoints.map(async endpoint => subscribeToNchanEndpoint(endpoint));
 	await Promise.all(connections);
 };
@@ -183,7 +161,7 @@ const connectToNchanEndpoints = async(endpoints: string[]): Promise<void> => {
 const loadNchan = async(): Promise<void> => {
 	const endpoints = ['devs', 'disks', 'sec', 'sec_nfs', 'shares', 'users', 'var'];
 
-	log.debug('Trying to connect to nchan');
+	coreLogger.debug('Trying to connect to nchan');
 
 	// Wait for nchan to be up.
 	await pWaitFor(isNchanUp, {
@@ -195,7 +173,7 @@ const loadNchan = async(): Promise<void> => {
 		.catch(error => {
 			// Nchan is likely unreachable
 			if (error.message.includes('Promise timed out')) {
-				log.error('Nchan timed out while trying to establish a connection.');
+				coreLogger.error('Nchan timed out while trying to establish a connection.');
 				return;
 			}
 
@@ -208,7 +186,6 @@ const loadNchan = async(): Promise<void> => {
  * Core loaders.
  */
 const loaders = {
-	corePath: loadCorePath,
 	statePaths: loadStatePaths,
 	plugins: loadPlugins,
 	watchers: loadWatchers
@@ -220,8 +197,7 @@ const loaders = {
  * @name core.load
  */
 const load = async(): Promise<void> => {
-	log.debug('Starting @unraid/core');
-	await loadCorePath();
+	coreLogger.debug('Starting...');
 	await loadStatePaths();
 	await loadPlugins();
 	await loadWatchers();
@@ -232,7 +208,7 @@ const load = async(): Promise<void> => {
 		await loadNchan();
 	}
 
-	log.debug('Started @unraid/core');
+	coreLogger.debug('Loaded!');
 };
 
 /**
@@ -243,46 +219,6 @@ interface Server {
 	start: () => Promise<StoppableServer> | StoppableServer;
 	stop: () => Promise<void> | void;
 }
-
-/**
- * Stop a server
- *
- * @param name The server instance name.
- * @param server The server instance.
- */
-const stopServer = async(name: string, server: Server): Promise<void> => {
-	if (!serverUp) {
-		log.debug(`${name} is already shutting down.`);
-	}
-
-	// Ensure we go back to the start of the line
-	// this causes the ^C the be overridden
-	process.stdout.write('\r');
-	log.info(`Stopping ${name}`);
-
-	// Stop the server
-	await server.stop();
-};
-
-/**
- * Start a server
- *
- * @param name The server instance name.
- * @param server The server instance.
- */
-const startServer = async(name: string, server: Server): Promise<Server> => {
-	// Log only if the server actually binds to the port
-	server.server.on('listening', () => {
-		log.info('Listening at %s.', getServerAddress(server.server));
-	});
-
-	// Start server
-	await server.start();
-
-	log.debug(`Started ${name}`);
-
-	return server;
-};
 
 /**
  * Loads a server.
@@ -298,16 +234,30 @@ export const loadServer = async(name: string, server: Server): Promise<void> => 
 	const serverName = `@unraid/${name}`;
 
 	// Start the server.
-	log.debug(`Starting ${serverName}`);
-	await startServer(serverName, server);
+	coreLogger.debug('Starting server');
 
-	// Prevents SIGINT calling close multiple times
-	serverUp = true;
+	// Log only if the server actually binds to the port
+	server.server.on('listening', () => {
+		coreLogger.info('Listening at %s.', getServerAddress(server.server));
+	});
+
+	// Start server
+	await server.start();
+
+	coreLogger.debug(`Started ${name}`);
 
 	// On process exit
 	exitHook(async() => {
 		// Stop the server
-		await stopServer(name, server);
+	
+		// Ensure we go back to the start of the line
+		// this causes the ^C the be overridden
+		process.stdout.write('\r');
+		debugger;
+		coreLogger.info('Stopping server');
+	
+		// Stop the server
+		await server.stop();
 	});
 };
 

@@ -11,7 +11,7 @@ import { validate as validateArgument } from 'bycontract';
 import deepMerge from 'deepmerge';
 import { PackageJson } from 'type-fest';
 import * as core from '.';
-import { log } from './log';
+import { coreLogger } from './log';
 import { paths } from './paths';
 import { AppError } from './errors';
 
@@ -160,12 +160,12 @@ export class PluginManager {
 		// Skip any plugins without a main file
 		const packageMainPath = path.join(pluginDir, pluginPackage.main);
 		if (!pluginPackage.main) {
-			log.error('Plugin "%s" has no main field in it’s package.json', pluginName);
+			coreLogger.error('Plugin "%s" has no main field in it’s package.json', pluginName);
 			return;
 		}
 
 		if (!fs.existsSync(packageMainPath)) {
-			log.error('Plugin "%s" is missing it’s main file "%s"', pluginName, packageMainPath);
+			coreLogger.error('Plugin "%s" is missing it’s main file "%s"', pluginName, packageMainPath);
 			return;
 		}
 
@@ -177,11 +177,10 @@ export class PluginManager {
 		// Resolve plugin's main
 		let plugin;
 		try {
-			log.debug('Plugin "%s" loading main file.', pluginName);
+			coreLogger.debug('Plugin "%s" loading main file.', pluginName);
 			plugin = require(packageMainPath);
 		} catch (error) {
-			log.error(error);
-			log.error('Plugin "%s" failed to load: %s', pluginName, error);
+			coreLogger.error('Plugin "%s" failed to load: %s', pluginName, error);
 
 			// Disable plugin as it failed to load it's init file
 			this.disable(pluginName);
@@ -190,7 +189,7 @@ export class PluginManager {
 
 		// Initialize plugin
 		await Promise.resolve(plugin.init(context, core)).then(async() => {
-			log.debug('Plugin "%s" loaded successfully.', pluginName);
+			coreLogger.debug('Plugin "%s" loaded successfully.', pluginName);
 
 			// Add to manager
 			this.add(pluginName);
@@ -203,8 +202,7 @@ export class PluginManager {
 				this.add(pluginName, moduleName, filePath);
 			});
 		}).catch(error => {
-			log.error(error);
-			log.error('Plugin "%s" failed to run it’s init function: %s', pluginName, error);
+			coreLogger.error('Plugin "%s" failed to run it’s init function: %s', pluginName, error);
 
 			// Disable plugin as it failed to run it's init file
 			this.disable(pluginName);
@@ -226,7 +224,7 @@ export class PluginManager {
 
 		// If we have a module let's set both the plugin and module
 		if (moduleName) {
-			log.debug('Plugin Manager: Adding module [%s]', moduleName);
+			coreLogger.debug('Plugin Manager: Adding module [%s]', moduleName);
 			const object = deepMerge(plugin, {
 				isActive: true,
 				disabled,
@@ -242,7 +240,7 @@ export class PluginManager {
 		}
 
 		// Otherwise just set the module
-		log.debug('Plugin Manager: Adding plugin [%s]', pluginName);
+		coreLogger.debug('Plugin Manager: Adding plugin [%s]', pluginName);
 		const object = deepMerge(plugin, {
 			isActive: true,
 			disabled,
@@ -258,7 +256,7 @@ export class PluginManager {
 	 * @memberof PluginManager
 	 */
 	disable(pluginName: string): void {
-		log.debug('Plugin Manager: Disabling plugin [%s]', pluginName);
+		coreLogger.debug('Plugin Manager: Disabling plugin [%s]', pluginName);
 		const plugin = this.plugins.get(pluginName)!;
 		const object = deepMerge(plugin, {
 			disabled: true

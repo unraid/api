@@ -1,5 +1,5 @@
 import type { CoreResult } from './core/types';
-import { pubsub, utils, log } from './core';
+import { pubsub, utils, coreLogger } from './core';
 
 const { debugTimer } = utils;
 
@@ -52,16 +52,14 @@ export const run = async (channel: string, mutation: string, options: RunOptions
             return resolve(moduleToRun(context));
         });
 
-        // log.debug('Module:', moduleToRun.name, 'Result:', result.json);
-
         // Save result
         publish(channel, mutation, result.json);
     } catch (error) {
         // Ensure we aren't leaking anything in production
         if (process.env.NODE_ENV === 'production') {
-            log.debug('Error:', error.message);
+            coreLogger.debug('Error:', error.message);
         } else {
-            const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'];
+            const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'];
             logger('Error:', error.message);
         }
     }

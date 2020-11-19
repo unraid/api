@@ -1,4 +1,4 @@
-import { IniEnabled } from '..';
+import { IniEnabled } from '../ini';
 
 export interface SecIni {
 	name: string;

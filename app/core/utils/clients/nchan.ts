@@ -5,9 +5,9 @@
 
 import path from 'path';
 import fetch from 'node-fetch';
-import { paths } from '../../paths';
 import { debugTimer, parseConfig, sleep } from '..';
 import * as states from '../../states';
+import { coreLogger } from '../../log';
 import { varState } from '../../states';
 import { AppError } from '../../errors';
 
@@ -77,10 +77,9 @@ const subscribe = async(endpoint: string) => {
 
 			// Create endpoint field on data
 			if (!data[endpoint]) {
-				const coreCwd = paths.get('core')!;
-				const statesCwd = path.join(coreCwd, 'states');
+				const fileName = endpoint + '.js';
 				data[endpoint] = {
-					handlerPath: path.join(statesCwd, endpoint + '.js')
+					handlerPath: path.resolve(__dirname, '../../states', fileName)
 				};
 			}
 
@@ -103,7 +102,7 @@ const subscribe = async(endpoint: string) => {
 			debugTimer(`subscribe(${endpoint})`);
 		} else {
 			// An error - let's show it
-			console.error(response);
+			coreLogger.error(JSON.stringify(response));
 		}
 	}).then(() => {
 		subscribe(endpoint);

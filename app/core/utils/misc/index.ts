@@ -14,4 +14,5 @@ export * from './parse-config';
 export * from './remove-duplicates-from-array';
 export * from './sleep';
 export * from './uppercase-first-char';
+export * from './validate-api-key';
 export * from './validate-api-key-format';

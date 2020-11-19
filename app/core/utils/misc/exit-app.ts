@@ -4,7 +4,7 @@
  */
 
 import { AppError } from '../../errors';
-import { log } from '../../log';
+import { coreLogger } from '../../log';
 
 /**
  * Exit application.
@@ -18,18 +18,18 @@ export const exitApp = (error?: Error, exitCode?: number) => {
 	// Allow non-fatal errors to throw but keep the app running
 	if (error instanceof AppError) {
 		if (!error.fatal) {
-			log.warning(error.message);
+			coreLogger.warn(error.message);
 			return;
 		}
 
 		// Log last error
-		log.error(error);
+		coreLogger.error(error);
 
 		// Kill application
 		process.exitCode = exitCode;
 	} else {
 		// Log last error
-		log.error(error);
+		coreLogger.error(error);
 
 		// Kill application
 		process.exitCode = exitCode;

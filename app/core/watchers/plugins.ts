@@ -6,16 +6,16 @@
 import chokidar from 'chokidar';
 import prettyMilliseconds from 'pretty-ms';
 import { paths } from '../paths';
-import { log } from '../log';
+import { coreLogger } from '../log';
 
 export const plugins = () => {
 	const PLUGIN_RELOAD_TIME_MS = 5000; // 5s
 	const pluginsCwd = paths.get('plugins')!;
 	const watchers: chokidar.FSWatcher[] = [];
-	let timeout;
+	let timeout: NodeJS.Timeout;
 
 	const reloadPlugins = () => {
-		log.debug(`Reloading plugins as it's been %s since last event.`, prettyMilliseconds(PLUGIN_RELOAD_TIME_MS));
+		coreLogger.debug(`Reloading plugins as it's been %s since last event.`, prettyMilliseconds(PLUGIN_RELOAD_TIME_MS));
 
 		// Reload plugins
 		// core.loaders.plugins();
@@ -23,14 +23,18 @@ export const plugins = () => {
 
 	return {
 		start() {
+			if (!pluginsCwd) {
+				return;
+			}
+
 			// Update plugin manager when plugin files change
 			const watcher = chokidar.watch(pluginsCwd, {
 				persistent: true,
 				ignoreInitial: true,
-				ignored: path => ['node_modules'].some(s => path.includes(s))
+				ignored: (path: string) => ['node_modules'].some(s => path.includes(s))
 			});
 
-			log.debug(`Watching ${pluginsCwd}`);
+			coreLogger.debug('Loading watchers for %s', pluginsCwd);
 
 			// Plugin has been deleted, remove from manager
 			watcher.on('all', (event, fullPath) => {
@@ -39,7 +43,7 @@ export const plugins = () => {
 
 				// Update timeout
 				timeout = setTimeout(reloadPlugins, PLUGIN_RELOAD_TIME_MS);
-				log.debug('Plugin directory %s has emitted %s event.', fullPath, event);
+				coreLogger.debug('Plugin directory %s has emitted %s event.', fullPath, event);
 			});
 
 			// Save ref for cleanup

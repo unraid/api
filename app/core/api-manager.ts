@@ -10,9 +10,10 @@ import dotProp from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
 // @ts-ignore
 import { validate as validateArgument } from 'bycontract';
-import { validateApiKeyFormat, loadState } from './utils';
+import { Mutex, MutexInterface } from 'async-mutex';
+import { validateApiKeyFormat, loadState, validateApiKey } from './utils';
 import { paths } from './paths';
-import { log } from './log';
+import { coreLogger } from './log';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -51,6 +52,18 @@ export class ApiManager extends EventEmitter {
 
 	/** Note: Keys expire by default after 365 days. */
 	private readonly keys = new MemoryCache<CacheItem>(Number(toMillisecond('1y')));
+	
+	private lock?: MutexInterface;
+	private async getLock() {
+		if (!this.lock) {
+			this.lock = new Mutex();
+		}
+
+		const release = await this.lock.acquire();
+		return {
+			release
+		};
+	}
 
 	constructor(options: Options = { watch: true }) {
 		super({
@@ -71,13 +84,24 @@ export class ApiManager extends EventEmitter {
 		if (options.watch) {
 			const basePath = paths.get('dynamix-base')!;
 			const configPath = paths.get('dynamix-config')!;
-			chokidar.watch(basePath).on('all', (eventName, filePath) => {
+			chokidar.watch(basePath).on('all', async (_eventName, filePath) => {
 				if (filePath === configPath) {
+					const lock = await this.getLock();
 					try {
 						const file = loadState<{ remote: { apikey: string } }>(filePath);
 						const apiKey = dotProp.get(file, 'remote.apikey') as string;
 
+						// Same key as current
+						if (apiKey === this.getKey('my_servers')?.key) {
+							console.log('same key!');
+							return;
+						}
+
+						// Ensure key format is valid before validating
 						validateApiKeyFormat(apiKey);
+
+						// Ensure key is valid before connecting
+						await validateApiKey(apiKey);
 
 						// Add the new key
 						this.replace('my_servers', apiKey, {
@@ -86,14 +110,16 @@ export class ApiManager extends EventEmitter {
 					} catch (error) {
 						// File was deleted
 						if (error.code === 'ENOENT') {
-							log.debug('%s was deleted, removing "my_servers" API key.', filePath);
+							coreLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
 						} else {
-							log.debug('%s, removing "my_servers" API key.', error.message);
+							coreLogger.debug('%s, removing "my_servers" API key.', error.message);
 						}
 
 						// Reset key as it's not valid anymore
 						this.expire('my_servers');
-					};
+					} finally {
+						lock.release();
+					}
 				}
 			});
 		}

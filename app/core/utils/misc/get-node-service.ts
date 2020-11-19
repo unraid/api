@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import execa from 'execa';
 import { JSONSchemaForNPMPackageJsonFiles as PackageJson} from '@schemastore/package';
-import { log } from '../../log';
+import { coreLogger, log } from '../../log';
 import { User } from '../../types';
 import { CacheManager } from '../../cache-manager';
 import { cleanStdout, ensurePermission } from '../../utils';
@@ -49,7 +49,7 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
             return pid;
         }
 
-        log.trace(`No PID found in cache for ${namespace}`);
+        coreLogger.trace(`No PID found in cache for ${namespace}`);
         pid = await execa.command(`pidof ${namespace}`)
             .then(output => {
                 const pids = cleanStdout(output).split('\n');
@@ -87,7 +87,7 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
     };
 
     const getPkgFilePath = async (pid: number | string) => {
-        log.debug(`Getting package.json path for ${namespace}`);
+        coreLogger.debug('Getting package.json path for %s', namespace);
 
         return execa.command(`pwdx ${pid}`).then(({ stdout }) => {
             return path.resolve(stdout.split(/\n/)[0].split(':')[1].trim());
