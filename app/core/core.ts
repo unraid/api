@@ -248,13 +248,12 @@ export const loadServer = async(name: string, server: Server): Promise<void> => 
 
 	// On process exit
 	exitHook(async() => {
-		// Stop the server
-	
-		// Ensure we go back to the start of the line
-		// this causes the ^C the be overridden
-		process.stdout.write('\r');
-		debugger;
-		coreLogger.info('Stopping server');
+		if (process.env.DEBUG) {
+			// Ensure we go back to the start of the line
+			// this causes the ^C the be overridden on a CTRL+C
+			process.stdout.write('\r');
+			coreLogger.info('Stopping server');
+		}
 	
 		// Stop the server
 		await server.stop();
