@@ -274,11 +274,11 @@ class MothershipService {
 				} catch (error) {
 					// Something weird happened while processing the message
 					// This is likely a malformed message
-					mothershipLogger.error(error);
+					mothershipLogger.error('Failed sending message to relay.', error);
 				}
 			});
 		} catch (error) {
-			mothershipLogger.error(error);
+			mothershipLogger.error('Failed connecting', error);
 		} finally {
 			lock.release();
 		}

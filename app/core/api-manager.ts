@@ -93,7 +93,7 @@ export class ApiManager extends EventEmitter {
 
 						// Same key as current
 						if (apiKey === this.getKey('my_servers')?.key) {
-							console.log('same key!');
+							coreLogger.debug(`%s was updated but the API key didn't change`, filePath);
 							return;
 						}
 

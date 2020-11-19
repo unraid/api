@@ -131,11 +131,6 @@ const handleError = error => {
 // Port is a UNIX socket file
 if (isNaN(parseInt(port, 10))) {
 	stoppableServer.on('listening', () => {
-		// In production this will let pm2 know we're ready
-		if (process.send) {
-			process.send('ready');
-		}
-
 		// Set permissions
 		return fs.chmodSync(port, 660);
 	});

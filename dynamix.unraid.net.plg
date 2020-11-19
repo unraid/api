@@ -163,9 +163,11 @@ switchenv() {
   if [[ $currentEnv = "production" ]]; then
     echo "Switching from production to staging"
     echo 'env="staging"' > $envFile
+    cp $node_base_directory/node-api/.env.staging $node_base_directory/node-api/.env
   elif [[ $currentEnv = "staging" ]]; then
     echo "Switching from staging to production"
     echo 'env="production"' > $envFile
+    cp $node_base_directory/node-api/.env.production $node_base_directory/node-api/.env
   fi
   source $envFile;
   reload
@@ -175,7 +177,15 @@ _start() {
   local old_working_directory=$(echo $pwd)
   mkdir -p $node_base_directory
   cd $node_base_directory
-  /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env) --no-daemon &> /dev/null &
+
+  # Local .env
+  if [ -f .env ]; then
+    # Load Environment Variables
+    export $(egrep -v '^#' $node_base_directory/node-api/.env | xargs)
+  fi
+
+  # Start node-api
+  ENVIRONMENT=$(echo $env) node $node_base_directory/node-api/index.js &> /dev/null &
   cd $old_working_directory
 
   # wait until node_api_pid exists
@@ -210,9 +220,16 @@ EOF
 startdebug() {
   _stop
   local old_working_directory=$(echo $pwd)
-  cd $node_base_directory
-  /usr/local/bin/node/node-api/node_modules/pm2/bin/pm2 start $node_base_directory/node-api/ecosystem.config.js --env=$(echo $env)-debug --no-daemon
-  cd $old_working_directory
+  mkdir -p $node_base_directory
+
+  # Local .env
+  if [ -f $node_base_directory/node-api/.env ]; then
+    # Load Environment Variables
+    export $(egrep -v '^#' $node_base_directory/node-api/.env | xargs)
+  fi
+
+  # Start node-api
+  ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/node-api/index.js
 }
 _stop() {
   local node_api_pid=$(pidof node-api | awk '{print $1}')
