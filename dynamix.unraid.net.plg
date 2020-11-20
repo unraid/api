@@ -259,6 +259,7 @@ stop() {
 reload() {
   echo "Reloading Unraid-api"
   _stop
+  rm -f /var/run/unraid-api.sock
   _start
   status
   exit 0
