@@ -136,7 +136,7 @@
     "supertest": "^6.0.1",
     "ts-node": "9.0.0",
     "tsup": "2.0.3",
-    "typescript": "4.0.3",
+    "typescript": "4.1.2",
     "typescript-coverage-report": "^0.1.3",
     "xo": "0.33.1"
   },
