@@ -231,6 +231,9 @@ startdebug() {
   # Start node-api
   ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/node-api/index.js
 }
+changeloglevel() {
+  kill -USR2 $(pidof node-api)
+}
 _stop() {
   local node_api_pid=$(pidof node-api | awk '{print $1}')
   if [[ $node_api_pid ]]; then
@@ -320,6 +323,9 @@ case "$1" in
 'start-debug')
   startdebug
   ;;
+'change-log-level')
+  changeloglevel
+  ;;
 'stop')
   stop
   ;;
@@ -336,7 +342,7 @@ case "$1" in
   uninstall
   ;;
 *)
-  echo "usage $0 status|start|report|switch-env|start-debug|stop|reload|install|uninstall"
+  echo "usage $0 status|start|report|switch-env|start-debug|change-log-level|stop|reload|install|uninstall"
 esac
 ]]>
 </INLINE>
