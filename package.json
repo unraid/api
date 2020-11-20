@@ -25,6 +25,8 @@
     "release": "standard-version"
   },
   "files": [
+    ".env.staging",
+    ".env.production",
     "dist",
     "index.js",
     "ecosystem.config.js"
