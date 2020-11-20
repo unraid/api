@@ -179,7 +179,7 @@ _start() {
   cd $node_base_directory
 
   # Local .env
-  if [ -f .env ]; then
+  if [ -f $node_base_directory/node-api/.env ]; then
     # Load Environment Variables
     export $(egrep -v '^#' $node_base_directory/node-api/.env | xargs)
   fi
