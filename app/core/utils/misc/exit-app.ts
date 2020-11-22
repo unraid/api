@@ -18,7 +18,7 @@ export const exitApp = (error?: Error, exitCode?: number) => {
 	// Allow non-fatal errors to throw but keep the app running
 	if (error instanceof AppError) {
 		if (!error.fatal) {
-			coreLogger.warn(error.message);
+			coreLogger.trace(error.message);
 			return;
 		}
 
