@@ -32,6 +32,6 @@ export const exitApp = (error?: Error, exitCode?: number) => {
 		coreLogger.error(error);
 
 		// Kill application
-		process.exitCode = exitCode;
+		process.exit(exitCode);
 	}
 };

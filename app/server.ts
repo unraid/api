@@ -6,6 +6,7 @@
 import fs from 'fs';
 import net from 'net';
 import path from 'path';
+import execa from 'execa';
 import stoppable from 'stoppable';
 import chokidar from 'chokidar';
 import express from 'express';
@@ -13,7 +14,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths, pubsub, apiManager, coreLogger } from './core';
-import { getEndpoints, globalErrorHandler, exitApp } from './core/utils';
+import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from './core/utils';
 import { graphql } from './graphql';
 import { mothership } from './mothership';
 import display from './graphql/resolvers/query/display';
@@ -96,38 +97,6 @@ app.use((error, _, res, __) => {
 const httpServer = http.createServer(app);
 const stoppableServer = stoppable(httpServer);
 
-const handleError = error => {
-	if (error.code !== 'EADDRINUSE') {
-		throw error;
-	}
-
-	if (!isNaN(parseInt(port, 10))) {
-		throw error;
-	}
-
-	stoppableServer.close();
-
-	net.connect({
-		path: port
-	}, () => {
-		// Really in use: re-throw
-		throw error;
-	}).on('error', (error: NodeJS.ErrnoException) => {
-		if (error.code !== 'ECONNREFUSED') {
-			log.error(error);
-
-			process.exitCode = 1;
-		}
-
-		// Not in use: delete it and re-listen
-		fs.unlinkSync(port);
-
-		setTimeout(() => {
-			stoppableServer.listen(port);
-		}, 1000);
-	});
-};
-
 // Port is a UNIX socket file
 if (isNaN(parseInt(port, 10))) {
 	stoppableServer.on('listening', () => {
@@ -135,7 +104,64 @@ if (isNaN(parseInt(port, 10))) {
 		return fs.chmodSync(port, 660);
 	});
 
-	stoppableServer.on('error', handleError);
+	stoppableServer.on('error', async (error: NodeJS.ErrnoException) => {
+		if (error.code !== 'EADDRINUSE') {
+			coreLogger.error(error);
+			throw error;
+		}
+	
+		// Check if port is unix socket or numbered port
+		// If it's a numbered port then throw
+		if (!isNaN(parseInt(port, 10))) {
+			throw error;
+		}
+
+		// Check if the process that made this file is still alive
+		const pid = await execa.command(`lsof -t ${port}`)
+            .then(output => {
+                const pids = cleanStdout(output).split('\n');
+                return pids[0];
+			});
+
+		// Try to kill it?
+		if (pid) {
+			await execa.command(`kill -9 ${pid}`);
+			await sleep(2000);
+		}
+
+		// No pid found or we just killed the old process
+		// Now let's retry
+
+		// Stop the server
+		stoppableServer.close();
+	
+		// Restart the server
+		net.connect({
+			path: port
+		}, () => {
+			exitApp();
+		}).on('error', (error: NodeJS.ErrnoException) => {
+			// Port was set to a path that already exists and isn't a unix socket
+			// Let's bail since we don't know if this was intentional
+			if (error.code === 'ENOTSOCK') {
+				coreLogger.debug('%s is not a unix socket and already exists', port);
+				exitApp();
+			}
+
+			if (error.code !== 'ECONNREFUSED') {
+				log.error(error);
+	
+				process.exitCode = 1;
+			}
+	
+			// Not in use: delete it and re-listen
+			fs.unlinkSync(port);
+	
+			setTimeout(() => {
+				stoppableServer.listen(port);
+			}, 1000);
+		});
+	});
 
 	process.on('uncaughtException', (error: NodeJS.ErrnoException) => {
 		// Skip EADDRINUSE as it's already handled above
@@ -164,22 +190,28 @@ stoppableServer.on('upgrade', (request, socket, head) => {
 // Add graphql subscription handlers
 graphApp.installSubscriptionHandlers(wsServer);
 
+const attachApiManagerToMothershipListeners = () => {
+	// If key is in an invalid format disconnect
+	apiManager.on('expire', async () => {
+		await mothership.disconnect();
+	});
+
+	// If key looks valid try and connect with it
+	apiManager.on('replace', async () => {
+		await mothership.connect(wsServer);
+	});
+};
+
 export const server = {
 	httpServer,
 	server: stoppableServer,
 	async start() {
-		// If key is in an invalid format disconnect
-		apiManager.on('expire', async () => {
-			await mothership.disconnect();
-		});
-
-		// If key looks valid try and connect with it
-		apiManager.on('replace', async (name, { key }) => {
-			await mothership.connect(wsServer);
-		});
-
 		// Start http server
 		return stoppableServer.listen(port, () => {
+			// Start listening to API key changes
+			// When the key changes either disconnect or connect
+			attachApiManagerToMothershipListeners();
+
 			// Downgrade process user to owner of this file
 			return fs.stat(__filename, (error, stats) => {
 				if (error) {

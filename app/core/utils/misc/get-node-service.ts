@@ -49,7 +49,7 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
             return pid;
         }
 
-        coreLogger.trace(`No PID found in cache for ${namespace}`);
+        coreLogger.debug('No PID found in cache for %s', namespace);
         pid = await execa.command(`pidof ${namespace}`)
             .then(output => {
                 const pids = cleanStdout(output).split('\n');

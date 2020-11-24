@@ -6,6 +6,7 @@
 import { format } from 'util';
 import chalk from 'chalk';
 import SysLogger from 'ain2';
+import getCurrentLine from 'get-current-line';
 import getHex from 'number-to-color/hexMap.js';
 import { redactSecrets } from 'redact-secrets';
 
@@ -13,7 +14,7 @@ const levels = ['error', 'warn', 'info', 'debug', 'trace'] as const;
 const transports = ['console', 'syslog'] as const;
 
 class Logger {
-    public level = 'info' as typeof levels[number];
+    public level = (process.env.LOG_LEVEL ?? 'info') as typeof levels[number];
     public levels = levels;
     public transport = (process.env.DEBUG ? 'console' : 'syslog') as typeof transports[number];
     public transports = transports;
@@ -33,6 +34,19 @@ class Logger {
 
     private addColourToString(hex: string, string: string) {
         return chalk.hex(hex)(string);
+    }
+
+    private _getLineInfo(offset = 0) {
+        // Bail unless we're in debug mode and we have line info enabled
+        if (!process.env.DEBUG && process.env.LINE_INFO) return;
+
+        const { line: lineNumber, file } = getCurrentLine({
+            frames: 3 + offset
+        });
+        const cwd = process.cwd();
+        const filePath = file.startsWith(cwd) ? file.replace(cwd, '.') : file;
+        const lineInfo = `${filePath}:${lineNumber}`;
+        return `[${chalk.hex('FF4500')(lineInfo)}]`;
     }
 
     constructor(private prefix: string = '') {
@@ -100,7 +114,7 @@ class Logger {
     }
 
     debug(message: string, ...args: any[]): void {
-        this.log('debug', message, args);
+        this.log('debug', message, [...args, this._getLineInfo()]);
     }
 
     info(message: string, ...args: any[]): void {
@@ -115,9 +129,9 @@ class Logger {
     error(message: string, ...args: any[]): void;
     error(message: any, ...args: any[]): void {
         if (message instanceof Error) {
-            this.log('error', message.message, args);
+            this.log('error', message.message, [...args, this._getLineInfo()]);
         } else {
-            this.log('error', message, args);
+            this.log('error', message, [...args, this._getLineInfo()]);
         }
     }
 

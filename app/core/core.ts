@@ -3,7 +3,6 @@
  * Written by: Alexis Tyler
  */
 
-import { StoppableServer } from 'stoppable';
 import path from 'path';
 import glob from 'glob';
 import exitHook from 'async-exit-hook';
@@ -19,6 +18,7 @@ import { subscribeToNchanEndpoint, isNchanUp } from './utils';
 import { config } from './config';
 import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
+import { server as Server } from '../server';
 
 // Have plugins loaded at least once
 let pluginsLoaded = false;
@@ -197,7 +197,6 @@ const loaders = {
  * @name core.load
  */
 const load = async(): Promise<void> => {
-	coreLogger.debug('Starting...');
 	await loadStatePaths();
 	await loadPlugins();
 	await loadWatchers();
@@ -207,18 +206,7 @@ const load = async(): Promise<void> => {
 	if (process.env.NCHAN !== 'disable') {
 		await loadNchan();
 	}
-
-	coreLogger.debug('Loaded!');
 };
-
-/**
- * A server instance.
- */
-interface Server {
-	server: StoppableServer;
-	start: () => Promise<StoppableServer> | StoppableServer;
-	stop: () => Promise<void> | void;
-}
 
 /**
  * Loads a server.
@@ -226,12 +214,9 @@ interface Server {
  * @name core.loadServer
  * @param name The name of the server instance to load.
  */
-export const loadServer = async(name: string, server: Server): Promise<void> => {
+export const loadServer = async(name: string, server: typeof Server): Promise<void> => {
 	// Set process title
 	process.title = name;
-
-	// Human readable name
-	const serverName = `@unraid/${name}`;
 
 	// Start the server.
 	coreLogger.debug('Starting server');
@@ -242,18 +227,20 @@ export const loadServer = async(name: string, server: Server): Promise<void> => 
 	});
 
 	// Start server
-	await server.start();
-
-	coreLogger.debug(`Started ${name}`);
+	await server.start().catch(error => {
+		log.error(error);
+	});
 
 	// On process exit
 	exitHook(async() => {
-		if (process.env.DEBUG) {
+		// Only do this when there's a TTY present
+		if (process.stdout.isTTY) {
 			// Ensure we go back to the start of the line
 			// this causes the ^C the be overridden on a CTRL+C
 			process.stdout.write('\r');
-			coreLogger.info('Stopping server');
 		}
+
+		coreLogger.debug('Stopping server');
 	
 		// Stop the server
 		await server.stop();
