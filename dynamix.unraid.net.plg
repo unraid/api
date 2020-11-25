@@ -1656,7 +1656,7 @@ setTimeout(() => {
           'extend' => _('Extend Trial'),
         ],
         'upc' => [
-          'avatarAlt' => _("{0}'s Avatar"),
+          'avatarAlt' => _("{0} Avatar"),
           'confirmClosure' => _('Confirm closure then continue to webGUI'),
           'closeDropdown' => _('Close dropdown'),
           'openDropdown' => _('Open dropdown'),
