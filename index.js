@@ -1,4 +1,4 @@
-const tryRequire = (name, onFail) => {
+const tryRequire = (name, onFail = () => {}) => {
     try {
         return require(name);
     } catch {
