@@ -186,6 +186,7 @@ class MothershipService {
 				try {
 					mothershipLogger.debug('Connection closed with code %s.', code);
 		
+					// Stop ws heartbeat
 					if (this.pingTimeout) {
 						clearTimeout(this.pingTimeout);
 					}

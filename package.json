@@ -6,8 +6,9 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npm run bundle && npm run copy-schemas",
-    "bundle": "npx tsup ./app/index.ts --minify",
+    "build": "npm run bundle-minify && npm run copy-schemas",
+    "bundle": "npx tsup ./app/index.ts",
+    "bundle-minify": "npx tsup ./app/index.ts --minify",
     "bundle-dependencies": "bundle-dependencies update",
     "copy-schemas": "cpx app/**/*.graphql dist/types",
     "clean": "modclean --no-progress --run --path .",

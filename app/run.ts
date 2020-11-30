@@ -1,7 +1,6 @@
 import type { CoreResult } from './core/types';
-import { pubsub, utils, coreLogger } from './core';
-
-const { debugTimer } = utils;
+import { pubsub, coreLogger } from './core';
+import { debugTimer } from './core/utils';
 
 /**
  * Publish update to topic channel.
