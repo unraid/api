@@ -90,7 +90,9 @@ class MothershipService {
 
 	public async connect(wsServer: WebSocket.Server, currentRetryAttempt: number = 0): Promise<void> {
 		this.connectionAttempt++;
-		mothershipLogger.debug('connectionAttempt', this.connectionAttempt);
+		if (currentRetryAttempt >= 1) {
+			mothershipLogger.debug('connection attempt %s', currentRetryAttempt);
+		}
 
         const lock = await this.getLock();
 		try {
@@ -141,12 +143,12 @@ class MothershipService {
 				
 				// Connection to local graphql endpoint is "closed"
 				this.localGraphqlApi.on('close', () => {
-					mothershipLogger.debug('ws:local-relay', 'close');
+					mothershipLogger.silly('ws:local-relay', 'close');
 				});
 		
 				// Connection to local graphql endpoint is "open"
 				this.localGraphqlApi.on('open', () => {
-					mothershipLogger.debug('ws:local-relay', 'open');
+					mothershipLogger.silly('ws:local-relay', 'open');
 		
 					// No API key, close internal connection
 					if (!apiKey) {
@@ -261,7 +263,7 @@ class MothershipService {
 					}
 		
 					client.send(message);
-					mothershipLogger.debug('Message sent to mothership.', message);
+					mothershipLogger.silly('Message sent to mothership.', message);
 				} catch (error) {
 					mothershipLogger.error('Failed replying to mothership.', error);
 				};

@@ -78,7 +78,7 @@ Object.entries(getPermissions()).forEach(([roleName, role]) => {
 	}
 });
 
-coreLogger.debug('Loaded permissions', JSON.stringify(allPermissions));
+coreLogger.silly('Loaded permissions', JSON.stringify(allPermissions));
 
 export {
 	ac
