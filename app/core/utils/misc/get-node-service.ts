@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import execa from 'execa';
 import { JSONSchemaForNPMPackageJsonFiles as PackageJson} from '@schemastore/package';
-import { coreLogger, log } from '../../log';
+import { coreLogger } from '../../log';
 import { User } from '../../types';
 import { CacheManager } from '../../cache-manager';
 import { cleanStdout, ensurePermission } from '../../utils';
@@ -35,7 +35,17 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
     const getUptime = async (pid: string | number) => {
         const uptime = await execa('ps', ['-p', String(pid), '-o', 'etimes', '--no-headers'])
             .then(cleanStdout)
-            .catch(() => '');
+            .catch(async error => {
+                // No clue why this failed
+                if (!error.stderr.includes('keyword not found')) {
+                    return '';
+                }
+
+                // Retry with macos way
+                // Borrowed from https://stackoverflow.com/a/28856613
+                const command = `ps -p ${pid} -oetime= | tr '-' ':' | awk -F: '{ total=0; m=1; } { for (i=0; i < NF; i++) {total += $(NF-i)*m; m *= i >= 2 ? 24 : 60 }} {print total}'`;
+                return execa.command(command, { shell: true }).then(cleanStdout).catch(() => '');
+            });
 
         const parsedUptime = Number.parseInt(uptime, 10);
         return parsedUptime >= 0 ? parsedUptime : -1;
@@ -64,9 +74,9 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
                     // We match the last column and return the first
                     return execa.command('ps axc').then(({stdout}) => {
                         const foundProcess = stdout.split(/\n/).find(line => {
-                            const field = line.split(/\s+/)[4];
+                            const field = line.trim().split(/\s+/)[4];
                             return field === namespace;
-                        });
+                        })?.trim();
                         return foundProcess ? foundProcess.split(/\s/)[0] : '';
                     });
                 }
@@ -78,6 +88,8 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
         if (!pid) {
             return;
         }
+
+        coreLogger.debug('Setting pid for %s to %s', namespace, pid);
 
         // Update cache
         setCachedValue('pid', pid);
@@ -136,6 +148,8 @@ export const getNodeService = async (user: User, namespace: string): Promise<Nod
     const version = await getVersion(pid);
     const uptime = await getUptime(pid);
     const online = uptime >= 1;
+
+    coreLogger.silly('%s version=%s uptime=%s online=%s', namespace, version, uptime, online);
 
     return {
         online,

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import request from 'request-promise';
+import request from 'request-promise-native';
 import { envs } from '../../envs';
 import { coreLogger } from '../../log';
 import { catchHandlers } from '..';

@@ -228,6 +228,9 @@ startdebug() {
     export $(egrep -v '^#' $node_base_directory/node-api/.env | xargs)
   fi
 
+  # Print report
+  report
+
   # Start node-api
   ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/node-api/index.js
 }
@@ -274,6 +277,9 @@ _install() {
     mkdir -p $node_base_directory/${download}
     tar -C $node_base_directory/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
   done
+
+  # Copy env file
+  cp $node_base_directory/node-api/.env.$env $node_base_directory/node-api/.env
 
   # Copy across wc files
   rm -rf /usr/local/emhttp/webGui/wc
