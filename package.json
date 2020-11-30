@@ -6,9 +6,10 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npx tsup ./app/index.ts",
+    "build": "npm run bundle && npm run copy-schemas",
+    "bundle": "npx tsup ./app/index.ts --minify",
     "bundle-dependencies": "bundle-dependencies update",
-    "copy-schemas": "cpx app/**/*.graphql dist",
+    "copy-schemas": "cpx app/**/*.graphql dist/types",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
     "lint": "xo --verbose",

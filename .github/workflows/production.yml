@@ -85,11 +85,8 @@ jobs:
     - name: Installing node deps
       run: npm install
 
-    - name: Compile typescript to js
+    - name: Run build
       run: npm run build
-
-    - name: Copy graphql files to dist
-      run: npm run copy-schemas
 
     # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
     - name: Patch subscriptions-transport-ws
