@@ -106,6 +106,11 @@ class MothershipService {
 			if (!apiKey) {
 				throw new AppError('API key was removed between the file update event and now.');
 			}
+
+			// Kill existing socket before overriding
+			if (this.relay) {
+				this.relay.terminate();
+			}
 		
 			// Connect to mothership's relay endpoint
 			this.relay = new WebSocket(this.relayWebsocketLink, ['graphql-ws'], {
