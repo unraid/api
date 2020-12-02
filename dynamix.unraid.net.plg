@@ -112,6 +112,7 @@ $arr['registered'] = empty($remote['apikey']) || empty($var['regFILE']) ? 0 : 1;
 $arr['username'] = $remote['username'];
 $arr['avatar'] = $remote['avatar'];
 $arr['locale'] = $_SESSION['locale'] ? $_SESSION['locale'] : 'en_US';
+$arr['apikey'] = $remote['apikey'];
 
 echo json_encode($arr);
 ?>
