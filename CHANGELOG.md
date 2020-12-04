@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.11](https://github.com/unraid/node-api/compare/v2.15.10...v2.15.11) (2020-12-04)
+
+
+### Bug Fixes
+
+* don't fail on empty socket file ([15fbec7](https://github.com/unraid/node-api/commit/15fbec795af0d1ded471381c07dda0e10ef10bfb))
+
 ### [2.15.10](https://github.com/unraid/node-api/compare/v2.15.9-rolling-20201204195706...v2.15.10) (2020-12-04)
 
 ### [2.15.9](https://github.com/unraid/node-api/compare/v2.15.8...v2.15.9) (2020-11-25)
