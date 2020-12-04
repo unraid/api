@@ -119,9 +119,9 @@ if (isNaN(parseInt(port, 10))) {
 		// Check if the process that made this file is still alive
 		const pid = await execa.command(`lsof -t ${port}`)
             .then(output => {
-                const pids = cleanStdout(output).split('\n');
-                return pids[0];
-			});
+				const pids = cleanStdout(output).split('\n');
+				return pids[0];
+			}).catch(() => undefined);
 
 		// Try to kill it?
 		if (pid) {
