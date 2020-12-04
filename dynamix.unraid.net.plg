@@ -1471,10 +1471,6 @@ response_complete($httpcode, '{}');
 <FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/RegWizard.php">
 <INLINE>
 <![CDATA[
-<style>
-#sb-title {display:none}
-#sb-info {display:none}
-</style>
 <script markdown="0">
 function handleMessage(e) {
   //if (e.origin != "http://child.com") { return; }
