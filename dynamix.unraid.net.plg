@@ -1372,7 +1372,7 @@ if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.g
 }
 
 // setup git ignore for files we dont need in the flash backup
-if (strpos(file_get_contents('/boot/.git/info/exclude'),'forcesync') === false) {
+if (strpos(file_get_contents('/boot/.git/info/exclude'),'dockerMan') === false) {
   file_put_contents('/boot/.git/info/exclude', '# Unraid OS Flash Backup
 
 # Blacklist everything
@@ -1405,6 +1405,9 @@ config/smbpasswd
 config/plugins/**/*.tgz
 config/plugins/**/*.txz
 config/plugins/**/*.tar.bz2
+config/plugins-error
+config/plugins-old-versions
+config/plugins/dockerMan/images
 ');
 }
 
