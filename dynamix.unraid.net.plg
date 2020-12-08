@@ -1371,9 +1371,21 @@ if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.g
   file_put_contents('/boot/.git/description', 'Unraid flash drive for '.$var['NAME']."\n");
 }
 
+// configure git to use the noprivatekeys filter
+exec('git -C /boot config filter.noprivatekeys.clean /usr/local/emhttp/plugins/dynamix.unraid.net/scripts/git-noprivatekeys-clean >/dev/null');
+
+// configure git to apply the noprivatekeys filter to wireguard config files
+if (strpos(file_get_contents('/boot/.gitattributes'),'noprivatekeys') === false) {
+  file_put_contents('/boot/.gitattributes', '# file managed by Unraid, do not modify
+config/wireguard/*.cfg filter=noprivatekeys
+config/wireguard/*.conf filter=noprivatekeys
+config/wireguard/peers/*.conf filter=noprivatekeys
+');
+}
+
 // setup git ignore for files we dont need in the flash backup
-if (strpos(file_get_contents('/boot/.git/info/exclude'),'dockerMan') === false) {
-  file_put_contents('/boot/.git/info/exclude', '# Unraid OS Flash Backup
+if (strpos(file_get_contents('/boot/.git/info/exclude'),'peers') === false) {
+  file_put_contents('/boot/.git/info/exclude', '# file managed by Unraid, do not modify
 
 # Blacklist everything
 /*
@@ -1408,6 +1420,7 @@ config/plugins/**/*.tar.bz2
 config/plugins-error
 config/plugins-old-versions
 config/plugins/dockerMan/images
+config/wireguard/peers/*.png
 ');
 }
 
@@ -1459,6 +1472,45 @@ if ($command == 'activate') {
 
 response_complete($httpcode, '{}');
 ?>
+]]>
+</INLINE>
+</FILE>
+
+
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/scripts/git-noprivatekeys-clean" Mode="0755">
+<INLINE>
+<![CDATA[
+#!/bin/bash
+
+# this git filter removes PrivateKey, PublicKey, and PresharedKey from WireGuard config files
+# that are passed in on stdin
+#
+# The regex converts the following:
+# 
+# wg0.conf peer.conf
+# OLD: PresharedKey=uL3XBHpCoIxafVonnt1vj3cT8GbNhB+X/wNwroyYY7U=
+# NEW: PresharedKey=
+#
+# wg0.conf peer.conf
+# OLD: PrivateKey=gJt06xDlyntpoGKqYEK3GCuWtxVAzZPx4BNwKxg7jnQ=
+# NEW: PrivateKey=
+#
+# wg0.conf peer.conf
+# OLD: PublicKey=98PcRLFD9PiI8BbW6K61psNIYNsKrWKiJ/iJ87E1i0U=
+# NEW: PublicKey=
+#
+# wg0.cfg
+# OLD: PrivateKey:1="8FBfXXj8OBUNFpeRrvBYjl1YT5X/U5wENZUQ8F/Ukkk="
+# NEW: PrivateKey:1=""
+#
+# wg0.cfg
+# OLD: PublicKey:0="9xTdy0W7rLjQucP8I0lDcST3dkOnJfDFT+rtcInQ6UM="
+# NEW: PublicKey:0=""
+
+OLDTEXT='(PrivateKey(:[[:digit:]]*)?|PublicKey(:[[:digit:]]*)?|PresharedKey)=(.*)=(["])?'
+NEWTEXT='\1=\5\5'
+
+sed -E "s@${OLDTEXT}@${NEWTEXT}@g" 
 ]]>
 </INLINE>
 </FILE>
