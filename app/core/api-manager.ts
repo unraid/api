@@ -65,14 +65,14 @@ export class ApiManager extends EventEmitter {
 		};
 	}
 
-	private async checkKey(filePath) {
+	private async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		try {
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey = dotProp.get(file, 'remote.apikey') as string;
 
 			// Same key as current
-			if (apiKey === this.getKey('my_servers')?.key) {
+			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
 				coreLogger.debug(`%s was updated but the API key didn't change`, filePath);
 				return;
 			}
@@ -131,7 +131,7 @@ export class ApiManager extends EventEmitter {
 		}
 
 		// Load inital keys in
-		this.checkKey(configPath);
+		this.checkKey(configPath, true);
 	}
 
 	/**
