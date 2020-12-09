@@ -65,6 +65,43 @@ export class ApiManager extends EventEmitter {
 		};
 	}
 
+	private async checkKey(filePath) {
+		const lock = await this.getLock();
+		try {
+			const file = loadState<{ remote: { apikey: string } }>(filePath);
+			const apiKey = dotProp.get(file, 'remote.apikey') as string;
+
+			// Same key as current
+			if (apiKey === this.getKey('my_servers')?.key) {
+				coreLogger.debug(`%s was updated but the API key didn't change`, filePath);
+				return;
+			}
+
+			// Ensure key format is valid before validating
+			validateApiKeyFormat(apiKey);
+
+			// Ensure key is valid before connecting
+			await validateApiKey(apiKey);
+
+			// Add the new key
+			this.replace('my_servers', apiKey, {
+				userId: '0'
+			});
+		} catch (error) {
+			// File was deleted
+			if (error.code === 'ENOENT') {
+				coreLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
+			} else {
+				coreLogger.debug('%s, removing "my_servers" API key.', error.message);
+			}
+
+			// Reset key as it's not valid anymore
+			this.expire('my_servers');
+		} finally {
+			lock.release();
+		}
+	}
+
 	constructor(options: Options = { watch: true }) {
 		super({
 			captureRejections: true
@@ -81,48 +118,20 @@ export class ApiManager extends EventEmitter {
 
 		// Watch for changes to the dynamix.cfg file
 		// @todo Move API keys to their own file
+		const basePath = paths.get('dynamix-base')!;
+		const configPath = paths.get('dynamix-config')!;
 		if (options.watch) {
-			const basePath = paths.get('dynamix-base')!;
-			const configPath = paths.get('dynamix-config')!;
-			chokidar.watch(basePath).on('all', async (_eventName, filePath) => {
+			chokidar.watch(basePath, {
+				ignoreInitial: true
+			}).on('all', async (_eventName, filePath) => {
 				if (filePath === configPath) {
-					const lock = await this.getLock();
-					try {
-						const file = loadState<{ remote: { apikey: string } }>(filePath);
-						const apiKey = dotProp.get(file, 'remote.apikey') as string;
-
-						// Same key as current
-						if (apiKey === this.getKey('my_servers')?.key) {
-							coreLogger.debug(`%s was updated but the API key didn't change`, filePath);
-							return;
-						}
-
-						// Ensure key format is valid before validating
-						validateApiKeyFormat(apiKey);
-
-						// Ensure key is valid before connecting
-						await validateApiKey(apiKey);
-
-						// Add the new key
-						this.replace('my_servers', apiKey, {
-							userId: '0'
-						});
-					} catch (error) {
-						// File was deleted
-						if (error.code === 'ENOENT') {
-							coreLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
-						} else {
-							coreLogger.debug('%s, removing "my_servers" API key.', error.message);
-						}
-
-						// Reset key as it's not valid anymore
-						this.expire('my_servers');
-					} finally {
-						lock.release();
-					}
+					await this.checkKey(filePath);
 				}
 			});
 		}
+
+		// Load inital keys in
+		this.checkKey(configPath);
 	}
 
 	/**
