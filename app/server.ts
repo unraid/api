@@ -190,28 +190,22 @@ stoppableServer.on('upgrade', (request, socket, head) => {
 // Add graphql subscription handlers
 graphApp.installSubscriptionHandlers(wsServer);
 
-const attachApiManagerToMothershipListeners = () => {
-	// If key is in an invalid format disconnect
-	apiManager.on('expire', async () => {
-		await mothership.disconnect();
-	});
-
-	// If key looks valid try and connect with it
-	apiManager.on('replace', async () => {
-		await mothership.connect(wsServer);
-	});
-};
-
 export const server = {
 	httpServer,
 	server: stoppableServer,
 	async start() {
+		// If key is in an invalid format disconnect
+		apiManager.on('expire', async () => {
+			await mothership.disconnect();
+		});
+
+		// If the key changes try to (re)connect to Mothership
+		apiManager.on('replace', async () => {
+			await mothership.connect(wsServer);
+		});
+
 		// Start http server
 		return stoppableServer.listen(port, () => {
-			// Start listening to API key changes
-			// When the key changes either disconnect or connect
-			attachApiManagerToMothershipListeners();
-
 			// Downgrade process user to owner of this file
 			return fs.stat(__filename, (error, stats) => {
 				if (error) {
