@@ -1375,7 +1375,7 @@ if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.g
 exec('git -C /boot config filter.noprivatekeys.clean /usr/local/emhttp/plugins/dynamix.unraid.net/scripts/git-noprivatekeys-clean >/dev/null');
 
 // configure git to apply the noprivatekeys filter to wireguard config files
-if (strpos(file_get_contents('/boot/.gitattributes'),'noprivatekeys') === false) {
+if (!file_exists('/boot/.gitattributes') || strpos(file_get_contents('/boot/.gitattributes'),'noprivatekeys') === false) {
   file_put_contents('/boot/.gitattributes', '# file managed by Unraid, do not modify
 config/wireguard/*.cfg filter=noprivatekeys
 config/wireguard/*.conf filter=noprivatekeys
@@ -1384,7 +1384,7 @@ config/wireguard/peers/*.conf filter=noprivatekeys
 }
 
 // setup git ignore for files we dont need in the flash backup
-if (strpos(file_get_contents('/boot/.git/info/exclude'),'peers') === false) {
+if (!file_exists('/boot/.git/info/exclude') || strpos(file_get_contents('/boot/.git/info/exclude'),'peers') === false) {
   file_put_contents('/boot/.git/info/exclude', '# file managed by Unraid, do not modify
 
 # Blacklist everything
