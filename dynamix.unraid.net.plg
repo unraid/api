@@ -1460,7 +1460,10 @@ if (($command == 'update') || ($command == 'reinit')) {
       exec('git -C /boot push --force --set-upstream origin master &>/dev/null');
     } else {
       exec('git -C /boot commit -m ' . escapeshellarg($commitmsg) . ' &>/dev/null');
-      exec('git -C /boot push --set-upstream origin master &>/dev/null');
+      exec('git -C /boot push --set-upstream origin master &>/dev/null', $status_output, $return_var);
+      if ($return_var != 0) {
+        exec('git -C /boot push --force --set-upstream origin master &>/dev/null');
+      }
     }
     $arrState['uptodate'] = true;
   }
