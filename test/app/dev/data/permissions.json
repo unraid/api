@@ -93,7 +93,7 @@
         "attributes": "*"
       },
       {
-        "resource": "service/node-api",
+        "resource": "service/unraid-api",
         "action": "read:any",
         "attributes": "*"
       },

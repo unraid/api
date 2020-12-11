@@ -1,8 +1,8 @@
 {
-  "name": "@unraid/node-api",
+  "name": "@unraid/api",
   "version": "2.15.12",
   "main": "dist/index.js",
-  "repository": "git@github.com:unraid/node-api.git",
+  "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {

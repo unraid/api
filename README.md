@@ -1,4 +1,4 @@
-# @unraid/node-api
+# @unraid/api
 
 Unraid API
 
@@ -28,7 +28,7 @@ Debug logs can be enabled via stdout while running with `start-debug`.
 
 ## Playground
 
-The playground can be access via `http://tower.local/graphql` while `PLAYGROUND=true` and `INTROSPECTION=true`. These values can be set in the `ecosystem.config.js` file in `/usr/local/bin/node/node-api`.
+The playground can be access via `http://tower.local/graphql` while `PLAYGROUND=true` and `INTROSPECTION=true`. These values can be set in the `ecosystem.config.js` file in `/usr/local/bin/node/unraid-api`.
 To get your API key open a terminal on your server and run `cat /boot/config/plugins/dynamix/dynamix.cfg | grep apikey= | cut -d '"' -f2`. Add that api key in the "HTTP headers" panel of the playground.
 
 ```json
@@ -71,7 +71,7 @@ NCHAN=disable \ # Disable nchan polling
   PATHS_STATES=$(pwd)/dev/states \ # Where .ini files live (e.g. vars.ini)
   PATHS_DYNAMIX_BASE=$(pwd)/dev/dynamix \ # Dynamix's data directory
   PATHS_DYNAMIX_CONFIG=$(pwd)/dev/dynamix/dynamix.cfg \ # Dynamix's config file
-  PORT=8500 \ # What port node-api should start on (e.g. /var/run/node-api.sock or 8000)
+  PORT=8500 \ # What port unraid-api should start on (e.g. /var/run/unraid-api.sock or 8000)
   node index.js
 ```
 

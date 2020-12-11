@@ -23,7 +23,7 @@ export const admin = {
         { resource: 'plugin', action: 'read:any', attributes: '*' },
         { resource: 'service', action: 'read:any', attributes: '*' },
         { resource: 'service/emhttpd', action: 'read:any', attributes: '*' },
-        { resource: 'service/node-api', action: 'read:any', attributes: '*' },
+        { resource: 'service/unraid-api', action: 'read:any', attributes: '*' },
         { resource: 'services', action: 'read:any', attributes: '*' },
         { resource: 'share', action: 'read:any', attributes: '*' },
         { resource: 'machine-id', action: 'read:any', attributes: '*' },

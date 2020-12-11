@@ -13,7 +13,7 @@ import { server } from './server';
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,
 	tracesSampleRate: 1.0,
-	release: `node-api@${require('../package.json').version}`,
+	release: `unraid-api@${require('../package.json').version}`,
 	environment: process.env.ENVIRONMENT ?? 'unknown',
 	serverName: os.hostname(),
     enabled: Boolean(process.env.SENTRY_DSN)
@@ -30,7 +30,7 @@ am(async () => {
 	await core.load();
 
 	// Load server
-	await loadServer('node-api', server);
+	await loadServer('unraid-api', server);
 }, async (error: NodeJS.ErrnoException) => {
 	// Send error to server for debugging
 	Sentry.captureException(error);

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { getEmhttpdService, getNodeApiService } from './services';
+import { getEmhttpdService, getUnraidApiService } from './services';
 import { coreLogger } from '../log';
 import { envs } from '../envs';
 import { NodeService } from '../utils';
@@ -15,7 +15,7 @@ const devNames = [
 ];
 
 const coreNames = [
-	'node-api'
+	'unraid-api'
 ];
 
 interface ServiceResult extends CoreResult {
@@ -57,7 +57,7 @@ export const getServices = async(context: CoreContext): Promise<Result> => {
 	]).catch(logErrorAndReturnEmptyArray) : [];
 
 	const coreServices = await Promise.all([
-		getNodeApiService(context)
+		getUnraidApiService(context)
 	]).catch(logErrorAndReturnEmptyArray);
 
 	const result = [

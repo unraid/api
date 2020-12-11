@@ -8,7 +8,7 @@
 <!ENTITY node_api_version     "{{ node_api_version }}">
 <!ENTITY env                  "{{ env }}">
 <!ENTITY pluginURL            "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
-<!ENTITY node-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-node-api-&node_api_version;.tgz">
+<!ENTITY unraid-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-api-&node_api_version;.tgz">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta35" icon="globe">
@@ -34,7 +34,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
   mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
   rm -rf /boot/config/plugins/Unraid.net/wc
-  rm -f /boot/config/plugins/Unraid.net/unraid-node-api.tgz
+  rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
   rm -f /boot/config/plugins/Unraid.net/.gitignore
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.js
@@ -112,9 +112,9 @@ echo json_encode($arr);
 </INLINE>
 </FILE>
 
-<!-- node-api -->
-<FILE Name="/boot/config/plugins/Unraid.net/unraid-node-api.tgz">
-<URL>&node-api;</URL>
+<!-- unraid-api -->
+<FILE Name="/boot/config/plugins/Unraid.net/unraid-api.tgz">
+<URL>&unraid-api;</URL>
 </FILE>
 <!-- env -->
 <FILE Run="/bin/bash" Method="install">
@@ -131,7 +131,7 @@ fi
 #!/bin/bash
 # unraid-api-handler
 source /boot/config/plugins/Unraid.net/env
-downloads=(node-api)
+downloads=(unraid-api)
 node_base_directory="/usr/local/bin/node"
 
 # Only allow specific envs
@@ -141,7 +141,7 @@ if [ "$env" != "staging" ] && [ "$env" != "production" ]; then
 fi
 
 status() {
-  local node_api_pid=$(pidof node-api | awk '{print $1}')
+  local node_api_pid=$(pidof unraid-api | awk '{print $1}')
   if [[ $node_api_pid ]]; then
     echo "Unraid-api is running in $env mode."
   else
@@ -156,11 +156,11 @@ switchenv() {
   if [[ $currentEnv = "production" ]]; then
     echo "Switching from production to staging"
     echo 'env="staging"' > $envFile
-    cp $node_base_directory/node-api/.env.staging $node_base_directory/node-api/.env
+    cp $node_base_directory/unraid-api/.env.staging $node_base_directory/unraid-api/.env
   elif [[ $currentEnv = "staging" ]]; then
     echo "Switching from staging to production"
     echo 'env="production"' > $envFile
-    cp $node_base_directory/node-api/.env.production $node_base_directory/node-api/.env
+    cp $node_base_directory/unraid-api/.env.production $node_base_directory/unraid-api/.env
   fi
   source $envFile;
   reload
@@ -172,18 +172,18 @@ _start() {
   cd $node_base_directory
 
   # Local .env
-  if [ -f $node_base_directory/node-api/.env ]; then
+  if [ -f $node_base_directory/unraid-api/.env ]; then
     # Load Environment Variables
-    export $(egrep -v '^#' $node_base_directory/node-api/.env | xargs)
+    export $(egrep -v '^#' $node_base_directory/unraid-api/.env | xargs)
   fi
 
-  # Start node-api
-  ENVIRONMENT=$(echo $env) node $node_base_directory/node-api/index.js &> /dev/null &
+  # Start unraid-api
+  ENVIRONMENT=$(echo $env) node $node_base_directory/unraid-api/index.js &> /dev/null &
   cd $old_working_directory
 
   # wait until node_api_pid exists
   for i in {1..10}; do
-    local node_api_pid=$(pidof node-api | awk '{print $1}')
+    local node_api_pid=$(pidof unraid-api | awk '{print $1}')
     if [ -n "$node_api_pid" ]; then
       break
     fi
@@ -198,7 +198,7 @@ start() {
 }
 _node_api_version() {
   # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
-  local version=$(grep '"version"' $node_base_directory/node-api/package.json | cut -d '"' -f 4)
+  local version=$(grep '"version"' $node_base_directory/unraid-api/package.json | cut -d '"' -f 4)
   echo "v$version"
 }
 report() {
@@ -216,22 +216,22 @@ startdebug() {
   mkdir -p $node_base_directory
 
   # Local .env
-  if [ -f $node_base_directory/node-api/.env ]; then
+  if [ -f $node_base_directory/unraid-api/.env ]; then
     # Load Environment Variables
-    export $(egrep -v '^#' $node_base_directory/node-api/.env | xargs)
+    export $(egrep -v '^#' $node_base_directory/unraid-api/.env | xargs)
   fi
 
   # Print report
   report
 
-  # Start node-api
-  ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/node-api/index.js
+  # Start unraid-api
+  ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/unraid-api/index.js
 }
 changeloglevel() {
-  kill -USR2 $(pidof node-api)
+  kill -USR2 $(pidof unraid-api)
 }
 _stop() {
-  local node_api_pid=$(pidof node-api | awk '{print $1}')
+  local node_api_pid=$(pidof unraid-api | awk '{print $1}')
   if [[ $node_api_pid ]]; then
     local parent_pid=$(cat /proc/$node_api_pid/status | grep PPid | cut -f2)
     if [[ $parent_pid != 1 ]]; then
@@ -241,7 +241,7 @@ _stop() {
     fi
     # wait until node_api_pid no longer exists
     for i in {1..10}; do
-      node_api_pid=$(pidof node-api | awk '{print $1}')
+      node_api_pid=$(pidof unraid-api | awk '{print $1}')
       if [ -z "$node_api_pid" ]; then
         break
       fi
@@ -264,15 +264,18 @@ reload() {
   exit 0
 }
 _install() {
-  # Install node-api
+  # Install unraid-api
   for download in ${downloads[@]}; do
     rm -rf $node_base_directory/${download}
     mkdir -p $node_base_directory/${download}
-    tar -C $node_base_directory/${download} -xzf /boot/config/plugins/Unraid.net/unraid-${download}.tgz --strip 1
+    tar -C $node_base_directory/${download} -xzf /boot/config/plugins/Unraid.net/${download}.tgz --strip 1
   done
 
+  # Reset permissions
+  rm /boot/config/plugins/Unraid.net/data/permissions.json 2>/dev/null
+
   # Copy env file
-  cp $node_base_directory/node-api/.env.$env $node_base_directory/node-api/.env
+  cp $node_base_directory/unraid-api/.env.$env $node_base_directory/unraid-api/.env
 
   # Copy across wc files
   rm -rf /usr/local/emhttp/webGui/wc
