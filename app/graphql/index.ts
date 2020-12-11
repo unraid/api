@@ -6,7 +6,7 @@
 import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
-import { bus, apiManager, graphqlLogger, config, pluginManager, modules } from '../core';
+import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
@@ -292,9 +292,11 @@ const apiKeyToUser = (apiKey: string) => {
 
 // Update array values when slots change
 bus.on('slots', async () => {
+	coreLogger.silly('slots updated: loading user');
 	// @todo: Create a system user for this
 	const user = usersState.findOne({ name: 'root' });
 
+	coreLogger.silly('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
 		context: {

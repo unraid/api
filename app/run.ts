@@ -41,6 +41,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
     } = options;
 
     if (!moduleToRun) {
+        coreLogger.silly('Tried to run but has no "moduleToRun"');
         return publish(channel, mutation, node);
     }
 
@@ -50,6 +51,12 @@ export const run = async (channel: string, mutation: string, options: RunOptions
             debugTimer(`run:${moduleToRun.name}`);
             return resolve(moduleToRun(context));
         });
+
+        // Services
+        if (moduleToRun.name !== 'Gg') {
+            // Log result
+            coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result, null, 2));
+        }
 
         // Save result
         publish(channel, mutation, result.json);

@@ -2,7 +2,7 @@ import fs from 'fs';
 import WebSocket from 'ws';
 import * as Sentry from '@sentry/node';
 import { Mutex, MutexInterface } from 'async-mutex';
-import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE } from '../consts';
+import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE, ONE_SECOND } from '../consts';
 import { mothershipLogger, apiManager } from '../core';
 import { getMachineId } from '../core/utils';
 import { varState, networkState } from '../core/states';
@@ -89,6 +89,7 @@ class MothershipService {
 	}
 
 	public async connect(wsServer: WebSocket.Server, currentRetryAttempt: number = 0): Promise<void> {
+		const mothership = this;
 		this.connectionAttempt++;
 		if (currentRetryAttempt >= 1) {
 			mothershipLogger.debug('connection attempt %s', currentRetryAttempt);
@@ -128,7 +129,7 @@ class MothershipService {
 				mothershipLogger.debug('Connected to mothership\'s relay via %s.', this.relayWebsocketLink);
 		
 				// Reset connection attempts
-				this.connectionAttempt = 0;
+				mothership.connectionAttempt = 0;
 		
 				// Connect to the internal graphql server
 				this.localGraphqlApi = new WebSocket(this.internalWsLink, ['graphql-ws']);
@@ -184,9 +185,8 @@ class MothershipService {
 				// Sub to /servers on mothership
 				this.mothershipServersEndpoint = subscribeToServers(apiKey);
 			});
-		
+
 			// Relay is closed
-			const mothership = this;
 			this.relay.on('close', async function (this: WebSocketWithHeartBeat, code, _message) {
 				try {
 					mothershipLogger.debug('Connection closed with code %s.', code);
@@ -212,6 +212,16 @@ class MothershipService {
 							mothershipLogger.debug('Invalid API key, waiting for new key...');
 							return;
 						}
+
+						// Rate limited
+						if (code === 4429) {
+							try {
+								const message = JSON.parse(_message);
+								const retryAfter = message['Retry-After'];
+								mothershipLogger.debug('Rate limited, retrying after %ss', retryAfter);
+								await sleep(ONE_SECOND * retryAfter);
+							} catch {};
+						}
 					}
 		
 					// We likely closed this
@@ -221,12 +231,18 @@ class MothershipService {
 						mothership.connect(wsServer);
 						return;
 					}
+
+					// Something went wrong on mothership
+					// Let's wait an extra bit
+					if (code === 4500) {
+						await sleep(ONE_SECOND * 5);
+					}
 					
 					// Wait a few seconds
 					await sleep(backoff(mothership.connectionAttempt, ONE_MINUTE, 5));
 		
 					// Reconnect
-					await mothership.connect(wsServer, currentRetryAttempt + 1);
+					await mothership.connect(wsServer, mothership.connectionAttempt + 1);
 				} catch (error) {
 					mothershipLogger.error('close error', error);
 				}

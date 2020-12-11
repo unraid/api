@@ -6,7 +6,7 @@
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "npm run bundle-minify && npm run copy-schemas",
+    "build": "npm run bundle && npm run copy-schemas",
     "bundle": "npx tsup ./app/index.ts",
     "bundle-minify": "npx tsup ./app/index.ts --minify",
     "bundle-dependencies": "bundle-dependencies update",
@@ -113,7 +113,7 @@
     "spread-the-word": "^0.8.4",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.18",
-    "systeminformation": "^4.29.3",
+    "systeminformation": "^4.31.0",
     "tracer": "^1.1.4",
     "unix-dgram": "^2.0.3",
     "upcast": "^4.0.0",

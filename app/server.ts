@@ -194,6 +194,8 @@ export const server = {
 	httpServer,
 	server: stoppableServer,
 	async start() {
+		let connectedAtleastOnce = false;
+
 		// If key is in an invalid format disconnect
 		apiManager.on('expire', async () => {
 			await mothership.disconnect();
@@ -201,6 +203,10 @@ export const server = {
 
 		// If the key changes try to (re)connect to Mothership
 		apiManager.on('replace', async () => {
+			if (!connectedAtleastOnce) {
+				connectedAtleastOnce = true;
+				await sleep(1000);
+			}
 			await mothership.connect(wsServer);
 		});
 
