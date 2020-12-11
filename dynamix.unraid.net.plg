@@ -272,7 +272,7 @@ _install() {
   done
 
   # Reset permissions
-  rm /boot/config/plugins/Unraid.net/data/permissions.json 2>/dev/null
+  rm -f /boot/config/plugins/Unraid.net/data/permissions.json
 
   # Copy env file
   cp $node_base_directory/unraid-api/.env.$env $node_base_directory/unraid-api/.env
