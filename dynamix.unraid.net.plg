@@ -1781,14 +1781,14 @@ const injectJS = (src) => {
 };
 // by default prod is loaded from hosted sources
 let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
+let wcEntryFile = 'https://registration.unraid.net/wc/unraid.js';
 // determine what source we should use
 if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
 switch (UPC_ENV) {
   case 'staging':
     // min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
     break;
   case 'staging-debug':
     // non-min version of staging
@@ -1798,7 +1798,7 @@ switch (UPC_ENV) {
   case 'local':
     // forces load from webGUI filesystem
     vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = '<?autov('/webGui/wc/unraid.min.js') ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
+    wcEntryFile = '<?autov('/webGui/wc/unraid.js') ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
     break;
   case 'development':
     // local filesystem Vue.js + external "local" dev server for RegWiz development
@@ -1827,7 +1827,7 @@ setTimeout(() => {
     checkForVue = setInterval(() => { // reset check
       if (!window.Vue) return;
       clearInterval(checkForVue); // stop checking
-      injectJS("<?autov('/webGui/wc/unraid.min.js') ?>"); // and just inject it already!
+      injectJS("<?autov('/webGui/wc/unraid.js') ?>"); // and just inject it already!
     }, 10);
   }
 }, 2000);
