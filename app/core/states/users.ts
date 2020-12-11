@@ -36,6 +36,7 @@ const parseUser = (state: UserIni): User => {
 const parse = (states: UserIni[]): User[] => Object.values(states).map(parseUser);
 
 class Users extends ArrayState {
+	public channel = 'users';
 	private static instance: Users;
 
 	constructor() {

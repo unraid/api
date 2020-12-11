@@ -19,6 +19,7 @@ const parse = (state: DeviceIni[]): Device[] => Object.values(state);
  * Devices
  */
 class Devices extends ArrayState {
+	public channel = 'devices';
 	private static instance: Devices;
 	_data: any;
 

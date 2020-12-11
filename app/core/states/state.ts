@@ -10,6 +10,7 @@ import { LooseObject } from '../types';
 type Mutation = 'CREATED' | 'UPDATED' | 'DELETED';
 
 export class State {
+	channel?: string;
 	_data?: {
 		[key: string]: any;
 	};
@@ -38,7 +39,10 @@ export class State {
 	}
 
 	public emit(mutation: Mutation, node: LooseObject) {
-		const channel = this.constructor.name.toLowerCase();
+		const channel = this.channel;
+
+		// Bail since we have no channel to post to
+		if (!channel) return;
 
 		// Update channel with new state
 		bus.emit(channel, {

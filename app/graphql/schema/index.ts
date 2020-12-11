@@ -4,10 +4,9 @@
  */
 
 import { join } from 'path';
-import { fileLoader, mergeTypes } from 'merge-graphql-schemas';
+import { mergeTypeDefs } from '@graphql-tools/merge';
+import { loadFilesSync } from '@graphql-tools/load-files';
 
-const files = fileLoader(join(__dirname, './types/**/*.graphql'));
+const files = loadFilesSync(join(__dirname, './types/**/*.graphql'));
 
-export const typeDefs = mergeTypes(files, {
-	all: true
-});
+export const typeDefs = mergeTypeDefs(files);

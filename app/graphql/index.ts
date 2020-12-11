@@ -10,7 +10,7 @@ import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLog
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
-import { mergeTypes } from 'merge-graphql-schemas';
+import { mergeTypeDefs } from '@graphql-tools/merge';
 import gql from 'graphql-tag';
 import dee from '@gridplus/docker-events';
 import { setIntervalAsync } from 'set-interval-async/dynamic';
@@ -109,7 +109,7 @@ if (process.env.NODE_ENV !== 'production') {
 	baseTypes.push(debugDefs);
 }
 
-const types = mergeTypes([
+const types = mergeTypeDefs([
 	...baseTypes,
 	typeDefs
 ]);
@@ -277,15 +277,17 @@ const debug = config.get('debug');
 const apiKeyToUser = (apiKey: string) => {
 	ensureApiKey(apiKey);
 
-	const keyName = apiManager.getNameFromKey(apiKey);
+	try {
+		const keyName = apiManager.getNameFromKey(apiKey);
 
-	if (keyName) {
-		const id = apiManager.getKey(keyName)?.userId;
-		const foundUser = usersState.findOne({ id });
-		if (foundUser) {
-			return foundUser;
+		if (keyName) {
+			const id = apiManager.getKey(keyName)?.userId;
+			const foundUser = usersState.findOne({ id });
+			if (foundUser) {
+				return foundUser;
+			}
 		}
-	}
+	} catch {}
 
 	return { name: 'guest', role: 'guest' };
 };

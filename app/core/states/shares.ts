@@ -41,6 +41,7 @@ const parse = (state: SharesIni[]): Share[] => {
 };
 
 class Shares extends ArrayState {
+	public channel = 'shares';
 	private static instance: Shares;
 
 	constructor() {

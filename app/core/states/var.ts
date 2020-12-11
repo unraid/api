@@ -276,6 +276,7 @@ interface ParseOptions {
 }
 
 class VarState extends State {
+	public channel = 'var';
 	private static instance: VarState;
 
 	constructor() {
