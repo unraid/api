@@ -52,11 +52,8 @@ export const run = async (channel: string, mutation: string, options: RunOptions
             return resolve(moduleToRun(context));
         });
 
-        // Services
-        if (moduleToRun.name !== 'Gg') {
-            // Log result
-            coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result, null, 2));
-        }
+        // Log result
+        coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result.json, null, 2));
 
         // Save result
         publish(channel, mutation, result.json);

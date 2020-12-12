@@ -9,4 +9,5 @@ export const log = new Logger();
 export const coreLogger = log.createChild({ prefix: '[@unraid/core]: '});
 export const mothershipLogger = log.createChild({ prefix: '[@unraid/mothership]: '});
 export const graphqlLogger = log.createChild({ prefix: '[@unraid/graphql]: '});
+export const relayLogger = log.createChild({ prefix: '[@unraid/relay]: '});
 export const discoveryLogger = log.createChild({ prefix: '[@unraid/discovery]: '});

@@ -8,7 +8,7 @@ import { CacheManager } from '../../cache-manager';
 import { CoreResult, CoreContext } from '../../types';
 import { ensurePermission } from '../../utils';
 
-const cache = new CacheManager('unraid:modules:get-system');
+const cache = new CacheManager('unraid:modules:get-system-versions');
 
 /**
  * Software versions.

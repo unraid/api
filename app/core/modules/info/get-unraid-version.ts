@@ -11,7 +11,7 @@ import { FileMissingError, FatalAppError } from '../../errors';
 import { ensurePermission } from '../../utils';
 import { CoreResult, CoreContext } from '../../types';
 
-const cache = new CacheManager('unraid:modules:get-unraid');
+const cache = new CacheManager('unraid:modules:get-unraid-version');
 
 interface Result extends CoreResult {
 	json: {
