@@ -344,13 +344,22 @@ dee.on('*', async (data: { Type: string }) => {
 
 dee.listen();
 
-// This needs to be fixed to run from events
+// @TODO: This needs to be fixed to run from events
 setIntervalAsync(async () => {
 	// @todo: Create a system user for this
 	const user = usersState.findOne({ name: 'root' });
 
+	// Services
 	await run('services', 'UPDATED', {
 		moduleToRun: modules.getServices,
+		context: {
+			user
+		}
+	});
+
+	// OS uptime
+	await run('uptime', 'UPDATED', {
+		moduleToRun: modules.getUptime,
 		context: {
 			user
 		}

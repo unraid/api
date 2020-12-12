@@ -51,6 +51,9 @@ export const Subscription = {
     unassignedDevices: {
         ...createSubscription('devices/unassigned')
     },
+    uptime: {
+        ...createSubscription('uptime')
+    },
     users: {
         ...createSubscription('users')
     },

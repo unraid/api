@@ -1,0 +1,12 @@
+type Query {
+    uptime: Uptime @func(module: "getUptime")
+}
+
+type Subscription {
+    uptime: Uptime
+}
+
+type Uptime {
+    milliseconds: Int!
+    timestamp: String!
+}

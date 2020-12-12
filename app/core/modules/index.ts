@@ -27,6 +27,7 @@ export * from './get-permissions';
 export * from './get-plugins';
 export * from './get-services';
 export * from './get-unassigned-devices';
+export * from './get-uptime';
 export * from './get-users';
 export * from './get-vars';
 export * from './get-welcome';
