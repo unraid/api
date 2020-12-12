@@ -62,7 +62,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
         if (process.env.NODE_ENV === 'production') {
             coreLogger.debug('Error:', error.message);
         } else {
-            const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'];
+            const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(coreLogger);
             logger('Error:', error.message);
         }
     }
