@@ -1,9 +1,8 @@
 import fs from 'fs';
 import WebSocket from 'ws';
-import * as Sentry from '@sentry/node';
 import { Mutex, MutexInterface } from 'async-mutex';
 import { MOTHERSHIP_RELAY_WS_LINK, INTERNAL_WS_LINK, ONE_MINUTE, ONE_SECOND } from '../consts';
-import { mothershipLogger, apiManager } from '../core';
+import { mothershipLogger, apiManager, relayLogger } from '../core';
 import { getMachineId } from '../core/utils';
 import { varState, networkState } from '../core/states';
 import { subscribeToServers } from './subscribe-to-servers';
@@ -143,18 +142,24 @@ class MothershipService {
 		
 				// Errors
 				this.localGraphqlApi.on('error', error => {
-					Sentry.captureException(error);
-					mothershipLogger.error('ws:local-relay', 'error', error);
+					if (error.message === 'WebSocket was closed before the connection was established') {
+						// Likely the internal relay-ws connection was started but then mothership
+						// decided the key was invalid so it killed it
+						// When this happens the relay-ws sometimes is still in the CONNECTING phase
+						// This isn't an actual error so we skip it
+						return;
+					}
+					relayLogger.error(error.message);
 				});
 				
 				// Connection to local graphql endpoint is "closed"
-				this.localGraphqlApi.on('close', () => {
-					mothershipLogger.silly('ws:local-relay', 'close');
+				this.localGraphqlApi.on('close', (code, reason) => {
+					relayLogger.silly('socket closed code=%s reason=%s', code, reason);
 				});
 		
 				// Connection to local graphql endpoint is "open"
 				this.localGraphqlApi.on('open', () => {
-					mothershipLogger.silly('ws:local-relay', 'open');
+					relayLogger.silly('socket opened');
 		
 					// No API key, close internal connection
 					if (!apiKey) {
@@ -216,10 +221,29 @@ class MothershipService {
 						// Rate limited
 						if (code === 4429) {
 							try {
+								let interval: NodeJS.Timeout | undefined;
 								const message = JSON.parse(_message);
-								const retryAfter = message['Retry-After'];
+								const retryAfter = parseInt(message['Retry-After'], 10) || 30;
 								mothershipLogger.debug('Rate limited, retrying after %ss', retryAfter);
-								await sleep(ONE_SECOND * retryAfter);
+
+								// Less than 30s
+								if (retryAfter <= 30) {
+									let i = retryAfter;
+
+									// Print retry once per second
+									interval = setInterval(() => {
+										i--;
+										mothershipLogger.debug(`Retrying mothership connection in ${i}s`);
+									}, ONE_SECOND);
+								}
+
+								if (retryAfter >= 1) {
+									await sleep(ONE_SECOND * retryAfter);
+								}
+
+								if (interval) {
+									clearInterval(interval);
+								}
 							} catch {};
 						}
 					}
