@@ -1,35 +1,46 @@
-import * as Sentry from '@sentry/node';
 import { pubsub } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../consts';
 import { userCache, CachedServers } from '../cache';
+import { log } from '../core';
 
 const client = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
-    reconnect: true,
+    reconnect: false,
     lazy: true, // only connect when there is a query
-    connectionCallback: (error) => {
-        if (error) {
-            Sentry.captureException(error);
+    connectionCallback: (errors) => {
+        if (errors) {
+            // Log all errors
+            errors.forEach((error: Error) => {
+                log.error(error);
+            });
         }
     }
 });
 
-export const subscribeToServers = (apiKey: string) => {
-    return client.request({
+client.on('error', (error) => {
+    log.error('url="%s" message="%s"', MOTHERSHIP_GRAPHQL_LINK, error.message);
+}, null);
+
+export const subscribeToServers = async (apiKey: string) => {
+    const query = client.request({
         query: `subscription servers ($apiKey: String!) {
             servers @auth(apiKey: $apiKey)
         }`,
         variables: {
             apiKey
         }
-    })
-    .subscribe({
+    });
+
+    // Subscribe
+    const subscription = query.subscribe({
         next: ({ data, errors }) => {
             if (errors) {
-                // Send all errors to Sentry
+                // Log all errors
                 errors.forEach((error: Error) => {
-                    Sentry.captureException(error);
+                    log.error(error);
                 });
+
+                return;
             }
         
             // Update internal cache
@@ -43,4 +54,6 @@ export const subscribeToServers = (apiKey: string) => {
             });
         }
     });
+
+    return subscription;
 };

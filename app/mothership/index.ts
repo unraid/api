@@ -183,18 +183,20 @@ class MothershipService {
 						// Relay socket is closed, close internal one
 						if (error.message.includes('WebSocket is not open')) {
 							this.localGraphqlApi?.close();
+							return;
 						}
 					}
 				});
 		
 				// Sub to /servers on mothership
-				this.mothershipServersEndpoint = subscribeToServers(apiKey);
+				this.mothershipServersEndpoint = await subscribeToServers(apiKey);
 			});
 
 			// Relay is closed
 			this.relay.on('close', async function (this: WebSocketWithHeartBeat, code, _message) {
 				try {
-					mothershipLogger.debug('Connection closed with code %s.', code);
+					const message = JSON.parse(_message);
+					mothershipLogger.debug('Connection closed with code=%s reason="%s"', code, message.message);
 		
 					// Stop ws heartbeat
 					if (this.pingTimeout) {
@@ -222,7 +224,6 @@ class MothershipService {
 						if (code === 4429) {
 							try {
 								let interval: NodeJS.Timeout | undefined;
-								const message = JSON.parse(_message);
 								const retryAfter = parseInt(message['Retry-After'], 10) || 30;
 								mothershipLogger.debug('Rate limited, retrying after %ss', retryAfter);
 

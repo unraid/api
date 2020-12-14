@@ -53,7 +53,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
         });
 
         // Log result
-        coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result.json, null, 2));
+        coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result.json));
 
         // Save result
         publish(channel, mutation, result.json);
