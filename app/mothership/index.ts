@@ -195,8 +195,8 @@ class MothershipService {
 			// Relay is closed
 			this.relay.on('close', async function (this: WebSocketWithHeartBeat, code, _message) {
 				try {
-					const message = JSON.parse(_message);
-					mothershipLogger.debug('Connection closed with code=%s reason="%s"', code, message.message);
+					const message = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
+					mothershipLogger.debug('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
 		
 					// Stop ws heartbeat
 					if (this.pingTimeout) {
@@ -262,14 +262,18 @@ class MothershipService {
 					if (code === 4500) {
 						await sleep(ONE_SECOND * 5);
 					}
-					
+				} catch (error) {
+					mothershipLogger.debug('Connection closed with code=%s reason="%s"', code, error.message);
+				}
+
+				try {
 					// Wait a few seconds
 					await sleep(backoff(mothership.connectionAttempt, ONE_MINUTE, 5));
 		
 					// Reconnect
 					await mothership.connect(wsServer, mothership.connectionAttempt + 1);
 				} catch (error) {
-					mothershipLogger.error('close error', error);
+					mothershipLogger.debug('Failed reconnecting to mothership reason="%s"', error.message);
 				}
 			});
 		

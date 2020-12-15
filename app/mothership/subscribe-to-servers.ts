@@ -5,7 +5,7 @@ import { userCache, CachedServers } from '../cache';
 import { log } from '../core';
 
 const client = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
-    reconnect: false,
+    reconnect: true,
     lazy: true, // only connect when there is a query
     connectionCallback: (errors) => {
         if (errors) {
