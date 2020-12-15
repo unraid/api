@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.15](https://github.com/unraid/api/compare/v2.15.14-rolling-20201214210805...v2.15.15) (2020-12-15)
+
+
+### Bug Fixes
+
+* add too_many_missing_disks to ArrayState enum ([716fc00](https://github.com/unraid/api/commit/716fc0012b14265d80152809988087441c5dcbe3))
+
 ### [2.15.14](https://github.com/unraid/api/compare/v2.15.13...v2.15.14) (2020-12-11)
 
 ### [2.15.13](https://github.com/unraid/api/compare/v2.15.12-rolling-20201211192342...v2.15.13) (2020-12-11)
