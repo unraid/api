@@ -149,7 +149,12 @@ class MothershipService {
 						// This isn't an actual error so we skip it
 						return;
 					}
-					relayLogger.error(error.message);
+					// Failed replying to mothership. { message: 'WebSocket is not open: readyState 3 (CLOSED)' }
+					if (error.message === 'WebSocket is not open: readyState 3 (CLOSED)') {
+						return;
+					}
+
+					relayLogger.error(error);
 				});
 				
 				// Connection to local graphql endpoint is "closed"
@@ -312,7 +317,7 @@ class MothershipService {
 						await sendMessage(client, message, timeout);
 						return;
 					}
-		
+
 					client.send(message);
 					mothershipLogger.silly('Message sent to mothership.', message);
 				} catch (error) {
