@@ -18,6 +18,7 @@ import { run, publish } from '../run';
 import { typeDefs } from './schema';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
+import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 
 const baseTypes = [gql`
 	scalar JSON
@@ -400,7 +401,7 @@ export const graphql = {
 			// This is the internal mothership connection
 			// This should only disconnect if mothership restarts
 			// or the network link reconnects
-			if (websocketContext.socket.url === 'wss://proxy.unraid.net') {
+			if (websocketContext.socket.url === MOTHERSHIP_RELAY_WS_LINK) {
 				graphqlLogger.debug('Mothership disconnected.');
 				return;
 			}
