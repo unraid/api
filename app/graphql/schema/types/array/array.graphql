@@ -50,15 +50,30 @@ type Array {
     caches: [ArrayDataDisk]
 }
 
+# /usr/src/linux-5.9.13-Unraid/drivers/md/md_unraid.c
 enum ArrayState {
     """Array is running"""
     started
     """Array has stopped"""
     stopped
-    """Array has no data disks"""
-    no_data_disks
+    """Array has new disks"""
+    new_array
+    """A disk is being reconstructed"""
+    recon_disk
+    """A disk is disabled in the array"""
+    disable_disk
+    """Array is disabled"""
+    swap_dsbl
+    """Too many changes to array at the same time"""
+    invalid_expansion
+    """Parity isn't the biggest, can't start array"""
+    parity_not_biggest
     """Array has too many missing data disks"""
     too_many_missing_disks
+    """Array has new disks they're too small"""
+    new_disk_too_small
+    """Array has no data disks"""
+    no_data_disks
 }
 
 enum ArrayPendingState {
