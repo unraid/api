@@ -1953,6 +1953,10 @@ setTimeout(() => {
             'closeDetails' => _('Close Details'),
             'loading' => _('Loading My Servers data'),
             'displayingLastKnown' => _('Displaying last known server data'),
+            'mothership' => [
+              'connected' => _('Connected to Mothership'),
+              'notConnected' => _('Not Connected to Mothership'),
+            ],
             'accessLabels' => [
               'current' => _('Current server'),
               'local' => _('Local access'),
@@ -2196,8 +2200,8 @@ setTimeout(() => {
               ],
               'signOut' => [
                 'tileTitle' => [
-                  'actionFail' => sprintf(_('%s was not signed out to your Unraid.net account'), '{0}'),
-                  'actionSuccess' => sprintf(_('%s was signed out to your Unraid.net account'), '{0}'),
+                  'actionFail' => sprintf(_('%s was not signed out of your Unraid.net account'), '{0}'),
+                  'actionSuccess' => sprintf(_('%s was signed out of your Unraid.net account'), '{0}'),
                   'loading' => sprintf(_('Signing out %s from Unraid.net account'), '{0}'),
                 ],
               ],
