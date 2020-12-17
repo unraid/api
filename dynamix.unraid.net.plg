@@ -1781,14 +1781,14 @@ const injectJS = (src) => {
 };
 // by default prod is loaded from hosted sources
 let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/unraid.js';
+let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
 // determine what source we should use
 if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
 switch (UPC_ENV) {
   case 'staging':
     // min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
     break;
   case 'staging-debug':
     // non-min version of staging
