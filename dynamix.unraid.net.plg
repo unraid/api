@@ -1,13 +1,13 @@
 <?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
-<!ENTITY name                 "dynamix.unraid.net">
-<!ENTITY launch               "Unraid.net">
-<!ENTITY author               "limetech">
-<!ENTITY version              "{{ plg_version }}">
-<!ENTITY node_api_version     "{{ node_api_version }}">
-<!ENTITY env                  "{{ env }}">
-<!ENTITY pluginURL            "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
+<!ENTITY name                   "dynamix.unraid.net">
+<!ENTITY launch                 "Unraid.net">
+<!ENTITY author                 "limetech">
+<!ENTITY version                "{{ plg_version }}">
+<!ENTITY node_api_version       "{{ node_api_version }}">
+<!ENTITY env                    "{{ env }}">
+<!ENTITY pluginURL              "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/&name;.plg">
 <!ENTITY unraid-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-api-&node_api_version;.tgz">
 ]>
 
@@ -1222,6 +1222,22 @@ function load_flash_backup_state() {
   $arrState['uptodate'] = empty($arrState['uptodate']) ? true : false;
   $arrState['registered'] = !empty($remote['apikey']);
 }
+
+function exec_log($command, &$output = [], &$retval = 0) {
+  try {
+    exec($command.' 2>&1', $output, $retval);
+
+    if ($retval !== 0) {
+      //error_log('Command \''.$command.'\' exited with code '.$retval);
+      error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval.', response was:'."\n".implode("\n", $output)."\n\n", 3, '/var/log/gitflash'); 
+    } else if (strpos(implode($output), 'MY_SERVERS_MESSAGE') !== false) {
+      error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval.', response was:'."\n".implode("\n", $output)."\n\n", 3, '/var/log/gitflash'); 
+    }
+  } catch (Exception $e) {
+    error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval.' with exception:'."\n".$e->getMessage()."\n\n", 3, '/var/log/gitflash'); 
+  }
+}
+
 // command
 //  init (default)
 //  activate
@@ -1275,7 +1291,7 @@ $keyfile = @base64_encode($keyfile);
 
 // check if activated
 if ($command != 'activate') {
-  exec('git -C /boot config --get remote.origin.url', $config_output, $return_var);
+  exec_log('git -C /boot config --get remote.origin.url', $config_output, $return_var);
   if (($return_var != 0) || (strpos($config_output[0],'backup.unraid.net') === false)) {
     $arrState['activated'] = false;
     response_complete(406, '{"error":"Not activated"}');
@@ -1294,7 +1310,7 @@ if (!empty($loadingMessage)) {
 
 // if deactivate command, just remove our origin
 if ($command == 'deactivate') {
-  exec('git --git-dir /boot/.git remote remove origin &>/dev/null');
+  exec_log('git --git-dir /boot/.git remote remove origin');
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
   response_complete(200, '{}');
 }
@@ -1360,13 +1376,13 @@ if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.s
 }
 
 // blow away existing repo if reinit command
-if ($command == 'reinit') {
-  exec('rm -rf /boot/.git');
+if ($command == 'reinit' && file_exists('/boot/.git')) {
+  exec_log('rm -rf /boot/.git');
 }
 
 // ensure git repo is setup on the flash drive
 if (!file_exists('/boot/.git/info/exclude')) {
-  exec('git init /boot &>/dev/null');
+  exec_log('git init /boot');
 }
 
 // setup a nice git description
@@ -1375,7 +1391,7 @@ if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.g
 }
 
 // configure git to use the noprivatekeys filter
-exec('git -C /boot config filter.noprivatekeys.clean /usr/local/emhttp/plugins/dynamix.unraid.net/scripts/git-noprivatekeys-clean >/dev/null');
+exec_log('git -C /boot config filter.noprivatekeys.clean /usr/local/emhttp/plugins/dynamix.unraid.net/scripts/git-noprivatekeys-clean');
 
 // configure git to apply the noprivatekeys filter to wireguard config files
 if (!file_exists('/boot/.gitattributes') || strpos(file_get_contents('/boot/.gitattributes'),'noprivatekeys') === false) {
@@ -1428,18 +1444,18 @@ config/wireguard/peers/*.png
 }
 
 // ensure git user is configured
-exec('git --git-dir /boot/.git config user.email \'gitbot@unraid.net\' &>/dev/null');
-exec('git --git-dir /boot/.git config user.name \'gitbot\' &>/dev/null');
+exec_log('git --git-dir /boot/.git config user.email \'gitbot@unraid.net\'');
+exec_log('git --git-dir /boot/.git config user.name \'gitbot\'');
 
 // ensure upstream git server is configured and in-sync
 exec('git --git-dir /boot/.git remote add -f -t master -m master origin git@backup.unraid.net:~/flash.git &>/dev/null');
 if ($command != 'reinit') {
-  exec('git --git-dir /boot/.git reset origin/master &>/dev/null');
-  exec('git --git-dir /boot/.git checkout -B master origin/master &>/dev/null');
+  exec_log('git --git-dir /boot/.git reset origin/master');
+  exec_log('git --git-dir /boot/.git checkout -B master origin/master');
 }
 
 // establish status
-exec('git -C /boot status --porcelain', $status_output, $return_var);
+exec('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
 $arrState['activated'] = $return_var==0;
 
 if ($return_var != 0) {
@@ -1457,15 +1473,15 @@ if ($command == 'status') {
 if (($command == 'update') || ($command == 'reinit')) {
   // push changes upstream
   if (!empty($status_output)) {
-    exec('git -C /boot add -A &>/dev/null');
+    exec_log('git -C /boot add -A');
     if ($command == 'reinit') {
-      exec('git -C /boot commit -m \'Initial commit\' &>/dev/null');
-      exec('git -C /boot push --force --set-upstream origin master &>/dev/null');
+      exec_log('git -C /boot commit -m \'Initial commit\'');
+      exec_log('git -C /boot push --force --set-upstream origin master');
     } else {
-      exec('git -C /boot commit -m ' . escapeshellarg($commitmsg) . ' &>/dev/null');
-      exec('git -C /boot push --set-upstream origin master &>/dev/null', $status_output, $return_var);
+      exec_log('git -C /boot commit -m ' . escapeshellarg($commitmsg));
+      exec_log('git -C /boot push --set-upstream origin master', $status_output, $return_var);
       if ($return_var != 0) {
-        exec('git -C /boot push --force --set-upstream origin master &>/dev/null');
+        exec_log('git -C /boot push --force --set-upstream origin master');
       }
     }
     $arrState['uptodate'] = true;
@@ -1780,30 +1796,31 @@ const injectJS = (src) => {
   document.body.appendChild(script);
 };
 // by default prod is loaded from hosted sources
+<? $baseName = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js' ?>
 let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
+let wcEntryFile = 'https://registration.unraid.net/wc/<?=$baseName?>';
 // determine what source we should use
 if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
 switch (UPC_ENV) {
   case 'staging':
     // min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/<?=$baseName?>';
     break;
   case 'staging-debug':
     // non-min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/<?=$baseName?>';
     break;
   case 'local':
     // forces load from webGUI filesystem
     vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = '<?autov('/webGui/wc/unraid.js') ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
+    wcEntryFile = '<?autov('/webGui/wc/'.$baseName) ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
     break;
   case 'development':
     // local filesystem Vue.js + external "local" dev server for RegWiz development
     vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
+    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/<?=$baseName?>';
     break;
   default: // prod
     break;
@@ -1827,7 +1844,7 @@ setTimeout(() => {
     checkForVue = setInterval(() => { // reset check
       if (!window.Vue) return;
       clearInterval(checkForVue); // stop checking
-      injectJS("<?autov('/webGui/wc/unraid.js') ?>"); // and just inject it already!
+      injectJS("<?autov('/webGui/wc/'.$baseName) ?>"); // and just inject it already!
     }, 10);
   }
 }, 2000);
