@@ -1781,14 +1781,14 @@ const injectJS = (src) => {
 };
 // by default prod is loaded from hosted sources
 let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/unraid.js';
+let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
 // determine what source we should use
 if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
 switch (UPC_ENV) {
   case 'staging':
     // min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
     break;
   case 'staging-debug':
     // non-min version of staging
@@ -1953,6 +1953,10 @@ setTimeout(() => {
             'closeDetails' => _('Close Details'),
             'loading' => _('Loading My Servers data'),
             'displayingLastKnown' => _('Displaying last known server data'),
+            'mothership' => [
+              'connected' => _('Connected to Mothership'),
+              'notConnected' => _('Not Connected to Mothership'),
+            ],
             'accessLabels' => [
               'current' => _('Current server'),
               'local' => _('Local access'),
@@ -2196,8 +2200,8 @@ setTimeout(() => {
               ],
               'signOut' => [
                 'tileTitle' => [
-                  'actionFail' => sprintf(_('%s was not signed out to your Unraid.net account'), '{0}'),
-                  'actionSuccess' => sprintf(_('%s was signed out to your Unraid.net account'), '{0}'),
+                  'actionFail' => sprintf(_('%s was not signed out of your Unraid.net account'), '{0}'),
+                  'actionSuccess' => sprintf(_('%s was signed out of your Unraid.net account'), '{0}'),
                   'loading' => sprintf(_('Signing out %s from Unraid.net account'), '{0}'),
                 ],
               ],
