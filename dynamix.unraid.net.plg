@@ -1075,13 +1075,13 @@ flush() {
   # remove any queued jobs
   _removequeue
   # push any changes ad-hoc
-  echo ${TASKACTION} | at ${QUEUE} now &>/dev/null
+  echo "${TASKACTION} &>/dev/null" | at ${QUEUE} now &>/dev/null
 }
 _watch() {
   # start watcher loop
   while true; do
     if [ "$(git -C /boot status -s)" ]; then
-      _hasqueue || ( logger "adding task: ${TASKACTION}" --tag flash_backup; echo ${TASKACTION} | at ${QUEUE} now +1 minute &>/dev/null )
+      _hasqueue || ( logger "adding task: ${TASKACTION}" --tag flash_backup; echo "${TASKACTION} &>/dev/null" | at ${QUEUE} now +1 minute &>/dev/null )
     fi
     sleep 60;
   done
@@ -1101,7 +1101,7 @@ _removequeue() {
   done
 }
 _enabled() {
-  local output=$(git -C /boot config --get remote.origin.url)
+  local output=$(git -C /boot config --get remote.origin.url 2>&1)
   if [[ $output == *"backup.unraid.net"* ]]; then
     return 0
   fi
@@ -1798,19 +1798,19 @@ const injectJS = (src) => {
 // by default prod is loaded from hosted sources
 <? $baseName = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js' ?>
 let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/<?=$baseName?>';
+let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
 // determine what source we should use
 if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
 switch (UPC_ENV) {
   case 'staging':
     // min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/<?=$baseName?>';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
     break;
   case 'staging-debug':
     // non-min version of staging
     vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/<?=$baseName?>';
+    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
     break;
   case 'local':
     // forces load from webGUI filesystem
@@ -1820,7 +1820,7 @@ switch (UPC_ENV) {
   case 'development':
     // local filesystem Vue.js + external "local" dev server for RegWiz development
     vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/<?=$baseName?>';
+    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
     break;
   default: // prod
     break;
