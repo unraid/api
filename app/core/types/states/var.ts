@@ -158,7 +158,10 @@ export interface Var {
 	shareNfsEnabled: boolean;
 	/** Total number of SMB shares. */
 	shareSmbCount: number;
+	/** Is smb enabled */
 	shareSmbEnabled: boolean;
+	/** Which mode is smb running in? active-directory | workgroup */
+	shareSmbMode: string;
 	shareUser: string;
 	// shareUserExclude
 	shutdownTimeout: number;
