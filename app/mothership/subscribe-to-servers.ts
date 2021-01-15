@@ -4,7 +4,7 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '../consts';
 import { userCache, CachedServers } from '../cache';
 import { log as logger } from '../core';
 
-const log = logger.createChild({ prefix: '[@unraid/subscribe-to-servers]: '});
+const log = logger.createChild({ prefix: 'subscribe-to-servers'});
 const client = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
     reconnect: true,
     lazy: true, // only connect when there is a query
