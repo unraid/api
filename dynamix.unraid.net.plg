@@ -784,7 +784,7 @@ $.post('/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php',{command:"sta
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 _(Unraid.net Status)_:
-: <unraid-authed registered="<? echo $isRegistered ?>"></unraid-authed>
+: <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
 _(Allow Remote Access)_:
