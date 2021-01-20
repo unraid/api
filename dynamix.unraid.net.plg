@@ -36,7 +36,6 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /boot/config/plugins/Unraid.net/wc
   rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
   rm -f /boot/config/plugins/Unraid.net/.gitignore
-  rm -f /boot/config/plugins/Unraid.net/myservers.cfg
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.js
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
@@ -1650,7 +1649,6 @@ function handleMessage(e) {
       });
       break;
     case "MYSERVERS_UNREGISTER":
-     
       $.post('/update.php', {
         '#file': 'Unraid.net/myservers.cfg',
         '#section': 'remote',
