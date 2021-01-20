@@ -1657,7 +1657,6 @@ function handleMessage(e) {
         email: '',
         username: '',
       }, function() {
-       
         console.log('Unraid.net/myservers.cfg: Unregistered myservers, cleared apikey under [remote] section');
         // send a ping back to the regwiz
         const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', webGuiPathname: window.location.pathname };
