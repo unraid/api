@@ -51,16 +51,7 @@ fi
 <FILE Name="/boot/config/plugins/Unraid.net/myservers.cfg">
 <INLINE>
 <![CDATA[
-[remote]
-apikey=""
-email=""
-wanaccess="no"
-wanport="443"
-username=""
-avatar=""
-regWizTime=""
-keyfile=""
-license=""
+
 ]]>
 </INLINE>
 </FILE>
