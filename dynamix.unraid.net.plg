@@ -2373,7 +2373,6 @@ function my_time_any($time) {
 function my_time_now($time) {
   return $time ? _(my_time($time),0) : _('Unknown');
 }
-$attached_devices=sprintf(_("This server has %s attached storage device".($var['deviceCount']==1?'.':'s.')),$var['deviceCount']);
 ?>
 <style>
 span.thanks{padding-left:12px;color:#6FA239;font-weight:bold;}
@@ -2383,12 +2382,17 @@ div.remark{padding:0 12px;text-align:justify;}
 </style>
 
 <?if ( (strstr($var['regTy'], "unregistered")) or ($var['regTy']=="Trial") or (strstr($var['regTy'], "no connection")) or (strstr($var['regTy'], "withdrawn")) or (strstr($var['regTy'], "expired")) ):?>
+
 <span class="thanks">_(Thank you for trying Unraid OS)_!</span>
-<?elseif ( ($var['regTy']=="Basic") or ($var['regTy']=="Plus") ):?>
+
+<?elseif ( ($var['regTy']=="Basic") or ($var['regTy']=="Plus") or ($var['regTy']=="Pro") ):?>
+
 <span class="thanks">_(Thank you for choosing Unraid OS)_!</span>
+
 <?endif;?>
 
 <?if (strstr($var['regTy'], "unregistered")):?>
+
 <div markdown="1" class="remark">
 :registration_1_plug:
 Your server will not be usable until you purchase a Registration key or install a free 30-day *Trial* key. A *Trial*
@@ -2410,6 +2414,7 @@ Note: USB memory card readers are generally **not** supported because most do no
 <?endif;?>
 
 <?if ($var['regTy']=="Trial"):?>
+
 <div markdown="1" class="remark">
 :registration_3_plug:
 Your *Trial* key includes all the functionality and device support of a *Pro* Registration key.
@@ -2420,36 +2425,30 @@ At that point, you may either purchase a Registration key, or request a *Trial* 
 :end
 </div>
 
-_(***Trial*** key expires on)_:
-: <?=my_time_now($var['regTm2'])?>
-
 <?endif;?>
 
 <?if (strstr($var['regTy'], "no connection")):?>
+
 <div markdown="1" class="remark">
 <span class='red-text'>_(Cannot connect to key-server)_!</span>
 
 _(Your *Trial* key requires an internet connection)_.  _(Please check your)_ [_(Network Settings)_](NetworkSettings).
 </div>
 
-_(***Trial*** key expires on)_:
-: <?=my_time_now($var['regTm2'])?>
-
 <?endif;?>
 
 <?if (strstr($var['regTy'], "withdrawn")):?>
+
 <div markdown="1" class="remark">
 <span class='red-text'>_(Release has been withdrawn)_!</span>
 
 _(This release has been withdrawn for use with *Trial* keys)_.
 </div>
 
-_(***Trial*** key expires on)_:
-: <?=my_time_now($var['regTm2'])?>
-
 <?endif;?>
 
 <?if (strstr($var['regTy'], "expired")):?>
+
 <div markdown="1" class="remark">
 <span class='red-text'>_(Your *Trial* key has expired)_.</span>
 :registration_4_plug:
@@ -2462,6 +2461,7 @@ Most *Trial* extension requests are processed immediately but please allow up to
 <?endif;?>
 
 <?if (strstr($var['regTy'], "invalid installation")):?>
+
 <span class='thanks red'>_(Invalid *Trial* Installation)_</span>
 <div markdown="1" class="remark">
 :registration_5_plug:
@@ -2473,21 +2473,10 @@ For more information, please [Contact Support](https://lime-technology.com/conta
 :end
 </div>
 
-_(Registered GUID)_:
-: <?=$var['regGUID'];?>
-
-_(Registered to)_:
-: <?=htmlspecialchars($var['regTo'])?>
-
-_(Registered on)_:
-: <?=my_time_now($var['regTm'])?>
-
-_(Expiration)_:
-: <?=my_time_now($var['regTm2'])?>
-
 <?endif;?>
 
 <?if (strstr($var['regTy'], "missing")):?>
+
 <span class='thanks red'>_(Missing Key File)_</span>
 <div markdown="1" class="remark">
 :registration_6_plug:
@@ -2503,8 +2492,11 @@ If this was a *Trial* installation, you may purchase a Registration key.
 <?endif;?>
 
 <?if (strstr($var['regTy'], "invalid key")):?>
+
 <span class='thanks red'>_(The registered GUID does not match the USB Flash boot device GUID)_</span>
+
 <?if (strstr($var['regTy'], "Trial")):?>
+
 <div markdown="1" class="remark">
 :registration_7_plug:
 *Trial* installations are only valid with the originally registered USB Flash device.
@@ -2512,7 +2504,9 @@ If this was a *Trial* installation, you may purchase a Registration key.
 To continue using this installation with this USB Flash device, you may purchase a Registration key.
 :end
 </div>
+
 <?else:?>
+
 <div markdown="1" class="remark">
 :registration_8_plug:
 The Registration key file does not correspond to the USB Flash boot device.
@@ -2526,31 +2520,12 @@ another replacement key sooner, [Contact Support](https://lime-technology.com/co
 **Note:** Replacing a Registration key results in permanently *blacklisting* the previous USB Flash GUID.
 :end
 </div>
-<?endif;?>
-
-_(Registered GUID)_:
-: <?=$var['regGUID']?>
-
-_(Registered to)_:
-: <?=htmlspecialchars($var['regTo'])?>
-
-_(Registered on)_:
-: <?=my_time_now($var['regTm'])?>
-
-<?if (strstr($var['regTy'], "Trial")):?>
-
-_(Expiration):
-: <?=my_time_now($var['regTm2'])?>
-
-<?else:?>
-
-_(Replaceable)_:
-: <?=my_time_any($var['regTm2'])?>
 
 <?endif;?>
 <?endif;?>
 
 <?if (strstr($var['regTy'], "blacklisted")):?>
+
 <span class='thanks red'>_(Blacklisted USB Flash GUID)_</span>
 <div markdown="1" class="remark">
 :registration_9_plug:
@@ -2566,19 +2541,39 @@ For more information, please [Contact Support](https://lime-technology.com/conta
 
 <?endif;?>
 
-<?if ( ($var['regTy']=="Basic") || ($var['regTy']=="Plus") || ($var['regTy']=="Pro") ):?>
+<?if ( ( !(strstr($var['regTy'], "invalid key")) and ((strstr($var['regTy'], "Trial"))) ) || (strstr($var['regTy'], "no connection")) || (strstr($var['regTy'], "withdrawn")) ):?>
+
+_(***Trial*** key expires on)_:
+: <?=my_time_now($var['regTm2'])?>
+
+<?endif;?>
+
+<?if ( strstr($var['regTy'], "invalid installation") || ( (strstr($var['regTy'], "invalid key")) && (strstr($var['regTy'], "Trial")) )):?>
+
+_(Expiration)_:
+: <?=my_time_now($var['regTm2'])?>
+
+<?endif;?>
+
+<?if ( (strstr($var['regTy'], "invalid installation")) || (strstr($var['regTy'], "invalid key")) || ($var['regTy']=="Basic") || ($var['regTy']=="Plus") || ($var['regTy']=="Pro") ):?>
+
 _(Registered to)_:
 : <?=htmlspecialchars($var['regTo'])?>
 
 _(Registered on)_:
 : <?=my_time_now($var['regTm'])?>
 
-_(Replaceable)_:
-: <?=my_time_any($var['regTm2'])?>
+<?endif;?>
+
+<?if ( (strstr($var['regTy'], "invalid installation")) or ( (strstr($var['regTy'], "invalid key")) and (!(strstr($var['regTy'], "Trial")))) ):?>
+
+_(Registered GUID)_:
+: <?=$var['regGUID']?>
 
 <?endif;?>
 
 <?if (strstr($var['regTy'], "flash device error")):?>
+
 <span class='thanks red'>_(Error accessing your physical USB Flash boot device)_</span>
 <div markdown="1" class="remark">
 _(There is a physical problem accessing your USB Flash boot device)_. _(Please)_ [Contact Support](https://lime-technology.com/contact).
@@ -2588,18 +2583,30 @@ _(Flash GUID)_:
 
 <?else:?>
 
+_(Flash GUID)_:
+: <?=$var['flashGUID']?>
+
+<?endif;?>
+
 _(Flash Vendor)_:
 : <?=$var['flashVendor']?>
 
 _(Flash Product)_:
 : <?=$var['flashProduct']?>
 
-_(Flash GUID)_:
-: <?=$var['flashGUID']?>
+<?if ( ((strstr($var['regTy'], "invalid key")) and !(strstr($var['regTy'], "Trial"))) || ($var['regTy']=="Basic") || ($var['regTy']=="Plus") || ($var['regTy']=="Pro") ):?>
+
+_(Replaceable)_:
+: <?=my_time_any($var['regTm2'])?>
 
 <?endif;?>
 
-<div class="device"><?=$attached_devices?></div>
+<?if ( !(strstr($var['regTy'], "flash device error")) || !(strstr($var['regTy'], "blacklisted")) ):?>
+
+<div class="device"><?=sprintf(_("This server has %s attached storage device".($var['deviceCount']==1?'.':'s.')),$var['deviceCount'])?></div>
+
+<?endif;?>
+
 <unraid-upc-trigger></unraid-upc-trigger>
 
 ]]>
