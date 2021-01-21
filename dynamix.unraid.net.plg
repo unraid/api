@@ -46,6 +46,14 @@ fi
 ]]>
 </INLINE>
 </FILE>
+<!-- @FIXME - we may need to take into account these values already existing in dynamix.cfg -->
+<FILE Name="/boot/config/plugins/Unraid.net/myservers.cfg">
+<INLINE>
+<![CDATA[
+
+]]>
+</INLINE>
+</FILE>
 
 <FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/state.php">
 <INLINE>
@@ -73,9 +81,8 @@ require_once "$docroot/webGui/include/Translations.php";
 $var = (array)parse_ini_file('state/var.ini');
 $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
 $key_contents = str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
-
-if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
-  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
 }
 
 $arr = [];
@@ -622,7 +629,7 @@ Tag="globe"
 ?>
 <?
 // more:
-// - if someone deletes the dynamic.cfg or directly edits [remote] section therein, it may be possible
+// - if someone deletes the myservers.cfg or directly edits [remote] section therein, it may be possible
 // that server will appear 'unregistered' in webgui but not on My Servers.
 // - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
 // now can remotely access using url that matches their cert. This is probably a bug here, but we might
@@ -665,7 +672,7 @@ function registerServer(button) {
         if (data.apikey) {
             $(button).prop("disabled", false).html(oldlabel);
             $.post('/webGui/include/Dispatcher.php',{
-                "#cfg": "/boot/config/plugins/dynamix/dynamix.cfg",
+                "#cfg": "/boot/config/plugins/Unraid.net/myservers.cfg",
                 "remote_apikey": data.apikey,
                 "remote_wanaccess": $('#wanaccess').val(),
                 "remote_wanport": $('#wanport').val()
@@ -920,7 +927,7 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 }
 
 // remoteaccess, externalport, (if registering) username, password
-extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
 if (empty($remote)) {
   $remote = [
     "apikey" => "",
@@ -1153,8 +1160,8 @@ $cli = php_sapi_name()=='cli';
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
-  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
 }
 if (empty($remote)) {
   $remote = [
@@ -1592,7 +1599,7 @@ function handleMessage(e) {
     case "REG_WIZARD":
       if (data.apikey) {
         var postargs = {
-          '#file': 'dynamix/dynamix.cfg',
+          '#file': 'Unraid.net/myservers.cfg',
           '#section': 'remote',
           apikey: data.apikey,
           regWizTime: `${Date.now()}_${data.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
@@ -1607,7 +1614,7 @@ function handleMessage(e) {
           postargs['avatar'] = data.avatar;
         }
         $.post('/update.php', postargs, function() {
-          console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          console.log('Unraid.net/myservers.cfg: Updated apikey under [remote] section');
           // send a ping back to the regwiz
           const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', webGuiPathname: window.location.pathname };
           e.source.postMessage(JSON.stringify(payload), e.origin);
@@ -1643,14 +1650,14 @@ function handleMessage(e) {
       break;
     case "MYSERVERS_UNREGISTER":
       $.post('/update.php', {
-        '#file': 'dynamix/dynamix.cfg',
+        '#file': 'Unraid.net/myservers.cfg',
         '#section': 'remote',
         apikey: '',
         avatar: '',
         email: '',
         username: '',
       }, function() {
-        console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
+        console.log('Unraid.net/myservers.cfg: Unregistered myservers, cleared apikey under [remote] section');
         // send a ping back to the regwiz
         const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', webGuiPathname: window.location.pathname };
         e.source.postMessage(JSON.stringify(payload), e.origin);
