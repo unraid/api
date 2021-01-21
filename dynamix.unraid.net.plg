@@ -2612,16 +2612,14 @@ _(Replaceable)_:
 ]]>
 </INLINE>
 </FILE>
-
+<!-- backup original registration page, then replace it with our version -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 <![CDATA[
 REG_PAGE=/usr/local/emhttp/plugins/dynamix/Registration.page
 REG_BACKUP=/usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page-
 REG_CUSTOM=/usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page.unraidnet
-# make backup of original registration page
 cp -f $REG_PAGE $REG_BACKUP
-# replace original registration page with our modified version
 cp -f $REG_CUSTOM $REG_PAGE
 ]]>
 </INLINE>
