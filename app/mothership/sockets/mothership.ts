@@ -83,7 +83,7 @@ export class MothershipSocket extends CustomSocket {
 		};
     }
 
-    protected onDisconnect() {
+    onDisconnect() {
         const mothership = this;
         const onDisconnect = super.onDisconnect;
 		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
@@ -103,7 +103,7 @@ export class MothershipSocket extends CustomSocket {
 	}
 
 	// When we get a message from relay send it through to our local graphql instance
-	protected onMessage() {
+	onMessage() {
 		const mothership = this;
 		return async function (this: WebSocketWithHeartBeat, data: string) {
 			try {
