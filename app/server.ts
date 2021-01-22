@@ -16,7 +16,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths, pubsub, apiManager, coreLogger } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from './core/utils';
 import { graphql } from './graphql';
-import { MothershipService } from './mothership';
+import { MothershipSocket } from './mothership';
 import display from './graphql/resolvers/query/display';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
@@ -190,7 +190,9 @@ stoppableServer.on('upgrade', (request, socket, head) => {
 // Add graphql subscription handlers
 graphApp.installSubscriptionHandlers(wsServer);
 
-export const mothership = new MothershipService(wsServer);
+export const mothership = new MothershipSocket({
+	lazy: true
+});
 export const server = {
 	httpServer,
 	server: stoppableServer,
