@@ -16,6 +16,7 @@ export interface Paths {
 	'emhttpd-socket': string;
 	'dynamix-base': string;
 	'dynamix-config': string;
+	'myservers-config': string;
 	'nginx-origin': string;
 	'machine-id': string;
 }
@@ -46,6 +47,7 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['states', '/usr/local/emhttp/state/'],
 	['dynamix-base', '/boot/config/plugins/dynamix/'],
 	['dynamix-config', '/boot/config/plugins/dynamix/dynamix.cfg'],
+	['myservers-config', '/boot/config/plugins/Unraid.net/myservers.cfg'],
 	['nginx-origin', '/var/run/nginx.origin'],
 	['machine-id', '/etc/machine-id']
 ]);

@@ -29,7 +29,7 @@ Debug logs can be enabled via stdout while running with `start-debug`.
 ## Playground
 
 The playground can be access via `http://tower.local/graphql` while `PLAYGROUND=true` and `INTROSPECTION=true`. These values can be set in the `ecosystem.config.js` file in `/usr/local/bin/node/unraid-api`.
-To get your API key open a terminal on your server and run `cat /boot/config/plugins/dynamix/dynamix.cfg | grep apikey= | cut -d '"' -f2`. Add that api key in the "HTTP headers" panel of the playground.
+To get your API key open a terminal on your server and run `cat /boot/config/plugins/Unraid.net/myservers.cfg | grep apikey= | cut -d '"' -f2`. Add that api key in the "HTTP headers" panel of the playground.
 
 ```json
 {

@@ -5,9 +5,9 @@
 
 import { Logger } from 'logger';
 
-export const log = new Logger();
-export const coreLogger = log.createChild({ prefix: '[@unraid/core]: '});
-export const mothershipLogger = log.createChild({ prefix: '[@unraid/mothership]: '});
-export const graphqlLogger = log.createChild({ prefix: '[@unraid/graphql]: '});
-export const relayLogger = log.createChild({ prefix: '[@unraid/relay]: '});
-export const discoveryLogger = log.createChild({ prefix: '[@unraid/discovery]: '});
+export const log = new Logger({ prefix: '@unraid' });
+export const coreLogger = log.createChild({ prefix: 'core' });
+export const mothershipLogger = log.createChild({ prefix: 'mothership'});
+export const graphqlLogger = log.createChild({ prefix: 'graphql'});
+export const relayLogger = log.createChild({ prefix: 'relay'});
+export const discoveryLogger = log.createChild({ prefix: 'discovery'});
