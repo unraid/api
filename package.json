@@ -9,7 +9,6 @@
     "build": "npm run bundle && npm run copy-schemas",
     "bundle": "npx tsup ./app/index.ts",
     "bundle-minify": "npx tsup ./app/index.ts --minify",
-    "bundle-dependencies": "bundle-dependencies update",
     "copy-schemas": "cpx app/**/*.graphql dist/types",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
@@ -24,7 +23,8 @@
     "cover:report": "nyc report --reporter=lcov --reporter=text",
     "patch": "npm-run-all patch:**",
     "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.js",
-    "release": "standard-version"
+    "release": "standard-version",
+    "update-bundle-dependencies": "bundle-dependencies update"
   },
   "files": [
     ".env.staging",
