@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.21](https://github.com/unraid/api/compare/v2.15.20-rolling-20210122032244...v2.15.21) (2021-01-22)
+
+
+### Bug Fixes
+
+* Cannot find module 'string-to-color' ([a2b4a98](https://github.com/unraid/api/commit/a2b4a98f932f3404e94789794d8f89901f94c623))
+
 ### [2.15.20](https://github.com/unraid/api/compare/v2.15.19...v2.15.20) (2020-12-17)
 
 ### [2.15.19](https://github.com/unraid/api/compare/v2.15.17-rolling-20201217015904...v2.15.19) (2020-12-17)
