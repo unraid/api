@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import path from 'path';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
@@ -116,12 +117,11 @@ export class ApiManager extends EventEmitter {
 		// Create singleton
 		ApiManager.instance = this;
 
-		// Watch for changes to the dynamix.cfg file
+		// Watch for changes to the myservers.cfg file
 		// @todo Move API keys to their own file
-		const basePath = paths.get('dynamix-base')!;
-		const configPath = paths.get('dynamix-config')!;
+		const configPath = paths.get('myservers-config')!;
 		if (options.watch) {
-			chokidar.watch(basePath, {
+			chokidar.watch(path.basename(configPath), {
 				ignoreInitial: true
 			}).on('all', async (_eventName, filePath) => {
 				if (filePath === configPath) {

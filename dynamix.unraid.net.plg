@@ -30,7 +30,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /etc/rc.d/rc.unraid-api
   rm -f /etc/rc.d/rc.flash_backup
   mv -f /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php- /usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php
-  mv -f /usr/local/emhttp/plugins/dynamix/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
+  mv -f /usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
   mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
   rm -rf /boot/config/plugins/Unraid.net/wc
@@ -73,9 +73,8 @@ require_once "$docroot/webGui/include/Translations.php";
 $var = (array)parse_ini_file('state/var.ini');
 $license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
 $key_contents = str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
-
-if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
-  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
 }
 
 $arr = [];
@@ -622,7 +621,7 @@ Tag="globe"
 ?>
 <?
 // more:
-// - if someone deletes the dynamic.cfg or directly edits [remote] section therein, it may be possible
+// - if someone deletes the myservers.cfg or directly edits [remote] section therein, it may be possible
 // that server will appear 'unregistered' in webgui but not on My Servers.
 // - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
 // now can remotely access using url that matches their cert. This is probably a bug here, but we might
@@ -665,7 +664,7 @@ function registerServer(button) {
         if (data.apikey) {
             $(button).prop("disabled", false).html(oldlabel);
             $.post('/webGui/include/Dispatcher.php',{
-                "#cfg": "/boot/config/plugins/dynamix/dynamix.cfg",
+                "#cfg": "/boot/config/plugins/Unraid.net/myservers.cfg",
                 "remote_apikey": data.apikey,
                 "remote_wanaccess": $('#wanaccess').val(),
                 "remote_wanport": $('#wanport').val()
@@ -784,7 +783,7 @@ $.post('/plugins/dynamix.unraid.net/include/UpdateFlashBackup.php',{command:"sta
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 _(Unraid.net Status)_:
-: <unraid-authed registered="<? echo $isRegistered ?>"></unraid-authed>
+: <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
 _(Allow Remote Access)_:
@@ -920,7 +919,7 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 }
 
 // remoteaccess, externalport, (if registering) username, password
-extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
 if (empty($remote)) {
   $remote = [
     "apikey" => "",
@@ -1153,8 +1152,8 @@ $cli = php_sapi_name()=='cli';
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-if (file_exists('/boot/config/plugins/dynamix/dynamix.cfg')) {
-  extract(parse_ini_file('/boot/config/plugins/dynamix/dynamix.cfg',true));
+if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
 }
 if (empty($remote)) {
   $remote = [
@@ -1592,7 +1591,7 @@ function handleMessage(e) {
     case "REG_WIZARD":
       if (data.apikey) {
         var postargs = {
-          '#file': 'dynamix/dynamix.cfg',
+          '#file': 'Unraid.net/myservers.cfg',
           '#section': 'remote',
           apikey: data.apikey,
           regWizTime: `${Date.now()}_${data.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
@@ -1607,7 +1606,7 @@ function handleMessage(e) {
           postargs['avatar'] = data.avatar;
         }
         $.post('/update.php', postargs, function() {
-          console.log('dynamix/dynamix.cfg: Updated apikey under [remote] section');
+          console.log('Unraid.net/myservers.cfg: Updated apikey under [remote] section');
           // send a ping back to the regwiz
           const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', webGuiPathname: window.location.pathname };
           e.source.postMessage(JSON.stringify(payload), e.origin);
@@ -1643,14 +1642,14 @@ function handleMessage(e) {
       break;
     case "MYSERVERS_UNREGISTER":
       $.post('/update.php', {
-        '#file': 'dynamix/dynamix.cfg',
+        '#file': 'Unraid.net/myservers.cfg',
         '#section': 'remote',
         apikey: '',
         avatar: '',
         email: '',
         username: '',
       }, function() {
-        console.log('dynamix/dynamix.cfg: Unregistered myservers, cleared apikey under [remote] section');
+        console.log('Unraid.net/myservers.cfg: Unregistered myservers, cleared apikey under [remote] section');
         // send a ping back to the regwiz
         const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', webGuiPathname: window.location.pathname };
         e.source.postMessage(JSON.stringify(payload), e.origin);
@@ -2338,6 +2337,285 @@ _(Header show description)_:
 </INLINE>
 </FILE>
 
+<!-- Create our own version of the Registration page -->
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page.unraidnet">
+<INLINE>
+<![CDATA[
+Menu="About"
+Type="xmenu"
+Title="Registration"
+Icon="icon-registration"
+Tag="pencil"
+---
+<?PHP
+/* Copyright 2005-2020, Lime Technology
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+function my_time_any($time) {
+  return $time ? _(my_time($time),0) : _('Anytime');
+}
+function my_time_now($time) {
+  return $time ? _(my_time($time),0) : _('Unknown');
+}
+?>
+<style>
+span.thanks{padding-left:12px;color:#6FA239;font-weight:bold;}
+span.thanks.red{color:#F0000C;}
+div.device{padding:0 12px;font-weight:normal;font-style:italic;}
+div.remark{padding:0 12px;text-align:justify;}
+</style>
+
+<?if ( (strstr($var['regTy'], "unregistered")) or ($var['regTy']=="Trial") or (strstr($var['regTy'], "no connection")) or (strstr($var['regTy'], "withdrawn")) or (strstr($var['regTy'], "expired")) ):?>
+
+<span class="thanks">_(Thank you for trying Unraid OS)_!</span>
+
+<?elseif ( ($var['regTy']=="Basic") or ($var['regTy']=="Plus") or ($var['regTy']=="Pro") ):?>
+
+<span class="thanks">_(Thank you for choosing Unraid OS)_!</span>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "unregistered")):?>
+
+<div markdown="1" class="remark">
+:registration_1_plug:
+Your server will not be usable until you purchase a Registration key or install a free 30-day *Trial* key. A *Trial*
+key provides all the functionality of a *Pro* Registration key.
+
+Registration keys are bound to your USB Flash boot device serial number (GUID).  Please use a high quality name brand device
+at least 1GB in size.
+
+Note: USB memory card readers are generally **not** supported because most do not present unique serial numbers.
+:end
+<span class="red-text">_(Important)_:</span>
+
+:registration_2_plug:
++ Please make sure your [server time](DateTime) is accurate to within 5 minutes.
++ Please make sure there is a [DNS server](NetworkSettings) specified.
+:end
+</div>
+
+<?endif;?>
+
+<?if ($var['regTy']=="Trial"):?>
+
+<div markdown="1" class="remark">
+:registration_3_plug:
+Your *Trial* key includes all the functionality and device support of a *Pro* Registration key.
+
+After your *Trial* key has reached expiration, your server **still functions normally** until the next time you **Stop** the array.
+
+At that point, you may either purchase a Registration key, or request a *Trial* extension.
+:end
+</div>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "no connection")):?>
+
+<div markdown="1" class="remark">
+<span class='red-text'>_(Cannot connect to key-server)_!</span>
+
+_(Your *Trial* key requires an internet connection)_.  _(Please check your)_ [_(Network Settings)_](NetworkSettings).
+</div>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "withdrawn")):?>
+
+<div markdown="1" class="remark">
+<span class='red-text'>_(Release has been withdrawn)_!</span>
+
+_(This release has been withdrawn for use with *Trial* keys)_.
+</div>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "expired")):?>
+
+<div markdown="1" class="remark">
+<span class='red-text'>_(Your *Trial* key has expired)_.</span>
+:registration_4_plug:
+To continue using Unraid OS you may purchase a Registration key. Alternately, you may request a *Trial* extension key.
+
+Most *Trial* extension requests are processed immediately but please allow up to one business day to receive your *Trial* extension key.
+:end
+</div>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "invalid installation")):?>
+
+<span class='thanks red'>_(Invalid *Trial* Installation)_</span>
+<div markdown="1" class="remark">
+:registration_5_plug:
+It is not possible to use a *Trial* key with an existing Unraid OS installation.
+
+You may purchase a Registration key corresponding to this USB Flash device to continue using this installation.
+
+For more information, please [Contact Support](https://lime-technology.com/contact).
+:end
+</div>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "missing")):?>
+
+<span class='thanks red'>_(Missing Key File)_</span>
+<div markdown="1" class="remark">
+:registration_6_plug:
+It appears that your Registration key file is corrupted or missing.  The key file should be located in the
+[config](/Registration/Browse?dir&#61;/boot/config) directory on your USB Flash boot device.
+
+If you do not have a backup copy of your Registration key file, [Contact Support](https://lime-technology.com/contact).
+
+If this was a *Trial* installation, you may purchase a Registration key.
+:end
+</div>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "invalid key")):?>
+
+<span class='thanks red'>_(The registered GUID does not match the USB Flash boot device GUID)_</span>
+
+<?if (strstr($var['regTy'], "Trial")):?>
+
+<div markdown="1" class="remark">
+:registration_7_plug:
+*Trial* installations are only valid with the originally registered USB Flash device.
+
+To continue using this installation with this USB Flash device, you may purchase a Registration key.
+:end
+</div>
+
+<?else:?>
+
+<div markdown="1" class="remark">
+:registration_8_plug:
+The Registration key file does not correspond to the USB Flash boot device.
+Please copy the correct key file to the [config](/Registration/Browse?dir&#61;/boot/config) directory
+on your USB Flash boot device. If you do not have a backup copy of your key file, [Contact Support](https://lime-technology.com/contact).
+
+If you want to replace your Registration key with a new key bound to this USB Flash device, click Replace Key below. An original key may be
+replaced anytime. Thereafter, a replacement key may be replaced again after one year has passed.  If you require
+another replacement key sooner, [Contact Support](https://lime-technology.com/contact).
+
+**Note:** Replacing a Registration key results in permanently *blacklisting* the previous USB Flash GUID.
+:end
+</div>
+
+<?endif;?>
+<?endif;?>
+
+<?if (strstr($var['regTy'], "blacklisted")):?>
+
+<span class='thanks red'>_(Blacklisted USB Flash GUID)_</span>
+<div markdown="1" class="remark">
+:registration_9_plug:
+This USB Flash boot device has been *blacklisted*. This can occur as a result of transfering your Registration key to
+a replacement USB Flash device, and you are currently booted from your old USB Flash device.
+
+A USB Flash device may also be *blacklisted* if there is no serial number, or if we discover the serial number
+is not unique (this is common with USB card readers).
+
+For more information, please [Contact Support](https://lime-technology.com/contact).
+:end
+</div>
+
+<?endif;?>
+
+<?if ( ( !(strstr($var['regTy'], "invalid key")) and ((strstr($var['regTy'], "Trial"))) ) || (strstr($var['regTy'], "no connection")) || (strstr($var['regTy'], "withdrawn")) ):?>
+
+_(***Trial*** key expires on)_:
+: <?=my_time_now($var['regTm2'])?>
+
+<?endif;?>
+
+<?if ( strstr($var['regTy'], "invalid installation") || ( (strstr($var['regTy'], "invalid key")) && (strstr($var['regTy'], "Trial")) )):?>
+
+_(Expiration)_:
+: <?=my_time_now($var['regTm2'])?>
+
+<?endif;?>
+
+<?if ( (strstr($var['regTy'], "invalid installation")) || (strstr($var['regTy'], "invalid key")) || ($var['regTy']=="Basic") || ($var['regTy']=="Plus") || ($var['regTy']=="Pro") ):?>
+
+_(Registered to)_:
+: <?=htmlspecialchars($var['regTo'])?>
+
+_(Registered on)_:
+: <?=my_time_now($var['regTm'])?>
+
+<?endif;?>
+
+<?if ( (strstr($var['regTy'], "invalid installation")) or ( (strstr($var['regTy'], "invalid key")) and (!(strstr($var['regTy'], "Trial")))) ):?>
+
+_(Registered GUID)_:
+: <?=$var['regGUID']?>
+
+<?endif;?>
+
+<?if (strstr($var['regTy'], "flash device error")):?>
+
+<span class='thanks red'>_(Error accessing your physical USB Flash boot device)_</span>
+<div markdown="1" class="remark">
+_(There is a physical problem accessing your USB Flash boot device)_. _(Please)_ [Contact Support](https://lime-technology.com/contact).
+
+_(Flash GUID)_:
+: _(Error code)_: <?=$var['regCheck']?>
+
+<?else:?>
+
+_(Flash GUID)_:
+: <?=$var['flashGUID']?>
+
+<?endif;?>
+
+_(Flash Vendor)_:
+: <?=$var['flashVendor']?>
+
+_(Flash Product)_:
+: <?=$var['flashProduct']?>
+
+<?if ( ((strstr($var['regTy'], "invalid key")) and !(strstr($var['regTy'], "Trial"))) || ($var['regTy']=="Basic") || ($var['regTy']=="Plus") || ($var['regTy']=="Pro") ):?>
+
+_(Replaceable)_:
+: <?=my_time_any($var['regTm2'])?>
+
+<?endif;?>
+
+<?if ( !(strstr($var['regTy'], "flash device error")) || !(strstr($var['regTy'], "blacklisted")) ):?>
+
+<div class="device"><?=sprintf(_("This server has %s attached storage device".($var['deviceCount']==1?'.':'s.')),$var['deviceCount'])?></div>
+
+<?endif;?>
+
+<unraid-upc-trigger></unraid-upc-trigger>
+
+]]>
+</INLINE>
+</FILE>
+<!-- backup original registration page, then replace it with our version -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+REG_PAGE=/usr/local/emhttp/plugins/dynamix/Registration.page
+REG_BACKUP=/usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page-
+REG_CUSTOM=/usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page.unraidnet
+cp -f $REG_PAGE $REG_BACKUP
+cp -f $REG_CUSTOM $REG_PAGE
+]]>
+</INLINE>
+</FILE>
 
 <!-- Preserve in case plugin is removed -->
 <FILE Run="/bin/bash" Method="install">
@@ -2373,6 +2651,115 @@ rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
 </INLINE>
 </FILE>
 
+<!-- migration file to move deprecated dynamix.cfg unraid.net settings into myservers.cfg -->
+<FILE Name="/usr/local/emhttp/plugins/dynamix.unraid.net/include/cfgMigration.php">
+<INLINE>
+<![CDATA[
+<?PHP
+/* Copyright 2005-2021, Lime Technology
+ * Copyright 2012-2021, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+function update($url, $payload) {
+  $ch = curl_init($url);
+  curl_setopt($ch,CURLOPT_POST, true);
+  curl_setopt($ch,CURLOPT_POSTFIELDS, $payload);
+  curl_setopt($ch,CURLOPT_RETURNTRANSFER, true); 
+  $result = curl_exec($ch);
+  curl_close($ch);
+}
+
+$dyn_cfg = '/boot/config/plugins/dynamix/dynamix.cfg';
+$mys_cfg = '/boot/config/plugins/Unraid.net/myservers.cfg';
+
+if (file_exists($dyn_cfg) && !file_exists($mys_cfg)) {
+  $orig = parse_ini_file($dyn_cfg,true);
+  $var = (array)parse_ini_file('/usr/local/emhttp/state/var.ini',true);
+  $url = "http://localhost:".$var['PORT']."/update.php";
+
+  // write [remote] section to myservers.cfg
+  if(!empty($orig['remote'])) {
+    $fields_mys_remote = [
+      'csrf_token' => $var['csrf_token'],
+      '#file'      => $mys_cfg,
+      '#section'   => 'remote'
+    ];
+    foreach($orig['remote'] as $key => $value) {
+      $fields_mys_remote[$key] = $value;
+    }
+    update($url, http_build_query($fields_mys_remote));
+  }
+  /*
+  // write [wizard] section to myservers.cfg
+  if(!empty($orig['wizard'])) {
+    $fields_mys_wizard = [
+      'csrf_token' => $var['csrf_token'],
+      '#file'      => $mys_cfg,
+      '#section'   => 'wizard'
+    ];
+    foreach($orig['wizard'] as $key => $value) {
+      $fields_mys_wizard[$key] = $value;
+    }
+    update($url, http_build_query($fields_mys_wizard));
+  }
+  */
+  // remove [remote] section from dynamix.cfg
+  if(!empty($orig['remote'])) {
+    $fields_dyn_remote = [
+      'csrf_token' => $var['csrf_token'],
+      '#file'      => $dyn_cfg,
+      '#section'   => 'remote',
+      '#cleanup'   => 'true'
+    ];
+    foreach($orig['remote'] as $key => $value) {
+      $fields_dyn_remote[$key] = '';
+    }
+    update($url, http_build_query($fields_dyn_remote));
+  }
+  // remove [wizard] section from dynamix.cfg
+  if(!empty($orig['wizard'])) {
+    $fields_dyn_wizard = [
+      'csrf_token' => $var['csrf_token'],
+      '#file'      => $dyn_cfg,
+      '#section'   => 'wizard',
+      '#cleanup'   => 'true'
+    ];
+    foreach($orig['wizard'] as $key => $value) {
+      $fields_dyn_wizard[$key] = '';
+    }
+    update($url, http_build_query($fields_dyn_wizard));
+  }
+  // remove [remote] and [wizard] section headings from dyn_cfg file
+  $oldtext = file_get_contents($dyn_cfg); 
+  $newtext = preg_replace ('/\[(remote|wizard)\]\n/', '', $oldtext);
+  if (strcmp($oldtext, $newtext) !== 0) {
+    file_put_contents($dyn_cfg, $newtext);
+  }
+}
+if (!file_exists($mys_cfg)) touch($mys_cfg);
+
+?>
+
+]]>
+</INLINE>
+</FILE>
+
+<!-- run dynamix.cfg to myservers.cfg migration then delete the migration file -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+CFG_MIG=/usr/local/emhttp/plugins/dynamix.unraid.net/include/cfgMigration.php
+php $CFG_MIG
+rm -f $CFG_MIG
+]]>
+</INLINE>
+</FILE>
 
 <!-- gitty up -->
 <FILE Run="/bin/bash" Method="install">
