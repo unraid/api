@@ -919,7 +919,9 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 }
 
 // remoteaccess, externalport, (if registering) username, password
-extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
+if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) {
+  extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
+}
 if (empty($remote)) {
   $remote = [
     "apikey" => "",
@@ -1859,6 +1861,10 @@ setTimeout(() => {
 <![CDATA[
     <!-- RegWiz -->
     <?
+    if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) {
+      extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
+    }
+
     $serverstate = [
       "deviceCount" => $var['deviceCount'],
       "email" => ($remote['email']) ? $remote['email'] : '',
