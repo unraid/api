@@ -24,7 +24,7 @@ interface Result extends CoreResult {
 /**
  * Get count of docker containers
  */
-export const getAppCount = async function(context: Readonly<CoreContext>): Promise<Result> {
+export const getAppCount = async function (context: Readonly<CoreContext>): Promise<Result> {
 	const { user } = context;
 
 	// Check permissions

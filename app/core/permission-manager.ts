@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-// @ts-ignore
+// @ts-expect-error
 import { validate as validateArgument } from 'bycontract';
 import { LooseObject } from './types';
 import { AppError } from './errors';
@@ -72,7 +72,7 @@ class PermissionManager {
 		};
 
 		// Update the known list of valid scopes
-		// @ts-ignore
+		// @ts-expect-error
 		this.knownScopes = [
 			...this.knownScopes,
 			...Object.values(scopeObject)

@@ -6,16 +6,16 @@ import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
 import { MothershipSocket } from './mothership';
 
 export class InternalGraphql extends CustomSocket {
-	private mothership?: MothershipSocket;
+	private readonly mothership?: MothershipSocket;
 
 	constructor(options: CustomSocket['options'] = {}) {
-        super({
-            name: 'InternalGraphql',
-            uri: INTERNAL_WS_LINK,
+		super({
+			name: 'InternalGraphql',
+			uri: INTERNAL_WS_LINK,
 			logger: relayLogger,
-            ...options
-        });
-    }
+			...options
+		});
+	}
 
 	protected async getApiKey() {
 		const key = apiManager.getKey('my_servers');
@@ -37,7 +37,6 @@ export class InternalGraphql extends CustomSocket {
 					this.close(4200, JSON.stringify({
 						message: error.emss
 					}));
-					return;
 				}
 			}
 		};
@@ -53,17 +52,17 @@ export class InternalGraphql extends CustomSocket {
 				// This isn't an actual error so we skip it
 				return;
 			}
-	
+
 			// Socket was still offline try again?
 			if (error.code && ['ENOENT', 'ECONNREFUSED'].includes(error.code)) {
 				// Wait 1s
 				await sleep(1000);
-	
+
 				// Re-connect to internal graphql server
 				internalGraphql.connect();
 				return;
 			}
-	
+
 			internalGraphql.logger.error(error);
 		};
 	}
@@ -87,4 +86,4 @@ export class InternalGraphql extends CustomSocket {
 			}));
 		};
 	}
-};
+}

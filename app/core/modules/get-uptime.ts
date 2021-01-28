@@ -11,14 +11,14 @@ interface Result extends CoreResult {
 	json: {
 		milliseconds: number;
 		timestamp: string;
-	}
+	};
 }
 
 /**
  * OS uptime
  * @returns The milliseconds since we booted.
  */
-export const getUptime = async(context: CoreContext): Promise<Result> => {
+export const getUptime = async (context: CoreContext): Promise<Result> => {
 	const { user } = context;
 
 	// Check permissions

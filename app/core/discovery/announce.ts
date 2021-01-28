@@ -6,7 +6,7 @@ import { AppError } from '../errors';
 /**
  * Announce to the local network via mDNS.
  */
-export const announce = async(): Promise<void> => {
+export const announce = async (): Promise<void> => {
 	const name = varState.data?.name;
 	const localTld = varState.data?.localTld;
 	const version = varState.data?.version;

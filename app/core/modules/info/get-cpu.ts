@@ -10,7 +10,7 @@ import { ensurePermission } from '../../utils';
 /**
  * Get CPU info.
  */
-export const getCpu = async function(context: CoreContext): Promise<CoreResult> {
+export const getCpu = async function (context: CoreContext): Promise<CoreResult> {
 	const { user } = context;
 
 	// Check permissions

@@ -6,7 +6,7 @@
 import { pubsub, utils, errors, states, apiManager, graphqlLogger } from '../../core';
 import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
-import { getServers as getUserServers } from '../../utils'
+import { getServers as getUserServers } from '../../utils';
 
 const { varState, networkState } = states;
 
@@ -16,7 +16,7 @@ const { AppError } = errors;
 export interface Context {
 	user: any;
 	websocketId: string;
-};
+}
 
 /**
  * Create a pubsub subscription.

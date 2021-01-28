@@ -8,7 +8,7 @@ import { CoreResult } from '../types';
 /**
  * Get all apps.
  */
-export const getApps = async(): Promise<CoreResult> => {
+export const getApps = async (): Promise<CoreResult> => {
 	const apps = [];
 
 	return {

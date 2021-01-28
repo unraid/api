@@ -19,6 +19,6 @@ interface Context extends CoreContext {
  * Invalidate an apiKey.
  * @returns The deleted apikey.
  */
-export const deleteApikey = async(_: Context): Promise<CoreResult> => {
+export const deleteApikey = async (_: Context): Promise<CoreResult> => {
 	throw new NotImplementedError();
 };

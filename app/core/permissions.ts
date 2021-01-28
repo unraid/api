@@ -10,14 +10,12 @@ interface Permission {
 	resource: string;
 	action: string;
 	attributes: string;
-};
+}
 
-interface Permissions {
-	[roleName: string]: {
-		extends?: string | string[];
-		permissions?: Permission[];
-	};
-};
+type Permissions = Record<string, {
+	extends?: string | string[];
+	permissions?: Permission[];
+}>;
 
 const loadPermissionsFile = (filePath: string) => {
 	// Create file if it's missing

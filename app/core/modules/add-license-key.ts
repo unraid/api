@@ -31,16 +31,16 @@ interface Result extends CoreResult {
 /**
  * Register a license key.
  */
-export const addLicenseKey = async(context: Context): Promise<Result | void> => {
+export const addLicenseKey = async (context: Context): Promise<Result | void> => {
 	ensurePermission(context.user, {
 		resource: 'license-key',
 		action: 'create',
 		possession: 'any'
 	});
 
-	// const { data } = context;
+	// Const { data } = context;
 	const guid = varState?.data?.regGuid;
-	// const timestamp = new Date();
+	// Const timestamp = new Date();
 
 	if (!guid) {
 		throw new AppError('guid missing');

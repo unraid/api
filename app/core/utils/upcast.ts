@@ -17,7 +17,7 @@ const guardTypeArg = (type: string) => {
  *
  * @param type handler's type
  */
-const guardTypeHandler = (type: () => {}) => {
+const guardTypeHandler = (type: () => Record<string, unknown>) => {
 	if (typeof type !== 'function') {
 		throw new TypeError('Invalid argument: handler is expected to be a function');
 	}
@@ -29,9 +29,8 @@ const guardTypeHandler = (type: () => {}) => {
  * @class Upcast
  */
 class Upcast {
-	alias: {
-		[key: string]: string
-	};
+	alias: Record<string, string>;
+
 	cast: any;
 
 	/**
@@ -62,7 +61,7 @@ class Upcast {
 
 		// Default casters
 		this.cast = {
-			array: <T extends unknown>(value: T) => [value],
+			array: <T>(value: T) => [value],
 			boolean: (value: unknown) => Boolean(value),
 			function: (value: unknown) => () => value,
 			null: () => null,
@@ -118,7 +117,7 @@ class Upcast {
 	/**
      * Add custom cast
      */
-	add(type: string, handler: () => {}) {
+	add(type: string, handler: () => Record<string, unknown>) {
 		guardTypeArg(type);
 		guardTypeHandler(handler);
 

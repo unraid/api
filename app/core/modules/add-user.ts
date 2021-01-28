@@ -23,7 +23,7 @@ interface Context extends CoreContext {
 /**
  * Add user account.
  */
-export const addUser = async(context: Context): Promise<CoreResult> => {
+export const addUser = async (context: Context): Promise<CoreResult> => {
 	const { data } = context;
 
 	// Check permissions

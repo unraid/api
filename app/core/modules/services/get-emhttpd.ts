@@ -17,7 +17,7 @@ interface Result extends CoreResult {
 /**
  * Get emhttpd service info.
  */
-export const getEmhttpdService = async(context: CoreContext): Promise<Result> => {
+export const getEmhttpdService = async (context: CoreContext): Promise<Result> => {
 	const { user } = context;
 
 	// Check permissions

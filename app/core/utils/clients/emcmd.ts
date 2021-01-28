@@ -17,7 +17,7 @@ const dryRun = envs.DRY_RUN;
 /**
  * Run a command with emcmd.
  */
-export const emcmd = async(commands: LooseObject) => {
+export const emcmd = async (commands: LooseObject) => {
 	const url = `http://unix:${socketPath}:/update.htm`;
 	const options = {
 		qs: {

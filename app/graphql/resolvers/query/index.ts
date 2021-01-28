@@ -10,10 +10,10 @@ import servers from './servers';
 import vms from './vms';
 
 export const Query = {
-    display,
-    info,
-    online,
-    vms,
-    server,
-    servers
+	display,
+	info,
+	online,
+	vms,
+	server,
+	servers
 };

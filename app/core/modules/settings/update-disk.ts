@@ -26,7 +26,7 @@ interface Result extends CoreResult {
 /**
  * Update disk settings.
  */
-export const updateDisk = async(context: Context): Promise<Result> => {
+export const updateDisk = async (context: Context): Promise<Result> => {
 	const { data, user } = context;
 
 	// Check permissions
@@ -43,7 +43,7 @@ export const updateDisk = async(context: Context): Promise<Result> => {
 	 * @param allowedValues Which values which are allowed.
 	 * @param optional If the value can also be undefined.
 	 */
-	const check = (property: string, allowedValues: { [key: string]: string } | string[], optional = true): void => {
+	const check = (property: string, allowedValues: Record<string, string> | string[], optional = true): void => {
 		const value = data[property];
 
 		// Skip checking if the value isn't needed and it's not set

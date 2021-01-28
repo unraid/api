@@ -4,9 +4,9 @@ import { varState } from '../../states';
 import { AppError } from '../../errors';
 
 export const validateApiKey = async (apiKey: string) => {
-	const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? `https://keys.lime-technology.com/validate/apikey`;
+	const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
 
-	const sendFormToKeyServer = async (url: string, data: {}) => {
+	const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
 		if (!data) {
 			throw new AppError('Missing data field.');
 		}
@@ -37,5 +37,5 @@ export const validateApiKey = async (apiKey: string) => {
 		return false;
 	}
 
-    return response.json().then(data => data.valid);
+	return response.json().then(data => data.valid);
 };

@@ -10,7 +10,7 @@ import { CoreContext, CoreResult } from '../types';
 /**
  * Get all permissions.
  */
-export const getPermissions = async function(context: CoreContext): Promise<CoreResult> {
+export const getPermissions = async function (context: CoreContext): Promise<CoreResult> {
 	const { user } = context;
 
 	// Bail if the user doesn't have permission
@@ -22,7 +22,7 @@ export const getPermissions = async function(context: CoreContext): Promise<Core
 
 	// Get all scopes
 	const scopes = Object.assign({}, ...Object.values(ac.getGrants()).map(grant => {
-		// @ts-ignore
+		// @ts-expect-error
 		const { $extend, ...grants } = grant;
 		return {
 			...grants,
@@ -33,7 +33,7 @@ export const getPermissions = async function(context: CoreContext): Promise<Core
 	// Get all roles and their scopes
 	const grants = Object.entries(ac.getGrants())
 		.map(([name, grant]) => {
-			// @ts-ignore
+			// @ts-expect-error
 			const { $extend, ...grants } = grant;
 			return [name, grants];
 		})

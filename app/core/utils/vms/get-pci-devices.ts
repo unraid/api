@@ -14,7 +14,7 @@ const regex = new RegExp(/^(?<id>\S+) "(?<type>[^"]+) \[(?<typeid>[a-f\d]{4})]" 
  *
  * @returns Array of PCI devices
  */
-export const getPciDevices = async(): Promise<PciDevice[]> => {
+export const getPciDevices = async (): Promise<PciDevice[]> => {
 	const devices = await execa('lspci', ['-m', '-nn'])
 		.catch(() => ({ stdout: '' }))
 		.then(cleanStdout);

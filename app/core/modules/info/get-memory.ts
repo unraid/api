@@ -13,7 +13,7 @@ import { cleanStdout, ensurePermission } from '../../utils';
 /**
  * Get memory.
  */
-export const getMemory = async(context: CoreContext): Promise<CoreResult> => {
+export const getMemory = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

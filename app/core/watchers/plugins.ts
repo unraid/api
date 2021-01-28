@@ -15,7 +15,7 @@ export const plugins = () => {
 	let timeout: NodeJS.Timeout;
 
 	const reloadPlugins = () => {
-		coreLogger.debug(`Reloading plugins as it's been %s since last event.`, prettyMilliseconds(PLUGIN_RELOAD_TIME_MS));
+		coreLogger.debug('Reloading plugins as it\'s been %s since last event.', prettyMilliseconds(PLUGIN_RELOAD_TIME_MS));
 
 		// Reload plugins
 		// core.loaders.plugins();
@@ -50,7 +50,7 @@ export const plugins = () => {
 			watchers.push(watcher);
 		},
 		stop() {
-			watchers.forEach(watcher => watcher.close());
+			watchers.forEach(async watcher => watcher.close());
 		}
 	};
 };

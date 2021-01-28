@@ -11,39 +11,37 @@ import { toBoolean } from '../utils/casting';
 import { parseConfig } from '../utils/misc';
 import { ArrayState } from './state';
 
-interface NetworkIni {
-	[key: string]: {
-		dhcpKeepresolv: IniStringBoolean;
-		dnsServer1: string;
-		dnsServer2: string;
-		dhcp6Keepresolv: IniStringBoolean;
-		bonding: IniStringBoolean;
-		bondname: string;
-		bondnics: CommaSeparatedString;
-		bondingMode: string;
-		bondingMiimon: string;
-		bridging: IniStringBoolean;
-		brname: string;
-		brnics: string;
-		brstp: string;
-		brfd: string;
-		'description:0': string;
-		'protocol:0': string;
-		'useDhcp:0': IniStringBoolean;
-		'ipaddr:0': string;
-		'netmask:0': string;
-		'gateway:0': string;
-		'metric:0': string;
-		'useDhcp6:0': IniStringBoolean;
-		'ipaddr6:0': string;
-		'netmask6:0': string;
-		'gateway6:0': string;
-		'metric6:0': string;
-		'privacy6:0': string;
-		mtu: string;
-		type: string;
-	};
-}
+type NetworkIni = Record<string, {
+	dhcpKeepresolv: IniStringBoolean;
+	dnsServer1: string;
+	dnsServer2: string;
+	dhcp6Keepresolv: IniStringBoolean;
+	bonding: IniStringBoolean;
+	bondname: string;
+	bondnics: CommaSeparatedString;
+	bondingMode: string;
+	bondingMiimon: string;
+	bridging: IniStringBoolean;
+	brname: string;
+	brnics: string;
+	brstp: string;
+	brfd: string;
+	'description:0': string;
+	'protocol:0': string;
+	'useDhcp:0': IniStringBoolean;
+	'ipaddr:0': string;
+	'netmask:0': string;
+	'gateway:0': string;
+	'metric:0': string;
+	'useDhcp6:0': IniStringBoolean;
+	'ipaddr6:0': string;
+	'netmask6:0': string;
+	'gateway6:0': string;
+	'metric6:0': string;
+	'privacy6:0': string;
+	mtu: string;
+	type: string;
+}>;
 
 const parse = (state: NetworkIni) => {
 	return Object.values(state).map(network => {

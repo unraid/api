@@ -15,7 +15,7 @@ export const Long = GraphQLLong;
 export const UUID = GraphQLUUID;
 
 export {
-    Query,
-    Subscription,
-    UserAccount
+	Query,
+	Subscription,
+	UserAccount
 };

@@ -9,7 +9,7 @@ import { ensurePermission, getMachineId as getMachineIdFromFile } from '../../ut
 /**
  * Get the machine ID.
  */
-export const getMachineId = async function(context: CoreContext): Promise<CoreResult> {
+export const getMachineId = async function (context: CoreContext): Promise<CoreResult> {
 	const { user } = context;
 
 	// Check permissions

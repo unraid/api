@@ -9,14 +9,17 @@ import * as Sentry from '@sentry/node';
 import { core, loadServer, states } from './core';
 import { server } from './server';
 
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../package.json') as { version: string };
+
 // Send errors to server if enabled
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,
 	tracesSampleRate: 1.0,
-	release: `unraid-api@${require('../package.json').version}`,
+	release: `unraid-api@${version}`,
 	environment: process.env.ENVIRONMENT ?? 'unknown',
 	serverName: os.hostname(),
-    enabled: Boolean(process.env.SENTRY_DSN)
+	enabled: Boolean(process.env.SENTRY_DSN)
 });
 
 // Set user's ID to their flashGuid
@@ -39,14 +42,13 @@ am(async () => {
 	server.stop(async () => {
 		/**
 		 * Flush messages to server before stopping.
-		 * 
+		 *
 		 * This may mean waiting up to 5s
 		 * before the server actually stops.
 		 */
 		await Sentry.flush(5000);
 
 		// Kill application
-		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(1);
 	});
 });

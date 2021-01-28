@@ -11,7 +11,7 @@ import { ensurePermission } from '../utils';
  * Get all devices.
  * @returns All currently connected devices.
  */
-export const getDevices = async(context: CoreContext): Promise<CoreResult> => {
+export const getDevices = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

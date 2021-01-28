@@ -10,7 +10,7 @@ import { ensurePermission } from '../utils';
 /**
  * Get all system vars.
  */
-export const getVars = async(context: CoreContext): Promise<CoreResult> => {
+export const getVars = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Bail if the user doesn't have permission

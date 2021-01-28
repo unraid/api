@@ -20,7 +20,7 @@ interface Context extends CoreContext {
  * Get single user.
  * @returns The selected user.
  */
-export const getUser = async(context: Context): Promise<CoreResult> => {
+export const getUser = async (context: Context): Promise<CoreResult> => {
 	// Check permissions
 	ensurePermission(context.user, {
 		resource: 'user',

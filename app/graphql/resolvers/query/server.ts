@@ -10,14 +10,14 @@ import { getServers } from '../../schema/utils';
 const { ensurePermission } = utils;
 
 export default async (_: unknown, { name }, context: Context) => {
-    ensurePermission(context.user, {
-        resource: 'servers',
-        action: 'read',
-        possession: 'any'
-    });
+	ensurePermission(context.user, {
+		resource: 'servers',
+		action: 'read',
+		possession: 'any'
+	});
 
-    const servers = await getServers().catch(() => []);
+	const servers = await getServers().catch(() => []);
 
-    // Single server
-    return servers.find(server => server.name === name);
+	// Single server
+	return servers.find(server => server.name === name);
 };

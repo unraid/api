@@ -8,12 +8,12 @@ import { log } from '../log';
 import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
 
 interface Options extends NotifierOptions {
-	to: string
-	from?: string
-	replyTo?: string
+	to: string;
+	from?: string;
+	replyTo?: string;
 }
 
-interface SendOptions extends NotifierSendOptions {};
+interface SendOptions extends NotifierSendOptions {}
 
 /**
  * Email notifer

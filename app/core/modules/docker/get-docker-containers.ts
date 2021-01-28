@@ -19,7 +19,7 @@ interface Context extends CoreContext {
  * Get all Docker containers.
  * @returns All the in/active Docker containers on the system.
  */
-export const getDockerContainers = async(context: Context): Promise<CoreResult> => {
+export const getDockerContainers = async (context: Context): Promise<CoreResult> => {
 	const { query, user } = context;
 	const { all } = query;
 
@@ -52,7 +52,7 @@ export const getDockerContainers = async(context: Context): Promise<CoreResult> 
 		.map(object => camelCaseKeys(object, { deep: true }))
 		.map(container => {
 			// This will be fixed once camelCaseKeys has correct typings
-			// @ts-ignore
+			// @ts-expect-error
 			const names = container.names[0];
 			return {
 				...container,

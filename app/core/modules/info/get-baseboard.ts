@@ -7,7 +7,7 @@ import si from 'systeminformation';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
 
-export const getBaseboard = async(context: CoreContext): Promise<CoreResult> => {
+export const getBaseboard = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

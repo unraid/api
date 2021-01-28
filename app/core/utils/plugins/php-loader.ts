@@ -37,7 +37,7 @@ interface Options {
 /**
  * Load a PHP file.
  */
-export const phpLoader = async(options: Options) => {
+export const phpLoader = async (options: Options) => {
 	const { file, method = 'GET', query = {}, body = {} } = options;
 	const options_ = [
 		'./wrapper.php',

@@ -46,7 +46,7 @@ interface Result extends CoreResult {
 /**
  * Get all services.
  */
-export const getServices = async(context: CoreContext): Promise<Result> => {
+export const getServices = async (context: CoreContext): Promise<Result> => {
 	const logErrorAndReturnEmptyArray = (error: Error) => {
 		coreLogger.error(error);
 		return [];

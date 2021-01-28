@@ -5,7 +5,7 @@ import { FileMissingError } from '../../errors';
 
 const cache = new CacheManager('unraid:utils:misc/get-machine-id');
 
-export const getMachineId = async() => {
+export const getMachineId = async () => {
 	const path = paths.get('machine-id');
 	let machineId = cache.get('machine-id');
 

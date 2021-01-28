@@ -16,7 +16,7 @@ export type DomainLookupType = 'id' | 'uuid' | 'name';
  * @param id The domain's ID, UUID or name.
  * @private
  */
-export const parseDomain = async(type: DomainLookupType, id: string): Promise<Domain> => {
+export const parseDomain = async (type: DomainLookupType, id: string): Promise<Domain> => {
 	const types = {
 		id: 'lookupDomainByIdAsync',
 		uuid: 'lookupDomainByUUIDAsync',
@@ -50,6 +50,6 @@ export const parseDomain = async(type: DomainLookupType, id: string): Promise<Do
 		results.memoryStats = await domain.getMemoryStatsAsync();
 	}
 
-	// @ts-ignore
+	// @ts-expect-error
 	return results;
 };

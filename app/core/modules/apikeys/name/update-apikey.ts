@@ -21,7 +21,7 @@ interface Context extends CoreContext {
  *
  * @returns The apikey, when the key expires and the scopes the key can use.
  */
-export const updateApiKey = async(context: Context): Promise<CoreResult> => {
+export const updateApiKey = async (context: Context): Promise<CoreResult> => {
 	// Since we pass the context we don't need to worry about checking if the user has permissions
 	const key = await getApikey(context).then(result => result.json);
 

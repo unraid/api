@@ -17,7 +17,7 @@ interface Context extends CoreContext {
 /**
  * Get a single vm domain.
  */
-export const getDomain = async function(context: Context): Promise<CoreResult> {
+export const getDomain = async function (context: Context): Promise<CoreResult> {
 	const { params, user } = context;
 	const { name } = params;
 

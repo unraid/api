@@ -28,7 +28,7 @@ const toBoolean = (prop: string): boolean => prop.toLowerCase() === 'true';
 /**
  * Get display info.
  */
-export const getDisplay = async function(context: CoreContext): Promise<Result> {
+export const getDisplay = async function (context: CoreContext): Promise<Result> {
 	const { user } = context;
 
 	// Check permissions

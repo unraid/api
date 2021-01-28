@@ -10,7 +10,7 @@ import { ensurePermission } from '../utils';
 /**
  * Get all unassigned devices.
  */
-export const getUnassignedDevices = async(context: CoreContext): Promise<CoreResult> => {
+export const getUnassignedDevices = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Bail if the user doesn't have permission

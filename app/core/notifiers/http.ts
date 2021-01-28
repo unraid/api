@@ -6,7 +6,7 @@
 import fetch from 'node-fetch';
 import { Notifier, NotifierOptions } from './notifier';
 
-export interface Options extends NotifierOptions {};
+export interface Options extends NotifierOptions {}
 
 /**
  * HTTP notifier.

@@ -19,7 +19,7 @@ interface Context extends CoreContext {
 /**
  * Get all users.
  */
-export const getUsers = async(context: Context): Promise<CoreResult> => {
+export const getUsers = async (context: Context): Promise<CoreResult> => {
 	const { query, user } = context;
 
 	// Check permissions

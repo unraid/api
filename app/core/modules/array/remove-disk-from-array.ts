@@ -19,7 +19,7 @@ interface Context extends CoreContext {
  * Remove a disk from the array.
  * @returns The updated array.
  */
-export const removeDiskFromArray = async(context: Context): Promise<CoreResult> => {
+export const removeDiskFromArray = async (context: Context): Promise<CoreResult> => {
 	const { data, user } = context;
 
 	// Check permissions

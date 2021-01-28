@@ -9,7 +9,7 @@ import { NotifierSendOptions } from './notifier';
 type Transport = 'email' | 'push' | 'ios' | 'android';
 
 interface Options extends HttpNotifierOptions {
-	transport?: Transport
+	transport?: Transport;
 }
 
 /**

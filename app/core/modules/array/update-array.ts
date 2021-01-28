@@ -13,7 +13,7 @@ import { getArray } from '..';
 //        ideally this should have a timeout to prevent it sticking
 let locked = false;
 
-export const updateArray = async(context: CoreContext): Promise<CoreResult> => {
+export const updateArray = async (context: CoreContext): Promise<CoreResult> => {
 	const { data = {}, user } = context;
 
 	// Check permissions

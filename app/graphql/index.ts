@@ -161,12 +161,12 @@ const getPluginModule = (pluginName: string, pluginModuleName: string) => {
  * including the field name, path to the field from the root, and more.
  */
 class FuncDirective extends SchemaDirectiveVisitor {
-	visitFieldDefinition(field: { [key: string]: any }) {
-		// @ts-ignore
+	visitFieldDefinition(field: Record<string, any>) {
+		// @ts-expect-error
 		const { args } = this;
-		field.resolve = async function (_source, directiveArgs: { [key: string]: any }, { user }, info: { [key: string]: any }) {
-			const {module: moduleName, result: resultType} = args;
-			const {plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params} = directiveArgs;
+		field.resolve = async function (_source, directiveArgs: Record<string, any>, { user }, info: Record<string, any>) {
+			const { module: moduleName, result: resultType } = args;
+			const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = directiveArgs;
 			const operationType = info.operation.operation;
 			const query = {
 				...directiveArgs.query,
@@ -189,7 +189,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 			let func;
 			try {
 				if (pluginName) {
-					// @ts-ignore
+					// @ts-expect-error
 					const { filePath } = getPluginModule(pluginName, pluginModuleName);
 					const pluginModule = require(filePath);
 					// The file will either use a default export or a named one
@@ -266,10 +266,8 @@ const ensureApiKey = (apiKeyToCheck: string) => {
 		if (!apiManager.isValid(apiKeyToCheck)) {
 			throw new AppError('Invalid API key.');
 		}
-	} else {
-		if (process.env.NODE_ENV !== 'development') {
-			throw new AppError('No valid API keys active.');
-		}
+	} else if (process.env.NODE_ENV !== 'development') {
+		throw new AppError('No valid API keys active.');
 	}
 };
 
@@ -309,7 +307,7 @@ bus.on('slots', async () => {
 });
 
 // Update info/hostname when hostname changes
-bus.on('varstate', async (data) => {
+bus.on('varstate', async data => {
 	const hostname = data.varstate.node.name;
 	// @todo: Create a system user for this
 	const user = usersState.findOne({ name: 'root' });
@@ -370,13 +368,13 @@ setIntervalAsync(async () => {
 export const graphql = {
 	introspection: debug,
 	playground: debug ? {
-		subscriptionEndpoint: '/graphql',
+		subscriptionEndpoint: '/graphql'
 	} : false,
 	schema,
 	types,
 	resolvers,
 	subscriptions: {
-		onConnect: async (connectionParams: { [key: string]: string }) => new Promise((resolve, reject) => {
+		onConnect: async (connectionParams: Record<string, string>) => new Promise((resolve, reject) => {
 			try {
 				const apiKey = connectionParams['x-api-key'];
 				const user = apiKeyToUser(apiKey);
@@ -387,10 +385,10 @@ export const graphql = {
 				// Update ws connection count and other needed values
 				wsHasConnected(websocketId);
 
-				return resolve({
+				resolve({
 					user,
 					websocketId
-				});
+				}); return;
 			} catch (error) {
 				reject(error);
 			}

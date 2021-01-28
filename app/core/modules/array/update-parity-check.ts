@@ -12,9 +12,9 @@ type State = 'start' | 'cancel' | 'resume' | 'cancel';
 
 interface Context extends CoreContext {
 	data: {
-		state?: State
-		correct?: boolean
-	}
+		state?: State;
+		correct?: boolean;
+	};
 }
 
 /**

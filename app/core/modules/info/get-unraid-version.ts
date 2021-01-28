@@ -15,15 +15,15 @@ const cache = new CacheManager('unraid:modules:get-unraid-version');
 
 interface Result extends CoreResult {
 	json: {
-		unraid: string
-	}
+		unraid: string;
+	};
 }
 
 /**
  * Unraid version string.
  * @returns The current version.
  */
-export const getUnraidVersion = async(context: CoreContext): Promise<Result> => {
+export const getUnraidVersion = async (context: CoreContext): Promise<Result> => {
 	const { user } = context;
 
 	// Check permissions

@@ -9,7 +9,7 @@ import { getShares, ensurePermission } from '../utils';
 /**
  * Get all shares.
  */
-export const getAllShares = async(context: CoreContext): Promise<CoreResult> => {
+export const getAllShares = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

@@ -9,7 +9,6 @@ import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
 import dotProp from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
-// @ts-ignore
 import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
 import { validateApiKeyFormat, loadState, validateApiKey } from './utils';
@@ -53,7 +52,7 @@ export class ApiManager extends EventEmitter {
 
 	/** Note: Keys expire by default after 365 days. */
 	private readonly keys = new MemoryCache<CacheItem>(Number(toMillisecond('1y')));
-	
+
 	private lock?: MutexInterface;
 	private async getLock() {
 		if (!this.lock) {
@@ -70,11 +69,11 @@ export class ApiManager extends EventEmitter {
 		const lock = await this.getLock();
 		try {
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
-			const apiKey = dotProp.get(file, 'remote.apikey') as string;
+			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				coreLogger.debug(`%s was updated but the API key didn't change`, filePath);
+				coreLogger.debug('%s was updated but the API key didn\'t change', filePath);
 				return;
 			}
 
@@ -136,12 +135,12 @@ export class ApiManager extends EventEmitter {
 
 	/**
 	 * Replace a key.
-	 * 
+	 *
 	 * Note: This will bump the expiration by the original length.
 	 */
 	replace(name: string, key: string, options: KeyOptions) {
 		// Delete existing key
-		// @ts-ignore
+		// @ts-expect-error
 		this.keys.items[name] = null;
 
 		// Add new key
@@ -269,7 +268,7 @@ export class ApiManager extends EventEmitter {
 			.filter(([, item]) => this.isValid(item.value.key))
 			.map(([name, item]) => ({
 				name,
-				// @ts-ignore
+				// @ts-expect-error
 				key: item.value.key,
 				userId: item.value.userId,
 				expiresAt: item.expiresAt
@@ -288,7 +287,7 @@ export class ApiManager extends EventEmitter {
 
 		const keyObject = Object
 			.entries(this.keys.items)
-			// @ts-ignore
+			// @ts-expect-error
 			.find(([_, item]) => item.value.key === key);
 
 		if (!keyObject) {

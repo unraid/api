@@ -22,7 +22,7 @@ interface Disk extends si.Systeminformation.DiskLayoutData {
 	partitions: Partition[];
 }
 
-const getTemperature = async(disk: si.Systeminformation.DiskLayoutData): Promise<number> => {
+const getTemperature = async (disk: si.Systeminformation.DiskLayoutData): Promise<number> => {
 	const stdout = await execa('smartctl', ['-A', disk.device]).then(({ stdout }) => stdout).catch(() => '');
 	const lines = stdout.split('\n');
 	const header = lines.find(line => line.startsWith('ID#'))!;
@@ -43,7 +43,7 @@ const getTemperature = async(disk: si.Systeminformation.DiskLayoutData): Promise
 	return Number.parseInt(line[line.length - 1], 10);
 };
 
-const parseDisk = async(disk: si.Systeminformation.DiskLayoutData, partitionsToParse: si.Systeminformation.BlockDevicesData[]): Promise<Disk> => {
+const parseDisk = async (disk: si.Systeminformation.DiskLayoutData, partitionsToParse: si.Systeminformation.BlockDevicesData[]): Promise<Disk> => {
 	const partitions = partitionsToParse
 		// Only get partitions from this disk
 		.filter(partition => partition.name.startsWith(disk.device.split('/dev/')[1]))
@@ -70,7 +70,7 @@ interface Result extends CoreResult {
 /**
  * Get all disks.
  */
-export const getDisks = async(context: CoreContext): Promise<Result> => {
+export const getDisks = async (context: CoreContext): Promise<Result> => {
 	const { user } = context;
 
 	// Check permissions

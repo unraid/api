@@ -11,9 +11,8 @@ type Mutation = 'CREATED' | 'UPDATED' | 'DELETED';
 
 export class State {
 	channel?: string;
-	_data?: {
-		[key: string]: any;
-	};
+	_data?: Record<string, any>;
+
 	lastUpdated: Date;
 
 	constructor() {
@@ -42,7 +41,9 @@ export class State {
 		const channel = this.channel;
 
 		// Bail since we have no channel to post to
-		if (!channel) return;
+		if (!channel) {
+			return;
+		}
 
 		// Update channel with new state
 		bus.emit(channel, {

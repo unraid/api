@@ -10,7 +10,7 @@ export type NotifierLevel = 'info' | 'error' | 'debug';
 
 export interface NotifierOptions {
 	level: NotifierLevel;
-	helpers?: object;
+	helpers?: Record<string, unknown>;
 	template?: string;
 }
 

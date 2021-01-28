@@ -40,7 +40,7 @@ interface Context extends CoreContext {
  * @param {string} context.params.name
  * @returns {Core~Result} The API key, the user who owns the key, when the key expires and the scopes the key can use.
  */
-export const getApikey = async(context: Context): Promise<Result> => {
+export const getApikey = async (context: Context): Promise<Result> => {
 	const { params, user } = context;
 	const { name } = params;
 
@@ -76,7 +76,7 @@ export const getApikey = async(context: Context): Promise<Result> => {
 	const apiKey = apiManager.getKey(name)?.key;
 
 	if (!apiKey) {
-		throw new AppError(`A key under this name hasn't been issued or it has expired.`);
+		throw new AppError('A key under this name hasn\'t been issued or it has expired.');
 	}
 
 	return {

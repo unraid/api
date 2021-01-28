@@ -134,6 +134,7 @@
     "bundle-dependencies": "^1.0.2",
     "cpx": "1.5.0",
     "cz-conventional-changelog": "3.3.0",
+    "eslint": "^7.18.0",
     "husky": "4.3.8",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^4.0.2",

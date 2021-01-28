@@ -14,7 +14,7 @@ const cache = new CacheManager('unraid:modules:get-system-versions');
  * Software versions.
  * @returns Versions of all the core software.
  */
-export const getSoftwareVersions = async(context: CoreContext): Promise<CoreResult> => {
+export const getSoftwareVersions = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

@@ -92,7 +92,7 @@ class SmbSec extends ArrayState {
 		return data;
 	}
 
-	find(query?: {}): any[] {
+	find(query?: Record<string, unknown>): any[] {
 		return super.find(query);
 	}
 }

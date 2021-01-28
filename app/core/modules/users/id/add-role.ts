@@ -18,7 +18,7 @@ interface Context extends CoreContext {
 /**
  * Add role to user.
  */
-export const addRole = async(context: Context): Promise<CoreResult> => {
+export const addRole = async (context: Context): Promise<CoreResult> => {
 	const { user, params } = context;
 
 	// Check permissions

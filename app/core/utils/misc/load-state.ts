@@ -16,7 +16,7 @@ export const loadState = <T>(filePath: string): T => {
 		type: 'ini'
 	});
 
-	// @ts-ignore
+	// @ts-expect-error
 	return camelCaseKeys(config, {
 		deep: true
 	});

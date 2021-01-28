@@ -188,7 +188,7 @@ export class PluginManager {
 		}
 
 		// Initialize plugin
-		await Promise.resolve(plugin.init(context, core)).then(async() => {
+		await Promise.resolve(plugin.init(context, core)).then(async () => {
 			coreLogger.debug('Plugin "%s" loaded successfully.', pluginName);
 
 			// Add to manager

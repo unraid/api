@@ -9,7 +9,7 @@ import { parseDomains, getHypervisor, ensurePermission } from '../../utils';
 /**
  * Get vm domains.
  */
-export const getDomains = async(context: CoreContext): Promise<CoreResult> => {
+export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

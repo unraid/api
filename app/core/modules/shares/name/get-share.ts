@@ -21,7 +21,7 @@ interface Result extends CoreResult {
 /**
  * Get single share.
  */
-export const getShare = async function(context: Context): Promise<Result> {
+export const getShare = async function (context: Context): Promise<Result> {
 	const { params, user } = context;
 	const { name } = params;
 

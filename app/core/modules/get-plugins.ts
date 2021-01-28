@@ -16,7 +16,7 @@ interface Context extends CoreContext {
 }
 
 interface Result extends CoreResult {
-	json: Plugin[]
+	json: Plugin[];
 }
 
 export const getPlugins = (context: Readonly<Context>): Result => {

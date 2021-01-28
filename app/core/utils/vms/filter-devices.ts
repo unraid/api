@@ -18,8 +18,8 @@ interface Device {
  * @param devices Devices to be checked.
  * @returns Processed devices.
  */
-export const filterDevices = (devices: Device[]): Promise<Device[]> => {
-	return asyncMap(devices, async(device: Device) => {
+export const filterDevices = async (devices: Device[]): Promise<Device[]> => {
+	return asyncMap(devices, async (device: Device) => {
 		// Don't run if we don't have the udevadm command available
 		if (!commandExistsSync('udevadm')) {
 			return device;

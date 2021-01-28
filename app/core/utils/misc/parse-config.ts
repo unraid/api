@@ -32,7 +32,7 @@ const getPath = (filePath?: string) => {
 	}
 
 	try {
-		// @ts-ignore
+		// @ts-expect-error
 		return paths.get(filePath) ?? filePath;
 	} catch {
 		return filePath;
@@ -54,15 +54,13 @@ const getPath = (filePath?: string) => {
  * }
  * ```
  */
-const fixObjectArrays = (object: {
-	[key: string]: any;
-}) => {
+const fixObjectArrays = (object: Record<string, any>) => {
 	// An object of arrays for keys that end in `:${number}`
 	const temporaryArrays = {};
 
 	// An object without any array items
 	const filteredObject = filterObject(object, (key, value) => {
-		const [_, name, index] = [...((key as string).match(/(.*):(\d+$)/) ?? [])];
+		const [_, name, index] = [...((key).match(/(.*):(\d+$)/) ?? [])];
 		if (!name || !index) {
 			return true;
 		}
@@ -100,7 +98,7 @@ export const parseConfig = <T>(options: Options): T => {
 	}
 
 	// Parse file
-	let data: { [key: string]: any };
+	let data: Record<string, any>;
 	if (filePath) {
 		data = multiIniRead(filePath, {
 			// eslint-disable-next-line camelcase
@@ -131,7 +129,7 @@ export const parseConfig = <T>(options: Options): T => {
 	);
 
 	// Convert all keys to camel case
-	// @ts-ignore
+	// @ts-expect-error
 	return camelCaseKeys(result, {
 		deep: true
 	});

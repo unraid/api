@@ -40,7 +40,7 @@ const loadingLogger = (namespace: string): void => {
 /**
  * Register state paths.
  */
-const loadStatePaths = async(): Promise<void> => {
+const loadStatePaths = async (): Promise<void> => {
 	const statesCwd = paths.get('states')!;
 	const cwd = path.join(__dirname, 'states');
 
@@ -52,10 +52,10 @@ const loadStatePaths = async(): Promise<void> => {
 		const filePath = `${path.join(statesCwd, state)}.ini`;
 
 		// Don't override already set paths
-		// @ts-ignore
+		// @ts-expect-error
 		if (!paths.has(name)) {
 			// ['state:Users', '/usr/local/emhttp/state/users.ini']
-			// @ts-ignore
+			// @ts-expect-error
 			paths.set(name, filePath);
 		}
 	});
@@ -64,7 +64,7 @@ const loadStatePaths = async(): Promise<void> => {
 /**
  * Register all plugins with PluginManager.
  */
-const loadPlugins = async(): Promise<void> => {
+const loadPlugins = async (): Promise<void> => {
 	// Bail in safe mode
 	if (config.get('safe-mode')) {
 		coreLogger.debug('No plugins have been loaded as you\'re in SAFE MODE');
@@ -114,7 +114,7 @@ const loadPlugins = async(): Promise<void> => {
 /**
  * Start all watchers.
  */
-const loadWatchers = async(): Promise<void> => {
+const loadWatchers = async (): Promise<void> => {
 	if (config.get('safe-mode')) {
 		coreLogger.debug('Skipping loading watchers');
 		return;
@@ -136,7 +136,7 @@ const loadWatchers = async(): Promise<void> => {
  * @async
  * @private
  */
-const loadApiKeys = async(): Promise<void> => {
+const loadApiKeys = async (): Promise<void> => {
 	// @TODO: For each key in a json file load them
 };
 
@@ -145,7 +145,7 @@ const loadApiKeys = async(): Promise<void> => {
  *
  * @param endpoints
  */
-const connectToNchanEndpoints = async(endpoints: string[]): Promise<void> => {
+const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
 	coreLogger.debug('Connected to nchan, setting-up endpoints.');
 	const connections = endpoints.map(async endpoint => subscribeToNchanEndpoint(endpoint));
 	await Promise.all(connections);
@@ -158,7 +158,7 @@ const connectToNchanEndpoints = async(endpoints: string[]): Promise<void> => {
  * @async
  * @private
  */
-const loadNchan = async(): Promise<void> => {
+const loadNchan = async (): Promise<void> => {
 	const endpoints = ['devs', 'disks', 'sec', 'sec_nfs', 'shares', 'users', 'var'];
 
 	coreLogger.debug('Trying to connect to nchan');
@@ -169,7 +169,7 @@ const loadNchan = async(): Promise<void> => {
 		interval: ONE_SECOND
 	})
 		// Once connected open a connection to each known endpoint
-		.then(async() => connectToNchanEndpoints(endpoints))
+		.then(async () => connectToNchanEndpoints(endpoints))
 		.catch(error => {
 			// Nchan is likely unreachable
 			if (error.message.includes('Promise timed out')) {
@@ -196,7 +196,7 @@ const loaders = {
  *
  * @name core.load
  */
-const load = async(): Promise<void> => {
+const load = async (): Promise<void> => {
 	await loadStatePaths();
 	await loadPlugins();
 	await loadWatchers();
@@ -214,7 +214,7 @@ const load = async(): Promise<void> => {
  * @name core.loadServer
  * @param name The name of the server instance to load.
  */
-export const loadServer = async(name: string, server: typeof Server): Promise<void> => {
+export const loadServer = async (name: string, server: typeof Server): Promise<void> => {
 	// Set process title
 	process.title = name;
 
@@ -232,7 +232,7 @@ export const loadServer = async(name: string, server: typeof Server): Promise<vo
 	});
 
 	// On process exit
-	exitHook(async() => {
+	exitHook(async () => {
 		// Only do this when there's a TTY present
 		if (process.stdout.isTTY) {
 			// Ensure we go back to the start of the line
@@ -241,7 +241,7 @@ export const loadServer = async(name: string, server: typeof Server): Promise<vo
 		}
 
 		coreLogger.debug('Stopping server');
-	
+
 		// Stop the server
 		await server.stop();
 	});

@@ -8,7 +8,7 @@ import { AppError, NotImplementedError } from '../errors';
 import { sharesState, slotsState } from '../states';
 import { ensurePermission } from '../utils';
 
-export const addShare = async(context: CoreContext): Promise<CoreResult> => {
+export const addShare = async (context: CoreContext): Promise<CoreResult> => {
 	const { user, data = {} } = context;
 
 	// Check permissions

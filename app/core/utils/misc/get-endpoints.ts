@@ -17,16 +17,16 @@ export const getEndpoints = (app: Express) => {
 
 	return deDeupedEndpoints.map(endpoint => {
 		const flattenedMethods: string[] = flatten([
-			// @ts-ignore
+			// @ts-expect-error
 			endpoint.methods,
-			// @ts-ignore
+			// @ts-expect-error
 			endpoints.filter(({ path }) => path === endpoint.path).map(({ methods }) => methods)
 		]);
 
 		const methods = flattenedMethods.filter((item, pos, self) => self.indexOf(item) === pos);
 
 		return {
-			// @ts-ignore
+			// @ts-expect-error
 			...endpoint,
 			methods
 		};

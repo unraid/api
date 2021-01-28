@@ -16,7 +16,7 @@ export const applyJitter = (value: number) => {
 };
 
 export const backoff = (attempt: number, maxDelay: number, multiplier: number) => {
-	const delay = applyJitter((Math.pow(2.0, attempt) - 1.0) * 0.5);
+	const delay = applyJitter(Math.pow(2.0, attempt - 1.0) * 0.5);
 	return Math.round(Math.min(delay * multiplier, maxDelay));
 };
 

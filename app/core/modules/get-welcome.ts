@@ -11,7 +11,7 @@ import { getUnraidVersion } from '.';
  * Get welcome message.
  * @returns Welcomes a user.
  */
-export const getWelcome = async(context: CoreContext): Promise<CoreResult> => {
+export const getWelcome = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Bail if the user doesn't have permission

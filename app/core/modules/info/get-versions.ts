@@ -9,7 +9,7 @@ import { CoreResult, CoreContext } from '../../types';
 /**
  * Get all version info.
  */
-export const getVersions = async function(context: CoreContext): Promise<CoreResult> {
+export const getVersions = async function (context: CoreContext): Promise<CoreResult> {
 	const unraidVersion = await getUnraidVersion(context).then(result => result.json);
 	const softwareVersions = await getSoftwareVersions(context).then(result => result.json);
 

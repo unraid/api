@@ -16,7 +16,7 @@ interface Options {
 /**
  * Check if the username and password match a htpasswd file
  */
-export const ensureAuth = async(options: Options) => {
+export const ensureAuth = async (options: Options) => {
 	const { username, password, file } = options;
 
 	// `valid` will be true if and only if

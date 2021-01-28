@@ -1,8 +1,8 @@
 import { ApiKeyError } from '../../errors';
 
 export const validateApiKeyFormat = (apiKey: string) => {
-    const key = `${apiKey}`.trim();
-    const length = key.length;
+	const key = `${apiKey}`.trim();
+	const length = key.length;
 
 	// Bail if key is missing
 	if (length === 0) {
@@ -25,5 +25,5 @@ export const validateApiKeyFormat = (apiKey: string) => {
 	// For example "XXXXXXXXXXXXXXXXXXX"
 	if (/^(.)\1+$/.test(key)) {
 		throw new ApiKeyError(`Key is same char repeated, ${key}`);
-    }
-}
+	}
+};

@@ -11,7 +11,7 @@ import { getArray } from '..';
 /**
  * Add a disk to the array.
  */
-export const addDiskToArray = async function(context: CoreContext): Promise<CoreResult> {
+export const addDiskToArray = async function (context: CoreContext): Promise<CoreResult> {
 	const { data = {}, user } = context;
 
 	// Check permissions

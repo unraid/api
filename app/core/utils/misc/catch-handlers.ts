@@ -7,7 +7,7 @@ import { paths } from '../../paths';
 import { AppError } from '../../errors';
 
 interface DockerError extends NodeJS.ErrnoException {
-	address: string
+	address: string;
 }
 
 /**

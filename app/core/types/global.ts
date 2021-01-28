@@ -5,13 +5,9 @@ import { User } from './states';
  */
 export type CommaSeparatedString = string;
 
-export interface LooseObject {
-	[key: string]: any;
-}
+export type LooseObject = Record<string, any>;
 
-export interface LooseStringObject {
-	[key: string]: string;
-}
+export type LooseStringObject = Record<string, string>;
 
 /**
  * Context object
@@ -20,9 +16,9 @@ export interface LooseStringObject {
  * @property param Params object.
  */
 export interface CoreContext {
-	readonly query?: Readonly<{ [key: string]: any }>;
-	readonly data?: Readonly<{ [key: string]: any }>;
-	readonly params?: Readonly<{ [key: string]: string }>;
+	readonly query?: Readonly<Record<string, any>>;
+	readonly data?: Readonly<Record<string, any>>;
+	readonly params?: Readonly<Record<string, string>>;
 	readonly user: Readonly<User>;
 }
 
@@ -30,7 +26,7 @@ export interface CoreContext {
  * Result object
  */
 export interface CoreResult {
-	json?: {};
+	json?: Record<string, unknown>;
 	text?: string;
 	html?: string;
 }

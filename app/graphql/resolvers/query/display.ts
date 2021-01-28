@@ -73,77 +73,77 @@ const states = {
 };
 
 export default async () => {
-    const dynamixBasePath = paths.get('dynamix-base')!;
-    const configFilePath = join(dynamixBasePath, 'case-model.cfg');
-    const customImageFilePath = join(dynamixBasePath, 'case-model.png');
+	const dynamixBasePath = paths.get('dynamix-base')!;
+	const configFilePath = join(dynamixBasePath, 'case-model.cfg');
+	const customImageFilePath = join(dynamixBasePath, 'case-model.png');
 
-    // If the config file doesn't exist then it's a new OS install
-    // Default to "default"
-    if (!existsSync(configFilePath)) {
-        return { case: states.default };
-    }
+	// If the config file doesn't exist then it's a new OS install
+	// Default to "default"
+	if (!existsSync(configFilePath)) {
+		return { case: states.default };
+	}
 
-    // Attempt to get case from file
-    const serverCase = await fs.readFile(configFilePath)
-        .then(buffer => buffer.toString().split('\n')[0])
-        .catch(() => 'error_reading_config_file');
+	// Attempt to get case from file
+	const serverCase = await fs.readFile(configFilePath)
+		.then(buffer => buffer.toString().split('\n')[0])
+		.catch(() => 'error_reading_config_file');
 
-    // Config file can't be read, maybe a permissions issue?
-    if (serverCase === 'error_reading_config_file') {
-        return { case: states.couldNotReadConfigFile };
-    }
+	// Config file can't be read, maybe a permissions issue?
+	if (serverCase === 'error_reading_config_file') {
+		return { case: states.couldNotReadConfigFile };
+	}
 
-    // Custom icon
-    if (serverCase.includes('.')) {
-        // Ensure image exists
-        if (!existsSync(customImageFilePath)) {
-            return { case: states.imageMissing };
-        }
+	// Custom icon
+	if (serverCase.includes('.')) {
+		// Ensure image exists
+		if (!existsSync(customImageFilePath)) {
+			return { case: states.imageMissing };
+		}
 
-        // Ensure we're within size limits
-        if (isOverFileSizeLimit(customImageFilePath)) {
-            graphqlLogger.debug('"custom-case.png" is too big.');
-            return { case: states.imageTooBig };
-        }
+		// Ensure we're within size limits
+		if (isOverFileSizeLimit(customImageFilePath)) {
+			graphqlLogger.debug('"custom-case.png" is too big.');
+			return { case: states.imageTooBig };
+		}
 
-        try {
-            // Get image buffer
-            const fileBuffer = await fs.readFile(customImageFilePath);
+		try {
+			// Get image buffer
+			const fileBuffer = await fs.readFile(customImageFilePath);
 
-            // Likely not an actual image
-            // 73 bytes is close to the smallest we can get https://garethrees.org/2007/11/14/pngcrush/
-            if (fileBuffer.length <= 25) {
-                return {
-                    case: states.couldNotReadImage
-                }
-            }
+			// Likely not an actual image
+			// 73 bytes is close to the smallest we can get https://garethrees.org/2007/11/14/pngcrush/
+			if (fileBuffer.length <= 25) {
+				return {
+					case: states.couldNotReadImage
+				};
+			}
 
-            return {
-                case: {
-                    ...states.custom,
-                    base64: fileBuffer.toString('base64'),
-                    url: serverCase
-                }
-            };
-        } catch (error) {
-            return {
-                case: states.couldNotReadImage
-            }
-        }
-    }
+			return {
+				case: {
+					...states.custom,
+					base64: fileBuffer.toString('base64'),
+					url: serverCase
+				}
+			};
+		} catch (error) {
+			return {
+				case: states.couldNotReadImage
+			};
+		}
+	}
 
-    // Blank cfg file?
-    if (serverCase.trim().length === 0) {
-        return {
-            case: states.default
-        };
-    }
+	// Blank cfg file?
+	if (serverCase.trim().length === 0) {
+		return {
+			case: states.default
+		};
+	}
 
-    // Non-custom icon
-    return {
-        case: {
-            ...states.default,
-            icon: serverCase
-        }
-    };
+	// Non-custom icon
+	return {
+		case: {
+			...states.default,
+			icon: serverCase
+		}
+	};
 };

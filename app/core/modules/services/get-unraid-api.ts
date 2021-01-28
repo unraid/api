@@ -9,13 +9,13 @@ import { CoreContext, CoreResult } from '../../types';
 const namespace = 'unraid-api';
 
 interface Result extends CoreResult {
-	json: NodeService
+	json: NodeService;
 }
 
 /**
  * Get Unraid api service info.
  */
-export const getUnraidApiService = async(context: CoreContext): Promise<Result> => {
+export const getUnraidApiService = async (context: CoreContext): Promise<Result> => {
 	const service = await getNodeService(context.user, namespace);
 	return {
 		text: `Service: ${JSON.stringify(service, null, 2)}`,

@@ -9,6 +9,6 @@ import { Domain } from '../../types';
 /**
  * Parse domains.
  */
-export const parseDomains = async(type: DomainLookupType, domains: string[]): Promise<Domain[]> => {
-	return Promise.all(domains.map(domain => parseDomain(type, domain)));
+export const parseDomains = async (type: DomainLookupType, domains: string[]): Promise<Domain[]> => {
+	return Promise.all(domains.map(async domain => parseDomain(type, domain)));
 };

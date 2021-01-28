@@ -13,7 +13,7 @@ import { ensurePermission } from '../../utils';
  * @memberof Core
  * @module info/get-os
  */
-export const getOs = async function(context: CoreContext): Promise<CoreResult> {
+export const getOs = async function (context: CoreContext): Promise<CoreResult> {
 	const { user } = context;
 
 	// Check permissions

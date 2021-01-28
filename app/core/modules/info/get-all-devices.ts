@@ -88,7 +88,7 @@ const systemPciDevices = async (): Promise<PciDevice[]> => {
 	 */
 	const processedDevices = await filterDevices(filteredDevices).then(devices => {
 		return devices
-			// @ts-ignore
+			// @ts-expect-error
 			.map(addDeviceClass)
 			.map(device => {
 				// Attempt to get the current kernel-bound driver for this pci device
@@ -140,7 +140,7 @@ const systemAudioDevices = systemPciDevices().then(devices => {
  * System usb devices.
  * @returns Array of USB devices.
  */
-const getSystemUSBDevices = async(): Promise<any[]> => {
+const getSystemUSBDevices = async (): Promise<any[]> => {
 	// Get a list of all usb hubs so we can filter the allowed/disallowed
 	const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true }).then(({ stdout }) => {
 		return stdout.split('\n').map(line => {
@@ -153,7 +153,7 @@ const getSystemUSBDevices = async(): Promise<any[]> => {
 	const filterBootDrive = (device: Readonly<PciDevice>): boolean => varState?.data?.flashGuid !== device.guid;
 
 	// Remove usb hubs
-	// @ts-ignore
+	// @ts-expect-error
 	const filterUsbHubs = (device: Readonly<PciDevice>): boolean => !usbHubs.includes(device.id);
 
 	// Clean up the name
@@ -165,7 +165,7 @@ const getSystemUSBDevices = async(): Promise<any[]> => {
 		};
 	};
 
-	const parseDeviceLine = (line: Readonly<string>): { value: string, string: string } => {
+	const parseDeviceLine = (line: Readonly<string>): { value: string; string: string } => {
 		const emptyLine = { value: '', string: '' };
 
 		// If the line is blank return nothing
@@ -231,7 +231,7 @@ const getSystemUSBDevices = async(): Promise<any[]> => {
 	}) || [];
 
 	// Get all usb devices
-	const usbDevices = await execa('lsusb').then(async({ stdout }) => {
+	const usbDevices = await execa('lsusb').then(async ({ stdout }) => {
 		return parseUsbDevices(stdout)
 			.map(parseDevice)
 			.filter(filterBootDrive)
@@ -245,7 +245,7 @@ const getSystemUSBDevices = async(): Promise<any[]> => {
 /**
  * Get device info.
  */
-export const getAllDevices = async function(context: Readonly<CoreContext>): Promise<CoreResult> {
+export const getAllDevices = async function (context: Readonly<CoreContext>): Promise<CoreResult> {
 	const { user } = context;
 
 	// Check permissions

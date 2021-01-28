@@ -18,7 +18,7 @@ const getSubEndpoint = () => {
 	return `http://localhost:${httpPort}/sub`;
 };
 
-export const isNchanUp = async() => {
+export const isNchanUp = async () => {
 	const isUp = await fetch(`${getSubEndpoint()}/non-existant`, {
 		method: 'HEAD'
 	})
@@ -50,10 +50,10 @@ const endpointToStateMapping = {
 	var: states.varState
 };
 
-const subscribe = async(endpoint: string) => {
-	await sleep(1000).then(async() => {
+const subscribe = async (endpoint: string) => {
+	await sleep(1000).then(async () => {
 		debugTimer(`subscribe(${endpoint})`);
-		const response = await fetch(`${getSubEndpoint()}/${endpoint}`).catch(async() => {
+		const response = await fetch(`${getSubEndpoint()}/${endpoint}`).catch(async () => {
 			// If we throw then let's check if nchan is down
 			// or if it's an actual error
 			const isUp = await isNchanUp();
@@ -109,7 +109,7 @@ const subscribe = async(endpoint: string) => {
 	});
 };
 
-export const subscribeToNchanEndpoint = async(endpoint: string) => {
+export const subscribeToNchanEndpoint = async (endpoint: string) => {
 	if (!Object.keys(endpointToStateMapping).includes(endpoint)) {
 		throw new AppError(`Invalid nchan endpoint "${endpoint}".`);
 	}

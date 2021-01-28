@@ -1,13 +1,13 @@
 import { config } from './core/config';
 
 const internalWsAddress = () => {
-	const port = config.get('port');
-	return isNaN(port as any)
+	const port = config.get('port') as number | string;
+	return isNaN(port as any) ?
 		// Unix Socket
-		? `ws+unix:${port}`
+		`ws+unix:${port}` :
 		// Numbered port
-		: `ws://localhost:${port}`;
-}
+		`ws://localhost:${port}`;
+};
 
 /**
  * One second in milliseconds.

@@ -7,7 +7,7 @@ import camelCaseKeys from 'camelcase-keys';
 import { docker, catchHandlers, ensurePermission } from '../../utils';
 import { CoreContext, CoreResult } from '../../types';
 
-export const getDockerNetworks = async(context: CoreContext): Promise<CoreResult> => {
+export const getDockerNetworks = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Check permissions

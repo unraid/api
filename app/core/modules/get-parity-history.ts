@@ -15,7 +15,7 @@ const Table = require('cli-table');
  * Get parity history.
  * @returns  All parity checks with their respective date, duration, speed, status and errors.
  */
-export const getParityHistory = async(context: CoreContext): Promise<CoreResult> => {
+export const getParityHistory = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;
 
 	// Bail if the user doesn't have permission

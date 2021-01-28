@@ -16,7 +16,7 @@ interface Context extends CoreContext {
 /**
  * Get a single disk.
  */
-export const getDisk = async(context: Context, Disks): Promise<CoreResult> => {
+export const getDisk = async (context: Context, Disks): Promise<CoreResult> => {
 	const { params, user } = context;
 
 	// Check permissions

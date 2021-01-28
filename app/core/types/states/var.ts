@@ -163,7 +163,7 @@ export interface Var {
 	/** Which mode is smb running in? active-directory | workgroup */
 	shareSmbMode: string;
 	shareUser: string;
-	// shareUserExclude
+	// ShareUserExclude
 	shutdownTimeout: number;
 	/** How long until emhttpd should spin down the data drives in your array. */
 	spindownDelay: number;

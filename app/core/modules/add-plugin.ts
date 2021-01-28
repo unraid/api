@@ -25,7 +25,7 @@ interface Context extends CoreContext {
  * Install plugin.
  * @returns The newly installed plugin.
  */
-export const addPlugin = async(context: Context): Promise<CoreResult> => {
+export const addPlugin = async (context: Context): Promise<CoreResult> => {
 	// Check permissions
 	ensurePermission(context.user, {
 		resource: 'plugin',

@@ -23,7 +23,7 @@ const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
 
 const updatePubsub = async () => {
-	pubsub.publish('display', {
+	await pubsub.publish('display', {
 		display: await display()
 	});
 };
@@ -65,10 +65,10 @@ if (process.env.ENVIRONMENT !== 'production') {
 		if (!app.get('x-environment')) {
 			app.set('x-environment', process.env.ENVIRONMENT);
 		}
-	
+
 		// Update header with current environment
 		res.set('x-environment', app.get('x-environment'));
-	
+
 		next();
 	});
 }
@@ -76,7 +76,7 @@ if (process.env.ENVIRONMENT !== 'production') {
 // Mount graph endpoint
 // @ts-expect-error
 const graphApp = new ApolloServer(graphql);
-graphApp.applyMiddleware({app});
+graphApp.applyMiddleware({ app });
 
 // List all endpoints at start of server
 app.get('/', (_, res) => {
@@ -84,7 +84,7 @@ app.get('/', (_, res) => {
 });
 
 // Handle errors by logging them and returning a 500.
-// eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 app.use((error, _, res, __) => {
 	log.error(error);
 	if (error.stack) {
@@ -101,7 +101,7 @@ const stoppableServer = stoppable(httpServer);
 if (isNaN(parseInt(port, 10))) {
 	stoppableServer.on('listening', () => {
 		// Set permissions
-		return fs.chmodSync(port, 660);
+		fs.chmodSync(port, 660);
 	});
 
 	stoppableServer.on('error', async (error: NodeJS.ErrnoException) => {
@@ -109,7 +109,7 @@ if (isNaN(parseInt(port, 10))) {
 			coreLogger.error(error);
 			throw error;
 		}
-	
+
 		// Check if port is unix socket or numbered port
 		// If it's a numbered port then throw
 		if (!isNaN(parseInt(port, 10))) {
@@ -118,7 +118,7 @@ if (isNaN(parseInt(port, 10))) {
 
 		// Check if the process that made this file is still alive
 		const pid = await execa.command(`lsof -t ${port}`)
-            .then(output => {
+			.then(output => {
 				const pids = cleanStdout(output).split('\n');
 				return pids[0];
 			}).catch(() => undefined);
@@ -134,7 +134,7 @@ if (isNaN(parseInt(port, 10))) {
 
 		// Stop the server
 		stoppableServer.close();
-	
+
 		// Restart the server
 		net.connect({
 			path: port
@@ -150,13 +150,13 @@ if (isNaN(parseInt(port, 10))) {
 
 			if (error.code !== 'ECONNREFUSED') {
 				log.error(error);
-	
+
 				process.exitCode = 1;
 			}
-	
+
 			// Not in use: delete it and re-listen
 			fs.unlinkSync(port);
-	
+
 			setTimeout(() => {
 				stoppableServer.listen(port);
 			}, 1000);
@@ -210,18 +210,19 @@ export const server = {
 				connectedAtleastOnce = true;
 				await sleep(1000);
 			}
+
 			await mothership.connect();
 		});
 
 		// Start http server
 		return stoppableServer.listen(port, () => {
 			// Downgrade process user to owner of this file
-			return fs.stat(__filename, (error, stats) => {
+			fs.stat(__filename, (error, stats) => {
 				if (error) {
 					throw error;
 				}
 
-				return process.setuid(stats.uid);
+				process.setuid(stats.uid);
 			});
 		});
 	},
@@ -241,7 +242,8 @@ export const server = {
 
 		// Run callback
 		if (callback) {
-			return callback();
+			callback();
+			return;
 		}
 
 		// Gracefully exit

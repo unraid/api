@@ -27,7 +27,7 @@ interface Result extends CoreResult {
  *
  * NOTE: If the name or key is missing they'll be generated.
  */
-export const addApikey = async(context: Context): Promise<Result | void> => {
+export const addApikey = async (context: Context): Promise<Result | void> => {
 	ensurePermission(context.user, {
 		resource: 'apikey',
 		action: 'create',

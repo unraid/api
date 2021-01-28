@@ -9,13 +9,13 @@ import { getServers } from '../../schema/utils';
 
 const { ensurePermission } = utils;
 
-export default (_: unknown, __: unknown, context: Context) => {
-    ensurePermission(context.user, {
-        resource: 'servers',
-        action: 'read',
-        possession: 'any'
-    });
-    
-    // All servers
-    return getServers().catch(() => []);
+export default async (_: unknown, __: unknown, context: Context) => {
+	ensurePermission(context.user, {
+		resource: 'servers',
+		action: 'read',
+		possession: 'any'
+	});
+
+	// All servers
+	return getServers().catch(() => []);
 };

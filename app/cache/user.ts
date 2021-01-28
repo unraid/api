@@ -7,23 +7,23 @@ type IpAddress = string;
 type Status = 'online' | 'offline';
 
 export interface Owner {
-    username: string;
-    url: URL;
-    avatar: URL;
-};
+	username: string;
+	url: URL;
+	avatar: URL;
+}
 
 export interface CachedServer {
-    owner: Owner;
-    guid: string;
-    apikey: string;
-    name: string;
-    status: Status;
-    wanip: IpAddress;
-    lanip: IpAddress;
-    localurl: URL;
-    remoteurl: string
-};
+	owner: Owner;
+	guid: string;
+	apikey: string;
+	name: string;
+	status: Status;
+	wanip: IpAddress;
+	lanip: IpAddress;
+	localurl: URL;
+	remoteurl: string;
+}
 
 export interface CachedServers {
-    servers: CachedServer[]
-};
+	servers: CachedServer[];
+}

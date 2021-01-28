@@ -18,7 +18,7 @@ interface Context extends CoreContext {
 /**
  * Delete user account.
  */
-export const deleteUser = async(context: Context): Promise<CoreResult> => {
+export const deleteUser = async (context: Context): Promise<CoreResult> => {
 	// Check permissions
 	ensurePermission(context.user, {
 		resource: 'user',

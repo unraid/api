@@ -12,7 +12,7 @@ import { CoreResult, CoreContext } from '../types';
  *
  * @returns All apikeys with their respective `name`, `key` and `expiresAt`.
  */
-export const getApikeys = async function(context: CoreContext): Promise<CoreResult> {
+export const getApikeys = async function (context: CoreContext): Promise<CoreResult> {
 	const { user } = context;
 	const canReadAny = checkPermission(user, {
 		resource: 'apikey',

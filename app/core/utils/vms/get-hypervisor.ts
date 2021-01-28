@@ -10,7 +10,7 @@ import { AppError } from '../../errors';
 let libvirt;
 let client;
 
-export const getHypervisor = async() => {
+export const getHypervisor = async () => {
 	// Return client if it's already connected
 	if (client) {
 		return client;
