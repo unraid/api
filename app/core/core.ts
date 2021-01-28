@@ -243,7 +243,7 @@ export const loadServer = async (name: string, server: typeof Server): Promise<v
 		coreLogger.debug('Stopping server');
 
 		// Stop the server
-		await server.stop();
+		server.stop();
 	});
 };
 

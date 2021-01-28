@@ -7,9 +7,9 @@ import { AppError } from '../errors';
  * Announce to the local network via mDNS.
  */
 export const announce = async (): Promise<void> => {
-	const name = varState.data?.name;
-	const localTld = varState.data?.localTld;
-	const version = varState.data?.version;
+	const name: string = varState.data?.name;
+	const localTld: string = varState.data?.localTld;
+	const version: string = varState.data?.version;
 
 	if (!name || !localTld || !version) {
 		throw new AppError('Missing require fields to announce.');

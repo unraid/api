@@ -3,7 +3,7 @@ import { Mutex, MutexInterface } from 'async-mutex';
 import { ONE_SECOND, ONE_MINUTE } from '../consts';
 import { log } from '../core';
 import { AppError } from '../core/errors';
-import { sleep } from '../core/utils';
+import { isNodeError, sleep } from '../core/utils';
 import { backoff } from './utils';
 
 export interface WebSocketWithHeartBeat extends WebSocket {
@@ -52,7 +52,11 @@ export class CustomSocket {
 
 		// Connect right away
 		if (!options.lazy) {
-			this.connect();
+			this.connect().catch((error: unknown) => {
+				if (isNodeError(error)) {
+					log.error('Failed connecting with error %s', error.message);
+				}
+			});
 		}
 	}
 
@@ -83,19 +87,66 @@ export class CustomSocket {
 
 				// Reset connection attempts
 				customSocket.connectionAttempts = 0;
-			} catch (error) {
-				this.close(error.code.length === 4 ? error.code : `4${error.code}`, JSON.stringify({
-				    message: error.message ?? 'Internal Server Error'
-				}));
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code}`), JSON.stringify({
+						message: error.message ?? 'Internal Server Error'
+					}));
+				}
 			}
 		};
 	}
 
 	protected onDisconnect() {
+		const responses = {
+			// OK
+			4200: async () => {
+				// This is usually because the API key is updated
+				// Let's reset the reconnect count so we reconnect instantly
+				customSocket.connectionAttempts = 0;
+			},
+			// Unauthorized - Invalid/missing API key.
+			4401: async () => {
+				customSocket.logger.debug('Invalid API key, waiting for new key...');
+			},
+			// Rate limited
+			4429: async message => {
+				try {
+					let interval: NodeJS.Timeout | undefined;
+					const retryAfter = parseInt(message['Retry-After'], 10) || 30;
+					customSocket.logger.debug('Rate limited, retrying after %ss', retryAfter);
+
+					// Less than 30s
+					if (retryAfter <= 30) {
+						let seconds = retryAfter;
+
+						// Print retry once per second
+						interval = setInterval(() => {
+							seconds--;
+							customSocket.logger.debug('Retrying connection in %ss', seconds);
+						}, ONE_SECOND);
+					}
+
+					if (retryAfter >= 1) {
+						await sleep(ONE_SECOND * retryAfter);
+					}
+
+					if (interval) {
+						clearInterval(interval);
+					}
+				} catch {}
+			},
+			// Server Error
+			4500: async () => {
+				// Something went wrong on the connection
+				// Let's wait an extra bit
+				await sleep(ONE_SECOND * 5);
+			}
+		};
 		const customSocket = this;
 		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
 			try {
-				const message = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
+				const message: { message?: string } = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
 				customSocket.logger.debug('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
 
 				// Stop ws heartbeat
@@ -103,58 +154,17 @@ export class CustomSocket {
 					clearTimeout(this.heartbeat);
 				}
 
-				// Http 4XX error
-				if (code >= 4400 && code <= 4499) {
-					// Unauthorized - Invalid/missing API key.
-					if (code === 4401) {
-						customSocket.logger.debug('Invalid API key, waiting for new key...');
-						return;
-					}
-
-					// Rate limited
-					if (code === 4429) {
-						try {
-							let interval: NodeJS.Timeout | undefined;
-							const retryAfter = parseInt(message['Retry-After'], 10) || 30;
-							customSocket.logger.debug('Rate limited, retrying after %ss', retryAfter);
-
-							// Less than 30s
-							if (retryAfter <= 30) {
-								let seconds = retryAfter;
-
-								// Print retry once per second
-								interval = setInterval(() => {
-									seconds--;
-									customSocket.logger.debug('Retrying connection in %ss', seconds);
-								}, ONE_SECOND);
-							}
-
-							if (retryAfter >= 1) {
-								await sleep(ONE_SECOND * retryAfter);
-							}
-
-							if (interval) {
-								clearInterval(interval);
-							}
-						} catch {}
-					}
+				// Known status code
+				if (Object.keys(responses).includes(`${code}`)) {
+					await responses[code](message);
+				} else {
+					// Unknown status code
+					await responses[4500]();
 				}
-
-				// We likely closed this
-				// This is usually because the API key is updated
-				if (code === 4200) {
-					// Reconnect
-					customSocket.connect();
-					return;
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					customSocket.logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
 				}
-
-				// Something went wrong on the connection
-				// Let's wait an extra bit
-				if (code === 4500) {
-					await sleep(ONE_SECOND * 5);
-				}
-			} catch (error) {
-				customSocket.logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
 			}
 
 			try {
@@ -163,15 +173,17 @@ export class CustomSocket {
 
 				// Reconnect
 				await customSocket.connect(customSocket.connectionAttempts + 1);
-			} catch (error) {
-				customSocket.logger.debug('Failed reconnecting to %s reason="%s"', customSocket.uri, error.message);
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					customSocket.logger.debug('Failed reconnecting to %s reason="%s"', customSocket.uri, error.message);
+				}
 			}
 		};
 	}
 
 	public onMessage() {
 		const customSocket = this;
-		return async function (message: string, ...args) {
+		return async function (message: string, ...args: any[]) {
 			customSocket.logger.silly('message="%s" args="%s"', message, ...args);
 		};
 	}
@@ -217,8 +229,10 @@ export class CustomSocket {
 
 			// Failed replying as socket isn't open
 			this.logger.error('Failed replying to %s. state=%s message="%s"', client?.url, client.readyState, message);
-		} catch (error) {
-			this.logger.error('Failed replying to %s.', client?.url, error);
+		} catch (error: unknown) {
+			if (isNodeError(error, AppError)) {
+				this.logger.error('Failed replying to %s.', client?.url, error);
+			}
 		}
 	}
 
@@ -276,8 +290,10 @@ export class CustomSocket {
 
 			// Log we connected
 			this.logger.debug('Connected to %s', this.uri);
-		} catch (error) {
-			this.logger.error('Failed connecting reason=%s', error.message);
+		} catch (error: unknown) {
+			if (isNodeError(error, AppError)) {
+				this.logger.error('Failed connecting reason=%s', error.message);
+			}
 		} finally {
 			lock.release();
 		}
@@ -290,8 +306,10 @@ export class CustomSocket {
 				// 4200 === ok
 				this.connection.close(4200);
 			}
-		} catch (error) {
-			this.logger.error('Failed disconnecting reason=%s', error.message);
+		} catch (error: unknown) {
+			if (isNodeError(error, AppError)) {
+				this.logger.error('Failed disconnecting reason=%s', error.message);
+			}
 		} finally {
 			lock.release();
 		}

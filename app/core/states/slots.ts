@@ -70,8 +70,8 @@ const parse = (state: SlotIni[]) => {
  * Slots
  */
 class Slots extends ArrayState {
-	public channel = 'slots';
 	private static instance: Slots;
+	public channel = 'slots';
 
 	constructor() {
 		super();

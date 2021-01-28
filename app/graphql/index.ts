@@ -19,6 +19,7 @@ import { typeDefs } from './schema';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
+import { isNodeError } from '../core/utils';
 
 const baseTypes = [gql`
 	scalar JSON
@@ -198,10 +199,12 @@ class FuncDirective extends SchemaDirectiveVisitor {
 				} else {
 					func = getCoreModule(moduleName);
 				}
-			} catch (error) {
-				// Rethrow clean error message about module being missing
-				if (error.code === 'MODULE_NOT_FOUND') {
-					throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					// Rethrow clean error message about module being missing
+					if (error.code === 'MODULE_NOT_FOUND') {
+						throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+					}
 				}
 
 				// In production let's just throw an internal error
@@ -389,7 +392,7 @@ export const graphql = {
 					user,
 					websocketId
 				}); return;
-			} catch (error) {
+			} catch (error: unknown) {
 				reject(error);
 			}
 		}),

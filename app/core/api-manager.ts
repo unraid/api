@@ -11,9 +11,9 @@ import dotProp from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
 import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
-import { validateApiKeyFormat, loadState, validateApiKey } from './utils';
+import { validateApiKeyFormat, loadState, validateApiKey, isNodeError } from './utils';
 import { paths } from './paths';
-import { coreLogger } from './log';
+import { coreLogger, log } from './log';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -54,53 +54,6 @@ export class ApiManager extends EventEmitter {
 	private readonly keys = new MemoryCache<CacheItem>(Number(toMillisecond('1y')));
 
 	private lock?: MutexInterface;
-	private async getLock() {
-		if (!this.lock) {
-			this.lock = new Mutex();
-		}
-
-		const release = await this.lock.acquire();
-		return {
-			release
-		};
-	}
-
-	private async checkKey(filePath: string, force = false) {
-		const lock = await this.getLock();
-		try {
-			const file = loadState<{ remote: { apikey: string } }>(filePath);
-			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
-
-			// Same key as current
-			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				coreLogger.debug('%s was updated but the API key didn\'t change', filePath);
-				return;
-			}
-
-			// Ensure key format is valid before validating
-			validateApiKeyFormat(apiKey);
-
-			// Ensure key is valid before connecting
-			await validateApiKey(apiKey);
-
-			// Add the new key
-			this.replace('my_servers', apiKey, {
-				userId: '0'
-			});
-		} catch (error) {
-			// File was deleted
-			if (error.code === 'ENOENT') {
-				coreLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
-			} else {
-				coreLogger.debug('%s, removing "my_servers" API key.', error.message);
-			}
-
-			// Reset key as it's not valid anymore
-			this.expire('my_servers');
-		} finally {
-			lock.release();
-		}
-	}
 
 	constructor(options: Options = { watch: true }) {
 		super({
@@ -109,7 +62,7 @@ export class ApiManager extends EventEmitter {
 
 		// Return or create the singleton class
 		if (ApiManager.instance) {
-			// @eslint-disable-next-line no-constructor-return
+			// eslint-disable-next-line no-constructor-return
 			return ApiManager.instance;
 		}
 
@@ -130,7 +83,9 @@ export class ApiManager extends EventEmitter {
 		}
 
 		// Load inital keys in
-		this.checkKey(configPath, true);
+		this.checkKey(configPath, true).catch(error => {
+			log.debug('Failing loading inital keys');
+		});
 	}
 
 	/**
@@ -268,7 +223,6 @@ export class ApiManager extends EventEmitter {
 			.filter(([, item]) => this.isValid(item.value.key))
 			.map(([name, item]) => ({
 				name,
-				// @ts-expect-error
 				key: item.value.key,
 				userId: item.value.userId,
 				expiresAt: item.expiresAt
@@ -287,7 +241,6 @@ export class ApiManager extends EventEmitter {
 
 		const keyObject = Object
 			.entries(this.keys.items)
-			// @ts-expect-error
 			.find(([_, item]) => item.value.key === key);
 
 		if (!keyObject) {
@@ -295,6 +248,56 @@ export class ApiManager extends EventEmitter {
 		}
 
 		return keyObject[0];
+	}
+
+	private async getLock() {
+		if (!this.lock) {
+			this.lock = new Mutex();
+		}
+
+		const release = await this.lock.acquire();
+		return {
+			release
+		};
+	}
+
+	private async checkKey(filePath: string, force = false) {
+		const lock = await this.getLock();
+		try {
+			const file = loadState<{ remote: { apikey: string } }>(filePath);
+			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
+
+			// Same key as current
+			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
+				coreLogger.debug('%s was updated but the API key didn\'t change', filePath);
+				return;
+			}
+
+			// Ensure key format is valid before validating
+			validateApiKeyFormat(apiKey);
+
+			// Ensure key is valid before connecting
+			await validateApiKey(apiKey);
+
+			// Add the new key
+			this.replace('my_servers', apiKey, {
+				userId: '0'
+			});
+		} catch (error: unknown) {
+			if (isNodeError(error)) {
+				// File was deleted
+				if (error?.code === 'ENOENT') {
+					coreLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
+				} else {
+					coreLogger.debug('%s, removing "my_servers" API key.', error.message);
+				}
+			}
+
+			// Reset key as it's not valid anymore
+			this.expire('my_servers');
+		} finally {
+			lock.release();
+		}
 	}
 }
 

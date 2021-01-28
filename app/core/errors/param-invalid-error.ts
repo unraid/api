@@ -3,14 +3,15 @@
  * Written by: Alexis Tyler
  */
 
+import { format } from 'util';
 import { AppError } from './app-error';
 
 /**
  * Invalid param provided to module
  */
 export class ParamInvalidError extends AppError {
-	constructor(parameterName: string, parameter) {
+	constructor(parameterName: string, parameter: any) {
 		// Overriding both message and status code.
-		super(`Param invalid: ${parameterName} = ${parameter}`, 500);
+		super(format('Param invalid: %s = %s', parameterName, parameter), 500);
 	}
 }

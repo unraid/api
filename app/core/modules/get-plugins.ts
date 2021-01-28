@@ -5,9 +5,8 @@
 
 import { CoreContext, CoreResult } from '../types';
 import { ParamInvalidError } from '../errors';
-import { pluginManager } from '../plugin-manager';
+import { Plugin, pluginManager } from '../plugin-manager';
 import { ensurePermission } from '../utils';
-import { Plugin } from '../plugin-manager';
 
 interface Context extends CoreContext {
 	readonly query: {

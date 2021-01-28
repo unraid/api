@@ -179,7 +179,7 @@ export class PluginManager {
 		try {
 			coreLogger.debug('Plugin "%s" loading main file.', pluginName);
 			plugin = require(packageMainPath);
-		} catch (error) {
+		} catch (error: unknown) {
 			coreLogger.error('Plugin "%s" failed to load: %s', pluginName, error);
 
 			// Disable plugin as it failed to load it's init file

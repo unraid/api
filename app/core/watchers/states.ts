@@ -37,7 +37,7 @@ export const states = () => {
 		// Reload state
 		try {
 			state.reset();
-		} catch (error) {
+		} catch (error: unknown) {
 			coreLogger.error('failed resetting state', error);
 		}
 	};

@@ -45,7 +45,7 @@ export const user = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'apikey', action: 'read:own', attributes: '*' },
-	    { resource: 'permission', action: 'read:any', attributes: '*' }
+		{ resource: 'permission', action: 'read:any', attributes: '*' }
 	]
 };
 

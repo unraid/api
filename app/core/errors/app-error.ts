@@ -8,10 +8,10 @@
  */
 export class AppError extends Error {
 	/** The HTTP status associated with this error. */
-	status: number;
+	public status: number;
 
 	/** Should we kill the application when thrown. */
-	fatal = false;
+	public fatal = false;
 
 	constructor(message: string, status?: number) {
 		// Calling parent constructor of base Error class.

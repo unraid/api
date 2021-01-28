@@ -1,6 +1,7 @@
-import type { CoreResult } from './core/types';
+import type { CoreContext, CoreResult } from './core/types';
 import { pubsub, coreLogger } from './core';
-import { debugTimer } from './core/utils';
+import { debugTimer, isNodeError } from './core/utils';
+import { AppError } from './core/errors';
 
 /**
  * Publish update to topic channel.
@@ -26,7 +27,7 @@ export const publish = async (channel: string, mutation: string, node?: Record<s
 
 interface RunOptions {
 	node?: Record<string, unknown>;
-	moduleToRun?: (context: any) => CoreResult;
+	moduleToRun?: (context: CoreContext) => Promise<CoreResult>;
 	context?: any;
 }
 
@@ -57,14 +58,16 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result.json));
 
 		// Save result
-		publish(channel, mutation, result.json);
-	} catch (error: any) {
-		// Ensure we aren't leaking anything in production
-		if (process.env.NODE_ENV === 'production') {
-			coreLogger.debug('Error:', error.message);
-		} else {
-			const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(coreLogger);
-			logger('Error:', error.message);
+		await publish(channel, mutation, result.json);
+	} catch (error: unknown) {
+		if (isNodeError(error, AppError)) {
+			// Ensure we aren't leaking anything in production
+			if (process.env.NODE_ENV === 'production') {
+				coreLogger.debug('Error:', error.message);
+			} else {
+				const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(coreLogger);
+				logger('Error:', error.message);
+			}
 		}
 	}
 

@@ -15,13 +15,13 @@ import { exitApp } from '..';
 export const globalErrorHandler = (error: Error) => {
 	try {
 		exitApp(error, 1);
-	} catch (error_) {
+	} catch (error: unknown) {
 		// We should only end up here if `Errors` or `Core.log` have an issue loading.
 
 		// Log last error
-		console.error(error_);
+		console.error(error);
 
 		// Kill application
-		process.exit(1); // eslint-disable-line unicorn/no-process-exit
+		process.exit(1);
 	}
 };

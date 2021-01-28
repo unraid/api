@@ -1,6 +1,6 @@
 import { MOTHERSHIP_RELAY_WS_LINK, ONE_MINUTE } from '../../consts';
 import { mothershipLogger, apiManager } from '../../core';
-import { getMachineId, sleep } from '../../core/utils';
+import { getMachineId, isNodeError, sleep } from '../../core/utils';
 import { varState, networkState } from '../../core/states';
 import { subscribeToServers } from '../subscribe-to-servers';
 import { AppError } from '../../core/errors';
@@ -24,16 +24,107 @@ export class MothershipSocket extends CustomSocket {
 		});
 	}
 
-	private connectToInternalGraphql(options: InternalGraphql['options'] = {}) {
-		this.internalGraphqlSocket = new InternalGraphql(options);
+	onConnect() {
+		const connectToInternalGraphql = this.connectToInternalGraphql.bind(this);
+		const connectToMothershipsGraphql = this.connectToMothershipsGraphql.bind(this);
+		const onConnect = super.onConnect.bind(this);
+		return async function (this: WebSocketWithHeartBeat) {
+			try {
+				// Run super
+				onConnect();
+
+				// Connect to local graphql
+				connectToInternalGraphql();
+
+				// Sub to /servers on mothership
+				await connectToMothershipsGraphql();
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					const code = (error.code) ?? 500;
+					this.close(`${code}`.length === 4 ? Number(code) : Number(`4${code}`), JSON.stringify({
+						message: error.message ?? 'Internal Server Error'
+					}));
+				}
+			}
+		};
 	}
 
-	private async connectToMothershipsGraphql() {
-		this.mothershipServersEndpoint = await subscribeToServers(this.apiKey);
+	onDisconnect() {
+		const internalGraphqlSocket = this.internalGraphqlSocket;
+		const disconnectFromMothershipsGraphql = this.disconnectFromMothershipsGraphql.bind(this);
+		const logger = this.logger;
+		const onDisconnect = super.onDisconnect.bind(this);
+		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
+			try {
+				// Close connection to local graphql endpoint
+				internalGraphqlSocket?.connection?.close(200);
+
+				// Close connection to motherships's server's endpoint
+				await disconnectFromMothershipsGraphql();
+
+				// Process disconnection
+				onDisconnect();
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
+				}
+			}
+		};
 	}
 
-	private async disconnectFromMothershipsGraphql() {
-		this.mothershipServersEndpoint?.unsubscribe();
+	// When we get a message from relay send it through to our local graphql instance
+	onMessage() {
+		const internalGraphqlSocket = this.internalGraphqlSocket;
+		const sendMessage = this.sendMessage.bind(this);
+		const logger = this.logger;
+		return async function (this: WebSocketWithHeartBeat, data: string) {
+			try {
+				await sendMessage(internalGraphqlSocket?.connection, data);
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					// Something weird happened while processing the message
+					// This is likely a malformed message
+					logger.error('Failed sending message to relay.', error);
+				}
+			}
+		};
+	}
+
+	onError() {
+		const logger = this.logger;
+		return async function (this: WebSocketWithHeartBeat, error: NodeJS.ErrnoException) {
+			try {
+				logger.error(error);
+
+				// The relay is down
+				if (error.message.includes('502')) {
+					// Sleep for 30 seconds
+					await sleep(ONE_MINUTE / 2);
+				}
+
+				// Connection refused, aka couldn't connect
+				// This is usually because the address is wrong or offline
+				if (error.code === 'ECONNREFUSED') {
+					// @ts-expect-error
+					logger.debug('Couldn\'t connect to %s:%s', error.address, error.port);
+					return;
+				}
+
+				// Closed before connection started
+				if (error.message.toString().includes('WebSocket was closed before the connection was established')) {
+					logger.debug(error.message);
+					return;
+				}
+
+				throw error;
+			} catch {
+				// Unknown error
+				logger.error('socket error', error);
+			} finally {
+				// Kick the connection
+				this.close(4500, JSON.stringify({ message: error.message }));
+			}
+		};
 	}
 
 	protected async getApiKey() {
@@ -48,8 +139,8 @@ export class MothershipSocket extends CustomSocket {
 	protected async getHeaders() {
 		const apiKey = apiManager.getKey('my_servers')?.key!;
 		const keyFile = varState.data?.regFile ? readFileIfExists(varState.data?.regFile).toString('base64') : '';
-		const serverName = `${varState.data?.name}`;
-		const lanIp = networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
+		const serverName = `${varState.data?.name as string}`;
+		const lanIp: string = networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
 		const machineId = `${await getMachineId()}`;
 
 		return {
@@ -62,94 +153,15 @@ export class MothershipSocket extends CustomSocket {
 		};
 	}
 
-	onConnect() {
-		const mothership = this;
-		const onConnect = super.onConnect;
-		return async function (this: WebSocketWithHeartBeat) {
-			try {
-				// Run super
-				onConnect();
-
-				// Connect to local graphql
-				mothership.connectToInternalGraphql();
-
-				// Sub to /servers on mothership
-				mothership.connectToMothershipsGraphql();
-			} catch (error) {
-				this.close(error.code.length === 4 ? error.code : `4${error.code}`, JSON.stringify({
-					message: error.message ?? 'Internal Server Error'
-				}));
-			}
-		};
+	private connectToInternalGraphql(options: InternalGraphql['options'] = {}) {
+		this.internalGraphqlSocket = new InternalGraphql(options);
 	}
 
-	onDisconnect() {
-		const mothership = this;
-		const onDisconnect = super.onDisconnect;
-		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
-			try {
-				// Close connection to local graphql endpoint
-				mothership.internalGraphqlSocket?.connection?.close(200);
-
-				// Close connection to motherships's server's endpoint
-				mothership.disconnectFromMothershipsGraphql();
-
-				// Process disconnection
-				onDisconnect();
-			} catch (error) {
-				mothership.logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
-			}
-		};
+	private async connectToMothershipsGraphql() {
+		this.mothershipServersEndpoint = await subscribeToServers(this.apiKey);
 	}
 
-	// When we get a message from relay send it through to our local graphql instance
-	onMessage() {
-		const mothership = this;
-		return async function (this: WebSocketWithHeartBeat, data: string) {
-			try {
-				await mothership.sendMessage(mothership.internalGraphqlSocket?.connection, data);
-			} catch (error) {
-				// Something weird happened while processing the message
-				// This is likely a malformed message
-				mothership.logger.error('Failed sending message to relay.', error);
-			}
-		};
-	}
-
-	onError() {
-		const mothership = this;
-		return async function (this: WebSocketWithHeartBeat, error: NodeJS.ErrnoException) {
-			try {
-				mothership.logger.error(error);
-
-				// The relay is down
-				if (error.message.includes('502')) {
-					// Sleep for 30 seconds
-					await sleep(ONE_MINUTE / 2);
-				}
-
-				// Connection refused, aka couldn't connect
-				// This is usually because the address is wrong or offline
-				if (error.code === 'ECONNREFUSED') {
-					// @ts-expect-error
-					mothership.logger.debug('Couldn\'t connect to %s:%s', error.address, error.port);
-					return;
-				}
-
-				// Closed before connection started
-				if (error.toString().includes('WebSocket was closed before the connection was established')) {
-					mothership.logger.debug(error.message);
-					return;
-				}
-
-				throw error;
-			} catch {
-				// Unknown error
-				mothership.logger.error('socket error', error);
-			} finally {
-				// Kick the connection
-				this.close(4500, JSON.stringify({ message: error.message }));
-			}
-		};
+	private async disconnectFromMothershipsGraphql() {
+		this.mothershipServersEndpoint?.unsubscribe();
 	}
 }

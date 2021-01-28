@@ -84,7 +84,6 @@ app.get('/', (_, res) => {
 });
 
 // Handle errors by logging them and returning a 500.
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 app.use((error, _, res, __) => {
 	log.error(error);
 	if (error.stack) {

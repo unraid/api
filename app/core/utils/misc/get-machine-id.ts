@@ -5,9 +5,9 @@ import { FileMissingError } from '../../errors';
 
 const cache = new CacheManager('unraid:utils:misc/get-machine-id');
 
-export const getMachineId = async () => {
+export const getMachineId = async (): Promise<string> => {
 	const path = paths.get('machine-id');
-	let machineId = cache.get('machine-id');
+	let machineId: string = cache.get('machine-id');
 
 	if (!path) {
 		const error = new FileMissingError('/etc/machine-id');

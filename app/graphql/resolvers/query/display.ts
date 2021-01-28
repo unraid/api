@@ -125,7 +125,7 @@ export default async () => {
 					url: serverCase
 				}
 			};
-		} catch (error) {
+		} catch (error: unknown) {
 			return {
 				case: states.couldNotReadImage
 			};

@@ -8,13 +8,12 @@ import fetch from 'node-fetch';
 import { debugTimer, parseConfig, sleep } from '..';
 import * as states from '../../states';
 import { coreLogger } from '../../log';
-import { varState } from '../../states';
 import { AppError } from '../../errors';
 
 const data = {};
 
 const getSubEndpoint = () => {
-	const httpPort = varState.data?.port;
+	const httpPort = states.varState.data?.port;
 	return `http://localhost:${httpPort}/sub`;
 };
 

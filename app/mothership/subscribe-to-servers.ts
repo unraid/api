@@ -1,8 +1,7 @@
-import { pubsub } from '../core';
+import { pubsub, log as logger } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
 import { userCache, CachedServers } from '../cache';
-import { log as logger } from '../core';
 
 const log = logger.createChild({ prefix: 'subscribe-to-servers' });
 const client = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {

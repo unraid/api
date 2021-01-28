@@ -277,13 +277,14 @@ interface ParseOptions {
 }
 
 class VarState extends State {
-	public channel = 'var';
 	private static instance: VarState;
+	public channel = 'var';
 
 	constructor() {
 		super();
 
 		if (VarState.instance) {
+			// eslint-ignore-next-line no-constructor-return
 			return VarState.instance;
 		}
 

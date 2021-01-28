@@ -25,4 +25,4 @@ const client = new Docker({
 /**
  * Docker client
  */
-export const docker = (pify(client) as Promisify<typeof client>);
+export const docker = (pify(client));

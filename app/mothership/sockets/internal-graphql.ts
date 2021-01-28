@@ -1,6 +1,6 @@
 import { INTERNAL_WS_LINK } from '../../consts';
 import { apiManager, relayLogger } from '../../core';
-import { sleep } from '../../core/utils';
+import { isNodeError, sleep } from '../../core/utils';
 import { AppError } from '../../core/errors';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
 import { MothershipSocket } from './mothership';
@@ -17,33 +17,27 @@ export class InternalGraphql extends CustomSocket {
 		});
 	}
 
-	protected async getApiKey() {
-		const key = apiManager.getKey('my_servers');
-		if (!key) {
-			throw new AppError('No API key found.');
-		}
-
-		return key.key;
-	}
-
 	onMessage() {
-		const internalGraphql = this;
+		const mothership = this.mothership;
 		return async function (this: WebSocketWithHeartBeat, data: string) {
 			try {
-				internalGraphql.mothership?.connection?.send(data);
-			} catch (error) {
-				// Relay socket is closed, close internal one
-				if (error.message.includes('WebSocket is not open')) {
-					this.close(4200, JSON.stringify({
-						message: error.emss
-					}));
+				mothership?.connection?.send(data);
+			} catch (error: unknown) {
+				if (isNodeError(error, AppError)) {
+					// Relay socket is closed, close internal one
+					if (error.message.includes('WebSocket is not open')) {
+						this.close(4200, JSON.stringify({
+							message: error.message
+						}));
+					}
 				}
 			}
 		};
 	}
 
 	onError() {
-		const internalGraphql = this;
+		const connect = this.connect.bind(this);
+		const logger = this.logger;
 		return async function (error: NodeJS.ErrnoException) {
 			if (error.message === 'WebSocket was closed before the connection was established') {
 				// Likely the internal relay-ws connection was started but then mothership
@@ -59,19 +53,19 @@ export class InternalGraphql extends CustomSocket {
 				await sleep(1000);
 
 				// Re-connect to internal graphql server
-				internalGraphql.connect();
+				connect();
 				return;
 			}
 
-			internalGraphql.logger.error(error);
+			logger.error(error);
 		};
 	}
 
 	onConnect() {
-		const internalGraphql = this;
+		const apiKey = this.apiKey;
 		return async function (this: WebSocketWithHeartBeat) {
 			// No API key, close internal connection
-			if (!internalGraphql.apiKey) {
+			if (!apiKey) {
 				this.close(4200, JSON.stringify({
 					message: 'No API key'
 				}));
@@ -81,9 +75,18 @@ export class InternalGraphql extends CustomSocket {
 			this.send(JSON.stringify({
 				type: 'connection_init',
 				payload: {
-					'x-api-key': internalGraphql.apiKey
+					'x-api-key': apiKey
 				}
 			}));
 		};
+	}
+
+	protected async getApiKey() {
+		const key = apiManager.getKey('my_servers');
+		if (!key) {
+			throw new AppError('No API key found.');
+		}
+
+		return key.key;
 	}
 }

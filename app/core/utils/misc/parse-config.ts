@@ -101,7 +101,6 @@ export const parseConfig = <T>(options: Options): T => {
 	let data: Record<string, any>;
 	if (filePath) {
 		data = multiIniRead(filePath, {
-			// eslint-disable-next-line camelcase
 			keep_quotes: false
 		});
 	} else {
@@ -117,7 +116,7 @@ export const parseConfig = <T>(options: Options): T => {
 	// Remove quotes around keys
 	const dataWithoutQuoteKeys = mapObject(data, (key, value) => {
 		// @SEE: https://stackoverflow.com/a/19156197/2311366
-		return [(key as string).replace(/^"(.+(?="$))"$/, '$1'), value];
+		return [(key).replace(/^"(.+(?="$))"$/, '$1'), value];
 	});
 
 	// Result object with array items as actual arrays
