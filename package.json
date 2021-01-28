@@ -101,7 +101,7 @@
     "p-wait-for": "^3.2.0",
     "package-json": "^6.5.0",
     "path-exists": "^4.0.0",
-    "path-type": "^4.0.0",
+    "path-type": "^5.0.0",
     "pify": "^5.0.0",
     "pretty-bytes": "^5.5.0",
     "pretty-ms": "^7.0.1",
