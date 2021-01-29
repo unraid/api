@@ -40,6 +40,7 @@
     "@gridplus/docker-events": "OmgImAlexis/docker-events#master",
     "@schemastore/package": "0.0.6",
     "@sentry/node": "^6.0.2",
+    "@unraid/eslint-config": "github:unraid/eslint-config#main",
     "accesscontrol": "^2.2.1",
     "ain2": "^3.0.0",
     "am": "^1.1.0",
