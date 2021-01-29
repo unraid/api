@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
  * @param low Lowest value.
  * @param high Highest value.
  */
-export const getNumberBetween = (low: number, high: number) => Math.floor(Math.random() * (high - low + 1) + low);
+export const getNumberBetween = (low: number, high: number) => Math.floor((Math.random() * (high - low + 1)) + low);
 
 /**
  * Create a jitter of +/- 20%.
@@ -16,7 +16,7 @@ export const applyJitter = (value: number) => {
 };
 
 export const backoff = (attempt: number, maxDelay: number, multiplier: number) => {
-	const delay = applyJitter(2.0 ** (attempt - 1.0) * 0.5);
+	const delay = applyJitter(((2.0 ** attempt) - 1.0) * 0.5);
 	return Math.round(Math.min(delay * multiplier, maxDelay));
 };
 
