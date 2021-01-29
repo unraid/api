@@ -18,10 +18,14 @@ export class InternalGraphql extends CustomSocket {
 	}
 
 	onMessage() {
-		const mothership = this.mothership;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
+		const logger = this.logger;
 		return async function (this: WebSocketWithHeartBeat, data: string) {
 			try {
-				mothership?.connection?.send(data);
+				logger.silly('Recieved message for the API forwarding.');
+				self.mothership?.connection?.send(data);
+				logger.silly('Message sent to the API successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Relay socket is closed, close internal one
@@ -36,7 +40,8 @@ export class InternalGraphql extends CustomSocket {
 	}
 
 	onError() {
-		const connect = this.connect.bind(this);
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
 		const logger = this.logger;
 		return async function (error: NodeJS.ErrnoException) {
 			if (error.message === 'WebSocket was closed before the connection was established') {
@@ -53,7 +58,7 @@ export class InternalGraphql extends CustomSocket {
 				await sleep(1000);
 
 				// Re-connect to internal graphql server
-				await connect();
+				await self.connect();
 				return;
 			}
 
@@ -62,10 +67,11 @@ export class InternalGraphql extends CustomSocket {
 	}
 
 	onConnect() {
-		const apiKey = this.apiKey;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
 		return async function (this: WebSocketWithHeartBeat) {
 			// No API key, close internal connection
-			if (!apiKey) {
+			if (!self.apiKey) {
 				this.close(4200, JSON.stringify({
 					message: 'No API key'
 				}));
@@ -75,7 +81,7 @@ export class InternalGraphql extends CustomSocket {
 			this.send(JSON.stringify({
 				type: 'connection_init',
 				payload: {
-					'x-api-key': apiKey
+					'x-api-key': self.apiKey
 				}
 			}));
 		};

@@ -269,6 +269,7 @@ export class CustomSocket {
 	protected async sendMessage(client?: WebSocketWithHeartBeat, message?: string, timeout = 1000) {
 		try {
 			if (!client || client.readyState === 0 || client.readyState === 3) {
+				this.logger.silly('Waiting %ss to retry sending to %s.', timeout / 1000, client?.url);
 				// Wait for $timeout seconds
 				await sleep(timeout);
 
@@ -280,7 +281,7 @@ export class CustomSocket {
 			// Only send when socket is open
 			if (client.readyState === client.OPEN) {
 				client.send(message);
-				this.logger.silly('Message sent to %s.', message, client?.url);
+				this.logger.silly('Message sent to %s.', client?.url);
 				return;
 			}
 

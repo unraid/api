@@ -50,20 +50,19 @@ export class MothershipSocket extends CustomSocket {
 	}
 
 	onDisconnect() {
-		const internalGraphqlSocket = this.internalGraphqlSocket;
-		const disconnectFromMothershipsGraphql = this.disconnectFromMothershipsGraphql.bind(this);
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
 		const logger = this.logger;
-		const onDisconnect = super.onDisconnect.bind(this);
 		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
 			try {
 				// Close connection to local graphql endpoint
-				internalGraphqlSocket?.connection?.close(200);
+				self.internalGraphqlSocket?.connection?.close(200);
 
 				// Close connection to motherships's server's endpoint
-				await disconnectFromMothershipsGraphql();
+				await self.disconnectFromMothershipsGraphql();
 
 				// Process disconnection
-				onDisconnect();
+				self.onDisconnect();
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
@@ -74,12 +73,14 @@ export class MothershipSocket extends CustomSocket {
 
 	// When we get a message from relay send it through to our local graphql instance
 	onMessage() {
-		const internalGraphqlSocket = this.internalGraphqlSocket;
-		const sendMessage = this.sendMessage.bind(this);
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
+		const self = this;
 		const logger = this.logger;
 		return async function (this: WebSocketWithHeartBeat, data: string) {
 			try {
-				await sendMessage(internalGraphqlSocket?.connection, data);
+				logger.silly('Recieved message from mothership\'s relay, forwarding to the internal graphql connection');
+				await self.sendMessage.bind(self)(self.internalGraphqlSocket?.connection, data);
+				logger.silly('Message sent to the internal graphql connection successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Something weird happened while processing the message
