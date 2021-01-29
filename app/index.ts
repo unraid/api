@@ -34,6 +34,9 @@ am(async () => {
 
 	// Load server
 	await loadServer('unraid-api', server);
+
+	// Load nchan
+	await core.loadNchan();
 }, async (error: NodeJS.ErrnoException) => {
 	// Send error to server for debugging
 	Sentry.captureException(error);

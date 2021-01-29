@@ -201,11 +201,6 @@ const load = async (): Promise<void> => {
 	await loadPlugins();
 	await loadWatchers();
 	await loadApiKeys();
-
-	// Load nchan
-	if (process.env.NCHAN !== 'disable') {
-		await loadNchan();
-	}
 };
 
 /**
@@ -247,5 +242,6 @@ export const loadServer = async (name: string, server: typeof Server): Promise<v
 export const core = {
 	loaders,
 	load,
-	loadServer
+	loadServer,
+	loadNchan
 };
