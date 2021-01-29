@@ -24,7 +24,7 @@ export const parseDomain = async (type: DomainLookupType, id: string): Promise<D
 	};
 
 	if (!type || !Object.keys(types).includes(type)) {
-		throw new Error(`Type must be one of [${Object.keys(types)}], ${type} given.`);
+		throw new Error(`Type must be one of [${Object.keys(types).join(', ')}], ${type} given.`);
 	}
 
 	const client = await getHypervisor();

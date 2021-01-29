@@ -41,13 +41,14 @@ const parse = (state: SharesIni[]): Share[] => {
 };
 
 class Shares extends ArrayState {
-	public channel = 'shares';
 	private static instance: Shares;
+	public channel = 'shares';
 
 	constructor() {
 		super();
 
 		if (Shares.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return Shares.instance;
 		}
 

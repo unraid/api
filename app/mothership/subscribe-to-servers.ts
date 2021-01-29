@@ -34,7 +34,7 @@ export const subscribeToServers = async (apiKey: string) => {
 
 	// Subscribe
 	const subscription = query.subscribe({
-		next: ({ data, errors }) => {
+		next: async ({ data, errors }) => {
 			log.silly('Got data back with %s errors', errors?.length ?? 0);
 			log.silly('Got data %s', data);
 			log.silly('Got errors %s', errors);
@@ -54,7 +54,7 @@ export const subscribeToServers = async (apiKey: string) => {
 			});
 
 			// Update subscribers
-			pubsub.publish('servers', {
+			await pubsub.publish('servers', {
 				servers: data.servers
 			});
 		}

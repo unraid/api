@@ -9,7 +9,11 @@ import { sharesState, slotsState } from '../states';
 import { ensurePermission } from '../utils';
 
 export const addShare = async (context: CoreContext): Promise<CoreResult> => {
-	const { user, data = {} } = context;
+	const { user, data } = context;
+
+	if (!data?.name) {
+		throw new AppError('No name provided');
+	}
 
 	// Check permissions
 	ensurePermission(user, {
@@ -18,7 +22,7 @@ export const addShare = async (context: CoreContext): Promise<CoreResult> => {
 		possession: 'any'
 	});
 
-	const { name } = data;
+	const name: string = data.name;
 	const userShares = sharesState.find().map(({ name }) => name);
 	const diskShares = slotsState.find({ exportable: 'yes' }).filter(({ name }) => name.startsWith('disk')).map(({ name }) => name);
 

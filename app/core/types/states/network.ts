@@ -7,6 +7,7 @@
  * Network interface
  * @interface NetworkInterface
  */
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NetworkInterface {
 	// DHCP_KEEPRESOLV="no"
 	// DNS_SERVER1="1.1.1.1"

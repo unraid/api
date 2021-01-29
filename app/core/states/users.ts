@@ -43,6 +43,7 @@ class Users extends ArrayState {
 		super();
 
 		if (Users.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return Users.instance;
 		}
 

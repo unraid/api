@@ -1,5 +1,5 @@
 import stw from 'spread-the-word';
-import { log, discoveryLogger } from '../log';
+import { discoveryLogger as log } from '../log';
 
 /**
  * Listen to devices on the local network via mDNS.
@@ -17,13 +17,13 @@ export const listen = async () => {
 						return;
 					}
 
-					discoveryLogger.info(`Found a new local server [${ipAddress}], visit your my servers dashboard to claim.`);
+					log.info(`Found a new local server [${ipAddress}], visit your my servers dashboard to claim.`);
 				}
 			}
 			// Console.log(`${service.name} is up! (from ${referrer.address}`);
 		})
 		.on('down', (remoteService, _res, referrer) => {
-			discoveryLogger.debug(`${remoteService.name} is down! (from ${referrer.address})`);
+			log.debug(`${remoteService.name} is down! (from ${referrer.address})`);
 		});
 
 	await stw.listen();

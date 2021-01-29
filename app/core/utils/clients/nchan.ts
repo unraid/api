@@ -13,7 +13,7 @@ import { AppError } from '../../errors';
 const data = {};
 
 const getSubEndpoint = () => {
-	const httpPort = states.varState.data?.port;
+	const httpPort: string = states.varState.data?.port;
 	return `http://localhost:${httpPort}/sub`;
 };
 
@@ -50,62 +50,64 @@ const endpointToStateMapping = {
 };
 
 const subscribe = async (endpoint: string) => {
-	await sleep(1000).then(async () => {
-		debugTimer(`subscribe(${endpoint})`);
-		const response = await fetch(`${getSubEndpoint()}/${endpoint}`).catch(async () => {
-			// If we throw then let's check if nchan is down
-			// or if it's an actual error
-			const isUp = await isNchanUp();
+	// Wait 1s before subscribing
+	await sleep(1000);
 
-			if (isUp) {
-				throw new AppError(`Cannot connect to nchan at ${getSubEndpoint()}/${endpoint}`);
-			}
+	debugTimer(`subscribe(${endpoint})`);
+	const response = await fetch(`${getSubEndpoint()}/${endpoint}`).catch(async () => {
+		// If we throw then let's check if nchan is down
+		// or if it's an actual error
+		const isUp = await isNchanUp();
 
-			throw new AppError('Cannot connect to nchan');
-		});
-
-		if (response.status === 502) {
-			// Status 502 is a connection timeout error,
-			// may happen when the connection was pending for too long,
-			// and the remote server or a proxy closed it
-			// let's reconnect
-			await subscribe(endpoint);
-		} else if (response.status === 200) {
-			// Get and show the message
-			const message = await response.text();
-
-			// Create endpoint field on data
-			if (!data[endpoint]) {
-				const fileName = endpoint + '.js';
-				data[endpoint] = {
-					handlerPath: path.resolve(__dirname, '../../states', fileName)
-				};
-			}
-
-			// Only re-run parser if the message changed
-			if (data[endpoint].message !== message) {
-				data[endpoint].updated = new Date();
-				data[endpoint].message = message;
-
-				try {
-					const state = parseConfig({
-						file: message,
-						type: 'ini'
-					});
-
-					// Update state
-					endpointToStateMapping[endpoint].parse(state);
-				} catch { }
-			}
-
-			debugTimer(`subscribe(${endpoint})`);
-		} else {
-			// An error - let's show it
-			coreLogger.error(JSON.stringify(response));
+		if (isUp) {
+			throw new AppError(`Cannot connect to nchan at ${getSubEndpoint()}/${endpoint}`);
 		}
-	}).then(() => {
-		subscribe(endpoint);
+
+		throw new AppError('Cannot connect to nchan');
 	});
+
+	if (response.status === 502) {
+		// Status 502 is a connection timeout error,
+		// may happen when the connection was pending for too long,
+		// and the remote server or a proxy closed it
+		// let's reconnect
+		await subscribe(endpoint);
+	} else if (response.status === 200) {
+		// Get and show the message
+		const message = await response.text();
+
+		// Create endpoint field on data
+		if (!data[endpoint]) {
+			const fileName = endpoint + '.js';
+			data[endpoint] = {
+				handlerPath: path.resolve(__dirname, '../../states', fileName)
+			};
+		}
+
+		// Only re-run parser if the message changed
+		if (data[endpoint].message !== message) {
+			data[endpoint].updated = new Date();
+			data[endpoint].message = message;
+
+			try {
+				const state = parseConfig({
+					file: message,
+					type: 'ini'
+				});
+
+				// Update state
+				endpointToStateMapping[endpoint].parse(state);
+			} catch { }
+		}
+
+		debugTimer(`subscribe(${endpoint})`);
+	} else {
+		// An error - let's show it
+		coreLogger.error(JSON.stringify(response));
+	}
+
+	// Re-subscribe
+	await subscribe(endpoint);
 };
 
 export const subscribeToNchanEndpoint = async (endpoint: string) => {
@@ -113,5 +115,6 @@ export const subscribeToNchanEndpoint = async (endpoint: string) => {
 		throw new AppError(`Invalid nchan endpoint "${endpoint}".`);
 	}
 
-	subscribe(endpoint);
+	// Subscribe
+	await subscribe(endpoint);
 };

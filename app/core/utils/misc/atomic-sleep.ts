@@ -8,8 +8,7 @@
  * @param ms How many milliseconds to sleep for.
  */
 export const atomicSleep = async (ms: number): Promise<any> => {
-	return new Promise(resolve => {
-		// eslint-disable-next-line no-undef
+	return new Promise<void>(resolve => {
 		Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 		resolve();
 	});

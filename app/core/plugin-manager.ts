@@ -152,6 +152,7 @@ export class PluginManager {
 		}
 
 		// Get the plugin's package.json
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
 		const pluginPackage: PackageJson = require(pluginPackagePath);
 		if (!pluginPackage.main) {
 			throw new AppError(`Plugin "${pluginName}" is missing it’s "main" field in the "package.json".`);

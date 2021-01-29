@@ -23,7 +23,7 @@ type Overload = {
 /**
  * Get all share types.
  */
-export const getShares: Overload = (type?: any, filter?: any) => {
+export const getShares: Overload = (type?: string, filter?: Filter) => {
 	const types = {
 		user: (name?: string) => processShare('user', sharesState.findOne(name ? { name } : {})),
 		users: () => sharesState.find().map(share => processShare('user', share)),
@@ -34,7 +34,7 @@ export const getShares: Overload = (type?: any, filter?: any) => {
 	// Return a type of share
 	if (type) {
 		if (!Object.keys(types).includes(type)) {
-			throw new AppError(`Unknown type "${type}", valid types are ${Object.keys(types)}.`);
+			throw new AppError(`Unknown type "${type}", valid types are ${Object.keys(types).join(', ')}.`);
 		}
 
 		return types[type](filter?.name);

@@ -64,7 +64,10 @@ export const Subscription = {
 		...createSubscription('vms/domains')
 	},
 	pluginModule: {
-		subscribe: async (_: unknown, directiveArgs, context: Context) => {
+		subscribe: async (_: unknown, directiveArgs: {
+			plugin: string;
+			module: string;
+		}, context: Context) => {
 			const { plugin: pluginName, module: pluginModuleName } = directiveArgs;
 			const channel = `${pluginName}/${pluginModuleName}`;
 

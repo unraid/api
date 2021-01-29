@@ -86,13 +86,13 @@ const systemPciDevices = async (): Promise<PciDevice[]> => {
 	 * - Add whether kernel-bound driver exists
 	 * - Cleanup device vendor/product names
 	 */
-	const processedDevices = await filterDevices(filteredDevices).then(devices => {
-		return devices
+	const processedDevices = await filterDevices(filteredDevices).then(async devices => {
+		return Promise.all(devices
 			// @ts-expect-error
 			.map(addDeviceClass)
-			.map(device => {
+			.map(async device => {
 				// Attempt to get the current kernel-bound driver for this pci device
-				isSymlink(`${basePath}${device.id}/driver`).then(symlink => {
+				await isSymlink(`${basePath}${device.id}/driver`).then(symlink => {
 					if (symlink) {
 						// $strLink = @readlink('/sys/bus/pci/devices/0000:'.$arrMatch['id']. '/driver');
 						// if (!empty($strLink)) {
@@ -106,7 +106,7 @@ const systemPciDevices = async (): Promise<PciDevice[]> => {
 				device.productname = sanitizeProduct(device.productname);
 
 				return device;
-			});
+			}));
 	});
 
 	return processedDevices;
@@ -144,6 +144,7 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 	// Get a list of all usb hubs so we can filter the allowed/disallowed
 	const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true }).then(({ stdout }) => {
 		return stdout.split('\n').map(line => {
+			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 			const [, id] = line.match(/usb:v(\w{9})/)!;
 			return id.replace('p', ':');
 		});
@@ -175,6 +176,7 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 
 		// Parse the line
 		const [, _] = line.split(/[ \t]{2,}/).filter(Boolean);
+		// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 		const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
 
 		// If there's no match return nothing

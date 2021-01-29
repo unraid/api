@@ -66,6 +66,7 @@ class SmbSec extends ArrayState {
 		super();
 
 		if (SmbSec.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return SmbSec.instance;
 		}
 

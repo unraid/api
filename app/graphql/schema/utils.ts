@@ -31,7 +31,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
 
 		// Check the user has permissison to subscribe to this endpoint
 		ensurePermission(context.user, {
-			resource: resource || channel,
+			resource: resource ?? channel,
 			action: 'read',
 			possession: 'any'
 		});
@@ -83,8 +83,9 @@ export const getServers = async (): Promise<Server[]> => {
 	const guid = varState?.data?.regGuid;
 	const name = varState?.data?.name;
 	const wanip = null;
-	const lanip = networkState.data[0].ipaddr[0];
-	const localurl = `http://${lanip}:${varState?.data?.port}`;
+	const lanip: string = networkState.data[0].ipaddr[0];
+	const port: string = varState?.data?.port;
+	const localurl = `http://${lanip}:${port}`;
 	const remoteurl = null;
 
 	return [{

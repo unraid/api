@@ -15,7 +15,7 @@ export const validateApiKey = async (apiKey: string) => {
 		const body = new FormData();
 		Object.entries(data).forEach(([key, value]) => {
 			if (value !== undefined) {
-				body.append(key, `${value}`);
+				body.append(key, String(value));
 			}
 		});
 

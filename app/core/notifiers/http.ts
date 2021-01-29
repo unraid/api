@@ -14,6 +14,7 @@ export interface Options extends NotifierOptions {}
 export class HttpNotifier extends Notifier {
 	readonly $http = fetch;
 
+	// eslint-disable-next-line @typescript-eslint/no-useless-constructor
 	constructor(options: Options) {
 		super(options);
 	}

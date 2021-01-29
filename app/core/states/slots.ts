@@ -59,7 +59,7 @@ const parse = (state: SlotIni[]) => {
 			fsSize: toNumber(slot.fsSize),
 			fsFree: toNumber(slot.fsFree),
 			exportable: slot.exportable === 'e',
-			fsColor: slot.fsColor && slot.fsColor.replace('-', '_')
+			fsColor: slot.fsColor.replace('-', '_')
 		};
 
 		return result;
@@ -77,6 +77,7 @@ class Slots extends ArrayState {
 		super();
 
 		if (Slots.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return Slots.instance;
 		}
 

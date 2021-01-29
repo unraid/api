@@ -27,13 +27,14 @@ const parse = (state: SecIni[]) => {
 };
 
 class NfsSec extends ArrayState {
-	public channel = 'nsf-sec';
 	private static instance: NfsSec;
+	public channel = 'nsf-sec';
 
 	constructor() {
 		super();
 
 		if (NfsSec.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return NfsSec.instance;
 		}
 

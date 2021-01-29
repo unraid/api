@@ -10,7 +10,9 @@ import { parseConfig } from '../utils/misc';
 import { ArrayState } from './state';
 import { LooseObject } from '../types';
 
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Device {}
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface DeviceIni {}
 
 const parse = (state: DeviceIni[]): Device[] => Object.values(state);
@@ -19,14 +21,15 @@ const parse = (state: DeviceIni[]): Device[] => Object.values(state);
  * Devices
  */
 class Devices extends ArrayState {
-	public channel = 'devices';
 	private static instance: Devices;
+	public channel = 'devices';
 	_data: any;
 
 	constructor() {
 		super();
 
 		if (Devices.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return Devices.instance;
 		}
 

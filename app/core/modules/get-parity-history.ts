@@ -8,8 +8,7 @@ import { CoreResult, CoreContext } from '../types';
 import { paths } from '../paths';
 import { FileMissingError } from '../errors';
 import { ensurePermission } from '../utils';
-
-const Table = require('cli-table');
+import Table from 'cli-table';
 
 /**
  * Get parity history.

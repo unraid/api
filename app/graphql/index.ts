@@ -6,6 +6,7 @@
 import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
+// eslint-disable-next-line @typescript-eslint/no-duplicate-imports
 import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
@@ -163,10 +164,19 @@ const getPluginModule = (pluginName: string, pluginModuleName: string) => {
  */
 class FuncDirective extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field: Record<string, any>) {
-		// @ts-expect-error
 		const { args } = this;
-		field.resolve = async function (_source, directiveArgs: Record<string, any>, { user }, info: Record<string, any>) {
-			const { module: moduleName, result: resultType } = args;
+		field.resolve = async function (_source, directiveArgs: {
+			[key: string]: string | any;
+			plugin: string;
+			module: string;
+			result: string;
+			input: Record<string, any>;
+			query: Record<string, any>;
+		}, { user }, info: Record<string, any>) {
+			const { module: moduleName, result: resultType } = args as {
+				module: string;
+				result: string;
+			};
 			const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = directiveArgs;
 			const operationType = info.operation.operation;
 			const query = {
@@ -192,6 +202,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 				if (pluginName) {
 					// @ts-expect-error
 					const { filePath } = getPluginModule(pluginName, pluginModuleName);
+					// eslint-disable-next-line @typescript-eslint/no-var-requires
 					const pluginModule = require(filePath);
 					// The file will either use a default export or a named one
 					// If it's named it should be the same as a module name
@@ -203,7 +214,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 				if (isNodeError(error, AppError)) {
 					// Rethrow clean error message about module being missing
 					if (error.code === 'MODULE_NOT_FOUND') {
-						throw new AppError(`Cannot find ${pluginName ? 'Plugin: "' + pluginName + '" ' : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+						throw new AppError(`Cannot find ${pluginName ? `Plugin: "${pluginName}" ` : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
 					}
 				}
 
@@ -316,7 +327,7 @@ bus.on('varstate', async data => {
 	const user = usersState.findOne({ name: 'root' });
 
 	if (user) {
-		publish('info', 'UPDATED', {
+		await publish('info', 'UPDATED', {
 			os: {
 				hostname
 			}
@@ -338,7 +349,7 @@ dee.on('*', async (data: { Type: string }) => {
 		const { json } = await modules.getAppCount({
 			user
 		});
-		publish('info', 'UPDATED', {
+		await publish('info', 'UPDATED', {
 			apps: json
 		});
 	}
@@ -391,7 +402,7 @@ export const graphql = {
 				resolve({
 					user,
 					websocketId
-				}); return;
+				});
 			} catch (error: unknown) {
 				reject(error);
 			}
@@ -416,7 +427,12 @@ export const graphql = {
 				return;
 			}
 
-			const { user, websocketId } = context;
+			const { user, websocketId } = context as {
+				user: {
+					name: string;
+				};
+				websocketId: string;
+			};
 			graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values

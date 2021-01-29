@@ -75,21 +75,24 @@ export class CustomSocket {
 	}
 
 	public onConnect() {
+		const logger = this.logger;
+		const connection = this.connection;
+		const apiKey = this.apiKey;
+		// eslint-disable-next-line @typescript-eslint/no-this-alias
 		const customSocket = this;
 		return async function (this: WebSocketWithHeartBeat) {
 			try {
-				const apiKey = customSocket.apiKey;
 				if (!apiKey || (typeof apiKey === 'string' && apiKey.length === 0)) {
 					throw new AppError('Missing key', 4422);
 				}
 
-				customSocket.logger.debug('Connected via %s.', customSocket.connection?.url);
+				logger.debug('Connected via %s.', connection?.url);
 
 				// Reset connection attempts
 				customSocket.connectionAttempts = 0;
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
-					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code}`), JSON.stringify({
+					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code ?? 500}`), JSON.stringify({
 						message: error.message ?? 'Internal Server Error'
 					}));
 				}
@@ -97,24 +100,86 @@ export class CustomSocket {
 		};
 	}
 
+	public onMessage() {
+		const logger = this.logger;
+		return async function (message: string, ...args: any[]) {
+			logger.silly('message="%s" args="%s"', message, ...args);
+		};
+	}
+
+	public async connect(retryAttempt = 0) {
+		const lock = await this.getLock();
+		try {
+			// Set retry attempt count
+			await this.setRetryAttempt(retryAttempt);
+
+			// Get the current apiKey
+			this.apiKey = await this.getApiKey();
+
+			// Check the connection is allowed
+			await this.isConnectionAllowed();
+
+			// Cleanup old connections
+			await this.cleanup();
+
+			// Connect to endpoint
+			await this._connect();
+
+			// Log we connected
+			this.logger.debug('Connected to %s', this.uri);
+		} catch (error: unknown) {
+			if (isNodeError(error, AppError)) {
+				this.logger.error('Failed connecting reason=%s', error.message);
+			}
+		} finally {
+			lock.release();
+		}
+	}
+
+	public async disconnect() {
+		const lock = await this.getLock();
+		try {
+			if (this.connection && (this.connection.readyState !== this.connection.CLOSED)) {
+				// 4200 === ok
+				this.connection.close(4200);
+			}
+		} catch (error: unknown) {
+			if (isNodeError(error, AppError)) {
+				this.logger.error('Failed disconnecting reason=%s', error.message);
+			}
+		} finally {
+			lock.release();
+		}
+	}
+
+	public async reconnect() {
+		await this.disconnect();
+		await sleep(1000);
+		await this.connect();
+	}
+
 	protected onDisconnect() {
+		const logger = this.logger;
+		const connect = this.connect.bind(this);
+		const connectionAttempts = this.connectionAttempts;
+		const uri = this.uri;
 		const responses = {
 			// OK
 			4200: async () => {
 				// This is usually because the API key is updated
 				// Let's reset the reconnect count so we reconnect instantly
-				customSocket.connectionAttempts = 0;
+				this.connectionAttempts = 0;
 			},
 			// Unauthorized - Invalid/missing API key.
 			4401: async () => {
-				customSocket.logger.debug('Invalid API key, waiting for new key...');
+				this.logger.debug('Invalid API key, waiting for new key...');
 			},
 			// Rate limited
 			4429: async message => {
 				try {
 					let interval: NodeJS.Timeout | undefined;
 					const retryAfter = parseInt(message['Retry-After'], 10) || 30;
-					customSocket.logger.debug('Rate limited, retrying after %ss', retryAfter);
+					this.logger.debug('Rate limited, retrying after %ss', retryAfter);
 
 					// Less than 30s
 					if (retryAfter <= 30) {
@@ -123,7 +188,7 @@ export class CustomSocket {
 						// Print retry once per second
 						interval = setInterval(() => {
 							seconds--;
-							customSocket.logger.debug('Retrying connection in %ss', seconds);
+							this.logger.debug('Retrying connection in %ss', seconds);
 						}, ONE_SECOND);
 					}
 
@@ -143,11 +208,10 @@ export class CustomSocket {
 				await sleep(ONE_SECOND * 5);
 			}
 		};
-		const customSocket = this;
 		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
 			try {
 				const message: { message?: string } = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
-				customSocket.logger.debug('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
+				logger.debug('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
 
 				// Stop ws heartbeat
 				if (this.heartbeat) {
@@ -163,28 +227,21 @@ export class CustomSocket {
 				}
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
-					customSocket.logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
+					logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
 				}
 			}
 
 			try {
 				// Wait a few seconds
-				await sleep(backoff(customSocket.connectionAttempts, ONE_MINUTE, 5));
+				await sleep(backoff(connectionAttempts, ONE_MINUTE, 5));
 
 				// Reconnect
-				await customSocket.connect(customSocket.connectionAttempts + 1);
+				await connect(connectionAttempts + 1);
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
-					customSocket.logger.debug('Failed reconnecting to %s reason="%s"', customSocket.uri, error.message);
+					logger.debug('Failed reconnecting to %s reason="%s"', uri, error.message);
 				}
 			}
-		};
-	}
-
-	public onMessage() {
-		const customSocket = this;
-		return async function (message: string, ...args: any[]) {
-			customSocket.logger.silly('message="%s" args="%s"', message, ...args);
 		};
 	}
 
@@ -263,61 +320,5 @@ export class CustomSocket {
 		this.connection.on('close', this.onDisconnect());
 		this.connection.on('open', this.onConnect());
 		this.connection.on('message', this.onMessage());
-		// This.connection.on('ping', console.log);
-		// this.connection.on('error', console.log);
-		// this.connection.on('close', console.log);
-		// this.connection.on('open', console.log);
-		// this.connection.on('message', console.log);
-	}
-
-	public async connect(retryAttempt = 0) {
-		const lock = await this.getLock();
-		try {
-			// Set retry attempt count
-			await this.setRetryAttempt(retryAttempt);
-
-			// Get the current apiKey
-			this.apiKey = await this.getApiKey();
-
-			// Check the connection is allowed
-			await this.isConnectionAllowed();
-
-			// Cleanup old connections
-			await this.cleanup();
-
-			// Connect to endpoint
-			await this._connect();
-
-			// Log we connected
-			this.logger.debug('Connected to %s', this.uri);
-		} catch (error: unknown) {
-			if (isNodeError(error, AppError)) {
-				this.logger.error('Failed connecting reason=%s', error.message);
-			}
-		} finally {
-			lock.release();
-		}
-	}
-
-	public async disconnect() {
-		const lock = await this.getLock();
-		try {
-			if (this.connection && (this.connection.readyState !== this.connection.CLOSED)) {
-				// 4200 === ok
-				this.connection.close(4200);
-			}
-		} catch (error: unknown) {
-			if (isNodeError(error, AppError)) {
-				this.logger.error('Failed disconnecting reason=%s', error.message);
-			}
-		} finally {
-			lock.release();
-		}
-	}
-
-	public async reconnect() {
-		await this.disconnect();
-		await sleep(1000);
-		await this.connect();
 	}
 }

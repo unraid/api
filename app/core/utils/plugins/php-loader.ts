@@ -25,7 +25,7 @@ const encodeParameters = (parameters: LooseObject) => {
 
 interface Options {
 	/** File path */
-	file;
+	file: string;
 	/** HTTP Method GET/POST */
 	method?: string;
 	/** Request query */

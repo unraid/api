@@ -28,6 +28,7 @@ export class MqttNotifier extends Notifier {
 		super(options);
 
 		if (MqttNotifier.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return MqttNotifier.instance;
 		}
 

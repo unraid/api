@@ -1,4 +1,4 @@
-import type { CoreContext, CoreResult } from './core/types';
+import type { CoreContext, CoreResult, Result } from './core/types';
 import { pubsub, coreLogger } from './core';
 import { debugTimer, isNodeError } from './core/utils';
 import { AppError } from './core/errors';
@@ -27,7 +27,7 @@ export const publish = async (channel: string, mutation: string, node?: Record<s
 
 interface RunOptions {
 	node?: Record<string, unknown>;
-	moduleToRun?: (context: CoreContext) => Promise<CoreResult>;
+	moduleToRun?: (context: CoreContext) => Promise<CoreResult | Result> | CoreResult | Result;
 	context?: any;
 }
 

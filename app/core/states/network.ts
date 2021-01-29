@@ -71,6 +71,7 @@ class Network extends ArrayState {
 		super();
 
 		if (Network.instance) {
+			// eslint-disable-next-line no-constructor-return
 			return Network.instance;
 		}
 

@@ -23,7 +23,7 @@ export const getArray = (context: CoreContext): CoreResult => {
 
 	// Array state
 	const arrayState = varState?.data?.mdState.toLowerCase();
-	const state = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
+	const state: string = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
 
 	// All known disks
 	const allDisks = slotsState.find().filter(disk => disk.device);

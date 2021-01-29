@@ -11,6 +11,6 @@ import { AppError } from './app-error';
 export class FieldMissingError extends AppError {
 	constructor(private readonly field: string) {
 		// Overriding both message and status code.
-		super('Field missing: ' + field, 400);
+		super(`Field missing: ${field}`, 400);
 	}
 }

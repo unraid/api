@@ -66,6 +66,7 @@ class Upcast {
 			function: (value: unknown) => () => value,
 			null: () => null,
 			number: (value: unknown) => Number(value),
+			// eslint-disable-next-line no-new-object
 			object: (value: unknown) => new Object(value),
 			string: (value: unknown) => String(value),
 			undefined: () => undefined

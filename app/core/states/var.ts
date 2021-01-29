@@ -284,7 +284,7 @@ class VarState extends State {
 		super();
 
 		if (VarState.instance) {
-			// eslint-ignore-next-line no-constructor-return
+			// eslint-disable-next-line no-constructor-return
 			return VarState.instance;
 		}
 

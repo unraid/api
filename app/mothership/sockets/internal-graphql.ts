@@ -53,7 +53,7 @@ export class InternalGraphql extends CustomSocket {
 				await sleep(1000);
 
 				// Re-connect to internal graphql server
-				connect();
+				await connect();
 				return;
 			}
 
