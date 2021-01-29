@@ -4,7 +4,7 @@
  */
 
 import execa from 'execa';
-import si from 'systeminformation';
+import { Systeminformation, blockDevices, diskLayout } from 'systeminformation';
 import { map as asyncMap } from 'p-iteration';
 import { CoreContext, CoreResult } from '../types';
 import { uppercaseFirstChar, ensurePermission } from '../utils';
@@ -15,14 +15,14 @@ interface Partition {
 	size: number;
 }
 
-interface Disk extends si.Systeminformation.DiskLayoutData {
+interface Disk extends Systeminformation.DiskLayoutData {
 	smartStatus: string;
 	interfaceType: string;
 	temperature: number;
 	partitions: Partition[];
 }
 
-const getTemperature = async (disk: si.Systeminformation.DiskLayoutData): Promise<number> => {
+const getTemperature = async (disk: Systeminformation.DiskLayoutData): Promise<number> => {
 	const stdout = await execa('smartctl', ['-A', disk.device]).then(({ stdout }) => stdout).catch(() => '');
 	const lines = stdout.split('\n');
 	const header = lines.find(line => line.startsWith('ID#'))!;
@@ -43,7 +43,7 @@ const getTemperature = async (disk: si.Systeminformation.DiskLayoutData): Promis
 	return Number.parseInt(line[line.length - 1], 10);
 };
 
-const parseDisk = async (disk: si.Systeminformation.DiskLayoutData, partitionsToParse: si.Systeminformation.BlockDevicesData[]): Promise<Disk> => {
+const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToParse: Systeminformation.BlockDevicesData[]): Promise<Disk> => {
 	const partitions = partitionsToParse
 		// Only get partitions from this disk
 		.filter(partition => partition.name.startsWith(disk.device.split('/dev/')[1]))
@@ -80,9 +80,8 @@ export const getDisks = async (context: CoreContext): Promise<Result> => {
 		possession: 'any'
 	});
 
-	const blockDevices = await si.blockDevices();
-	const partitions = blockDevices.filter(device => device.type === 'part');
-	const disks = await asyncMap(await si.diskLayout(), async disk => parseDisk(disk, partitions));
+	const partitions = await blockDevices().then(devices => devices.filter(device => device.type === 'part'));
+	const disks = await asyncMap(await diskLayout(), async disk => parseDisk(disk, partitions));
 
 	return {
 		text: `Disks: ${JSON.stringify(disks, null, 2)}`,
