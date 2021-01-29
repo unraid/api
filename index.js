@@ -20,6 +20,9 @@ process.chdir(__dirname);
 // Load .env file
 require('dotenv').config();
 
+// Set process title
+process.title = 'unraid-api';
+
 // Load process
 require('./dist/index', () => {
     // Failed to load main file

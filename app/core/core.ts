@@ -215,9 +215,6 @@ const load = async (): Promise<void> => {
  * @param name The name of the server instance to load.
  */
 export const loadServer = async (name: string, server: typeof Server): Promise<void> => {
-	// Set process title
-	process.title = name;
-
 	// Start the server.
 	coreLogger.debug('Starting server');
 
