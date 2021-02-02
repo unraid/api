@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.26](https://github.com/unraid/api/compare/v2.15.25-rolling-20210202230645...v2.15.26) (2021-02-02)
+
+
+### Bug Fixes
+
+* array not returning data ([61dbf34](https://github.com/unraid/api/commit/61dbf342073c122125deb5c11e7057b715579928))
+* hide excessive logs ([a7543d8](https://github.com/unraid/api/commit/a7543d8a1ad198bb8152f438fb09c67816c90928))
+
 ### [2.15.25](https://github.com/unraid/api/compare/v2.15.24-rolling-20210127012838...v2.15.25) (2021-01-27)
 
 ### [2.15.24](https://github.com/unraid/api/compare/v2.15.21-rolling-20210126002432...v2.15.24) (2021-01-26)
