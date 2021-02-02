@@ -13,7 +13,7 @@ import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, utils, paths, pubsub, apiManager, coreLogger } from './core';
+import { log, config, utils, paths, pubsub, coreLogger } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from './core/utils';
 import { graphql } from './graphql';
 import { MothershipSocket } from './mothership';
@@ -31,11 +31,6 @@ const updatePubsub = async () => {
 // Update pub/sub when config/image file is added/updated/removed
 chokidar.watch(configFilePath).on('all', updatePubsub);
 chokidar.watch(customImageFilePath).on('all', updatePubsub);
-
-/**
- * One second in milliseconds.
- */
-const ONE_SECOND = 1000;
 
 /**
  * The Graphql server.
@@ -189,30 +184,10 @@ stoppableServer.on('upgrade', (request, socket, head) => {
 // Add graphql subscription handlers
 graphApp.installSubscriptionHandlers(wsServer);
 
-export const mothership = new MothershipSocket({
-	lazy: true
-});
 export const server = {
 	httpServer,
 	server: stoppableServer,
 	async start() {
-		let connectedAtleastOnce = false;
-
-		// If key is in an invalid format disconnect
-		apiManager.on('expire', async () => {
-			await mothership.disconnect();
-		});
-
-		// If the key changes try to (re)connect to Mothership
-		apiManager.on('replace', async () => {
-			if (!connectedAtleastOnce) {
-				connectedAtleastOnce = true;
-				await sleep(1000);
-			}
-
-			await mothership.connect();
-		});
-
 		// Start http server
 		return stoppableServer.listen(port, () => {
 			// Downgrade process user to owner of this file

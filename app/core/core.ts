@@ -5,20 +5,17 @@
 
 import path from 'path';
 import glob from 'glob';
-import exitHook from 'async-exit-hook';
 import camelCase from 'camelcase';
 import globby from 'globby';
 import pWaitFor from 'p-wait-for';
-import getServerAddress from 'get-server-address';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
-import { log, coreLogger } from './log';
+import { coreLogger } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint, isNchanUp } from './utils';
 import { config } from './config';
 import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
-import { server as Server } from '../server';
 
 // Have plugins loaded at least once
 let pluginsLoaded = false;
@@ -203,45 +200,8 @@ const load = async (): Promise<void> => {
 	await loadApiKeys();
 };
 
-/**
- * Loads a server.
- *
- * @name core.loadServer
- * @param name The name of the server instance to load.
- */
-export const loadServer = async (name: string, server: typeof Server): Promise<void> => {
-	// Start the server.
-	coreLogger.debug('Starting server');
-
-	// Log only if the server actually binds to the port
-	server.server.on('listening', () => {
-		coreLogger.info('Listening at %s.', getServerAddress(server.server));
-	});
-
-	// Start server
-	await server.start().catch(error => {
-		log.error(error);
-	});
-
-	// On process exit
-	exitHook(async () => {
-		// Only do this when there's a TTY present
-		if (process.stdout.isTTY) {
-			// Ensure we go back to the start of the line
-			// this causes the ^C the be overridden on a CTRL+C
-			process.stdout.write('\r');
-		}
-
-		coreLogger.debug('Stopping server');
-
-		// Stop the server
-		server.stop();
-	});
-};
-
 export const core = {
 	loaders,
 	load,
-	loadServer,
 	loadNchan
 };

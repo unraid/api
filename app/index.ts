@@ -6,8 +6,12 @@
 import os from 'os';
 import am from 'am';
 import * as Sentry from '@sentry/node';
-import { core, loadServer, states } from './core';
+import exitHook from 'async-exit-hook';
+import getServerAddress from 'get-server-address';
+import { core, states, coreLogger, log } from './core';
 import { server } from './server';
+import { apiManager } from './core';
+import { InternalGraphql, MothershipSocket } from './mothership';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json') as { version: string };
@@ -32,11 +36,75 @@ am(async () => {
 	// Load core
 	await core.load();
 
-	// Load server
-	await loadServer('unraid-api', server);
+	// Let's try and load the HTTP server
+	coreLogger.debug('Starting HTTP server');
+
+	// Log only if the server actually binds to the port
+	server.server.on('listening', () => {
+		coreLogger.info('Server is up! %s', getServerAddress(server.server));
+	});
+
+	// Trying to start server
+	await server.start().catch(error => {
+		log.error(error);
+
+		// On process exit
+		exitHook(async () => {
+			coreLogger.debug('Stopping HTTP server');
+
+			// Stop the server
+			server.stop();
+		});
+	});
 
 	// Load nchan
 	await core.loadNchan();
+
+	const sockets = new Map<string, MothershipSocket | InternalGraphql>();
+	let lastknownApiKey: string;
+
+	// If key is removed then disconnect our sockets
+	apiManager.on('expire', async name => {
+		try {
+			// Bail if this isn't our key
+			if (name !== 'my_servers') {
+				return;
+			}
+
+			await sockets.get('relay')?.disconnect();
+			await sockets.get('internalGraphql')?.disconnect();
+		} catch (error: unknown) {
+			log.error('Failed updating sockets on apiKey "expire" event with error %s.', error);
+		}
+	});
+
+	// If the key changes try to (re)connect to Mothership
+	apiManager.on('replace', async (name, newApiKey) => {
+		try {
+			// Bail if this isn't our key
+			if (name !== 'my_servers') {
+				return;
+			}
+
+			// If we're missing our sockets let's create them
+			if (!sockets.has('relay') || !sockets.has('internalGraphql')) {
+				sockets.set('relay', new MothershipSocket({ apiKey: lastknownApiKey }));
+				sockets.set('internalGraphql', new InternalGraphql({ apiKey: lastknownApiKey }));
+				return;
+			}
+
+			// If the key is the same as the one we're already connected with ignore it.
+			if (newApiKey === lastknownApiKey) {
+				return;
+			}
+
+			// Let's reconnect all sockets
+			await sockets.get('relay')?.reconnect();
+			await sockets.get('internalGraphql')?.reconnect();
+		} catch (error: unknown) {
+			log.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
+		}
+	});
 }, async (error: NodeJS.ErrnoException) => {
 	// Send error to server for debugging
 	Sentry.captureException(error);
