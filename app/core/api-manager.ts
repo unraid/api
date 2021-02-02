@@ -82,9 +82,12 @@ export class ApiManager extends EventEmitter {
 			});
 		}
 
-		// Load inital keys in
-		this.checkKey(configPath, true).catch(error => {
-			log.debug('Failing loading inital keys');
+		// Load my_servers key
+		log.debug('Loading MyServers API key...');
+		this.checkKey(configPath, true).then(() => {
+			log.debug('Loaded MyServers API key!');
+		}).catch(error => {
+			log.debug('Failing loading MyServers API key with %s', error);
 		});
 	}
 
@@ -102,6 +105,7 @@ export class ApiManager extends EventEmitter {
 		this.add(name, key, options);
 
 		// Emit update
+		log.debug('Emitting "replace" event');
 		this.emit('replace', name, this.getKey(name));
 	}
 
@@ -130,6 +134,7 @@ export class ApiManager extends EventEmitter {
 		this.keys.add(name, keyObject, ttl);
 
 		// Emit update
+		log.debug('Emitting "add" event');
 		this.emit('add', name, this.getKey(name));
 	}
 
@@ -264,6 +269,7 @@ export class ApiManager extends EventEmitter {
 	private async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		try {
+			coreLogger.debug('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
 
@@ -275,9 +281,11 @@ export class ApiManager extends EventEmitter {
 
 			// Ensure key format is valid before validating
 			validateApiKeyFormat(apiKey);
+			coreLogger.debug('API key is in the correct format, checking key\'s validity...');
 
 			// Ensure key is valid before connecting
 			await validateApiKey(apiKey);
+			coreLogger.debug('API key is valid.');
 
 			// Add the new key
 			this.replace('my_servers', apiKey, {

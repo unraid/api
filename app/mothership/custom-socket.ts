@@ -153,9 +153,12 @@ export class CustomSocket {
 	}
 
 	public async reconnect() {
+		this.logger.debug('Reconnecting...');
 		await this.disconnect();
+		this.logger.debug('Disconnected, waiting 1s before reconnecting.');
 		await sleep(1000);
 		await this.connect();
+		this.logger.debug('Reconnected');
 	}
 
 	protected onDisconnect() {
@@ -247,7 +250,7 @@ export class CustomSocket {
 
 	protected async cleanup() {
 		// Kill existing socket connection
-		if (this.connection) {
+		if (this.connection?.heartbeat) {
 			this.connection.close(4200, JSON.stringify({
 				message: 'Reconnecting'
 			}));

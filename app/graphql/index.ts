@@ -380,6 +380,7 @@ setIntervalAsync(async () => {
 }, 1000);
 
 export const graphql = {
+	debug,
 	introspection: debug,
 	playground: debug ? {
 		subscriptionEndpoint: '/graphql'

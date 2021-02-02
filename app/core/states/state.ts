@@ -26,6 +26,10 @@ export class State {
 		return this._data;
 	}
 
+	get data() {
+		return this._data;
+	}
+
 	set data(data: any) {
 		this._data = data;
 	}

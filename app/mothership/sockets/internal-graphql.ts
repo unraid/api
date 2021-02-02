@@ -3,11 +3,9 @@ import { apiManager, relayLogger } from '../../core';
 import { isNodeError, sleep } from '../../core/utils';
 import { AppError } from '../../core/errors';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
-import { MothershipSocket } from './mothership';
+import { sockets } from '../../sockets';
 
 export class InternalGraphql extends CustomSocket {
-	private readonly mothership?: MothershipSocket;
-
 	constructor(options: CustomSocket['options'] = {}) {
 		super({
 			name: 'InternalGraphql',
@@ -18,14 +16,20 @@ export class InternalGraphql extends CustomSocket {
 	}
 
 	onMessage() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
 		const logger = this.logger;
+		const sendMessage = this.sendMessage.bind(this);
 		return async function (this: WebSocketWithHeartBeat, data: string) {
 			try {
-				logger.silly('Recieved message for the API forwarding.');
-				self.mothership?.connection?.send(data);
-				logger.silly('Message sent to the API successfully.');
+				// Internal API accepted our authentication message
+				if (data === '{"type":"connection_ack"}') {
+					logger.debug('Internal graphql accepted authentication');
+					return;
+				}
+
+				logger.debug('Received message from the internal API, forwarding to the relay');
+				// Forward message
+				await sendMessage(sockets.get('relay')?.connection, data);
+				logger.debug('Message sent to the API successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Relay socket is closed, close internal one
@@ -40,10 +44,7 @@ export class InternalGraphql extends CustomSocket {
 	}
 
 	onError() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
-		const logger = this.logger;
-		return async function (error: NodeJS.ErrnoException) {
+		return async (error: NodeJS.ErrnoException) => {
 			if (error.message === 'WebSocket was closed before the connection was established') {
 				// Likely the internal relay-ws connection was started but then mothership
 				// decided the key was invalid so it killed it
@@ -58,30 +59,31 @@ export class InternalGraphql extends CustomSocket {
 				await sleep(1000);
 
 				// Re-connect to internal graphql server
-				await self.connect();
+				await this.connect();
 				return;
 			}
 
-			logger.error(error);
+			this.logger.error(error);
 		};
 	}
 
 	onConnect() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
+		const apiKey = this.apiKey;
+		const logger = this.logger;
 		return async function (this: WebSocketWithHeartBeat) {
 			// No API key, close internal connection
-			if (!self.apiKey) {
+			if (!apiKey) {
 				this.close(4200, JSON.stringify({
 					message: 'No API key'
 				}));
 			}
 
 			// Authenticate with ourselves
+			logger.debug('Authenticating with internal graphql');
 			this.send(JSON.stringify({
 				type: 'connection_init',
 				payload: {
-					'x-api-key': self.apiKey
+					'x-api-key': apiKey
 				}
 			}));
 		};

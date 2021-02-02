@@ -6,10 +6,9 @@ import { subscribeToServers } from '../subscribe-to-servers';
 import { AppError } from '../../core/errors';
 import { readFileIfExists } from '../utils';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
-import { InternalGraphql } from './internal-graphql';
+import { sockets } from '../../sockets';
 
 export class MothershipSocket extends CustomSocket {
-	private internalGraphqlSocket?: CustomSocket;
 	private mothershipServersEndpoint?: {
 		unsubscribe: () => void;
 	};
@@ -25,16 +24,12 @@ export class MothershipSocket extends CustomSocket {
 	}
 
 	onConnect() {
-		const connectToInternalGraphql = this.connectToInternalGraphql.bind(this);
 		const connectToMothershipsGraphql = this.connectToMothershipsGraphql.bind(this);
 		const onConnect = super.onConnect.bind(this);
 		return async function (this: WebSocketWithHeartBeat) {
 			try {
 				// Run super
 				onConnect();
-
-				// Connect to local graphql
-				connectToInternalGraphql();
 
 				// Sub to /servers on mothership
 				await connectToMothershipsGraphql();
@@ -50,22 +45,16 @@ export class MothershipSocket extends CustomSocket {
 	}
 
 	onDisconnect() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
-		const logger = this.logger;
-		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
+		return async (code: number, _message: string) => {
 			try {
-				// Close connection to local graphql endpoint
-				self.internalGraphqlSocket?.connection?.close(200);
-
 				// Close connection to motherships's server's endpoint
-				await self.disconnectFromMothershipsGraphql();
+				await this.disconnectFromMothershipsGraphql();
 
 				// Process disconnection
-				self.onDisconnect();
+				this.onDisconnect();
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
-					logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
+					this.logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
 				}
 			}
 		};
@@ -73,19 +62,17 @@ export class MothershipSocket extends CustomSocket {
 
 	// When we get a message from relay send it through to our local graphql instance
 	onMessage() {
-		// eslint-disable-next-line @typescript-eslint/no-this-alias
-		const self = this;
-		const logger = this.logger;
-		return async function (this: WebSocketWithHeartBeat, data: string) {
+		const sendMessage = this.sendMessage.bind(this);
+		return async (data: string) => {
 			try {
-				logger.silly('Recieved message from mothership\'s relay, forwarding to the internal graphql connection');
-				await self.sendMessage.bind(self)(self.internalGraphqlSocket?.connection, data);
-				logger.silly('Message sent to the internal graphql connection successfully.');
+				this.logger.debug('Recieved message from mothership\'s relay, forwarding to the internal graphql connection');
+				await sendMessage(sockets.get('internalGraphql')?.connection, data);
+				this.logger.debug('Message sent to the internal graphql connection successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Something weird happened while processing the message
 					// This is likely a malformed message
-					logger.error('Failed sending message to relay.', error);
+					this.logger.error('Failed sending message to relay.', error);
 				}
 			}
 		};
@@ -152,10 +139,6 @@ export class MothershipSocket extends CustomSocket {
 			'x-lan-ip': lanIp,
 			'x-machine-id': machineId
 		};
-	}
-
-	private connectToInternalGraphql(options: InternalGraphql['options'] = {}) {
-		this.internalGraphqlSocket = new InternalGraphql(options);
 	}
 
 	private async connectToMothershipsGraphql() {
