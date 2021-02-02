@@ -26,10 +26,10 @@ export class InternalGraphql extends CustomSocket {
 					return;
 				}
 
-				logger.debug('Received message from the internal API, forwarding to the relay');
+				logger.silly('Received message from the internal API, forwarding to the relay');
 				// Forward message
 				await sendMessage(sockets.get('relay')?.connection, data);
-				logger.debug('Message sent to the API successfully.');
+				logger.silly('Message sent to the API successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Relay socket is closed, close internal one

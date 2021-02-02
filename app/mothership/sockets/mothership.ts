@@ -65,9 +65,9 @@ export class MothershipSocket extends CustomSocket {
 		const sendMessage = this.sendMessage.bind(this);
 		return async (data: string) => {
 			try {
-				this.logger.debug('Recieved message from mothership\'s relay, forwarding to the internal graphql connection');
+				this.logger.silly('Recieved message from mothership\'s relay, forwarding to the internal graphql connection');
 				await sendMessage(sockets.get('internalGraphql')?.connection, data);
-				this.logger.debug('Message sent to the internal graphql connection successfully.');
+				this.logger.silly('Message sent to the internal graphql connection successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Something weird happened while processing the message
