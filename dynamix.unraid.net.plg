@@ -1686,62 +1686,48 @@ function handleMessage(e) {
 window.addEventListener('message', handleMessage, false);
 </script>
 <?
+// Determine what source we should use for web components
 $UPC_ENV = $_COOKIE['UPC_ENV'] ? $_COOKIE['UPC_ENV'] : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
-$VUE_CDN_PREFIX = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
-function injectJS($src) {
-  echo '<script defer src="' . $src . '"></script>';
-};
-// by default prod is loaded from hosted sources
-$baseName = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js';
-$wcEntrySrc = 'https://registration.unraid.net/wc/unraid.min.js';
-// determine what source we should use
+$upcBase = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js'; // needed for the server to be agnostic of min or non min versions of the web components
+$upcSrc = 'https://registration.unraid.net/wc/unraid.min.js'; // by default prod is loaded from hosted sources
 switch ($UPC_ENV) {
   case 'staging':
     // min version of staging
-    $wcEntrySrc = 'https://registration-dev.unraid.net/wc/unraid.min.js';
+    $upcSrc = 'https://registration-dev.unraid.net/wc/unraid.min.js';
     break;
   case 'staging-debug':
     // non-min version of staging
-    $wcEntrySrc = 'https://registration-dev.unraid.net/wc/unraid.js';
+    $upcSrc = 'https://registration-dev.unraid.net/wc/unraid.js';
     break;
   case 'local':
     // forces load from webGUI filesystem
-    $wcEntrySrc = autov('/webGui/wc/' . $baseName);
+    $upcSrc = autov('/webGui/wc/' . $upcBase);
     break;
   case 'development':
     // local filesystem Vue.js + external "local" dev server for RegWiz development
-    $wcEntrySrc = 'https://launchpad.unraid.test:6969/wc/unraid.js';
+    $upcSrc = 'https://launchpad.unraid.test:6969/wc/unraid.js';
     break;
   default: // prod
     break;
 }
-// add the intended files to the DOM
-injectJS($wcEntrySrc);
+// add the intended web component source to the DOM
+echo '<script id="unraid-wc" defer src="' . $upcSrc . '"></script>';
 ?>
 <script type="text/javascript">
-/**
- * @TODO - determine if we need to inject the local version of the web components
- * - in UPC set session/localStorage then check for it here. If it doesn't exist inject.
- * - on page load UPC should remove the session/localStorage
- */
-// const injectJS = (src) => {
-//   const script = document.createElement('script');
-//   script.type = 'text/javascript';
-//   script.src = src;
-//   document.body.appendChild(script);
-// };
-// // start a timer to determine if we need to inject webGUI file system
-// setTimeout(() => {
-//   console.log('[checking for vue.js]');
-//   if (!window.Vue) {
-//     console.debug('[UPC] fallback to filesystem JS');
-//     let checkForVue = setInterval(() => { // reset check
-//       if (!window.Vue) return;
-//       clearInterval(checkForVue); // stop checking
-//       return injectJS("<?autov('/webGui/wc/'.$baseName) ?>"); // and just inject it already!
-//     }, 10);
-//   }
-// }, 2000);
+const currentUpcEnv = '<?echo $UPC_ENV ?>';
+if (currentUpcEnv !== 'production') console.debug('[UPC_ENV] ✨', currentUpcEnv);
+// If the UPC isn't defined after 2secs inject UPC via
+setTimeout(() => {
+  if (!window.customElements.get('unraid-user-profile')) {
+    console.log('[UPC] Fallback to filesystem src 😖');
+    document.getElementById('unraid-wc').remove();
+    const el = document.createElement('script');
+    el.type = 'text/javascript';
+    el.src = '<?autov('/webGui/wc/' . $upcBase) ?>';
+    return document.head.appendChild(el);
+  }
+  return false;
+}, 2000);
 </script>
 ]]>
 </INLINE>
