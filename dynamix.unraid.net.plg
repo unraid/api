@@ -1542,6 +1542,14 @@ sed -E "s@${OLDTEXT}@${NEWTEXT}@g"
 <INLINE>
 <![CDATA[
 <script markdown="0">
+function upcEnv(str) {
+  const ckName = 'UPC_ENV';
+  console.log(`Reloading page with updated ${ckName} in 3 seconds ✨`);
+  setTimeout(() => {
+    window.location.reload();
+  }, 3000);
+  return document.cookie = `${ckName}=${str}`;
+};
 function handleMessage(e) {
   //if (e.origin != "http://child.com") { return; }
   if (e.data.length == 0) { return; }
@@ -1677,16 +1685,66 @@ function handleMessage(e) {
 }
 window.addEventListener('message', handleMessage, false);
 </script>
+<?
+$UPC_ENV = $_COOKIE['UPC_ENV'] ? $_COOKIE['UPC_ENV'] : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
+$VUE_CDN_PREFIX = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
+function injectJS($src) {
+  echo '<script defer src="' . $src . '"></script>';
+};
+// by default prod is loaded from hosted sources
+$baseName = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js';
+$wcEntrySrc = 'https://registration.unraid.net/wc/unraid.min.js';
+// determine what source we should use
+switch ($UPC_ENV) {
+  case 'staging':
+    // min version of staging
+    $wcEntrySrc = 'https://registration-dev.unraid.net/wc/unraid.min.js';
+    break;
+  case 'staging-debug':
+    // non-min version of staging
+    $wcEntrySrc = 'https://registration-dev.unraid.net/wc/unraid.js';
+    break;
+  case 'local':
+    // forces load from webGUI filesystem
+    $wcEntrySrc = autov('/webGui/wc/' . $baseName);
+    break;
+  case 'development':
+    // local filesystem Vue.js + external "local" dev server for RegWiz development
+    $wcEntrySrc = 'https://launchpad.unraid.test:6969/wc/unraid.js';
+    break;
+  default: // prod
+    break;
+}
+// add the intended files to the DOM
+injectJS($wcEntrySrc);
+?>
+<script type="text/javascript">
+/**
+ * @TODO - determine if we need to inject the local version of the web components
+ * - in UPC set session/localStorage then check for it here. If it doesn't exist inject.
+ * - on page load UPC should remove the session/localStorage
+ */
+// const injectJS = (src) => {
+//   const script = document.createElement('script');
+//   script.type = 'text/javascript';
+//   script.src = src;
+//   document.body.appendChild(script);
+// };
+// // start a timer to determine if we need to inject webGUI file system
+// setTimeout(() => {
+//   console.log('[checking for vue.js]');
+//   if (!window.Vue) {
+//     console.debug('[UPC] fallback to filesystem JS');
+//     let checkForVue = setInterval(() => { // reset check
+//       if (!window.Vue) return;
+//       clearInterval(checkForVue); // stop checking
+//       return injectJS("<?autov('/webGui/wc/'.$baseName) ?>"); // and just inject it already!
+//     }, 10);
+//   }
+// }, 2000);
+</script>
 ]]>
 </INLINE>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/javascript/vue.js">
-<URL>https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/javascript/vue.min.js">
-<URL>https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js</URL>
 </FILE>
 
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
@@ -1781,80 +1839,6 @@ unraid-launchpad {
 ]]>
 </INLINE>
 </FILE>
-
-<FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2">
-<INLINE>
-<![CDATA[
-<!-- RegWiz -->
-<script type="text/javascript">
-const UPC_ENV = localStorage.getItem('UPC_ENV') ? localStorage.getItem('UPC_ENV') : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
-const VUE_CDN_PREFIX = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
-const injectJS = (src) => {
-  if (UPC_ENV !== 'production') console.debug('[injectJS]', src);
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = src;
-  document.body.appendChild(script);
-};
-// by default prod is loaded from hosted sources
-<? $baseName = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js' ?>
-let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
-// determine what source we should use
-if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
-switch (UPC_ENV) {
-  case 'staging':
-    // min version of staging
-    vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
-    break;
-  case 'staging-debug':
-    // non-min version of staging
-    vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
-    break;
-  case 'local':
-    // forces load from webGUI filesystem
-    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = '<?autov('/webGui/wc/'.$baseName) ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
-    break;
-  case 'development':
-    // local filesystem Vue.js + external "local" dev server for RegWiz development
-    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
-    break;
-  default: // prod
-    break;
-}
-// add the intended files to the DOM
-injectJS(vueFile);
-// make sure specified vue file is loaded before attempting to 
-// inject and load web component entry since it relies on Vue.js
-let checkForVue = setInterval(() => {
-  if (!window.Vue) return;
-  clearInterval(checkForVue); // stop checking
-  injectJS(wcEntryFile); // and just inject it already!
-}, 10);
-// start a timer to determine if we need to inject webGUI file system 
-// fallback if we take too long injecting the above
-setTimeout(() => {
-  if (!window.Vue) {
-    if (UPC_ENV !== 'production') console.debug('[UPC] fallback to filesystem JS');
-    clearInterval(checkForVue); // stop initial check
-    injectJS("<?autov('/webGui/javascript/vue.min.js') ?>");
-    checkForVue = setInterval(() => { // reset check
-      if (!window.Vue) return;
-      clearInterval(checkForVue); // stop checking
-      injectJS("<?autov('/webGui/wc/'.$baseName) ?>"); // and just inject it already!
-    }, 10);
-  }
-}, 2000);
-</script>
-<!-- /RegWiz -->
-]]>
-</INLINE>
-</FILE>
-
 
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3">
 <INLINE>
@@ -2632,12 +2616,10 @@ cp -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php /usr/local
 cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- | sed -e 's/<\/head>/<? include "\/usr\/local\/emhttp\/plugins\/dynamix.unraid.net\/include\/RegWizard.php" ?>\n<\/head>/g' > /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 
 sed -i $'/<style>/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
-sed -i $'/<\/body>/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 sed -i $'/<div class="block">/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 sed -i '/<div class="block">/,/<\/div>/d' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1
-rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3
 ]]>
 </INLINE>
