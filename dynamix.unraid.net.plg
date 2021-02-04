@@ -1719,6 +1719,11 @@ switch ($UPC_ENV) {
 injectJS($wcEntrySrc);
 ?>
 <script type="text/javascript">
+/**
+ * @TODO - determine if we need to inject the local version of the web components
+ * - in UPC set session/localStorage then check for it here. If it doesn't exist inject.
+ * - on page load UPC should remove the session/localStorage
+ */
 // const injectJS = (src) => {
 //   const script = document.createElement('script');
 //   script.type = 'text/javascript';
