@@ -33,12 +33,14 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   mv -f /usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
   mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
-  rm -rf /boot/config/plugins/Unraid.net/wc
   rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
   rm -f /boot/config/plugins/Unraid.net/.gitignore
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.js
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
+  rm -rf /boot/config/plugins/Unraid.net/webComps
+  rm -rf /usr/local/emhttp/webGui/webComps
+  rm -rf /boot/config/plugins/Unraid.net/wc
   rm -rf /usr/local/emhttp/webGui/wc
   find /usr/local/emhttp/languages -type f \( -iname unraidnet.txt -o -iname unraidnet.dot \) -delete
   exit 0
@@ -277,9 +279,9 @@ _install() {
   cp $node_base_directory/unraid-api/.env.$env $node_base_directory/unraid-api/.env
 
   # Copy across wc files
-  rm -rf /usr/local/emhttp/webGui/wc
-  mkdir -p /usr/local/emhttp/webGui/wc
-  cp /boot/config/plugins/Unraid.net/wc/* /usr/local/emhttp/webGui/wc
+  rm -rf /usr/local/emhttp/webGui/webComps
+  mkdir -p /usr/local/emhttp/webGui/webComps
+  cp /boot/config/plugins/Unraid.net/webComps/* /usr/local/emhttp/webGui/webComps
 }
 install() {
   # Stop old process
@@ -1691,24 +1693,24 @@ window.addEventListener('message', handleMessage, false);
 <?
 // Determine what source we should use for web components
 $UPC_ENV = $_COOKIE['UPC_ENV'] ? $_COOKIE['UPC_ENV'] : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
-$upcBase = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js'; // needed for the server to be agnostic of min or non min versions of the web components
-$upcSrc = 'https://registration.unraid.net/wc/unraid.min.js'; // by default prod is loaded from hosted sources
+$upcBase = file_exists('/boot/config/plugins/Unraid.net/webComps/unraid.js') ? 'unraid.js' : 'unraid.min.js'; // needed for the server to be agnostic of min or non min versions of the web components
+$upcSrc = 'https://registration.unraid.net/webComps/unraid.min.js'; // by default prod is loaded from hosted sources
 switch ($UPC_ENV) {
   case 'staging':
     // min version of staging
-    $upcSrc = 'https://registration-dev.unraid.net/wc/unraid.min.js';
+    $upcSrc = 'https://registration-dev.unraid.net/webComps/unraid.min.js';
     break;
   case 'staging-debug':
     // non-min version of staging
-    $upcSrc = 'https://registration-dev.unraid.net/wc/unraid.js';
+    $upcSrc = 'https://registration-dev.unraid.net/webComps/unraid.js';
     break;
   case 'local':
     // forces load from webGUI filesystem
-    $upcSrc = autov('/webGui/wc/' . $upcBase);
+    $upcSrc = autov('/webGui/webComps/' . $upcBase);
     break;
   case 'development':
     // local filesystem Vue.js + external "local" dev server for RegWiz development
-    $upcSrc = 'https://launchpad.unraid.test:6969/wc/unraid.js';
+    $upcSrc = 'https://launchpad.unraid.test:6969/webComps/unraid.js';
     break;
   default: // prod
     break;
@@ -1723,10 +1725,10 @@ if (currentUpcEnv !== 'production') console.debug('[UPC_ENV] ✨', currentUpcEnv
 setTimeout(() => {
   if (!window.customElements.get('unraid-user-profile')) {
     console.log('[UPC] Fallback to filesystem src 😖');
-    document.getElementById('unraid-wc').remove();
+    document.getElementById('unraid-wc').remove(); // remove original source, jic
     const el = document.createElement('script');
     el.type = 'text/javascript';
-    el.src = '<?autov('/webGui/wc/' . $upcBase) ?>';
+    el.src = '<?autov('/webGui/webComps/' . $upcBase) ?>';
     return document.head.appendChild(el);
   }
   return false;
@@ -1739,9 +1741,9 @@ setTimeout(() => {
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
 <INLINE>
 <![CDATA[
-MANIFEST_JSON_PATH=/boot/config/plugins/Unraid.net/wc/manifest.json
-BASE_URL=https://registration.unraid.net/wc/
-BASE_PATH=/boot/config/plugins/Unraid.net/wc/
+MANIFEST_JSON_PATH=/boot/config/plugins/Unraid.net/webComps/manifest.json
+BASE_URL=https://registration.unraid.net/webComps/
+BASE_PATH=/boot/config/plugins/Unraid.net/webComps/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
 
@@ -1779,8 +1781,8 @@ if [[ ! -f "$MANIFEST_JSON_PATH" ]]; then
 fi
 
 # Copy files to webGui's public dir
-mkdir -p /usr/local/emhttp/webGui/wc/
-rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/wc/ /usr/local/emhttp/webGui/wc/
+mkdir -p /usr/local/emhttp/webGui/webComps/
+rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/webComps/ /usr/local/emhttp/webGui/webComps/
 ]]>
 </INLINE>
 </FILE>
@@ -1789,7 +1791,7 @@ rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/wc/ /usr/loc
 <FILE Name="/boot/config/plugins/Unraid.net/.gitignore" Method="install">
 <INLINE>
 <![CDATA[
-wc
+webComps
 ]]>
 </INLINE>
 </FILE>
@@ -2749,7 +2751,7 @@ elif grep -q 6.9.0-beta35 /etc/unraid-version; then
 fi
 
 if [ -f /boot/.git ]; then
-  git -C /boot rm --quiet --cached /boot/config/plugins/Unraid.net/wc/* &>/dev/null && echo "Removed old javascript files from repo" || exit 0
+  git -C /boot rm --quiet --cached /boot/config/plugins/Unraid.net/webComps/* &>/dev/null && echo "Removed old javascript files from repo" || exit 0
 fi
 ]]>
 </INLINE>
