@@ -1889,10 +1889,10 @@ unraid-launchpad {
         'seconds' => _('seconds'),
         'ago' => _('ago'),
         'basicPlusPro' => [
-          'heading' => _('Thank you for choosing Unraid OS!'),
+          'heading' => _('Thank you for choosing Unraid OS'),
           'message' => [
             'registered' => _('Get started by signing in to Unraid.net'),
-            'upgradeEligible' => _('To support more storage devices as your server grows, click Upgrade Key')
+            'upgradeEligible' => _('To support more storage devices as your server grows click Upgrade Key')
           ]
         ],
         'actions' => [
@@ -1908,7 +1908,7 @@ unraid-launchpad {
           'closeDropdown' => _('Close dropdown'),
           'openDropdown' => _('Open dropdown'),
           'pleaseConfirmClosureYouHaveOpenPopUp' => _('Please confirm closure. You have an open pop-up.'),
-          'trialHasExpiredSeeOptions' => _('Trial has expired, see options below'),
+          'trialHasExpiredSeeOptions' => _('Trial has expired see options below'),
           'extraLinks' => [
             'newTab' => sprintf(_('Opens %s in new tab'), '{0}'),
             'myServers' => _('My Servers Dashboard'),
@@ -1979,7 +1979,7 @@ unraid-launchpad {
           'ENOKEYFILE' => [
             'humanReadable' => _('No Keyfile'),
             'heading' => [
-              'registered' => _('Thanks for supporting Unraid!'),
+              'registered' => _('Thanks for supporting Unraid'),
               'notRegistered' => _("Let's unleash your hardware!"),
             ],
             'message' => [
@@ -1989,8 +1989,8 @@ unraid-launchpad {
           ],
           'TRIAL' => [
             'humanReadable' => _('Trial'),
-            'heading' => _('Thank you for choosing Unraid OS!'),
-            'message' => _('Your Trial key includes all the functionality and device support of a Pro key') . ' ' . _('After your Trial has reached expiration, your server still functions normally until the next time you Stop the array or reboot your server') . '' . _('At that point you may either purchase a license key or request a Trial extension'),
+            'heading' => _('Thank you for choosing Unraid OS'),
+            'message' => _('Your Trial key includes all the functionality and device support of a Pro key') . ' ' . _('After your Trial has reached expiration your server still functions normally until the next time you Stop the array or reboot your server') . '' . _('At that point you may either purchase a license key or request a Trial extension'),
             '_extraMsg' => sprintf(_('You have %s remaining on your Trial key'), '{parsedExpireTime}'),
           ],
           'EEXPIRED' => [
@@ -2016,7 +2016,7 @@ unraid-launchpad {
             'error' => [
               'heading' => _('Registration key / GUID mismatch'),
               'message' => [
-                'default' => _('The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /boot/config directory on your USB Flash boot device.'),
+                'default' => _('The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the bootconfig directory on your USB Flash boot device.'),
                 'replacementEligible' => _('@:stateData.EGUID.error.message.default or click Replace Key to transfer your registration to this new flash device.'),
               ],
             ],
@@ -2025,7 +2025,7 @@ unraid-launchpad {
             'humanReadable' => _('Missing key file'),
             'error' => [
               'heading' => _('@:stateData.ENOKEYFILE2.humanReadable'),
-              'message' => _('It appears that your license key file is corrupted or missing. The key file should be located in the /boot/config directory on your USB Flash boot device. If you do not have a backup copy of your license key file you may attempt to recover your key. If this was a Trial installation, you may purchase a license key.'),
+              'message' => _('It appears that your license key file is corrupted or missing. The key file should be located in the bootconfig directory on your USB Flash boot device. If you do not have a backup copy of your license key file you may attempt to recover your key. If this was a Trial installation, you may purchase a license key.'),
             ],
           ],
           'ETRIAL' => [
@@ -2053,7 +2053,7 @@ unraid-launchpad {
             'humanReadable' => _('Multiple License Keys Present'),
             'error' => [
               'heading' => _('@:stateData.EGUID1.humanReadable'),
-              'message' => _('There are multiple license key files present on your USB flash device and none of them correspond to the USB Flash boot device. Please remove all key files, except the one you want to replace, from the /boot/config directory on your USB Flash boot device. Alternately you may purchase a license key for this USB flash device. If you want to replace one of your license keys with a new key bound to this USB Flash device, please first remove all other key files first.'),
+              'message' => _('There are multiple license key files present on your USB flash device and none of them correspond to the USB Flash boot device. Please remove all key files except the one you want to replace from the bootconfig directory on your USB Flash boot device. Alternately you may purchase a license key for this USB flash device. If you want to replace one of your license keys with a new key bound to this USB Flash device please first remove all other key files first.'),
             ],
           ],
           'EBLACKLISTED' => [
@@ -2182,7 +2182,7 @@ unraid-launchpad {
             'success' => [
               'heading' => [
                 'username' => sprintf(_('Hi %s'), '{0}'),
-                'default' => _('Success!'),
+                'default' => _('Success'),
               ],
               'subheading' => [
                 'extention' => _('Your trial will expire in 15 days'),
@@ -2239,7 +2239,7 @@ unraid-launchpad {
               ],
               'subheading' => [
                 'default' => _("Forgot what Unraid.net account you used? Have a USB flash device that already has an account associated with it? Just give us the details about what happened and we'll do our best to get you up and running again."),
-                'success' => _('We have received your e-mail and will respond in the order it was received. While we strive to respond to all requests as quickly as possible, please allow for up to 3 business days for a response.'),
+                'success' => _('We have received your e-mail and will respond in the order it was received. While we strive to respond to all requests as quickly as possible please allow for up to 3 business days for a response.'),
               ],
               'relevantServerData' => _('Your USB Flash GUID and other relevant server data will also be sent'),
             ],
@@ -2258,15 +2258,15 @@ unraid-launchpad {
               'features' => [
                 'secureRemoteAccess' => [
                   'heading' => _('Secure remote access'),
-                  'copy' => _("Whether you need to add a share, container, or virtual machine, do it all from the webGui from anytime and anywhere using HTTPS. Best of all, all SSL certificates are verified by Let's Encrypt, so no browser security warnings."),
+                  'copy' => _("Whether you need to add a share container or virtual machine do it all from the webGui from anytime and anywhere using HTTPS. Best of all all SSL certificates are verified by Let's Encrypt so no browser security warnings."),
                 ],
                 'realTimeMonitoring' => [
                   'heading' => _('Real-time Monitoring'),
-                  'copy' => _('Get quick real-time info on the status of your servers such as storage, container, and VM usage. And not just for one server, but all the servers in your Unraid fleet!'),
+                  'copy' => _('Get quick real-time info on the status of your servers such as storage container and VM usage. And not just for one server but all the servers in your Unraid fleet'),
                 ],
                 'usbFlashBackup' => [
                   'heading' => _('USB Flash Backup'),
-                  'copy' => _('Click a button and your flash is automatically backed up to Unraid.net, enabling easy recovery in the event of a device failure. Never self-manage/host your flash backups again!'),
+                  'copy' => _('Click a button and your flash is automatically backed up to Unraid.net enabling easy recovery in the event of a device failure. Never self-managehost your flash backups again'),
                 ],
                 'regKeyManagement' => [
                   'heading' => _('Registration key management'),
