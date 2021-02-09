@@ -2099,7 +2099,7 @@ unraid-launchpad {
           'serverInfoToggle' => _('Toggle server info visibility'),
           'youCanSafelyCloseThisWindow' => _('You can safely close this window'),
           'automaticallyClosingIn' => sprintf(_('Auto closing in %s'), '{0}'),
-          'byeBye' => _('bye, bye 👋'),
+          'byeBye' => _('bye bye 👋'),
           'browserWillSelfDestructIn' => sprintf(_('Browser will self destruct in %s'), '{0}'),
           'closingPopUpMayLeadToErrors' => _('Closing this pop-up window while actions are being preformed may lead to unintended errors'),
           'goBack' => _('Go Back'),
