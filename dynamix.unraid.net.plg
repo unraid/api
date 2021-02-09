@@ -2098,9 +2098,9 @@ unraid-launchpad {
           'continueTrial' => _('Continue Trial'),
           'serverInfoToggle' => _('Toggle server info visibility'),
           'youCanSafelyCloseThisWindow' => _('You can safely close this window'),
-          'automaticallyClosingIn' => _('Automatically closing in'),
+          'automaticallyClosingIn' => sprintf(_('Auto closing in %s'), '{0}'),
           'byeBye' => _('bye, bye 👋'),
-          'browserWillSelfDestructIn' => _('Browser will self destruct in'),
+          'browserWillSelfDestructIn' => sprintf(_('Browser will self destruct in %s'), '{0}'),
           'closingPopUpMayLeadToErrors' => _('Closing this pop-up window while actions are being preformed may lead to unintended errors'),
           'goBack' => _('Go Back'),
           'shutDown' => _('Shut Down'),
@@ -2158,7 +2158,7 @@ unraid-launchpad {
                 'recover' => _('Unraid.net Sign In to Recover Key'),
                 'replace' => _('Unraid.net Sign In to Replace Key'),
               ],
-              'subheading' => _('Please sign in with same email with which you purchased your license'),
+              'subheading' => _('Please sign in with the same email with which you purchased your license'),
               'form' => [
                 'replacementConditions' => [
                   'name' => _('Acknowledge Replacement Conditions'),
@@ -2222,11 +2222,11 @@ unraid-launchpad {
               'loading2' => _('Were working our magic'),
               'countdown' => [
                 'success' => [
-                  'prefix' => _('Auto closing in'),
+                  'prefix' => sprintf(_('Auto closing in %s'), '{0}'),
                   'text' => _('You can safely close this window'),
                 ],
                 'error' => [
-                  'prefix' => _('Auto redirecting in'),
+                  'prefix' => sprintf(_('Auto redirecting in %s'), '{0}'),
                   'text' => _('Back to Registration Home'),
                   'complete' => _('Back in a flash ⚡️'),
                 ],
