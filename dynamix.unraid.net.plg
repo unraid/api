@@ -654,6 +654,10 @@ $isRegistered = !empty($remote['apikey']);
 $boolWebUIAuth = $isRegistered && file_exists('/etc/nginx/htpasswd');
 ?>
 <script>
+$('body').on('change keyup', '#UnraidNetSettings', function(data) {
+  $(this).children('.applyBtn').attr('disabled', false);
+});
+
 function registerServer(button) {
     var oldlabel = $.trim($(button).text());
 
@@ -675,7 +679,14 @@ function registerServer(button) {
                 "remote_wanport": $('#wanport').val()
             },function(data2) {
 <?if(!$isRegistered):?>
-                swal({title:"",text:"_(Your server has been registered)_",type:"success",allowEscapeKey:false},function(){button.form.submit();});
+                swal({
+                  title: "",
+                  text: "_(Your server has been registered)_",
+                  type: "success",
+                  allowEscapeKey: false
+                }, function() {
+                  button.form.submit();
+                });
 <?else:?>
                 button.form.submit();
 <?endif?>
@@ -686,7 +697,12 @@ function registerServer(button) {
     };
 
     $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-    $.post("/webGui/include/UpdateDNS.php",{username:$('#ips_username').val(),password:$('#ips_password').val(),externalport:$('#wanport').val(),remoteaccess:$('#wanaccess').val()},success).fail(failure);
+    $.post("/webGui/include/UpdateDNS.php",{
+      username: $('#ips_username').val(),
+      password: $('#ips_password').val(),
+      externalport: $('#wanport').val(),
+      remoteaccess: $('#wanaccess').val()
+    }, success).fail(failure);
 }
 
 function dnsCheckServer(button) {
@@ -801,7 +817,7 @@ _(Allow Remote Access)_:
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?else:?>
-: <select id="wanaccess" size="1" class="narrow" onchange="changeRemoteAccess(this)">
+: <select id="wanaccess" size="1" onchange="changeRemoteAccess(this)">
   <?=mk_option($remote['wanaccess'], "no", _("No"))?>
   <?=mk_option($remote['wanaccess'], "yes", _("Yes"))?>
   </select>
@@ -814,8 +830,14 @@ _(WAN Port)_:
 
 </div>
 
+_(Send crash information to Unraid developers)_:
+: <select id="sendCrashInfo" size="1">
+  <?=mk_option($remote['sendCrashInfo'], "no", _("No"))?>
+  <?=mk_option($remote['sendCrashInfo'], "yes", _("Yes"))?>
+  </select>
+
 &nbsp;
-: <button type="button" onclick="registerServer(this)">_(Apply)_</button>
+: <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button>
 <?endif?>
 <?endif?>
 </form>
