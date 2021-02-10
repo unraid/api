@@ -1549,11 +1549,14 @@ sed -E "s@${OLDTEXT}@${NEWTEXT}@g"
 <script markdown="0">
 function upcEnv(str) {
   const ckName = 'UPC_ENV';
-  console.log(`Reloading page with updated ${ckName} in 3 seconds ✨`);
+  const ckDate = new Date();
+  const ckDays = 30;
+  ckDate.setTime(ckDate.getTime()+(ckDays*24*60*60*1000));
+  console.log(`✨ ${ckName} set…reloading ✨ `);
   setTimeout(() => {
     window.location.reload();
-  }, 3000);
-  return document.cookie = `${ckName}=${str}`;
+  }, 2000);
+  return document.cookie = `${ckName}=${str}; expires=${ckDate.toGMTString()}`;
 };
 function handleMessage(e) {
   //if (e.origin != "http://child.com") { return; }
