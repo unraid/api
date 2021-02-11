@@ -660,7 +660,6 @@ $('body').on('change keyup', '#UnraidNetSettings', function(data) {
 
 function registerServer(button) {
     var oldlabel = $.trim($(button).text());
-
     var failure = function(data) {
         var status = data.status;
         var obj = data.responseJSON;
@@ -676,7 +675,8 @@ function registerServer(button) {
                 "#cfg": "/boot/config/plugins/Unraid.net/myservers.cfg",
                 "remote_apikey": data.apikey,
                 "remote_wanaccess": $('#wanaccess').val(),
-                "remote_wanport": $('#wanport').val()
+                "remote_wanport": $('#wanport').val(),
+                "remote_sendCrashInfo": $('#sendCrashInfo').val(),
             },function(data2) {
 <?if(!$isRegistered):?>
                 swal({
