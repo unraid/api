@@ -91,7 +91,7 @@ if (empty($remote['apikey']) || empty($var['regFILE']) || empty($remote['usernam
   $arr['username'] = $remote['username'];
   $arr['avatar'] = $remote['avatar'];
   $arr['apikey'] = $remote['apikey'];
-  $arr['sendCrashInfo'] = $var['sendCrashInfo'] || 'no';
+  $arr['sendCrashInfo'] = $remote['sendCrashInfo'] || 'no';
 }
 $arr['event'] = 'STATE';
 $arr['ts'] = time();
@@ -2321,7 +2321,7 @@ unraid-launchpad {
       locale="<?=($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US'?>"
       locale-messages="<?=rawurlencode(json_encode($upc_translations, JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE))?>"
       reg-wiz-time="<?=($remote['regWizTime']) ? $remote['regWizTime'] : ''?>"
-      send-crash-info="<?=$remote['sendCrashInfo']) ?>"
+      send-crash-info="<?=$remote['sendCrashInfo']?>"
       serverdesc="<?=$var['COMMENT']?>"
       servermodel="<?=$var['SYS_MODEL']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
