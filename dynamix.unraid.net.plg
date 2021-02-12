@@ -396,7 +396,8 @@ Updating=Aktualisierung
 WAN Port=WAN-Netzwerkanschluss
 Your server has been registered=Ihr Server wurde registriert
 Your Unraid Server is reachable from the internet=Ihr Unraid Server ist über das Internet erreichbar
-Remark configure your router with port forwarding of port %uTCP to %s%u=Anmerkung: Konfigurieren Sie Ihren Router mit Portweiterleitung von Port %u/TCP to %s:%u
+Remark configure your router with port forwarding of port=Anmerkung: Konfigurieren Sie Ihren Router mit Portweiterleitung von Port
+to=to
 
 :unraidnet_wanpanel_help:
 > Der WAN-Netzwerkport ist die externe TCP-Portnummer, die auf Ihrem Router für NAT / Port eingerichtet wurde. 
@@ -455,7 +456,8 @@ Updating=Mise à jour
 WAN Port=Port réseau WAN
 Your server has been registered=Votre serveur a été enregistré
 Your Unraid Server is reachable from the internet=Votre serveur Unraid est accessible depuis Internet
-Remark configure your router with port forwarding of port %uTCP to %s%u=Remarque: configurez votre routeur avec la redirection de port du port %u/TCP to %s:%u
+Remark configure your router with port forwarding of port=Remarque: configurez votre routeur avec la redirection de port du port
+to=to
 
 :unraidnet_wanpanel_help:
 > Le port WAN est la configuration du numéro de port TCP externe sur votre routeur vers le trafic NAT / Port Forward d'Internet vers ce
@@ -514,7 +516,8 @@ Updating=Actualizando
 WAN Port=Puerto WAN
 Your server has been registered=Su servidor ha sido registrado
 Your Unraid Server is reachable from the internet=Su servidor Unraid es accesible desde Internet
-Remark configure your router with port forwarding of port %uTCP to %s%u=Observación: configure su enrutador con el reenvío de puertos del puerto %u/TCP al %s:%u
+Remark configure your router with port forwarding of port=Observación: configure su enrutador con el reenvío de puertos del puerto
+to=al
 
 :unraidnet_wanpanel_help:
 > El puerto WAN es la configuración del número de puerto TCP externo en su enrutador para el tráfico de reenvío de puerto / NAT desde Internet a este
@@ -573,6 +576,8 @@ Updating=Updating
 WAN Port=WAN Port
 Your server has been registered=Your server has been registered
 Your Unraid Server is reachable from the internet=Your Unraid Server is reachable from the internet
+Remark configure your router with port forwarding of port=Remark: configure your router with port forwarding of port
+to=to
 
 :unraidnet_wanpanel_help:
 > WAN Port is the external TCP port number setup on your router to NAT/Port Forward traffic from the internet to this
@@ -808,7 +813,7 @@ _(Allow Remote Access)_:
 
 <div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
 _(WAN Port)_:
-: <input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port %u/TCP to %s:%u"), $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
+: <input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
 
 :unraidnet_wanpanel_help:
 
