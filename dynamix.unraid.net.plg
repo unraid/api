@@ -1773,8 +1773,13 @@ setTimeout(() => {
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
 <INLINE>
 <![CDATA[
+source /boot/config/plugins/Unraid.net/env
+
 MANIFEST_JSON_PATH=/boot/config/plugins/Unraid.net/webComps/manifest.json
 BASE_URL=https://registration.unraid.net/webComps/
+if [ "$env" = "staging" ]; then
+  BASE_URL=https://registration-dev.unraid.net/webComps/
+fi
 BASE_PATH=/boot/config/plugins/Unraid.net/webComps/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
