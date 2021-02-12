@@ -3,7 +3,6 @@ import { apiManager, relayLogger } from '../../core';
 import { isNodeError, sleep } from '../../core/utils';
 import { AppError } from '../../core/errors';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
-import { sockets } from '../../sockets';
 
 export class InternalGraphql extends CustomSocket {
 	constructor(options: CustomSocket['options'] = {}) {
@@ -28,7 +27,7 @@ export class InternalGraphql extends CustomSocket {
 
 				logger.silly('Received message from the internal API, forwarding to the relay');
 				// Forward message
-				await sendMessage(sockets.get('relay')?.connection, data);
+				await sendMessage('relay', data);
 				logger.silly('Message sent to the API successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
