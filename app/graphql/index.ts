@@ -253,8 +253,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 
 			// Allow fields to be extracted
 			if (directiveArgs.extractFromResponse) {
-				const extractedField = get(result, directiveArgs.extractFromResponse);
-				return extractedField;
+				return get(result, directiveArgs.extractFromResponse);
 			}
 
 			return result;
@@ -389,6 +388,7 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
+		keepAlive: 1000,
 		onConnect: async (connectionParams: Record<string, string>) => new Promise((resolve, reject) => {
 			try {
 				const apiKey = connectionParams['x-api-key'];
