@@ -1,6 +1,6 @@
 type Query {
     """Network Shares"""
-    shares: [Share] @func(module: "getShares")
+    shares: [Share] @func(module: "getAllShares")
 }
 
 type Subscription {
