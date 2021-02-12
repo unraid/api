@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.15.26",
+  "version": "2.15.27",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
@@ -114,7 +114,7 @@
     "spread-the-word": "^0.8.4",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.18",
-    "systeminformation": "^5.0.9",
+    "systeminformation": "^5.2.5",
     "tracer": "^1.1.4",
     "unix-dgram": "^2.0.4",
     "upcast": "^4.0.0",
