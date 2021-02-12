@@ -33,12 +33,14 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   mv -f /usr/local/emhttp/plugins/dynamix.unraid.net/Registration.page- /usr/local/emhttp/plugins/dynamix/Registration.page
   mv -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
   mv -f /usr/local/emhttp/plugins/dynamix/DisplaySettings.page- /usr/local/emhttp/plugins/dynamix/DisplaySettings.page
-  rm -rf /boot/config/plugins/Unraid.net/wc
   rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
   rm -f /boot/config/plugins/Unraid.net/.gitignore
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -f /usr/local/emhttp/webGui/javascript/vue.js
   rm -f /usr/local/emhttp/webGui/javascript/vue.min.js
+  rm -rf /boot/config/plugins/Unraid.net/webComps
+  rm -rf /usr/local/emhttp/webGui/webComps
+  rm -rf /boot/config/plugins/Unraid.net/wc
   rm -rf /usr/local/emhttp/webGui/wc
   find /usr/local/emhttp/languages -type f \( -iname unraidnet.txt -o -iname unraidnet.dot \) -delete
   exit 0
@@ -277,9 +279,9 @@ _install() {
   cp $node_base_directory/unraid-api/.env.$env $node_base_directory/unraid-api/.env
 
   # Copy across wc files
-  rm -rf /usr/local/emhttp/webGui/wc
-  mkdir -p /usr/local/emhttp/webGui/wc
-  cp /boot/config/plugins/Unraid.net/wc/* /usr/local/emhttp/webGui/wc
+  rm -rf /usr/local/emhttp/webGui/webComps
+  mkdir -p /usr/local/emhttp/webGui/webComps
+  cp /boot/config/plugins/Unraid.net/webComps/* /usr/local/emhttp/webGui/webComps
 }
 install() {
   # Stop old process
@@ -394,6 +396,7 @@ Updating=Aktualisierung
 WAN Port=WAN-Netzwerkanschluss
 Your server has been registered=Ihr Server wurde registriert
 Your Unraid Server is reachable from the internet=Ihr Unraid Server ist über das Internet erreichbar
+Remark configure your router with port forwarding of port %uTCP to %s%u=Anmerkung: Konfigurieren Sie Ihren Router mit Portweiterleitung von Port %u/TCP to %s:%u
 
 :unraidnet_wanpanel_help:
 > Der WAN-Netzwerkport ist die externe TCP-Portnummer, die auf Ihrem Router für NAT / Port eingerichtet wurde. 
@@ -452,6 +455,7 @@ Updating=Mise à jour
 WAN Port=Port réseau WAN
 Your server has been registered=Votre serveur a été enregistré
 Your Unraid Server is reachable from the internet=Votre serveur Unraid est accessible depuis Internet
+Remark configure your router with port forwarding of port %uTCP to %s%u=Remarque: configurez votre routeur avec la redirection de port du port %u/TCP to %s:%u
 
 :unraidnet_wanpanel_help:
 > Le port WAN est la configuration du numéro de port TCP externe sur votre routeur vers le trafic NAT / Port Forward d'Internet vers ce
@@ -510,6 +514,7 @@ Updating=Actualizando
 WAN Port=Puerto WAN
 Your server has been registered=Su servidor ha sido registrado
 Your Unraid Server is reachable from the internet=Su servidor Unraid es accesible desde Internet
+Remark configure your router with port forwarding of port %uTCP to %s%u=Observación: configure su enrutador con el reenvío de puertos del puerto %u/TCP al %s:%u
 
 :unraidnet_wanpanel_help:
 > El puerto WAN es la configuración del número de puerto TCP externo en su enrutador para el tráfico de reenvío de puerto / NAT desde Internet a este
@@ -803,7 +808,7 @@ _(Allow Remote Access)_:
 
 <div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
 _(WAN Port)_:
-: <input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+: <input type="number" id="wanport" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port %u/TCP to %s:%u"), $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
 
 :unraidnet_wanpanel_help:
 
@@ -1542,6 +1547,14 @@ sed -E "s@${OLDTEXT}@${NEWTEXT}@g"
 <INLINE>
 <![CDATA[
 <script markdown="0">
+function upcEnv(str) {
+  const ckName = 'UPC_ENV';
+  console.log(`Reloading page with updated ${ckName} in 3 seconds ✨`);
+  setTimeout(() => {
+    window.location.reload();
+  }, 3000);
+  return document.cookie = `${ckName}=${str}`;
+};
 function handleMessage(e) {
   //if (e.origin != "http://child.com") { return; }
   if (e.data.length == 0) { return; }
@@ -1677,24 +1690,60 @@ function handleMessage(e) {
 }
 window.addEventListener('message', handleMessage, false);
 </script>
+<?
+// Determine what source we should use for web components
+$UPC_ENV = $_COOKIE['UPC_ENV'] ? $_COOKIE['UPC_ENV'] : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
+$upcBase = file_exists('/boot/config/plugins/Unraid.net/webComps/unraid.js') ? 'unraid.js' : 'unraid.min.js'; // needed for the server to be agnostic of min or non min versions of the web components
+$upcSrc = 'https://registration.unraid.net/webComps/unraid.min.js'; // by default prod is loaded from hosted sources
+switch ($UPC_ENV) {
+  case 'staging':
+    // min version of staging
+    $upcSrc = 'https://registration-dev.unraid.net/webComps/unraid.min.js';
+    break;
+  case 'staging-debug':
+    // non-min version of staging
+    $upcSrc = 'https://registration-dev.unraid.net/webComps/unraid.js';
+    break;
+  case 'local':
+    // forces load from webGUI filesystem
+    $upcSrc = autov('/webGui/webComps/' . $upcBase);
+    break;
+  case 'development':
+    // local filesystem Vue.js + external "local" dev server for RegWiz development
+    $upcSrc = 'https://launchpad.unraid.test:6969/webComps/unraid.js';
+    break;
+  default: // prod
+    break;
+}
+// add the intended web component source to the DOM
+echo '<script id="unraid-wc" defer src="' . $upcSrc . '"></script>';
+?>
+<script type="text/javascript">
+const currentUpcEnv = '<?echo $UPC_ENV ?>';
+if (currentUpcEnv !== 'production') console.debug('[UPC_ENV] ✨', currentUpcEnv);
+// If the UPC isn't defined after 2secs inject UPC via
+setTimeout(() => {
+  if (!window.customElements.get('unraid-user-profile')) {
+    console.log('[UPC] Fallback to filesystem src 😖');
+    document.getElementById('unraid-wc').remove(); // remove original source, jic
+    const el = document.createElement('script');
+    el.type = 'text/javascript';
+    el.src = '<?autov('/webGui/webComps/' . $upcBase) ?>';
+    return document.head.appendChild(el);
+  }
+  return false;
+}, 2000);
+</script>
 ]]>
 </INLINE>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/javascript/vue.js">
-<URL>https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.js</URL>
-</FILE>
-
-<FILE Name="/usr/local/emhttp/webGui/javascript/vue.min.js">
-<URL>https://cdn.jsdelivr.net/npm/vue@2.6.12/dist/vue.min.js</URL>
 </FILE>
 
 <FILE Run="/bin/bash" Method="install Vue.js web component files">
 <INLINE>
 <![CDATA[
-MANIFEST_JSON_PATH=/boot/config/plugins/Unraid.net/wc/manifest.json
-BASE_URL=https://registration.unraid.net/wc/
-BASE_PATH=/boot/config/plugins/Unraid.net/wc/
+MANIFEST_JSON_PATH=/boot/config/plugins/Unraid.net/webComps/manifest.json
+BASE_URL=https://registration.unraid.net/webComps/
+BASE_PATH=/boot/config/plugins/Unraid.net/webComps/
 MANIFEST_JSON=manifest.json
 MANIFEST_TXT=manifest.txt
 
@@ -1732,8 +1781,8 @@ if [[ ! -f "$MANIFEST_JSON_PATH" ]]; then
 fi
 
 # Copy files to webGui's public dir
-mkdir -p /usr/local/emhttp/webGui/wc/
-rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/wc/ /usr/local/emhttp/webGui/wc/
+mkdir -p /usr/local/emhttp/webGui/webComps/
+rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/webComps/ /usr/local/emhttp/webGui/webComps/
 ]]>
 </INLINE>
 </FILE>
@@ -1742,7 +1791,7 @@ rsync -r --exclude="$MANIFEST_JSON" /boot/config/plugins/Unraid.net/wc/ /usr/loc
 <FILE Name="/boot/config/plugins/Unraid.net/.gitignore" Method="install">
 <INLINE>
 <![CDATA[
-wc
+webComps
 ]]>
 </INLINE>
 </FILE>
@@ -1781,80 +1830,6 @@ unraid-launchpad {
 ]]>
 </INLINE>
 </FILE>
-
-<FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2">
-<INLINE>
-<![CDATA[
-<!-- RegWiz -->
-<script type="text/javascript">
-const UPC_ENV = localStorage.getItem('UPC_ENV') ? localStorage.getItem('UPC_ENV') : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
-const VUE_CDN_PREFIX = 'https://cdn.jsdelivr.net/npm/vue@2.6.12';
-const injectJS = (src) => {
-  if (UPC_ENV !== 'production') console.debug('[injectJS]', src);
-  const script = document.createElement('script');
-  script.type = 'text/javascript';
-  script.src = src;
-  document.body.appendChild(script);
-};
-// by default prod is loaded from hosted sources
-<? $baseName = file_exists('/boot/config/plugins/Unraid.net/wc/unraid.js') ? 'unraid.js' : 'unraid.min.js' ?>
-let vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-let wcEntryFile = 'https://registration.unraid.net/wc/unraid.min.js';
-// determine what source we should use
-if (UPC_ENV !== 'production') console.debug('[UPC_ENV]', UPC_ENV);
-switch (UPC_ENV) {
-  case 'staging':
-    // min version of staging
-    vueFile = `${VUE_CDN_PREFIX}/dist/vue.min.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.min.js';
-    break;
-  case 'staging-debug':
-    // non-min version of staging
-    vueFile = `${VUE_CDN_PREFIX}/dist/vue.js`;
-    wcEntryFile = 'https://registration-dev.unraid.net/wc/unraid.js';
-    break;
-  case 'local':
-    // forces load from webGUI filesystem
-    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = '<?autov('/webGui/wc/'.$baseName) ?>'; // @TODO / WIP - non-min files aren't downloaded just yet.
-    break;
-  case 'development':
-    // local filesystem Vue.js + external "local" dev server for RegWiz development
-    vueFile = '<?autov('/webGui/javascript/vue.js') ?>';
-    wcEntryFile = 'https://launchpad.unraid.test:6969/wc/unraid.js';
-    break;
-  default: // prod
-    break;
-}
-// add the intended files to the DOM
-injectJS(vueFile);
-// make sure specified vue file is loaded before attempting to 
-// inject and load web component entry since it relies on Vue.js
-let checkForVue = setInterval(() => {
-  if (!window.Vue) return;
-  clearInterval(checkForVue); // stop checking
-  injectJS(wcEntryFile); // and just inject it already!
-}, 10);
-// start a timer to determine if we need to inject webGUI file system 
-// fallback if we take too long injecting the above
-setTimeout(() => {
-  if (!window.Vue) {
-    if (UPC_ENV !== 'production') console.debug('[UPC] fallback to filesystem JS');
-    clearInterval(checkForVue); // stop initial check
-    injectJS("<?autov('/webGui/javascript/vue.min.js') ?>");
-    checkForVue = setInterval(() => { // reset check
-      if (!window.Vue) return;
-      clearInterval(checkForVue); // stop checking
-      injectJS("<?autov('/webGui/wc/'.$baseName) ?>"); // and just inject it already!
-    }, 10);
-  }
-}, 2000);
-</script>
-<!-- /RegWiz -->
-]]>
-</INLINE>
-</FILE>
-
 
 <FILE Name="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3">
 <INLINE>
@@ -2632,12 +2607,10 @@ cp -f /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php /usr/local
 cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php- | sed -e 's/<\/head>/<? include "\/usr\/local\/emhttp\/plugins\/dynamix.unraid.net\/include\/RegWizard.php" ?>\n<\/head>/g' > /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 
 sed -i $'/<style>/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
-sed -i $'/<\/body>/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 sed -i $'/<div class="block">/{e cat /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3\n}' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 sed -i '/<div class="block">/,/<\/div>/d' /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice1
-rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice2
 rm /usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php-splice3
 ]]>
 </INLINE>
@@ -2778,7 +2751,7 @@ elif grep -q 6.9.0-beta35 /etc/unraid-version; then
 fi
 
 if [ -f /boot/.git ]; then
-  git -C /boot rm --quiet --cached /boot/config/plugins/Unraid.net/wc/* &>/dev/null && echo "Removed old javascript files from repo" || exit 0
+  git -C /boot rm --quiet --cached /boot/config/plugins/Unraid.net/webComps/* &>/dev/null && echo "Removed old javascript files from repo" || exit 0
 fi
 ]]>
 </INLINE>
