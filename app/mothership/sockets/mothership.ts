@@ -45,13 +45,14 @@ export class MothershipSocket extends CustomSocket {
 	}
 
 	onDisconnect() {
-		return async (code: number, _message: string) => {
+		const onDisconnect = super.onDisconnect().bind(this as unknown as WebSocketWithHeartBeat);
+		return async (code: number, message: string) => {
 			try {
 				// Close connection to motherships's server's endpoint
 				await this.disconnectFromMothershipsGraphql();
 
 				// Process disconnection
-				this.onDisconnect();
+				await onDisconnect(code, message);
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					this.logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
@@ -66,7 +67,7 @@ export class MothershipSocket extends CustomSocket {
 		return async (data: string) => {
 			try {
 				this.logger.silly('Recieved message from mothership\'s relay, forwarding to the internal graphql connection');
-				await sendMessage(sockets.get('internalGraphql')?.connection, data);
+				await sendMessage('internalGraphql', data);
 				this.logger.silly('Message sent to the internal graphql connection successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
