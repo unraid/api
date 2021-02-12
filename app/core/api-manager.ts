@@ -256,19 +256,13 @@ export class ApiManager extends EventEmitter {
 	}
 
 	private async getLock() {
-		if (!this.lock) {
-			this.lock = new Mutex();
-		}
-
-		const release = await this.lock.acquire();
-		return {
-			release
-		};
+		this.lock ??= new Mutex();
+		return this.lock;
 	}
 
 	private async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
-		try {
+		await lock.runExclusive(async () => {
 			coreLogger.debug('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
@@ -291,7 +285,7 @@ export class ApiManager extends EventEmitter {
 			this.replace('my_servers', apiKey, {
 				userId: '0'
 			});
-		} catch (error: unknown) {
+		}).catch(error => {
 			if (isNodeError(error)) {
 				// File was deleted
 				if (error?.code === 'ENOENT') {
@@ -303,9 +297,7 @@ export class ApiManager extends EventEmitter {
 
 			// Reset key as it's not valid anymore
 			this.expire('my_servers');
-		} finally {
-			lock.release();
-		}
+		});
 	}
 }
 
