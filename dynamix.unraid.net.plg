@@ -662,7 +662,7 @@ $boolWebUIAuth = $isRegistered && file_exists('/etc/nginx/htpasswd');
 ?>
 <script>
 $('body').on('change keyup', '#UnraidNetSettings', function(data) {
-  $(this).children('.applyBtn').attr('disabled', false);
+  $(this).find('.applyBtn').removeAttr('disabled');
 });
 
 function registerServer(button) {
