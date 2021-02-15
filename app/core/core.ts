@@ -7,12 +7,11 @@ import path from 'path';
 import glob from 'glob';
 import camelCase from 'camelcase';
 import globby from 'globby';
-import pWaitFor from 'p-wait-for';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
 import { coreLogger } from './log';
 import { paths } from './paths';
-import { subscribeToNchanEndpoint, isNchanUp } from './utils';
+import { subscribeToNchanEndpoint } from './utils';
 import { config } from './config';
 import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
@@ -160,23 +159,8 @@ const loadNchan = async (): Promise<void> => {
 
 	coreLogger.debug('Trying to connect to nchan');
 
-	// Wait for nchan to be up.
-	await pWaitFor(isNchanUp, {
-		timeout: TEN_SECONDS,
-		interval: ONE_SECOND
-	})
-		// Once connected open a connection to each known endpoint
-		.then(async () => connectToNchanEndpoints(endpoints))
-		.catch(error => {
-			// Nchan is likely unreachable
-			if (error.message.includes('Promise timed out')) {
-				coreLogger.error('Nchan timed out while trying to establish a connection.');
-				return;
-			}
-
-			// Some other error occured
-			throw error;
-		});
+	// Connect to each known endpoint
+	await connectToNchanEndpoints(endpoints);
 };
 
 /**
