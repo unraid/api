@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.31](https://github.com/unraid/api/compare/v2.15.30-rolling-20210215042604...v2.15.31) (2021-02-15)
+
+
+### Bug Fixes
+
+* add missing bundled deps ([d95890f](https://github.com/unraid/api/commit/d95890f8033f7ca83b0abb39fd73cb2c1f519de5))
+
 ### [2.15.30](https://github.com/unraid/api/compare/v2.15.29-rolling-20210212233055...v2.15.30) (2021-02-12)
 
 ### [2.15.29](https://github.com/unraid/api/compare/v2.15.27-rolling-20210212222549...v2.15.29) (2021-02-12)
