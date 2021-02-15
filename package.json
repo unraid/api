@@ -118,7 +118,7 @@
     "spread-the-word": "^0.8.4",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.18",
-    "systeminformation": "^5.3.0",
+    "systeminformation": "^5.3.1",
     "tracer": "^1.1.4",
     "unix-dgram": "^2.0.4",
     "upcast": "^4.0.0",
