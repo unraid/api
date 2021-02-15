@@ -220,6 +220,7 @@
     "graphql-type-uuid",
     "htpasswd-js",
     "ini",
+    "launchdarkly-eventsource",
     "lodash.get",
     "logger",
     "map-obj",
@@ -228,9 +229,12 @@
     "ms",
     "multi-ini",
     "mustache",
+    "nanoajax",
     "nanobus",
+    "nchan",
     "node-cache",
     "node-fetch",
+    "node-window-polyfill",
     "number-to-color",
     "observable-to-promise",
     "os-uptime",
@@ -257,6 +261,7 @@
     "unix-dgram",
     "upcast",
     "uuid",
-    "uuid-apikey"
+    "uuid-apikey",
+    "xhr2"
   ]
 }
