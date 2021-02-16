@@ -6,7 +6,6 @@ import { subscribeToServers } from '../subscribe-to-servers';
 import { AppError } from '../../core/errors';
 import { readFileIfExists } from '../utils';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
-import { sockets } from '../../sockets';
 
 export class MothershipSocket extends CustomSocket {
 	private mothershipServersEndpoint?: {
@@ -36,9 +35,7 @@ export class MothershipSocket extends CustomSocket {
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					const code = (error.code) ?? 500;
-					this.close(`${code}`.length === 4 ? Number(code) : Number(`4${code}`), JSON.stringify({
-						message: error.message ?? 'Internal Server Error'
-					}));
+					this.close(`${code}`.length === 4 ? Number(code) : Number(`4${code}`), 'INTERNAL_SERVER_ERROR');
 				}
 			}
 		};
@@ -111,7 +108,7 @@ export class MothershipSocket extends CustomSocket {
 				logger.error('socket error', error);
 			} finally {
 				// Kick the connection
-				this.close(4500, JSON.stringify({ message: error.message }));
+				this.close(4408, 'REQUEST_TIMEOUT');
 			}
 		};
 	}

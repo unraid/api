@@ -93,9 +93,7 @@ export class CustomSocket {
 				customSocket.connectionAttempts = 0;
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
-					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code ?? 500}`), JSON.stringify({
-						message: error.message ?? 'Internal Server Error'
-					}));
+					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code ?? 500}`), 'INTERNAL_SERVER_ERROR');
 				}
 			}
 		};
@@ -140,7 +138,7 @@ export class CustomSocket {
 		try {
 			if (this.connection && (this.connection.readyState !== this.connection.CLOSED)) {
 				// 4200 === ok
-				this.connection.close(4200);
+				this.connection.close(4200, 'OK');
 			}
 		} catch (error: unknown) {
 			this.logger.error('Failed disconnecting reason=%s', (error as Error).message);
@@ -255,9 +253,7 @@ export class CustomSocket {
 	protected async cleanup() {
 		// Kill existing socket connection
 		if (this.connection?.heartbeat) {
-			this.connection.close(4200, JSON.stringify({
-				message: 'Reconnecting'
-			}));
+			this.connection.close(4408, 'REQUEST_TIMEOUT');
 		}
 	}
 
