@@ -72,9 +72,7 @@ export class InternalGraphql extends CustomSocket {
 		return async function (this: WebSocketWithHeartBeat) {
 			// No API key, close internal connection
 			if (!apiKey) {
-				this.close(4200, JSON.stringify({
-					message: 'No API key'
-				}));
+				this.close(4403, 'FORBIDDEN');
 			}
 
 			// Authenticate with ourselves
