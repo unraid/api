@@ -1411,7 +1411,7 @@ if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.s
 }
 
 // blow away existing repo if reinit command
-if ($command == 'reinit' && file_exists('/boot/.git')) {
+if ( ($command == 'activate' || $command == 'reinit') && file_exists('/boot/.git')) {
   exec_log('rm -rf /boot/.git');
 }
 
