@@ -1,5 +1,5 @@
 import { MOTHERSHIP_RELAY_WS_LINK, ONE_MINUTE } from '../../consts';
-import { mothershipLogger, apiManager } from '../../core';
+import { relayLogger, apiManager } from '../../core';
 import { getMachineId, isNodeError, sleep } from '../../core/utils';
 import { varState, networkState } from '../../core/states';
 import { subscribeToServers } from '../subscribe-to-servers';
@@ -16,7 +16,7 @@ export class MothershipSocket extends CustomSocket {
 		super({
 			name: 'Mothership',
 			uri: MOTHERSHIP_RELAY_WS_LINK,
-			logger: mothershipLogger,
+			logger: relayLogger,
 			lazy: false,
 			...options
 		});
