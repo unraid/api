@@ -36,7 +36,7 @@ export const subscribeToServers = async (apiKey: string) => {
 	const subscription = query.subscribe({
 		next: async ({ data, errors }) => {
 			log.silly('Got data back with %s errors', errors?.length ?? 0);
-			log.silly('Got data %s', data);
+			log.silly('Got data %j', data);
 			log.silly('Got errors %s', errors);
 
 			if (errors) {
