@@ -86,6 +86,9 @@ export class ApiManager extends EventEmitter {
 		log.debug('Loading MyServers API key...');
 		this.checkKey(configPath, true).then(() => {
 			log.debug('Loaded MyServers API key!');
+
+			// API manager is ready
+			this.emit('ready', undefined);
 		}).catch(error => {
 			log.debug('Failing loading MyServers API key with %s', error);
 		});
