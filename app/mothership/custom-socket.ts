@@ -269,11 +269,11 @@ export class CustomSocket {
 		return true;
 	}
 
-	protected async sendMessage(clientName: string, message?: string, timeout = 1000) {
+	protected async sendMessage(clientName: 'relay' | 'internalGraphql', message?: string, timeout = 1000) {
 		const client = sockets.get(clientName)?.connection;
 
 		try {
-			if (!client || client.readyState === 0 || client.readyState === 2 || client.readyState === 3) {
+			if (!client || client.readyState === 0) {
 				this.logger.silly('Waiting %ss to retry sending to %s.', timeout / 1000, client?.url);
 				// Wait for $timeout seconds
 				await sleep(timeout);
