@@ -7,7 +7,7 @@ import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
 // eslint-disable-next-line @typescript-eslint/no-duplicate-imports
-import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger } from '../core';
+import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
@@ -356,27 +356,27 @@ dee.on('*', async (data: { Type: string }) => {
 
 dee.listen();
 
-// @TODO: This needs to be fixed to run from events
-setIntervalAsync(async () => {
-	// @todo: Create a system user for this
-	const user = usersState.findOne({ name: 'root' });
+// OS uptime
+run('uptime', 'UPDATED', {
+	moduleToRun: modules.getUptime,
+	context: {
+		user: usersState.findOne({ name: 'root' })
+	},
+	loop: Infinity
+}).catch((error: unknown) => {
+	log.error('Failed getting "uptime" with "%s".', (error as Error).message);
+});
 
-	// Services
-	await run('services', 'UPDATED', {
-		moduleToRun: modules.getServices,
-		context: {
-			user
-		}
-	});
-
-	// OS uptime
-	await run('uptime', 'UPDATED', {
-		moduleToRun: modules.getUptime,
-		context: {
-			user
-		}
-	});
-}, 1000);
+// Services
+run('services', 'UPDATED', {
+	moduleToRun: modules.getServices,
+	context: {
+		user: usersState.findOne({ name: 'root' })
+	},
+	loop: Infinity
+}).catch((error: unknown) => {
+	log.error('Failed getting "services" with "%s".', (error as Error).message);
+});
 
 export const graphql = {
 	debug,
