@@ -28,7 +28,7 @@ export class InternalGraphql extends CustomSocket {
 				logger.silly('Received message from the internal API, forwarding to the relay');
 				// Forward message
 				await sendMessage('relay', data);
-				logger.silly('Message sent to the API successfully.');
+				logger.silly('Message sent to the relay successfully.');
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					// Relay socket is closed, close internal one
