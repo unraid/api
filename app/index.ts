@@ -32,6 +32,15 @@ Sentry.setUser({
 	id: states.varState.data.flashGuid
 });
 
+const waitForInternalGraphqlToBeReady = async () => {
+	if (server.server.address() !== null) {
+		return;
+	}
+
+	await sleep(2000);
+	return waitForInternalGraphqlToBeReady();
+};
+
 // Boot app
 am(async () => {
 	let lastknownApiKey: string;
@@ -63,6 +72,43 @@ am(async () => {
 		});
 	});
 
+	// It has it's first keys loaded
+	apiManager.on('ready', async () => {
+		try {
+			// If the internal graphql server has no address it's likely still
+			// starting up so let's wait so we don't hit a 1006 error
+			await waitForInternalGraphqlToBeReady();
+
+			const apiKey = apiManager.getKey('my_servers');
+
+			// We're ready but they're not logged into myservers yet
+			if (!apiKey) {
+				return;
+			}
+
+			// Make note of API key
+			lastknownApiKey = apiKey.key;
+
+			// Create internal graphql socket
+			apiManagerLogger.debug('Creating internal graphql socket');
+			const internalGraphqlSocket = new InternalGraphql({ lazy: true });
+			sockets.set('internalGraphql', internalGraphqlSocket);
+
+			// Create relay socket
+			apiManagerLogger.debug('Creating relay socket');
+			const relaySocket = new MothershipSocket({ lazy: true });
+			sockets.set('relay', relaySocket);
+
+			// Connect sockets
+			await Promise.all([
+				internalGraphqlSocket.connect(),
+				relaySocket.connect()
+			]);
+		} catch (error: unknown) {
+			apiManagerLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
+		}
+	});
+
 	// If key is removed then disconnect our sockets
 	apiManager.on('expire', async name => {
 		try {
@@ -79,7 +125,7 @@ am(async () => {
 			apiManagerLogger.debug('Disconnecting internalGraphql');
 			await sockets.get('internalGraphql')?.disconnect();
 		} catch (error: unknown) {
-			apiManagerLogger.error('Failed updating sockets on apiKey "expire" event with error %s.', error);
+			apiManagerLogger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
 	});
 
@@ -93,37 +139,14 @@ am(async () => {
 				return;
 			}
 
-			// If either socket is missing let's connect them
-			if (!sockets.has('internalGraphql') || !sockets.has('relay')) {
-				// Create internal graphql socket if it's missing
-				if (!sockets.has('internalGraphql')) {
-					// If the graphql server has no address it's likely still
-					// starting up so let's wait so we don't hit a 1006 error
-					if (server.server.address() !== null) {
-						apiManagerLogger.debug('Internal graphql isn\'t started, waiting 2s');
-						await sleep(2000);
-					}
-
-					// Create internal graphql socket
-					apiManagerLogger.debug('Creating internal graphql socket');
-					sockets.set('internalGraphql', new InternalGraphql({ apiKey: lastknownApiKey }));
-				}
-
-				// Create relay socket if it's missing
-				if (!sockets.has('relay')) {
-					// Create relay socket
-					apiManagerLogger.debug('Creating relay socket');
-					sockets.set('relay', new MothershipSocket({ apiKey: lastknownApiKey }));
-				}
-
-				return;
-			}
-
 			// Ignore this key if it's the same as our current key.
 			if (newApiKey === lastknownApiKey) {
 				apiManagerLogger.debug('API key has\'t changed');
 				return;
 			}
+
+			// Make note of API key
+			lastknownApiKey = newApiKey;
 
 			// Let's reconnect all sockets
 			await sockets.get('relay')?.reconnect();
