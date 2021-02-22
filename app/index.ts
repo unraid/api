@@ -36,7 +36,7 @@ Sentry.setUser({
 am(async () => {
 	let lastknownApiKey: string;
 	const apiManagerLogger = log.createChild({
-		prefix: 'ApiManager'
+		prefix: 'api-manager'
 	});
 
 	// Load core
