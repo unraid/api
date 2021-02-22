@@ -1,7 +1,8 @@
 import type { CoreContext, CoreResult, Result } from './core/types';
 import { pubsub, coreLogger } from './core';
-import { debugTimer, isNodeError } from './core/utils';
+import { debugTimer, isNodeError, sleep } from './core/utils';
 import { AppError } from './core/errors';
+import { Logger } from 'logger';
 
 /**
  * Publish update to topic channel.
@@ -29,16 +30,19 @@ interface RunOptions {
 	node?: Record<string, unknown>;
 	moduleToRun?: (context: CoreContext) => Promise<CoreResult | Result> | CoreResult | Result;
 	context?: any;
+	loop?: number;
 }
 
 /**
  * Run a module.
  */
 export const run = async (channel: string, mutation: string, options: RunOptions) => {
+	const timestamp = new Date().getTime();
 	const {
 		node,
 		moduleToRun,
-		context
+		context,
+		loop
 	} = options;
 
 	if (!moduleToRun) {
@@ -49,28 +53,43 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 
 	try {
 		// Run module
-		const result: CoreResult = await new Promise(resolve => {
-			debugTimer(`run:${moduleToRun.name}`);
-			resolve(moduleToRun(context));
-		});
+		const result: CoreResult = await Promise.resolve(moduleToRun(context));
 
 		// Log result
-		coreLogger.silly(`run:${moduleToRun.name}`, JSON.stringify(result.json));
+		coreLogger.silly(`run:${moduleToRun.name} %j`, result.json);
 
 		// Save result
 		await publish(channel, mutation, result.json);
+
+		// Bail as we're done looping
+		if (!loop || loop === 0) {
+			return;
+		}
+
+		// If we haven't waited long enough wait a little more
+		const timeTaken = (new Date().getTime() - timestamp);
+		const minimumTime = 1000;
+		if (timeTaken < minimumTime) {
+			await sleep(minimumTime - timeTaken);
+		}
+
+		// Run the next loop
+		return run(channel, mutation, {
+			...options,
+			loop: loop - 1
+		});
 	} catch (error: unknown) {
 		if (isNodeError(error, AppError)) {
 			// Ensure we aren't leaking anything in production
 			if (process.env.NODE_ENV === 'production') {
-				coreLogger.debug('Error:', error.message);
+				coreLogger.debug('Error: %s', error.message);
 			} else {
 				const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(coreLogger);
-				logger('Error:', error.message);
+				logger('Error: %s', error.message);
 			}
+		} else {
+			coreLogger.debug('Error: %s', error);
 		}
 	}
-
-	debugTimer(`run:${moduleToRun.name}`);
 };
 
