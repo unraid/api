@@ -146,7 +146,6 @@
     "cz-conventional-changelog": "3.3.0",
     "eslint": "^7.20.0",
     "esprint": "^2.0.0",
-    "husky": "5.0.9",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^4.0.2",
     "p-each-series": "^2.2.0",
@@ -164,11 +163,6 @@
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
-  "husky": {
-    "hooks": {
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
   "bundledDependencies": [
