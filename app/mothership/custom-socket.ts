@@ -1,11 +1,12 @@
-import WebSocket, { Server as WebsocketServer } from 'ws';
 import { Mutex, MutexInterface } from 'async-mutex';
-import { ONE_SECOND, ONE_MINUTE } from '../consts';
+import WebSocket, { Server as WebsocketServer } from 'ws';
+
+import { ONE_MINUTE, ONE_SECOND } from '../consts';
 import { log } from '../core';
 import { AppError } from '../core/errors';
 import { isNodeError, sleep } from '../core/utils';
-import { backoff } from './utils';
 import { sockets } from '../sockets';
+import { backoff } from './utils';
 
 export interface WebSocketWithHeartBeat extends WebSocket {
 	heartbeat?: NodeJS.Timeout;
@@ -94,6 +95,8 @@ export class CustomSocket {
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
 					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code ?? 500}`), 'INTERNAL_SERVER_ERROR');
+				} else {
+					this.close(4500, 'INTERNAL_SERVER_ERROR');
 				}
 			}
 		};
@@ -273,7 +276,7 @@ export class CustomSocket {
 		const client = sockets.get(clientName)?.connection;
 
 		try {
-			if (!client || client.readyState === 0) {
+			if (!client || client.readyState === client.CONNECTING) {
 				this.logger.silly('Waiting %ss to retry sending to %s.', timeout / 1000, client?.url);
 				// Wait for $timeout seconds
 				await sleep(timeout);
@@ -287,6 +290,15 @@ export class CustomSocket {
 				client.send(message);
 				this.logger.silly('Message sent to %s.', client?.url);
 				return;
+			}
+
+			// Wait 10 seconds if we're closed
+			if (client.readyState === client.CLOSED) {
+				// Connection closed waiting 10s to retry
+				await sleep(10 * ONE_SECOND);
+
+				// Retry sending
+				return this.sendMessage(clientName, message, timeout);
 			}
 
 			// Failed replying as socket isn't open
