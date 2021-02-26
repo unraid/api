@@ -2024,7 +2024,7 @@ unraid-launchpad {
           'TRIAL' => [
             'humanReadable' => _('Trial'),
             'heading' => _('Thank you for choosing Unraid OS'),
-            'message' => _('Your Trial key includes all the functionality and device support of a Pro key') . ' ' . _('After your Trial has reached expiration your server still functions normally until the next time you Stop the array or reboot your server') . '' . _('At that point you may either purchase a license key or request a Trial extension'),
+            'message' => _('Your Trial key includes all the functionality and device support of a Pro key.') . ' ' . _('After your Trial has reached expiration your server still functions normally until the next time you Stop the array or reboot your server.') . ' ' . _('At that point you may either purchase a license key or request a Trial extension.'),
             '_extraMsg' => sprintf(_('You have %s remaining on your Trial key'), '{parsedExpireTime}'),
           ],
           'EEXPIRED' => [
@@ -2192,7 +2192,7 @@ unraid-launchpad {
                 'recover' => _('Unraid.net Sign In to Recover Key'),
                 'replace' => _('Unraid.net Sign In to Replace Key'),
               ],
-              'subheading' => _('Please sign in with the same email with which you purchased your license'),
+              'subheading' => _('Please sign in with your Unraid.net forum account'),
               'form' => [
                 'replacementConditions' => [
                   'name' => _('Acknowledge Replacement Conditions'),
@@ -2211,7 +2211,6 @@ unraid-launchpad {
             ],
             'signOut' => [
               'heading' => _('Unraid.net Sign Out'),
-              'subheading' => _('This will remove your server from displaying in My Servers'),
             ],
             'success' => [
               'heading' => [
