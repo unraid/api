@@ -13,7 +13,7 @@ import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
 import { validateApiKeyFormat, loadState, validateApiKey, isNodeError } from './utils';
 import { paths } from './paths';
-import { coreLogger, log } from './log';
+import { apiManagerLogger, log } from './log';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -252,7 +252,7 @@ export class ApiManager extends EventEmitter {
 			.find(([_, item]) => item.value.key === key);
 
 		if (!keyObject) {
-			throw new Error(`No name found for "${key}".`);
+			throw new Error('No entry found for the provided API key.');
 		}
 
 		return keyObject[0];
@@ -266,23 +266,23 @@ export class ApiManager extends EventEmitter {
 	private async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		await lock.runExclusive(async () => {
-			coreLogger.debug('Checking API key for validity.');
+			apiManagerLogger.debug('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				coreLogger.debug('%s was updated but the API key didn\'t change', filePath);
+				apiManagerLogger.debug('%s was updated but the API key didn\'t change', filePath);
 				return;
 			}
 
 			// Ensure key format is valid before validating
 			validateApiKeyFormat(apiKey);
-			coreLogger.debug('API key is in the correct format, checking key\'s validity...');
+			apiManagerLogger.debug('API key is in the correct format, checking key\'s validity...');
 
 			// Ensure key is valid before connecting
 			await validateApiKey(apiKey);
-			coreLogger.debug('API key is valid.');
+			apiManagerLogger.debug('API key is valid.');
 
 			// Add the new key
 			this.replace('my_servers', apiKey, {
@@ -292,9 +292,9 @@ export class ApiManager extends EventEmitter {
 			if (isNodeError(error)) {
 				// File was deleted
 				if (error?.code === 'ENOENT') {
-					coreLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
+					apiManagerLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
 				} else {
-					coreLogger.debug('%s, removing "my_servers" API key.', error.message);
+					apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
 				}
 			}
 
