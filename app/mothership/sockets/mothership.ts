@@ -6,6 +6,7 @@ import { subscribeToServers } from '../subscribe-to-servers';
 import { AppError } from '../../core/errors';
 import { readFileIfExists } from '../utils';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
+import packageJson from '../../../package.json';
 
 export class MothershipSocket extends CustomSocket {
 	private mothershipServersEndpoint?: {
@@ -127,15 +128,13 @@ export class MothershipSocket extends CustomSocket {
 		const keyFile = varState.data?.regFile ? readFileIfExists(varState.data?.regFile).toString('base64') : '';
 		const serverName = `${varState.data?.name as string}`;
 		const lanIp: string = networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
-		const machineId = `${await getMachineId()}`;
 
 		return {
 			'x-api-key': apiKey,
 			'x-flash-guid': varState.data?.flashGuid ?? '',
 			'x-key-file': keyFile ?? '',
 			'x-server-name': serverName,
-			'x-lan-ip': lanIp,
-			'x-machine-id': machineId
+			'x-unraid-api-version': packageJson.version
 		};
 	}
 
