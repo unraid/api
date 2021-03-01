@@ -1724,40 +1724,37 @@ window.addEventListener('message', handleMessage, false);
 </script>
 <?
 // Determine what source we should use for web components
-$UPC_ENV = $_COOKIE['UPC_ENV'] ? $_COOKIE['UPC_ENV'] : 'production'; // @TODO - it would be great if this was auto-set when PLG was built
+if (file_exists('/boot/config/plugins/Unraid.net/myservers.cfg')) { // context needed for the UPC ENV local check for signed out users
+  extract(parse_ini_file('/boot/config/plugins/Unraid.net/myservers.cfg',true));
+}
+// When signed out and there's no cookie, UPC ENV should be 'local' to avoid use of external resource. Otherwise default of 'production'.
+$UPC_ENV = $_COOKIE['UPC_ENV'] ?? ((empty($remote['apikey']) || empty($var['regFILE'])) ? 'local' : 'production');
 $upcBase = file_exists('/boot/config/plugins/Unraid.net/webComps/unraid.js') ? 'unraid.js' : 'unraid.min.js'; // needed for the server to be agnostic of min or non min versions of the web components
 $upcSrc = 'https://registration.unraid.net/webComps/unraid.min.js'; // by default prod is loaded from hosted sources
 switch ($UPC_ENV) {
-  case 'staging':
-    // min version of staging
+  case 'staging': // min version of staging
     $upcSrc = 'https://registration-dev.unraid.net/webComps/unraid.min.js';
     break;
-  case 'staging-debug':
-    // non-min version of staging
+  case 'staging-debug': // non-min version of staging
     $upcSrc = 'https://registration-dev.unraid.net/webComps/unraid.js';
     break;
-  case 'local':
-    // forces load from webGUI filesystem
-    $upcSrc = autov('/webGui/webComps/' . $upcBase);
+  case 'local': // forces load from webGUI filesystem.
+    $upcSrc = '/webGui/webComps/' . $upcBase; // @NOTE - that using autov(); would render the file name below the body tag. So dont use it :(
     break;
-  case 'development':
-    // local filesystem Vue.js + external "local" dev server for RegWiz development
+  case 'development': // dev server for RegWiz development
     $upcSrc = 'https://launchpad.unraid.test:6969/webComps/unraid.js';
-    break;
-  default: // prod
     break;
 }
 // add the intended web component source to the DOM
 echo '<script id="unraid-wc" defer src="' . $upcSrc . '"></script>';
 ?>
 <script type="text/javascript">
-const currentUpcEnv = '<?echo $UPC_ENV ?>';
-if (currentUpcEnv !== 'production') console.debug('[UPC_ENV] ✨', currentUpcEnv);
+const upcEnvCookie = '<?echo $_COOKIE['UPC_ENV'] ?>';
+if (upcEnvCookie) console.debug('[UPC_ENV] ✨', upcEnvCookie);
 // If the UPC isn't defined after 2secs inject UPC via
 setTimeout(() => {
   if (!window.customElements.get('unraid-user-profile')) {
     console.log('[UPC] Fallback to filesystem src 😖');
-    document.getElementById('unraid-wc').remove(); // remove original source, jic
     const el = document.createElement('script');
     el.type = 'text/javascript';
     el.src = '<?autov('/webGui/webComps/' . $upcBase) ?>';
@@ -2027,7 +2024,7 @@ unraid-launchpad {
           'TRIAL' => [
             'humanReadable' => _('Trial'),
             'heading' => _('Thank you for choosing Unraid OS'),
-            'message' => _('Your Trial key includes all the functionality and device support of a Pro key') . ' ' . _('After your Trial has reached expiration your server still functions normally until the next time you Stop the array or reboot your server') . '' . _('At that point you may either purchase a license key or request a Trial extension'),
+            'message' => _('Your Trial key includes all the functionality and device support of a Pro key.') . ' ' . _('After your Trial has reached expiration your server still functions normally until the next time you Stop the array or reboot your server.') . ' ' . _('At that point you may either purchase a license key or request a Trial extension.'),
             '_extraMsg' => sprintf(_('You have %s remaining on your Trial key'), '{parsedExpireTime}'),
           ],
           'EEXPIRED' => [
@@ -2195,7 +2192,7 @@ unraid-launchpad {
                 'recover' => _('Unraid.net Sign In to Recover Key'),
                 'replace' => _('Unraid.net Sign In to Replace Key'),
               ],
-              'subheading' => _('Please sign in with the same email with which you purchased your license'),
+              'subheading' => _('Please sign in with your Unraid.net forum account'),
               'form' => [
                 'replacementConditions' => [
                   'name' => _('Acknowledge Replacement Conditions'),
@@ -2214,7 +2211,6 @@ unraid-launchpad {
             ],
             'signOut' => [
               'heading' => _('Unraid.net Sign Out'),
-              'subheading' => _('This will remove your server from displaying in My Servers'),
             ],
             'success' => [
               'heading' => [
