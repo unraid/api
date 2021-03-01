@@ -14,7 +14,6 @@ import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import gql from 'graphql-tag';
 import dee from '@gridplus/docker-events';
-import { setIntervalAsync } from 'set-interval-async/dynamic';
 import { run, publish } from '../run';
 import { typeDefs } from './schema';
 import * as resolvers from './resolvers';
@@ -299,7 +298,11 @@ const apiKeyToUser = (apiKey: string) => {
 				return foundUser;
 			}
 		}
-	} catch {}
+	} catch (error: unknown) {
+		// If we have 0 keys loaded into the manager then let's check the file again.
+		// For some unknown reason it may have been updated without us being told.
+		log.debug('Failed looking up API key with "%s"', (error as Error).message);
+	}
 
 	return { name: 'guest', role: 'guest' };
 };
