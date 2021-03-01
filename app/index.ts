@@ -44,9 +44,6 @@ const waitForInternalGraphqlToBeReady = async () => {
 // Boot app
 am(async () => {
 	let lastknownApiKey: string;
-	const apiManagerLogger = log.createChild({
-		prefix: 'api-manager'
-	});
 
 	// Load core
 	await core.load();
@@ -90,12 +87,12 @@ am(async () => {
 			lastknownApiKey = apiKey.key;
 
 			// Create internal graphql socket
-			apiManagerLogger.debug('Creating internal graphql socket');
+			coreLogger.debug('Creating internal graphql socket');
 			const internalGraphqlSocket = new InternalGraphql({ lazy: true });
 			sockets.set('internalGraphql', internalGraphqlSocket);
 
 			// Create relay socket
-			apiManagerLogger.debug('Creating relay socket');
+			coreLogger.debug('Creating relay socket');
 			const relaySocket = new MothershipSocket({ lazy: true });
 			sockets.set('relay', relaySocket);
 
@@ -105,7 +102,7 @@ am(async () => {
 				relaySocket.connect()
 			]);
 		} catch (error: unknown) {
-			apiManagerLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
+			coreLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
 	});
 

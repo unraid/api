@@ -10,3 +10,4 @@ export const coreLogger = log.createChild({ prefix: 'core' });
 export const graphqlLogger = log.createChild({ prefix: 'graphql' });
 export const relayLogger = log.createChild({ prefix: 'relay' });
 export const discoveryLogger = log.createChild({ prefix: 'discovery' });
+export const apiManagerLogger = log.createChild({ prefix: 'api-manager' });
