@@ -5,14 +5,11 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import upcast from 'upcast';
 import { paths } from '../paths';
 import { parseConfig } from '../utils/misc';
 import { ArrayState } from './state';
 import { LooseObject } from '../types';
 import { Share } from '../types/states';
-
-const to = (from: any, to: string) => upcast.to(from, to);
 
 interface SharesIni {
 	name: string;
@@ -28,8 +25,8 @@ const parse = (state: SharesIni[]): Share[] => {
 		.map(([_, item]) => {
 			const { free, size, include, exclude, useCache, ...rest } = item;
 			const share: Share = {
-				free: to(free, 'number'),
-				size: to(size, 'number'),
+				free: parseInt(free, 10),
+				size: parseInt(size, 10),
 				include: include.split(',').filter(_ => _),
 				exclude: exclude.split(',').filter(_ => _),
 				cache: useCache === 'yes',
