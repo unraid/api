@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import fs from 'fs';
 
 /**
  * Get a number between the lowest and highest value.
@@ -20,9 +20,9 @@ export const backoff = (attempt: number, maxDelay: number, multiplier: number) =
 	return Math.round(Math.min(delay * multiplier, maxDelay));
 };
 
-export const readFileIfExists = (filePath: string) => {
+export const readFileIfExists = async (filePath: string): Promise<Buffer> => {
 	try {
-		return readFileSync(filePath);
+		return await fs.promises.readFile(filePath);
 	} catch {}
 
 	return Buffer.from('');
