@@ -1,7 +1,7 @@
 import { MOTHERSHIP_RELAY_WS_LINK, ONE_MINUTE } from '../../consts';
 import { relayLogger, apiManager } from '../../core';
-import { getMachineId, isNodeError, sleep } from '../../core/utils';
-import { varState, networkState } from '../../core/states';
+import { isNodeError, sleep } from '../../core/utils';
+import { varState } from '../../core/states';
 import { subscribeToServers } from '../subscribe-to-servers';
 import { AppError } from '../../core/errors';
 import { readFileIfExists } from '../utils';
@@ -125,9 +125,9 @@ export class MothershipSocket extends CustomSocket {
 
 	protected async getHeaders() {
 		const apiKey = apiManager.getKey('my_servers')?.key!;
-		const keyFile = varState.data?.regFile ? readFileIfExists(varState.data?.regFile).toString('base64') : '';
-		const serverName = `${varState.data?.name as string}`;
-		const lanIp: string = networkState.data.find(network => network.ipaddr[0]).ipaddr[0] || '';
+		const regFile = await readFileIfExists(varState.data?.regFile);
+		const keyFile = varState.data?.regFile ? regFile.toString('base64') : '';
+		const serverName = `${varState.data.name}`;
 
 		return {
 			'x-api-key': apiKey,
