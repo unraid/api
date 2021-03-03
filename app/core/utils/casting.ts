@@ -1,7 +1,6 @@
-import { upcast } from './upcast';
-
-export const toBoolean = (value: any): boolean => upcast.to(value, 'boolean');
-export const toNumber = (value: any): number => upcast.to(value, 'number');
+// If it's "true", "yes" or "1" then it's true otherwise it's false
+export const toBoolean = (value: string): boolean => value.toLowerCase().trim() === 'true' || value.toLowerCase().trim() === 'yes' || value === '1';
+export const toNumber = (value: string): number => parseInt(value, 10);
 
 type BooleanString = 'true' | 'false';
 
