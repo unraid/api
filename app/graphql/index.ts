@@ -272,14 +272,14 @@ const ensureApiKey = (apiKeyToCheck: string) => {
 	// Check there is atleast one valid key
 	if (core.apiManager.getValidKeys().length !== 0) {
 		if (!apiKeyToCheck) {
-			throw new AppError('Missing API key.');
+			throw new AppError('Missing API key.', 403);
 		}
 
 		if (!apiManager.isValid(apiKeyToCheck)) {
-			throw new AppError('Invalid API key.');
+			throw new AppError('Invalid API key.', 403);
 		}
 	} else if (process.env.NODE_ENV !== 'development') {
-		throw new AppError('No valid API keys active.');
+		throw new AppError('No valid API keys active.', 401);
 	}
 };
 
