@@ -129,7 +129,7 @@ const commands = {
 	async status() {
 		// Find and kill all processes called "unraid-api"
 		const foundProcesses = await findProcess('name', 'unraid-api');
-		if (foundProcesses.length === 1) {
+		if (foundProcesses.length <= 1) {
 			console.log('Found no running processes.');
 			return;
 		}
