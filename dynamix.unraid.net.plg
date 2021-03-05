@@ -181,7 +181,7 @@ _start() {
   fi
 
   # Start unraid-api
-  ENVIRONMENT=$(echo $env) LOG_TRANSPORT=console node $node_base_directory/unraid-api/index.js 2>&1 | logger &
+  ENVIRONMENT=$(echo $env) LOG_TRANSPORT=console node $node_base_directory/unraid-api/unraid-api 2>&1 | logger &
   cd $old_working_directory
 
   # wait until node_api_pid exists
@@ -228,7 +228,7 @@ startdebug() {
   report
 
   # Start unraid-api
-  ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/unraid-api/index.js
+  ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/unraid-api/unraid-api
 }
 changeloglevel() {
   kill -USR2 $(pidof unraid-api)
