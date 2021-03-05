@@ -8,7 +8,7 @@ import am from 'am';
 import * as Sentry from '@sentry/node';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, states, coreLogger, log, apiManager } from './core';
+import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './core';
 import { server } from './server';
 import { InternalGraphql, MothershipSocket } from './mothership';
 import { sockets } from './sockets';
