@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.35](https://github.com/unraid/api/compare/v2.15.34-rolling-20210303041522...v2.15.35) (2021-03-05)
+
+
+### Bug Fixes
+
+* use binary instead of js file ([1bbe6e7](https://github.com/unraid/api/commit/1bbe6e78f9add5b82bcba55ba965ca9ea6f8d519))
+* use utf8 not utf-8 ([e2aecd1](https://github.com/unraid/api/commit/e2aecd1191aed7a3bd513b3fed93281171bd0c4c))
+
 ### [2.15.34](https://github.com/unraid/api/compare/v2.15.33-rolling-20210301050144...v2.15.34) (2021-03-01)
 
 ### [2.15.33](https://github.com/unraid/api/compare/v2.15.32-rolling-20210225000914...v2.15.33) (2021-02-25)
