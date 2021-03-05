@@ -7,10 +7,8 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "npm run bundle && npm run copy-schemas",
-    "bundle": "npx tsup ./app/index.ts",
-    "bundle-minify": "npx tsup ./app/index.ts --minify",
-    "bundle-cli": "npx tsup ./app/cli.ts",
-    "bundle-minify-cli": "npx tsup ./app/cli.ts --minify",
+    "bundle": "npx tsup ./app/cli.ts",
+    "bundle-minify": "npx tsup ./app/cli.ts --minify",
     "build-binary": "nexe --build -r './dist/types/**/*' -r './node_modules/get-current-line/**/*' ./dist/index.js",
     "copy-schemas": "cpx app/**/*.graphql dist/types",
     "clean": "modclean --no-progress --run --path .",
