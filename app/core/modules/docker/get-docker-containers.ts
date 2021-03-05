@@ -36,7 +36,7 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
      * @note Doesn't exist if array is offline.
      * @see https://github.com/limetech/webgui/issues/502#issue-480992547
      */
-	const autoStartFile = await fs.promises.readFile(paths.get('docker-autostart')!, 'utf-8').then(file => file.toString()).catch(() => '');
+	const autoStartFile = await fs.promises.readFile(paths.get('docker-autostart')!, 'utf8').then(file => file.toString()).catch(() => '');
 	const autoStarts = autoStartFile.split('\n');
 	const containers = await docker
 		.listContainers({

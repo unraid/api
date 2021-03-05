@@ -90,7 +90,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
 export const parseConfig = <T>(options: Options): T => {
 	const { file, type } = options;
 	const filePath = getPath(options.filePath);
-	const fileContents = filePath ? fs.readFileSync(filePath, 'utf-8').toString() : file!;
+	const fileContents = filePath ? fs.readFileSync(filePath, 'utf8').toString() : file!;
 	const fileType = type || filePath.split('.').splice(-1)[0];
 
 	// Only allow ini and cfg files.

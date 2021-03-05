@@ -142,7 +142,7 @@ const commands = {
 		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${environment}" mode!`);
 	},
 	async report() {
-		const unraidVersion = fs.existsSync('/etc/unraid-version') ? fs.readFileSync('/etc/unraid-version', 'utf-8').split('"')[1] : 'unknown';
+		const unraidVersion = fs.existsSync('/etc/unraid-version') ? fs.readFileSync('/etc/unraid-version', 'utf8').split('"')[1] : 'unknown';
 		console.log(dedent`
       <-----UNRAID-API-REPORT----->
       Env ${environment}
