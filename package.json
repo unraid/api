@@ -9,6 +9,8 @@
     "build": "npm run bundle && npm run copy-schemas",
     "bundle": "npx tsup ./app/index.ts",
     "bundle-minify": "npx tsup ./app/index.ts --minify",
+    "bundle-cli": "npx tsup ./app/cli.ts",
+    "bundle-minify-cli": "npx tsup ./app/cli.ts --minify",
     "build-binary": "nexe --build -r './dist/types/**/*' -r './node_modules/get-current-line/**/*' ./dist/index.js",
     "copy-schemas": "cpx app/**/*.graphql dist/types",
     "clean": "modclean --no-progress --run --path .",
@@ -30,9 +32,7 @@
   "files": [
     ".env.staging",
     ".env.production",
-    "dist",
-    "index.js",
-    "ecosystem.config.js"
+    "dist"
   ],
   "dependencies": {
     "@apollo/client": "^3.3.11",
@@ -204,6 +204,7 @@
     "express",
     "express-list-endpoints",
     "filter-obj",
+    "find-process",
     "flatten",
     "get-current-line",
     "get-server-address",
@@ -242,6 +243,7 @@
     "package-json",
     "path-exists",
     "path-type",
+    "pidusage",
     "pify",
     "pretty-bytes",
     "pretty-ms",
@@ -256,6 +258,7 @@
     "subscriptions-transport-ws",
     "systeminformation",
     "tracer",
+    "ts-command-line-args",
     "unix-dgram",
     "upcast",
     "uuid",
