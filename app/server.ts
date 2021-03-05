@@ -189,16 +189,7 @@ export const server = {
 	server: stoppableServer,
 	async start() {
 		// Start http server
-		return stoppableServer.listen(port, () => {
-			// Downgrade process user to owner of this file
-			fs.stat(__filename, (error, stats) => {
-				if (error) {
-					throw error;
-				}
-
-				process.setuid(stats.uid);
-			});
-		});
+		return stoppableServer.listen(port);
 	},
 	stop(callback?: () => void) {
 		// Stop http server from accepting new connections and close existing connections
