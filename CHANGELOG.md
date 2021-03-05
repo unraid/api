@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.36](https://github.com/unraid/api/compare/v2.15.35-rolling-20210305063350...v2.15.36) (2021-03-05)
+
+
+### Bug Fixes
+
+* cli loading wrong path for index ([66b5f33](https://github.com/unraid/api/commit/66b5f3383d46ce3746f46be5414e8f5010120adb))
+* cli using wrong path again ([8c24bcd](https://github.com/unraid/api/commit/8c24bcd4d6666b6a7253b0c0b099f3efae093997))
+* remove old entry file ([8d0496a](https://github.com/unraid/api/commit/8d0496a17eaf28aff51d673d1a1d003ba64a49e1))
+* throwing error when no processes were found ([70d006b](https://github.com/unraid/api/commit/70d006bb171b747e6b2119ced9d26a8194f89e19))
+
 ### [2.15.35](https://github.com/unraid/api/compare/v2.15.34-rolling-20210303041522...v2.15.35) (2021-03-05)
 
 
