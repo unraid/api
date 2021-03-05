@@ -29,7 +29,7 @@ const loadPermissionsFile = (filePath: string) => {
 	}
 
 	// Load newly created permissions file
-	return JSON.parse(fs.readFileSync(filePath).toString('utf-8')) as Partial<Permissions>;
+	return JSON.parse(fs.readFileSync(filePath).toString('utf8')) as Partial<Permissions>;
 };
 
 const getPermissions = () => {
