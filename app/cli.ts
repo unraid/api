@@ -83,7 +83,7 @@ const commands = {
 		console.log(`Starting unraid-api in "${environment}" mode.`);
 
 		// Load bundled index file
-		const indexPath = './dist/index.js';
+		const indexPath = './index.js';
 		require(indexPath);
 
 		if (!mainOptions.debug) {
