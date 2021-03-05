@@ -73,9 +73,6 @@ const commands = {
 		// Set process title
 		process.title = 'unraid-api';
 
-		// Set cwd
-		process.chdir(path.resolve('..', __dirname));
-
 		// Set envs
 		setEnv('DEBUG', mainOptions.debug);
 		setEnv('ENVIRONMENT', environment);
@@ -85,9 +82,9 @@ const commands = {
 
 		console.log(`Starting unraid-api in "${environment}" mode.`);
 
-		// Load process
-		const filePath = '../dist/index';
-		require(filePath);
+		// Load bundled index file
+		const indexPath = './dist/index.js';
+		require(indexPath);
 
 		if (!mainOptions.debug) {
 			// Convert process into daemon
