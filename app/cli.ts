@@ -46,7 +46,6 @@ const args: ArgumentConfig<Flags> = {
 const options: ArgsParseOptions<Flags> = {
 	helpArg: 'help',
 	optionSections: [{
-		// @ts-expect-error https://github.com/Roaders/ts-command-line-args/issues/8
 		hide: ['command']
 	}],
 	baseCommand: 'unraid-api',
