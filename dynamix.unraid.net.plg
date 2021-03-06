@@ -143,14 +143,6 @@ if [ "$env" != "staging" ] && [ "$env" != "production" ]; then
   exit 1
 fi
 
-status() {
-  local node_api_pid=$(pidof unraid-api | awk '{print $1}')
-  if [[ $node_api_pid ]]; then
-    echo "Unraid-api is running in $env mode."
-  else
-    echo "No processes are running."
-  fi
-}
 switchenv() {
   # Get current environment from file
   local envFile="/boot/config/plugins/Unraid.net/env"
@@ -168,103 +160,28 @@ switchenv() {
   source $envFile;
   reload
 }
-_start() {
-  _stop
-  local old_working_directory=$(echo $pwd)
-  mkdir -p $node_base_directory
-  cd $node_base_directory
-
-  # Local .env
-  if [ -f $node_base_directory/unraid-api/.env ]; then
-    # Load Environment Variables
-    export $(egrep -v '^#' $node_base_directory/unraid-api/.env | xargs)
-  fi
-
-  # Start unraid-api
-  ENVIRONMENT=$(echo $env) LOG_TRANSPORT=console node $node_base_directory/unraid-api/unraid-api 2>&1 | logger &
-  cd $old_working_directory
-
-  # wait until node_api_pid exists
-  for i in {1..10}; do
-    local node_api_pid=$(pidof unraid-api | awk '{print $1}')
-    if [ -n "$node_api_pid" ]; then
-      break
-    fi
-    sleep 1
-  done
-}
-start() {
-  echo "Starting Unraid-api"
-  _start
-  status
-  exit 0
-}
-_node_api_version() {
-  # Borrowed from https://gist.github.com/DarrenN/8c6a5b969481725a4413
-  local version=$(grep '"version"' $node_base_directory/unraid-api/package.json | cut -d '"' -f 4)
-  echo "v$version"
-}
-report() {
-cat << EOF
-<-----UNRAID-API-REPORT----->
-Env $env
-Node API $(_node_api_version)
-Unraid v$(source /etc/unraid-version; echo "$version";)
-</----UNRAID-API-REPORT----->
-EOF
-}
-startdebug() {
-  _stop
-  local old_working_directory=$(echo $pwd)
-  mkdir -p $node_base_directory
-
-  # Local .env
-  if [ -f $node_base_directory/unraid-api/.env ]; then
-    # Load Environment Variables
-    export $(egrep -v '^#' $node_base_directory/unraid-api/.env | xargs)
-  fi
-
-  # Print report
-  report
-
-  # Start unraid-api
-  ENVIRONMENT=$(echo $env) DEBUG=true node $node_base_directory/unraid-api/unraid-api
-}
 changeloglevel() {
   kill -USR2 $(pidof unraid-api)
 }
-_stop() {
-  local node_api_pid=$(pidof unraid-api | awk '{print $1}')
-  if [[ $node_api_pid ]]; then
-    local parent_pid=$(cat /proc/$node_api_pid/status | grep PPid | cut -f2)
-    if [[ $parent_pid != 1 ]]; then
-      kill -9 $parent_pid &> /dev/null
-    else
-      kill -9 $node_api_pid &> /dev/null
-    fi
-    # wait until node_api_pid no longer exists
-    for i in {1..10}; do
-      node_api_pid=$(pidof unraid-api | awk '{print $1}')
-      if [ -z "$node_api_pid" ]; then
-        break
-      fi
-      sleep 1
-    done
-  fi
+status() {
+  $node_base_directory/unraid-api/unraid-api status
+}
+start() {
+  $node_base_directory/unraid-api/unraid-api 2>&1 | logger &
+}
+report() {
+  $node_base_directory/unraid-api/unraid-api report
+}
+startdebug() {
+  $node_base_directory/unraid-api/unraid-api start --debug
 }
 stop() {
-  echo "Stopping Unraid-api"
-  _stop
-  status
-  exit 0
+  if [ -f "$node_base_directory/unraid-api/unraid-api" ]; then
+    $node_base_directory/unraid-api/unraid-api stop
+  fi
 }
 reload() {
-  echo "Reloading Unraid-api"
-  _stop
-  rm -f /var/run/unraid-api.sock
-  _start
-  status
-  exit 0
+  $node_base_directory/unraid-api/unraid-api restart
 }
 _install() {
   # Install unraid-api
@@ -287,13 +204,13 @@ _install() {
 }
 install() {
   # Stop old process
-  _stop
+  stop
 
   # Install the files
   _install
 
   # Start new process
-  _start
+  start
 
   # Wait for inital process to boot
   sleep 2
