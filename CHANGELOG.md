@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.37](https://github.com/unraid/api/compare/v2.15.36-rolling-20210306003234...v2.15.37) (2021-03-06)
+
+
+### Bug Fixes
+
+* revamp rc.unraid-api file ([1f720fc](https://github.com/unraid/api/commit/1f720fc87f1c077566a134c6bb2e82f094a944f8))
+
 ### [2.15.36](https://github.com/unraid/api/compare/v2.15.35-rolling-20210305063350...v2.15.36) (2021-03-05)
 
 
