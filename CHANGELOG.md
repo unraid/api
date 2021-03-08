@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.38](https://github.com/unraid/api/compare/v2.15.37-rolling-20210307212325...v2.15.38) (2021-03-08)
+
+
+### Bug Fixes
+
+* move daemonization to process ([b7867f6](https://github.com/unraid/api/commit/b7867f66dcd86b90f85a20d308bf485fc797aa38))
+
 ### [2.15.37](https://github.com/unraid/api/compare/v2.15.36-rolling-20210306003234...v2.15.37) (2021-03-06)
 
 
