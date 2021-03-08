@@ -57,7 +57,7 @@
     "chokidar": "^3.5.1",
     "clean-cache": "github:OmgImAlexis/clean-cache#master",
     "clear-module": "^4.1.1",
-    "cli-table": "^0.3.4",
+    "cli-table": "^0.3.5",
     "command-exists": "^1.2.9",
     "cross-fetch": "^3.0.6",
     "deepmerge": "^4.2.2",
