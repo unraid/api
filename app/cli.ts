@@ -72,6 +72,9 @@ const commands = {
 		// Set process title
 		process.title = 'unraid-api';
 
+		// Set cwd
+		process.chdir('/usr/local/bin/node/unraid-api/');
+
 		// Set envs
 		setEnv('DEBUG', mainOptions.debug);
 		setEnv('ENVIRONMENT', environment);
