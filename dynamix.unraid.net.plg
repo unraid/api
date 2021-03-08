@@ -42,6 +42,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /usr/local/emhttp/webGui/webComps
   rm -rf /boot/config/plugins/Unraid.net/wc
   rm -rf /usr/local/emhttp/webGui/wc
+  rm -f /usr/local/sbin/unraid-api
   find /usr/local/emhttp/languages -type f \( -iname unraidnet.txt -o -iname unraidnet.dot \) -delete
   exit 0
 fi
@@ -2687,6 +2688,15 @@ if (!file_exists($mys_cfg)) touch($mys_cfg);
 CFG_MIG=/usr/local/emhttp/plugins/dynamix.unraid.net/include/cfgMigration.php
 php $CFG_MIG
 rm -f $CFG_MIG
+]]>
+</INLINE>
+</FILE>
+
+<!-- make the unraid-api work globally for easy cli access -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+<![CDATA[
+ln -s /usr/local/bin/node/unraid-api/unraid-api /usr/local/sbin/unraid-api
 ]]>
 </INLINE>
 </FILE>
