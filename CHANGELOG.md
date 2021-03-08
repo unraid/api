@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.39](https://github.com/unraid/api/compare/v2.15.38...v2.15.39) (2021-03-08)
+
+
+### Bug Fixes
+
+* ensure cwd is always in the VFS when we daemonize ([5ccd55a](https://github.com/unraid/api/commit/5ccd55a04ba8a423cf81dd131c0ae6f750c16709))
+* Make sure the process changes to the cwd ([0ce833b](https://github.com/unraid/api/commit/0ce833bf00f7d205babea849571be7a251d5aa76))
+* use correct cwd ([391bd24](https://github.com/unraid/api/commit/391bd24502f83d4366d20d89d64a0e2b26fb610e))
+
 ### [2.15.38](https://github.com/unraid/api/compare/v2.15.37-rolling-20210307212325...v2.15.38) (2021-03-08)
 
 
