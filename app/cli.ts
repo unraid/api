@@ -96,7 +96,9 @@ const commands = {
 				const child = spawn(process.execPath, process.argv.slice(2), {
 					// In the parent set the tracking environment variable
 					env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
-					cwd: process.cwd(),
+					// The process MUST have it's cwd set to the
+					// path where it resides within the Nexe VFS
+					cwd: '/sandbox/unraid-api',
 					stdio: 'ignore',
 					detached: true
 				});
