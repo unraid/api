@@ -98,7 +98,7 @@ const commands = {
 					env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 					// The process MUST have it's cwd set to the
 					// path where it resides within the Nexe VFS
-					cwd: '/sandbox/unraid-api',
+					cwd: '/usr/local/bin/node/unraid-api/',
 					stdio: 'ignore',
 					detached: true
 				});
