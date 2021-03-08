@@ -1,8 +1,7 @@
 import fs from 'fs';
-import path from 'path';
+import { spawn } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
-import daemonizeProcess from 'daemonize-process';
 import findProcess from 'find-process';
 import pidusage from 'pidusage';
 import prettyMs from 'pretty-ms';
@@ -87,9 +86,29 @@ const commands = {
 		require(indexPath);
 
 		if (!mainOptions.debug) {
-			// Convert process into daemon
-			console.log('Demonising process.');
-			daemonizeProcess();
+			if ('_DAEMONIZE_PROCESS' in process.env) {
+				// In the child, clean up the tracking environment variable
+				delete process.env._DAEMONIZE_PROCESS;
+			} else {
+				console.debug('Daemonizing process.');
+
+				// Spawn child
+				const child = spawn(process.execPath, process.argv.slice(2), {
+					// In the parent set the tracking environment variable
+					env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
+					cwd: process.cwd(),
+					stdio: 'ignore',
+					detached: true
+				});
+
+				// Convert process into daemon
+				child.unref();
+
+				console.log('Daemonized successfully!');
+
+				// Exit cleanly
+				process.exit(0);
+			}
 		}
 	},
 	/**
@@ -98,7 +117,8 @@ const commands = {
 	async stop() {
 		// Find and kill all processes called "unraid-api"
 		const foundProcesses = await findProcess('name', 'unraid-api');
-		if (foundProcesses.length === 1) {
+
+		if (foundProcesses.length <= 1) {
 			console.log('Found no running processes.');
 			return;
 		}
@@ -138,12 +158,14 @@ const commands = {
 		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${environment}" mode!`);
 	},
 	async report() {
+		// Find all processes called "unraid-api"
+		const foundProcesses = await findProcess('name', 'unraid-api');
 		const unraidVersion = fs.existsSync('/etc/unraid-version') ? fs.readFileSync('/etc/unraid-version', 'utf8').split('"')[1] : 'unknown';
 		console.log(dedent`
       <-----UNRAID-API-REPORT----->
-      Env ${environment}
-      Node API v${version}
-      Unraid ${unraidVersion}
+      Environment: ${environment}
+      Node API version: ${version} (${foundProcesses.length >= 2 ? 'running' : 'stopped'})
+      Unraid version: ${unraidVersion}
       </----UNRAID-API-REPORT----->
     `);
 	}
