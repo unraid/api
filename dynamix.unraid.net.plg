@@ -178,8 +178,9 @@ startdebug() {
 }
 stop() {
   if [ -f "$node_base_directory/unraid-api/unraid-api" ]; then
-    $node_base_directory/unraid-api/unraid-api stop
+    $node_base_directory/unraid-api/unraid-api stop || true
   fi
+  kill -9 $(pidof unraid-api) || true
 }
 reload() {
   $node_base_directory/unraid-api/unraid-api restart
@@ -205,7 +206,7 @@ _install() {
 }
 install() {
   # Stop old process
-  kill -9 $(pidof unraid-api)
+  stop
 
   # Install the files
   _install
@@ -221,7 +222,7 @@ install() {
   exit 0
 }
 uninstall() {
-  kill -9 $(pidof unraid-api)
+  stop
   for download in ${downloads[@]}; do
     rm -rf $node_base_directory/${download}
   done
