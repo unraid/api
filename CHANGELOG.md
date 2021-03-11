@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.40](https://github.com/unraid/api/compare/v2.15.39-rolling-20210311102904...v2.15.40) (2021-03-11)
+
+
+### Bug Fixes
+
+* reorder of loading api-manager and graphql ([d4dbbc1](https://github.com/unraid/api/commit/d4dbbc1c65e4a903a3e367740c5faf897808a107))
+
 ### [2.15.39](https://github.com/unraid/api/compare/v2.15.38...v2.15.39) (2021-03-08)
 
 
