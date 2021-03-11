@@ -32,15 +32,6 @@ Sentry.setUser({
 	id: states.varState.data.flashGuid
 });
 
-const waitForInternalGraphqlToBeReady = async () => {
-	if (server.server.address() !== null) {
-		return;
-	}
-
-	await sleep(2000);
-	return waitForInternalGraphqlToBeReady();
-};
-
 // Boot app
 am(async () => {
 	let lastknownApiKey: string;
@@ -56,26 +47,23 @@ am(async () => {
 		coreLogger.info('Server is up! %s', getServerAddress(server.server));
 	});
 
-	// Trying to start server
-	await server.start().catch(error => {
-		log.error(error);
-
-		// On process exit
-		exitHook(async () => {
-			coreLogger.debug('Stopping HTTP server');
-
-			// Stop the server
-			server.stop();
-		});
-	});
-
 	// It has it's first keys loaded
 	apiManager.on('ready', async () => {
 		try {
-			// If the internal graphql server has no address it's likely still
-			// starting up so let's wait so we don't hit a 1006 error
-			await waitForInternalGraphqlToBeReady();
+			// Try to start server
+			await server.start().catch(error => {
+				log.error(error);
 
+				// On process exit
+				exitHook(async () => {
+					coreLogger.debug('Stopping HTTP server');
+
+					// Stop the server
+					server.stop();
+				});
+			});
+
+			// Get newest API key
 			const apiKey = apiManager.getKey('my_servers');
 
 			// We're ready but they're not logged into myservers yet
