@@ -540,7 +540,7 @@ _(Flash backup)_:
 : <span class='orange p0'>_(Not activated)_</span>
 
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button>
+: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
 
 :unraidnet_inactivespanel_help:
 
@@ -555,7 +555,7 @@ _(Flash backup)_:
 : <span class='green p0'>_(Activated)_:</span> <span class='orange p0'>_(Not up-to-date)_</span>
 
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button>
+: <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
 
 :unraidnet_changespanel_help:
 
@@ -569,7 +569,7 @@ _(Flash backup)_:
 </div>
 <div markdown="1" id="activepanel" style="display:none">
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Reinitialize)_</button>
+: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Reinitialize)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
 
 :unraidnet_activepanel_help:
 
