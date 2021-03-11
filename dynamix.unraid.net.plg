@@ -43,7 +43,6 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /boot/config/plugins/Unraid.net/wc
   rm -rf /usr/local/emhttp/webGui/wc
   rm -f /usr/local/sbin/unraid-api
-  find /usr/local/emhttp/languages -type f \( -iname unraidnet.txt -o -iname unraidnet.dot \) -delete
   exit 0
 fi
 ]]>
