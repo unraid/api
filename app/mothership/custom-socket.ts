@@ -219,7 +219,7 @@ export class CustomSocket {
 		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
 			try {
 				const message: { message?: string } = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
-				logger.debug('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
+				logger.error('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
 
 				// Stop ws heartbeat
 				if (this.heartbeat) {
@@ -234,9 +234,7 @@ export class CustomSocket {
 					await responses[4500]();
 				}
 			} catch (error: unknown) {
-				if (isNodeError(error, AppError)) {
-					logger.debug('Connection closed with code=%s reason="%s"', code, error.message);
-				}
+				logger.error('Connection closed with code=%s reason="%s"', code, (error as Error).message);
 			}
 
 			try {
@@ -246,9 +244,7 @@ export class CustomSocket {
 				// Reconnect
 				await connect(connectionAttempts + 1);
 			} catch (error: unknown) {
-				if (isNodeError(error, AppError)) {
-					logger.debug('Failed reconnecting to %s reason="%s"', uri, error.message);
-				}
+				logger.error('Failed reconnecting to %s reason="%s"', uri, (error as Error).message);
 			}
 		};
 	}
