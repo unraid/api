@@ -151,7 +151,7 @@ export class CustomSocket {
 	}
 
 	public async reconnect() {
-		this.logger.debug('Reconnecting...');
+		this.logger.error(`Reconnecting to ${this.uri}`);
 		return this.disconnect();
 	}
 
