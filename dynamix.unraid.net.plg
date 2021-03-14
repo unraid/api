@@ -592,6 +592,9 @@ flashbackupsub.on('message', function(data) {
 });
 $(function() {
   flashbackupsub.start();
+  if ( typeof caPluginUpdateCheck === "function" ) {
+    caPluginUpdateCheck("]]>&name;<![CDATA[.plg",{name:"Unraid.net"});
+  }
 });
 </script>
 <?endif?>
