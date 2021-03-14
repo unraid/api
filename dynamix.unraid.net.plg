@@ -176,10 +176,12 @@ startdebug() {
   $node_base_directory/unraid-api/unraid-api start --debug
 }
 stop() {
-  if [ -f "$node_base_directory/unraid-api/unraid-api" ]; then
-    $node_base_directory/unraid-api/unraid-api stop || true
-  fi
-  kill -9 $(pidof unraid-api) || true
+  kill $(pidof unraid-api) &>/dev/null || true
+  #if [ -f "$node_base_directory/unraid-api/unraid-api" ]; then
+  #  $node_base_directory/unraid-api/unraid-api stop || true
+  #fi
+  sleep 2
+  kill -9 $(pidof unraid-api) &>/dev/null || true
 }
 reload() {
   $node_base_directory/unraid-api/unraid-api restart
@@ -211,6 +213,12 @@ install() {
   _install
 
   # Start new process
+  start
+
+  # Wait for inital process to boot
+  sleep 2
+
+  # Start new process again
   start
 
   # Wait for inital process to boot
