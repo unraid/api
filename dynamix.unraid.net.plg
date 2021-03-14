@@ -2,7 +2,7 @@
 
 <!DOCTYPE PLUGIN [
 <!ENTITY name                   "dynamix.unraid.net">
-<!ENTITY launch                 "Unraid.net">
+<!ENTITY launch                 "Unraidnet">
 <!ENTITY author                 "limetech">
 <!ENTITY version                "{{ plg_version }}">
 <!ENTITY node_api_version       "{{ node_api_version }}">
@@ -11,7 +11,7 @@
 <!ENTITY unraid-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-api-&node_api_version;.tgz">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net" min="6.9.0-beta35" icon="globe">
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net/forum/55-general-support/" min="6.9.0-beta35" icon="globe">
 
 <CHANGES>
 ##&name;
