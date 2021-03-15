@@ -258,12 +258,7 @@ export class ApiManager extends EventEmitter {
 		return keyObject[0];
 	}
 
-	private async getLock() {
-		this.lock ??= new Mutex();
-		return this.lock;
-	}
-
-	private async checkKey(filePath: string, force = false) {
+	async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		await lock.runExclusive(async () => {
 			apiManagerLogger.debug('Checking API key for validity.');
@@ -301,6 +296,11 @@ export class ApiManager extends EventEmitter {
 			// Reset key as it's not valid anymore
 			this.expire('my_servers');
 		});
+	}
+
+	private async getLock() {
+		this.lock ??= new Mutex();
+		return this.lock;
 	}
 }
 

@@ -7,7 +7,7 @@ import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
 // eslint-disable-next-line @typescript-eslint/no-duplicate-imports
-import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log } from '../core';
+import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log, paths } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
@@ -268,8 +268,16 @@ const schema = makeExecutableSchema({
 	}
 });
 
-const ensureApiKey = (apiKeyToCheck: string) => {
+const ensureApiKey = async (apiKeyToCheck: string) => {
+	// No keys are loaded into memory
+	if (core.apiManager.getValidKeys().length === 0) {
+		const configPath = paths.get('myservers-config')!;
+		await apiManager.checkKey(configPath, true);
+	}
+
 	// Check there is atleast one valid key
+	// If there were no keys when we entered this method
+	// the above should have tried forcefully reloading them
 	if (core.apiManager.getValidKeys().length !== 0) {
 		if (!apiKeyToCheck) {
 			throw new AppError('Missing API key.', 403);
@@ -285,8 +293,8 @@ const ensureApiKey = (apiKeyToCheck: string) => {
 
 const debug = config.get('debug');
 
-const apiKeyToUser = (apiKey: string) => {
-	ensureApiKey(apiKey);
+const apiKeyToUser = async (apiKey: string) => {
+	await ensureApiKey(apiKey);
 
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
@@ -392,25 +400,21 @@ export const graphql = {
 	resolvers,
 	subscriptions: {
 		keepAlive: 30000,
-		onConnect: async (connectionParams: Record<string, string>) => new Promise((resolve, reject) => {
-			try {
-				const apiKey = connectionParams['x-api-key'];
-				const user = apiKeyToUser(apiKey);
-				const websocketId = uuid();
+		onConnect: async (connectionParams: Record<string, string>) => {
+			const apiKey = connectionParams['x-api-key'];
+			const user = await apiKeyToUser(apiKey);
+			const websocketId = uuid();
 
-				graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+			graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
-				// Update ws connection count and other needed values
-				wsHasConnected(websocketId);
+			// Update ws connection count and other needed values
+			wsHasConnected(websocketId);
 
-				resolve({
-					user,
-					websocketId
-				});
-			} catch (error: unknown) {
-				reject(error);
-			}
-		}),
+			return {
+				user,
+				websocketId
+			};
+		},
 		onDisconnect: async (_, websocketContext) => {
 			const context = await websocketContext.initPromise;
 
@@ -443,7 +447,7 @@ export const graphql = {
 			wsHasDisconnected(websocketId);
 		}
 	},
-	context: ({ req, connection }) => {
+	context: async ({ req, connection }) => {
 		// Normal Websocket connection
 		if (connection && Object.keys(connection.context).length >= 1) {
 			// Check connection for metadata
@@ -455,7 +459,7 @@ export const graphql = {
 		// Normal HTTP connection
 		if (req) {
 			const apiKey = req.headers['x-api-key'];
-			const user = apiKeyToUser(apiKey);
+			const user = await apiKeyToUser(apiKey);
 
 			return {
 				user
