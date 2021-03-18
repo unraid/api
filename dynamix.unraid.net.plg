@@ -1127,7 +1127,7 @@ config/wireguard/peers/*.conf filter=noprivatekeys
 }
 
 // setup git ignore for files we dont need in the flash backup
-if (!file_exists('/boot/.git/info/exclude') || strpos(file_get_contents('/boot/.git/info/exclude'),'peers') === false) {
+if (!file_exists('/boot/.git/info/exclude') || strpos(file_get_contents('/boot/.git/info/exclude'),'preclear.disk') === false) {
   file_put_contents('/boot/.git/info/exclude', '# file managed by Unraid, do not modify
 
 # Blacklist everything
@@ -1160,6 +1160,7 @@ config/smbpasswd
 config/plugins/**/*.tgz
 config/plugins/**/*.txz
 config/plugins/**/*.tar.bz2
+config/plugins/preclear.disk/*.resume
 config/plugins-error
 config/plugins-old-versions
 config/plugins/dockerMan/images
