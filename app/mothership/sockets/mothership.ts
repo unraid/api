@@ -7,6 +7,7 @@ import { AppError } from '../../core/errors';
 import { readFileIfExists } from '../utils';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
 import packageJson from '../../../package.json';
+import { sockets } from '../../sockets';
 
 export class MothershipSocket extends CustomSocket {
 	private mothershipServersEndpoint?: {
@@ -48,6 +49,10 @@ export class MothershipSocket extends CustomSocket {
 			try {
 				// Close connection to motherships's server's endpoint
 				await this.disconnectFromMothershipsGraphql();
+
+				// Close connection to internal graphql
+				const internalGraphqlClient = sockets.get('internalGraphql');
+				await internalGraphqlClient?.disconnect();
 
 				// Process disconnection
 				await onDisconnect(code, message);
