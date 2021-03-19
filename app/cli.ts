@@ -61,6 +61,12 @@ const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstU
 const commandOptions = (mainOptions as Flags & { _unknown: string[] })._unknown || [];
 const command: string = (mainOptions as any).command;
 const environment = mainOptions.environment ?? 'production';
+const getUnraidApiPid = async () => {
+	// Find all processes called "unraid-api" which aren't this process
+	const pids = await findProcess('name', 'unraid-api', true);
+	return pids.find(_ => _.pid !== process.pid)?.pid;
+};
+
 const commands = {
 	/**
    * Start a new API process.
@@ -120,23 +126,17 @@ const commands = {
    * Stop a running API process.
    */
 	async stop() {
-		// Find and kill all processes called "unraid-api"
-		const foundProcesses = await findProcess('name', 'unraid-api', true);
+		// Find process called "unraid-api"
+		const unraidApiPid = await getUnraidApiPid();
 
-		if (foundProcesses.length <= 1) {
+		// Bail if we have no process
+		if (!unraidApiPid) {
 			console.log('Found no running processes.');
 			return;
 		}
 
-		foundProcesses.forEach(foundProcess => {
-			// Don't kill ourselves as we'll exit once this is done
-			if (foundProcess.pid === process.pid) {
-				return;
-			}
-
-			console.log(`Sending process ${foundProcess.pid} SIGKILL.`);
-			process.kill(foundProcess.pid, 'SIGKILL');
-		});
+		console.log(`Sending process ${unraidApiPid} SIGKILL.`);
+		process.kill(unraidApiPid, 'SIGKILL');
 	},
 	/**
    * Stop a running API process and then start it again.
@@ -152,24 +152,24 @@ const commands = {
 		console.log(`Unraid API v${version as string}`);
 	},
 	async status() {
-		// Find and kill all processes called "unraid-api"
-		const foundProcesses = await findProcess('name', 'unraid-api');
-		if (foundProcesses.length <= 1) {
+		// Find all processes called "unraid-api" which aren't this process
+		const unraidApiPid = await getUnraidApiPid();
+		if (!unraidApiPid) {
 			console.log('Found no running processes.');
 			return;
 		}
 
-		const stats = await pidusage(foundProcesses[0].pid);
+		const stats = await pidusage(unraidApiPid);
 		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${environment}" mode!`);
 	},
 	async report() {
-		// Find all processes called "unraid-api"
-		const foundProcesses = await findProcess('name', 'unraid-api');
+		// Find all processes called "unraid-api" which aren't this process
+		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync('/etc/unraid-version') ? fs.readFileSync('/etc/unraid-version', 'utf8').split('"')[1] : 'unknown';
 		console.log(dedent`
       <-----UNRAID-API-REPORT----->
       Environment: ${environment}
-      Node API version: ${version} (${foundProcesses.length >= 2 ? 'running' : 'stopped'})
+      Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
       Unraid version: ${unraidVersion}
       </----UNRAID-API-REPORT----->
     `);
