@@ -161,6 +161,22 @@ export class CustomSocket {
 		const connectionAttempts = this.connectionAttempts;
 		const uri = this.uri;
 		const responses = {
+			// Mothership dropped, this can happen for various reasons
+			// 1. Mothership's relay restarted
+			// 2. The client's internet restarted
+			// 3. The client's internet is flakey
+			// 4. Who knows?
+			1006: async () => {
+				// We some how lost connection to mothership, this was not expected by the client.
+				// Let's give mothership's relay time to come back up incase it restarted reconnect.
+				this.logger.debug('We lost connection to mothership, reconnecting...');
+
+				// Wait for 30s before allowing reconnection
+				await sleep(ONE_SECOND * 30);
+
+				// Let's reset the reconnect count so we reconnect instantly
+				this.connectionAttempts = 0;
+			},
 			// OK
 			4200: async () => {
 				// This is usually because the API key is updated
