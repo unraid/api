@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.43](https://github.com/unraid/api/compare/v2.15.42...v2.15.43) (2021-03-19)
+
+
+### Bug Fixes
+
+* getting incorrect pid for process ([53f135a](https://github.com/unraid/api/commit/53f135a00e9530dc3fb9419e7bb452b0ec7ea666))
+
 ### [2.15.42](https://github.com/unraid/api/compare/v2.15.41-rolling-20210319063147...v2.15.42) (2021-03-19)
 
 
