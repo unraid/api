@@ -156,9 +156,11 @@ export class CustomSocket {
 	}
 
 	protected onDisconnect() {
+		// Connection attempts
+		let connectionAttempts = this.connectionAttempts;
+
 		const logger = this.logger;
 		const connect = this.connect.bind(this);
-		const connectionAttempts = this.connectionAttempts;
 		const uri = this.uri;
 		const responses = {
 			// Mothership dropped, this can happen for various reasons
@@ -176,12 +178,14 @@ export class CustomSocket {
 
 				// Let's reset the reconnect count so we reconnect instantly
 				this.connectionAttempts = 0;
+				connectionAttempts = 0;
 			},
 			// OK
 			4200: async () => {
 				// This is usually because the API key is updated
 				// Let's reset the reconnect count so we reconnect instantly
 				this.connectionAttempts = 0;
+				connectionAttempts = 0;
 			},
 			// Unauthorized - Invalid/missing API key.
 			4401: async () => {
@@ -197,6 +201,7 @@ export class CustomSocket {
 
 				// Let's reset the reconnect count so we reconnect instantly
 				this.connectionAttempts = 0;
+				connectionAttempts = 0;
 			},
 			// Rate limited
 			4429: async message => {
@@ -235,6 +240,8 @@ export class CustomSocket {
 		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
 			try {
 				const message: { message?: string } = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
+
+				// Log disconnection
 				logger.error('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
 
 				// Stop ws heartbeat
