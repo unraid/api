@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.42](https://github.com/unraid/api/compare/v2.15.41-rolling-20210319063147...v2.15.42) (2021-03-19)
+
+
+### Bug Fixes
+
+* when relay drops reconnect internally ([97edc3a](https://github.com/unraid/api/commit/97edc3ae1f3395329b26ea0ead48699e8c5f284c))
+
 ### [2.15.41](https://github.com/unraid/api/compare/v2.15.40-rolling-20210312023151...v2.15.41) (2021-03-12)
 
 ### [2.15.40](https://github.com/unraid/api/compare/v2.15.39-rolling-20210311102904...v2.15.40) (2021-03-11)
