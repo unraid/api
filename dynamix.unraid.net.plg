@@ -177,9 +177,6 @@ startdebug() {
 }
 stop() {
   kill $(pidof unraid-api) &>/dev/null || true
-  #if [ -f "$node_base_directory/unraid-api/unraid-api" ]; then
-  #  $node_base_directory/unraid-api/unraid-api stop || true
-  #fi
   sleep 2
   kill -9 $(pidof unraid-api) &>/dev/null || true
 }
