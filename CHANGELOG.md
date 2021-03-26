@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.47](https://github.com/unraid/api/compare/v2.15.46...v2.15.47) (2021-03-26)
+
+
+### Bug Fixes
+
+* ensure we're passing in apiKey to getServers ([5b13474](https://github.com/unraid/api/commit/5b134746bbf0e1ed849a8ca22750039b6592c100))
+
 ### [2.15.46](https://github.com/unraid/api/compare/v2.15.45...v2.15.46) (2021-03-26)
 
 
