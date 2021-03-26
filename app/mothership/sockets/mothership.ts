@@ -1,5 +1,5 @@
-import { MOTHERSHIP_RELAY_WS_LINK, ONE_MINUTE } from '../../consts';
-import { relayLogger, apiManager } from '../../core';
+import { MOTHERSHIP_GRAPHQL_LINK, MOTHERSHIP_RELAY_WS_LINK, ONE_MINUTE } from '../../consts';
+import { relayLogger, apiManager, pubsub } from '../../core';
 import { isNodeError, sleep } from '../../core/utils';
 import { varState } from '../../core/states';
 import { subscribeToServers } from '../subscribe-to-servers';
@@ -8,6 +8,8 @@ import { readFileIfExists } from '../utils';
 import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
 import packageJson from '../../../package.json';
 import { sockets } from '../../sockets';
+import { userCache, CachedServers } from '../../cache';
+import fetch from 'cross-fetch';
 
 export class MothershipSocket extends CustomSocket {
 	private mothershipServersEndpoint?: {
@@ -26,11 +28,15 @@ export class MothershipSocket extends CustomSocket {
 
 	onConnect() {
 		const connectToMothershipsGraphql = this.connectToMothershipsGraphql.bind(this);
+		const queryMothershipsGraphql = this.queryMothershipsGraphql.bind(this);
 		const onConnect = super.onConnect.bind(this);
 		return async function (this: WebSocketWithHeartBeat) {
 			try {
 				// Run super
 				onConnect();
+
+				// Query /servers on mothership
+				await queryMothershipsGraphql();
 
 				// Sub to /servers on mothership
 				await connectToMothershipsGraphql();
@@ -141,6 +147,49 @@ export class MothershipSocket extends CustomSocket {
 			'x-server-name': serverName,
 			'x-unraid-api-version': packageJson.version
 		};
+	}
+
+	private async queryMothershipsGraphql() {
+		const response = await fetch(MOTHERSHIP_GRAPHQL_LINK, {
+			method: 'POST',
+			body: `
+				query getServers($apiKey: String!) {
+					servers @auth(apiKey: $apiKey) {
+						owner {
+							username
+							url
+							avatar
+						}
+						guid
+						apikey
+						name
+						status
+						wanip
+						lanip
+						localurl
+						remoteurl
+					}
+				}
+			`
+		});
+
+		// Failed getting servers
+		if (response.status !== 200) {
+			return;
+		}
+
+		// Get servers
+		const data = response.json() as any;
+
+		// Update internal cache
+		userCache.set<CachedServers>('mine', {
+			servers: data.servers
+		});
+
+		// Update subscribers
+		await pubsub.publish('servers', {
+			servers: data.servers
+		});
 	}
 
 	private async connectToMothershipsGraphql() {
