@@ -152,25 +152,13 @@ export class MothershipSocket extends CustomSocket {
 	private async queryMothershipsGraphql() {
 		const response = await fetch(MOTHERSHIP_GRAPHQL_LINK, {
 			method: 'POST',
-			body: `
-				query getServers($apiKey: String!) {
-					servers @auth(apiKey: $apiKey) {
-						owner {
-							username
-							url
-							avatar
-						}
-						guid
-						apikey
-						name
-						status
-						wanip
-						lanip
-						localurl
-						remoteurl
-					}
-				}
-			`
+			body: JSON.stringify({
+				operationName: 'getServers',
+				variables: {
+					apiKey: this.apiKey
+				},
+				query: 'query getServers($apiKey: String!) {\n  servers @auth(apiKey: $apiKey) {\n    owner {\n      username\n      url\n      avatar\n    }\n    guid\n    apikey\n    name\n    status\n    wanip\n    lanip\n    localurl\n    remoteurl\n  }\n}\n'
+			})
 		});
 
 		// Failed getting servers
