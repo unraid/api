@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.46](https://github.com/unraid/api/compare/v2.15.45...v2.15.46) (2021-03-26)
+
+
+### Bug Fixes
+
+* query servers before subscribing ([a542df0](https://github.com/unraid/api/commit/a542df089fda70cc09b8d73e6123e173d1f823b4))
+
 ### [2.15.45](https://github.com/unraid/api/compare/v2.15.44-rolling-20210324233616...v2.15.45) (2021-03-24)
 
 ### [2.15.44](https://github.com/unraid/api/compare/v2.15.43-rolling-20210322232034...v2.15.44) (2021-03-22)
