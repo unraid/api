@@ -51,7 +51,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Cache npm cache
+    - name: Load npm cache
       uses: actions/cache@v2
       with:
         path: ~/.npm
@@ -90,7 +90,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
 
-    - name: Cache npm cache
+    - name: Load npm cache
       uses: actions/cache@v2
       with:
         path: ~/.npm
@@ -117,7 +117,8 @@ jobs:
     - name: Pack release
       run: npm pack
 
-    - uses: actions/upload-artifact@v2
+    - name: Upload to Github artifacts
+      uses: actions/upload-artifact@v2
       with:
         name: unraid-api
         path: ${{ github.workspace }}/*.tgz
@@ -134,6 +135,7 @@ jobs:
         # AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
 
     - name: Create Sentry release
+      if: startsWith(github.ref, 'refs/tags/')
       uses: getsentry/action-release@v1
       env:
         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
