@@ -112,7 +112,7 @@ jobs:
       run: npm run clean && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune
 
     - name: Build binary
-      run: npm run build-binary
+      run: npm i -g nexe && npm run build-binary
 
     - name: Pack release
       run: npm pack
