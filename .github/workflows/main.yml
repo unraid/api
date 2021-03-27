@@ -36,16 +36,24 @@ jobs:
     - name: Checkout repo
       uses: actions/checkout@v1
 
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+    - name: Install node v${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Cache npm cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
 
     - name: Installing node deps
       run: npm install
