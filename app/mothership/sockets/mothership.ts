@@ -33,7 +33,7 @@ export class MothershipSocket extends CustomSocket {
 		return async function (this: WebSocketWithHeartBeat) {
 			try {
 				// Run super
-				onConnect();
+				await onConnect().bind(this)();
 
 				// Query /servers on mothership
 				await queryMothershipsGraphql();
