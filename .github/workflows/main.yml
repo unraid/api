@@ -32,6 +32,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
 
+    strategy:
+      matrix:
+        node-version: [14.x]
+
     steps:
     - name: Checkout repo
       uses: actions/checkout@v1
