@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.48](https://github.com/unraid/api/compare/v2.15.47...v2.15.48) (2021-03-28)
+
+
+### Bug Fixes
+
+* ensure onConnect is executed in order ([81a2b1d](https://github.com/unraid/api/commit/81a2b1d82337680a7e159545949f3e69bae132da))
+* include binary in tgz ([c4f9d05](https://github.com/unraid/api/commit/c4f9d057b620dd6b18565126e6bf4c51249d95c1))
+* install nexe globally before building ([8b90970](https://github.com/unraid/api/commit/8b90970817caa3c616235bca710af6d97db2c2d2))
+* remove build validation step ([266644c](https://github.com/unraid/api/commit/266644c2b5d78ba1e843fc7bf4a39a629af86893))
+
 ### [2.15.47](https://github.com/unraid/api/compare/v2.15.46...v2.15.47) (2021-03-26)
 
 
