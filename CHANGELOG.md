@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.50-alpha.2](https://github.com/unraid/api/compare/v2.15.50-alpha.1...v2.15.50-alpha.2) (2021-03-28)
+
+
+### Bug Fixes
+
+* upload release with wildcard and remove checkout repo where not needed ([3d0b0be](https://github.com/unraid/api/commit/3d0b0bee8e344d5be33384708f51986eb89c4d35))
+
 ### [2.15.50-alpha.1](https://github.com/unraid/api/compare/v2.15.50-alpha.0...v2.15.50-alpha.1) (2021-03-28)
 
 
