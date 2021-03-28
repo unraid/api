@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.15.51",
+  "version": "2.15.52",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
