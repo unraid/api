@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.51-alpha.0](https://github.com/unraid/api/compare/v2.15.50...v2.15.51-alpha.0) (2021-03-28)
+
+
+### Bug Fixes
+
+* prerelease script ([97abc20](https://github.com/unraid/api/commit/97abc206d32508f2a48a15c5af29d6c9abc6cd72))
+
 ### [2.15.50](https://github.com/unraid/api/compare/v2.15.50-alpha.5...v2.15.50) (2021-03-28)
 
 ### [2.15.50-alpha.5](https://github.com/unraid/api/compare/v2.15.50-alpha.4...v2.15.50-alpha.5) (2021-03-28)
