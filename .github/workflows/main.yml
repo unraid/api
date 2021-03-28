@@ -124,11 +124,14 @@ jobs:
     - name: Pack source
       run: npm pack
 
-    - name: Upload to Github artifacts
+    - name: Upload source tgz to Github artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: unraid-api
-        path: ${{ github.workspace }}/*-source.tgz
+        name: unraid-api-source
+        path: ${{ github.workspace }}/*.tgz
+
+    - name: Delete source tgz
+      run: rm ${{ github.workspace }}/*.tgz
 
     - name: Build binary
       run: npm i -g nexe && npm run build-binary
@@ -136,7 +139,7 @@ jobs:
     - name: Pack binary
       run: npm pack
 
-    - name: Upload to Github artifacts
+    - name: Upload binary tgz to Github artifacts
       uses: actions/upload-artifact@v2
       with:
         name: unraid-api
