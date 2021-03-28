@@ -191,7 +191,7 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v1
-    
+
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
@@ -215,27 +215,14 @@ jobs:
         echo $RELEASE_NOTES > RELEASE_NOTES.md
 
     - name: Create Github release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
+        body_path: RELEASE_NOTES.md
         draft: false
         prerelease: true
-        body_path: ./RELEASE_NOTES.md
-
-    - name: Upload release assets
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
+        files: unraid-api-*.tgz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/unraid-api-*.tgz
-        asset_name: unraid-api.tgz
-        asset_content_type: application/gzip
 
     - name: Create Sentry release
       uses: getsentry/action-release@v1
@@ -282,26 +269,14 @@ jobs:
         echo $RELEASE_NOTES > RELEASE_NOTES.md
 
     - name: Create Github release
-      id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: ${{ github.ref }}
+        body_path: RELEASE_NOTES.md
         draft: false
         prerelease: false
-
-    - name: Upload release assets
-      id: upload-release-asset 
-      uses: actions/upload-release-asset@v1
+        files: unraid-api-*.tgz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/unraid-api-*.tgz
-        asset_name: unraid-api.tgz
-        asset_content_type: application/gzip
 
     - name: Create Sentry release
       uses: getsentry/action-release@v1
