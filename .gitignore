@@ -66,3 +66,6 @@ typescript
 
 # Ultra runner
 .ultra.cache.json
+
+# Github actions
+RELEASE_NOTES.md

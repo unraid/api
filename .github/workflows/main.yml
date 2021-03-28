@@ -206,6 +206,18 @@ jobs:
       with:
         name: unraid-api
 
+    - name: Create release notes
+      uses: bash
+      run: |
+        # Reverse function
+        reverse(){ local line;if IFS= read -r line;then reverse;printf '%s\n' "$line";fi;}; \
+        # Get the last release tag
+        LAST_RELEASE=$(git tag --list --sort=v:refname|reverse|sed -n 2p); \
+        # Create the release notes
+        RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD~1" --pretty=format:"- %s [\`%h\`](http://github.com/$ORG/$REPO/commit/%H)" --reverse) \
+        # Save release notes to a file
+        echo $RELEASE_NOTES > RELEASE_NOTES.md
+
     - name: Create Github release
       id: create_release
       uses: actions/create-release@v1
@@ -216,6 +228,7 @@ jobs:
         release_name: ${{ github.ref }}
         draft: false
         prerelease: true
+        body_path: ./RELEASE_NOTES.md
 
     - name: Upload release assets
       id: upload-release-asset 
@@ -224,7 +237,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./unraid-api.tgz
+        asset_path: ${{ github.workspace }}/unraid-api.tgz
         asset_name: unraid-api.tgz
         asset_content_type: application/gzip
 
@@ -261,6 +274,18 @@ jobs:
       with:
         name: unraid-api
 
+    - name: Create release notes
+      uses: bash
+      run: |
+        # Reverse function
+        reverse(){ local line;if IFS= read -r line;then reverse;printf '%s\n' "$line";fi;}; \
+        # Get the last release tag
+        LAST_RELEASE=$(git tag --list --sort=v:refname|reverse|sed -n 2p); \
+        # Create the release notes
+        RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD~1" --pretty=format:"- %s [\`%h\`](http://github.com/$ORG/$REPO/commit/%H)" --reverse) \
+        # Save release notes to a file
+        echo $RELEASE_NOTES > RELEASE_NOTES.md
+
     - name: Create Github release
       id: create_release
       uses: actions/create-release@v1
@@ -279,7 +304,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./unraid-api.tgz
+        asset_path: ${{ github.workspace }}/unraid-api.tgz
         asset_name: unraid-api.tgz
         asset_content_type: application/gzip
 
