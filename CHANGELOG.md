@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.49-alpha.0](https://github.com/unraid/api/compare/v2.15.48...v2.15.49-alpha.0) (2021-03-28)
+
+
+### Bug Fixes
+
+* run actions on tag ([e96a9d9](https://github.com/unraid/api/commit/e96a9d967fe6d44ea4d4912af1db54a334798d74))
+
 ### [2.15.48](https://github.com/unraid/api/compare/v2.15.47...v2.15.48) (2021-03-28)
 
 
