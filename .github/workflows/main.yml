@@ -189,6 +189,9 @@ jobs:
     needs: [build-binary]
 
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+    
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
@@ -253,6 +256,9 @@ jobs:
     needs: [build-binary]
 
     steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
