@@ -207,7 +207,6 @@ jobs:
         name: unraid-api
 
     - name: Create release notes
-      uses: bash
       run: |
         # Reverse function
         reverse(){ local line;if IFS= read -r line;then reverse;printf '%s\n' "$line";fi;}; \
@@ -275,7 +274,6 @@ jobs:
         name: unraid-api
 
     - name: Create release notes
-      uses: bash
       run: |
         # Reverse function
         reverse(){ local line;if IFS= read -r line;then reverse;printf '%s\n' "$line";fi;}; \
