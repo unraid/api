@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.49](https://github.com/unraid/api/compare/v2.15.49-alpha.0...v2.15.49) (2021-03-28)
+
+
+### Bug Fixes
+
+* only release on v tag and save source tgz to artifacts ([09b180a](https://github.com/unraid/api/commit/09b180aee79384658e9aa3c3dade09d97a5d317a))
+* upload source to github artifacts ([cfe55a5](https://github.com/unraid/api/commit/cfe55a5535a2b7d490559ce531eb40e6187ddadd))
+
 ### [2.15.49-alpha.0](https://github.com/unraid/api/compare/v2.15.48...v2.15.49-alpha.0) (2021-03-28)
 
 
