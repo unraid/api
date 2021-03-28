@@ -128,9 +128,6 @@ jobs:
     needs: [build]
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v1
-
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
@@ -192,9 +189,6 @@ jobs:
     needs: [build-binary]
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v1
-
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
@@ -236,7 +230,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/unraid-api.tgz
+        asset_path: ${{ github.workspace }}/unraid-api-*.tgz
         asset_name: unraid-api.tgz
         asset_content_type: application/gzip
 
@@ -259,9 +253,6 @@ jobs:
     needs: [build-binary]
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v1
-
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
       with:
@@ -302,7 +293,7 @@ jobs:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ github.workspace }}/unraid-api.tgz
+        asset_path: ${{ github.workspace }}/unraid-api-*.tgz
         asset_name: unraid-api.tgz
         asset_content_type: application/gzip
 
