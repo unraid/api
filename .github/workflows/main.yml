@@ -206,7 +206,7 @@ jobs:
     - name: Create release notes
       run: |
         # Get the last release tag
-        LAST_RELEASE=$(git tag --list  --sort=v:refname | grep -v 'alpha\|beta\|rc' | tail -1); \
+        LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1); \
         # Get all the commit messages between now and the last tag
         RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$ORG/$REPO/commit/%H)" --reverse) \
         # Save release notes to a file
@@ -257,12 +257,10 @@ jobs:
 
     - name: Create release notes
       run: |
-        # Reverse function
-        reverse(){ local line;if IFS= read -r line;then reverse;printf '%s\n' "$line";fi;}; \
         # Get the last release tag
-        LAST_RELEASE=$(git tag --list --sort=v:refname|reverse|sed -n 2p); \
-        # Create the release notes
-        RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD~1" --pretty=format:"- %s [\`%h\`](http://github.com/$ORG/$REPO/commit/%H)" --reverse) \
+        LAST_RELEASE=$(git tag --list  --sort=v:refname | grep -v 'alpha\|beta\|rc' | tail -1); \
+        # Get all the commit messages between now and the last non-pre-release tag
+        RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$ORG/$REPO/commit/%H)" --reverse) \
         # Save release notes to a file
         echo $RELEASE_NOTES > RELEASE_NOTES.md
 
