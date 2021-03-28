@@ -27,7 +27,6 @@
     "patch": "npm-run-all patch:**",
     "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.js",
     "release": "standard-version",
-    "prerelease": "standard-version --prerelease alpha",
     "update-bundle-dependencies": "bundle-dependencies update"
   },
   "files": [

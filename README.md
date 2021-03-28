@@ -108,5 +108,10 @@ NCHAN=disable \ # Disable nchan polling
   node dist/cli.js --debug # Enable debug logging
 ```
 
+## Release
+
+To create a new version run `npm run release`.
+To create a new prerelease run `npm run release -- --prerelease alpha`.
+
 ## License
 Copyright 2019-2021 Lime Technology Inc. All rights reserved.
