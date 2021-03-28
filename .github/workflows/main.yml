@@ -5,32 +5,9 @@ on:
     branches:
       - master
     tags:
-      - "v*"
+      - 'v*'
+
 jobs:
-  # test:
-  #   runs-on: ubuntu-latest
-
-  #   steps:
-  #   - name: Checkout repo
-  #     uses: actions/checkout@v1
-
-  #   - name: Use Node.js ${{ matrix.node-version }}
-  #     uses: actions/setup-node@v1
-  #     with:
-  #       node-version: ${{ matrix.node-version }}
-
-  #   - name: Add SSH deploy key
-  #     uses: shimataro/ssh-key-action@v2
-  #     with:
-  #       key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
-  #       known_hosts: ${{ secrets.KNOWN_HOSTS }}
-
-  #   - name: Installing node deps
-  #     run: npm ci
-
-  #   - name: Test
-  #     run: npm test
-
   lint:
     runs-on: ubuntu-latest
 
@@ -67,11 +44,8 @@ jobs:
     - name: Lint
       run: npm run lint
 
-  release:
+  build:
     runs-on: ubuntu-latest
-
-    needs: [lint]
-    # needs: [lint, test]
 
     strategy:
       matrix:
@@ -113,14 +87,6 @@ jobs:
     - name: Clean node_modules
       run: npm run clean && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune
 
-    - name: Load nexe cache
-      uses: actions/cache@v2
-      with:
-        path: ~/.nexe
-        key: ${{ runner.os }}-nexe
-        restore-keys: |
-          ${{ runner.os }}-nexe
-
     - name: Pack source
       run: npm pack
 
@@ -130,11 +96,60 @@ jobs:
         name: unraid-api-source
         path: ${{ github.workspace }}/*.tgz
 
-    - name: Delete source tgz
-      run: rm ${{ github.workspace }}/*.tgz
+  build-binary:
+    # Only release if we tag this with a version
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+
+    - name: Add SSH deploy key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+    - name: Install node v${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+
+    - name: Load npm cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Download unraid-api source tgz
+      uses: actions/download-artifact@v2
+      with:
+        name: unraid-api-source
+
+    - name: Unpack unraid-api source tgz
+      shell: bash
+      run: tar xvzf ./unraid-api-*.tgz --strip 1 && rm ./unraid-api-*.tgz
+
+    - name: Load nexe cache
+      uses: actions/cache@v2
+      with:
+        path: ~/.nexe
+        key: ${{ runner.os }}-nexe
+        restore-keys: |
+          ${{ runner.os }}-nexe
+
+    - name: Install nexe
+      run: npm i -g nexe
 
     - name: Build binary
-      run: npm i -g nexe && npm run build-binary
+      run: npm run build-binary
 
     - name: Pack binary
       run: npm pack
@@ -145,8 +160,33 @@ jobs:
         name: unraid-api
         path: ${{ github.workspace }}/*.tgz
 
+  release:
+    # Only release if we tag this with a version
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+
+    needs: [build, build-binary]
+
+    strategy:
+      matrix:
+        node-version: [14.x]
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v1
+
+    - name: Add SSH deploy key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+    - name: Download unraid-api binary tgz
+      uses: actions/download-artifact@v2
+      with:
+        name: unraid-api
+
     - name: Release to Github and s3
-      if: startsWith(github.ref, 'refs/tags/v')
       uses: unraid/release-action@master
       env:
         GITHUB_USER: "unraid"
@@ -157,7 +197,6 @@ jobs:
         # AWS_S3_BUCKET: ${{ secrets.AWS_S3_BUCKET }}
 
     - name: Create Sentry release
-      if: startsWith(github.ref, 'refs/tags/v')
       uses: getsentry/action-release@v1
       env:
         SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
