@@ -97,8 +97,6 @@ jobs:
         path: ${{ github.workspace }}/*.tgz
 
   build-binary:
-    # Only release if we tag this with a version
-    if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
 
     strategy:
