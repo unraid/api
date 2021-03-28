@@ -32,7 +32,8 @@
   "files": [
     ".env.staging",
     ".env.production",
-    "dist"
+    "dist",
+    "unraid-api"
   ],
   "dependencies": {
     "@apollo/client": "^3.3.11",
