@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.50-alpha.0](https://github.com/unraid/api/compare/v2.15.49...v2.15.50-alpha.0) (2021-03-28)
+
+
+### Bug Fixes
+
+* add gating to actions ([dd1f583](https://github.com/unraid/api/commit/dd1f583fa1ba2b61dda970307d63c351f9abfc8f))
+* remove unneeded if in workflow ([c266f04](https://github.com/unraid/api/commit/c266f04978b77a41b8c7831004cdc094f64a0b3f))
+* require coverage before building app ([77330b4](https://github.com/unraid/api/commit/77330b43f0595b8eaf0a55200be1bc781f464435))
+
 ### [2.15.49](https://github.com/unraid/api/compare/v2.15.49-alpha.0...v2.15.49) (2021-03-28)
 
 
