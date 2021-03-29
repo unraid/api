@@ -176,7 +176,7 @@ startdebug() {
   $node_base_directory/unraid-api/unraid-api start --debug
 }
 stop() {
-  kill $(pidof unraid-api) &>/dev/null || true
+  kill -15 $(pidof unraid-api) &>/dev/null || true
   sleep 2
   kill -9 $(pidof unraid-api) &>/dev/null || true
 }

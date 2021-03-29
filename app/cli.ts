@@ -135,8 +135,8 @@ const commands = {
 			return;
 		}
 
-		console.log(`Sending process ${unraidApiPid} SIGKILL.`);
-		process.kill(unraidApiPid, 'SIGKILL');
+		console.log(`Sending process ${unraidApiPid} SIGTERM.`);
+		process.kill(unraidApiPid, 'SIGTERM');
 	},
 	/**
    * Stop a running API process and then start it again.

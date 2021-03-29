@@ -345,7 +345,8 @@ export class CustomSocket {
 		}
 	}
 
-	private onExit(code: number) {
+	// Unbind handlers and then kill the connection
+	private onExit(_signal) {
 		// Unbind handlers
 		this.connection?.removeAllListeners();
 
@@ -364,7 +365,10 @@ export class CustomSocket {
 		this.connection.on('open', this.onConnect());
 		this.connection.on('message', this.onMessage());
 
-		// Unbind handlers and then kill the connection
-		process.once('exit', this.onExit);
+		// If old handler is bound then remove it
+		process.off('SIGTERM', this.onExit);
+
+		// Bind new handler
+		process.once('SIGTERM', this.onExit);
 	}
 }
