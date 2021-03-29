@@ -33,6 +33,13 @@ interface RunOptions {
 	loop?: number;
 }
 
+// Mark if process is exiting
+// so we can exit the run loop
+let exiting = false;
+process.on('SIGTERM', () => {
+	exiting = true;
+});
+
 /**
  * Run a module.
  */
@@ -44,6 +51,11 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		context,
 		loop
 	} = options;
+
+	if (exiting) {
+		coreLogger.silly('Process is exiting, stopping %s loop!', channel);
+		return;
+	}
 
 	if (!moduleToRun) {
 		coreLogger.silly('Tried to run but has no "moduleToRun"');

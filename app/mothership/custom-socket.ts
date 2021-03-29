@@ -357,7 +357,7 @@ export class CustomSocket {
 		this.connection.on('message', this.onMessage());
 
 		// Unbind handlers and then kill the connection
-		process.on('SIGTERM', () => {
+		process.once('SIGTERM', () => {
 			this.logger.info('Closing mothership connection...');
 
 			// Unbind handlers
@@ -368,6 +368,8 @@ export class CustomSocket {
 
 			this.logger.info('Closed mothership connection!');
 			this.logger.info('Process exiting...');
+
+			process.exit(0);
 		});
 	}
 }
