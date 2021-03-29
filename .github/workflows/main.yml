@@ -16,6 +16,9 @@ jobs:
       # Release tag
       (startsWith(github.event.base_ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
     runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch and tag
+        run: exit 0
     
   lint:
     runs-on: ubuntu-latest
