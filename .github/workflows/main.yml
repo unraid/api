@@ -221,12 +221,14 @@ jobs:
         # Get all the commit messages between now and the last tag
         RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse) \
         # Save release notes to a file
-        echo $RELEASE_NOTES > RELEASE_NOTES.md
+        echo $RELEASE_NOTES > ${{ github.workspace }}/RELEASE_NOTES.md && \
+        # Log release notes
+        cat ${{ github.workspace }}/RELEASE_NOTES.md
 
     - name: Create Github release
       uses: softprops/action-gh-release@v1
       with:
-        body_path: RELEASE_NOTES.md
+        body_path: ${{ github.workspace }}/RELEASE_NOTES.md
         draft: false
         prerelease: true
         files: unraid-api-*.tgz
@@ -273,12 +275,14 @@ jobs:
         # Get all the commit messages between now and the last non-pre-release tag
         RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse) \
         # Save release notes to a file
-        echo $RELEASE_NOTES > RELEASE_NOTES.md
+        echo $RELEASE_NOTES > ${{ github.workspace }}/RELEASE_NOTES.md && \
+        # Log release notes
+        cat ${{ github.workspace }}/RELEASE_NOTES.md
 
     - name: Create Github release
       uses: softprops/action-gh-release@v1
       with:
-        body_path: RELEASE_NOTES.md
+        body_path: ${{ github.workspace }}/RELEASE_NOTES.md
         draft: false
         prerelease: false
         files: unraid-api-*.tgz
