@@ -3,13 +3,24 @@ name: CI - Main
 on:
   push:
     branches:
-      - master
+      - $default-branch
     tags:
       - 'v*'
 
 jobs:
+  start:
+    if: |
+      # This prevents a tag running twice as it'll have a "tag" and a "commit" event
+      # Normal commit
+      (github.event.base_ref === "refs/heads/$default-branch" && !startsWith(github.event.head_commit.message, 'chore(release)')) ||
+      # Release tag
+      (startsWith(github.event.base_ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
+    runs-on: ubuntu-latest
+    
   lint:
     runs-on: ubuntu-latest
+
+    needs: [start]
 
     steps:
     - name: Checkout repo
@@ -42,6 +53,8 @@ jobs:
 
   coverage:
     runs-on: ubuntu-latest
+
+    needs: [start]
 
     steps:
     - name: Checkout repo
