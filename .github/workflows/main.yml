@@ -8,6 +8,7 @@ on:
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
+    # We only want the tag to run the action as it'll be able to create the release notes
     if: (startsWith(github.event.ref, 'refs/heads/') && !startsWith(github.event.head_commit.message, 'chore(release)')) || (startsWith(github.event.ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
     runs-on: ubuntu-latest
     steps:
@@ -82,7 +83,7 @@ jobs:
     - name: Check coverage
       run: npm run cover:types
 
-  build:
+  compile-source:
     runs-on: ubuntu-latest
 
     needs: [lint,coverage]
@@ -135,7 +136,7 @@ jobs:
   build-binary:
     runs-on: ubuntu-latest
 
-    needs: [build]
+    needs: [compile-source]
 
     steps:
     - name: Add SSH deploy key
