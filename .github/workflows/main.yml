@@ -8,7 +8,11 @@ on:
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
-    if: (startsWith(github.event.base_ref, 'refs/heads/') && !startsWith(github.event.head_commit.message, 'chore(release)')) || (startsWith(github.event.base_ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
+    if: |
+      # Commit pushed
+      (startsWith(github.event.ref, 'refs/heads/') && !startsWith(github.event.head_commit.message, 'chore(release)')) || \
+      # Tag pushed
+      (startsWith(github.event.ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
     runs-on: ubuntu-latest
     steps:
       - name: Validate branch and tag
