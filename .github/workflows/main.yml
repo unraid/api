@@ -271,9 +271,10 @@ jobs:
     - name: Create release notes
       run: |
         # Get the last release tag
-        LAST_RELEASE=$(git tag --list  --sort=v:refname | grep -v 'alpha\|beta\|rc' | tail -1); \
+        # We get the second to last tag as the last is the current one
+        LAST_RELEASE=$(git tag --list  --sort=v:refname | grep -v 'alpha\|beta\|rc' | tail -2 | head -1); \
         # Get all the commit messages between now and the last non-pre-release tag
-        RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse) \
+        RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse | sed \$d) \
         # Save release notes to a file
         echo $RELEASE_NOTES > ${{ github.workspace }}/RELEASE_NOTES.md && \
         # Log release notes
