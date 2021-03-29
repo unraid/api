@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.54-alpha.1](https://github.com/unraid/api/compare/v2.15.54-alpha.0...v2.15.54-alpha.1) (2021-03-29)
+
+
+### Bug Fixes
+
+* add steps to start action ([7a673dc](https://github.com/unraid/api/commit/7a673dc0f8faafcf2f98a4eb350aef46c32198d4))
+* default branch ([93b7146](https://github.com/unraid/api/commit/93b714613cbc66c3ae0deb980ef5a24be2605786))
+* move if to single line ([92b5c0b](https://github.com/unraid/api/commit/92b5c0bc7d5694a39992ac5501416bdc93c31358))
+* on master ([37984f9](https://github.com/unraid/api/commit/37984f93544c221c4a875ddb2c32645c03f90c50))
+* skip duplicate runs in github actions ([2297a1e](https://github.com/unraid/api/commit/2297a1e16187ddf06ffedc8a02f42bcef1270280))
+* use correct field ([da69a8c](https://github.com/unraid/api/commit/da69a8c193bb3a7a3392cd09766e59ac1616c5ef))
+
 ### [2.15.54-alpha.0](https://github.com/unraid/api/compare/v2.15.53...v2.15.54-alpha.0) (2021-03-29)
 
 
