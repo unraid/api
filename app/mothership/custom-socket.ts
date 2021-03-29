@@ -345,6 +345,14 @@ export class CustomSocket {
 		}
 	}
 
+	private onExit(code: number) {
+		// Unbind handlers
+		this.connection?.removeAllListeners();
+
+		// Kill connection with mothership
+		this.connection?.close();
+	}
+
 	private async _connect() {
 		this.connection = new WebSocket(this.uri, ['graphql-ws'], {
 			headers: await this.getHeaders()
@@ -355,5 +363,8 @@ export class CustomSocket {
 		this.connection.on('close', this.onDisconnect());
 		this.connection.on('open', this.onConnect());
 		this.connection.on('message', this.onMessage());
+
+		// Unbind handlers and then kill the connection
+		process.once('exit', this.onExit);
 	}
 }
