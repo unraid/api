@@ -346,12 +346,17 @@ export class CustomSocket {
 	}
 
 	// Unbind handlers and then kill the connection
-	private onExit(_signal) {
+	private onExit() {
+		this.logger.info('Closing mothership connection...');
+
 		// Unbind handlers
 		this.connection?.removeAllListeners();
 
 		// Kill connection with mothership
 		this.connection?.close();
+
+		this.logger.info('Closed mothership connection!');
+		this.logger.info('Process exiting...');
 	}
 
 	private async _connect() {
@@ -365,10 +370,7 @@ export class CustomSocket {
 		this.connection.on('open', this.onConnect());
 		this.connection.on('message', this.onMessage());
 
-		// If old handler is bound then remove it
-		process.off('SIGTERM', this.onExit);
-
 		// Bind new handler
-		process.once('SIGTERM', this.onExit);
+		process.on('SIGTERM', this.onExit);
 	}
 }
