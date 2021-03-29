@@ -345,20 +345,6 @@ export class CustomSocket {
 		}
 	}
 
-	// Unbind handlers and then kill the connection
-	private onExit() {
-		this.logger.info('Closing mothership connection...');
-
-		// Unbind handlers
-		this.connection?.removeAllListeners();
-
-		// Kill connection with mothership
-		this.connection?.close();
-
-		this.logger.info('Closed mothership connection!');
-		this.logger.info('Process exiting...');
-	}
-
 	private async _connect() {
 		this.connection = new WebSocket(this.uri, ['graphql-ws'], {
 			headers: await this.getHeaders()
@@ -370,7 +356,18 @@ export class CustomSocket {
 		this.connection.on('open', this.onConnect());
 		this.connection.on('message', this.onMessage());
 
-		// Bind new handler
-		process.on('SIGTERM', this.onExit);
+		// Unbind handlers and then kill the connection
+		process.on('SIGTERM', () => {
+			this.logger.info('Closing mothership connection...');
+
+			// Unbind handlers
+			this.connection?.removeAllListeners();
+
+			// Kill connection with mothership
+			this.connection?.close();
+
+			this.logger.info('Closed mothership connection!');
+			this.logger.info('Process exiting...');
+		});
 	}
 }
