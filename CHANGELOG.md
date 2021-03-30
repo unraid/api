@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.56-alpha.2](https://github.com/unraid/api/compare/v2.15.56-alpha.1...v2.15.56-alpha.2) (2021-03-30)
+
+
+### Bug Fixes
+
+* don't clear old connection on reconnect ([958e3e4](https://github.com/unraid/api/commit/958e3e41759ff4c50bb8aa22a388c8541a3c89a4))
+* ensure we exit on SIGTERM ([c72ef02](https://github.com/unraid/api/commit/c72ef02beaab7cca0d519dbd7a8f4125ed39de12))
+* move onExit context to arrow function ([3ccc862](https://github.com/unraid/api/commit/3ccc8626bcbb30517b5d7d04694078c1f2213cbd))
+* on process exit stop relay connection ([4123607](https://github.com/unraid/api/commit/41236070c75bdae2c2f194bc85bef6b3941cd0a8))
+* switch process exit around ([3663aad](https://github.com/unraid/api/commit/3663aad7060541a3e50ad4ba29e5c67e09ef0eef))
+* use SIGTERM for stopping gracefully ([d50f193](https://github.com/unraid/api/commit/d50f19344c6d80f8cc2503679046c2e31ad51404))
+
 ### [2.15.56-alpha.1](https://github.com/unraid/api/compare/v2.15.56-alpha.0...v2.15.56-alpha.1) (2021-03-29)
 
 ### [2.15.56-alpha.0](https://github.com/unraid/api/compare/v2.15.55...v2.15.56-alpha.0) (2021-03-29)
