@@ -122,7 +122,7 @@ export class CustomSocket {
 			await this.isConnectionAllowed();
 
 			// Cleanup old connections
-			await this.cleanup();
+			// await this.cleanup();
 
 			// Connect to endpoint
 			await this._connect();
