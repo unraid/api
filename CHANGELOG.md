@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.15.56](https://github.com/unraid/api/compare/v2.15.56-alpha.2...v2.15.56) (2021-03-31)
+
 ### [2.15.56-alpha.2](https://github.com/unraid/api/compare/v2.15.56-alpha.1...v2.15.56-alpha.2) (2021-03-30)
 
 
