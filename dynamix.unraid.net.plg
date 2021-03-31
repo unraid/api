@@ -1878,7 +1878,7 @@ unraid-launchpad {
       csrf="<?=$var['csrf_token']?>"
       displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
-      include-my-servers="<?=(file_exists('/usr/local/sbin/unraid-api')) ? 'yes' : '' ?>"
+      hide-my-servers="<?=(file_exists('/usr/local/sbin/unraid-api')) ? '' : 'yes' ?>"
       locale="<?=($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US'?>"
       locale-messages="<?=rawurlencode(json_encode($upc_translations, JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE))?>"
       reg-wiz-time="<?=($remote['regWizTime']) ? $remote['regWizTime'] : ''?>"
