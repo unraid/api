@@ -141,7 +141,9 @@ export class CustomSocket {
 		try {
 			if (this.connection && (this.connection.readyState !== this.connection.CLOSED)) {
 				// 4200 === ok
-				this.connection.close(4200, 'OK');
+				this.connection.close(4200, JSON.stringify({
+					message: 'OK'
+				}));
 			}
 		} catch (error: unknown) {
 			this.logger.error('Failed disconnecting reason=%s', (error as Error).message);
