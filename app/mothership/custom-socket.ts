@@ -113,6 +113,7 @@ export class CustomSocket {
 	public async connect(retryAttempt = 0) {
 		if (this.isOutdated) {
 			this.logger.error('This client is currently outdated, please update unraid-api to reconnect!');
+			return;
 		}
 
 		const lock = await this.getLock();
