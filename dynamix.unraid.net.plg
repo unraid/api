@@ -1163,7 +1163,12 @@ exec_log('git --git-dir /boot/.git config user.email \'gitbot@unraid.net\'');
 exec_log('git --git-dir /boot/.git config user.name \'gitbot\'');
 
 // ensure upstream git server is configured and in-sync
-exec('git --git-dir /boot/.git remote add -f -t master -m master origin git@backup.unraid.net:~/flash.git &>/dev/null');
+if (strpos(file_get_contents('/boot/.git/config'),'[remote "origin"]') === false) {
+  exec('git --git-dir /boot/.git remote add -f -t master -m master origin ssh://git@backup.unraid.net:443/~/flash.git &>/dev/null');
+} else {
+  exec('git --git-dir /boot/.git remote set-url origin ssh://git@backup.unraid.net:443/~/flash.git &>/dev/null');
+}
+
 if ($command != 'reinit') {
   exec_log('git --git-dir /boot/.git reset origin/master');
   exec_log('git --git-dir /boot/.git checkout -B master origin/master');
