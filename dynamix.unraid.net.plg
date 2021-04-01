@@ -215,12 +215,6 @@ install() {
   # Wait for inital process to boot
   sleep 2
 
-  # Start new process again
-  start
-
-  # Wait for inital process to boot
-  sleep 2
-
   # Print status and exit
   status
   exit 0
