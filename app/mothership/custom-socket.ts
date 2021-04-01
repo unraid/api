@@ -45,6 +45,7 @@ export class CustomSocket {
 	protected connectionAttempts = 0;
 
 	private lock?: MutexInterface;
+	private isOutdated = false;
 
 	constructor(public options: Partial<Options> = {}) {
 		this.name = options.name ?? 'CustomSocket';
@@ -110,6 +111,10 @@ export class CustomSocket {
 	}
 
 	public async connect(retryAttempt = 0) {
+		if (this.isOutdated) {
+			this.logger.error('This client is currently outdated, please update unraid-api to reconnect!');
+		}
+
 		const lock = await this.getLock();
 		try {
 			// Set retry attempt count
@@ -204,6 +209,11 @@ export class CustomSocket {
 				// Let's reset the reconnect count so we reconnect instantly
 				this.connectionAttempts = 0;
 				connectionAttempts = 0;
+			},
+			// Outdated
+			4426: async () => {
+				// Mark this client as outdated so it doesn't reconnect
+				this.isOutdated = true;
 			},
 			// Rate limited
 			4429: async message => {
