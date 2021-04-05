@@ -9,7 +9,17 @@ import { CustomSocket, WebSocketWithHeartBeat } from '../custom-socket';
 import packageJson from '../../../package.json';
 import { sockets } from '../../sockets';
 import { userCache, CachedServers } from '../../cache';
-import fetch from 'cross-fetch';
+import originalFetch from 'node-fetch';
+import fetchRetry from 'fetch-retry';
+
+const fetch = fetchRetry(originalFetch as any, {
+	retries: 5,
+	retryOn: [429],
+	retryDelay: function (attempt: number, _error, _response) {
+		// Apply random jitter to the reconnection delay
+		return Math.floor(Math.random() * (2500 * attempt));
+	}
+}) as unknown as typeof originalFetch;
 
 export class MothershipSocket extends CustomSocket {
 	private mothershipServersEndpoint?: {
