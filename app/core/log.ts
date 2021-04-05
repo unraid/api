@@ -24,7 +24,7 @@ const noop = () => {};
   * being hit.
   */
 export const logger = {
-	createChild: (_options: { prefix: string }) => log,
+	createChild: (_options: { prefix: string }) => logger,
 	debug: isProduction ? noop : console.debug,
 	// Always allow errors to log
 	error: console.error,
