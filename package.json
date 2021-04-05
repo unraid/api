@@ -86,7 +86,6 @@
     "ini": "^2.0.0",
     "launchdarkly-eventsource": "^1.4.0",
     "lodash.get": "^4.4.2",
-    "logger": "github:unraid/logger#master",
     "map-obj": "^4.1.0",
     "micromongo": "^0.3.1",
     "mqtt": "github:OmgImAlexis/MQTT.js#master",
