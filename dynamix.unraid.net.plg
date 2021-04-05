@@ -97,6 +97,7 @@ $arr['event'] = 'STATE';
 $arr['ts'] = time();
 $arr['deviceCount'] = $var['deviceCount'];
 $arr['guid'] = $var['flashGUID'];
+$arr['regGuid'] = $var['regGUID'];
 $arr['state'] = $license_state;
 $arr['keyfile'] = $key_contents;
 $arr['reggen'] = $var['regGen'];
@@ -1432,6 +1433,7 @@ unraid-launchpad {
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "guid" => $var['flashGUID'],
+      "regGuid" => $var['regGUID'],
       "internalip" => $_SERVER['SERVER_ADDR'],
       "internalport" => $_SERVER['SERVER_PORT'],
       "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
