@@ -1906,7 +1906,7 @@ _(Header show description)_:
   <?=mk_option($display['headerdescription'], "no",_('No'))?>
   </select>
 
-_(Header custom meta text color:)_:
+_(Header custom meta text color)_:
 : <input type="text" class="narrow" name="headermetacolor" value="<?=$display['headermetacolor']?>" maxlength="6" pattern="([0-9a-fA-F]{3}){1,2}" title="HTML color code of 3 or 6 hexadecimal digits">
 ]]>
 </INLINE>
