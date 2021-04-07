@@ -1037,7 +1037,8 @@ $allbzfiles = ['bzimage','bzfirmware','bzmodules','bzroot','bzroot-gui'];
 foreach ($allbzfiles as $bzfile) {
   $sha256 = trim(@file_get_contents("/boot/$bzfile.sha256"));
   if (strlen($sha256) != 64) {
-    response_complete(406, '{"error":"Invalid or missing '.$bzfile.'.sha256 file"}');
+    $sha256 = hash_file('sha256', "/boot/$bzfile");
+    file_put_contents("/boot/$bzfile.sha256", $sha256."\n");
   }
   $bzfilehashes[] = $sha256;
 }
