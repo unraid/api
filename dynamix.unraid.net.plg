@@ -1035,6 +1035,9 @@ if ($command == 'deactivate') {
 $bzfilehashes = [];
 $allbzfiles = ['bzimage','bzfirmware','bzmodules','bzroot','bzroot-gui'];
 foreach ($allbzfiles as $bzfile) {
+  if (!file_exists("/boot/$bzfile")) {
+    response_complete(406, '{"error":"missing /boot/'.$bzfile.'"}');
+  }
   $sha256 = trim(@file_get_contents("/boot/$bzfile.sha256"));
   if (strlen($sha256) != 64) {
     $sha256 = hash_file('sha256', "/boot/$bzfile");
