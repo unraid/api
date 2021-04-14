@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils';
 import { Context, getServers } from '../../schema/utils';
 
@@ -16,6 +17,6 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	// Get all servers
 	const servers = await getServers();
 
-	// Return the owner of the first
-	return servers[0].owner;
+	// Return the owner of this server
+	return servers.find(server => server.guid === varState.data.regGuid)?.owner;
 };
