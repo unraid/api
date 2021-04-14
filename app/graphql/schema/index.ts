@@ -16,6 +16,7 @@ const files = [
 	'./dist/types/graphql/schema/types/display/icons.graphql',
 	'./dist/types/graphql/schema/types/docker/container.graphql',
 	'./dist/types/graphql/schema/types/docker/network.graphql',
+	'./dist/types/graphql/schema/types/flash/flash.graphql',
 	'./dist/types/graphql/schema/types/info/apps.graphql',
 	'./dist/types/graphql/schema/types/info/baseboard.graphql',
 	'./dist/types/graphql/schema/types/info/cpu.graphql',
