@@ -1,9 +1,9 @@
 type Query {
-    flash: Flash
+    registration: Registration
 }
 
 type Subscription {
-    flash: Flash!
+    registration: Registration!
 }
 
 type KeyFile {
