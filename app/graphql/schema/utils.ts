@@ -84,7 +84,7 @@ export const getServers = async (): Promise<Server[]> => {
 	const name = varState?.data?.name;
 	const wanip = null;
 	const lanip: string = networkState.data[0].ipaddr[0];
-	const port: string = varState?.data?.port;
+	const port = varState?.data?.port;
 	const localurl = `http://${lanip}:${port}`;
 	const remoteurl = null;
 

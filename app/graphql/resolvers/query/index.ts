@@ -5,6 +5,7 @@
 import display from './display';
 import info from './info';
 import online from './online';
+import owner from './owner';
 import server from './server';
 import servers from './servers';
 import vms from './vms';
@@ -13,6 +14,7 @@ export const Query = {
 	display,
 	info,
 	online,
+	owner,
 	vms,
 	server,
 	servers
