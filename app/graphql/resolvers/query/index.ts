@@ -2,6 +2,7 @@
  * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
+import crashReportingEnabled from './crash-reporting-enabled';
 import display from './display';
 import flash from './flash';
 import info from './info';
@@ -13,6 +14,7 @@ import servers from './servers';
 import vms from './vms';
 
 export const Query = {
+	crashReportingEnabled,
 	display,
 	flash,
 	info,
