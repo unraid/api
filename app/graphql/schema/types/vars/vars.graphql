@@ -3,7 +3,7 @@ type Query {
 }
 
 type Subscription {
-    vars(id: ID!): Vars!
+    vars: Vars!
 }
 
 type Vars {
