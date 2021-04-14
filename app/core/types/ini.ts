@@ -26,6 +26,7 @@ interface Display {
 	usage: string;
 	warning: string;
 	wwn: string;
+	locale: string;
 }
 
 interface Notify {

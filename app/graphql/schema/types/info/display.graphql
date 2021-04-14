@@ -21,6 +21,7 @@ type Display {
     critical: Int
     hot: Int
     max: Int
+    locale: String
 }
 
 enum Temperature {
