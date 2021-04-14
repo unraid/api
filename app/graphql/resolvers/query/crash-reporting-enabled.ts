@@ -10,7 +10,7 @@ import { Context, getServers } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
-		resource: 'owner',
+		resource: 'crash-reporting-enabled',
 		action: 'read',
 		possession: 'any'
 	});
