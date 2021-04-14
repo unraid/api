@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.16.0](https://github.com/unraid/api/compare/v2.15.58...v2.16.0) (2021-04-14)
+
+
+### Features
+
+* add locale to display ([5f89218](https://github.com/unraid/api/commit/5f8921856ca6658244d45723297a60d1d389e08c))
+* add owner query endpoint ([f3db1b0](https://github.com/unraid/api/commit/f3db1b022c80997208df65bb484f44290143078f))
+* crash reporting enabled query/subscription endpoint ([dc463d1](https://github.com/unraid/api/commit/dc463d11ac8f52dc6457cda10c5836959c7b9444))
+* flash query endpoint ([4092872](https://github.com/unraid/api/commit/409287260bf89f5ce89b48b8ff80296784793ecf))
+* headermetacolor setting ([a5df764](https://github.com/unraid/api/commit/a5df76416cb16bb97df7583cca3ab2dd9b75f96f))
+* owner query endpoint ([e2690cc](https://github.com/unraid/api/commit/e2690cc18fa06cbab6ac27d1a2237e6d7f3d1767))
+* registration query endpoint ([eb5272c](https://github.com/unraid/api/commit/eb5272c998a18e11b1f4b9ba619a2bf8b1b7d233))
+
+
+### Bug Fixes
+
+* add flash and registration query resolvers ([6e993d5](https://github.com/unraid/api/commit/6e993d5cf2c88ba38d166712f3f0c7c64db6c807))
+* add flash types ([736fdd0](https://github.com/unraid/api/commit/736fdd0a0332fe6bfb1db505d2272b6e29018b53))
+* add new endpoints to permissions ([4451931](https://github.com/unraid/api/commit/44519316df96935689b11f7f7c0550a4e0e0bc88))
+* add Owner type to server ([412bea8](https://github.com/unraid/api/commit/412bea806ed6471bb0771f0a6e6ef9592161e07c))
+* child loggers ([db5aaf0](https://github.com/unraid/api/commit/db5aaf0c2e533eb77fb93e07b0e5f4548f9cc458))
+* don't require an ID to subscribe to vars ([e0af94d](https://github.com/unraid/api/commit/e0af94d3cab1e3c6255e2412a1ae9acaec942740))
+* ensure we return the correct server's owner ([24b66f8](https://github.com/unraid/api/commit/24b66f871eaf71f086ed757ae72a0a076d2a5976))
+* flashbackup should generate any missing bz*.sha256 files ([aa484dc](https://github.com/unraid/api/commit/aa484dc156e877bc935d64624ab9e233ed498ef5))
+* flashbackup will now trap for missing bz files ([3ff51ab](https://github.com/unraid/api/commit/3ff51ab6347dca74b0d80cffe47146fac85d3388))
+* graphql files not being included ([7f31047](https://github.com/unraid/api/commit/7f31047a6d1602cd97e8150a4b7b6c5051640439))
+* key contents having invalid characters ([4b7d73f](https://github.com/unraid/api/commit/4b7d73f8dd8159fd8b36988223fd5563fa4939d4))
+* remove double start() during install ([4a3de31](https://github.com/unraid/api/commit/4a3de31a01e56d952324761977e023f93f4a12d8))
+* removes extra colon from copy ([ab90d2a](https://github.com/unraid/api/commit/ab90d2a7aec6a7a1cfa3e751e47f9a3ec4447302))
+* retry querying servers ([d6c269f](https://github.com/unraid/api/commit/d6c269f439590d3c8c0f6859cc294b871b1b4354))
+* switch git to use port 443 ([1d5d60e](https://github.com/unraid/api/commit/1d5d60e158863343de4fe3b4c18bd542d7b96df6))
+* update the support link ([1df7840](https://github.com/unraid/api/commit/1df7840a2a28a0907b1b0fddb0339331fb32247c))
+* use correct type ([64ac6ba](https://github.com/unraid/api/commit/64ac6ba6704927549b94bc807e6a4531ad7c9979))
+* **plg:** pass regGuid for EGUID validation ([fc96b41](https://github.com/unraid/api/commit/fc96b4179b5a020fabec0d671232096ac75b4e3d))
+
 ### [2.15.58](https://github.com/unraid/api/compare/v2.15.57...v2.15.58) (2021-04-01)
 
 
