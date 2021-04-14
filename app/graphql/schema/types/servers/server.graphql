@@ -14,6 +14,12 @@ enum Status {
   never_connected
 }
 
+type Owner {
+    username: String
+    url: String
+    avatar: String
+}
+
 type Server {
     owner: Owner
     guid: String
