@@ -1,0 +1,18 @@
+type Query {
+    flash: Flash
+}
+
+type Subscription {
+    flash: Flash!
+}
+
+type KeyFile {
+    location: String
+    contents: String
+}
+
+type Registration {
+    guid: String
+    type: registationType
+    keyFile: KeyFile
+}
