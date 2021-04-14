@@ -1,0 +1,13 @@
+type Query {
+    owner: Owner
+}
+
+type Subscription {
+    owner: Owner!
+}
+
+type Owner {
+    username: String
+    url: String
+    avatar: String
+}
