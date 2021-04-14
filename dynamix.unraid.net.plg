@@ -11,7 +11,7 @@
 <!ENTITY unraid-api             "https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/unraid-api-&node_api_version;.tgz">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net/forum/55-general-support/" min="6.9.0-beta35" icon="globe">
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" support="https://forums.unraid.net/topic/104018-my-servers-early-access-plugin" min="6.9.0-beta35" icon="globe">
 
 <CHANGES>
 ##&name;
@@ -97,6 +97,7 @@ $arr['event'] = 'STATE';
 $arr['ts'] = time();
 $arr['deviceCount'] = $var['deviceCount'];
 $arr['guid'] = $var['flashGUID'];
+$arr['regGuid'] = $var['regGUID'];
 $arr['state'] = $license_state;
 $arr['keyfile'] = $key_contents;
 $arr['reggen'] = $var['regGen'];
@@ -1034,9 +1035,13 @@ if ($command == 'deactivate') {
 $bzfilehashes = [];
 $allbzfiles = ['bzimage','bzfirmware','bzmodules','bzroot','bzroot-gui'];
 foreach ($allbzfiles as $bzfile) {
+  if (!file_exists("/boot/$bzfile")) {
+    response_complete(406, '{"error":"missing /boot/'.$bzfile.'"}');
+  }
   $sha256 = trim(@file_get_contents("/boot/$bzfile.sha256"));
   if (strlen($sha256) != 64) {
-    response_complete(406, '{"error":"Invalid or missing '.$bzfile.'.sha256 file"}');
+    $sha256 = hash_file('sha256', "/boot/$bzfile");
+    file_put_contents("/boot/$bzfile.sha256", $sha256."\n");
   }
   $bzfilehashes[] = $sha256;
 }
@@ -1272,140 +1277,6 @@ function upcEnv(str) {
   }, 2000);
   return document.cookie = `${ckName}=${str}; expires=${ckDate.toGMTString()}`;
 };
-function handleMessage(e) {
-  //if (e.origin != "http://child.com") { return; }
-  if (e.data.length == 0) { return; }
-
-  const SAFE_JSON_PARSE = (str) => {
-    try {
-      return [null, JSON.parse(str)];
-    } catch (err) {
-      return [err];
-    }
-  };
-
-  const [err, data] = SAFE_JSON_PARSE(e.data);
-  if (err) return false; // swallow json parse error
-
-  const HANDLE_LICENSES = (data, e) => {
-    if (data.license) {
-      $.get('/webGui/include/InstallKey.php', {url: data.license}, function() {
-        console.log('New license key installed: ' + data.license);
-        const payload = { 
-          event: 'LICENSE_PINGBACK',
-          message: 'New license key installed',
-          license: data.license,
-          success: true,
-        };
-        e.source.postMessage(JSON.stringify(payload), e.origin);
-      }).fail(function() {
-        console.error('Failed to license new key: ' + data.license);
-        const payload = { 
-          event: 'LICENSE_PINGBACK',
-          message: 'Failed to license new key',
-          license: data.license,
-          success: false,
-        };
-        e.source.postMessage(JSON.stringify(payload), e.origin);
-      });
-    } else {
-      console.error('KEY_PURCHASE event fired! but missing license data:', data);
-    }
-  };
-
-  switch (data.event) {
-    case "CLOSE_SHADOWBOX":
-      hideRegWizard();
-      break;
-    case "SHUTDOWN":
-      window.location.href = '/webGui/include/Boot.php';
-      break;
-    case "REG_WIZARD":
-      if (data.apikey) {
-        var postargs = {
-          '#file': 'Unraid.net/myservers.cfg',
-          '#section': 'remote',
-          apikey: data.apikey,
-          regWizTime: `${Date.now()}_${data.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
-        };
-        if (data.email) {
-          postargs['email'] = data.email;
-        }
-        if (data.username) {
-          postargs['username'] = data.username;
-        }
-        if (data.avatar) {
-          postargs['avatar'] = data.avatar;
-        }
-        $.post('/update.php', postargs, function() {
-          console.log('Unraid.net/myservers.cfg: Updated apikey under [remote] section');
-          // send a ping back to the regwiz
-          const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signIn', webGuiPathname: window.location.pathname };
-          e.source.postMessage(JSON.stringify(payload), e.origin);
-        }).fail(function() {
-          console.error('Failed to update apikey under [remote] section');
-          // send a ping back to the regwiz
-          const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signIn', webGuiPathname: window.location.pathname };
-          e.source.postMessage(JSON.stringify(payload), e.origin);
-        });
-      }
-      // duplicate conditional so we don't get the error from HANDLE_LICENSES()
-      if (data.license) HANDLE_LICENSES(data, e);
-      break;
-    case "KEY_PURCHASE":
-      HANDLE_LICENSES(data, e);
-      break;
-    case "GET_STATE":
-      $.get('/plugins/dynamix.unraid.net/include/state.php', function(newstate) {
-        e.source.postMessage(newstate, e.origin);
-      }).fail(function(err) {
-        console.error('Failed to get new state: ' + err);
-      });
-      break;
-    case "SUCCESS_NEW_STATE":
-      $.get('/plugins/dynamix.unraid.net/include/state.php', function(newstate) {
-        // parse response so we can update the event type string to send back
-        const [stateError, stateData] = SAFE_JSON_PARSE(newstate);
-        const newPayload = { ...stateData, event: 'DELIVER_NEW_STATE', success: true };
-        e.source.postMessage(JSON.stringify(newPayload), e.origin);
-      }).fail(function(err) {
-        e.source.postMessage(JSON.stringify({ event: 'DELIVER_NEW_STATE', success: false }), e.origin);
-      });
-      break;
-    case "MYSERVERS_UNREGISTER":
-      $.post('/update.php', {
-        '#file': 'Unraid.net/myservers.cfg',
-        '#section': 'remote',
-        apikey: '',
-        avatar: '',
-        email: '',
-        username: '',
-      }, function() {
-        console.log('Unraid.net/myservers.cfg: Unregistered myservers, cleared apikey under [remote] section');
-        // send a ping back to the regwiz
-        const payload = { event: 'ACCOUNT_PINGBACK', success: true, type: 'signOut', webGuiPathname: window.location.pathname };
-        e.source.postMessage(JSON.stringify(payload), e.origin);
-      }).fail(function() {
-        console.error('Failed to unregister');
-        // send a ping back to the regwiz
-        const payload = { event: 'ACCOUNT_PINGBACK', success: false, type: 'signOut', webGuiPathname: window.location.pathname };
-        e.source.postMessage(JSON.stringify(payload), e.origin);
-      });
-      break;
-    case "RELOAD":
-      return window.location.reload();
-    case "REDIRECT_MAIN":
-      return window.location.href = '/Main';
-    case "STOP_SENDING_SESSION":
-      break;
-    case "PREFLIGHT_REQUEST":
-      break;
-    default:
-      console.error('Unhandled event \'' + data.event + '\' fired. data:', data);
-      break;
-  }
-}
-window.addEventListener('message', handleMessage, false);
 </script>
 <?
 // Determine what source we should use for web components
@@ -1565,6 +1436,7 @@ unraid-launchpad {
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "guid" => $var['flashGUID'],
+      "regGuid" => $var['regGUID'],
       "internalip" => $_SERVER['SERVER_ADDR'],
       "internalport" => $_SERVER['SERVER_PORT'],
       "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
@@ -2008,10 +1880,13 @@ unraid-launchpad {
       apikey="<?=($remote['apikey']) ? $remote['apikey'] : ''?>"
       banner="<?=($display['banner']) ? $display['banner'] : ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
+      csrf="<?=$var['csrf_token']?>"
       displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
+      hide-my-servers="<?=(file_exists('/usr/local/sbin/unraid-api')) ? '' : 'yes' ?>"
       locale="<?=($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US'?>"
       locale-messages="<?=rawurlencode(json_encode($upc_translations, JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE))?>"
+      metacolor="<?=($display['headermetacolor']) ? '#'.$display['headermetacolor'] : ''?>"
       reg-wiz-time="<?=($remote['regWizTime']) ? $remote['regWizTime'] : ''?>"
       send-crash-info="<?=$remote['sendCrashInfo']?>"
       serverdesc="<?=$var['COMMENT']?>"
@@ -2034,6 +1909,9 @@ _(Header show description)_:
   <?=mk_option($display['headerdescription'], "yes",_('Yes'))?>
   <?=mk_option($display['headerdescription'], "no",_('No'))?>
   </select>
+
+_(Header custom meta text color)_:
+: <input type="text" class="narrow" name="headermetacolor" value="<?=$display['headermetacolor']?>" maxlength="6" pattern="([0-9a-fA-F]{3}){1,2}" title="HTML color code of 3 or 6 hexadecimal digits">
 ]]>
 </INLINE>
 </FILE>
