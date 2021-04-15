@@ -55,6 +55,7 @@ enum DiskInterfaceType {
     SAS
     SATA
     USB
+    PCIe
     UNKNOWN
 }
 
