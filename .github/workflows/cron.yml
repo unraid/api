@@ -11,5 +11,5 @@ jobs:
       - uses: kolpav/purge-artifacts-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          # Keep the last day's worth of builds
-          expire-in: 1day # Setting this to 0 will delete all artifacts
+          # Keep the last 7 day's worth of builds
+          expire-in: 7day # Setting this to 0 will delete all artifacts
