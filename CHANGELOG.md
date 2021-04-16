@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.16.1](https://github.com/unraid/api/compare/v2.16.0...v2.16.1) (2021-04-16)
+
+
+### Bug Fixes
+
+* add PCIe to DiskInterfaceType ([90b4f2d](https://github.com/unraid/api/commit/90b4f2dd40889a9e58c3e4be3fba3384b0e9d852))
+* deleting node source files for nexe ([3cf4f91](https://github.com/unraid/api/commit/3cf4f918d365fdba613716120d17699457703c6b))
+* replace - with = in keyfile ([07207b8](https://github.com/unraid/api/commit/07207b87f3b494bbe5872f16f85f65fe4fbf8524))
+* set display.locale to en_us by default ([1414875](https://github.com/unraid/api/commit/14148754d2e38c7d1098f7a3195dad85b9b214a9))
+
 ## [2.16.0](https://github.com/unraid/api/compare/v2.15.58...v2.16.0) (2021-04-14)
 
 
