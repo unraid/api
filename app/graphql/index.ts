@@ -25,6 +25,7 @@ const baseTypes = [gql`
 	scalar JSON
 	scalar Long
 	scalar UUID
+	scalar DateTime
 
 	directive @func(
 		module: String

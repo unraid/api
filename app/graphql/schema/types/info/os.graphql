@@ -14,4 +14,5 @@ type Os {
     logofile: String
     serial: String
     build: String
+    uptime: DateTime
 }

@@ -78,6 +78,7 @@
     "globby": "^11.0.2",
     "graphql": "^15.5.0",
     "graphql-directive": "^0.2.1",
+    "graphql-iso-date": "^3.6.1",
     "graphql-subscriptions-client": "OmgImAlexis/graphql-subscriptions-client#master",
     "graphql-tag": "^2.11.0",
     "graphql-type-json": "^0.3.2",
