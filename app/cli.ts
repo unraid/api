@@ -69,8 +69,8 @@ const getUnraidApiPid = async () => {
 
 const commands = {
 	/**
-   * Start a new API process.
-   */
+	 * Start a new API process.
+	 */
 	async start() {
 		// Load .env file
 		dotEnv.config();
@@ -123,8 +123,8 @@ const commands = {
 		}
 	},
 	/**
-   * Stop a running API process.
-   */
+	 * Stop a running API process.
+	 */
 	async stop() {
 		// Find process called "unraid-api"
 		const unraidApiPid = await getUnraidApiPid();
@@ -135,19 +135,20 @@ const commands = {
 			return;
 		}
 
-		console.log(`Sending process ${unraidApiPid} SIGTERM.`);
+		console.info('Stopping unraid-api process...');
 		process.kill(unraidApiPid, 'SIGTERM');
+		console.info('Process stopped!');
 	},
 	/**
-   * Stop a running API process and then start it again.
-   */
+	 * Stop a running API process and then start it again.
+	 */
 	async restart() {
 		await this.stop();
 		await this.start();
 	},
 	/**
-   * Print API version.
-   */
+	 * Print API version.
+	 */
 	async version() {
 		console.log(`Unraid API v${version as string}`);
 	},
@@ -173,6 +174,35 @@ const commands = {
       Unraid version: ${unraidVersion}
       </----UNRAID-API-REPORT----->
     `);
+	},
+	async 'switch-env'() {
+		const envFile = await fs.promises.readFile('/boot/config/plugins/Unraid.net/env', 'utf-8').catch(() => '');
+		// Match the env file env="production" which would be [1] = env and [2] = production
+		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
+		// Get item from index 2 of the regex match or return undefined
+		const [,,currentEnv] = matchArray && matchArray.length === 2 ? matchArray : [];
+
+		// No env is set or file doesn't exist
+		if (!currentEnv) {
+			console.info('Switching env to "production"...');
+
+			// Default back to production
+			await fs.promises.writeFile('/boot/config/plugins/Unraid.net/env', 'env=production');
+			return;
+		}
+
+		// Switch from staging to production
+		if (currentEnv === 'staging') {
+			await fs.promises.writeFile('/boot/config/plugins/Unraid.net/env', 'env=production');
+		}
+
+		// Switch from production to staging
+		if (currentEnv === 'staging') {
+			await fs.promises.writeFile('/boot/config/plugins/Unraid.net/env', 'env=staging');
+		}
+
+		// Restart the process
+		return this.restart();
 	}
 };
 
