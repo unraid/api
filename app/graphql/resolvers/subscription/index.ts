@@ -86,6 +86,9 @@ export const Subscription = {
 			return pubsub.asyncIterator(channel);
 		}
 	},
+	registation: {
+		...createSubscription('registation')
+	},
 	online: {
 		...createSubscription('online')
 	}
