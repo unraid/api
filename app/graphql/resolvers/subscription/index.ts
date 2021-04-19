@@ -87,9 +87,12 @@ export const Subscription = {
 		}
 	},
 	registation: {
-		...createSubscription('registation')
+		...createSubscription('registration')
 	},
 	online: {
 		...createSubscription('online')
+	},
+	owner: {
+		...createSubscription('owner')
 	}
 };
