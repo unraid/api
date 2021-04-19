@@ -21,12 +21,11 @@ export const getServers = async (apiKey: string) => fetch(MOTHERSHIP_GRAPHQL_LIN
 	.then(async response => {
 		const { data, errors } = await response.json();
 		if (errors) {
-			return new Error(errors[0].message);
+			throw new Error(errors[0].message);
 		}
 
 		return data.servers as Promise<CachedServer[]>;
 	})
-	.catch(error => {
+	.catch((error: Error) => {
 		Sentry.captureException(error);
-		return error;
 	});

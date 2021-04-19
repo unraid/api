@@ -49,6 +49,7 @@ type makeNullUndefinedAndOptional<T> = {
 type Server = makeNullUndefinedAndOptional<CachedServer>;
 
 export const getServers = async (): Promise<Server[]> => {
+	// Check if we have the servers already cached, if so return them
 	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
 	if (cachedServers) {
 		return cachedServers;
@@ -74,6 +75,12 @@ export const getServers = async (): Promise<Server[]> => {
 		userCache.set<CachedServers>('mine', {
 			servers
 		});
+
+		// Get first server's owner object
+		const owner = servers[0].owner;
+
+		// Publish owner event
+		await pubsub.publish('owner', owner);
 
 		// Return servers from mothership
 		return servers;
