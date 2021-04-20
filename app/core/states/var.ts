@@ -204,7 +204,7 @@ const parse = (state: VarIni): Var => {
 		bindMgt: iniBooleanOrAutoToJsBoolean(state.bindMgt),
 		cacheNumDevices: toNumber(state.cacheNumDevices),
 		cacheSbNumDisks: toNumber(state.cacheSbNumDisks),
-		configValid: state.configValid === 'error' ? false : iniBooleanToJsBoolean(state.configValid),
+		configValid: ['error', 'invalid'].includes(state.configValid) ? false : iniBooleanToJsBoolean(state.configValid),
 		deviceCount: toNumber(state.deviceCount),
 		fsCopyPrcnt: toNumber(state.fsCopyPrcnt),
 		fsNumMounted: toNumber(state.fsNumMounted),
