@@ -86,7 +86,7 @@ export const Subscription = {
 			return pubsub.asyncIterator(channel);
 		}
 	},
-	registation: {
+	registration: {
 		...createSubscription('registration')
 	},
 	online: {

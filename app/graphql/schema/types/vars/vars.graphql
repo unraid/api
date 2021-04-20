@@ -111,9 +111,9 @@ type Vars {
     regCheck: String
     regFile: String
     regGuid: String
-    """Registation type"""
-    regTy: registationType
-    """Registation owner"""
+    """Registration type"""
+    regTy: registrationType
+    """Registration owner"""
     regTo: String
     regTm: String
     regTm2: String
@@ -173,7 +173,7 @@ enum mdState {
     STARTED
 }
 
-enum registationType {
+enum registrationType {
     Basic
     Plus
     Pro

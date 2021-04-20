@@ -13,6 +13,6 @@ type KeyFile {
 
 type Registration {
     guid: String
-    type: registationType
+    type: registrationType
     keyFile: KeyFile
 }
