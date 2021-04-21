@@ -44,4 +44,3 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 		}
 	};
 };
-

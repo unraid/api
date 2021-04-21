@@ -39,10 +39,8 @@ export const keyFile = () => {
 				// Allow await inside of this event
 				(async () => {
 					// Get key file
-					const keyFile = varState.data.regFile ? await promises.readFile(varState.data.regFile, 'utf-8').then(file => {
-						const fileAsBase64 = Buffer.from(file).toString('base64');
-						return fileAsBase64.trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-					}) : '';
+					const file = await promises.readFile(varState.data.regFile, 'binary');
+					const parsedFile = btoa(file).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 
 					// Publish event
 					// This will end up going to the graphql endpoint
@@ -51,7 +49,7 @@ export const keyFile = () => {
 						type: varState.data.regTy,
 						keyFile: {
 							location: varState.data.regFile,
-							contents: keyFile
+							contents: parsedFile
 						}
 					}).catch(error => {
 						coreLogger.error('Failed publishing to "registration" with %s', error);
