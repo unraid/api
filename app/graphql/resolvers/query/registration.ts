@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import btoa from 'btoa';
 import { promises } from 'fs';
 import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils';

@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import btoa from 'btoa';
 import { promises } from 'fs';
 import { dirname } from 'path';
 import chokidar from 'chokidar';
