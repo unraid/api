@@ -29,18 +29,23 @@ export const keyFile = () => {
 			coreLogger.debug('Loading watchers for %s', keyDirectory);
 
 			// Key file has possibly changed
-			watcher.on('all', function (event, fullPath) {
-				// Ensure this is a key file
-				// @todo Check if varState is updated here if so for an exact match
-				//       we can check if the path is varState.data.regFile
-				if (!fullPath.endsWith('.key')) {
-					return;
-				}
+			watcher.on('all', async function (event, fullPath) {
+				try {
+					// Ensure this is a key file
+					// @todo Check if varState is updated here if so for an exact match
+					//       we can check if the path is varState.data.regFile
+					if (!fullPath.endsWith('.key')) {
+						return;
+					}
 
-				// Allow await inside of this event
-				(async () => {
 					// Get key file
-					const file = await promises.readFile(varState.data.regFile, 'binary');
+					const file = await promises.readFile(fullPath, 'binary').catch(() => '');
+					// If the file throws an error then bail
+					if (!file) {
+						return;
+					}
+
+					// Convert binary to base64 with no "+", "/" or "="
 					const parsedFile = btoa(file).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 
 					// Publish event
@@ -49,16 +54,16 @@ export const keyFile = () => {
 						guid: varState.data.regGuid,
 						type: varState.data.regTy,
 						keyFile: {
-							location: varState.data.regFile,
+							location: fullPath,
 							contents: parsedFile
 						}
 					}).catch(error => {
 						coreLogger.error('Failed publishing to "registration" with %s', error);
 					});
-				})();
 
-				// Log for debugging
-				coreLogger.debug('Registration file %s has emitted %s event.', fullPath, event);
+					// Log for debugging
+					coreLogger.debug('Registration file %s has emitted %s event.', fullPath, event);
+				} catch {}
 			});
 
 			// Save ref for cleanup
