@@ -177,10 +177,10 @@ const commands = {
 	},
 	async 'switch-env'() {
 		const envFile = await fs.promises.readFile('/boot/config/plugins/Unraid.net/env', 'utf-8').catch(() => '');
-		// Match the env file env="production" which would be [1] = env and [2] = production
+		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
 		// Get item from index 2 of the regex match or return undefined
-		const [,,currentEnv] = matchArray && matchArray.length === 2 ? matchArray : [];
+		const [,,currentEnv] = matchArray && matchArray.length === 3 ? matchArray : [];
 
 		// No env is set or file doesn't exist
 		if (!currentEnv) {
