@@ -539,7 +539,11 @@ _(Flash backup)_:
 : <span class='orange p0'>_(Not activated)_</span>
 
 &nbsp;
+<?if(disk_free_space('/boot') > 1024*1000*1000):?>
 : <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+<?else:?>
+: <button type="button" disabled="disabled">_(Activate)_</button> <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
+<?endif?>
 
 :unraidnet_inactivespanel_help:
 
@@ -1910,7 +1914,7 @@ _(Header show description)_:
   <?=mk_option($display['headerdescription'], "no",_('No'))?>
   </select>
 
-_(Header custom meta text color)_:
+_(Header custom meta text color:)_:
 : <input type="text" class="narrow" name="headermetacolor" value="<?=$display['headermetacolor']?>" maxlength="6" pattern="([0-9a-fA-F]{3}){1,2}" title="HTML color code of 3 or 6 hexadecimal digits">
 ]]>
 </INLINE>
