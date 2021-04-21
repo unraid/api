@@ -48,15 +48,12 @@ export const keyFile = () => {
 					// Convert binary to base64 with no "+", "/" or "="
 					const parsedFile = btoa(file).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 
-					// Get new type from key file name
-					const type = fullPath.split('/').pop()?.split('.')[0] ?? 'Invalid';
-
 					// Publish event
 					// This will end up going to the graphql endpoint
 					await pubsub.publish('registration', {
 						registration: {
 							guid: varState.data.regGuid,
-							type,
+							type: varState.data.regTy,
 							keyFile: {
 								location: fullPath,
 								contents: parsedFile
