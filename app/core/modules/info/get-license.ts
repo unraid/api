@@ -27,7 +27,7 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 
 	// Get license data
 	const type = varState.data.regTy;
-	const state = (varState.data.regCheck.trim() === '' ? type : varState.data.regCheck).toUpperCase();
+	const state = varState.data.regState;
 	const file = await fs.promises.readFile(varState.data.regFile, 'binary');
 	const parsedFile = btoa(file).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 

@@ -113,6 +113,7 @@ type Vars {
     regGuid: String
     """Registration type"""
     regTy: registrationType
+    regState: registrationState
     """Registration owner"""
     regTo: String
     regTm: String
@@ -178,4 +179,28 @@ enum registrationType {
     Plus
     Pro
     Invalid
+}
+
+enum registrationState {
+    TRIAL
+	BASIC
+	PLUS
+	PRO
+	EEXPIRED
+	EGUID
+	EGUID1
+	ETRIAL
+	ENOKEYFILE2
+	ENOKEYFILE1
+	ENOFLASH1
+	ENOFLASH2
+	ENOFLASH3
+	ENOFLASH4
+	ENOFLASH5
+	ENOFLASH6
+	ENOFLASH7
+	EBLACKLISTED
+	EBLACKLISTED1
+	EBLACKLISTED2
+	ENOCONN
 }

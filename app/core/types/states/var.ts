@@ -114,6 +114,7 @@ export interface Var {
 	porttelnet: number;
 	queueDepth: string;
 	regCheck: string;
+	regState: string;
 	/** Where the registeration key is stored. (e.g. "/boot/config/Pro.key") */
 	regFile: string;
 	regGen: string;

@@ -54,6 +54,7 @@ export const keyFile = () => {
 						registration: {
 							guid: varState.data.regGuid,
 							type: varState.data.regTy,
+							state: varState.data.regState,
 							keyFile: {
 								location: fullPath,
 								contents: parsedFile

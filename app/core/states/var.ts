@@ -39,20 +39,20 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => 
 };
 
 /**
- * Unraid registration check
+ * Unraid registation check
  */
-type RegistrationCheck =
+type RegistationCheck =
 	/** Key file is missing. */
 	'ENOKEYFILE2' |
 	/** Everything is fine. */
 	'';
 
 /**
- * Unraid registration type
+ * Unraid registation type
  *
  * Check the {@link https://unraid.net/pricing | pricing page} for up to date info.
  */
-type RegistrationType =
+type RegistationType =
 	/** Missing key file. */
 	'- missing key file' |
 	/** Up to 6 attached storage devices. */
@@ -61,6 +61,31 @@ type RegistrationType =
 	'Plus' |
 	/** Unlimited attached storage devices. */
 	'Pro';
+
+type RegistrationState =
+	'TRIAL' |
+	'BASIC' |
+	'PLUS' |
+	'PRO' |
+	'EEXPIRED' |
+	'EGUID' |
+	'EGUID1' |
+	'ETRIAL' |
+	'ENOKEYFILE2' |
+	'ENOKEYFILE1' |
+	'ENOFLASH1' |
+	'ENOFLASH2' |
+	'ENOFLASH3' |
+	'ENOFLASH4' |
+	'ENOFLASH5' |
+	'ENOFLASH6' |
+	'ENOFLASH7' |
+	'EBLACKLISTED' |
+	'EBLACKLISTED1' |
+	'EBLACKLISTED2' |
+	'ENOCONN' |
+	/** Everything is fine. */
+	'';
 
 interface VarIni {
 	bindMgt: IniStringBooleanOrAuto;
@@ -139,14 +164,15 @@ interface VarIni {
 	portssl: string;
 	porttelnet: string;
 	queueDepth: string;
-	regCheck: RegistrationCheck;
+	regCheck: RegistationCheck;
 	regFile: string;
 	regGen: string;
 	regGuid: string;
 	regTm: string;
 	regTm2: string;
 	regTo: string;
-	regTy: RegistrationType;
+	regTy: RegistationType;
+	regState: RegistrationState;
 	safeMode: string;
 	sbClean: string;
 	sbEvents: string;
@@ -204,7 +230,7 @@ const parse = (state: VarIni): Var => {
 		bindMgt: iniBooleanOrAutoToJsBoolean(state.bindMgt),
 		cacheNumDevices: toNumber(state.cacheNumDevices),
 		cacheSbNumDisks: toNumber(state.cacheSbNumDisks),
-		configValid: ['error', 'invalid'].includes(state.configValid) ? false : iniBooleanToJsBoolean(state.configValid),
+		configValid: state.configValid === 'error' ? false : iniBooleanToJsBoolean(state.configValid),
 		deviceCount: toNumber(state.deviceCount),
 		fsCopyPrcnt: toNumber(state.fsCopyPrcnt),
 		fsNumMounted: toNumber(state.fsNumMounted),
@@ -237,6 +263,7 @@ const parse = (state: VarIni): Var => {
 		porttelnet: toNumber(state.porttelnet),
 		regCheck: state.regCheck === '' ? 'Valid' : 'Error',
 		regTy: ['Basic', 'Plus', 'Pro'].includes(state.regTy) ? state.regTy : 'Invalid',
+		regState: state.regCheck,
 		safeMode: iniBooleanToJsBoolean(state.safeMode),
 		sbClean: iniBooleanToJsBoolean(state.sbClean),
 		sbEvents: toNumber(state.sbEvents),
