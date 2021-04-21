@@ -51,11 +51,13 @@ export const keyFile = () => {
 					// Publish event
 					// This will end up going to the graphql endpoint
 					await pubsub.publish('registration', {
-						guid: varState.data.regGuid,
-						type: varState.data.regTy,
-						keyFile: {
-							location: fullPath,
-							contents: parsedFile
+						registration: {
+							guid: varState.data.regGuid,
+							type: varState.data.regTy,
+							keyFile: {
+								location: fullPath,
+								contents: parsedFile
+							}
 						}
 					}).catch(error => {
 						coreLogger.error('Failed publishing to "registration" with %s', error);
