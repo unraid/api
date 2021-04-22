@@ -5,8 +5,7 @@
 
 import { varState } from '../../states';
 import { CoreContext, CoreResult } from '../../types';
-import { ensurePermission } from '../../utils';
-import { getKeyFile } from '../../utils/misc/get-key-file';
+import { ensurePermission, getKeyFile } from '../../utils';
 
 /**
  * Get server's license info

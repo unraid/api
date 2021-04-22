@@ -8,7 +8,7 @@ import chokidar from 'chokidar';
 import { coreLogger } from '../log';
 import { varState } from '../states';
 import { pubsub } from '../pubsub';
-import { getKeyFile } from '../utils/misc/get-key-file';
+import { getKeyFile } from '../utils';
 
 export const keyFile = () => {
 	const watchers: chokidar.FSWatcher[] = [];
