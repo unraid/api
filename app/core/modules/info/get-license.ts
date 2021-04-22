@@ -3,11 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
-import btoa from 'btoa';
 import { varState } from '../../states';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
+import { getKeyFile } from '../../utils/misc/get-key-file';
 
 /**
  * Get server's license info
@@ -28,8 +27,7 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 	// Get license data
 	const type = varState.data.regTy;
 	const state = varState.data.regState;
-	const file = await fs.promises.readFile(varState.data.regFile, 'binary');
-	const parsedFile = btoa(file).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+	const file = await getKeyFile();
 
 	return {
 		get text() {
@@ -39,7 +37,7 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 			return {
 				type,
 				state,
-				file: parsedFile
+				file
 			};
 		}
 	};

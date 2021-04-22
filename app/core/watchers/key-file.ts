@@ -3,13 +3,12 @@
  * Written by: Alexis Tyler
  */
 
-import btoa from 'btoa';
-import { promises } from 'fs';
 import { dirname } from 'path';
 import chokidar from 'chokidar';
 import { coreLogger } from '../log';
 import { varState } from '../states';
 import { pubsub } from '../pubsub';
+import { getKeyFile } from '../utils/misc/get-key-file';
 
 export const keyFile = () => {
 	const watchers: chokidar.FSWatcher[] = [];
@@ -39,14 +38,7 @@ export const keyFile = () => {
 					}
 
 					// Get key file
-					const file = await promises.readFile(fullPath, 'binary').catch(() => '');
-					// If the file throws an error then bail
-					if (!file) {
-						return;
-					}
-
-					// Convert binary to base64 with no "+", "/" or "="
-					const parsedFile = btoa(file).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+					const keyFile = await getKeyFile();
 
 					// Publish event
 					// This will end up going to the graphql endpoint
@@ -57,7 +49,7 @@ export const keyFile = () => {
 							state: varState.data.regState,
 							keyFile: {
 								location: fullPath,
-								contents: parsedFile
+								contents: keyFile
 							}
 						}
 					}).catch(error => {
