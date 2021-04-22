@@ -83,9 +83,7 @@ type RegistrationState =
 	'EBLACKLISTED' |
 	'EBLACKLISTED1' |
 	'EBLACKLISTED2' |
-	'ENOCONN' |
-	/** Everything is fine. */
-	'';
+	'ENOCONN';
 
 interface VarIni {
 	bindMgt: IniStringBooleanOrAuto;

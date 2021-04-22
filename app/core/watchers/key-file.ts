@@ -5,7 +5,7 @@
 
 import { dirname } from 'path';
 import chokidar from 'chokidar';
-import { coreLogger } from '../log';
+import { coreLogger, logger } from '../log';
 import { varState } from '../states';
 import { pubsub } from '../pubsub';
 import { getKeyFile } from '../utils';
@@ -39,20 +39,21 @@ export const keyFile = () => {
 
 					// Get key file
 					const keyFile = await getKeyFile();
+					const registration = {
+						guid: varState.data.regGuid,
+						type: varState.data.regTy.toUpperCase(),
+						state: varState.data.regState,
+						keyFile: {
+							location: fullPath,
+							contents: keyFile
+						}
+					};
+
+					logger.debug('Publishing %s to registration', JSON.stringify(registration, null, 2));
 
 					// Publish event
 					// This will end up going to the graphql endpoint
-					await pubsub.publish('registration', {
-						registration: {
-							guid: varState.data.regGuid,
-							type: varState.data.regTy.toUpperCase(),
-							state: varState.data.regState,
-							keyFile: {
-								location: fullPath,
-								contents: keyFile
-							}
-						}
-					}).catch(error => {
+					await pubsub.publish('registration', registration).catch(error => {
 						coreLogger.error('Failed publishing to "registration" with %s', error);
 					});
 
