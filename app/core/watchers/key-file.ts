@@ -45,7 +45,7 @@ export const keyFile = () => {
 					await pubsub.publish('registration', {
 						registration: {
 							guid: varState.data.regGuid,
-							type: varState.data.regTy,
+							type: varState.data.regTy.toUpperCase(),
 							state: varState.data.regState,
 							keyFile: {
 								location: fullPath,

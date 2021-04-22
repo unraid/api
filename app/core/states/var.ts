@@ -263,7 +263,7 @@ const parse = (state: VarIni): Var => {
 		porttelnet: toNumber(state.porttelnet),
 		regCheck: state.regCheck === '' ? 'Valid' : 'Error',
 		regTy: ['Basic', 'Plus', 'Pro'].includes(state.regTy) ? state.regTy : 'Invalid',
-		regState: state.regCheck,
+		regState: (state.regCheck ?? state.regTy).toUpperCase(),
 		safeMode: iniBooleanToJsBoolean(state.safeMode),
 		sbClean: iniBooleanToJsBoolean(state.sbClean),
 		sbEvents: toNumber(state.sbEvents),

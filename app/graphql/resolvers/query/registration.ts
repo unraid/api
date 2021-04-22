@@ -16,7 +16,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	return {
 		guid: varState.data.regGuid,
-		type: varState.data.regTy,
+		type: varState.data.regTy.toUpperCase(),
 		state: varState.data.regState,
 		keyFile: {
 			location: varState.data.regFile,

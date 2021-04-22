@@ -24,7 +24,7 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 	});
 
 	// Get license data
-	const type = varState.data.regTy;
+	const type = varState.data.regTy.toUpperCase();
 	const state = varState.data.regState;
 	const file = await getKeyFile();
 
