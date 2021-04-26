@@ -71,8 +71,9 @@ type RegistrationState =
 	'EGUID' |
 	'EGUID1' |
 	'ETRIAL' |
-	'ENOKEYFILE2' |
+	'ENOKEYFILE' |
 	'ENOKEYFILE1' |
+	'ENOKEYFILE2' |
 	'ENOFLASH1' |
 	'ENOFLASH2' |
 	'ENOFLASH3' |
