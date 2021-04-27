@@ -80,7 +80,9 @@ export const getServers = async (): Promise<Server[]> => {
 		const owner = servers[0].owner;
 
 		// Publish owner event
-		await pubsub.publish('owner', owner);
+		await pubsub.publish('owner', {
+			owner
+		});
 
 		// Return servers from mothership
 		return servers;

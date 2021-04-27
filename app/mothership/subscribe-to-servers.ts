@@ -55,7 +55,9 @@ export const subscribeToServers = async (apiKey: string) => {
 
 			// Publish owner event
 			const owner = data.servers[0].owner;
-			await pubsub.publish('owner', owner);
+			await pubsub.publish('owner', {
+				owner
+			});
 
 			// Publish servers event
 			await pubsub.publish('servers', {
