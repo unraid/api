@@ -400,7 +400,7 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		keepAlive: 30000,
+		keepAlive: 10000,
 		onConnect: async (connectionParams: Record<string, string>) => {
 			const apiKey = connectionParams['x-api-key'];
 			const user = await apiKeyToUser(apiKey);
