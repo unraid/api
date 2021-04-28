@@ -53,7 +53,9 @@ export const keyFile = () => {
 
 					// Publish event
 					// This will end up going to the graphql endpoint
-					await pubsub.publish('registration', registration).catch(error => {
+					await pubsub.publish('registration', {
+						registration
+					}).catch(error => {
 						coreLogger.error('Failed publishing to "registration" with %s', error);
 					});
 
