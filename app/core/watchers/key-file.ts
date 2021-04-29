@@ -33,9 +33,11 @@ export const keyFile = () => {
 					// Ensure this is a key file
 					// @todo Check if varState is updated here if so for an exact match
 					//       we can check if the path is varState.data.regFile
-					if (fullPath !== varState.data.regFile) {
+					if (varState.data.regFile !== '' && fullPath !== varState.data.regFile) {
 						return;
 					}
+
+					logger.debug('Checking "%s" for the key file.', varState.data.regFile);
 
 					// Get key file
 					const keyFile = await getKeyFile();
