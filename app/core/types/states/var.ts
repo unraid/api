@@ -6,7 +6,7 @@
 //  @todo: remove string and add rest of the options
 type FsType = 'xfs' | string;
 type RegistrationCheck = 'Error' | 'Valid';
-type RegistrationType = 'Invalid' | 'Basic' | 'Plus' | 'Pro' | string;
+type RegistrationType = 'INVALID' | 'BASIC' | 'PLUS' | 'PRO' | string;
 
 /**
  * Global vars
