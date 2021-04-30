@@ -13,17 +13,10 @@ import { bus } from '../bus';
 
 const processChange = async function (fullPath: string) {
 	try {
-		// Ensure this is a key file
-		// @todo Check if varState is updated here if so for an exact match
-		//       we can check if the path is varState.data.regFile
-		if (varState.data.regFile !== '' && fullPath !== varState.data.regFile) {
-			return;
-		}
-
-		logger.debug('Checking "%s" for the key file.', varState.data.regFile);
+		logger.debug(varState.data.regFile ? `Checking "${varState.data.regFile}" for the key file.` : 'No key file found.');
 
 		// Get key file
-		const keyFile = await getKeyFile();
+		const keyFile = varState.data.regFile ? await getKeyFile() : '';
 		const registration = {
 			guid: varState.data.regGuid,
 			type: varState.data.regTy.toUpperCase(),
