@@ -12,9 +12,6 @@ import { getKeyFile, sleep } from '../utils';
 import { bus } from '../bus';
 
 const processChange = async function () {
-	// Wait 100ms to ensure varState has settled with the new value
-	await sleep(100);
-
 	logger.debug(varState.data.regFile ? `Checking "${varState.data.regFile}" for the key file.` : 'No key file found.');
 
 	// Get key file
@@ -44,6 +41,8 @@ export const keyFile = () => {
 	const watchers: chokidar.FSWatcher[] = [];
 
 	return {
+		// All up this should wait no more than 750ms between either a file add/unlink event or a varState change event
+		// and it emitting the registation event
 		start() {
 			// Watch the directory where the key file is meant to reside
 			// This is to ensure we get the key file even if it changes names
@@ -55,9 +54,9 @@ export const keyFile = () => {
 				ignoreInitial: true,
 				awaitWriteFinish: {
 					// Every 1/10 of a second poll
-					// If the size stays the same for 1s then emit the event
+					// If the size stays the same for 0.5s then emit the event
 					pollInterval: 100,
-					stabilityThreshold: 1000
+					stabilityThreshold: 500
 				}
 			});
 
@@ -65,20 +64,37 @@ export const keyFile = () => {
 
 			// Key file has possibly changed
 			watcher.on('all', async (event, filePath) => {
+				// Wait 250ms to ensure varState has settled with the new value
+				await sleep(250);
+
 				// Log for debugging
 				coreLogger.debug('Registration file %s has emitted %s event.', filePath, event);
 
-				// Process the changes
-				await processChange().catch(error => {
-					coreLogger.error('Failed processing watcher "%s" event with %s', event, error);
-				});
+				// Valid key file added
+				if (event === 'add' && filePath === varState.data.regFile) {
+					// Process the changes
+					await processChange().catch(error => {
+						coreLogger.error('Failed processing watcher "%s" event with %s', event, error);
+					});
+				}
+
+				// Key file removed
+				if (event === 'unlink') {
+					// Process the changes
+					await processChange().catch(error => {
+						coreLogger.error('Failed processing watcher "%s" event with %s', event, error);
+					});
+				}
 			});
 
 			// Save ref for cleanup
 			watchers.push(watcher);
 
 			// Update registration when regTy, regCheck, etc changes
-			bus.on('varstate', async data => {
+			bus.on('varstate', async () => {
+				// Wait 250ms to ensure varState has settled with the new value
+				await sleep(100);
+
 				// Log for debugging
 				coreLogger.debug('Var state updated, publishing registration event.');
 
