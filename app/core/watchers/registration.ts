@@ -11,10 +11,7 @@ import { pubsub } from '../pubsub';
 import { getKeyFile, sleep } from '../utils';
 import { bus } from '../bus';
 
-const processChange = async function (fullPath: string) {
-	// Wait for var state to settle with the newest data
-	await sleep(100);
-
+const processChange = async function () {
 	logger.debug(varState.data.regFile ? `Checking "${varState.data.regFile}" for the key file.` : 'No key file found.');
 
 	// Get key file
@@ -24,7 +21,7 @@ const processChange = async function (fullPath: string) {
 		type: varState.data.regTy.toUpperCase(),
 		state: varState.data.regState,
 		keyFile: {
-			location: fullPath,
+			location: varState.data.regFile,
 			contents: keyFile
 		}
 	};
@@ -69,7 +66,7 @@ export const keyFile = () => {
 				coreLogger.debug('Registration file %s has emitted %s event.', filePath, event);
 
 				// Process the changes
-				await processChange(filePath).catch(error => {
+				await processChange().catch(error => {
 					coreLogger.error('Failed processing watcher "%s" event with %s', event, error);
 				});
 			});
@@ -83,7 +80,7 @@ export const keyFile = () => {
 				coreLogger.debug('Var state updated, publishing registration event.');
 
 				// Process the changes
-				await processChange(data.regFile).catch(error => {
+				await processChange().catch(error => {
 					coreLogger.error('Failed processing bus update for "varState" with %s', error);
 				});
 			});
