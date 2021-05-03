@@ -47,7 +47,7 @@ export const keyFile = () => {
 			// Watch the directory where the key file is meant to reside
 			// This is to ensure we get the key file even if it changes names
 			// For example if someone has a Basic.key and then it changes to Pro.key
-			const keyDirectory = dirname(varState.data.regFile);
+			const keyDirectory = dirname('/boot/config/');
 
 			const watcher = chokidar.watch(keyDirectory, {
 				persistent: true,
