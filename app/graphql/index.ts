@@ -7,7 +7,7 @@ import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
 // eslint-disable-next-line @typescript-eslint/no-duplicate-imports
-import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log, paths } from '../core';
+import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log, paths, pubsub } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
@@ -335,6 +335,9 @@ let hostname;
 
 // Update info/hostname when hostname changes
 bus.on('var', async data => {
+	// Publish var changes
+	await pubsub.publish('vars', data.var.node);
+
 	// Hostname changed
 	if (hostname !== data.var.node.name) {
 		const user = usersState.findOne({ name: 'root' });
@@ -346,9 +349,11 @@ bus.on('var', async data => {
 		hostname = data.var.node.name;
 
 		// Publish new hostname
-		await publish('info', 'UPDATED', {
-			os: {
-				hostname
+		await pubsub.publish('info', {
+			info: {
+				os: {
+					hostname
+				}
 			}
 		});
 	}

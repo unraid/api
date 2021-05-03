@@ -58,7 +58,7 @@ export const Subscription = {
 		...createSubscription('users')
 	},
 	vars: {
-		...createSubscription('var')
+		...createSubscription('vars')
 	},
 	vms: {
 		...createSubscription('vms/domains')
