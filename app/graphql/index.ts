@@ -331,13 +331,21 @@ bus.on('slots', async () => {
 	});
 });
 
+let hostname;
+
 // Update info/hostname when hostname changes
 bus.on('var', async data => {
-	const hostname = data.varstate.node.name;
-	// @todo: Create a system user for this
-	const user = usersState.findOne({ name: 'root' });
+	// Hostname changed
+	if (hostname !== data.var.node.name) {
+		const user = usersState.findOne({ name: 'root' });
+		if (!user) {
+			return;
+		}
 
-	if (user) {
+		// Update cache
+		hostname = data.var.node.name;
+
+		// Publish new hostname
 		await publish('info', 'UPDATED', {
 			os: {
 				hostname
