@@ -171,9 +171,9 @@ jobs:
       uses: actions/cache@v2
       with:
         path: ~/.nexe
-        key: ${{ runner.os }}-nexe
+        key: ${{ runner.os }}-nexe-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
-          ${{ runner.os }}-nexe
+          ${{ runner.os }}-nexe-${{ hashFiles('**/package-lock.json') }}
 
     - name: Install nexe
       run: npm i -g nexe
