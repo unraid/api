@@ -5,7 +5,7 @@
 
 import { coreLogger, logger } from '../log';
 import { pubsub } from '../pubsub';
-import { getKeyFile } from '../utils';
+import { getKeyFile, sleep } from '../utils';
 import { bus } from '../bus';
 
 export const keyFile = () => {
@@ -14,7 +14,7 @@ export const keyFile = () => {
 		coreLogger.debug('Var state updated, publishing registration event.');
 
 		// Get key file
-		const keyFile = data.var.node.regFile ? await getKeyFile() : '';
+		const keyFile = data.var.node.regFile ? await getKeyFile(data.var.node.regFile) : '';
 		const registration = {
 			guid: data.var.node.regGuid,
 			type: data.var.node.regTy.toUpperCase(),

@@ -3,13 +3,13 @@ import { promises } from 'fs';
 import { varState } from '../../states';
 
 // Get key file
-export const getKeyFile = async function () {
+export const getKeyFile = async function (regFile: string = varState.data.regFile) {
 	// Bail if key is missing
-	if (varState.data.regFile.trim() === '') {
+	if (regFile.trim() === '') {
 		return '';
 	}
 
-	return promises.readFile(varState.data.regFile, 'binary').then(keyFile => {
+	return promises.readFile(regFile, 'binary').then(keyFile => {
 		return btoa(keyFile).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 	}).catch(() => '');
 };
