@@ -8,35 +8,36 @@ import chokidar from 'chokidar';
 import { coreLogger, logger } from '../log';
 import { varState } from '../states';
 import { pubsub } from '../pubsub';
-import { getKeyFile } from '../utils';
+import { getKeyFile, sleep } from '../utils';
 import { bus } from '../bus';
 
 const processChange = async function (fullPath: string) {
-	try {
-		logger.debug(varState.data.regFile ? `Checking "${varState.data.regFile}" for the key file.` : 'No key file found.');
+	// Wait for var state to settle with the newest data
+	await sleep(100);
 
-		// Get key file
-		const keyFile = varState.data.regFile ? await getKeyFile() : '';
-		const registration = {
-			guid: varState.data.regGuid,
-			type: varState.data.regTy.toUpperCase(),
-			state: varState.data.regState,
-			keyFile: {
-				location: fullPath,
-				contents: keyFile
-			}
-		};
+	logger.debug(varState.data.regFile ? `Checking "${varState.data.regFile}" for the key file.` : 'No key file found.');
 
-		logger.debug('Publishing %s to registration', JSON.stringify(registration, null, 2));
+	// Get key file
+	const keyFile = varState.data.regFile ? await getKeyFile() : '';
+	const registration = {
+		guid: varState.data.regGuid,
+		type: varState.data.regTy.toUpperCase(),
+		state: varState.data.regState,
+		keyFile: {
+			location: fullPath,
+			contents: keyFile
+		}
+	};
 
-		// Publish event
-		// This will end up going to the graphql endpoint
-		await pubsub.publish('registration', {
-			registration
-		}).catch(error => {
-			coreLogger.error('Failed publishing to "registration" with %s', error);
-		});
-	} catch {}
+	logger.debug('Publishing %s to registration', JSON.stringify(registration, null, 2));
+
+	// Publish event
+	// This will end up going to the graphql endpoint
+	await pubsub.publish('registration', {
+		registration
+	}).catch(error => {
+		coreLogger.error('Failed publishing to "registration" with %s', error);
+	});
 };
 
 export const keyFile = () => {
@@ -62,7 +63,9 @@ export const keyFile = () => {
 				coreLogger.debug('Registration file %s has emitted %s event.', filePath, event);
 
 				// Process the changes
-				await processChange(filePath);
+				await processChange(filePath).catch(error => {
+					coreLogger.error('Failed processing watcher "%s" event with %s', event, error);
+				});
 			});
 
 			// Save ref for cleanup
@@ -74,7 +77,9 @@ export const keyFile = () => {
 				coreLogger.debug('Var state updated, publishing registration event.');
 
 				// Process the changes
-				await processChange(data.regFile);
+				await processChange(data.regFile).catch(error => {
+					coreLogger.error('Failed processing bus update for "varState" with %s', error);
+				});
 			});
 		},
 		stop() {
