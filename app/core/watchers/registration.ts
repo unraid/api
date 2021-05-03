@@ -4,24 +4,23 @@
  */
 
 import { coreLogger, logger } from '../log';
-import { varState } from '../states';
 import { pubsub } from '../pubsub';
 import { getKeyFile } from '../utils';
 import { bus } from '../bus';
 
 export const keyFile = () => {
-	const listener = async () => {
+	const listener = async (data: any) => {
 		// Log for debugging
 		coreLogger.debug('Var state updated, publishing registration event.');
 
 		// Get key file
-		const keyFile = varState.data.regFile ? await getKeyFile() : '';
+		const keyFile = data.var.node.regFile ? await getKeyFile() : '';
 		const registration = {
-			guid: varState.data.regGuid,
-			type: varState.data.regTy.toUpperCase(),
-			state: varState.data.regState,
+			guid: data.var.node.regGuid,
+			type: data.var.node.regTy.toUpperCase(),
+			state: data.var.node.regState,
 			keyFile: {
-				location: varState.data.regFile,
+				location: data.var.node.regFile,
 				contents: keyFile
 			}
 		};
