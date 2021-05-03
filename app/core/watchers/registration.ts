@@ -52,7 +52,13 @@ export const keyFile = () => {
 
 			const watcher = chokidar.watch(keyDirectory, {
 				persistent: true,
-				ignoreInitial: true
+				ignoreInitial: true,
+				awaitWriteFinish: {
+					// Every 1/10 of a second poll
+					// If the size stays the same for 1s then emit the event
+					pollInterval: 100,
+					stabilityThreshold: 1000
+				}
 			});
 
 			coreLogger.debug('Loading watchers for %s', keyDirectory);
