@@ -12,6 +12,9 @@ import { getKeyFile, sleep } from '../utils';
 import { bus } from '../bus';
 
 const processChange = async function () {
+	// Wait 100ms to ensure varState has settled with the new value
+	await sleep(100);
+
 	logger.debug(varState.data.regFile ? `Checking "${varState.data.regFile}" for the key file.` : 'No key file found.');
 
 	// Get key file
