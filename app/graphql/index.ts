@@ -332,7 +332,7 @@ bus.on('slots', async () => {
 });
 
 // Update info/hostname when hostname changes
-bus.on('varstate', async data => {
+bus.on('var', async data => {
 	const hostname = data.varstate.node.name;
 	// @todo: Create a system user for this
 	const user = usersState.findOne({ name: 'root' });
