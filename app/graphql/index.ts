@@ -336,7 +336,9 @@ let hostname;
 // Update info/hostname when hostname changes
 bus.on('var', async data => {
 	// Publish var changes
-	await pubsub.publish('vars', data.var.node);
+	await pubsub.publish('vars', {
+		vars: data.var.node
+	});
 
 	// Hostname changed
 	if (hostname !== data.var.node.name) {
