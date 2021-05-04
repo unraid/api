@@ -15,5 +15,5 @@ type Registration {
     guid: String
     type: registrationType
     keyFile: KeyFile
-    state: RegistrationState
+    state: registrationState
 }
