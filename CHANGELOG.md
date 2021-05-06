@@ -2,6 +2,75 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.17.0](https://github.com/unraid/api/compare/v2.16.1...v2.17.0) (2021-05-06)
+
+
+### Features
+
+* add key-file watcher and registation subscription endpoint ([ee6b946](https://github.com/unraid/api/commit/ee6b946be428c62631e8a34e56312ba90ad19205))
+* add regState ([eb99cd2](https://github.com/unraid/api/commit/eb99cd26862f5d1e27bb645fc0c3b60f5474903e))
+* add switch-env to cli ([3218cea](https://github.com/unraid/api/commit/3218ceaa75dfd0bff9e896788a8f14df941111db))
+* add upc api key ([864d1b2](https://github.com/unraid/api/commit/864d1b28b75b49c433de3c1f87b6377ad1fb26f9))
+* myservers config watcher ([8ba91fd](https://github.com/unraid/api/commit/8ba91fd263d49c61771723473b159600e4264ba1))
+
+
+### Bug Fixes
+
+* add "Invalid" type to registationType enum ([c057e05](https://github.com/unraid/api/commit/c057e051960710abf28a0a9786c5a03a87c9620e))
+* add ENOKEYFILE to RegistrationState ([21fc61c](https://github.com/unraid/api/commit/21fc61cce349cd558afc995b57638ad93d0267fd))
+* add owner subscription and fix registration typo ([238016f](https://github.com/unraid/api/commit/238016fbfd2abb571ac60ae7b7765b1df058bac8))
+* add vars sub ([55735ac](https://github.com/unraid/api/commit/55735ac549faaab45991018f6812f966ed12437b))
+* always lookup keyfile if it has path otherwise public empty ([8215a7c](https://github.com/unraid/api/commit/8215a7c2437fd51cd71ca70784357f5340a230e9))
+* always use varState for regFile path ([1263b9b](https://github.com/unraid/api/commit/1263b9b52ded945322bc8332e09ff65080038bac))
+* capital ([af1142c](https://github.com/unraid/api/commit/af1142c24c686b8a5d3c9968ba3940a55728106b))
+* cfg file not being updated correct with upc api key ([44d9013](https://github.com/unraid/api/commit/44d90135a9e77d311e93c3cd501440a012e1a685))
+* Clarify port forwarding error message ([57bb936](https://github.com/unraid/api/commit/57bb9366634be24c98c86ad29f4999bdf860937e))
+* emit owner event if we get an update for servers from mothership ([5943dac](https://github.com/unraid/api/commit/5943dac53be40c7a971ff43f3d80258b3468b7ea))
+* emit owner event if we update servers from mothership ([4a47ddc](https://github.com/unraid/api/commit/4a47ddc8b2ed50aab8658e921e5431f04cec9ef8))
+* ensure invalid config is false ([e2ae9a3](https://github.com/unraid/api/commit/e2ae9a3199092bb122ac719606d86cd3ba9805a6))
+* ensure processChange has new varState values ([911ae77](https://github.com/unraid/api/commit/911ae77011b1faf69c4308fba05fcd0fc68bdac9))
+* ensure regex on regFile is run globally ([b92ce67](https://github.com/unraid/api/commit/b92ce677688926b20e70b35f57668a9d4ec186d4))
+* ensure registration.type is always uppercase and uses regTy as fallback when null ([f52d85c](https://github.com/unraid/api/commit/f52d85ca42c05c4514e3cc64c9e4bfc5d47ef031))
+* ensure regTy is always uppercase ([db13e10](https://github.com/unraid/api/commit/db13e10e9fa476b3f3d09b2f50d1411fefb68bbc))
+* Ensure there is sufficient free space on the flash drive before enabling flash backup ([e1e1132](https://github.com/unraid/api/commit/e1e113214389642f1f845e9c1bff29255361a953))
+* ensure upc api key is only 64 chars ([70d079b](https://github.com/unraid/api/commit/70d079b05edbe252e8951c11707c2c70134c85f5))
+* ensure varState is watched for registration events ([e9889f5](https://github.com/unraid/api/commit/e9889f56557cbf7f7d80e5ab66fcd95763dbea19))
+* ensure we encapsulate registration publish in registration field ([9719587](https://github.com/unraid/api/commit/9719587bca63f43135e7f036c38fceeaeb2f7d57))
+* ensure we only allow the current key to publish ([c72c1fd](https://github.com/unraid/api/commit/c72c1fdf6927d323833b060fc6a8091997bbe7f4))
+* ensure we return an empty string when key file is missing ([3f2707c](https://github.com/unraid/api/commit/3f2707cff12ff91c8808167d7466749b39a71d72))
+* ensure we wait for file to finish being written before emitting event ([141f83d](https://github.com/unraid/api/commit/141f83d6cbfa143a2ff07511d650c117c824cb92))
+* Enum "registrationType" cannot represent value: "INVALID" ([3719b06](https://github.com/unraid/api/commit/3719b06c50da6abdb618f33fe0cd05029bc16e48))
+* get key type from file not store on publish ([0723c66](https://github.com/unraid/api/commit/0723c66986fabaf5c9da17a98105792e639fdfe5))
+* getKeyfile import/export ([2608687](https://github.com/unraid/api/commit/2608687d694c556e5c97224f3b03372911ba1513))
+* include btoa and graphql-iso-date deps in build ([b27c6ed](https://github.com/unraid/api/commit/b27c6ed670b49de2782f24148562eb77ea45825f))
+* include needed imports ([be6ffc1](https://github.com/unraid/api/commit/be6ffc1fbab6108d044b1ae0bed75814a4947658))
+* include state in registration subscription ([038dfac](https://github.com/unraid/api/commit/038dfac213429b6f15ff4f784b3808652f8e56c1))
+* key file being read as non-binary ([c437952](https://github.com/unraid/api/commit/c4379521205103c27dfda2d9ac0a893f4b829a0d))
+* keyDirectory being empty on startup ([3cff71f](https://github.com/unraid/api/commit/3cff71f3d102e6a19c8c0402821052d15000c988))
+* log when registration is published to ([7d3e168](https://github.com/unraid/api/commit/7d3e1685765fb257458fbee9dbc0c25caa92bdb4))
+* lower ka to prevent socket stalling ([192be53](https://github.com/unraid/api/commit/192be53fbd1deddce018e557ce9d1431dc7d7135))
+* nest owner field in publish ([d7496fe](https://github.com/unraid/api/commit/d7496fecb1b0866451ddad561bf640c7e31bffa7))
+* nest registration field in publish ([a7a80c1](https://github.com/unraid/api/commit/a7a80c1243454f2389ffee0ad1de5da32e3c62b2))
+* nest vars endpoint publish ([6c9df73](https://github.com/unraid/api/commit/6c9df73da45a6fdfddde88b00f9ded1724d46e63))
+* registration not being published to if key file emits add event ([4632f35](https://github.com/unraid/api/commit/4632f35b24c2d1f95bf87d805e396ab69ee83df8))
+* registration typo ([50412fa](https://github.com/unraid/api/commit/50412faf5c5c0c1063820a063200ddda9a263b11))
+* remove unneeded cron action ([39f49d3](https://github.com/unraid/api/commit/39f49d3e4242496e8a5f1fb6a9bf913952918d03))
+* rework registation watcher ([a6a32ef](https://github.com/unraid/api/commit/a6a32ef673dddb852d30bc5fa2733b33e74ba9aa))
+* set upc as well ([db1274d](https://github.com/unraid/api/commit/db1274d0ca1eba9de806aca36f1689f2f0556400))
+* switch-env not detecting env ([9ec53ed](https://github.com/unraid/api/commit/9ec53ed4331dd9aa174a1e6281e40a4ab5cb2fd7))
+* typo, remove dirname ([20847dd](https://github.com/unraid/api/commit/20847ddd152e12fda5bd855f61560c2901f628ad))
+* upc apikey path ([cb87d33](https://github.com/unraid/api/commit/cb87d336b718dfa0630acbe9aba51f83d11e59af))
+* use || not ?? as value is empty string ([e9fa31f](https://github.com/unraid/api/commit/e9fa31f28e46a08fbe69626bc10041e2301bbca8))
+* use btoa to read key file ([91c849c](https://github.com/unraid/api/commit/91c849c9f22b841a69df1005c7bdcb4399505f82))
+* use correct event name for var state and simplify registation watcher ([c30c2a8](https://github.com/unraid/api/commit/c30c2a89725d3e39ae1ef65a92273661470fb22c))
+* use new data from bus watcher ([f9eac11](https://github.com/unraid/api/commit/f9eac11ff64ce794d0197dc3cf3c2619f2776c5d))
+* use new data from bus watcher ([41197a6](https://github.com/unraid/api/commit/41197a63b20335d8d7fc1d020a1e530885d6e019))
+* use port 22 or fallback port 443 for ssh; display backup errors on settings page ([b31cd5d](https://github.com/unraid/api/commit/b31cd5dd16fec7e1548ec44dce49929324a07196))
+* use var not varstate on hostname change ([c361fe7](https://github.com/unraid/api/commit/c361fe73ebe9fe8fd8853e58826fd130ea607d5e))
+* var subscription ([e557935](https://github.com/unraid/api/commit/e5579358d39fb2c0b9a79deab5a4e6ffbde02441))
+* wait 100ms before returning the registation state incase varState is in flight ([03fe6c0](https://github.com/unraid/api/commit/03fe6c082ed96b7a1dc23e4872d2335d66667878))
+* watched key firing wrong filePath ([503df44](https://github.com/unraid/api/commit/503df44ee4ef0842d56dc849971f0082d5d351d9))
+
 ### [2.16.1](https://github.com/unraid/api/compare/v2.16.0...v2.16.1) (2021-04-16)
 
 
