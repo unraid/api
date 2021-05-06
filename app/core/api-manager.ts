@@ -78,8 +78,13 @@ export class ApiManager extends EventEmitter {
 		const file = loadState<{ upc: { apikey: string } }>(configPath);
 		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
 		if (!upcApiKey) {
+			// Generate api key
 			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex')}`;
-			fs.writeFileSync(configPath, ini.stringify({ apikey: apiKey }, { section: 'upc' }));
+			// Set api key
+			file.upc.apikey = apiKey;
+			// Update config file
+			fs.writeFileSync(configPath, ini.stringify(file));
+			// Update api manager with key
 			this.replace('upc', apiKey, {
 				// @todo: fix UPC being root
 				userId: '0'
