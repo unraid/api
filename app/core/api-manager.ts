@@ -79,7 +79,7 @@ export class ApiManager extends EventEmitter {
 		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
 		if (!upcApiKey) {
 			// Generate api key
-			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex')}`;
+			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
 			// Set api key
 			file.upc = {
 				apikey: apiKey
