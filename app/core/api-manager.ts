@@ -79,7 +79,7 @@ export class ApiManager extends EventEmitter {
 		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
 		if (!upcApiKey) {
 			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex')}`;
-			fs.writeFileSync('./config_modified.ini', ini.stringify({ remote: { apikey: apiKey } }, { section: 'upc' }));
+			fs.writeFileSync(configPath, ini.stringify({ apikey: apiKey }, { section: 'upc' }));
 			this.replace('upc', apiKey, {
 				// @todo: fix UPC being root
 				userId: '0'
