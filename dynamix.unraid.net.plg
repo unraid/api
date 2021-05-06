@@ -505,6 +505,12 @@ function buttonStateReset(newstate) {
       return;
     }
 
+    if (newstate['error'] && newstate['error']!='') {
+      $('#loadingtext').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['error']);
+      $('#loadingpanel').show();
+      return;
+    }
+
     if (newstate['activated'] == 'true') {
         $('#activepanel').show();
 
@@ -591,7 +597,7 @@ _(Flash backup)_:
 : <span class='green p0'>_(Activated)_:</span> <span class='orange p0'>_(Not up-to-date)_</span>
 
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+: <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button>
 
 :unraidnet_changespanel_help:
 
@@ -1117,6 +1123,11 @@ if ($json['ssh_privkey'] != file_get_contents('/root/.ssh/unraidbackup_id_ed2551
   chmod('/root/.ssh/unraidbackup_id_ed25519.pub', 0644);
 }
 
+// Show any warnings from the key-server
+if (!empty($json['warn'])) {
+  $arrState['error'] = $json['warn'];
+}
+
 // add configuration to use our keys
 if (!file_exists('/root/.ssh/config') || strpos(file_get_contents('/root/.ssh/config'),'Host backup.unraid.net') === false) {
   file_put_contents('/root/.ssh/config', 'Host backup.unraid.net
@@ -1204,11 +1215,28 @@ config/wireguard/peers/*.png
 exec_log('git --git-dir /boot/.git config user.email \'gitbot@unraid.net\'');
 exec_log('git --git-dir /boot/.git config user.name \'gitbot\'');
 
+// test which ssh port allows a connection (standard ssh port 22 or alternative port 443)
+$SSH_PORT = '';
+exec('timeout 5 bash -c "</dev/tcp/backup.unraid.net/22"', $status_output, $return_var);
+if ($return_var == 0) {
+  $SSH_PORT = '22';
+} else {
+  exec('timeout 5 bash -c "</dev/tcp/backup.unraid.net/443"', $status_output, $return_var);
+  if ($return_var == 0) {
+    $SSH_PORT = '443';
+  }
+}
+if (empty($SSH_PORT)) {
+  $arrState['loading'] = '';
+  $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+  response_complete(406, '{"error":"'.$arrState['error'].'"}');
+}
+
 // ensure upstream git server is configured and in-sync
 if (strpos(file_get_contents('/boot/.git/config'),'[remote "origin"]') === false) {
-  exec('git --git-dir /boot/.git remote add -f -t master -m master origin ssh://git@backup.unraid.net:443/~/flash.git &>/dev/null');
+  exec('git --git-dir /boot/.git remote add -f -t master -m master origin ssh://git@backup.unraid.net:'.$SSH_PORT.'/~/flash.git &>/dev/null');
 } else {
-  exec('git --git-dir /boot/.git remote set-url origin ssh://git@backup.unraid.net:443/~/flash.git &>/dev/null');
+  exec('git --git-dir /boot/.git remote set-url origin ssh://git@backup.unraid.net:'.$SSH_PORT.'/~/flash.git &>/dev/null');
 }
 
 if ($command != 'reinit') {
@@ -1222,7 +1250,8 @@ $arrState['activated'] = $return_var==0;
 
 if ($return_var != 0) {
   $arrState['loading'] = '';
-  response_complete(406, '{"error":"'.${status_output[0]}.'"}');
+  $arrState['error'] = $status_output[0];
+  response_complete(406, '{"error":"'.$arrState['error'].'"}');
 }
 
 $arrState['uptodate'] = empty($status_output);
@@ -1238,15 +1267,23 @@ if (($command == 'update') || ($command == 'reinit')) {
     exec_log('git -C /boot add -A');
     if ($command == 'reinit') {
       exec_log('git -C /boot commit -m \'Initial commit\'');
-      exec_log('git -C /boot push --force --set-upstream origin master');
+      exec_log('git -C /boot push --force --set-upstream origin master', $status_output, $return_var);
     } else {
       exec_log('git -C /boot commit -m ' . escapeshellarg($commitmsg));
       exec_log('git -C /boot push --set-upstream origin master', $status_output, $return_var);
       if ($return_var != 0) {
-        exec_log('git -C /boot push --force --set-upstream origin master');
+        exec_log('git -C /boot push --force --set-upstream origin master', $status_output, $return_var);
       }
     }
-    $arrState['uptodate'] = true;
+    if ($return_var != 0) {
+      $arrState['error'] = 'Failed to sync flash backup';
+    } else {
+      if ($arrState['error'] == 'Failed to sync flash backup') {
+        // only clear the error state if it failed to connect before
+        $arrState['error'] = '';
+      }
+      $arrState['uptodate'] = true;
+    }
   }
 }
 
