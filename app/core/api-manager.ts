@@ -81,7 +81,9 @@ export class ApiManager extends EventEmitter {
 			// Generate api key
 			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex')}`;
 			// Set api key
-			file.upc.apikey = apiKey;
+			file.upc = {
+				apikey: apiKey
+			};
 			// Update config file
 			fs.writeFileSync(configPath, ini.stringify(file));
 			// Update api manager with key
