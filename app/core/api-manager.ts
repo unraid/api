@@ -3,6 +3,9 @@
  * Written by: Alexis Tyler
  */
 
+import fs from 'fs';
+import ini from 'ini';
+import crypto from 'crypto';
 import path from 'path';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
@@ -69,9 +72,22 @@ export class ApiManager extends EventEmitter {
 		// Create singleton
 		ApiManager.instance = this;
 
+		const configPath = paths.get('myservers-config')!;
+
+		// Create UPC key
+		const file = loadState<{ upc: { apikey: string } }>(configPath);
+		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
+		if (!upcApiKey) {
+			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex')}`;
+			fs.writeFileSync('./config_modified.ini', ini.stringify({ remote: { apikey: apiKey } }, { section: 'upc' }));
+			this.replace('upc', apiKey, {
+				// @todo: fix UPC being root
+				userId: '0'
+			});
+		}
+
 		// Watch for changes to the myservers.cfg file
 		// @todo Move API keys to their own file
-		const configPath = paths.get('myservers-config')!;
 		if (options.watch) {
 			chokidar.watch(path.basename(configPath), {
 				ignoreInitial: true
