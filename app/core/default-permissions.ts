@@ -53,6 +53,15 @@ export const user = {
 	]
 };
 
+export const upc = {
+	extends: 'guest',
+	permissions: [
+		{ resource: 'apikey', action: 'read:own', attributes: '*' },
+		{ resource: 'permission', action: 'read:any', attributes: '*' },
+		{ resource: 'registration', action: 'read:any', attributes: '*' }
+	]
+};
+
 export const guest = {
 	permissions: [
 		{ resource: 'welcome', action: 'read:any', attributes: '*' }
@@ -62,5 +71,6 @@ export const guest = {
 export const permissions = {
 	admin,
 	user,
+	upc,
 	guest
 };
