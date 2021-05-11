@@ -78,7 +78,13 @@ export class ApiManager extends EventEmitter {
 		const file = loadState<{ upc: { apikey: string } }>(configPath);
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/non-nullable-type-assertion-style
 		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
-		if (!upcApiKey) {
+		if (upcApiKey) {
+			// Update api manager with key
+			this.replace('upc', upcApiKey, {
+				// @todo: fix UPC being root
+				userId: '0'
+			});
+		} else {
 			// Generate api key
 			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
 			// Set api key
