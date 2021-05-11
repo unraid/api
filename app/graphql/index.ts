@@ -270,16 +270,16 @@ const schema = makeExecutableSchema({
 });
 
 const ensureApiKey = async (apiKeyToCheck: string) => {
-	// No keys are loaded into memory
-	if (core.apiManager.getValidKeys().length === 0) {
+	// No my servers key is loaded into memory
+	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
 		const configPath = paths.get('myservers-config')!;
 		await apiManager.checkKey(configPath, true);
 	}
 
-	// Check there is atleast one valid key
+	// Check there is a valid my servers key
 	// If there were no keys when we entered this method
 	// the above should have tried forcefully reloading them
-	if (core.apiManager.getValidKeys().length !== 0) {
+	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length !== 0) {
 		if (!apiKeyToCheck) {
 			throw new AppError('Missing API key.', 403);
 		}
@@ -295,7 +295,13 @@ const ensureApiKey = async (apiKeyToCheck: string) => {
 const debug = config.get('debug');
 
 const apiKeyToUser = async (apiKey: string) => {
-	await ensureApiKey(apiKey);
+	try {
+		await ensureApiKey(apiKey);
+	} catch (error: unknown) {
+		log.debug('Failed looking up API key with "%s"', (error as Error).message);
+
+		return { name: 'guest', role: 'guest' };
+	}
 
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);

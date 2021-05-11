@@ -89,7 +89,8 @@ export class ApiManager extends EventEmitter {
 			// Update api manager with key
 			this.replace('upc', apiKey, {
 				// @todo: fix UPC being root
-				userId: '0'
+				userId: '0',
+
 			});
 		}
 
@@ -181,10 +182,11 @@ export class ApiManager extends EventEmitter {
 				const name = this.getNameFromKey(nameOrKey);
 
 				if (!name) {
+					log.debug('No key found for "%s".', nameOrKey);
 					return false;
 				}
 
-				// We still have to run the retrieve after finding the key
+				// We still have to use .get() after finding the key
 				// as this will run the cache validation check
 				// without this the key would be "valid" even after
 				// it's over the cache time
