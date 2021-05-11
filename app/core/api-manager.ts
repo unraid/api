@@ -76,6 +76,7 @@ export class ApiManager extends EventEmitter {
 
 		// Create UPC key
 		const file = loadState<{ upc: { apikey: string } }>(configPath);
+		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/non-nullable-type-assertion-style
 		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
 		if (!upcApiKey) {
 			// Generate api key
@@ -288,6 +289,7 @@ export class ApiManager extends EventEmitter {
 		await lock.runExclusive(async () => {
 			apiManagerLogger.debug('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/non-nullable-type-assertion-style
 			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
 
 			// Same key as current
