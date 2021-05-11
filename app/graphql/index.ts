@@ -276,7 +276,7 @@ const ensureApiKey = async (apiKeyToCheck: string) => {
 		await apiManager.checkKey(configPath, true);
 	}
 
-	// Check there is a valid my servers key
+	// Check there is a valid key
 	// If there were no keys when we entered this method
 	// the above should have tried forcefully reloading them
 	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length !== 0) {

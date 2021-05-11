@@ -190,12 +190,18 @@ export class ApiManager extends EventEmitter {
 				// as this will run the cache validation check
 				// without this the key would be "valid" even after
 				// it's over the cache time
-				return this.keys.get(name) !== null;
-			} catch {
+				const key = this.keys.get(name);
+
+				log.debug('Key found for "%s".', name);
+
+				return key !== null;
+			} catch (error: unknown) {
+				log.debug(error);
 				return false;
 			}
 		}
 
+		log.debug('Key found for "%s".', nameOrKey);
 		const foundKey = this.keys.get(`${nameOrKey}`)?.key;
 		if (!foundKey) {
 			return false;
