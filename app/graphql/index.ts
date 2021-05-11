@@ -300,6 +300,11 @@ const apiKeyToUser = async (apiKey: string) => {
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
 
+		// Force upc into it's own group that's not a user group
+		if (keyName && keyName === 'upc') {
+			return { name: 'upc', role: 'upc' };
+		}
+
 		if (keyName) {
 			const id = apiManager.getKey(keyName)?.userId;
 			const foundUser = usersState.findOne({ id });
