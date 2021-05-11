@@ -101,7 +101,7 @@
     "node-cache": "5.1.2",
     "node-fetch": "^2.6.1",
     "node-window-polyfill": "^1.0.2",
-    "number-to-color": "^0.4.1",
+    "number-to-color": "^0.5.0",
     "observable-to-promise": "^1.0.0",
     "os-uptime": "^2.0.2",
     "p-iteration": "^1.1.8",
