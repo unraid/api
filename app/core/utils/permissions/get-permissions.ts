@@ -11,7 +11,7 @@ import { ac } from '../../permissions';
  */
 export const getPermissions = (role: string): Record<string, unknown> => {
 	const grants: Record<string, unknown> = ac.getGrants();
-	const { $extend, ...roles } = grants[role];
+	const { $extend, ...roles } = grants[role] ?? {};
 	const inheritedRoles = Array.isArray($extend) ? $extend.map(role => getPermissions(role))[0] : {};
 	return Object.assign({}, roles, inheritedRoles);
 };
