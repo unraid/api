@@ -306,9 +306,11 @@ const apiKeyToUser = async (apiKey: string) => {
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
 
+		log.silly('Found key "%s".', keyName);
+
 		// Force upc into it's own group that's not a user group
 		if (keyName && keyName === 'upc') {
-			return { name: 'upc', role: 'upc' };
+			return { id: -1, description: 'UPC service account', name: 'upc', role: 'upc' };
 		}
 
 		if (keyName) {
@@ -324,7 +326,7 @@ const apiKeyToUser = async (apiKey: string) => {
 		log.debug('Failed looking up API key with "%s"', (error as Error).message);
 	}
 
-	return { name: 'guest', role: 'guest' };
+	return { id: -1, description: 'A guest user', name: 'guest', role: 'guest' };
 };
 
 // Update array values when slots change

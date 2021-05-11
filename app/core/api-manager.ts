@@ -91,7 +91,6 @@ export class ApiManager extends EventEmitter {
 			this.replace('upc', apiKey, {
 				// @todo: fix UPC being root
 				userId: '0'
-
 			});
 		}
 

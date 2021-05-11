@@ -10,6 +10,11 @@
  */
 const isProduction = process.env.NODE_ENV === 'production';
 
+/**
+ * If we're in silly logging mode.
+ */
+const isSilly = Boolean(process.env.SILLY);
+
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
@@ -32,7 +37,7 @@ export const logger = {
 	levels: ['error', 'warn', 'info', 'debug', 'trace', 'silly'],
 	info: isProduction ? noop : console.info,
 	log: isProduction ? noop : console.info,
-	silly: isProduction ? noop : console.debug,
+	silly: isProduction ? noop : (isSilly ? console.debug : noop),
 	timer: isProduction ? noop : console.debug,
 	trace: isProduction ? noop : console.debug,
 	transport: 'console',
