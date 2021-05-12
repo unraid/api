@@ -58,7 +58,14 @@ export const upc = {
 	permissions: [
 		{ resource: 'apikey', action: 'read:own', attributes: '*' },
 		{ resource: 'permission', action: 'read:any', attributes: '*' },
-		{ resource: 'registration', action: 'read:any', attributes: '*' }
+		{ resource: 'registration', action: 'read:any', attributes: '*' },
+		{ resource: 'owner', action: 'read:any', attributes: '*' },
+		{ resource: 'flash', action: 'read:any', attributes: '*' },
+		{ resource: 'os', action: 'read:any', attributes: '*' },
+		{ resource: 'vars', action: 'read:any', attributes: '*' },
+		{ resource: 'disk', action: 'read:any', attributes: '*' },
+		{ resource: 'crash-reporting-enabled', action: 'read:any', attributes: '*' },
+		{ resource: 'servers', action: 'read:any', attributes: '*' }
 	]
 };
 
