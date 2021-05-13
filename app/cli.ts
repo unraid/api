@@ -108,7 +108,7 @@ const commands = {
 					env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 					// The process MUST have it's cwd set to the
 					// path where it resides within the Nexe VFS
-					cwd: '/usr/local/bin/unraid-api/',
+					cwd: paths.get('unraid-api-base')!,
 					stdio: 'ignore',
 					detached: true
 				});
@@ -167,7 +167,7 @@ const commands = {
 	async report() {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
-		const unraidVersion = fs.existsSync('/etc/unraid-version') ? fs.readFileSync('/etc/unraid-version', 'utf8').split('"')[1] : 'unknown';
+		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
 		console.log(dedent`
       <-----UNRAID-API-REPORT----->
       Environment: ${environment}
