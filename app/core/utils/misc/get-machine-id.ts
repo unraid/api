@@ -11,7 +11,7 @@ export const getMachineId = async (): Promise<string> => {
 
 	if (!path) {
 		const error = new FileMissingError('/etc/machine-id');
-		error.fatal = true;
+		error.fatal = false;
 
 		throw error;
 	}
