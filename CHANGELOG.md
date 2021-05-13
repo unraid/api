@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.17.1](https://github.com/unraid/api/compare/v2.17.0...v2.17.1) (2021-05-13)
+
+
+### Bug Fixes
+
+* @typescript-eslint/comma-dangle ([5917dcb](https://github.com/unraid/api/commit/5917dcb17df9d81016e9402c90eb554e6acc364b))
+* add logs for invalid api key ([3f9c083](https://github.com/unraid/api/commit/3f9c083d3dec1296dffa7cfb18882dbbdcc54be2))
+* add other endpoints to upc permissions ([f821c0e](https://github.com/unraid/api/commit/f821c0e258a3a786e1a8fb410929069c2e983ccf))
+* add upc key to api-manager on load not only when it's missing ([a7fb0df](https://github.com/unraid/api/commit/a7fb0dfba1527d99b9e756e1a9e23c8f509c8859))
+* add upc permissions ([d8c67b3](https://github.com/unraid/api/commit/d8c67b36c0c6dd7c6ba0dff9a1865c5d3630438d))
+* allow github actions zips in the install process ([fd98e78](https://github.com/unraid/api/commit/fd98e7884116074842b3812281986616e1679452))
+* grants[role] is undefined ([5b9299c](https://github.com/unraid/api/commit/5b9299c20b670a55bf7e685ad0c0ba243137561a))
+* non user accounts throwing null for id/description and disable silly logging by default ([0524c2e](https://github.com/unraid/api/commit/0524c2eb80697b9d3f3008d4d9d12a6829fe8e63))
+* prevent cli pulling in all of app ([4306145](https://github.com/unraid/api/commit/4306145123298902110c190e865f1865a4eefe8b))
+* upc not having own group ([93b75a5](https://github.com/unraid/api/commit/93b75a5e4cd445548f9b71853dfbbd3d53c3b27b))
+* use paths helper instead of raw path ([63ca181](https://github.com/unraid/api/commit/63ca1816ebd95c42edf7ac4081c95d7e8a688a5d))
+* zip path ([a23468e](https://github.com/unraid/api/commit/a23468eb24cbc9f977a81741786bb7ec6979da7e))
+
 ## [2.17.0](https://github.com/unraid/api/compare/v2.16.1...v2.17.0) (2021-05-06)
 
 
