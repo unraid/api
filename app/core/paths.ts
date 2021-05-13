@@ -8,6 +8,7 @@ export interface Paths {
 	plugins: string;
 	htpasswd: string;
 	states: string;
+	'unraid-api-base': string;
 	'unraid-version': string;
 	'unraid-data': string;
 	'docker-autostart': string;
@@ -16,7 +17,9 @@ export interface Paths {
 	'emhttpd-socket': string;
 	'dynamix-base': string;
 	'dynamix-config': string;
+	'myservers-base': string;
 	'myservers-config': string;
+	'myservers-env': string;
 	'nginx-origin': string;
 	'machine-id': string;
 }
@@ -37,8 +40,9 @@ const addEnvPaths = ([key, value]: [keyof Paths, string]): [keyof Paths, string]
  */
 export const defaultPaths = new Map<keyof Paths, string>([
 	['core', thisDir],
+	['unraid-api-base', '/usr/local/bin/unraid-api/'],
 	['unraid-version', '/etc/unraid-version'],
-	['unraid-data', '/boot/config/plugins/Unraid.net/data'],
+	['unraid-data', '/boot/config/plugins/dynamix.my.servers/data/'],
 	['docker-autostart', '/var/lib/docker/unraid-autostart'],
 	['docker-socket', '/var/run/docker.sock'],
 	['parity-checks', '/boot/config/parity-checks.log'],
@@ -47,7 +51,9 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['states', '/usr/local/emhttp/state/'],
 	['dynamix-base', '/boot/config/plugins/dynamix/'],
 	['dynamix-config', '/boot/config/plugins/dynamix/dynamix.cfg'],
-	['myservers-config', '/boot/config/plugins/Unraid.net/myservers.cfg'],
+	['myservers-base', '/boot/config/plugins/dynamix.my.servers/'],
+	['myservers-config', '/boot/config/plugins/dynamix.my.servers/myservers.cfg'],
+	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
 	['nginx-origin', '/var/run/nginx.origin'],
 	['machine-id', '/etc/machine-id']
 ]);

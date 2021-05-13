@@ -62,7 +62,7 @@ This will enable debug logs and the playground.
 ## Playground
 
 The playground can be access via `http://tower.local/graphql` while in debug mode.  
-To get your API key open a terminal on your server and run `cat /boot/config/plugins/Unraid.net/myservers.cfg | grep apikey= | cut -d '"' -f2`. Add that API key in the "HTTP headers" panel of the playground.
+To get your API key open a terminal on your server and run `cat /boot/config/plugins/dynamix.my.servers/myservers.cfg | grep apikey= | cut -d '"' -f2`. Add that API key in the "HTTP headers" panel of the playground.
 
 ```json
 {

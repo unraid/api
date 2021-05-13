@@ -16,7 +16,7 @@ npm i -g nexe del-cli move-file-cli
 # Setup our directory
 mkdir /sandbox && cd /sandbox
 # Copy our source package
-cp /boot/config/plugins/Unraid.net/unraid-api.tgz .
+cp /boot/config/plugins/dynamix.my.servers/unraid-api.tgz .
 # Decompress the source
 tar xvzf ./unraid-api.tgz
 # Rename the directory and enter it

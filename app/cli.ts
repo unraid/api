@@ -7,6 +7,7 @@ import pidusage from 'pidusage';
 import prettyMs from 'pretty-ms';
 import dedent from 'dedent';
 import { version } from '../package.json';
+import { paths } from './core';
 
 const setEnv = (envName: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
@@ -79,7 +80,7 @@ const commands = {
 		process.title = 'unraid-api';
 
 		// Set cwd
-		process.chdir('/usr/local/bin/node/unraid-api/');
+		process.chdir(paths.get('unraid-api-base')!);
 
 		// Set envs
 		setEnv('DEBUG', mainOptions.debug);
@@ -107,7 +108,7 @@ const commands = {
 					env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 					// The process MUST have it's cwd set to the
 					// path where it resides within the Nexe VFS
-					cwd: '/usr/local/bin/node/unraid-api/',
+					cwd: '/usr/local/bin/unraid-api/',
 					stdio: 'ignore',
 					detached: true
 				});
@@ -176,7 +177,8 @@ const commands = {
     `);
 	},
 	async 'switch-env'() {
-		const envFile = await fs.promises.readFile('/boot/config/plugins/Unraid.net/env', 'utf-8').catch(() => '');
+		const envFilePath = paths.get('myservers-env')!;
+		const envFile = await fs.promises.readFile(envFilePath, 'utf-8').catch(() => '');
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
 		// Get item from index 2 of the regex match or return undefined
@@ -187,18 +189,18 @@ const commands = {
 			console.info('Switching env to "production"...');
 
 			// Default back to production
-			await fs.promises.writeFile('/boot/config/plugins/Unraid.net/env', 'env=production');
+			await fs.promises.writeFile(envFilePath, 'env=production');
 			return;
 		}
 
 		// Switch from staging to production
 		if (currentEnv === 'staging') {
-			await fs.promises.writeFile('/boot/config/plugins/Unraid.net/env', 'env=production');
+			await fs.promises.writeFile(envFilePath, 'env=production');
 		}
 
 		// Switch from production to staging
 		if (currentEnv === 'staging') {
-			await fs.promises.writeFile('/boot/config/plugins/Unraid.net/env', 'env=staging');
+			await fs.promises.writeFile(envFilePath, 'env=staging');
 		}
 
 		// Restart the process
