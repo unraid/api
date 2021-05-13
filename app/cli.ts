@@ -7,7 +7,7 @@ import pidusage from 'pidusage';
 import prettyMs from 'pretty-ms';
 import dedent from 'dedent';
 import { version } from '../package.json';
-import { paths } from './core';
+import { paths } from './core/paths';
 
 const setEnv = (envName: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
