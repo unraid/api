@@ -185,6 +185,13 @@ reload() {
   $node_base_directory/unraid-api/unraid-api restart
 }
 _install() {
+  # If this was downloaded from a Github action it'll be a zip with a tgz inside
+  # Let's extract the tgz and rename it for the next step
+  if [[ -f "$node_base_directory/unraid-api.zip" ]]; then
+    for f in *.zip; do unzip -p "$f" > "${f%.zip}.tgz"; done
+    rm -f $node_base_directory/unraid-api.zip
+  fi
+  
   # Install unraid-api
   for download in ${downloads[@]}; do
     rm -rf $node_base_directory/${download}
