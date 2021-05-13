@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.17.2](https://github.com/unraid/api/compare/v2.17.1...v2.17.2) (2021-05-13)
+
+
+### Bug Fixes
+
+* get machine id should not be fatal ([a15f3c8](https://github.com/unraid/api/commit/a15f3c8c827effd21f2a7c638af5d5566d90c929))
+* use flash for .zip check not node_base_directory ([5b4d164](https://github.com/unraid/api/commit/5b4d164f6944a283b021bec6fa3b8a0dc57a758a))
+
 ### [2.17.1](https://github.com/unraid/api/compare/v2.17.0...v2.17.1) (2021-05-13)
 
 
