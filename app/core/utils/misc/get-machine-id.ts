@@ -17,7 +17,7 @@ export const getMachineId = async (): Promise<string> => {
 	}
 
 	if (!machineId) {
-		machineId = await fs.promises.readFile(path, 'utf8').then(machineId => machineId.split('\n')[0].trim());
+		machineId = await fs.promises.readFile(path, 'utf8').then(machineId => machineId.split('\n')[0].trim()).catch(() => '');
 	}
 
 	return machineId;
