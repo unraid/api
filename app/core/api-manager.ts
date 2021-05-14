@@ -88,11 +88,13 @@ export class ApiManager extends EventEmitter {
 			// Generate api key
 			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
 			// Set api key
-			file.upc = {
-				apikey: apiKey
+			const data = {
+				upc: {
+					apikey: apiKey
+				}
 			};
 			// Update config file
-			fs.writeFileSync(configPath, ini.stringify(file));
+			fs.appendFileSync(configPath, '\n' + (ini.stringify(data) as string));
 			// Update api manager with key
 			this.replace('upc', apiKey, {
 				// @todo: fix UPC being root
