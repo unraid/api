@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.17.3](https://github.com/unraid/api/compare/v2.17.2...v2.17.3) (2021-05-14)
+
+
+### Bug Fixes
+
+* don't throw when machine-id is missing ([97042a8](https://github.com/unraid/api/commit/97042a8bed84397a8e5f3dde4c9ba02815ff2c04))
+
 ### [2.17.2](https://github.com/unraid/api/compare/v2.17.1...v2.17.2) (2021-05-13)
 
 
