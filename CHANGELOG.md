@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.17.4](https://github.com/unraid/api/compare/v2.17.3...v2.17.4) (2021-05-14)
+
+
+### Bug Fixes
+
+* append upc key to cfg instead of rewriting whole file ([2c6d9f9](https://github.com/unraid/api/commit/2c6d9f92fa9327a06a70ae0e7a90097a37b6f8e2))
+
 ### [2.17.3](https://github.com/unraid/api/compare/v2.17.2...v2.17.3) (2021-05-14)
 
 
