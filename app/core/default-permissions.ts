@@ -65,7 +65,8 @@ export const upc = {
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'disk', action: 'read:any', attributes: '*' },
 		{ resource: 'crash-reporting-enabled', action: 'read:any', attributes: '*' },
-		{ resource: 'servers', action: 'read:any', attributes: '*' }
+		{ resource: 'servers', action: 'read:any', attributes: '*' },
+		{ resource: 'display', action: 'read:any', attributes: '*' }
 	]
 };
 
