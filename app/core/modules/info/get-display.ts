@@ -53,7 +53,7 @@ export const getDisplay = async function (context: CoreContext): Promise<Result>
 		critical: Number.parseInt(display.critical, 10),
 		hot: Number.parseInt(display.hot, 10),
 		max: Number.parseInt(display.max, 10),
-		locale: display ?? 'en_us'
+		locale: display.locale ?? 'en_us'
 	};
 
 	return {
