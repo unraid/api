@@ -76,13 +76,10 @@ export class ApiManager extends EventEmitter {
 
 		// Create UPC key
 		const file = loadState<{ upc: { apikey: string } }>(configPath);
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/non-nullable-type-assertion-style
-		const upcApiKey = dotProp.get(file, 'upc.apikey')! as string;
-		if (upcApiKey) {
+		if (file?.upc?.apikey) {
 			// Update api manager with key
-			this.replace('upc', upcApiKey, {
-				// @todo: fix UPC being root
-				userId: '0'
+			this.replace('upc', file.upc.apikey, {
+				userId: '-1'
 			});
 		} else {
 			// Generate api key
@@ -94,11 +91,10 @@ export class ApiManager extends EventEmitter {
 				}
 			};
 			// Update config file
-			fs.appendFileSync(configPath, '\n' + (ini.stringify(data) as string));
+			fs.appendFileSync(configPath, (ini.stringify(data) as string));
 			// Update api manager with key
 			this.replace('upc', apiKey, {
-				// @todo: fix UPC being root
-				userId: '0'
+				userId: '-1'
 			});
 		}
 
@@ -321,7 +317,7 @@ export class ApiManager extends EventEmitter {
 
 			// Add the new key
 			this.replace('my_servers', apiKey, {
-				userId: '0'
+				userId: '-1'
 			});
 		}).catch(error => {
 			if (isNodeError(error)) {
