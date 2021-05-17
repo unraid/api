@@ -79,6 +79,12 @@ export const getServers = async (): Promise<Server[]> => {
 		// Get first server's owner object
 		const owner = servers[0].owner;
 
+		try {
+			throw new Error('THIS_HERE');
+		} catch (error: unknown) {
+			console.log(error);
+		}
+
 		// Publish owner event
 		await pubsub.publish('owner', {
 			owner
