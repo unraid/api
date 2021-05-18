@@ -72,7 +72,7 @@ export const my_servers = {
 		{ resource: 'var', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'vm/domain', action: 'read:any', attributes: '*' },
-		{ resource: 'vm/network', action: 'read:any', attributes: '*' },
+		{ resource: 'vm/network', action: 'read:any', attributes: '*' }
 	]
 };
 
