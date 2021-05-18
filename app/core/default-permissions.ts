@@ -4,7 +4,38 @@ export const admin = {
 		// @NOTE: Uncomment the first line to enable creation of api keys.
 		//        See the README.md for more information.
 		// @WARNING: This is currently unsupported, please be careful.
-		// { resource: 'apikey', action: 'create:any', attributes: '*' },
+		// { resource: 'apikey', action: 'create:any', attributes: '*' }
+	]
+};
+
+export const user = {
+	extends: 'guest',
+	permissions: [
+		{ resource: 'apikey', action: 'read:own', attributes: '*' },
+		{ resource: 'permission', action: 'read:any', attributes: '*' }
+	]
+};
+
+export const upc = {
+	extends: 'guest',
+	permissions: [
+		{ resource: 'apikey', action: 'read:own', attributes: '*' },
+		{ resource: 'permission', action: 'read:any', attributes: '*' },
+		{ resource: 'registration', action: 'read:any', attributes: '*' },
+		{ resource: 'owner', action: 'read:any', attributes: '*' },
+		{ resource: 'flash', action: 'read:any', attributes: '*' },
+		{ resource: 'os', action: 'read:any', attributes: '*' },
+		{ resource: 'vars', action: 'read:any', attributes: '*' },
+		{ resource: 'disk', action: 'read:any', attributes: '*' },
+		{ resource: 'crash-reporting-enabled', action: 'read:any', attributes: '*' },
+		{ resource: 'servers', action: 'read:any', attributes: '*' },
+		{ resource: 'display', action: 'read:any', attributes: '*' }
+	]
+};
+
+export const my_servers = {
+	extends: 'guest',
+	permissions: [
 		{ resource: 'apikey', action: 'read:any', attributes: '*' },
 		{ resource: 'array', action: 'read:any', attributes: '*' },
 		{ resource: 'cpu', action: 'read:any', attributes: '*' },
@@ -41,37 +72,13 @@ export const admin = {
 		{ resource: 'var', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'vm/domain', action: 'read:any', attributes: '*' },
-		{ resource: 'vm/network', action: 'read:any', attributes: '*' }
-	]
-};
-
-export const user = {
-	extends: 'guest',
-	permissions: [
-		{ resource: 'apikey', action: 'read:own', attributes: '*' },
-		{ resource: 'permission', action: 'read:any', attributes: '*' }
-	]
-};
-
-export const upc = {
-	extends: 'guest',
-	permissions: [
-		{ resource: 'apikey', action: 'read:own', attributes: '*' },
-		{ resource: 'permission', action: 'read:any', attributes: '*' },
-		{ resource: 'registration', action: 'read:any', attributes: '*' },
-		{ resource: 'owner', action: 'read:any', attributes: '*' },
-		{ resource: 'flash', action: 'read:any', attributes: '*' },
-		{ resource: 'os', action: 'read:any', attributes: '*' },
-		{ resource: 'vars', action: 'read:any', attributes: '*' },
-		{ resource: 'disk', action: 'read:any', attributes: '*' },
-		{ resource: 'crash-reporting-enabled', action: 'read:any', attributes: '*' },
-		{ resource: 'servers', action: 'read:any', attributes: '*' },
-		{ resource: 'display', action: 'read:any', attributes: '*' }
+		{ resource: 'vm/network', action: 'read:any', attributes: '*' },
 	]
 };
 
 export const guest = {
 	permissions: [
+		{ resource: 'me', action: 'read:any', attributes: '*' },
 		{ resource: 'welcome', action: 'read:any', attributes: '*' }
 	]
 };
@@ -80,5 +87,6 @@ export const permissions = {
 	admin,
 	user,
 	upc,
+	my_servers,
 	guest
 };
