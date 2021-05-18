@@ -4,7 +4,7 @@
  */
 
 import fs from 'fs';
-import ini from 'ini';
+import { Serializer as IniSerializer } from 'ini';
 import crypto from 'crypto';
 import path from 'path';
 import chokidar from 'chokidar';
@@ -47,6 +47,11 @@ interface Options {
 	watch: boolean;
 }
 
+// Ini serializer
+const serializer = new IniSerializer({
+	keep_quotes: false
+});
+
 /**
  * Api manager
  */
@@ -72,6 +77,7 @@ export class ApiManager extends EventEmitter {
 		// Create singleton
 		ApiManager.instance = this;
 
+		// Get my server's config file path
 		const configPath = paths.get('myservers-config')!;
 
 		// Create UPC key
@@ -84,14 +90,21 @@ export class ApiManager extends EventEmitter {
 		} else {
 			// Generate api key
 			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
-			// Set api key
+
+			// Rebuild config file
 			const data = {
+				...file,
 				upc: {
 					apikey: apiKey
 				}
 			};
+
+			// Stringify data
+			const stringifiedData = serializer.serializer.serialize(data);
+
 			// Update config file
-			fs.appendFileSync(configPath, (ini.stringify(data) as string));
+			fs.writeFileSync(configPath, stringifiedData);
+
 			// Update api manager with key
 			this.replace('upc', apiKey, {
 				userId: '-1'
