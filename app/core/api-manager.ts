@@ -4,7 +4,7 @@
  */
 
 import fs from 'fs';
-import { Serializer as IniSerializer } from 'ini';
+import { Serializer as IniSerializer } from 'multi-ini';
 import crypto from 'crypto';
 import path from 'path';
 import chokidar from 'chokidar';
