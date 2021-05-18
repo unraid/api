@@ -313,6 +313,11 @@ const apiKeyToUser = async (apiKey: string) => {
 			return { id: -1, description: 'UPC service account', name: 'upc', role: 'upc' };
 		}
 
+		// Force my_servers into it's own group that's not a user group
+		if (keyName && keyName === 'my_servers') {
+			return { id: -1, description: 'My servers service account', name: 'my_servers', role: 'my_servers' };
+		}
+
 		if (keyName) {
 			const id = apiManager.getKey(keyName)?.userId;
 			const foundUser = usersState.findOne({ id });
@@ -321,8 +326,6 @@ const apiKeyToUser = async (apiKey: string) => {
 			}
 		}
 	} catch (error: unknown) {
-		// If we have 0 keys loaded into the manager then let's check the file again.
-		// For some unknown reason it may have been updated without us being told.
 		log.debug('Failed looking up API key with "%s"', (error as Error).message);
 	}
 
