@@ -4,7 +4,8 @@ export const admin = {
 		// @NOTE: Uncomment the first line to enable creation of api keys.
 		//        See the README.md for more information.
 		// @WARNING: This is currently unsupported, please be careful.
-		// { resource: 'apikey', action: 'create:any', attributes: '*' }
+		// { resource: 'apikey', action: 'create:any', attributes: '*' },
+		{ resource: 'software-versions', action: 'read:any', attributes: '*' }
 	]
 };
 
@@ -65,11 +66,9 @@ export const my_servers = {
 		{ resource: 'service/unraid-api', action: 'read:any', attributes: '*' },
 		{ resource: 'services', action: 'read:any', attributes: '*' },
 		{ resource: 'share', action: 'read:any', attributes: '*' },
-		{ resource: 'software-versions', action: 'read:any', attributes: '*' },
 		{ resource: 'unraid-version', action: 'read:any', attributes: '*' },
 		{ resource: 'uptime', action: 'read:any', attributes: '*' },
 		{ resource: 'user', action: 'read:any', attributes: '*' },
-		{ resource: 'var', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'vm/domain', action: 'read:any', attributes: '*' },
 		{ resource: 'vm/network', action: 'read:any', attributes: '*' }
@@ -84,9 +83,9 @@ export const guest = {
 };
 
 export const permissions = {
-	admin,
+	guest,
 	user,
+	admin,
 	upc,
-	my_servers,
-	guest
+	my_servers
 };
