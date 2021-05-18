@@ -70,7 +70,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		coreLogger.silly(`run:${moduleToRun.name} %j`, result.json);
 
 		// Save result
-		await publish(channel, mutation, result.json);
+		await publish(channel, mutation, result.json as any);
 
 		// Bail as we're done looping
 		if (!loop || loop === 0) {

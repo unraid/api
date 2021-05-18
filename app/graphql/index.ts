@@ -20,6 +20,9 @@ import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { isNodeError } from '../core/utils';
+import { User } from '../core/types';
+
+const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
 const baseTypes = [gql`
 	scalar JSON
@@ -334,20 +337,16 @@ const apiKeyToUser = async (apiKey: string) => {
 
 // Update array values when slots change
 bus.on('slots', async () => {
-	coreLogger.silly('slots updated: loading user');
-	// @todo: Create a system user for this
-	const user = usersState.findOne({ name: 'root' });
-
 	coreLogger.silly('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
 		context: {
-			user
+			user: internalServiceUser
 		}
 	});
 });
 
-let hostname;
+let hostname: string;
 
 // Update info/hostname when hostname changes
 bus.on('var', async data => {
@@ -358,11 +357,6 @@ bus.on('var', async data => {
 
 	// Hostname changed
 	if (hostname !== data.var.node.name) {
-		const user = usersState.findOne({ name: 'root' });
-		if (!user) {
-			return;
-		}
-
 		// Update cache
 		hostname = data.var.node.name;
 
@@ -384,17 +378,11 @@ dee.on('*', async (data: { Type: string }) => {
 		return;
 	}
 
-	// @todo: Create a system user for this
-	const user = usersState.findOne({ name: 'root' });
-
-	if (user) {
-		const { json } = await modules.getAppCount({
-			user
-		});
-		await publish('info', 'UPDATED', {
-			apps: json
-		});
-	}
+	const user: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
+	const { json } = await modules.getAppCount({ user });
+	await publish('info', 'UPDATED', {
+		apps: json
+	});
 });
 
 dee.listen();
@@ -403,7 +391,7 @@ dee.listen();
 run('uptime', 'UPDATED', {
 	moduleToRun: modules.getUptime,
 	context: {
-		user: usersState.findOne({ name: 'root' })
+		user: internalServiceUser
 	},
 	loop: Infinity
 }).catch((error: unknown) => {
@@ -414,7 +402,7 @@ run('uptime', 'UPDATED', {
 run('services', 'UPDATED', {
 	moduleToRun: modules.getServices,
 	context: {
-		user: usersState.findOne({ name: 'root' })
+		user: internalServiceUser
 	},
 	loop: Infinity
 }).catch((error: unknown) => {
