@@ -172,7 +172,7 @@ const commands = {
       <-----UNRAID-API-REPORT----->
       Environment: ${environment}
       Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-      Unraid version: ${unraidVersion}
+		Unraid version: ${unraidVersion}
       </----UNRAID-API-REPORT----->
     `);
 	},
@@ -189,18 +189,18 @@ const commands = {
 			console.info('Switching env to "production"...');
 
 			// Default back to production
-			await fs.promises.writeFile(envFilePath, 'env=production');
+			await fs.promises.writeFile(envFilePath, 'env="production"');
 			return;
 		}
 
 		// Switch from staging to production
 		if (currentEnv === 'staging') {
-			await fs.promises.writeFile(envFilePath, 'env=production');
+			await fs.promises.writeFile(envFilePath, 'env="production"');
 		}
 
 		// Switch from production to staging
 		if (currentEnv === 'staging') {
-			await fs.promises.writeFile(envFilePath, 'env=staging');
+			await fs.promises.writeFile(envFilePath, 'env="staging"');
 		}
 
 		// Restart the process
