@@ -46,7 +46,7 @@
     "ain2": "^3.0.0",
     "am": "^1.1.0",
     "apollo-server": "2.19.2",
-    "apollo-server-express": "2.19.2",
+    "apollo-server-express": "2.24.1",
     "async-exit-hook": "^2.0.1",
     "async-mutex": "^0.3.0",
     "btoa": "^1.2.1",
