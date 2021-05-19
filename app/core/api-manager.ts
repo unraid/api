@@ -49,7 +49,7 @@ interface Options {
 
 // Ini serializer
 const serializer = new IniSerializer({
-	keep_quotes: false
+	keep_quotes: true
 });
 
 /**
@@ -100,7 +100,7 @@ export class ApiManager extends EventEmitter {
 			};
 
 			// Stringify data
-			const stringifiedData = serializer.serializer.serialize(data);
+			const stringifiedData = serializer.serialize(data);
 
 			// Update config file
 			fs.writeFileSync(configPath, stringifiedData);
