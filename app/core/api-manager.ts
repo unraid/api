@@ -49,7 +49,8 @@ interface Options {
 
 // Ini serializer
 const serializer = new IniSerializer({
-	keep_quotes: true
+	// This ensures it ADDs quotes
+	keep_quotes: false
 });
 
 /**
