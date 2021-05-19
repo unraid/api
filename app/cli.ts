@@ -169,12 +169,12 @@ const commands = {
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
 		console.log(dedent`
-      <-----UNRAID-API-REPORT----->
-      Environment: ${environment}
-      Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-		Unraid version: ${unraidVersion}
-      </----UNRAID-API-REPORT----->
-    `);
+			<-----UNRAID-API-REPORT----->
+			Environment: ${environment}
+			Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+			Unraid version: ${unraidVersion}
+			</----UNRAID-API-REPORT----->
+    	`);
 	},
 	async 'switch-env'() {
 		const envFilePath = paths.get('myservers-env')!;
