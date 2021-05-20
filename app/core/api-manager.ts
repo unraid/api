@@ -81,7 +81,8 @@ export class ApiManager extends EventEmitter {
 		// Get my server's config file path
 		const configPath = paths.get('myservers-config')!;
 
-		// Create UPC key
+		// Load UPC key
+		log.debug('Loading UPC API key...');
 		const file = loadState<{ upc: { apikey: string } }>(configPath);
 		if (file?.upc?.apikey) {
 			// Update api manager with key
@@ -99,6 +100,8 @@ export class ApiManager extends EventEmitter {
 					apikey: apiKey
 				}
 			};
+
+			log.debug('Dumping MyServers config back to file', data);
 
 			// Stringify data
 			const stringifiedData = serializer.serialize(data);
