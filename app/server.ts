@@ -16,7 +16,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { log, config, utils, paths, pubsub, coreLogger } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from './core/utils';
 import { graphql } from './graphql';
-import { MothershipSocket } from './mothership';
+import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
@@ -39,15 +39,16 @@ const app = express();
 
 const port = process.env.PORT ?? String(config.get('port'));
 
+// Add Unraid API version header
 app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
-	if (!app.get('x-machine-id')) {
-		app.set('x-machine-id', await utils.getMachineId());
+	if (!app.get('x-unraid-api-version')) {
+		app.set('x-unraid-api-version', packageJson.version);
 	}
 
-	// Update header with machine ID
-	res.set('x-machine-id', app.get('x-machine-id'));
+	// Update header with unraid API version
+	res.set('x-unraid-api-version', app.get('x-unraid-api-version'));
 
 	next();
 });
