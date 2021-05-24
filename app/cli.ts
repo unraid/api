@@ -168,13 +168,12 @@ const commands = {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
-		console.log(dedent`
-			<-----UNRAID-API-REPORT----->
-			Environment: ${environment}
-			Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-			Unraid version: ${unraidVersion}
-			</----UNRAID-API-REPORT----->
-    	`);
+		console.log(`
+<-----UNRAID-API-REPORT----->
+Environment: ${environment}
+Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+Unraid version: ${unraidVersion}
+</----UNRAID-API-REPORT----->`);
 	},
 	async 'switch-env'() {
 		const envFilePath = paths.get('myservers-env')!;
@@ -199,7 +198,7 @@ const commands = {
 		}
 
 		// Switch from production to staging
-		if (currentEnv === 'staging') {
+		if (currentEnv === 'production') {
 			await fs.promises.writeFile(envFilePath, 'env="staging"');
 		}
 
