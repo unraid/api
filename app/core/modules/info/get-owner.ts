@@ -25,14 +25,14 @@ export const getOwner = async function (context: CoreContext): Promise<CoreResul
 	});
 
 	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
-	const server = await getServers().then(servers => servers.find(server => server.apikey === apiKey));
+	const server = apiKey ? await getServers().then(servers => servers.find(server => server.apikey === apiKey)) : null;
 
 	return {
 		get text() {
 			return `Owner: ${server?.owner?.username ?? 'root'}`;
 		},
 		get json() {
-			return {
+			return server === null ? null : {
 				...server?.owner
 			};
 		}
