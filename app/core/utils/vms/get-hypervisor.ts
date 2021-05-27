@@ -5,33 +5,26 @@
 
 import fs from 'fs';
 import { AppError } from '../../errors';
+import { Hypervisor } from '@vmngr/libvirt';
 
-// Libvirt is an optional dependency
-let libvirt;
-let client;
+const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
+
+let hypervisor: Hypervisor;
 
 export const getHypervisor = async () => {
-	// Return client if it's already connected
-	if (client) {
-		return client;
+	// Return hypervisor if it's already connected
+	if (hypervisor) {
+		return hypervisor;
 	}
 
 	// Check if libvirt service is running and then connect
 	const running = fs.existsSync('/var/run/libvirt/libvirtd.pid');
-
 	if (!running) {
 		throw new AppError('Libvirt service is not running');
 	}
 
-	// Try and get dep loaded or throw error
-	try {
-		libvirt = require('libvirt');
-	} catch {
-		throw new AppError('Libvirt dep is missing.');
-	}
+	hypervisor = new Hypervisor({ uri });
+	await hypervisor.connectOpen();
 
-	// Connect to local socket
-	const { Hypervisor } = libvirt;
-	client = new Hypervisor('qemu:///system');
-	await client.connectAsync();
+	return hypervisor;
 };
