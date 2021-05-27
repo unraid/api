@@ -5,11 +5,11 @@
 
 import fs from 'fs';
 import { AppError } from '../../errors';
-import { Hypervisor } from '@vmngr/libvirt';
+import libvirt from '@vmngr/libvirt';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
 
-let hypervisor: Hypervisor;
+let hypervisor: libvirt.Hypervisor;
 
 export const getHypervisor = async () => {
 	// Return hypervisor if it's already connected
@@ -23,7 +23,7 @@ export const getHypervisor = async () => {
 		throw new AppError('Libvirt service is not running');
 	}
 
-	hypervisor = new Hypervisor({ uri });
+	hypervisor = new libvirt.Hypervisor({ uri });
 	await hypervisor.connectOpen();
 
 	return hypervisor;
