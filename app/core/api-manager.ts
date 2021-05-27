@@ -266,6 +266,12 @@ export class ApiManager extends EventEmitter {
 	expire(name: string): void {
 		validateArgument(name, 'string');
 
+		// Don't emit event if the key has already expired
+		// This is to prevent duplicate events
+		if (this.keys.get(name) === null) {
+			return;
+		}
+
 		this.keys.invalidate(name);
 		this.emit('expire', name);
 	}
