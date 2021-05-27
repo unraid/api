@@ -90,7 +90,7 @@ const commands = {
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		console.log(`Starting unraid-api in "${environment}" mode.`);
+		console.log(`Starting unraid-api in "${process.env.ENVIRONMENT!}" mode.`);
 
 		// Load bundled index file
 		const indexPath = './index.js';
@@ -207,7 +207,7 @@ const commands = {
 		}
 
 		// Copy the new env over before restarting
-		await fs.promises.copyFile(path.join(basePath, `.env.${currentEnv ?? 'production'}`), path.join(basePath, '.env'))
+		await fs.promises.copyFile(path.join(basePath, `.env.${currentEnv ?? 'production'}`), path.join(basePath, '.env'));
 
 		// Restart the process
 		return this.restart();
