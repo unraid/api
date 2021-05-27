@@ -62,7 +62,8 @@ const options: ArgsParseOptions<Flags> = {
 const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstUnknown: true });
 const commandOptions = (mainOptions as Flags & { _unknown: string[] })._unknown || [];
 const command: string = (mainOptions as any).command;
-const environment = mainOptions.environment ?? 'production';
+// Use the env passed by the user, then the flag inline, then default to production
+const environment = process.env.ENVIRONMENT ?? mainOptions.environment ?? 'production';
 const getUnraidApiPid = async () => {
 	// Find all processes called "unraid-api" which aren't this process
 	const pids = await findProcess('name', 'unraid-api', true);
@@ -90,7 +91,7 @@ const commands = {
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		console.log(`Starting unraid-api in "${process.env.ENVIRONMENT!}" mode.`);
+		console.log(`Starting unraid-api in "${environment}" mode.`);
 
 		// Load bundled index file
 		const indexPath = './index.js';
