@@ -43,6 +43,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
+    - name: Install libvirt-dev
+      run: sudo apt-get install libvirt-dev
+
     - name: Installing node deps
       run: npm install
 
@@ -77,6 +80,9 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-node-
 
+    - name: Install libvirt-dev
+      run: sudo apt-get install libvirt-dev
+
     - name: Installing node deps
       run: npm install
 
@@ -110,6 +116,9 @@ jobs:
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
         restore-keys: |
           ${{ runner.os }}-node-
+
+    - name: Install libvirt-dev
+      run: sudo apt-get install libvirt-dev
 
     - name: Installing node deps
       run: npm install
