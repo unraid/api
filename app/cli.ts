@@ -1,4 +1,5 @@
 import fs from 'fs';
+import path from 'path';
 import { spawn } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
@@ -176,8 +177,9 @@ Unraid version: ${unraidVersion}
 </----UNRAID-API-REPORT----->`);
 	},
 	async 'switch-env'() {
-		const envFilePath = paths.get('myservers-env')!;
-		const envFile = await fs.promises.readFile(envFilePath, 'utf-8').catch(() => '');
+		const basePath = paths.get('unraid-api-base')!;
+		const envFlashFilePath = paths.get('myservers-env')!;
+		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
 		// Get item from index 2 of the regex match or return undefined
@@ -188,19 +190,21 @@ Unraid version: ${unraidVersion}
 			console.info('Switching env to "production"...');
 
 			// Default back to production
-			await fs.promises.writeFile(envFilePath, 'env="production"');
-			return;
+			await fs.promises.writeFile(envFlashFilePath, 'env="production"');
 		}
 
 		// Switch from staging to production
 		if (currentEnv === 'staging') {
-			await fs.promises.writeFile(envFilePath, 'env="production"');
+			await fs.promises.writeFile(envFlashFilePath, 'env="production"');
 		}
 
 		// Switch from production to staging
 		if (currentEnv === 'production') {
-			await fs.promises.writeFile(envFilePath, 'env="staging"');
+			await fs.promises.writeFile(envFlashFilePath, 'env="staging"');
 		}
+
+		// Copy the new env over before restarting
+		await fs.promises.copyFile(path.join(basePath, `.env.${currentEnv ?? 'production'}`), path.join(basePath, '.env'))
 
 		// Restart the process
 		return this.restart();
