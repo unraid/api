@@ -42,7 +42,7 @@
     "@gridplus/docker-events": "OmgImAlexis/docker-events#master",
     "@schemastore/package": "0.0.6",
     "@sentry/node": "^6.3.6",
-    "@vmngr/libvirt": "0.0.5",
+    "@vmngr/libvirt": "github:OmgImAlexis/libvirt",
     "accesscontrol": "^2.2.1",
     "ain2": "^3.0.0",
     "am": "^1.1.0",
