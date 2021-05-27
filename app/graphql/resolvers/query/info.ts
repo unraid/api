@@ -3,16 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import { readFileSync } from 'fs';
+import { uptime } from 'os';
 
 // Get uptime on boot and convert to date
-const bootTimestamp = (new Date().getTime()) - parseFloat(readFileSync('/proc/uptime', 'utf-8').split(' ')[0]);
+const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1000));
 
 export default () => ({
 	os: {
 		// Timestamp of when the server booted
-		bootTime: bootTimestamp,
-		// Milliseconds since the server booted
-		uptime: new Date().getTime() - bootTimestamp
+		uptime: bootTimestamp
 	}
 });
