@@ -12,7 +12,6 @@ import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './c
 import { server } from './server';
 import { InternalGraphql, MothershipSocket } from './mothership';
 import { sockets } from './sockets';
-import { sleep } from './core/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json') as { version: string };

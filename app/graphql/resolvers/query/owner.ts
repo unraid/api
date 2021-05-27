@@ -3,20 +3,22 @@
  * Written by: Alexis Tyler
  */
 
+import { apiManager } from '../../../core/api-manager';
 import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils';
 import { Context, getServers } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
-	ensurePermission(context.user, {
+	const { user } = context;
+
+	// Check permissions
+	ensurePermission(user, {
 		resource: 'owner',
 		action: 'read',
 		possession: 'any'
 	});
 
-	// Get all servers
-	const servers = await getServers();
-
-	// Return the owner of this server
-	return servers.find(server => server.guid === varState.data.regGuid)?.owner;
+	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
+	const server = apiKey ? await getServers().then(servers => servers.find(server => server.guid === varState.data.regGuid)) : null;
+	return server?.owner;
 };
