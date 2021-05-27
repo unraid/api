@@ -5,6 +5,7 @@
 
 import { getServers } from '../../../graphql/schema/utils';
 import { apiManager } from '../../api-manager';
+import { log } from '../../log';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
 
@@ -25,6 +26,9 @@ export const getOwner = async function (context: CoreContext): Promise<CoreResul
 	});
 
 	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
+
+	log.debug('Found API key for my_servers "%s"', apiKey);
+
 	const server = apiKey ? await getServers().then(servers => servers.find(server => server.apikey === apiKey)) : null;
 
 	return {
