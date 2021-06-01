@@ -178,6 +178,7 @@ export class CustomSocket {
 	protected onDisconnect() {
 		// Connection attempts
 		let connectionAttempts = this.connectionAttempts;
+		let shouldReconnect = true;
 
 		const logger = this.logger;
 		const connect = this.connect.bind(this);
@@ -210,6 +211,7 @@ export class CustomSocket {
 			// Unauthorized - Invalid/missing API key.
 			4401: async () => {
 				this.logger.debug('Invalid API key, waiting for new key...');
+				shouldReconnect = false;
 			},
 			// Request Timeout - Mothership disconnected us.
 			4408: async () => {
@@ -283,6 +285,11 @@ export class CustomSocket {
 				}
 			} catch (error: unknown) {
 				logger.error('Connection closed with code=%s reason="%s"', code, (error as Error).message);
+			}
+
+			// We shouldn't reconnect
+			if (!shouldReconnect) {
+				return;
 			}
 
 			try {
