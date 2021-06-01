@@ -4,9 +4,19 @@
  */
 
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { log } from '../../log';
 import { CoreResult, CoreContext } from '../../types';
 import { getHypervisor, ensurePermission } from '../../utils';
+
+const states = {
+	0: 'NOSTATE',
+	1: 'RUNNING',
+	2: 'IDLE',
+	3: 'PAUSED',
+	4: 'SHUTDOWN',
+	5: 'SHUTOFF',
+	6: 'CRASHED',
+	7: 'PMSUSPENDED'
+};
 
 /**
  * Get vm domains.
@@ -27,14 +37,19 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 	const activeDomainNames = await Promise.all(activeDomains.map(async domain => hypervisor.domainGetName(domain)));
 	const inactiveDomainNames = await Promise.all(inactiveDomains.map(async domain => hypervisor.domainGetName(domain)));
 
-	log.debug('Active: "%s"', activeDomains);
-	log.debug('Inactive: "%s"', inactiveDomains);
+	// Get all domains
+	const domains = await hypervisor.connectListAllDomains();
+	const resolvedDomains = await Promise.all(domains.map(async domain => {
+		const info = await hypervisor.domainGetInfo(domain);
+		return {
+			name: await hypervisor.domainGetName(domain),
+			uuid: await hypervisor.domainGetUUIDString(domain),
+			state: states[info.state]
+		};
+	}));
 
 	return {
 		text: `Defined domains: ${JSON.stringify(activeDomainNames, null, 2)}\nActive domains: ${JSON.stringify(inactiveDomainNames, null, 2)}`,
-		json: [
-			...activeDomains,
-			...inactiveDomains
-		]
+		json: resolvedDomains
 	};
 };
