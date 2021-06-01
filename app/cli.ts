@@ -191,29 +191,29 @@ const commands = {
 		const [,,currentEnvInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
 
 		logger.debug('Current ENV in file: %s', currentEnvInFile);
-
-		// No env is set or file doesn't exist
-		if (!currentEnvInFile) {
-			console.info('No ENV found, setting env to "production"...');
-
-			// Default back to production
-			await fs.promises.writeFile(envFlashFilePath, 'env="production"');
-		}
+		let newEnv = 'production';
 
 		// Switch from staging to production
 		if (currentEnvInFile === 'staging') {
-			console.info('Switching from "%s" to "%s"...', currentEnvInFile, 'production');
-			await fs.promises.writeFile(envFlashFilePath, 'env="production"');
+			newEnv = 'production';
 		}
 
 		// Switch from production to staging
 		if (currentEnvInFile === 'production') {
-			console.info('Switching from "%s" to "%s"...', currentEnvInFile, 'staging');
-			await fs.promises.writeFile(envFlashFilePath, 'env="staging"');
+			newEnv = 'staging';
 		}
 
-		// Copy the new env over before restarting
-		await fs.promises.copyFile(path.join(basePath, `.env.${currentEnvInFile ?? 'production'}`), path.join(basePath, '.env'));
+		if (currentEnvInFile) {
+			console.info('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
+		} else {
+			console.info('No ENV found, setting env to "production"...');
+		}
+
+		// Write new env to flash
+		await fs.promises.writeFile(envFlashFilePath, 'env="staging"');
+
+		// Copy the new env over to live location before restarting
+		await fs.promises.copyFile(path.join(basePath, `.env.${newEnv}`), path.join(basePath, '.env'));
 
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
