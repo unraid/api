@@ -9,6 +9,7 @@ import prettyMs from 'pretty-ms';
 import dedent from 'dedent-tabs';
 import { version } from '../package.json';
 import { paths } from './core/paths';
+import { logger } from './core/log';
 
 const setEnv = (envName: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
@@ -187,31 +188,43 @@ const commands = {
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
 		// Get item from index 2 of the regex match or return undefined
-		const [,,currentEnv] = matchArray && matchArray.length === 3 ? matchArray : [];
+		const [,,currentEnvInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
+
+		logger.debug('Current ENV in file: %s', currentEnvInFile);
 
 		// No env is set or file doesn't exist
-		if (!currentEnv) {
-			console.info('Switching env to "production"...');
+		if (!currentEnvInFile) {
+			console.info('No ENV found, setting env to "production"...');
 
 			// Default back to production
 			await fs.promises.writeFile(envFlashFilePath, 'env="production"');
 		}
 
 		// Switch from staging to production
-		if (currentEnv === 'staging') {
+		if (currentEnvInFile === 'staging') {
+			console.info('Switching from "%s" to "%s"...', currentEnvInFile, 'production');
 			await fs.promises.writeFile(envFlashFilePath, 'env="production"');
 		}
 
 		// Switch from production to staging
-		if (currentEnv === 'production') {
+		if (currentEnvInFile === 'production') {
+			console.info('Switching from "%s" to "%s"...', currentEnvInFile, 'staging');
 			await fs.promises.writeFile(envFlashFilePath, 'env="staging"');
 		}
 
 		// Copy the new env over before restarting
-		await fs.promises.copyFile(path.join(basePath, `.env.${currentEnv ?? 'production'}`), path.join(basePath, '.env'));
+		await fs.promises.copyFile(path.join(basePath, `.env.${currentEnvInFile ?? 'production'}`), path.join(basePath, '.env'));
 
-		// Restart the process
-		return this.restart();
+		// If there's a process running restart it
+		const unraidApiPid = await getUnraidApiPid();
+		if (unraidApiPid) {
+			console.info('unraid-api is running, restarting...');
+
+			// Restart the process
+			return this.restart();
+		}
+
+		console.info('Run "unraid-api start" to start the API.');
 	}
 };
 
