@@ -50,6 +50,9 @@ export const myservers = () => {
 					}
 				}
 
+				// Ensure api manager has the correct keys loaded
+				await apiManager.checkKey(configFilePath, true);
+
 				// If we have no my_servers key disconnect from mothership's subscription endpoint
 				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
 					// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
