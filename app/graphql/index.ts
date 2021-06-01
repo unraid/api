@@ -272,25 +272,29 @@ const schema = makeExecutableSchema({
 	}
 });
 
+// Ensure the provided API key is valid
 const ensureApiKey = async (apiKeyToCheck: string) => {
-	// No my servers key is loaded into memory
+	// If there's no my servers key loaded into memory then try to load it
 	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
 		const configPath = paths.get('myservers-config')!;
 		await apiManager.checkKey(configPath, true);
 	}
 
-	// Check there is a valid key
-	// If there were no keys when we entered this method
-	// the above should have tried forcefully reloading them
-	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length !== 0) {
+	// Check there are any valid keys then check if the key given is valid
+	// If my_servers wasn't loaded before the function above should have fixed that
+	if (core.apiManager.getValidKeys().length >= 1) {
+		// API manager has keys but we didn't give one to check
 		if (!apiKeyToCheck) {
 			throw new AppError('Missing API key.', 403);
 		}
 
+		// API manger has keys but the key we gave isn't valid
 		if (!apiManager.isValid(apiKeyToCheck)) {
 			throw new AppError('Invalid API key.', 403);
 		}
 	} else if (process.env.NODE_ENV !== 'development') {
+		// API manager has no keys
+		// This is skipped in development
 		throw new AppError('No valid API keys active.', 401);
 	}
 };
