@@ -70,21 +70,13 @@ export const myservers = () => {
 					mothership.connect();
 					coreLogger.debug('Reconnecting mothership\'s subscription endpoint.');
 
+					// Reconnect to internal graph
+					await sockets.get('internalGraphql')?.connect();
+					coreLogger.debug('Reconnecting the internal relay.');
+
 					// Reconnect to relay
 					await sockets.get('relay')?.connect();
 					coreLogger.debug('Reconnecting mothership\'s relay.');
-
-					// Reregister all subscriptions
-					// @ts-expect-error
-					Object.keys(mothership.operations).forEach(id => {
-						mothership.sendMessage(
-							id,
-							// @ts-expect-error
-							MessageTypes.GQL_START,
-							// @ts-expect-error
-							mothership.operations[id].options
-						);
-					});
 				}
 			});
 
