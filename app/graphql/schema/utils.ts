@@ -48,53 +48,7 @@ type makeNullUndefinedAndOptional<T> = {
 
 type Server = makeNullUndefinedAndOptional<CachedServer>;
 
-export const getServers = async (): Promise<Server[]> => {
-	// Check if we have the servers already cached, if so return them
-	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
-	if (cachedServers) {
-		return cachedServers;
-	}
-
-	// For now use the my_servers key
-	// Later we should return the correct one for the current user with the correct scope, etc.
-	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
-
-	// No cached servers found
-	if (!cachedServers) {
-		// Fetch servers from mothership
-		const servers = await getUserServers(apiKey);
-
-		graphqlLogger.debug('Using upstream for /servers endpoint');
-
-		// No servers found
-		if (!servers || servers.length === 0) {
-			return [];
-		}
-
-		// Cache servers
-		userCache.set<CachedServers>('mine', {
-			servers
-		});
-
-		// Get first server's owner object
-		const owner = servers[0].owner;
-
-		try {
-			throw new Error('THIS_HERE');
-		} catch (error: unknown) {
-			console.log(error);
-		}
-
-		// Publish owner event
-		await pubsub.publish('owner', {
-			owner
-		});
-
-		// Return servers from mothership
-		return servers;
-	}
-
-	graphqlLogger.debug('Falling back to local state for /servers endpoint');
+const getLocalServer = (apiKey: string): [CachedServer] => {
 	const guid = varState?.data?.regGuid;
 	const name = varState?.data?.name;
 	const wanip = null;
@@ -118,4 +72,53 @@ export const getServers = async (): Promise<Server[]> => {
 		localurl,
 		remoteurl
 	}];
+};
+
+export const getServers = async (): Promise<Server[]> => {
+	// Check if we have the servers already cached, if so return them
+	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
+	if (cachedServers) {
+		return cachedServers;
+	}
+
+	// For now use the my_servers key
+	// Later we should return the correct one for the current user with the correct scope, etc.
+	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
+
+	// Return only current server if we have no key
+	if (!apiKey) {
+		return getLocalServer(apiKey);
+	}
+
+	// No cached servers found
+	if (!cachedServers) {
+		// Fetch servers from mothership
+		const servers = await getUserServers(apiKey);
+
+		graphqlLogger.debug('Using upstream for /servers endpoint');
+
+		// No servers found
+		if (!servers || servers.length === 0) {
+			return [];
+		}
+
+		// Cache servers
+		userCache.set<CachedServers>('mine', {
+			servers
+		});
+
+		// Get first server's owner object
+		const owner = servers[0].owner;
+
+		// Publish owner event
+		await pubsub.publish('owner', {
+			owner
+		});
+
+		// Return servers from mothership
+		return servers;
+	}
+
+	graphqlLogger.debug('Falling back to local state for /servers endpoint');
+	return getLocalServer(apiKey);
 };

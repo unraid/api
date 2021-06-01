@@ -18,10 +18,10 @@ export interface CachedServer {
 	apikey: string;
 	name: string;
 	status: Status;
-	wanip: IpAddress;
+	wanip: IpAddress | null;
 	lanip: IpAddress;
 	localurl: URL;
-	remoteurl: string;
+	remoteurl: string | null;
 }
 
 export interface CachedServers {
