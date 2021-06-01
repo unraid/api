@@ -11,6 +11,7 @@ import { loadState } from '../utils';
 import { mothership } from '../../mothership/subscribe-to-servers';
 import { apiManager } from '../api-manager';
 import { MessageTypes } from 'subscriptions-transport-ws';
+import { sockets } from '../../sockets';
 
 export const myservers = () => {
 	const watchers: chokidar.FSWatcher[] = [];
@@ -51,14 +52,20 @@ export const myservers = () => {
 
 				// If we have no my_servers key disconnect from mothership's subscription endpoint
 				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
-					// Disconnect forcefully from mothership so we ensure it doesn't reconnect automatically
+					// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
 					mothership.close(true, true);
+
+					// Disconnect from relay
+					await sockets.get('relay')?.disconnect();
 				}
 
 				// If we have a my_servers key reconnect to mothership
 				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 1) {
-					// Reconnect to mothership
+					// Reconnect to mothership's subscription endpoint
 					mothership.connect();
+
+					// Reconnect to relay
+					await sockets.get('relay')?.connect();
 
 					// Reregister all subscriptions
 					// @ts-expect-error

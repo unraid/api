@@ -350,6 +350,8 @@ export class ApiManager extends EventEmitter {
 				} else {
 					apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
 				}
+			} else {
+				apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
 			}
 
 			// Reset key as it's not valid anymore
