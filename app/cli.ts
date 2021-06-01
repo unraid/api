@@ -63,7 +63,7 @@ const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstU
 const commandOptions = (mainOptions as Flags & { _unknown: string[] })._unknown || [];
 const command: string = (mainOptions as any).command;
 // Use the env passed by the user, then the flag inline, then default to production
-const environment = process.env.ENVIRONMENT ?? mainOptions.environment ?? 'production';
+const getEnvironment = () => process.env.ENVIRONMENT ?? mainOptions.environment ?? 'production';
 const getUnraidApiPid = async () => {
 	// Find all processes called "unraid-api" which aren't this process
 	const pids = await findProcess('name', 'unraid-api', true);
@@ -86,12 +86,12 @@ const commands = {
 
 		// Set envs
 		setEnv('DEBUG', mainOptions.debug);
-		setEnv('ENVIRONMENT', environment);
+		setEnv('ENVIRONMENT', getEnvironment());
 		setEnv('LOG_LEVEL', mainOptions['log-level']);
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		console.log(`Starting unraid-api in "${environment}" mode.`);
+		console.log(`Starting unraid-api in "${getEnvironment()}" mode.`);
 
 		// Load bundled index file
 		const indexPath = './index.js';
@@ -164,7 +164,7 @@ const commands = {
 		}
 
 		const stats = await pidusage(unraidApiPid);
-		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${environment}" mode!`);
+		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
 	},
 	async report() {
 		// Find all processes called "unraid-api" which aren't this process
@@ -173,7 +173,7 @@ const commands = {
 		console.log(
 			dedent`
 				<-----UNRAID-API-REPORT----->
-				Environment: ${environment}
+				Environment: ${getEnvironment()}
 				Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
 				Unraid version: ${unraidVersion}
 				</----UNRAID-API-REPORT----->
