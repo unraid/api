@@ -54,18 +54,22 @@ export const myservers = () => {
 				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
 					// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
 					mothership.close(true, true);
+					coreLogger.debug('Disconnected mothership\'s subscription endpoint.');
 
 					// Disconnect from relay
 					await sockets.get('relay')?.disconnect(4401);
+					coreLogger.debug('Disconnected mothership\'s relay.');
 				}
 
 				// If we have a my_servers key reconnect to mothership
 				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 1) {
 					// Reconnect to mothership's subscription endpoint
 					mothership.connect();
+					coreLogger.debug('Reconnecting mothership\'s subscription endpoint.');
 
 					// Reconnect to relay
 					await sockets.get('relay')?.connect();
+					coreLogger.debug('Reconnecting mothership\'s relay.');
 
 					// Reregister all subscriptions
 					// @ts-expect-error
