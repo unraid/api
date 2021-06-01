@@ -116,8 +116,11 @@ export class CustomSocket {
 			return;
 		}
 
+		this.logger.debug('Connecting to %s', this.uri);
 		const lock = await this.getLock();
 		try {
+			this.logger.debug('Lock aquired for connection to %s', this.uri);
+
 			// Set retry attempt count
 			await this.setRetryAttempt(retryAttempt);
 
