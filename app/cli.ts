@@ -37,10 +37,10 @@ const args: ArgumentConfig<Flags> = {
 	port: { type: String, optional: true, alias: 'p', description: 'Set the graphql port.' },
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
 	'log-level': { type: (level?: string) => {
-		return ['error', 'warn', 'info', 'debug', 'trace', 'silly'].includes(level ?? 'info') ? level : 'info';
+		return ['error', 'warn', 'info', 'debug', 'trace', 'silly'].includes(level ?? '') ? level : undefined;
 	}, typeLabel: '{underline error/warn/info/debug/trace/silly}', optional: true, description: 'Set the log level.' },
-	'log-transport': { type: (level?: string) => {
-		return ['console', 'syslog'].includes(level ?? 'info') ? level : 'info';
+	'log-transport': { type: (transport?: string) => {
+		return ['console', 'syslog'].includes(transport ?? 'console') ? transport : 'console';
 	}, typeLabel: '{underline console/syslog}', optional: true, description: 'Set the log transport. (default=syslog)' },
 	version: { type: Boolean, optional: true, alias: 'v', description: 'Show version.' }
 };
@@ -88,7 +88,7 @@ const commands = {
 		// Set envs
 		setEnv('DEBUG', mainOptions.debug);
 		setEnv('ENVIRONMENT', getEnvironment());
-		setEnv('LOG_LEVEL', mainOptions['log-level']);
+		setEnv('LOG_LEVEL', mainOptions['log-level'] ?? (mainOptions.debug ? 'debug' : 'info'));
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
