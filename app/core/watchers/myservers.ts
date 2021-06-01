@@ -56,7 +56,7 @@ export const myservers = () => {
 					mothership.close(true, true);
 
 					// Disconnect from relay
-					await sockets.get('relay')?.disconnect();
+					await sockets.get('relay')?.disconnect(4401);
 				}
 
 				// If we have a my_servers key reconnect to mothership

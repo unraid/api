@@ -142,10 +142,22 @@ export class CustomSocket {
 		}
 	}
 
-	public async disconnect() {
+	public async disconnect(code?: number, message?: string) {
 		const lock = await this.getLock();
 		try {
-			if (this.connection && (this.connection.readyState !== this.connection.CLOSED)) {
+			// Don't try and disconnect if there's no connection
+			if (!this.connection) {
+				return;
+			}
+
+			// If there's a custom code pass it to the close method
+			if (code) {
+				this.connection.close(code, message);
+				return;
+			}
+
+			// Fallback to a "ok" disconnect
+			if (this.connection.readyState !== this.connection.CLOSED) {
 				// 4200 === ok
 				this.connection.close(4200, JSON.stringify({
 					message: 'OK'

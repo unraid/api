@@ -103,11 +103,11 @@ am(async () => {
 
 			// Disconnect relay
 			apiManagerLogger.debug('Disconnecting relay');
-			await sockets.get('relay')?.disconnect();
+			await sockets.get('relay')?.disconnect(4401);
 
 			// Disconnect internal graphql
 			apiManagerLogger.debug('Disconnecting internalGraphql');
-			await sockets.get('internalGraphql')?.disconnect();
+			await sockets.get('internalGraphql')?.disconnect(4401);
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
