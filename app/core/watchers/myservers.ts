@@ -8,6 +8,9 @@ import { coreLogger } from '../log';
 import { paths } from '../paths';
 import * as Sentry from '@sentry/node';
 import { loadState } from '../utils';
+import { mothership } from '../../mothership/subscribe-to-servers';
+import { apiManager } from '../api-manager';
+import { MessageTypes } from 'subscriptions-transport-ws';
 
 export const myservers = () => {
 	const watchers: chokidar.FSWatcher[] = [];
@@ -37,10 +40,37 @@ export const myservers = () => {
 				// missing it's likely we shipped without Sentry
 				// initialised. This would be done for a reason!
 				if (sentryClient) {
-					sentryClient.getOptions().enabled = isEnabled;
+					// Check if the value changed
+					if (sentryClient.getOptions().enabled !== isEnabled) {
+						sentryClient.getOptions().enabled = isEnabled;
 
-					// Log for debugging
-					coreLogger.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
+						// Log for debugging
+						coreLogger.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
+					}
+				}
+
+				// If we have no my_servers key disconnect from mothership's subscription endpoint
+				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
+					// Disconnect forcefully from mothership so we ensure it doesn't reconnect automatically
+					mothership.close(true, true);
+				}
+
+				// If we have a my_servers key reconnect to mothership
+				if (apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 1) {
+					// Reconnect to mothership
+					mothership.connect();
+
+					// Reregister all subscriptions
+					// @ts-expect-error
+					Object.keys(mothership.operations).forEach(id => {
+						mothership.sendMessage(
+							id,
+							// @ts-expect-error
+							MessageTypes.GQL_START,
+							// @ts-expect-error
+							mothership.operations[id].options
+						);
+					});
 				}
 			});
 

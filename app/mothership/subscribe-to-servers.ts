@@ -4,8 +4,8 @@ import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
 import { userCache, CachedServers } from '../cache';
 
 const log = logger.createChild({ prefix: 'subscribe-to-servers' });
-const client = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
-	reconnect: true,
+export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
+	reconnect: false,
 	lazy: true,
 	minTimeout: ONE_SECOND * 30,
 	connectionCallback: errors => {
@@ -23,7 +23,7 @@ const client = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 
 export const subscribeToServers = async (apiKey: string) => {
 	log.silly('Subscribing to servers with %s', apiKey);
-	const query = client.request({
+	const query = mothership.request({
 		query: `subscription servers ($apiKey: String!) {
             servers @auth(apiKey: $apiKey)
         }`,
