@@ -107,7 +107,7 @@ jobs:
     - name: Install node v14
       uses: actions/setup-node@v1
       with:
-        node-version: 14
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v2
@@ -157,7 +157,7 @@ jobs:
     - name: Install node v14
       uses: actions/setup-node@v1
       with:
-        node-version: 14
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v2
@@ -175,14 +175,6 @@ jobs:
     - name: Unpack unraid-api source tgz
       shell: bash
       run: tar xvzf ./unraid-api-*.tgz --strip 1 && rm ./unraid-api-*.tgz
-
-    - name: Load nexe cache
-      uses: actions/cache@v2
-      with:
-        path: ~/.nexe
-        key: ${{ runner.os }}-nexe-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-nexe-${{ hashFiles('**/package-lock.json') }}
 
     - name: Install nexe
       run: npm i -g nexe
