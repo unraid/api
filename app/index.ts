@@ -139,13 +139,9 @@ am(async () => {
 			// Make note of API key
 			lastKnownApiKey = newApiKey;
 
-			// Let's reconnect all sockets
-			await sockets.get('relay')?.reconnect();
-			await sockets.get('internalGraphql')?.reconnect();
-
-			// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
-			mothership.close();
-			coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
+			// Let's connect all sockets
+			await sockets.get('relay')?.connect();
+			await sockets.get('internalGraphql')?.connect();
 
 			// Reconnect subscriptions if we now have a valid key
 			if (newApiKey) {
@@ -153,6 +149,10 @@ am(async () => {
 
 				// Connect to the subscription endpoint
 				mothership.tryReconnect();
+			} else {
+				// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
+				mothership.close();
+				coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
 			}
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
