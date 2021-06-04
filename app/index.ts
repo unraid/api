@@ -140,9 +140,11 @@ am(async () => {
 
 			// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
 			mothership.close();
-			coreLogger.debug('Disconnected mothership\'s subscription endpoint.');
+			coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
 
 			if (newApiKey) {
+				coreLogger.debug('Connecting to mothership\'s subscription endpoint.');
+
 				// Connect to the subscription endpoint
 				mothership.connect();
 
@@ -150,7 +152,9 @@ am(async () => {
 				const operations = mothership.operations;
 
 				// Re-register all subscriptions
+				coreLogger.debug(`Re-registering ${Object.keys(operations).length} subs with mothership's subscription endpoint.`);
 				Object.keys(operations).forEach(id => {
+					coreLogger.debug(`Re-registering sub "${id}" with mothership's subscription endpoint.`);
 					mothership.sendMessage(id, MessageTypes.GQL_START as any, operations[id].options);
 				});
 			}
