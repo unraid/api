@@ -155,6 +155,7 @@ export class CustomSocket {
 
 			// If there's a custom code pass it to the close method
 			if (code) {
+				this.logger.error('Disconnect with code=%s reason=%s', code, message);
 				this.connection.close(code, message);
 				return;
 			}
@@ -162,12 +163,11 @@ export class CustomSocket {
 			// Fallback to a "ok" disconnect
 			if (this.connection.readyState !== this.connection.CLOSED) {
 				// 4200 === ok
-				this.connection.close(4200, JSON.stringify({
-					message: 'OK'
-				}));
+				this.logger.error('Disconnect with code=%s reason=%s', code, 'OK');
+				this.connection.close(4200, '{"message":"OK"}');
 			}
 		} catch (error: unknown) {
-			this.logger.error('Failed disconnecting reason=%s', (error as Error).message);
+			this.logger.error('Failed disconnecting code=%s reason=%s', code, (error as Error).message);
 		} finally {
 			lock.release();
 		}
@@ -292,14 +292,19 @@ export class CustomSocket {
 
 			// We shouldn't reconnect
 			if (!shouldReconnect) {
+				logger.error('Skipping reconnecting to %s as "shouldReconnect" is true', uri);
 				return;
 			}
 
 			try {
+				const sleepMs = backoff(connectionAttempts, ONE_MINUTE, 5);
+				logger.error('Waiting for %s before re-connecting to %s', sleepMs, uri);
+
 				// Wait a few seconds
-				await sleep(backoff(connectionAttempts, ONE_MINUTE, 5));
+				await sleep(sleepMs);
 
 				// Reconnect
+				logger.error('Establishing connection to %s', uri);
 				await connect(connectionAttempts + 1);
 			} catch (error: unknown) {
 				logger.error('Failed reconnecting to %s reason="%s"', uri, (error as Error).message);
