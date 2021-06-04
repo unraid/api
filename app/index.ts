@@ -12,6 +12,8 @@ import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './c
 import { server } from './server';
 import { InternalGraphql, MothershipSocket } from './mothership';
 import { sockets } from './sockets';
+import { mothership } from './mothership/subscribe-to-servers';
+import { MessageTypes } from 'subscriptions-transport-ws';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json') as { version: string };
@@ -135,6 +137,23 @@ am(async () => {
 			// Let's reconnect all sockets
 			await sockets.get('relay')?.reconnect();
 			await sockets.get('internalGraphql')?.reconnect();
+
+			// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
+			mothership.close();
+			coreLogger.debug('Disconnected mothership\'s subscription endpoint.');
+
+			if (newApiKey) {
+				// Connect to the subscription endpoint
+				mothership.connect();
+
+				// @ts-expect-error
+				const operations = mothership.operations;
+
+				// Re-register all subscriptions
+				Object.keys(operations).forEach(id => {
+					mothership.sendMessage(id, MessageTypes.GQL_START as any, operations[id].options);
+				});
+			}
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}
