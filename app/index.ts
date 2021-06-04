@@ -35,7 +35,7 @@ Sentry.setUser({
 
 // Boot app
 am(async () => {
-	let lastknownApiKey: string;
+	let lastKnownApiKey: string;
 
 	// Load core
 	await core.load();
@@ -73,7 +73,7 @@ am(async () => {
 			}
 
 			// Make note of API key
-			lastknownApiKey = apiKey.key;
+			lastKnownApiKey = apiKey.key;
 
 			// Create internal graphql socket
 			coreLogger.debug('Creating internal graphql socket');
@@ -126,13 +126,15 @@ am(async () => {
 			}
 
 			// Ignore this key if it's the same as our current key.
-			if (newApiKey === lastknownApiKey) {
+			if (newApiKey === lastKnownApiKey) {
 				apiManagerLogger.debug('API key has\'t changed');
 				return;
 			}
 
+			apiManagerLogger.debug('Replacing my_servers key. Last known key was %s. New key is %s', lastKnownApiKey, newApiKey);
+
 			// Make note of API key
-			lastknownApiKey = newApiKey;
+			lastKnownApiKey = newApiKey;
 
 			// Let's reconnect all sockets
 			await sockets.get('relay')?.reconnect();
@@ -142,21 +144,12 @@ am(async () => {
 			mothership.close();
 			coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
 
+			// Reconnect subscriptions if we now have a valid key
 			if (newApiKey) {
 				coreLogger.debug('Connecting to mothership\'s subscription endpoint.');
 
 				// Connect to the subscription endpoint
-				mothership.connect();
-
-				// @ts-expect-error
-				const operations = mothership.operations;
-
-				// Re-register all subscriptions
-				coreLogger.debug(`Re-registering ${Object.keys(operations).length} subs with mothership's subscription endpoint.`);
-				Object.keys(operations).forEach(id => {
-					coreLogger.debug(`Re-registering sub "${id}" with mothership's subscription endpoint.`);
-					mothership.sendMessage(id, MessageTypes.GQL_START as any, operations[id].options);
-				});
+				mothership.tryReconnect();
 			}
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);

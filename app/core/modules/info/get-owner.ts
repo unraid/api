@@ -27,7 +27,11 @@ export const getOwner = async function (context: CoreContext): Promise<CoreResul
 
 	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
 
-	log.debug('Found API key for my_servers "%s"', apiKey);
+	if (apiKey) {
+		log.debug('Found API key for my_servers "%s"', apiKey);
+	} else {
+		log.debug('Found no API key for my_servers');
+	}
 
 	const server = apiKey ? await getServers().then(servers => servers.find(server => server.apikey === apiKey)) : null;
 
