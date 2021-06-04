@@ -146,10 +146,14 @@ export class CustomSocket {
 	}
 
 	public async disconnect(code?: number, message?: string) {
+		this.logger.debug('Disconnecting from %s', this.uri);
 		const lock = await this.getLock();
 		try {
+			this.logger.debug('Lock aquired for disconnection from %s', this.uri);
+
 			// Don't try and disconnect if there's no connection
-			if (!this.connection) {
+			if (!this.connection || (this.connection.readyState === this.connection.CLOSED)) {
+				this.logger.debug('Cannot disconnect from %s as it\'s already disconnected', this.uri);
 				return;
 			}
 
@@ -161,11 +165,9 @@ export class CustomSocket {
 			}
 
 			// Fallback to a "ok" disconnect
-			if (this.connection.readyState !== this.connection.CLOSED) {
-				// 4200 === ok
-				this.logger.error('Disconnect with code=%s reason=%s', code, 'OK');
-				this.connection.close(4200, '{"message":"OK"}');
-			}
+			// 4200 === ok
+			this.logger.error('Disconnect with code=%s reason=%s', code, 'OK');
+			this.connection.close(4200, '{"message":"OK"}');
 		} catch (error: unknown) {
 			this.logger.error('Failed disconnecting code=%s reason=%s', code, (error as Error).message);
 		} finally {
@@ -174,7 +176,7 @@ export class CustomSocket {
 	}
 
 	public async reconnect() {
-		this.logger.error(`Reconnecting to ${this.uri}`);
+		this.logger.warn(`Reconnecting to ${this.uri}`);
 		return this.disconnect();
 	}
 
