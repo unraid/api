@@ -118,8 +118,11 @@ am(async () => {
 	// If the key changes try to (re)connect to Mothership
 	// The internal graphql check needs to be done
 	// first so it'll be up before relay connects
-	apiManager.on('replace', async (name, newApiKey) => {
+	apiManager.on('replace', async (name, keyEntry) => {
 		try {
+			// Get key in string format
+			const newApiKey = keyEntry.key;
+
 			// Bail if this isn't our key
 			if (name !== 'my_servers') {
 				return;
