@@ -79,6 +79,18 @@ const getPid = async (cache: CacheManager, namespace: string): Promise<string | 
 		return;
 	}
 
+	// If we got more than 1 pid back we may have just started
+	// because of this we need to make sure we return the "newest" pid
+	const pids = pid.split(' ');
+	if (pids.length >= 2) {
+		const uptimePromises = pids.map(async (pid): Promise<[string, number]> => [pid, await getUptime(pid)]);
+		const uptimeEntries = await Promise.all(uptimePromises);
+		const uptimes = uptimeEntries.sort((a, b) => a[1] - b[1]);
+		const newestPid = uptimes[0][0];
+		pid = newestPid;
+	}
+
+	// Log for debugging
 	coreLogger.debug('Setting pid for %s to %s', namespace, pid);
 
 	// Update cache
