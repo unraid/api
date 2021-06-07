@@ -83,7 +83,8 @@ export const my_servers = {
 		{ resource: 'service/unraid-api', action: 'read:any', attributes: '*' },
 		{ resource: 'services', action: 'read:any', attributes: '*' },
 		{ resource: 'uptime', action: 'read:any', attributes: '*' },
-		{ resource: 'user', action: 'read:any', attributes: '*' }
+		{ resource: 'user', action: 'read:any', attributes: '*' },
+		{ resource: 'os', action: 'read:any', attributes: '*' }
 	]
 };
 
