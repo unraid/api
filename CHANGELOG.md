@@ -2,6 +2,62 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.18.0](https://github.com/unraid/api/compare/v2.17.4...v2.18.0) (2021-06-07)
+
+
+### Features
+
+* add autoStart to vm endpoint ([47d2c32](https://github.com/unraid/api/commit/47d2c3290070a9a82a97371b44dc214c7c706264))
+
+
+### Bug Fixes
+
+* add 'servers' permission to my_servers key ([715f94a](https://github.com/unraid/api/commit/715f94ab9862617bceea9c2b2a552e167b6092bb))
+* add en_US as fallback for display.locale ([b97e2f5](https://github.com/unraid/api/commit/b97e2f5bf6e6449c0271cd64e7fc8d8653231c3f))
+* add logging to switch-env ([ff6bf14](https://github.com/unraid/api/commit/ff6bf141db23fa77e3b47ef75e1b377483e772a3))
+* add permission to admin role ([81e064d](https://github.com/unraid/api/commit/81e064da4ec29a0d43a5458375a6f9ff12005a9b))
+* add quotes to serialized upc ([17c9f6e](https://github.com/unraid/api/commit/17c9f6e09b006225b4248f75df16167a97ed95fe))
+* add unraid api version to header ([2f4a8f9](https://github.com/unraid/api/commit/2f4a8f9e8deec5f559d00f2eb70542f287ec1aae))
+* allow upc keys to access display endpoint ([ba13ff9](https://github.com/unraid/api/commit/ba13ff94bf6c2dbd7eda59df0aecaccf343f363a))
+* convert libvirt code to new library ([3acb9a3](https://github.com/unraid/api/commit/3acb9a3f7f3c0c06b0dfba3696e4ee5472d0c212))
+* don't build nexe ([b2d59f3](https://github.com/unraid/api/commit/b2d59f34c3ad01c55c8be848a42cca9ae6d012f5))
+* dont reconnect on 401 ([83cbd67](https://github.com/unraid/api/commit/83cbd678f764954ca316c5c74e792163a66c2be3))
+* dynamically get the current environment ([4c72ffa](https://github.com/unraid/api/commit/4c72ffac19d47bbd6d0562fb6d647400710fd4af))
+* ensure API key shouldnt care if my_servers exists ([2048d61](https://github.com/unraid/api/commit/2048d61a27d81633f4819c1b051769022c7fce01))
+* ensure api manager reloads my_servers key ([223a6e6](https://github.com/unraid/api/commit/223a6e6bf42605ebe2716931250ca4edb12acce0))
+* ensure correct env is shown if it's changed within app ([e9bebbb](https://github.com/unraid/api/commit/e9bebbbaa7e2a1ae9f2fe0e1f3a604f2588bef92))
+* if we have multiple pids return newest ([17251f8](https://github.com/unraid/api/commit/17251f83a98201b3503ad15bf5e01e2b99419e4d))
+* imports ([d19eb80](https://github.com/unraid/api/commit/d19eb80f14220971924ee2fd9d07fc4d9455dc3e))
+* include libvirt-devel in workflow ([75fb835](https://github.com/unraid/api/commit/75fb835851c54b60354766ed8306c37740e73d7f))
+* include quotes around env name ([a87bd92](https://github.com/unraid/api/commit/a87bd9255f7f0efdf855d3b6e749e4bec5a7d726))
+* incorrect key being passed ([5858398](https://github.com/unraid/api/commit/58583985dc2af657a5a69b9a566eb05f9ccdc16d))
+* keep quotes when serializing upc key ([9ac16c8](https://github.com/unraid/api/commit/9ac16c80865baf6862f4f4741920a14dc0c8e698))
+* on registation key change allow api manager to reload sockets ([c238b3c](https://github.com/unraid/api/commit/c238b3c0ae4e363c932e992439584f3030b4add8))
+* only emit key expired event if the key just expired ([3ac1fdb](https://github.com/unraid/api/commit/3ac1fdb8f9fbe92fd25c42b38f979b69a47b61be))
+* os.uptime timestamp ([71e97c9](https://github.com/unraid/api/commit/71e97c9c616e6273b64b57d1c3e7f0559fd97336))
+* preserve quotes when saving my servers config file ([34a0335](https://github.com/unraid/api/commit/34a03354bf379d96a699fcbccfb6a0c202ca92f1))
+* reconnect to internal relay on my_servers reload ([4eaf0a4](https://github.com/unraid/api/commit/4eaf0a472a06e9d4c176ed41265cdcf65ffbccb7))
+* reconnect to mothership's subcription endpoint on key change ([d537c6e](https://github.com/unraid/api/commit/d537c6ee8bd27d89be3cc224023b624bb7b337b6))
+* reconnect to sockets on key change ([607ff46](https://github.com/unraid/api/commit/607ff4666e036029ae05676f9bf219241bbd63ab))
+* return correct owner for endpoint ([b1a58f9](https://github.com/unraid/api/commit/b1a58f951156e98ee35f4fe7d35124896281b5be))
+* return local server if no my_server key exists ([ef78616](https://github.com/unraid/api/commit/ef7861691c35d97fa7e5b7017e20fca7c11bed43))
+* return null is owner is signed out of myservers ([9a41a3d](https://github.com/unraid/api/commit/9a41a3d79a735ae827f7d279b35ee1134eb94e84))
+* switch libvirt libs ([36a1f58](https://github.com/unraid/api/commit/36a1f58632849e4130d92e2187f22ce2decbfb02))
+* switch to dedent-tabs ([1495ffd](https://github.com/unraid/api/commit/1495ffddd3030497ed6fafdfc68f40c254c67507))
+* switch-env ([335daba](https://github.com/unraid/api/commit/335dabaea0184225d70002f27f84ba5ec313283c))
+* try disconnecting/reconnect to relay from watcher ([ad750f5](https://github.com/unraid/api/commit/ad750f5753f1fdf42c6330c63e4f23a523fadbfb))
+* use -1 for service account ids ([1218f9f](https://github.com/unraid/api/commit/1218f9f950a89d32be5a9b66edb2b640ada8e71f))
+* use 401 when disconnecting for invalid api key ([ee21f0b](https://github.com/unraid/api/commit/ee21f0b2ecbc17ea6bdcc203c524180a4b7fd0db))
+* use debug log level if debug flag used ([eb5e0af](https://github.com/unraid/api/commit/eb5e0afb7deaeb8bf4ca6ead8be6ba7e936acb87))
+* use display.locale not display for locale value ([98432a4](https://github.com/unraid/api/commit/98432a4059263aee6e7d0b94eeb1fa9d6ef4e3eb))
+* use env from user before flag ([e37eac6](https://github.com/unraid/api/commit/e37eac662c9cc27e4a3aeae4f882a7a8aa0c58db))
+* use service account for internal user and fix root permissions ([26ddc52](https://github.com/unraid/api/commit/26ddc520edfc456f8c02aefdbbb908e500523aba))
+* use subscription client reconnect method ([5d764d8](https://github.com/unraid/api/commit/5d764d8056397e9734b63b6991897e3fa12c46d4))
+* use the exact version nexe wants ([10cce9b](https://github.com/unraid/api/commit/10cce9b16fc367c73a8e6a14764d10fc91accccb))
+* write correct file on switch ([19b26d7](https://github.com/unraid/api/commit/19b26d7843f92e046450c82ae055484b2b0eb723))
+* wrong env and dedent ([58a3813](https://github.com/unraid/api/commit/58a381316ed59bd0e035574a908dfb4db0f69640))
+* wrong import ([bd1cbb5](https://github.com/unraid/api/commit/bd1cbb566d31ff09e5c6c9b842fedc8d418ac0d2))
+
 ### [2.17.4](https://github.com/unraid/api/compare/v2.17.3...v2.17.4) (2021-05-14)
 
 
