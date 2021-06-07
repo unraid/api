@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.2](https://github.com/unraid/api/compare/v2.18.1...v2.18.2) (2021-06-07)
+
+
+### Bug Fixes
+
+* missing my_servers permissions for machine-id ([2f33491](https://github.com/unraid/api/commit/2f334916049eeb5fa75c311daad5b4777404cc4c))
+* missing my_servers permissions for unraid-version ([5781dc8](https://github.com/unraid/api/commit/5781dc864ad01c38fd696a83287a9d608970dfc6))
+
 ### [2.18.1](https://github.com/unraid/api/compare/v2.18.0...v2.18.1) (2021-06-07)
 
 
