@@ -86,7 +86,8 @@ export const my_servers = {
 		{ resource: 'user', action: 'read:any', attributes: '*' },
 		{ resource: 'os', action: 'read:any', attributes: '*' },
 		{ resource: 'unraid-version', action: 'read:any', attributes: '*' },
-		{ resource: 'machine-id', action: 'read:any', attributes: '*' }
+		{ resource: 'machine-id', action: 'read:any', attributes: '*' },
+		{ resource: 'software-versions', action: 'read:any', attributes: '*' }
 	]
 };
 
