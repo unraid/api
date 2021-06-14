@@ -43,7 +43,7 @@ const getTemperature = async (disk: Systeminformation.DiskLayoutData): Promise<n
 	return Number.parseInt(line[line.length - 1], 10);
 };
 
-const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToParse: Systeminformation.BlockDevicesData[]): Promise<Disk> => {
+const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToParse: Systeminformation.BlockDevicesData[], temperature = false): Promise<Disk> => {
 	const partitions = partitionsToParse
 		// Only get partitions from this disk
 		.filter(partition => partition.name.startsWith(disk.device.split('/dev/')[1]))
@@ -58,7 +58,7 @@ const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToPar
 		...disk,
 		smartStatus: uppercaseFirstChar(disk.smartStatus.toLowerCase()),
 		interfaceType: disk.interfaceType || 'UNKNOWN',
-		temperature: await getTemperature(disk),
+		temperature: temperature ? await getTemperature(disk) : -1,
 		partitions
 	};
 };
@@ -70,7 +70,7 @@ interface Result extends CoreResult {
 /**
  * Get all disks.
  */
-export const getDisks = async (context: CoreContext): Promise<Result> => {
+export const getDisks = async (context: CoreContext, options?: { temperature: boolean }): Promise<Result> => {
 	const { user } = context;
 
 	// Check permissions
@@ -80,8 +80,19 @@ export const getDisks = async (context: CoreContext): Promise<Result> => {
 		possession: 'any'
 	});
 
+	// Return all fields but temperature
+	if (options?.temperature === false) {
+		const partitions = await blockDevices().then(devices => devices.filter(device => device.type === 'part'));
+		const disks = await asyncMap(await diskLayout(), async disk => parseDisk(disk, partitions));
+
+		return {
+			text: `Disks: ${JSON.stringify(disks, null, 2)}`,
+			json: disks
+		};
+	}
+
 	const partitions = await blockDevices().then(devices => devices.filter(device => device.type === 'part'));
-	const disks = await asyncMap(await diskLayout(), async disk => parseDisk(disk, partitions));
+	const disks = await asyncMap(await diskLayout(), async disk => parseDisk(disk, partitions, true));
 
 	return {
 		text: `Disks: ${JSON.stringify(disks, null, 2)}`,

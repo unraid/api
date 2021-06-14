@@ -2,7 +2,7 @@ type Query {
     """Single disk"""
     disk(id: ID!): Disk @func(module: "getDisk")
     """Mulitiple disks"""
-    disks: [Disk]! @func(module: "getDisks")
+    disks: [Disk]!
 }
 type Disk {
     # /dev/sdb
