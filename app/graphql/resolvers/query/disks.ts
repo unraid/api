@@ -18,5 +18,6 @@ interface Context extends CoreContext {
 
 export default async (_: unknown, args: unknown, context: Context, info: any) => {
 	const topLevelFields = Object.keys(graphqlFields(info));
-	return getDisks(context, { temperature: topLevelFields.includes('temperature') });
+	const disks = await getDisks(context, { temperature: topLevelFields.includes('temperature') });
+	return disks.json;
 };
