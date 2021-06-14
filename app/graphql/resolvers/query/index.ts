@@ -4,6 +4,7 @@
  */
 import crashReportingEnabled from './crash-reporting-enabled';
 import display from './display';
+import disks from './disks';
 import flash from './flash';
 import info from './info';
 import online from './online';
@@ -15,6 +16,7 @@ import vms from './vms';
 
 export const Query = {
 	crashReportingEnabled,
+	disks,
 	display,
 	flash,
 	info,
