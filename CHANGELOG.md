@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.4](https://github.com/unraid/api/compare/v2.18.3...v2.18.4) (2021-06-16)
+
+
+### Bug Fixes
+
+* add disks as resolver ([0b99e06](https://github.com/unraid/api/commit/0b99e066d794591cae12a156889d866fb11c2225))
+* only lookup disk temp when requested ([cd245c9](https://github.com/unraid/api/commit/cd245c9063f6aac65d7cd4ffec73f61b33c2e9e3))
+* return data on disks endpoint ([8122dc0](https://github.com/unraid/api/commit/8122dc0fa9c0006f7c47f49c97bc890e9ad6f098))
+
 ### [2.18.3](https://github.com/unraid/api/compare/v2.18.2...v2.18.3) (2021-06-07)
 
 
