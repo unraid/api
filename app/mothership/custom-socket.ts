@@ -281,6 +281,10 @@ export class CustomSocket {
 					clearTimeout(this.heartbeat);
 				}
 
+				// Log this for debugging
+				// @todo remove this logging
+				console.log('ws closed with', { code, _message });
+
 				// Known status code
 				if (Object.keys(responses).includes(`${code}`)) {
 					await responses[code](message);
