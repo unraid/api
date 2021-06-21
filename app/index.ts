@@ -13,7 +13,6 @@ import { server } from './server';
 import { InternalGraphql, MothershipSocket } from './mothership';
 import { sockets } from './sockets';
 import { mothership } from './mothership/subscribe-to-servers';
-import { MessageTypes } from 'subscriptions-transport-ws';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json') as { version: string };
@@ -105,11 +104,11 @@ am(async () => {
 
 			// Disconnect relay
 			apiManagerLogger.debug('Disconnecting relay');
-			await sockets.get('relay')?.disconnect(4401);
+			await sockets.get('relay')?.disconnect(401);
 
 			// Disconnect internal graphql
 			apiManagerLogger.debug('Disconnecting internalGraphql');
-			await sockets.get('internalGraphql')?.disconnect(4401);
+			await sockets.get('internalGraphql')?.disconnect(401);
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}

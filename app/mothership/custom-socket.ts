@@ -86,7 +86,7 @@ export class CustomSocket {
 		return async function (this: WebSocketWithHeartBeat) {
 			try {
 				if (!apiKey || (typeof apiKey === 'string' && apiKey.length === 0)) {
-					throw new AppError('Missing key', 4422);
+					throw new AppError('Missing key', 422);
 				}
 
 				logger.debug('Connected via %s.', connection?.url);
@@ -95,9 +95,9 @@ export class CustomSocket {
 				customSocket.connectionAttempts = 0;
 			} catch (error: unknown) {
 				if (isNodeError(error, AppError)) {
-					this.close(Number(error.code?.length === 4 ? error.code : `4${error.code ?? 500}`), 'INTERNAL_SERVER_ERROR');
+					this.close(Number(error.code ?? 500), 'INTERNAL_SERVER_ERROR');
 				} else {
-					this.close(4500, 'INTERNAL_SERVER_ERROR');
+					this.close(500, 'INTERNAL_SERVER_ERROR');
 				}
 			}
 		};
@@ -167,7 +167,7 @@ export class CustomSocket {
 			// Fallback to a "ok" disconnect
 			// 4200 === ok
 			this.logger.error('Disconnect with code=%s reason=%s', code, 'OK');
-			this.connection.close(4200, '{"message":"OK"}');
+			this.connection.close(200, '{"message":"OK"}');
 		} catch (error: unknown) {
 			this.logger.error('Failed disconnecting code=%s reason=%s', code, (error as Error).message);
 		} finally {
@@ -207,19 +207,19 @@ export class CustomSocket {
 				connectionAttempts = 0;
 			},
 			// OK
-			4200: async () => {
+			200: async () => {
 				// This is usually because the API key is updated
 				// Let's reset the reconnect count so we reconnect instantly
 				this.connectionAttempts = 0;
 				connectionAttempts = 0;
 			},
 			// Unauthorized - Invalid/missing API key.
-			4401: async () => {
+			401: async () => {
 				this.logger.debug('Invalid API key, waiting for new key...');
 				shouldReconnect = false;
 			},
 			// Request Timeout - Mothership disconnected us.
-			4408: async () => {
+			408: async () => {
 				// Mothership kicked this connection for any number of reasons
 				this.logger.debug('Kicked by mothership, reconnecting...');
 
@@ -231,12 +231,12 @@ export class CustomSocket {
 				connectionAttempts = 0;
 			},
 			// Outdated
-			4426: async () => {
+			426: async () => {
 				// Mark this client as outdated so it doesn't reconnect
 				this.isOutdated = true;
 			},
 			// Rate limited
-			4429: async message => {
+			429: async message => {
 				try {
 					let interval: NodeJS.Timeout | undefined;
 					const retryAfter = parseInt(message['Retry-After'], 10) || 30;
@@ -263,7 +263,7 @@ export class CustomSocket {
 				} catch {}
 			},
 			// Server Error
-			4500: async () => {
+			500: async () => {
 				// Something went wrong on the connection
 				// Let's wait an extra bit
 				await sleep(ONE_SECOND * 5);
@@ -286,7 +286,7 @@ export class CustomSocket {
 					await responses[code](message);
 				} else {
 					// Unknown status code
-					await responses[4500]();
+					await responses[500]();
 				}
 			} catch (error: unknown) {
 				logger.error('Connection closed with code=%s reason="%s"', code, (error as Error).message);
@@ -317,7 +317,7 @@ export class CustomSocket {
 	protected async cleanup() {
 		// Kill existing socket connection
 		if (this.connection?.heartbeat) {
-			this.connection.close(4408, 'REQUEST_TIMEOUT');
+			this.connection.close(408, 'REQUEST_TIMEOUT');
 		}
 	}
 
