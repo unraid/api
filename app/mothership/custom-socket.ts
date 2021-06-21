@@ -207,19 +207,19 @@ export class CustomSocket {
 				connectionAttempts = 0;
 			},
 			// OK
-			200: async () => {
+			4200: async () => {
 				// This is usually because the API key is updated
 				// Let's reset the reconnect count so we reconnect instantly
 				this.connectionAttempts = 0;
 				connectionAttempts = 0;
 			},
 			// Unauthorized - Invalid/missing API key.
-			401: async () => {
+			4401: async () => {
 				this.logger.debug('Invalid API key, waiting for new key...');
 				shouldReconnect = false;
 			},
 			// Request Timeout - Mothership disconnected us.
-			408: async () => {
+			4408: async () => {
 				// Mothership kicked this connection for any number of reasons
 				this.logger.debug('Kicked by mothership, reconnecting...');
 
@@ -231,12 +231,12 @@ export class CustomSocket {
 				connectionAttempts = 0;
 			},
 			// Outdated
-			426: async () => {
+			4426: async () => {
 				// Mark this client as outdated so it doesn't reconnect
 				this.isOutdated = true;
 			},
 			// Rate limited
-			429: async message => {
+			4429: async message => {
 				try {
 					let interval: NodeJS.Timeout | undefined;
 					const retryAfter = parseInt(message['Retry-After'], 10) || 30;
@@ -263,27 +263,21 @@ export class CustomSocket {
 				} catch {}
 			},
 			// Server Error
-			500: async () => {
+			4500: async () => {
 				// Something went wrong on the connection
 				// Let's wait an extra bit
 				await sleep(ONE_SECOND * 5);
 			}
 		};
-		return async function (this: WebSocketWithHeartBeat, code: number, _message: string) {
+		return async function (this: WebSocketWithHeartBeat, code: number, message: string) {
 			try {
-				const message: { message?: string } = _message.trim() === '' ? { message: '' } : JSON.parse(_message);
-
 				// Log disconnection
-				logger.error('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message.message);
+				logger.error('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message);
 
 				// Stop ws heartbeat
 				if (this.heartbeat) {
 					clearTimeout(this.heartbeat);
 				}
-
-				// Log this for debugging
-				// @todo remove this logging
-				console.log('ws closed with', { code, _message });
 
 				// Known status code
 				if (Object.keys(responses).includes(`${code}`)) {
