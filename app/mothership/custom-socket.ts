@@ -167,7 +167,7 @@ export class CustomSocket {
 			// Fallback to a "ok" disconnect
 			// 4200 === ok
 			this.logger.error('Disconnect with code=%s reason=%s', code, 'OK');
-			this.connection.close(200, '{"message":"OK"}');
+			this.connection.close(4200, '{"message":"OK"}');
 		} catch (error: unknown) {
 			this.logger.error('Failed disconnecting code=%s reason=%s', code, (error as Error).message);
 		} finally {
