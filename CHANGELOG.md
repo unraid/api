@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.18.5](https://github.com/unraid/api/compare/v2.18.4...v2.18.5) (2021-06-21)
+
+
+### Bug Fixes
+
+* 200 === OK ([18628f2](https://github.com/unraid/api/commit/18628f2f5ea409d5b7d41e3a8ca49fe632097ced))
+* always use ws status codes ([8903f30](https://github.com/unraid/api/commit/8903f303c13cad8d1f3b9f8ded0db11dd0249158))
+* handle ws errors ([c7035e8](https://github.com/unraid/api/commit/c7035e8bee5243b091f4fdbe9db23236b6e6d50d))
+* use HTTP status codes for ws ([ba9ef24](https://github.com/unraid/api/commit/ba9ef2414205a6ef56ae804c64a040a9dcd6c565))
+
 ### [2.18.4](https://github.com/unraid/api/compare/v2.18.3...v2.18.4) (2021-06-16)
 
 
