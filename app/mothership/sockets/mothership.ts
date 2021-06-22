@@ -104,7 +104,7 @@ export class MothershipSocket extends CustomSocket {
 		return async function (this: WebSocketWithHeartBeat, error: any) {
 			try {
 				const messageParts = error.message.split('Unexpected server response: ');
-				const isHTTPError = messageParts.length !== 2;
+				const isHTTPError = messageParts.length === 2;
 
 				// Is this a HTTP error that was passed back before the ws estabished a connection?
 				// This is ususally fired in the "upgrade" phase before the request is upgraded.
