@@ -71,12 +71,6 @@ export class CustomSocket {
 		return this.connection && (this.connection.readyState === this.connection.CONNECTING);
 	}
 
-	public onError() {
-		return (error: NodeJS.ErrnoException) => {
-			this.logger.error('HTTP error while connecting to relay', error);
-		};
-	}
-
 	public onConnect() {
 		const logger = this.logger;
 		const connection = this.connection;
@@ -180,6 +174,102 @@ export class CustomSocket {
 		return this.disconnect();
 	}
 
+	public onError() {
+		// Connection attempts
+		let connectionAttempts = this.connectionAttempts;
+		let shouldReconnect = true;
+
+		const logger = this.logger;
+		const connect = this.connect.bind(this);
+		const uri = this.uri;
+		const responses = {
+			// Unauthorized - Invalid/missing API key.
+			401: async () => {
+				this.logger.debug('Invalid API key, waiting for new key...');
+				shouldReconnect = false;
+			},
+			// Outdated
+			426: async () => {
+				// Mark this client as outdated so it doesn't reconnect
+				this.isOutdated = true;
+			},
+			// Rate limited
+			429: async message => {
+				try {
+					let interval: NodeJS.Timeout | undefined;
+					const retryAfter = parseInt(message['Retry-After'], 10) || 30;
+					this.logger.debug('Rate limited, retrying after %ss', retryAfter);
+
+					// Less than 30s
+					if (retryAfter <= 30) {
+						let seconds = retryAfter;
+
+						// Print retry once per second
+						interval = setInterval(() => {
+							seconds--;
+							this.logger.debug('Retrying connection in %ss', seconds);
+						}, ONE_SECOND);
+					}
+
+					if (retryAfter >= 1) {
+						await sleep(ONE_SECOND * retryAfter);
+					}
+
+					if (interval) {
+						clearInterval(interval);
+					}
+				} catch {}
+			},
+			// Server Error
+			500: async () => {
+				// Something went wrong on the connection
+				// Let's wait an extra bit
+				await sleep(ONE_SECOND * 5);
+			}
+		};
+		return async function (this: WebSocketWithHeartBeat, code: number) {
+			try {
+				// Log disconnection
+				logger.error('HTTP connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message);
+
+				// Stop ws heartbeat
+				if (this.heartbeat) {
+					clearTimeout(this.heartbeat);
+				}
+
+				// Known status code
+				if (Object.keys(responses).includes(`${code}`)) {
+					await responses[code]();
+				} else {
+					// Unknown status code
+					await responses[500]();
+				}
+			} catch (error: unknown) {
+				logger.error('HTTP connection closed with code=%s reason="%s"', code, (error as Error).message);
+			}
+
+			// We shouldn't reconnect
+			if (!shouldReconnect) {
+				logger.error('Skipping reconnecting to %s as "shouldReconnect" is true', uri);
+				return;
+			}
+
+			try {
+				const sleepMs = backoff(connectionAttempts, ONE_MINUTE, 5);
+				logger.error('Waiting for %s before re-connecting to %s', sleepMs, uri);
+
+				// Wait a few seconds
+				await sleep(sleepMs);
+
+				// Reconnect
+				logger.error('Establishing connection to %s', uri);
+				await connect(connectionAttempts + 1);
+			} catch (error: unknown) {
+				logger.error('Failed reconnecting to %s reason="%s"', uri, (error as Error).message);
+			}
+		};
+	}
+
 	protected onDisconnect() {
 		// Connection attempts
 		let connectionAttempts = this.connectionAttempts;
@@ -272,7 +362,7 @@ export class CustomSocket {
 		return async function (this: WebSocketWithHeartBeat, code: number, message: string) {
 			try {
 				// Log disconnection
-				logger.error('Connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message);
+				logger.error('Websocket connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message);
 
 				// Stop ws heartbeat
 				if (this.heartbeat) {
@@ -287,7 +377,7 @@ export class CustomSocket {
 					await responses[500]();
 				}
 			} catch (error: unknown) {
-				logger.error('Connection closed with code=%s reason="%s"', code, (error as Error).message);
+				logger.error('Websocket connection closed with code=%s reason="%s"', code, (error as Error).message);
 			}
 
 			// We shouldn't reconnect

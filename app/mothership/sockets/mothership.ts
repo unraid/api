@@ -99,21 +99,27 @@ export class MothershipSocket extends CustomSocket {
 	}
 
 	onError() {
+		const onError = super.onError().bind(this as unknown as WebSocketWithHeartBeat);
 		const logger = this.logger;
-		return async function (this: WebSocketWithHeartBeat, error: NodeJS.ErrnoException) {
+		return async function (this: WebSocketWithHeartBeat, error: any) {
 			try {
-				logger.error(error);
+				const messageParts = error.split('Unexpected server response: ');
+				const isHTTPError = messageParts.length !== 2;
 
-				// The relay is down
-				if (error.message.includes('502')) {
-					// Sleep for 30 seconds
-					await sleep(ONE_MINUTE / 2);
+				// Is this a HTTP error that was passed back before the ws estabished a connection?
+				// This is ususally fired in the "upgrade" phase before the request is upgraded.
+				if (isHTTPError) {
+					// HTTP status code e.g. 401/429/500
+					const code = parseInt(messageParts[1], 10);
+
+					// Process error
+					await onError(code);
+					return;
 				}
 
 				// Connection refused, aka couldn't connect
 				// This is usually because the address is wrong or offline
 				if (error.code === 'ECONNREFUSED') {
-					// @ts-expect-error
 					logger.debug('Couldn\'t connect to %s:%s', error.address, error.port);
 					return;
 				}
@@ -128,7 +134,7 @@ export class MothershipSocket extends CustomSocket {
 			} catch {
 				// Unknown error
 				logger.error('socket error', error);
-			} finally {
+
 				// Kick the connection
 				this.close(4408, 'REQUEST_TIMEOUT');
 			}
