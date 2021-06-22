@@ -259,7 +259,7 @@ export class CustomSocket {
 				logger.error('Waiting for %s before re-connecting to %s', sleepMs, uri);
 
 				// Wait a few seconds
-				await sleep(sleepMs);
+				await sleep(sleepMs * 1000);
 
 				// Reconnect
 				logger.error('Establishing connection to %s', uri);
