@@ -227,7 +227,7 @@ export class CustomSocket {
 				await sleep(ONE_SECOND * 5);
 			}
 		};
-		return async function (this: WebSocketWithHeartBeat, code: number) {
+		return async function (this: WebSocketWithHeartBeat, code: number, message: string) {
 			try {
 				// Log disconnection
 				logger.error('HTTP connection closed with code=%s reason="%s"', code, code === 1006 ? 'Terminated' : message);
@@ -245,7 +245,7 @@ export class CustomSocket {
 					await responses[500]();
 				}
 			} catch (error: unknown) {
-				logger.error('HTTP connection closed with code=%s reason="%s"', code, (error as Error).message);
+				logger.error('HTTP connection closed with code=%s caught_error="%s"', code, (error as Error).message);
 			}
 
 			// We shouldn't reconnect
