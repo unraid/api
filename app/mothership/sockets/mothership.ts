@@ -103,15 +103,7 @@ export class MothershipSocket extends CustomSocket {
 		const logger = this.logger;
 		return async function (this: WebSocketWithHeartBeat, error: any) {
 			try {
-				console.log({
-					type: typeof error,
-					error,
-					keys: Object.keys(error),
-					code: error.code,
-					message: error.message
-				});
-
-				const messageParts = error.split('Unexpected server response: ');
+				const messageParts = error.message.split('Unexpected server response: ');
 				const isHTTPError = messageParts.length !== 2;
 
 				// Is this a HTTP error that was passed back before the ws estabished a connection?
@@ -141,7 +133,7 @@ export class MothershipSocket extends CustomSocket {
 				throw error;
 			} catch {
 				// Unknown error
-				logger.error('socket error', error);
+				logger.error('UNKNOWN_SOCKET_ERROR', error);
 
 				// Kick the connection
 				this.close(4408, 'REQUEST_TIMEOUT');
