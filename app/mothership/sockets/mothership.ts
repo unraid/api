@@ -68,7 +68,9 @@ export class MothershipSocket extends CustomSocket {
 
 				// Close connection to internal graphql
 				const internalGraphqlClient = sockets.get('internalGraphql');
-				await internalGraphqlClient?.disconnect();
+				if (internalGraphqlClient?.isConnected) {
+					await internalGraphqlClient?.disconnect();
+				}
 
 				// Process disconnection
 				await onDisconnect(code, message);
