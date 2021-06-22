@@ -20,7 +20,6 @@ export interface Paths {
 	'myservers-base': string;
 	'myservers-config': string;
 	'myservers-env': string;
-	'nginx-origin': string;
 	'machine-id': string;
 }
 
@@ -54,7 +53,6 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['myservers-base', '/boot/config/plugins/dynamix.my.servers/'],
 	['myservers-config', '/boot/config/plugins/dynamix.my.servers/myservers.cfg'],
 	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
-	['nginx-origin', '/var/run/nginx.origin'],
 	['machine-id', '/etc/machine-id']
 ]);
 
