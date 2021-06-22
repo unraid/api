@@ -73,7 +73,7 @@ export class CustomSocket {
 
 	public onError() {
 		return (error: NodeJS.ErrnoException) => {
-			this.logger.error(error);
+			this.logger.error('HTTP error while connecting to relay', error);
 		};
 	}
 
