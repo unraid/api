@@ -103,6 +103,14 @@ export class MothershipSocket extends CustomSocket {
 		const logger = this.logger;
 		return async function (this: WebSocketWithHeartBeat, error: any) {
 			try {
+				console.log({
+					type: typeof error,
+					error,
+					keys: Object.keys(error),
+					code: error.code,
+					message: error.message
+				});
+
 				const messageParts = error.split('Unexpected server response: ');
 				const isHTTPError = messageParts.length !== 2;
 
