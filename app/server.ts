@@ -62,7 +62,7 @@ const attemptReadFileSync = (path: string, fallback: any = undefined) => {
 // Cors options
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
 const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
-const hash = certPem ? pki.certificateFromPem(certPem).subject.hash : undefined;
+const hash = certPem ? pki.certificateFromPem(certPem).serialNumber : undefined;
 
 // Get extra origins from the user
 const extraOriginPath = paths.get('extra-origins');
@@ -73,7 +73,8 @@ const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extr
 const localIp = networkState.data[0].ipaddr[0];
 
 // Allow http://tower.local:${port}, http://${ip}:${port} and https://${hash}.unraid.net:${port}
-const allowedOrigins: string[] = [
+// We use a "Set" + "array spread" to deduplicate the strings
+const allowedOrigins: string[] = [...new Set([
 	// The webui
 	'http://tower.local',
 	`http://${localIp}`,
@@ -81,7 +82,7 @@ const allowedOrigins: string[] = [
 
 	// Other endpoints should be added below
 	...extraOrigins
-];
+]).values()];
 
 log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
 
