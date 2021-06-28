@@ -184,7 +184,7 @@ jobs:
       run: |
         VERSION=$(jq -r .version package.json) && \
         SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
-        jq --arg version \"$VERSION-$SHORT_HASH\" '.version = $version' package.json > package.json && \
+        jq --arg version $VERSION-$SHORT_HASH '.version = $version' package.json  > out.json && mv out.json package.json && \
         echo '✔ Version field updated'
 
     - name: Build binary
