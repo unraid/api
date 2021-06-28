@@ -99,7 +99,10 @@ const getAllowedOrigins = (): string[] => [...new Set([
 	`https://${serverName}.${localTld}:${webuiHTTPSPort}`,
 
 	// Hash
-	...(hash ? [`https://${hash}:${webuiHTTPSPort}`] : []),
+	...(hash ? [
+		`https://${hash}:${webuiHTTPSPort}`,
+		`https://www.${hash}:${webuiHTTPSPort}`
+	] : []),
 
 	// Other endpoints should be added below
 	...extraOrigins
