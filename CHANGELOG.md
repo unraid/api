@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.1](https://github.com/unraid/api/compare/v2.19.0...v2.19.1) (2021-06-28)
+
+
+### Bug Fixes
+
+* don't log CORS errors ([2312de2](https://github.com/unraid/api/commit/2312de2429d830b135c5d8537b8f10c707a35c9e))
+* origins ([ea68758](https://github.com/unraid/api/commit/ea68758328ca993b42b5cd6f36f838358ee9f377))
+
 ## [2.19.0](https://github.com/unraid/api/compare/v2.18.5...v2.19.0) (2021-06-28)
 
 
