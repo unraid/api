@@ -20,7 +20,7 @@ import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from '.
 import { graphql } from './graphql';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
-import { networkState, varState } from './core/states';
+import { networkState } from './core/states';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -62,7 +62,7 @@ const attemptReadFileSync = (path: string, fallback: any = undefined) => {
 // Cors options
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
 const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
-const hash = certPem ? pki.certificateFromPem(certPem).serialNumber : undefined;
+const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value : undefined;
 
 // Get extra origins from the user
 const extraOriginPath = paths.get('extra-origins');
