@@ -20,7 +20,7 @@ import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from '.
 import { graphql } from './graphql';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
-import { networkState } from './core/states';
+import { networkState, varState } from './core/states';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -72,23 +72,46 @@ const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extr
 // Get local ip from first ethernet adapter in the "network" state
 const localIp = networkState.data[0].ipaddr[0];
 
-// Allow http://tower.local:${port}, http://${ip}:${port} and https://${hash}.unraid.net:${port}
+// Get local tld
+const localTld = varState.data.localTld;
+
+// Get webui http port
+const webuiHTTPPort = varState.data.port;
+
+// Get webui https port
+const webuiHTTPSPort = varState.data.portssl;
+
+// Get server's hostname
+const serverName = varState.data.name;
+
 // We use a "Set" + "array spread" to deduplicate the strings
-const allowedOrigins: string[] = [...new Set([
-	// The webui
-	'http://tower.local',
-	`http://${localIp}`,
-	...(hash ? [`https://${hash}`] : []),
+const getAllowedOrigins = (): string[] => [...new Set([
+	// IP
+	`http://${localIp}:${webuiHTTPPort}`,
+	`https://${localIp}:${webuiHTTPSPort}`,
+
+	// Raw local TLD
+	`http://${serverName}:${webuiHTTPPort}`,
+	`https://${serverName}:${webuiHTTPSPort}`,
+
+	// Local TLD
+	`http://${serverName}.${localTld}:${webuiHTTPPort}`,
+	`https://${serverName}.${localTld}:${webuiHTTPSPort}`,
+
+	// Hash
+	...(hash ? [`https://${hash}:${webuiHTTPSPort}`] : []),
 
 	// Other endpoints should be added below
 	...extraOrigins
 ]).values()];
 
-log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
-
 // Cors
 app.use(cors({
 	origin: function (origin, callback) {
+		// Get currently allowed origins
+		const allowedOrigins = getAllowedOrigins();
+		log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
+
 		// Disallow requests with no origin
 		// (like mobile apps, curl requests or viewing /graphql directly)
 		if (!origin) {
