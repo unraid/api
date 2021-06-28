@@ -43,7 +43,7 @@ const app = express();
 // Graphql port
 const port = process.env.PORT ?? String(config.get('port'));
 
-const attemptJSONParse = (text: string, fallback: any) => {
+const attemptJSONParse = (text: string, fallback: any = undefined) => {
 	try {
 		return JSON.parse(text);
 	} catch {
@@ -51,10 +51,18 @@ const attemptJSONParse = (text: string, fallback: any) => {
 	}
 };
 
+const attemptReadFileSync = (path: string, fallback: any = undefined) => {
+	try {
+		return fs.readFileSync(path, 'utf-8');
+	} catch {
+		return fallback;
+	}
+};
+
 // Cors options
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
-const certPem = fs.readFileSync(paths.get('ssl-certificate')!, 'utf-8');
-const { hash } = pki.certificateFromPem(certPem).subject;
+const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
+const hash = certPem ? pki.certificateFromPem(certPem).subject.hash : undefined;
 
 // Get extra origins from the user
 const extraOriginPath = paths.get('extra-origins');
@@ -72,10 +80,10 @@ const allowedOrigins = [
 	// The webui
 	'http://tower.local',
 	`http://${localIp}${originPort}`,
-	`https://${hash}.unraid.net:${originPort}`,
+	...(hash ? [`https://${hash}.unraid.net:${originPort}`] : []),
 
 	// Other endpoints should be added below
-	extraOrigins
+	...extraOrigins
 ];
 
 // Cors
