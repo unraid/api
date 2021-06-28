@@ -73,7 +73,7 @@ const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extr
 const localIp = networkState.data[0].ipaddr[0];
 
 // Allow http://tower.local:${port}, http://${ip}:${port} and https://${hash}.unraid.net:${port}
-const allowedOrigins = [
+const allowedOrigins: string[] = [
 	// The webui
 	'http://tower.local',
 	`http://${localIp}`,
@@ -82,6 +82,8 @@ const allowedOrigins = [
 	// Other endpoints should be added below
 	...extraOrigins
 ];
+
+log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
 
 // Cors
 app.use(cors({
