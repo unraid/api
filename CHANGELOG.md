@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.9](https://github.com/unraid/api/compare/v2.19.8...v2.19.9) (2021-06-28)
+
+
+### Bug Fixes
+
+* add extra origins ([5e60b30](https://github.com/unraid/api/commit/5e60b301976aae5faa65e6b4551870c1d01ab973))
+* add www.hash origin ([9134c66](https://github.com/unraid/api/commit/9134c663540f80700e897b8d915f1b5e18de7b38))
+
 ### [2.19.8](https://github.com/unraid/api/compare/v2.19.7...v2.19.8) (2021-06-28)
 
 
