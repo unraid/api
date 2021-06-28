@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.8](https://github.com/unraid/api/compare/v2.19.7...v2.19.8) (2021-06-28)
+
+
+### Bug Fixes
+
+* move origins file to data dir ([0e676bf](https://github.com/unraid/api/commit/0e676bf2dd872957b507d49a55548e2d6b4008b5))
+
 ### [2.19.7](https://github.com/unraid/api/compare/v2.19.6...v2.19.7) (2021-06-28)
 
 
