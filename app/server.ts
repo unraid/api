@@ -7,17 +7,20 @@ import fs from 'fs';
 import net from 'net';
 import path from 'path';
 import execa from 'execa';
+import cors from 'cors';
 import stoppable from 'stoppable';
 import chokidar from 'chokidar';
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
+import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, utils, paths, pubsub, coreLogger } from './core';
+import { log, config, paths, pubsub, coreLogger } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from './core/utils';
 import { graphql } from './graphql';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
+import { networkState, varState } from './core/states';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -37,7 +40,63 @@ chokidar.watch(customImageFilePath).on('all', updatePubsub);
  */
 const app = express();
 
+// Graphql port
 const port = process.env.PORT ?? String(config.get('port'));
+
+const attemptJSONParse = (text: string, fallback: any) => {
+	try {
+		return JSON.parse(text);
+	} catch {
+		return fallback;
+	}
+};
+
+// Cors options
+const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
+const certPem = fs.readFileSync(paths.get('ssl-certificate')!, 'utf-8');
+const { hash } = pki.certificateFromPem(certPem).subject;
+
+// Get extra origins from the user
+const extraOriginPath = paths.get('extra-origins');
+// To add extra origins create a file at the "extra-origins" path
+const extraOrigins = extraOriginPath ? attemptJSONParse(fs.readFileSync(extraOriginPath, 'utf-8'), []) : [];
+
+// Get local ip from first ethernet adapter in the "network" state
+const localIp = networkState.data[0].ipaddr[0];
+
+// Get webui port
+const originPort = varState.data.port;
+
+// Allow http://tower.local:${port}, http://${ip}:${port} and https://${hash}.unraid.net:${port}
+const allowedOrigins = [
+	// The webui
+	'http://tower.local',
+	`http://${localIp}${originPort}`,
+	`https://${hash}.unraid.net:${originPort}`,
+
+	// Other endpoints should be added below
+	extraOrigins
+];
+
+// Cors
+app.use(cors({
+	origin: function (origin, callback) {
+		// Disallow requests with no origin
+		// (like mobile apps or curl requests)
+		if (!origin) {
+			callback(new Error(invalidOrigin), false);
+			return;
+		}
+
+		// Only allow known origins
+		if (!allowedOrigins.includes(origin)) {
+			callback(new Error(invalidOrigin), false);
+			return;
+		}
+
+		callback(null, true);
+	}
+}));
 
 // Add Unraid API version header
 app.use(async (_req, res, next) => {
@@ -203,7 +262,7 @@ export const server = {
 		if (isNaN(parseInt(port, 10))) {
 			try {
 				fs.unlinkSync(port);
-			} catch {}
+			} catch { }
 		}
 
 		// Run callback

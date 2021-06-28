@@ -20,7 +20,8 @@ export interface Paths {
 	'myservers-base': string;
 	'myservers-config': string;
 	'myservers-env': string;
-	'machine-id': string;
+	'ssl-certificate': string;
+	'extra-origins': string;
 }
 
 const thisDir = __dirname;
@@ -53,7 +54,8 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['myservers-base', '/boot/config/plugins/dynamix.my.servers/'],
 	['myservers-config', '/boot/config/plugins/dynamix.my.servers/myservers.cfg'],
 	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
-	['machine-id', '/etc/machine-id']
+	['ssl-certificate', '/boot/config/ssl/certs/certificate_bundle.pem'],
+	['extra-origins', '/boot/config/plugins/dynamix.my.servers/extra-origins.json']
 ]);
 
 /**
