@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.2](https://github.com/unraid/api/compare/v2.19.1...v2.19.2) (2021-06-28)
+
+
+### Bug Fixes
+
+* duplicate CORS records and getting wrong hash for domain ([bd4a43c](https://github.com/unraid/api/commit/bd4a43c1771388f110f98c085e4b6314803b9244))
+
 ### [2.19.1](https://github.com/unraid/api/compare/v2.19.0...v2.19.1) (2021-06-28)
 
 
