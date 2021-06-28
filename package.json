@@ -242,6 +242,7 @@
     "nchan",
     "node-cache",
     "node-fetch",
+    "node-forge",
     "node-window-polyfill",
     "number-to-color",
     "observable-to-promise",
