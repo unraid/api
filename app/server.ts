@@ -91,12 +91,14 @@ app.use(cors({
 		// Disallow requests with no origin
 		// (like mobile apps or curl requests)
 		if (!origin) {
+			log.debug('No origin provided, denying CORS!');
 			callback(new Error(invalidOrigin), false);
 			return;
 		}
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin)) {
+			log.debug(`Checking "${origin}" for CORS access.`);
 			callback(new Error(invalidOrigin), false);
 			return;
 		}
