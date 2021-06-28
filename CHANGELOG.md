@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.19.0](https://github.com/unraid/api/compare/v2.18.5...v2.19.0) (2021-06-28)
+
+
+### Features
+
+* add origin checking for graphql ([2d7a70d](https://github.com/unraid/api/commit/2d7a70dc0c9a08ef28851f7e064a994b6b399942))
+
+
+### Bug Fixes
+
+* allow HTTP erorrs to be processed ([a82b922](https://github.com/unraid/api/commit/a82b922a0e2643b12394ca4c6f51fb916f0e0355))
+* don't attempt to disconnect internal if its not connected ([2609c67](https://github.com/unraid/api/commit/2609c6708a1230f370fd7c34fa52e04ca56c4fcc))
+* don't fail if missing extra origin file ([1fb7c96](https://github.com/unraid/api/commit/1fb7c96fbceb01760fa7c1aeac19abf633f026e7))
+* ensure toBoolean can't throw ([aa9b21a](https://github.com/unraid/api/commit/aa9b21aa4861a7d6a55c43b9924bc728c3fe8cae))
+* ensure we don't crash when no cert or origin file exists ([f715f55](https://github.com/unraid/api/commit/f715f55c3b0931a968cb095e671df064e1cc3dd5))
+* include node-forge in bundle ([a8efea9](https://github.com/unraid/api/commit/a8efea933ee37207e71785b62d38d2fc4b0d028e))
+* jq script ([a6d2a08](https://github.com/unraid/api/commit/a6d2a08028dd532c65b21efbb9babddf6e39d7be))
+* missing message string ([3fd69ce](https://github.com/unraid/api/commit/3fd69ce4758ff16e332df0ab0a9940fef42c5578))
+* process HTTP errors on custom socket ([51fc374](https://github.com/unraid/api/commit/51fc374975869d52610fab65364c20809c5008e6))
+* update apt before installing libvirt ([70ec3db](https://github.com/unraid/api/commit/70ec3dbfec84340d22d68fec348bc15d1de8367c))
+* use GITHUB env for git short hash ([b964ae9](https://github.com/unraid/api/commit/b964ae9f737c37aa761358c0474db08e4b43a97b))
+* use seconds not ms for sleep ([4da6b28](https://github.com/unraid/api/commit/4da6b285a3b804698be712c8eaa3e0e1d6eac083))
+
 ### [2.18.5](https://github.com/unraid/api/compare/v2.18.4...v2.18.5) (2021-06-21)
 
 
