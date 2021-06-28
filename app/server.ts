@@ -78,7 +78,7 @@ const allowedOrigins: string[] = [...new Set([
 	// The webui
 	'http://tower.local',
 	`http://${localIp}`,
-	...(hash ? [`https://${hash}.unraid.net`] : []),
+	...(hash ? [`https://${hash}`] : []),
 
 	// Other endpoints should be added below
 	...extraOrigins
