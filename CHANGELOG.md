@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.3](https://github.com/unraid/api/compare/v2.19.2...v2.19.3) (2021-06-28)
+
+
+### Bug Fixes
+
+* hash origin ([6c8d228](https://github.com/unraid/api/commit/6c8d228f2bcce1c4fff47de88f12dd171abb13c1))
+
 ### [2.19.2](https://github.com/unraid/api/compare/v2.19.1...v2.19.2) (2021-06-28)
 
 
