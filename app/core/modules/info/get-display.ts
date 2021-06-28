@@ -5,7 +5,7 @@
 
 import { CoreResult, CoreContext, DynamixConfig } from '../../types';
 import { paths } from '../../paths';
-import { loadState, ensurePermission } from '../../utils';
+import { loadState, ensurePermission, toBoolean } from '../../utils';
 
 interface Result extends CoreResult {
 	json: {
@@ -22,8 +22,6 @@ interface Result extends CoreResult {
 		max: number;
 	};
 }
-
-const toBoolean = (prop: string): boolean => prop.toLowerCase() === 'true';
 
 /**
  * Get display info.
