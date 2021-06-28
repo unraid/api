@@ -181,7 +181,11 @@ jobs:
 
     - name: Add commit hash to version
       if: startsWith(github.ref, 'refs/tags/v') == false
-      run: npm run mark-version-commit
+      run: |
+        VERSION=$(jq -r .version package.json) && \
+        SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
+        jq --arg version \"$VERSION-$SHORT_HASH\" '.version = $version' package.json > package.json && \
+        echo '✔ Version field updated'
 
     - name: Build binary
       run: npm run build-binary

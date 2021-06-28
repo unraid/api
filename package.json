@@ -12,7 +12,6 @@
     "build-binary-step-1": "nexe ./dist/cli.js --make=\"-j$(nproc 2> /dev/null || echo 1)\" -r './dist/**/*' -r './node_modules' && mv ./cli ./unraid-api && echo '✔ Binary built: ./unraid-api'",
     "build-binary-step-2": "rm -rf ./node_modules && rm -rf ./dist && echo '✔ Source files deleted'",
     "build-binary": "npm run build-binary-step-1 && npm run build-binary-step-2",
-    "mark-version-commit": "VERSION=$(jq -r .version package.json) && SHORT_HASH=$(git rev-parse --short HEAD) && jq --arg version \"$VERSION-$SHORT_HASH\" '.version = $version' package.json > package.json && echo '✔ Version field updated'",
     "copy-schemas": "cpx app/**/*.graphql dist/types",
     "clean": "modclean --no-progress --run --path .",
     "commit": "npx git-cz",
