@@ -90,8 +90,13 @@ log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
 app.use(cors({
 	origin: function (origin, callback) {
 		// Disallow requests with no origin
-		// (like mobile apps or curl requests)
+		// (like mobile apps, curl requests or viewing /graphql directly)
 		if (!origin) {
+			// If in debug mode allow this
+			if (!config.get('debug')) {
+				return;
+			}
+
 			log.debug('No origin provided, denying CORS!');
 			callback(new Error(invalidOrigin), false);
 			return;
