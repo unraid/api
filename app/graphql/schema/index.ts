@@ -37,7 +37,6 @@ const files = [
 	'./dist/types/graphql/schema/types/unassigned-devices/mount.graphql',
 	'./dist/types/graphql/schema/types/unassigned-devices/partition.graphql',
 	'./dist/types/graphql/schema/types/unassigned-devices/unassigned-device.graphql',
-	'./dist/types/graphql/schema/types/uptime/uptime.graphql',
 	'./dist/types/graphql/schema/types/users/me.graphql',
 	'./dist/types/graphql/schema/types/users/user.graphql',
 	'./dist/types/graphql/schema/types/vars/vars.graphql',

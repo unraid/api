@@ -3,10 +3,13 @@
  * Written by: Alexis Tyler
  */
 
-import uptime from 'os-uptime';
+import { uptime } from 'os';
 import si from 'systeminformation';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
+
+// Get uptime on boot and convert to date
+const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1000));
 
 /**
  * Get OS info
@@ -33,7 +36,7 @@ export const getOs = async function (context: CoreContext): Promise<CoreResult> 
 		get json() {
 			return {
 				...os,
-				uptime: uptime().toISOString()
+				uptime: bootTimestamp
 			};
 		}
 	};

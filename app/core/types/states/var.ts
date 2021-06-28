@@ -181,8 +181,6 @@ export interface Var {
 	sysModel: string;
 	/** Current timezone. {@link https://en.wikipedia.org/wiki/List_of_tz_database_time_zones | Timezone list}. */
 	timeZone: string;
-	/** Time the host has been online in ms. */
-	uptime: string;
 	/** Should a NTP server be used for time sync. */
 	useNtp: boolean;
 	/** Should SSH be enabled. */

@@ -391,17 +391,6 @@ dee.on('*', async (data: { Type: string }) => {
 
 dee.listen();
 
-// OS uptime
-run('uptime', 'UPDATED', {
-	moduleToRun: modules.getUptime,
-	context: {
-		user: internalServiceUser
-	},
-	loop: Infinity
-}).catch((error: unknown) => {
-	log.error('Failed getting "uptime" with "%s".', (error as Error).message);
-});
-
 // Services
 run('services', 'UPDATED', {
 	moduleToRun: modules.getServices,

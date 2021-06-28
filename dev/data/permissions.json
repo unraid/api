@@ -138,11 +138,6 @@
         "attributes": "*"
       },
       {
-        "resource": "uptime",
-        "action": "read:any",
-        "attributes": "*"
-      },
-      {
         "resource": "user",
         "action": "read:any",
         "attributes": "*"

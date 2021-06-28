@@ -166,7 +166,6 @@ type Vars {
     shareAfpCount: Int
     shareMoverActive: Boolean
     csrfToken: String
-    uptime: String!
 }
 
 enum mdState {

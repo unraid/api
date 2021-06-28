@@ -4,7 +4,6 @@
  */
 
 import path from 'path';
-import uptime from 'os-uptime';
 import { paths } from '../paths';
 import { Var } from '../types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';
@@ -214,7 +213,6 @@ interface VarIni {
 	sysFlashSlots: string;
 	sysModel: string;
 	timeZone: string;
-	uptime: string;
 	useNtp: IniStringBoolean;
 	useSsh: IniStringBoolean;
 	useSsl: IniStringBooleanOrAuto;
@@ -291,8 +289,7 @@ const parse = (state: VarIni): Var => {
 		useNtp: iniBooleanToJsBoolean(state.useNtp),
 		useSsh: iniBooleanToJsBoolean(state.useSsh),
 		useSsl: iniBooleanOrAutoToJsBoolean(state.useSsl),
-		useTelnet: iniBooleanToJsBoolean(state.useTelnet),
-		uptime: uptime().toISOString()
+		useTelnet: iniBooleanToJsBoolean(state.useTelnet)
 	};
 };
 
