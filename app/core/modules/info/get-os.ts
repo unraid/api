@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import uptime from 'os-uptime';
 import si from 'systeminformation';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
@@ -31,7 +32,8 @@ export const getOs = async function (context: CoreContext): Promise<CoreResult> 
 		},
 		get json() {
 			return {
-				...os
+				...os,
+				uptime: uptime().toISOString()
 			};
 		}
 	};
