@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.7](https://github.com/unraid/api/compare/v2.19.6...v2.19.7) (2021-06-28)
+
+
+### Bug Fixes
+
+* os.uptime ([33a48ed](https://github.com/unraid/api/commit/33a48ed65505a820747cade0bb2da1038aab432d))
+
 ### [2.19.6](https://github.com/unraid/api/compare/v2.19.5...v2.19.6) (2021-06-28)
 
 
