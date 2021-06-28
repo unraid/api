@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.5](https://github.com/unraid/api/compare/v2.19.4...v2.19.5) (2021-06-28)
+
+
+### Bug Fixes
+
+* add vars permssions to my_servers role ([1f93bf3](https://github.com/unraid/api/commit/1f93bf3293e4e79e4578252eca22593e7699924d))
+* in debug mode allow null origin ([1bdce52](https://github.com/unraid/api/commit/1bdce528cf784615888b80e3686eca446154891e))
+* typo boolean flip ([4a7a5fa](https://github.com/unraid/api/commit/4a7a5faac82573f3e5b0c7e49663459e858174be))
+
 ### [2.19.4](https://github.com/unraid/api/compare/v2.19.3...v2.19.4) (2021-06-28)
 
 
