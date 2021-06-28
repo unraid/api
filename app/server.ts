@@ -72,15 +72,12 @@ const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extr
 // Get local ip from first ethernet adapter in the "network" state
 const localIp = networkState.data[0].ipaddr[0];
 
-// Get webui port
-const originPort = varState.data.port;
-
 // Allow http://tower.local:${port}, http://${ip}:${port} and https://${hash}.unraid.net:${port}
 const allowedOrigins = [
 	// The webui
 	'http://tower.local',
-	`http://${localIp}${originPort}`,
-	...(hash ? [`https://${hash}.unraid.net:${originPort}`] : []),
+	`http://${localIp}`,
+	...(hash ? [`https://${hash}.unraid.net`] : []),
 
 	// Other endpoints should be added below
 	...extraOrigins
