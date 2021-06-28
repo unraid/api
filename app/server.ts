@@ -67,7 +67,7 @@ const hash = certPem ? pki.certificateFromPem(certPem).subject.hash : undefined;
 // Get extra origins from the user
 const extraOriginPath = paths.get('extra-origins');
 // To add extra origins create a file at the "extra-origins" path
-const extraOrigins = extraOriginPath ? attemptJSONParse(fs.readFileSync(extraOriginPath, 'utf-8'), []) : [];
+const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
 
 // Get local ip from first ethernet adapter in the "network" state
 const localIp = networkState.data[0].ipaddr[0];
