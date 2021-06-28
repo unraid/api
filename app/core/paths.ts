@@ -55,7 +55,7 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['myservers-config', '/boot/config/plugins/dynamix.my.servers/myservers.cfg'],
 	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
 	['ssl-certificate', '/boot/config/ssl/certs/certificate_bundle.pem'],
-	['extra-origins', '/boot/config/plugins/dynamix.my.servers/extra-origins.json']
+	['extra-origins', '/boot/config/plugins/dynamix.my.servers/data/extra-origins.json']
 ]);
 
 /**
