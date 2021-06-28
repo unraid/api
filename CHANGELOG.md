@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.19.4](https://github.com/unraid/api/compare/v2.19.3...v2.19.4) (2021-06-28)
+
+
+### Bug Fixes
+
+* remove duplicate .unraid.net in cert ([dabf45d](https://github.com/unraid/api/commit/dabf45df09db360adc7a4a3bd18937430245b3d8))
+
 ### [2.19.3](https://github.com/unraid/api/compare/v2.19.2...v2.19.3) (2021-06-28)
 
 
