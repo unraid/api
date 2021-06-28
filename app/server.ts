@@ -93,7 +93,8 @@ app.use(cors({
 		// (like mobile apps, curl requests or viewing /graphql directly)
 		if (!origin) {
 			// If in debug mode allow this
-			if (!config.get('debug')) {
+			if (config.get('debug')) {
+				callback(null, true);
 				return;
 			}
 
