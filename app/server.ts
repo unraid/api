@@ -147,7 +147,11 @@ app.get('/', (_, res) => {
 
 // Handle errors by logging them and returning a 500.
 app.use((error, _, res, __) => {
-	log.error(error);
+	// Don't log CORS errors
+	if (!error.message.includes('CORS')) {
+		log.error(error);
+	}
+
 	if (error.stack) {
 		error.stackTrace = error.stack;
 	}
