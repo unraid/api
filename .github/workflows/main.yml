@@ -44,7 +44,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Install libvirt-dev
-      run: sudo apt-get install libvirt-dev
+      run: sudo apt-get update && sudo apt-get install libvirt-dev
 
     - name: Installing node deps
       run: npm install
@@ -81,7 +81,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Install libvirt-dev
-      run: sudo apt-get install libvirt-dev
+      run: sudo apt-get update && sudo apt-get install libvirt-dev
 
     - name: Installing node deps
       run: npm install
@@ -118,7 +118,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Install libvirt-dev
-      run: sudo apt-get install libvirt-dev
+      run: sudo apt-get update && sudo apt-get install libvirt-dev
 
     - name: Installing node deps
       run: npm install
