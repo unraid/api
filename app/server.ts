@@ -116,6 +116,7 @@ app.use(cors({
 		// Get currently allowed origins
 		const allowedOrigins = getAllowedOrigins();
 		log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
+		log.debug(`Current origin: ${origin ?? ''}`);
 
 		// Disallow requests with no origin
 		// (like mobile apps, curl requests or viewing /graphql directly)
