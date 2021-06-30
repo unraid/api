@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.20.0](https://github.com/unraid/api/compare/v2.19.9...v2.20.0) (2021-06-30)
+
+
+### Features
+
+* add notifications mutation ([03a150b](https://github.com/unraid/api/commit/03a150b4edc58810e56fc6977ec126e41f28e9a0))
+
+
+### Bug Fixes
+
+* account for keys missing ([d5744a6](https://github.com/unraid/api/commit/d5744a603a7481a938061a51d56e36469bb1bc26))
+* add notifications mutation to schema ([d68da1d](https://github.com/unraid/api/commit/d68da1d2aa2237f0fb65dce3c0e5f6bae9c6208f))
+* add notifier to api lookup ([e5b2e58](https://github.com/unraid/api/commit/e5b2e585652165748453f9f5eda19cc76a5e0361))
+* add status field to sendNotification ([bb3e438](https://github.com/unraid/api/commit/bb3e43884416adf6e229488d09222e8807bfa42a))
+* api-manager not writing out notifier key if upc one exists ([4fd2886](https://github.com/unraid/api/commit/4fd288616c803c708d8fe8869f0683b6c950b1d2))
+* cut down the generated keys after whole key ([6a2ccfc](https://github.com/unraid/api/commit/6a2ccfc421662639f0a01cd8083c5af1465f2e26))
+* export sendNotification correctly ([02203b3](https://github.com/unraid/api/commit/02203b3e53e6fd44deea5b8224a37d132561f0a7))
+* misc changes to notifications ([79bba13](https://github.com/unraid/api/commit/79bba139c3b1c462b799916bdf501796b3b09c91))
+* remove ports from origin check and add notifier bridge ([19e5c87](https://github.com/unraid/api/commit/19e5c87853c4cfdfc9e10421f70aae9995451d9d))
+* sending notification ([26e5e51](https://github.com/unraid/api/commit/26e5e51539d82fb23ca84e561e3c6159c6f4339f))
+* typo upc -> notifier ([f015841](https://github.com/unraid/api/commit/f0158416b966e5fc1c381845a40e1e9bc10b2e58))
+
 ### [2.19.9](https://github.com/unraid/api/compare/v2.19.8...v2.19.9) (2021-06-28)
 
 
