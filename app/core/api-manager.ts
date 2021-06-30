@@ -90,14 +90,18 @@ export class ApiManager extends EventEmitter {
 				userId: '-1'
 			});
 		} else {
-			// Generate api key
-			const apiKey = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
+			// Generate API keys
+			const UPC = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
+			const notifier = `unnotify_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
 
 			// Rebuild config file
 			const data = {
 				...file,
 				upc: {
-					apikey: apiKey
+					apikey: UPC
+				},
+				notifier: {
+					apikey: notifier
 				}
 			};
 
@@ -110,9 +114,8 @@ export class ApiManager extends EventEmitter {
 			fs.writeFileSync(configPath, stringifiedData);
 
 			// Update api manager with key
-			this.replace('upc', apiKey, {
-				userId: '-1'
-			});
+			this.replace('upc', UPC, { userId: '-1' });
+			this.replace('notifier', notifier, { userId: '-1' });
 		}
 
 		// Watch for changes to the myservers.cfg file

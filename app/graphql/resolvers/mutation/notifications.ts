@@ -23,7 +23,7 @@ export const sendNotification = async (_: unknown, __: unknown, context: Context
 
 	// Prepare query
 	const query = mothership.request({
-		query: 'mutation ($notification: notificationInput) {\n  sendNotification(notification: $notification)\n}\n',
+		query: 'mutation($notification:NotificationInput!){sendNotification(notification:$notification){title subject description importance link}}',
 		variables: {
 			notification
 		}

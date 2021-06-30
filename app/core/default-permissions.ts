@@ -92,6 +92,13 @@ export const my_servers = {
 	]
 };
 
+export const notifier = {
+	extends: 'guest',
+	permissions: [
+		{ resource: 'notifications', action: 'create:own', attributes: '*' }
+	]
+};
+
 export const guest = {
 	permissions: [
 		{ resource: 'me', action: 'read:any', attributes: '*' },
@@ -104,5 +111,6 @@ export const permissions = {
 	user,
 	admin,
 	upc,
-	my_servers
+	my_servers,
+	notifier
 };
