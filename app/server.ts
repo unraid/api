@@ -67,7 +67,7 @@ const extraOriginPath = paths.get('extra-origins');
 
 // Get cert + cert info
 const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
-const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value : undefined;
+const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined;
 
 // To add extra origins create a file at the "extra-origins" path
 const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
@@ -75,7 +75,7 @@ const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extr
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
-	const localIp = networkState.data[0].ipaddr[0];
+	const localIp = networkState.data[0].ipaddr[0] as string;
 
 	// Get local tld
 	const localTld = varState.data.localTld;
@@ -83,24 +83,41 @@ const getAllowedOrigins = (): string[] => {
 	// Get server's hostname
 	const serverName = varState.data.name;
 
+	// Get webui http port (default to 80)
+	const webuiHTTPPort = (varState.data.port ?? 80) === 80 ? '' : varState.data.port;
+
+	// Get webui https port (default to 443)
+	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
+
+	// Get myservers config
+	const configPath = paths.get('myservers-config')!;
+	const myServersConfig = loadState<{ remote: { wanport: string; wanaccess: string } }>(configPath);
+
+	// Get wan https port
+	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : myServersConfig?.remote?.wanport;
+
+	// Check if wan access is enabled
+	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
+
+	// Only append the port if it's not HTTP/80 or HTTPS/443
 	return [...new Set([
 		// IP
-		`http://${localIp}`,
-		`https://${localIp}`,
+		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
+		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
 		// Raw local TLD
-		`http://${serverName}`,
-		`https://${serverName}`,
+		`http://${serverName}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
+		`https://${serverName}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
 		// Local TLD
-		`http://${serverName}.${localTld}`,
-		`https://${serverName}.${localTld}`,
+		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
+		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
 		// Hash
-		...(hash ? [
-			`https://${hash}`,
-			`https://www.${hash}`
-		] : []),
+		...(hash ? [`https://${hash}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+		// Wan hash
+		...(hash && wanAccessEnabled ? [`https://www.${hash}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',
@@ -116,7 +133,6 @@ app.use(cors({
 		// Get currently allowed origins
 		const allowedOrigins = getAllowedOrigins();
 		log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
-		log.debug(`Current origin: ${origin ?? ''}`);
 
 		// Disallow requests with no origin
 		// (like mobile apps, curl requests or viewing /graphql directly)
@@ -132,9 +148,10 @@ app.use(cors({
 			return;
 		}
 
+		log.debug(`Checking "${origin}" for CORS access.`);
+
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin)) {
-			log.debug(`Checking "${origin}" for CORS access.`);
 			callback(new Error(invalidOrigin), false);
 			return;
 		}
