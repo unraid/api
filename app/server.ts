@@ -80,10 +80,6 @@ const getAllowedOrigins = (): string[] => {
 	// Get local tld
 	const localTld = varState.data.localTld;
 
-	// Get dynamix config file
-	const filePath = paths.get('myservers-config')!;
-	const dynamix = loadState<{ remote: { wanport: number } }>(filePath);
-
 	// Get server's hostname
 	const serverName = varState.data.name;
 
