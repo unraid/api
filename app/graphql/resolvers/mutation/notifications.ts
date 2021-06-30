@@ -7,7 +7,7 @@ import { ensurePermission } from '../../../core/utils';
 import { mothership } from '../../../mothership/subscribe-to-servers';
 import { Context } from '../../schema/utils';
 
-export default async (_: unknown, __: unknown, context: Context) => {
+export const sendNotification = async (_: unknown, __: unknown, context: Context) => {
 	const { user } = context;
 
 	// Check permissions
@@ -17,7 +17,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
-	console.log('notification mutation', { _, __, context });
+	console.log('sendNotification mutation', { _, __, context });
 
 	const notification = {};
 
