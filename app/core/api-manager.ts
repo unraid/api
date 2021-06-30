@@ -81,27 +81,30 @@ export class ApiManager extends EventEmitter {
 		// Get my server's config file path
 		const configPath = paths.get('myservers-config')!;
 
-		// Load UPC key
-		log.debug('Loading UPC API key...');
-		const file = loadState<{ upc: { apikey: string } }>(configPath);
-		if (file?.upc?.apikey) {
+		// Load UPC + notifier keys
+		log.debug('Loading service API keys...');
+		const myserversConfigFile = loadState<{ upc: { apikey: string }, notifier: { apikey: string } }>(configPath);
+		const upcApiKey = myserversConfigFile.upc.apikey;
+		const notifierApiKey = myserversConfigFile.notifier.apikey;
+
+		// If we have both keys just add them to the internal store
+		if (upcApiKey && notifierApiKey) {
 			// Update api manager with key
-			this.replace('upc', file.upc.apikey, {
-				userId: '-1'
-			});
+			this.replace('upc', upcApiKey, { userId: '-1' });
+			this.replace('notifier', notifierApiKey, { userId: '-1' });
 		} else {
 			// Generate API keys
-			const UPC = `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
-			const notifier = `unnotify_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
+			const UPCFinalKey = upcApiKey ?? `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
+			const notifierFinalKey = notifierApiKey ?? `unnotify_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
 
 			// Rebuild config file
 			const data = {
-				...file,
+				...myserversConfigFile,
 				upc: {
-					apikey: UPC
+					apikey: UPCFinalKey
 				},
 				notifier: {
-					apikey: notifier
+					apikey: notifierFinalKey
 				}
 			};
 
@@ -114,8 +117,8 @@ export class ApiManager extends EventEmitter {
 			fs.writeFileSync(configPath, stringifiedData);
 
 			// Update api manager with key
-			this.replace('upc', UPC, { userId: '-1' });
-			this.replace('notifier', notifier, { userId: '-1' });
+			this.replace('upc', UPCFinalKey, { userId: '-1' });
+			this.replace('notifier', notifierFinalKey, { userId: '-1' });
 		}
 
 		// Watch for changes to the myservers.cfg file
