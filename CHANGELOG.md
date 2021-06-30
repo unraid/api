@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.20.1](https://github.com/unraid/api/compare/v2.20.0...v2.20.1) (2021-06-30)
+
+
+### Bug Fixes
+
+* generated keys should be 64 chars not 58 ([492cc77](https://github.com/unraid/api/commit/492cc7755c5b3d13b98f77219d0bf701f94cc8e2))
+* log the current origin ([54be8e8](https://github.com/unraid/api/commit/54be8e831bbb75b299ded3f5efb17dd0f389c67d))
+* origin check with ports ([97f029d](https://github.com/unraid/api/commit/97f029dbc6e5464a6671c9ac22b38cce79f9d88d))
+
 ## [2.20.0](https://github.com/unraid/api/compare/v2.19.9...v2.20.0) (2021-06-30)
 
 
