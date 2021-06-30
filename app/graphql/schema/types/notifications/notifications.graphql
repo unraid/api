@@ -1,0 +1,28 @@
+input NotificationInput {
+    title: String
+    subject: String
+    description: String
+    importance: Importance!
+    link: String
+}
+
+type Mutation {
+    sendNotification(notification: NotificationInput!): Notification
+}
+
+enum Importance {
+    # Logs
+    info
+    # Warnings
+    warning
+    # Errors
+    alert
+}
+
+type Notification {
+    title: String!
+    subject: String!
+    description: String!
+    importance: Importance!
+    link: String!
+}

@@ -8,6 +8,7 @@ import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { GraphQLDateTime } from 'graphql-iso-date';
 import { Query } from './query';
+import { Mutation } from './mutation';
 import { Subscription } from './subscription';
 import { UserAccount } from './user-account';
 
@@ -18,6 +19,7 @@ export const DateTime = GraphQLDateTime;
 
 export {
 	Query,
+	Mutation,
 	Subscription,
 	UserAccount
 };

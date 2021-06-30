@@ -27,6 +27,7 @@ const files = [
 	'./dist/types/graphql/schema/types/info/os.graphql',
 	'./dist/types/graphql/schema/types/info/system.graphql',
 	'./dist/types/graphql/schema/types/info/versions.graphql',
+	'./dist/types/graphql/schema/types/notifications/notifications.graphql',
 	'./dist/types/graphql/schema/types/owner/owner.graphql',
 	'./dist/types/graphql/schema/types/plugins/plugin.graphql',
 	'./dist/types/graphql/schema/types/registration/registration.graphql',
