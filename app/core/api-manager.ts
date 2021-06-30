@@ -87,8 +87,8 @@ export class ApiManager extends EventEmitter {
 			upc: { apikey: string };
 			notifier: { apikey: string };
 		}>(configPath);
-		const upcApiKey = myserversConfigFile.upc.apikey;
-		const notifierApiKey = myserversConfigFile.notifier.apikey;
+		const upcApiKey = myserversConfigFile?.upc?.apikey;
+		const notifierApiKey = myserversConfigFile?.notifier?.apikey;
 
 		// If we have both keys just add them to the internal store
 		if (upcApiKey && notifierApiKey) {
