@@ -97,8 +97,8 @@ export class ApiManager extends EventEmitter {
 			this.replace('notifier', notifierApiKey, { userId: '-1' });
 		} else {
 			// Generate API keys
-			const UPCFinalKey = upcApiKey ?? `unupc_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
-			const notifierFinalKey = notifierApiKey ?? `unnotify_${crypto.randomBytes(58).toString('hex').substring(0, 58)}`;
+			const UPCFinalKey = upcApiKey ?? `unupc_${crypto.randomBytes(58).toString('hex')}`.substring(0, 58);
+			const notifierFinalKey = notifierApiKey ?? `unnotify_${crypto.randomBytes(58).toString('hex')}`.substring(0, 58);
 
 			// Rebuild config file
 			const data = {
