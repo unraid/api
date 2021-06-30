@@ -56,7 +56,7 @@ const baseTypes = [gql`
 
 	type Mutation {
 		login(username: String!, password: String!): String
-
+		sendNotification(notification: NotificationInput!): Notification
 		shutdown: String
 		reboot: String
 	}
