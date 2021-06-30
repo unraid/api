@@ -83,7 +83,10 @@ export class ApiManager extends EventEmitter {
 
 		// Load UPC + notifier keys
 		log.debug('Loading service API keys...');
-		const myserversConfigFile = loadState<{ upc: { apikey: string }, notifier: { apikey: string } }>(configPath);
+		const myserversConfigFile = loadState<{
+			upc: { apikey: string };
+			notifier: { apikey: string };
+		}>(configPath);
 		const upcApiKey = myserversConfigFile.upc.apikey;
 		const notifierApiKey = myserversConfigFile.notifier.apikey;
 
