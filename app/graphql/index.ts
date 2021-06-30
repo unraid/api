@@ -321,7 +321,7 @@ const apiKeyToUser = async (apiKey: string) => {
 		}
 
 		// Force notifier into it's own group that's not a user group
-		if (keyName && keyName === 'upc') {
+		if (keyName && keyName === 'notifier') {
 			return { id: -1, description: 'Notifier service account', name: 'notifier', role: 'notifier' };
 		}
 
