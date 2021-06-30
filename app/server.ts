@@ -16,7 +16,7 @@ import WebSocket from 'ws';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
 import { log, config, paths, pubsub, coreLogger } from './core';
-import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep } from './core/utils';
+import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState } from './core/utils';
 import { graphql } from './graphql';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
@@ -61,52 +61,58 @@ const attemptReadFileSync = (path: string, fallback: any = undefined) => {
 
 // Cors options
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
-const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
-const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value : undefined;
 
 // Get extra origins from the user
 const extraOriginPath = paths.get('extra-origins');
+
+// Get cert + cert info
+const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
+const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value : undefined;
+
 // To add extra origins create a file at the "extra-origins" path
 const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
 
-// Get local ip from first ethernet adapter in the "network" state
-const localIp = networkState.data[0].ipaddr[0];
-
-// Get local tld
-const localTld = varState.data.localTld;
-
-// Get webui http port
-const webuiHTTPPort = varState.data.port;
-
-// Get webui https port
-const webuiHTTPSPort = varState.data.portssl;
-
-// Get server's hostname
-const serverName = varState.data.name;
-
 // We use a "Set" + "array spread" to deduplicate the strings
-const getAllowedOrigins = (): string[] => [...new Set([
-	// IP
-	`http://${localIp}:${webuiHTTPPort}`,
-	`https://${localIp}:${webuiHTTPSPort}`,
+const getAllowedOrigins = (): string[] => {
+	// Get local ip from first ethernet adapter in the "network" state
+	const localIp = networkState.data[0].ipaddr[0];
 
-	// Raw local TLD
-	`http://${serverName}:${webuiHTTPPort}`,
-	`https://${serverName}:${webuiHTTPSPort}`,
+	// Get local tld
+	const localTld = varState.data.localTld;
 
-	// Local TLD
-	`http://${serverName}.${localTld}:${webuiHTTPPort}`,
-	`https://${serverName}.${localTld}:${webuiHTTPSPort}`,
+	// Get dynamix config file
+	const filePath = paths.get('myservers-config')!;
+	const dynamix = loadState<{ remote: { wanport: number } }>(filePath);
 
-	// Hash
-	...(hash ? [
-		`https://${hash}:${webuiHTTPSPort}`,
-		`https://www.${hash}:${webuiHTTPSPort}`
-	] : []),
+	// Get server's hostname
+	const serverName = varState.data.name;
 
-	// Other endpoints should be added below
-	...extraOrigins
-]).values()];
+	return [...new Set([
+		// IP
+		`http://${localIp}`,
+		`https://${localIp}`,
+
+		// Raw local TLD
+		`http://${serverName}`,
+		`https://${serverName}`,
+
+		// Local TLD
+		`http://${serverName}.${localTld}`,
+		`https://${serverName}.${localTld}`,
+
+		// Hash
+		...(hash ? [
+			`https://${hash}`,
+			`https://www.${hash}`
+		] : []),
+
+		// Notifier bridge
+		'/var/run/unraid-notifications.sock',
+
+		// Other endpoints should be added below
+		...extraOrigins
+	]).values()];
+};
 
 // Cors
 app.use(cors({
