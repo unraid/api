@@ -72,26 +72,26 @@ const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]
 // To add extra origins create a file at the "extra-origins" path
 const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
 
+// Get myservers config
+const configPath = paths.get('myservers-config')!;
+const myServersConfig = loadState<{ remote: { wanport: string; wanaccess: string } }>(configPath);
+
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
 	const localIp = networkState.data[0].ipaddr[0] as string;
 
-	// Get local tld
-	const localTld = varState.data.localTld;
+	// Get local tld (in lowercase)
+	const localTld = varState.data.localTld.toLowerCase();
 
-	// Get server's hostname
-	const serverName = varState.data.name;
+	// Get server's hostname (in lowercase)
+	const serverName = varState.data.name.toLowerCase();
 
 	// Get webui http port (default to 80)
 	const webuiHTTPPort = (varState.data.port ?? 80) === 80 ? '' : varState.data.port;
 
 	// Get webui https port (default to 443)
 	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
-
-	// Get myservers config
-	const configPath = paths.get('myservers-config')!;
-	const myServersConfig = loadState<{ remote: { wanport: string; wanaccess: string } }>(configPath);
 
 	// Get wan https port
 	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : myServersConfig?.remote?.wanport;
@@ -148,10 +148,10 @@ app.use(cors({
 			return;
 		}
 
-		log.debug(`Checking "${origin}" for CORS access.`);
+		log.debug(`Checking "${origin.toLowerCase()}" for CORS access.`);
 
 		// Only allow known origins
-		if (!allowedOrigins.includes(origin)) {
+		if (!allowedOrigins.includes(origin.toLowerCase())) {
 			callback(new Error(invalidOrigin), false);
 			return;
 		}
