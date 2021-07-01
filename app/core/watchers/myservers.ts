@@ -7,31 +7,30 @@ import chokidar from 'chokidar';
 import { coreLogger } from '../log';
 import { paths } from '../paths';
 import * as Sentry from '@sentry/node';
-import { loadState } from '../utils';
-import { mothership } from '../../mothership/subscribe-to-servers';
+import { pki } from 'node-forge';
+import { attemptJSONParse, attemptReadFileSync, loadState } from '../utils';
 import { apiManager } from '../api-manager';
-import { MessageTypes } from 'subscriptions-transport-ws';
-import { sockets } from '../../sockets';
+import { cert, myServersConfig, origins } from '../../server';
 
 export const myservers = () => {
 	const watchers: chokidar.FSWatcher[] = [];
 
 	return {
 		start() {
-			// Watch the my servers config file
-			const configFilePath = paths.get('myservers-config')!;
+			// Get my servers config file path
+			const myserversConfigFilePath = paths.get('myservers-config')!;
 
-			const watcher = chokidar.watch(configFilePath, {
+			// Watch the my servers config file
+			coreLogger.debug('Loading watchers for %s', myserversConfigFilePath);
+			const myserversConfigWatcher = chokidar.watch(myserversConfigFilePath, {
 				persistent: true,
 				ignoreInitial: true
 			});
 
-			coreLogger.debug('Loading watchers for %s', configFilePath);
-
 			// My servers config has likely changed
-			watcher.on('all', async function (_event, fullPath) {
+			myserversConfigWatcher.on('all', async function (_event, fullPath) {
 				// Check if crash reporting is enabled
-				const file = loadState<{ remote: { sendCrashInfo: string } }>(fullPath);
+				const file = loadState<{ remote: { wanaccess: string; wanport: string; sendCrashInfo: string } }>(fullPath);
 				const isEnabled = (file.remote.sendCrashInfo ?? 'no').trim() === 'yes';
 
 				// Get Sentry client
@@ -50,12 +49,46 @@ export const myservers = () => {
 					}
 				}
 
+				// @todo: add cfg files similar to states
+				// Update myservers config, this is used for origin checks in graphql
+				myServersConfig.remote.wanaccess = file.remote.wanaccess;
+				myServersConfig.remote.wanport = file.remote.wanport;
+
 				// Ensure api manager has the correct keys loaded
-				await apiManager.checkKey(configFilePath, true);
+				await apiManager.checkKey(myserversConfigFilePath, true);
 			});
 
 			// Save ref for cleanup
-			watchers.push(watcher);
+			watchers.push(myserversConfigWatcher);
+
+			// Get extra origin path
+			const extraOriginPath = paths.get('extra-origins')!;
+
+			// Watch extra origin path for changes
+			const extraOriginsWatcher = chokidar.watch(extraOriginPath, {
+				persistent: true,
+				ignoreInitial: true
+			});
+
+			// Extra origins file has likely updated
+			extraOriginsWatcher.on('all', async event => {
+				origins.extra = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
+			});
+
+			// Get cert path
+			const sslCertPath = paths.get('ssl-certificate')!;
+
+			// Watch extra origin path for changes
+			const sslCertWatcher = chokidar.watch(sslCertPath, {
+				persistent: true,
+				ignoreInitial: true
+			});
+
+			// Update SSL cert info
+			sslCertWatcher.on('all', event => {
+				const certPem = attemptReadFileSync(sslCertPath);
+				cert.hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined;
+			});
 		},
 		stop() {
 			watchers.forEach(async watcher => watcher.close());

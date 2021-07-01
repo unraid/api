@@ -1,6 +1,8 @@
 // Created from 'create-ts-index'
 
 export * from './add-together';
+export * from './attempt-json-parse';
+export * from './attempt-read-file-sync';
 export * from './atomic-sleep';
 export * from './catch-handlers';
 export * from './clean-stdout';

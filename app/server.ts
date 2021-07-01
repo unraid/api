@@ -16,7 +16,7 @@ import WebSocket from 'ws';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
 import { log, config, paths, pubsub, coreLogger } from './core';
-import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState } from './core/utils';
+import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync, attemptJSONParse } from './core/utils';
 import { graphql } from './graphql';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
@@ -43,38 +43,27 @@ const app = express();
 // Graphql port
 const port = process.env.PORT ?? String(config.get('port'));
 
-const attemptJSONParse = (text: string, fallback: any = undefined) => {
-	try {
-		return JSON.parse(text);
-	} catch {
-		return fallback;
-	}
-};
-
-const attemptReadFileSync = (path: string, fallback: any = undefined) => {
-	try {
-		return fs.readFileSync(path, 'utf-8');
-	} catch {
-		return fallback;
-	}
-};
-
 // Cors options
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
+
+// Get cert + cert info
+const certPath = paths.get('ssl-certificate')!;
+const certPem = attemptReadFileSync(certPath);
+export const cert = {
+	hash: certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined
+};
 
 // Get extra origins from the user
 const extraOriginPath = paths.get('extra-origins');
 
-// Get cert + cert info
-const certPem = attemptReadFileSync(paths.get('ssl-certificate')!);
-const hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined;
-
-// To add extra origins create a file at the "extra-origins" path
-const extraOrigins = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
+// To add extra-origins create a file at the "extra-origins" path
+export const origins = {
+	extra: extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : []
+};
 
 // Get myservers config
 const configPath = paths.get('myservers-config')!;
-const myServersConfig = loadState<{ remote: { wanport: string; wanaccess: string } }>(configPath);
+export const myServersConfig = loadState<{ remote: { wanport: string; wanaccess: string } }>(configPath);
 
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {
@@ -123,7 +112,7 @@ const getAllowedOrigins = (): string[] => {
 		'/var/run/unraid-notifications.sock',
 
 		// Other endpoints should be added below
-		...extraOrigins
+		...origins.extra
 	]).values()];
 };
 
