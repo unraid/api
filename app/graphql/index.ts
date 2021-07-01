@@ -484,6 +484,6 @@ export const graphql = {
 			};
 		}
 
-		throw new Error('Invalid');
+		throw new Error('Invalid API key');
 	}
 };
