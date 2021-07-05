@@ -158,7 +158,7 @@
     "esprint": "^2.0.0",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^4.0.2",
-    "p-each-series": "^2.2.0",
+    "p-each-series": "^3.0.0",
     "source-map-support": "0.5.19",
     "standard-version": "^9.1.1",
     "supertest": "^6.1.3",
