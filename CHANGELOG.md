@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.21.0](https://github.com/unraid/api/compare/v2.20.1...v2.21.0) (2021-07-05)
+
+
+### Features
+
+* optimise services endpoint ([396a827](https://github.com/unraid/api/commit/396a827bd1603597ccf382c26b63dd40b80c635e))
+
+
+### Bug Fixes
+
+* better error message ([396ce26](https://github.com/unraid/api/commit/396ce2607dde53a24d1be93874d8827871400a19))
+* ensure ssl cert and my-servers-config are watched ([0ab765b](https://github.com/unraid/api/commit/0ab765b8326216135f9058f7117b409fbf496145))
+* ensure switch-env writes the newEnv not staging ([32938d7](https://github.com/unraid/api/commit/32938d747d6a9250ce9ba39b458505da7a8179d2))
+* ensure we do a case insensative check for origins ([a097b7c](https://github.com/unraid/api/commit/a097b7ceae62af83662ff507588c1b2eae76bafc))
+
 ### [2.20.1](https://github.com/unraid/api/compare/v2.20.0...v2.20.1) (2021-06-30)
 
 
