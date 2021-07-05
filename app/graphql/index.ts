@@ -396,17 +396,6 @@ dee.on('*', async (data: { Type: string }) => {
 
 dee.listen();
 
-// Services
-run('services', 'UPDATED', {
-	moduleToRun: modules.getServices,
-	context: {
-		user: internalServiceUser
-	},
-	loop: Infinity
-}).catch((error: unknown) => {
-	log.error('Failed getting "services" with "%s".', (error as Error).message);
-});
-
 export const graphql = {
 	debug,
 	introspection: debug,
