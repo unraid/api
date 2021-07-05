@@ -124,7 +124,7 @@
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.18",
     "systeminformation": "^5.6.20",
-    "ts-command-line-args": "^1.8.1",
+    "ts-command-line-args": "^2.1.0",
     "upcast": "^4.0.0",
     "uuid": "^8.3.2",
     "uuid-apikey": "^1.5.2",
