@@ -106,7 +106,6 @@
     "observable-to-promise": "^1.0.0",
     "p-iteration": "^1.1.8",
     "p-props": "^4.0.0",
-    "p-wait-for": "^4.0.0",
     "package-json": "^7.0.0",
     "path-exists": "^4.0.0",
     "path-type": "^5.0.0",
