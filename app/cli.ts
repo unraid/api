@@ -10,6 +10,7 @@ import dedent from 'dedent-tabs';
 import { version } from '../package.json';
 import { paths } from './core/paths';
 import { logger } from './core/log';
+import packageJson from '../package.json';
 
 const setEnv = (envName: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
@@ -64,7 +65,12 @@ const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstU
 const commandOptions = (mainOptions as Flags & { _unknown: string[] })._unknown || [];
 const command: string = (mainOptions as any).command;
 // Use the env passed by the user, then the flag inline, then default to production
-const getEnvironment = () => process.env.ENVIRONMENT ?? mainOptions.environment ?? 'production';
+const getEnvironment = () => {
+	// Ensure dot env is loaded
+	dotEnv.config();
+	return process.env.ENVIRONMENT ?? mainOptions.environment ?? 'production';
+};
+
 const getUnraidApiPid = async () => {
 	// Find all processes called "unraid-api" which aren't this process
 	const pids = await findProcess('name', 'unraid-api', true);
@@ -92,7 +98,8 @@ const commands = {
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		console.log(`Starting unraid-api in "${getEnvironment()}" mode.`);
+		console.info(`Starting unraid-api v${packageJson.version as string}`);
+		console.info(`Connecting to the "${getEnvironment()}" environment.`);
 
 		// Load bundled index file
 		const indexPath = './index.js';
