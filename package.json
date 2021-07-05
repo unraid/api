@@ -66,7 +66,7 @@
     "dl-tgz": "^0.7.1",
     "dockerode": "^3.3.0",
     "dot-prop": "^6.0.1",
-    "dotenv": "^9.0.2",
+    "dotenv": "^10.0.0",
     "execa": "^5.0.0",
     "express": "^4.17.1",
     "express-list-endpoints": "^5.0.0",
