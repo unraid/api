@@ -285,7 +285,7 @@ jobs:
         # Get all the commit messages between now and the last non-pre-release tag
         RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse | sed \$d) \
         # Save release notes to a file
-        echo $RELEASE_NOTES > ${{ github.workspace }}/RELEASE_NOTES.md && \
+        echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md && \
         # Log release notes
         cat ${{ github.workspace }}/RELEASE_NOTES.md
 
