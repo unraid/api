@@ -29,7 +29,7 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 
 	// Check permissions
 	ensurePermission(user, {
-		resource: 'service/node-api',
+		resource: 'service/unraid-api',
 		action: 'read',
 		possession: 'any'
 	});
