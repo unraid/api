@@ -10,7 +10,6 @@ export * from './exit-app';
 export * from './get-endpoints';
 export * from './get-key-file';
 export * from './get-machine-id';
-export * from './get-node-service';
 export * from './global-error-handler';
 export * from './load-state';
 export * from './parse-config';
