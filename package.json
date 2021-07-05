@@ -122,7 +122,7 @@
     "request-promise-native": "^1.0.9",
     "semver": "^7.3.5",
     "sendmail": "^1.6.1",
-    "set-interval-async": "^1.0.34",
+    "set-interval-async": "^2.0.3",
     "spread-the-word": "^0.8.4",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.18",
