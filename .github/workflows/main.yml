@@ -2,7 +2,7 @@ name: CI - Main
 
 on:
   push:
-    branches: [ 'master' ]
+    branches: [ 'main' ]
     tags: [ 'v*' ]
 
 jobs:
