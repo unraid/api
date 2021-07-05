@@ -8,12 +8,14 @@ type Subscription {
     services: [Service!]
 }
 
+type Uptime {
+	timestamp: DateTime
+	seconds: Int
+}
+
 type Service {
     name: String!
     online: Boolean
-    uptime: {
-		timestamp: DateTime
-		seconds: Int
-	}
+    uptime: Uptime
     version: String
 }

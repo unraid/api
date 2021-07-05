@@ -29,7 +29,7 @@ const thisDir = __dirname;
 // This will allow `PATHS_` to be set an as env
 // e.g. unraid-version = PATHS_UNRAID_VERSION
 const addEnvPaths = ([key, value]: [keyof Paths, string]): [keyof Paths, string] => {
-	const fullKey = `PATHS_${key.replace('-', '_').toUpperCase()}`;
+	const fullKey = `PATHS_${key.replace(/-/g, '_').toUpperCase()}`;
 	return [key, process.env[fullKey] ?? value];
 };
 
