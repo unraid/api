@@ -107,7 +107,7 @@
     "p-iteration": "^1.1.8",
     "p-props": "^4.0.0",
     "p-wait-for": "^3.2.0",
-    "package-json": "^6.5.0",
+    "package-json": "^7.0.0",
     "path-exists": "^4.0.0",
     "path-type": "^5.0.0",
     "pidusage": "^2.0.21",
