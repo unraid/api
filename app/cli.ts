@@ -210,7 +210,7 @@ const commands = {
 		}
 
 		// Write new env to flash
-		await fs.promises.writeFile(envFlashFilePath, 'env="staging"');
+		await fs.promises.writeFile(envFlashFilePath, `env="${newEnv}"`);
 
 		// Copy the new env over to live location before restarting
 		await fs.promises.copyFile(path.join(basePath, `.env.${newEnv}`), path.join(basePath, '.env'));
