@@ -112,7 +112,7 @@
     "p-wait-for": "^3.2.0",
     "package-json": "^6.5.0",
     "path-exists": "^4.0.0",
-    "path-type": "^4.0.0",
+    "path-type": "^5.0.0",
     "pidusage": "^2.0.21",
     "pify": "^5.0.0",
     "pretty-bytes": "^5.6.0",
