@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.21.2](https://github.com/unraid/api/compare/v2.21.1...v2.21.2) (2021-07-06)
+
+
+### Bug Fixes
+
+* ensure dotenv is read before getting environment ([a19b5a9](https://github.com/unraid/api/commit/a19b5a9c43860b1b4f9c94340483d0352bf802d3))
+* get esm modules bundled correctly ([22b5b8b](https://github.com/unraid/api/commit/22b5b8bfc7149b6fdfa26884bea9c1be1777fb1f))
+* permissions name typo ([ee197f9](https://github.com/unraid/api/commit/ee197f9610b0ba0a8e3109684d6baf0e6913f584))
+
 ### [2.21.1](https://github.com/unraid/api/compare/v2.21.0...v2.21.1) (2021-07-05)
 
 ## [2.21.0](https://github.com/unraid/api/compare/v2.20.1...v2.21.0) (2021-07-05)
