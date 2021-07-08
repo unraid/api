@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.21.3](https://github.com/unraid/api/compare/v2.21.2...v2.21.3) (2021-07-08)
+
+
+### Bug Fixes
+
+* update hash var ([7193644](https://github.com/unraid/api/commit/71936449496d5af28c6b64c64a266b95d9fad0e3))
+* update hash var ([8eb4296](https://github.com/unraid/api/commit/8eb4296ab6ad2e4898dc3c45de40dc55e4dab8ff))
+* update hash var ([19114ea](https://github.com/unraid/api/commit/19114ea3a097066175ace10cc207f4b74eb44d13))
+
 ### [2.21.2](https://github.com/unraid/api/compare/v2.21.1...v2.21.2) (2021-07-06)
 
 
