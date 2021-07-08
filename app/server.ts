@@ -106,7 +106,7 @@ const getAllowedOrigins = (): string[] => {
 		...(cert.hash ? [`https://${hash}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
 		// Wan hash
-		...(cert.hash && wanAccessEnabled ? [`https://www.${hash}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+		...(cert.hash && wanAccessEnabled ? [`https://www.${cert.hash}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',
