@@ -103,7 +103,7 @@ const getAllowedOrigins = (): string[] => {
 		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
 		// Hash
-		...(cert.hash ? [`https://${hash}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+		...(cert.hash ? [`https://${cert.hash}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
 		// Wan hash
 		...(cert.hash && wanAccessEnabled ? [`https://www.${cert.hash}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
