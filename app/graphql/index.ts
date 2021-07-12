@@ -14,7 +14,7 @@ import { makeExecutableSchema, SchemaDirectiveVisitor } from 'graphql-tools';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import gql from 'graphql-tag';
 import dee from '@gridplus/docker-events';
-import { run, publish } from '../run';
+import { run } from '../run';
 import { typeDefs } from './schema';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
@@ -381,13 +381,14 @@ bus.on('var', async data => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
+log.debug('Loading docker events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
+	log.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+
 	// Only listen to container events
 	if (data.Type !== 'container') {
 		return;
 	}
-
-	log.debug(`[${data.from}] ${data.Type}->${data.Action}`);
 
 	const user: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 	const { json } = await modules.getAppCount({ user });
