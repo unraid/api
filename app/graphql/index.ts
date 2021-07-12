@@ -381,16 +381,20 @@ bus.on('var', async data => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-dee.on('*', async (data: { Type: string }) => {
+dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
 	// Only listen to container events
 	if (data.Type !== 'container') {
 		return;
 	}
 
+	log.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+
 	const user: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 	const { json } = await modules.getAppCount({ user });
-	await publish('info', 'UPDATED', {
-		apps: json
+	await pubsub.publish('info', {
+		info: {
+			apps: json
+		}
 	});
 });
 

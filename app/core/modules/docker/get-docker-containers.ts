@@ -51,8 +51,6 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
 	const result = containers
 		.map(object => camelCaseKeys(object, { deep: true }))
 		.map(container => {
-			// This will be fixed once camelCaseKeys has correct typings
-			// @ts-expect-error
 			const names = container.names[0];
 			return {
 				...container,
