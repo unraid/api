@@ -39,7 +39,7 @@
     "@apollo/client": "^3.3.17",
     "@graphql-tools/load-files": "^6.3.2",
     "@graphql-tools/merge": "^6.2.14",
-    "@gridplus/docker-events": "OmgImAlexis/docker-events#master",
+    "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
     "@schemastore/package": "0.0.6",
     "@sentry/node": "^6.3.6",
     "@vmngr/libvirt": "github:OmgImAlexis/libvirt",
