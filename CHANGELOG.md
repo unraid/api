@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.21.4](https://github.com/unraid/api/compare/v2.21.3...v2.21.4) (2021-07-12)
+
+
+### Bug Fixes
+
+* add tsc check to cover:types ([24a74a5](https://github.com/unraid/api/commit/24a74a52bb42bdff8313122fc0da135971f5e569))
+* update docker-events ([b7ce6f8](https://github.com/unraid/api/commit/b7ce6f803f189303231d529268ab11834d369e0b))
+
 ### [2.21.3](https://github.com/unraid/api/compare/v2.21.2...v2.21.3) (2021-07-08)
 
 
