@@ -22,7 +22,7 @@
     "cover": "npm run cover:unit && npm run cover:integration && npm run cover:report",
     "cover:unit": "nyc --silent npm run test:unit",
     "cover:integration": "nyc --silent --no-clean npm run test:integration",
-    "cover:types": "typescript-coverage-report",
+    "cover:types": "typescript-coverage-report && npx tsup ./app/cli.ts --dts",
     "cover:report": "nyc report --reporter=lcov --reporter=text",
     "patch": "npm-run-all patch:**",
     "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.js",
