@@ -77,6 +77,7 @@
     "get-server-address": "^1.0.1",
     "glob": "^7.1.7",
     "globby": "^11.0.3",
+    "graceful-ws": "github:OmgImAlexis/graceful-ws",
     "graphql": "^15.5.0",
     "graphql-directive": "^0.2.1",
     "graphql-fields": "^2.0.3",
