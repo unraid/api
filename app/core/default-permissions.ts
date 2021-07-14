@@ -89,7 +89,7 @@ export const my_servers = {
 		{ resource: 'machine-id', action: 'read:any', attributes: '*' },
 		{ resource: 'software-versions', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
-		{ resource: 'vm/domain', action: 'read:any', attributes: '*' }
+		{ resource: 'vms/domain', action: 'read:any', attributes: '*' }
 	]
 };
 

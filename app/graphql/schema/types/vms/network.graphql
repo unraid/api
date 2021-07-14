@@ -1,7 +1,7 @@
 type Query {
     # @todo finish this
     """Virtual network for vms"""
-    vmNetwork(name: String!): JSON @func(module: "vm/domain/network/get-network")
+    vmNetwork(name: String!): JSON @func(module: "vms/domain/network/get-network")
     # """Virtual networks for vms"""
     # vmNetworks: [VmNetwork]
 }
