@@ -6,7 +6,6 @@
 import get from 'lodash.get';
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
-// eslint-disable-next-line @typescript-eslint/no-duplicate-imports
 import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log, paths, pubsub } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
