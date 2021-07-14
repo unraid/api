@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.22.0](https://github.com/unraid/api/compare/v2.21.4...v2.22.0) (2021-07-14)
+
+
+### Features
+
+* replace ws custom-socket with graceful-ws ([95d7f99](https://github.com/unraid/api/commit/95d7f99643791aca40b2c7c927a67b6b096e2545))
+
+
+### Bug Fixes
+
+* typo ([5d06f22](https://github.com/unraid/api/commit/5d06f227effa2e23f1b9b34fd8782b78c8be8bd2))
+* update bundle deps ([0e12f00](https://github.com/unraid/api/commit/0e12f001ff0de3a3cf8a2dc0011550efd96e3b12))
+* wait 5s before connecting to internal socket ([945820b](https://github.com/unraid/api/commit/945820bc915a6970f6fbb3224ad02f639616c010))
+
 ### [2.21.4](https://github.com/unraid/api/compare/v2.21.3...v2.21.4) (2021-07-12)
 
 
