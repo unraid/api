@@ -4,11 +4,11 @@ type Query {
 }
 
 type Vms {
-    domains: [VmDomain!] @func(module: "getDomains")
+    domain: [VmDomain!] @func(module: "getDomains")
 }
 
 type Subscription {
-    vms: [VmDomain!]
+    vms: Vms
 }
 
 # https://libvirt.org/manpages/virsh.html#list

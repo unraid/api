@@ -1,25 +1,27 @@
 import GracefulWebSocket from 'graceful-ws';
 import { INTERNAL_WS_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../consts';
+import { apiManager } from '../core/api-manager';
+import { log } from '../core/log';
+import { varState } from '../core/states/var';
+import packageJson from '../../package.json';
 
-let internal: GracefulWebSocket;
-let relay: GracefulWebSocket;
-
+export const sockets = {
+	internal: null as GracefulWebSocket | null,
+	relay: null as GracefulWebSocket | null
+};
 let internalOpen = false;
 let relayOpen = false;
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
-
-const startInternal = (apiKey: string) => {
-	internal = new GracefulWebSocket(INTERNAL_WS_LINK, ['graphql-ws'], {
+export const startInternal = (apiKey: string) => {
+	sockets.internal = new GracefulWebSocket(INTERNAL_WS_LINK, ['graphql-ws'], {
 		headers: {
-			'x-api-key': apiKey,
+			'x-api-key': apiKey
 		}
 	});
 
-	internal.on('connected', () => {
+	sockets.internal.on('connected', () => {
 		internalOpen = true;
-		internal.send(JSON.stringify({
+		sockets.internal?.send(JSON.stringify({
 			type: 'connection_init',
 			payload: {
 				'x-api-key': apiKey
@@ -27,88 +29,144 @@ const startInternal = (apiKey: string) => {
 		}));
 
 		// Internal is ready at this point
-		if (!relay) {
+		if (!sockets.relay) {
 			startRelay(apiKey);
 		}
 	});
 
-	internal.on('disconnected', () => {
+	sockets.internal?.on('disconnected', () => {
 		internalOpen = false;
 	});
 
-	internal.on('message', e => {
+	sockets.internal?.on('message', e => {
 		// Skip auth acknowledgement
 		if (e.data === '{"type":"connection_ack"}') {
 			return;
 		}
 
 		// Skip keep-alive if relay is down
-		if (e.data === '{"type":"ka"}' && (!relay || relay.readyState === 0)) {
+		if (e.data === '{"type":"ka"}' && (!sockets.relay || sockets.relay.readyState === 0)) {
 			return;
 		}
 
 		if (relayOpen) {
-			relay.send(e.data);
+			sockets.relay?.send(e.data);
 		}
 	});
 
-	internal.on('error', error => {
+	sockets.internal?.on('error', error => {
 		console.log('INTERNAL:ERROR', error);
 	});
 };
 
-const startRelay = (apiKey: string) => {
-	relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
-		headers: {
-			'x-api-key': apiKey,
-			'x-flash-guid': '0951-1666-3841-AF30A0001E64',
-			'x-key-file': '',
-			'x-server-name': 'mocked.tld',
-			'x-unraid-api-version': '2.21.3'
-		}
+const getRelayHeaders = () => {
+	const apiKey = apiManager.getKey('my_servers')?.key!;
+	const serverName = `${varState.data.name}`;
+
+	return {
+		'x-api-key': apiKey,
+		'x-flash-guid': varState.data?.flashGuid ?? '',
+		'x-server-name': serverName,
+		'x-unraid-api-version': packageJson.version
+	};
+};
+
+export const startRelay = (apiKey: string) => {
+	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
+		headers: getRelayHeaders()
 	});
 
 	// Connection-state related events
-	relay.on('connected', () => {
+	sockets.relay.on('connected', () => {
 		relayOpen = true;
+		log.debug('RELAY:CONNECTED');
 	});
-	relay.on('disconnected', () => {
+
+	sockets.relay.on('disconnected', () => {
 		relayOpen = false;
-		// Close internal
-		internal.close();
-		// Start internal
-		internal.start();
+		sockets.internal?.close();
+		sockets.internal?.start();
 	});
-	relay.on('killed', noop);
-	relay.on('error', noop);
+
+	sockets.relay.on('killed', () => {
+		log.debug('RELAY:KILLED');
+	});
+
+	sockets.relay.on('error', () => {
+		log.debug('RELAY:ERROR');
+	});
 
 	// Message event
-	relay.on('message', e => {
+	sockets.relay.on('message', e => {
 		if (internalOpen) {
-			internal.send(e.data);
+			sockets.internal?.send(e.data);
 		}
 	});
 
-	relay.on('unexpected-response', (code, message) => {
+	sockets.relay.on('unexpected-response', (code, message) => {
+		log.debug('RELAY:UNEXPECTED_RESPONSE:%s %s', code, message);
+
 		switch (code) {
+			case 401:
+				log.debug('RELAY:INVALID_API_KEY');
+
+				// Wait for a new one.
+				// Once it's up it'll restart the connection.
+				break;
+
+			case 426:
+				log.debug('RELAY:API_IS_TOO_OUTDATED');
+
+				// Bail as we cannot reconnect
+				break;
+
 			case 429:
 				if (message === 'API_KEY_IN_USE') {
-					setTimeout(() => {
-						// Restart relay connection
-						relay.start();
-					}, 10_000);
+					log.debug('RELAY:API_KEY_IN_USE');
 				}
+
+				// Retry in 30s
+				setTimeout(() => {
+					log.debug('RELAY:RECONNECTING');
+
+					// Restart relay connection
+					sockets.relay?.start();
+				}, 30_000);
+
+				break;
+
+			case 500:
+				log.debug('RELAY:INTERNAL_SERVER_ERROR');
+
+				// Retry in 60s
+				setTimeout(() => {
+					log.debug('RELAY:RECONNECTING');
+
+					// Restart relay connection
+					sockets.relay?.start();
+				}, 60_000);
+
+				break;
+
+			case 503:
+				log.debug('RELAY:GATEWAY_DOWN');
+
+				// Retry in 60s
+				setTimeout(() => {
+					log.debug('RELAY:RECONNECTING');
+
+					// Restart relay connection
+					sockets.relay?.start();
+				}, 60_000);
 
 				break;
 
 			default:
-				// Restart relay connection
-				relay.start();
+				log.debug('RELAY:RECONNECTING');
 
+				// Restart relay connection
+				sockets.relay?.start();
 				break;
 		}
 	});
 };
-
-// This starts it all
-startInternal(API_KEY_HERE);

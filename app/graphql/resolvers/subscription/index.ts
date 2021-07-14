@@ -58,7 +58,7 @@ export const Subscription = {
 		...createSubscription('vars')
 	},
 	vms: {
-		...createSubscription('vms/domains')
+		...createSubscription('vms/domain')
 	},
 	pluginModule: {
 		subscribe: async (_: unknown, directiveArgs: {
