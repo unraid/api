@@ -26,7 +26,7 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 
 	// Check permissions
 	ensurePermission(user, {
-		resource: 'domain',
+		resource: 'vms/domain',
 		action: 'read',
 		possession: 'any'
 	});
