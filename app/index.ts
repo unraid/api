@@ -10,9 +10,8 @@ import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
 import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './core';
 import { server } from './server';
-import { InternalGraphql, MothershipSocket } from './mothership';
-import { sockets } from './sockets';
 import { mothership } from './mothership/subscribe-to-servers';
+import { startInternal, sockets } from './mothership';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json') as { version: string };
@@ -66,7 +65,7 @@ am(async () => {
 			// Get newest API key
 			const apiKey = apiManager.getKey('my_servers');
 
-			// We're ready but they're not logged into myservers yet
+			// We're ready but they're not logged into MyServers yet
 			if (!apiKey) {
 				return;
 			}
@@ -74,21 +73,9 @@ am(async () => {
 			// Make note of API key
 			lastKnownApiKey = apiKey.key;
 
-			// Create internal graphql socket
-			coreLogger.debug('Creating internal graphql socket');
-			const internalGraphqlSocket = new InternalGraphql({ lazy: true });
-			sockets.set('internalGraphql', internalGraphqlSocket);
-
-			// Create relay socket
-			coreLogger.debug('Creating relay socket');
-			const relaySocket = new MothershipSocket({ lazy: true });
-			sockets.set('relay', relaySocket);
-
-			// Connect sockets
-			await Promise.all([
-				internalGraphqlSocket.connect(),
-				relaySocket.connect()
-			]);
+			// Start the internal relay connection
+			// This will connect to relay once it's up
+			startInternal(lastKnownApiKey);
 		} catch (error: unknown) {
 			coreLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
@@ -102,13 +89,13 @@ am(async () => {
 				return;
 			}
 
-			// Disconnect relay
-			apiManagerLogger.debug('Disconnecting relay');
-			await sockets.get('relay')?.disconnect(4401);
+			log.debug('API key removed from cfg, closing connection to relay.');
 
-			// Disconnect internal graphql
-			apiManagerLogger.debug('Disconnecting internalGraphql');
-			await sockets.get('internalGraphql')?.disconnect(4401);
+			// Disconnect internal
+			sockets.internal?.close();
+
+			// Disconnect relay
+			sockets.relay?.close();
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
@@ -138,9 +125,14 @@ am(async () => {
 			// Make note of API key
 			lastKnownApiKey = newApiKey;
 
-			// Let's connect all sockets
-			await sockets.get('relay')?.connect();
-			await sockets.get('internalGraphql')?.connect();
+			// Reconnect internal
+			sockets.internal?.start();
+
+			// Reconnect relay once internal is up
+			sockets.internal?.once('connected', () => {
+				// Let's reconnect relay
+				sockets.relay?.start();
+			});
 
 			// Reconnect subscriptions if we now have a valid key
 			if (newApiKey) {

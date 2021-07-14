@@ -39,8 +39,8 @@ export const admin = {
 		{ resource: 'uptime', action: 'read:any', attributes: '*' },
 		{ resource: 'user', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
-		{ resource: 'vm/domain', action: 'read:any', attributes: '*' },
-		{ resource: 'vm/network', action: 'read:any', attributes: '*' }
+		{ resource: 'vms/domain', action: 'read:any', attributes: '*' },
+		{ resource: 'vms/network', action: 'read:any', attributes: '*' }
 	]
 };
 
@@ -88,7 +88,8 @@ export const my_servers = {
 		{ resource: 'unraid-version', action: 'read:any', attributes: '*' },
 		{ resource: 'machine-id', action: 'read:any', attributes: '*' },
 		{ resource: 'software-versions', action: 'read:any', attributes: '*' },
-		{ resource: 'vars', action: 'read:any', attributes: '*' }
+		{ resource: 'vars', action: 'read:any', attributes: '*' },
+		{ resource: 'vm/domain', action: 'read:any', attributes: '*' }
 	]
 };
 
