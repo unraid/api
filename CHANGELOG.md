@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.22.1](https://github.com/unraid/api/compare/v2.22.0...v2.22.1) (2021-07-14)
+
+
+### Bug Fixes
+
+* vms permissions ([f516e51](https://github.com/unraid/api/commit/f516e51661ebf0274e8a81d8488377f612c609ed))
+
 ## [2.22.0](https://github.com/unraid/api/compare/v2.21.4...v2.22.0) (2021-07-14)
 
 
