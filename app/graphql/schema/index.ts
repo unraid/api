@@ -41,8 +41,8 @@ const files = [
 	'./dist/types/graphql/schema/types/users/me.graphql',
 	'./dist/types/graphql/schema/types/users/user.graphql',
 	'./dist/types/graphql/schema/types/vars/vars.graphql',
-	'./dist/types/graphql/schema/types/vm/domain.graphql',
-	'./dist/types/graphql/schema/types/vm/network.graphql'
+	'./dist/types/graphql/schema/types/vms/domain.graphql',
+	'./dist/types/graphql/schema/types/vms/network.graphql'
 ].map(file => readFileSync(file, 'utf8'));
 
 export const typeDefs = mergeTypeDefs(files);
