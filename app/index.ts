@@ -73,9 +73,12 @@ am(async () => {
 			// Make note of API key
 			lastKnownApiKey = apiKey.key;
 
-			// Start the internal relay connection
-			// This will connect to relay once it's up
-			startInternal(lastKnownApiKey);
+			// Wait 5s for the API to come up before connecting
+			setTimeout(() => {
+				// Start the internal relay connection
+				// This will connect to relay once it's up
+				startInternal(lastKnownApiKey);
+			}, 5000);
 		} catch (error: unknown) {
 			coreLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
