@@ -1,9 +1,13 @@
+import fs from 'fs';
 import GracefulWebSocket from 'graceful-ws';
+import { Serializer as IniSerializer } from 'multi-ini';
 import { INTERNAL_WS_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { apiManager } from '../core/api-manager';
 import { log } from '../core/log';
 import { varState } from '../core/states/var';
 import packageJson from '../../package.json';
+import { paths } from '../core/paths';
+import { loadState } from '../core/utils/misc/load-state';
 
 export const sockets = {
 	internal: null as GracefulWebSocket | null,
@@ -71,6 +75,15 @@ const getRelayHeaders = () => {
 	};
 };
 
+// Get my server's config file path
+const configPath = paths.get('myservers-config')!;
+
+// Ini serializer
+const serializer = new IniSerializer({
+	// This ensures it ADDs quotes
+	keep_quotes: false
+});
+
 export const startRelay = (apiKey: string) => {
 	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
 		headers: getRelayHeaders()
@@ -109,6 +122,23 @@ export const startRelay = (apiKey: string) => {
 		switch (code) {
 			case 401:
 				log.debug('RELAY:INVALID_API_KEY');
+
+				// Delete the my_servers API key from the cfg
+				{
+					const myserversConfigFile = loadState<{
+						remote: { apikey?: string };
+					}>(configPath);
+
+					delete myserversConfigFile.remote.apikey;
+
+					log.debug('Dumping MyServers config back to file', myserversConfigFile);
+
+					// Stringify data
+					const stringifiedData = serializer.serialize(myserversConfigFile);
+
+					// Update config file
+					fs.writeFileSync(configPath, stringifiedData);
+				}
 
 				// Wait for a new one.
 				// Once it's up it'll restart the connection.
