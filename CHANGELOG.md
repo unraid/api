@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.23.0](https://github.com/unraid/api/compare/v2.22.3...v2.23.0) (2021-07-19)
+
+
+### Features
+
+* on relay 401 delete API key ([7c148fe](https://github.com/unraid/api/commit/7c148fe77a250234ce1c17593b60d873b54afeb2))
+
+
+### Bug Fixes
+
+* export getHypervisor ([52a9ade](https://github.com/unraid/api/commit/52a9ade754bb320c8e133fbce701d9468a44581f))
+* vms permissions ([23ae9a5](https://github.com/unraid/api/commit/23ae9a57a1bc74ddff524372275e9900d1175e9f))
+* vms subscription bound to wrong path ([b26bd38](https://github.com/unraid/api/commit/b26bd38b363886ca48c9dd8b009d1518b24e0575))
+* watch for libvirt changes and reload connection ([a0efa46](https://github.com/unraid/api/commit/a0efa46f39d1c12a5a1c74675113caef28cec7ab))
+* watch libvirt for changes ([c230209](https://github.com/unraid/api/commit/c230209e1e90c4c3aa78e008b26a0b6047cd6358))
+
 ### [2.22.3](https://github.com/unraid/api/compare/v2.22.2...v2.22.3) (2021-07-14)
 
 ### [2.22.2](https://github.com/unraid/api/compare/v2.22.1...v2.22.2) (2021-07-14)
