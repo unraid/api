@@ -49,7 +49,7 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 	}
 });
 
-const getHypervisor = async () => {
+export const getHypervisor = async () => {
 	// Return hypervisor if it's already connected
 	if (hypervisor) {
 		return hypervisor;
