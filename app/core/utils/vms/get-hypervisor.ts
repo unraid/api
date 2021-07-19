@@ -86,7 +86,14 @@ const states = {
 	7: 'PMSUSPENDED'
 };
 
-let cachedDomains;
+let cachedDomains: Array<{
+	name: string;
+	uuid: string;
+	state: string;
+	autoStart: boolean;
+	features: Record<string, unknown>;
+}>;
+
 const watchLibvirt = async () => {
 	try {
 		const hypervisor = await getHypervisor();
@@ -116,25 +123,34 @@ const watchLibvirt = async () => {
 
 		// If the result is the same as the cache wait 5s then retry
 		if (JSON.stringify(cachedDomains) === JSON.stringify(resolvedDomains)) {
+			log.debug('libvirt: No changes detected.');
 			await sleep(5_000);
 			return watchLibvirt();
 		}
 
+		log.debug('libvirt: Changes detected!');
+
 		// Update the cache with new results
 		cachedDomains = resolvedDomains;
 
-		// Publish changes to pub/sub
-		await pubsub.publish('vms', {
+		// Publish object
+		const data = {
 			vms: {
 				domain: cachedDomains
 			}
-		}).catch(error => {
-			log.error('Failed publishing to "vms" with %s', error);
+		};
+
+		// Publish changes to pub/sub
+		await pubsub.publish('vms', data).catch(error => {
+			log.error('Failed publishing to "vms" with "%s"', error);
 		});
+
+		log.debug('libvirt: Published to "%s" with %j', 'vms', data);
 
 		await sleep(1_000);
 		return watchLibvirt();
 	} catch (error: unknown) {
+		log.error('Failed watching libvirt with "%s"', error);
 		await sleep(5_000);
 		return watchLibvirt();
 	}
