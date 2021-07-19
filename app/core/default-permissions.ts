@@ -39,6 +39,7 @@ export const admin = {
 		{ resource: 'uptime', action: 'read:any', attributes: '*' },
 		{ resource: 'user', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
+		{ resource: 'vms', action: 'read:any', attributes: '*' },
 		{ resource: 'vms/domain', action: 'read:any', attributes: '*' },
 		{ resource: 'vms/network', action: 'read:any', attributes: '*' }
 	]
@@ -89,6 +90,7 @@ export const my_servers = {
 		{ resource: 'machine-id', action: 'read:any', attributes: '*' },
 		{ resource: 'software-versions', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
+		{ resource: 'vms', action: 'read:any', attributes: '*' },
 		{ resource: 'vms/domain', action: 'read:any', attributes: '*' }
 	]
 };
