@@ -31,31 +31,42 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 		possession: 'any'
 	});
 
-	const hypervisor = await getHypervisor();
-	const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
-	const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
-	const autoStartDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.AUTOSTART);
-	const activeDomainNames = await Promise.all(activeDomains.map(async domain => hypervisor.domainGetName(domain)));
-	const inactiveDomainNames = await Promise.all(inactiveDomains.map(async domain => hypervisor.domainGetName(domain)));
-	const autoStartDomainNames = await Promise.all(autoStartDomains.map(async domain => hypervisor.domainGetName(domain)));
+	try {
+		const hypervisor = await getHypervisor();
+		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
+		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
+		const autoStartDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.AUTOSTART);
+		const activeDomainNames = await Promise.all(activeDomains.map(async domain => hypervisor.domainGetName(domain)));
+		const inactiveDomainNames = await Promise.all(inactiveDomains.map(async domain => hypervisor.domainGetName(domain)));
+		const autoStartDomainNames = await Promise.all(autoStartDomains.map(async domain => hypervisor.domainGetName(domain)));
 
-	// Get all domains
-	const domains = await hypervisor.connectListAllDomains();
-	const resolvedDomains = await Promise.all(domains.map(async domain => {
-		const info = await hypervisor.domainGetInfo(domain);
-		const name = await hypervisor.domainGetName(domain);
-		const features = {};
+		// Get all domains
+		const domains = await hypervisor.connectListAllDomains();
+		const resolvedDomains = await Promise.all(domains.map(async domain => {
+			const info = await hypervisor.domainGetInfo(domain);
+			const name = await hypervisor.domainGetName(domain);
+			const features = {};
+			return {
+				name,
+				uuid: await hypervisor.domainGetUUIDString(domain),
+				state: states[info.state],
+				autoStart: autoStartDomainNames.includes(name),
+				features
+			};
+		}));
+
 		return {
-			name,
-			uuid: await hypervisor.domainGetUUIDString(domain),
-			state: states[info.state],
-			autoStart: autoStartDomainNames.includes(name),
-			features
+			text: `Defined domains: ${JSON.stringify(activeDomainNames, null, 2)}\nActive domains: ${JSON.stringify(inactiveDomainNames, null, 2)}`,
+			json: resolvedDomains
 		};
-	}));
+	} catch (error: unknown) {
+		if (error instanceof Error && error.message === 'Libvirt service is not running') {
+			return {
+				text: `Defined domains: ${JSON.stringify([], null, 2)}\nActive domains: ${JSON.stringify([], null, 2)}`,
+				json: null
+			};
+		}
 
-	return {
-		text: `Defined domains: ${JSON.stringify(activeDomainNames, null, 2)}\nActive domains: ${JSON.stringify(inactiveDomainNames, null, 2)}`,
-		json: resolvedDomains
-	};
+		throw error;
+	}
 };
