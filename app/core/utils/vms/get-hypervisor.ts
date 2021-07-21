@@ -40,7 +40,7 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 	}
 
 	// VM hypervisor started
-	if (event === 'add' && fileName === 'add /var/run/libvirt/qemu/driver.pid') {
+	if (event === 'add' && fileName === '/var/run/libvirt/libvirt-sock') {
 		// Start connection
 		hypervisor = new Hypervisor({ uri });
 		await hypervisor.connectOpen().catch((error: unknown) => {
