@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.2](https://github.com/unraid/api/compare/v2.23.1...v2.23.2) (2021-07-22)
+
+
+### Bug Fixes
+
+* subscribe to servers ([c657eef](https://github.com/unraid/api/commit/c657eef52cd8a47ed64e1623e4cc04780cbc6607))
+
 ### [2.23.1](https://github.com/unraid/api/compare/v2.23.0...v2.23.1) (2021-07-21)
 
 
