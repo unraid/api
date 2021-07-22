@@ -21,7 +21,7 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	}
 });
 
-export const subscribeToServers = async (apiKey: string) => {
+export const subscribeToServers = (apiKey: string) => {
 	log.silly('Subscribing to servers with %s', apiKey);
 	const query = mothership.request({
 		query: `subscription servers ($apiKey: String!) {
