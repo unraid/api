@@ -129,7 +129,7 @@
     "xhr2": "^0.2.1"
   },
   "devDependencies": {
-    "@commitlint/cli": "^12.1.4",
+    "@commitlint/cli": "^13.1.0",
     "@commitlint/config-conventional": "^12.1.4",
     "@types/btoa": "^1.2.3",
     "@types/cli-table": "^0.3.0",
