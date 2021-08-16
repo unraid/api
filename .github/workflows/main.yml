@@ -87,7 +87,7 @@ jobs:
       run: npm install
 
     - name: Check coverage
-      run: npm run cover:types
+      run: npm run cover
 
   compile-source:
     runs-on: ubuntu-latest
