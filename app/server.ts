@@ -90,6 +90,9 @@ const getAllowedOrigins = (): string[] => {
 
 	// Only append the port if it's not HTTP/80 or HTTPS/443
 	return [...new Set([
+		// Localhost - Used for GUI mode
+		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
+		
 		// IP
 		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
