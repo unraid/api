@@ -35,7 +35,7 @@
     "unraid-api"
   ],
   "dependencies": {
-    "@apollo/client": "^3.3.17",
+    "@apollo/client": "^3.4.8",
     "@graphql-tools/load-files": "^6.3.2",
     "@graphql-tools/merge": "^6.2.14",
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
