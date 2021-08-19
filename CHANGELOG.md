@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.4](https://github.com/unraid/api/compare/v2.23.3...v2.23.4) (2021-08-19)
+
+
+### Bug Fixes
+
+* don't log my_servers config ([79874dd](https://github.com/unraid/api/commit/79874dd838b27793f5132360a3258225da264dd5))
+
 ### [2.23.3](https://github.com/unraid/api/compare/v2.23.2...v2.23.3) (2021-08-19)
 
 
