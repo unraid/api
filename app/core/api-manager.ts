@@ -111,7 +111,7 @@ export class ApiManager extends EventEmitter {
 				}
 			};
 
-			log.debug('Dumping MyServers config back to file', data);
+			log.debug('Dumping MyServers config back to file');
 
 			// Stringify data
 			const stringifiedData = serializer.serialize(data);

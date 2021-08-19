@@ -133,7 +133,7 @@ export const startRelay = (apiKey: string) => {
 
 					delete myserversConfigFile.remote.apikey;
 
-					log.debug('Dumping MyServers config back to file', myserversConfigFile);
+					log.debug('Dumping MyServers config back to file');
 
 					// Stringify data
 					const stringifiedData = serializer.serialize(myserversConfigFile);
