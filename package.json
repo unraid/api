@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.23.2",
+  "version": "2.23.3",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
@@ -21,7 +21,7 @@
     "test": "nyc ava",
     "cover": "npm run cover:types && npm run cover:unit && npm run cover:report",
     "cover:types": "typescript-coverage-report && tsup ./app/cli.ts --dts",
-		"cover:unit": "nyc --silent npm run test",
+    "cover:unit": "nyc --silent npm run test",
     "cover:report": "nyc report --reporter=lcov --reporter=text",
     "patch": "npm-run-all patch:**",
     "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.js",

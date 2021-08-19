@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.23.3](https://github.com/unraid/api/compare/v2.23.2...v2.23.3) (2021-08-19)
+
+
+### Bug Fixes
+
+* allow localhost as CORS origin ([14935b2](https://github.com/unraid/api/commit/14935b2bc3a099d57ebf92f4c5ee54d406d03e50))
+
 ### [2.23.2](https://github.com/unraid/api/compare/v2.23.1...v2.23.2) (2021-07-22)
 
 
