@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.23.4",
+  "version": "2.23.5",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
@@ -35,7 +35,7 @@
     "unraid-api"
   ],
   "dependencies": {
-    "@apollo/client": "^3.3.17",
+    "@apollo/client": "^3.4.9",
     "@graphql-tools/load-files": "^6.3.2",
     "@graphql-tools/merge": "^6.2.14",
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
