@@ -219,10 +219,15 @@ const commands = {
 		}
 
 		// Write new env to flash
-		await fs.promises.writeFile(envFlashFilePath, `env="${newEnv}"`);
+		const newEnvLine = `env="${newEnv}"`;
+		await fs.promises.writeFile(envFlashFilePath, newEnvLine);
+		logger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
 
 		// Copy the new env over to live location before restarting
-		await fs.promises.copyFile(path.join(basePath, `.env.${newEnv}`), path.join(basePath, '.env'));
+		const newDotEnvFilePath = path.join(basePath, `.env.${newEnv}`);
+		const dotEnvFilePath = path.join(basePath, '.env');
+		await fs.promises.copyFile(newDotEnvFilePath, dotEnvFilePath);
+		logger.debug('Copying %s to %s', newDotEnvFilePath, dotEnvFilePath);
 
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
