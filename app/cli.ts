@@ -192,12 +192,14 @@ const commands = {
 		const basePath = paths.get('unraid-api-base')!;
 		const envFlashFilePath = paths.get('myservers-env')!;
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
+
+		logger.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
+
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
 		// Get item from index 2 of the regex match or return undefined
 		const [,,currentEnvInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
 
-		logger.debug('Current ENV in file: %s', currentEnvInFile);
 		let newEnv = 'production';
 
 		// Switch from staging to production
