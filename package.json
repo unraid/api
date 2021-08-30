@@ -1,7 +1,7 @@
 {
   "name": "@unraid/api",
   "version": "2.24.0",
-  "main": "dist/index.js",
+  "main": "dist/index.cjs",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
@@ -25,7 +25,7 @@
     "cover:unit": "nyc --silent npm run test",
     "cover:report": "nyc report --reporter=lcov --reporter=text",
     "patch": "npm-run-all patch:**",
-    "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.js",
+    "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.cjs",
     "release": "standard-version",
     "update-bundle-dependencies": "bundle-dependencies update"
   },
