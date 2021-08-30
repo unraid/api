@@ -1,5 +1,5 @@
 import { promisify } from 'util';
-import { join as joinPath } from 'path';
+import { join as joinPath, resolve as resolvePath } from 'path';
 import { exec as execWithCallback } from 'child_process';
 import { writeFileSync, readFileSync } from 'fs';
 import tempy from 'tempy';
@@ -19,6 +19,9 @@ const repeat = async (func: () => void, times = 0) => {
 	return promise;
 };
 
+const stagingEnv = readFileSync(resolvePath(__dirname, '..', '.env.staging'), 'utf-8');
+const productionEnv = readFileSync(resolvePath(__dirname, '..', '.env.production'), 'utf-8');
+
 test.beforeEach(t => {
 	t.context = {
 		paths: {
@@ -28,8 +31,8 @@ test.beforeEach(t => {
 	};
 
 	writeFileSync(t.context.paths.PATHS_MYSERVERS_ENV, 'env="production"');
-	writeFileSync(joinPath(t.context.paths.PATHS_UNRAID_API_BASE, '.env.staging'), 'env="staging"');
-	writeFileSync(joinPath(t.context.paths.PATHS_UNRAID_API_BASE, '.env.production'), 'env="production"');
+	writeFileSync(joinPath(t.context.paths.PATHS_UNRAID_API_BASE, '.env.staging'), stagingEnv);
+	writeFileSync(joinPath(t.context.paths.PATHS_UNRAID_API_BASE, '.env.production'), productionEnv);
 });
 
 test.serial('Loads production when no env is set', async t => {
@@ -48,7 +51,7 @@ test.serial('Loads production when no env is set', async t => {
 		t.is(output, 'Current ENV in file: undefined\nNo ENV found, setting env to "production"...\nRun "unraid-api start" to start the API.\n');
 
 		// Check the .env was updated on the live server
-		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), 'env="production"');
+		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
 
 		// Check the env file that's persisted on the boot drive
 		t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="production"');
@@ -71,7 +74,7 @@ test.serial('Loads production when switching from staging', async t => {
 		t.is(output, 'Current ENV in file: staging\nSwitching from "staging" to "production"...\nRun "unraid-api start" to start the API.\n');
 
 		// Check the .env was updated on the live server
-		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), 'env="production"');
+		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
 
 		// Check the env file that's persisted on the boot drive
 		t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="production"');
@@ -94,7 +97,7 @@ test.serial('Loads staging when switching from production', async t => {
 		t.is(output, 'Current ENV in file: production\nSwitching from "production" to "staging"...\nRun "unraid-api start" to start the API.\n');
 
 		// Check the .env was updated on the live server
-		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), 'env="staging"');
+		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), stagingEnv);
 
 		// Check the env file that's persisted on the boot drive
 		t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="staging"');

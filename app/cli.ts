@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { spawn } from 'child_process';
+import { spawn, exec } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
 import findProcess from 'find-process';
@@ -224,10 +224,19 @@ const commands = {
 		logger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
 
 		// Copy the new env over to live location before restarting
-		const newDotEnvFilePath = path.join(basePath, `.env.${newEnv}`);
-		const dotEnvFilePath = path.join(basePath, '.env');
-		await fs.promises.copyFile(newDotEnvFilePath, dotEnvFilePath);
-		logger.debug('Copying %s to %s', newDotEnvFilePath, dotEnvFilePath);
+		const source = path.join(basePath, `.env.${newEnv}`);
+		const destination = path.join(basePath, '.env');
+		logger.debug('Copying %s to %s', source, destination);
+		await new Promise<void>((resolve, reject) => {
+			// Use the native cp command to ensure we're outside the virtual file system
+            exec(`cp "${source}" "${destination}"`, error => {
+                if (error) {
+                    return reject(error);
+                }
+
+                resolve();
+            });
+        });
 
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
