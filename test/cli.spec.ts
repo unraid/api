@@ -1,18 +1,22 @@
 import { promisify } from 'util';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 import { join as joinPath, resolve as resolvePath } from 'path';
 import { exec as execWithCallback } from 'child_process';
 import { writeFileSync, readFileSync } from 'fs';
-import tempy from 'tempy';
 import ava, { TestInterface } from 'ava';
+import tempy from 'tempy';
 
 const exec = promisify(execWithCallback);
 
 const test = ava as TestInterface<{ paths: Record<string, string> }>;
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const stagingEnv = readFileSync(resolvePath(__dirname, '..', '.env.staging'), 'utf-8');
 const productionEnv = readFileSync(resolvePath(__dirname, '..', '.env.production'), 'utf-8');
 
-test.beforeEach(t => {
+test.beforeEach(async t => {
 	t.context = {
 		paths: {
 			PATHS_MYSERVERS_ENV: tempy.file({ name: 'env' }),
@@ -32,7 +36,7 @@ test.serial('Loads production when no env is set', async t => {
 	writeFileSync(PATHS_MYSERVERS_ENV, '');
 
 	// Run 'switch-env'
-	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
+	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.cjs switch-env`);
 
 	// Split the lines
 	const lines = output.split('\n');
@@ -58,7 +62,7 @@ test.serial('Loads production when switching from staging', async t => {
 	writeFileSync(PATHS_MYSERVERS_ENV, 'env="staging"');
 
 	// Run 'switch-env'
-	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
+	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.cjs switch-env`);
 
 	// Split the lines
 	const lines = output.split('\n');
@@ -83,7 +87,7 @@ test.serial('Loads staging when switching from production', async t => {
 	writeFileSync(PATHS_MYSERVERS_ENV, 'env="production"');
 
 	// Run 'switch-env'
-	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
+	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.cjs switch-env`);
 
 	// Split the lines
 	const lines = output.split('\n');

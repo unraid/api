@@ -2,6 +2,8 @@
  * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
 
 export interface Paths {
 	core: string;
@@ -24,6 +26,7 @@ export interface Paths {
 	'extra-origins': string;
 }
 
+const __dirname = dirname(fileURLToPath(import.meta.url));
 const thisDir = __dirname;
 
 // This will allow `PATHS_` to be set an as env

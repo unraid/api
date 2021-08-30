@@ -14,11 +14,14 @@ const config = {
     files: [
         './test/**/*'
     ],
-    extensions: [
-        'ts'
-    ],
-    require: [
-        'ts-node/register/transpile-only'
+    "extensions": {
+        "ts": "module"
+    },
+    "nonSemVerExperiments": {
+        "configurableModuleFormat": true
+    },
+    "nodeArguments": [
+        "--loader=ts-node/esm"
     ]
 };
 
