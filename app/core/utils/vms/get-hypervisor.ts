@@ -49,9 +49,9 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 	}
 });
 
-export const getHypervisor = async () => {
+export const getHypervisor = async (useCache = true) => {
 	// Return hypervisor if it's already connected
-	if (hypervisor) {
+	if (useCache && hypervisor) {
 		return hypervisor;
 	}
 
@@ -94,12 +94,12 @@ let cachedDomains: Array<{
 	features: Record<string, unknown>;
 }>;
 
-const watchLibvirt = async () => {
+const watchLibvirt = async (useCache = true) => {
 	try {
-		const hypervisor = await getHypervisor();
+		const hypervisor = await getHypervisor(useCache);
 		if (!hypervisor) {
 			await sleep(1000);
-			return watchLibvirt();
+			return watchLibvirt(useCache);
 		}
 
 		// We now have a hypervisor instance
@@ -150,6 +150,13 @@ const watchLibvirt = async () => {
 		await sleep(1_000);
 		return watchLibvirt();
 	} catch (error: unknown) {
+		// We need to try and reconnect
+		if ((error as Error).message.includes('invalid connection pointer')) {
+			log.warn('Reconnecting to libvirt socket...');
+			await sleep(5_000);
+			return watchLibvirt(false);
+		}
+
 		log.error('Failed watching libvirt with "%s"', error);
 		await sleep(5_000);
 		return watchLibvirt();

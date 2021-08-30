@@ -60,13 +60,10 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 			json: resolvedDomains
 		};
 	} catch (error: unknown) {
-		if (error instanceof Error && error.message === 'Libvirt service is not running') {
-			return {
-				text: `Defined domains: ${JSON.stringify([], null, 2)}\nActive domains: ${JSON.stringify([], null, 2)}`,
-				json: null
-			};
-		}
-
-		throw error;
+		// If we hit an error expect libvirt to be offline
+		return {
+			text: `Defined domains: ${JSON.stringify([], null, 2)}\nActive domains: ${JSON.stringify([], null, 2)}`,
+			json: null
+		};
 	}
 };
