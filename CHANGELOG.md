@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.24.0](https://github.com/unraid/api/compare/v2.23.5...v2.24.0) (2021-08-30)
+
+
+### Features
+
+* add vms count ([a0a2dae](https://github.com/unraid/api/commit/a0a2dae2a0170201cace18d35cc96efedbabcf46))
+* add vms count to graphql ([0af7a56](https://github.com/unraid/api/commit/0af7a565fdd7fe7f0a6b61a44ee6a7c313dea43f))
+
+
+### Bug Fixes
+
+* cli test ([9bbcee8](https://github.com/unraid/api/commit/9bbcee8093722bb9cf8e43d81ab221ef140200dc))
+* if libvirt throw incorrect connection pointer then reconnect ([b887fe2](https://github.com/unraid/api/commit/b887fe2d8dd114564aff03c540d5939da75eb963))
+* remove loading external permissions ([90f04eb](https://github.com/unraid/api/commit/90f04eb5a0b0c489b8d70bcdaaa116426c9675b4))
+* use native cp to handle switch-env ([e0c13cc](https://github.com/unraid/api/commit/e0c13cc4c1f4c05a575d642f2ace21e7873991f5))
+
 ### [2.23.5](https://github.com/unraid/api/compare/v2.23.4...v2.23.5) (2021-08-24)
 
 ### [2.23.4](https://github.com/unraid/api/compare/v2.23.3...v2.23.4) (2021-08-19)

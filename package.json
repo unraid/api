@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.23.5",
+  "version": "2.24.0",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
@@ -41,7 +41,6 @@
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
     "@schemastore/package": "0.0.6",
     "@sentry/node": "^6.3.6",
-    "@vmngr/libvirt": "github:OmgImAlexis/libvirt",
     "accesscontrol": "^2.2.1",
     "ain2": "^3.0.0",
     "am": "^1.1.0",
@@ -135,7 +134,7 @@
     "@types/cli-table": "^0.3.0",
     "@types/dockerode": "^3.2.7",
     "@types/lodash.get": "^4.4.6",
-    "@types/nanoajax": "^0.2.30",
+    "@types/node": "^16.6.1",
     "@types/pify": "^5.0.1",
     "@types/semver-regex": "^3.1.0",
     "@types/stoppable": "^1.1.0",
@@ -162,7 +161,9 @@
     "typescript": "4.3.5",
     "typescript-coverage-report": "^0.6.0"
   },
-  "optionalDependencies": {},
+  "optionalDependencies": {
+    "@vmngr/libvirt": "github:omgimalexis/libvirt"
+  },
   "config": {
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
@@ -175,7 +176,6 @@
     "@gridplus/docker-events",
     "@schemastore/package",
     "@sentry/node",
-    "@vmngr/libvirt",
     "accesscontrol",
     "ain2",
     "am",
@@ -255,6 +255,7 @@
     "stoppable",
     "subscriptions-transport-ws",
     "systeminformation",
+    "tempy",
     "ts-command-line-args",
     "upcast",
     "uuid",
