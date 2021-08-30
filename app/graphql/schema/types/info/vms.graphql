@@ -1,0 +1,11 @@
+type Info {
+    """Count of VMs"""
+    vms: InfoVMs @func(module: "getVmsCount")
+}
+
+type InfoVMs {
+    """How many VMs are installed"""
+    installed: Int
+    """How many VMs are running"""
+    started: Int
+}
