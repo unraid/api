@@ -1,5 +1,3 @@
-// Created from 'create-ts-index'
-
 export * from './get-all-devices';
 export * from './get-app-count';
 export * from './get-baseboard';
@@ -11,3 +9,4 @@ export * from './get-os';
 export * from './get-software-versions';
 export * from './get-unraid-version';
 export * from './get-versions';
+export * from './get-vms-count';
