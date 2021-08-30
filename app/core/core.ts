@@ -3,13 +3,12 @@
  * Written by: Alexis Tyler
  */
 
-import path, { dirname } from 'path';
+import path, { dirname } from 'node:path';
 import glob from 'glob';
 import camelCase from 'camelcase';
 import globby from 'globby';
-import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
-import { fileURLToPath } from 'url';
+import { fileURLToPath } from 'node:url';
 import { coreLogger } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint } from './utils';
@@ -46,7 +45,7 @@ const loadStatePaths = async (): Promise<void> => {
 	loadingLogger('state paths');
 
 	const states = glob.sync('*.js', { cwd }).map(state => state.replace('.js', ''));
-	states.forEach(state => {
+	for (const state of states) {
 		const name = `state:${camelCase(state, { pascalCase: true })}`;
 		const filePath = `${path.join(statesCwd, state)}.ini`;
 
@@ -57,7 +56,7 @@ const loadStatePaths = async (): Promise<void> => {
 			// @ts-expect-error
 			paths.set(name, filePath);
 		}
-	});
+	}
 };
 
 /**
@@ -92,22 +91,22 @@ const loadPlugins = async (): Promise<void> => {
 
 		// Reset require cache
 		// Without this plugin files wouldn't update until the server restarts
-		await pIteration.forEach(plugins, async pluginName => {
+		for (const pluginName of plugins) {
 			const cwd = path.join(pluginsCwd, pluginName);
 			const pluginFiles = globby.sync(['**/*', '!**/node_modules/**'], { cwd });
-			await pIteration.forEach(pluginFiles, pluginFile => {
+			for (const pluginFile of pluginFiles) {
 				const filePath = path.join(pluginsCwd, pluginFile);
 				coreLogger.debug('Clearing plugin file from require cache %s', filePath);
 				clearModule(filePath);
-			});
-		});
+			}
+		}
 	} else {
 		// Update flag
 		pluginsLoaded = true;
 	}
 
 	// Initialize all plugins with plugin manager
-	await pIteration.forEach(plugins, async pluginName => pluginManager.init(pluginName));
+	await Promise.all(plugins.map(async pluginName => pluginManager.init(pluginName)));
 };
 
 /**
@@ -119,13 +118,12 @@ const loadWatchers = async (): Promise<void> => {
 		return;
 	}
 
-	const watchersCwd = path.join(__dirname, 'watchers');
 	loadingLogger('watchers');
 
 	// Start each watcher
-	Object.values(watchers).forEach(watcher => {
+	for (const watcher of Object.values(watchers)) {
 		watcher().start();
-	});
+	}
 };
 
 /**

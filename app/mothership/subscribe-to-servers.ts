@@ -12,10 +12,10 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 		try {
 			if (errors) {
 				// Log all errors
-				errors.forEach((error: any) => {
+				for (const error of errors) {
 					// [error] {"message":"","locations":[{"line":2,"column":13}],"path":["servers"],"extensions":{"code":"INTERNAL_SERVER_ERROR","exception":{"fatal":false,"extras":{},"name":"AppError","status":500}}} [./dist/index.js:24646]
 					log.error('Failed connecting to %s code=%s reason="%s"', MOTHERSHIP_GRAPHQL_LINK, error.extensions.code, error.message);
-				});
+				}
 			}
 		} catch {}
 	}
@@ -41,9 +41,9 @@ export const subscribeToServers = (apiKey: string) => {
 
 			if (errors) {
 				// Log all errors
-				errors.forEach((error: any) => {
+				for (const error of errors) {
 					log.error('Failed subscribing to %s code=%s reason="%s"', MOTHERSHIP_GRAPHQL_LINK, error.extensions.code, error.message);
-				});
+				}
 
 				return;
 			}

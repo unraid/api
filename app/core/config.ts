@@ -3,20 +3,20 @@
  * Written by: Alexis Tyler
  */
 
-import { envs } from './envs';
+import { environmentVariables } from './environments';
 
-const debug = envs.DEBUG;
-const nodeEnv = envs.NODE_ENV;
-const safe = nodeEnv === 'safe-mode';
-const dev = nodeEnv === 'development';
+const debug = environmentVariables.DEBUG;
+const nodeEnvironment = environmentVariables.NODE_ENV;
+const safe = nodeEnvironment === 'safe-mode';
+const development = nodeEnvironment === 'development';
 
 /**
  * Main config.
  */
 export const config = new Map<string, boolean | string | number>([
 	['debug', debug],
-	['node-env', nodeEnv],
+	['node-env', nodeEnvironment],
 	['safe-mode', safe],
-	['port', envs.PORT ?? (dev ? 5000 : '/var/run/unraid-api.sock')],
-	['system-version-cache-expiry', 30000] // 30s
+	['port', environmentVariables.PORT ?? (development ? 5000 : '/var/run/unraid-api.sock')],
+	['system-version-cache-expiry', 30_000] // 30s
 ]);

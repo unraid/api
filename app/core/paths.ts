@@ -2,8 +2,8 @@
  * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export interface Paths {
 	core: string;
@@ -27,11 +27,11 @@ export interface Paths {
 }
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const thisDir = __dirname;
+const thisDirectory = __dirname;
 
 // This will allow `PATHS_` to be set an as env
 // e.g. unraid-version = PATHS_UNRAID_VERSION
-const addEnvPaths = ([key, value]: [keyof Paths, string]): [keyof Paths, string] => {
+const addEnvironmentPaths = ([key, value]: [keyof Paths, string]): [keyof Paths, string] => {
 	const fullKey = `PATHS_${key.replace(/-/g, '_').toUpperCase()}`;
 	return [key, process.env[fullKey] ?? value];
 };
@@ -42,7 +42,7 @@ const addEnvPaths = ([key, value]: [keyof Paths, string]): [keyof Paths, string]
  * @name Paths
  */
 export const defaultPaths = new Map<keyof Paths, string>([
-	['core', thisDir],
+	['core', thisDirectory],
 	['unraid-api-base', '/usr/local/bin/unraid-api/'],
 	['unraid-version', '/etc/unraid-version'],
 	['unraid-data', '/boot/config/plugins/dynamix.my.servers/data/'],
@@ -66,4 +66,4 @@ export const defaultPaths = new Map<keyof Paths, string>([
  *
  * @name Paths
  */
-export const paths = new Map<keyof Paths, string>([...defaultPaths.entries()].map(addEnvPaths));
+export const paths = new Map<keyof Paths, string>([...defaultPaths.entries()].map(path => addEnvironmentPaths(path)));

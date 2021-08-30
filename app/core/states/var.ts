@@ -38,20 +38,20 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => 
 };
 
 /**
- * Unraid registation check
+ * Unraid registration check
  */
-type RegistationCheck =
+type RegistrationCheck =
 	/** Key file is missing. */
 	'ENOKEYFILE2' |
 	/** Everything is fine. */
 	'';
 
 /**
- * Unraid registation type
+ * Unraid registration type
  *
  * Check the {@link https://unraid.net/pricing | pricing page} for up to date info.
  */
-type RegistationType =
+type RegistrationType =
 	/** Missing key file. */
 	'- missing key file' |
 	/** Up to 6 attached storage devices. */
@@ -162,14 +162,14 @@ interface VarIni {
 	portssl: string;
 	porttelnet: string;
 	queueDepth: string;
-	regCheck: RegistationCheck;
+	regCheck: RegistrationCheck;
 	regFile: string;
 	regGen: string;
 	regGuid: string;
 	regTm: string;
 	regTm2: string;
 	regTo: string;
-	regTy: RegistationType;
+	regTy: RegistrationType;
 	regState: RegistrationState;
 	safeMode: string;
 	sbClean: string;
@@ -296,14 +296,14 @@ const parse = (state: VarIni): Var => {
 interface ParseOptions {
 	/** If the internal store should be updated with the new data. */
 	set?: boolean;
-	/** If the main bus should recieve an event with the new data. */
+	/** If the main bus should receive an event with the new data. */
 	emit?: boolean;
 }
 
 class VarState extends State {
 	private static instance: VarState;
 	public channel = 'var';
-	_data: Var | undefined;
+	declare _data: Var | undefined;
 
 	constructor() {
 		super();

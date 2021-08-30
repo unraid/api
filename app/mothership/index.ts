@@ -1,9 +1,10 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import GracefulWebSocket from 'graceful-ws';
 import { Serializer as IniSerializer } from 'multi-ini';
 import { INTERNAL_WS_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { apiManager } from '../core/api-manager';
 import { log } from '../core/log';
+// eslint-disable-next-line unicorn/prevent-abbreviations
 import { varState } from '../core/states/var';
 import packageJson from '../../package.json';
 import { paths } from '../core/paths';
@@ -11,7 +12,9 @@ import { loadState } from '../core/utils/misc/load-state';
 import { subscribeToServers } from './subscribe-to-servers';
 
 export const sockets = {
+	// eslint-disable-next-line unicorn/no-null
 	internal: null as GracefulWebSocket | null,
+	// eslint-disable-next-line unicorn/no-null
 	relay: null as GracefulWebSocket | null
 };
 let internalOpen = false;
@@ -44,14 +47,14 @@ export const startInternal = (apiKey: string) => {
 		internalOpen = false;
 	});
 
-	sockets.internal?.on('message', e => {
+	sockets.internal?.on('message', event => {
 		// Skip auth acknowledgement
-		if (e.data === '{"type":"connection_ack"}') {
+		if (event.data === '{"type":"connection_ack"}') {
 			return;
 		}
 
 		// Skip keep-alive if relay is down
-		if (e.data === '{"type":"ka"}' && (!sockets.relay || sockets.relay.readyState === 0)) {
+		if (event.data === '{"type":"ka"}' && (!sockets.relay || sockets.relay.readyState === 0)) {
 			return;
 		}
 
@@ -112,9 +115,9 @@ export const startRelay = (apiKey: string) => {
 	});
 
 	// Message event
-	sockets.relay.on('message', e => {
+	sockets.relay.on('message', event => {
 		if (internalOpen) {
-			sockets.internal?.send(e.data);
+			sockets.internal?.send(event.data);
 		}
 	});
 

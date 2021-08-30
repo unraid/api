@@ -3,12 +3,12 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
+import fs from 'node:fs';
 import { Serializer as IniSerializer } from 'multi-ini';
-import crypto from 'crypto';
-import path from 'path';
+import crypto from 'node:crypto';
+import path from 'node:path';
 import chokidar from 'chokidar';
-import { EventEmitter } from 'events';
+import { EventEmitter } from 'node:events';
 import toMillisecond from 'ms';
 import dotProp from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
@@ -64,7 +64,7 @@ export class ApiManager extends EventEmitter {
 
 	private lock?: MutexInterface;
 
-	constructor(options: Options = { watch: true }) {
+	constructor(options?: Options) {
 		super({
 			captureRejections: true
 		});
@@ -97,8 +97,8 @@ export class ApiManager extends EventEmitter {
 			this.replace('notifier', notifierApiKey, { userId: '-1' });
 		} else {
 			// Generate API keys
-			const UPCFinalKey = upcApiKey ?? `unupc_${crypto.randomBytes(58).toString('hex')}`.substring(0, 64);
-			const notifierFinalKey = notifierApiKey ?? `unnotify_${crypto.randomBytes(58).toString('hex')}`.substring(0, 64);
+			const UPCFinalKey = upcApiKey ?? `unupc_${crypto.randomBytes(58).toString('hex')}`.slice(0, 64);
+			const notifierFinalKey = notifierApiKey ?? `unnotify_${crypto.randomBytes(58).toString('hex')}`.slice(0, 64);
 
 			// Rebuild config file
 			const data = {
@@ -126,7 +126,7 @@ export class ApiManager extends EventEmitter {
 
 		// Watch for changes to the myservers.cfg file
 		// @todo Move API keys to their own file
-		if (options.watch) {
+		if (options?.watch ?? true) {
 			chokidar.watch(path.basename(configPath), {
 				ignoreInitial: true
 			}).on('all', async (_eventName, filePath) => {
@@ -142,7 +142,7 @@ export class ApiManager extends EventEmitter {
 			log.debug('Loaded MyServers API key!');
 
 			// API manager is ready
-			this.emit('ready', undefined);
+			this.emit('ready');
 		}).catch(error => {
 			log.debug('Failing loading MyServers API key with %s', error);
 		});
@@ -156,6 +156,7 @@ export class ApiManager extends EventEmitter {
 	replace(name: string, key: string, options: KeyOptions) {
 		// Delete existing key
 		// @ts-expect-error
+		// eslint-disable-next-line unicorn/no-null
 		this.keys.items[name] = null;
 
 		// Add new key

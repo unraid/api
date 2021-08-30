@@ -5,7 +5,7 @@
 
 import { getEmhttpdService, getUnraidApiService } from './services';
 import { coreLogger } from '../log';
-import { envs } from '../envs';
+import { envs } from '../environments';
 import { NodeService } from '../utils';
 import { CoreResult, CoreContext } from '../types';
 
