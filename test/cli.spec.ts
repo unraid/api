@@ -9,16 +9,6 @@ const exec = promisify(execWithCallback);
 
 const test = ava as TestInterface<{ paths: Record<string, string> }>;
 
-const repeat = async (func: () => void, times = 0) => {
-	let promise = Promise.resolve();
-
-	while (times-- > 0) {
-		promise = promise.then(func);
-	}
-
-	return promise;
-};
-
 const stagingEnv = readFileSync(resolvePath(__dirname, '..', '.env.staging'), 'utf-8');
 const productionEnv = readFileSync(resolvePath(__dirname, '..', '.env.production'), 'utf-8');
 
@@ -36,70 +26,77 @@ test.beforeEach(t => {
 });
 
 test.serial('Loads production when no env is set', async t => {
-	t.plan(30);
+	const { PATHS_MYSERVERS_ENV, PATHS_UNRAID_API_BASE } = t.context.paths;
 
-	await repeat(async () => {
-		const { PATHS_MYSERVERS_ENV, PATHS_UNRAID_API_BASE } = t.context.paths;
+	// No env
+	writeFileSync(PATHS_MYSERVERS_ENV, '');
 
-		// No env
-		writeFileSync(PATHS_MYSERVERS_ENV, '');
+	// Run 'switch-env'
+	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
 
-		// Run 'switch-env'
-		const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
+	// Split the lines
+	const lines = output.split('\n');
 
-		// Check the output of the cli
-		t.is(output, 'Current ENV in file: undefined\nNo ENV found, setting env to "production"...\nRun "unraid-api start" to start the API.\n');
+	// Check the output of the cli
+	t.assert(lines[0].endsWith(' for current ENV, found '));
+	t.is(lines[1], 'No ENV found, setting env to "production"...');
+	t.assert(lines[2].startsWith('Writing env="production" to '));
+	t.assert(lines[3].startsWith('Copying'));
+	t.is(lines[4], 'Run "unraid-api start" to start the API.');
 
-		// Check the .env was updated on the live server
-		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
+	// Check the .env was updated on the live server
+	t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
 
-		// Check the env file that's persisted on the boot drive
-		t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="production"');
-	}, 10);
+	// Check the env file that's persisted on the boot drive
+	t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="production"');
 });
 
 test.serial('Loads production when switching from staging', async t => {
-	t.plan(30);
+	const { PATHS_MYSERVERS_ENV, PATHS_UNRAID_API_BASE } = t.context.paths;
 
-	await repeat(async () => {
-		const { PATHS_MYSERVERS_ENV, PATHS_UNRAID_API_BASE } = t.context.paths;
+	// Staging
+	writeFileSync(PATHS_MYSERVERS_ENV, 'env="staging"');
 
-		// Staging
-		writeFileSync(PATHS_MYSERVERS_ENV, 'env="staging"');
+	// Run 'switch-env'
+	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
 
-		// Run 'switch-env'
-		const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
+	// Split the lines
+	const lines = output.split('\n');
 
-		// Check the output of the cli
-		t.is(output, 'Current ENV in file: staging\nSwitching from "staging" to "production"...\nRun "unraid-api start" to start the API.\n');
+	// Check the output of the cli
+	t.assert(lines[0].endsWith(' for current ENV, found env="staging"'));
+	t.is(lines[1], 'Switching from "staging" to "production"...');
+	t.assert(lines[2].startsWith('Writing env="production" to '));
+	t.is(lines[4], 'Run "unraid-api start" to start the API.');
 
-		// Check the .env was updated on the live server
-		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
+	// Check the .env was updated on the live server
+	t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
 
-		// Check the env file that's persisted on the boot drive
-		t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="production"');
-	}, 10);
+	// Check the env file that's persisted on the boot drive
+	t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="production"');
 });
 
 test.serial('Loads staging when switching from production', async t => {
-	t.plan(30);
+	const { PATHS_MYSERVERS_ENV, PATHS_UNRAID_API_BASE } = t.context.paths;
 
-	await repeat(async () => {
-		const { PATHS_MYSERVERS_ENV, PATHS_UNRAID_API_BASE } = t.context.paths;
+	// Production
+	writeFileSync(PATHS_MYSERVERS_ENV, 'env="production"');
 
-		// Production
-		writeFileSync(PATHS_MYSERVERS_ENV, 'env="production"');
+	// Run 'switch-env'
+	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
 
-		// Run 'switch-env'
-		const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
+	// Split the lines
+	const lines = output.split('\n');
 
-		// Check the output of the cli
-		t.is(output, 'Current ENV in file: production\nSwitching from "production" to "staging"...\nRun "unraid-api start" to start the API.\n');
+	// Check the output of the cli
+	t.assert(lines[0].endsWith(' for current ENV, found env="production"'));
+	t.is(lines[1], 'Switching from "production" to "staging"...');
+	t.assert(lines[2].startsWith('Writing env="staging" to '));
+	t.is(lines[4], 'Run "unraid-api start" to start the API.');
 
-		// Check the .env was updated on the live server
-		t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), stagingEnv);
+	// Check the .env was updated on the live server
+	t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), stagingEnv);
 
-		// Check the env file that's persisted on the boot drive
-		t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="staging"');
-	}, 10);
+	// Check the env file that's persisted on the boot drive
+	t.is(readFileSync(PATHS_MYSERVERS_ENV, 'utf-8'), 'env="staging"');
 });
