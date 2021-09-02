@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
+import path from 'node:path';
 import mm from 'micromongo';
 import { paths } from '../paths';
 import { Slot } from '../types/states';
@@ -111,6 +111,7 @@ class Slots extends ArrayState {
 	}
 
 	find(query?: LooseObject): Slot[] {
+		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return super.find(query);
 	}
 

@@ -1,4 +1,4 @@
 // Created from 'create-ts-index'
 
-export * from './get-emhttpd';
+export * from './get-emhttp';
 export * from './get-unraid-api';

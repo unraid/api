@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
+import path from 'node:path';
 import { paths } from '../paths';
 import { ArrayState } from './state';
 import { parseConfig } from '../utils/misc';
@@ -94,6 +94,7 @@ class SmbSec extends ArrayState {
 	}
 
 	find(query?: Record<string, unknown>): any[] {
+		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return super.find(query);
 	}
 }

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { promises as fs } from 'fs';
+import { promises as fs } from 'node:fs';
 import { CoreResult, CoreContext } from '../types';
 import { paths } from '../paths';
 import { FileMissingError } from '../errors';
@@ -47,7 +47,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 		head: ['Date', 'Duration', 'Speed', 'Status', 'Errors']
 	});
 	// Update raw values with strings
-	parityChecks.forEach(check => {
+	for (const check of parityChecks) {
 		const array = Object.values({
 			...check,
 			speed: check.speed ? check.speed : 'Unavailable',
@@ -55,7 +55,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 			status: check.status === '-4' ? 'Cancelled' : 'OK'
 		});
 		table.push(array);
-	});
+	}
 
 	return {
 		text: table.toString(),

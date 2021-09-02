@@ -59,7 +59,7 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 			text: `Defined domains: ${JSON.stringify(activeDomainNames, null, 2)}\nActive domains: ${JSON.stringify(inactiveDomainNames, null, 2)}`,
 			json: resolvedDomains
 		};
-	} catch (error: unknown) {
+	} catch {
 		// If we hit an error expect libvirt to be offline
 		return {
 			text: `Defined domains: ${JSON.stringify([], null, 2)}\nActive domains: ${JSON.stringify([], null, 2)}`,

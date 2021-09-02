@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { performance } from 'perf_hooks';
+import { performance } from 'node:perf_hooks';
 import { log } from '../../log';
 
 const timers = new Map();

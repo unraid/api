@@ -3,10 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { getEmhttpdService, getUnraidApiService } from './services';
+import { getEmhttpService, getUnraidApiService } from './services';
 import { coreLogger } from '../log';
-import { envs } from '../environments';
-import { NodeService } from '../utils';
+import { environmentVariables } from '../environments';
 import { CoreResult, CoreContext } from '../types';
 
 const devNames = [
@@ -18,7 +17,19 @@ const coreNames = [
 	'unraid-api'
 ];
 
-interface ServiceResult extends CoreResult {
+interface Uptime {
+	timestamp: string;
+	seconds?: number;
+}
+
+interface NodeService {
+	name: string;
+	online?: boolean;
+	uptime: Uptime;
+	version?: string;
+}
+
+interface ServiceResult extends CoreResult<NodeService> {
 	json: NodeService;
 }
 
@@ -27,33 +38,36 @@ interface NodeServiceWithName extends NodeService {
 }
 
 /**
- * Add name to services.
+ * Add name to results.
  *
- * @param services
+ * @param results
  * @param names
  */
-const addNameToService = (services: ServiceResult[], names: string[]): NodeServiceWithName[] => {
-	return services.map((service, index) => ({
-		name: names[index],
-		...service.json
-	}));
+const addNameToResult = (results: Array<Result | ServiceResult>, names: string[]): NodeServiceWithName[] => {
+	return results.map((result, index) => {
+		const { name: _name, ...ResultData } = result.json;
+		return ({
+			name: names[index],
+			...ResultData
+		});
+	});
 };
 
-interface Result extends CoreResult {
+interface Result extends CoreResult<NodeServiceWithName[]> {
 	json: NodeServiceWithName[];
 }
+
+const logErrorAndReturnEmptyArray = (error: Error) => {
+	coreLogger.error(error);
+	return [];
+};
 
 /**
  * Get all services.
  */
 export const getServices = async (context: CoreContext): Promise<Result> => {
-	const logErrorAndReturnEmptyArray = (error: Error) => {
-		coreLogger.error(error);
-		return [];
-	};
-
-	const devServices = envs.NODE_ENV === 'development' ? await Promise.all([
-		getEmhttpdService(context)
+	const devServices = environmentVariables.NODE_ENV === 'development' ? await Promise.all([
+		getEmhttpService(context)
 	]).catch(logErrorAndReturnEmptyArray) : [];
 
 	const coreServices = await Promise.all([
@@ -61,8 +75,8 @@ export const getServices = async (context: CoreContext): Promise<Result> => {
 	]).catch(logErrorAndReturnEmptyArray);
 
 	const result = [
-		...addNameToService(devServices, devNames),
-		...addNameToService(coreServices, coreNames)
+		...addNameToResult(devServices, devNames),
+		...addNameToResult(coreServices, coreNames)
 	];
 
 	return {

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
+import path from 'node:path';
 import mm from 'micromongo';
 import { paths } from '../paths';
 import { LooseObject, IniStringBoolean, CommaSeparatedString } from '../types';
@@ -105,6 +105,7 @@ class Network extends ArrayState {
 	}
 
 	find(query?: LooseObject): Network[] {
+		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return super.find(query);
 	}
 

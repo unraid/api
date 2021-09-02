@@ -69,6 +69,7 @@ export class ArrayState extends State {
 	}
 
 	find(query: LooseObject = {}) {
+		// eslint-disable-next-line unicorn/no-array-callback-reference, unicorn/no-array-method-this-argument
 		return mm.find(this.data, query);
 	}
 

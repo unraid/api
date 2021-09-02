@@ -4,7 +4,7 @@
  */
 
 import { CoreContext, CoreResult } from '../../types';
-import { FieldMissingError, ParamInvalidError } from '../../errors';
+import { FieldMissingError, ParameterInvalidError } from '../../errors';
 import { emcmd, ensurePermission } from '../../utils';
 import { varState } from '../../states';
 
@@ -36,7 +36,7 @@ export const updateParityCheck = async (context: Context): Promise<CoreResult> =
 		throw new FieldMissingError('state');
 	}
 
-	const { state: wantedState } = data;
+	const { state: wantedState, correct } = data;
 	const running = varState?.data?.mdResync !== 0;
 	const states = {
 		pause: {
@@ -62,11 +62,11 @@ export const updateParityCheck = async (context: Context): Promise<CoreResult> =
 
 	// Only allow states from states object
 	if (!allowedStates.includes(wantedState)) {
-		throw new ParamInvalidError('state', wantedState);
+		throw new ParameterInvalidError('state', wantedState);
 	}
 
 	// Should we write correction to the parity during the check
-	const writeCorrectionsToParity = wantedState === 'start' && data.correct;
+	const writeCorrectionsToParity = wantedState === 'start' && correct;
 
 	await emcmd({
 		startState: 'STARTED',

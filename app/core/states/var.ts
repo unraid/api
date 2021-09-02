@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
+import path from 'node:path';
 import { paths } from '../paths';
 import { Var } from '../types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';

@@ -20,11 +20,17 @@ windowPolyFill.register(false);
 global.XMLHttpRequest = xhr2;
 global.EventSource = EventSource;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const NchanSubscriber = require('nchan');
+let nchan: any;
+const getNchan = async () => {
+	if (nchan) {
+		return nchan;
+	}
+
+	nchan = await import('nchan');
+};
 
 const getSubEndpoint = () => {
-	const httpPort: string = states.varState.data?.port;
+	const httpPort = states.varState.data?.port;
 	return `http://localhost:${httpPort}/sub`;
 };
 
@@ -42,34 +48,37 @@ const endpointToStateMapping = {
 	var: states.varState
 };
 
-const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
-	const sub = new NchanSubscriber(`${getSubEndpoint()}/${endpoint}`, {
-		subscriber: 'eventsource'
+const subscribe = async (endpoint: string) => {
+	const NchanSubscriber = await getNchan();
+	return new Promise<void>(resolve => {
+		const sub = new NchanSubscriber(`${getSubEndpoint()}/${endpoint}`, {
+			subscriber: 'eventsource'
+		});
+
+		sub.on('connect', function (_event) {
+			nchanLogger.debug('Connected!');
+			resolve();
+		});
+
+		sub.on('message', function (message, _messageMetadata) {
+			try {
+				const state = parseConfig({
+					file: message,
+					type: 'ini'
+				});
+
+				// Update state
+				endpointToStateMapping[endpoint].parse(state);
+			} catch {}
+		});
+
+		sub.on('error', function (error, error_description) {
+			nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
+		});
+
+		sub.start();
 	});
-
-	sub.on('connect', function (_event) {
-		nchanLogger.debug('Connected!');
-		resolve();
-	});
-
-	sub.on('message', function (message, _messageMetadata) {
-		try {
-			const state = parseConfig({
-				file: message,
-				type: 'ini'
-			});
-
-			// Update state
-			endpointToStateMapping[endpoint].parse(state);
-		} catch {}
-	});
-
-	sub.on('error', function (error, error_description) {
-		nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
-	});
-
-	sub.start();
-});
+};
 
 export const subscribeToNchanEndpoint = async (endpoint: string) => {
 	if (!Object.keys(endpointToStateMapping).includes(endpoint)) {

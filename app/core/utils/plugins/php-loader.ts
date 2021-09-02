@@ -3,10 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
+import path from 'node:path';
 import execa from 'execa';
 import { PhpError, FileMissingError } from '../../errors';
 import { LooseObject, LooseStringObject } from '../../types';
+import { fileURLToPath } from 'node:url';
 
 /**
  * Encode GET/POST params.
@@ -19,7 +20,7 @@ const encodeParameters = (parameters: LooseObject) => {
 	// Join query params together
 	return Object.entries(parameters).map(kv => {
 		// Encode each section and join
-		return kv.map(encodeURIComponent).join('=');
+		return kv.map(keyValuePair => encodeURIComponent(keyValuePair)).join('=');
 	}).join('&');
 };
 
@@ -42,9 +43,10 @@ export const phpLoader = async (options: Options) => {
 	const options_ = [
 		'./wrapper.php',
 		method,
-		`${file}${Object.keys(query).length >= 1 ? ('?' + encodeParameters(query)) : ''}`,
+		`${file}${Object.keys(query).length > 0 ? ('?' + encodeParameters(query)) : ''}`,
 		encodeParameters(body)
 	];
+	const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 	return execa('php', options_, { cwd: __dirname })
 		.then(({ stdout }) => {

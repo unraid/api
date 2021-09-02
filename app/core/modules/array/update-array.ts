@@ -5,7 +5,7 @@
 
 import { CoreContext, CoreResult } from '../../types';
 import { hasFields, ensurePermission, emcmd, arrayIsRunning, uppercaseFirstChar } from '../../utils';
-import { AppError, FieldMissingError, ParamInvalidError } from '../../errors';
+import { AppError, FieldMissingError, ParameterInvalidError } from '../../errors';
 import { getArray } from '..';
 
 // @TODO: Fix this not working across node apps
@@ -25,7 +25,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 
 	const missingFields = hasFields(data, ['state']);
 
-	if (missingFields.length !== 0) {
+	if (missingFields.length > 0) {
 		// Only log first error
 		throw new FieldMissingError(missingFields[0]);
 	}
@@ -35,7 +35,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 	const pendingState = nextState === 'stop' ? 'stopping' : 'starting';
 
 	if (!['start', 'stop'].includes(nextState)) {
-		throw new ParamInvalidError('state', nextState);
+		throw new ParameterInvalidError('state', nextState);
 	}
 
 	// Prevent this running multiple times at once

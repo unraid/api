@@ -1,6 +1,6 @@
-import fs from 'fs';
-import path from 'path';
-import { spawn, exec } from 'child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { spawn, exec } from 'node:child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
 import findProcess from 'find-process';
@@ -10,14 +10,13 @@ import dedent from 'dedent-tabs';
 import { version } from '../package.json';
 import { paths } from './core/paths';
 import { logger } from './core/log';
-import packageJson from '../package.json';
 
-const setEnv = (envName: string, value: any) => {
+const setEnvironment = (key: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
 		return;
 	}
 
-	process.env[envName] = String(value);
+	process.env[key] = String(value);
 };
 
 interface Flags {
@@ -31,18 +30,22 @@ interface Flags {
 	version?: boolean;
 }
 
-const args: ArgumentConfig<Flags> = {
+const arguments_: ArgumentConfig<Flags> = {
 	command: { type: String, defaultOption: true, optional: true },
 	help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide.' },
 	debug: { type: Boolean, optional: true, alias: 'd', description: 'Enabled debug mode.' },
 	port: { type: String, optional: true, alias: 'p', description: 'Set the graphql port.' },
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
-	'log-level': { type: (level?: string) => {
-		return ['error', 'warn', 'info', 'debug', 'trace', 'silly'].includes(level ?? '') ? level : undefined;
-	}, typeLabel: '{underline error/warn/info/debug/trace/silly}', optional: true, description: 'Set the log level.' },
-	'log-transport': { type: (transport?: string) => {
-		return ['console', 'syslog'].includes(transport ?? 'console') ? transport : 'console';
-	}, typeLabel: '{underline console/syslog}', optional: true, description: 'Set the log transport. (default=syslog)' },
+	'log-level': {
+		type: (level?: string) => {
+			return ['error', 'warn', 'info', 'debug', 'trace', 'silly'].includes(level ?? '') ? level : undefined;
+		}, typeLabel: '{underline error/warn/info/debug/trace/silly}', optional: true, description: 'Set the log level.'
+	},
+	'log-transport': {
+		type: (transport?: string) => {
+			return ['console', 'syslog'].includes(transport ?? 'console') ? transport : 'console';
+		}, typeLabel: '{underline console/syslog}', optional: true, description: 'Set the log transport. (default=syslog)'
+	},
 	version: { type: Boolean, optional: true, alias: 'v', description: 'Show version.' }
 };
 
@@ -61,7 +64,7 @@ const options: ArgsParseOptions<Flags> = {
 	footerContentSections: [{ header: '', content: 'Copyright © 2021 Lime Technology, Inc.' }]
 };
 
-const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstUnknown: true });
+const mainOptions = parse<Flags>(arguments_, { ...options, partial: true, stopAtFirstUnknown: true });
 const commandOptions = (mainOptions as Flags & { _unknown: string[] })._unknown || [];
 const command: string = (mainOptions as any).command;
 // Use the env passed by the user, then the flag inline, then default to production
@@ -92,18 +95,18 @@ const commands = {
 		process.chdir(paths.get('unraid-api-base')!);
 
 		// Set envs
-		setEnv('DEBUG', mainOptions.debug);
-		setEnv('ENVIRONMENT', getEnvironment());
-		setEnv('LOG_LEVEL', mainOptions['log-level'] ?? (mainOptions.debug ? 'debug' : 'info'));
-		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
-		setEnv('PORT', mainOptions.port);
+		setEnvironment('DEBUG', mainOptions.debug);
+		setEnvironment('ENVIRONMENT', getEnvironment());
+		setEnvironment('LOG_LEVEL', mainOptions['log-level'] ?? (mainOptions.debug ? 'debug' : 'info'));
+		setEnvironment('LOG_TRANSPORT', mainOptions['log-transport']);
+		setEnvironment('PORT', mainOptions.port);
 
-		console.info(`Starting unraid-api v${packageJson.version as string}`);
+		console.info(`Starting unraid-api v${version}`);
 		console.info(`Connecting to the "${getEnvironment()}" environment.`);
 
 		// Load bundled index file
 		const indexPath = './index.js';
-		require(indexPath);
+		await import(indexPath);
 
 		if (!mainOptions.debug) {
 			if ('_DAEMONIZE_PROCESS' in process.env) {
@@ -129,6 +132,7 @@ const commands = {
 				console.log('Daemonized successfully!');
 
 				// Exit cleanly
+				// eslint-disable-next-line unicorn/no-process-exit
 				process.exit(0);
 			}
 		}
@@ -161,7 +165,7 @@ const commands = {
 	 * Print API version.
 	 */
 	async version() {
-		console.log(`Unraid API v${version as string}`);
+		console.log(`Unraid API v${version}`);
 	},
 	async status() {
 		// Find all processes called "unraid-api" which aren't this process
@@ -190,53 +194,43 @@ const commands = {
 	},
 	async 'switch-env'() {
 		const basePath = paths.get('unraid-api-base')!;
-		const envFlashFilePath = paths.get('myservers-env')!;
-		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
+		const environmentFlashFilePath = paths.get('myservers-env')!;
+		const environmentFile = await fs.promises.readFile(environmentFlashFilePath, 'utf-8').catch(() => '');
 
-		logger.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
+		logger.debug('Checking %s for current ENV, found %s', environmentFlashFilePath, environmentFile);
 
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
-		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
+		const matchArray = /([A-Za-z]+)="*([A-Za-z]+)"*/.exec(environmentFile);
 		// Get item from index 2 of the regex match or return undefined
-		const [,,currentEnvInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
+		const [_, __, currentEnvironmentInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
 
-		let newEnv = 'production';
-
-		// Switch from staging to production
-		if (currentEnvInFile === 'staging') {
-			newEnv = 'production';
-		}
-
-		// Switch from production to staging
-		if (currentEnvInFile === 'production') {
-			newEnv = 'staging';
-		}
-
-		if (currentEnvInFile) {
-			console.info('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
+		const newEnvironment = currentEnvironmentInFile === 'production' ? 'staging' : 'production';
+		if (currentEnvironmentInFile) {
+			console.info('Switching from "%s" to "%s"...', currentEnvironmentInFile, newEnvironment);
 		} else {
 			console.info('No ENV found, setting env to "production"...');
 		}
 
 		// Write new env to flash
-		const newEnvLine = `env="${newEnv}"`;
-		await fs.promises.writeFile(envFlashFilePath, newEnvLine);
-		logger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
+		const newEnvironmentLine = `env="${newEnvironment}"`;
+		await fs.promises.writeFile(environmentFlashFilePath, newEnvironmentLine);
+		logger.debug('Writing %s to %s', newEnvironmentLine, environmentFlashFilePath);
 
 		// Copy the new env over to live location before restarting
-		const source = path.join(basePath, `.env.${newEnv}`);
+		const source = path.join(basePath, `.env.${newEnvironment}`);
 		const destination = path.join(basePath, '.env');
 		logger.debug('Copying %s to %s', source, destination);
 		await new Promise<void>((resolve, reject) => {
 			// Use the native cp command to ensure we're outside the virtual file system
-            exec(`cp "${source}" "${destination}"`, error => {
-                if (error) {
-                    return reject(error);
-                }
+			exec(`cp "${source}" "${destination}"`, error => {
+				if (error) {
+					reject(error);
+					return;
+				}
 
-                resolve();
-            });
-        });
+				resolve();
+			});
+		});
 
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
@@ -244,7 +238,8 @@ const commands = {
 			console.info('unraid-api is running, restarting...');
 
 			// Restart the process
-			return this.restart();
+			await this.restart();
+			return;
 		}
 
 		console.info('Run "unraid-api start" to start the API.');
@@ -255,11 +250,12 @@ async function main() {
 	if (!command) {
 		if (mainOptions.version) {
 			await commands.version();
+			// eslint-disable-next-line unicorn/no-process-exit
 			process.exit();
 		}
 
 		// Run help command
-		parse<Flags>(args, { ...options, partial: true, stopAtFirstUnknown: true, argv: ['-h'] });
+		parse<Flags>(arguments_, { ...options, partial: true, stopAtFirstUnknown: true, argv: ['-h'] });
 	}
 
 	// Unknown command

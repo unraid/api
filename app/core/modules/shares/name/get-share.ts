@@ -38,7 +38,7 @@ export const getShare = async function (context: Context): Promise<Result> {
 	const share = [
 		userShare,
 		diskShare
-	].filter(_ => _)[0];
+	].find(_ => _);
 
 	if (!share) {
 		throw new AppError('No share found with that name.', 404);

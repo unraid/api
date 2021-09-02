@@ -31,18 +31,16 @@ export const getPermissions = async function (context: CoreContext): Promise<Cor
 	}));
 
 	// Get all roles and their scopes
-	const grants = Object.entries(ac.getGrants())
+	const grants = Object.fromEntries(Object.entries(ac.getGrants())
 		.map(([name, grant]) => {
 			// @ts-expect-error
 			const { $extend, ...grants } = grant;
 			return [name, grants];
 		})
-		.reduce((object, {
+		.map(({
 			0: key,
 			1: value
-		}) => Object.assign(object, {
-			[key.toString()]: value
-		}), {});
+		}) => [key.toString(), value]));
 
 	return {
 		text: `Scopes: ${JSON.stringify(scopes, null, 2)}`,

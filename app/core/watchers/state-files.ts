@@ -77,8 +77,8 @@ export const states = () => {
 			// Save ref for cleanup
 			watchers.push(watcher);
 		},
-		stop() {
-			watchers.forEach(async watcher => watcher.close());
+		async stop() {
+			await Promise.all(watchers.map(async watcher => watcher.close()));
 		}
 	};
 };

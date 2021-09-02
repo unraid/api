@@ -34,7 +34,7 @@ export class EmailNotifier extends Notifier {
 	}
 
 	send(options: SendOptions) {
-		const { type = 'generic', title = 'Unraid Server Notification' } = options;
+		const { type = 'generic', title = 'Unraid Server Notification', data, ...renderOptions } = options;
 		const { to, from, replyTo, level } = this;
 		// Only show info when in debug
 		const silent = level !== 'debug';
@@ -50,7 +50,8 @@ export class EmailNotifier extends Notifier {
 
 		// Render template
 		this.template = Object.keys(templates).includes(type) ? templates[type] : templates.generic;
-		const html = this.render({ ...options, json: JSON.stringify(options.data, null, 2) }, this.helpers);
+		// eslint-disable-next-line unicorn/consistent-destructuring
+		const html = this.render({ type, title, ...renderOptions, json: JSON.stringify(data, null, 2) }, this.helpers);
 
 		return sendMail({
 			from,

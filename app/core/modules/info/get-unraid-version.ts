@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
+import fs from 'node:fs';
 import semver from 'semver';
 import { paths } from '../../paths';
 import { CacheManager } from '../../cache-manager';

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
+import fs from 'node:fs';
 import camelCaseKeys from 'camelcase-keys';
 import { paths } from '../../paths';
 import { docker, catchHandlers, ensurePermission } from '../../utils';

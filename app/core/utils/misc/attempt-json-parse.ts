@@ -1,4 +1,4 @@
-export const attemptJSONParse = (text: string, fallback: any = undefined) => {
+export const attemptJSONParse = (text: string, fallback: any) => {
 	try {
 		return JSON.parse(text);
 	} catch {

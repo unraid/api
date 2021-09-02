@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import { paths } from '../../paths';
 import { CacheManager } from '../../cache-manager';
 import { FileMissingError } from '../../errors';

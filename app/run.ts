@@ -43,7 +43,7 @@ process.on('SIGTERM', () => {
  * Run a module.
  */
 export const run = async (channel: string, mutation: string, options: RunOptions) => {
-	const timestamp = new Date().getTime();
+	const timestamp = Date.now();
 	const {
 		node,
 		moduleToRun,
@@ -70,7 +70,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		coreLogger.silly(`run:${moduleToRun.name} %j`, result.json);
 
 		// Save result
-		await publish(channel, mutation, result.json as any);
+		await publish(channel, mutation, result.json);
 
 		// Bail as we're done looping
 		if (!loop || loop === 0) {
@@ -78,7 +78,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		}
 
 		// If we haven't waited long enough wait a little more
-		const timeTaken = (new Date().getTime() - timestamp);
+		const timeTaken = Date.now() - timestamp;
 		const minimumTime = 1000;
 		if (timeTaken < minimumTime) {
 			await sleep(minimumTime - timeTaken);

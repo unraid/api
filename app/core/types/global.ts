@@ -22,11 +22,15 @@ export interface CoreContext {
 	readonly user: Readonly<User>;
 }
 
+type AnyJson = boolean | number | string | null | JsonArray | JsonMap;
+type JsonMap = Record<string, AnyJson>;
+interface JsonArray extends Array<AnyJson> {}
+
 /**
  * Result object
  */
-export interface CoreResult {
-	json?: Record<string, unknown> | Array<Record<string, unknown>> | null;
+export interface CoreResult<Json = AnyJson> {
+	json?: Json;
 	text?: string;
 	html?: string;
 }

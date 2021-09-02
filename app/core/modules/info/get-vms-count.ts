@@ -37,8 +37,12 @@ export const getVmsCount = async function (context: CoreContext): Promise<Result
 
 	try {
 		const hypervisor = await getHypervisor();
-		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as [];
-		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as [];
+		if (!hypervisor) {
+			throw new Error('No Hypervisor');
+		}
+
+		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as string[];
+		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as string[];
 		const installed = activeDomains.length + inactiveDomains.length;
 		const started = activeDomains.length;
 
@@ -58,6 +62,6 @@ export const getVmsCount = async function (context: CoreContext): Promise<Result
 				installed,
 				started
 			}
-		}
+		};
 	}
 };

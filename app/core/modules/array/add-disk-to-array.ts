@@ -22,7 +22,7 @@ export const addDiskToArray = async function (context: CoreContext): Promise<Cor
 	});
 
 	const missingFields = hasFields(data, ['id']);
-	if (missingFields.length !== 0) {
+	if (missingFields.length > 0) {
 		// Just log first error
 		throw new FieldMissingError(missingFields[0]);
 	}

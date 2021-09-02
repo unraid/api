@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync } from 'node:fs';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 
 const files = [

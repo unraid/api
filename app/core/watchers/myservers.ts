@@ -38,15 +38,13 @@ export const myservers = () => {
 
 				// If we have one enable/disable it. If this is
 				// missing it's likely we shipped without Sentry
-				// initialised. This would be done for a reason!
-				if (sentryClient) {
-					// Check if the value changed
-					if (sentryClient.getOptions().enabled !== isEnabled) {
-						sentryClient.getOptions().enabled = isEnabled;
+				// initialized. This would be done for a reason!
+				if (sentryClient && // Check if the value changed
+					sentryClient.getOptions().enabled !== isEnabled) {
+					sentryClient.getOptions().enabled = isEnabled;
 
-						// Log for debugging
-						coreLogger.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
-					}
+					// Log for debugging
+					coreLogger.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
 				}
 
 				// @todo: add cfg files similar to states
@@ -71,7 +69,7 @@ export const myservers = () => {
 			});
 
 			// Extra origins file has likely updated
-			extraOriginsWatcher.on('all', async event => {
+			extraOriginsWatcher.on('all', async _event => {
 				origins.extra = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
 			});
 
@@ -90,8 +88,8 @@ export const myservers = () => {
 				cert.hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined;
 			});
 		},
-		stop() {
-			watchers.forEach(async watcher => watcher.close());
+		async stop() {
+			await Promise.all(watchers.map(async watcher => watcher.close()));
 		}
 	};
 };

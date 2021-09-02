@@ -32,7 +32,7 @@ export const addRole = async (context: Context): Promise<CoreResult> => {
 	const { name } = params;
 	const missingFields = hasFields(params, ['name']);
 
-	if (missingFields.length !== 0) {
+	if (missingFields.length > 0) {
 		throw new FieldMissingError(missingFields[0]);
 	}
 

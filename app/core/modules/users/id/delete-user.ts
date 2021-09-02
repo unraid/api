@@ -30,7 +30,7 @@ export const deleteUser = async (context: Context): Promise<CoreResult> => {
 	const { name } = params;
 	const missingFields = hasFields(params, ['name']);
 
-	if (missingFields.length !== 0) {
+	if (missingFields.length > 0) {
 		// Just throw the first error
 		throw new FieldMissingError(missingFields[0]);
 	}

@@ -12,5 +12,5 @@ import { LooseObject } from '../../types';
 */
 export const hasFields = (object: LooseObject, fields: string[]) => {
 	const keys = Object.keys(object);
-	return keys.length >= 1 ? fields.filter(field => !keys.includes(field)) : fields;
+	return keys.length > 0 ? fields.filter(field => !keys.includes(field)) : fields;
 };

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
+import fs from 'node:fs';
 import { read as multiIniRead, Parser as MultiIniParser } from 'multi-ini';
 import ini from 'ini';
 import camelCaseKeys from 'camelcase-keys';
@@ -110,7 +110,7 @@ export const parseConfig = <T>(options: Options): T => {
 	}
 
 	// If multi-ini failed try ini
-	if (fileContents.length >= 1 && Object.keys(data).length === 0) {
+	if (fileContents.length > 0 && Object.keys(data).length === 0) {
 		data = ini.parse(fileContents);
 	}
 

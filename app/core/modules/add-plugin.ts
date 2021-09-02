@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
+import path from 'node:path';
 import packageJson from 'package-json';
 import dlTgz from 'dl-tgz';
 import observableToPromise from 'observable-to-promise';
@@ -35,19 +35,19 @@ export const addPlugin = async (context: Context): Promise<CoreResult> => {
 
 	// Validation
 	const missingFields = hasFields(context.data, ['name']);
-	if (missingFields.length !== 0) {
+	if (missingFields.length > 0) {
 		// Log first error.
 		throw new FieldMissingError(missingFields[0]);
 	}
 
 	// Get package metadata
 	const { name, version } = context.data;
-	const pkg = await packageJson(name, {
+	const package_ = await packageJson(name, {
 		allVersions: Boolean(version)
 	});
 
 	// Plugin tgz url
-	const latest = pkg.versions[version];
+	const latest = package_.versions[version];
 	const url = latest.dist.tarball;
 	const pluginCwd = paths.get('plugins')!;
 
@@ -63,7 +63,7 @@ export const addPlugin = async (context: Context): Promise<CoreResult> => {
 	return {
 		text: 'Plugin added successfully.',
 		json: {
-			pkg
+			pkg: package_
 		}
 	};
 };
