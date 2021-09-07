@@ -11,13 +11,17 @@ import { State } from './state';
 import { toNumber } from '../utils/casting';
 import { parseConfig } from '../utils/misc';
 
-const iniBooleanToJsBoolean = (value: IniStringBoolean | string) => {
+const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
 	if (value === 'no') {
 		return false;
 	}
 
 	if (value === 'yes') {
 		return true;
+	}
+
+	if (defaultValue !== undefined) {
+		return defaultValue;
 	}
 
 	throw new Error(`Value "${value}" is not no/yes.`);
@@ -227,7 +231,7 @@ const parse = (state: VarIni): Var => {
 		bindMgt: iniBooleanOrAutoToJsBoolean(state.bindMgt),
 		cacheNumDevices: toNumber(state.cacheNumDevices),
 		cacheSbNumDisks: toNumber(state.cacheSbNumDisks),
-		configValid: state.configValid === 'error' ? false : iniBooleanToJsBoolean(state.configValid),
+		configValid: iniBooleanToJsBoolean(state.configValid, false),
 		deviceCount: toNumber(state.deviceCount),
 		fsCopyPrcnt: toNumber(state.fsCopyPrcnt),
 		fsNumMounted: toNumber(state.fsNumMounted),
