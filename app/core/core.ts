@@ -9,8 +9,6 @@ import camelCase from 'camelcase';
 import globby from 'globby';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
-import { dirname } from 'path';
-import { fileURLToPath } from 'url';
 import { coreLogger } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint } from './utils';
@@ -34,8 +32,6 @@ const TEN_SECONDS = 10 * ONE_SECOND;
 const loadingLogger = (namespace: string): void => {
 	coreLogger.debug('Loading %s', namespace);
 };
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 /**
  * Register state paths.
