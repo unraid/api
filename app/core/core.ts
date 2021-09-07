@@ -3,12 +3,13 @@
  * Written by: Alexis Tyler
  */
 
-import path, { dirname } from 'path';
+import path from 'path';
 import glob from 'glob';
 import camelCase from 'camelcase';
 import globby from 'globby';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
+import { dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { coreLogger } from './log';
 import { paths } from './paths';
