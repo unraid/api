@@ -89,7 +89,7 @@ const systemPciDevices = async (): Promise<PciDevice[]> => {
 	const processedDevices = await filterDevices(filteredDevices).then(async devices => {
 		return Promise.all(devices
 			// @ts-expect-error
-			.map(device => addDeviceClass(device))
+			.map(addDeviceClass)
 			.map(async device => {
 				// Attempt to get the current kernel-bound driver for this pci device
 				await isSymlink(`${basePath}${device.id}/driver`).then(symlink => {
@@ -136,48 +136,6 @@ const systemAudioDevices = systemPciDevices().then(devices => {
 	return devices.filter(device => device.class === 'audio' && !device.allowed);
 });
 
-const parseUsbDevices = (stdout: string) => stdout.split('\n').map(line => {
-	const regex = new RegExp(/^.+: ID (?<id>\S+)(?<name>.*)$/);
-	const result = regex.exec(line);
-	return (result!.groups as unknown as PciDevice);
-}) || [];
-
-// Remove boot drive
-const filterBootDrive = (device: Readonly<PciDevice>): boolean => varState?.data?.flashGuid !== device.guid;
-
-// Clean up the name
-const sanitizeVendorName = (device: Readonly<PciDevice>) => {
-	const vendorname = sanitizeVendor(device.vendorname || '');
-	return {
-		...device,
-		vendorname
-	};
-};
-
-const parseDeviceLine = (line?: Readonly<string>): { value: string; string: string } => {
-	const emptyLine = { value: '', string: '' };
-
-	// If the line is blank return nothing
-	if (!line) {
-		return emptyLine;
-	}
-
-	// Parse the line
-	const [, _] = line.split(/[\t ]{2,}/).filter(Boolean);
-	// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-	const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
-
-	// If there's no match return nothing
-	if (!match) {
-		return emptyLine;
-	}
-
-	return {
-		value: match[0],
-		string: match[1]
-	};
-};
-
 /**
  * System usb devices.
  * @returns Array of USB devices.
@@ -192,9 +150,45 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 		});
 	}).catch(() => []);
 
+	// Remove boot drive
+	const filterBootDrive = (device: Readonly<PciDevice>): boolean => varState?.data?.flashGuid !== device.guid;
+
 	// Remove usb hubs
 	// @ts-expect-error
 	const filterUsbHubs = (device: Readonly<PciDevice>): boolean => !usbHubs.includes(device.id);
+
+	// Clean up the name
+	const sanitizeVendorName = (device: Readonly<PciDevice>) => {
+		const vendorname = sanitizeVendor(device.vendorname || '');
+		return {
+			...device,
+			vendorname
+		};
+	};
+
+	const parseDeviceLine = (line: Readonly<string>): { value: string; string: string } => {
+		const emptyLine = { value: '', string: '' };
+
+		// If the line is blank return nothing
+		if (!line) {
+			return emptyLine;
+		}
+
+		// Parse the line
+		const [, _] = line.split(/[ \t]{2,}/).filter(Boolean);
+		// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+		const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
+
+		// If there's no match return nothing
+		if (!match) {
+			return emptyLine;
+		}
+
+		return {
+			value: match[0],
+			string: match[1]
+		};
+	};
 
 	// Add extra fields to device
 	const parseDevice = (device: Readonly<PciDevice>) => {
@@ -203,11 +197,11 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 		};
 		const info = execa.commandSync(`lsusb -d ${device.id} -v`).stdout.split('\n');
 		const deviceName = device.name.trim();
-		const iSerial = parseDeviceLine(info.find(line => line.includes('iSerial')));
-		const iProduct = parseDeviceLine(info.find(line => line.includes('iProduct')));
-		const iManufacturer = parseDeviceLine(info.find(line => line.includes('iManufacturer')));
-		const idProduct = parseDeviceLine(info.find(line => line.includes('idProduct')));
-		const idVendor = parseDeviceLine(info.find(line => line.includes('idVendor')));
+		const iSerial = parseDeviceLine(info.filter(line => line.includes('iSerial'))[0]);
+		const iProduct = parseDeviceLine(info.filter(line => line.includes('iProduct'))[0]);
+		const iManufacturer = parseDeviceLine(info.filter(line => line.includes('iManufacturer'))[0]);
+		const idProduct = parseDeviceLine(info.filter(line => line.includes('idProduct'))[0]);
+		const idVendor = parseDeviceLine(info.filter(line => line.includes('idVendor'))[0]);
 		const serial = `${iSerial.string.slice(8).slice(0, 4)}-${iSerial.string.slice(8).slice(4)}`;
 		const guid = `${idVendor.value.slice(2)}-${idProduct.value.slice(2)}-${serial}`;
 
@@ -232,13 +226,19 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 		return modifiedDevice;
 	};
 
+	const parseUsbDevices = (stdout: string) => stdout.split('\n').map(line => {
+		const regex = new RegExp(/^.+: ID (?<id>\S+)(?<name>.*)$/);
+		const result = regex.exec(line);
+		return (result!.groups as unknown as PciDevice);
+	}) || [];
+
 	// Get all usb devices
 	const usbDevices = await execa('lsusb').then(async ({ stdout }) => {
 		return parseUsbDevices(stdout)
-			.map(device => parseDevice(device))
-			.filter(device => filterBootDrive(device))
-			.filter(device => filterUsbHubs(device))
-			.map(device => sanitizeVendorName(device));
+			.map(parseDevice)
+			.filter(filterBootDrive)
+			.filter(filterUsbHubs)
+			.map(sanitizeVendorName);
 	});
 
 	return usbDevices;

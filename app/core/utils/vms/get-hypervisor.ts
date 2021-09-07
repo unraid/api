@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from 'fs';
+import path from 'path';
 import { Hypervisor } from '@vmngr/libvirt';
 import { watch } from 'chokidar';
 import { log } from '../../log';
@@ -33,8 +33,7 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 
 		// Kill connection
 		await hypervisor.connectClose().catch(() => {
-			// Ignore error
-			// @todo: Maybe this is what's causing vms to not start?
+			return undefined;
 		});
 
 		hypervisor = null;
@@ -59,7 +58,7 @@ export const getHypervisor = async (useCache = true) => {
 	// Check if libvirt service is running and then connect
 	const running = fs.existsSync(path.join(libvirtDir, 'libvirtd.pid'));
 	if (!running) {
-		return;
+		return null;
 	}
 
 	hypervisor = new Hypervisor({ uri });
@@ -125,7 +124,7 @@ const watchLibvirt = async (useCache = true) => {
 		// If the result is the same as the cache wait 5s then retry
 		if (JSON.stringify(cachedDomains) === JSON.stringify(resolvedDomains)) {
 			log.debug('libvirt: No changes detected.');
-			await sleep(5000);
+			await sleep(5_000);
 			return watchLibvirt();
 		}
 
@@ -148,18 +147,18 @@ const watchLibvirt = async (useCache = true) => {
 
 		log.debug('libvirt: Published to "%s" with %j', 'vms', data);
 
-		await sleep(1000);
+		await sleep(1_000);
 		return watchLibvirt();
 	} catch (error: unknown) {
 		// We need to try and reconnect
-		if (String(error).includes('invalid connection pointer')) {
+		if (`${error}`.includes('invalid connection pointer')) {
 			log.warn('Reconnecting to libvirt socket...');
-			await sleep(5000);
+			await sleep(5_000);
 			return watchLibvirt(false);
 		}
 
 		log.error('Failed watching libvirt with "%s"', error);
-		await sleep(5000);
+		await sleep(5_000);
 		return watchLibvirt();
 	}
 };

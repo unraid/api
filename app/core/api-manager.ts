@@ -156,6 +156,7 @@ export class ApiManager extends EventEmitter {
 	replace(name: string, key: string, options: KeyOptions) {
 		// Delete existing key
 		// @ts-expect-error
+		// eslint-disable-next-line unicorn/no-null
 		this.keys.items[name] = null;
 
 		// Add new key

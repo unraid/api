@@ -31,7 +31,7 @@ export const removeDiskFromArray = async (context: Context): Promise<CoreResult>
 
 	const missingFields = hasFields(data, ['id']);
 
-	if (missingFields.length > 0) {
+	if (missingFields.length !== 0) {
 		// Only log first error
 		throw new FieldMissingError(missingFields[0]);
 	}

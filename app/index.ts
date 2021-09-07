@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import os from 'node:os';
+import os from 'os';
 import am from 'am';
 import * as Sentry from '@sentry/node';
 import exitHook from 'async-exit-hook';
@@ -12,12 +12,14 @@ import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './c
 import { server } from './server';
 import { mothership } from './mothership/subscribe-to-servers';
 import { startInternal, sockets } from './mothership';
-import { version } from '../package.json';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const { version } = require('../package.json') as { version: string };
 
 // Send errors to server if enabled
 Sentry.init({
 	dsn: process.env.SENTRY_DSN,
-	tracesSampleRate: 1,
+	tracesSampleRate: 1.0,
 	release: `unraid-api@${version}`,
 	environment: process.env.ENVIRONMENT ?? 'unknown',
 	serverName: os.hostname(),
@@ -170,7 +172,6 @@ am(async () => {
 		await Sentry.flush(5000);
 
 		// Kill application
-		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(1);
 	});
 });

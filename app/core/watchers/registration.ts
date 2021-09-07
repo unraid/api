@@ -5,37 +5,37 @@
 
 import { coreLogger, logger } from '../log';
 import { pubsub } from '../pubsub';
-import { getKeyFile } from '../utils';
+import { getKeyFile, sleep } from '../utils';
 import { bus } from '../bus';
 
-const listener = async (data: any) => {
-	// Log for debugging
-	coreLogger.debug('Var state updated, publishing registration event.');
+export const keyFile = () => {
+	const listener = async (data: any) => {
+		// Log for debugging
+		coreLogger.debug('Var state updated, publishing registration event.');
 
-	// Get key file
-	const keyFile = data.var.node.regFile ? await getKeyFile(data.var.node.regFile) : '';
-	const registration = {
-		guid: data.var.node.regGuid,
-		type: data.var.node.regTy.toUpperCase(),
-		state: data.var.node.regState,
-		keyFile: {
-			location: data.var.node.regFile,
-			contents: keyFile
-		}
+		// Get key file
+		const keyFile = data.var.node.regFile ? await getKeyFile(data.var.node.regFile) : '';
+		const registration = {
+			guid: data.var.node.regGuid,
+			type: data.var.node.regTy.toUpperCase(),
+			state: data.var.node.regState,
+			keyFile: {
+				location: data.var.node.regFile,
+				contents: keyFile
+			}
+		};
+
+		logger.debug('Publishing %s to registration', JSON.stringify(registration, null, 2));
+
+		// Publish event
+		// This will end up going to the graphql endpoint
+		await pubsub.publish('registration', {
+			registration
+		}).catch(error => {
+			coreLogger.error('Failed publishing to "registration" with %s', error);
+		});
 	};
 
-	logger.debug('Publishing %s to registration', JSON.stringify(registration, null, 2));
-
-	// Publish event
-	// This will end up going to the graphql endpoint
-	await pubsub.publish('registration', {
-		registration
-	}).catch(error => {
-		coreLogger.error('Failed publishing to "registration" with %s', error);
-	});
-};
-
-export const keyFile = () => {
 	return {
 		start() {
 			// Update registration when regTy, regCheck, etc changes

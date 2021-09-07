@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'node:path';
+import path from 'path';
 import { paths } from '../paths';
 import { ArrayState } from './state';
 import { parseConfig } from '../utils/misc';
@@ -62,7 +62,6 @@ class NfsSec extends ArrayState {
 	}
 
 	find(query?: LooseObject): SecIni[] {
-		// eslint-disable-next-line unicorn/no-array-callback-reference
 		return super.find(query);
 	}
 }

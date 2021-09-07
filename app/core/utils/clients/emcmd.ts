@@ -4,7 +4,7 @@
  */
 
 import request from 'request-promise-native';
-import { environmentVariables } from '../../environments';
+import { envs } from '../../environments';
 import { coreLogger } from '../../log';
 import { catchHandlers } from '..';
 import { paths } from '../../paths';
@@ -12,7 +12,7 @@ import { varState } from '../../states';
 import { LooseObject } from '../../types';
 
 const socketPath = paths.get('emhttpd-socket')!;
-const dryRun = environmentVariables.DRY_RUN;
+const dryRun = envs.DRY_RUN;
 
 /**
  * Run a command with emcmd.

@@ -4,6 +4,7 @@ import { Serializer as IniSerializer } from 'multi-ini';
 import { INTERNAL_WS_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { apiManager } from '../core/api-manager';
 import { log } from '../core/log';
+// eslint-disable-next-line unicorn/prevent-abbreviations
 import { varState } from '../core/states/var';
 import packageJson from '../../package.json';
 import { paths } from '../core/paths';
@@ -11,7 +12,9 @@ import { loadState } from '../core/utils/misc/load-state';
 import { subscribeToServers } from './subscribe-to-servers';
 
 export const sockets = {
+	// eslint-disable-next-line unicorn/no-null
 	internal: null as GracefulWebSocket | null,
+	// eslint-disable-next-line unicorn/no-null
 	relay: null as GracefulWebSocket | null
 };
 let internalOpen = false;

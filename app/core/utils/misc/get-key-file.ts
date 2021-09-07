@@ -1,5 +1,5 @@
 import btoa from 'btoa';
-import { promises } from 'node:fs';
+import { promises } from 'fs';
 import { varState } from '../../states';
 
 // Get key file

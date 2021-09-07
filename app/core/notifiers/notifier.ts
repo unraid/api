@@ -25,8 +25,6 @@ export interface NotifierSendOptions {
 	computed: LooseObject;
 }
 
-const generateHelper = (func: (text: string) => string) => (text: string, render: (text: string) => string) => func(render(text));
-
 /**
  * Base notifier.
  * @param Alert level.
@@ -72,6 +70,6 @@ export class Notifier {
 	 * @param func Function to be wrapped.
 	 */
 	generateHelper(func: (text: string) => string) {
-		return generateHelper(func);
+		return () => (text: string, render: (text: string) => string) => func(render(text));
 	}
 }

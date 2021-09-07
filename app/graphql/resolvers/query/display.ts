@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { join } from 'node:path';
-import { promises as fs, statSync, existsSync } from 'node:fs';
-import { paths, graphqlLogger } from '../../../core';
+import { join } from 'path';
+import { promises as fs, statSync, existsSync } from 'fs';
+import { paths, log, graphqlLogger } from '../../../core';
 
 // Consts
 const ONE_BYTE = 1;
@@ -125,7 +125,7 @@ export default async () => {
 					url: serverCase
 				}
 			};
-		} catch {
+		} catch (error: unknown) {
 			return {
 				case: states.couldNotReadImage
 			};

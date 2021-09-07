@@ -25,9 +25,9 @@ export const sanitizeVendor = (vendorName: string): string => {
 
 	// Remove un-needed text
 	const junk = [' Corporation', ' Semiconductor ', ' Technology Group Ltd.', ' System, Inc.', ' Systems, Inc.', ' Co., Ltd.', ', Ltd.', ', Ltd', ', Inc.'];
-	for (const item of junk) {
+	junk.forEach(item => {
 		vendor = vendor.replace(item, '');
-	}
+	});
 
 	vendor = vendor.replace('Advanced Micro Devices', 'AMD');
 	vendor = vendor.replace('Samsung Electronics Co.', 'Samsung');

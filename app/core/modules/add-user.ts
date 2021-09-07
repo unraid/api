@@ -37,7 +37,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	const { name, description = '', password } = data;
 	const missingFields = hasFields(data, ['name', 'password']);
 
-	if (missingFields.length > 0) {
+	if (missingFields.length !== 0) {
 		// Only log first error.
 		throw new FieldMissingError(missingFields[0]);
 	}

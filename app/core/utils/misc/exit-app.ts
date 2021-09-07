@@ -12,7 +12,6 @@ import { coreLogger } from '../../log';
 export const exitApp = (error?: Error, exitCode?: number) => {
 	if (!error) {
 		// Kill application immediately
-		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(exitCode ?? 0);
 	}
 
@@ -33,7 +32,6 @@ export const exitApp = (error?: Error, exitCode?: number) => {
 		coreLogger.error(error);
 
 		// Kill application
-		// eslint-disable-next-line unicorn/no-process-exit
 		process.exit(exitCode);
 	}
 };

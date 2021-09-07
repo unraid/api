@@ -4,7 +4,7 @@
  */
 
 import mm from 'micromongo';
-import path from 'node:path';
+import path from 'path';
 import { paths } from '../paths';
 import { User } from '../types/states';
 import { LooseObject } from '../types';
@@ -33,7 +33,7 @@ const parseUser = (state: UserIni): User => {
 	return user;
 };
 
-const parse = (states: UserIni[]): User[] => Object.values(states).map(state => parseUser(state));
+const parse = (states: UserIni[]): User[] => Object.values(states).map(parseUser);
 
 class Users extends ArrayState {
 	private static instance: Users;
@@ -77,7 +77,6 @@ class Users extends ArrayState {
 	}
 
 	find(query?: LooseObject): User[] {
-		// eslint-disable-next-line unicorn/no-array-callback-reference, unicorn/no-array-method-this-argument
 		return mm.find(this.data, query);
 	}
 

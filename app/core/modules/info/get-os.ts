@@ -3,13 +3,13 @@
  * Written by: Alexis Tyler
  */
 
-import { uptime } from 'node:os';
+import { uptime } from 'os';
 import si from 'systeminformation';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
 
 // Get uptime on boot and convert to date
-const bootTimestamp = new Date(Date.now() - (uptime() * 1000));
+const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1000));
 
 /**
  * Get OS info

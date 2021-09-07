@@ -4,7 +4,7 @@
  */
 
 import { CoreContext, CoreResult } from '../types';
-import { ParameterInvalidError } from '../errors';
+import { ParamInvalidError } from '../errors';
 import { Plugin, pluginManager } from '../plugin-manager';
 import { ensurePermission } from '../utils';
 
@@ -32,7 +32,7 @@ export const getPlugins = (context: Readonly<Context>): Result => {
 	const { filter = 'all' } = query;
 
 	if (!['all', 'active', 'inactive'].includes(filter)) {
-		throw new ParameterInvalidError('filter', filter);
+		throw new ParamInvalidError('filter', filter);
 	}
 
 	const plugins = pluginManager.getAllPlugins().map(plugin => {

@@ -3,15 +3,15 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'node:fs';
-import net from 'node:net';
-import path from 'node:path';
+import fs from 'fs';
+import net from 'net';
+import path from 'path';
 import execa from 'execa';
 import cors from 'cors';
 import stoppable from 'stoppable';
 import chokidar from 'chokidar';
 import express from 'express';
-import http from 'node:http';
+import http from 'http';
 import WebSocket from 'ws';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
@@ -83,7 +83,7 @@ const getAllowedOrigins = (): string[] => {
 	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
 
 	// Get wan https port
-	const wanHTTPSPort = Number.parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : myServersConfig?.remote?.wanport;
+	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : myServersConfig?.remote?.wanport;
 
 	// Check if wan access is enabled
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
@@ -92,7 +92,7 @@ const getAllowedOrigins = (): string[] => {
 	return [...new Set([
 		// Localhost - Used for GUI mode
 		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-
+		
 		// IP
 		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
@@ -210,7 +210,7 @@ const httpServer = http.createServer(app);
 const stoppableServer = stoppable(httpServer);
 
 // Port is a UNIX socket file
-if (Number.isNaN(Number.parseInt(port, 10))) {
+if (isNaN(parseInt(port, 10))) {
 	stoppableServer.on('listening', () => {
 		// Set permissions
 		fs.chmodSync(port, 660);
@@ -224,16 +224,16 @@ if (Number.isNaN(Number.parseInt(port, 10))) {
 
 		// Check if port is unix socket or numbered port
 		// If it's a numbered port then throw
-		if (!Number.isNaN(Number.parseInt(port, 10))) {
+		if (!isNaN(parseInt(port, 10))) {
 			throw error;
 		}
 
 		// Check if the process that made this file is still alive
 		const pid = await execa.command(`lsof -t ${port}`)
-			.then(output => cleanStdout(output).split('\n')[0])
-			.catch(() => {
-				// Do nothing
-			});
+			.then(output => {
+				const pids = cleanStdout(output).split('\n');
+				return pids[0];
+			}).catch(() => undefined);
 
 		// Try to kill it?
 		if (pid) {
@@ -317,10 +317,10 @@ export const server = {
 		wsServer.close();
 
 		// Unlink socket file
-		if (Number.isNaN(Number.parseInt(port, 10))) {
+		if (isNaN(parseInt(port, 10))) {
 			try {
 				fs.unlinkSync(port);
-			} catch {}
+			} catch { }
 		}
 
 		// Run callback

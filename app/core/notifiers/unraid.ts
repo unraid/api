@@ -31,8 +31,8 @@ export class UnraidNotifier extends HttpNotifier {
 	 */
 	async send(options: NotifierSendOptions) {
 		const { endpoint, transport } = this;
-		const { type = 'generic', title = 'Unraid Server Notification', data } = options;
-		const { ...body } = data;
+		const { type = 'generic', title = 'Unraid Server Notification' } = options;
+		const { ...body } = options.data;
 
 		const headers = {
 			Accept: 'application/json, text/plain, */*',
