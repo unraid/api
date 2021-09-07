@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
+import fs from 'fs';
+import path from 'path';
 import pIteration from 'p-iteration';
 import glob from 'glob';
 import { validate as validateArgument } from 'bycontract';
@@ -142,8 +142,8 @@ export class PluginManager {
 		const relativeName = isNamespaced ? pluginPath.split('@')[1].split('/')[1] : pluginPath;
 		const pluginName = isAbsolute ? absoluteName : relativeName;
 		const pluginCwd = isAbsolute ? pluginPath.slice(0, pluginPath.lastIndexOf('/')) : paths.get('plugins')!;
-		const pluginDirectory = path.join(pluginCwd, pluginName);
-		const pluginPackagePath = path.join(pluginDirectory, 'package.json');
+		const pluginDir = path.join(pluginCwd, pluginName);
+		const pluginPackagePath = path.join(pluginDir, 'package.json');
 		const pluginHasPackage = fs.existsSync(pluginPackagePath);
 
 		// Ensure we have a package.json for the plugin
@@ -152,13 +152,14 @@ export class PluginManager {
 		}
 
 		// Get the plugin's package.json
-		const pluginPackage: PackageJson = await import(pluginPackagePath);
+		// eslint-disable-next-line @typescript-eslint/no-var-requires
+		const pluginPackage: PackageJson = require(pluginPackagePath);
 		if (!pluginPackage.main) {
 			throw new AppError(`Plugin "${pluginName}" is missing it’s "main" field in the "package.json".`);
 		}
 
 		// Skip any plugins without a main file
-		const packageMainPath = path.join(pluginDirectory, pluginPackage.main);
+		const packageMainPath = path.join(pluginDir, pluginPackage.main);
 		if (!pluginPackage.main) {
 			coreLogger.error('Plugin "%s" has no main field in it’s package.json', pluginName);
 			return;
@@ -178,7 +179,7 @@ export class PluginManager {
 		let plugin;
 		try {
 			coreLogger.debug('Plugin "%s" loading main file.', pluginName);
-			plugin = await import(packageMainPath);
+			plugin = require(packageMainPath);
 		} catch (error: unknown) {
 			coreLogger.error('Plugin "%s" failed to load: %s', pluginName, error);
 
@@ -195,12 +196,12 @@ export class PluginManager {
 			this.add(pluginName);
 
 			// Register all modules
-			const modulesDirectory = path.join(pluginDirectory, 'modules');
-			const modulesGlob = path.join(modulesDirectory, '/**/*.js');
-			for (const filePath of glob.sync(modulesGlob)) {
-				const moduleName = filePath.replace(modulesDirectory + '/', '').replace('.js', '');
+			const modulesDir = path.join(pluginDir, 'modules');
+			const modulesGlob = path.join(modulesDir, '/**/*.js');
+			await pIteration.forEach(glob.sync(modulesGlob), async (filePath: string) => {
+				const moduleName = filePath.replace(modulesDir + '/', '').replace('.js', '');
 				this.add(pluginName, moduleName, filePath);
-			}
+			});
 		}).catch(error => {
 			coreLogger.error('Plugin "%s" failed to run it’s init function: %s', pluginName, error);
 

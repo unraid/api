@@ -8,9 +8,9 @@ const _ = process.env;
 /**
  * Proxy for process.env
  *
- * @note Add known environment variables here for better typing
+ * @note Add known envs here for better typing
  */
-export const environmentVariables = {
+export const envs = {
 	..._,
 	NODE_ENV: _.NODE_ENV!,
 	DEBUG: _.DEBUG === 'true',

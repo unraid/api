@@ -2,7 +2,6 @@ module.exports = {
     root: true,
     parser: '@typescript-eslint/parser',
     extends: [
-        '@unraid',
-        "plugin:unicorn/recommended"
+        '@unraid'
     ],
 };

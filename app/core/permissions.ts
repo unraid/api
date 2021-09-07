@@ -32,11 +32,11 @@ const allPermissions = [
 const ac = new AccessControl(allPermissions);
 
 // Extend roles
-for (const [roleName, role] of Object.entries(getPermissions())) {
+Object.entries(getPermissions()).forEach(([roleName, role]) => {
 	if (role.extends) {
 		ac.extendRole(roleName, role.extends);
 	}
-}
+});
 
 coreLogger.silly('Loaded permissions', JSON.stringify(allPermissions));
 

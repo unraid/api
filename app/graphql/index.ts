@@ -144,7 +144,7 @@ const getPluginModule = (pluginName: string, pluginModuleName: string) => {
 };
 
 /**
- * Function directive
+ * Func directive
  *
  * @see https://github.com/smooth-code/graphql-directive/blob/master/README.md#directive-resolver-function-signature
  *
@@ -164,10 +164,10 @@ const getPluginModule = (pluginName: string, pluginModuleName: string) => {
  * but it contains information about the execution state of the query,
  * including the field name, path to the field from the root, and more.
  */
-class FunctionDirective extends SchemaDirectiveVisitor {
+class FuncDirective extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field: Record<string, any>) {
 		const { args } = this;
-		field.resolve = async function (_source, directiveArguments: {
+		field.resolve = async function (_source, directiveArgs: {
 			[key: string]: string | any;
 			plugin: string;
 			module: string;
@@ -179,42 +179,45 @@ class FunctionDirective extends SchemaDirectiveVisitor {
 				module: string;
 				result: string;
 			};
-			const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...parameters } = directiveArguments;
+			const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = directiveArgs;
 			const operationType = info.operation.operation;
 			const query = {
-				...directiveArguments.query,
+				...directiveArgs.query,
 				...(operationType === 'query' ? input : {})
 			};
 			const data = {
-				...directiveArguments.data,
+				...directiveArgs.data,
 				...(operationType === 'mutation' ? input : {})
 			};
 			// If query    @func(param_1, param_2, input: query?)
 			// If mutation @func(param_1, param_2, input: data)
 			const context = {
 				query,
-				params: parameters,
+				params,
 				data,
 				user
 			};
 
 			// Resolve func
-			let function_;
+			let func;
 			try {
 				if (pluginName) {
 					// @ts-expect-error
 					const { filePath } = getPluginModule(pluginName, pluginModuleName);
-					const pluginModule = await import(filePath);
+					// eslint-disable-next-line @typescript-eslint/no-var-requires
+					const pluginModule = require(filePath);
 					// The file will either use a default export or a named one
 					// If it's named it should be the same as a module name
-					function_ = typeof pluginModule === 'function' ? pluginModule : pluginModule[pluginModuleName];
+					func = typeof pluginModule === 'function' ? pluginModule : pluginModule[pluginModuleName];
 				} else {
-					function_ = getCoreModule(moduleName);
+					func = getCoreModule(moduleName);
 				}
 			} catch (error: unknown) {
-				// Rethrow clean error message about module being missing
-				if (isNodeError(error, AppError) && error.code === 'MODULE_NOT_FOUND') {
-					throw new AppError(`Cannot find ${pluginName ? `Plugin: "${pluginName}" ` : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+				if (isNodeError(error, AppError)) {
+					// Rethrow clean error message about module being missing
+					if (error.code === 'MODULE_NOT_FOUND') {
+						throw new AppError(`Cannot find ${pluginName ? `Plugin: "${pluginName}" ` : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
+					}
 				}
 
 				// In production let's just throw an internal error
@@ -230,7 +233,7 @@ class FunctionDirective extends SchemaDirectiveVisitor {
 			const pluginOrModuleName = pluginModuleName || moduleName;
 
 			// Run function
-			const [error, coreMethodResult] = await Promise.resolve(function_(context, core))
+			const [error, coreMethodResult] = await Promise.resolve(func(context, core))
 				.then(result => [undefined, result])
 				.catch(error_ => {
 					// Ensure we aren't leaking anything in production
@@ -251,8 +254,8 @@ class FunctionDirective extends SchemaDirectiveVisitor {
 			let result = coreMethodResult[pluginType || resultType || 'json'];
 
 			// Allow fields to be extracted
-			if (directiveArguments.extractFromResponse) {
-				return get(result, directiveArguments.extractFromResponse);
+			if (directiveArgs.extractFromResponse) {
+				return get(result, directiveArgs.extractFromResponse);
 			}
 
 			return result;
@@ -264,7 +267,7 @@ const schema = makeExecutableSchema({
 	typeDefs: types,
 	resolvers,
 	schemaDirectives: {
-		func: FunctionDirective
+		func: FuncDirective
 	}
 });
 
@@ -278,7 +281,6 @@ const ensureApiKey = async (apiKeyToCheck: string) => {
 
 	// Check there are any valid keys then check if the key given is valid
 	// If my_servers wasn't loaded before the function above should have fixed that
-	// eslint-disable-next-line unicorn/explicit-length-check
 	if (core.apiManager.getValidKeys().length >= 1) {
 		// API manager has keys but we didn't give one to check
 		if (!apiKeyToCheck) {
@@ -408,9 +410,9 @@ export const graphql = {
 	types,
 	resolvers,
 	subscriptions: {
-		keepAlive: 10_000,
-		onConnect: async (connectionParameters: Record<string, string>) => {
-			const apiKey = connectionParameters['x-api-key'];
+		keepAlive: 10000,
+		onConnect: async (connectionParams: Record<string, string>) => {
+			const apiKey = connectionParams['x-api-key'];
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
@@ -458,7 +460,7 @@ export const graphql = {
 	},
 	context: async ({ req, connection }) => {
 		// Normal Websocket connection
-		if (connection && Object.keys(connection.context).length > 0) {
+		if (connection && Object.keys(connection.context).length >= 1) {
 			// Check connection for metadata
 			return {
 				...connection.context

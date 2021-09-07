@@ -10,7 +10,7 @@ export * from './bus';
 export * from './cache-manager';
 export * from './config';
 export * from './core';
-export * from './environments';
+export * from './envs';
 export * from './log';
 export * from './paths';
 export * from './permission-manager';

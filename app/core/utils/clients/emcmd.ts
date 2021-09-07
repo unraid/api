@@ -4,7 +4,7 @@
  */
 
 import request from 'request-promise-native';
-import { envs } from '../../environments';
+import { envs } from '../../envs';
 import { coreLogger } from '../../log';
 import { catchHandlers } from '..';
 import { paths } from '../../paths';
