@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.24.1](https://github.com/unraid/api/compare/v2.24.0...v2.24.1) (2021-09-07)
+
+
+### Features
+
+* commonjs -> esm ([632a9d1](https://github.com/unraid/api/commit/632a9d15384eae75b2d39cf0bf104356b0323213))
+
+
+### Bug Fixes
+
+* ensure vms summary is also published to ([7fa0cb0](https://github.com/unraid/api/commit/7fa0cb0f3f45accd69500a6724afa9c7bb79272d))
+* ensure we catch non errors for libvirt ([e360acf](https://github.com/unraid/api/commit/e360acf2d12cfdae3cb5e3e4593d474d0910ec30))
+* invalid is not no/yes. ([f60cb1a](https://github.com/unraid/api/commit/f60cb1a9f59d36d07129ce00b6bc2be8e9d9ecd1))
+* publish registation event on key file update ([6340967](https://github.com/unraid/api/commit/634096745881ecee9721c124dcf1fd48a2970dab))
+* rename eslint config js -> cjs ([52c5bed](https://github.com/unraid/api/commit/52c5bed0af4b1f7f04802c1550cb0cea242d0e70))
+
 ## [2.24.0](https://github.com/unraid/api/compare/v2.23.5...v2.24.0) (2021-08-30)
 
 
