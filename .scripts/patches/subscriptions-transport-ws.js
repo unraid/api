@@ -1,4 +1,4 @@
-import fs from 'fs';
+const fs = require('fs');
 
 const paths = {
     server: './node_modules/subscriptions-transport-ws/dist/server.js',
