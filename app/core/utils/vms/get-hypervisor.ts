@@ -5,7 +5,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { Hypervisor } from '@vmngr/libvirt';
+import { ConnectListAllDomainsFlags, Hypervisor } from '@vmngr/libvirt';
 import { watch } from 'chokidar';
 import { log } from '../../log';
 import { pubsub } from '../../pubsub';
@@ -103,7 +103,7 @@ const watchLibvirt = async (useCache = true) => {
 		}
 
 		// We now have a hypervisor instance
-		const autoStartDomains = await hypervisor.connectListAllDomains(1024);
+		const autoStartDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.AUTOSTART);
 		const autoStartDomainNames = await Promise.all(autoStartDomains.map(async domain => hypervisor.domainGetName(domain)));
 
 		// Get all domains
@@ -133,19 +133,36 @@ const watchLibvirt = async (useCache = true) => {
 		// Update the cache with new results
 		cachedDomains = resolvedDomains;
 
-		// Publish object
-		const data = {
+		// Update summary endpoint
+		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
+		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
+		const installed = activeDomains.length + inactiveDomains.length;
+		const started = activeDomains.length;
+		const summary = {
+			info: {
+				vms: {
+					installed,
+					started
+				}
+			}
+		};
+		const full = {
 			vms: {
 				domain: cachedDomains
 			}
 		};
 
 		// Publish changes to pub/sub
-		await pubsub.publish('vms', data).catch(error => {
+		await pubsub.publish('info', summary).catch(error => {
+			log.error('Failed publishing to "info" with "%s"', error);
+		});
+
+		// Publish changes to pub/sub
+		await pubsub.publish('vms', full).catch(error => {
 			log.error('Failed publishing to "vms" with "%s"', error);
 		});
 
-		log.debug('libvirt: Published to "%s" with %j', 'vms', data);
+		log.debug('libvirt: Published full and summary data to pub/sub');
 
 		await sleep(1_000);
 		return watchLibvirt();
