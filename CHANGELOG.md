@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.26.0](https://github.com/unraid/api/compare/v2.25.0...v2.26.0) (2021-09-08)
+
+
+### Features
+
+* use local server data for /servers when in anon mode ([34da448](https://github.com/unraid/api/commit/34da448f1e778a3943bb1bf399fde1c58f0d8968))
+
 ## [2.25.0](https://github.com/unraid/api/compare/v2.24.1...v2.25.0) (2021-09-08)
 
 
