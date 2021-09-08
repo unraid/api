@@ -40,7 +40,7 @@ export const startInternal = (apiKey: string) => {
 			}>(configPath);
 
 			// If they're in anon mode bail
-			if (myserversConfigFile.remote.anonMode !== undefined) {
+			if (myserversConfigFile.remote.anonMode === 'true') {
 				return;
 			}
 

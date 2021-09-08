@@ -100,7 +100,7 @@ export const getServers = async (): Promise<Server[]> => {
 		}>(configPath);
 
 		// If they're in anon mode bail
-		if (myserversConfigFile.remote.anonMode !== undefined) {
+		if (myserversConfigFile.remote.anonMode === 'true') {
 			graphqlLogger.debug('Falling back to local state for /servers endpoint');
 			return getLocalServer(apiKey);
 		}
