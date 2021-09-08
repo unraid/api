@@ -275,17 +275,21 @@ if (isNaN(parseInt(port, 10))) {
 		});
 	});
 
-	process.on('uncaughtException', (error: NodeJS.ErrnoException) => {
+	process.once('uncaughtException', (error: NodeJS.ErrnoException) => {
 		// Skip EADDRINUSE as it's already handled above
 		if (error.code !== 'EADDRINUSE') {
 			globalErrorHandler(error);
 		}
 	});
 
-	process.on('unhandledRejection', error => {
+	process.once('unhandledRejection', error => {
 		if (error instanceof Error) {
 			globalErrorHandler(error);
 		}
+	});
+
+	process.once('exit', () => {
+		console.info('👋 Farewell. UNRAID API shutting down!');
 	});
 }
 
@@ -311,7 +315,11 @@ export const server = {
 	},
 	stop(callback?: () => void) {
 		// Stop http server from accepting new connections and close existing connections
-		stoppableServer.stop(globalErrorHandler);
+		stoppableServer.stop(error => {
+			if (error) {
+				globalErrorHandler(error);
+			}
+		});
 
 		// Stop ws server
 		wsServer.close();
