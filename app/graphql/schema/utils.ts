@@ -3,10 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { pubsub, utils, errors, states, apiManager, graphqlLogger } from '../../core';
+import { pubsub, utils, errors, states, apiManager, graphqlLogger, paths } from '../../core';
 import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils';
+import { loadState } from '../../core/utils/misc/load-state';
 
 const { varState, networkState } = states;
 
@@ -92,6 +93,18 @@ export const getServers = async (): Promise<Server[]> => {
 
 	// No cached servers found
 	if (!cachedServers) {
+		// Get my server's config file path
+		const configPath = paths.get('myservers-config')!;
+		const myserversConfigFile = loadState<{
+			remote: { anonMode?: string };
+		}>(configPath);
+
+		// If they're in anon mode bail
+		if (myserversConfigFile.remote.anonMode !== undefined) {
+			graphqlLogger.debug('Falling back to local state for /servers endpoint');
+			return getLocalServer(apiKey);
+		}
+
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);
 

@@ -33,12 +33,12 @@ export const startInternal = (apiKey: string) => {
 			}
 		}));
 
-		const myserversConfigFile = loadState<{
-			remote: { anonMode?: string };
-		}>(configPath);
-
 		// Internal is ready at this point
 		if (!sockets.relay) {
+			const myserversConfigFile = loadState<{
+				remote: { anonMode?: string };
+			}>(configPath);
+
 			// If they're in anon mode bail
 			if (myserversConfigFile.remote.anonMode !== undefined) {
 				return;
