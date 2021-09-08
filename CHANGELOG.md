@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.25.0](https://github.com/unraid/api/compare/v2.24.1...v2.25.0) (2021-09-08)
+
+
+### Features
+
+* add configErrorState ([a6b1657](https://github.com/unraid/api/commit/a6b1657062c1cc600ec8913bf1589bcb1ea8dd17))
+* add support for anonMode ([eb005e7](https://github.com/unraid/api/commit/eb005e7d587f270a2092e0be94152f39377becd4))
+
+
+### Bug Fixes
+
+* add message on good exit ([7003921](https://github.com/unraid/api/commit/7003921178e990ecea94c2736543f5700646df5c))
+* log when API dies ([06e8161](https://github.com/unraid/api/commit/06e8161fa9e4de0e552b482939abf448884f94a8))
+
 ### [2.24.1](https://github.com/unraid/api/compare/v2.24.0...v2.24.1) (2021-09-07)
 
 
