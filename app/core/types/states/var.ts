@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
+ * Copyright 2019-2021 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
 
@@ -7,6 +7,12 @@
 type FsType = 'xfs' | string;
 type RegistrationCheck = 'Error' | 'Valid';
 type RegistrationType = 'INVALID' | 'BASIC' | 'PLUS' | 'PRO' | string;
+
+export type ConfigErrorState =
+	'UNKNOWN_ERROR' |
+	'INVALID' |
+	'NO_KEY_SERVER' |
+	'WITHDRAWN';
 
 /**
  * Global vars
@@ -19,6 +25,8 @@ export interface Var {
 	comment: string;
 	/** Is the array's config valid. */
 	configValid: boolean;
+	/** If the array's config isn't valid this is the reason. */
+	configError?: ConfigErrorState;
 	/** Current CSRF token for HTTP requests with emhttpd. */
 	csrfToken: string;
 	defaultFormat: string;
@@ -115,7 +123,7 @@ export interface Var {
 	queueDepth: string;
 	regCheck: string;
 	regState: string;
-	/** Where the registeration key is stored. (e.g. "/boot/config/Pro.key") */
+	/** Where the registration key is stored. (e.g. "/boot/config/Pro.key") */
 	regFile: string;
 	regGen: string;
 	regGuid: string;
@@ -125,7 +133,7 @@ export interface Var {
 	regTo: string;
 	/** Which type of key this is. */
 	regTy: RegistrationType;
-	/** Is the server currently in safemode. */
+	/** Is the server currently in safe mode. */
 	safeMode: boolean;
 	sbClean: boolean;
 	sbEvents: number;

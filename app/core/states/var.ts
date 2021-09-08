@@ -1,11 +1,11 @@
 /*!
- * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
+ * Copyright 2019-2021 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
 
 import path from 'path';
 import { paths } from '../paths';
-import { Var } from '../types/states';
+import { ConfigErrorState, Var } from '../types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';
 import { State } from './state';
 import { toNumber } from '../utils/casting';
@@ -42,20 +42,20 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => 
 };
 
 /**
- * Unraid registation check
+ * Unraid registration check
  */
-type RegistationCheck =
+type RegistrationCheck =
 	/** Key file is missing. */
 	'ENOKEYFILE2' |
 	/** Everything is fine. */
 	'';
 
 /**
- * Unraid registation type
+ * Unraid registration type
  *
  * Check the {@link https://unraid.net/pricing | pricing page} for up to date info.
  */
-type RegistationType =
+type RegistrationType =
 	/** Missing key file. */
 	'- missing key file' |
 	/** Up to 6 attached storage devices. */
@@ -166,14 +166,14 @@ interface VarIni {
 	portssl: string;
 	porttelnet: string;
 	queueDepth: string;
-	regCheck: RegistationCheck;
+	regCheck: RegistrationCheck;
 	regFile: string;
 	regGen: string;
 	regGuid: string;
 	regTm: string;
 	regTm2: string;
 	regTo: string;
-	regTy: RegistationType;
+	regTy: RegistrationType;
 	regState: RegistrationState;
 	safeMode: string;
 	sbClean: string;
@@ -226,12 +226,19 @@ interface VarIni {
 }
 
 const parse = (state: VarIni): Var => {
+	const configValid = iniBooleanToJsBoolean(state.configValid, false);
 	return {
 		...state,
 		bindMgt: iniBooleanOrAutoToJsBoolean(state.bindMgt),
 		cacheNumDevices: toNumber(state.cacheNumDevices),
 		cacheSbNumDisks: toNumber(state.cacheSbNumDisks),
-		configValid: iniBooleanToJsBoolean(state.configValid, false),
+		configValid,
+		configError: configValid === false ? (({
+			error: 'UNKNOWN_ERROR',
+			invalid: 'INVALID',
+			nokeyserver: 'NO_KEY_SERVER',
+			withdrawn: 'WITHDRAWN'
+		}[state.configValid] ?? 'UNKNOWN_ERROR') as ConfigErrorState) : undefined,
 		deviceCount: toNumber(state.deviceCount),
 		fsCopyPrcnt: toNumber(state.fsCopyPrcnt),
 		fsNumMounted: toNumber(state.fsNumMounted),
@@ -300,7 +307,7 @@ const parse = (state: VarIni): Var => {
 interface ParseOptions {
 	/** If the internal store should be updated with the new data. */
 	set?: boolean;
-	/** If the main bus should recieve an event with the new data. */
+	/** If the main bus should receive an event with the new data. */
 	emit?: boolean;
 }
 
