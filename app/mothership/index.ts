@@ -33,9 +33,18 @@ export const startInternal = (apiKey: string) => {
 			}
 		}));
 
+		const myserversConfigFile = loadState<{
+			remote: { anonMode?: string };
+		}>(configPath);
+
 		// Internal is ready at this point
 		if (!sockets.relay) {
-			startRelay(apiKey);
+			// If they're in anon mode bail
+			if (myserversConfigFile.remote.anonMode !== undefined) {
+				return;
+			}
+
+			startRelay();
 			subscribeToServers(apiKey);
 		}
 	});
@@ -86,7 +95,7 @@ const serializer = new IniSerializer({
 	keep_quotes: false
 });
 
-export const startRelay = (apiKey: string) => {
+export const startRelay = () => {
 	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
 		headers: getRelayHeaders()
 	});
@@ -98,6 +107,7 @@ export const startRelay = (apiKey: string) => {
 	});
 
 	sockets.relay.on('disconnected', () => {
+		log.debug('RELAY:DISCONNECTED');
 		relayOpen = false;
 		sockets.internal?.close();
 		sockets.internal?.start();
