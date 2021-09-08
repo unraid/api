@@ -13,6 +13,7 @@ import { exitApp } from '..';
  * @private
  */
 export const globalErrorHandler = (error: Error) => {
+	console.warn('Uncaught Exception!\nStopping unraid-api!');
 	try {
 		exitApp(error, 1);
 	} catch (error: unknown) {
