@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.1](https://github.com/unraid/api/compare/v2.26.0...v2.26.1) (2021-09-08)
+
+
+### Bug Fixes
+
+* use string for anon  mode ([65d6541](https://github.com/unraid/api/commit/65d65412605c58d313df5128a723d62e0e110ac6))
+
 ## [2.26.0](https://github.com/unraid/api/compare/v2.25.0...v2.26.0) (2021-09-08)
 
 
