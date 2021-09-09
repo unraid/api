@@ -10,7 +10,6 @@ enum ConfigErrorState {
     UNKNOWN_ERROR
     INVALID
     NO_KEY_SERVER
-    PRO
     WITHDRAWN
 }
 
