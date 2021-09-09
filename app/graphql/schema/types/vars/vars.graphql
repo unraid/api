@@ -6,6 +6,14 @@ type Subscription {
     vars: Vars!
 }
 
+enum ConfigErrorState {
+    UNKNOWN_ERROR
+    INVALID
+    NO_KEY_SERVER
+    PRO
+    WITHDRAWN
+}
+
 type Vars {
     """Unraid version"""
     version: String
@@ -103,6 +111,7 @@ type Vars {
     safeMode: Boolean
     startMode: String
     configValid: Boolean
+    configError: ConfigErrorState
     joinStatus: String
     deviceCount: Int
     flashGuid: String
