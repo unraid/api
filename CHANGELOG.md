@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.3](https://github.com/unraid/api/compare/v2.26.2...v2.26.3) (2021-09-09)
+
+
+### Bug Fixes
+
+* allow --debug to enable debug logs without NODE_ENV ([243de07](https://github.com/unraid/api/commit/243de07a4169df709b0786834c614e98d831a585))
+* move exit message to child_process on successful http listen ([e9779e7](https://github.com/unraid/api/commit/e9779e74f13cd1f0e59b9cdc94c0298d0795db06))
+* remove PRO from ConfigErrorState ([0e7b996](https://github.com/unraid/api/commit/0e7b9968b5d1e4aebfe2f0e9898d423038410aed))
+
 ### [2.26.2](https://github.com/unraid/api/compare/v2.26.1...v2.26.2) (2021-09-09)
 
 
