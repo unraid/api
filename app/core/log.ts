@@ -9,6 +9,7 @@
  * Note: This isn't the same as the environment.
  */
 const isProduction = process.env.NODE_ENV === 'production';
+const isDebug = process.env.DEBUG !== undefined;
 
 /**
  * If we're in silly logging mode.
@@ -30,7 +31,8 @@ const noop = () => {};
   */
 export const logger = {
 	createChild: (_options: { prefix: string }) => logger,
-	debug: isProduction ? noop : console.debug,
+	// Allow --debug to enable debug logs without changing NODE_ENV
+	debug: isProduction ? (isDebug ? console.debug : noop) : console.debug,
 	// Always allow errors to log
 	error: console.error,
 	level: 'error',
