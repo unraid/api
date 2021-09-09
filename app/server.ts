@@ -214,6 +214,10 @@ if (isNaN(parseInt(port, 10))) {
 	stoppableServer.on('listening', () => {
 		// Set permissions
 		fs.chmodSync(port, 660);
+
+		process.once('exit', () => {
+			console.info('👋 Farewell. UNRAID API shutting down!');
+		});
 	});
 
 	stoppableServer.on('error', async (error: NodeJS.ErrnoException) => {
@@ -286,10 +290,6 @@ if (isNaN(parseInt(port, 10))) {
 		if (error instanceof Error) {
 			globalErrorHandler(error);
 		}
-	});
-
-	process.once('exit', () => {
-		console.info('👋 Farewell. UNRAID API shutting down!');
 	});
 }
 
