@@ -98,8 +98,8 @@ const commands = {
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		console.info(`Starting unraid-api v${packageJson.version as string}`);
-		console.info(`Connecting to the "${getEnvironment()}" environment.`);
+		logger.info(`Starting unraid-api v${packageJson.version as string}`);
+		logger.info(`Loading the "${getEnvironment()}" environment.`);
 
 		// Load bundled index file
 		const indexPath = './index.js';
@@ -110,7 +110,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				console.debug('Daemonizing process.');
+				logger.debug('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -123,10 +123,22 @@ const commands = {
 					detached: true
 				});
 
+				// This should log when the app closes, not the cli
+				child.on('exit', () => {
+					logger.info('👋 Farewell. UNRAID API shutting down!');
+				});
+
+				// This should log when the app crashes, not the cli
+				child.on('error', error => {
+					logger.log('UNRAiD API crashed with "%" at %s', error.message, error.stack);
+				});
+
 				// Convert process into daemon
 				child.unref();
 
-				console.log('Daemonized successfully!');
+				logger.debug('Daemonized successfully!');
+
+				logger.info('🌻 UNRAID API started successfully!');
 
 				// Exit cleanly
 				process.exit(0);
