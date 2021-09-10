@@ -7,6 +7,7 @@ import findProcess from 'find-process';
 import pidusage from 'pidusage';
 import prettyMs from 'pretty-ms';
 import dedent from 'dedent-tabs';
+import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
 import { logger } from './core/log';
@@ -110,14 +111,18 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 
-				// Log when the API exits cleanly
-				process.on('exit', code => {
-					logger.info('👋 Farewell. UNRAID API shutting down with code %s!', code);
-				});
+				// Log when the API exits
+				addExitCallback((_signal, exitCode, error) => {
+					if (exitCode === 0) {
+						logger.info('👋 Farewell. UNRAID API shutting down!');
+						return;
+					}
 
-				// Log when the API crashes
-				process.on('uncaughtException', (error, origin) => {
-					logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
+					// Log when the API crashes
+					if (error) {
+						logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
+					}
+
 					logger.log('⚠️ UNRAID API crashed');
 				});
 			} else {
