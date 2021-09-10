@@ -109,6 +109,17 @@ const commands = {
 			if ('_DAEMONIZE_PROCESS' in process.env) {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
+
+				// Log when the API exits cleanly
+				process.on('exit', code => {
+					logger.info('👋 Farewell. UNRAID API shutting down with code %s!', code);
+				});
+
+				// Log when the API crashes
+				process.on('uncaughtException', (error, origin) => {
+					logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
+					logger.log('⚠️ UNRAID API crashed');
+				});
 			} else {
 				logger.debug('Daemonizing process.');
 
@@ -121,26 +132,6 @@ const commands = {
 					cwd: paths.get('unraid-api-base')!,
 					stdio: 'ignore',
 					detached: true
-				});
-
-				// This should log when the app closes, not the cli
-				let deaths = 0;
-				process.on('beforeExit', code => {
-					// Only log when the child dies
-					if (deaths === 0) {
-						deaths++;
-						return;
-					}
-
-					if (code === 0) {
-						logger.info('👋 Farewell. UNRAID API shutting down!');
-					}
-				});
-
-				// This should log when the app crashes, not the cli
-				process.on('uncaughtException', (error, origin) => {
-					logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
-					logger.log('⚠️ UNRAID API crashed');
 				});
 
 				// Convert process into daemon
