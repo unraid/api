@@ -8,7 +8,7 @@ import am from 'am';
 import * as Sentry from '@sentry/node';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './core';
+import { core, states, coreLogger, log, apiManager, apiManagerLogger, logger } from './core';
 import { server } from './server';
 import { mothership } from './mothership/subscribe-to-servers';
 import { startInternal, sockets } from './mothership';
@@ -158,6 +158,9 @@ am(async () => {
 		log.error(error);
 	});
 }, async (error: NodeJS.ErrnoException) => {
+	// Log error to syslog
+	log.error(error);
+
 	// Send error to server for debugging
 	Sentry.captureException(error);
 
@@ -172,6 +175,6 @@ am(async () => {
 		await Sentry.flush(5000);
 
 		// Kill application
-		process.exit(1);
+		process.exitCode = 1;
 	});
 });

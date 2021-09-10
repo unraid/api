@@ -23,6 +23,6 @@ export const globalErrorHandler = (error: Error) => {
 		console.error(error);
 
 		// Kill application
-		process.exit(1);
+		process.exitCode = 1;
 	}
 };

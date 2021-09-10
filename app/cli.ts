@@ -273,7 +273,7 @@ async function main() {
 	if (!command) {
 		if (mainOptions.version) {
 			await commands.version();
-			process.exit();
+			process.exit(0);
 		}
 
 		// Run help command

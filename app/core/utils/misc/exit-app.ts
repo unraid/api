@@ -12,7 +12,8 @@ import { coreLogger } from '../../log';
 export const exitApp = (error?: Error, exitCode?: number) => {
 	if (!error) {
 		// Kill application immediately
-		process.exit(exitCode ?? 0);
+		process.exitCode = exitCode ?? 0;
+		return;
 	}
 
 	// Allow non-fatal errors to throw but keep the app running
@@ -32,6 +33,6 @@ export const exitApp = (error?: Error, exitCode?: number) => {
 		coreLogger.error(error);
 
 		// Kill application
-		process.exit(exitCode);
+		process.exitCode = exitCode;
 	}
 };
