@@ -124,13 +124,23 @@ const commands = {
 				});
 
 				// This should log when the app closes, not the cli
-				child.on('exit', () => {
-					logger.info('👋 Farewell. UNRAID API shutting down!');
+				let deaths = 0;
+				process.on('beforeExit', code => {
+					// Only log when the child dies
+					if (deaths === 0) {
+						deaths++;
+						return;
+					}
+
+					if (code === 0) {
+						logger.info('👋 Farewell. UNRAID API shutting down!');
+					}
 				});
 
 				// This should log when the app crashes, not the cli
-				child.on('error', error => {
-					logger.log('UNRAiD API crashed with "%" at %s', error.message, error.stack);
+				process.on('uncaughtException', (error, origin) => {
+					logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
+					logger.log('⚠️ UNRAID API crashed');
 				});
 
 				// Convert process into daemon
@@ -138,12 +148,12 @@ const commands = {
 
 				logger.debug('Daemonized successfully!');
 
-				logger.info('🌻 UNRAID API started successfully!');
-
 				// Exit cleanly
 				process.exit(0);
 			}
 		}
+
+		logger.info('🌻 UNRAID API started successfully!');
 	},
 	/**
 	 * Stop a running API process.
