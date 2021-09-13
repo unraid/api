@@ -263,6 +263,7 @@
     "upcast",
     "uuid",
     "uuid-apikey",
-    "xhr2"
+    "xhr2",
+    "zx"
   ]
 }
