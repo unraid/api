@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { spawn, exec } from 'child_process';
+import { $ } from 'zx';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
 import findProcess from 'find-process';
@@ -78,6 +79,8 @@ const getUnraidApiPid = async () => {
 	return pids.find(_ => _.pid !== process.pid)?.pid;
 };
 
+const logToSyslog = async (text: string) => $`logger unraid-api[${process.pid}] ${text}`.then(() => true).catch(() => false);
+
 const commands = {
 	/**
 	 * Start a new API process.
@@ -99,8 +102,8 @@ const commands = {
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		logger.info(`Starting unraid-api v${packageJson.version as string}`);
-		logger.info(`Loading the "${getEnvironment()}" environment.`);
+		await logToSyslog(`Starting unraid-api v${packageJson.version as string}`);
+		await logToSyslog(`Loading the "${getEnvironment()}" environment.`);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -108,19 +111,19 @@ const commands = {
 			// Log when the API exits
 			addExitCallback((_signal, exitCode, error) => {
 				if (exitCode === 0) {
-					logger.info('👋 Farewell. UNRAID API shutting down!');
+					logToSyslog('👋 Farewell. UNRAID API shutting down!').catch(() => undefined);
 					return;
 				}
 
 				// Log when the API crashes
 				if (error) {
-					logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
+					logToSyslog(`unraid-api[${process.pid}] Caught exception: ${error.message}\nException origin: ${origin}`).catch(() => undefined);
 				}
 
-				logger.log('⚠️ UNRAID API crashed');
+				logToSyslog('⚠️ UNRAID API crashed').catch(() => undefined);
 			});
 
-			logger.info('🌻 UNRAID API started successfully!');
+			await logToSyslog('🌻 UNRAID API started successfully!');
 		}
 
 		// Load bundled index file
@@ -132,7 +135,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				logger.debug('Daemonizing process.');
+				await logToSyslog('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -141,14 +144,14 @@ const commands = {
 					// The process MUST have it's cwd set to the
 					// path where it resides within the Nexe VFS
 					cwd: paths.get('unraid-api-base')!,
-					stdio: 'ignore',
+					stdio: 'inherit',
 					detached: true
 				});
 
 				// Convert process into daemon
 				child.unref();
 
-				logger.debug('Daemonized successfully!');
+				await logToSyslog('Daemonized successfully!');
 
 				// Exit cleanly
 				process.exit(0);
