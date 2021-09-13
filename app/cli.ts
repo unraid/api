@@ -78,7 +78,7 @@ const getUnraidApiPid = async () => {
 	return pids.find(_ => _.pid !== process.pid)?.pid;
 };
 
-const logToSyslog = (text: string) => execa.commandSync(`logger-t unraid-api[${process.pid}] ${text}`);
+const logToSyslog = (text: string) => execa.commandSync(`logger -t unraid-api[${process.pid}] ${text}`);
 
 const commands = {
 	/**
