@@ -1,18 +1,17 @@
 import fs from 'fs';
 import path from 'path';
+import execa from 'execa';
 import { spawn, exec } from 'child_process';
-import { $ } from 'zx';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
 import findProcess from 'find-process';
-import pidusage from 'pidusage';
+import pidUsage from 'pidusage';
 import prettyMs from 'pretty-ms';
 import dedent from 'dedent-tabs';
 import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
 import { logger } from './core/log';
-import packageJson from '../package.json';
 
 const setEnv = (envName: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
@@ -79,9 +78,7 @@ const getUnraidApiPid = async () => {
 	return pids.find(_ => _.pid !== process.pid)?.pid;
 };
 
-const logToSyslog = async function (text: string) {
-	return $`logger -t unraid-api[${process.pid}] ${text}`.then(() => true).catch(() => false);
-};
+const logToSyslog = (text: string) => execa.commandSync(`logger-t unraid-api[${process.pid}] ${text}`);
 
 const commands = {
 	/**
@@ -104,8 +101,9 @@ const commands = {
 		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
-		await logToSyslog(`Starting unraid-api v${packageJson.version as string}`);
-		await logToSyslog(`Loading the "${getEnvironment()}" environment.`);
+		const apiVersion: string = version;
+		logToSyslog(`Starting unraid-api v${apiVersion}`);
+		logToSyslog(`Loading the "${getEnvironment()}" environment.`);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -113,19 +111,19 @@ const commands = {
 			// Log when the API exits
 			addExitCallback((signal, exitCode, error) => {
 				if (exitCode === 0 || signal === 'SIGTERM') {
-					logToSyslog('👋 Farewell. UNRAID API shutting down!').catch(() => undefined);
+					logToSyslog('👋 Farewell. UNRAID API shutting down!');
 					return;
 				}
 
 				// Log when the API crashes
 				if (signal === 'uncaughtException' && error) {
-					logToSyslog(`unraid-api[${process.pid}] Caught exception: ${error.message}\nException origin: ${origin}`).catch(() => undefined);
+					logToSyslog(`unraid-api[${process.pid}] Caught exception: ${error.message}\nException origin: ${origin}`);
 				}
 
-				logToSyslog('⚠️ UNRAID API crashed with ').catch(() => undefined);
+				logToSyslog('⚠️ UNRAID API crashed with ');
 			});
 
-			await logToSyslog('✔️ UNRAID API started successfully!');
+			logToSyslog('✔️ UNRAID API started successfully!');
 		}
 
 		// Load bundled index file
@@ -137,7 +135,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				await logToSyslog('Daemonizing process.');
+				logToSyslog('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -153,7 +151,7 @@ const commands = {
 				// Convert process into daemon
 				child.unref();
 
-				await logToSyslog('Daemonized successfully!');
+				logToSyslog('Daemonized successfully!');
 
 				// Exit cleanly
 				process.exit(0);
@@ -188,7 +186,8 @@ const commands = {
 	 * Print API version.
 	 */
 	async version() {
-		console.log(`Unraid API v${version as string}`);
+		const apiVersion: string = version;
+		console.log(`Unraid API v${apiVersion}`);
 	},
 	async status() {
 		// Find all processes called "unraid-api" which aren't this process
@@ -198,7 +197,7 @@ const commands = {
 			return;
 		}
 
-		const stats = await pidusage(unraidApiPid);
+		const stats = await pidUsage(unraidApiPid);
 		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
 	},
 	async report() {
@@ -256,14 +255,15 @@ const commands = {
 		logger.debug('Copying %s to %s', source, destination);
 		await new Promise<void>((resolve, reject) => {
 			// Use the native cp command to ensure we're outside the virtual file system
-            exec(`cp "${source}" "${destination}"`, error => {
-                if (error) {
-                    return reject(error);
-                }
+			exec(`cp "${source}" "${destination}"`, error => {
+				if (error) {
+					reject(error);
+					return;
+				}
 
-                resolve();
-            });
-        });
+				resolve();
+			});
+		});
 
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();

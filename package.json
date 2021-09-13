@@ -66,7 +66,7 @@
     "dockerode": "^3.3.0",
     "dot-prop": "^6.0.1",
     "dotenv": "^10.0.0",
-    "execa": "^5.0.0",
+    "execa": "^5.1.1",
     "express": "^4.17.1",
     "express-list-endpoints": "^5.0.0",
     "fetch-retry": "^4.1.1",
@@ -160,8 +160,7 @@
     "ts-node": "10.1.0",
     "tsup": "^4.12.5",
     "typescript": "4.3.5",
-    "typescript-coverage-report": "^0.6.0",
-    "zx": "^4.2.0"
+    "typescript-coverage-report": "^0.6.0"
   },
   "optionalDependencies": {
     "@vmngr/libvirt": "github:omgimalexis/libvirt"
@@ -263,7 +262,6 @@
     "upcast",
     "uuid",
     "uuid-apikey",
-    "xhr2",
-    "zx"
+    "xhr2"
   ]
 }
