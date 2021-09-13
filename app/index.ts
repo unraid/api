@@ -137,6 +137,12 @@ am(async () => {
 				sockets.relay?.start();
 			});
 
+			// We had no key but we now do
+			// Let's connect to relay!
+			if (lastKnownApiKey === undefined && newApiKey.startsWith('unraid_')) {
+				sockets.relay?.start();
+			}
+
 			// Reconnect subscriptions if we now have a valid key
 			if (newApiKey) {
 				coreLogger.debug('Connecting to mothership\'s subscription endpoint.');
