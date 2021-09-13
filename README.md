@@ -10,7 +10,7 @@ This script should be run automatically on every boot.
 
 ## CLI
 
-If you're on a unraid v6.9.0 or later machine this should be avaliable by running `unraid-api` in any directory.
+If you're on a unraid v6.9.0 or later machine this should be available by running `unraid-api` in any directory.
 
 ```bash
 root@Devon:~# unraid-api
@@ -84,7 +84,7 @@ You should get something like this back.
 {
   "data": {
     "welcome": {
-      "message": "Welcome root to this Unraid 6.9.0 server"
+      "message": "Welcome root to this Unraid 6.10.0 server"
     }
   }
 }
@@ -112,6 +112,13 @@ NCHAN=disable \ # Disable nchan polling
 
 To create a new version run `npm run release`.
 To create a new prerelease run `npm run release -- --prerelease alpha`.
+
+## Using a custom version (e.g. testing a new release)
+1. Download the tgz you want from [the releases page](https://github.com/unraid/api/releases) and copy to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
+2. Download the plugin `https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.staging.plg` to a new area on the flash drive. I put it in `/boot/config/custom/`.
+3. Edit that plg and remove the MD5/SHA256 entries from `unraid-api.tgz`. Now when it installs it will use the `unraid-api.tgz` that exists on the flash instead of downloading the latest one.
+4. Go to Plugins -> Install Plugin -> navigate to /boot/config/custom and select the staging plugin.
+
 
 ## License
 Copyright 2019-2021 Lime Technology Inc. All rights reserved.
