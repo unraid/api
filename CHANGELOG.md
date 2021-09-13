@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.5](https://github.com/unraid/api/compare/v2.26.4...v2.26.5) (2021-09-13)
+
+
+### Bug Fixes
+
+* ensure parent process doesn't inherit child's stdio ([69e7645](https://github.com/unraid/api/commit/69e7645825bfe49b5c63582bc1c4d24bf6843a88))
+
 ### [2.26.4](https://github.com/unraid/api/compare/v2.26.3...v2.26.4) (2021-09-13)
 
 
