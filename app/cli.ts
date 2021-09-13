@@ -102,6 +102,27 @@ const commands = {
 		logger.info(`Starting unraid-api v${packageJson.version as string}`);
 		logger.info(`Loading the "${getEnvironment()}" environment.`);
 
+		// If we're in debug mode or we're NOT
+		// in debug but ARE in the child process
+		if (mainOptions.debug || process.env._DAEMONIZE_PROCESS) {
+			// Log when the API exits
+			addExitCallback((_signal, exitCode, error) => {
+				if (exitCode === 0) {
+					logger.info('👋 Farewell. UNRAID API shutting down!');
+					return;
+				}
+
+				// Log when the API crashes
+				if (error) {
+					logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
+				}
+
+				logger.log('⚠️ UNRAID API crashed');
+			});
+
+			logger.info('🌻 UNRAID API started successfully!');
+		}
+
 		// Load bundled index file
 		const indexPath = './index.js';
 		require(indexPath);
@@ -110,21 +131,6 @@ const commands = {
 			if ('_DAEMONIZE_PROCESS' in process.env) {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
-
-				// Log when the API exits
-				addExitCallback((_signal, exitCode, error) => {
-					if (exitCode === 0) {
-						logger.info('👋 Farewell. UNRAID API shutting down!');
-						return;
-					}
-
-					// Log when the API crashes
-					if (error) {
-						logger.log(`Caught exception: ${error.message}\nException origin: ${origin}`);
-					}
-
-					logger.log('⚠️ UNRAID API crashed');
-				});
 			} else {
 				logger.debug('Daemonizing process.');
 
@@ -148,8 +154,6 @@ const commands = {
 				process.exit(0);
 			}
 		}
-
-		logger.info('🌻 UNRAID API started successfully!');
 	},
 	/**
 	 * Stop a running API process.
