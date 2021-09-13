@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.4](https://github.com/unraid/api/compare/v2.26.3...v2.26.4) (2021-09-13)
+
+
+### Bug Fixes
+
+* add space between logger and flag ([4445772](https://github.com/unraid/api/commit/44457727e9cfb2148dbdf95545dc340f6facf6a5))
+* hook process.exit in child BEFORE loading index ([33a8189](https://github.com/unraid/api/commit/33a8189a150a1d8c2d9bd4ee91cc5cd8e17ee91a))
+* include zx in bundle ([c030c91](https://github.com/unraid/api/commit/c030c918dde979b705c6495daf3c9528bf81daca))
+* logging on good exit ([52c51ec](https://github.com/unraid/api/commit/52c51ecd2a80669497f6c05ad137a23beefc6550))
+* missing fn name ([0ada10a](https://github.com/unraid/api/commit/0ada10ab3ddcd3c38339bf5d4c14329f67437a12))
+* move logging to child.on? ([fe4d879](https://github.com/unraid/api/commit/fe4d8798279efee98034514fa336e8cefe28241d))
+* move process.exit to child ([c66f93b](https://github.com/unraid/api/commit/c66f93bda2016faf5ae35ad3b05d508c4157afe3))
+* move zx to devDeps to bundle ([00e5739](https://github.com/unraid/api/commit/00e57393fce57e8a1c72a9d3fd22f305d6c93832))
+* switch to lib for exit ([7ac1684](https://github.com/unraid/api/commit/7ac1684f19d40d3c612f1dfba5d8f0e778f23e9b))
+* use exitCode to allow streams to drain on exit ([6531d6d](https://github.com/unraid/api/commit/6531d6d59e916cf422dc1f22aa6eaae6638eace8))
+* use logger for syslog messages ([b832214](https://github.com/unraid/api/commit/b83221422248eac9fbdeb1263995d0f4dc75c1fc))
+* use logger tags ([35b5356](https://github.com/unraid/api/commit/35b5356e3b2af3f420dcaf6094cc2fe0a37a61de))
+
 ### [2.26.3](https://github.com/unraid/api/compare/v2.26.2...v2.26.3) (2021-09-09)
 
 
