@@ -79,7 +79,7 @@ const getUnraidApiPid = async () => {
 	return pids.find(_ => _.pid !== process.pid)?.pid;
 };
 
-const logToSyslog = async (text: string) => $`logger unraid-api[${process.pid}] ${text}`.then(() => true).catch(() => false);
+const logToSyslog = async (text: string) => $`logger -t unraid-api[${process.pid}] ${text}`.then(() => true).catch(() => false);
 
 const commands = {
 	/**
