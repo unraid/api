@@ -109,21 +109,21 @@ const commands = {
 		// in debug but ARE in the child process
 		if (mainOptions.debug || process.env._DAEMONIZE_PROCESS) {
 			// Log when the API exits
-			addExitCallback((_signal, exitCode, error) => {
-				if (exitCode === 0) {
+			addExitCallback((signal, exitCode, error) => {
+				if (exitCode === 0 || signal === 'SIGTERM') {
 					logToSyslog('👋 Farewell. UNRAID API shutting down!').catch(() => undefined);
 					return;
 				}
 
 				// Log when the API crashes
-				if (error) {
+				if (signal === 'uncaughtException' && error) {
 					logToSyslog(`unraid-api[${process.pid}] Caught exception: ${error.message}\nException origin: ${origin}`).catch(() => undefined);
 				}
 
-				logToSyslog('⚠️ UNRAID API crashed').catch(() => undefined);
+				logToSyslog('⚠️ UNRAID API crashed with ').catch(() => undefined);
 			});
 
-			await logToSyslog('🌻 UNRAID API started successfully!');
+			await logToSyslog('✔️ UNRAID API started successfully!');
 		}
 
 		// Load bundled index file
