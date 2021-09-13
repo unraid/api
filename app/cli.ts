@@ -144,7 +144,7 @@ const commands = {
 					// The process MUST have it's cwd set to the
 					// path where it resides within the Nexe VFS
 					cwd: paths.get('unraid-api-base')!,
-					stdio: 'inherit',
+					stdio: 'ignore',
 					detached: true
 				});
 
