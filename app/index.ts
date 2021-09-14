@@ -34,7 +34,7 @@ Sentry.setUser({
 
 // Boot app
 am(async () => {
-	let lastKnownApiKey: string;
+	let lastKnownApiKey: string | undefined;
 
 	// Load core
 	await core.load();
@@ -62,24 +62,6 @@ am(async () => {
 					server.stop();
 				});
 			});
-
-			// Get newest API key
-			const apiKey = apiManager.getKey('my_servers');
-
-			// We're ready but they're not logged into MyServers yet
-			if (!apiKey) {
-				return;
-			}
-
-			// Make note of API key
-			lastKnownApiKey = apiKey.key;
-
-			// Wait 5s for the API to come up before connecting
-			setTimeout(() => {
-				// Start the internal relay connection
-				// This will connect to relay once it's up
-				startInternal(lastKnownApiKey);
-			}, 5000);
 		} catch (error: unknown) {
 			coreLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
@@ -105,13 +87,15 @@ am(async () => {
 		}
 	});
 
+	let hasFirstKey = false;
+
 	// If the key changes try to (re)connect to Mothership
 	// The internal graphql check needs to be done
 	// first so it'll be up before relay connects
 	apiManager.on('replace', async (name, keyEntry) => {
 		try {
 			// Get key in string format
-			const newApiKey = keyEntry.key;
+			const newApiKey: string = keyEntry.key;
 
 			// Bail if this isn't our key
 			if (name !== 'my_servers') {
@@ -126,8 +110,39 @@ am(async () => {
 
 			apiManagerLogger.debug('Replacing my_servers key. Last known key was %s. New key is %s', lastKnownApiKey, newApiKey);
 
-			// Make note of API key
-			lastKnownApiKey = newApiKey;
+			// Just disconnect everything as the key is undefined
+			if (newApiKey === undefined) {
+				// Clear out old API key
+				lastKnownApiKey = undefined;
+
+				// Disconnect from relay
+				sockets.relay?.close();
+				coreLogger.debug('Disconnected from relay ws.');
+
+				// Disconnect from internal ws
+				sockets.internal?.close();
+				coreLogger.debug('Disconnected from internal ws.');
+
+				// Disconnect from mothership's subscription endpoint
+				mothership.close();
+				coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
+				return;
+			}
+
+			// We've never had a key before so let's start the internal API connection
+			// That'll then start the relay connection to mothership
+			if (!hasFirstKey && lastKnownApiKey === undefined) {
+				// Wait 5s for the API to come up before connecting
+				setTimeout(() => {
+					// Start the internal relay connection
+					// This will connect to relay once it's up
+					startInternal(newApiKey);
+				}, 5000);
+
+				// Mark this as being done
+				hasFirstKey = true;
+				return;
+			}
 
 			// Stop internal connection
 			sockets.internal?.close();
@@ -145,12 +160,6 @@ am(async () => {
 
 				// Connect to the subscription endpoint
 				mothership.tryReconnect();
-			}
-
-			// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
-			if (!newApiKey) {
-				mothership.close();
-				coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
 			}
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
