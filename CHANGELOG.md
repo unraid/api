@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.7](https://github.com/unraid/api/compare/v2.26.6...v2.26.7) (2021-09-14)
+
+
+### Bug Fixes
+
+* connecting to relay for the first time ([d131479](https://github.com/unraid/api/commit/d131479e98d45bfc40859152527a489460190608))
+* improve CORS logs ([5074e2d](https://github.com/unraid/api/commit/5074e2d0f796127d40c8cf6bcd72c4f609237240))
+* supress 'Key found for %s' messages ([9680679](https://github.com/unraid/api/commit/9680679dfdeb3b74d521dee62784de4fffab8b40))
+
 ### [2.26.6](https://github.com/unraid/api/compare/v2.26.5...v2.26.6) (2021-09-14)
 
 
