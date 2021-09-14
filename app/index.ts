@@ -137,14 +137,9 @@ am(async () => {
 				// Wait for internal to close
 				await sleep(1_000);
 
-				// Ensure we reconnect relay once internal is up
-				sockets.internal?.once('connected', () => {
-					// Let's reconnect relay
-					sockets.relay?.start();
-				});
-
-				// Reconnect internal
-				sockets.internal?.start();
+				// Start internal as we do on a clean start
+				// This will take care of connecting to relay
+				startInternal(newApiKey);
 
 				coreLogger.debug('Connecting to mothership\'s subscription endpoint.');
 
