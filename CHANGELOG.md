@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.8](https://github.com/unraid/api/compare/v2.26.7...v2.26.8) (2021-09-14)
+
+
+### Bug Fixes
+
+* add better nchan logging ([ddff2b4](https://github.com/unraid/api/commit/ddff2b4f3ddb2659ec35881be31a8db90ebc7774))
+* ensure relay connects even if the socket exists ([23a1e89](https://github.com/unraid/api/commit/23a1e894a62ad457703825666f8dc5c24cc406ab))
+
 ### [2.26.7](https://github.com/unraid/api/compare/v2.26.6...v2.26.7) (2021-09-14)
 
 
