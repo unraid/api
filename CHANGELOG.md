@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.6](https://github.com/unraid/api/compare/v2.26.5...v2.26.6) (2021-09-14)
+
+
+### Bug Fixes
+
+* better logging on RELAY:RECONNECTION ([03b172d](https://github.com/unraid/api/commit/03b172defc53a2127697340669e075e6cc171747))
+* connect to relay on new API key from undefined ([8c16254](https://github.com/unraid/api/commit/8c162548a87bf8f07b8235a80114e141c270076e))
+* not logging anything on unraid-api start ([5ccb049](https://github.com/unraid/api/commit/5ccb049787fb4486a9251dbaa9ae49ebf1eed683))
+* reorder reconnection logic ([fc2b27c](https://github.com/unraid/api/commit/fc2b27c8daa5726a81c3af44a43dd8053d157932))
+* use internal method for reconnection ([6698500](https://github.com/unraid/api/commit/669850067eed1ccc95ac570c4f9b80313ccd1898))
+
 ### [2.26.5](https://github.com/unraid/api/compare/v2.26.4...v2.26.5) (2021-09-13)
 
 
