@@ -222,7 +222,7 @@ export class ApiManager extends EventEmitter {
 				// it's over the cache time
 				const key = this.keys.get(name);
 
-				log.debug('Key found for "%s".', name);
+				log.trace('Key found for "%s".', name);
 
 				return key !== null;
 			} catch (error: unknown) {
@@ -231,7 +231,7 @@ export class ApiManager extends EventEmitter {
 			}
 		}
 
-		log.debug('Key found for "%s".', nameOrKey);
+		log.trace('Key found for "%s".', nameOrKey);
 		const foundKey = this.keys.get(`${nameOrKey}`)?.key;
 		if (!foundKey) {
 			return false;
