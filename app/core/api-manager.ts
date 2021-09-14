@@ -333,6 +333,8 @@ export class ApiManager extends EventEmitter {
 			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/non-nullable-type-assertion-style
 			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
 
+			log.debug('Checking API key "%s".', apiKey);
+
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
 				apiManagerLogger.debug('%s was updated but the API key didn\'t change', filePath);
