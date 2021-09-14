@@ -128,7 +128,7 @@ export const startRelay = () => {
 		}
 	});
 
-	sockets.relay.on('unexpected-response', (code, message) => {
+	sockets.relay.on('unexpected-response', (code: number, message: string) => {
 		log.debug('RELAY:UNEXPECTED_RESPONSE:%s %s', code, message);
 
 		switch (code) {
@@ -163,13 +163,11 @@ export const startRelay = () => {
 				break;
 
 			case 429:
-				if (message === 'API_KEY_IN_USE') {
-					log.debug('RELAY:API_KEY_IN_USE');
-				}
+				log.debug(`RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:30_000`);
 
 				// Retry in 30s
 				setTimeout(() => {
-					log.debug('RELAY:RECONNECTING');
+					log.debug(`RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING`);
 
 					// Restart relay connection
 					sockets.relay?.start();
@@ -178,11 +176,11 @@ export const startRelay = () => {
 				break;
 
 			case 500:
-				log.debug('RELAY:INTERNAL_SERVER_ERROR');
+				log.debug(`RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:60_000`);
 
 				// Retry in 60s
 				setTimeout(() => {
-					log.debug('RELAY:RECONNECTING');
+					log.debug(`RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING`);
 
 					// Restart relay connection
 					sockets.relay?.start();
@@ -191,11 +189,11 @@ export const startRelay = () => {
 				break;
 
 			case 503:
-				log.debug('RELAY:GATEWAY_DOWN');
+				log.debug(`RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:60_000`);
 
 				// Retry in 60s
 				setTimeout(() => {
-					log.debug('RELAY:RECONNECTING');
+					log.debug(`RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
 
 					// Restart relay connection
 					sockets.relay?.start();
@@ -204,7 +202,7 @@ export const startRelay = () => {
 				break;
 
 			default:
-				log.debug('RELAY:RECONNECTING');
+				log.debug(`RELAY:${message}:RECONNECTING:NOW`);
 
 				// Restart relay connection
 				sockets.relay?.start();
