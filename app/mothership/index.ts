@@ -18,6 +18,7 @@ let internalOpen = false;
 let relayOpen = false;
 
 export const startInternal = (apiKey: string) => {
+	log.debug('⌨️ INTERNAL:CONNECTING');
 	sockets.internal = new GracefulWebSocket(INTERNAL_WS_LINK, ['graphql-ws'], {
 		headers: {
 			'x-api-key': apiKey
@@ -25,6 +26,7 @@ export const startInternal = (apiKey: string) => {
 	});
 
 	sockets.internal.on('connected', () => {
+		log.debug('⌨️ INTERNAL:CONNECTED');
 		internalOpen = true;
 		sockets.internal?.send(JSON.stringify({
 			type: 'connection_init',
@@ -34,22 +36,14 @@ export const startInternal = (apiKey: string) => {
 		}));
 
 		// Internal is ready at this point
-		if (!sockets.relay) {
-			const myserversConfigFile = loadState<{
-				remote: { anonMode?: string };
-			}>(configPath);
-
-			// If they're in anon mode bail
-			if (myserversConfigFile.remote.anonMode === 'true') {
-				return;
-			}
-
+		if (!sockets.relay || !sockets.relay.connected) {
 			startRelay();
 			subscribeToServers(apiKey);
 		}
 	});
 
 	sockets.internal?.on('disconnected', () => {
+		log.debug('⌨️ INTERNAL:DISCONNECTED');
 		internalOpen = false;
 	});
 
@@ -70,7 +64,7 @@ export const startInternal = (apiKey: string) => {
 	});
 
 	sockets.internal?.on('error', error => {
-		console.log('INTERNAL:ERROR', error);
+		console.log('⌨️ INTERNAL:ERROR', error);
 	});
 };
 
@@ -96,6 +90,7 @@ const serializer = new IniSerializer({
 });
 
 export const startRelay = () => {
+	log.debug('☁️ RELAY:CONNECTING');
 	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
 		headers: getRelayHeaders()
 	});
@@ -103,22 +98,22 @@ export const startRelay = () => {
 	// Connection-state related events
 	sockets.relay.on('connected', () => {
 		relayOpen = true;
-		log.debug('RELAY:CONNECTED');
+		log.debug('☁️ RELAY:CONNECTED');
 	});
 
 	sockets.relay.on('disconnected', () => {
-		log.debug('RELAY:DISCONNECTED');
+		log.debug('☁️ RELAY:DISCONNECTED');
 		relayOpen = false;
 		sockets.internal?.close();
 		sockets.internal?.start();
 	});
 
 	sockets.relay.on('killed', () => {
-		log.debug('RELAY:KILLED');
+		log.debug('☁️ RELAY:KILLED');
 	});
 
 	sockets.relay.on('error', () => {
-		log.debug('RELAY:ERROR');
+		log.debug('☁️ RELAY:ERROR');
 	});
 
 	// Message event
@@ -129,11 +124,11 @@ export const startRelay = () => {
 	});
 
 	sockets.relay.on('unexpected-response', (code: number, message: string) => {
-		log.debug('RELAY:UNEXPECTED_RESPONSE:%s %s', code, message);
+		log.debug('☁️ RELAY:UNEXPECTED_RESPONSE:%s %s', code, message);
 
 		switch (code) {
 			case 401:
-				log.debug('RELAY:INVALID_API_KEY');
+				log.debug('☁️ RELAY:INVALID_API_KEY');
 
 				// Delete the my_servers API key from the cfg
 				{
@@ -157,17 +152,17 @@ export const startRelay = () => {
 				break;
 
 			case 426:
-				log.debug('RELAY:API_IS_TOO_OUTDATED');
+				log.debug('☁️ RELAY:API_IS_TOO_OUTDATED');
 
 				// Bail as we cannot reconnect
 				break;
 
 			case 429:
-				log.debug(`RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:30_000`);
+				log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:30_000`);
 
 				// Retry in 30s
 				setTimeout(() => {
-					log.debug(`RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING`);
+					log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING`);
 
 					// Restart relay connection
 					sockets.relay?.start();
@@ -176,11 +171,11 @@ export const startRelay = () => {
 				break;
 
 			case 500:
-				log.debug(`RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:60_000`);
+				log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:60_000`);
 
 				// Retry in 60s
 				setTimeout(() => {
-					log.debug(`RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING`);
+					log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING`);
 
 					// Restart relay connection
 					sockets.relay?.start();
@@ -189,11 +184,11 @@ export const startRelay = () => {
 				break;
 
 			case 503:
-				log.debug(`RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:60_000`);
+				log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:60_000`);
 
 				// Retry in 60s
 				setTimeout(() => {
-					log.debug(`RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
+					log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
 
 					// Restart relay connection
 					sockets.relay?.start();
@@ -202,7 +197,7 @@ export const startRelay = () => {
 				break;
 
 			default:
-				log.debug(`RELAY:${message}:RECONNECTING:NOW`);
+				log.debug(`☁️ RELAY:${message}:RECONNECTING:NOW`);
 
 				// Restart relay connection
 				sockets.relay?.start();

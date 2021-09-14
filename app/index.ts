@@ -153,13 +153,9 @@ am(async () => {
 				await sleep(1_000);
 
 				// Start internal as we do on a clean start
-				// This will take care of connecting to relay
+				// This will take care of connecting to
+				// relay and the subscriptions
 				startInternal(newApiKey);
-
-				coreLogger.debug('Connecting to mothership\'s subscription endpoint.');
-
-				// Connect to the subscription endpoint
-				mothership.tryReconnect();
 			}
 		} catch (error: unknown) {
 			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
