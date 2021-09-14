@@ -102,8 +102,8 @@ const commands = {
 		setEnv('PORT', mainOptions.port);
 
 		const apiVersion: string = version;
-		logToSyslog(`Starting unraid-api v${apiVersion}`);
-		logToSyslog(`Loading the "${getEnvironment()}" environment.`);
+		console.info(`Starting unraid-api v${apiVersion}`);
+		console.info(`Loading the "${getEnvironment()}" environment.`);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -117,10 +117,15 @@ const commands = {
 
 				// Log when the API crashes
 				if (signal === 'uncaughtException' && error) {
-					logToSyslog(`unraid-api[${process.pid}] Caught exception: ${error.message}\nException origin: ${origin}`);
+					logToSyslog(`⚠️ Caught exception: ${error.message}\nException origin: ${origin}`);
 				}
 
-				logToSyslog('⚠️ UNRAID API crashed with ');
+				// Log when we crash
+				if (exitCode) {
+					logToSyslog(`⚠️ UNRAID API crashed with exit code ${exitCode}`);
+				}
+
+				logToSyslog('🛑 UNRAID API crashed without an exit code?');
 			});
 
 			logToSyslog('✔️ UNRAID API started successfully!');
@@ -135,7 +140,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				logToSyslog('Daemonizing process.');
+				console.info('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -151,7 +156,7 @@ const commands = {
 				// Convert process into daemon
 				child.unref();
 
-				logToSyslog('Daemonized successfully!');
+				console.info('Daemonized successfully!');
 
 				// Exit cleanly
 				process.exit(0);
