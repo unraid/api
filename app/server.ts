@@ -92,7 +92,7 @@ const getAllowedOrigins = (): string[] => {
 	return [...new Set([
 		// Localhost - Used for GUI mode
 		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		
+
 		// IP
 		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
@@ -124,7 +124,7 @@ app.use(cors({
 	origin: function (origin, callback) {
 		// Get currently allowed origins
 		const allowedOrigins = getAllowedOrigins();
-		log.debug(`Allowed origins: ${allowedOrigins.join(', ')}`);
+		log.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
 
 		// Disallow requests with no origin
 		// (like mobile apps, curl requests or viewing /graphql directly)
@@ -140,14 +140,16 @@ app.use(cors({
 			return;
 		}
 
-		log.debug(`Checking "${origin.toLowerCase()}" for CORS access.`);
+		log.debug(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
 			callback(new Error(invalidOrigin), false);
+			log.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
 			return;
 		}
 
+		log.debug('✔️ Origin check passed, granting CORS!');
 		callback(null, true);
 	}
 }));
