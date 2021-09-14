@@ -12,6 +12,7 @@ import { core, states, coreLogger, log, apiManager, apiManagerLogger, logger } f
 import { server } from './server';
 import { mothership } from './mothership/subscribe-to-servers';
 import { startInternal, sockets } from './mothership';
+import { sleep } from './core/utils';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { version } = require('../package.json') as { version: string };
@@ -128,29 +129,31 @@ am(async () => {
 			// Make note of API key
 			lastKnownApiKey = newApiKey;
 
-			// Reconnect internal
-			sockets.internal?.start();
+			// Stop internal connection
+			sockets.internal?.close();
 
-			// Reconnect relay once internal is up
-			sockets.internal?.once('connected', () => {
-				// Let's reconnect relay
-				sockets.relay?.start();
-			});
-
-			// We had no key but we now do
-			// Let's connect to relay!
-			if (lastKnownApiKey === undefined && newApiKey.startsWith('unraid_')) {
-				sockets.relay?.start();
-			}
-
-			// Reconnect subscriptions if we now have a valid key
+			// Let's reconnect everything
 			if (newApiKey) {
+				// Wait for internal to close
+				await sleep(1_000);
+
+				// Ensure we reconnect relay once internal is up
+				sockets.internal?.once('connected', () => {
+					// Let's reconnect relay
+					sockets.relay?.start();
+				});
+
+				// Reconnect internal
+				sockets.internal?.start();
+
 				coreLogger.debug('Connecting to mothership\'s subscription endpoint.');
 
 				// Connect to the subscription endpoint
 				mothership.tryReconnect();
-			} else {
-				// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
+			}
+
+			// Disconnect forcefully from mothership's subscription endpoint so we ensure it doesn't reconnect automatically
+			if (!newApiKey) {
 				mothership.close();
 				coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
 			}
