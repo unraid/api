@@ -48,7 +48,7 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	});
 
 	sub.on('connect', function (_event) {
-		nchanLogger.debug('Connected!');
+		nchanLogger.debug('NCHAN:CONNECTED:%s', endpoint);
 		resolve();
 	});
 
