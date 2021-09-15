@@ -110,7 +110,7 @@ const commands = {
 		if (mainOptions.debug || process.env._DAEMONIZE_PROCESS) {
 			// Log when the API exits
 			addExitCallback((signal, exitCode, error) => {
-				if (exitCode === 0 || signal === 'SIGTERM') {
+				if (exitCode === 0 || exitCode === 130 || signal === 'SIGTERM') {
 					logToSyslog('👋 Farewell. UNRAID API shutting down!');
 					return;
 				}
@@ -123,6 +123,7 @@ const commands = {
 				// Log when we crash
 				if (exitCode) {
 					logToSyslog(`⚠️ UNRAID API crashed with exit code ${exitCode}`);
+					return;
 				}
 
 				logToSyslog('🛑 UNRAID API crashed without an exit code?');
