@@ -30,8 +30,8 @@ export const myservers = () => {
 			// My servers config has likely changed
 			myserversConfigWatcher.on('all', async function (_event, fullPath) {
 				// Check if crash reporting is enabled
-				const file = loadState<{ remote: { wanaccess: string; wanport: string; sendCrashInfo: string } }>(fullPath);
-				const isEnabled = (file.remote.sendCrashInfo ?? 'no').trim() === 'yes';
+				const file = loadState<Partial<{ remote: { wanaccess?: string; wanport?: string; sendCrashInfo?: string } }>>(fullPath);
+				const isEnabled = (file.remote?.sendCrashInfo ?? 'no').trim() === 'yes';
 
 				// Get Sentry client
 				const sentryClient = Sentry.getCurrentHub().getClient();
@@ -49,9 +49,12 @@ export const myservers = () => {
 					}
 				}
 
-				// Update myservers config, this is used for origin checks in graphql
-				myServersConfig.remote.wanaccess = file.remote.wanaccess;
-				myServersConfig.remote.wanport = file.remote.wanport;
+				// Only update these if they exist
+				if (file.remote) {
+					// Update myservers config, this is used for origin checks in graphql
+					myServersConfig.remote.wanaccess = file.remote.wanaccess ?? myServersConfig.remote.wanaccess;
+					myServersConfig.remote.wanport = file.remote.wanport ?? myServersConfig.remote.wanport;
+				}
 
 				try {
 					// Ensure api manager has the correct keys loaded
