@@ -117,7 +117,7 @@ const commands = {
 
 				// Log when the API crashes
 				if (signal === 'uncaughtException' && error) {
-					logToSyslog(`⚠️ Caught exception: ${error.message}\nException origin: ${origin}`);
+					logToSyslog(`⚠️ Caught exception: ${error.message}`);
 				}
 
 				// Log when we crash
