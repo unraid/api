@@ -120,17 +120,12 @@ am(async () => {
 			mothership.close();
 			coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
 
-			// Record last known key
-			lastKnownApiKey = newApiKey;
-
 			// Since we no longer have a key and
 			// everything is disconnected we can bail
 			if (newApiKey === undefined) {
 				apiManagerLogger.debug('Cleared my_servers key.');
 				return;
 			}
-
-			apiManagerLogger.debug('Replacing my_servers key. Last known key was %s. New key is %s', lastKnownApiKey, newApiKey);
 
 			// We've never had a key before so let's start the internal API connection
 			// That'll then start the relay connection to mothership
@@ -146,8 +141,16 @@ am(async () => {
 
 				// Mark this as being done
 				hasFirstKey = true;
+
+				// Record new key
+				apiManagerLogger.debug('Setting my_servers key. Key is "%s".', newApiKey);
+				lastKnownApiKey = newApiKey;
 				return;
 			}
+
+			// Record last known key
+			apiManagerLogger.debug('Replacing my_servers key. Last known key was "%s". New key is "%s".', lastKnownApiKey, newApiKey);
+			lastKnownApiKey = newApiKey;
 
 			// Stop internal connection
 			sockets.internal?.close();
