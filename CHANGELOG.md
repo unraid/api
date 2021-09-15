@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.12](https://github.com/unraid/api/compare/v2.26.11...v2.26.12) (2021-09-15)
+
+
+### Bug Fixes
+
+* add allowRetry for relay socket ([3a38e3b](https://github.com/unraid/api/commit/3a38e3badec8a2addd5d7562f5a29f71741fa950))
+* ensure myServerConfig is never undefined ([d6d1f3c](https://github.com/unraid/api/commit/d6d1f3cf4a488f5e0b55e8acfc0294de9968cb73))
+* log on NCHAN disconnect ([c2b2057](https://github.com/unraid/api/commit/c2b2057a15ba7414cf2a0d50479e4e5928bcb8ef))
+* make imported file partial ([537a8fd](https://github.com/unraid/api/commit/537a8fdd359fa8ae4d4269fa1a8c0e62ebc00499))
+* make sure lastKnownKey is updated correctly ([ea5bf9a](https://github.com/unraid/api/commit/ea5bf9aeba23aa6ddb8d8d83eda423adb4c1c6a4))
+* remove allowRetry ([b1ee34a](https://github.com/unraid/api/commit/b1ee34af502c9a4c71d978245b2a444557e297c7))
+* use readyState instead of bool ([b42be96](https://github.com/unraid/api/commit/b42be96b30d59aca9d733ee1cb813ac0de028230))
+
 ### [2.26.11](https://github.com/unraid/api/compare/v2.26.10...v2.26.11) (2021-09-15)
 
 
