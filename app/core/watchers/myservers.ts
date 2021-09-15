@@ -52,8 +52,11 @@ export const myservers = () => {
 				// Only update these if they exist
 				if (file.remote) {
 					// Update myservers config, this is used for origin checks in graphql
-					myServersConfig.remote.wanaccess = file.remote.wanaccess ?? myServersConfig.remote.wanaccess;
-					myServersConfig.remote.wanport = file.remote.wanport ?? myServersConfig.remote.wanport;
+					myServersConfig.remote = {
+						...(myServersConfig.remote ? myServersConfig.remote : {}),
+						wanaccess: file.remote.wanaccess,
+						wanport: file.remote.wanport
+					};
 				}
 
 				try {

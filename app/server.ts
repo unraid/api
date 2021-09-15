@@ -63,7 +63,7 @@ export const origins = {
 
 // Get myservers config
 const configPath = paths.get('myservers-config')!;
-export const myServersConfig = loadState<{ remote: { wanport: string; wanaccess: string } }>(configPath);
+export const myServersConfig = loadState<{ remote?: { wanport?: string; wanaccess?: string } }>(configPath) ?? {};
 
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {
