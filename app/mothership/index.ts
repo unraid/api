@@ -149,12 +149,9 @@ export const startRelay = () => {
 	});
 
 	sockets.relay.on('unexpected-response', (code: number, message: string) => {
-		log.debug('☁️ RELAY:UNEXPECTED_RESPONSE:%s %s', code, message);
-		const allowRetry = !isRelayConnecting;
-
 		switch (code) {
 			case 401:
-				log.debug('☁️ RELAY:INVALID_API_KEY');
+				log.debug('☁️ RELAY:401:INVALID_API_KEY');
 
 				// Delete the my_servers API key from the cfg
 				{
@@ -178,22 +175,16 @@ export const startRelay = () => {
 				break;
 
 			case 426:
-				log.debug('☁️ RELAY:API_IS_TOO_OUTDATED');
+				log.debug('☁️ RELAY:426:API_IS_TOO_OUTDATED');
 
 				// Bail as we cannot reconnect
 				break;
 
 			case 429:
-				log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:30_000`);
+				log.debug(`☁️ RELAY:429:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:30_000`);
 
 				// Retry in 30s
 				setTimeout(() => {
-					// Another process has already kicked this off
-					if (!allowRetry) {
-						log.debug('☁️ RELAY:ALLOW_RETRY:false');
-						return;
-					}
-
 					// Restart relay connection
 					isRelayConnecting = true;
 					log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:NOW`);
@@ -203,16 +194,10 @@ export const startRelay = () => {
 				break;
 
 			case 500:
-				log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:60_000`);
+				log.debug(`☁️ RELAY:500:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:60_000`);
 
 				// Retry in 60s
 				setTimeout(() => {
-					// Another process has already kicked this off
-					if (!allowRetry) {
-						log.debug('☁️ RELAY:ALLOW_RETRY:false');
-						return;
-					}
-
 					// Restart relay connection
 					isRelayConnecting = true;
 					log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:NOW`);
@@ -222,16 +207,10 @@ export const startRelay = () => {
 				break;
 
 			case 503:
-				log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:60_000`);
+				log.debug(`☁️ RELAY:503:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:60_000`);
 
 				// Retry in 60s
 				setTimeout(() => {
-					// Another process has already kicked this off
-					if (!allowRetry) {
-						log.debug('☁️ RELAY:ALLOW_RETRY:false');
-						return;
-					}
-
 					// Restart relay connection
 					isRelayConnecting = true;
 					log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
@@ -241,15 +220,9 @@ export const startRelay = () => {
 				break;
 
 			default:
-				// Another process has already kicked this off
-				if (!allowRetry) {
-					log.debug('☁️ RELAY:ALLOW_RETRY:false');
-					return;
-				}
-
 				// Restart relay connection
 				isRelayConnecting = true;
-				log.debug(`☁️ RELAY:${message}:RECONNECTING:NOW`);
+				log.debug(`☁️ RELAY:${code}:${message}:RECONNECTING:NOW`);
 				sockets.relay?.start();
 				break;
 		}
