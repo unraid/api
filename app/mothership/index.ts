@@ -36,10 +36,8 @@ export const startInternal = (apiKey: string) => {
 		}));
 
 		// Internal is ready at this point
-		if (!sockets.relay || !sockets.relay.connected) {
-			startRelay();
-			subscribeToServers(apiKey);
-		}
+		startRelay();
+		subscribeToServers(apiKey);
 	});
 
 	sockets.internal?.on('disconnected', () => {
