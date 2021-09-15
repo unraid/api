@@ -330,14 +330,18 @@ export class ApiManager extends EventEmitter {
 		await lock.runExclusive(async () => {
 			apiManagerLogger.debug('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion, @typescript-eslint/non-nullable-type-assertion-style
-			const apiKey = dotProp.get(file, 'remote.apikey')! as string;
+			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
+
+			// No API key passed
+			if (apiKey === undefined) {
+				return;
+			}
 
 			log.debug('Checking API key "%s".', apiKey);
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				apiManagerLogger.debug('%s was updated but the API key didn\'t change', filePath);
+				apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
 				return;
 			}
 

@@ -38,7 +38,7 @@ export const myservers = () => {
 
 				// If we have one enable/disable it. If this is
 				// missing it's likely we shipped without Sentry
-				// initialised. This would be done for a reason!
+				// initialized. This would be done for a reason!
 				if (sentryClient) {
 					// Check if the value changed
 					if (sentryClient.getOptions().enabled !== isEnabled) {
@@ -49,7 +49,6 @@ export const myservers = () => {
 					}
 				}
 
-				// @todo: add cfg files similar to states
 				// Update myservers config, this is used for origin checks in graphql
 				myServersConfig.remote.wanaccess = file.remote.wanaccess;
 				myServersConfig.remote.wanport = file.remote.wanport;
