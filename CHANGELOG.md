@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.11](https://github.com/unraid/api/compare/v2.26.10...v2.26.11) (2021-09-15)
+
+
+### Bug Fixes
+
+* do a full reconnect to internal and relay ([250d651](https://github.com/unraid/api/commit/250d65187a10c86a0f3402b2c7965d65d1a99666))
+* ensure we're only reconnecting one connection ([346722b](https://github.com/unraid/api/commit/346722b2d05461eaf8e1631530af2cfb4e7fdee4))
+
 ### [2.26.10](https://github.com/unraid/api/compare/v2.26.9...v2.26.10) (2021-09-15)
 
 
