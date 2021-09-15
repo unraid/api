@@ -53,8 +53,12 @@ export const myservers = () => {
 				myServersConfig.remote.wanaccess = file.remote.wanaccess;
 				myServersConfig.remote.wanport = file.remote.wanport;
 
-				// Ensure api manager has the correct keys loaded
-				await apiManager.checkKey(myserversConfigFilePath, true);
+				try {
+					// Ensure api manager has the correct keys loaded
+					await apiManager.checkKey(myserversConfigFilePath, true);
+				} catch (error: unknown) {
+					coreLogger.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
+				}
 			});
 
 			// Save ref for cleanup
