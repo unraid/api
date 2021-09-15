@@ -52,6 +52,10 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 		resolve();
 	});
 
+	sub.on('disconnect', function (_event) {
+		nchanLogger.debug('NCHAN:DISCONNECTED:%s', endpoint);
+	});
+
 	sub.on('message', function (message, _messageMetadata) {
 		try {
 			const state = parseConfig({
