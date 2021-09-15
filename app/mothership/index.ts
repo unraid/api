@@ -14,8 +14,6 @@ export const sockets = {
 	internal: null as GracefulWebSocket | null,
 	relay: null as GracefulWebSocket | null
 };
-let internalOpen = false;
-let relayOpen = false;
 let isLocalConnecting = false;
 let isRelayConnecting = false;
 
@@ -37,7 +35,6 @@ export const startInternal = (apiKey: string) => {
 	sockets.internal.on('connected', () => {
 		log.debug('⌨️ INTERNAL:CONNECTED');
 		isLocalConnecting = false;
-		internalOpen = true;
 		sockets.internal?.send(JSON.stringify({
 			type: 'connection_init',
 			payload: {
@@ -53,12 +50,10 @@ export const startInternal = (apiKey: string) => {
 	sockets.internal.on('disconnected', () => {
 		log.debug('⌨️ INTERNAL:DISCONNECTED');
 		isLocalConnecting = false;
-		internalOpen = false;
 	});
 
 	sockets.internal.on('killed', () => {
 		isLocalConnecting = false;
-		internalOpen = false;
 		log.debug('☁️ INTERNAL:KILLED');
 	});
 
@@ -73,8 +68,9 @@ export const startInternal = (apiKey: string) => {
 			return;
 		}
 
-		if (relayOpen) {
-			sockets.relay?.send(e.data);
+		// Send message if socket is open
+		if (sockets.relay?.readyState === 1) {
+			sockets.relay.send(e.data);
 		}
 	});
 
@@ -120,14 +116,12 @@ export const startRelay = () => {
 	// Connection-state related events
 	sockets.relay.on('connected', () => {
 		isRelayConnecting = false;
-		relayOpen = true;
 		log.debug('☁️ RELAY:CONNECTED');
 	});
 
 	sockets.relay.on('disconnected', () => {
 		log.debug('☁️ RELAY:DISCONNECTED');
 		isRelayConnecting = false;
-		relayOpen = false;
 		sockets.internal?.close();
 		sockets.internal?.start();
 	});
@@ -143,8 +137,8 @@ export const startRelay = () => {
 
 	// Message event
 	sockets.relay.on('message', e => {
-		if (internalOpen) {
-			sockets.internal?.send(e.data);
+		if (sockets.internal?.readyState === 1) {
+			sockets.internal.send(e.data);
 		}
 	});
 
