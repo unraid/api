@@ -150,6 +150,7 @@ export const startRelay = () => {
 
 	sockets.relay.on('unexpected-response', (code: number, message: string) => {
 		log.debug('☁️ RELAY:UNEXPECTED_RESPONSE:%s %s', code, message);
+		const allowRetry = !isRelayConnecting;
 
 		switch (code) {
 			case 401:
@@ -188,7 +189,8 @@ export const startRelay = () => {
 				// Retry in 30s
 				setTimeout(() => {
 					// Another process has already kicked this off
-					if (isRelayConnecting) {
+					if (!allowRetry) {
+						log.debug('☁️ RELAY:ALLOW_RETRY:false');
 						return;
 					}
 
@@ -206,7 +208,8 @@ export const startRelay = () => {
 				// Retry in 60s
 				setTimeout(() => {
 					// Another process has already kicked this off
-					if (isRelayConnecting) {
+					if (!allowRetry) {
+						log.debug('☁️ RELAY:ALLOW_RETRY:false');
 						return;
 					}
 
@@ -224,7 +227,8 @@ export const startRelay = () => {
 				// Retry in 60s
 				setTimeout(() => {
 					// Another process has already kicked this off
-					if (isRelayConnecting) {
+					if (!allowRetry) {
+						log.debug('☁️ RELAY:ALLOW_RETRY:false');
 						return;
 					}
 
@@ -238,7 +242,8 @@ export const startRelay = () => {
 
 			default:
 				// Another process has already kicked this off
-				if (isRelayConnecting) {
+				if (!allowRetry) {
+					log.debug('☁️ RELAY:ALLOW_RETRY:false');
 					return;
 				}
 
