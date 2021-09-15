@@ -108,32 +108,37 @@ am(async () => {
 				return;
 			}
 
-			apiManagerLogger.debug('Replacing my_servers key. Last known key was %s. New key is %s', lastKnownApiKey, newApiKey);
+			// Disconnect from relay
+			sockets.relay?.close();
+			coreLogger.debug('Disconnected from relay ws.');
 
-			// Just disconnect everything as the key is undefined
+			// Disconnect from internal ws
+			sockets.internal?.close();
+			coreLogger.debug('Disconnected from internal ws.');
+
+			// Disconnect from mothership's subscription endpoint
+			mothership.close();
+			coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
+
+			// Record last known key
+			lastKnownApiKey = newApiKey;
+
+			// Since we no longer have a key and
+			// everything is disconnected we can bail
 			if (newApiKey === undefined) {
-				// Clear out old API key
-				lastKnownApiKey = undefined;
-
-				// Disconnect from relay
-				sockets.relay?.close();
-				coreLogger.debug('Disconnected from relay ws.');
-
-				// Disconnect from internal ws
-				sockets.internal?.close();
-				coreLogger.debug('Disconnected from internal ws.');
-
-				// Disconnect from mothership's subscription endpoint
-				mothership.close();
-				coreLogger.debug('Disconnected from mothership\'s subscription endpoint.');
+				apiManagerLogger.debug('Cleared my_servers key.');
 				return;
 			}
+
+			apiManagerLogger.debug('Replacing my_servers key. Last known key was %s. New key is %s', lastKnownApiKey, newApiKey);
 
 			// We've never had a key before so let's start the internal API connection
 			// That'll then start the relay connection to mothership
 			if (!hasFirstKey && lastKnownApiKey === undefined) {
+				coreLogger.debug('First time with a valid API key, waiting 5s to connect.');
 				// Wait 5s for the API to come up before connecting
 				setTimeout(() => {
+					coreLogger.debug('Connecting to internal for the first time.');
 					// Start the internal relay connection
 					// This will connect to relay once it's up
 					startInternal(newApiKey);

@@ -16,8 +16,17 @@ export const sockets = {
 };
 let internalOpen = false;
 let relayOpen = false;
+let isLocalConnecting = false;
+let isRelayConnecting = false;
 
 export const startInternal = (apiKey: string) => {
+	// Another process has already kicked this off
+	if (isLocalConnecting) {
+		return;
+	}
+
+	// Start the connection
+	isLocalConnecting = true;
 	log.debug('⌨️ INTERNAL:CONNECTING');
 	sockets.internal = new GracefulWebSocket(INTERNAL_WS_LINK, ['graphql-ws'], {
 		headers: {
@@ -27,6 +36,7 @@ export const startInternal = (apiKey: string) => {
 
 	sockets.internal.on('connected', () => {
 		log.debug('⌨️ INTERNAL:CONNECTED');
+		isLocalConnecting = false;
 		internalOpen = true;
 		sockets.internal?.send(JSON.stringify({
 			type: 'connection_init',
@@ -40,12 +50,19 @@ export const startInternal = (apiKey: string) => {
 		subscribeToServers(apiKey);
 	});
 
-	sockets.internal?.on('disconnected', () => {
+	sockets.internal.on('disconnected', () => {
 		log.debug('⌨️ INTERNAL:DISCONNECTED');
+		isLocalConnecting = false;
 		internalOpen = false;
 	});
 
-	sockets.internal?.on('message', e => {
+	sockets.internal.on('killed', () => {
+		isLocalConnecting = false;
+		internalOpen = false;
+		log.debug('☁️ INTERNAL:KILLED');
+	});
+
+	sockets.internal.on('message', e => {
 		// Skip auth acknowledgement
 		if (e.data === '{"type":"connection_ack"}') {
 			return;
@@ -88,6 +105,13 @@ const serializer = new IniSerializer({
 });
 
 export const startRelay = () => {
+	// Another process has already kicked this off
+	if (isRelayConnecting) {
+		return;
+	}
+
+	// Start the connection
+	isRelayConnecting = true;
 	log.debug('☁️ RELAY:CONNECTING');
 	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
 		headers: getRelayHeaders()
@@ -95,18 +119,21 @@ export const startRelay = () => {
 
 	// Connection-state related events
 	sockets.relay.on('connected', () => {
+		isRelayConnecting = false;
 		relayOpen = true;
 		log.debug('☁️ RELAY:CONNECTED');
 	});
 
 	sockets.relay.on('disconnected', () => {
 		log.debug('☁️ RELAY:DISCONNECTED');
+		isRelayConnecting = false;
 		relayOpen = false;
 		sockets.internal?.close();
 		sockets.internal?.start();
 	});
 
 	sockets.relay.on('killed', () => {
+		isRelayConnecting = false;
 		log.debug('☁️ RELAY:KILLED');
 	});
 
