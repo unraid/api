@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.9](https://github.com/unraid/api/compare/v2.26.8...v2.26.9) (2021-09-15)
+
+
+### Bug Fixes
+
+* always reconnect to relay ([809ec5e](https://github.com/unraid/api/commit/809ec5e460c498401c94ed30081ffb41e3e7311f))
+* bail on undefined in checkKey function ([2e15e98](https://github.com/unraid/api/commit/2e15e98eb1879a794e75fb27f6ddf70c6349216c))
+* ensure we don't throw an error in an event callback ([e40c892](https://github.com/unraid/api/commit/e40c892cfdeaa87a652c22a95659195353e0e304))
+* log key on check ([a2f0e4c](https://github.com/unraid/api/commit/a2f0e4c61f68757292909089c68ea457a38d63ec))
+* log on CTRL+C exit ([e5de6de](https://github.com/unraid/api/commit/e5de6de30d489f1a88b03146b7bfa4c4e4ce7f76))
+
 ### [2.26.8](https://github.com/unraid/api/compare/v2.26.7...v2.26.8) (2021-09-14)
 
 
