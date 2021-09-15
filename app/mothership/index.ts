@@ -187,9 +187,14 @@ export const startRelay = () => {
 
 				// Retry in 30s
 				setTimeout(() => {
-					log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING`);
+					// Another process has already kicked this off
+					if (isRelayConnecting) {
+						return;
+					}
 
 					// Restart relay connection
+					isRelayConnecting = true;
+					log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:NOW`);
 					sockets.relay?.start();
 				}, 30_000);
 
@@ -200,9 +205,14 @@ export const startRelay = () => {
 
 				// Retry in 60s
 				setTimeout(() => {
-					log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING`);
+					// Another process has already kicked this off
+					if (isRelayConnecting) {
+						return;
+					}
 
 					// Restart relay connection
+					isRelayConnecting = true;
+					log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:NOW`);
 					sockets.relay?.start();
 				}, 60_000);
 
@@ -213,18 +223,28 @@ export const startRelay = () => {
 
 				// Retry in 60s
 				setTimeout(() => {
-					log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
+					// Another process has already kicked this off
+					if (isRelayConnecting) {
+						return;
+					}
 
 					// Restart relay connection
+					isRelayConnecting = true;
+					log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
 					sockets.relay?.start();
 				}, 60_000);
 
 				break;
 
 			default:
-				log.debug(`☁️ RELAY:${message}:RECONNECTING:NOW`);
+				// Another process has already kicked this off
+				if (isRelayConnecting) {
+					return;
+				}
 
 				// Restart relay connection
+				isRelayConnecting = true;
+				log.debug(`☁️ RELAY:${message}:RECONNECTING:NOW`);
 				sockets.relay?.start();
 				break;
 		}
