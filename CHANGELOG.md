@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.10](https://github.com/unraid/api/compare/v2.26.9...v2.26.10) (2021-09-15)
+
+
+### Bug Fixes
+
+* not logging exception ([3d16b27](https://github.com/unraid/api/commit/3d16b277389802f1ea82d074c744137f8fb9f335))
+
 ### [2.26.9](https://github.com/unraid/api/compare/v2.26.8...v2.26.9) (2021-09-15)
 
 
