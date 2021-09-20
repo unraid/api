@@ -9,6 +9,8 @@ import packageJson from '../../package.json';
 import { paths } from '../core/paths';
 import { loadState } from '../core/utils/misc/load-state';
 import { subscribeToServers } from './subscribe-to-servers';
+import { getServers as getUserServers } from '../utils';
+import { CachedServers, userCache } from '../cache/user';
 
 export const sockets = {
 	internal: null as GracefulWebSocket | null,
@@ -44,6 +46,22 @@ export const startInternal = (apiKey: string) => {
 
 		// Internal is ready at this point
 		startRelay();
+
+		// Pre-fill local cache
+		getUserServers(apiKey).then(servers => {
+			// Bail if no servers are returned
+			if (!servers) {
+				return;
+			}
+
+			// Cache servers
+			userCache.set<CachedServers>('mine', {
+				servers
+			});
+		}).catch(error => {
+			log.debug('Failed fetching user\'s servers with "%s".', error.message);
+		});
+
 		subscribeToServers(apiKey);
 	});
 
