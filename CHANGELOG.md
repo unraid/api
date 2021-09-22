@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.13](https://github.com/unraid/api/compare/v2.26.12...v2.26.13) (2021-09-22)
+
+
+### Bug Fixes
+
+* crashReporting crashing when false ([f260b7b](https://github.com/unraid/api/commit/f260b7b3d6ffea2897e16835bda9d347e697d5a9))
+* pre-fill user server cache on start ([930cb17](https://github.com/unraid/api/commit/930cb17848e47419861c373a8613d46a0da67219))
+
 ### [2.26.12](https://github.com/unraid/api/compare/v2.26.11...v2.26.12) (2021-09-15)
 
 
