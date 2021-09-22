@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.26.14](https://github.com/unraid/api/compare/v2.26.13...v2.26.14) (2021-09-22)
+
+
+### Bug Fixes
+
+* allow trial as regTy value ([f0dd46b](https://github.com/unraid/api/commit/f0dd46be9ba7deb15c7a51c48e034745eee88b74))
+
 ### [2.26.13](https://github.com/unraid/api/compare/v2.26.12...v2.26.13) (2021-09-22)
 
 
