@@ -17,6 +17,6 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	// Check if crash reporting is enabled
 	const configPath = paths.get('myservers-config')!;
-	const file = loadState<{ remote: { sendCrashInfo: string } }>(configPath);
-	return (file.remote.sendCrashInfo ?? 'no').trim() === 'yes';
+	const file = loadState<Partial<{ remote: { sendCrashInfo?: string } }>>(configPath);
+	return (file?.remote?.sendCrashInfo ?? 'no').trim() === 'yes';
 };
