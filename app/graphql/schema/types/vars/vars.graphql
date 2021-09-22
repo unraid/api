@@ -182,14 +182,16 @@ enum mdState {
 }
 
 enum registrationType {
+    """Invalid"""
+    INVALID
+    """Trial"""
+    TRIAL
     """Basic"""
     BASIC
     """Plus"""
     PLUS
     """Pro"""
     PRO
-    """Invalid"""
-    INVALID
 }
 
 enum registrationState {
