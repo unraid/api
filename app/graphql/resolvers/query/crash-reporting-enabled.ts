@@ -4,9 +4,8 @@
  */
 
 import { paths } from '../../../core';
-import { varState } from '../../../core/states';
 import { ensurePermission, loadState } from '../../../core/utils';
-import { Context, getServers } from '../../schema/utils';
+import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {

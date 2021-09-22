@@ -188,7 +188,7 @@ enum registrationType {
     PLUS
     """Pro"""
     PRO
-    """nvalid"""
+    """Invalid"""
     INVALID
 }
 
