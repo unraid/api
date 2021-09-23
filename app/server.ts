@@ -5,6 +5,7 @@
 
 import fs from 'fs';
 import net from 'net';
+import crypto from 'crypto';
 import path from 'path';
 import execa from 'execa';
 import cors from 'cors';
@@ -140,7 +141,7 @@ app.use(cors({
 			return;
 		}
 
-		log.debug(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
+		log.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
@@ -149,7 +150,7 @@ app.use(cors({
 			return;
 		}
 
-		log.debug('✔️ Origin check passed, granting CORS!');
+		log.trace('✔️ Origin check passed, granting CORS!');
 		callback(null, true);
 	}
 }));
@@ -192,6 +193,26 @@ graphApp.applyMiddleware({ app });
 // List all endpoints at start of server
 app.get('/', (_, res) => {
 	return res.send(getEndpoints(app));
+});
+
+const generateTwoFactorCode = () => crypto.randomBytes(58).toString('hex').substring(0, 10);
+
+// Either use the env passed in or generate a fresh one on app load
+let twoFactorCode = process.env.TWO_FACTOR_CODE ?? generateTwoFactorCode();
+app.post('/verify', (req, res) => {
+	// Check code matches existing one
+	if (req.query.code === twoFactorCode) {
+		// Generate a new code
+		twoFactorCode = generateTwoFactorCode();
+
+		// Allow the user to pass
+		res.sendStatus(204);
+		return;
+	}
+
+	// User failed verification
+	res.status(401);
+	res.send('Invalid 2FA code.');
 });
 
 // Handle errors by logging them and returning a 500.
