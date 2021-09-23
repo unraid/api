@@ -195,15 +195,15 @@ app.get('/', (_, res) => {
 	return res.send(getEndpoints(app));
 });
 
-const generateTwoFactorCode = () => crypto.randomBytes(58).toString('hex').substring(0, 10);
+const generateTwoFactorToken = () => crypto.randomBytes(256).toString('hex').substring(0, 64);
 
 // Either use the env passed in or generate a fresh one on app load
-let twoFactorCode = process.env.TWO_FACTOR_CODE ?? generateTwoFactorCode();
+let twoFactorToken = process.env.TWO_FACTOR_TOKEN ?? generateTwoFactorToken();
 app.post('/verify', (req, res) => {
-	// Check code matches existing one
-	if (req.query.code === twoFactorCode) {
-		// Generate a new code
-		twoFactorCode = generateTwoFactorCode();
+	// Check token matches existing one
+	if (req.query.token === twoFactorToken) {
+		// Generate a new token
+		twoFactorToken = generateTwoFactorToken();
 
 		// Allow the user to pass
 		res.sendStatus(204);
@@ -212,7 +212,7 @@ app.post('/verify', (req, res) => {
 
 	// User failed verification
 	res.status(401);
-	res.send('Invalid 2FA code.');
+	res.send('Invalid 2FA token.');
 });
 
 // Handle errors by logging them and returning a 500.
