@@ -182,7 +182,7 @@ jobs:
 
     - name: Pre-download node for nexe
       shell: bash
-      run: wget -O ~/.nexe/linux-x64-14.15.3 https://github.com/nexe/nexe/releases/download/v3.3.3/linux-x64-14.15.3 && chmod +x ~/.nexe/linux-x64-14.15.3
+      run: wget -O /home/runner/.nexe/linux-x64-14.15.3 -c https://github.com/nexe/nexe/releases/download/v3.3.3/linux-x64-14.15.3 && chmod +x /home/runner/.nexe/linux-x64-14.15.3
 
     - name: Install upx
       shell: bash
@@ -190,7 +190,7 @@ jobs:
 
     - name: Reduce size of nexe node
       shell: bash
-      run: upx ~/.nexe/linux-x64-14.15.3
+      run: upx /home/runner/.nexe/linux-x64-14.15.3
 
     - name: Unpack unraid-api source tgz
       shell: bash
