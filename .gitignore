@@ -69,3 +69,6 @@ typescript
 
 # Github actions
 RELEASE_NOTES.md
+
+# Binary files
+bin
