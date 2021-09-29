@@ -131,7 +131,7 @@ jobs:
       run: npm run build
 
     - name: Clean node_modules
-      run: npm run clean && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune && modclean -n default:safe
+      run: npm run clean && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune
 
     - name: Add commit hash to version
       if: startsWith(github.ref, 'refs/tags/v') == false
