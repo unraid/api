@@ -13,9 +13,7 @@ import { server } from './server';
 import { mothership } from './mothership/subscribe-to-servers';
 import { startInternal, sockets } from './mothership';
 import { sleep } from './core/utils';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { version } = require('../package.json') as { version: string };
+import { version } from '../package.json';
 
 // Send errors to server if enabled
 Sentry.init({
