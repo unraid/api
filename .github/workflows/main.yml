@@ -182,7 +182,7 @@ jobs:
 
     - name: Pre-download node for nexe
       shell: bash
-      run: wget -O /home/runner/.nexe/linux-x64-14.15.3 -c https://github.com/nexe/nexe/releases/download/v3.3.3/linux-x64-14.15.3 && chmod +x /home/runner/.nexe/linux-x64-14.15.3
+      run: mkdir -p /home/runner/.nexe && wget -O /home/runner/.nexe/linux-x64-14.15.3 -c https://github.com/nexe/nexe/releases/download/v3.3.3/linux-x64-14.15.3 && chmod +x /home/runner/.nexe/linux-x64-14.15.3
 
     - name: Install upx
       shell: bash
