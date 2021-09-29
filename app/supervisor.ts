@@ -69,7 +69,7 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 		// Local dev
 		resolveToAbsolutePath('./bin/unraid-api'),
 		// Unraid OS
-		'/usr/local/bin/unraid-api/unraid-api'
+		'/usr/local/bin/unraid-api/bin/unraid-api'
 	]) ?? '') ?? undefined;
 
 	// If the unraid-api we found isn't a file then bail
