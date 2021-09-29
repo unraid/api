@@ -136,7 +136,7 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 
 				// Restart the app
 				if (shouldRestart && restarts < maxRestarts) {
-					logger.info('Restarting %s in %s/%s', appName, restarts + 1, maxRestarts);
+					logger.info('Restarting %s now %s/%s', appName, restarts + 1, maxRestarts);
 					await startApi(restarts + 1).catch(error => {
 						logger.error('Failed restarting %s with %s', appName, error);
 					});
