@@ -180,11 +180,17 @@ jobs:
       with:
         name: unraid-api-source
 
+    - name: Pre-download node for nexe
+      shell: bash
+      run: wget https://github.com/nexe/nexe/releases/download/v3.3.3/linux-x64-14.15.3 -O ~/.nexe/linux-x64-14.15.3 && chmod +x ~/.nexe/linux-x64-14.15.3
+
     - name: Install upx
+      shell: bash
       run: sudo apt-get install upx
 
-    - name: Predownload nexe and reduce it's size
-      run: wget https://github.com/nexe/nexe/releases/download/v3.3.3/linux-x64-14.15.3 -O ~/.nexe/linux-x64-14.15.3 && chmod +x ~/.nexe/linux-x64-14.15.3 && upx ~/.nexe/linux-x64-14.15.3
+    - name: Reduce size of nexe node
+      shell: bash
+      run: upx ~/.nexe/linux-x64-14.15.3
 
     - name: Unpack unraid-api source tgz
       shell: bash
