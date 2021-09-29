@@ -5,7 +5,7 @@
 
 import { ensurePermission } from '../../utils';
 import { CoreContext, CoreResult } from '../../types';
-import packageJson from '../../../../package.json';
+import { version } from '../../../../package.json';
 
 interface Result extends CoreResult {
 	json: {
@@ -45,7 +45,7 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 			timestamp: uptimeTimestamp,
 			seconds: uptimeSeconds
 		},
-		version: packageJson.version
+		version
 	};
 
 	return {

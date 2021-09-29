@@ -5,7 +5,7 @@ import { INTERNAL_WS_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { apiManager } from '../core/api-manager';
 import { log } from '../core/log';
 import { varState } from '../core/states/var';
-import packageJson from '../../package.json';
+import { version } from '../../package.json';
 import { paths } from '../core/paths';
 import { loadState } from '../core/utils/misc/load-state';
 import { subscribeToServers } from './subscribe-to-servers';
@@ -105,7 +105,7 @@ const getRelayHeaders = () => {
 		'x-api-key': apiKey,
 		'x-flash-guid': varState.data?.flashGuid ?? '',
 		'x-server-name': serverName,
-		'x-unraid-api-version': packageJson.version
+		'x-unraid-api-version': version
 	};
 };
 

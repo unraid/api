@@ -19,7 +19,7 @@ import { ApolloServer } from 'apollo-server-express';
 import { log, config, paths, pubsub, coreLogger } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync, attemptJSONParse } from './core/utils';
 import { graphql } from './graphql';
-import packageJson from '../package.json';
+import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
 
@@ -160,7 +160,7 @@ app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
 	if (!app.get('x-unraid-api-version')) {
-		app.set('x-unraid-api-version', packageJson.version);
+		app.set('x-unraid-api-version', version);
 	}
 
 	// Update header with unraid API version
