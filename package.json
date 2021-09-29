@@ -31,10 +31,9 @@
     "update-bundle-dependencies": "bundle-dependencies update"
   },
   "files": [
+    "bin",
     ".env.staging",
-    ".env.production",
-    "dist",
-    "unraid-api"
+    ".env.production"
   ],
   "dependencies": {
     "@apollo/client": "^3.3.17",
