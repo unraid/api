@@ -1,5 +1,5 @@
 import { join as joinPath, resolve as resolveToAbsolutePath } from 'path';
-import { createWriteStream, mkdirSync, existsSync } from 'fs';
+import { createWriteStream, mkdirSync, existsSync, lstatSync } from 'fs';
 import { spawn as spawnProcess, ChildProcess } from 'child_process';
 import locatePath from 'locate-path';
 import psList from 'ps-list';
@@ -64,18 +64,18 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 		return;
 	}
 
+	// Get an absolute path to the API binary
 	const apiPath = resolveToAbsolutePath(process.env.UNRAID_API_BINARY_LOCATION ?? await locatePath([
-		// Global
-		'unraid-api',
-		// Local
-		'./unraid-api'
+		// Local dev
+		resolveToAbsolutePath('./bin/unraid-api'),
+		// Unraid OS
+		'/usr/local/bin/unraid-api/unraid-api'
 	]) ?? '') ?? undefined;
 
-	// Save the child process outside of the race
-	// This is to allow us to kill it if the timeout is quicker
-	let childProcess: ChildProcess;
-
-	logger.debug('Starting %s.', appName);
+	// If the unraid-api we found isn't a file then bail
+	if (!lstatSync(apiPath).isFile()) {
+		throw new Error('unraid-api binary couldn\'t be located.');
+	}
 
 	// Ensure the directories exist for the log files
 	const logDirectory = joinPath(logsPath, 'apps');
@@ -84,8 +84,13 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 		mkdirSync(logDirectory, { recursive: true });
 	}
 
+	// Save the child process outside of the race
+	// This is to allow us to kill it if the timeout is quicker
+	let childProcess: ChildProcess;
+
 	// Either the new process will spawn
 	// or it'll timeout/disconnect/exit
+	logger.debug('Starting %s.', appName);
 	await Promise.race([
 		new Promise<void>((resolve, reject) => {
 			logger.debug('Spawning %s instance%s of %s from %s', instances, instances === 1 ? '' : 's', appName, apiPath);
@@ -151,10 +156,10 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 		})
 	]).catch((error: unknown) => {
 		logger.error('Failed spawning %s with %s', appName, error);
-		childProcess.kill();
+		childProcess?.kill();
 	});
 };
 
 startApi().catch(error => {
-	logger.error('Failed starting %s with %s', appName, error);
+	logger.error('Failed starting %s with %s', appName, isDebug ? error : error.message);
 });
