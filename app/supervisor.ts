@@ -78,10 +78,9 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 	}
 
 	// Ensure the directories exist for the log files
-	const logDirectory = joinPath(logsPath, 'apps');
-	if (!existsSync(logDirectory)) {
-		logger.debug('Creating log directory %s', logDirectory);
-		mkdirSync(logDirectory, { recursive: true });
+	if (!existsSync(logsPath)) {
+		logger.debug('Creating log directory %s', logsPath);
+		mkdirSync(logsPath, { recursive: true });
 	}
 
 	// Save the child process outside of the race
@@ -101,8 +100,8 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 			});
 
 			// Create stdout and stderr log files
-			const logConsoleStream = createWriteStream(joinPath(logDirectory, `${appName}.stdout.log`), { flags: 'a' });
-			const logErrorStream = createWriteStream(joinPath(logDirectory, `${appName}.stderr.log`), { flags: 'a' });
+			const logConsoleStream = createWriteStream(joinPath(logsPath, `${appName}.stdout.log`), { flags: 'a' });
+			const logErrorStream = createWriteStream(joinPath(logsPath, `${appName}.stderr.log`), { flags: 'a' });
 
 			// Redirect stdout and stderr to log files
 			childProcess.stdout?.pipe(logConsoleStream);
