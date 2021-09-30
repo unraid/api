@@ -38,16 +38,16 @@ const logger = createLogger('supervisor');
 
 const isProcessRunning = async (name: string) => {
 	const list = await psList();
-	const runningProcess = list
+	const runningProcesses = list
 		// Don't return the process that ran this
 		.filter(_process => _process.pid !== process.pid)
-		.find(process => {
+		.filter(process => {
 			return name.startsWith(process.name) || process.name.endsWith(name) || (process.name === 'node' && process.cmd?.split(' ')[1]?.endsWith(name));
 		});
 
 	return {
-		isRunning: runningProcess !== undefined,
-		pid: runningProcess?.pid
+		isRunning: runningProcesses.length !== 0,
+		pids: runningProcesses.map(process => process.pid)
 	};
 };
 
@@ -62,11 +62,11 @@ const sleep = async (ms: number) => new Promise<void>(resolve => {
 // and/or if the timeout happens when starting it
 let apiProcess: ChildProcess;
 
-const killOldProcess = async (name: string, processName: string) => {
-	const { isRunning, pid } = await isProcessRunning(processName);
-	if (isRunning && pid) {
-		logger.debug('Killing old %s process with pid %s', name, pid);
-		await killProcess(pid);
+const killOldProcesses = async (name: string, processName: string) => {
+	const { isRunning, pids } = await isProcessRunning(processName);
+	if (isRunning && pids.length !== 0) {
+		logger.debug('Killing old %s process with pids %s', name, pids);
+		await killProcess(pids);
 
 		// Wait 1s for the old process to die
 		await sleep(1_000);
@@ -211,8 +211,8 @@ const bindExitHook = async () => {
 const startSupervisor = async () => {
 	logger.debug('Starting supervisor');
 	await bindExitHook();
-	await killOldProcess('supervisor', 'unraid-supervisor');
-	await killOldProcess('unraid-api', 'unraid-api');
+	await killOldProcesses('supervisor', 'unraid-supervisor');
+	await killOldProcesses('unraid-api', 'unraid-api');
 	await startApi();
 };
 
