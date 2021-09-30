@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.27.0](https://github.com/unraid/api/compare/v2.26.14...v2.27.0) (2021-09-30)
+
+
+### Features
+
+* add 2fa support ([5d40bd6](https://github.com/unraid/api/commit/5d40bd624f1b3df4b1d6c0ae712cf31e740f089d))
+* add supervisor ([4205184](https://github.com/unraid/api/commit/42051849d7985326cbb33157c9afdb2c94cc7d27))
+
+
+### Bug Fixes
+
+* allow TRAIL to be a registrationType ([bcdb044](https://github.com/unraid/api/commit/bcdb044cc9b8c6eb5d1a93fc72ba002fbe5477a5))
+* binary building ([c41f708](https://github.com/unraid/api/commit/c41f708b94df51d51946c3378c0d5b3b958b6fe4))
+* code->token and increase 2FA length to 64 chars ([7d24bd2](https://github.com/unraid/api/commit/7d24bd24c505da8a3e3ebe82d3e7933758b028c5))
+* ensure bin directory exists ([c061aeb](https://github.com/unraid/api/commit/c061aeb9f26828468baa03705599133718dc04d7))
+* ensure nexe uses correct entry ([9012891](https://github.com/unraid/api/commit/9012891d262dfbe4867b1baefb7fcf13b43d37bb))
+* ensure we always kill orphaned unraid-api processes ([9b95cfc](https://github.com/unraid/api/commit/9b95cfc543c516a2664cc10d8878d10bcff31e31))
+* ensure we get the correct path ([526efe6](https://github.com/unraid/api/commit/526efe6caefaa1ba4e7d421ac8b30325f3582e1f))
+* include .graphql files in bundle ([c162b3d](https://github.com/unraid/api/commit/c162b3d3b994c82aa917dc649cc5ba338f6e8520))
+* kill all old processes before starting ([a192605](https://github.com/unraid/api/commit/a192605d5ca1c0b2b001265f999bc6bcea293561))
+* modclean being run twice ([1592f45](https://github.com/unraid/api/commit/1592f45da43ceaaab1a819ad1eb7512d68fde1b5))
+* use new bin directory for OS ([5ed2d61](https://github.com/unraid/api/commit/5ed2d619f68ec47191476d9c4095133aef544904))
+
 ### [2.26.14](https://github.com/unraid/api/compare/v2.26.13...v2.26.14) (2021-09-22)
 
 
