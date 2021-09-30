@@ -111,8 +111,13 @@ const startApi = async (restarts = 0, shouldRestart = true) => {
 			logger.debug('Spawning %s from %s', appName, apiPath);
 
 			// Fork the child process
-			apiProcess = spawnProcess(apiPath, ['start', '--debug'], {
-				stdio: 'pipe'
+			const args = process.argv.slice(2);
+			apiProcess = spawnProcess(apiPath, args, {
+				stdio: 'pipe',
+				env: {
+					...process.env,
+					DEBUG: undefined
+				}
 			});
 
 			// Create stdout and stderr log files
