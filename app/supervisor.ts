@@ -5,6 +5,7 @@ import locatePath from 'locate-path';
 import psList from 'ps-list';
 import { cyan, green, yellow, red } from 'nanocolors';
 import intervalToHuman from 'interval-to-human';
+import killProcess from 'fkill';
 
 const createLogger = (namespace: string) => {
 	const ns = namespace.toUpperCase();
@@ -38,7 +39,7 @@ const instances = 1;
 const maxRestarts = 100;
 const logger = createLogger('supervisor');
 
-let apiPid: number;
+let apiPid: number | undefined;
 const isApiRunning = async () => {
 	const list = await psList();
 	const api = list.find(process => {
@@ -59,9 +60,24 @@ const sleep = async (ms: number) => new Promise<void>(resolve => {
 
 export const startApi = async (restarts = 0, shouldRestart = true) => {
 	const isRunning = await isApiRunning();
-	if (isRunning) {
-		logger.debug('%s process is running with pid %s', appName, apiPid);
-		return;
+	if (isRunning && apiPid) {
+		logger.debug('Killing orphaned %s process with pid %s', appName, apiPid);
+		await killProcess(apiPid);
+		apiPid = undefined;
+
+		// Wait 1s for the old process to die
+		await sleep(1_000);
+
+		// Should be killed by now
+		const isRunning = await isApiRunning();
+		// If this is still somehow running then we need to bail.
+		// This should only happen if you're running supervisor as a
+		// user with less privileges then the one who started
+		// the unraid-api process we're trying to kill.
+		if (isRunning) {
+			process.exitCode = 1;
+			return;
+		}
 	}
 
 	// Get an absolute path to the API binary

@@ -147,6 +147,7 @@
     "cz-conventional-changelog": "3.3.0",
     "dedent-tabs": "^0.9.0",
     "eslint": "^7.32.0",
+    "fkill": "^7.2.1",
     "interval-to-human": "^0.1.1",
     "modclean": "^3.0.0-beta.1",
     "ms": "^2.1.3",
