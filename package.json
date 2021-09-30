@@ -30,7 +30,7 @@
     "update-bundle-dependencies": "bundle-dependencies update"
   },
   "files": [
-    "dist/types",
+    "dist",
     "bin",
     ".env.staging",
     ".env.production"
