@@ -3,9 +3,10 @@ import { createWriteStream, mkdirSync, existsSync, lstatSync } from 'fs';
 import { spawn as spawnProcess, ChildProcess } from 'child_process';
 import locatePath from 'locate-path';
 import psList from 'ps-list';
-import { cyan, green, yellow, red } from 'nanocolors';
+import { cyan, green, red } from 'nanocolors';
 import intervalToHuman from 'interval-to-human';
 import killProcess from 'fkill';
+import cleanStack from 'clean-stack';
 
 const createLogger = (namespace: string) => {
 	const ns = namespace.toUpperCase();
@@ -20,10 +21,7 @@ const createLogger = (namespace: string) => {
 
 			console.debug(`${green(`[${ns}]`)} ${message}`, ...args);
 		},
-		warning(message: string, ...args: any[]) {
-			console.warn(`${yellow(`[${ns}][WARNING]`)} ${message}`, ...args);
-		},
-		error(message: string | Error, ...args: any[]) {
+		error(message: string, ...args: any[]) {
 			console.error(`${red(`[${ns}][ERROR]`)} ${message}`, ...args);
 		},
 		print(message: string, ...args: any[]) {
@@ -35,21 +33,22 @@ const createLogger = (namespace: string) => {
 const isDebug = process.env.DEBUG !== undefined;
 const appName = 'unraid-api';
 const logsPath = process.env.API_LOGS_PATH ?? '/var/log/unraid-api/';
-const instances = 1;
 const maxRestarts = 100;
 const logger = createLogger('supervisor');
 
-let apiPid: number | undefined;
-const isApiRunning = async () => {
+const isProcessRunning = async (name: string) => {
 	const list = await psList();
-	const api = list.find(process => {
-		return process.name.endsWith('unraid-api') || (process.name === 'node' && process.cmd?.split(' ')[1]?.endsWith('unraid-api'));
-	});
-	if (api) {
-		apiPid = api.pid;
-	}
+	const runningProcess = list
+		// Don't return the process that ran this
+		.filter(_process => _process.pid !== process.pid)
+		.find(process => {
+			return name.startsWith(process.name) || process.name.endsWith(name) || (process.name === 'node' && process.cmd?.split(' ')[1]?.endsWith(name));
+		});
 
-	return api !== undefined;
+	return {
+		isRunning: runningProcess !== undefined,
+		pid: runningProcess?.pid
+	};
 };
 
 const sleep = async (ms: number) => new Promise<void>(resolve => {
@@ -58,28 +57,33 @@ const sleep = async (ms: number) => new Promise<void>(resolve => {
 	}, ms);
 });
 
-export const startApi = async (restarts = 0, shouldRestart = true) => {
-	const isRunning = await isApiRunning();
-	if (isRunning && apiPid) {
-		logger.debug('Killing orphaned %s process with pid %s', appName, apiPid);
-		await killProcess(apiPid);
-		apiPid = undefined;
+// Save the child process outside of startApi
+// This is to allow us to kill it on exit
+// and/or if the timeout happens when starting it
+let apiProcess: ChildProcess;
+
+const killOldProcess = async (name: string, processName: string) => {
+	const { isRunning, pid } = await isProcessRunning(processName);
+	if (isRunning && pid) {
+		logger.debug('Killing old %s process with pid %s', name, pid);
+		await killProcess(pid);
 
 		// Wait 1s for the old process to die
 		await sleep(1_000);
 
 		// Should be killed by now
-		const isRunning = await isApiRunning();
+		const isRunning = await isProcessRunning(processName);
 		// If this is still somehow running then we need to bail.
 		// This should only happen if you're running supervisor as a
 		// user with less privileges then the one who started
 		// the unraid-api process we're trying to kill.
 		if (isRunning) {
 			process.exitCode = 1;
-			return;
 		}
 	}
+};
 
+const startApi = async (restarts = 0, shouldRestart = true) => {
 	// Get an absolute path to the API binary
 	const apiPath = resolveToAbsolutePath(process.env.UNRAID_API_BINARY_LOCATION ?? await locatePath([
 		// Local dev
@@ -99,19 +103,15 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 		mkdirSync(logsPath, { recursive: true });
 	}
 
-	// Save the child process outside of the race
-	// This is to allow us to kill it if the timeout is quicker
-	let childProcess: ChildProcess;
-
 	// Either the new process will spawn
 	// or it'll timeout/disconnect/exit
-	logger.debug('Starting %s.', appName);
+	logger.debug('Starting %s', appName);
 	await Promise.race([
 		new Promise<void>((resolve, reject) => {
-			logger.debug('Spawning %s instance%s of %s from %s', instances, instances === 1 ? '' : 's', appName, apiPath);
+			logger.debug('Spawning %s from %s', appName, apiPath);
 
 			// Fork the child process
-			childProcess = spawnProcess(apiPath, ['start', '--debug'], {
+			apiProcess = spawnProcess(apiPath, ['start', '--debug'], {
 				stdio: 'pipe'
 			});
 
@@ -120,23 +120,23 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 			const logErrorStream = createWriteStream(joinPath(logsPath, `${appName}.stderr.log`), { flags: 'a' });
 
 			// Redirect stdout and stderr to log files
-			childProcess.stdout?.pipe(logConsoleStream);
-			childProcess.stderr?.pipe(logErrorStream);
+			apiProcess.stdout?.pipe(logConsoleStream);
+			apiProcess.stderr?.pipe(logErrorStream);
 
 			// App has started
-			childProcess.stdout?.once('data', () => {
+			apiProcess.stdout?.once('data', () => {
 				logger.debug('%s has started', appName);
 				resolve();
 			});
 
 			// App has thrown an error
-			childProcess.stderr?.once('data', (data: Buffer) => {
+			apiProcess.stderr?.once('data', (data: Buffer) => {
 				logger.debug('%s threw an error %s', appName, data);
 				reject(new Error(data.toString()));
 			});
 
 			// App has exited
-			childProcess.once('exit', async code => {
+			apiProcess.once('exit', async code => {
 				const exitCode = code ?? 0;
 				logger.debug('%s exited with code %s', appName, exitCode);
 
@@ -171,10 +171,47 @@ export const startApi = async (restarts = 0, shouldRestart = true) => {
 		})
 	]).catch((error: unknown) => {
 		logger.error('Failed spawning %s with %s', appName, error);
-		childProcess?.kill();
+		apiProcess?.kill();
 	});
 };
 
-startApi().catch(error => {
-	logger.error('Failed starting %s with %s', appName, isDebug ? error : error.message);
+// On exit
+const bindExitHook = async () => {
+	let isExiting = false;
+	const onExit = (shouldBail: boolean, signal: number) => {
+		if (isExiting) {
+			return;
+		}
+
+		// Kill api if it's still running
+		if (apiProcess) {
+			logger.debug('Killing %s process with pid %s', appName, apiProcess.pid);
+			apiProcess.kill('SIGTERM');
+		}
+
+		isExiting = true;
+		const exitCode = 128 + signal;
+		logger.debug('Supervisor exited with code %s', exitCode);
+
+		if (shouldBail) {
+			process.exit(exitCode);
+		}
+	};
+
+	process.once('exit', onExit);
+	process.once('SIGINT', onExit.bind(undefined, true, 2));
+	process.once('SIGTERM', onExit.bind(undefined, true, 15));
+};
+
+const startSupervisor = async () => {
+	logger.debug('Starting supervisor');
+	await bindExitHook();
+	await killOldProcess('supervisor', 'unraid-supervisor');
+	await killOldProcess('unraid-api', 'unraid-api');
+	await startApi();
+};
+
+// Start supervisor
+startSupervisor().catch(error => {
+	logger.error('Failed starting %s with %s', appName, isDebug ? cleanStack(error) : error.message);
 });
