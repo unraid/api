@@ -211,7 +211,7 @@ const bindExitHook = async () => {
 const startSupervisor = async () => {
 	logger.debug('Starting supervisor');
 	await bindExitHook();
-	await killOldProcesses('supervisor', 'unraid-supervisor');
+	await killOldProcesses('supervisor', 'unsupervisor');
 	await killOldProcesses('unraid-api', 'unraid-api');
 	await startApi();
 };

@@ -10,7 +10,7 @@
     "build-cli": "npx tsup ./app/cli.ts",
     "build-supervisor": "npx tsup ./app/supervisor.ts",
     "build-binary-step-1": "nexe --input ./dist/cli.js --output ./bin/unraid-api --make=\"-j$(nproc 2> /dev/null || echo 1)\" -r './dist/**/*' -r './node_modules/**/*' && echo '✔ Binary built: ./bin/unraid-api'",
-    "build-binary-step-2": "nexe --input ./dist/supervisor.js --output ./bin/unraid-supervisor --make=\"-j$(nproc 2> /dev/null || echo 1)\" && echo '✔ Binary built: ./bin/unraid-supervisor'",
+    "build-binary-step-2": "nexe --input ./dist/supervisor.js --output ./bin/unsupervisor --make=\"-j$(nproc 2> /dev/null || echo 1)\" && echo '✔ Binary built: ./bin/unsupervisor'",
     "build-binary-step-3": "rm -rf ./node_modules && rm -rf ./dist && echo '✔ Source files deleted'",
     "build-binary": "npm run build-binary-step-1 && npm run build-binary-step-2 && npm run build-binary-step-3",
     "copy-schemas": "cpx app/**/*.graphql dist/types",
