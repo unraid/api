@@ -36,7 +36,8 @@ interface Flags {
 const args: ArgumentConfig<Flags> = {
 	command: { type: String, defaultOption: true, optional: true },
 	help: { type: Boolean, optional: true, alias: 'h', description: 'Prints this usage guide.' },
-	debug: { type: Boolean, optional: true, alias: 'd', description: 'Enabled debug mode.' },
+	debug: { type: Boolean, optional: true, alias: 'd', description: 'Enable debug mode.' },
+	'no-daemon': { type: Boolean, optional: true, description: 'Prevent process being daemonized.' },
 	port: { type: String, optional: true, alias: 'p', description: 'Set the graphql port.' },
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
 	'log-level': { type: (level?: string) => {
