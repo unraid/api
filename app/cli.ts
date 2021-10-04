@@ -25,6 +25,7 @@ interface Flags {
 	command?: string;
 	help?: boolean;
 	debug?: boolean;
+	'no-daemon'?: boolean;
 	port?: string;
 	'log-level'?: string;
 	'log-transport'?: string;
@@ -135,6 +136,11 @@ const commands = {
 		// Load bundled index file
 		const indexPath = './index.js';
 		require(indexPath);
+
+		// Skip daemonizing
+		if (mainOptions['no-daemon']) {
+			return;
+		}
 
 		if (!mainOptions.debug) {
 			if ('_DAEMONIZE_PROCESS' in process.env) {
