@@ -5,13 +5,13 @@
 
 import path from 'path';
 import { paths } from '../paths';
-import { ConfigErrorState, Var } from '../types/states';
+import { Var } from '../types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';
 import { State } from './state';
 import { toNumber } from '../utils/casting';
 import { parseConfig } from '../utils/misc';
 
-const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
+export const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
 	if (value === 'no') {
 		return false;
 	}
@@ -27,7 +27,7 @@ const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: 
 	throw new Error(`Value "${value}" is not no/yes.`);
 };
 
-const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => {
+export const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => {
 	try {
 		// Either it'll return true/false or throw
 		return iniBooleanToJsBoolean((value as IniStringBoolean));
@@ -95,6 +95,7 @@ interface VarIni {
 	cacheSbNumDisks: string;
 	comment: string;
 	configValid: string;
+	configState: string;
 	csrfToken: string;
 	defaultFormat: string;
 	defaultFsType: string;
@@ -233,12 +234,7 @@ const parse = (state: VarIni): Var => {
 		cacheNumDevices: toNumber(state.cacheNumDevices),
 		cacheSbNumDisks: toNumber(state.cacheSbNumDisks),
 		configValid,
-		configError: configValid === false ? (({
-			error: 'UNKNOWN_ERROR',
-			invalid: 'INVALID',
-			nokeyserver: 'NO_KEY_SERVER',
-			withdrawn: 'WITHDRAWN'
-		}[state.configValid] ?? 'UNKNOWN_ERROR') as ConfigErrorState) : undefined,
+		configState: state.configValid,
 		deviceCount: toNumber(state.deviceCount),
 		fsCopyPrcnt: toNumber(state.fsCopyPrcnt),
 		fsNumMounted: toNumber(state.fsNumMounted),

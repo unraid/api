@@ -8,6 +8,7 @@ export const admin = {
 		{ resource: 'apikey', action: 'read:any', attributes: '*' },
 		{ resource: 'array', action: 'read:any', attributes: '*' },
 		{ resource: 'cpu', action: 'read:any', attributes: '*' },
+		{ resource: 'config', action: 'read:any', attributes: '*' },
 		{ resource: 'crash-reporting-enabled', action: 'read:any', attributes: '*' },
 		{ resource: 'device', action: 'read:any', attributes: '*' },
 		{ resource: 'device/unassigned', action: 'read:any', attributes: '*' },
@@ -57,6 +58,7 @@ export const upc = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'apikey', action: 'read:own', attributes: '*' },
+		{ resource: 'config', action: 'read:any', attributes: '*' },
 		{ resource: 'permission', action: 'read:any', attributes: '*' },
 		{ resource: 'registration', action: 'read:any', attributes: '*' },
 		{ resource: 'owner', action: 'read:any', attributes: '*' },
@@ -74,6 +76,7 @@ export const my_servers = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'array', action: 'read:any', attributes: '*' },
+		{ resource: 'config', action: 'read:any', attributes: '*' },
 		{ resource: 'display', action: 'read:any', attributes: '*' },
 		{ resource: 'docker/container', action: 'read:any', attributes: '*' },
 		{ resource: 'docker/network', action: 'read:any', attributes: '*' },

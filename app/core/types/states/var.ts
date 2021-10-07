@@ -3,16 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-//  @todo: remove string and add rest of the options
 type FsType = 'xfs' | string;
-type RegistrationCheck = 'Error' | 'Valid';
 type RegistrationType = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO' | string;
-
-export type ConfigErrorState =
-	'UNKNOWN_ERROR' |
-	'INVALID' |
-	'NO_KEY_SERVER' |
-	'WITHDRAWN';
 
 /**
  * Global vars
@@ -25,8 +17,8 @@ export interface Var {
 	comment: string;
 	/** Is the array's config valid. */
 	configValid: boolean;
-	/** If the array's config isn't valid this is the reason. */
-	configError?: ConfigErrorState;
+	/** @internal used to hold the value for config.error */
+	configState: string;
 	/** Current CSRF token for HTTP requests with emhttpd. */
 	csrfToken: string;
 	defaultFormat: string;

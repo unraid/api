@@ -1,0 +1,19 @@
+enum ConfigErrorState {
+    UNKNOWN_ERROR
+    INVALID
+    NO_KEY_SERVER
+    WITHDRAWN
+}
+
+type Config {
+    valid: boolean;
+    error: ConfigErrorState;
+}
+
+type Query {
+    config: Config!
+}
+
+type Subscription {
+    config: Config!
+}

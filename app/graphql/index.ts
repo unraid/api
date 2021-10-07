@@ -19,7 +19,7 @@ import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { isNodeError } from '../core/utils';
-import { User } from '../core/types';
+import { User, Var } from '../core/types';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -354,29 +354,44 @@ bus.on('slots', async () => {
 	});
 });
 
-let hostname: string;
+const localCache: {
+	hostname?: string;
+} = {};
 
 // Update info/hostname when hostname changes
-bus.on('var', async data => {
+bus.on('var', async (data: { var: { node: Var } }) => {
 	// Publish var changes
 	await pubsub.publish('vars', {
 		vars: data.var.node
 	});
 
 	// Hostname changed
-	if (hostname !== data.var.node.name) {
+	if (localCache.hostname !== data.var.node.name) {
 		// Update cache
-		hostname = data.var.node.name;
+		localCache.hostname = data.var.node.name;
 
 		// Publish new hostname
 		await pubsub.publish('info', {
 			info: {
 				os: {
-					hostname
+					hostname: localCache.hostname
 				}
 			}
 		});
 	}
+
+	// Config
+	await pubsub.publish('config', {
+		config: {
+			valid: data.var.node.configValid,
+			error: data.var.node.configValid ? undefined : ({
+				error: 'UNKNOWN_ERROR',
+				invalid: 'INVALID',
+				nokeyserver: 'NO_KEY_SERVER',
+				withdrawn: 'WITHDRAWN'
+			}[data.var.node.configState] ?? 'UNKNOWN_ERROR')
+		}
+	});
 });
 
 // On Docker event update info with { apps: { installed, started } }
