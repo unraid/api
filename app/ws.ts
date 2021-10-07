@@ -8,19 +8,19 @@ const subscriptions: Record<string, subscription> = {};
 /**
  * Return current ws connection count.
  */
-export const getWsConectionCount = () => {
+export const getWsConnectionCount = () => {
 	return Object.values(subscriptions).filter(subscription => subscription.total >= 1).length;
 };
 
 /**
  * Return current ws connection count in channel.
  */
-export const getWsConectionCountInChannel = (channel: string) => {
+export const getWsConnectionCountInChannel = (channel: string) => {
 	return Object.values(subscriptions).filter(subscription => subscription.channels.includes(channel)).length;
 };
 
 export const hasSubscribedToChannel = (id: string, channel: string) => {
-	// Setup inital object
+	// Setup initial object
 	if (subscriptions[id] === undefined) {
 		subscriptions[id] = {
 			total: 1,
@@ -34,7 +34,7 @@ export const hasSubscribedToChannel = (id: string, channel: string) => {
 };
 
 export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
-	// Setup inital object
+	// Setup initial object
 	if (subscriptions[id] === undefined) {
 		subscriptions[id] = {
 			total: 0,

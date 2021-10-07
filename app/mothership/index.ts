@@ -16,17 +16,9 @@ export const sockets = {
 	internal: null as GracefulWebSocket | null,
 	relay: null as GracefulWebSocket | null
 };
-let isLocalConnecting = false;
-let isRelayConnecting = false;
 
 export const startInternal = (apiKey: string) => {
-	// Another process has already kicked this off
-	if (isLocalConnecting) {
-		return;
-	}
-
 	// Start the connection
-	isLocalConnecting = true;
 	log.debug('⌨️ INTERNAL:CONNECTING');
 	sockets.internal = new GracefulWebSocket(INTERNAL_WS_LINK, ['graphql-ws'], {
 		headers: {
@@ -36,7 +28,6 @@ export const startInternal = (apiKey: string) => {
 
 	sockets.internal.on('connected', () => {
 		log.debug('⌨️ INTERNAL:CONNECTED');
-		isLocalConnecting = false;
 		sockets.internal?.send(JSON.stringify({
 			type: 'connection_init',
 			payload: {
@@ -67,11 +58,9 @@ export const startInternal = (apiKey: string) => {
 
 	sockets.internal.on('disconnected', () => {
 		log.debug('⌨️ INTERNAL:DISCONNECTED');
-		isLocalConnecting = false;
 	});
 
 	sockets.internal.on('killed', () => {
-		isLocalConnecting = false;
 		log.debug('☁️ INTERNAL:KILLED');
 	});
 
@@ -119,13 +108,6 @@ const serializer = new IniSerializer({
 });
 
 export const startRelay = () => {
-	// Another process has already kicked this off
-	if (isRelayConnecting) {
-		return;
-	}
-
-	// Start the connection
-	isRelayConnecting = true;
 	log.debug('☁️ RELAY:CONNECTING');
 	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
 		headers: getRelayHeaders()
@@ -133,19 +115,16 @@ export const startRelay = () => {
 
 	// Connection-state related events
 	sockets.relay.on('connected', () => {
-		isRelayConnecting = false;
 		log.debug('☁️ RELAY:CONNECTED');
 	});
 
 	sockets.relay.on('disconnected', () => {
 		log.debug('☁️ RELAY:DISCONNECTED');
-		isRelayConnecting = false;
 		sockets.internal?.close();
 		sockets.internal?.start();
 	});
 
 	sockets.relay.on('killed', () => {
-		isRelayConnecting = false;
 		log.debug('☁️ RELAY:KILLED');
 	});
 
@@ -198,7 +177,6 @@ export const startRelay = () => {
 				// Retry in 30s
 				setTimeout(() => {
 					// Restart relay connection
-					isRelayConnecting = true;
 					log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:NOW`);
 					sockets.relay?.start();
 				}, 30_000);
@@ -211,7 +189,6 @@ export const startRelay = () => {
 				// Retry in 60s
 				setTimeout(() => {
 					// Restart relay connection
-					isRelayConnecting = true;
 					log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:NOW`);
 					sockets.relay?.start();
 				}, 60_000);
@@ -224,7 +201,6 @@ export const startRelay = () => {
 				// Retry in 60s
 				setTimeout(() => {
 					// Restart relay connection
-					isRelayConnecting = true;
 					log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
 					sockets.relay?.start();
 				}, 60_000);
@@ -232,10 +208,15 @@ export const startRelay = () => {
 				break;
 
 			default:
-				// Restart relay connection
-				isRelayConnecting = true;
-				log.debug(`☁️ RELAY:${code}:${message}:RECONNECTING:NOW`);
-				sockets.relay?.start();
+				log.debug(`☁️ RELAY:${code}:${message ?? 'UNKNOWN_ERROR'}:RECONNECTING:60_000`);
+
+				// Retry in 60s
+				setTimeout(() => {
+					// Restart relay connection
+					log.debug(`☁️ RELAY:${message ?? 'UNKNOWN_ERROR'}:RECONNECTING:NOW`);
+					sockets.relay?.start();
+				}, 60_000);
+
 				break;
 		}
 	});
