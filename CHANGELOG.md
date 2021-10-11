@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.1](https://github.com/unraid/api/compare/v2.27.0...v2.27.1) (2021-10-11)
+
+
+### Bug Fixes
+
+* add no-daemon to args list ([f6ea20a](https://github.com/unraid/api/commit/f6ea20a7c0e1d6c622b1107c7855889d5da350f6))
+* allow skipping daemonization ([120fdbc](https://github.com/unraid/api/commit/120fdbc33f17784524fc92e995f50ae5ecb81824))
+* move config from vars.configValid/configError to config.valid/error ([8bf8923](https://github.com/unraid/api/commit/8bf89236cdd163959f551d0bdaf9a15fd93cc2ca))
+* when getting an unknown status code wait 60s before reconnecting instead of 0s ([9b3266a](https://github.com/unraid/api/commit/9b3266a81259bf7928831b5beb424350a29a78e2))
+
 ## [2.27.0](https://github.com/unraid/api/compare/v2.26.14...v2.27.0) (2021-09-30)
 
 
