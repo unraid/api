@@ -140,6 +140,7 @@ const commands = {
 
 		// Skip daemonizing
 		if (mainOptions['no-daemon']) {
+			console.info('Skipping daemonizing process.');
 			return;
 		}
 
