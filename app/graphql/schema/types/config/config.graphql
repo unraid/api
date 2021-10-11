@@ -6,8 +6,8 @@ enum ConfigErrorState {
 }
 
 type Config {
-    valid: boolean;
-    error: ConfigErrorState;
+    valid: boolean
+    error: ConfigErrorState
 }
 
 type Query {
