@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.3](https://github.com/unraid/api/compare/v2.27.2...v2.27.3) (2021-10-12)
+
+
+### Bug Fixes
+
+* graphql boolean->Boolean ([68421ae](https://github.com/unraid/api/commit/68421aea0186fc43d2618b9468191541fb8c3a5d))
+
 ### [2.27.2](https://github.com/unraid/api/compare/v2.27.1...v2.27.2) (2021-10-12)
 
 
