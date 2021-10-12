@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.4](https://github.com/unraid/api/compare/v2.27.3...v2.27.4) (2021-10-12)
+
+
+### Bug Fixes
+
+* only allow start command to pass through ([57d5f78](https://github.com/unraid/api/commit/57d5f78a6036734aa2948a5c6c3dc8384c43e251))
+* only write api version if it changes ([6e506b6](https://github.com/unraid/api/commit/6e506b699932ae4fac3bc762dabc54bd2627611c))
+
 ### [2.27.3](https://github.com/unraid/api/compare/v2.27.2...v2.27.3) (2021-10-12)
 
 
