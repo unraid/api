@@ -6,7 +6,7 @@ enum ConfigErrorState {
 }
 
 type Config {
-    valid: boolean
+    valid: Boolean
     error: ConfigErrorState
 }
 
