@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.2](https://github.com/unraid/api/compare/v2.27.1...v2.27.2) (2021-10-12)
+
+
+### Bug Fixes
+
+* remove ; from graphql files ([4e8ff70](https://github.com/unraid/api/commit/4e8ff7039dc697c3c53a1fc8bde221720a801936))
+
 ### [2.27.1](https://github.com/unraid/api/compare/v2.27.0...v2.27.1) (2021-10-11)
 
 

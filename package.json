@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.27.1",
+  "version": "2.27.2",
   "repository": "git@github.com:unraid/api.git",
   "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
   "license": "UNLICENSED",
