@@ -3,16 +3,18 @@
  * Written by: Alexis Tyler
  */
 
+import fs from 'fs';
 import os from 'os';
 import am from 'am';
 import * as Sentry from '@sentry/node';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, states, coreLogger, log, apiManager, apiManagerLogger, logger } from './core';
+import { Serializer as IniSerializer } from 'multi-ini';
+import { core, states, coreLogger, log, apiManager, apiManagerLogger, logger, paths } from './core';
 import { server } from './server';
 import { mothership } from './mothership/subscribe-to-servers';
 import { startInternal, sockets } from './mothership';
-import { sleep } from './core/utils';
+import { loadState, sleep } from './core/utils';
 import { version } from '../package.json';
 
 // Send errors to server if enabled
@@ -30,9 +32,38 @@ Sentry.setUser({
 	id: states.varState.data.flashGuid
 });
 
+// Ini serializer
+const serializer = new IniSerializer({
+	// This ensures it ADDs quotes
+	keep_quotes: false
+});
+
 // Boot app
 am(async () => {
 	let lastKnownApiKey: string | undefined;
+
+	// Get my server's config file path
+	const configPath = paths.get('myservers-config')!;
+
+	const myserversConfigFile = loadState<{
+		upc: { apikey: string };
+		notifier: { apikey: string };
+	}>(configPath);
+
+	// Write API version to myservers.cfg
+	const data = {
+		...myserversConfigFile,
+		api: {
+			version
+		}
+	};
+
+	// Stringify data
+	const stringifiedData = serializer.serialize(data);
+
+	// Update config file
+	fs.writeFileSync(configPath, stringifiedData);
+	log.debug('Wrote API version to MyServers config file');
 
 	// Load core
 	await core.load();
