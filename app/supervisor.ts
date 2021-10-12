@@ -30,6 +30,8 @@ const createLogger = (namespace: string) => {
 	};
 };
 
+const args = process.argv.slice(2);
+const command = args[0];
 const isDebug = process.env.DEBUG !== undefined;
 const appName = 'unraid-api';
 const logsPath = process.env.API_LOGS_PATH ?? '/var/log/unraid-api/';
@@ -111,7 +113,6 @@ const startApi = async (restarts = 0, shouldRestart = true) => {
 			logger.debug('Spawning %s from %s', appName, apiPath);
 
 			// Fork the child process
-			const args = process.argv.slice(2);
 			apiProcess = spawnProcess(apiPath, args, {
 				stdio: 'pipe',
 				env: {
@@ -209,6 +210,11 @@ const bindExitHook = async () => {
 };
 
 const startSupervisor = async () => {
+	if (command !== 'start') {
+		logger.error('Invalid command "%s"', command);
+		process.exit(1);
+	}
+
 	logger.debug('Starting supervisor');
 	await bindExitHook();
 	await killOldProcesses('supervisor', 'unsupervisor');
