@@ -46,24 +46,25 @@ am(async () => {
 	const configPath = paths.get('myservers-config')!;
 
 	const myserversConfigFile = loadState<{
-		upc: { apikey: string };
-		notifier: { apikey: string };
+		api?: { version: string };
 	}>(configPath);
 
-	// Write API version to myservers.cfg
-	const data = {
-		...myserversConfigFile,
-		api: {
-			version
-		}
-	};
-
-	// Stringify data
-	const stringifiedData = serializer.serialize(data);
-
-	// Update config file
-	fs.writeFileSync(configPath, stringifiedData);
-	log.debug('Wrote API version to MyServers config file');
+	// Write API version to myservers.cfg if changed
+	if (myserversConfigFile?.api?.version !== version) {
+		const data = {
+			...myserversConfigFile,
+			api: {
+				version
+			}
+		};
+	
+		// Stringify data
+		const stringifiedData = serializer.serialize(data);
+	
+		// Update config file
+		fs.writeFileSync(configPath, stringifiedData);
+		log.debug('Wrote API version to MyServers config file');
+	}
 
 	// Load core
 	await core.load();
