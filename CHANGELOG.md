@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.27.5](https://github.com/unraid/api/compare/v2.27.4...v2.27.5) (2021-10-12)
+
+
+### Bug Fixes
+
+* add config subscription ([566e14d](https://github.com/unraid/api/commit/566e14da8d2ac302f51fd64f46ccc980f4eca8b9))
+
 ### [2.27.4](https://github.com/unraid/api/compare/v2.27.3...v2.27.4) (2021-10-12)
 
 
