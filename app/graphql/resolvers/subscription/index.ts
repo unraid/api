@@ -10,6 +10,9 @@ import { createSubscription, Context } from '../../schema/utils';
 const { PluginError } = errors;
 
 export const Subscription = {
+	config: {
+		...createSubscription('config')
+	},
 	display: {
 		...createSubscription('display')
 	},
