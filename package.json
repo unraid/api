@@ -117,7 +117,7 @@
     "spread-the-word": "^0.8.4",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.9.18",
-    "systeminformation": "^5.6.20",
+    "systeminformation": "^5.9.9",
     "ts-command-line-args": "^2.1.0",
     "upcast": "^4.0.0",
     "uuid": "^8.3.2",
