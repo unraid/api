@@ -108,6 +108,14 @@ NCHAN=disable \ # Disable nchan polling
   node dist/cli.js --debug # Enable debug logging
 ```
 
+## Extra origins
+To add extra origins to CORS add a string to your extra-origins file at `/boot/config/plugins/dynamix.my.servers/data/extra-origins.json`.
+The file should look like the following.
+
+```json
+["https://reverse.proxy.net", "https://another_reverse.proxy.net]
+```
+
 ## Release
 
 To create a new version run `npm run release`.
