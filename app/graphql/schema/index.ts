@@ -4,7 +4,7 @@
  */
 
 import { readFileSync } from 'fs';
-import { mergeTypeDefs } from '@graphql-tools/merge';
+import { mergeTypeDefs } from 'graphql-tools';
 
 const files = [
 	'./dist/types/graphql/schema/types/apikeys/apikey.graphql',
