@@ -2,7 +2,7 @@ import WebSocket from 'ws';
 import WebSocketAsPromised from 'websocket-as-promised';
 import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
-import { makeExecutableSchema } from 'graphql-tools';
+import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { debounce } from './debounce';
 import { log } from '../core/log';
