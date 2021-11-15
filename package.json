@@ -81,7 +81,7 @@
     "graphql-iso-date": "^3.6.1",
     "graphql-subscriptions-client": "OmgImAlexis/graphql-subscriptions-client#master",
     "graphql-tag": "^2.11.0",
-    "graphql-tools": "^7.0.5",
+    "graphql-tools": "^6.2.6",
     "graphql-type-json": "^0.3.2",
     "graphql-type-long": "^0.1.1",
     "graphql-type-uuid": "^0.2.0",
