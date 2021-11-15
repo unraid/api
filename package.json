@@ -148,6 +148,7 @@
     "cpx": "1.5.0",
     "cz-conventional-changelog": "3.3.0",
     "eslint": "^7.32.0",
+    "graphql-tools": "^8.2.0",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^4.0.2",
     "nyc": "^15.1.0",
@@ -160,7 +161,8 @@
     "ts-node": "10.1.0",
     "tsup": "^4.12.5",
     "typescript": "4.3.5",
-    "typescript-coverage-report": "^0.6.0"
+    "typescript-coverage-report": "^0.6.0",
+    "websocket-as-promised": "^2.0.1"
   },
   "optionalDependencies": {
     "@vmngr/libvirt": "github:omgimalexis/libvirt"

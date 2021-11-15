@@ -25,7 +25,7 @@ const noop = () => {};
   * We use logger but only in development/staging.
   *
   * When in production we use a noop function for all levels apart from error.
-  * This ensures we still see errors in all enviroments but allows us to use to
+  * This ensures we still see errors in all environments but allows us to use to
   * the performance gains of not filling the stdout buffer when silly or trace is
   * being hit.
   */

@@ -1,242 +1,230 @@
-import fs from 'fs';
-import GracefulWebSocket from 'graceful-ws';
-import { Serializer as IniSerializer } from 'multi-ini';
-import { INTERNAL_WS_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../consts';
-import { apiManager } from '../core/api-manager';
+import WebSocket from 'ws';
+import WebSocketAsPromised from 'websocket-as-promised';
+import { graphql } from 'graphql';
+import { print } from 'graphql/language/printer';
+import { makeExecutableSchema } from 'graphql-tools';
+import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
+import { debounce } from "./debounce";
 import { log } from '../core/log';
+import { typeDefs } from '../graphql/schema';
+import * as resolvers from '../graphql/resolvers';
+import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
-import packageJson from '../../package.json';
-import { paths } from '../core/paths';
-import { loadState } from '../core/utils/misc/load-state';
-import { subscribeToServers } from './subscribe-to-servers';
-import { getServers as getUserServers } from '../utils';
-import { CachedServers, userCache } from '../cache/user';
+import { version } from '../../package.json';
+import { pubsub } from '../core/pubsub';
+import { mothership } from './subscribe-to-servers';
 
-export const sockets = {
-	internal: null as GracefulWebSocket | null,
-	relay: null as GracefulWebSocket | null
+let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
+let timeout: number | undefined;
+
+const subscriptionListener = (id: string | number, name: string) => (data: any) => {
+    if (relay && relay.isOpened) {
+        relay.send(JSON.stringify({
+            id,
+            payload: {
+                data: {
+                    [name]: data
+                }
+            },
+            type: 'data'
+        }));
+    }
 };
-let isLocalConnecting = false;
-let isRelayConnecting = false;
 
-export const startInternal = (apiKey: string) => {
-	// Another process has already kicked this off
-	if (isLocalConnecting) {
-		return;
-	}
+const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
+const getConnectionStatus = () => readyStates[(relay?._ws?.readyState) || 3];
 
-	// Start the connection
-	isLocalConnecting = true;
-	log.debug('⌨️ INTERNAL:CONNECTING');
-	sockets.internal = new GracefulWebSocket(INTERNAL_WS_LINK, ['graphql-ws'], {
-		headers: {
-			'x-api-key': apiKey
-		}
-	});
-
-	sockets.internal.on('connected', () => {
-		log.debug('⌨️ INTERNAL:CONNECTED');
-		isLocalConnecting = false;
-		sockets.internal?.send(JSON.stringify({
-			type: 'connection_init',
-			payload: {
-				'x-api-key': apiKey
-			}
-		}));
-
-		// Internal is ready at this point
-		startRelay();
-
-		// Pre-fill local cache
-		getUserServers(apiKey).then(servers => {
-			// Bail if no servers are returned
-			if (!servers) {
-				return;
-			}
-
-			// Cache servers
-			userCache.set<CachedServers>('mine', {
-				servers
-			});
-		}).catch(error => {
-			log.debug('Failed fetching user\'s servers with "%s".', error.message);
-		});
-
-		subscribeToServers(apiKey);
-	});
-
-	sockets.internal.on('disconnected', () => {
-		log.debug('⌨️ INTERNAL:DISCONNECTED');
-		isLocalConnecting = false;
-	});
-
-	sockets.internal.on('killed', () => {
-		isLocalConnecting = false;
-		log.debug('☁️ INTERNAL:KILLED');
-	});
-
-	sockets.internal.on('message', e => {
-		// Skip auth acknowledgement
-		if (e.data === '{"type":"connection_ack"}') {
-			return;
-		}
-
-		// Skip keep-alive if relay is down
-		if (e.data === '{"type":"ka"}' && (!sockets.relay || sockets.relay.readyState === 0)) {
-			return;
-		}
-
-		// Send message if socket is open
-		if (sockets.relay?.readyState === 1) {
-			sockets.relay.send(e.data);
-		}
-	});
-
-	sockets.internal?.on('error', error => {
-		console.log('⌨️ INTERNAL:ERROR', error);
-	});
+// Ensure API key exists and is valid
+const checkApiKey = async () => {
+	const apiKey = apiManager.getKey('my_servers')?.key;
+	if (!apiKey) return false;
+	if (apiKey.length < 64) return false;
+	return true;
 };
+
+// Ensure we should actually be connected right now
+// If our API key exists and is the right length then we should always try to connect
+const shouldBeConnected = async () => checkApiKey();
 
 const getRelayHeaders = () => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
 	const serverName = `${varState.data.name}`;
 
-	return {
+    return {
 		'x-api-key': apiKey,
-		'x-flash-guid': varState.data?.flashGuid ?? '',
+		'x-flash-guid': varState.data?.flashGuid,
 		'x-server-name': serverName,
-		'x-unraid-api-version': packageJson.version
-	};
+		'x-unraid-api-version': version
+    };
 };
 
-// Get my server's config file path
-const configPath = paths.get('myservers-config')!;
-
-// Ini serializer
-const serializer = new IniSerializer({
-	// This ensures it ADDs quotes
-	keep_quotes: false
+const schema = makeExecutableSchema({
+    typeDefs,
+    resolvers
 });
 
-export const startRelay = () => {
-	// Another process has already kicked this off
-	if (isRelayConnecting) {
-		return;
-	}
+// Check our ws connection is correct
+export const checkConnection = debounce(async () => {
+    const before = getConnectionStatus();
+    try {
+        // Bail if we're in the middle of opening a connection
+        if (relay && relay.isOpening) return;
 
-	// Start the connection
-	isRelayConnecting = true;
-	log.debug('☁️ RELAY:CONNECTING');
-	sockets.relay = new GracefulWebSocket(MOTHERSHIP_RELAY_WS_LINK, ['graphql-ws'], {
-		headers: getRelayHeaders()
-	});
+        // Bail if we're waiting on a timeout for reconnection
+        if (timeout) return;
 
-	// Connection-state related events
-	sockets.relay.on('connected', () => {
-		isRelayConnecting = false;
-		log.debug('☁️ RELAY:CONNECTED');
-	});
+        // Bail if we're already connected
+        if (await shouldBeConnected() && relay && relay.isOpened) return;
 
-	sockets.relay.on('disconnected', () => {
-		log.debug('☁️ RELAY:DISCONNECTED');
-		isRelayConnecting = false;
-		sockets.internal?.close();
-		sockets.internal?.start();
-	});
+        // Close the connection if it's still up
+        if (relay) {
+            const oldRelay = relay;
+            relay = undefined;
+            await oldRelay.close();
+        }
 
-	sockets.relay.on('killed', () => {
-		isRelayConnecting = false;
-		log.debug('☁️ RELAY:KILLED');
-	});
+        // If we should be disconnected at this point then stay that way
+        if (!await shouldBeConnected()) return;
+        
+        // Create a new ws instance
+        relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
+            createWebSocket: url => new WebSocket(url, ['mothership-0.0.1'], {
+                headers: getRelayHeaders()
+            }) as any,
+            extractMessageData: event => JSON.parse(event),
+        });
 
-	sockets.relay.on('error', () => {
-		log.debug('☁️ RELAY:ERROR');
-	});
+        // Connect to relay
+        await relay.open();
 
-	// Message event
-	sockets.relay.on('message', e => {
-		if (sockets.internal?.readyState === 1) {
-			sockets.internal.send(e.data);
-		}
-	});
+		// Connect to /graphql
+		mothership.connect();
 
-	sockets.relay.on('unexpected-response', (code: number, message: string) => {
-		switch (code) {
-			case 401:
-				log.debug('☁️ RELAY:401:INVALID_API_KEY');
+        // Bind on disconnect handler
+        relay.onClose.addListener(statusCode => {
+			// Close connection to /graphql
+			mothership.close();
 
-				// Delete the my_servers API key from the cfg
-				{
-					const myserversConfigFile = loadState<{
-						remote: { apikey?: string };
-					}>(configPath);
+            const after = getConnectionStatus();
+            log.debug('Websocket connection changed from %s to %s with statusCode %s', before, after, statusCode);
+        });
 
-					delete myserversConfigFile.remote.apikey;
+        // Bind on message handler
+        relay.onMessage.addListener(async message => {
+            const { id, type } = message ?? {};
+            const operationName = message.payload.query.definitions[0].name.value;
+            try {
+                switch (true) {
+                    case type === 'query' || type === 'mutation' || operationName === 'getInitialData':
+                        // Convert query to string
+                        const query = print(message.payload.query);
+                        log.debug('Processing %s', operationName);
+                        log.info(query);
 
-					log.debug('Dumping MyServers config back to file');
+                        // Process query
+                        const payload = await graphql({
+                            schema,
+                            source: query
+                        });
+    
+                        // If the socket closed before we could reply then just bail
+                        if (!relay?.isOpened) return;
 
-					// Stringify data
-					const stringifiedData = serializer.serialize(myserversConfigFile);
+                        // Send data
+                        relay.send(JSON.stringify({
+                            id,
+                            payload,
+                            type: 'data'
+                        }));
+                        break;
+                    case type === 'start': {
+                        // If the socket closed before we could reply then just bail
+                        if (!relay?.isOpened) return;
 
-					// Update config file
-					fs.writeFileSync(configPath, stringifiedData);
-				}
+                        // Find which field we're subscribing to
+                        // Since subscriptions can only include a single field it's safe to assume 0 is the correct index
+                        const name = message.payload.query.definitions[0].selectionSet.selections[0].name.value;
 
-				// Wait for a new one.
-				// Once it's up it'll restart the connection.
-				break;
+                        // Subscribe to endpoint
+                        log.debug('Subscribing to %s', name);
+                        const subId = await pubsub.subscribe(name, subscriptionListener(id, name));
 
-			case 426:
-				log.debug('☁️ RELAY:426:API_IS_TOO_OUTDATED');
+                        // When this ws closes remove the listener
+                        relay.onClose.addOnceListener(() => {
+                            log.debug('Unsubscribing from %s as the socket closed', name);
+                            pubsub.unsubscribe(subId);
+                        });
+                        break;
+                    }
+                    default:
+                        break;
+                }
+            } catch (error: unknown) {
+                log.error('%s', error); 
+                if (relay?.isOpened) relay.send(JSON.stringify({
+                    id,
+                    payload: {
+                        error: {
+                            message: error instanceof Error ? error.message : error
+                        }
+                    }
+                }));
+            }
+        });
+    } catch (error: unknown) {
+        const reason = (error as any).reason;
+        const code = (error as any).code || 500;
+        switch (code) {
+            case 401:
+                // Bail as the key is invalid and we need a valid one to connect
+                log.debug('DISCONNECTED:401:INVALID_API_KEY');
+                break;
 
-				// Bail as we cannot reconnect
-				break;
+            case 426:
+                // Bail as we cannot reconnect
+                log.debug('DISCONNECTED:426:API_IS_TOO_OUTDATED');
+                break;
 
-			case 429:
-				log.debug(`☁️ RELAY:429:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:30_000`);
+            case 429:
+                // Reconnect after 30s
+                log.debug(`DISCONNECTED:429:${reason ?? 'API_KEY_IN_USE'}`);
+                timeout = Date.now() + 30_000;
+                setTimeout(() => {
+                    timeout = undefined;
+                }, 30_000);
+                break;
 
-				// Retry in 30s
-				setTimeout(() => {
-					// Restart relay connection
-					isRelayConnecting = true;
-					log.debug(`☁️ RELAY:${message ?? 'API_KEY_IN_USE'}:RECONNECTING:NOW`);
-					sockets.relay?.start();
-				}, 30_000);
+            case 500:
+                // Reconnect after 60s
+                log.debug(`DISCONNECTED:500:${reason ?? 'INTERNAL_SERVER_ERROR'}`);
+                timeout = Date.now() + 60_000;
+                setTimeout(() => {
+                    timeout = undefined;
+                }, 60_000);
+                break;
 
-				break;
+            case 503:
+                // Reconnect after 60s
+                log.debug(`DISCONNECTED:503:${reason ?? 'GATEWAY_DOWN'}`);
+                timeout = Date.now() + 60_000;
+                setTimeout(() => {
+                    timeout = undefined;
+                }, 60_000);
+                break;
 
-			case 500:
-				log.debug(`☁️ RELAY:500:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:60_000`);
-
-				// Retry in 60s
-				setTimeout(() => {
-					// Restart relay connection
-					isRelayConnecting = true;
-					log.debug(`☁️ RELAY:${message ?? 'INTERNAL_SERVER_ERROR'}:RECONNECTING:NOW`);
-					sockets.relay?.start();
-				}, 60_000);
-
-				break;
-
-			case 503:
-				log.debug(`☁️ RELAY:503:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:60_000`);
-
-				// Retry in 60s
-				setTimeout(() => {
-					// Restart relay connection
-					isRelayConnecting = true;
-					log.debug(`☁️ RELAY:${message ?? 'GATEWAY_DOWN'}:RECONNECTING:NOW`);
-					sockets.relay?.start();
-				}, 60_000);
-
-				break;
-
-			default:
-				// Restart relay connection
-				isRelayConnecting = true;
-				log.debug(`☁️ RELAY:${code}:${message}:RECONNECTING:NOW`);
-				sockets.relay?.start();
-				break;
-		}
-	});
-};
+            default:
+                // Reconnect after 60s
+                log.debug(`DISCONNECTED:${code}:${reason}`);
+                timeout = Date.now() + 60_000;
+                setTimeout(() => {
+                    timeout = undefined;
+                }, 60_000);
+                break;
+        }
+    } finally {
+        const after = getConnectionStatus();
+        if (before !== after) log.info('%s -> %s', before, after);
+        else if (timeout) log.info('Reconnecting in %ss!', Math.floor((timeout - Date.now()) / 1_000));
+        else log.info('OK!');
+    }
+}, 5_000);
