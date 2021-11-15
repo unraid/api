@@ -10,115 +10,17 @@ import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLog
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import { makeExecutableSchema } from '@graphql-tools/schema';
-import { mergeTypeDefs } from '@graphql-tools/merge';
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils';
-import gql from 'graphql-tag';
 import dee from '@gridplus/docker-events';
 import { run } from '../run';
-import { typeDefs } from './schema';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { isNodeError } from '../core/utils';
 import { User } from '../core/types';
+import { types as typeDefs } from './types';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
-
-const baseTypes = [gql`
-	scalar JSON
-	scalar Long
-	scalar UUID
-	scalar DateTime
-
-	directive @func(
-		module: String
-		data: JSON
-		query: JSON
-		result: String
-		extractFromResponse: String
-	) on FIELD_DEFINITION
-
-	directive @subscription(
-		channel: String!
-	) on FIELD_DEFINITION
-
-	type Welcome {
-		message: String!
-	}
-
-	type Query {
-		# This should always be available even for guest users
-		welcome: Welcome! @func(module: "getWelcome")
-		online: Boolean!
-		info: Info!
-		pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
-	}
-
-	type Mutation {
-		login(username: String!, password: String!): String
-		sendNotification(notification: NotificationInput!): Notification
-		shutdown: String
-		reboot: String
-	}
-
-	type Subscription {
-		ping: String!
-		info: Info!
-		pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON!
-		online: Boolean!
-	}
-`];
-
-// Add test defs in dev mode
-if (process.env.NODE_ENV === 'development') {
-	const testDefs = gql`
-		# Test query
-		input testQueryInput {
-			state: String!
-			optional: Boolean
-		}
-		type Query {
-			testQuery(id: String!, input: testQueryInput): JSON @func(module: "getContext")
-		}
-
-		# Test mutation
-		input testMutationInput {
-			state: String!
-		}
-		type Mutation {
-			testMutation(id: String!, input: testMutationInput): JSON @func(module: "getContext")
-		}
-
-		# Test subscription
-		type Subscription {
-			testSubscription: String!
-		}
-	`;
-	baseTypes.push(testDefs);
-}
-
-// Add debug defs to all envs apart from production
-if (process.env.NODE_ENV !== 'production') {
-	const debugDefs = gql`
-		# Debug query
-		type Context {
-			query: JSON
-			params: JSON
-			data: JSON
-			user: JSON
-		}
-
-		type Query {
-			context: Context @func(module: "getContext")
-		}
-	`;
-	baseTypes.push(debugDefs);
-}
-
-const types = mergeTypeDefs([
-	...baseTypes,
-	typeDefs
-]);
 
 const getCoreModule = (moduleName: string) => {
 	if (!Object.keys(modules).includes(moduleName)) {
@@ -265,7 +167,7 @@ class FuncDirective extends SchemaDirectiveVisitor {
 }
 
 const schema = makeExecutableSchema({
-	typeDefs: types,
+	typeDefs,
 	resolvers,
 	schemaDirectives: {
 		func: FuncDirective

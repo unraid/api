@@ -6,7 +6,7 @@ import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { debounce } from './debounce';
 import { log } from '../core/log';
-import { typeDefs } from '../graphql/schema';
+import { types as typeDefs } from '../graphql/types';
 import * as resolvers from '../graphql/resolvers';
 import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
