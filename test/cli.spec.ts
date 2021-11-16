@@ -35,7 +35,9 @@ test.serial('Loads production when no env is set', async t => {
 	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
 
 	// Split the lines
-	const lines = output.split('\n');
+	const lines = output.split('\n')
+		// This removes the date at the start
+		.map(line => line.split('] ')[1]);
 
 	// Check the output of the cli
 	t.assert(lines[0].endsWith(' for current ENV, found '));
@@ -61,7 +63,9 @@ test.serial('Loads production when switching from staging', async t => {
 	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
 
 	// Split the lines
-	const lines = output.split('\n');
+	const lines = output.split('\n')
+		// This removes the date at the start
+		.map(line => line.split('] ')[1]);
 
 	// Check the output of the cli
 	t.assert(lines[0].endsWith(' for current ENV, found env="staging"'));
@@ -86,7 +90,9 @@ test.serial('Loads staging when switching from production', async t => {
 	const { stdout: output } = await exec(`PATHS_MYSERVERS_ENV=${PATHS_MYSERVERS_ENV} PATHS_UNRAID_API_BASE=${PATHS_UNRAID_API_BASE} ${process.execPath} ./dist/cli.js switch-env`);
 
 	// Split the lines
-	const lines = output.split('\n');
+	const lines = output.split('\n')
+		// This removes the date at the start
+		.map(line => line.split('] ')[1]);
 
 	// Check the output of the cli
 	t.assert(lines[0].endsWith(' for current ENV, found env="production"'));

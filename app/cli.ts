@@ -102,8 +102,8 @@ const commands = {
 		setEnv('PORT', mainOptions.port);
 
 		const apiVersion: string = version;
-		console.info(`Starting unraid-api v${apiVersion}`);
-		console.info(`Loading the "${getEnvironment()}" environment.`);
+		logger.info(`Starting unraid-api v${apiVersion}`);
+		logger.info(`Loading the "${getEnvironment()}" environment.`);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -141,7 +141,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				console.info('Daemonizing process.');
+				logger.info('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -157,7 +157,7 @@ const commands = {
 				// Convert process into daemon
 				child.unref();
 
-				console.info('Daemonized successfully!');
+				logger.info('Daemonized successfully!');
 
 				// Exit cleanly
 				process.exit(0);
@@ -173,11 +173,11 @@ const commands = {
 
 		// Bail if we have no process
 		if (!unraidApiPid) {
-			console.log('Found no running processes.');
+			logger.info('Found no running processes.');
 			return;
 		}
 
-		console.info('Stopping unraid-api process...');
+		logger.info('Stopping unraid-api process...');
 		process.kill(unraidApiPid, 'SIGTERM');
 		console.info('Process stopped!');
 	},
@@ -245,9 +245,9 @@ const commands = {
 		}
 
 		if (currentEnvInFile) {
-			console.info('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
+			logger.info('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
 		} else {
-			console.info('No ENV found, setting env to "production"...');
+			logger.info('No ENV found, setting env to "production"...');
 		}
 
 		// Write new env to flash
@@ -274,13 +274,13 @@ const commands = {
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
 		if (unraidApiPid) {
-			console.info('unraid-api is running, restarting...');
+			logger.info('unraid-api is running, restarting...');
 
 			// Restart the process
 			return this.restart();
 		}
 
-		console.info('Run "unraid-api start" to start the API.');
+		logger.info('Run "unraid-api start" to start the API.');
 	}
 };
 
