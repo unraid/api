@@ -190,13 +190,15 @@ export const checkConnection = debounce(async () => {
 						// Convert query to string
 						const query = print(message.payload.query);
 						log.debug('Processing %s', operationName);
-						log.info(query);
+						log.silly(query);
 
 						// Process query
 						const payload = await graphql({
 							schema,
 							source: query
 						});
+
+						log.silly(payload);
 
 						// If the socket closed before we could reply then just bail
 						if (!relay?.isOpened) {
