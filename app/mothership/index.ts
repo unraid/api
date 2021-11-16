@@ -115,6 +115,19 @@ const handleError = (error: unknown) => {
 	}
 };
 
+const startKeepAlive = () => {
+	const interval = setInterval(() => {
+		// If we disconnect stop sending keep alive messages
+		if (!relay?.isOpened) {
+			clearInterval(interval);
+			return;
+		}
+
+		// Send keep alive message
+		relay.send(JSON.stringify({ type: 'ka' }));
+	}, 30_000);
+};
+
 // Check our ws connection is correct
 export const checkConnection = debounce(async () => {
 	const before = getConnectionStatus();
@@ -164,6 +177,9 @@ export const checkConnection = debounce(async () => {
 
 		// Connect to /graphql
 		mothership.connect();
+
+		// Start keep alive loop
+		startKeepAlive();
 
 		// Bind on disconnect handler
 		relay.onClose.addListener(statusCode => {
