@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.28.0](https://github.com/unraid/api/compare/v2.26.14...v2.28.0) (2021-11-16)
+
+
+### Features
+
+* add keepalive to relay ([4ca15d2](https://github.com/unraid/api/commit/4ca15d24683ef7a69e47ebb8fcaf2c66f61370d4))
+* add new relay client ([ad29613](https://github.com/unraid/api/commit/ad296134960de6990486a31d8276920e1e5be3f7))
+* add timestamp to log ([b24e05f](https://github.com/unraid/api/commit/b24e05f127425fb0c6733ca2d6ee91bbc6c0890d))
+
+
+### Bug Fixes
+
+* better logs for relay connection ([dc72ff9](https://github.com/unraid/api/commit/dc72ff9523c1a11935c08eac44bb892e7c7d2f9b))
+* cli logging ([c7d6486](https://github.com/unraid/api/commit/c7d6486abda77090193a39898c373e824b3c685e))
+* downgrade graphql ([2b7fd40](https://github.com/unraid/api/commit/2b7fd409d487b16a3f15630e36e2aa567f99ab38))
+* ensure Func directive is included in relay's graphql query ([7416d75](https://github.com/unraid/api/commit/7416d75cbcd9712ada153ecb036d6516379a6a8c))
+* ensure relay imports baseTypes ([10b1dbd](https://github.com/unraid/api/commit/10b1dbdae7aafd0002886cf577df1a828f1045d1))
+* ensure we load the my servers user into context when querying graphql ([4976f40](https://github.com/unraid/api/commit/4976f409018ba62fa994cff4028ed02dd50c7921))
+* import dir not file ([9338307](https://github.com/unraid/api/commit/933830771b1b0d9c5c89bd40e842572c7213f2e7))
+* remove unused transport field ([aa76b55](https://github.com/unraid/api/commit/aa76b55ee23d192706a1cae0c16eb6b4e24b3a65))
+* subscriptions and debounce slots ([950bb7d](https://github.com/unraid/api/commit/950bb7db795031575385a78c07699de2c7927d88))
+* types is not defined ([f3716b1](https://github.com/unraid/api/commit/f3716b1adc3862801bf33d647d1033407436c04b))
+* types of logger ([7908df8](https://github.com/unraid/api/commit/7908df868de9efcf343d4df7f497b2430351c2fa))
+* use forked websocket-as-promised to handle unexpected-response ([f5e20f7](https://github.com/unraid/api/commit/f5e20f7b7b8808fc459dfe47ea58e225cf6ee6fa))
+* use graphql-tools for now ([ec0dae2](https://github.com/unraid/api/commit/ec0dae23e600f70a34e59789ab24788f84ca2f18))
+* use print for cli ([b29438d](https://github.com/unraid/api/commit/b29438d32f8d2866a3647f7fb71d26760767a31a))
+* use scoped imports for graphql-tools ([9057b5a](https://github.com/unraid/api/commit/9057b5a2c0a95fc472fa639255cb2563b2aed7f4))
+
 ### [2.26.14](https://github.com/unraid/api/compare/v2.26.13...v2.26.14) (2021-09-22)
 
 
