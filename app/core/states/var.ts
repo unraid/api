@@ -58,6 +58,8 @@ type RegistrationCheck =
 type RegistrationType =
 	/** Missing key file. */
 	'- missing key file' |
+	/** Free trial */
+	'Trial' |
 	/** Up to 6 attached storage devices. */
 	'Basic' |
 	/** Up to 12 attached storage devices. */

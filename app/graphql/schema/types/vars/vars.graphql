@@ -190,6 +190,8 @@ enum registrationType {
     PRO
     """Invalid"""
     INVALID
+    """Trial"""
+    TRIAL
 }
 
 enum registrationState {
