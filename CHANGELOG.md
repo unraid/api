@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.29.0](https://github.com/unraid/api/compare/v2.28.0...v2.29.0) (2021-11-16)
+
+
+### Features
+
+* add config ([6a35dd3](https://github.com/unraid/api/commit/6a35dd3a050c9ce1375c9b9f690a6457ce99d4e3))
+
+
+### Bug Fixes
+
+* add permissions for config ([91b294f](https://github.com/unraid/api/commit/91b294f68b19d6e88c0f0b6ca6aa1e4ec86b279c))
+
 ## [2.28.0](https://github.com/unraid/api/compare/v2.26.14...v2.28.0) (2021-11-16)
 
 
