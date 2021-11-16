@@ -101,14 +101,14 @@ export const getServers = async (): Promise<Server[]> => {
 
 		// If they're in anon mode bail
 		if (myserversConfigFile.remote.anonMode === 'true') {
-			graphqlLogger.debug('Falling back to local state for /servers endpoint');
+			graphqlLogger.silly('Falling back to local state for /servers endpoint');
 			return getLocalServer(apiKey);
 		}
 
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);
 
-		graphqlLogger.debug('Using upstream for /servers endpoint');
+		graphqlLogger.silly('Using upstream for /servers endpoint');
 
 		// No servers found
 		if (!servers || servers.length === 0) {
