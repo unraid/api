@@ -13,6 +13,7 @@ import { varState } from '../core/states/var';
 import { version } from '../../package.json';
 import { pubsub } from '../core/pubsub';
 import { mothership } from './subscribe-to-servers';
+import { apiKeyToUser } from '../graphql';
 
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
@@ -193,9 +194,14 @@ export const checkConnection = debounce(async () => {
 						log.silly(query);
 
 						// Process query
+						const apiKey = apiManager.getKey('my_servers')?.key!;
+						const user = await apiKeyToUser(apiKey);
 						const payload = await graphql({
 							schema,
-							source: query
+							source: query,
+							contextValue: {
+								user
+							}
 						});
 
 						log.silly(payload);

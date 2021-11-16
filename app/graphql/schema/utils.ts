@@ -30,7 +30,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
 			throw new AppError('<ws> No user found in context.', 500);
 		}
 
-		// Check the user has permissison to subscribe to this endpoint
+		// Check the user has permission to subscribe to this endpoint
 		ensurePermission(context.user, {
 			resource: resource ?? channel,
 			action: 'read',

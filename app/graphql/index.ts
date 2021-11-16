@@ -203,7 +203,7 @@ const ensureApiKey = async (apiKeyToCheck: string) => {
 
 const debug = config.get('debug');
 
-const apiKeyToUser = async (apiKey: string) => {
+export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		await ensureApiKey(apiKey);
 	} catch (error: unknown) {
