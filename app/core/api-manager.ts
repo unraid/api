@@ -328,7 +328,7 @@ export class ApiManager extends EventEmitter {
 	async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		await lock.runExclusive(async () => {
-			apiManagerLogger.debug('Checking API key for validity.');
+			apiManagerLogger.silly('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
 
@@ -336,8 +336,6 @@ export class ApiManager extends EventEmitter {
 			if (apiKey === undefined) {
 				return;
 			}
-
-			log.debug('Checking API key "%s".', apiKey);
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
@@ -347,7 +345,7 @@ export class ApiManager extends EventEmitter {
 
 			// Ensure key format is valid before validating
 			validateApiKeyFormat(apiKey);
-			apiManagerLogger.debug('API key is in the correct format, checking key\'s validity...');
+			apiManagerLogger.silly('API key is in the correct format, checking key\'s validity...');
 
 			// Ensure key is valid before connecting
 			await validateApiKey(apiKey);
