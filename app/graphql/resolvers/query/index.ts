@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 import crashReportingEnabled from './crash-reporting-enabled';
+import config from './config';
 import display from './display';
 import disks from './disks';
 import flash from './flash';
@@ -16,6 +17,7 @@ import vms from './vms';
 
 export const Query = {
 	crashReportingEnabled,
+	config,
 	disks,
 	display,
 	flash,

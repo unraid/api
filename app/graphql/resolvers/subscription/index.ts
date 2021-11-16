@@ -17,6 +17,9 @@ export const Subscription = {
 		// Not sure how we're going to secure this
 		// ...createSubscription('apikeys')
 	},
+	config: {
+		...createSubscription('config')
+	},
 	array: {
 		...createSubscription('array')
 	},

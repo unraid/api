@@ -95,6 +95,7 @@ interface VarIni {
 	cacheSbNumDisks: string;
 	comment: string;
 	configValid: string;
+	configState: string;
 	csrfToken: string;
 	defaultFormat: string;
 	defaultFsType: string;
@@ -233,12 +234,7 @@ const parse = (state: VarIni): Var => {
 		cacheNumDevices: toNumber(state.cacheNumDevices),
 		cacheSbNumDisks: toNumber(state.cacheSbNumDisks),
 		configValid,
-		configError: configValid === false ? (({
-			error: 'UNKNOWN_ERROR',
-			invalid: 'INVALID',
-			nokeyserver: 'NO_KEY_SERVER',
-			withdrawn: 'WITHDRAWN'
-		}[state.configValid] ?? 'UNKNOWN_ERROR') as ConfigErrorState) : undefined,
+		configState: state.configValid,
 		deviceCount: toNumber(state.deviceCount),
 		fsCopyPrcnt: toNumber(state.fsCopyPrcnt),
 		fsNumMounted: toNumber(state.fsNumMounted),
