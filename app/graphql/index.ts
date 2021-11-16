@@ -310,7 +310,7 @@ export const graphql = {
 		subscriptionEndpoint: '/graphql'
 	} : false,
 	schema,
-	types,
+	types: typeDefs,
 	resolvers,
 	subscriptions: {
 		keepAlive: 10000,
