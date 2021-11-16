@@ -19,6 +19,19 @@ const isSilly = Boolean(process.env.SILLY);
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noop = () => {};
 
+const loggers = {
+	// Allow --debug to enable debug logs without changing NODE_ENV
+	debug: isProduction ? (isDebug ? console.debug : noop) : console.debug,
+	error: console.error,
+	info: isProduction ? noop : console.info,
+	log: isProduction ? noop : console.info,
+	// Allow SILLY=true to enable silly logs without changing NODE_ENV
+	silly: isProduction ? (isSilly ? console.debug : noop) : noop,
+	timer: isProduction ? noop : console.debug,
+	trace: isProduction ? noop : console.debug,
+	warn: isProduction ? noop : console.debug
+};
+
 /**
   * Logger reworked
   *
@@ -35,22 +48,11 @@ export const logger = {
 	transport: 'console',
 	transports: ['console'],
 	createChild: (_options: { prefix: string }) => logger,
-	...Object.fromEntries(Object.entries({
-		// Allow --debug to enable debug logs without changing NODE_ENV
-		debug: isProduction ? (isDebug ? console.debug : noop) : console.debug,
-		error: console.error,
-		info: isProduction ? noop : console.info,
-		log: isProduction ? noop : console.info,
-		// Allow SILLY=true to enable silly logs without changing NODE_ENV
-		silly: isProduction ? (isSilly ? console.debug : noop) : noop,
-		timer: isProduction ? noop : console.debug,
-		trace: isProduction ? noop : console.debug,
-		warn: isProduction ? noop : console.debug
-	}).map(([name, logger]) => {
+	...Object.fromEntries(Object.entries(loggers).map(([name, logger]) => {
 		return [name, (message?: any, ...optionalParams: any[]) => {
 			logger(`[${new Date().toUTCString()}] ${message as string}`, ...optionalParams);
 		}];
-	}))
+	})) as typeof loggers
 };
 
 export const log = logger.createChild({ prefix: '@unraid' });
