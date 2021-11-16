@@ -96,7 +96,7 @@ const commands = {
 		setEnv('PORT', mainOptions.port);
 
 		const apiVersion: string = version;
-		logger.info(`Starting unraid-api v${apiVersion} with ENVIRONMENT=%s and NODE_ENV=%s`, getEnvironment(), process.env.NODE_ENV);
+		logger.print(`Starting unraid-api v${apiVersion} with ENVIRONMENT=%s and NODE_ENV=%s`, getEnvironment(), process.env.NODE_ENV);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -134,7 +134,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				logger.info('Daemonizing process.');
+				logger.print('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -150,7 +150,7 @@ const commands = {
 				// Convert process into daemon
 				child.unref();
 
-				logger.info('Daemonized successfully!');
+				logger.print('Daemonized successfully!');
 
 				// Exit cleanly
 				process.exit(0);
@@ -166,13 +166,13 @@ const commands = {
 
 		// Bail if we have no process
 		if (!unraidApiPid) {
-			logger.info('Found no running processes.');
+			logger.print('Found no running processes.');
 			return;
 		}
 
-		logger.info('Stopping unraid-api process...');
+		logger.print('Stopping unraid-api process...');
 		process.kill(unraidApiPid, 'SIGTERM');
-		logger.info('Process stopped!');
+		logger.print('Process stopped!');
 	},
 	/**
 	 * Stop a running API process and then start it again.
@@ -186,18 +186,18 @@ const commands = {
 	 */
 	async version() {
 		const apiVersion: string = version;
-		logger.log(`Unraid API v${apiVersion}`);
+		logger.print(`Unraid API v${apiVersion}`);
 	},
 	async status() {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		if (!unraidApiPid) {
-			logger.log('Found no running processes.');
+			logger.print('Found no running processes.');
 			return;
 		}
 
 		const stats = await pidUsage(unraidApiPid);
-		logger.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
+		logger.print(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
 	},
 	async report() {
 		// Find all processes called "unraid-api" which aren't this process
@@ -218,7 +218,7 @@ const commands = {
 		const envFlashFilePath = paths.get('myservers-env')!;
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
 
-		logger.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
+		logger.print('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
 
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
@@ -238,20 +238,20 @@ const commands = {
 		}
 
 		if (currentEnvInFile) {
-			logger.info('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
+			logger.print('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
 		} else {
-			logger.info('No ENV found, setting env to "production"...');
+			logger.print('No ENV found, setting env to "production"...');
 		}
 
 		// Write new env to flash
 		const newEnvLine = `env="${newEnv}"`;
 		await fs.promises.writeFile(envFlashFilePath, newEnvLine);
-		logger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
+		logger.print('Writing %s to %s', newEnvLine, envFlashFilePath);
 
 		// Copy the new env over to live location before restarting
 		const source = path.join(basePath, `.env.${newEnv}`);
 		const destination = path.join(basePath, '.env');
-		logger.debug('Copying %s to %s', source, destination);
+		logger.print('Copying %s to %s', source, destination);
 		await new Promise<void>((resolve, reject) => {
 			// Use the native cp command to ensure we're outside the virtual file system
 			exec(`cp "${source}" "${destination}"`, error => {
@@ -267,7 +267,7 @@ const commands = {
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
 		if (unraidApiPid) {
-			logger.info('unraid-api is running, restarting...');
+			logger.print('unraid-api is running, restarting...');
 
 			// Restart the process
 			return this.restart();
@@ -298,5 +298,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-	logger.error((error as Error).message);
+	logger.print((error as Error).message);
 });
