@@ -2,18 +2,16 @@ import WebSocket from 'ws';
 import WebSocketAsPromised from 'websocket-as-promised';
 import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
-import { makeExecutableSchema } from '@graphql-tools/schema';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { debounce } from './debounce';
 import { log } from '../core/log';
-import { types as typeDefs } from '../graphql/types';
-import * as resolvers from '../graphql/resolvers';
 import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
 import { version } from '../../package.json';
 import { pubsub } from '../core/pubsub';
 import { mothership } from './subscribe-to-servers';
 import { apiKeyToUser } from '../graphql';
+import { schema } from '../graphql/schema';
 
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
@@ -64,11 +62,6 @@ const getRelayHeaders = () => {
 		'x-unraid-api-version': version
 	};
 };
-
-const schema = makeExecutableSchema({
-	typeDefs,
-	resolvers
-});
 
 const handleError = (error: unknown) => {
 	const reason = (error as any).reason as string;
