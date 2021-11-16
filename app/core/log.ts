@@ -30,21 +30,27 @@ const noop = () => {};
   * being hit.
   */
 export const logger = {
-	createChild: (_options: { prefix: string }) => logger,
-	// Allow --debug to enable debug logs without changing NODE_ENV
-	debug: isProduction ? (isDebug ? console.debug : noop) : console.debug,
-	// Always allow errors to log
-	error: console.error,
 	level: 'error',
 	levels: ['error', 'warn', 'info', 'debug', 'trace', 'silly'],
-	info: isProduction ? noop : console.info,
-	log: isProduction ? noop : console.info,
-	silly: isProduction ? noop : (isSilly ? console.debug : noop),
-	timer: isProduction ? noop : console.debug,
-	trace: isProduction ? noop : console.debug,
 	transport: 'console',
 	transports: ['console'],
-	warn: isProduction ? noop : console.debug
+	createChild: (_options: { prefix: string }) => logger,
+	...Object.fromEntries(Object.entries({
+		// Allow --debug to enable debug logs without changing NODE_ENV
+		debug: isProduction ? (isDebug ? console.debug : noop) : console.debug,
+		error: console.error,
+		info: isProduction ? noop : console.info,
+		log: isProduction ? noop : console.info,
+		// Allow SILLY=true to enable silly logs without changing NODE_ENV
+		silly: isProduction ? (isSilly ? console.debug : noop) : noop,
+		timer: isProduction ? noop : console.debug,
+		trace: isProduction ? noop : console.debug,
+		warn: isProduction ? noop : console.debug
+	}).map(([name, logger]) => {
+		return [name, (message?: any, ...optionalParams: any[]) => {
+			logger(`[${new Date().toUTCString()}] ${message as string}`, ...optionalParams);
+		}];
+	}))
 };
 
 export const log = logger.createChild({ prefix: '@unraid' });
