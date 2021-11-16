@@ -152,10 +152,15 @@ export const checkConnection = debounce(async () => {
 			return;
 		}
 
+		const headers = getRelayHeaders();
+
+		log.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
+		log.silly('Headers: %s', JSON.stringify(headers, null, 2));
+
 		// Create a new ws instance
 		relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
 			createWebSocket: url => new WebSocket(url, ['mothership-0.0.1'], {
-				headers: getRelayHeaders()
+				headers
 			}) as any,
 			extractMessageData: event => JSON.parse(event)
 		});
@@ -172,7 +177,7 @@ export const checkConnection = debounce(async () => {
 			mothership.close();
 
 			const after = getConnectionStatus();
-			log.debug('Websocket connection changed from %s to %s with statusCode %s', before, after, statusCode);
+			log.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
 		});
 
 		// Bind on message handler
