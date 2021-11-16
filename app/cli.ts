@@ -27,7 +27,6 @@ interface Flags {
 	debug?: boolean;
 	port?: string;
 	'log-level'?: string;
-	'log-transport'?: string;
 	environment?: string;
 	version?: boolean;
 }
@@ -41,9 +40,6 @@ const args: ArgumentConfig<Flags> = {
 	'log-level': { type: (level?: string) => {
 		return ['error', 'warn', 'info', 'debug', 'trace', 'silly'].includes(level ?? '') ? level : undefined;
 	}, typeLabel: '{underline error/warn/info/debug/trace/silly}', optional: true, description: 'Set the log level.' },
-	'log-transport': { type: (transport?: string) => {
-		return ['console', 'syslog'].includes(transport ?? 'console') ? transport : 'console';
-	}, typeLabel: '{underline console/syslog}', optional: true, description: 'Set the log transport. (default=syslog)' },
 	version: { type: Boolean, optional: true, alias: 'v', description: 'Show version.' }
 };
 
@@ -63,7 +59,6 @@ const options: ArgsParseOptions<Flags> = {
 };
 
 const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstUnknown: true });
-const commandOptions = (mainOptions as Flags & { _unknown: string[] })._unknown || [];
 const command: string = (mainOptions as any).command;
 // Use the env passed by the user, then the flag inline, then default to production
 const getEnvironment = () => {
@@ -98,12 +93,10 @@ const commands = {
 		setEnv('DEBUG', mainOptions.debug);
 		setEnv('ENVIRONMENT', getEnvironment());
 		setEnv('LOG_LEVEL', mainOptions['log-level'] ?? (mainOptions.debug ? 'debug' : 'info'));
-		setEnv('LOG_TRANSPORT', mainOptions['log-transport']);
 		setEnv('PORT', mainOptions.port);
 
 		const apiVersion: string = version;
-		logger.info(`Starting unraid-api v${apiVersion}`);
-		logger.info(`Loading the "${getEnvironment()}" environment.`);
+		logger.info(`Starting unraid-api v${apiVersion} with ENVIRONMENT=%s and NODE_ENV=%s`, getEnvironment(), process.env.NODE_ENV);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -179,7 +172,7 @@ const commands = {
 
 		logger.info('Stopping unraid-api process...');
 		process.kill(unraidApiPid, 'SIGTERM');
-		console.info('Process stopped!');
+		logger.info('Process stopped!');
 	},
 	/**
 	 * Stop a running API process and then start it again.
@@ -193,24 +186,24 @@ const commands = {
 	 */
 	async version() {
 		const apiVersion: string = version;
-		console.log(`Unraid API v${apiVersion}`);
+		logger.log(`Unraid API v${apiVersion}`);
 	},
 	async status() {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		if (!unraidApiPid) {
-			console.log('Found no running processes.');
+			logger.log('Found no running processes.');
 			return;
 		}
 
 		const stats = await pidUsage(unraidApiPid);
-		console.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
+		logger.log(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
 	},
 	async report() {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
-		console.log(
+		logger.print(
 			dedent`
 				<-----UNRAID-API-REPORT----->
 				Environment: ${getEnvironment()}
@@ -280,7 +273,7 @@ const commands = {
 			return this.restart();
 		}
 
-		logger.info('Run "unraid-api start" to start the API.');
+		logger.print('Run "unraid-api start" to start the API.');
 	}
 };
 
@@ -305,5 +298,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-	console.error((error as Error).message);
+	logger.error((error as Error).message);
 });

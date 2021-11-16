@@ -30,7 +30,6 @@ Options:
   -p, --port string                               Set the graphql port.                   
   --environment production/staging/development    Set the working environment.            
   --log-level error/warn/info/debug/trace/silly   Set the log level.                      
-  --log-transport console/syslog                  Set the log transport. (default=syslog) 
   -v, --version                                   Show version.                           
 
   Copyright © 2021 Lime Technology, Inc. 

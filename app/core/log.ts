@@ -45,14 +45,13 @@ const loggers = {
 export const logger = {
 	level: 'error',
 	levels: ['error', 'warn', 'info', 'debug', 'trace', 'silly'],
-	transport: 'console',
-	transports: ['console'],
 	createChild: (_options: { prefix: string }) => logger,
 	...Object.fromEntries(Object.entries(loggers).map(([name, logger]) => {
 		return [name, (message?: any, ...optionalParams: any[]) => {
 			logger(`[${new Date().toUTCString()}] ${message as string}`, ...optionalParams);
 		}];
-	})) as typeof loggers
+	})) as typeof loggers,
+	print: console.info
 };
 
 export const log = logger.createChild({ prefix: '@unraid' });
