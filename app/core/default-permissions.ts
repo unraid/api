@@ -66,7 +66,8 @@ export const upc = {
 		{ resource: 'disk', action: 'read:any', attributes: '*' },
 		{ resource: 'crash-reporting-enabled', action: 'read:any', attributes: '*' },
 		{ resource: 'servers', action: 'read:any', attributes: '*' },
-		{ resource: 'display', action: 'read:any', attributes: '*' }
+		{ resource: 'display', action: 'read:any', attributes: '*' },
+		{ resource: 'config', action: 'read:any', attributes: '*' }
 	]
 };
 
@@ -91,7 +92,8 @@ export const my_servers = {
 		{ resource: 'software-versions', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'vms', action: 'read:any', attributes: '*' },
-		{ resource: 'vms/domain', action: 'read:any', attributes: '*' }
+		{ resource: 'vms/domain', action: 'read:any', attributes: '*' },
+		{ resource: 'config', action: 'read:any', attributes: '*' }
 	]
 };
 
