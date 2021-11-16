@@ -140,7 +140,7 @@ app.use(cors({
 			return;
 		}
 
-		log.debug(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
+		log.silly(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
@@ -149,7 +149,7 @@ app.use(cors({
 			return;
 		}
 
-		log.debug('✔️ Origin check passed, granting CORS!');
+		log.silly('✔️ Origin check passed, granting CORS!');
 		callback(null, true);
 	}
 }));
