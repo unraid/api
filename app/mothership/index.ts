@@ -17,6 +17,7 @@ let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
 
 const subscriptionListener = (id: string | number, name: string) => (data: any) => {
+	log.silly('Sending update for %s to socket %s\n%s', name, id, JSON.stringify(data, null, 2));
 	if (relay?.isOpened) {
 		relay.send(JSON.stringify({
 			id,
