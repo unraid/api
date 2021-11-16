@@ -16,6 +16,7 @@ import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { User } from '../core/types';
 import { types as typeDefs } from './types';
 import { schema } from './schema';
+import { debounce } from '../mothership/debounce';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -116,7 +117,8 @@ export const apiKeyToUser = async (apiKey: string) => {
 };
 
 // Update array values when slots change
-bus.on('slots', async () => {
+// We use a debounce to prevent it running more than once per second
+bus.on('slots', debounce(async () => {
 	coreLogger.silly('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
@@ -124,7 +126,7 @@ bus.on('slots', async () => {
 			user: internalServiceUser
 		}
 	});
-});
+}, 1_000));
 
 let hostname: string;
 
