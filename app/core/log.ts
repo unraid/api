@@ -4,7 +4,7 @@
  */
 
 /**
- * Are we in produciton node env?
+ * Are we in production node env?
  *
  * Note: This isn't the same as the environment.
  */
