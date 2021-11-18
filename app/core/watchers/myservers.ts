@@ -6,7 +6,6 @@
 import chokidar from 'chokidar';
 import { log } from '../log';
 import { paths } from '../paths';
-import * as Sentry from '@sentry/node';
 import { pki } from 'node-forge';
 import { attemptJSONParse, attemptReadFileSync, loadState } from '../utils';
 import { apiManager } from '../api-manager';
@@ -29,29 +28,19 @@ export const myservers = () => {
 
 			// My servers config has likely changed
 			myserversConfigWatcher.on('all', async function (_event, fullPath) {
-				// Check if crash reporting is enabled
-				const file = loadState<Partial<{ remote: { wanaccess?: string; wanport?: string; sendCrashInfo?: string } }>>(fullPath);
-				const isEnabled = (file.remote?.sendCrashInfo ?? 'no').trim() === 'yes';
-
-				// Get Sentry client
-				const sentryClient = Sentry.getCurrentHub().getClient();
-
-				// If we have one enable/disable it. If this is
-				// missing it's likely we shipped without Sentry
-				// initialized. This would be done for a reason!
-				if (sentryClient) {
-					// Check if the value changed
-					if (sentryClient.getOptions().enabled !== isEnabled) {
-						sentryClient.getOptions().enabled = isEnabled;
-
-						// Log for debugging
-						log.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
-					}
-				}
+				const file = loadState<Partial<{
+					remote: {
+						wanaccess?: string;
+						wanport?: string;
+						apikey?: string;
+						email?: string;
+						username?: string;
+						avatar?: string;
+					};
+				}>>(fullPath);
 
 				// Only update these if they exist
 				if (file.remote) {
-					// Update myservers config, this is used for origin checks in graphql
 					myServersConfig.remote = {
 						...(myServersConfig.remote ? myServersConfig.remote : {}),
 						wanaccess: file.remote.wanaccess,

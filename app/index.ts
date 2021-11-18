@@ -4,11 +4,20 @@
  */
 
 import am from 'am';
+import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, log, apiManager } from './core';
+import { core, log, apiManager, paths } from './core';
 import { server } from './server';
 import { checkConnection } from './mothership';
+import { loadState } from './core/utils/misc/load-state';
+import { writeFileSync } from 'fs';
+
+// Ini serializer
+const serializer = new IniSerializer({
+	// This ensures it ADDs quotes
+	keep_quotes: false
+});
 
 // Boot app
 am(async () => {
@@ -54,7 +63,32 @@ am(async () => {
 				return;
 			}
 
-			log.debug('API key removed from cfg.');
+			log.debug('API key in cfg is invalid, attempting to sign user our via cfg.');
+			const configPath = paths.get('myservers-config')!;
+			const myserversConfigFile = loadState<Partial<{
+				remote: {
+					wanaccess?: string;
+					wanport?: string;
+					apikey?: string;
+					email?: string;
+					username?: string;
+					avatar?: string;
+				};
+			}>>(configPath);
+			const { apikey: _, email: __, username: ___, avatar: ____, ...remote } = myserversConfigFile.remote ?? {};
+
+			// Rebuild cfg with wiped remote section
+			// All the _ consts above have been removed
+			const data = {
+				...myserversConfigFile,
+				remote
+			};
+
+			// Stringify data
+			const stringifiedData = serializer.serialize(data);
+
+			// Update config file
+			writeFileSync(configPath, stringifiedData);
 
 			// Check relay connection
 			await checkConnection();
