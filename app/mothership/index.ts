@@ -66,20 +66,20 @@ const getRelayHeaders = () => {
 const handleError = (error: unknown) => {
 	const reason = (error as any).reason as string;
 	const code = (error as any).code as number ?? 500;
+	relayLog.addContext('reason', reason);
+	relayLog.addContext('code', code);
+	relayLog.debug('Disconnected');
 	switch (code) {
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
-			relayLog.debug('DISCONNECTED:401:INVALID_API_KEY');
 			break;
 
 		case 426:
 			// Bail as we cannot reconnect
-			relayLog.debug('DISCONNECTED:426:API_IS_TOO_OUTDATED');
 			break;
 
 		case 429:
 			// Reconnect after 30s
-			relayLog.debug(`DISCONNECTED:429:${reason ?? 'API_KEY_IN_USE'}`);
 			timeout = Date.now() + 30_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -88,7 +88,6 @@ const handleError = (error: unknown) => {
 
 		case 500:
 			// Reconnect after 60s
-			relayLog.debug(`DISCONNECTED:500:${reason ?? 'INTERNAL_SERVER_ERROR'}`);
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -97,7 +96,6 @@ const handleError = (error: unknown) => {
 
 		case 503:
 			// Reconnect after 60s
-			relayLog.debug(`DISCONNECTED:503:${reason ?? 'GATEWAY_DOWN'}`);
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -106,7 +104,6 @@ const handleError = (error: unknown) => {
 
 		default:
 			// Reconnect after 60s
-			relayLog.debug(`DISCONNECTED:${code}:${reason}`);
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -255,7 +252,9 @@ export const checkConnection = debounce(async () => {
 						break;
 				}
 			} catch (error: unknown) {
-				relayLog.error('%s', error);
+				relayLog.addContext('error', error);
+				relayLog.error('Failed processing message');
+				relayLog.removeContext('error');
 				if (relay?.isOpened) {
 					relay.send(JSON.stringify({
 						id,
@@ -273,9 +272,10 @@ export const checkConnection = debounce(async () => {
 	} finally {
 		const after = getConnectionStatus();
 		if (before !== after) {
-			relayLog.info('%s -> %s', before, after);
+			relayLog.info('Connection status changed from %s to %s', before.toLowerCase(), after.toLowerCase());
 		} else if (timeout) {
-			relayLog.info('Reconnecting in %ss!', Math.floor((timeout - Date.now()) / 1_000));
+			const secondsLeft = Math.floor((timeout - Date.now()) / 1_000);
+			relayLog.debug('Reconnecting in %ss', secondsLeft);
 		}
 	}
 }, 5_000);
