@@ -117,8 +117,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 };
 
 // Update array values when slots change
-// We use a debounce to prevent it running more than once per second
-bus.on('slots', debounce(async () => {
+bus.on('slots', async () => {
 	coreLogger.silly('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
@@ -126,7 +125,7 @@ bus.on('slots', debounce(async () => {
 			user: internalServiceUser
 		}
 	});
-}, 1_000));
+});
 
 let hostname: string;
 
