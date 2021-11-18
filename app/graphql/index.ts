@@ -12,11 +12,10 @@ import dee from '@gridplus/docker-events';
 import { run } from '../run';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
-import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { User } from '../core/types';
 import { types as typeDefs } from './types';
 import { schema } from './schema';
-import { dockerLog } from '../core/log';
+import { dockerLog, graphqlLog, log } from '../core/log';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -77,7 +76,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		await ensureApiKey(apiKey);
 	} catch (error: unknown) {
-		dockerLog.debug('Failed looking up API key with "%s"', (error as Error).message);
+		graphqlLog.debug('Failed looking up API key with "%s"', (error as Error).message);
 
 		return { name: 'guest', role: 'guest' };
 	}
@@ -85,7 +84,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
 
-		dockerLog.trace('Found key "%s".', keyName);
+		graphqlLog.trace('Found key "%s".', keyName);
 
 		// Force upc into it's own group that's not a user group
 		if (keyName && keyName === 'upc') {
@@ -110,7 +109,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 			}
 		}
 	} catch (error: unknown) {
-		dockerLog.debug('Failed looking up API key with "%s"', (error as Error).message);
+		graphqlLog.debug('Failed looking up API key with "%s"', (error as Error).message);
 	}
 
 	return { id: -1, description: 'A guest user', name: 'guest', role: 'guest' };
@@ -153,7 +152,7 @@ bus.on('var', async data => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-dockerLog.debug('Loading events');
+log.debug('Loading events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
 	dockerLog.debug(`[${data.from}] ${data.Type}->${data.Action}`);
 	dockerLog.trace(data);
@@ -190,7 +189,7 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
-			dockerLog.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+			graphqlLog.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);
@@ -203,20 +202,12 @@ export const graphql = {
 		onDisconnect: async (_, websocketContext) => {
 			const context = await websocketContext.initPromise;
 
-			// This is the internal mothership connection
-			// This should only disconnect if mothership restarts
-			// or the network link reconnects
-			if (websocketContext.socket.url === MOTHERSHIP_RELAY_WS_LINK) {
-				dockerLog.debug('Mothership disconnected.');
-				return;
-			}
-
 			// The websocket has disconnected before init event has resolved
 			// @see: https://github.com/apollographql/subscriptions-transport-ws/issues/349
 			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
-				dockerLog.debug('<ws> unknown[unknown] disconnected.');
+				graphqlLog.debug('unknown[unknown] disconnected.');
 				return;
 			}
 
@@ -226,7 +217,10 @@ export const graphql = {
 				};
 				websocketId: string;
 			};
-			dockerLog.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
+
+			graphqlLog.addContext('websocketId', websocketId);
+			graphqlLog.debug(`${user.name} disconnected.`);
+			graphqlLog.removeContext('websocketId');
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);
