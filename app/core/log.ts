@@ -57,7 +57,7 @@ configure({
 
 // Send SIGUSR1 to increase log level
 process.on('SIGUSR1', () => {
-	const level = `${logger.level as string}`;
+	const level = `${logger.level}`;
 	const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
 	logger.level = nextLevel;
 	logger.mark('Log level changed from %s to %s', level, nextLevel);
@@ -65,7 +65,7 @@ process.on('SIGUSR1', () => {
 
 // Send SIGUSR1 to decrease log level
 process.on('SIGUSR2', () => {
-	const level = `${logger.level as string}`;
+	const level = `${logger.level}`;
 	const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
 	logger.level = nextLevel;
 	logger.mark('Log level changed from %s to %s', level, nextLevel);
