@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.3](https://github.com/unraid/api/compare/v2.29.2...v2.29.3) (2021-11-18)
+
+
+### Bug Fixes
+
+* ensure all loggers have context and are changed on USR sig ([7b86f5d](https://github.com/unraid/api/commit/7b86f5d3958ed10bc0177137ff240d151133a1ab))
+* move context to only cli ([c88536d](https://github.com/unraid/api/commit/c88536d2e3a097a7c985bbf069ee21daab424722))
+* move logger context additions before exports ([2b6f0ee](https://github.com/unraid/api/commit/2b6f0ee86fc75b088a1af7bc044f7d355b6e3494))
+* remove api key when invalid ([2767229](https://github.com/unraid/api/commit/27672299496f89bc56fd2e2858ea81ce23ee2365))
+* split logger into cli ([0781a3d](https://github.com/unraid/api/commit/0781a3d9d46a43a8ecd30158865ea63b6ff73d8e))
+
 ### [2.29.2](https://github.com/unraid/api/compare/v2.29.1...v2.29.2) (2021-11-18)
 
 
