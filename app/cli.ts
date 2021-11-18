@@ -96,8 +96,6 @@ const commands = {
 		setEnv('PORT', mainOptions.port);
 
 		const apiVersion: string = version;
-		log.addContext('version', apiVersion);
-		log.addContext('env', { ENVIRONMENT: getEnvironment(), NODE_ENV: process.env.NODE_ENV });
 		log.info('Starting unraid-api@v%s', apiVersion);
 
 		// If we're in debug mode or we're NOT

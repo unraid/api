@@ -7,8 +7,12 @@ import chalk from 'chalk';
 import { redactSecrets } from 'redact-secrets';
 import { configure, getLogger } from 'log4js';
 import { serializeError } from 'serialize-error';
+import { version } from '../../package.json';
 
 const logger = getLogger('app');
+
+logger.addContext('version', version);
+logger.addContext('env', process.env);
 
 const redact = redactSecrets('REDACTED', {
 	keys: [],
