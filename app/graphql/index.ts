@@ -154,8 +154,9 @@ bus.on('var', async data => {
 // On Docker event update info with { apps: { installed, started } }
 log.debug('Loading events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
+	dockerLog.addContext('data', data);
 	dockerLog.debug(`[${data.from}] ${data.Type}->${data.Action}`);
-	dockerLog.trace(data);
+	dockerLog.removeContext('data');
 
 	// Only listen to container events
 	if (data.Type !== 'container') {
