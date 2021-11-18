@@ -8,7 +8,7 @@ import am from 'am';
 import * as Sentry from '@sentry/node';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, states, coreLogger, log, apiManager, apiManagerLogger } from './core';
+import { core, states, coreLogger, log, apiManager, apiManagerLogger, logger } from './core';
 import { server } from './server';
 import { checkConnection } from './mothership';
 
@@ -91,6 +91,16 @@ am(async () => {
 			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}
 	});
+
+	// Every 5s check if our connection to relay is okay
+	setInterval(async () => {
+		try {
+			// Check relay connection
+			await checkConnection();
+		} catch (error: unknown) {
+			logger.error('Failed checking connection with error %s.', error);
+		}
+	}, 5_000);
 
 	// Load nchan
 	core.loadNchan().catch(error => {

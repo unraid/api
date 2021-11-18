@@ -4,5 +4,10 @@
  */
 
 import { PubSub } from 'apollo-server';
+import EventEmitter from 'events';
 
-export const pubsub = new PubSub();
+// Allow subscriptions to have 30 connections
+const eventEmitter = new EventEmitter();
+eventEmitter.setMaxListeners(30);
+
+export const pubsub = new PubSub({ eventEmitter });
