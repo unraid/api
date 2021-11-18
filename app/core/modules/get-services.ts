@@ -4,7 +4,7 @@
  */
 
 import { getEmhttpdService, getUnraidApiService } from './services';
-import { coreLogger } from '../log';
+import { log } from '../log';
 import { envs } from '../envs';
 import { NodeService } from '../utils';
 import { CoreResult, CoreContext } from '../types';
@@ -48,7 +48,7 @@ interface Result extends CoreResult {
  */
 export const getServices = async (context: CoreContext): Promise<Result> => {
 	const logErrorAndReturnEmptyArray = (error: Error) => {
-		coreLogger.error(error);
+		log.error(error);
 		return [];
 	};
 

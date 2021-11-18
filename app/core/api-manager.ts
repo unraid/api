@@ -16,7 +16,7 @@ import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
 import { validateApiKeyFormat, loadState, validateApiKey, isNodeError } from './utils';
 import { paths } from './paths';
-import { apiManagerLogger, log } from './log';
+import { log } from './log';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -328,7 +328,7 @@ export class ApiManager extends EventEmitter {
 	async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		await lock.runExclusive(async () => {
-			apiManagerLogger.silly('Checking API key for validity.');
+			log.trace('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
 
@@ -339,17 +339,17 @@ export class ApiManager extends EventEmitter {
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
+				log.debug('%s was updated but the API key didn\'t change.', filePath);
 				return;
 			}
 
 			// Ensure key format is valid before validating
 			validateApiKeyFormat(apiKey);
-			apiManagerLogger.silly('API key is in the correct format, checking key\'s validity...');
+			log.trace('API key is in the correct format, checking key\'s validity...');
 
 			// Ensure key is valid before connecting
 			await validateApiKey(apiKey);
-			apiManagerLogger.debug('API key is valid.');
+			log.debug('API key is valid.');
 
 			// Add the new key
 			this.replace('my_servers', apiKey, {
@@ -359,12 +359,12 @@ export class ApiManager extends EventEmitter {
 			if (isNodeError(error)) {
 				// File was deleted
 				if (error?.code === 'ENOENT') {
-					apiManagerLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
+					log.debug('%s was deleted, removing "my_servers" API key.', filePath);
 				} else {
-					apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
+					log.debug('%s, removing "my_servers" API key.', error.message);
 				}
 			} else {
-				apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
+				log.debug('%s, removing "my_servers" API key.', error.message);
 			}
 
 			// Reset key as it's not valid anymore

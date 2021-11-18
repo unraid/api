@@ -1,4 +1,4 @@
-import { coreLogger } from './log';
+import { log } from './log';
 import { permissions as defaultPermissions } from './default-permissions';
 import { AccessControl } from 'accesscontrol';
 
@@ -38,7 +38,7 @@ Object.entries(getPermissions()).forEach(([roleName, role]) => {
 	}
 });
 
-coreLogger.silly('Loaded permissions', JSON.stringify(allPermissions));
+log.trace('Loaded permissions', JSON.stringify(allPermissions));
 
 export {
 	ac

@@ -146,6 +146,7 @@
     "cz-conventional-changelog": "3.3.0",
     "eslint": "^7.32.0",
     "graphql-tools": "^6.2.6",
+    "log4js": "^6.3.0",
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^4.0.2",
     "nyc": "^15.1.0",

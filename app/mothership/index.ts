@@ -17,7 +17,7 @@ let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
 
 const subscriptionListener = (id: string | number, name: string) => (data: any) => {
-	log.silly('Sending update for %s for subscription %s\n%s', name, id, JSON.stringify(data, null, 2));
+	log.trace('Sending update for %s for subscription %s\n%s', name, id, JSON.stringify(data, null, 2));
 	if (relay?.isOpened) {
 		relay.send(JSON.stringify({
 			id,
@@ -161,7 +161,7 @@ export const checkConnection = debounce(async () => {
 		const headers = getRelayHeaders();
 
 		log.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
-		log.silly('Headers: %s', JSON.stringify(headers, null, 2));
+		log.trace('Headers: %s', JSON.stringify(headers, null, 2));
 
 		// Create a new ws instance
 		relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
@@ -199,7 +199,7 @@ export const checkConnection = debounce(async () => {
 						// Convert query to string
 						const query = print(message.payload.query);
 						log.debug('Processing %s', operationName);
-						log.silly(query);
+						log.trace(query);
 
 						// Process query
 						const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -212,7 +212,7 @@ export const checkConnection = debounce(async () => {
 							}
 						});
 
-						log.silly(payload);
+						log.trace(payload);
 
 						// If the socket closed before we could reply then just bail
 						if (!relay?.isOpened) {

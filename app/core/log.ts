@@ -3,60 +3,72 @@
  * Written by: Alexis Tyler
  */
 
-/**
- * Are we in production node env?
- *
- * Note: This isn't the same as the environment.
- */
-const isProduction = process.env.NODE_ENV === 'production';
-const isDebug = process.env.DEBUG !== undefined;
+import chalk from 'chalk';
+import { redactSecrets } from 'redact-secrets';
+import { configure, getLogger } from 'log4js';
+import { serializeError } from 'serialize-error';
 
-/**
- * If we're in silly logging mode.
- */
-const isSilly = Boolean(process.env.SILLY);
+const logger = getLogger('app');
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noop = () => {};
+const redact = redactSecrets('REDACTED', {
+	keys: [],
+	values: []
+});
 
-const loggers = {
-	// Allow --debug to enable debug logs without changing NODE_ENV
-	debug: isProduction ? (isDebug ? console.debug : noop) : console.debug,
-	error: console.error,
-	info: isProduction ? noop : console.info,
-	log: isProduction ? noop : console.info,
-	// Allow SILLY=true to enable silly logs without changing NODE_ENV
-	silly: isProduction ? (isSilly ? console.debug : noop) : noop,
-	timer: isProduction ? noop : console.debug,
-	trace: isProduction ? noop : console.debug,
-	warn: isProduction ? noop : console.debug
-};
+const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
+const contextEnabled = Boolean(process.env.LOG_CONTEXT);
+const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
+const tracingEnabled = Boolean(process.env.LOG_TRACING);
+const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
 
-/**
-  * Logger reworked
-  *
-  * We use logger but only in development/staging.
-  *
-  * When in production we use a noop function for all levels apart from error.
-  * This ensures we still see errors in all environments but allows us to use to
-  * the performance gains of not filling the stdout buffer when silly or trace is
-  * being hit.
-  */
-export const logger = {
-	level: 'error',
-	levels: ['error', 'warn', 'info', 'debug', 'trace', 'silly'],
-	createChild: (_options: { prefix: string }) => logger,
-	...Object.fromEntries(Object.entries(loggers).map(([name, logger]) => {
-		return [name, (message?: any, ...optionalParams: any[]) => {
-			logger(`[${new Date().toUTCString()}] ${message as string}`, ...optionalParams);
-		}];
-	})) as typeof loggers,
-	print: console.info
-};
+// Load in default context items
+logger.addContext('pid', process.pid);
 
-export const log = logger.createChild({ prefix: '@unraid' });
-export const coreLogger = log.createChild({ prefix: 'core' });
-export const graphqlLogger = log.createChild({ prefix: 'graphql' });
-export const relayLogger = log.createChild({ prefix: 'relay' });
-export const discoveryLogger = log.createChild({ prefix: 'discovery' });
-export const apiManagerLogger = log.createChild({ prefix: 'api-manager' });
+configure({
+	appenders: {
+		app: {
+			type: 'stdout',
+			layout: {
+				type: 'pattern',
+				pattern: chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`,
+				tokens: {
+					id({ context }: { context?: any }) {
+						return chalk`{gray [${context.pid}]}`;
+					},
+					context({ context }: { context?: any }) {
+						if (!contextEnabled) {
+							return '';
+						}
+
+						const contextEntries = Object.entries(context)
+							.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
+							.filter(([key]) => key !== 'pid');
+						const cleanContext = Object.fromEntries(contextEntries);
+						return ` ${context as string}` ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
+					}
+				}
+			}
+		}
+	},
+	categories: {
+		default: { appenders: ['app'], level, enableCallStack: tracingEnabled }
+	}
+});
+
+// Send SIGUSR1 to increase log level
+process.on('SIGUSR1', () => {
+	const level = `${logger.level as string}`;
+	const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
+	logger.level = nextLevel;
+	logger.mark('Log level changed from %s to %s', level, nextLevel);
+});
+
+// Send SIGUSR1 to decrease log level
+process.on('SIGUSR2', () => {
+	const level = `${logger.level as string}`;
+	const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
+	logger.level = nextLevel;
+	logger.mark('Log level changed from %s to %s', level, nextLevel);
+});
+
+export const log = getLogger('app');

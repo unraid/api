@@ -15,7 +15,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, paths, pubsub, coreLogger } from './core';
+import { log, config, paths, pubsub } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync, attemptJSONParse } from './core/utils';
 import { graphql } from './graphql';
 import packageJson from '../package.json';
@@ -140,7 +140,7 @@ app.use(cors({
 			return;
 		}
 
-		log.silly(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
+		log.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
@@ -149,7 +149,7 @@ app.use(cors({
 			return;
 		}
 
-		log.silly('✔️ Origin check passed, granting CORS!');
+		log.trace('✔️ Origin check passed, granting CORS!');
 		callback(null, true);
 	}
 }));
@@ -220,7 +220,7 @@ if (isNaN(parseInt(port, 10))) {
 
 	stoppableServer.on('error', async (error: NodeJS.ErrnoException) => {
 		if (error.code !== 'EADDRINUSE') {
-			coreLogger.error(error);
+			log.error(error);
 			throw error;
 		}
 
@@ -258,7 +258,7 @@ if (isNaN(parseInt(port, 10))) {
 			// Port was set to a path that already exists and isn't a unix socket
 			// Let's bail since we don't know if this was intentional
 			if (error.code === 'ENOTSOCK') {
-				coreLogger.debug('%s is not a unix socket and already exists', port);
+				log.warn('%s is not a unix socket and already exists', port);
 				exitApp();
 			}
 

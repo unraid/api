@@ -4,7 +4,7 @@
  */
 
 import chokidar from 'chokidar';
-import { coreLogger } from '../log';
+import { log } from '../log';
 import { paths } from '../paths';
 import * as Sentry from '@sentry/node';
 import { pki } from 'node-forge';
@@ -21,7 +21,7 @@ export const myservers = () => {
 			const myserversConfigFilePath = paths.get('myservers-config')!;
 
 			// Watch the my servers config file
-			coreLogger.debug('Loading watchers for %s', myserversConfigFilePath);
+			log.debug('Loading watchers for %s', myserversConfigFilePath);
 			const myserversConfigWatcher = chokidar.watch(myserversConfigFilePath, {
 				persistent: true,
 				ignoreInitial: true
@@ -45,7 +45,7 @@ export const myservers = () => {
 						sentryClient.getOptions().enabled = isEnabled;
 
 						// Log for debugging
-						coreLogger.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
+						log.debug('%s crash reporting!', isEnabled ? 'Enabled' : 'Disabled');
 					}
 				}
 
@@ -63,7 +63,7 @@ export const myservers = () => {
 					// Ensure api manager has the correct keys loaded
 					await apiManager.checkKey(myserversConfigFilePath, true);
 				} catch (error: unknown) {
-					coreLogger.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
+					log.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
 				}
 			});
 

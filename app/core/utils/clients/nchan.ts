@@ -11,10 +11,6 @@ import * as states from '../../states';
 import { log } from '../../log';
 import { AppError } from '../../errors';
 
-const nchanLogger = log.createChild({
-	prefix: 'nchan'
-});
-
 // Load polyfills for nchan
 windowPolyFill.register(false);
 global.XMLHttpRequest = xhr2;
@@ -24,8 +20,8 @@ global.EventSource = EventSource;
 const NchanSubscriber = require('nchan');
 
 const getSubEndpoint = () => {
-	const httpPort: string = states.varState.data?.port;
-	return `http://localhost:${httpPort}/sub`;
+	const httpPort = states.varState.data?.port;
+	return `http://localhost:${httpPort as unknown as string}/sub`;
 };
 
 const endpointToStateMapping = {
@@ -48,12 +44,12 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	});
 
 	sub.on('connect', function (_event) {
-		nchanLogger.debug('NCHAN:CONNECTED:%s', endpoint);
+		log.debug('Connected to %s', endpoint);
 		resolve();
 	});
 
 	sub.on('disconnect', function (_event) {
-		nchanLogger.debug('NCHAN:DISCONNECTED:%s', endpoint);
+		log.debug('Disconnected from %s', endpoint);
 	});
 
 	sub.on('message', function (message, _messageMetadata) {
@@ -69,7 +65,7 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	});
 
 	sub.on('error', function (error, error_description) {
-		nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
+		log.error('Error: "%s" \nDescription: "%s"', error, error_description);
 	});
 
 	sub.start();

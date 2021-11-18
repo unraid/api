@@ -1,5 +1,5 @@
-import type { CoreContext, CoreResult, Result } from './core/types';
-import { pubsub, coreLogger } from './core';
+import type { CoreContext, CoreResult } from './core/types';
+import { pubsub, log } from './core';
 import { isNodeError, sleep } from './core/utils';
 import { AppError } from './core/errors';
 
@@ -52,12 +52,12 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 	} = options;
 
 	if (exiting) {
-		coreLogger.silly('Process is exiting, stopping %s loop!', channel);
+		log.trace('Process is exiting, stopping %s loop!', channel);
 		return;
 	}
 
 	if (!moduleToRun) {
-		coreLogger.silly('Tried to run but has no "moduleToRun"');
+		log.trace('Tried to run but has no "moduleToRun"');
 		await publish(channel, mutation, node);
 		return;
 	}
@@ -67,7 +67,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		const result: CoreResult = await Promise.resolve(moduleToRun(context));
 
 		// Log result
-		coreLogger.silly(`run:${moduleToRun.name} %j`, result.json);
+		log.trace(`run:${moduleToRun.name} %j`, result.json);
 
 		// Save result
 		await publish(channel, mutation, result.json as any);
@@ -93,13 +93,13 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		if (isNodeError(error, AppError)) {
 			// Ensure we aren't leaking anything in production
 			if (process.env.NODE_ENV === 'production') {
-				coreLogger.debug('Error: %s', error.message);
+				log.debug('Error: %s', error.message);
 			} else {
-				const logger = coreLogger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(coreLogger);
+				const logger = log[error.status && error.status >= 400 ? 'error' : 'warn'].bind(log);
 				logger('Error: %s', error.message);
 			}
 		} else {
-			coreLogger.debug('Error: %s', error);
+			log.debug('Error: %s', error);
 		}
 	}
 };

@@ -5,7 +5,7 @@
 
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
-import { bus, apiManager, graphqlLogger, config, pluginManager, modules, coreLogger, log, paths, pubsub } from '../core';
+import { bus, apiManager, config, pluginManager, modules, log, paths, pubsub } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import dee from '@gridplus/docker-events';
@@ -16,7 +16,6 @@ import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { User } from '../core/types';
 import { types as typeDefs } from './types';
 import { schema } from './schema';
-import { debounce } from '../mothership/debounce';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -85,7 +84,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
 
-		log.silly('Found key "%s".', keyName);
+		log.trace('Found key "%s".', keyName);
 
 		// Force upc into it's own group that's not a user group
 		if (keyName && keyName === 'upc') {
@@ -118,7 +117,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 
 // Update array values when slots change
 bus.on('slots', async () => {
-	coreLogger.silly('slots updated: running getArray');
+	log.trace('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
 		context: {
@@ -189,7 +188,7 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
-			graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+			log.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);
@@ -206,7 +205,7 @@ export const graphql = {
 			// This should only disconnect if mothership restarts
 			// or the network link reconnects
 			if (websocketContext.socket.url === MOTHERSHIP_RELAY_WS_LINK) {
-				graphqlLogger.debug('Mothership disconnected.');
+				log.debug('Mothership disconnected.');
 				return;
 			}
 
@@ -215,7 +214,7 @@ export const graphql = {
 			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
-				graphqlLogger.debug('<ws> unknown[unknown] disconnected.');
+				log.debug('<ws> unknown[unknown] disconnected.');
 				return;
 			}
 
@@ -225,7 +224,7 @@ export const graphql = {
 				};
 				websocketId: string;
 			};
-			graphqlLogger.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
+			log.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);

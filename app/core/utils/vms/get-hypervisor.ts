@@ -123,7 +123,7 @@ const watchLibvirt = async (useCache = true) => {
 
 		// If the result is the same as the cache wait 5s then retry
 		if (JSON.stringify(cachedDomains) === JSON.stringify(resolvedDomains)) {
-			log.silly('libvirt: No changes detected.');
+			log.trace('libvirt: No changes detected.');
 			await sleep(5_000);
 			return watchLibvirt();
 		}

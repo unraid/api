@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
 import prettyBytes from 'pretty-bytes';
-import { coreLogger } from '../log';
+import { log } from '../log';
 
 const writeFile = async (filePath: string, fileContents: string | Buffer) => {
-	coreLogger.debug(`Writing ${prettyBytes(fileContents.length)} to ${filePath}`);
+	log.debug(`Writing ${prettyBytes(fileContents.length)} to ${filePath}`);
 	await fs.promises.writeFile(filePath, fileContents);
 };
 

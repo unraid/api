@@ -1,9 +1,8 @@
-import { pubsub, log as logger } from '../core';
+import { pubsub, log } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
 import { userCache, CachedServers } from '../cache';
 
-const log = logger.createChild({ prefix: 'subscribe-to-servers' });
 export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	reconnect: false,
 	lazy: true,
@@ -22,7 +21,7 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 });
 
 export const subscribeToServers = (apiKey: string) => {
-	log.silly('Subscribing to servers with %s', apiKey);
+	log.trace('Subscribing to servers with %s', apiKey);
 	const query = mothership.request({
 		query: `subscription servers ($apiKey: String!) {
             servers @auth(apiKey: $apiKey)
@@ -35,9 +34,9 @@ export const subscribeToServers = (apiKey: string) => {
 	// Subscribe
 	const subscription = query.subscribe({
 		next: async ({ data, errors }) => {
-			log.silly('Got data back with %s errors', errors?.length ?? 0);
-			log.silly('Got data %j', data);
-			log.silly('Got errors %s', errors);
+			log.trace('Got data back with %s errors', errors?.length ?? 0);
+			log.trace('Got data %j', data);
+			log.trace('Got errors %s', errors);
 
 			if (errors) {
 				// Log all errors

@@ -1,5 +1,5 @@
 import stw from 'spread-the-word';
-import { discoveryLogger as log } from '../log';
+import { log } from '../log';
 
 /**
  * Listen to devices on the local network via mDNS.

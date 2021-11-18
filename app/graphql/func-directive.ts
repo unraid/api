@@ -1,6 +1,6 @@
 import get from 'lodash.get';
 import * as core from '../core';
-import { graphqlLogger } from '../core';
+import { log } from '../core';
 import { AppError } from '../core/errors';
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils';
 import { isNodeError } from '../core/utils';
@@ -102,7 +102,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 				.catch(error_ => {
 					// Ensure we aren't leaking anything in production
 					if (process.env.NODE_ENV === 'production') {
-						graphqlLogger.error(pluginOrModule, pluginOrModuleName, 'Error:', error_.message);
+						log.error(pluginOrModule, pluginOrModuleName, 'Error:', error_.message);
 						return [new Error(error_.message)];
 					}
 

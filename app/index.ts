@@ -8,7 +8,7 @@ import am from 'am';
 import * as Sentry from '@sentry/node';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, states, coreLogger, log, apiManager, apiManagerLogger, logger } from './core';
+import { core, states, log, apiManager } from './core';
 import { server } from './server';
 import { checkConnection } from './mothership';
 
@@ -36,11 +36,11 @@ am(async () => {
 	await core.load();
 
 	// Try and load the HTTP server
-	coreLogger.debug('Starting HTTP server');
+	log.debug('Starting HTTP server');
 
 	// Log only if the server actually binds to the port
 	server.server.on('listening', () => {
-		coreLogger.info('Server is up! %s', getServerAddress(server.server));
+		log.info('Server is up! %s', getServerAddress(server.server));
 	});
 
 	// It has it's first keys loaded
@@ -52,7 +52,7 @@ am(async () => {
 
 				// On process exit
 				exitHook(async () => {
-					coreLogger.debug('Stopping HTTP server');
+					log.debug('Stopping HTTP server');
 
 					// Stop the server
 					server.stop();
@@ -62,7 +62,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			coreLogger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
+			log.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
 	});
 
@@ -79,7 +79,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			apiManagerLogger.error('Failed updating sockets on "expire" event with error %s.', error);
+			log.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
 	});
 
@@ -88,7 +88,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			apiManagerLogger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
+			log.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}
 	});
 
@@ -98,7 +98,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			logger.error('Failed checking connection with error %s.', error);
+			log.error('Failed checking connection with error %s.', error);
 		}
 	}, 5_000);
 

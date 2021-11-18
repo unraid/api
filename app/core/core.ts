@@ -9,7 +9,7 @@ import camelCase from 'camelcase';
 import globby from 'globby';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
-import { coreLogger } from './log';
+import { log } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint } from './utils';
 import { config } from './config';
@@ -30,7 +30,7 @@ const TEN_SECONDS = 10 * ONE_SECOND;
  * @param filePath
  */
 const loadingLogger = (namespace: string): void => {
-	coreLogger.debug('Loading %s', namespace);
+	log.debug('Loading %s', namespace);
 };
 
 /**
@@ -63,13 +63,13 @@ const loadStatePaths = async (): Promise<void> => {
 const loadPlugins = async (): Promise<void> => {
 	// Bail in safe mode
 	if (config.get('safe-mode')) {
-		coreLogger.debug('No plugins have been loaded as you\'re in SAFE MODE');
+		log.debug('No plugins have been loaded as you\'re in SAFE MODE');
 		return;
 	}
 
 	// Bail if there isn't a plugins directory
 	if (!paths.get('plugins')) {
-		coreLogger.debug('No plugins have been loaded as there was no plugins directory found.');
+		log.debug('No plugins have been loaded as there was no plugins directory found.');
 		return;
 	}
 
@@ -94,7 +94,7 @@ const loadPlugins = async (): Promise<void> => {
 			const pluginFiles = globby.sync(['**/*', '!**/node_modules/**'], { cwd });
 			await pIteration.forEach(pluginFiles, pluginFile => {
 				const filePath = path.join(pluginsCwd, pluginFile);
-				coreLogger.debug('Clearing plugin file from require cache %s', filePath);
+				log.debug('Clearing plugin file from require cache %s', filePath);
 				clearModule(filePath);
 			});
 		});
@@ -112,7 +112,7 @@ const loadPlugins = async (): Promise<void> => {
  */
 const loadWatchers = async (): Promise<void> => {
 	if (config.get('safe-mode')) {
-		coreLogger.debug('Skipping loading watchers');
+		log.debug('Skipping loading watchers');
 		return;
 	}
 
@@ -142,7 +142,7 @@ const loadApiKeys = async (): Promise<void> => {
  * @param endpoints
  */
 const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
-	coreLogger.debug('Connected to nchan, setting-up endpoints.');
+	log.debug('Connected to nchan, setting-up endpoints.');
 	const connections = endpoints.map(async endpoint => subscribeToNchanEndpoint(endpoint));
 	await Promise.all(connections);
 };
@@ -157,7 +157,7 @@ const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
 const loadNchan = async (): Promise<void> => {
 	const endpoints = ['devs', 'disks', 'sec', 'sec_nfs', 'shares', 'users', 'var'];
 
-	coreLogger.debug('Trying to connect to nchan');
+	log.debug('Trying to connect to nchan');
 
 	// Connect to each known endpoint
 	await connectToNchanEndpoints(endpoints);
