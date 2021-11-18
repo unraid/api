@@ -92,13 +92,13 @@ const commands = {
 		// Set envs
 		setEnv('DEBUG', mainOptions.debug);
 		setEnv('ENVIRONMENT', getEnvironment());
-		setEnv('LOG_LEVEL', mainOptions['log-level'] ?? (mainOptions.debug ? 'debug' : 'info'));
+		setEnv('LOG_LEVEL', mainOptions['log-level']);
 		setEnv('PORT', mainOptions.port);
 
 		const apiVersion: string = version;
 		log.addContext('version', apiVersion);
 		log.addContext('env', { ENVIRONMENT: getEnvironment(), NODE_ENV: process.env.NODE_ENV });
-		log.info('Starting...');
+		log.info('Starting unraid-api@v%s', apiVersion);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process

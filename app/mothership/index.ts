@@ -275,8 +275,6 @@ export const checkConnection = debounce(async () => {
 			log.info('%s -> %s', before, after);
 		} else if (timeout) {
 			log.info('Reconnecting in %ss!', Math.floor((timeout - Date.now()) / 1_000));
-		} else {
-			log.info('OK!');
 		}
 	}
 }, 5_000);
