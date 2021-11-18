@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.5](https://github.com/unraid/api/compare/v2.29.4...v2.29.5) (2021-11-18)
+
+
+### Bug Fixes
+
+* debounce key file changes ([68cbced](https://github.com/unraid/api/commit/68cbced369b10cfecc5d85d290171678b5e4e216))
+* debounce publishing to registration on var change ([7a6843a](https://github.com/unraid/api/commit/7a6843ae878b3d78cec62624bfa017d27f008f1f))
+* ensure we cache registration data for check ([a0ae391](https://github.com/unraid/api/commit/a0ae391ee0407b6ae749370f5266cffb19b2e7ce))
+
 ### [2.29.4](https://github.com/unraid/api/compare/v2.29.3...v2.29.4) (2021-11-18)
 
 
