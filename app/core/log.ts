@@ -61,11 +61,6 @@ export const relayLog = getLogger('relay');
 export const apiManagerLog = getLogger('api-manager');
 export const loggers = [log, nchanLog, relayLog, apiManagerLog];
 
-loggers.forEach(logger => {
-	logger.addContext('version', version);
-	logger.addContext('env', process.env);
-});
-
 // Send SIGUSR1 to increase log level
 process.on('SIGUSR1', () => {
 	loggers.forEach(logger => {
