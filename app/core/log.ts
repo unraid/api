@@ -9,11 +9,6 @@ import { configure, getLogger } from 'log4js';
 import { serializeError } from 'serialize-error';
 import { version } from '../../package.json';
 
-const logger = getLogger('app');
-
-logger.addContext('version', version);
-logger.addContext('env', process.env);
-
 const redact = redactSecrets('REDACTED', {
 	keys: [],
 	values: []
@@ -60,23 +55,33 @@ configure({
 	}
 });
 
-// Send SIGUSR1 to increase log level
-process.on('SIGUSR1', () => {
-	const level = `${logger.level}`;
-	const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
-	logger.level = nextLevel;
-	logger.mark('Log level changed from %s to %s', level, nextLevel);
-});
-
-// Send SIGUSR1 to decrease log level
-process.on('SIGUSR2', () => {
-	const level = `${logger.level}`;
-	const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
-	logger.level = nextLevel;
-	logger.mark('Log level changed from %s to %s', level, nextLevel);
-});
-
 export const log = getLogger('app');
 export const nchanLog = getLogger('nchan');
 export const relayLog = getLogger('relay');
 export const apiManagerLog = getLogger('api-manager');
+export const loggers = [log, nchanLog, relayLog, apiManagerLog];
+
+loggers.forEach(logger => {
+	logger.addContext('version', version);
+	logger.addContext('env', process.env);
+});
+
+// Send SIGUSR1 to increase log level
+process.on('SIGUSR1', () => {
+	loggers.forEach(logger => {
+		const level = `${logger.level}`;
+		const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
+		logger.level = nextLevel;
+		logger.mark('Log level changed from %s to %s', level, nextLevel);
+	});
+});
+
+// Send SIGUSR1 to decrease log level
+process.on('SIGUSR2', () => {
+	loggers.forEach(logger => {
+		const level = `${logger.level}`;
+		const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
+		logger.level = nextLevel;
+		logger.mark('Log level changed from %s to %s', level, nextLevel);
+	});
+});

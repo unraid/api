@@ -15,13 +15,10 @@ import { subscribeToNchanEndpoint } from './utils';
 import { config } from './config';
 import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
+import { nchanLog } from '.';
 
 // Have plugins loaded at least once
 let pluginsLoaded = false;
-
-// Magic values
-const ONE_SECOND = 1000;
-const TEN_SECONDS = 10 * ONE_SECOND;
 
 /**
  * Decorated loading logger.
@@ -116,7 +113,6 @@ const loadWatchers = async (): Promise<void> => {
 		return;
 	}
 
-	const watchersCwd = path.join(__dirname, 'watchers');
 	loadingLogger('watchers');
 
 	// Start each watcher
@@ -142,7 +138,7 @@ const loadApiKeys = async (): Promise<void> => {
  * @param endpoints
  */
 const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
-	log.debug('Connected to nchan, setting-up endpoints.');
+	nchanLog.debug('Connected, setting-up endpoints.');
 	const connections = endpoints.map(async endpoint => subscribeToNchanEndpoint(endpoint));
 	await Promise.all(connections);
 };
