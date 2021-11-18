@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { debounce } from './debounce';
-import { log } from '../core/log';
+import { relayLog } from '../core/log';
 import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
 import { version } from '../../package.json';
@@ -17,7 +17,7 @@ let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
 
 const subscriptionListener = (id: string | number, name: string) => (data: any) => {
-	log.trace('Sending update for %s for subscription %s\n%s', name, id, JSON.stringify(data, null, 2));
+	relayLog.trace('Sending update for %s for subscription %s\n%s', name, id, JSON.stringify(data, null, 2));
 	if (relay?.isOpened) {
 		relay.send(JSON.stringify({
 			id,
@@ -68,17 +68,17 @@ const handleError = (error: unknown) => {
 	switch (code) {
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
-			log.debug('DISCONNECTED:401:INVALID_API_KEY');
+			relayLog.debug('DISCONNECTED:401:INVALID_API_KEY');
 			break;
 
 		case 426:
 			// Bail as we cannot reconnect
-			log.debug('DISCONNECTED:426:API_IS_TOO_OUTDATED');
+			relayLog.debug('DISCONNECTED:426:API_IS_TOO_OUTDATED');
 			break;
 
 		case 429:
 			// Reconnect after 30s
-			log.debug(`DISCONNECTED:429:${reason ?? 'API_KEY_IN_USE'}`);
+			relayLog.debug(`DISCONNECTED:429:${reason ?? 'API_KEY_IN_USE'}`);
 			timeout = Date.now() + 30_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -87,7 +87,7 @@ const handleError = (error: unknown) => {
 
 		case 500:
 			// Reconnect after 60s
-			log.debug(`DISCONNECTED:500:${reason ?? 'INTERNAL_SERVER_ERROR'}`);
+			relayLog.debug(`DISCONNECTED:500:${reason ?? 'INTERNAL_SERVER_ERROR'}`);
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -96,7 +96,7 @@ const handleError = (error: unknown) => {
 
 		case 503:
 			// Reconnect after 60s
-			log.debug(`DISCONNECTED:503:${reason ?? 'GATEWAY_DOWN'}`);
+			relayLog.debug(`DISCONNECTED:503:${reason ?? 'GATEWAY_DOWN'}`);
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -105,7 +105,7 @@ const handleError = (error: unknown) => {
 
 		default:
 			// Reconnect after 60s
-			log.debug(`DISCONNECTED:${code}:${reason}`);
+			relayLog.debug(`DISCONNECTED:${code}:${reason}`);
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
@@ -160,8 +160,8 @@ export const checkConnection = debounce(async () => {
 
 		const headers = getRelayHeaders();
 
-		log.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
-		log.trace('Headers: %s', JSON.stringify(headers, null, 2));
+		relayLog.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
+		relayLog.trace('Headers: %s', JSON.stringify(headers, null, 2));
 
 		// Create a new ws instance
 		relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
@@ -186,7 +186,7 @@ export const checkConnection = debounce(async () => {
 			mothership.close();
 
 			const after = getConnectionStatus();
-			log.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
+			relayLog.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
 		});
 
 		// Bind on message handler
@@ -198,8 +198,8 @@ export const checkConnection = debounce(async () => {
 					case type === 'query' || type === 'mutation' || operationName === 'getInitialData': {
 						// Convert query to string
 						const query = print(message.payload.query);
-						log.debug('Processing %s', operationName);
-						log.trace(query);
+						relayLog.debug('Processing %s', operationName);
+						relayLog.trace(query);
 
 						// Process query
 						const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -212,7 +212,7 @@ export const checkConnection = debounce(async () => {
 							}
 						});
 
-						log.trace(payload);
+						relayLog.trace(payload);
 
 						// If the socket closed before we could reply then just bail
 						if (!relay?.isOpened) {
@@ -239,12 +239,12 @@ export const checkConnection = debounce(async () => {
 						const name = message.payload.query.definitions[0].selectionSet.selections[0].name.value;
 
 						// Subscribe to endpoint
-						log.debug('Subscribing to %s', name);
+						relayLog.debug('Subscribing to %s', name);
 						const subId = await pubsub.subscribe(name, subscriptionListener(id, name));
 
 						// When this ws closes remove the listener
 						relay.onClose.addOnceListener(() => {
-							log.debug('Unsubscribing from %s as the socket closed', name);
+							relayLog.debug('Unsubscribing from %s as the socket closed', name);
 							pubsub.unsubscribe(subId);
 						});
 						break;
@@ -254,7 +254,7 @@ export const checkConnection = debounce(async () => {
 						break;
 				}
 			} catch (error: unknown) {
-				log.error('%s', error);
+				relayLog.error('%s', error);
 				if (relay?.isOpened) {
 					relay.send(JSON.stringify({
 						id,
@@ -272,9 +272,9 @@ export const checkConnection = debounce(async () => {
 	} finally {
 		const after = getConnectionStatus();
 		if (before !== after) {
-			log.info('%s -> %s', before, after);
+			relayLog.info('%s -> %s', before, after);
 		} else if (timeout) {
-			log.info('Reconnecting in %ss!', Math.floor((timeout - Date.now()) / 1_000));
+			relayLog.info('Reconnecting in %ss!', Math.floor((timeout - Date.now()) / 1_000));
 		}
 	}
 }, 5_000);

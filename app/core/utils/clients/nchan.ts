@@ -8,7 +8,7 @@ import windowPolyFill from 'node-window-polyfill';
 import { EventSource } from 'launchdarkly-eventsource';
 import { parseConfig } from '..';
 import * as states from '../../states';
-import { log } from '../../log';
+import { nchanLog } from '../../log';
 import { AppError } from '../../errors';
 
 // Load polyfills for nchan
@@ -44,12 +44,12 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	});
 
 	sub.on('connect', function (_event) {
-		log.debug('Connected to %s', endpoint);
+		nchanLog.debug('Connected to %s', endpoint);
 		resolve();
 	});
 
 	sub.on('disconnect', function (_event) {
-		log.debug('Disconnected from %s', endpoint);
+		nchanLog.debug('Disconnected from %s', endpoint);
 	});
 
 	sub.on('message', function (message, _messageMetadata) {
@@ -65,7 +65,7 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	});
 
 	sub.on('error', function (error, error_description) {
-		log.error('Error: "%s" \nDescription: "%s"', error, error_description);
+		nchanLog.error('Error: "%s" \nDescription: "%s"', error, error_description);
 	});
 
 	sub.start();

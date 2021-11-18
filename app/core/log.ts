@@ -73,3 +73,5 @@ process.on('SIGUSR2', () => {
 });
 
 export const log = getLogger('app');
+export const nchanLog = getLogger('nchan');
+export const relayLog = getLogger('relay');
