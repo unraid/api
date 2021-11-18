@@ -38,6 +38,9 @@ export const keyFile = () => {
 			return;
 		}
 
+		// Update cached data
+		oldData = newData;
+
 		log.addContext('data', newData);
 		log.debug('Publishing to "registration"');
 		log.removeContext('data');
