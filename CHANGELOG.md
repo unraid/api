@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.2](https://github.com/unraid/api/compare/v2.29.1...v2.29.2) (2021-11-18)
+
+
+### Bug Fixes
+
+* log-level flag ([ce360c4](https://github.com/unraid/api/commit/ce360c43a5b4ff7d700b61d13f92ea1883f47cef))
+* move pid out of context ([464670b](https://github.com/unraid/api/commit/464670b68b182635351a353c97174ae5e858684f))
+
 ### [2.29.1](https://github.com/unraid/api/compare/v2.29.0...v2.29.1) (2021-11-18)
 
 
