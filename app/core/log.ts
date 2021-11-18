@@ -56,6 +56,7 @@ configure({
 });
 
 export const log = getLogger('app');
+export const graphqlLog = getLogger('graphql');
 export const dockerLog = getLogger('docker');
 export const cliLog = getLogger('cli');
 export const nchanLog = getLogger('nchan');
