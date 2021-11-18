@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.6](https://github.com/unraid/api/compare/v2.29.5...v2.29.6) (2021-11-18)
+
+
+### Bug Fixes
+
+* move update subscription to context ([9b257e8](https://github.com/unraid/api/commit/9b257e84b68a89a3d982ba730ab7022891dfeb52))
+
 ### [2.29.5](https://github.com/unraid/api/compare/v2.29.4...v2.29.5) (2021-11-18)
 
 
