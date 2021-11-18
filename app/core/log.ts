@@ -19,7 +19,11 @@ const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK
 const contextEnabled = Boolean(process.env.LOG_CONTEXT);
 const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 const tracingEnabled = Boolean(process.env.LOG_TRACING);
+const rawLogs = process.env.LOG_TYPE === 'raw';
 const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
+
+const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
+const minimumLoggingPattern = '%m';
 
 configure({
 	appenders: {
@@ -27,7 +31,7 @@ configure({
 			type: 'stdout',
 			layout: {
 				type: 'pattern',
-				pattern: chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`,
+				pattern: rawLogs ? minimumLoggingPattern : fullLoggingPattern,
 				tokens: {
 					id() {
 						return chalk`{gray [${process.pid}]}`;
