@@ -14,6 +14,7 @@ import { debounce } from '../../mothership/debounce';
 const fileWatchers: chokidar.FSWatcher[] = [];
 
 export const keyFile = () => {
+	let oldData: string;
 	const listener = async (data: any) => {
 		// Log for debugging
 		log.debug('Var state updated, publishing registration event.');
@@ -30,7 +31,16 @@ export const keyFile = () => {
 			}
 		};
 
-		log.debug('Publishing %s to registration', JSON.stringify(registration, null, 2));
+		const newData = JSON.stringify(registration, null, 2);
+
+		// Don't publish data if it's the same as the last event
+		if (oldData === newData) {
+			return;
+		}
+
+		log.addContext('data', newData);
+		log.debug('Publishing to "registration"');
+		log.removeContext('data');
 
 		// Publish event
 		// This will end up going to the graphql endpoint
