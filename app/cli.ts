@@ -293,8 +293,10 @@ async function main() {
 		throw new Error(`Invalid command "${command}"`);
 	}
 
+	// Ensure process.env is loaded
+	dotEnv.config();
+
 	// Set context for the cli's logger instance
-	cliLog.addContext('version', version);
 	cliLog.addContext('env', {
 		ENVIRONMENT: process.env.ENVIRONMENT,
 		NODE_ENV: process.env.NODE_ENV
