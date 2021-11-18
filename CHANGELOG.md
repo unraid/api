@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.4](https://github.com/unraid/api/compare/v2.29.3...v2.29.4) (2021-11-18)
+
+
+### Bug Fixes
+
+* ensure env is loaded ([df4e9a5](https://github.com/unraid/api/commit/df4e9a517a056f7c2676185922fa45d44d6e93e0))
+
 ### [2.29.3](https://github.com/unraid/api/compare/v2.29.2...v2.29.3) (2021-11-18)
 
 
