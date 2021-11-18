@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.29.1](https://github.com/unraid/api/compare/v2.29.0...v2.29.1) (2021-11-18)
+
+
+### Bug Fixes
+
+* add trial to registrationType ([85b3575](https://github.com/unraid/api/commit/85b3575d6c8c96873324f32ad1f7aa69e92e4d89))
+* allow array updates without limits ([dae5245](https://github.com/unraid/api/commit/dae524505fd2fd563d90f996d036973026fb9d44))
+* recheck relay connection once every 5s ([e939188](https://github.com/unraid/api/commit/e939188a3bac56139b476861344117f829de45cc))
+
 ## [2.29.0](https://github.com/unraid/api/compare/v2.28.0...v2.29.0) (2021-11-16)
 
 
