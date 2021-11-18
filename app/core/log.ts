@@ -21,9 +21,6 @@ const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 const tracingEnabled = Boolean(process.env.LOG_TRACING);
 const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
 
-// Load in default context items
-logger.addContext('pid', process.pid);
-
 configure({
 	appenders: {
 		app: {
@@ -32,8 +29,8 @@ configure({
 				type: 'pattern',
 				pattern: chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`,
 				tokens: {
-					id({ context }: { context?: any }) {
-						return chalk`{gray [${context.pid}]}`;
+					id() {
+						return chalk`{gray [${process.pid}]}`;
 					},
 					context({ context }: { context?: any }) {
 						if (!contextEnabled) {
