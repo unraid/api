@@ -5,7 +5,7 @@
 
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
-import { bus, apiManager, config, pluginManager, modules, log, paths, pubsub } from '../core';
+import { bus, apiManager, config, pluginManager, modules, paths, pubsub } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
 import dee from '@gridplus/docker-events';
@@ -16,6 +16,7 @@ import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { User } from '../core/types';
 import { types as typeDefs } from './types';
 import { schema } from './schema';
+import { dockerLog } from '../core/log';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -76,7 +77,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		await ensureApiKey(apiKey);
 	} catch (error: unknown) {
-		log.debug('Failed looking up API key with "%s"', (error as Error).message);
+		dockerLog.debug('Failed looking up API key with "%s"', (error as Error).message);
 
 		return { name: 'guest', role: 'guest' };
 	}
@@ -84,7 +85,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
 
-		log.trace('Found key "%s".', keyName);
+		dockerLog.trace('Found key "%s".', keyName);
 
 		// Force upc into it's own group that's not a user group
 		if (keyName && keyName === 'upc') {
@@ -109,7 +110,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 			}
 		}
 	} catch (error: unknown) {
-		log.debug('Failed looking up API key with "%s"', (error as Error).message);
+		dockerLog.debug('Failed looking up API key with "%s"', (error as Error).message);
 	}
 
 	return { id: -1, description: 'A guest user', name: 'guest', role: 'guest' };
@@ -117,7 +118,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 
 // Update array values when slots change
 bus.on('slots', async () => {
-	log.trace('slots updated: running getArray');
+	dockerLog.trace('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
 		context: {
@@ -152,9 +153,10 @@ bus.on('var', async data => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-log.debug('Loading docker events');
+dockerLog.debug('Loading events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
-	log.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+	dockerLog.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+	dockerLog.trace(data);
 
 	// Only listen to container events
 	if (data.Type !== 'container') {
@@ -188,7 +190,7 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
-			log.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+			dockerLog.debug(`<ws> ${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);
@@ -205,7 +207,7 @@ export const graphql = {
 			// This should only disconnect if mothership restarts
 			// or the network link reconnects
 			if (websocketContext.socket.url === MOTHERSHIP_RELAY_WS_LINK) {
-				log.debug('Mothership disconnected.');
+				dockerLog.debug('Mothership disconnected.');
 				return;
 			}
 
@@ -214,7 +216,7 @@ export const graphql = {
 			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
-				log.debug('<ws> unknown[unknown] disconnected.');
+				dockerLog.debug('<ws> unknown[unknown] disconnected.');
 				return;
 			}
 
@@ -224,7 +226,7 @@ export const graphql = {
 				};
 				websocketId: string;
 			};
-			log.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
+			dockerLog.debug(`<ws> ${user.name}[${websocketId}] disconnected.`);
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);
