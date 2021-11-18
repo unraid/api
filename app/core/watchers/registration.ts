@@ -9,6 +9,7 @@ import { pubsub } from '../pubsub';
 import { getKeyFile } from '../utils';
 import { bus } from '../bus';
 import { varState } from '../states';
+import { debounce } from '../../mothership/debounce';
 
 const fileWatchers: chokidar.FSWatcher[] = [];
 
@@ -40,7 +41,6 @@ export const keyFile = () => {
 		});
 	};
 
-	let timeout: NodeJS.Timeout;
 	return {
 		start() {
 			// Update registration when regTy, regCheck, etc changes
@@ -54,10 +54,7 @@ export const keyFile = () => {
 			});
 
 			// Key file has updated, updating registration
-			watcher.on('all', async () => {
-				// Reset timeout
-				clearTimeout(timeout);
-
+			watcher.on('all', debounce(async () => {
 				// Get key file
 				const keyFile = varState.data.regFile ? await getKeyFile(varState.data.regFile) : '';
 				const registration = {
@@ -75,7 +72,7 @@ export const keyFile = () => {
 				}).catch(error => {
 					log.error('Failed publishing to "registration" with %s', error);
 				});
-			});
+			}, 1_000));
 
 			// Save ref for cleanup
 			fileWatchers.push(watcher);
