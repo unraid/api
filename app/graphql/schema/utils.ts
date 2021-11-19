@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { pubsub, utils, errors, states, apiManager, log, paths } from '../../core';
+import { pubsub, utils, errors, states, apiManager, logger, paths } from '../../core';
 import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils';
@@ -101,14 +101,14 @@ export const getServers = async (): Promise<Server[]> => {
 
 		// If they're in anon mode bail
 		if (myserversConfigFile.remote.anonMode === 'true') {
-			log.trace('Falling back to local state for /servers endpoint');
+			logger.trace('Falling back to local state for /servers endpoint');
 			return getLocalServer(apiKey);
 		}
 
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);
 
-		log.trace('Using upstream for /servers endpoint');
+		logger.trace('Using upstream for /servers endpoint');
 
 		// No servers found
 		if (!servers || servers.length === 0) {
@@ -132,6 +132,6 @@ export const getServers = async (): Promise<Server[]> => {
 		return servers;
 	}
 
-	log.debug('Falling back to local state for /servers endpoint');
+	logger.debug('Falling back to local state for /servers endpoint');
 	return getLocalServer(apiKey);
 };

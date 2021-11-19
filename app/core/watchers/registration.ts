@@ -4,7 +4,7 @@
  */
 
 import chokidar from 'chokidar';
-import { log } from '../log';
+import { logger } from '../log';
 import { pubsub } from '../pubsub';
 import { getKeyFile } from '../utils';
 import { bus } from '../bus';
@@ -17,7 +17,7 @@ export const keyFile = () => {
 	let oldData: string;
 	const listener = async (data: any) => {
 		// Log for debugging
-		log.debug('Var state updated, publishing registration event.');
+		logger.debug('Var state updated, publishing registration event.');
 
 		// Get key file
 		const keyFile = data.var.node.regFile ? await getKeyFile(data.var.node.regFile) : '';
@@ -41,16 +41,16 @@ export const keyFile = () => {
 		// Update cached data
 		oldData = newData;
 
-		log.addContext('data', newData);
-		log.debug('Publishing to "registration"');
-		log.removeContext('data');
+		logger.addContext('data', newData);
+		logger.debug('Publishing to "registration"');
+		logger.removeContext('data');
 
 		// Publish event
 		// This will end up going to the graphql endpoint
 		await pubsub.publish('registration', {
 			registration
 		}).catch(error => {
-			log.error('Failed publishing to "registration" with %s', error);
+			logger.error('Failed publishing to "registration" with %s', error);
 		});
 	};
 
@@ -83,7 +83,7 @@ export const keyFile = () => {
 				await pubsub.publish('registration', {
 					registration
 				}).catch(error => {
-					log.error('Failed publishing to "registration" with %s', error);
+					logger.error('Failed publishing to "registration" with %s', error);
 				});
 			}, 1_000));
 

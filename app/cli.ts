@@ -11,7 +11,7 @@ import dedent from 'dedent-tabs';
 import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
-import { cliLog } from './core/log';
+import { cliLogger } from './core/log';
 
 const setEnv = (envName: string, value: any) => {
 	if (!value || String(value).trim().length === 0) {
@@ -96,13 +96,13 @@ const commands = {
 		setEnv('PORT', mainOptions.port);
 
 		// Set context for the cli's logger instance
-		cliLog.addContext('env', {
+		cliLogger.addContext('env', {
 			ENVIRONMENT: process.env.ENVIRONMENT,
 			NODE_ENV: process.env.NODE_ENV
 		});
 
 		const apiVersion: string = version;
-		cliLog.info('Starting unraid-api@v%s', apiVersion);
+		cliLogger.info('Starting unraid-api@v%s', apiVersion);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -140,7 +140,7 @@ const commands = {
 				// In the child, clean up the tracking environment variable
 				delete process.env._DAEMONIZE_PROCESS;
 			} else {
-				cliLog.debug('Daemonizing process.');
+				cliLogger.debug('Daemonizing process.');
 
 				// Spawn child
 				const child = spawn(process.execPath, process.argv.slice(2), {
@@ -156,7 +156,7 @@ const commands = {
 				// Convert process into daemon
 				child.unref();
 
-				cliLog.debug('Daemonized successfully!');
+				cliLogger.debug('Daemonized successfully!');
 
 				// Exit cleanly
 				process.exit(0);
@@ -172,13 +172,13 @@ const commands = {
 
 		// Bail if we have no process
 		if (!unraidApiPid) {
-			cliLog.info('Found no running processes.');
+			cliLogger.info('Found no running processes.');
 			return;
 		}
 
-		cliLog.info('Stopping unraid-api process...');
+		cliLogger.info('Stopping unraid-api process...');
 		process.kill(unraidApiPid, 'SIGTERM');
-		cliLog.info('Process stopped!');
+		cliLogger.info('Process stopped!');
 	},
 	/**
 	 * Stop a running API process and then start it again.
@@ -192,7 +192,7 @@ const commands = {
 	 */
 	async version() {
 		const apiVersion: string = version;
-		cliLog.info(`Unraid API v${apiVersion}`);
+		cliLogger.info(`Unraid API v${apiVersion}`);
 	},
 	async status() {
 		// Find all processes called "unraid-api" which aren't this process
@@ -224,7 +224,7 @@ const commands = {
 		const envFlashFilePath = paths.get('myservers-env')!;
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
 
-		cliLog.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
+		cliLogger.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
 
 		// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
 		const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
@@ -244,20 +244,20 @@ const commands = {
 		}
 
 		if (currentEnvInFile) {
-			cliLog.debug('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
+			cliLogger.debug('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
 		} else {
-			cliLog.debug('No ENV found, setting env to "production"...');
+			cliLogger.debug('No ENV found, setting env to "production"...');
 		}
 
 		// Write new env to flash
 		const newEnvLine = `env="${newEnv}"`;
 		await fs.promises.writeFile(envFlashFilePath, newEnvLine);
-		cliLog.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
+		cliLogger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
 
 		// Copy the new env over to live location before restarting
 		const source = path.join(basePath, `.env.${newEnv}`);
 		const destination = path.join(basePath, '.env');
-		cliLog.debug('Copying %s to %s', source, destination);
+		cliLogger.debug('Copying %s to %s', source, destination);
 		await new Promise<void>((resolve, reject) => {
 			// Use the native cp command to ensure we're outside the virtual file system
 			exec(`cp "${source}" "${destination}"`, error => {
@@ -273,13 +273,13 @@ const commands = {
 		// If there's a process running restart it
 		const unraidApiPid = await getUnraidApiPid();
 		if (unraidApiPid) {
-			cliLog.debug('unraid-api is running, restarting...');
+			cliLogger.debug('unraid-api is running, restarting...');
 
 			// Restart the process
 			return this.restart();
 		}
 
-		cliLog.info('Run "unraid-api start" to start the API.');
+		cliLogger.info('Run "unraid-api start" to start the API.');
 	}
 };
 
@@ -304,5 +304,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-	cliLog.error((error as Error).message);
+	cliLogger.error((error as Error).message);
 });

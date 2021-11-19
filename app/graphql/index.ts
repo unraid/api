@@ -15,7 +15,7 @@ import { wsHasConnected, wsHasDisconnected } from '../ws';
 import { User } from '../core/types';
 import { types as typeDefs } from './types';
 import { schema } from './schema';
-import { dockerLog, graphqlLog, log } from '../core/log';
+import { dockerLogger, graphqlLogger, logger } from '../core/log';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -76,7 +76,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		await ensureApiKey(apiKey);
 	} catch (error: unknown) {
-		graphqlLog.debug('Failed looking up API key with "%s"', (error as Error).message);
+		graphqlLogger.debug('Failed looking up API key with "%s"', (error as Error).message);
 
 		return { name: 'guest', role: 'guest' };
 	}
@@ -84,7 +84,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		const keyName = apiManager.getNameFromKey(apiKey);
 
-		graphqlLog.trace('Found key "%s".', keyName);
+		graphqlLogger.trace('Found key "%s".', keyName);
 
 		// Force upc into it's own group that's not a user group
 		if (keyName && keyName === 'upc') {
@@ -109,7 +109,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 			}
 		}
 	} catch (error: unknown) {
-		graphqlLog.debug('Failed looking up API key with "%s"', (error as Error).message);
+		graphqlLogger.debug('Failed looking up API key with "%s"', (error as Error).message);
 	}
 
 	return { id: -1, description: 'A guest user', name: 'guest', role: 'guest' };
@@ -117,7 +117,7 @@ export const apiKeyToUser = async (apiKey: string) => {
 
 // Update array values when slots change
 bus.on('slots', async () => {
-	dockerLog.trace('slots updated: running getArray');
+	dockerLogger.trace('slots updated: running getArray');
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
 		context: {
@@ -152,11 +152,11 @@ bus.on('var', async data => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-log.debug('Loading events');
+logger.debug('Loading events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
-	dockerLog.addContext('data', data);
-	dockerLog.debug(`[${data.from}] ${data.Type}->${data.Action}`);
-	dockerLog.removeContext('data');
+	dockerLogger.addContext('data', data);
+	dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+	dockerLogger.removeContext('data');
 
 	// Only listen to container events
 	if (data.Type !== 'container') {
@@ -190,7 +190,7 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
-			graphqlLog.debug(`${user.name}[${websocketId}] connected.`);
+			graphqlLogger.debug(`${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);
@@ -208,7 +208,7 @@ export const graphql = {
 			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
-				graphqlLog.debug('unknown[unknown] disconnected.');
+				graphqlLogger.debug('unknown[unknown] disconnected.');
 				return;
 			}
 
@@ -219,9 +219,9 @@ export const graphql = {
 				websocketId: string;
 			};
 
-			graphqlLog.addContext('websocketId', websocketId);
-			graphqlLog.debug(`${user.name} disconnected.`);
-			graphqlLog.removeContext('websocketId');
+			graphqlLogger.addContext('websocketId', websocketId);
+			graphqlLogger.debug(`${user.name} disconnected.`);
+			graphqlLogger.removeContext('websocketId');
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);

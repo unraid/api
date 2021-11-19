@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { debounce } from './debounce';
-import { relayLog } from '../core/log';
+import { relayLogger } from '../core/log';
 import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
 import { version } from '../../package.json';
@@ -17,7 +17,7 @@ let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
 
 const subscriptionListener = (id: string | number, name: string) => (data: any) => {
-	relayLog.trace('Sending update for %s for subscription %s', name, id);
+	relayLogger.trace('Sending update for %s for subscription %s', name, id);
 	if (relay?.isOpened) {
 		relay.send(JSON.stringify({
 			id,
@@ -65,9 +65,9 @@ const getRelayHeaders = () => {
 const handleError = (error: unknown) => {
 	const reason = (error as any).reason as string;
 	const code = (error as any).code as number ?? 500;
-	relayLog.addContext('reason', reason);
-	relayLog.addContext('code', code);
-	relayLog.debug('Disconnected');
+	relayLogger.addContext('reason', reason);
+	relayLogger.addContext('code', code);
+	relayLogger.debug('Disconnected');
 	switch (code) {
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
@@ -120,7 +120,7 @@ const startKeepAlive = () => {
 		}
 
 		// Send keep alive message
-		relayLog.trace('Sending keep alive message');
+		relayLogger.trace('Sending keep alive message');
 		relay.send(JSON.stringify({ type: 'ka' }));
 	}, 30_000);
 };
@@ -158,8 +158,8 @@ export const checkConnection = debounce(async () => {
 
 		const headers = getRelayHeaders();
 
-		relayLog.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
-		relayLog.trace('Headers: %s', JSON.stringify(headers, null, 2));
+		relayLogger.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
+		relayLogger.trace('Headers: %s', JSON.stringify(headers, null, 2));
 
 		// Create a new ws instance
 		relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
@@ -184,7 +184,7 @@ export const checkConnection = debounce(async () => {
 			mothership.close();
 
 			const after = getConnectionStatus();
-			relayLog.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
+			relayLogger.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
 		});
 
 		// Bind on message handler
@@ -196,8 +196,8 @@ export const checkConnection = debounce(async () => {
 					case type === 'query' || type === 'mutation' || operationName === 'getInitialData': {
 						// Convert query to string
 						const query = print(message.payload.query);
-						relayLog.debug('Processing %s', operationName);
-						relayLog.trace(query);
+						relayLogger.debug('Processing %s', operationName);
+						relayLogger.trace(query);
 
 						// Process query
 						const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -210,7 +210,7 @@ export const checkConnection = debounce(async () => {
 							}
 						});
 
-						relayLog.trace(payload);
+						relayLogger.trace(payload);
 
 						// If the socket closed before we could reply then just bail
 						if (!relay?.isOpened) {
@@ -237,12 +237,12 @@ export const checkConnection = debounce(async () => {
 						const name = message.payload.query.definitions[0].selectionSet.selections[0].name.value;
 
 						// Subscribe to endpoint
-						relayLog.debug('Subscribing to %s', name);
+						relayLogger.debug('Subscribing to %s', name);
 						const subId = await pubsub.subscribe(name, subscriptionListener(id, name));
 
 						// When this ws closes remove the listener
 						relay.onClose.addOnceListener(() => {
-							relayLog.debug('Unsubscribing from %s as the socket closed', name);
+							relayLogger.debug('Unsubscribing from %s as the socket closed', name);
 							pubsub.unsubscribe(subId);
 						});
 						break;
@@ -252,9 +252,9 @@ export const checkConnection = debounce(async () => {
 						break;
 				}
 			} catch (error: unknown) {
-				relayLog.addContext('error', error);
-				relayLog.error('Failed processing message');
-				relayLog.removeContext('error');
+				relayLogger.addContext('error', error);
+				relayLogger.error('Failed processing message');
+				relayLogger.removeContext('error');
 				if (relay?.isOpened) {
 					relay.send(JSON.stringify({
 						id,
@@ -272,10 +272,10 @@ export const checkConnection = debounce(async () => {
 	} finally {
 		const after = getConnectionStatus();
 		if (before !== after) {
-			relayLog.info('Connection status changed from %s to %s', before.toLowerCase(), after.toLowerCase());
+			relayLogger.info('Connection status changed from %s to %s', before.toLowerCase(), after.toLowerCase());
 		} else if (timeout) {
 			const secondsLeft = Math.floor((timeout - Date.now()) / 1_000);
-			relayLog.debug('Reconnecting in %ss', secondsLeft);
+			relayLogger.debug('Reconnecting in %ss', secondsLeft);
 		}
 	}
 }, 5_000);

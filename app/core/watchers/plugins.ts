@@ -6,7 +6,7 @@
 import chokidar from 'chokidar';
 import prettyMilliseconds from 'pretty-ms';
 import { paths } from '../paths';
-import { log } from '../log';
+import { logger } from '../log';
 
 export const plugins = () => {
 	const PLUGIN_RELOAD_TIME_MS = 5000; // 5s
@@ -15,7 +15,7 @@ export const plugins = () => {
 	let timeout: NodeJS.Timeout;
 
 	const reloadPlugins = () => {
-		log.debug('Reloading plugins as it\'s been %s since last event.', prettyMilliseconds(PLUGIN_RELOAD_TIME_MS));
+		logger.debug('Reloading plugins as it\'s been %s since last event.', prettyMilliseconds(PLUGIN_RELOAD_TIME_MS));
 
 		// Reload plugins
 		// core.loaders.plugins();
@@ -34,7 +34,7 @@ export const plugins = () => {
 				ignored: (path: string) => ['node_modules'].some(s => path.includes(s))
 			});
 
-			log.debug('Loading watchers for %s', pluginsCwd);
+			logger.debug('Loading watchers for %s', pluginsCwd);
 
 			// Plugin has been deleted, remove from manager
 			watcher.on('all', (event, fullPath) => {
@@ -43,7 +43,7 @@ export const plugins = () => {
 
 				// Update timeout
 				timeout = setTimeout(reloadPlugins, PLUGIN_RELOAD_TIME_MS);
-				log.debug('Plugin directory %s has emitted %s event.', fullPath, event);
+				logger.debug('Plugin directory %s has emitted %s event.', fullPath, event);
 			});
 
 			// Save ref for cleanup

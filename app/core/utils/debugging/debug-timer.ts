@@ -4,7 +4,7 @@
  */
 
 import { performance } from 'perf_hooks';
-import { log } from '../../log';
+import { logger } from '../../log';
 
 const timers = new Map();
 
@@ -19,7 +19,7 @@ export const debugTimer = (timerName: string): void => {
 	}
 
 	const timeLengthInMs = performance.now() - timers.get(timerName);
-	log.timer(`${timerName}: ${timeLengthInMs}`);
+	logger.timer(`${timerName}: ${timeLengthInMs}`);
 
 	// Remove existing timer
 	timers.delete(timerName);

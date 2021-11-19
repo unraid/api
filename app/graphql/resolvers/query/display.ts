@@ -5,7 +5,7 @@
 
 import { join } from 'path';
 import { promises as fs, statSync, existsSync } from 'fs';
-import { paths, log } from '../../../core';
+import { paths, logger } from '../../../core';
 
 // Consts
 const ONE_BYTE = 1;
@@ -102,7 +102,7 @@ export default async () => {
 
 		// Ensure we're within size limits
 		if (isOverFileSizeLimit(customImageFilePath)) {
-			log.debug('"custom-case.png" is too big.');
+			logger.debug('"custom-case.png" is too big.');
 			return { case: states.imageTooBig };
 		}
 

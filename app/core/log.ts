@@ -7,7 +7,6 @@ import chalk from 'chalk';
 import { redactSecrets } from 'redact-secrets';
 import { configure, getLogger } from 'log4js';
 import { serializeError } from 'serialize-error';
-import { version } from '../../package.json';
 
 const redact = redactSecrets('REDACTED', {
 	keys: [],
@@ -55,32 +54,32 @@ configure({
 	}
 });
 
-export const log = getLogger('app');
-export const mothershipLog = getLogger('mothership');
-export const graphqlLog = getLogger('graphql');
-export const dockerLog = getLogger('docker');
-export const cliLog = getLogger('cli');
-export const nchanLog = getLogger('nchan');
-export const relayLog = getLogger('relay');
-export const apiManagerLog = getLogger('api-manager');
-export const loggers = [log, nchanLog, relayLog, apiManagerLog];
+export const logger = getLogger('app');
+export const mothershipLogger = getLogger('mothership');
+export const graphqlLogger = getLogger('graphql');
+export const dockerLogger = getLogger('docker');
+export const cliLogger = getLogger('cli');
+export const nchanLogger = getLogger('nchan');
+export const relayLogger = getLogger('relay');
+export const apiManagerLogger = getLogger('api-manager');
+export const loggers = [logger, nchanLogger, relayLogger, apiManagerLogger];
 
 // Send SIGUSR1 to increase log level
 process.on('SIGUSR1', () => {
+	const level = `${logger.level}`;
+	const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
 	loggers.forEach(logger => {
-		const level = `${logger.level}`;
-		const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
 		logger.level = nextLevel;
-		logger.mark('Log level changed from %s to %s', level, nextLevel);
 	});
+	logger.mark('Log level changed from %s to %s', level, nextLevel);
 });
 
 // Send SIGUSR1 to decrease log level
 process.on('SIGUSR2', () => {
+	const level = `${logger.level}`;
+	const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
 	loggers.forEach(logger => {
-		const level = `${logger.level}`;
-		const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
 		logger.level = nextLevel;
-		logger.mark('Log level changed from %s to %s', level, nextLevel);
 	});
+	logger.mark('Log level changed from %s to %s', level, nextLevel);
 });

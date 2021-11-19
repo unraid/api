@@ -16,7 +16,7 @@ import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
 import { validateApiKeyFormat, loadState, validateApiKey, isNodeError } from './utils';
 import { paths } from './paths';
-import { apiManagerLog } from './log';
+import { apiManagerLogger } from './log';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -82,7 +82,7 @@ export class ApiManager extends EventEmitter {
 		const configPath = paths.get('myservers-config')!;
 
 		// Load UPC + notifier keys
-		apiManagerLog.debug('Loading service API keys...');
+		apiManagerLogger.debug('Loading service API keys...');
 		const myserversConfigFile = loadState<{
 			upc: { apikey: string };
 			notifier: { apikey: string };
@@ -111,7 +111,7 @@ export class ApiManager extends EventEmitter {
 				}
 			};
 
-			apiManagerLog.debug('Dumping MyServers config back to file');
+			apiManagerLogger.debug('Dumping MyServers config back to file');
 
 			// Stringify data
 			const stringifiedData = serializer.serialize(data);
@@ -137,14 +137,14 @@ export class ApiManager extends EventEmitter {
 		}
 
 		// Load my_servers key
-		apiManagerLog.debug('Loading MyServers API key...');
+		apiManagerLogger.debug('Loading MyServers API key...');
 		this.checkKey(configPath, true).then(() => {
-			apiManagerLog.debug('Loaded MyServers API key!');
+			apiManagerLogger.debug('Loaded MyServers API key!');
 
 			// API manager is ready
 			this.emit('ready', undefined);
 		}).catch(error => {
-			apiManagerLog.debug('Failing loading MyServers API key with %s', error);
+			apiManagerLogger.debug('Failing loading MyServers API key with %s', error);
 		});
 	}
 
@@ -162,7 +162,7 @@ export class ApiManager extends EventEmitter {
 		this.add(name, key, options);
 
 		// Emit update
-		apiManagerLog.trace('Emitting "replace" event');
+		apiManagerLogger.trace('Emitting "replace" event');
 		this.emit('replace', name, this.getKey(name));
 	}
 
@@ -191,7 +191,7 @@ export class ApiManager extends EventEmitter {
 		this.keys.add(name, keyObject, ttl);
 
 		// Emit update
-		apiManagerLog.trace('Emitting "add" event');
+		apiManagerLogger.trace('Emitting "add" event');
 		this.emit('add', name, this.getKey(name));
 	}
 
@@ -212,7 +212,7 @@ export class ApiManager extends EventEmitter {
 				const name = this.getNameFromKey(nameOrKey);
 
 				if (!name) {
-					apiManagerLog.debug('No key found for "%s".', nameOrKey);
+					apiManagerLogger.debug('No key found for "%s".', nameOrKey);
 					return false;
 				}
 
@@ -222,16 +222,16 @@ export class ApiManager extends EventEmitter {
 				// it's over the cache time
 				const key = this.keys.get(name);
 
-				apiManagerLog.trace('Key found for "%s".', name);
+				apiManagerLogger.trace('Key found for "%s".', name);
 
 				return key !== null;
 			} catch (error: unknown) {
-				apiManagerLog.debug(error);
+				apiManagerLogger.debug(error);
 				return false;
 			}
 		}
 
-		apiManagerLog.trace('Key found for "%s".', nameOrKey);
+		apiManagerLogger.trace('Key found for "%s".', nameOrKey);
 		const foundKey = this.keys.get(`${nameOrKey}`)?.key;
 		if (!foundKey) {
 			return false;
@@ -328,7 +328,7 @@ export class ApiManager extends EventEmitter {
 	async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
 		await lock.runExclusive(async () => {
-			apiManagerLog.trace('Checking API key for validity.');
+			apiManagerLogger.trace('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
 
@@ -339,17 +339,17 @@ export class ApiManager extends EventEmitter {
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				apiManagerLog.debug('%s was updated but the API key didn\'t change.', filePath);
+				apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
 				return;
 			}
 
 			// Ensure key format is valid before validating
 			validateApiKeyFormat(apiKey);
-			apiManagerLog.trace('API key is in the correct format, checking key\'s validity...');
+			apiManagerLogger.trace('API key is in the correct format, checking key\'s validity...');
 
 			// Ensure key is valid before connecting
 			await validateApiKey(apiKey);
-			apiManagerLog.debug('API key is valid.');
+			apiManagerLogger.debug('API key is valid.');
 
 			// Add the new key
 			this.replace('my_servers', apiKey, {
@@ -359,12 +359,12 @@ export class ApiManager extends EventEmitter {
 			if (isNodeError(error)) {
 				// File was deleted
 				if (error?.code === 'ENOENT') {
-					apiManagerLog.debug('%s was deleted, removing "my_servers" API key.', filePath);
+					apiManagerLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
 				} else {
-					apiManagerLog.debug('%s, removing "my_servers" API key.', error.message);
+					apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
 				}
 			} else {
-				apiManagerLog.debug('%s, removing "my_servers" API key.', error.message);
+				apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
 			}
 
 			// Reset key as it's not valid anymore

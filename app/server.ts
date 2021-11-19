@@ -15,7 +15,7 @@ import http from 'http';
 import WebSocket from 'ws';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
-import { log, config, paths, pubsub } from './core';
+import { logger, config, paths, pubsub } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync, attemptJSONParse } from './core/utils';
 import { graphql } from './graphql';
 import packageJson from '../package.json';
@@ -124,7 +124,7 @@ app.use(cors({
 	origin: function (origin, callback) {
 		// Get currently allowed origins
 		const allowedOrigins = getAllowedOrigins();
-		log.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
+		logger.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
 
 		// Disallow requests with no origin
 		// (like mobile apps, curl requests or viewing /graphql directly)
@@ -135,21 +135,21 @@ app.use(cors({
 				return;
 			}
 
-			log.debug('No origin provided, denying CORS!');
+			logger.debug('No origin provided, denying CORS!');
 			callback(new Error(invalidOrigin), false);
 			return;
 		}
 
-		log.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
+		logger.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
 			callback(new Error(invalidOrigin), false);
-			log.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
+			logger.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
 			return;
 		}
 
-		log.trace('✔️ Origin check passed, granting CORS!');
+		logger.trace('✔️ Origin check passed, granting CORS!');
 		callback(null, true);
 	}
 }));
@@ -198,7 +198,7 @@ app.get('/', (_, res) => {
 app.use((error, _, res, __) => {
 	// Don't log CORS errors
 	if (!error.message.includes('CORS')) {
-		log.error(error);
+		logger.error(error);
 	}
 
 	if (error.stack) {
@@ -220,7 +220,7 @@ if (isNaN(parseInt(port, 10))) {
 
 	stoppableServer.on('error', async (error: NodeJS.ErrnoException) => {
 		if (error.code !== 'EADDRINUSE') {
-			log.error(error);
+			logger.error(error);
 			throw error;
 		}
 
@@ -258,12 +258,12 @@ if (isNaN(parseInt(port, 10))) {
 			// Port was set to a path that already exists and isn't a unix socket
 			// Let's bail since we don't know if this was intentional
 			if (error.code === 'ENOTSOCK') {
-				log.warn('%s is not a unix socket and already exists', port);
+				logger.warn('%s is not a unix socket and already exists', port);
 				exitApp();
 			}
 
 			if (error.code !== 'ECONNREFUSED') {
-				log.error(error);
+				logger.error(error);
 
 				process.exitCode = 1;
 			}

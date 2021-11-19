@@ -9,13 +9,13 @@ import camelCase from 'camelcase';
 import globby from 'globby';
 import pIteration from 'p-iteration';
 import clearModule from 'clear-module';
-import { log } from './log';
+import { logger } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint } from './utils';
 import { config } from './config';
 import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
-import { nchanLog } from '.';
+import { nchanLogger } from '.';
 
 // Have plugins loaded at least once
 let pluginsLoaded = false;
@@ -27,7 +27,7 @@ let pluginsLoaded = false;
  * @param filePath
  */
 const loadingLogger = (namespace: string): void => {
-	log.debug('Loading %s', namespace);
+	logger.debug('Loading %s', namespace);
 };
 
 /**
@@ -60,13 +60,13 @@ const loadStatePaths = async (): Promise<void> => {
 const loadPlugins = async (): Promise<void> => {
 	// Bail in safe mode
 	if (config.get('safe-mode')) {
-		log.debug('No plugins have been loaded as you\'re in SAFE MODE');
+		logger.debug('No plugins have been loaded as you\'re in SAFE MODE');
 		return;
 	}
 
 	// Bail if there isn't a plugins directory
 	if (!paths.get('plugins')) {
-		log.debug('No plugins have been loaded as there was no plugins directory found.');
+		logger.debug('No plugins have been loaded as there was no plugins directory found.');
 		return;
 	}
 
@@ -91,7 +91,7 @@ const loadPlugins = async (): Promise<void> => {
 			const pluginFiles = globby.sync(['**/*', '!**/node_modules/**'], { cwd });
 			await pIteration.forEach(pluginFiles, pluginFile => {
 				const filePath = path.join(pluginsCwd, pluginFile);
-				log.debug('Clearing plugin file from require cache %s', filePath);
+				logger.debug('Clearing plugin file from require cache %s', filePath);
 				clearModule(filePath);
 			});
 		});
@@ -109,7 +109,7 @@ const loadPlugins = async (): Promise<void> => {
  */
 const loadWatchers = async (): Promise<void> => {
 	if (config.get('safe-mode')) {
-		log.debug('Skipping loading watchers');
+		logger.debug('Skipping loading watchers');
 		return;
 	}
 
@@ -138,7 +138,7 @@ const loadApiKeys = async (): Promise<void> => {
  * @param endpoints
  */
 const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
-	nchanLog.debug('Connected, setting-up endpoints.');
+	nchanLogger.debug('Connected, setting-up endpoints.');
 	const connections = endpoints.map(async endpoint => subscribeToNchanEndpoint(endpoint));
 	await Promise.all(connections);
 };
@@ -153,7 +153,7 @@ const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
 const loadNchan = async (): Promise<void> => {
 	const endpoints = ['devs', 'disks', 'sec', 'sec_nfs', 'shares', 'users', 'var'];
 
-	log.debug('Trying to connect to nchan');
+	logger.debug('Trying to connect to nchan');
 
 	// Connect to each known endpoint
 	await connectToNchanEndpoints(endpoints);

@@ -7,7 +7,7 @@ import am from 'am';
 import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, log, apiManager, paths } from './core';
+import { core, logger, apiManager, paths } from './core';
 import { server } from './server';
 import { checkConnection } from './mothership';
 import { loadState } from './core/utils/misc/load-state';
@@ -25,11 +25,11 @@ am(async () => {
 	await core.load();
 
 	// Try and load the HTTP server
-	log.debug('Starting HTTP server');
+	logger.debug('Starting HTTP server');
 
 	// Log only if the server actually binds to the port
 	server.server.on('listening', () => {
-		log.info('Server is up! %s', getServerAddress(server.server));
+		logger.info('Server is up! %s', getServerAddress(server.server));
 	});
 
 	// It has it's first keys loaded
@@ -37,11 +37,11 @@ am(async () => {
 		try {
 			// Try to start server
 			await server.start().catch(error => {
-				log.error(error);
+				logger.error(error);
 
 				// On process exit
 				exitHook(async () => {
-					log.debug('Stopping HTTP server');
+					logger.debug('Stopping HTTP server');
 
 					// Stop the server
 					server.stop();
@@ -51,7 +51,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			log.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
+			logger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
 	});
 
@@ -63,7 +63,7 @@ am(async () => {
 				return;
 			}
 
-			log.debug('API key in cfg is invalid, attempting to sign user our via cfg.');
+			logger.debug('API key in cfg is invalid, attempting to sign user our via cfg.');
 			const configPath = paths.get('myservers-config')!;
 			const myserversConfigFile = loadState<Partial<{
 				remote: {
@@ -93,7 +93,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			log.error('Failed updating sockets on "expire" event with error %s.', error);
+			logger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
 	});
 
@@ -102,7 +102,7 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			log.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
+			logger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}
 	});
 
@@ -112,17 +112,17 @@ am(async () => {
 			// Check relay connection
 			await checkConnection();
 		} catch (error: unknown) {
-			log.error('Failed checking connection with error %s.', error);
+			logger.error('Failed checking connection with error %s.', error);
 		}
 	}, 5_000);
 
 	// Load nchan
 	core.loadNchan().catch(error => {
-		log.error(error);
+		logger.error(error);
 	});
 }, async (error: NodeJS.ErrnoException) => {
 	// Log error to syslog
-	log.error(error);
+	logger.error(error);
 
 	// Stop server
 	server.stop(async () => {

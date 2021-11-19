@@ -4,7 +4,7 @@
  */
 
 import sendmail from 'sendmail';
-import { log } from '../log';
+import { logger } from '../log';
 import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
 
 interface Options extends NotifierOptions {
@@ -59,8 +59,8 @@ export class EmailNotifier extends Notifier {
 			subject: title,
 			html
 		}, (error, reply) => {
-			log.error(error?.stack);
-			log.info(reply);
+			logger.error(error?.stack);
+			logger.info(reply);
 		});
 	}
 }

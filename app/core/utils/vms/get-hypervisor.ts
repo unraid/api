@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { ConnectListAllDomainsFlags, Hypervisor } from '@vmngr/libvirt';
 import { watch } from 'chokidar';
-import { log } from '../../log';
+import { logger } from '../../log';
 import { pubsub } from '../../pubsub';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
@@ -44,7 +44,7 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 		// Start connection
 		hypervisor = new Hypervisor({ uri });
 		await hypervisor.connectOpen().catch((error: unknown) => {
-			log.error(`Failed restarting VM hypervisor connection with "${(error as Error).message}"`);
+			logger.error(`Failed restarting VM hypervisor connection with "${(error as Error).message}"`);
 		});
 	}
 });
@@ -63,7 +63,7 @@ export const getHypervisor = async (useCache = true) => {
 
 	hypervisor = new Hypervisor({ uri });
 	await hypervisor.connectOpen().catch((error: unknown) => {
-		log.error(`Failed starting VM hypervisor connection with "${(error as Error).message}"`);
+		logger.error(`Failed starting VM hypervisor connection with "${(error as Error).message}"`);
 	});
 
 	return hypervisor;
@@ -123,12 +123,12 @@ const watchLibvirt = async (useCache = true) => {
 
 		// If the result is the same as the cache wait 5s then retry
 		if (JSON.stringify(cachedDomains) === JSON.stringify(resolvedDomains)) {
-			log.trace('libvirt: No changes detected.');
+			logger.trace('libvirt: No changes detected.');
 			await sleep(5_000);
 			return watchLibvirt();
 		}
 
-		log.debug('libvirt: Changes detected!');
+		logger.debug('libvirt: Changes detected!');
 
 		// Update the cache with new results
 		cachedDomains = resolvedDomains;
@@ -154,27 +154,27 @@ const watchLibvirt = async (useCache = true) => {
 
 		// Publish changes to pub/sub
 		await pubsub.publish('info', summary).catch(error => {
-			log.error('Failed publishing to "info" with "%s"', error);
+			logger.error('Failed publishing to "info" with "%s"', error);
 		});
 
 		// Publish changes to pub/sub
 		await pubsub.publish('vms', full).catch(error => {
-			log.error('Failed publishing to "vms" with "%s"', error);
+			logger.error('Failed publishing to "vms" with "%s"', error);
 		});
 
-		log.debug('libvirt: Published full and summary data to pub/sub');
+		logger.debug('libvirt: Published full and summary data to pub/sub');
 
 		await sleep(1_000);
 		return watchLibvirt();
 	} catch (error: unknown) {
 		// We need to try and reconnect
 		if ((error as Error).message.includes('invalid connection pointer')) {
-			log.warn('Reconnecting to libvirt socket...');
+			logger.warn('Reconnecting to libvirt socket...');
 			await sleep(5_000);
 			return watchLibvirt(false);
 		}
 
-		log.error('Failed watching libvirt with "%s"', error);
+		logger.error('Failed watching libvirt with "%s"', error);
 		await sleep(5_000);
 		return watchLibvirt();
 	}

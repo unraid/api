@@ -4,13 +4,13 @@
  */
 
 import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
-import { log } from '../log';
+import { logger } from '../log';
 
 /**
  * Console notifier.
  */
 export class ConsoleNotifier extends Notifier {
-	private readonly log: typeof log;
+	private readonly log: typeof logger;
 
 	constructor(options: NotifierOptions) {
 		super(options);
@@ -18,7 +18,7 @@ export class ConsoleNotifier extends Notifier {
 		this.level = options.level || 'info';
 		this.helpers = options.helpers ?? {};
 		this.template = options.template ?? '{{{ json }}}';
-		this.log = log;
+		this.log = logger;
 	}
 
 	/**

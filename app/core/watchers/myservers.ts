@@ -4,7 +4,7 @@
  */
 
 import chokidar from 'chokidar';
-import { log } from '../log';
+import { logger } from '../log';
 import { paths } from '../paths';
 import { pki } from 'node-forge';
 import { attemptJSONParse, attemptReadFileSync, loadState } from '../utils';
@@ -20,7 +20,7 @@ export const myservers = () => {
 			const myserversConfigFilePath = paths.get('myservers-config')!;
 
 			// Watch the my servers config file
-			log.debug('Loading watchers for %s', myserversConfigFilePath);
+			logger.debug('Loading watchers for %s', myserversConfigFilePath);
 			const myserversConfigWatcher = chokidar.watch(myserversConfigFilePath, {
 				persistent: true,
 				ignoreInitial: true
@@ -52,7 +52,7 @@ export const myservers = () => {
 					// Ensure api manager has the correct keys loaded
 					await apiManager.checkKey(myserversConfigFilePath, true);
 				} catch (error: unknown) {
-					log.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
+					logger.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
 				}
 			});
 
