@@ -120,6 +120,7 @@ const startKeepAlive = () => {
 		}
 
 		// Send keep alive message
+		relayLog.trace('Sending keep alive message');
 		relay.send(JSON.stringify({ type: 'ka' }));
 	}, 30_000);
 };
