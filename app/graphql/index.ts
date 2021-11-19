@@ -190,7 +190,7 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
-			graphqlLog.debug(`<ws> ${user.name}[${websocketId}] connected.`);
+			graphqlLog.debug(`${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);

@@ -1,10 +1,10 @@
-import { pubsub, log } from '../core';
+import { pubsub, mothershipLog } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
 import { userCache, CachedServers } from '../cache';
 
 export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
-	reconnect: false,
+	reconnect: true,
 	lazy: true,
 	minTimeout: ONE_SECOND * 30,
 	connectionCallback: errors => {
@@ -13,7 +13,7 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 				// Log all errors
 				errors.forEach((error: any) => {
 					// [error] {"message":"","locations":[{"line":2,"column":13}],"path":["servers"],"extensions":{"code":"INTERNAL_SERVER_ERROR","exception":{"fatal":false,"extras":{},"name":"AppError","status":500}}} [./dist/index.js:24646]
-					log.error('Failed connecting to %s code=%s reason="%s"', MOTHERSHIP_GRAPHQL_LINK, error.extensions.code, error.message);
+					mothershipLog.error('Failed connecting to %s code=%s reason="%s"', MOTHERSHIP_GRAPHQL_LINK, error.extensions.code, error.message);
 				});
 			}
 		} catch {}
@@ -21,7 +21,9 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 });
 
 export const subscribeToServers = (apiKey: string) => {
-	log.trace('Subscribing to servers with %s', apiKey);
+	mothershipLog.addContext('apiKey', apiKey);
+	mothershipLog.debug('Subscribing to servers');
+	mothershipLog.removeContext('apiKey');
 	const query = mothership.request({
 		query: `subscription servers ($apiKey: String!) {
             servers @auth(apiKey: $apiKey)
@@ -34,16 +36,15 @@ export const subscribeToServers = (apiKey: string) => {
 	// Subscribe
 	const subscription = query.subscribe({
 		next: async ({ data, errors }) => {
-			log.trace('Got data back with %s errors', errors?.length ?? 0);
-			log.trace('Got data %j', data);
-			log.trace('Got errors %s', errors);
+			mothershipLog.debug('Got data back with %s errors', errors?.length ?? 0);
+			mothershipLog.trace('Got data %j', data);
+			mothershipLog.trace('Got errors %s', errors);
 
+			// Log error
 			if (errors) {
-				// Log all errors
-				errors.forEach((error: any) => {
-					log.error('Failed subscribing to %s code=%s reason="%s"', MOTHERSHIP_GRAPHQL_LINK, error.extensions.code, error.message);
-				});
-
+				mothershipLog.addContext('code', errors[0].extensions.code);
+				mothershipLog.addContext('reason', errors[0].message);
+				mothershipLog.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
 				return;
 			}
 
