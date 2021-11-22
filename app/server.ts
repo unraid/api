@@ -53,17 +53,14 @@ export const cert = {
 	hash: certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined
 };
 
-// Get extra origins from the user
-const extraOriginPath = paths.get('extra-origins');
-
-// To add extra-origins create a file at the "extra-origins" path
-export const origins = {
-	extra: extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : []
-};
-
 // Get myservers config
 const configPath = paths.get('myservers-config')!;
-export const myServersConfig = loadState<{ remote?: { wanport?: string; wanaccess?: string } }>(configPath) ?? {};
+export const myServersConfig = loadState<{ remote?: { wanport?: string; wanaccess?: string }; api?: { 'extra-origins'?: string } }>(configPath) ?? {};
+
+// To add extra-origins add a field to your myservers.cfg called "extra-origins" with a comma separated string
+export const origins = {
+	extra: typeof myServersConfig?.api?.['extra-origins'] === 'string' ? (myServersConfig.api['extra-origins']?.split(',') ?? []) : []
+};
 
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {

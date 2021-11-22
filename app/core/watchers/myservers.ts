@@ -7,7 +7,7 @@ import chokidar from 'chokidar';
 import { logger } from '../log';
 import { paths } from '../paths';
 import { pki } from 'node-forge';
-import { attemptJSONParse, attemptReadFileSync, loadState } from '../utils';
+import { attemptReadFileSync, loadState } from '../utils';
 import { apiManager } from '../api-manager';
 import { cert, myServersConfig, origins } from '../../server';
 
@@ -37,6 +37,9 @@ export const myservers = () => {
 						username?: string;
 						avatar?: string;
 					};
+					api?: {
+						'extra-origins'?: string;
+					};
 				}>>(fullPath);
 
 				// Only update these if they exist
@@ -46,6 +49,10 @@ export const myservers = () => {
 						wanaccess: file.remote.wanaccess,
 						wanport: file.remote.wanport
 					};
+				}
+
+				if (file?.api?.['extra-origins'] === 'string') {
+					origins.extra = myServersConfig?.api?.['extra-origins']?.split(',') ?? [];
 				}
 
 				try {
@@ -59,20 +66,6 @@ export const myservers = () => {
 			// Save ref for cleanup
 			watchers.push(myserversConfigWatcher);
 
-			// Get extra origin path
-			const extraOriginPath = paths.get('extra-origins')!;
-
-			// Watch extra origin path for changes
-			const extraOriginsWatcher = chokidar.watch(extraOriginPath, {
-				persistent: true,
-				ignoreInitial: true
-			});
-
-			// Extra origins file has likely updated
-			extraOriginsWatcher.on('all', async event => {
-				origins.extra = extraOriginPath ? attemptJSONParse(attemptReadFileSync(extraOriginPath, ''), []) : [];
-			});
-
 			// Get cert path
 			const sslCertPath = paths.get('ssl-certificate')!;
 
@@ -83,7 +76,7 @@ export const myservers = () => {
 			});
 
 			// Update SSL cert info
-			sslCertWatcher.on('all', event => {
+			sslCertWatcher.on('all', _event => {
 				const certPem = attemptReadFileSync(sslCertPath);
 				cert.hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined;
 			});
