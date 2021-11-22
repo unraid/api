@@ -9,19 +9,45 @@ import { pubsub } from '../pubsub';
 import { getKeyFile } from '../utils';
 import { bus } from '../bus';
 import { varState } from '../states';
-import { debounce } from '../../mothership/debounce';
 
 const fileWatchers: chokidar.FSWatcher[] = [];
 
-export const keyFile = () => {
-	let oldData: string;
-	const listener = async (data: any) => {
-		// Log for debugging
-		logger.debug('Var state updated, publishing registration event.');
+let oldData: string;
+const publishRegistrationEvent = async (registration: {
+	guid: string;
+	type: string;
+	state: any;
+	keyFile: {
+		location: string;
+		contents: string;
+	};
+}) => {
+	const newData = JSON.stringify(registration, null, 2);
 
+	// Don't publish data if it's the same as the last event
+	if (oldData === newData) {
+		return;
+	}
+
+	// Update cached data
+	oldData = newData;
+
+	logger.addContext('data', newData);
+	logger.debug('Publishing to "registration"');
+	logger.removeContext('data');
+
+	await pubsub.publish('registration', {
+		registration
+	}).catch(error => {
+		logger.error('Failed publishing to "registration" with %s', error);
+	});
+};
+
+export const keyFile = () => {
+	const listener = async data => {
 		// Get key file
 		const keyFile = data.var.node.regFile ? await getKeyFile(data.var.node.regFile) : '';
-		const registration = {
+		await publishRegistrationEvent({
 			guid: data.var.node.regGuid,
 			type: data.var.node.regTy.toUpperCase(),
 			state: data.var.node.regState,
@@ -29,28 +55,6 @@ export const keyFile = () => {
 				location: data.var.node.regFile,
 				contents: keyFile
 			}
-		};
-
-		const newData = JSON.stringify(registration, null, 2);
-
-		// Don't publish data if it's the same as the last event
-		if (oldData === newData) {
-			return;
-		}
-
-		// Update cached data
-		oldData = newData;
-
-		logger.addContext('data', newData);
-		logger.debug('Publishing to "registration"');
-		logger.removeContext('data');
-
-		// Publish event
-		// This will end up going to the graphql endpoint
-		await pubsub.publish('registration', {
-			registration
-		}).catch(error => {
-			logger.error('Failed publishing to "registration" with %s', error);
 		});
 	};
 
@@ -67,10 +71,10 @@ export const keyFile = () => {
 			});
 
 			// Key file has updated, updating registration
-			watcher.on('all', debounce(async () => {
+			watcher.on('all', async () => {
 				// Get key file
 				const keyFile = varState.data.regFile ? await getKeyFile(varState.data.regFile) : '';
-				const registration = {
+				await publishRegistrationEvent({
 					guid: varState.data.regGuid,
 					type: varState.data.regTy.toUpperCase(),
 					state: varState.data.regState,
@@ -78,14 +82,8 @@ export const keyFile = () => {
 						location: varState.data.regFile,
 						contents: keyFile
 					}
-				};
-
-				await pubsub.publish('registration', {
-					registration
-				}).catch(error => {
-					logger.error('Failed publishing to "registration" with %s', error);
 				});
-			}, 1_000));
+			});
 
 			// Save ref for cleanup
 			fileWatchers.push(watcher);
