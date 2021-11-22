@@ -154,14 +154,13 @@ bus.on('var', async data => {
 // On Docker event update info with { apps: { installed, started } }
 logger.debug('Loading events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
-	dockerLogger.addContext('data', data);
-	dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
-	dockerLogger.removeContext('data');
-
 	// Only listen to container events
 	if (data.Type !== 'container') {
+		dockerLogger.debug(`${data.Type}->${data.Action}`);
 		return;
 	}
+
+	dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
 
 	const user: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 	const { json } = await modules.getAppCount({ user });
