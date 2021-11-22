@@ -93,6 +93,7 @@ const commands = {
 		setEnv('DEBUG', mainOptions.debug);
 		setEnv('ENVIRONMENT', getEnvironment());
 		setEnv('LOG_LEVEL', mainOptions['log-level']);
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'pretty');
 		setEnv('PORT', mainOptions.port);
 
 		// Set context for the cli's logger instance
@@ -198,18 +199,18 @@ const commands = {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		if (!unraidApiPid) {
-			console.info('Found no running processes.');
+			cliLogger.info('Found no running processes.');
 			return;
 		}
 
 		const stats = await pidUsage(unraidApiPid);
-		console.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
+		cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
 	},
 	async report() {
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
-		console.info(
+		cliLogger.info(
 			dedent`
 				<-----UNRAID-API-REPORT----->
 				Environment: ${getEnvironment()}
@@ -298,6 +299,8 @@ async function main() {
 	if (!Object.keys(commands).includes(command)) {
 		throw new Error(`Invalid command "${command}"`);
 	}
+
+	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 
 	// Run the command
 	await commands[command]();
