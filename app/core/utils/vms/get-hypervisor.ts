@@ -104,7 +104,7 @@ const watchLibvirt = async (useCache = true) => {
 
 		// We now have a hypervisor instance
 		const autoStartDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.AUTOSTART);
-		const autoStartDomainNames = await Promise.all(autoStartDomains.map(async domain => hypervisor.domainGetName(domain)));
+		const autoStartDomainNames = await Promise.all(autoStartDomains.map(async domain => hypervisor.domainGetName(domain))) ?? [];
 
 		// Get all domains
 		const domains = await hypervisor.connectListAllDomains();
