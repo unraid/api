@@ -257,7 +257,10 @@ export const checkRelayConnection = debounce(async () => {
 				relayLogger.info('Disconnected from %s', MOTHERSHIP_RELAY_WS_LINK);
 				break;
 			default:
-				relayLogger.info('Connection status changed from %s to %s when dis/connecting from/to %s', before, after, MOTHERSHIP_RELAY_WS_LINK);
+				if (before !== after) {
+					relayLogger.info('Connection status changed from %s to %s when dis/connecting from/to %s', before, after, MOTHERSHIP_RELAY_WS_LINK);
+				}
+
 				break;
 		}
 
