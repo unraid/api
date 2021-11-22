@@ -248,9 +248,20 @@ export const checkRelayConnection = debounce(async () => {
 		handleError(error);
 	} finally {
 		const after = getConnectionStatus();
-		if (before !== after) {
-			relayLogger.info('Connection status changed from %s to %s', before.toLowerCase(), after.toLowerCase());
-		} else if (timeout) {
+
+		switch (true) {
+			case before === 'closed' && after === 'open':
+				relayLogger.info('Connected to %s', MOTHERSHIP_RELAY_WS_LINK);
+				break;
+			case before === 'open' && after === 'closed':
+				relayLogger.info('Disconnected from %s', MOTHERSHIP_RELAY_WS_LINK);
+				break;
+			default:
+				relayLogger.info('Connection status changed from %s to %s when dis/connecting from/to %s', before, after, MOTHERSHIP_RELAY_WS_LINK);
+				break;
+		}
+
+		if (timeout) {
 			const secondsLeft = Math.floor((timeout - Date.now()) / 1_000);
 			relayLogger.debug('Reconnecting in %ss', secondsLeft);
 		}
