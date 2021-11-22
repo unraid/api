@@ -168,6 +168,7 @@ const commands = {
 	 * Stop a running API process.
 	 */
 	async stop() {
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 		// Find process called "unraid-api"
 		const unraidApiPid = await getUnraidApiPid();
 
@@ -185,6 +186,7 @@ const commands = {
 	 * Stop a running API process and then start it again.
 	 */
 	async restart() {
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 		await this.stop();
 		await this.start();
 	},
@@ -192,10 +194,12 @@ const commands = {
 	 * Print API version.
 	 */
 	async version() {
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 		const apiVersion: string = version;
 		cliLogger.info(`Unraid API v${apiVersion}`);
 	},
 	async status() {
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		if (!unraidApiPid) {
@@ -207,6 +211,7 @@ const commands = {
 		cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${getEnvironment()}" mode!`);
 	},
 	async report() {
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
@@ -221,6 +226,7 @@ const commands = {
 		);
 	},
 	async 'switch-env'() {
+		setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 		const basePath = paths.get('unraid-api-base')!;
 		const envFlashFilePath = paths.get('myservers-env')!;
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
@@ -299,8 +305,6 @@ async function main() {
 	if (!Object.keys(commands).includes(command)) {
 		throw new Error(`Invalid command "${command}"`);
 	}
-
-	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? 'raw');
 
 	// Run the command
 	await commands[command]();
