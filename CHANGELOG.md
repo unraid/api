@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.30.0](https://github.com/unraid/api/compare/v2.29.7...v2.30.0) (2021-11-22)
+
+
+### Features
+
+* move extra-origins to cfg ([686fc67](https://github.com/unraid/api/commit/686fc67161a3fc31f99dee4b25d98ba453b5e075))
+
+
+### Bug Fixes
+
+* add checker for graphql ([db64460](https://github.com/unraid/api/commit/db64460f6612be2684a0da7c9b99038f0799e3d9))
+* better logs for relay disconnecting/reconnecting ([30bcb34](https://github.com/unraid/api/commit/30bcb34f22fc0ecb02e1959e7498eb3c0e627609))
+* clean up docker logging ([dfaf39a](https://github.com/unraid/api/commit/dfaf39ae12eaab0facf3b460c516f112e407f896))
+* debounce registration event ([016cd63](https://github.com/unraid/api/commit/016cd634f0a5504976c8d9db9c4bc25069c6c896))
+* ensure autoStartDomainNames is always an array ([b5b205a](https://github.com/unraid/api/commit/b5b205a57dea5ce1c438be8105673047838ef476))
+* ensure graphql is restarted correctly ([d03af6e](https://github.com/unraid/api/commit/d03af6e262853bbb26b8c997e7d5777c6946c15c))
+
 ### [2.29.7](https://github.com/unraid/api/compare/v2.29.6...v2.29.7) (2021-11-19)
 
 
