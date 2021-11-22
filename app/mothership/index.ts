@@ -9,7 +9,7 @@ import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
 import { version } from '../../package.json';
 import { pubsub } from '../core/pubsub';
-import { checkGraphqlConnection, mothership } from './subscribe-to-servers';
+import { checkGraphqlConnection } from './subscribe-to-servers';
 import { apiKeyToUser } from '../graphql';
 import { schema } from '../graphql/schema';
 import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';

@@ -1,8 +1,8 @@
 import fetch from 'cross-fetch';
-import * as Sentry from '@sentry/node';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { CachedServer } from './cache';
 import packageJson from '../package.json';
+import { logger } from './core';
 
 export const getServers = async (apiKey: string) => fetch(MOTHERSHIP_GRAPHQL_LINK, {
 	method: 'POST',
@@ -27,5 +27,7 @@ export const getServers = async (apiKey: string) => fetch(MOTHERSHIP_GRAPHQL_LIN
 		return data.servers as Promise<CachedServer[]>;
 	})
 	.catch((error: Error) => {
-		Sentry.captureException(error);
+		logger.addContext('error', error);
+		logger.error('Failed getting servers');
+		logger.removeContext('error');
 	});

@@ -244,15 +244,6 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Create Sentry release
-      uses: getsentry/action-release@v1
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-      with:
-        environment: prerelease
-
   release:
     # Only release if this is a version tag
     if: |
@@ -298,13 +289,3 @@ jobs:
         files: unraid-api-*.tgz
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Create Sentry release
-      uses: getsentry/action-release@v1
-      env:
-        SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_AUTH_TOKEN }}
-        SENTRY_ORG: ${{ secrets.SENTRY_ORG }}
-        SENTRY_PROJECT: ${{ secrets.SENTRY_PROJECT }}
-      with:
-        environment: production
-        version: ${{ github.ref }}
