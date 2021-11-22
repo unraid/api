@@ -30,6 +30,10 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	}
 });
 
+mothership.onConnected(() => {
+	subscribeToServers(apiManager.getKey('my_servers')?.key!);
+}, undefined);
+
 export const checkGraphqlConnection = debounce(async () => {
 	try {
 		// Bail if we're in the middle of opening a connection
