@@ -9,7 +9,7 @@ import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
 import { core, logger, apiManager, paths } from './core';
 import { server } from './server';
-import { checkConnection } from './mothership';
+import { checkCloudConnections } from './mothership';
 import { loadState } from './core/utils/misc/load-state';
 import { writeFileSync } from 'fs';
 
@@ -48,8 +48,8 @@ am(async () => {
 				});
 			});
 
-			// Check relay connection
-			await checkConnection();
+			// Check cloud connections
+			await checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
@@ -90,8 +90,8 @@ am(async () => {
 			// Update config file
 			writeFileSync(configPath, stringifiedData);
 
-			// Check relay connection
-			await checkConnection();
+			// Check cloud connections
+			await checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
@@ -99,8 +99,8 @@ am(async () => {
 
 	apiManager.on('replace', async () => {
 		try {
-			// Check relay connection
-			await checkConnection();
+			// Check cloud connections
+			await checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}
@@ -109,8 +109,8 @@ am(async () => {
 	// Every 5s check if our connection to relay is okay
 	setInterval(async () => {
 		try {
-			// Check relay connection
-			await checkConnection();
+			// Check cloud connections
+			await checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed checking connection with error %s.', error);
 		}

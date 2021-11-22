@@ -1,24 +1,59 @@
-import { pubsub, mothershipLogger } from '../core';
+import { pubsub, mothershipLogger, apiManager } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
+import WebSocket from 'ws';
 import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
 import { userCache, CachedServers } from '../cache';
+import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
+import { debounce } from './debounce';
 
 export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
-	reconnect: true,
-	lazy: true,
+	reconnect: false,
+	lazy: false,
 	minTimeout: ONE_SECOND * 30,
 	connectionCallback: errors => {
 		try {
 			if (errors) {
-				// Log all errors
-				errors.forEach((error: any) => {
-					// [error] {"message":"","locations":[{"line":2,"column":13}],"path":["servers"],"extensions":{"code":"INTERNAL_SERVER_ERROR","exception":{"fatal":false,"extras":{},"name":"AppError","status":500}}} [./dist/index.js:24646]
-					mothershipLogger.error('Failed connecting to %s code=%s reason="%s"', MOTHERSHIP_GRAPHQL_LINK, error.extensions.code, error.message);
-				});
+				// Log first error
+				if ((errors[0] as any)?.extensions?.code) {
+					mothershipLogger.addContext('code', (errors[0] as any).extensions.code);
+				}
+
+				mothershipLogger.addContext('reason', errors[0].message);
+				mothershipLogger.error('Failed connecting to %s', MOTHERSHIP_GRAPHQL_LINK);
 			}
 		} catch {}
 	}
 });
+
+export const checkGraphqlConnection = debounce(async () => {
+	try {
+		// Bail if we're in the middle of opening a connection
+		if (mothership.status === WebSocket.CONNECTING) {
+			return;
+		}
+
+		// Bail if we're already connected
+		if (await shouldBeConnectedToCloud() && mothership.status === WebSocket.OPEN) {
+			return;
+		}
+
+		// Close the connection if it's still up
+		if (mothership) {
+			mothership.close(true, true);
+		}
+
+		// If we should be disconnected at this point then stay that way
+		if (!await shouldBeConnectedToCloud()) {
+			return;
+		}
+
+		// Reconnect
+		mothership.connect();
+		subscribeToServers(apiManager.getKey('my_servers')?.key!);
+	} catch (error: unknown) {
+		console.log(error);
+	}
+}, 5_000);
 
 export const subscribeToServers = (apiKey: string) => {
 	mothershipLogger.addContext('apiKey', apiKey);

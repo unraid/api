@@ -9,9 +9,10 @@ import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
 import { version } from '../../package.json';
 import { pubsub } from '../core/pubsub';
-import { mothership } from './subscribe-to-servers';
+import { checkGraphqlConnection, mothership } from './subscribe-to-servers';
 import { apiKeyToUser } from '../graphql';
 import { schema } from '../graphql/schema';
+import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
 
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
@@ -31,24 +32,6 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 
 const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
 const getConnectionStatus = () => readyStates[relay?._ws?.readyState ?? 3];
-
-// Ensure API key exists and is valid
-const checkApiKey = async () => {
-	const apiKey = apiManager.getKey('my_servers')?.key;
-	if (!apiKey) {
-		return false;
-	}
-
-	if (apiKey.length < 64) {
-		return false;
-	}
-
-	return true;
-};
-
-// Ensure we should actually be connected right now
-// If our API key exists and is the right length then we should always try to connect
-const shouldBeConnected = async () => checkApiKey();
 
 const getRelayHeaders = () => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -125,8 +108,8 @@ const startKeepAlive = () => {
 	}, 30_000);
 };
 
-// Check our ws connection is correct
-export const checkConnection = debounce(async () => {
+// Check our relay connection is correct
+export const checkRelayConnection = debounce(async () => {
 	const before = getConnectionStatus();
 	try {
 		// Bail if we're in the middle of opening a connection
@@ -140,7 +123,7 @@ export const checkConnection = debounce(async () => {
 		}
 
 		// Bail if we're already connected
-		if (await shouldBeConnected() && relay?.isOpened) {
+		if (await shouldBeConnectedToCloud() && relay?.isOpened) {
 			return;
 		}
 
@@ -152,7 +135,7 @@ export const checkConnection = debounce(async () => {
 		}
 
 		// If we should be disconnected at this point then stay that way
-		if (!await shouldBeConnected()) {
+		if (!await shouldBeConnectedToCloud()) {
 			return;
 		}
 
@@ -279,3 +262,8 @@ export const checkConnection = debounce(async () => {
 		}
 	}
 }, 5_000);
+
+export const checkCloudConnections = async () => Promise.all([
+	checkRelayConnection(),
+	checkGraphqlConnection()
+]);
