@@ -155,17 +155,11 @@ export const checkRelayConnection = debounce(async () => {
 		// Connect to relay
 		await relay.open();
 
-		// Connect to /graphql
-		mothership.connect();
-
 		// Start keep alive loop
 		startKeepAlive();
 
 		// Bind on disconnect handler
 		relay.onClose.addListener(statusCode => {
-			// Close connection to /graphql
-			mothership.close();
-
 			const after = getConnectionStatus();
 			relayLogger.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
 		});

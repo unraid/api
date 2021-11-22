@@ -17,6 +17,11 @@ export const sendNotification = async (_: unknown, args: { notification: Notific
 		possession: 'own'
 	});
 
+	// If there's no mothership connection then bail
+	if (!mothership) {
+		throw new Error('Mothership is down');
+	}
+
 	// Prepare query
 	const query = mothership.request({
 		query: 'mutation($notification:NotificationInput!){sendNotification(notification:$notification){title subject description importance link status}}',

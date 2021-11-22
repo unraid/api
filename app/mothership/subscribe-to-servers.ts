@@ -20,6 +20,11 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 
 				mothershipLogger.addContext('reason', errors[0].message);
 				mothershipLogger.error('Failed connecting to %s', MOTHERSHIP_GRAPHQL_LINK);
+
+				// Close the connection if it's still open
+				if (mothership.status !== WebSocket.CLOSED) {
+					mothership.close(true, true);
+				}
 			}
 		} catch {}
 	}
@@ -38,7 +43,7 @@ export const checkGraphqlConnection = debounce(async () => {
 		}
 
 		// Close the connection if it's still up
-		if (mothership) {
+		if (mothership.status !== WebSocket.CLOSED) {
 			mothership.close(true, true);
 		}
 
@@ -49,7 +54,9 @@ export const checkGraphqlConnection = debounce(async () => {
 
 		// Reconnect
 		mothership.connect();
-		subscribeToServers(apiManager.getKey('my_servers')?.key!);
+		mothership.onConnected(() => {
+			subscribeToServers(apiManager.getKey('my_servers')?.key!);
+		}, undefined);
 	} catch (error: unknown) {
 		console.log(error);
 	}
