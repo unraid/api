@@ -5,7 +5,7 @@
 
 import chalk from 'chalk';
 import { redactSecrets } from 'redact-secrets';
-import { configure, getLogger } from 'log4js';
+import { configure, getLogger, shutdown } from 'log4js';
 import { serializeError } from 'serialize-error';
 
 const redact = redactSecrets('REDACTED', {
@@ -14,53 +14,60 @@ const redact = redactSecrets('REDACTED', {
 });
 
 const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
-const contextEnabled = Boolean(process.env.LOG_CONTEXT);
-const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
-const tracingEnabled = Boolean(process.env.LOG_TRACING);
-const rawLogs = process.env.LOG_TYPE === 'raw';
-const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
 
-const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
-const minimumLoggingPattern = '%m';
+export const configureLogger = async (type: 'raw' | 'pretty' = (process.env.LOG_TYPE as 'raw' | 'pretty' ?? 'raw')) => new Promise<void>(resolve => {
+	const contextEnabled = Boolean(process.env.LOG_CONTEXT);
+	const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
+	const tracingEnabled = Boolean(process.env.LOG_TRACING);
+	const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
+	const minimumLoggingPattern = '%m';
+	const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out'];
+	const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
+	const logLayout = {
+		type: 'pattern',
+		pattern: type === 'raw' ? minimumLoggingPattern : fullLoggingPattern,
+		tokens: {
+			id() {
+				return chalk`{gray [${process.pid}]}`;
+			},
+			context({ context }: { context?: any }) {
+				if (!contextEnabled) {
+					return '';
+				}
 
-const logLayout = {
-	type: 'pattern',
-	pattern: rawLogs ? minimumLoggingPattern : fullLoggingPattern,
-	tokens: {
-		id() {
-			return chalk`{gray [${process.pid}]}`;
-		},
-		context({ context }: { context?: any }) {
-			if (!contextEnabled) {
-				return '';
+				const contextEntries = Object.entries(context)
+					.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
+					.filter(([key]) => key !== 'pid');
+				const cleanContext = Object.fromEntries(contextEntries);
+				return ` ${context as string}` ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
 			}
-
-			const contextEntries = Object.entries(context)
-				.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
-				.filter(([key]) => key !== 'pid');
-			const cleanContext = Object.fromEntries(contextEntries);
-			return ` ${context as string}` ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
 		}
-	}
-};
+	};
 
-const appenders = process.env.LOG_TRANSPORT!.split(',').map(transport => transport.trim());
+	shutdown(() => {
+		configure({
+			appenders: {
+				file: {
+					type: 'file',
+					filename: '/var/log/unraid-api/unraid-api.log',
+					layout: logLayout
+				},
+				out: {
+					type: 'stdout',
+					layout: logLayout
+				}
+			},
+			categories: {
+				default: {
+					appenders,
+					level,
+					enableCallStack: tracingEnabled
+				}
+			}
+		});
 
-configure({
-	appenders: {
-		file: {
-			type: 'file',
-			filename: '/var/log/unraid-api/unraid-api.log',
-			layout: logLayout
-		},
-		stdout: {
-			type: 'stdout',
-			layout: logLayout
-		}
-	},
-	categories: {
-		default: { appenders, level, enableCallStack: tracingEnabled }
-	}
+		resolve();
+	});
 });
 
 export const logger = getLogger('app');
