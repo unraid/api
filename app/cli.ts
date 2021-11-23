@@ -3,7 +3,7 @@ import path from 'path';
 import execa from 'execa';
 import { spawn, exec } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
-import dotEnv from 'dotenv';
+import dotEnv, { config } from 'dotenv';
 import findProcess from 'find-process';
 import pidUsage from 'pidusage';
 import prettyMs from 'pretty-ms';
@@ -104,6 +104,7 @@ const commands = {
 
 		const apiVersion: string = version;
 		cliLogger.info('Starting unraid-api@v%s', apiVersion);
+		cliLogger.removeContext('env');
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -305,6 +306,12 @@ async function main() {
 	if (!Object.keys(commands).includes(command)) {
 		throw new Error(`Invalid command "${command}"`);
 	}
+
+	// Load .env
+	config();
+
+	// Set log transport
+	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'stdout');
 
 	// Run the command
 	await commands[command]();

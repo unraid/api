@@ -152,13 +152,15 @@ bus.on('var', async data => {
 });
 
 // On Docker event update info with { apps: { installed, started } }
-logger.debug('Loading events');
+logger.debug('Binding to docker events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
 	// Only listen to container events
 	if (data.Type !== 'container') {
-		dockerLogger.debug(`${data.Type}->${data.Action}`);
+		dockerLogger.debug(`[${data.Type}] ${data.from} ${data.Action}`);
 		return;
 	}
+
+	dockerLogger.trace(data);
 
 	dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
 
@@ -189,6 +191,9 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 			const websocketId = uuid();
 
+			graphqlLogger.addContext('websocketId', websocketId);
+			graphqlLogger.debug('%s connected', user.name);
+			graphqlLogger.removeContext('websocketId');
 			graphqlLogger.debug(`${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
@@ -207,7 +212,7 @@ export const graphql = {
 			if (context === true || context === false) {
 				// This seems to also happen if a tab is left open and then a server starts up
 				// The tab hits the server over and over again without sending init
-				graphqlLogger.debug('unknown[unknown] disconnected.');
+				graphqlLogger.debug('unknown disconnected');
 				return;
 			}
 
@@ -219,7 +224,7 @@ export const graphql = {
 			};
 
 			graphqlLogger.addContext('websocketId', websocketId);
-			graphqlLogger.debug(`${user.name} disconnected.`);
+			graphqlLogger.debug('%s disconnected.', user.name);
 			graphqlLogger.removeContext('websocketId');
 
 			// Update ws connection count and other needed values

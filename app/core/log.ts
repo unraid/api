@@ -23,39 +23,49 @@ const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as type
 const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
 const minimumLoggingPattern = '%m';
 
+const logLayout = {
+	type: 'pattern',
+	pattern: rawLogs ? minimumLoggingPattern : fullLoggingPattern,
+	tokens: {
+		id() {
+			return chalk`{gray [${process.pid}]}`;
+		},
+		context({ context }: { context?: any }) {
+			if (!contextEnabled) {
+				return '';
+			}
+
+			const contextEntries = Object.entries(context)
+				.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
+				.filter(([key]) => key !== 'pid');
+			const cleanContext = Object.fromEntries(contextEntries);
+			return ` ${context as string}` ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
+		}
+	}
+};
+
+const appenders = process.env.LOG_TRANSPORT!.split(',').map(transport => transport.trim());
+
 configure({
 	appenders: {
-		app: {
+		file: {
+			type: 'file',
+			filename: '/var/log/unraid-api/unraid-api.log',
+			layout: logLayout
+		},
+		stdout: {
 			type: 'stdout',
-			layout: {
-				type: 'pattern',
-				pattern: rawLogs ? minimumLoggingPattern : fullLoggingPattern,
-				tokens: {
-					id() {
-						return chalk`{gray [${process.pid}]}`;
-					},
-					context({ context }: { context?: any }) {
-						if (!contextEnabled) {
-							return '';
-						}
-
-						const contextEntries = Object.entries(context)
-							.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
-							.filter(([key]) => key !== 'pid');
-						const cleanContext = Object.fromEntries(contextEntries);
-						return ` ${context as string}` ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
-					}
-				}
-			}
+			layout: logLayout
 		}
 	},
 	categories: {
-		default: { appenders: ['app'], level, enableCallStack: tracingEnabled }
+		default: { appenders, level, enableCallStack: tracingEnabled }
 	}
 });
 
 export const logger = getLogger('app');
 export const mothershipLogger = getLogger('mothership');
+export const libvirtLogger = getLogger('libvirt');
 export const graphqlLogger = getLogger('graphql');
 export const dockerLogger = getLogger('docker');
 export const cliLogger = getLogger('cli');
