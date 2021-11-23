@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.31.0](https://github.com/unraid/api/compare/v2.30.1...v2.31.0) (2021-11-23)
+
+
+### Features
+
+* add file logging ([919d234](https://github.com/unraid/api/commit/919d23468e33882d0c50c39ad649559c2b599b41))
+
+
+### Bug Fixes
+
+* log levels when using file logging ([cc906d0](https://github.com/unraid/api/commit/cc906d0b5be5dd4d2bc9e9a156b9213c0d5eed33))
+* subscribe to servers on boot ([3686a09](https://github.com/unraid/api/commit/3686a09550d68cbd4e9d7a181181c61e6f088916))
+
 ### [2.30.1](https://github.com/unraid/api/compare/v2.30.0...v2.30.1) (2021-11-22)
 
 
