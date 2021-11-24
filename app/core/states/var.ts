@@ -12,11 +12,11 @@ import { toNumber } from '../utils/casting';
 import { parseConfig } from '../utils/misc';
 
 const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
-	if (value === 'no') {
+	if (value === 'no' || value === 'false') {
 		return false;
 	}
 
-	if (value === 'yes') {
+	if (value === 'yes' || value === 'true') {
 		return true;
 	}
 
@@ -24,7 +24,7 @@ const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: 
 		return defaultValue;
 	}
 
-	throw new Error(`Value "${value}" is not no/yes.`);
+	throw new Error(`Value "${value}" is not false/true or no/yes.`);
 };
 
 const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => {
