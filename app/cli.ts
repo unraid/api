@@ -276,7 +276,7 @@ async function main() {
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
 	setEnv('LOG_LEVEL', mainOptions['log-level'] ?? 'info');
-	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'stdout');
+	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 	setEnv('PORT', mainOptions.port ?? '9000');
 
 	// Set logger to use raw by default
