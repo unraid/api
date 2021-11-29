@@ -5,6 +5,7 @@ module.exports = {
         '@unraid'
     ],
     rules: {
-        curly: ["error", "multi-line"]
+        curly: ["error", "multi-line"],
+        "@typescript-eslint/member-ordering": ["off"]
     }
 };
