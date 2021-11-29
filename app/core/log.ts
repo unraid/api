@@ -65,7 +65,7 @@ export const configureLogger = async (type: 'raw' | 'pretty' = (process.env.LOG_
 	};
 
 	shutdown(() => {
-		if (process.env.DEBUG) console.info('Updating config to %s', config);
+		if (level === 'TRACE') console.info('Updating config to %s', config);
 		configure(config);
 
 		resolve();
