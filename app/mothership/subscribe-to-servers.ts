@@ -5,21 +5,25 @@ import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
 import { userCache, CachedServers } from '../cache';
 import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
 import { debounce } from './debounce';
+import { GraphQLError } from 'graphql';
 
 export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	reconnect: false,
 	lazy: false,
 	minTimeout: ONE_SECOND * 30,
-	connectionCallback: errors => {
+	connectionCallback: (errors) => {
 		try {
-			if (errors) {
+			const graphqlErrors = errors as GraphQLError[] | undefined;
+			if (graphqlErrors) {
 				// Log first error
-				if ((errors[0] as any)?.extensions?.code) {
-					mothershipLogger.addContext('code', (errors[0] as any).extensions.code);
+				if (graphqlErrors[0]?.extensions?.code) {
+					mothershipLogger.addContext('code', graphqlErrors[0].extensions.code);
 				}
 
-				mothershipLogger.addContext('reason', errors[0].message);
+				mothershipLogger.addContext('reason', graphqlErrors[0].message);
 				mothershipLogger.error('Failed connecting to %s', MOTHERSHIP_GRAPHQL_LINK);
+				mothershipLogger.removeContext('code');
+				mothershipLogger.removeContext('reason');
 
 				// Close the connection if it's still open
 				if (mothership.status !== WebSocket.CLOSED) {
@@ -31,6 +35,7 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 });
 
 mothership.onConnected(() => {
+	mothershipLogger.debug('Connected');
 	subscribeToServers(apiManager.getKey('my_servers')?.key!);
 }, undefined);
 
