@@ -5,7 +5,7 @@ import { validateApiKeyFormat } from '../core/utils/misc/validate-api-key-format
 // Ensure API key exists and is valid
 const checkApiKey = async () => {
 	const apiKey = apiManager.getKey('my_servers')?.key;
-	
+
 	// Key format must be valid
 	if (validateApiKeyFormat(apiKey, false)) return false;
 

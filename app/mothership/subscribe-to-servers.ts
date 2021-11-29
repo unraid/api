@@ -11,7 +11,7 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	reconnect: false,
 	lazy: false,
 	minTimeout: ONE_SECOND * 30,
-	connectionCallback: (errors) => {
+	connectionCallback: errors => {
 		try {
 			const graphqlErrors = errors as GraphQLError[] | undefined;
 			if (graphqlErrors) {

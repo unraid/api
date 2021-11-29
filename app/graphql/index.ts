@@ -177,8 +177,8 @@ dee.listen();
 
 export const graphql = {
 	debug,
-	introspection: (process.env.INTROSPECTION || debug),
-	playground: (process.env.PLAYGROUND || debug) ? {
+	introspection: (process.env.INTROSPECTION ?? debug),
+	playground: (process.env.PLAYGROUND ?? debug) ? {
 		subscriptionEndpoint: '/graphql'
 	} : false,
 	schema,

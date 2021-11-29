@@ -4,4 +4,7 @@ module.exports = {
     extends: [
         '@unraid'
     ],
+    rules: {
+        curly: ["error", "multi-line"]
+    }
 };
