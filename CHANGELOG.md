@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.1](https://github.com/unraid/api/compare/v2.31.0...v2.31.1) (2021-11-29)
+
+
+### Bug Fixes
+
+* allow iniBooleanToJsBoolean to support true/false and not just yes/no ([5fdf9f0](https://github.com/unraid/api/commit/5fdf9f0246b5e00e339b2a93a010c42db5c3f78d))
+* allow PLAYGROUND=true and INTROSPECTION=true to enable options ([e2f54a0](https://github.com/unraid/api/commit/e2f54a05adc12e6c4c5f8854602d1f66261be635))
+* API key being accepted when it was invalid ([25b7cc4](https://github.com/unraid/api/commit/25b7cc435669861edb89ece77df44c50a6668513))
+* mothership->graphql logs ([ce95687](https://github.com/unraid/api/commit/ce9568736a2db886fd1288099e46417fccbd1afd))
+* relay log when connecting/disconnecting ([8a79ddc](https://github.com/unraid/api/commit/8a79ddc08a1dc5ecc46ded4e55e677a77a57d67d))
+
 ## [2.31.0](https://github.com/unraid/api/compare/v2.30.1...v2.31.0) (2021-11-23)
 
 
