@@ -43,28 +43,30 @@ export const configureLogger = async (type: 'raw' | 'pretty' = (process.env.LOG_
 			}
 		}
 	};
+	const config = {
+		appenders: {
+			file: {
+				type: 'file',
+				filename: '/var/log/unraid-api/unraid-api.log',
+				layout: logLayout
+			},
+			out: {
+				type: 'stdout',
+				layout: logLayout
+			}
+		},
+		categories: {
+			default: {
+				appenders,
+				level,
+				enableCallStack: tracingEnabled
+			}
+		}
+	};
 
 	shutdown(() => {
-		configure({
-			appenders: {
-				file: {
-					type: 'file',
-					filename: '/var/log/unraid-api/unraid-api.log',
-					layout: logLayout
-				},
-				out: {
-					type: 'stdout',
-					layout: logLayout
-				}
-			},
-			categories: {
-				default: {
-					appenders,
-					level,
-					enableCallStack: tracingEnabled
-				}
-			}
-		});
+		if (process.env.DEBUG) console.info('Updating config to %s', config);
+		configure(config);
 
 		resolve();
 	});
