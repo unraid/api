@@ -250,15 +250,17 @@ export const checkRelayConnection = debounce(async () => {
 		const after = getConnectionStatus();
 
 		switch (true) {
-			case before === 'closed' && after === 'open':
+			case before === 'CLOSED' && after === 'OPEN':
 				relayLogger.info('Connected to %s', MOTHERSHIP_RELAY_WS_LINK);
 				break;
-			case before === 'open' && after === 'closed':
+			case before === 'OPEN' && after === 'CLOSED':
 				relayLogger.info('Disconnected from %s', MOTHERSHIP_RELAY_WS_LINK);
 				break;
 			default:
 				if (before !== after) {
-					relayLogger.info('Connection status changed from %s to %s when dis/connecting from/to %s', before, after, MOTHERSHIP_RELAY_WS_LINK);
+					relayLogger.addContext('url', MOTHERSHIP_RELAY_WS_LINK);
+					relayLogger.info('Connection status changed from %s to %s');
+					relayLogger.removeContext('url');
 				}
 
 				break;
