@@ -100,7 +100,7 @@ process.on('SIGUSR1', () => {
 	loggers.forEach(logger => {
 		logger.level = nextLevel;
 	});
-	logger.trace('Log level changed from %s to %s', level, nextLevel);
+	logger.mark('Log level changed from %s to %s', level, nextLevel);
 });
 
 // Send SIGUSR1 to decrease log level
@@ -110,5 +110,5 @@ process.on('SIGUSR2', () => {
 	loggers.forEach(logger => {
 		logger.level = nextLevel;
 	});
-	logger.trace('Log level changed from %s to %s', level, nextLevel);
+	logger.mark('Log level changed from %s to %s', level, nextLevel);
 });

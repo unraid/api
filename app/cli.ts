@@ -71,9 +71,6 @@ const commands = {
 	 * Start a new API process.
 	 */
 	async start() {
-		// Set logs to pretty
-		await configureLogger((process.env.LOG_TYPE as 'raw' | 'pretty') ?? 'pretty');
-
 		// Set process title
 		process.title = 'unraid-api';
 
@@ -146,7 +143,6 @@ const commands = {
 	 * Stop a running API process.
 	 */
 	async stop() {
-		await configureLogger();
 		// Find process called "unraid-api"
 		const unraidApiPid = await getUnraidApiPid();
 
@@ -164,7 +160,6 @@ const commands = {
 	 * Stop a running API process and then start it again.
 	 */
 	async restart() {
-		await configureLogger();
 		await this.stop();
 		await this.start();
 	},
@@ -172,12 +167,10 @@ const commands = {
 	 * Print API version.
 	 */
 	async version() {
-		await configureLogger();
 		const apiVersion: string = version;
 		cliLogger.info(`Unraid API v${apiVersion}`);
 	},
 	async status() {
-		await configureLogger();
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		if (!unraidApiPid) {
@@ -189,7 +182,6 @@ const commands = {
 		cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${process.env.ENVIRONMENT!}" mode!`);
 	},
 	async report() {
-		await configureLogger();
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
@@ -204,7 +196,6 @@ const commands = {
 		);
 	},
 	async 'switch-env'() {
-		await configureLogger();
 		const basePath = paths.get('unraid-api-base')!;
 		const envFlashFilePath = paths.get('myservers-env')!;
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
@@ -279,14 +270,10 @@ async function main() {
 	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 	setEnv('PORT', mainOptions.port ?? '9000');
 
-	// Set logger to use raw by default
-	// Commands will flip this to pretty if they need it
-	// Otherwise the user is free to set it themselves
-	await configureLogger();
-
-	cliLogger.addContext('env', ['DEBUG', 'ENVIRONMENT', 'LOG_LEVEL', 'LOG_TRANSPORT', 'PORT'].reduce((all, name) => ({ ...all, [name]: process.env[name] }), {}));
-	cliLogger.trace('Env updated');
-	cliLogger.removeContext('env');
+	// Set logger to use raw by default unless they're starting
+	// The user is also free to set it themselves
+	const userPreferedLogType = process.env.LOG_TYPE as 'raw' | 'pretty';
+	await configureLogger(userPreferedLogType ?? (command === 'start' ? 'pretty' : 'raw'));
 
 	if (!command) {
 		if (mainOptions.version) {
@@ -300,7 +287,6 @@ async function main() {
 
 	// Unknown command
 	if (!Object.keys(commands).includes(command)) {
-		await configureLogger();
 		throw new Error(`Invalid command "${command}"`);
 	}
 
@@ -309,5 +295,7 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-	cliLogger.error((error as Error).message);
+	// If the logger is off right now then use console to log
+	if (cliLogger.level === 'OFF') console.error((error as Error).message);
+	else cliLogger.error((error as Error).message);
 });
