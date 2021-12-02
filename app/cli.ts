@@ -273,7 +273,9 @@ const commands = {
 
 async function main() {
 	// Load .env file
-	const envs = dotEnv.config();
+	const envs = dotEnv.config({
+		path: '/usr/local/bin/unraid-api/.env'
+	});
 
 	cliLogger.addContext('envs', envs);
 	cliLogger.debug('Loading env file');
