@@ -20,7 +20,7 @@ const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 const tracingEnabled = Boolean(process.env.LOG_TRACING);
 const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
 const minimumLoggingPattern = '%m';
-const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out'];
+const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out', 'errors'];
 const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
 const logLayout = {
 	type: 'pattern',
@@ -52,13 +52,27 @@ configure({
 	appenders: {
 		file: {
 			type: 'file',
-			filename: '/var/log/unraid-api/unraid-api.log',
-			layout: logLayout
+			filename: '/var/log/unraid-api/stdout.log',
+			layout: {
+				...logLayout,
+				// File logs should always be pretty
+				pattern: fullLoggingPattern
+			}
+		},
+		errorFile: {
+			type: 'file',
+			filename: '/var/log/unraid-api/stderr.log',
+			layout: {
+				...logLayout,
+				// File logs should always be pretty
+				pattern: fullLoggingPattern
+			}
 		},
 		out: {
 			type: 'stdout',
 			layout: logLayout
-		}
+		},
+		errors: { type: 'logLevelFilter', appender: 'errorFile', level: 'error' }
 	},
 	categories: {
 		default: {
