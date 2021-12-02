@@ -4,6 +4,7 @@
  */
 
 import chalk from 'chalk';
+import { promisify } from 'util';
 import { redactSecrets } from 'redact-secrets';
 import { configure, getLogger, shutdown } from 'log4js';
 import { serializeError } from 'serialize-error';
@@ -15,7 +16,7 @@ const redact = redactSecrets('REDACTED', {
 
 const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
 
-export const configureLogger = async (type: 'raw' | 'pretty' = (process.env.LOG_TYPE as 'raw' | 'pretty' ?? 'raw')) => new Promise<void>(resolve => {
+export const configureLogger = async (type: 'raw' | 'pretty' = (process.env.LOG_TYPE as 'raw' | 'pretty' ?? 'raw')) => {
 	const contextEnabled = Boolean(process.env.LOG_CONTEXT);
 	const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 	const tracingEnabled = Boolean(process.env.LOG_TRACING);
@@ -64,13 +65,9 @@ export const configureLogger = async (type: 'raw' | 'pretty' = (process.env.LOG_
 		}
 	};
 
-	shutdown(() => {
-		if (level === 'TRACE') console.info('Updating config to %s', config);
-		configure(config);
-
-		resolve();
-	});
-});
+	await promisify(shutdown)();
+	configure(config);
+};
 
 export const logger = getLogger('app');
 export const mothershipLogger = getLogger('mothership');

@@ -266,14 +266,14 @@ async function main() {
 	// Set envs
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
-	setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'info');
-	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 	setEnv('PORT', mainOptions.port ?? '9000');
+	setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'INFO');
+	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
+	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
 
 	// Set logger to use raw by default unless they're starting
 	// The user is also free to set it themselves
-	const userPreferedLogType = process.env.LOG_TYPE as 'raw' | 'pretty';
-	await configureLogger(userPreferedLogType ?? (command === 'start' ? 'pretty' : 'raw'));
+	await configureLogger(process.env.LOG_TYPE as 'raw' | 'pretty');
 
 	if (!command) {
 		if (mainOptions.version) {
