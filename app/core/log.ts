@@ -13,7 +13,7 @@ const redact = redactSecrets('REDACTED', {
 	values: []
 });
 
-const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
+export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
 
 const contextEnabled = Boolean(process.env.LOG_CONTEXT);
 const stackEnabled = Boolean(process.env.LOG_STACKTRACE);

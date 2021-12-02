@@ -11,11 +11,11 @@ import dedent from 'dedent-tabs';
 import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
-import { cliLogger, internalLogger } from './core/log';
+import { cliLogger, internalLogger, levels } from './core/log';
 
 const setEnv = (envName: string, value: any) => {
-	cliLogger.debug(`Updating env process.env[${envName}] = ${value as string}`);
 	process.env[envName] = String(value);
+	cliLogger.debug(`Setting process.env[${envName}] = ${value as string}`);
 };
 
 interface Flags {
@@ -35,7 +35,7 @@ const args: ArgumentConfig<Flags> = {
 	port: { type: String, optional: true, alias: 'p', description: 'Set the graphql port.' },
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
 	'log-level': { type: (level?: string) => {
-		return ['error', 'warn', 'info', 'debug', 'trace', 'silly'].includes(level ?? '') ? level : undefined;
+		return levels.includes(level as any) ? level : undefined;
 	}, typeLabel: '{underline error/warn/info/debug/trace/silly}', optional: true, description: 'Set the log level.' },
 	version: { type: Boolean, optional: true, alias: 'v', description: 'Show version.' }
 };
@@ -143,6 +143,8 @@ const commands = {
 	 * Stop a running API process.
 	 */
 	async stop() {
+		setEnv('LOG_TYPE', 'raw');
+
 		// Find process called "unraid-api"
 		const unraidApiPid = await getUnraidApiPid();
 
@@ -160,6 +162,8 @@ const commands = {
 	 * Stop a running API process and then start it again.
 	 */
 	async restart() {
+		setEnv('LOG_TYPE', 'raw');
+
 		await this.stop();
 		await this.start();
 	},
@@ -167,10 +171,14 @@ const commands = {
 	 * Print API version.
 	 */
 	async version() {
+		setEnv('LOG_TYPE', 'raw');
+
 		const apiVersion: string = version;
 		cliLogger.info(`Unraid API v${apiVersion}`);
 	},
 	async status() {
+		setEnv('LOG_TYPE', 'raw');
+
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		if (!unraidApiPid) {
@@ -182,6 +190,8 @@ const commands = {
 		cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${process.env.ENVIRONMENT!}" mode!`);
 	},
 	async report() {
+		setEnv('LOG_TYPE', 'raw');
+
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
@@ -196,6 +206,8 @@ const commands = {
 		);
 	},
 	async 'switch-env'() {
+		setEnv('LOG_TYPE', 'raw');
+
 		const basePath = paths.get('unraid-api-base')!;
 		const envFlashFilePath = paths.get('myservers-env')!;
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
@@ -264,12 +276,15 @@ async function main() {
 	dotEnv.config();
 
 	// Set envs
+	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
+
+	cliLogger.debug('Starting CLI...');
+
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
 	setEnv('PORT', mainOptions.port ?? '9000');
 	setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'INFO');
 	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
-	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
 
 	if (!command) {
 		if (mainOptions.version) {
