@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.3](https://github.com/unraid/api/compare/v2.31.2...v2.31.3) (2021-12-02)
+
+
+### Bug Fixes
+
+* cache valid keys until relay disconnect ([602099a](https://github.com/unraid/api/commit/602099a05d9a2ba114f3d27a599b5e0bed5a0470))
+* ensure we change all loggers ([94cf1b9](https://github.com/unraid/api/commit/94cf1b9651fb68bc12fd7da9dc2ef088a3445410))
+* errors being undefined ([e010a1a](https://github.com/unraid/api/commit/e010a1a19128e788442addce4602f34e2c157873))
+* invert cloud check ([e3affb2](https://github.com/unraid/api/commit/e3affb2710b139e690b8e56f556cd7801f063057))
+* key-server validation check failing ([5ddb4da](https://github.com/unraid/api/commit/5ddb4da9276fc07a5d6d7d55a7ebf3e04c92fb54))
+* log config not working ([d954e76](https://github.com/unraid/api/commit/d954e76382ffdd77040a03423a6750f46993103a))
+* logger level being overriden ([597647d](https://github.com/unraid/api/commit/597647decc30f92aaf33d9b86e8f1e6bde572b2f))
+* logging using OFF instead of INFO ([46420be](https://github.com/unraid/api/commit/46420bea30558b5115f1b465c48d74dd6ffc120a))
+* on log config reload log in debug mode ([d3de54d](https://github.com/unraid/api/commit/d3de54d54822ec9e953ccbdf8fd264fdf3dd4e79))
+* only change logging config on start ([89b5489](https://github.com/unraid/api/commit/89b548922dc3e02b1409f6de42db8d05e7eb88a5))
+* only log about config on trace ([23b0267](https://github.com/unraid/api/commit/23b0267d63e26f45d20a903ec244e50a6a055dc1))
+
 ### [2.31.2](https://github.com/unraid/api/compare/v2.31.1...v2.31.2) (2021-11-29)
 
 
