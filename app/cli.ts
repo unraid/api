@@ -275,7 +275,7 @@ async function main() {
 	// Set envs
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
-	setEnv('LOG_LEVEL', mainOptions['log-level'] ?? 'info');
+	setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'info');
 	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 	setEnv('PORT', mainOptions.port ?? '9000');
 
@@ -283,6 +283,10 @@ async function main() {
 	// Commands will flip this to pretty if they need it
 	// Otherwise the user is free to set it themselves
 	await configureLogger();
+
+	cliLogger.addContext('env', ['DEBUG', 'ENVIRONMENT', 'LOG_LEVEL', 'LOG_TRANSPORT', 'PORT'].reduce((all, name) => ({ ...all, [name]: process.env[name] }), {}));
+	cliLogger.trace('Env updated');
+	cliLogger.removeContext('env');
 
 	if (!command) {
 		if (mainOptions.version) {
