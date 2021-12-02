@@ -86,13 +86,15 @@ const states = {
 	7: 'PMSUSPENDED'
 };
 
-let cachedDomains: Array<{
+type CachedDomain = {
 	name: string;
 	uuid: string;
 	state: string;
 	autoStart: boolean;
 	features: Record<string, unknown>;
-}>;
+};
+
+let cachedDomains: CachedDomain[];
 
 const watchLibvirt = async (useCache = true) => {
 	try {
@@ -107,23 +109,24 @@ const watchLibvirt = async (useCache = true) => {
 		const autoStartDomainNames = await Promise.all(autoStartDomains.map(async domain => hypervisor.domainGetName(domain))) ?? [];
 
 		// Get all domains
-		const domains = await hypervisor.connectListAllDomains();
-		const resolvedDomains = await Promise.all(domains.map(async domain => {
-			const info = await hypervisor.domainGetInfo(domain);
-			const name = await hypervisor.domainGetName(domain);
+		const domains = await hypervisor.connectListAllDomains() as unknown[];
+		const resolvedDomains = await Promise.all(domains.map(async (domain: unknown): Promise<CachedDomain> => {
+			const info = await hypervisor.domainGetInfo(domain) as { state: string };
+			const name = await hypervisor.domainGetName(domain) as string;
+			const uuid = await hypervisor.domainGetUUIDString(domain) as string;
 			const features = {};
-			return {
+			const result = {
 				name,
-				uuid: await hypervisor.domainGetUUIDString(domain),
+				uuid,
 				state: states[info.state],
 				autoStart: autoStartDomainNames.includes(name),
 				features
 			};
+			return result as CachedDomain;
 		}));
 
 		// If the result is the same as the cache wait 5s then retry
 		if (JSON.stringify(cachedDomains) === JSON.stringify(resolvedDomains)) {
-			libvirtLogger.trace('No changes detected.');
 			await sleep(5_000);
 			return watchLibvirt();
 		}
@@ -134,8 +137,8 @@ const watchLibvirt = async (useCache = true) => {
 		cachedDomains = resolvedDomains;
 
 		// Update summary endpoint
-		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE);
-		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE);
+		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as unknown[];
+		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as unknown[];
 		const installed = activeDomains.length + inactiveDomains.length;
 		const started = activeDomains.length;
 		const summary = {
