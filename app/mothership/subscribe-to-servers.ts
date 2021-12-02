@@ -97,7 +97,7 @@ export const subscribeToServers = (apiKey: string) => {
 			}
 
 			mothershipLogger.addContext('data', data);
-			mothershipLogger.debug('Recieved subscription data for %s', 'servers');
+			mothershipLogger.debug('Received subscription data for %s', 'servers');
 			mothershipLogger.removeContext('data');
 
 			// Update internal cache

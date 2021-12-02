@@ -194,7 +194,6 @@ export const graphql = {
 			graphqlLogger.addContext('websocketId', websocketId);
 			graphqlLogger.debug('%s connected', user.name);
 			graphqlLogger.removeContext('websocketId');
-			graphqlLogger.debug(`${user.name}[${websocketId}] connected.`);
 
 			// Update ws connection count and other needed values
 			wsHasConnected(websocketId);
