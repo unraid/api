@@ -86,8 +86,8 @@ export const subscribeToServers = (apiKey: string) => {
 
 	// Subscribe
 	const subscription = query.subscribe({
-		next: async ({ data, errors }: { data: { servers: CachedServer[] }; errors: unknown[] }) => {
-			if (errors.length > 0) {
+		next: async ({ data, errors }: { data: { servers: CachedServer[] }; errors: undefined | unknown[] }) => {
+			if (errors && errors.length > 0) {
 				mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
 				errors.forEach(error => {
 					mothershipLogger.error(error);

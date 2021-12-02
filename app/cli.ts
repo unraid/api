@@ -291,5 +291,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-	internalLogger.error((error as Error).message);
+	internalLogger.fatal((error as Error).message);
 });

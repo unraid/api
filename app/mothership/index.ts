@@ -142,8 +142,9 @@ export const checkRelayConnection = debounce(async () => {
 
 		const headers = getRelayHeaders();
 
+		relayLogger.addContext('headers', headers);
 		relayLogger.debug('Connecting to %s', MOTHERSHIP_RELAY_WS_LINK);
-		relayLogger.trace('Headers: %s', JSON.stringify(headers, null, 2));
+		relayLogger.removeContext('headers');
 
 		// Create a new ws instance
 		relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
@@ -174,13 +175,14 @@ export const checkRelayConnection = debounce(async () => {
 					case type === 'query' || type === 'mutation' || operationName === 'getInitialData': {
 						// Convert query to string
 						const query = print(message.payload.query);
+						relayLogger.addContext('query', query);
 						relayLogger.debug('Processing %s', operationName);
-						relayLogger.trace(query);
+						relayLogger.removeContext('query');
 
 						// Process query
 						const apiKey = apiManager.getKey('my_servers')?.key!;
 						const user = await apiKeyToUser(apiKey);
-						const payload = await graphql({
+						const result = await graphql({
 							schema,
 							source: query,
 							contextValue: {
@@ -188,7 +190,9 @@ export const checkRelayConnection = debounce(async () => {
 							}
 						});
 
-						relayLogger.trace(payload);
+						relayLogger.addContext('result', result);
+						relayLogger.trace('Processed %s', operationName);
+						relayLogger.removeContext('result');
 
 						// If the socket closed before we could reply then just bail
 						if (!relay?.isOpened) {
@@ -198,7 +202,7 @@ export const checkRelayConnection = debounce(async () => {
 						// Send data
 						relay.send(JSON.stringify({
 							id,
-							payload,
+							payload: result,
 							type: 'data'
 						}));
 						break;
