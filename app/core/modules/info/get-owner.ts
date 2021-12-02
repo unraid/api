@@ -5,7 +5,6 @@
 
 import { getServers } from '../../../graphql/schema/utils';
 import { apiManager } from '../../api-manager';
-import { logger } from '../../log';
 import { CoreContext, CoreResult } from '../../types';
 import { ensurePermission } from '../../utils';
 

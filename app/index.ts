@@ -104,7 +104,11 @@ am(async () => {
 
 			// Puiblish to owner endpoint
 			await pubsub.publish('owner', {
-				owner: null
+				owner: {
+					username: 'root',
+					url: '',
+					avatar: ''
+				}
 			});
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on "expire" event with error %s.', error);
