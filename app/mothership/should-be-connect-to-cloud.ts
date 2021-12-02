@@ -8,13 +8,13 @@ const checkApiKey = async () => {
 	const apiKey = apiManager.getKey('my_servers')?.key;
 
 	// Key format must be valid
-	if (validateApiKeyFormat(apiKey, false)) {
+	if (!validateApiKeyFormat(apiKey, false)) {
 		logger.trace('My servers API key is not in a valid format');
 		return false;
 	}
 
 	// Key must pass key-server validation
-	if (await validateApiKey(apiKey!, false)) {
+	if (!(await validateApiKey(apiKey!, false))) {
 		logger.trace('My servers API key failed key-server validation');
 		return false;
 	}
