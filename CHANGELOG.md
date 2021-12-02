@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.6](https://github.com/unraid/api/compare/v2.31.5...v2.31.6) (2021-12-02)
+
+
+### Bug Fixes
+
+* hardcode env file path ([aef5319](https://github.com/unraid/api/commit/aef5319cd008441cddb85614feb111f729a661b5))
+
 ### [2.31.5](https://github.com/unraid/api/compare/v2.31.4...v2.31.5) (2021-12-02)
 
 
