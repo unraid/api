@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.32.0](https://github.com/unraid/api/compare/v2.31.6...v2.32.0) (2021-12-02)
+
+
+### Features
+
+* send errors to log file by default ([31ce650](https://github.com/unraid/api/commit/31ce650a86736f263c8cfb829d871bac6ddba1b4))
+
 ### [2.31.6](https://github.com/unraid/api/compare/v2.31.5...v2.31.6) (2021-12-02)
 
 
