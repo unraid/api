@@ -7,11 +7,12 @@ import am from 'am';
 import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, logger, apiManager, paths } from './core';
+import { core, logger, apiManager, paths, pubsub } from './core';
 import { server } from './server';
 import { checkCloudConnections } from './mothership';
 import { loadState } from './core/utils/misc/load-state';
 import { writeFileSync } from 'fs';
+import { userCache } from './cache';
 
 // Ini serializer
 const serializer = new IniSerializer({
@@ -92,6 +93,19 @@ am(async () => {
 
 			// Check cloud connections
 			await checkCloudConnections();
+
+			// Clear servers cache
+			userCache.del('mine');
+
+			// Publish to servers endpoint
+			await pubsub.publish('servers', {
+				servers: null
+			});
+
+			// Puiblish to owner endpoint
+			await pubsub.publish('owner', {
+				owner: null
+			});
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on "expire" event with error %s.', error);
 		}
