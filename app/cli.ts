@@ -282,7 +282,7 @@ async function main() {
 
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
-	setEnv('PORT', mainOptions.port ?? '9000');
+	setEnv('PORT', process.env.PORT ?? mainOptions.port ?? '9000');
 	setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'INFO');
 	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 
