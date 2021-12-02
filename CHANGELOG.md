@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.31.4](https://github.com/unraid/api/compare/v2.31.3...v2.31.4) (2021-12-02)
+
+
+### Bug Fixes
+
+* allow PORT from env ([57baccf](https://github.com/unraid/api/commit/57baccf0b632a2285d084cfe7282987f664fc200))
+* default to raw logs ([c1dcde9](https://github.com/unraid/api/commit/c1dcde9f7d101782bfce775ffadd81e2c21e593d))
+* log type ([86deee3](https://github.com/unraid/api/commit/86deee38b7566aefe6ed97cc54516525cf7dc372))
+
 ### [2.31.3](https://github.com/unraid/api/compare/v2.31.2...v2.31.3) (2021-12-02)
 
 
