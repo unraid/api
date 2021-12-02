@@ -2,7 +2,7 @@ import { pubsub, mothershipLogger, apiManager } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import WebSocket from 'ws';
 import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
-import { userCache, CachedServers } from '../cache';
+import { userCache, CachedServers, CachedServer } from '../cache';
 import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
 import { debounce } from './debounce';
 import { GraphQLError } from 'graphql';
@@ -86,18 +86,19 @@ export const subscribeToServers = (apiKey: string) => {
 
 	// Subscribe
 	const subscription = query.subscribe({
-		next: async ({ data, errors }) => {
-			mothershipLogger.debug('Got data back with %s errors', errors?.length ?? 0);
-			mothershipLogger.trace('Got data %j', data);
-			mothershipLogger.trace('Got errors %s', errors);
-
-			// Log error
-			if (errors) {
-				mothershipLogger.addContext('code', errors[0].extensions.code);
-				mothershipLogger.addContext('reason', errors[0].message);
+		next: async ({ data, errors }: { data: { servers: CachedServer[] }; errors: unknown[] }) => {
+			if (errors.length > 0) {
 				mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
+				errors.forEach(error => {
+					mothershipLogger.error(error);
+				});
+
 				return;
 			}
+
+			mothershipLogger.addContext('data', data);
+			mothershipLogger.debug('Recieved subscription data for %s', 'servers');
+			mothershipLogger.removeContext('data');
 
 			// Update internal cache
 			userCache.set<CachedServers>('mine', {

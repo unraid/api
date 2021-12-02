@@ -13,6 +13,7 @@ import { checkGraphqlConnection } from './subscribe-to-servers';
 import { apiKeyToUser } from '../graphql';
 import { schema } from '../graphql/schema';
 import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
+import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
@@ -255,6 +256,10 @@ export const checkRelayConnection = debounce(async () => {
 				break;
 			case before === 'OPEN' && after === 'CLOSED':
 				relayLogger.info('Disconnected from %s', MOTHERSHIP_RELAY_WS_LINK);
+				// Clear all the valid keys from memory
+				// This will cause key-server to be hit before we reconnect which is good
+				// This will prevent users with invalid keys even attempting to connect
+				clearValidKeyCache();
 				break;
 			default:
 				if (before !== after) {

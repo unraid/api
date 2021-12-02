@@ -4,7 +4,17 @@ import { varState } from '../../states';
 import { AppError } from '../../errors';
 import { logger } from '../..';
 
+const validKeys = new Set();
+
+export const clearValidKeyCache = () => {
+	validKeys.clear();
+	logger.debug('Cleared all keys from validity cache');
+};
+
 export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
+	// If we have the validity cached then return that
+	if (validKeys.has(apiKey)) return true;
+
 	const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
 
 	const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
@@ -43,7 +53,13 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 
 	// Check if key is valid
 	const valid = await response.json().then(data => data.valid);
-	if (valid) return true;
+	if (valid) {
+		validKeys.add(apiKey);
+		logger.addContext('apiKey', apiKey);
+		logger.debug('Added key to validity cache.');
+		logger.removeContext('apiKey');
+		return true;
+	}
 
 	// Throw or return if invalid
 	if (shouldThrow) throw new Error('Invalid API key');
