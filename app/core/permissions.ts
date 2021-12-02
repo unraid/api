@@ -38,7 +38,9 @@ Object.entries(getPermissions()).forEach(([roleName, role]) => {
 	}
 });
 
-logger.trace('Loaded permissions', JSON.stringify(allPermissions));
+logger.addContext('permissions', allPermissions);
+logger.trace('Loaded permissions');
+logger.removeContext('permissions');
 
 export {
 	ac

@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
 import { debounce } from './debounce';
-import { relayLogger } from '../core/log';
+import { logger, relayLogger } from '../core/log';
 import { apiManager } from '../core/api-manager';
 import { varState } from '../core/states/var';
 import { version } from '../../package.json';
@@ -273,7 +273,11 @@ export const checkRelayConnection = debounce(async () => {
 	}
 }, 5_000);
 
-export const checkCloudConnections = async () => Promise.all([
-	checkRelayConnection(),
-	checkGraphqlConnection()
-]);
+export const checkCloudConnections = async () => {
+	logger.trace('Checking cloud connections');
+
+	return Promise.all([
+		checkRelayConnection(),
+		checkGraphqlConnection()
+	]);
+};
