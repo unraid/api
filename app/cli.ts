@@ -11,10 +11,10 @@ import dedent from 'dedent-tabs';
 import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
-import { cliLogger, configureLogger } from './core/log';
+import { cliLogger, internalLogger } from './core/log';
 
 const setEnv = (envName: string, value: any) => {
-	cliLogger.debug(`Updating env process.env[${envName}] = ${value}`);
+	cliLogger.debug(`Updating env process.env[${envName}] = ${value as string}`);
 	process.env[envName] = String(value);
 };
 
@@ -271,10 +271,6 @@ async function main() {
 	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
 
-	// Set logger to use raw by default unless they're starting
-	// The user is also free to set it themselves
-	await configureLogger(process.env.LOG_TYPE as 'raw' | 'pretty');
-
 	if (!command) {
 		if (mainOptions.version) {
 			await commands.version();
@@ -295,7 +291,5 @@ async function main() {
 }
 
 main().catch((error: unknown) => {
-	// If the logger is off right now then use console to log
-	if (cliLogger.level === 'OFF') console.error((error as Error).message);
-	else cliLogger.error((error as Error).message);
+	internalLogger.error((error as Error).message);
 });
