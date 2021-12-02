@@ -36,7 +36,7 @@ const args: ArgumentConfig<Flags> = {
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
 	'log-level': { type: (level?: string) => {
 		return levels.includes(level as any) ? level : undefined;
-	}, typeLabel: '{underline error/warn/info/debug/trace/silly}', optional: true, description: 'Set the log level.' },
+	}, typeLabel: `{underline ${levels.join('/')}}`, optional: true, description: 'Set the log level.' },
 	version: { type: Boolean, optional: true, alias: 'v', description: 'Show version.' }
 };
 
