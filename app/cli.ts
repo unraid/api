@@ -273,12 +273,16 @@ const commands = {
 
 async function main() {
 	// Load .env file
-	dotEnv.config();
+	const envs = dotEnv.config();
+
+	cliLogger.addContext('envs', envs);
+	cliLogger.debug('Loading env file');
+	cliLogger.removeContext('envs');
 
 	// Set envs
 	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
 
-	cliLogger.debug('Starting CLI...');
+	cliLogger.debug('Starting CLI');
 
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
