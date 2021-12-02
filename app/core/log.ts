@@ -81,7 +81,17 @@ export const cliLogger = getLogger('cli');
 export const nchanLogger = getLogger('nchan');
 export const relayLogger = getLogger('relay');
 export const apiManagerLogger = getLogger('api-manager');
-export const loggers = [logger, nchanLogger, relayLogger, apiManagerLogger];
+export const loggers = [
+	logger,
+	mothershipLogger,
+	libvirtLogger,
+	graphqlLogger,
+	dockerLogger,
+	cliLogger,
+	nchanLogger,
+	relayLogger,
+	apiManagerLogger
+];
 
 // Send SIGUSR1 to increase log level
 process.on('SIGUSR1', () => {
