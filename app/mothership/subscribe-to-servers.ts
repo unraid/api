@@ -34,9 +34,14 @@ export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	}
 });
 
-mothership.onConnected(() => {
+mothership.onConnected(async () => {
+	const apiKey = apiManager.getKey('my_servers')?.key;
+
+	// Check if we should be connected
+	if (!apiKey || !(await shouldBeConnectedToCloud())) return;
+
 	mothershipLogger.debug('Connected');
-	subscribeToServers(apiManager.getKey('my_servers')?.key!);
+	subscribeToServers(apiKey);
 }, undefined);
 
 export const checkGraphqlConnection = debounce(async () => {
