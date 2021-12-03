@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.32.1](https://github.com/unraid/api/compare/v2.32.0...v2.32.1) (2021-12-03)
+
+
+### Bug Fixes
+
+* clear servers/owner on signout ([a4fbd4d](https://github.com/unraid/api/commit/a4fbd4df89eaa643c6a35b64e7da93f766ca85f1))
+* ensure servers gets no servers instead of null ([b83f520](https://github.com/unraid/api/commit/b83f5205e15df0568a0be4c980c4a938135ab4d5))
+* mothership connecting when key is undefined ([7b76df7](https://github.com/unraid/api/commit/7b76df7d45f8e9d3742f82f52799bdea63b9a56f))
+* owner cannot be null ([acf629e](https://github.com/unraid/api/commit/acf629ed2c28c3c31797cb82efea852d98afda07))
+
 ## [2.32.0](https://github.com/unraid/api/compare/v2.31.6...v2.32.0) (2021-12-02)
 
 
