@@ -99,10 +99,10 @@ am(async () => {
 
 			// Publish to servers endpoint
 			await pubsub.publish('servers', {
-				servers: null
+				servers: []
 			});
 
-			// Puiblish to owner endpoint
+			// Publish to owner endpoint
 			await pubsub.publish('owner', {
 				owner: {
 					username: 'root',
