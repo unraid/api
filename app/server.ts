@@ -13,11 +13,13 @@ import chokidar from 'chokidar';
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
+import { totp } from 'otplib';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
 import { logger, config, paths, pubsub } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync, attemptJSONParse } from './core/utils';
 import { graphql } from './graphql';
+import { totpSecret } from './common/2fa';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
@@ -189,6 +191,19 @@ graphApp.applyMiddleware({ app });
 // List all endpoints at start of server
 app.get('/', (_, res) => {
 	return res.send(getEndpoints(app));
+});
+
+app.post('/verify', (req, res) => {
+	// Check code is valid
+	if (!totp.verify({ token: req.query.code as string, secret: totpSecret })) {
+		// Allow the user to pass
+		res.sendStatus(204);
+		return;
+	}
+
+	// User failed verification
+	res.status(401);
+	res.send('Invalid 2FA code.');
 });
 
 // Handle errors by logging them and returning a 500.

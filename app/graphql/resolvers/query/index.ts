@@ -14,6 +14,7 @@ import registration from './registration';
 import server from './server';
 import servers from './servers';
 import vms from './vms';
+import twoFactor from './two-factor';
 
 export const Query = {
 	crashReportingEnabled,
@@ -27,5 +28,6 @@ export const Query = {
 	registration,
 	vms,
 	server,
-	servers
+	servers,
+	twoFactor
 };

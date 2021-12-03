@@ -174,6 +174,7 @@
     "modclean": "^3.0.0-beta.1",
     "node-env-run": "^4.0.2",
     "nyc": "^15.1.0",
+    "otplib": "^12.0.1",
     "p-each-series": "^3.0.0",
     "p-props": "^5.0.0",
     "path-type": "^5.0.0",
