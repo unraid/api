@@ -1,5 +1,4 @@
 import { fetch } from '../../../common/fetch';
-import FormData from 'form-data';
 import { varState } from '../../states';
 import { AppError } from '../../errors';
 import { logger } from '../..';
@@ -23,7 +22,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		}
 
 		// Create form
-		const body = new FormData();
+		const body = new URLSearchParams();
 		Object.entries(data).forEach(([key, value]) => {
 			if (value !== undefined) {
 				body.append(key, String(value));
