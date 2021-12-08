@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.2](https://github.com/unraid/api/compare/v2.33.1...v2.33.2) (2021-12-08)
+
+
+### Bug Fixes
+
+* ensure 2fa tokens are validatable ([7696e29](https://github.com/unraid/api/commit/7696e297eb00be0fd7e513cda71c7b66964aaf04))
+
 ### [2.33.1](https://github.com/unraid/api/compare/v2.33.0...v2.33.1) (2021-12-08)
 
 
