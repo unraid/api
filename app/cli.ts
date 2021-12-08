@@ -3,7 +3,7 @@ import path from 'path';
 import execa from 'execa';
 import { spawn, exec } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
-import dotEnv, { config } from 'dotenv';
+import dotEnv from 'dotenv';
 import findProcess from 'find-process';
 import pidUsage from 'pidusage';
 import prettyMs from 'pretty-ms';
