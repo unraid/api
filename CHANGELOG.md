@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.1](https://github.com/unraid/api/compare/v2.33.0...v2.33.1) (2021-12-08)
+
+
+### Bug Fixes
+
+* ensure json bodies can be parsed ([59d3bdc](https://github.com/unraid/api/commit/59d3bdcd1b3febede92445e892d646e28a40e4fc))
+* ensure token body is never undefined ([1a37509](https://github.com/unraid/api/commit/1a375091e42340c2a1d909ddf7db1aa7cab20611))
+
 ## [2.33.0](https://github.com/unraid/api/compare/v2.32.1...v2.33.0) (2021-12-08)
 
 
