@@ -1,14 +1,16 @@
 import { randomBytes } from 'crypto';
 
 /**
- * Generate two factor secret.
+ * Generate two factor token.
  */
 export const generateTwoFactorToken = () => randomBytes(64).toString('hex');
 
 /**
- * The current 2FA code for the root user.
+ * Valid 2FA tokens.
  */
-let currentTwoFactorToken = generateTwoFactorToken();
+export const twoFactorTokens = new Map([
+	['root', generateTwoFactorToken()]
+]);
 
 /**
  * Verify 2FA token.
@@ -22,11 +24,11 @@ export const verifyTwoFactorToken = (token: string) => {
 	if (token.length !== 128) throw new Error('Invalid token length!');
 
 	// Check token is valid
-	const valid = currentTwoFactorToken === token;
+	const valid = twoFactorTokens.has(token);
 
 	// Bail if token is invalid
 	if (!valid) throw new Error('Invalid token!');
 
 	// Generate new token
-	currentTwoFactorToken = generateTwoFactorToken();
+	twoFactorTokens.set('root', generateTwoFactorToken());
 };

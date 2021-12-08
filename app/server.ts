@@ -195,7 +195,7 @@ app.get('/', (_, res) => {
 app.post('/verify', async (req, res) => {
 	try {
 		// Check two-factor token is valid
-		verifyTwoFactorToken(req.query.token as string);
+		verifyTwoFactorToken(req.body.token as string);
 
 		// Allow the user to pass
 		res.sendStatus(204);
