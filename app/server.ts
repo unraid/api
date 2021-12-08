@@ -117,6 +117,9 @@ const getAllowedOrigins = (): string[] => {
 	]).values()];
 };
 
+// Ensure json bodies can be parsed
+app.use(express.json());
+
 // Cors
 app.use(cors({
 	origin: function (origin, callback) {
