@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.33.3](https://github.com/unraid/api/compare/v2.33.2...v2.33.3) (2021-12-08)
+
+
+### Bug Fixes
+
+* 2fa checking wrong sting for token ([23d43ca](https://github.com/unraid/api/commit/23d43ca70161f9062d74755860326ef255104419))
+* 2fa not using username ([c6dd461](https://github.com/unraid/api/commit/c6dd461ac60fef6b57398c3ed34f7bf3ce54ab53))
+
 ### [2.33.2](https://github.com/unraid/api/compare/v2.33.1...v2.33.2) (2021-12-08)
 
 
