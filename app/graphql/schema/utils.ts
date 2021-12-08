@@ -8,6 +8,7 @@ import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils';
 import { loadState } from '../../core/utils/misc/load-state';
+import { User } from '../../core/types';
 
 const { varState, networkState } = states;
 
@@ -15,7 +16,7 @@ const { ensurePermission } = utils;
 const { AppError } = errors;
 
 export interface Context {
-	user: any;
+	user?: User;
 	websocketId: string;
 }
 

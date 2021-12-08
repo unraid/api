@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
+ * Copyright 2019-2021 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
 
@@ -12,8 +12,12 @@ import { checkPermission, AccessControlOptions } from './check-permission';
  * @param user The user to check permissions on.
  * @param permissions A permissions object.
  */
-export const ensurePermission = (user: User, options: AccessControlOptions) => {
+export const ensurePermission = (user: User | undefined, options: AccessControlOptions) => {
 	const { resource, action, possession = 'own' } = options;
+
+	// Bail if no user was passed
+	if (!user) throw new PermissionError(`No user provided for authentication check when trying to access "${resource}".`);
+
 	const permissionGranted = checkPermission(user, {
 		resource,
 		action,
@@ -21,7 +25,5 @@ export const ensurePermission = (user: User, options: AccessControlOptions) => {
 	});
 
 	// Bail if user doesn't have permission
-	if (!permissionGranted) {
-		throw new PermissionError(`${user.name} doesn't have permission to access "${resource}".`);
-	}
+	if (!permissionGranted) throw new PermissionError(`${user.name} doesn't have permission to access "${resource}".`);
 };

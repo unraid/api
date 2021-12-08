@@ -1,5 +1,5 @@
 /*!
- * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
+ * Copyright 2019-2021 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
 
@@ -13,13 +13,12 @@ import chokidar from 'chokidar';
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import { totp } from 'otplib';
 import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
 import { logger, config, paths, pubsub } from './core';
-import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync, attemptJSONParse } from './core/utils';
+import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync } from './core/utils';
 import { graphql } from './graphql';
-import { totpSecret } from './common/2fa';
+import { verifyTwoFactorToken } from './common/two-factor';
 import packageJson from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
@@ -193,25 +192,27 @@ app.get('/', (_, res) => {
 	return res.send(getEndpoints(app));
 });
 
-app.post('/verify', (req, res) => {
-	// Check code is valid
-	if (!totp.verify({ token: req.query.code as string, secret: totpSecret })) {
+app.post('/verify', async (req, res) => {
+	try {
+		// Check two-factor token is valid
+		verifyTwoFactorToken(req.query.token as string);
+
 		// Allow the user to pass
 		res.sendStatus(204);
 		return;
+	} catch (error: unknown) {
+		// User failed verification
+		res.status(401);
+		res.send((error as Error).message);
 	}
-
-	// User failed verification
-	res.status(401);
-	res.send('Invalid 2FA code.');
 });
 
 // Handle errors by logging them and returning a 500.
 app.use((error, _, res, __) => {
 	// Don't log CORS errors
-	if (!error.message.includes('CORS')) {
-		logger.error(error);
-	}
+	if (error.message.includes('CORS')) return;
+
+	logger.error(error);
 
 	if (error.stack) {
 		error.stackTrace = error.stack;

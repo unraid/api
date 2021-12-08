@@ -3,18 +3,17 @@
  * Written by: Alexis Tyler
  */
 
-import { totp } from 'otplib';
-import { totpSecret } from '../../../common/2fa';
+import { generateTwoFactorToken } from '../../../common/two-factor';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
+import { Context } from '../../schema/utils';
 
-export default async () => {
-	// Ensure we have a secret set
-	if (!totpSecret) {
-		return {
-			code: null,
-			error: 'Missing TOTP secret'
-		};
-	}
+export default async (_: unknown, __: unknown, context: Context) => {
+	ensurePermission(context.user, {
+		resource: 'two-factor',
+		action: 'read',
+		possession: 'own'
+	});
 
 	// Return code
-	return totp.generate(totpSecret);
+	return generateTwoFactorToken();
 };

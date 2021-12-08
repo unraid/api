@@ -93,7 +93,8 @@ export const my_servers = {
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'vms', action: 'read:any', attributes: '*' },
 		{ resource: 'vms/domain', action: 'read:any', attributes: '*' },
-		{ resource: 'config', action: 'read:any', attributes: '*' }
+		{ resource: 'config', action: 'read:any', attributes: '*' },
+		{ resource: 'two-factor', action: 'read:own', attributes: '*' }
 	]
 };
 
