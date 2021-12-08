@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.33.0](https://github.com/unraid/api/compare/v2.32.1...v2.33.0) (2021-12-08)
+
+
+### Features
+
+* add 2fa support ([38a6cb0](https://github.com/unraid/api/commit/38a6cb0ce5958ad4ee1c8a7fcc38a93a36d80cee))
+
+
+### Bug Fixes
+
+* add twoFactor to graphql ([43c680d](https://github.com/unraid/api/commit/43c680df18cfa275efe50ab90fcb8187a4050a07))
+* ensure 2fa token is valid ([eb25891](https://github.com/unraid/api/commit/eb2589156633aa25eaaf5ec5eff331dc2990ea12))
+* ensure token is saved on generation ([6a441bd](https://github.com/unraid/api/commit/6a441bd08df2288721bd564243c7f8bfaf66fce6))
+* ensure version is update on start ([6acd2b7](https://github.com/unraid/api/commit/6acd2b7db38aff6ef4a5bb0eeeaea590448c23c1))
+* token length ([c803762](https://github.com/unraid/api/commit/c803762cc39e5bbddde8b00e73454e9eb0423d18))
+* token length being too short ([661907e](https://github.com/unraid/api/commit/661907e02a01a3d22feb934079a82629eec45ed6))
+* twoFactor query ([1197b84](https://github.com/unraid/api/commit/1197b84aeb648d342d0ee3fe35919c49438b22f0))
+
 ### [2.32.1](https://github.com/unraid/api/compare/v2.32.0...v2.32.1) (2021-12-03)
 
 
