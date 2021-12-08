@@ -3,7 +3,7 @@ import { totp, authenticator } from 'otplib';
 const twoFactorSecret = authenticator.generateSecret(64);
 
 /**
- * Generate `103` character long secret.
+ * Generate two factor secret.
  */
 export const generateTwoFactorToken = () => totp.generate(twoFactorSecret);
 
@@ -16,7 +16,7 @@ export const verifyTwoFactorToken = (token: string) => {
 	// Bail if token is missing
 	if (!token) throw new Error('Missing token!');
 	// Bail if token is too short or long
-	if (token.length !== 103) throw new Error('Invalid token length!');
+	if (token.length !== 6) throw new Error('Invalid token length!');
 
 	// Check token is valid
 	const valid = totp.verify({ token, secret: twoFactorSecret });
