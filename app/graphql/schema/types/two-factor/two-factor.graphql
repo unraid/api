@@ -1,0 +1,8 @@
+type Query {
+    twoFactor: TwoFactor
+}
+
+type TwoFactor {
+    token: string;
+    error: string;
+}
