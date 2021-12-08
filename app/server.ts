@@ -204,6 +204,10 @@ app.post('/verify', async (req, res) => {
 		res.sendStatus(204);
 		return;
 	} catch (error: unknown) {
+		logger.addContext('error', error);
+		logger.error('Failed validating 2FA token.');
+		logger.removeContext('error');
+
 		// User failed verification
 		res.status(401);
 		res.send((error as Error).message);

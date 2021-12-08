@@ -22,11 +22,18 @@ export const twoFactorTokens = new NodeCache({
 export const verifyTwoFactorToken = (username: string, token?: string) => {
 	// Bail if token is missing
 	if (!token) throw new Error('Missing token!');
+
 	// Bail if token is too short or long
 	if (token.length !== 128) throw new Error('Invalid token length!');
 
+	// Get the current token for this user
+	const existingToken = twoFactorTokens.get(username);
+
+	// Bail if we've never generated a token or if the token expired
+	if (!existingToken) throw new Error('No valid token for this user!');
+
 	// Check token is valid
-	const valid = twoFactorTokens.has(token);
+	const valid = existingToken === token;
 
 	// Bail if token is invalid
 	if (!valid) throw new Error('Invalid token!');
