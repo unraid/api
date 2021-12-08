@@ -17,7 +17,7 @@ export const twoFactorTokens = new Map([
  *
  * If the token is missing, too short, too long or invalid an error will be thrown.
  */
-export const verifyTwoFactorToken = (token: string) => {
+export const verifyTwoFactorToken = (token?: string) => {
 	// Bail if token is missing
 	if (!token) throw new Error('Missing token!');
 	// Bail if token is too short or long
