@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import { fetch } from '../../../common/fetch';
 import FormData from 'form-data';
 import { varState } from '../../states';
 import { AppError } from '../../errors';
@@ -47,12 +47,12 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 
 	// Something went wrong
 	if (!response.ok) {
-		if (shouldThrow) throw new Error('Error while validing API key with key-server.');
+		if (shouldThrow) throw new Error('Error while validating API key with key-server.');
 		return false;
 	}
 
 	// Check if key is valid
-	const valid = await response.json().then(data => data.valid);
+	const valid = await response.json().then(data => (data as { valid: boolean }).valid);
 	if (valid) {
 		validKeys.add(apiKey);
 		logger.addContext('apiKey', apiKey);

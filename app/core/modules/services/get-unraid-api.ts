@@ -5,7 +5,7 @@
 
 import { ensurePermission } from '../../utils';
 import { CoreContext, CoreResult } from '../../types';
-import packageJson from '../../../../package.json';
+import { version } from '../../../../package.json';
 
 interface Result extends CoreResult {
 	json: {
@@ -25,10 +25,8 @@ const startTimestamp = new Date();
  * Get Unraid api service info.
  */
 export const getUnraidApiService = async (context: CoreContext): Promise<Result> => {
-	const { user } = context;
-
 	// Check permissions
-	ensurePermission(user, {
+	ensurePermission(context.user, {
 		resource: 'service/unraid-api',
 		action: 'read',
 		possession: 'any'
@@ -45,7 +43,7 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 			timestamp: uptimeTimestamp,
 			seconds: uptimeSeconds
 		},
-		version: packageJson.version
+		version
 	};
 
 	return {

@@ -19,7 +19,7 @@ import { logger, config, paths, pubsub } from './core';
 import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync } from './core/utils';
 import { graphql } from './graphql';
 import { verifyTwoFactorToken } from './common/two-factor';
-import packageJson from '../package.json';
+import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
 
@@ -157,7 +157,7 @@ app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
 	if (!app.get('x-unraid-api-version')) {
-		app.set('x-unraid-api-version', packageJson.version);
+		app.set('x-unraid-api-version', version);
 	}
 
 	// Update header with unraid API version
@@ -309,7 +309,7 @@ const wsServer = new WebSocket.Server({ noServer: true });
 
 // Add ws upgrade functionality back in.
 stoppableServer.on('upgrade', (request, socket, head) => {
-	wsServer.handleUpgrade(request, socket, head, ws => {
+	wsServer.handleUpgrade(request, socket as net.Socket, head, ws => {
 		wsServer.emit('connection', ws);
 	});
 });
