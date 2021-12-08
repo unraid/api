@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { generateTwoFactorToken, twoFactorTokens } from '../../../common/two-factor';
+import { generateTwoFactorToken, setTwoFactorToken } from '../../../common/two-factor';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { Context } from '../../schema/utils';
 
@@ -18,7 +18,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	const token = generateTwoFactorToken();
 
 	// Save token to store
-	twoFactorTokens.set('root', token);
+	setTwoFactorToken('root', token);
 
 	// Return token
 	return {

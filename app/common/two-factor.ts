@@ -1,4 +1,5 @@
 import { randomBytes } from 'crypto';
+import NodeCache from 'node-cache';
 
 /**
  * Generate two factor token.
@@ -8,14 +9,17 @@ export const generateTwoFactorToken = () => randomBytes(64).toString('hex');
 /**
  * Valid 2FA tokens.
  */
-export const twoFactorTokens = new Set([generateTwoFactorToken()]);
+export const twoFactorTokens = new NodeCache({
+	deleteOnExpire: true,
+	stdTTL: 60_000 // Allow 1m of cache time
+});
 
 /**
  * Verify 2FA token.
  *
  * If the token is missing, too short, too long or invalid an error will be thrown.
  */
-export const verifyTwoFactorToken = (token?: string) => {
+export const verifyTwoFactorToken = (username: string, token?: string) => {
 	// Bail if token is missing
 	if (!token) throw new Error('Missing token!');
 	// Bail if token is too short or long
@@ -28,8 +32,12 @@ export const verifyTwoFactorToken = (token?: string) => {
 	if (!valid) throw new Error('Invalid token!');
 
 	// Delete old token
-	twoFactorTokens.delete(token);
+	twoFactorTokens.del(token);
 
 	// Generate new token
-	twoFactorTokens.add(generateTwoFactorToken());
+	twoFactorTokens.set(username, generateTwoFactorToken());
+};
+
+export const setTwoFactorToken = (username: string, token: string) => {
+	twoFactorTokens.set(username, token);
 };
