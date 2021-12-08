@@ -3,6 +3,7 @@ import path from 'path';
 import execa from 'execa';
 import { spawn, exec } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
+import { Serializer as IniSerializer } from 'multi-ini';
 import dotEnv from 'dotenv';
 import findProcess from 'find-process';
 import pidUsage from 'pidusage';
@@ -12,6 +13,7 @@ import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
 import { cliLogger, internalLogger, levels } from './core/log';
+import { loadState } from './core/utils/misc/load-state';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -77,6 +79,31 @@ const commands = {
 		// Set cwd
 		process.chdir(paths.get('unraid-api-base')!);
 
+		// Write current version to config file
+		const configPath = paths.get('myservers-config')!;
+		const data = loadState<{
+			api?: { version?: string };
+		}>(configPath);
+
+		// Ini serializer
+		const serializer = new IniSerializer({
+			// This ensures it ADDs quotes
+			keep_quotes: false
+		});
+
+		// Stringify data
+		const stringifiedData = serializer.serialize({
+			...(data ?? {}),
+			api: {
+				...data.api ?? {},
+				version
+			}
+		});
+
+		// Update config file
+		fs.writeFileSync(configPath, stringifiedData);
+
+		// Start API
 		const apiVersion: string = version;
 		cliLogger.info('Starting unraid-api@v%s', apiVersion);
 
