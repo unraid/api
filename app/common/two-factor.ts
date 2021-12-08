@@ -8,9 +8,7 @@ export const generateTwoFactorToken = () => randomBytes(64).toString('hex');
 /**
  * Valid 2FA tokens.
  */
-export const twoFactorTokens = new Map([
-	['root', generateTwoFactorToken()]
-]);
+export const twoFactorTokens = new Set([generateTwoFactorToken()]);
 
 /**
  * Verify 2FA token.
@@ -29,6 +27,9 @@ export const verifyTwoFactorToken = (token?: string) => {
 	// Bail if token is invalid
 	if (!valid) throw new Error('Invalid token!');
 
+	// Delete old token
+	twoFactorTokens.delete(token);
+
 	// Generate new token
-	twoFactorTokens.set('root', generateTwoFactorToken());
+	twoFactorTokens.add(generateTwoFactorToken());
 };
