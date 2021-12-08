@@ -3,6 +3,6 @@ type Query {
 }
 
 type TwoFactor {
-    token: string;
-    error: string;
+    token: String
+    error: String
 }

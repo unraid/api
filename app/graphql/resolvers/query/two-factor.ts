@@ -14,6 +14,8 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
-	// Return code
-	return generateTwoFactorToken();
+	// Return token
+	return {
+		token: generateTwoFactorToken()
+	};
 };
