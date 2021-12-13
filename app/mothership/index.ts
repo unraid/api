@@ -172,7 +172,7 @@ export const checkRelayConnection = debounce(async () => {
 			const operationName = message.payload.query.definitions[0].name.value;
 			try {
 				switch (true) {
-					case type === 'query' || type === 'mutation' || operationName === 'getInitialData': {
+					case type === 'query' || type === 'mutation': {
 						// Convert query to string
 						const query = print(message.payload.query);
 						relayLogger.addContext('query', query);
@@ -190,25 +190,26 @@ export const checkRelayConnection = debounce(async () => {
 							}
 						});
 
-						// eslint-disable-next-line no-warning-comments
-						// TODO: Remove this
-						if (process.env.SHOW_ME_THE_GOODS) console.log(result);
-
 						relayLogger.addContext('result', result);
-						relayLogger.trace('Processed %s', operationName);
+						relayLogger.trace('Sending reply for %s', operationName);
 						relayLogger.removeContext('result');
 
 						// If the socket closed before we could reply then just bail
 						if (!relay?.isOpened) {
+							// Log we can't reply
+							relayLogger.trace('Failed sending reply for %s as the connection to relay is closed.', operationName);
 							return;
 						}
 
-						// Send data
+						// Reply back with data
 						relay.send(JSON.stringify({
 							id,
 							payload: result,
 							type: 'data'
 						}));
+
+						// Log we sent a reply
+						relayLogger.trace('Sent reply for %s', operationName);
 						break;
 					}
 
