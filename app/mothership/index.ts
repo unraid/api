@@ -190,6 +190,10 @@ export const checkRelayConnection = debounce(async () => {
 							}
 						});
 
+						// eslint-disable-next-line no-warning-comments
+						// TODO: Remove this
+						if (process.env.SHOW_ME_THE_GOODS) console.log(result);
+
 						relayLogger.addContext('result', result);
 						relayLogger.trace('Processed %s', operationName);
 						relayLogger.removeContext('result');
