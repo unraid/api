@@ -8,7 +8,7 @@ import * as core from '../core';
 import { bus, apiManager, config, pluginManager, modules, paths, pubsub } from '../core';
 import { AppError, FatalAppError, PluginError } from '../core/errors';
 import { usersState } from '../core/states';
-import dee from '@gridplus/docker-events';
+import { DockerEventEmitter } from '@gridplus/docker-events';
 import { run } from '../run';
 import * as resolvers from './resolvers';
 import { wsHasConnected, wsHasDisconnected } from '../ws';
@@ -151,8 +151,29 @@ bus.on('var', async data => {
 	}
 });
 
+// Only watch container events equal to start/stop
+const watchedEvents = [
+	'die',
+	'exec_create',
+	'exec_detach',
+	'exec_die',
+	'exec_start',
+	'kill',
+	'oom',
+	'pause',
+	'restart',
+	'start',
+	'stop',
+	'unpause'
+].map(event => `event=${event}`);
+
+// Create docker event emitter instance
+logger.addContext('events', watchedEvents);
+logger.debug('Creating docker event emitter instance');
+logger.removeContext('events');
+const dee = new DockerEventEmitter(watchedEvents);
+
 // On Docker event update info with { apps: { installed, started } }
-logger.debug('Binding to docker events');
 dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
 	// Only listen to container events
 	if (data.Type !== 'container') {
@@ -160,9 +181,9 @@ dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' 
 		return;
 	}
 
-	dockerLogger.trace(data);
-
+	dockerLogger.addContext('data', data);
 	dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
+	dockerLogger.removeContext('data');
 
 	const user: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 	const { json } = await modules.getAppCount({ user });
@@ -173,6 +194,7 @@ dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' 
 	});
 });
 
+logger.debug('Binding to docker events');
 dee.listen();
 
 export const graphql = {
