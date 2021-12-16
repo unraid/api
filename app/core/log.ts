@@ -5,7 +5,7 @@
 
 import chalk from 'chalk';
 import { redactSecrets } from 'redact-secrets';
-import { configure, getLogger } from 'log4js';
+import { configure, getLogger as getRealLogger } from 'log4js';
 import { serializeError } from 'serialize-error';
 
 const redact = redactSecrets('REDACTED', {
@@ -18,6 +18,7 @@ export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'
 const contextEnabled = Boolean(process.env.LOG_CONTEXT);
 const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 const tracingEnabled = Boolean(process.env.LOG_TRACING);
+const enabledCategories = process.env.LOG_CATEGORY?.split(',');
 const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
 const minimumLoggingPattern = '%m';
 const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out', 'errors'];
@@ -26,7 +27,7 @@ const logLayout = {
 	type: 'pattern',
 	// Depending on what this env is set to we'll either get raw or pretty logs
 	// The reason we do this is to allow the app to change this value
-	// This way pretty logs can be turned off programatically
+	// This way pretty logs can be turned off programmatically
 	pattern: () => process.env.LOG_TYPE === 'pretty' ? fullLoggingPattern : minimumLoggingPattern,
 	tokens: {
 		id() {
@@ -82,6 +83,13 @@ configure({
 		}
 	}
 });
+
+const getNoOpLogger = (name: string) => Object.fromEntries(Object.entries(getRealLogger(name)).map(([name]) => [name, () => {}]));
+
+const getLogger = (name: string) => {
+	if (enabledCategories?.includes(name)) return getRealLogger(name);
+	return getNoOpLogger(name);
+};
 
 export const internalLogger = getLogger('internal');
 export const logger = getLogger('app');
