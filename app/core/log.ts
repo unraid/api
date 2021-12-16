@@ -18,7 +18,7 @@ export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'
 const contextEnabled = Boolean(process.env.LOG_CONTEXT);
 const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 const tracingEnabled = Boolean(process.env.LOG_TRACING);
-const enabledCategories = process.env.LOG_CATEGORY?.split(',');
+const enabledCategories = (process.env.LOG_CATEGORY ?? '*')?.split(',');
 const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
 const minimumLoggingPattern = '%m';
 const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out', 'errors'];
@@ -90,6 +90,9 @@ const noOp = () => {};
 const getNoOpLogger = (name: string): Logger => Object.fromEntries(Object.entries(getRealLogger(name)).map(([name, entry]) => [name, typeof entry === 'function' ? noOp : entry])) as Logger;
 
 const getLogger = (name: string) => {
+	// Check if all are enabled
+	if (enabledCategories?.includes('*')) return getRealLogger(name);
+	// Check if this specific one is enabled
 	if (enabledCategories?.includes(name)) return getRealLogger(name);
 	return getNoOpLogger(name);
 };
