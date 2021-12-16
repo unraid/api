@@ -5,7 +5,7 @@
 
 import chalk from 'chalk';
 import { redactSecrets } from 'redact-secrets';
-import { configure, getLogger as getRealLogger } from 'log4js';
+import { configure, getLogger as getRealLogger, Logger } from 'log4js';
 import { serializeError } from 'serialize-error';
 
 const redact = redactSecrets('REDACTED', {
@@ -84,7 +84,10 @@ configure({
 	}
 });
 
-const getNoOpLogger = (name: string) => Object.fromEntries(Object.entries(getRealLogger(name)).map(([name]) => [name, () => {}]));
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+const noOp = () => {};
+
+const getNoOpLogger = (name: string): Logger => Object.fromEntries(Object.entries(getRealLogger(name)).map(([name, entry]) => [name, typeof entry === 'function' ? noOp : entry])) as Logger;
 
 const getLogger = (name: string) => {
 	if (enabledCategories?.includes(name)) return getRealLogger(name);
