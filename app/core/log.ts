@@ -87,7 +87,33 @@ configure({
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = () => {};
 
-const getNoOpLogger = (name: string): Logger => Object.fromEntries(Object.entries(getRealLogger(name)).map(([name, entry]) => [name, typeof entry === 'function' ? noOp : entry])) as Logger;
+const getNoOpLogger = (name: string): Logger => {
+	const logger = getRealLogger(name);
+	return {
+		category: name,
+		level: logger.level,
+		log: noOp,
+		_log: noOp,
+		isLevelEnabled: logger.isLevelEnabled,
+		isTraceEnabled: logger.isTraceEnabled,
+		isDebugEnabled: logger.isDebugEnabled,
+		isInfoEnabled: logger.isInfoEnabled,
+		isWarnEnabled: logger.isWarnEnabled,
+		isErrorEnabled: logger.isErrorEnabled,
+		isFatalEnabled: logger.isFatalEnabled,
+		addContext: noOp,
+		removeContext: noOp,
+		clearContext: noOp,
+		setParseCallStackFunction: noOp,
+		trace: noOp,
+		debug: noOp,
+		info: noOp,
+		warn: noOp,
+		error: noOp,
+		fatal: noOp,
+		mark: noOp
+	} as unknown as Logger;
+};
 
 const getLogger = (name: string) => {
 	// Check if all are enabled
