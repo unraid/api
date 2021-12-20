@@ -106,7 +106,7 @@ const getAllowedOrigins = (): string[] => {
 		...(cert.nonWildcard && wanAccessEnabled ? [`https://www.${cert.nonWildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 		// Wildcard LAN hash
-		...(cert.wildcard ? [`https://${localIp.replace('.', '-')}.${cert.wildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+		...(cert.wildcard ? [`https://${localIp.replace(/\./g, '-')}.${cert.wildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
 		// Wildcard WAN hash
 		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
