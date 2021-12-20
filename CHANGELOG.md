@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.34.0](https://github.com/unraid/api/compare/v2.33.4...v2.34.0) (2021-12-20)
+
+
+### Features
+
+* add support for wildcard certs ([04bcd96](https://github.com/unraid/api/commit/04bcd966a2c57a5894b75aab19795fe98a1d1c6d))
+* call docker event emitter with filter ([62df8c8](https://github.com/unraid/api/commit/62df8c8592af0447b52a375381a7e5b21d812962))
+
+
+### Bug Fixes
+
+* enable all log categories by default ([e5947c2](https://github.com/unraid/api/commit/e5947c25819984332f700639309c9dabb3296dbd))
+* extra-origins -> extraOrigins ([96a18d3](https://github.com/unraid/api/commit/96a18d3e6f9aab3e4530bf7976cdffc6b31bbb9d))
+* noop logger ([1c81da3](https://github.com/unraid/api/commit/1c81da3ed1336364c6134a15b7f3858b3816222f))
+* wildcard cert not replacing local ip dot with dash ([cf59eaf](https://github.com/unraid/api/commit/cf59eafd2d03ed296e9571ede259de3c294f0bdd))
+
 ### [2.33.4](https://github.com/unraid/api/compare/v2.33.3...v2.33.4) (2021-12-13)
 
 ### [2.33.3](https://github.com/unraid/api/compare/v2.33.2...v2.33.3) (2021-12-08)
