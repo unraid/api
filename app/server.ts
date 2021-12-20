@@ -56,11 +56,11 @@ export const cert = {
 
 // Get myservers config
 const configPath = paths.get('myservers-config')!;
-export const myServersConfig = loadState<{ remote?: { wanport?: string; wanaccess?: string }; api?: { 'extra-origins'?: string } }>(configPath) ?? {};
+export const myServersConfig = loadState<{ remote?: { wanport?: string; wanaccess?: string }; api?: { 'extraOrigins'?: string } }>(configPath) ?? {};
 
-// To add extra-origins add a field to your myservers.cfg called "extra-origins" with a comma separated string
+// To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {
-	extra: typeof myServersConfig?.api?.['extra-origins'] === 'string' ? (myServersConfig.api['extra-origins']?.split(',') ?? []) : []
+	extra: typeof myServersConfig?.api?.['extraOrigins'] === 'string' ? (myServersConfig.api['extraOrigins']?.split(',') ?? []) : []
 };
 
 // We use a "Set" + "array spread" to deduplicate the strings

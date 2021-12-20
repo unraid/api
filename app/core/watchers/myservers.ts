@@ -38,7 +38,7 @@ export const myservers = () => {
 						avatar?: string;
 					};
 					api?: {
-						'extra-origins'?: string;
+						'extraOrigins'?: string;
 					};
 				}>>(fullPath);
 
@@ -51,8 +51,8 @@ export const myservers = () => {
 					};
 				}
 
-				if (file?.api?.['extra-origins'] === 'string') {
-					origins.extra = myServersConfig?.api?.['extra-origins']?.split(',') ?? [];
+				if (file?.api?.['extraOrigins'] === 'string') {
+					origins.extra = myServersConfig?.api?.['extraOrigins']?.split(',') ?? [];
 				}
 
 				try {
