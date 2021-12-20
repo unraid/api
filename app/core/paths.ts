@@ -20,7 +20,8 @@ export interface Paths {
 	'myservers-base': string;
 	'myservers-config': string;
 	'myservers-env': string;
-	'ssl-certificate': string;
+	'non-wildcard-ssl-certificate': string;
+	'wildcard-ssl-certificate': string;
 }
 
 const thisDir = __dirname;
@@ -53,7 +54,8 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['myservers-base', '/boot/config/plugins/dynamix.my.servers/'],
 	['myservers-config', '/boot/config/plugins/dynamix.my.servers/myservers.cfg'],
 	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
-	['ssl-certificate', '/boot/config/ssl/certs/certificate_bundle.pem']
+	['non-wildcard-ssl-certificate', '/boot/config/ssl/certs/certificate_bundle.pem'],
+	['wildcard-ssl-certificate', '/boot/config/ssl/certs/myunraid_bundle.pem']
 ]);
 
 /**

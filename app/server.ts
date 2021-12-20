@@ -13,15 +13,15 @@ import chokidar from 'chokidar';
 import express from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import { pki } from 'node-forge';
 import { ApolloServer } from 'apollo-server-express';
 import { logger, config, paths, pubsub } from './core';
-import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState, attemptReadFileSync } from './core/utils';
+import { getEndpoints, globalErrorHandler, exitApp, cleanStdout, sleep, loadState } from './core/utils';
 import { graphql } from './graphql';
 import { verifyTwoFactorToken } from './common/two-factor';
 import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
+import { getCerts } from './common/get-certs';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -48,11 +48,7 @@ const port = process.env.PORT ?? String(config.get('port'));
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
 
 // Get cert + cert info
-const certPath = paths.get('ssl-certificate')!;
-const certPem = attemptReadFileSync(certPath);
-export const cert = {
-	hash: certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined
-};
+export const cert = getCerts();
 
 // Get myservers config
 const configPath = paths.get('myservers-config')!;
@@ -103,11 +99,17 @@ const getAllowedOrigins = (): string[] => {
 		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
-		// Hash
-		...(cert.hash ? [`https://${cert.hash}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+		// Non-wildcard LAN hash
+		...(cert.nonWildcard ? [`https://${cert.nonWildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
-		// Wan hash
-		...(cert.hash && wanAccessEnabled ? [`https://www.${cert.hash}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+		// Non-wildcard WAN hash
+		...(cert.nonWildcard && wanAccessEnabled ? [`https://www.${cert.nonWildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+
+		// Wildcard LAN hash
+		...(cert.wildcard ? [`https://${localIp.replace('.', '-')}.${cert.wildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+		// Wildcard WAN hash
+		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',

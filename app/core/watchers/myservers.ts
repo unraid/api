@@ -3,13 +3,14 @@
  * Written by: Alexis Tyler
  */
 
+import { dirname } from 'path';
 import chokidar from 'chokidar';
 import { logger } from '../log';
 import { paths } from '../paths';
-import { pki } from 'node-forge';
-import { attemptReadFileSync, loadState } from '../utils';
+import { loadState } from '../utils';
 import { apiManager } from '../api-manager';
 import { cert, myServersConfig, origins } from '../../server';
+import { getCerts } from '../../common/get-certs';
 
 export const myservers = () => {
 	const watchers: chokidar.FSWatcher[] = [];
@@ -66,19 +67,20 @@ export const myservers = () => {
 			// Save ref for cleanup
 			watchers.push(myserversConfigWatcher);
 
-			// Get cert path
-			const sslCertPath = paths.get('ssl-certificate')!;
+			// Get cert paths
+			const certsPath = dirname(paths.get('non-wildcard-ssl-certificate')!);
 
-			// Watch extra origin path for changes
-			const sslCertWatcher = chokidar.watch(sslCertPath, {
+			// Watch ssl certs path for changes
+			const sslCertWatcher = chokidar.watch(certsPath, {
 				persistent: true,
 				ignoreInitial: true
 			});
 
 			// Update SSL cert info
 			sslCertWatcher.on('all', _event => {
-				const certPem = attemptReadFileSync(sslCertPath);
-				cert.hash = certPem ? pki.certificateFromPem(certPem)?.subject?.attributes?.[0]?.value as string : undefined;
+				const newCerts = getCerts();
+				cert.nonWildcard = newCerts.nonWildcard;
+				cert.wildcard = newCerts.wildcard;
 			});
 		},
 		stop() {
