@@ -25,8 +25,8 @@ const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Mat
  * @param type ka = keep-alive, error or data
  */
 function sendMessage(type: 'ka');
-function sendMessage(type: 'error', id: string | number, payload: { error: {} });
-function sendMessage(type: 'data', id: string | number, payload: { data: {} });
+function sendMessage(type: 'error', id: string | number, payload: { error: Record<string, unknown> });
+function sendMessage(type: 'data', id: string | number, payload: { data: Record<string, unknown> });
 function sendMessage(type: string, id?: unknown, payload?: unknown): void {
 	if (!relay?.isOpened) return;
 	const message = JSON.stringify({
