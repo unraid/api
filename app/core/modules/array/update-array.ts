@@ -44,7 +44,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 	}
 
 	// Prevent starting/stopping array when it's already in the same state
-	if ((arrayIsRunning && nextState === 'start') || (!arrayIsRunning && nextState === 'stop')) {
+	if ((arrayIsRunning() && nextState === 'start') || (!arrayIsRunning() && nextState === 'stop')) {
 		throw new AppError(`The array is already ${startState}`);
 	}
 

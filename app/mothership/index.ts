@@ -18,7 +18,7 @@ import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
 
-const convertToFuzzyTime = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1) + min);
+const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
 
 /**
  * Send a message to relay if it's open
@@ -27,7 +27,7 @@ const convertToFuzzyTime = (min: number, max: number): number => Math.floor(Math
 function sendMessage(type: 'ka');
 function sendMessage(type: 'error', id: string | number, payload: { error: {} });
 function sendMessage(type: 'data', id: string | number, payload: { data: {} });
-function sendMessage(type: string, id?: unknown, payload?: unknown) {
+function sendMessage(type: string, id?: unknown, payload?: unknown): void {
 	if (!relay?.isOpened) return;
 	const message = JSON.stringify({
 		id,
@@ -37,8 +37,8 @@ function sendMessage(type: string, id?: unknown, payload?: unknown) {
 	relayLogger.addContext('message', message);
 	relayLogger.trace('Sending update to subscription %s', id);
 	relayLogger.removeContext('message');
-	return relay.send(message);
-};
+	relay.send(message);
+}
 
 const subscriptionCache = {};
 const subscriptionListener = (id: string | number, name: string) => (data: any) => {
