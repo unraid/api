@@ -18,16 +18,48 @@ import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
 
+const convertToFuzzyTime = (min: number, max: number): number => Math.floor(Math.random() * (max - min + 1) + min);
+
+/**
+ * Send a message to relay if it's open
+ * @param type ka = keep-alive, error or data
+ */
+function sendMessage(type: 'ka');
+function sendMessage(type: 'error', id: string | number, payload: { error: {} });
+function sendMessage(type: 'data', id: string | number, payload: { data: {} });
+function sendMessage(type: string, id?: unknown, payload?: unknown) {
+	if (!relay?.isOpened) return;
+	const message = JSON.stringify({
+		id,
+		payload,
+		type
+	});
+	relayLogger.addContext('message', message);
+	relayLogger.trace('Sending update to subscription %s', id);
+	relayLogger.removeContext('message');
+	return relay.send(message);
+};
+
+const subscriptionCache = {};
 const subscriptionListener = (id: string | number, name: string) => (data: any) => {
-	relayLogger.trace('Sending update for %s for subscription %s', name, id);
-	if (relay?.isOpened) {
-		relay.send(JSON.stringify({
-			id,
-			payload: {
+	relayLogger.trace('Got message from listener for %s', name);
+
+	// Bail as we've already sent mothership a message exactly like this
+	if (subscriptionCache[name] === data) return;
+
+	// Update the subscription cache
+	if (subscriptionCache[name] === undefined) subscriptionCache[name] = data;
+
+	switch (true) {
+		// Array needs dampening as it generates too many events during intense IO
+		case name === 'array':
+			debounce(sendMessage('data', id, data), 1_000);
+			break;
+		default:
+			sendMessage('data', id, {
 				data
-			},
-			type: 'data'
-		}));
+			});
+			break;
 	}
 };
 
@@ -62,35 +94,35 @@ const handleError = (error: unknown) => {
 			break;
 
 		case 429:
-			// Reconnect after 30s
+			// Reconnect after ~30s
 			timeout = Date.now() + 30_000;
 			setTimeout(() => {
 				timeout = undefined;
-			}, 30_000);
+			}, convertToFuzzyTime(15_000, 45_000));
 			break;
 
 		case 500:
-			// Reconnect after 60s
+			// Reconnect after ~60s
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
-			}, 60_000);
+			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 
 		case 503:
-			// Reconnect after 60s
+			// Reconnect after ~60s
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
-			}, 60_000);
+			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 
 		default:
-			// Reconnect after 60s
+			// Reconnect after ~60s
 			timeout = Date.now() + 60_000;
 			setTimeout(() => {
 				timeout = undefined;
-			}, 60_000);
+			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 	}
 };
@@ -105,7 +137,7 @@ const startKeepAlive = () => {
 
 		// Send keep alive message
 		relayLogger.trace('Sending keep alive message');
-		relay.send(JSON.stringify({ type: 'ka' }));
+		sendMessage('ka');
 	}, 30_000);
 };
 
@@ -202,11 +234,9 @@ export const checkRelayConnection = debounce(async () => {
 						}
 
 						// Reply back with data
-						relay.send(JSON.stringify({
-							id,
-							payload: result,
-							type: 'data'
-						}));
+						sendMessage('data', id, {
+							data: result
+						});
 
 						// Log we sent a reply
 						relayLogger.trace('Sent reply for %s', operationName);
@@ -242,16 +272,11 @@ export const checkRelayConnection = debounce(async () => {
 				relayLogger.addContext('error', error);
 				relayLogger.error('Failed processing message');
 				relayLogger.removeContext('error');
-				if (relay?.isOpened) {
-					relay.send(JSON.stringify({
-						id,
-						payload: {
-							error: {
-								message: error instanceof Error ? error.message : error
-							}
-						}
-					}));
-				}
+				sendMessage('error', id, {
+					error: {
+						message: error instanceof Error ? error.message : error
+					}
+				});
 			}
 		});
 	} catch (error: unknown) {
