@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.34.1](https://github.com/unraid/api/compare/v2.34.0...v2.34.1) (2021-12-28)
+
+
+### Bug Fixes
+
+* add debouncing to array listener for mothership ([6f02700](https://github.com/unraid/api/commit/6f0270003bd452ec4410f79727fd1b32e1a8d013))
+* typo ([47e687b](https://github.com/unraid/api/commit/47e687b88632e3ca290a9e1cb33b494558429682))
+
 ## [2.34.0](https://github.com/unraid/api/compare/v2.33.4...v2.34.0) (2021-12-20)
 
 
