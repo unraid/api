@@ -56,10 +56,11 @@ export const myServersConfig = loadState<{ remote?: { wanport?: string; wanacces
 
 // To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {
-	extra: typeof myServersConfig?.api?.['extraOrigins'] === 'string' ? (myServersConfig.api['extraOrigins']?.split(',') ?? []) : []
+	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : []
 };
 
 // We use a "Set" + "array spread" to deduplicate the strings
+// eslint-disable-next-line complexity
 const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
 	const localIp = networkState.data[0].ipaddr[0] as string;
@@ -76,8 +77,8 @@ const getAllowedOrigins = (): string[] => {
 	// Get webui https port (default to 443)
 	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
 
-	// Get wan https port
-	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : myServersConfig?.remote?.wanport;
+	// Get wan https port (default to 443)
+	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
 
 	// Check if wan access is enabled
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
@@ -110,6 +111,9 @@ const getAllowedOrigins = (): string[] => {
 
 		// Wildcard WAN hash
 		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+
+		// User provided cert with WAN port
+		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : []),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',

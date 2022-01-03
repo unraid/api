@@ -1,12 +1,21 @@
 import { pki } from 'node-forge';
 import { paths } from '../core/paths';
+import { varState } from '../core/states/var';
 import { attemptReadFileSync } from '../core/utils/misc/attempt-read-file-sync';
 
+const getCertSubject = (path?: string) => {
+	if (!path) return undefined;
+	const cert = attemptReadFileSync(path);
+	return pki.certificateFromPem(cert)?.subject?.attributes?.[0]?.value as string;
+};
+
 export const getCerts = () => {
-	const nonWildcardCert = attemptReadFileSync(paths.get('non-wildcard-ssl-certificate')!);
-	const wildcardCert = attemptReadFileSync(paths.get('wildcard-ssl-certificate')!);
+	// Get server's hostname (in lowercase)
+	const serverName = varState.data.name.toLowerCase();
+
 	return {
-		nonWildcard: nonWildcardCert ? pki.certificateFromPem(nonWildcardCert)?.subject?.attributes?.[0]?.value as string : undefined,
-		wildcard: wildcardCert ? (pki.certificateFromPem(wildcardCert)?.subject?.attributes?.[0]?.value as string).replace('*.', '') : undefined
+		nonWildcard: getCertSubject(paths.get('non-wildcard-ssl-certificate')),
+		wildcard: getCertSubject(paths.get('wildcard-ssl-certificate')),
+		userProvided: getCertSubject(`${paths.get('ssl-certificate-directory')!}${serverName}_unraid_bundle.pem`)
 	};
 };
