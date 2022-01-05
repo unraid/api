@@ -96,6 +96,7 @@ export const myservers = () => {
 				const newCerts = getCerts();
 				cert.nonWildcard = newCerts.nonWildcard;
 				cert.wildcard = newCerts.wildcard;
+				cert.userProvided = newCerts.userProvided;
 			});
 		},
 		stop() {

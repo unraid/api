@@ -4,9 +4,13 @@ import { varState } from '../core/states/var';
 import { attemptReadFileSync } from '../core/utils/misc/attempt-read-file-sync';
 
 const getCertSubject = (path?: string) => {
-	if (!path) return undefined;
-	const cert = attemptReadFileSync(path);
-	return pki.certificateFromPem(cert)?.subject?.attributes?.[0]?.value as string;
+	try {
+		if (!path) return undefined;
+		const cert = attemptReadFileSync(path);
+		return pki.certificateFromPem(cert)?.subject?.attributes?.[0]?.value as string;
+	} catch {
+		return '';
+	}
 };
 
 export const getCerts = () => {
