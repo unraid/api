@@ -19,7 +19,7 @@ export const getCerts = () => {
 
 	return {
 		nonWildcard: getCertSubject(paths.get('non-wildcard-ssl-certificate')),
-		wildcard: getCertSubject(paths.get('wildcard-ssl-certificate')),
+		wildcard: getCertSubject(paths.get('wildcard-ssl-certificate'))?.replace('*.', ''),
 		userProvided: getCertSubject(`${paths.get('ssl-certificate-directory')!}${serverName}_unraid_bundle.pem`)
 	};
 };
