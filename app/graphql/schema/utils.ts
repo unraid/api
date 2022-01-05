@@ -7,7 +7,6 @@ import { pubsub, utils, errors, states, apiManager, logger, paths } from '../../
 import { hasSubscribedToChannel } from '../../ws';
 import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils';
-import { loadState } from '../../core/utils/misc/load-state';
 import { User } from '../../core/types';
 
 const { varState, networkState } = states;
@@ -96,15 +95,6 @@ export const getServers = async (): Promise<Server[]> => {
 	if (!cachedServers) {
 		// Get my server's config file path
 		const configPath = paths.get('myservers-config')!;
-		const myserversConfigFile = loadState<{
-			remote: { anonMode?: string };
-		}>(configPath);
-
-		// If they're in anon mode bail
-		if (myserversConfigFile.remote.anonMode === 'true') {
-			logger.trace('Falling back to local state for /servers endpoint');
-			return getLocalServer(apiKey);
-		}
 
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);

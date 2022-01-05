@@ -5,6 +5,7 @@
 
 import { generateTwoFactorToken, setTwoFactorToken } from '../../../common/two-factor';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
+import { myServersConfig } from '../../../core/watchers/myservers';
 import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
@@ -14,6 +15,25 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
+	// Check if 2fa is enabled
+	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
+	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
+	const isEnabled = isRemoteEnabled || isLocalEnabled;
+
+	// Bail if it's not enabled
+	if (!isEnabled) {
+		// Return token
+		return {
+			token: null,
+			remote: {
+				enabled: isRemoteEnabled,
+			},
+			local: {
+				enabled: isLocalEnabled
+			}
+		};
+	}
+
 	// Generate new token
 	const token = generateTwoFactorToken();
 
@@ -22,6 +42,12 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	// Return token
 	return {
-		token
+		token,
+		remote: {
+			enabled: isRemoteEnabled
+		},
+		local: {
+			enabled: isLocalEnabled
+		}
 	};
 };

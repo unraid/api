@@ -3,14 +3,19 @@
  * Written by: Alexis Tyler
  */
 
-import { dirname } from 'path';
 import chokidar from 'chokidar';
 import { logger } from '../log';
 import { paths } from '../paths';
 import { loadState } from '../utils';
 import { apiManager } from '../api-manager';
-import { cert, myServersConfig, origins } from '../../server';
+import { cert, origins } from '../../server';
 import { getCerts } from '../../common/get-certs';
+import { MyServersConfig } from '../../types/my-servers-config';
+import { pubsub } from '..';
+
+// Get myservers config
+const configPath = paths.get('myservers-config')!;
+export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 
 export const myservers = () => {
 	const watchers: chokidar.FSWatcher[] = [];
@@ -29,32 +34,42 @@ export const myservers = () => {
 
 			// My servers config has likely changed
 			myserversConfigWatcher.on('all', async function (_event, fullPath) {
-				const file = loadState<Partial<{
-					remote: {
-						wanaccess?: string;
-						wanport?: string;
-						apikey?: string;
-						email?: string;
-						username?: string;
-						avatar?: string;
-					};
-					api?: {
-						'extraOrigins'?: string;
-					};
-				}>>(fullPath);
+				const file = loadState<Partial<MyServersConfig>>(fullPath);
 
-				// Only update these if they exist
+				// Update remote section for remote access
 				if (file.remote) {
 					myServersConfig.remote = {
 						...(myServersConfig.remote ? myServersConfig.remote : {}),
 						wanaccess: file.remote.wanaccess,
-						wanport: file.remote.wanport
+						wanport: file.remote.wanport,
+						'2Fa': file.remote['2Fa']
 					};
 				}
 
+				// Update local section for LAN access
+				if (file.local) {
+					myServersConfig.local = {
+						...(myServersConfig.local ? myServersConfig.local : {}),
+						'2Fa': file.local['2Fa']
+					}
+				}
+
+				// Update extra origins for CORS
 				if (file?.api?.['extraOrigins'] === 'string') {
 					origins.extra = myServersConfig?.api?.['extraOrigins']?.split(',') ?? [];
 				}
+
+				// Publish to 2fa endpoint
+				await pubsub.publish('twoFactor', {
+					twoFactor: {
+						remote: {
+							enabled: myServersConfig.remote?.['2Fa']
+						},
+						local: {
+							enabled: myServersConfig.local?.['2Fa']
+						}
+					}
+				});
 
 				try {
 					// Ensure api manager has the correct keys loaded
@@ -67,11 +82,11 @@ export const myservers = () => {
 			// Save ref for cleanup
 			watchers.push(myserversConfigWatcher);
 
-			// Get cert paths
-			const certsPath = dirname(paths.get('non-wildcard-ssl-certificate')!);
+			// Get cert directory
+			const certsDirectory = paths.get('ssl-certificate-directory')!;
 
 			// Watch ssl certs path for changes
-			const sslCertWatcher = chokidar.watch(certsPath, {
+			const sslCertWatcher = chokidar.watch(certsDirectory, {
 				persistent: true,
 				ignoreInitial: true
 			});

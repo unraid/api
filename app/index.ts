@@ -13,6 +13,7 @@ import { checkCloudConnections } from './mothership';
 import { loadState } from './core/utils/misc/load-state';
 import { writeFileSync } from 'fs';
 import { userCache } from './cache';
+import { MyServersConfig } from './types/my-servers-config';
 
 // Ini serializer
 const serializer = new IniSerializer({
@@ -66,16 +67,7 @@ am(async () => {
 
 			logger.debug('API key in cfg is invalid, attempting to sign user our via cfg.');
 			const configPath = paths.get('myservers-config')!;
-			const myserversConfigFile = loadState<Partial<{
-				remote: {
-					wanaccess?: string;
-					wanport?: string;
-					apikey?: string;
-					email?: string;
-					username?: string;
-					avatar?: string;
-				};
-			}>>(configPath);
+			const myserversConfigFile = loadState<Partial<MyServersConfig>>(configPath);
 			const { apikey: _, email: __, username: ___, avatar: ____, ...remote } = myserversConfigFile.remote ?? {};
 
 			// Rebuild cfg with wiped remote section

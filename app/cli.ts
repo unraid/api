@@ -14,6 +14,7 @@ import { version } from '../package.json';
 import { paths } from './core/paths';
 import { cliLogger, internalLogger, levels } from './core/log';
 import { loadState } from './core/utils/misc/load-state';
+import { MyServersConfig } from './types/my-servers-config';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -81,9 +82,7 @@ const commands = {
 
 		// Write current version to config file
 		const configPath = paths.get('myservers-config')!;
-		const data = loadState<{
-			api?: { version?: string };
-		}>(configPath);
+		const data = loadState<Partial<MyServersConfig>>(configPath);
 
 		// Ini serializer
 		const serializer = new IniSerializer({

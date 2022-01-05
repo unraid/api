@@ -1,8 +1,26 @@
 type Query {
-    twoFactor: TwoFactor
+    twoFactor: TwoFactorWithToken
 }
 
-type TwoFactor {
+type Subscription {
+    twoFactor: TwoFactorWithoutToken
+}
+
+type TwoFactorRemote {
+    enabled: Boolean
+}
+
+type TwoFactorLocal {
+    enabled: Boolean
+}
+
+type TwoFactorWithoutToken {
+    remote: TwoFactorRemote
+    local: TwoFactorLocal
+}
+
+type TwoFactorWithToken {
     token: String
-    error: String
+    remote: TwoFactorRemote
+    local: TwoFactorLocal
 }

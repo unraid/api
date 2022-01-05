@@ -17,6 +17,7 @@ import { Mutex, MutexInterface } from 'async-mutex';
 import { validateApiKeyFormat, loadState, validateApiKey, isNodeError } from './utils';
 import { paths } from './paths';
 import { apiManagerLogger } from './log';
+import { MyServersConfig } from '../types/my-servers-config';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -83,10 +84,7 @@ export class ApiManager extends EventEmitter {
 
 		// Load UPC + notifier keys
 		apiManagerLogger.debug('Loading service API keys...');
-		const myserversConfigFile = loadState<{
-			upc: { apikey: string };
-			notifier: { apikey: string };
-		}>(configPath);
+		const myserversConfigFile = loadState<Partial<MyServersConfig>>(configPath);
 		const upcApiKey = myserversConfigFile?.upc?.apikey;
 		const notifierApiKey = myserversConfigFile?.notifier?.apikey;
 
@@ -101,7 +99,7 @@ export class ApiManager extends EventEmitter {
 			const notifierFinalKey = notifierApiKey ?? `unnotify_${crypto.randomBytes(58).toString('hex')}`.substring(0, 64);
 
 			// Rebuild config file
-			const data = {
+			const data: Partial<MyServersConfig> = {
 				...myserversConfigFile,
 				upc: {
 					apikey: UPCFinalKey

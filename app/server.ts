@@ -22,6 +22,8 @@ import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
 import { getCerts } from './common/get-certs';
+import { MyServersConfig } from './types/my-servers-config';
+import { myServersConfig } from './core/watchers/myservers';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -49,10 +51,6 @@ const invalidOrigin = 'The CORS policy for this site does not allow access from 
 
 // Get cert + cert info
 export const cert = getCerts();
-
-// Get myservers config
-const configPath = paths.get('myservers-config')!;
-export const myServersConfig = loadState<{ remote?: { wanport?: string; wanaccess?: string }; api?: { 'extraOrigins'?: string } }>(configPath) ?? {};
 
 // To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {
