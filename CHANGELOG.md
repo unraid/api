@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.35.2](https://github.com/unraid/api/compare/v2.35.1...v2.35.2) (2022-01-05)
+
+
+### Bug Fixes
+
+* missing user cert throwing ([2ace864](https://github.com/unraid/api/commit/2ace864f9ff0a617c2a56c10e7d2d1ba8a992596))
+* watchers not starting ([dbb110f](https://github.com/unraid/api/commit/dbb110fc441c67d72f8285dd835a43564d784bc3))
+
 ### [2.35.1](https://github.com/unraid/api/compare/v2.35.0...v2.35.1) (2022-01-05)
 
 ## [2.35.0](https://github.com/unraid/api/compare/v2.34.1...v2.35.0) (2022-01-05)
