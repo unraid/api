@@ -20,4 +20,4 @@ export interface MyServersConfig {
 	notifier: {
 		apikey?: string;
 	};
-};
+}
