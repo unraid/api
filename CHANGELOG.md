@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.35.0](https://github.com/unraid/api/compare/v2.34.1...v2.35.0) (2022-01-05)
+
+
+### Features
+
+* add expiration to registration endpoint ([828db87](https://github.com/unraid/api/commit/828db87b73b110859c644e963b76a94b14602d94))
+* add support for user provided certs in CORS ([32c54e3](https://github.com/unraid/api/commit/32c54e3649ef46f536c5d4c3ddf971f248c05faa))
+* allow checking if 2fa is enabled ([0fbd597](https://github.com/unraid/api/commit/0fbd5976091d6a6b0f8f4f6f83b2db263e2113e6))
+
 ### [2.34.1](https://github.com/unraid/api/compare/v2.34.0...v2.34.1) (2021-12-28)
 
 
