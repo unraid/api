@@ -53,12 +53,10 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 	switch (true) {
 		// Array needs dampening as it generates too many events during intense IO
 		case name === 'array':
-			debounce(sendMessage('data', id, data), 1_000);
+			debounce(sendMessage('data', id, { data }), 1_000);
 			break;
 		default:
-			sendMessage('data', id, {
-				data
-			});
+			sendMessage('data', id, { data });
 			break;
 	}
 };
