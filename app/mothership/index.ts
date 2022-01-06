@@ -232,9 +232,7 @@ export const checkRelayConnection = debounce(async () => {
 						}
 
 						// Reply back with data
-						sendMessage('data', id, {
-							data: result
-						});
+						sendMessage('data', id, result);
 
 						// Log we sent a reply
 						relayLogger.trace('Sent reply for %s', operationName);
