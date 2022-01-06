@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.35.3](https://github.com/unraid/api/compare/v2.35.2...v2.35.3) (2022-01-06)
+
+
+### Bug Fixes
+
+* array causing ws to disconnect ([7360fe2](https://github.com/unraid/api/commit/7360fe2094f0996d12c0034da388bceb7ccf006a))
+* initialQuery not replying correctly ([ea242cd](https://github.com/unraid/api/commit/ea242cdae62529429aeb2f7a6ad02f2578a81164))
+* wildcard cert having *. at start ([7d87db9](https://github.com/unraid/api/commit/7d87db992bbd2875b21654a9d312d209f8d10a6b))
+
 ### [2.35.2](https://github.com/unraid/api/compare/v2.35.1...v2.35.2) (2022-01-05)
 
 
