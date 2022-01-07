@@ -38,7 +38,15 @@ mothership.onConnected(async () => {
 	const apiKey = apiManager.getKey('my_servers')?.key;
 
 	// Check if we should be connected
-	if (!apiKey || !(await shouldBeConnectedToCloud())) return;
+	const shouldDisconnect = !(await shouldBeConnectedToCloud());
+	if (!apiKey || shouldDisconnect) {
+		mothershipLogger.addContext('apiKey', apiKey);
+		mothershipLogger.addContext('shouldDisconnect', shouldDisconnect);
+		mothershipLogger.debug('Connected but apiKey is missing or we should be disconnected');
+		mothershipLogger.removeContext('apiKey');
+		mothershipLogger.removeContext('shouldDisconnect');
+		return;
+	}
 
 	mothershipLogger.debug('Connected');
 	subscribeToServers(apiKey);
