@@ -1,3 +1,5 @@
+import { graphqlLogger } from './core/log';
+
 interface subscription {
 	total: number;
 	channels: string[];
@@ -20,6 +22,8 @@ export const getWsConnectionCountInChannel = (channel: string) => {
 };
 
 export const hasSubscribedToChannel = (id: string, channel: string) => {
+	graphqlLogger.debug('Subscribing to %s', channel);
+
 	// Setup initial object
 	if (subscriptions[id] === undefined) {
 		subscriptions[id] = {
