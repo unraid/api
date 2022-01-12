@@ -204,6 +204,9 @@ app.post('/verify', async (req, res) => {
 		// Check two-factor token is valid
 		verifyTwoFactorToken(req.body?.username, req.body?.token);
 
+		// Success
+		logger.debug('2FA token valid, allowing login.');
+
 		// Allow the user to pass
 		res.sendStatus(204);
 		return;
