@@ -11,7 +11,7 @@ export const generateTwoFactorToken = () => randomBytes(64).toString('hex');
  */
 export const twoFactorTokens = new NodeCache({
 	deleteOnExpire: true,
-	stdTTL: 60_000 // Allow 1m of cache time
+	stdTTL: 5 * 60 * 1_000 // Allow 5m of cache time
 });
 
 /**
