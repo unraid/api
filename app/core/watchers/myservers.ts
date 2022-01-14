@@ -51,12 +51,12 @@ export const myservers = () => {
 					myServersConfig.local = {
 						...(myServersConfig.local ? myServersConfig.local : {}),
 						'2Fa': file.local['2Fa']
-					}
+					};
 				}
 
 				// Update extra origins for CORS
-				if (file?.api?.['extraOrigins'] === 'string') {
-					origins.extra = myServersConfig?.api?.['extraOrigins']?.split(',') ?? [];
+				if (typeof file?.api?.extraOrigins === 'string') {
+					origins.extra = myServersConfig?.api?.extraOrigins?.split(',') ?? [];
 				}
 
 				// Publish to 2fa endpoint
