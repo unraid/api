@@ -22,8 +22,8 @@ import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
 import { getCerts } from './common/get-certs';
-import { MyServersConfig } from './types/my-servers-config';
 import { myServersConfig } from './core/watchers/myservers';
+import { getNginxState } from './common/nginx/get-state';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -52,13 +52,43 @@ const invalidOrigin = 'The CORS policy for this site does not allow access from 
 // Get cert + cert info
 export const cert = getCerts();
 
+// Get nginx state
+export const nginx = getNginxState();
+
 // To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {
 	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : []
 };
 
+const getCertCors = () => {
+	// Get webui https port (default to 443)
+	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
+
+	// Get wan https port (default to 443)
+	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
+
+	// Check if wan access is enabled
+	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
+
+	return {
+		// Non-wildcard LAN hash
+		...(cert.nonWildcard ? [`https://${cert.nonWildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+		// Non-wildcard WAN hash
+		...(cert.nonWildcard && wanAccessEnabled ? [`https://www.${cert.nonWildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+
+		// Wildcard LAN hash
+		...(cert.wildcard ? [`https://${localIp.replace(/\./g, '-')}.${cert.wildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+		// Wildcard WAN hash
+		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+
+		// User provided cert with WAN port
+		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : []),
+	};
+};
+
 // We use a "Set" + "array spread" to deduplicate the strings
-// eslint-disable-next-line complexity
 const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
 	const localIp = networkState.data[0].ipaddr[0] as string;
@@ -74,12 +104,6 @@ const getAllowedOrigins = (): string[] => {
 
 	// Get webui https port (default to 443)
 	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
-
-	// Get wan https port (default to 443)
-	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
-
-	// Check if wan access is enabled
-	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
 
 	// Only append the port if it's not HTTP/80 or HTTPS/443
 	return [...new Set([
@@ -98,23 +122,14 @@ const getAllowedOrigins = (): string[] => {
 		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
-		// Non-wildcard LAN hash
-		...(cert.nonWildcard ? [`https://${cert.nonWildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-
-		// Non-wildcard WAN hash
-		...(cert.nonWildcard && wanAccessEnabled ? [`https://www.${cert.nonWildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
-
-		// Wildcard LAN hash
-		...(cert.wildcard ? [`https://${localIp.replace(/\./g, '-')}.${cert.wildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-
-		// Wildcard WAN hash
-		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
-
-		// User provided cert with WAN port
-		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : []),
+		// Get CORS for all valid certs
+		...getCertCors(),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',
+
+		// Unraid PHP scripts
+		'/var/run/unraid-php.sock',
 
 		// Other endpoints should be added below
 		...origins.extra
@@ -136,6 +151,7 @@ app.use(cors({
 		if (!origin) {
 			// If in debug mode allow this
 			if (config.get('debug')) {
+				logger.debug('Debug mode is enabled, bypassing CORS check.');
 				callback(null, true);
 				return;
 			}

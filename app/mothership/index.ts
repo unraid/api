@@ -139,6 +139,12 @@ const startKeepAlive = () => {
 	}, 30_000);
 };
 
+interface Message {
+	id: string;
+	type: 'query' | 'mutation' | 'start';
+	payload: any;
+}
+
 // Check our relay connection is correct
 export const checkRelayConnection = debounce(async () => {
 	const before = getConnectionStatus();
@@ -197,7 +203,7 @@ export const checkRelayConnection = debounce(async () => {
 		});
 
 		// Bind on message handler
-		relay.onMessage.addListener(async message => {
+		relay.onMessage.addListener(async (message: Message) => {
 			const { id, type } = message ?? {};
 			const operationName = message.payload.query.definitions[0].name.value;
 			try {
@@ -232,7 +238,7 @@ export const checkRelayConnection = debounce(async () => {
 						}
 
 						// Reply back with data
-						sendMessage('data', id, result);
+						sendMessage('data', id, result as any);
 
 						// Log we sent a reply
 						relayLogger.trace('Sent reply for %s', operationName);

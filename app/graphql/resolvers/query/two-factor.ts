@@ -4,6 +4,7 @@
  */
 
 import { generateTwoFactorToken, setTwoFactorToken } from '../../../common/two-factor';
+import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { myServersConfig } from '../../../core/watchers/myservers';
 import { Context } from '../../schema/utils';
@@ -16,9 +17,11 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	});
 
 	// Check if 2fa is enabled
+	// null is the same as auto
+	const isSSLAuto = varState.data.useSsl === null;
 	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
 	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
-	const isEnabled = isRemoteEnabled || isLocalEnabled;
+	const isEnabled = isSSLAuto && (isRemoteEnabled || isLocalEnabled);
 
 	// Bail if it's not enabled
 	if (!isEnabled) {
@@ -26,7 +29,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		return {
 			token: null,
 			remote: {
-				enabled: isRemoteEnabled,
+				enabled: isRemoteEnabled
 			},
 			local: {
 				enabled: isLocalEnabled

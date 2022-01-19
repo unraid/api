@@ -8,15 +8,18 @@ import { ParamInvalidError } from '../errors';
 import { Plugin, pluginManager } from '../plugin-manager';
 import { ensurePermission } from '../utils';
 
+type Filter = 'all' | 'active' | 'inactive';
+
 interface Context extends CoreContext {
 	readonly query: {
-		readonly filter: string;
+		readonly filter: Filter;
 	};
 }
 
 interface Result extends CoreResult {
 	json: Plugin[];
 }
+
 
 export const getPlugins = (context: Readonly<Context>): Result => {
 	const { user } = context;
@@ -54,7 +57,7 @@ export const getPlugins = (context: Readonly<Context>): Result => {
 		};
 	});
 
-	const title: string = {
+	const title = {
 		all: 'Plugins',
 		active: 'Active',
 		inactive: 'InActive'
@@ -65,6 +68,7 @@ export const getPlugins = (context: Readonly<Context>): Result => {
 		active: () => plugins.filter(({ isActive }) => isActive),
 		inactive: () => plugins.filter(({ isActive }) => !isActive)
 	}[filter]();
+
 	const names = json.map(({ name }) => name);
 
 	/**

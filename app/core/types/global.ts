@@ -26,7 +26,7 @@ export interface CoreContext {
  * Result object
  */
 export interface CoreResult {
-	json?: Record<string, unknown> | Array<Record<string, unknown>> | null;
+	json?: unknown;
 	text?: string;
 	html?: string;
 }
