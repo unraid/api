@@ -101,9 +101,9 @@ export const getServers = async (): Promise<Server[]> => {
 
 		logger.trace('Using upstream for /servers endpoint');
 
-		// No servers found
+		// If no servers are found return the local copy
 		if (!servers || servers.length === 0) {
-			return [];
+			return getLocalServer(apiKey);
 		}
 
 		// Cache servers
