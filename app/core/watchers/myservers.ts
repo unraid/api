@@ -119,7 +119,8 @@ const watchStateFile = () => {
 	// Update SSL cert info
 	watcher.on('all', _event => {
 		const nginxState = getNginxState();
-		console.log({ nginxState });
+		nginx.lan = nginxState.lan;
+		nginx.wan = nginxState.wan;
 	});
 
 	// Save ref for cleanup

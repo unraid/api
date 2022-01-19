@@ -94,6 +94,25 @@ const getCertCors = () => {
 	};
 };
 
+const getNginxStateCors = () => {
+	// Get webui https port (default to 443)
+	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
+
+	// Get wan https port (default to 443)
+	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
+
+	// Check if wan access is enabled
+	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
+
+	return [
+		// LAN hash
+		...(nginx.lan ? [`https://${nginx.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+		// WAN hash
+		...(nginx.wan && wanAccessEnabled ? [`https://${nginx.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : [])
+	];
+};
+
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
@@ -129,7 +148,8 @@ const getAllowedOrigins = (): string[] => {
 		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
 		// Get CORS for all valid certs
-		...getCertCors(),
+		// If the nginx state doesn't exist fallback to using the certs
+		...Object.values(nginx).length === 0 ? getCertCors() : getNginxStateCors(),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',

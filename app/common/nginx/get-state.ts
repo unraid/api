@@ -5,5 +5,9 @@ import { NginxState } from '../../types/nginx';
 export const getNginxState = () => {
 	const filePath = '/var/local/nginx/state.ini';
 	if (!existsSync(filePath)) return {};
-	return loadState<Partial<NginxState>>(filePath);
+	const state = loadState<Partial<NginxState>>(filePath);
+	return {
+		lan: state.nginxLanfqdn,
+		wan: state.nginxWanfqdn
+	};
 };
