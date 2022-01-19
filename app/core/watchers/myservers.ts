@@ -107,7 +107,7 @@ const watchConfigFile = () => {
 
 const watchStateFile = () => {
 	// State file path
-	const filePath = '/var/local/nginx/nginx.ini';
+	const filePath = '/var/local/nginx/state.ini';
 	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch state file for changes
@@ -133,7 +133,7 @@ export const myservers = () => {
 		start() {
 			// Check if state file exists
 			// If it does then let's process that
-			if (existsSync('/var/local/nginx/nginx.ini')) {
+			if (existsSync('/var/local/nginx/state.ini')) {
 				watchers.push(watchStateFile());
 				return;
 			}
