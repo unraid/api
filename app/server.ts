@@ -61,6 +61,12 @@ export const origins = {
 };
 
 const getCertCors = () => {
+	// Get server's hostname (in lowercase)
+	const serverName = varState.data.name.toLowerCase();
+
+	// Get local ip from first ethernet adapter in the "network" state
+	const localIp = networkState.data[0].ipaddr[0] as string;
+
 	// Get webui https port (default to 443)
 	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
 
@@ -84,7 +90,7 @@ const getCertCors = () => {
 		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 		// User provided cert with WAN port
-		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : []),
+		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : [])
 	};
 };
 
