@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NginxState {
 	// NGINX_LANIP="192.168.0.10"
 	// NGINX_LANNAME="Tower"
