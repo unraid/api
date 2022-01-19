@@ -22,6 +22,7 @@ export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?
 const watchCertsDirectory = () => {
 	// Get cert directory
 	const directory = paths.get('ssl-certificate-directory')!;
+	logger.debug('Starting watcher for %s', directory);
 
 	// Watch ssl certs path for changes
 	const watcher = chokidar.watch(directory, {
@@ -44,6 +45,7 @@ const watchCertsDirectory = () => {
 const watchConfigFile = () => {
 	// Get my servers config file path
 	const filePath = paths.get('myservers-config')!;
+	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch the my servers config file
 	logger.debug('Loading watchers for %s', filePath);
@@ -106,6 +108,7 @@ const watchConfigFile = () => {
 const watchStateFile = () => {
 	// State file path
 	const filePath = '/var/local/nginx/nginx.ini';
+	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch state file for changes
 	const watcher = chokidar.watch(filePath, {

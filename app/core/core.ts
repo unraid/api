@@ -116,7 +116,8 @@ const loadWatchers = async (): Promise<void> => {
 	loadingLogger('watchers');
 
 	// Start each watcher
-	Object.values(watchers).forEach(watcher => {
+	Object.entries(watchers).forEach(([name, watcher]) => {
+		logger.debug('Loading %s watcher', name);
 		watcher().start();
 	});
 };
