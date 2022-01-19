@@ -76,7 +76,7 @@ const getCertCors = () => {
 	// Check if wan access is enabled
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
 
-	return {
+	return [
 		// Non-wildcard LAN hash
 		...(cert.nonWildcard ? [`https://${cert.nonWildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
@@ -91,7 +91,7 @@ const getCertCors = () => {
 
 		// User provided cert with WAN port
 		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : [])
-	};
+	];
 };
 
 const getNginxStateCors = () => {
