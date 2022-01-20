@@ -48,7 +48,6 @@ const watchConfigFile = () => {
 	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch the my servers config file
-	logger.debug('Loading watchers for %s', filePath);
 	const watcher = chokidar.watch(filePath, {
 		persistent: true,
 		ignoreInitial: true
@@ -132,16 +131,17 @@ export const myservers = () => {
 
 	return {
 		start() {
+			// Watch config file for changes to 2fa
+			watchers.push(watchConfigFile());
+
 			// Check if state file exists
 			// If it does then let's process that
 			if (existsSync('/var/local/nginx/state.ini')) {
 				watchers.push(watchStateFile());
-				return;
+			} else {
+				// Otherwise fallback to checking the config file + certs
+				watchers.push(watchCertsDirectory());
 			}
-
-			// Otherwise fallback to checking the config file + certs
-			watchers.push(watchCertsDirectory());
-			watchers.push(watchConfigFile());
 		},
 		stop() {
 			watchers.forEach(async watcher => watcher.close());
