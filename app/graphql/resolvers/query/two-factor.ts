@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import semver from 'semver';
 import { generateTwoFactorToken, setTwoFactorToken } from '../../../common/two-factor';
 import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
@@ -18,10 +19,11 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	// Check if 2fa is enabled
 	// null is the same as auto
+	const isHighEnoughVersion = semver.satisfies('>=6.10', varState.data.version);
 	const isSSLAuto = varState.data.useSsl === null;
 	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
 	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
-	const isEnabled = isSSLAuto && (isRemoteEnabled || isLocalEnabled);
+	const isEnabled = isHighEnoughVersion && isSSLAuto && (isRemoteEnabled || isLocalEnabled);
 
 	// Bail if it's not enabled
 	if (!isEnabled) {

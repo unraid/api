@@ -139,7 +139,7 @@ export const myservers = () => {
 			if (existsSync('/var/local/nginx/state.ini')) {
 				watchers.push(watchStateFile());
 			} else {
-				// Otherwise fallback to checking the config file + certs
+				// Otherwise fallback to checking the certs
 				watchers.push(watchCertsDirectory());
 			}
 		},
