@@ -5,7 +5,6 @@
 
 //  @todo: remove string and add rest of the options
 type FsType = 'xfs' | string;
-type RegistrationCheck = 'Error' | 'Valid';
 type RegistrationType = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO' | string;
 
 export type ConfigErrorState =

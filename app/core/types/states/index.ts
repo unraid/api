@@ -5,3 +5,5 @@ export * from './sec';
 export * from './share';
 export * from './user';
 export * from './var';
+export * from './nginx';
+export * from './network';
