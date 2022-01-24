@@ -84,10 +84,10 @@ const watchConfigFile = () => {
 		await pubsub.publish('twoFactor', {
 			twoFactor: {
 				remote: {
-					enabled: myServersConfig.remote?.['2Fa']
+					enabled: myServersConfig.remote?.['2Fa'] === 'yes'
 				},
 				local: {
-					enabled: myServersConfig.local?.['2Fa']
+					enabled: myServersConfig.local?.['2Fa'] === 'yes'
 				}
 			}
 		});
