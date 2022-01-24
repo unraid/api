@@ -8,6 +8,7 @@ export interface Paths {
 	plugins: string;
 	htpasswd: string;
 	states: string;
+	'nginx-state': string;
 	'unraid-api-base': string;
 	'unraid-version': string;
 	'unraid-data': string;
@@ -50,6 +51,7 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['htpasswd', '/etc/nginx/htpasswd'],
 	['emhttpd-socket', '/var/run/emhttpd.socket'],
 	['states', '/usr/local/emhttp/state/'],
+	['nginx-state', '/var/local/emhttp/nginx.ini '],
 	['dynamix-base', '/boot/config/plugins/dynamix/'],
 	['dynamix-config', '/boot/config/plugins/dynamix/dynamix.cfg'],
 	['myservers-base', '/boot/config/plugins/dynamix.my.servers/'],
