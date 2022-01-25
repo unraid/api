@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.36.0](https://github.com/unraid/api/compare/v2.35.4...v2.36.0) (2022-01-25)
+
+
+### Features
+
+* add nginx state ([3d05583](https://github.com/unraid/api/commit/3d05583d6c9a31657a2541237e2789cb4f999c98))
+* add nginx state ([a09bc85](https://github.com/unraid/api/commit/a09bc8540fae64a730f0d1f7f2fad4271dd25f30))
+* use nginx state for lan/wan certs ([a54a9bd](https://github.com/unraid/api/commit/a54a9bdab59a3b884baded026cbdfeca10bab2ed))
+
+
+### Bug Fixes
+
+* allow extraOrigins to be updated while API is running ([8134017](https://github.com/unraid/api/commit/81340175d1ba3bb53fcc36dce31da69c8460f911))
+* CORS returning object not array ([818ab29](https://github.com/unraid/api/commit/818ab2978689d001c4ddb0417ed093050c55db97))
+* ensure servers endpoint always returns atleast the local server ([53f392e](https://github.com/unraid/api/commit/53f392e9d12e9c7b7e81c94bd43e210d8afdbb0b))
+* load watcher for config at all times ([10d4a6c](https://github.com/unraid/api/commit/10d4a6cfbb5803bcad74276f676cff26c4f1c534))
+* old CORS ([94f8dba](https://github.com/unraid/api/commit/94f8dba93ddf10298d32165a59d49c3413a3a378))
+* only allow 2fa for 6.10+ ([bd1abd5](https://github.com/unraid/api/commit/bd1abd52e88c38bad5199c26e1789802826a51b2))
+* publishing "yes" instead of boolean ([df37b06](https://github.com/unraid/api/commit/df37b0604931a28e7d7ae7dfc340181e80d1962a))
+* use correct path for nginx state file ([27bd4a3](https://github.com/unraid/api/commit/27bd4a3bf38fd0c7dfa3ae2fbe0becc6c7dc7e63))
+* use correct path for nginx state file ([6d0e3e2](https://github.com/unraid/api/commit/6d0e3e2a17473d26342a24524f53dace116fb344))
+
 ### [2.35.4](https://github.com/unraid/api/compare/v2.35.3...v2.35.4) (2022-01-13)
 
 ### [2.35.3](https://github.com/unraid/api/compare/v2.35.2...v2.35.3) (2022-01-06)
