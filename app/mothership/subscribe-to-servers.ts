@@ -6,11 +6,17 @@ import { userCache, CachedServers, CachedServer } from '../cache';
 import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
 import { debounce } from './debounce';
 import { GraphQLError } from 'graphql';
+import { version } from '../package.json';
+
 
 export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
 	reconnect: false,
 	lazy: false,
 	minTimeout: ONE_SECOND * 30,
+	connectionParams: () => ({
+		'apiVersion': version,
+		'apiKey': apiManager.getKey('my_servers')?.key
+	}),
 	connectionCallback: errors => {
 		try {
 			const graphqlErrors = errors as GraphQLError[] | undefined;
