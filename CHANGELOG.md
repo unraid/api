@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.36.1](https://github.com/unraid/api/compare/v2.36.0...v2.36.1) (2022-01-31)
+
+
+### Bug Fixes
+
+* add version and apikey to connectionParams when subbing to /graphql ([7c98f57](https://github.com/unraid/api/commit/7c98f578649dbcf6372a421fd519c8340710a575))
+* import of package.json ([ab8dfa8](https://github.com/unraid/api/commit/ab8dfa84fb0e88a1ad58c4dea563d0f440d44c5b))
+
 ## [2.36.0](https://github.com/unraid/api/compare/v2.35.4...v2.36.0) (2022-01-25)
 
 
