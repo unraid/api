@@ -51,7 +51,7 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['htpasswd', '/etc/nginx/htpasswd'],
 	['emhttpd-socket', '/var/run/emhttpd.socket'],
 	['states', '/usr/local/emhttp/state/'],
-	['nginx-state', '/var/local/emhttp/nginx.ini '],
+	['nginx-state', '/usr/local/emhttp/state/nginx.ini'],
 	['dynamix-base', '/boot/config/plugins/dynamix/'],
 	['dynamix-config', '/boot/config/plugins/dynamix/dynamix.cfg'],
 	['myservers-base', '/boot/config/plugins/dynamix.my.servers/'],
@@ -59,7 +59,7 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
 	['non-wildcard-ssl-certificate', '/boot/config/ssl/certs/certificate_bundle.pem'],
 	['wildcard-ssl-certificate', '/boot/config/ssl/certs/myunraid_bundle.pem'],
-	['ssl-certificate-directory', '/boot/config/ssl/certs/']
+	['ssl-certificate-directory', '/boot/config/ssl/certs/'],
 ]);
 
 /**

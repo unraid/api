@@ -106,7 +106,7 @@ const watchConfigFile = () => {
 
 const watchStateFile = () => {
 	// State file path
-	const filePath = '/var/local/nginx/state.ini';
+	const filePath = paths.get('nginx-state')!;
 	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch state file for changes
@@ -131,12 +131,14 @@ export const myservers = () => {
 
 	return {
 		start() {
+			const filePath = paths.get('nginx-state')!;
+
 			// Watch config file for changes to 2fa
 			watchers.push(watchConfigFile());
 
 			// Check if state file exists
 			// If it does then let's process that
-			if (existsSync('/var/local/nginx/state.ini')) {
+			if (existsSync(filePath)) {
 				watchers.push(watchStateFile());
 			} else {
 				// Otherwise fallback to checking the certs
