@@ -59,7 +59,7 @@ export const defaultPaths = new Map<keyof Paths, string>([
 	['myservers-env', '/boot/config/plugins/dynamix.my.servers/env'],
 	['non-wildcard-ssl-certificate', '/boot/config/ssl/certs/certificate_bundle.pem'],
 	['wildcard-ssl-certificate', '/boot/config/ssl/certs/myunraid_bundle.pem'],
-	['ssl-certificate-directory', '/boot/config/ssl/certs/'],
+	['ssl-certificate-directory', '/boot/config/ssl/certs/']
 ]);
 
 /**
