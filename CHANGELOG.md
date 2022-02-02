@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.36.2](https://github.com/unraid/api/compare/v2.36.1...v2.36.2) (2022-02-02)
+
+
+### Bug Fixes
+
+* include ws library as it was removed from dep ([f5b3502](https://github.com/unraid/api/commit/f5b3502340eef5409fdedff9c2351c01b58e7c04))
+* on connection to mothership's graphql send auth ([88dc667](https://github.com/unraid/api/commit/88dc667edb74f0316f8907724b0a31a3a094f315))
+* remove second onConnect ([080e23b](https://github.com/unraid/api/commit/080e23b427544773698bd0db6508602e8a34b7d7))
+* switch back to forked version of graphql-subscriptions-client and don't use devDeps for it ([e64d7d4](https://github.com/unraid/api/commit/e64d7d4e6776ec1f7f1e8ea4ecb0e43c0471c5f6))
+* track if kicked for out of date client ([2a4d733](https://github.com/unraid/api/commit/2a4d73317797892428a9188236b235ef2f45cab6))
+* update graphql-subscriptions-client to include ws ([39da3a8](https://github.com/unraid/api/commit/39da3a8da4ff6f6b91e840c6e9e9dab576822bab))
+* use correct nginx state path ([902d6e8](https://github.com/unraid/api/commit/902d6e81b21b5b1a75a127e8683e2cc401991eaf))
+* WebSocket is not defined ([4c9d819](https://github.com/unraid/api/commit/4c9d819434efb3132d6b9d09983938c284ef831f))
+* websocket url ([31b0b9b](https://github.com/unraid/api/commit/31b0b9bdb7389a856438c6b7025c09bf797468ba))
+
 ### [2.36.1](https://github.com/unraid/api/compare/v2.36.0...v2.36.1) (2022-01-31)
 
 
