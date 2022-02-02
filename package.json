@@ -121,6 +121,7 @@
     "upcast": "^4.0.0",
     "uuid": "^8.3.2",
     "uuid-apikey": "^1.5.3",
+    "ws": "^8.4.2",
     "xhr2": "^0.2.1"
   },
   "devDependencies": {
