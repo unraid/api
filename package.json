@@ -216,7 +216,6 @@
     "clear-module",
     "cli-table",
     "command-exists",
-    "cross-fetch",
     "dedent-tabs",
     "deepmerge",
     "dl-tgz",
@@ -240,7 +239,6 @@
     "graphql-iso-date",
     "graphql-subscriptions-client",
     "graphql-tag",
-    "graphql-tools",
     "graphql-type-json",
     "graphql-type-long",
     "graphql-type-uuid",
@@ -257,7 +255,6 @@
     "nanobus",
     "nchan",
     "node-cache",
-    "node-fetch",
     "node-forge",
     "node-window-polyfill",
     "number-to-color",
@@ -284,6 +281,7 @@
     "upcast",
     "uuid",
     "uuid-apikey",
+    "ws",
     "xhr2"
   ],
   "tsup": {
