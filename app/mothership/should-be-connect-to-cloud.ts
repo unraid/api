@@ -22,10 +22,15 @@ const checkApiKey = async () => {
 	return true;
 };
 
+export const wsState = {
+	outOfDate: false
+};
+
 // Ensure we should actually be connected right now
 // If our API key exists and is the right length then we should always try to connect
 export const shouldBeConnectedToCloud = async () => {
 	logger.trace('Checking if we should be connected to the cloud');
+	if (wsState.outOfDate) return false;
 	const shouldBeConnected = await checkApiKey();
 	if (shouldBeConnected) logger.trace('We should be connected');
 	else logger.trace('We should be disconnected');

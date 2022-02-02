@@ -12,7 +12,7 @@ import { pubsub } from '../core/pubsub';
 import { checkGraphqlConnection } from './subscribe-to-servers';
 import { apiKeyToUser } from '../graphql';
 import { schema } from '../graphql/schema';
-import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
+import { shouldBeConnectedToCloud, wsState } from './should-be-connect-to-cloud';
 import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
@@ -89,6 +89,7 @@ const handleError = (error: unknown) => {
 
 		case 426:
 			// Bail as we cannot reconnect
+			wsState.outOfDate = true;
 			break;
 
 		case 429:
