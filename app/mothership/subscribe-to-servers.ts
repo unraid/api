@@ -90,9 +90,6 @@ export const checkGraphqlConnection = debounce(async () => {
 
 		// Reconnect
 		mothership.connect();
-		mothership.onConnected(() => {
-			subscribeToServers(apiManager.getKey('my_servers')?.key!);
-		}, undefined);
 	} catch (error: unknown) {
 		console.log(error);
 	}
