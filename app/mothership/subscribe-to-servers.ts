@@ -80,6 +80,11 @@ export const checkGraphqlConnection = debounce(async () => {
 		}
 
 		// Reconnect
+		const apiKey = apiManager.getKey('my_servers')?.key!;
+		const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
+		url.username = version;
+		url.password = apiKey;
+		mothership.url = url.toString();
 		mothership.connect();
 		mothership.onConnected(() => {
 			subscribeToServers(apiManager.getKey('my_servers')?.key!);
