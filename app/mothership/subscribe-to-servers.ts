@@ -8,15 +8,12 @@ import { debounce } from './debounce';
 import { GraphQLError } from 'graphql';
 import { version } from '../../package.json';
 
-// Fix SubscriptionClient
-global.Websocket = WebSocket;
-
 export const mothership = new SubscriptionClient(() => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
 	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
 	url.username = version;
 	url.password = apiKey;
-	return url.toString();
+	return url.toString().replace('http', 'ws');
 }, {
 	reconnect: false,
 	lazy: false,
