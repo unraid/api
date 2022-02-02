@@ -8,7 +8,13 @@ import { debounce } from './debounce';
 import { GraphQLError } from 'graphql';
 import { version } from '../../package.json';
 
-export const mothership = new SubscriptionClient(MOTHERSHIP_GRAPHQL_LINK, {
+export const mothership = new SubscriptionClient(() => {
+	const apiKey = apiManager.getKey('my_servers')?.key!;
+	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
+	url.username = version;
+	url.password = apiKey;
+	return url.toString();
+}, {
 	reconnect: false,
 	lazy: false,
 	minTimeout: ONE_SECOND * 30,
@@ -80,11 +86,6 @@ export const checkGraphqlConnection = debounce(async () => {
 		}
 
 		// Reconnect
-		const apiKey = apiManager.getKey('my_servers')?.key!;
-		const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
-		url.username = version;
-		url.password = apiKey;
-		mothership.url = url.toString();
 		mothership.connect();
 		mothership.onConnected(() => {
 			subscribeToServers(apiManager.getKey('my_servers')?.key!);
