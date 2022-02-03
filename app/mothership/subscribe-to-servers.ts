@@ -16,7 +16,7 @@ export const mothership = new SubscriptionClient(() => {
 	return url.toString().replace('http', 'ws');
 }, {
 	reconnect: false,
-	lazy: false,
+	lazy: true,
 	minTimeout: ONE_SECOND * 30,
 	connectionParams: () => ({
 		apiVersion: version,
