@@ -12,7 +12,8 @@ export const getServers = async (apiKey: string) => {
 			headers: {
 				'Content-Type': 'application/json',
 				Accept: 'application/json',
-				'x-unraid-api-version': version
+				'x-unraid-api-version': version,
+				'x-api-key': apiKey
 			},
 			body: JSON.stringify({
 				query: 'query($apiKey: String!) { servers @auth(apiKey: $apiKey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
