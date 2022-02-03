@@ -9,7 +9,7 @@ import { GraphQLError } from 'graphql';
 import { version } from '../../package.json';
 
 export const mothership = new SubscriptionClient(() => {
-	const apiKey = apiManager.getKey('my_servers')?.key!;
+	const apiKey = apiManager.getKey('my_servers')?.key ?? 'LARRYS_MAGIC_KEY';
 	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
 	url.username = version;
 	url.password = apiKey;
