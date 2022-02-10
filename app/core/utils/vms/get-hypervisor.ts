@@ -119,7 +119,7 @@ const watchLibvirt = async (useCache = true) => {
 				name,
 				uuid,
 				state: states[info.state],
-				autoStart: autoStartDomainNames.includes(name),
+				autoStart: autoStartDomainNames?.includes(name),
 				features
 			};
 			return result as CachedDomain;
@@ -171,7 +171,7 @@ const watchLibvirt = async (useCache = true) => {
 		return watchLibvirt();
 	} catch (error: unknown) {
 		// We need to try and reconnect
-		if ((error as Error).message.includes('invalid connection pointer')) {
+		if ((error as Error).message?.includes('invalid connection pointer')) {
 			libvirtLogger.warn('Reconnecting to socket...');
 			await sleep(5_000);
 			return watchLibvirt(false);
