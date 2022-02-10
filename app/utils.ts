@@ -2,7 +2,7 @@ import { fetch } from './common/fetch';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { CachedServer } from './cache';
 import { version } from '../package.json';
-import { logger } from './core';
+import { mothershipLogger } from './core';
 import { GraphQLError } from 'graphql';
 
 export const getServers = async (apiKey: string) => {
@@ -30,9 +30,9 @@ export const getServers = async (apiKey: string) => {
 
 		return data.servers;
 	} catch (error: unknown) {
-		logger.addContext('error', error);
-		logger.error('Failed getting servers');
-		logger.removeContext('error');
+		mothershipLogger.addContext('error', error);
+		mothershipLogger.error('Failed getting servers');
+		mothershipLogger.removeContext('error');
 		return [];
 	}
 };
