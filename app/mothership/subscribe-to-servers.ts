@@ -41,9 +41,15 @@ export const mothership = new SubscriptionClient(() => {
 					mothership.close(true, true);
 				}
 			}
-		} catch {}
+		} catch (error: unknown) {
+			mothershipLogger.trace('Failed connecting to %s with "%s"', MOTHERSHIP_GRAPHQL_LINK, error);
+		}
 	}
 });
+
+// Fix client timing out while trying to connect
+// @ts-expect-error
+mothership.maxConnectTimeGenerator.duration = () => mothership.maxConnectTimeGenerator.max;
 
 mothership.onConnected(async () => {
 	const apiKey = apiManager.getKey('my_servers')?.key;
