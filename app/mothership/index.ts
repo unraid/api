@@ -198,9 +198,9 @@ export const checkRelayConnection = debounce(async () => {
 		startKeepAlive();
 
 		// Bind on disconnect handler
-		relay.onClose.addListener(statusCode => {
+		relay.onClose.addListener((statusCode: string, reason: string) => {
 			const after = getConnectionStatus();
-			relayLogger.debug('Websocket connection changed %s with statusCode %s', after, statusCode);
+			relayLogger.debug('Websocket status="%s" statusCode="%s" reason="%s"', after, statusCode, reason);
 		});
 
 		// Bind on message handler
