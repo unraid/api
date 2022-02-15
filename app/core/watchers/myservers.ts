@@ -59,6 +59,11 @@ const watchConfigFile = () => {
 
 		// Update remote section for remote access
 		if (file.remote) {
+			// If 2fa was enabled/disabled comment on it changing
+			if (myServersConfig.remote?.['2Fa'] && myServersConfig.remote?.['2Fa'] !== file.remote['2Fa']) {
+				logger.debug('Remote 2FA status="%s" type="%s"', file.remote['2Fa'] === 'yes' ? 'enabled' : 'disabled', 'transparent');
+			}
+
 			myServersConfig.remote = {
 				...(myServersConfig.remote ? myServersConfig.remote : {}),
 				wanaccess: file.remote.wanaccess,
@@ -69,6 +74,11 @@ const watchConfigFile = () => {
 
 		// Update local section for LAN access
 		if (file.local) {
+			// If 2fa was enabled/disabled comment on it changing
+			if (myServersConfig.remote?.['2Fa'] && myServersConfig.local?.['2Fa'] !== file.local['2Fa']) {
+				logger.debug('Local 2FA status="%s" type="%s"', file.local['2Fa'] === 'yes' ? 'enabled' : 'disabled', 'transparent');
+			}
+
 			myServersConfig.local = {
 				...(myServersConfig.local ? myServersConfig.local : {}),
 				'2Fa': file.local['2Fa']
@@ -77,6 +87,7 @@ const watchConfigFile = () => {
 
 		// Update extra origins for CORS
 		if (typeof file?.api?.extraOrigins === 'string') {
+			logger.debug('Extra origins updated origins="%s"', myServersConfig?.api?.extraOrigins);
 			origins.extra = myServersConfig?.api?.extraOrigins?.split(',') ?? [];
 		}
 
