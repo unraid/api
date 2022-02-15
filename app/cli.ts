@@ -1,3 +1,6 @@
+import segfaultHandler from 'segfault-handler';
+segfaultHandler.registerHandler('crash.log');
+
 import fs from 'fs';
 import path from 'path';
 import execa from 'execa';
