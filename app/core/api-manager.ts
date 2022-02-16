@@ -136,8 +136,8 @@ export class ApiManager extends EventEmitter {
 
 		// Load my_servers key
 		apiManagerLogger.debug('Loading MyServers API key...');
-		this.checkKey(configPath, true).then(() => {
-			apiManagerLogger.debug('Loaded MyServers API key!');
+		this.checkKey(configPath, true).then(isValid => {
+			apiManagerLogger.debug(isValid ? 'API key is empty, starting server with no keys.' : 'Loaded MyServers API key, starting server with 1 key!');
 
 			// API manager is ready
 			this.emit('ready', undefined);
@@ -325,7 +325,7 @@ export class ApiManager extends EventEmitter {
 
 	async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
-		await lock.runExclusive(async () => {
+		const isValid = await lock.runExclusive(async () => {
 			apiManagerLogger.trace('Checking API key for validity.');
 			const file = loadState<{ remote: { apikey: string } }>(filePath);
 			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
@@ -333,13 +333,13 @@ export class ApiManager extends EventEmitter {
 			// No API key passed
 			if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) {
 				apiManagerLogger.trace('API key is empty, not updating API key.');
-				return;
+				return false;
 			}
 
 			// Same key as current
 			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
 				apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
-				return;
+				return true;
 			}
 
 			// Ensure key format is valid before validating
@@ -354,6 +354,8 @@ export class ApiManager extends EventEmitter {
 			this.replace('my_servers', apiKey, {
 				userId: '-1'
 			});
+
+			return true;
 		}).catch(error => {
 			if (isNodeError(error)) {
 				// File was deleted
@@ -368,7 +370,11 @@ export class ApiManager extends EventEmitter {
 
 			// Reset key as it's not valid anymore
 			this.expire('my_servers');
+
+			return false;
 		});
+
+		return isValid;
 	}
 
 	private async getLock() {
