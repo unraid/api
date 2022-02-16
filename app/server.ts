@@ -60,59 +60,6 @@ export const origins = {
 	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : []
 };
 
-const getCertCors = () => {
-	// Get server's hostname (in lowercase)
-	const serverName = varState.data.name.toLowerCase();
-
-	// Get local ip from first ethernet adapter in the "network" state
-	const localIp = networkState.data[0].ipaddr[0] as string;
-
-	// Get webui https port (default to 443)
-	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
-
-	// Get wan https port (default to 443)
-	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
-
-	// Check if wan access is enabled
-	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
-
-	return [
-		// Non-wildcard LAN hash
-		...(cert.nonWildcard ? [`https://${cert.nonWildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-
-		// Non-wildcard WAN hash
-		...(cert.nonWildcard && wanAccessEnabled ? [`https://www.${cert.nonWildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
-
-		// Wildcard LAN hash
-		...(cert.wildcard ? [`https://${localIp.replace(/\./g, '-')}.${cert.wildcard}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-
-		// Wildcard WAN hash
-		...(cert.wildcard && wanAccessEnabled ? [`https://*.${cert.wildcard}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
-
-		// User provided cert with WAN port
-		...(cert.userProvided && wanAccessEnabled ? [`https://${serverName}.${cert.userProvided}:${wanHTTPSPort}`] : [])
-	];
-};
-
-const getNginxStateCors = () => {
-	// Get webui https port (default to 443)
-	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
-
-	// Get wan https port (default to 443)
-	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
-
-	// Check if wan access is enabled
-	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
-
-	return [
-		// LAN hash
-		...(nginx.lan ? [`https://${nginx.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-
-		// WAN hash
-		...(nginx.wan && wanAccessEnabled ? [`https://${nginx.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : [])
-	];
-};
-
 // We use a "Set" + "array spread" to deduplicate the strings
 const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
@@ -129,6 +76,12 @@ const getAllowedOrigins = (): string[] => {
 
 	// Get webui https port (default to 443)
 	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
+
+	// Get wan https port (default to 443)
+	const wanHTTPSPort = parseInt(myServersConfig?.remote?.wanport ?? '', 10) === 443 ? '' : (myServersConfig?.remote?.wanport ?? '');
+
+	// Check if wan access is enabled
+	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
 
 	// Only append the port if it's not HTTP/80 or HTTPS/443
 	return [...new Set([
@@ -147,9 +100,11 @@ const getAllowedOrigins = (): string[] => {
 		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
-		// Get CORS for all valid certs
-		// If the nginx state doesn't exist fallback to using the certs
-		...Object.values(nginx).length === 0 ? getCertCors() : getNginxStateCors(),
+		// LAN hash
+		...(nginx.lan ? [`https://${nginx.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+		// WAN hash
+		...(nginx.wan && wanAccessEnabled ? [`https://${nginx.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 		// Notifier bridge
 		'/var/run/unraid-notifications.sock',
