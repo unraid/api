@@ -1,5 +1,5 @@
 import segfaultHandler from 'segfault-handler';
-segfaultHandler.registerHandler('crash.log');
+segfaultHandler.registerHandler('/var/log/unraid-api/crash.log');
 
 import fs from 'fs';
 import path from 'path';
