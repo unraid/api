@@ -18,13 +18,15 @@ import { getNginxState } from '../../common/nginx/get-state';
 const configPath = paths.get('myservers-config')!;
 export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 
+logger.addContext('config', myServersConfig);
+logger.trace('"%s" was loaded', configPath);
+logger.removeContext('config');
+
 const watchConfigFile = () => {
-	// Get my servers config file path
-	const filePath = paths.get('myservers-config')!;
-	logger.debug('Starting watcher for %s', filePath);
+	logger.debug('Starting watcher for %s', configPath);
 
 	// Watch the my servers config file
-	const watcher = chokidar.watch(filePath, {
+	const watcher = chokidar.watch(configPath, {
 		persistent: true,
 		ignoreInitial: true
 	});
@@ -85,7 +87,7 @@ const watchConfigFile = () => {
 
 		try {
 			// Ensure api manager has the correct keys loaded
-			await apiManager.checkKey(filePath, true);
+			await apiManager.checkKey(configPath, true);
 		} catch (error: unknown) {
 			logger.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
 		}

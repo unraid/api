@@ -51,9 +51,13 @@ const invalidOrigin = 'The CORS policy for this site does not allow access from 
 // Get nginx state
 export const nginx = getNginxState();
 
+const initalExtraOrigins = typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : [];
+
+logger.debug('Initial extra origins set origins="%s"', initalExtraOrigins);
+
 // To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {
-	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : []
+	extra: initalExtraOrigins
 };
 
 // We use a "Set" + "array spread" to deduplicate the strings
