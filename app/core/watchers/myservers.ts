@@ -64,7 +64,7 @@ const watchConfigFile = () => {
 		}
 
 		// Update extra origins for CORS
-		if (typeof file?.api?.extraOrigins === 'string') {
+		if (typeof file?.api?.extraOrigins === 'string' && file?.api?.extraOrigins !== myServersConfig.api?.extraOrigins) {
 			logger.debug('Extra origins updated origins="%s"', file?.api?.extraOrigins);
 			origins.extra = file?.api?.extraOrigins?.split(',') ?? [];
 		}
