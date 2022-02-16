@@ -4,6 +4,9 @@
  */
 
 import am from 'am';
+import http from 'http';
+import https from 'https';
+import CacheableLookup from 'cacheable-lookup';
 import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
@@ -23,6 +26,12 @@ const serializer = new IniSerializer({
 
 // Boot app
 am(async () => {
+	const cacheable = new CacheableLookup();
+
+	// Ensure all DNS lookups are cached for their TTL
+	cacheable.install(http.globalAgent);
+	cacheable.install(https.globalAgent);
+
 	// Load core
 	await core.load();
 
