@@ -4,6 +4,7 @@
  */
 
 import camelCaseKeys from 'camelcase-keys';
+import { logger } from '../../log';
 import { parseConfig } from './parse-config';
 
 /**
@@ -11,13 +12,16 @@ import { parseConfig } from './parse-config';
  * @param filePath Path to state file.
  */
 export const loadState = <T>(filePath: string): T => {
-	const config = parseConfig({
+	const config = camelCaseKeys(parseConfig<T>({
 		filePath,
 		type: 'ini'
-	});
-
-	// @ts-expect-error
-	return camelCaseKeys(config, {
+	}), {
 		deep: true
-	});
+	}) as T;
+
+	logger.addContext('config', config);
+	logger.trace('"%s" was loaded', filePath);
+	logger.removeContext('config');
+
+	return config;
 };

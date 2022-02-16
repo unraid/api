@@ -18,10 +18,6 @@ import { getNginxState } from '../../common/nginx/get-state';
 const configPath = paths.get('myservers-config')!;
 export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 
-logger.addContext('config', myServersConfig);
-logger.trace('"%s" was loaded', configPath);
-logger.removeContext('config');
-
 const watchConfigFile = () => {
 	logger.debug('Starting watcher for %s', configPath);
 
