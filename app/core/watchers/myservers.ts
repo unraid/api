@@ -34,7 +34,7 @@ const watchConfigFile = () => {
 		const file = loadState<Partial<MyServersConfig>>(fullPath);
 
 		logger.addContext('config', file);
-		logger.trace('"%s" was updated');
+		logger.trace('"%s" was updated', fullPath);
 		logger.removeContext('config');
 
 		// Update remote section for remote access
@@ -66,7 +66,7 @@ const watchConfigFile = () => {
 		}
 
 		// Update extra origins for CORS
-		if (typeof file?.api?.extraOrigins === 'string') {
+		if (typeof myServersConfig?.api?.extraOrigins === 'string') {
 			logger.debug('Extra origins updated origins="%s"', myServersConfig?.api?.extraOrigins);
 			origins.extra = myServersConfig?.api?.extraOrigins?.split(',') ?? [];
 		}
