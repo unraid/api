@@ -8,8 +8,7 @@ import { logger } from '../log';
 import { paths } from '../paths';
 import { loadState } from '../utils';
 import { apiManager } from '../api-manager';
-import { cert, nginx, origins } from '../../server';
-import { getCerts } from '../../common/get-certs';
+import { nginx, origins } from '../../server';
 import { MyServersConfig } from '../../types/my-servers-config';
 import { pubsub } from '..';
 import { existsSync } from 'fs';
@@ -18,29 +17,6 @@ import { getNginxState } from '../../common/nginx/get-state';
 // Get myservers config
 const configPath = paths.get('myservers-config')!;
 export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
-
-const watchCertsDirectory = () => {
-	// Get cert directory
-	const directory = paths.get('ssl-certificate-directory')!;
-	logger.debug('Starting watcher for %s', directory);
-
-	// Watch ssl certs path for changes
-	const watcher = chokidar.watch(directory, {
-		persistent: true,
-		ignoreInitial: true
-	});
-
-	// Update SSL cert info
-	watcher.on('all', _event => {
-		const newCerts = getCerts();
-		cert.nonWildcard = newCerts.nonWildcard;
-		cert.wildcard = newCerts.wildcard;
-		cert.userProvided = newCerts.userProvided;
-	});
-
-	// Save ref for cleanup
-	return watcher;
-};
 
 const watchConfigFile = () => {
 	// Get my servers config file path
@@ -148,13 +124,12 @@ export const myservers = () => {
 			watchers.push(watchConfigFile());
 
 			// Check if state file exists
-			// If it does then let's process that
-			if (existsSync(filePath)) {
-				watchers.push(watchStateFile());
-			} else {
-				// Otherwise fallback to checking the certs
-				watchers.push(watchCertsDirectory());
+			if (!existsSync(filePath)) {
+				logger.error('Nginx state file "%s" is missing', filePath);
 			}
+
+			// If it does exist then let's watch it
+			watchers.push(watchStateFile());
 		},
 		stop() {
 			watchers.forEach(async watcher => watcher.close());

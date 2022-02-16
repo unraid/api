@@ -21,7 +21,6 @@ import { verifyTwoFactorToken } from './common/two-factor';
 import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
-import { getCerts } from './common/get-certs';
 import { myServersConfig } from './core/watchers/myservers';
 import { getNginxState } from './common/nginx/get-state';
 
@@ -48,9 +47,6 @@ const port = process.env.PORT ?? String(config.get('port'));
 
 // Cors options
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
-
-// Get cert + cert info
-export const cert = getCerts();
 
 // Get nginx state
 export const nginx = getNginxState();

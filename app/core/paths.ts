@@ -21,9 +21,6 @@ export interface Paths {
 	'myservers-base': string;
 	'myservers-config': string;
 	'myservers-env': string;
-	'non-wildcard-ssl-certificate': string;
-	'wildcard-ssl-certificate': string;
-	'ssl-certificate-directory': string;
 }
 
 const thisDir = __dirname;
