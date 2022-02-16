@@ -270,6 +270,7 @@
     "redact-secrets",
     "request",
     "request-promise-native",
+    "segfault-handler",
     "semver",
     "sendmail",
     "set-interval-async",
