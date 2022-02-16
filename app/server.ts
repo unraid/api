@@ -21,8 +21,8 @@ import { verifyTwoFactorToken } from './common/two-factor';
 import { version } from '../package.json';
 import display from './graphql/resolvers/query/display';
 import { networkState, varState } from './core/states';
-import { myServersConfig } from './core/watchers/myservers';
 import { getNginxState } from './common/nginx/get-state';
+import { MyServersConfig } from './types/my-servers-config';
 
 const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
 const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
@@ -51,6 +51,8 @@ const invalidOrigin = 'The CORS policy for this site does not allow access from 
 // Get nginx state
 export const nginx = getNginxState();
 
+const configPath = paths.get('myservers-config')!;
+const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 const initalExtraOrigins = typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : [];
 
 logger.debug('Initial extra origins set origins="%s"', myServersConfig?.api?.extraOrigins);
