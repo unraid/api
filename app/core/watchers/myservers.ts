@@ -33,6 +33,10 @@ const watchConfigFile = () => {
 	watcher.on('all', async function (_event, fullPath) {
 		const file = loadState<Partial<MyServersConfig>>(fullPath);
 
+		logger.addContext('config', file);
+		logger.trace('"%s" was updated');
+		logger.removeContext('config');
+
 		// Update remote section for remote access
 		if (file.remote) {
 			// If 2fa was enabled/disabled comment on it changing
