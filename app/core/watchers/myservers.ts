@@ -66,9 +66,9 @@ const watchConfigFile = () => {
 		}
 
 		// Update extra origins for CORS
-		if (typeof myServersConfig?.api?.extraOrigins === 'string') {
-			logger.debug('Extra origins updated origins="%s"', myServersConfig?.api?.extraOrigins);
-			origins.extra = myServersConfig?.api?.extraOrigins?.split(',') ?? [];
+		if (typeof file?.api?.extraOrigins === 'string') {
+			logger.debug('Extra origins updated origins="%s"', file?.api?.extraOrigins);
+			origins.extra = file?.api?.extraOrigins?.split(',') ?? [];
 		}
 
 		// Publish to 2fa endpoint
