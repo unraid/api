@@ -338,6 +338,14 @@ async function main() {
 
 	// Run the command
 	await commands[command]();
+
+	// Only segfault in a specific mode
+	if (process.env.PLEASE_SEGFAULT_FOR_ME) {
+		// Wait 30s and then segfault
+		setTimeout(() => {
+			segfaultHandler.causeSegfault();
+		}, 30_000);
+	}
 }
 
 main().catch((error: unknown) => {
