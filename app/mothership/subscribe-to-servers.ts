@@ -54,14 +54,14 @@ mothership.maxConnectTimeGenerator.duration = () => mothership.maxConnectTimeGen
 mothership.onConnected(async () => {
 	const apiKey = apiManager.getKey('my_servers')?.key;
 
+	if (!apiKey) {
+		mothershipLogger.error('Connection attempted with no API key, disconnecting.');
+		return;
+	}
+
 	// Check if we should be connected
-	const shouldDisconnect = !(await shouldBeConnectedToCloud());
-	if (!apiKey || shouldDisconnect) {
-		mothershipLogger.addContext('apiKey', apiKey);
-		mothershipLogger.addContext('shouldDisconnect', shouldDisconnect);
-		mothershipLogger.debug('Connected but apiKey is missing or we should be disconnected');
-		mothershipLogger.removeContext('apiKey');
-		mothershipLogger.removeContext('shouldDisconnect');
+	if (await shouldBeConnectedToCloud().then(shouldBeConnected => !shouldBeConnected).catch(() => false)) {
+		mothershipLogger.debug('Connected but we should be disconnected, disconnecting.');
 		return;
 	}
 

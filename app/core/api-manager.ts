@@ -331,7 +331,8 @@ export class ApiManager extends EventEmitter {
 			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
 
 			// No API key passed
-			if (apiKey === undefined) {
+			if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) {
+				apiManagerLogger.trace('API key is empty, not updating API key.');
 				return;
 			}
 
