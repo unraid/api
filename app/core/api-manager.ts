@@ -137,7 +137,7 @@ export class ApiManager extends EventEmitter {
 		// Load my_servers key
 		apiManagerLogger.debug('Loading MyServers API key...');
 		this.checkKey(configPath, true).then(isValid => {
-			apiManagerLogger.debug(isValid ? 'API key is empty, starting server with no keys.' : 'Loaded MyServers API key, starting server with 1 key!');
+			apiManagerLogger.debug(isValid ? 'Loaded MyServers API key, starting server with 1 key!' : 'API key is empty, starting server with no keys.');
 
 			// API manager is ready
 			this.emit('ready', undefined);
