@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.37.0](https://github.com/unraid/api/compare/v2.36.3...v2.37.0) (2022-02-17)
+
+
+### Features
+
+* on crash log segfault ([5481285](https://github.com/unraid/api/commit/5481285fce86378567f7439f56dbe1fc919b9dd1))
+
+
+### Bug Fixes
+
+* better logs when API key is empty ([38e7d35](https://github.com/unraid/api/commit/38e7d35acbd9b1fbecfadad5f1dd7647543c7a66))
+* cache DNS entries for TTL ([927da17](https://github.com/unraid/api/commit/927da17f3f0e91a4d9d9fa32c109d843fde71b61))
+* check if new section is string not loaded ([db25b82](https://github.com/unraid/api/commit/db25b821d878dc05fb931b135e58ea668edddb1c))
+* don't connect to mothership until called ([14bde11](https://github.com/unraid/api/commit/14bde11af6756c6d2bb1e806998fb91b9ce5a898))
+* error message being undefined ([21ede22](https://github.com/unraid/api/commit/21ede22eab33ef014468fcdc19eb63d91501f3f8))
+* error message being undefined ([3efae65](https://github.com/unraid/api/commit/3efae65596eae0ff964bdc9f93bc03fbdbc76479))
+* import myserverconfig inline ([33030f5](https://github.com/unraid/api/commit/33030f5f72f4f847c3c54f34e16b30ab82f3c9d3))
+* include segfault-handler in package ([3048533](https://github.com/unraid/api/commit/30485337b49b9c311822a545e57666ae499b62c8))
+* log extraOrigins from file on initial set ([e1728d2](https://github.com/unraid/api/commit/e1728d27c1cc4dcbd46d253eb170d65d1f854469))
+* log reason on relay disconnect ([8016754](https://github.com/unraid/api/commit/801675481f2d99fa3b8f425ffa5a7c53b63c5fc8))
+* only log extraOrigins changed if it did ([026e9ea](https://github.com/unraid/api/commit/026e9ea857823e0d333e5df3a5ede58764568e13))
+* true/false ([c565d5a](https://github.com/unraid/api/commit/c565d5ab8f2929b03b905a29cf3b1d433608886b))
+* use file not old values ([5fa436d](https://github.com/unraid/api/commit/5fa436d57df411523cb14930e0b8b1bf27d9c2f7))
+
 ### [2.36.3](https://github.com/unraid/api/compare/v2.36.2...v2.36.3) (2022-02-03)
 
 
