@@ -85,6 +85,8 @@ const handleError = (error: unknown) => {
 	switch (code) {
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
+			// // Tell api manager to delete the key as it's invalid
+			// apiManager.expire('my_servers');
 			break;
 
 		case 426:
