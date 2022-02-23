@@ -93,9 +93,6 @@ export const getServers = async (): Promise<Server[]> => {
 
 	// No cached servers found
 	if (!cachedServers) {
-		// Get my server's config file path
-		const configPath = paths.get('myservers-config')!;
-
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);
 
