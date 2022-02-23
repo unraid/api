@@ -56,14 +56,15 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	logger.trace('Got response back from key-server while validating API key');
 	logger.removeContext('apiKey');
 
-	// Something went wrong
-	if (!response.ok) {
-		if (shouldThrow) throw new Error('Error while validating API key with key-server.');
-		return false;
-	}
-
 	// Get response data
 	const data = await response.json() as { valid: boolean };
+
+	// Something went wrong
+	if (!response.ok) {
+		const keyServerError = (data as unknown as { error: string }).error;
+		if (shouldThrow) throw new Error('Error while validating API key with key-server' + (keyServerError ? ` "${keyServerError}"` : ''));
+		return false;
+	}
 
 	logger.addContext('data', data);
 	logger.trace('Response from key-server for API key validation');
