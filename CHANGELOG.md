@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.37.1](https://github.com/unraid/api/compare/v2.37.0...v2.37.1) (2022-02-23)
+
+
+### Bug Fixes
+
+* better logging on key-server validation ([c569dd6](https://github.com/unraid/api/commit/c569dd6d65efaa8d65e03b38dbaffb58527c5332))
+* don't listen to docker exec events ([f1e537e](https://github.com/unraid/api/commit/f1e537ee1d666eaf544934d6ec26cb6b23df5c36))
+* ensure form body is always string ([4f080ad](https://github.com/unraid/api/commit/4f080ad0615cd4fa53545723737ad9788bb86929))
+* force usage of node-fetch for fetch client ([ad4faae](https://github.com/unraid/api/commit/ad4faae9776f7e53137393e29743a5cf3b6862d6))
+* log key-server error better for validation endpoint ([2e32302](https://github.com/unraid/api/commit/2e323026ea8066b1bc9768046647c54558d7663b))
+* send correct content-type when submitting forms to key-server ([37187ad](https://github.com/unraid/api/commit/37187ad35e7e4726690aec0abf274c45b8def682))
+* use retry-after header for fetch request ([6015239](https://github.com/unraid/api/commit/6015239f72c41be661396870a591a09d50c17df1))
+
 ## [2.37.0](https://github.com/unraid/api/compare/v2.36.3...v2.37.0) (2022-02-17)
 
 
