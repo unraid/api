@@ -1,3 +1,3 @@
-import nodeFetch from 'node-fetch';
+import fetchRetryable from 'fetch-retryable';
 
-export const fetch = nodeFetch;
+export const fetch = fetchRetryable;
