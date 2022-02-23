@@ -154,10 +154,6 @@ bus.on('var', async data => {
 // Only watch container events equal to start/stop
 const watchedEvents = [
 	'die',
-	'exec_create',
-	'exec_detach',
-	'exec_die',
-	'exec_start',
 	'kill',
 	'oom',
 	'pause',
