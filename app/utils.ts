@@ -4,6 +4,7 @@ import { CachedServer } from './cache';
 import { version } from '../package.json';
 import { mothershipLogger } from './core';
 import { GraphQLError } from 'graphql';
+import { sleep } from './core/utils';
 
 export const getServers = async (apiKey: string) => {
 	try {
@@ -20,8 +21,22 @@ export const getServers = async (apiKey: string) => {
 				variables: {
 					apiKey
 				}
-			})
+			}),
+			retryOptions: {
+				retryTimeout: 100, // Default behaviour
+				maxRetries: 3,
+				status_429: { // Retry behaviour for 429 errors only
+					retryTimeout: async retryContext => {
+						const retryAfter = retryContext.response.headers.get('retry-after');
+						await sleep(retryAfter * 1000);
+					},
+					maxRetries: 5
+				}
+			}
 		});
+
+		// Invalid API key?
+		if (response.status === '401') throw new Error('Invalid API key');
 
 		const { data, errors } = await response.json() as { data: { servers: CachedServer[] }; errors?: GraphQLError[] };
 		if (errors) {
