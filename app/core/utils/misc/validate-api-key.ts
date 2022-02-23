@@ -56,8 +56,15 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		return false;
 	}
 
+	// Get response data
+	const data = await response.json() as { valid: boolean };
+
+	logger.addContext('data', data);
+	logger.trace('Response from key-server for API key validation');
+	logger.removeContext('data');
+
 	// Check if key is valid
-	const valid = await response.json().then(data => (data as { valid: boolean }).valid);
+	const valid = data.valid;
 	if (valid) {
 		logger.trace('key-server marked API key as valid');
 		validKeys.add(apiKey);
