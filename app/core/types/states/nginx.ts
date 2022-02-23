@@ -1,14 +1,16 @@
 export interface Nginx {
-	lanIp: string;
-	lanName: string;
-	lanMdns: string;
+	certificateName: string;
 	certificatePath: string;
-	sslMode: 'yes' | 'no' | 'auto';
-	sslEnabled: boolean;
+	defaultUrl: string;
 	httpPort: number;
 	httpsPort: number;
-	certificateName: string;
 	lanFqdn: string;
+	lanIp: string;
+	lanMdns: string;
+	lanName: string;
+	sslEnabled: boolean;
+	sslMode: 'yes' | 'no' | 'auto';
+	wanAccessEnabled: boolean;
 	wanFqdn: string;
 	wanIp: string;
 }

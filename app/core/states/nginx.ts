@@ -10,31 +10,35 @@ import { State } from './state';
 import { parseConfig } from '../utils/misc';
 
 interface NginxIni {
-	nginxLanip: string;
-	nginxLanname: string;
-	nginxLanmdns: string;
+	nginxCertname: string;
 	nginxCertpath: string;
-	nginxUsessl: IniStringBooleanOrAuto;
+	nginxDefaulturl: string;
+	nginxLanfqdn: string;
+	nginxLanip: string;
+	nginxLanmdns: string;
+	nginxLanname: string;
 	nginxPort: string;
 	nginxPortssl: string;
-	nginxCertname: string;
-	nginxLanfqdn: string;
+	nginxUsessl: IniStringBooleanOrAuto;
 	nginxWanfqdn: string;
 	nginxWanip: string;
+	nginxWanaccess: string;
 }
 
 const parse = (state: NginxIni): Nginx => {
 	return {
-		lanIp: state.nginxLanip,
-		lanName: state.nginxLanname,
-		lanMdns: state.nginxLanmdns,
+		certificateName: state.nginxCertname,
 		certificatePath: state.nginxCertpath,
-		sslMode: state.nginxUsessl,
-		sslEnabled: state.nginxUsessl !== 'no',
+		defaultUrl: state.nginxDefaulturl,
 		httpPort: Number(state.nginxPort),
 		httpsPort: Number(state.nginxPortssl),
-		certificateName: state.nginxCertname,
 		lanFqdn: state.nginxLanfqdn,
+		lanIp: state.nginxLanip,
+		lanMdns: state.nginxLanmdns,
+		lanName: state.nginxLanname,
+		sslEnabled: state.nginxUsessl !== 'no',
+		sslMode: state.nginxUsessl,
+		wanAccessEnabled: state.nginxWanaccess === 'yes',
 		wanFqdn: state.nginxWanfqdn,
 		wanIp: state.nginxWanip
 	};
