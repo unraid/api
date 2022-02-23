@@ -36,13 +36,19 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		});
 	};
 
+	logger.addContext('apiKey', apiKey);
+	logger.trace('Checking key-server validation for API key');
+	logger.removeContext('apiKey');
+
 	// Send apiKey, etc. to key-server for verification
 	const response = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 		guid: varState.data.flashGuid,
 		apikey: apiKey
 	});
 
+	logger.addContext('apiKey', apiKey);
 	logger.trace('Got response back from key-server while validating API key');
+	logger.removeContext('apiKey');
 
 	// Something went wrong
 	if (!response.ok) {
@@ -52,6 +58,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 
 	// Check if key is valid
 	const valid = await response.json().then(data => (data as { valid: boolean }).valid);
+	logger.trace('key-server marked API key as %s', valid ? 'valid' : 'invalid');
 	if (valid) {
 		validKeys.add(apiKey);
 		logger.addContext('apiKey', apiKey);
