@@ -38,6 +38,9 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		// Send form
 		return fetch(url, {
 			method: 'POST',
+			headers: {
+				'content-type': 'application/x-www-form-urlencoded'
+			},
 			body
 		});
 	};
