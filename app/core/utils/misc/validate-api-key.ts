@@ -22,17 +22,23 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		}
 
 		// Create form
-		const body = new URLSearchParams();
+		const form = new URLSearchParams();
 		Object.entries(data).forEach(([key, value]) => {
 			if (value !== undefined) {
-				body.append(key, String(value));
+				form.append(key, String(value));
 			}
 		});
+
+		// Convert form to string
+		const body = form.toString();
+		logger.addContext('form', body);
+		logger.trace('Sending form to key-server');
+		logger.removeContext('form');
 
 		// Send form
 		return fetch(url, {
 			method: 'POST',
-			body: body.toString()
+			body
 		});
 	};
 
