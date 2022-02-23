@@ -32,7 +32,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		// Send form
 		return fetch(url, {
 			method: 'POST',
-			body
+			body: body.toString()
 		});
 	};
 
@@ -58,8 +58,8 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 
 	// Check if key is valid
 	const valid = await response.json().then(data => (data as { valid: boolean }).valid);
-	logger.trace('key-server marked API key as %s', valid ? 'valid' : 'invalid');
 	if (valid) {
+		logger.trace('key-server marked API key as valid');
 		validKeys.add(apiKey);
 		logger.addContext('apiKey', apiKey);
 		logger.debug('Added key to validity cache.');
@@ -68,6 +68,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	}
 
 	// Throw or return if invalid
+	logger.trace('key-server marked API key as invalid');
 	if (shouldThrow) throw new Error('Invalid API key');
 	return false;
 };
