@@ -38,6 +38,7 @@ test.serial('Loads production when no env is set', async t => {
 	const lines = output.split('\n');
 
 	// Check the output of the cli
+	t.is(lines[0], 'Now using production');
 	t.is(lines[0], 'Run "unraid-api start" to start the API.');
 
 	// Check the .env was updated on the live server
@@ -60,7 +61,8 @@ test.serial('Loads production when switching from staging', async t => {
 	const lines = output.split('\n');
 
 	// Check the output of the cli
-	t.is(lines[0], 'Run "unraid-api start" to start the API.');
+	t.is(lines[0], 'Now using production');
+	t.is(lines[1], 'Run "unraid-api start" to start the API.');
 
 	// Check the .env was updated on the live server
 	t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
@@ -82,7 +84,8 @@ test.serial('Loads staging when switching from production', async t => {
 	const lines = output.split('\n');
 
 	// Check the output of the cli
-	t.is(lines[0], 'Run "unraid-api start" to start the API.');
+	t.is(lines[0], 'Now using staging');
+	t.is(lines[1], 'Run "unraid-api start" to start the API.');
 
 	// Check the .env was updated on the live server
 	t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), stagingEnv);
