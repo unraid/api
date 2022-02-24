@@ -226,7 +226,7 @@ const commands = {
 	async report() {
 		setEnv('LOG_TYPE', 'raw');
 
-		cliLogger.trace('Generating report please standby...\n');
+		cliLogger.trace('Generating report please standby...');
 
 		// Validation endpoint for API keys
 		const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
@@ -236,15 +236,15 @@ const commands = {
 
 		// Get unraid-api version
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
-		cliLogger.trace('Got unraid OS version "%s"\n', unraidVersion);
+		cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
 
 		// Check if we can resolve mothership's address by fetching the head of the graphql endpoint
 		const mothershipCanBeResolved = await got.head(MOTHERSHIP_GRAPHQL_LINK, {
 			timeout: {
-				request: 1_0000 // Wait a maximum of 1s
+				request: 1_000 // Wait a maximum of 1s
 			}
 		}).then(() => true).catch(() => false);
-		cliLogger.trace('Connecting to mothership status="%s"\n', mothershipCanBeResolved ? 'success' : 'failed');
+		cliLogger.trace('Connecting to mothership status="%s"', mothershipCanBeResolved ? 'success' : 'failed');
 
 		// Load the myservers.cfg
 		const config = camelCaseKeys(parseConfig<MyServersConfig>({
@@ -285,7 +285,7 @@ const commands = {
 				},
 				body,
 				timeout: {
-					request: 1_0000 // Wait a maximum of 1s
+					request: 1_000 // Wait a maximum of 1s
 				}
 			});
 		};
@@ -294,21 +294,22 @@ const commands = {
 		const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 			apikey: apiKey
 		}).then(response => response.statusCode === 200 ? JSON.parse(response.body) : { valid: false }).then(response => response.valid);
-		cliLogger.trace('Checked key-server for API key validity status="%s"\n', apiKeyIsValidWithKeyServer);
+		cliLogger.trace('Checked key-server for API key validity status="%s"', apiKeyIsValidWithKeyServer);
 
 		// Query local graphl using upc's API key
 		// Get the servers array
-		const servers = await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+		const servers = unraidApiPid ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 			method: 'POST',
 			headers: {
 				'x-api-key': config.upc.apikey
 			},
 			timeout: {
-				request: 1_0000 // Wait a maximum of 1s
+				request: 1_000 // Wait a maximum of 1s
 			},
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
-		}).then(response => JSON.parse(response.body) as CachedServer[]);
-		cliLogger.trace('Fetched %s server(s) from local graphql\n', servers.length);
+		}).then(response => JSON.parse(response.body) as CachedServer[]) : [];
+		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
+		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
 		// eslint-disable-next-line no-warning-comments
 		// TODO: Add connection status to mini-graph and relay
