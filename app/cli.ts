@@ -23,6 +23,7 @@ import { MyServersConfig } from './types/my-servers-config';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
+import { fetch } from './common/fetch';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -260,7 +261,7 @@ const commands = {
 			const body = form.toString();
 
 			// Send form
-			return got(url, {
+			return fetch(url, {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/x-www-form-urlencoded'
