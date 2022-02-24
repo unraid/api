@@ -260,7 +260,7 @@ const commands = {
 			const body = form.toString();
 
 			// Send form
-			return fetch(url, {
+			return got(url, {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/x-www-form-urlencoded'
