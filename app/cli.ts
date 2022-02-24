@@ -239,7 +239,11 @@ const commands = {
 		cliLogger.trace('Got unraid OS version "%s"\n', unraidVersion);
 
 		// Check if we can resolve mothership's address by fetching the head of the graphql endpoint
-		const mothershipCanBeResolved = await got.head(MOTHERSHIP_GRAPHQL_LINK, { timeout: 1_000 }).then(() => true).catch(() => false);
+		const mothershipCanBeResolved = await got.head(MOTHERSHIP_GRAPHQL_LINK, {
+			timeout: {
+				request: 1_0000 // Wait a maximum of 1s
+			}
+		}).then(() => true).catch(() => false);
 		cliLogger.trace('Connecting to mothership status="%s"\n', mothershipCanBeResolved ? 'success' : 'failed');
 
 		// Load the myservers.cfg
@@ -280,7 +284,9 @@ const commands = {
 					'content-type': 'application/x-www-form-urlencoded'
 				},
 				body,
-				timeout: 1_000 // Wait a maximum of 1s
+				timeout: {
+					request: 1_0000 // Wait a maximum of 1s
+				}
 			});
 		};
 
@@ -297,7 +303,9 @@ const commands = {
 			headers: {
 				'x-api-key': config.upc.apikey
 			},
-			timeout: 1_000, // Wait a maximum of 1s
+			timeout: {
+				request: 1_0000 // Wait a maximum of 1s
+			},
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
 		}).then(response => JSON.parse(response.body) as CachedServer[]);
 		cliLogger.trace('Fetched %s server(s) from local graphql\n', servers.length);
