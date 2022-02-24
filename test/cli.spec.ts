@@ -39,7 +39,7 @@ test.serial('Loads production when no env is set', async t => {
 
 	// Check the output of the cli
 	t.is(lines[0], 'Now using production');
-	t.is(lines[0], 'Run "unraid-api start" to start the API.');
+	t.is(lines[1], 'Run "unraid-api start" to start the API.');
 
 	// Check the .env was updated on the live server
 	t.is(readFileSync(joinPath(PATHS_UNRAID_API_BASE, '.env'), 'utf-8'), productionEnv);
