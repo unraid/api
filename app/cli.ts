@@ -226,7 +226,7 @@ const commands = {
 	async report() {
 		setEnv('LOG_TYPE', 'raw');
 
-		cliLogger.trace('Generating report please standby...');
+		cliLogger.info('Generating report please standby...');
 
 		// Validation endpoint for API keys
 		const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
@@ -253,7 +253,7 @@ const commands = {
 		}), {
 			deep: true
 		});
-		cliLogger.trace('Loaded myservers.cfg\n');
+		cliLogger.trace('Loaded myservers.cfg');
 
 		// Get API key
 		const apiKey = `${config.remote.apikey ?? ''}`.trim();
@@ -293,8 +293,8 @@ const commands = {
 		// Send apiKey to key-server for verification
 		const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 			apikey: apiKey
-		}).then(response => response.statusCode === 200 ? JSON.parse(response.body) : { valid: false }).then(response => response.valid);
-		cliLogger.trace('Checked key-server for API key validity status="%s"', apiKeyIsValidWithKeyServer);
+		}).then(response => response.statusCode === 200 ? JSON.parse(response.body) : { valid: false }).then(response => response.valid).catch(() => false);
+		cliLogger.trace('Checked key-server for API key validity status="%s"', apiKeyIsValidWithKeyServer ? 'valid' : 'invalid');
 
 		// Query local graphl using upc's API key
 		// Get the servers array
@@ -307,7 +307,7 @@ const commands = {
 				request: 1_000 // Wait a maximum of 1s
 			},
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
-		}).then(response => JSON.parse(response.body) as CachedServer[]) : [];
+		}).then(response => JSON.parse(response.body) as CachedServer[]).catch(() => []) : [];
 		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
 		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
