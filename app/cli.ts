@@ -23,7 +23,6 @@ import { MyServersConfig } from './types/my-servers-config';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
-import { fetch } from './common/fetch';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -240,7 +239,7 @@ const commands = {
 		cliLogger.trace('Got unraid OS version "%s"\n', unraidVersion);
 
 		// Check if we can resolve mothership's address by fetching the head of the graphql endpoint
-		const mothershipCanBeResolved = await fetch(MOTHERSHIP_GRAPHQL_LINK, { method: 'head' }).then(() => true).catch(() => false);
+		const mothershipCanBeResolved = await got.head(MOTHERSHIP_GRAPHQL_LINK, { timeout: 1_000 }).then(() => true).catch(() => false);
 		cliLogger.trace('Connecting to mothership status="%s"\n', mothershipCanBeResolved ? 'success' : 'failed');
 
 		// Load the myservers.cfg
@@ -275,19 +274,20 @@ const commands = {
 			const body = form.toString();
 
 			// Send form
-			return fetch(url, {
+			return got(url, {
 				method: 'POST',
 				headers: {
 					'content-type': 'application/x-www-form-urlencoded'
 				},
-				body
+				body,
+				timeout: 1_000 // Wait a maximum of 1s
 			});
 		};
 
 		// Send apiKey to key-server for verification
 		const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 			apikey: apiKey
-		}).then(response => response.ok ? response.json() : { valid: false }).then(response => response.valid);
+		}).then(response => response.statusCode === 200 ? JSON.parse(response.body) : { valid: false }).then(response => response.valid);
 		cliLogger.trace('Checked key-server for API key validity status="%s"\n', apiKeyIsValidWithKeyServer);
 
 		// Query local graphl using upc's API key
@@ -297,6 +297,7 @@ const commands = {
 			headers: {
 				'x-api-key': config.upc.apikey
 			},
+			timeout: 1_000, // Wait a maximum of 1s
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
 		}).then(response => JSON.parse(response.body) as CachedServer[]);
 		cliLogger.trace('Fetched %s server(s) from local graphql\n', servers.length);
