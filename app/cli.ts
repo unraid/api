@@ -8,16 +8,21 @@ import { spawn, exec } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
 import { Serializer as IniSerializer } from 'multi-ini';
 import dotEnv from 'dotenv';
+import got from 'got';
 import findProcess from 'find-process';
 import pidUsage from 'pidusage';
 import prettyMs from 'pretty-ms';
 import dedent from 'dedent-tabs';
+import camelCaseKeys from 'camelcase-keys';
 import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
 import { cliLogger, internalLogger, levels } from './core/log';
 import { loadState } from './core/utils/misc/load-state';
 import { MyServersConfig } from './types/my-servers-config';
+import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
+import { parseConfig } from './core/utils/misc/parse-config';
+import { CachedServer } from './cache';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -221,15 +226,76 @@ const commands = {
 	async report() {
 		setEnv('LOG_TYPE', 'raw');
 
+		// Validation endpoint for API keys
+		const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
+
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
+		const mothershipCanBeResolved = await fetch(MOTHERSHIP_GRAPHQL_LINK, { method: 'head' }).then(() => true).catch(() => false);
+		const config = camelCaseKeys(parseConfig<MyServersConfig>({
+			filePath: paths.get('myservers-config'),
+			type: 'ini'
+		}), {
+			deep: true
+		});
+		const apiKey = `${config.remote.apikey ?? ''}`.trim();
+		const apiKeyExists = apiKey.length === 0 ? 'missing' : 'exists';
+		const apiKeyIsValidLength = apiKey.length === 64;
+		const apiKeyIsOld = apiKeyIsValidLength && !apiKey.startsWith('unraid_');
+		const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
+			if (!data) {
+				throw new Error('Missing data field.');
+			}
+
+			// Create form
+			const form = new URLSearchParams();
+			Object.entries(data).forEach(([key, value]) => {
+				if (value !== undefined) {
+					form.append(key, String(value));
+				}
+			});
+
+			// Convert form to string
+			const body = form.toString();
+
+			// Send form
+			return fetch(url, {
+				method: 'POST',
+				headers: {
+					'content-type': 'application/x-www-form-urlencoded'
+				},
+				body
+			});
+		};
+
+		// Send apiKey to key-server for verification
+		const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
+			apikey: apiKey
+		}).then(response => response.ok ? response.json() : { valid: false }).then(response => response.valid);
+
+		// Query local graphl using upc's API key
+		// Get the servers array
+		const servers = await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+			method: 'POST',
+			headers: {
+				'x-api-key': config.upc.apikey
+			},
+			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
+		}).then(response => JSON.parse(response.body) as CachedServer[]);
+
+		// eslint-disable-next-line no-warning-comments
+		// TODO: Add connection status to mini-graph and relay
 		cliLogger.info(
 			dedent`
 				<-----UNRAID-API-REPORT----->
-				Environment: ${process.env.ENVIRONMENT}
-				Node API version: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-				Unraid version: ${unraidVersion}
+				ENVIRONMENT: ${process.env.ENVIRONMENT}
+				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+				UNRAID_VERSION: ${unraidVersion}
+				RESOLVE_MOTHERSHIP: ${mothershipCanBeResolved}
+				API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? `old ${apiKeyExists}` : apiKeyExists)}
+				ONLINE_SERVERS: ${servers.filter(server => server.status === 'online').map(server => `${server.name} [${server.guid}]`).join(', ')}
+				OFFLINE_SERVERS: ${servers.filter(server => server.status === 'offline').map(server => `${server.name} [${server.guid}]`).join(', ')}
 				</----UNRAID-API-REPORT----->
 			`
 		);
@@ -296,6 +362,7 @@ const commands = {
 			return this.restart();
 		}
 
+		cliLogger.info('Now using %s', newEnv);
 		cliLogger.info('Run "unraid-api start" to start the API.');
 	}
 };
