@@ -227,23 +227,37 @@ const commands = {
 	async report() {
 		setEnv('LOG_TYPE', 'raw');
 
+		cliLogger.trace('Generating report please standby...\n');
+
 		// Validation endpoint for API keys
 		const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
 
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
+
+		// Get unraid-api version
 		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
+		cliLogger.trace('Got unraid OS version "%s"\n', unraidVersion);
+
+		// Check if we can resolve mothership's address by fetching the head of the graphql endpoint
 		const mothershipCanBeResolved = await fetch(MOTHERSHIP_GRAPHQL_LINK, { method: 'head' }).then(() => true).catch(() => false);
+		cliLogger.trace('Connecting to mothership status="%s"\n', mothershipCanBeResolved ? 'success' : 'failed');
+
+		// Load the myservers.cfg
 		const config = camelCaseKeys(parseConfig<MyServersConfig>({
 			filePath: paths.get('myservers-config'),
 			type: 'ini'
 		}), {
 			deep: true
 		});
+		cliLogger.trace('Loaded myservers.cfg\n');
+
+		// Get API key
 		const apiKey = `${config.remote.apikey ?? ''}`.trim();
 		const apiKeyExists = apiKey.length === 0 ? 'missing' : 'exists';
 		const apiKeyIsValidLength = apiKey.length === 64;
 		const apiKeyIsOld = apiKeyIsValidLength && !apiKey.startsWith('unraid_');
+
 		const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
 			if (!data) {
 				throw new Error('Missing data field.');
@@ -274,6 +288,7 @@ const commands = {
 		const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 			apikey: apiKey
 		}).then(response => response.ok ? response.json() : { valid: false }).then(response => response.valid);
+		cliLogger.trace('Checked key-server for API key validity status="%s"\n', apiKeyIsValidWithKeyServer);
 
 		// Query local graphl using upc's API key
 		// Get the servers array
@@ -284,6 +299,7 @@ const commands = {
 			},
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
 		}).then(response => JSON.parse(response.body) as CachedServer[]);
+		cliLogger.trace('Fetched %s server(s) from local graphql\n', servers.length);
 
 		// eslint-disable-next-line no-warning-comments
 		// TODO: Add connection status to mini-graph and relay
