@@ -313,7 +313,7 @@ const commands = {
 			timeout: {
 				request: 5_000 // Wait a maximum of 5s
 			},
-			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
+			body: 'query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n'
 		}).then(response => JSON.parse(response.body) as CachedServer[]).catch(error => {
 			cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
 			return [];
