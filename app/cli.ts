@@ -335,7 +335,7 @@ const commands = {
 			const verboseLogs = process.argv.includes('-v');
 
 			// Convert server to string output
-			const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}" guid="${server.guid}"]` : `[status="${server.status}" owner="${server.owner.username}"]`}`;
+			const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[owner="${server.owner.username}" guid="${server.guid}"]` : ''}`;
 
 			// Get all the types of servers including ones that don't have a online/offline status
 			const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
