@@ -3,7 +3,7 @@ segfaultHandler.registerHandler('/var/log/unraid-api/crash.log');
 
 import readLine from 'readline';
 import fs from 'fs';
-import path from 'path';
+import path, { resolve } from 'path';
 import execa from 'execa';
 import { spawn, exec } from 'child_process';
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
@@ -24,6 +24,7 @@ import { MyServersConfig } from './types/my-servers-config';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
+import { VarIni } from './core/states/var';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -254,10 +255,10 @@ const commands = {
 			}).then(() => true).catch(() => false);
 			cliLogger.trace('Connecting to mothership status="%s"', mothershipCanBeResolved ? 'success' : 'failed');
 
-			const getConfig = () => {
+			const getConfig = <T = unknown>(path: string) => {
 				try {
-					return camelCaseKeys(parseConfig<MyServersConfig>({
-						filePath: paths.get('myservers-config'),
+					return camelCaseKeys(parseConfig<T>({
+						filePath: path,
 						type: 'ini'
 					}), {
 						deep: true
@@ -268,7 +269,7 @@ const commands = {
 			};
 
 			// Load the myservers.cfg
-			const config = getConfig();
+			const config = getConfig<MyServersConfig>(paths.get('myservers-config')!);
 
 			// Get API key
 			const apiKey = `${config?.remote.apikey ?? ''}`.trim();
@@ -360,9 +361,14 @@ const commands = {
 			// Check if API has crashed and if it has crash logs
 			const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
 
+			// Load the var.ini file
+			const varIni = getConfig<VarIni>(resolve(paths.get('states')!, 'var.ini'));
+			const serverName = varIni?.name;
+
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
+				SERVER_NAME: ${serverName}
 				ENVIRONMENT: ${process.env.ENVIRONMENT}
 				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
 				UNRAID_VERSION: ${unraidVersion}

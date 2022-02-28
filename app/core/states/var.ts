@@ -91,7 +91,7 @@ type RegistrationState =
 	'EBLACKLISTED2' |
 	'ENOCONN';
 
-interface VarIni {
+export interface VarIni {
 	bindMgt: IniStringBooleanOrAuto;
 	cacheNumDevices: string;
 	cacheSbNumDisks: string;
