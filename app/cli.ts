@@ -337,6 +337,11 @@ const commands = {
 		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
 		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
 
+		const serversDetails = dedent`
+			ONLINE_SERVERS: ${onlineServers.join(', ')}
+			OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
+		`;
+
 		// Check if API has crashed and if it has crash logs
 		const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(error => ({ size: 0 }))).size > 0;
 
@@ -348,8 +353,7 @@ const commands = {
 			UNRAID_VERSION: ${unraidVersion}
 			CAN_REACH_MOTHERSHIP: ${mothershipCanBeResolved ? 'yes' : `no${hints ? ' (Your network may be blocking our cloud servers mothership.unraid.net)' : ''}`}
 			API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? 'old' : apiKeyExists)}
-			ONLINE_SERVERS: ${onlineServers.join(', ')}
-			OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
+			${servers ? serversDetails : 'SERVERS: none found'}
 			HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 			</----UNRAID-API-REPORT----->
 		`;
