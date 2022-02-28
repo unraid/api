@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.4](https://github.com/unraid/api/compare/v2.38.3...v2.38.4) (2022-02-28)
+
+
+### Bug Fixes
+
+* ensure report can't get stuck with stdout kept open ([ef4f4ea](https://github.com/unraid/api/commit/ef4f4ea9b9c8e0255d56279835567b04a6b280c3))
+* return servers in report ([ee17d53](https://github.com/unraid/api/commit/ee17d532a4f724cdca5367b9f2c5ae4652f3e9cb))
+* return servers in report ([6369e88](https://github.com/unraid/api/commit/6369e887f79fc9aa6db834e198c3cd709f5a9c84))
+
 ### [2.38.3](https://github.com/unraid/api/compare/v2.38.2...v2.38.3) (2022-02-28)
 
 
