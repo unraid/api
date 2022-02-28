@@ -254,17 +254,24 @@ const commands = {
 			}).then(() => true).catch(() => false);
 			cliLogger.trace('Connecting to mothership status="%s"', mothershipCanBeResolved ? 'success' : 'failed');
 
+			const getConfig = () => {
+				try {
+					return camelCaseKeys(parseConfig<MyServersConfig>({
+						filePath: paths.get('myservers-config'),
+						type: 'ini'
+					}), {
+						deep: true
+					});
+				} catch {}
+
+				return undefined;
+			};
+
 			// Load the myservers.cfg
-			const config = camelCaseKeys(parseConfig<MyServersConfig>({
-				filePath: paths.get('myservers-config'),
-				type: 'ini'
-			}), {
-				deep: true
-			});
-			cliLogger.trace('Loaded myservers.cfg');
+			const config = getConfig();
 
 			// Get API key
-			const apiKey = `${config.remote.apikey ?? ''}`.trim();
+			const apiKey = `${config?.remote.apikey ?? ''}`.trim();
 			const apiKeyExists = apiKey.length === 0 ? 'missing' : 'exists';
 			const apiKeyIsValidLength = apiKey.length === 64;
 			const apiKeyIsOld = apiKeyIsValidLength && !apiKey.startsWith('unraid_');
@@ -306,7 +313,7 @@ const commands = {
 
 			// Query local graphl using upc's API key
 			// Get the servers array
-			const servers = unraidApiPid ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+			const servers = unraidApiPid && config?.upc.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 				method: 'POST',
 				headers: {
 					Origin: 'http://localhost',
