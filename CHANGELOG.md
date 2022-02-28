@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.6](https://github.com/unraid/api/compare/v2.38.5...v2.38.6) (2022-02-28)
+
+
+### Bug Fixes
+
+* ensure the servers query works outside of debug mode ([6bd1d9c](https://github.com/unraid/api/commit/6bd1d9cada9c6712f94133566780a52be23a2d13))
+
 ### [2.38.5](https://github.com/unraid/api/compare/v2.38.4...v2.38.5) (2022-02-28)
 
 
