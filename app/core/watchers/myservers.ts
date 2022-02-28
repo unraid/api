@@ -36,7 +36,7 @@ const watchConfigFile = () => {
 		logger.removeContext('config');
 
 		// Update remote section for remote access
-		if (file.remote) {
+		if (file?.remote) {
 			// If 2fa was enabled/disabled comment on it changing
 			if (myServersConfig.remote?.['2Fa'] && myServersConfig.remote?.['2Fa'] !== file.remote['2Fa']) {
 				logger.debug('Remote 2FA status="%s" type="%s"', file.remote['2Fa'] === 'yes' ? 'enabled' : 'disabled', 'transparent');
@@ -51,7 +51,7 @@ const watchConfigFile = () => {
 		}
 
 		// Update local section for LAN access
-		if (file.local) {
+		if (file?.local) {
 			// If 2fa was enabled/disabled comment on it changing
 			if (myServersConfig.remote?.['2Fa'] && myServersConfig.local?.['2Fa'] !== file.local['2Fa']) {
 				logger.debug('Local 2FA status="%s" type="%s"', file.local['2Fa'] === 'yes' ? 'enabled' : 'disabled', 'transparent');
