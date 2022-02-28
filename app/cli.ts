@@ -226,173 +226,183 @@ const commands = {
 	},
 	// eslint-disable-next-line complexity
 	async report() {
-		setEnv('LOG_TYPE', 'raw');
-
 		const stdoutLogger = readLine.createInterface({
 			input: process.stdin,
 			output: process.stdout
 		});
 
-		stdoutLogger.write('Generating report please standby...');
+		try {
+			setEnv('LOG_TYPE', 'raw');
 
-		// Validation endpoint for API keys
-		const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
+			stdoutLogger.write('Generating report please standby...');
 
-		// Find all processes called "unraid-api" which aren't this process
-		const unraidApiPid = await getUnraidApiPid();
+			// Validation endpoint for API keys
+			const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
 
-		// Get unraid-api version
-		const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
-		cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
+			// Find all processes called "unraid-api" which aren't this process
+			const unraidApiPid = await getUnraidApiPid();
 
-		// Check if we can resolve mothership's address by fetching the head of the graphql endpoint
-		const mothershipCanBeResolved = await got.head(MOTHERSHIP_GRAPHQL_LINK, {
-			timeout: {
-				request: 1_000 // Wait a maximum of 1s
-			}
-		}).then(() => true).catch(() => false);
-		cliLogger.trace('Connecting to mothership status="%s"', mothershipCanBeResolved ? 'success' : 'failed');
+			// Get unraid-api version
+			const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
+			cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
 
-		// Load the myservers.cfg
-		const config = camelCaseKeys(parseConfig<MyServersConfig>({
-			filePath: paths.get('myservers-config'),
-			type: 'ini'
-		}), {
-			deep: true
-		});
-		cliLogger.trace('Loaded myservers.cfg');
-
-		// Get API key
-		const apiKey = `${config.remote.apikey ?? ''}`.trim();
-		const apiKeyExists = apiKey.length === 0 ? 'missing' : 'exists';
-		const apiKeyIsValidLength = apiKey.length === 64;
-		const apiKeyIsOld = apiKeyIsValidLength && !apiKey.startsWith('unraid_');
-
-		const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
-			if (!data) {
-				throw new Error('Missing data field.');
-			}
-
-			// Create form
-			const form = new URLSearchParams();
-			Object.entries(data).forEach(([key, value]) => {
-				if (value !== undefined) {
-					form.append(key, String(value));
-				}
-			});
-
-			// Convert form to string
-			const body = form.toString();
-
-			// Send form
-			return got(url, {
-				method: 'POST',
-				headers: {
-					'content-type': 'application/x-www-form-urlencoded'
-				},
-				body,
+			// Check if we can resolve mothership's address by fetching the head of the graphql endpoint
+			const mothershipCanBeResolved = await got.head(MOTHERSHIP_GRAPHQL_LINK, {
 				timeout: {
 					request: 1_000 // Wait a maximum of 1s
 				}
+			}).then(() => true).catch(() => false);
+			cliLogger.trace('Connecting to mothership status="%s"', mothershipCanBeResolved ? 'success' : 'failed');
+
+			// Load the myservers.cfg
+			const config = camelCaseKeys(parseConfig<MyServersConfig>({
+				filePath: paths.get('myservers-config'),
+				type: 'ini'
+			}), {
+				deep: true
 			});
-		};
+			cliLogger.trace('Loaded myservers.cfg');
 
-		// Send apiKey to key-server for verification
-		const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
-			apikey: apiKey
-		}).then(response => response.statusCode === 200 ? JSON.parse(response.body) : { valid: false }).then(response => response.valid).catch(() => false);
-		cliLogger.trace('Checked key-server for API key validity status="%s"', apiKeyIsValidWithKeyServer ? 'valid' : 'invalid');
+			// Get API key
+			const apiKey = `${config.remote.apikey ?? ''}`.trim();
+			const apiKeyExists = apiKey.length === 0 ? 'missing' : 'exists';
+			const apiKeyIsValidLength = apiKey.length === 64;
+			const apiKeyIsOld = apiKeyIsValidLength && !apiKey.startsWith('unraid_');
 
-		// Query local graphl using upc's API key
-		// Get the servers array
-		const servers = unraidApiPid ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
-			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				'x-api-key': config.upc.apikey
-			},
-			timeout: {
-				request: 5_000 // Wait a maximum of 5s
-			},
-			body: JSON.stringify({
-				query: 'query initialGetServers {  servers {    name    guid    status    owner {      username    }  } }'
-			})
-		}).then(response => (JSON.parse(response.body)?.servers ?? [] as CachedServer[])).catch(error => {
-			cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
-			return [];
-		}) : [];
-		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
-		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
+			const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
+				if (!data) {
+					throw new Error('Missing data field.');
+				}
 
-		// Should hints be enabled?
-		const hints = process.argv.includes('--hints');
+				// Create form
+				const form = new URLSearchParams();
+				Object.entries(data).forEach(([key, value]) => {
+					if (value !== undefined) {
+						form.append(key, String(value));
+					}
+				});
 
-		// Should we output a basic report or one that supports markdown?
-		const markdown = process.argv.includes('--markdown');
+				// Convert form to string
+				const body = form.toString();
 
-		// Should we log possibly sensative info?
-		const verboseLogs = process.argv.includes('-v');
+				// Send form
+				return got(url, {
+					method: 'POST',
+					headers: {
+						'content-type': 'application/x-www-form-urlencoded'
+					},
+					body,
+					timeout: {
+						request: 1_000 // Wait a maximum of 1s
+					}
+				});
+			};
 
-		// Convert server to string output
-		const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}" guid="${server.guid}"]` : `[status="${server.status}" owner="${server.owner.username}"]`}`;
+			// Send apiKey to key-server for verification
+			const apiKeyIsValidWithKeyServer = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
+				apikey: apiKey
+			}).then(response => response.statusCode === 200 ? JSON.parse(response.body) : { valid: false }).then(response => response.valid).catch(() => false);
+			cliLogger.trace('Checked key-server for API key validity status="%s"', apiKeyIsValidWithKeyServer ? 'valid' : 'invalid');
 
-		// Get all the types of servers including ones that don't have a online/offline status
-		const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
-		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
-		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
+			// Query local graphl using upc's API key
+			// Get the servers array
+			const servers = unraidApiPid ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'application/json',
+					'x-api-key': config.upc.apikey
+				},
+				timeout: {
+					request: 5_000 // Wait a maximum of 5s
+				},
+				body: JSON.stringify({
+					query: 'query initialGetServers {  servers {    name    guid    status    owner {      username    }  } }'
+				})
+			}).then(response => (JSON.parse(response.body)?.servers ?? [] as CachedServer[])).catch(error => {
+				cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
+				return [];
+			}) : [];
+			if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
+			else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
-		const serversDetails = dedent`
-			ONLINE_SERVERS: ${onlineServers.join(', ')}
-			OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
-		`;
+			// Should hints be enabled?
+			const hints = process.argv.includes('--hints');
 
-		// Check if API has crashed and if it has crash logs
-		const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
+			// Should we output a basic report or one that supports markdown?
+			const markdown = process.argv.includes('--markdown');
 
-		// Generate the actual report
-		const report = dedent`
-			<-----UNRAID-API-REPORT----->
-			ENVIRONMENT: ${process.env.ENVIRONMENT}
-			NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-			UNRAID_VERSION: ${unraidVersion}
-			CAN_REACH_MOTHERSHIP: ${mothershipCanBeResolved ? 'yes' : `no${hints ? ' (Your network may be blocking our cloud servers mothership.unraid.net)' : ''}`}
-			API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? 'old' : apiKeyExists)}
-			${servers ? serversDetails : 'SERVERS: none found'}
-			HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
-			</----UNRAID-API-REPORT----->
-		`;
+			// Should we log possibly sensative info?
+			const verboseLogs = process.argv.includes('-v');
 
-		// If we have a crash log grab it for later
-		const crashLogs = hasCrashLogs ? dedent`
-			<-----UNRAID-API-CRASH-LOGS----->
-			${await fs.promises.readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '')}
-			<-----UNRAID-API-CRASH-LOGS----->
-		` : '';
+			// Convert server to string output
+			const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}" guid="${server.guid}"]` : `[status="${server.status}" owner="${server.owner.username}"]`}`;
 
-		// Either output markdown or just a simple report
-		const output = markdown ? dedent`
-			\`\`\`
-			${report}
-			${crashLogs}
-			\`\`\`
-		` as string : dedent`
-			${report}
-			${crashLogs}
-		` as string;
+			// Get all the types of servers including ones that don't have a online/offline status
+			const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
+			const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
+			const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
 
-		// If we have trace logs don't clear the screen
-		if (process.env.LOG_LEVEL !== 'trace') {
-			// Clear the original log about the report being generated
-			readLine.cursorTo(process.stdout, 0, 0);
-			readLine.clearScreenDown(process.stdout);
+			const serversDetails = dedent`
+				ONLINE_SERVERS: ${onlineServers.join(', ')}
+				OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
+			`;
+
+			// Check if API has crashed and if it has crash logs
+			const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
+
+			// Generate the actual report
+			const report = dedent`
+				<-----UNRAID-API-REPORT----->
+				ENVIRONMENT: ${process.env.ENVIRONMENT}
+				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+				UNRAID_VERSION: ${unraidVersion}
+				CAN_REACH_MOTHERSHIP: ${mothershipCanBeResolved ? 'yes' : `no${hints ? ' (Your network may be blocking our cloud servers mothership.unraid.net)' : ''}`}
+				API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? 'old' : apiKeyExists)}
+				${servers ? serversDetails : 'SERVERS: none found'}
+				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
+				</----UNRAID-API-REPORT----->
+			`;
+
+			// If we have a crash log grab it for later
+			const crashLogs = hasCrashLogs ? dedent`
+				<-----UNRAID-API-CRASH-LOGS----->
+				${await fs.promises.readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '')}
+				<-----UNRAID-API-CRASH-LOGS----->
+			` : '';
+
+			// Either output markdown or just a simple report
+			const output = markdown ? dedent`
+				\`\`\`
+				${report}
+				${crashLogs}
+				\`\`\`
+			` as string : dedent`
+				${report}
+				${crashLogs}
+			` as string;
+
+			// If we have trace logs don't clear the screen
+			if (process.env.LOG_LEVEL !== 'trace') {
+				// Clear the original log about the report being generated
+				readLine.cursorTo(process.stdout, 0, 0);
+				readLine.clearScreenDown(process.stdout);
+			}
+
+			// eslint-disable-next-line no-warning-comments
+			// TODO: Add connection status to mini-graph and relay
+			stdoutLogger.write(output + '\n');
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				cliLogger.trace(error);
+				stdoutLogger.write(`Failed generating report with "${error.message}"`);
+				return;
+			}
+
+			stdoutLogger.write(`${error as string}`);
+		} finally {
+			// Close the readLine instance
+			stdoutLogger.close();
 		}
-
-		// eslint-disable-next-line no-warning-comments
-		// TODO: Add connection status to mini-graph and relay
-		stdoutLogger.write(output + '\n');
-
-		// Close the readLine instance
-		stdoutLogger.close();
 	},
 	async 'switch-env'() {
 		setEnv('LOG_TYPE', 'raw');
