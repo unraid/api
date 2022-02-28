@@ -330,12 +330,19 @@ const commands = {
 		// Should we output a basic report or one that supports markdown?
 		const markdown = process.argv.includes('--markdown');
 
+		// Should we log possibly sensative info?
 		const verboseLogs = process.argv.includes('-v');
-		const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}"]` : `[guid="${server.guid}"]`}`;
 
+		// Convert server to string output
+		const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}" guid="${server.guid}"]` : `[status="${server.status}"]`}`;
+
+		// Get all the types of servers including ones that don't have a online/offline status
 		const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
 		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
 		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
+
+		// Check if API has crashed and if it has crash logs
+		const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(error => ({ size: 0 }))).size > 0;
 
 		// Generate the actual report
 		const report = dedent`
@@ -347,16 +354,26 @@ const commands = {
 			API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? 'old' : apiKeyExists)}
 			ONLINE_SERVERS: ${onlineServers.join(', ')}
 			OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
+			HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 			</----UNRAID-API-REPORT----->
 		`;
+
+		// If we have a crash log grab it for later
+		const crashLogs = hasCrashLogs ? dedent`
+			<-----UNRAID-API-CRASH-LOGS----->
+			${fs.promises.readFile('/var/log/unraid-api/crash.log').catch(() => '')}
+			<-----UNRAID-API-CRASH-LOGS----->
+		` : '';
 
 		// Either output markdown or just a simple report
 		const output = markdown ? dedent`
 			\`\`\`
 			${report}
+			${crashLogs}
 			\`\`\`
 		` : dedent`
 			${report}
+			${crashLogs}
 		`;
 
 		// eslint-disable-next-line no-warning-comments
