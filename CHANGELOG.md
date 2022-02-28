@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.3](https://github.com/unraid/api/compare/v2.38.2...v2.38.3) (2022-02-28)
+
+
+### Bug Fixes
+
+* log owner for each server ([858485f](https://github.com/unraid/api/commit/858485ff49eeb25efb4733f15b68426fb8a5d9d3))
+
 ### [2.38.2](https://github.com/unraid/api/compare/v2.38.1...v2.38.2) (2022-02-28)
 
 
