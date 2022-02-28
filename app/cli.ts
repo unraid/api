@@ -320,10 +320,6 @@ const commands = {
 		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
 		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
-		// Clear the original log about the report being generated
-		readLine.cursorTo(process.stdout, 0, 0);
-		readLine.clearScreenDown(process.stdout);
-
 		// Should hints be enabled?
 		const hints = process.argv.includes('--hints');
 
@@ -371,14 +367,18 @@ const commands = {
 			${report}
 			${crashLogs}
 			\`\`\`
-		` : dedent`
+		` as string : dedent`
 			${report}
 			${crashLogs}
-		`;
+		` as string;
+
+		// Clear the original log about the report being generated
+		readLine.cursorTo(process.stdout, 0, 0);
+		readLine.clearScreenDown(process.stdout);
 
 		// eslint-disable-next-line no-warning-comments
 		// TODO: Add connection status to mini-graph and relay
-		stdoutLogger.write(output);
+		stdoutLogger.write(output + '\n');
 
 		// Close the readLine instance
 		stdoutLogger.close();
