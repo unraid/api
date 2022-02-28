@@ -268,10 +268,10 @@ const commands = {
 			};
 
 			// Load the myservers.cfg
-			const config = getConfig<MyServersConfig>(paths.get('myservers-config')!);
+			const config = getConfig<Partial<MyServersConfig>>(paths.get('myservers-config')!);
 
 			// Get API key
-			const apiKey = `${config?.remote.apikey ?? ''}`.trim();
+			const apiKey = `${config?.remote?.apikey ?? ''}`.trim();
 			const apiKeyExists = apiKey.length === 0 ? 'missing' : 'exists';
 			const apiKeyIsValidLength = apiKey.length === 64;
 			const apiKeyIsOld = apiKeyIsValidLength && !apiKey.startsWith('unraid_');
@@ -313,7 +313,7 @@ const commands = {
 
 			// Query local graphl using upc's API key
 			// Get the servers array
-			const servers = unraidApiPid && config?.upc.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+			const servers = unraidApiPid && config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 				method: 'POST',
 				headers: {
 					Origin: 'http://localhost',
@@ -371,6 +371,7 @@ const commands = {
 				ENVIRONMENT: ${process.env.ENVIRONMENT}
 				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
 				UNRAID_VERSION: ${unraidVersion}
+				MY_SERVERS_STATUS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
 				CAN_REACH_MOTHERSHIP: ${mothershipCanBeResolved ? 'yes' : `no${hints ? ' (Your network may be blocking our cloud servers mothership.unraid.net)' : ''}`}
 				API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? 'old' : apiKeyExists)}
 				${servers ? serversDetails : 'SERVERS: none found'}
