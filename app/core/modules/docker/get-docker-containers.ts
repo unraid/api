@@ -40,7 +40,7 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
 	const autoStarts = autoStartFile.split('\n');
 	const containers = await docker
 		.listContainers({
-			all,
+			all: Boolean(all),
 			size: true
 		})
 		.then(containers => containers.map(object => camelCaseKeys(object, { deep: true })))
