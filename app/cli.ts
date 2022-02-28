@@ -362,7 +362,7 @@ const commands = {
 		// If we have a crash log grab it for later
 		const crashLogs = hasCrashLogs ? dedent`
 			<-----UNRAID-API-CRASH-LOGS----->
-			${fs.promises.readFile('/var/log/unraid-api/crash.log').catch(() => '')}
+			${await fs.promises.readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '')}
 			<-----UNRAID-API-CRASH-LOGS----->
 		` : '';
 
