@@ -311,7 +311,7 @@ const commands = {
 				'x-api-key': config.upc.apikey
 			},
 			timeout: {
-				request: 1_000 // Wait a maximum of 1s
+				request: 5_000 // Wait a maximum of 5s
 			},
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
 		}).then(response => JSON.parse(response.body) as CachedServer[]).catch(error => {

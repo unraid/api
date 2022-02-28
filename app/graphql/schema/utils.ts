@@ -96,12 +96,13 @@ export const getServers = async (): Promise<Server[]> => {
 		// Fetch servers from mothership
 		const servers = await getUserServers(apiKey);
 
-		logger.trace('Using upstream for /servers endpoint');
-
 		// If no servers are found return the local copy
 		if (!servers || servers.length === 0) {
+			logger.trace('Generating response locally for /servers endpoint');
 			return getLocalServer(apiKey);
 		}
+
+		logger.trace('Using upstream for /servers endpoint');
 
 		// Cache servers
 		userCache.set<CachedServers>('mine', {
