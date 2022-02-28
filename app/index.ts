@@ -77,7 +77,7 @@ am(async () => {
 			logger.debug('API key in cfg is invalid, attempting to sign user our via cfg.');
 			const configPath = paths.get('myservers-config')!;
 			const myserversConfigFile = loadState<Partial<MyServersConfig>>(configPath);
-			const { apikey: _, email: __, username: ___, avatar: ____, ...remote } = myserversConfigFile.remote ?? {};
+			const { apikey: _, email: __, username: ___, avatar: ____, ...remote } = myserversConfigFile?.remote ?? {};
 
 			// Rebuild cfg with wiped remote section
 			// All the _ consts above have been removed

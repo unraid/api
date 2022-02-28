@@ -37,7 +37,7 @@ export const getDisplay = async function (context: CoreContext): Promise<Result>
 	});
 
 	const filePath = paths.get('dynamix-config')!;
-	const { display } = loadState<DynamixConfig>(filePath);
+	const { display } = loadState<DynamixConfig>(filePath)!;
 	const result = {
 		...display,
 		scale: toBoolean(display.scale),

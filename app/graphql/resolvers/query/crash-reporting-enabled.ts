@@ -3,9 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '../../../core';
-import { ensurePermission, loadState } from '../../../core/utils';
-import { MyServersConfig } from '../../../types/my-servers-config';
+import { ensurePermission } from '../../../core/utils';
 import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
@@ -16,7 +14,5 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	});
 
 	// Check if crash reporting is enabled
-	const configPath = paths.get('myservers-config')!;
-	const file = loadState<Partial<MyServersConfig>>(configPath);
-	return (file?.remote?.sendCrashInfo ?? 'no').trim() === 'yes';
+	return false;
 };

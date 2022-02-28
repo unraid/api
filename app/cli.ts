@@ -103,7 +103,7 @@ const commands = {
 		const stringifiedData = serializer.serialize({
 			...(data ?? {}),
 			api: {
-				...data.api ?? {},
+				...data?.api ?? {},
 				version
 			}
 		});
