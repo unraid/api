@@ -350,9 +350,11 @@ const commands = {
 			const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
 			const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
 
-			const serversDetails = dedent`
+			const serversDetails = unraidApiPid ? dedent`
 				ONLINE_SERVERS: ${onlineServers.join(', ')}
 				OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
+			` : dedent`
+				SERVERS: API offline
 			`;
 
 			// Check if API has crashed and if it has crash logs
