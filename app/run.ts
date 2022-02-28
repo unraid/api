@@ -27,7 +27,7 @@ export const publish = async (channel: string, mutation: string, node?: Record<s
 
 interface RunOptions {
 	node?: Record<string, unknown>;
-	moduleToRun?: (context: CoreContext) => Promise<CoreResult | Result> | CoreResult | Result;
+	moduleToRun?: (context: CoreContext) => Promise<CoreResult> | CoreResult;
 	context?: any;
 	loop?: number;
 }
@@ -97,8 +97,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 			if (process.env.NODE_ENV === 'production') {
 				logger.debug('Error: %s', error.message);
 			} else {
-				const logger = logger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(logger);
-				logger('Error: %s', error.message);
+				logger[error.status && error.status >= 400 ? 'error' : 'warn'].bind(logger)('Error: %s', error.message);
 			}
 		} else {
 			logger.debug('Error: %s', error);
