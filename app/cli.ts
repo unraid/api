@@ -334,7 +334,7 @@ const commands = {
 		const verboseLogs = process.argv.includes('-v');
 
 		// Convert server to string output
-		const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}" guid="${server.guid}"]` : `[status="${server.status}"]`}`;
+		const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}" guid="${server.guid}"]` : `[status="${server.status}" owner="${server.owner.username}"]`}`;
 
 		// Get all the types of servers including ones that don't have a online/offline status
 		const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
@@ -347,7 +347,7 @@ const commands = {
 		`;
 
 		// Check if API has crashed and if it has crash logs
-		const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(error => ({ size: 0 }))).size > 0;
+		const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
 
 		// Generate the actual report
 		const report = dedent`
