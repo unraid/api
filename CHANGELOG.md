@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.38.0](https://github.com/unraid/api/compare/v2.37.1...v2.38.0) (2022-02-28)
+
+
+### Features
+
+* better unraid-api report ([410ac0d](https://github.com/unraid/api/commit/410ac0d6ef184c422d531360d24f2e8282275a90))
+
+
+### Bug Fixes
+
+* check correct line in test ([328e0f2](https://github.com/unraid/api/commit/328e0f20fb2cecbe8b27083478a0d64a72b70b82))
+* don't clear logs when in trace log level ([33269b5](https://github.com/unraid/api/commit/33269b5d4a56e4ffaf4b0e88674e70fbc1e1e03b))
+* dont error on got timeout ([0fcda49](https://github.com/unraid/api/commit/0fcda49a9342b0cb986d892da727dc9f4f8a3e75))
+* ensure report takes no more than 1s for each request ([2d081e5](https://github.com/unraid/api/commit/2d081e538a74d29f6ddd121472b12620c51c4eed))
+* ensure we add an extra new line after the report ([5063eb5](https://github.com/unraid/api/commit/5063eb55863e2c3f9f8b792ff5eab44a816d02b4))
+* fetch is not defined ([0299e97](https://github.com/unraid/api/commit/0299e97f33c3daab12da2a52be085b54f201fa01))
+* fetch is not defined ([3f7eff7](https://github.com/unraid/api/commit/3f7eff7026c2ca45e4e93b45dace6de7064bbfc3))
+* initialGetServers query ([d00e4a7](https://github.com/unraid/api/commit/d00e4a75f0126985e0d23bc0dae523e0170ef432))
+* report if no servers were found ([6af9660](https://github.com/unraid/api/commit/6af9660a84232b9429cceb06ce07e0eb5ef3e448))
+* timeout for servers endpoint ([cb67445](https://github.com/unraid/api/commit/cb67445ea5eb7cda70b6d6910db6b941ef04a9fa))
+* use API key for owner lookup not guid ([e6e8266](https://github.com/unraid/api/commit/e6e8266c6bbdf161efa3543b87adb32d77285696))
+* use correct type for timeout option ([78c7f7b](https://github.com/unraid/api/commit/78c7f7b614d515b0cc9ddfba7b72c7486cdf05ec))
+
 ### [2.37.1](https://github.com/unraid/api/compare/v2.37.0...v2.37.1) (2022-02-23)
 
 
