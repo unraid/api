@@ -317,7 +317,7 @@ const commands = {
 			body: JSON.stringify({
 				query: 'query initialGetServers {  servers {    name    guid    status    owner {      username    }  } }'
 			})
-		}).then(response => JSON.parse(response.body) as CachedServer[]).catch(error => {
+		}).then(response => (JSON.parse(response.body)?.servers ?? [] as CachedServer[])).catch(error => {
 			cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
 			return [];
 		}) : [];
