@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.38.2](https://github.com/unraid/api/compare/v2.38.1...v2.38.2) (2022-02-28)
+
+
+### Bug Fixes
+
+* include content-type header for servers request in report ([247db6f](https://github.com/unraid/api/commit/247db6f4aed39c9a65b608e3163770264004392e))
+
 ### [2.38.1](https://github.com/unraid/api/compare/v2.38.0...v2.38.1) (2022-02-28)
 
 
