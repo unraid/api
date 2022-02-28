@@ -224,6 +224,7 @@ const commands = {
 		const stats = await pidUsage(unraidApiPid);
 		cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${process.env.ENVIRONMENT!}" mode!`);
 	},
+	// eslint-disable-next-line complexity
 	async report() {
 		setEnv('LOG_TYPE', 'raw');
 
@@ -376,9 +377,12 @@ const commands = {
 			${crashLogs}
 		` as string;
 
-		// Clear the original log about the report being generated
-		readLine.cursorTo(process.stdout, 0, 0);
-		readLine.clearScreenDown(process.stdout);
+		// If we have trace logs don't clear the screen
+		if (process.env.LOG_LEVEL !== 'trace') {
+			// Clear the original log about the report being generated
+			readLine.cursorTo(process.stdout, 0, 0);
+			readLine.clearScreenDown(process.stdout);
+		}
 
 		// eslint-disable-next-line no-warning-comments
 		// TODO: Add connection status to mini-graph and relay
