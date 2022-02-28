@@ -1,6 +1,7 @@
 import segfaultHandler from 'segfault-handler';
 segfaultHandler.registerHandler('/var/log/unraid-api/crash.log');
 
+import readLine from 'readline';
 import fs from 'fs';
 import path from 'path';
 import execa from 'execa';
@@ -226,7 +227,12 @@ const commands = {
 	async report() {
 		setEnv('LOG_TYPE', 'raw');
 
-		cliLogger.info('Generating report please standby...');
+		const stdoutLogger = readLine.createInterface({
+			input: process.stdin,
+			output: process.stdout
+		});
+
+		stdoutLogger.write('Generating report please standby...');
 
 		// Validation endpoint for API keys
 		const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
@@ -307,25 +313,58 @@ const commands = {
 				request: 1_000 // Wait a maximum of 1s
 			},
 			body: 'query: "query initialGetServers {\n  servers {\n    name\n    guid\n    status\n    owner {\n      username\n    }\n  }\n}\n"'
-		}).then(response => JSON.parse(response.body) as CachedServer[]).catch(() => []) : [];
+		}).then(response => JSON.parse(response.body) as CachedServer[]).catch(error => {
+			cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
+			return [];
+		}) : [];
 		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
 		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
+		// Clear the original log about the report being generated
+		readLine.cursorTo(process.stdout, 0, 0);
+		readLine.clearScreenDown(process.stdout);
+
+		// Should hints be enabled?
+		const hints = process.argv.includes('--hints');
+
+		// Should we output a basic report or one that supports markdown?
+		const markdown = process.argv.includes('--markdown');
+
+		const verboseLogs = process.argv.includes('-v');
+		const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[status="${server.status}"]` : `[guid="${server.guid}"]`}`;
+
+		const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
+		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
+		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
+
+		// Generate the actual report
+		const report = dedent`
+			<-----UNRAID-API-REPORT----->
+			ENVIRONMENT: ${process.env.ENVIRONMENT}
+			NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+			UNRAID_VERSION: ${unraidVersion}
+			CAN_REACH_MOTHERSHIP: ${mothershipCanBeResolved ? 'yes' : `no${hints ? ' (Your network may be blocking our cloud servers mothership.unraid.net)' : ''}`}
+			API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? 'old' : apiKeyExists)}
+			ONLINE_SERVERS: ${onlineServers.join(', ')}
+			OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
+			</----UNRAID-API-REPORT----->
+		`;
+
+		// Either output markdown or just a simple report
+		const output = markdown ? dedent`
+			\`\`\`
+			${report}
+			\`\`\`
+		` : dedent`
+			${report}
+		`;
+
 		// eslint-disable-next-line no-warning-comments
 		// TODO: Add connection status to mini-graph and relay
-		cliLogger.info(
-			dedent`
-				<-----UNRAID-API-REPORT----->
-				ENVIRONMENT: ${process.env.ENVIRONMENT}
-				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-				UNRAID_VERSION: ${unraidVersion}
-				RESOLVE_MOTHERSHIP: ${mothershipCanBeResolved}
-				API_KEY_STATUS: ${apiKeyIsValidWithKeyServer ? 'valid' : (apiKeyIsOld ? `old ${apiKeyExists}` : apiKeyExists)}
-				ONLINE_SERVERS: ${servers.filter(server => server.status === 'online').map(server => `${server.name} [${server.guid}]`).join(', ')}
-				OFFLINE_SERVERS: ${servers.filter(server => server.status === 'offline').map(server => `${server.name} [${server.guid}]`).join(', ')}
-				</----UNRAID-API-REPORT----->
-			`
-		);
+		stdoutLogger.write(output);
+
+		// Close the readLine instance
+		stdoutLogger.close();
 	},
 	async 'switch-env'() {
 		setEnv('LOG_TYPE', 'raw');
