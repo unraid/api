@@ -5,7 +5,7 @@
 
 import path from 'path';
 import { paths } from '../paths';
-import { ConfigErrorState, Var } from '../types/states';
+import { Var } from '../types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';
 import { State } from './state';
 import { toNumber } from '../utils/casting';

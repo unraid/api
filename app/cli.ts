@@ -24,7 +24,6 @@ import { MyServersConfig } from './types/my-servers-config';
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
-import { VarIni } from './core/states/var';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -362,7 +361,7 @@ const commands = {
 			const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
 
 			// Load the var.ini file
-			const varIni = getConfig<VarIni>(resolve(paths.get('states')!, 'var.ini'));
+			const varIni = getConfig<{ name: string }>(resolve(paths.get('states')!, 'var.ini'));
 			const serverName = varIni?.name;
 
 			// Generate the actual report
