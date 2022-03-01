@@ -344,7 +344,7 @@ export class ApiManager extends EventEmitter {
 
 				// If we have an API key loaded then clear it
 				if (this.getKey('my_servers')?.key) {
-					this.expire('my_Servers');
+					this.expire('my_servers');
 
 					// Clear servers cache
 					userCache.del('mine');
