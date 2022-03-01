@@ -1,7 +1,7 @@
-import { fetch } from '../../../common/fetch';
 import { varState } from '../../states';
 import { AppError } from '../../errors';
 import { logger } from '../..';
+import got from 'got';
 
 const validKeys = new Set();
 
@@ -36,7 +36,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		logger.removeContext('form');
 
 		// Send form
-		return fetch(url, {
+		return got(url, {
 			method: 'POST',
 			headers: {
 				'content-type': 'application/x-www-form-urlencoded'
@@ -60,10 +60,10 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	logger.removeContext('apiKey');
 
 	// Get response data
-	const data = await response.json() as { valid: boolean };
+	const data = JSON.parse(response.body) as { valid: boolean };
 
 	// Something went wrong
-	if (!response.ok) {
+	if (response.statusCode !== 200) {
 		const keyServerError = (data as unknown as { error: string }).error;
 		if (shouldThrow) throw new Error('Error while validating API key with key-server' + (keyServerError ? ` "${keyServerError}"` : ''));
 		return false;

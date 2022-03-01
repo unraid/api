@@ -23,6 +23,11 @@ export const getServers = async (apiKey: string) => {
 			}),
 			timeout: {
 				request: 2_000 // Wait for 2s at most
+			},
+			retry: {
+				methods: ['POST'],
+				limit: 5,
+				errorCodes: ['429']
 			}
 		});
 

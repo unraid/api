@@ -4,7 +4,6 @@
  */
 
 // import fs from 'fs';
-// import fetch from 'node-fetch';
 // import { log } from '../log';
 import { AppError, NotImplementedError } from '../errors';
 import { CoreContext, CoreResult } from '../types';
@@ -54,8 +53,8 @@ export const addLicenseKey = async (context: Context): Promise<Result | void> =>
 	// 	body.append('guid', guid);
 	// 	body.append('timestamp', timestamp.getTime().toString());
 
-	// 	const key = await fetch('https://keys.lime-technology.com/account/trial', { method: 'POST', body })
-	// 		.then(response => response.json())
+	// 	const key = await got('https://keys.lime-technology.com/account/trial', { method: 'POST', body })
+	// 		.then(response => JSON.parse(response.body))
 	// 		.catch(error => {
 	// 			log.error(error);
 	// 			throw new AppError(`Sorry, a HTTP ${error.status} error occurred while registering USB Flash GUID ${guid}`);
@@ -86,8 +85,8 @@ export const addLicenseKey = async (context: Context): Promise<Result | void> =>
 	// 	body.append('email', email);
 	// 	body.append('keyfile', keyFile);
 
-	// 	const { body: key } = await fetch('https://keys.lime-technology.com/account/license/transfer', { method: 'POST', body })
-	// 		.then(response => response.json())
+	// 	const { body: key } = await got('https://keys.lime-technology.com/account/license/transfer', { method: 'POST', body })
+	// 		.then(response => JSON.parse(response.body))
 	// 		.catch(error => {
 	// 			log.error(error);
 	// 			throw new AppError(`Sorry, a HTTP ${error.status} error occurred while issuing a replacement for USB Flash GUID ${guid}`);
@@ -110,8 +109,8 @@ export const addLicenseKey = async (context: Context): Promise<Result | void> =>
 	// 	const { [parts.length - 1]: keyType } = parts;
 
 	// 	// Download key blob
-	// 	const { body: key } = await fetch(data.keyUri)
-	// 		.then(response => response.json())
+	// 	const { body: key } = await got(data.keyUri)
+	// 		.then(response => JSON.parse(response.body))
 	// 		.catch(error => {
 	// 			log.error(error);
 	// 			throw new AppError(`Sorry, a HTTP ${error.status} error occurred while registering your key for USB Flash GUID ${guid}`);

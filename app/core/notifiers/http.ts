@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import fetch from 'node-fetch';
+import got from 'got';
 import { Notifier, NotifierOptions } from './notifier';
 
 export interface Options extends NotifierOptions {}
@@ -12,7 +12,7 @@ export interface Options extends NotifierOptions {}
  * HTTP notifier.
  */
 export class HttpNotifier extends Notifier {
-	readonly $http = fetch;
+	readonly $http = got;
 
 	// eslint-disable-next-line @typescript-eslint/no-useless-constructor
 	constructor(options: Options) {

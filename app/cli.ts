@@ -301,6 +301,11 @@ const commands = {
 					body,
 					timeout: {
 						request: 1_000 // Wait a maximum of 1s
+					},
+					retry: {
+						methods: ['POST'],
+						limit: 2,
+						errorCodes: ['429']
 					}
 				});
 			};
