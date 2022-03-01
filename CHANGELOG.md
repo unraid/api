@@ -2,6 +2,32 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.39.0](https://github.com/unraid/api/compare/v2.38.6...v2.39.0) (2022-03-01)
+
+
+### Features
+
+* add serverName to report ([ebc443c](https://github.com/unraid/api/commit/ebc443cbf95a5f641c83f8e5cd0333ce12872b12))
+
+
+### Bug Fixes
+
+* clear servers cache on key invalidation ([314a251](https://github.com/unraid/api/commit/314a251434edc756d0b5b77bbe8182c6c9db37ef))
+* correct key name ([a146b8d](https://github.com/unraid/api/commit/a146b8d603f27dbe67ce1ca2ca584cb583e6a6bd))
+* CRLF -> LR ([479d84c](https://github.com/unraid/api/commit/479d84cef4542ce8705413b11bcbb40ebd121bae))
+* CRLF -> LR ([ba8da01](https://github.com/unraid/api/commit/ba8da014d56c5ff3a118f3adb01263778e4c9ec5))
+* CRLF -> LR ([d5cfa44](https://github.com/unraid/api/commit/d5cfa447617132c3f7879ce89f756976212bff86))
+* don't import VarIni in cli ([174bca7](https://github.com/unraid/api/commit/174bca7cadbd54c61ffc7c9a3ceae4c342f4c845))
+* ensure key is cleared when cfg changes ([4d27c78](https://github.com/unraid/api/commit/4d27c780006db66fff0a41eab6c04e23e740e76f))
+* ensure loadState doesn't throw on missing files ([7ccb09c](https://github.com/unraid/api/commit/7ccb09c5efb0bdf8defe4205a0edfe8ab91445e7))
+* ensure we wait till next tick before emitting expire event ([1ce6511](https://github.com/unraid/api/commit/1ce6511aa32bbadcd9780d83c3bd9e157e6a839e))
+* ensure when using loadState we account for it being undefined when missing ([808ab82](https://github.com/unraid/api/commit/808ab82b57fb0ee45f42209771a52d3056b09861))
+* if not config is provided still show the report ([2d0ef3b](https://github.com/unraid/api/commit/2d0ef3b0d49f0fab0dc3a0dd6d1705eb3d368c87))
+* include operationName in subscription update log ([b0d1134](https://github.com/unraid/api/commit/b0d1134d58a3f507381cea4e35d97e37c0082c59))
+* log if API is offline instead of empty servers in report ([f2c9b9b](https://github.com/unraid/api/commit/f2c9b9bb96f983d5f4bf2b75e235b5d04c11a661))
+* log my servers status and username if exists ([29de78f](https://github.com/unraid/api/commit/29de78fd07274c90d06d1ba173ebcaa6b646af83))
+* use custom origin instead of localhost for cli ([d6705dc](https://github.com/unraid/api/commit/d6705dc0071fb43058ab42c5515ba21420e47baa))
+
 ### [2.38.6](https://github.com/unraid/api/compare/v2.38.5...v2.38.6) (2022-02-28)
 
 
