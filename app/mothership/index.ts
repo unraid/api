@@ -24,19 +24,26 @@ const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Mat
  * Send a message to relay if it's open
  * @param type ka = keep-alive, error or data
  */
-function sendMessage(type: 'ka');
-function sendMessage(type: 'error', id: string | number, payload: { error: Record<string, unknown> });
-function sendMessage(type: 'data', id: string | number, payload: { data: Record<string, unknown> });
-function sendMessage(type: string, id?: unknown, payload?: unknown): void {
+function sendMessage(name: string, type: 'ka');
+function sendMessage(name: string, type: 'error', id: string | number, payload: { error: Record<string, unknown> });
+function sendMessage(name: string, type: 'data', id: string | number, payload: { data: Record<string, unknown> });
+function sendMessage(name: string, type: string, id?: unknown, payload?: Record<string, unknown>): void {
 	if (!relay?.isOpened) return;
 	const message = JSON.stringify({
 		id,
 		payload,
 		type
 	});
-	relayLogger.addContext('message', message);
-	relayLogger.trace('Sending update to subscription %s', id);
-	relayLogger.removeContext('message');
+
+	// Log the message
+	if (type === 'ka') {
+		relayLogger.trace('Sending keep-alive message');
+	} else {
+		relayLogger.addContext('message', message);
+		relayLogger.trace('Sending update to subscription %s for %s', id, name);
+		relayLogger.removeContext('message');
+	}
+
 	relay.send(message);
 }
 
@@ -53,10 +60,10 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 	switch (true) {
 		// Array needs dampening as it generates too many events during intense IO
 		case name === 'array':
-			debounce(sendMessage('data', id, { data }), 1_000);
+			debounce(sendMessage(name, 'data', id, { data }), 1_000);
 			break;
 		default:
-			sendMessage('data', id, { data });
+			sendMessage(name, 'data', id, { data });
 			break;
 	}
 };
@@ -138,7 +145,7 @@ const startKeepAlive = () => {
 
 		// Send keep alive message
 		relayLogger.trace('Sending keep alive message');
-		sendMessage('ka');
+		sendMessage('ka', 'ka');
 	}, 30_000);
 };
 
@@ -241,7 +248,7 @@ export const checkRelayConnection = debounce(async () => {
 						}
 
 						// Reply back with data
-						sendMessage('data', id, result as any);
+						sendMessage(operationName, 'data', id, result as any);
 
 						// Log we sent a reply
 						relayLogger.trace('Sent reply for %s', operationName);
@@ -277,7 +284,7 @@ export const checkRelayConnection = debounce(async () => {
 				relayLogger.addContext('error', error);
 				relayLogger.error('Failed processing message');
 				relayLogger.removeContext('error');
-				sendMessage('error', id, {
+				sendMessage(operationName, 'error', id, {
 					error: {
 						message: error instanceof Error ? error.message : error
 					}
