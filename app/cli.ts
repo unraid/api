@@ -321,7 +321,7 @@ const commands = {
 			const servers = unraidApiPid && config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 				method: 'POST',
 				headers: {
-					Origin: 'http://localhost',
+					Origin: '/var/run/unraid-cli.sock',
 					'Content-Type': 'application/json',
 					'x-api-key': config.upc.apikey
 				},

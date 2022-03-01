@@ -114,6 +114,9 @@ const getAllowedOrigins = (): string[] => {
 		// Unraid PHP scripts
 		'/var/run/unraid-php.sock',
 
+		// CLI
+		'/var/run/unraid-cli.sock',
+
 		// Other endpoints should be added below
 		...origins.extra
 	]).values()];
