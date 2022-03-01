@@ -355,7 +355,7 @@ export class ApiManager extends EventEmitter {
 
 				// Get the user's API key
 				const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
-				
+
 				// Check if the API key we loaded from the config is empty
 				if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) return clearKey('API key is missing.');
 
@@ -393,7 +393,7 @@ export class ApiManager extends EventEmitter {
 				apiManagerLogger.addContext('error', error);
 				apiManagerLogger.debug('Removing "my_servers" API key as we had an error while checking the key.');
 				apiManagerLogger.removeContext('error');
-				
+
 				// Reset key as it's not valid anymore
 				this.expire('my_servers');
 
