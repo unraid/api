@@ -74,7 +74,7 @@ am(async () => {
 				return;
 			}
 
-			logger.debug('API key in cfg is invalid, attempting to sign user our via cfg.');
+			logger.debug('API key in cfg is invalid, attempting to sign user out via cfg.');
 			const configPath = paths.get('myservers-config')!;
 			const myserversConfigFile = loadState<Partial<MyServersConfig>>(configPath);
 			const { apikey: _, email: __, username: ___, avatar: ____, ...remote } = myserversConfigFile?.remote ?? {};

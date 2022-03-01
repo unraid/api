@@ -279,8 +279,13 @@ export class ApiManager extends EventEmitter {
 			return;
 		}
 
+		// Invalidate the key
 		this.keys.invalidate(name);
-		this.emit('expire', name);
+
+		// Ensure the key is invalidated before we emit the event
+		process.nextTick(() => {
+			this.emit('expire', name);
+		});
 	}
 
 	/**
