@@ -18,6 +18,7 @@ import { validateApiKeyFormat, loadState, validateApiKey, isNodeError } from './
 import { paths } from './paths';
 import { apiManagerLogger } from './log';
 import { MyServersConfig } from '../types/my-servers-config';
+import { userCache } from '../cache/user';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -344,6 +345,9 @@ export class ApiManager extends EventEmitter {
 				// If we have an API key loaded then clear it
 				if (this.getKey('my_servers')?.key) {
 					this.expire('my_Servers');
+
+					// Clear servers cache
+					userCache.del('mine');
 					apiManagerLogger.debug('Cleared "my_servers" API key from manager.');
 				}
 
