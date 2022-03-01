@@ -325,56 +325,81 @@ export class ApiManager extends EventEmitter {
 
 	async checkKey(filePath: string, force = false) {
 		const lock = await this.getLock();
-		const isValid = await lock.runExclusive(async () => {
+		// This will return a boolean is the key is valid or not
+		// If if detects the key is invalid it'll ensure it's removed from the current API manager instance
+		// If the key is valid we return
+		return lock.runExclusive(async () => {
 			apiManagerLogger.trace('Checking API key for validity.');
-			const file = loadState<{ remote: { apikey: string } }>(filePath);
-			const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
 
-			// No API key passed
-			if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) {
-				apiManagerLogger.trace('API key is empty, not updating API key.');
+			const myServersConfigPath = paths.get('myservers-config')!;
+			const configExists = (await fs.promises.stat(myServersConfigPath).catch(() => ({ size: 0 }))).size > 0;
+			const clearKey = (reason: string) => {
+				apiManagerLogger.trace(reason);
+
+				// If we have an API key loaded then clear it
+				if (this.getKey('my_servers')?.key) {
+					this.expire('my_Servers');
+					apiManagerLogger.debug('Cleared "my_servers" API key from manager.');
+				}
+
+				return false;
+			};
+
+			try {
+				// Check if the myservers.cfg exists
+				if (!configExists) return clearKey(`File is missing "${myServersConfigPath}"`);
+
+				// Load the myservers.cfg
+				const file = loadState<{ remote: { apikey: string } }>(filePath);
+				if (!file) return clearKey(`File is missing "${myServersConfigPath}"`);
+
+				// Get the user's API key
+				const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
+				
+				// Check if the API key we loaded from the config is empty
+				if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) return clearKey('API key is missing.');
+
+				// Check if the current loaded API key is the same as the one from the config
+				if (!force && (apiKey === this.getKey('my_servers')?.key)) {
+					apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
+					return true;
+				}
+
+				// Check if the key format is valid
+				const validFormat = validateApiKeyFormat(apiKey, false);
+				if (!validFormat) return clearKey('API key is corrupted.');
+				apiManagerLogger.trace('API key is in the correct format, checking key\'s validity with key-server');
+
+				// Check if the key is valid with key-server
+				const isValid = await validateApiKey(apiKey, false);
+				if (!isValid) return clearKey('Key-server marked this API key as invalid.');
+				apiManagerLogger.debug('Key-server marked this API key as valid.');
+
+				// If everything looks good then replace whatever the current key is in API manager
+				// If there's no key it'll set it otherwise it'll override the old one
+				this.replace('my_servers', apiKey, {
+					userId: '-1'
+				});
+
+				// Key is valid
+				return true;
+			} catch (error: unknown) {
+				if (!configExists) {
+					// File was deleted
+					apiManagerLogger.debug(`Removing "my_servers" API key as "${myServersConfigPath}" was deleted.`);
+				}
+
+				// Something happened?
+				apiManagerLogger.addContext('error', error);
+				apiManagerLogger.debug('Removing "my_servers" API key as we had an error while checking the key.');
+				apiManagerLogger.removeContext('error');
+				
+				// Reset key as it's not valid anymore
+				this.expire('my_servers');
+
 				return false;
 			}
-
-			// Same key as current
-			if (!force && (apiKey === this.getKey('my_servers')?.key)) {
-				apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
-				return true;
-			}
-
-			// Ensure key format is valid before validating
-			validateApiKeyFormat(apiKey);
-			apiManagerLogger.trace('API key is in the correct format, checking key\'s validity...');
-
-			// Ensure key is valid before connecting
-			await validateApiKey(apiKey);
-			apiManagerLogger.debug('API key is valid.');
-
-			// Add the new key
-			this.replace('my_servers', apiKey, {
-				userId: '-1'
-			});
-
-			return true;
-		}).catch(error => {
-			if (isNodeError(error)) {
-				// File was deleted
-				if (error?.code === 'ENOENT') {
-					apiManagerLogger.debug('%s was deleted, removing "my_servers" API key.', filePath);
-				} else {
-					apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
-				}
-			} else {
-				apiManagerLogger.debug('%s, removing "my_servers" API key.', error.message);
-			}
-
-			// Reset key as it's not valid anymore
-			this.expire('my_servers');
-
-			return false;
 		});
-
-		return isValid;
 	}
 
 	private async getLock() {
