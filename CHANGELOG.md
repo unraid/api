@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.40.0](https://github.com/unraid/api/compare/v2.39.0...v2.40.0) (2022-03-01)
+
+
+### Features
+
+* on 401 sign the user out ([2f86f31](https://github.com/unraid/api/commit/2f86f31b9767c9fde2b2ecd642d08056467d72e2))
+
 ## [2.39.0](https://github.com/unraid/api/compare/v2.38.6...v2.39.0) (2022-03-01)
 
 
