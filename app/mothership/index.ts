@@ -208,6 +208,13 @@ export const checkRelayConnection = debounce(async () => {
 		relay.onClose.addListener((statusCode: string, reason: string) => {
 			const after = getConnectionStatus();
 			relayLogger.debug('Websocket status="%s" statusCode="%s" reason="%s"', after, statusCode, reason);
+			const error = new Error();
+			const [...statusPieces] = statusCode.split('');
+			// @ts-expect-error
+			error.code = Number(statusCode.length > 4 ? statusPieces.join('') : statusCode);
+			// @ts-expect-error
+			error.reason = reason;
+			handleError(error);
 		});
 
 		// Bind on message handler
