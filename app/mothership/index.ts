@@ -86,9 +86,7 @@ const getRelayHeaders = () => {
 const handleError = (error: unknown) => {
 	const reason = (error as any).reason as string;
 	const code = (error as any).code as number ?? 500;
-	relayLogger.addContext('reason', reason);
-	relayLogger.addContext('code', code);
-	relayLogger.debug('Disconnected');
+	relayLogger.debug('Disconnected with status="%s" reason="%s"', code, reason);
 	switch (code) {
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
