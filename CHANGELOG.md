@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.40.1](https://github.com/unraid/api/compare/v2.40.0...v2.40.1) (2022-03-02)
+
+
+### Bug Fixes
+
+* on successful disconnect run handleError ([046ed1f](https://github.com/unraid/api/commit/046ed1f3228e5bd7b16343391bbf6df00ba778d3))
+* print invalid if key is ([37be8ce](https://github.com/unraid/api/commit/37be8ce27eb84347c6ba9994c1bb358935e7fca3))
+* remove first char from statusCode ([b0f09ae](https://github.com/unraid/api/commit/b0f09ae3cfb2d603ec3d32889e57101801af62f0))
+* statusCode split string ([9ca4fc7](https://github.com/unraid/api/commit/9ca4fc796b0713d652005177d44bc67472d20824))
+* use flashGuid for owners object ([d4614a3](https://github.com/unraid/api/commit/d4614a37498544305a615de02185eb500f996eac))
+
 ## [2.40.0](https://github.com/unraid/api/compare/v2.39.0...v2.40.0) (2022-03-01)
 
 
