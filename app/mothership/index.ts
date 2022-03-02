@@ -205,13 +205,13 @@ export const checkRelayConnection = debounce(async () => {
 		startKeepAlive();
 
 		// Bind on disconnect handler
-		relay.onClose.addListener((statusCode: string, reason: string) => {
+		relay.onClose.addListener((statusCode: number, reason: string) => {
 			const after = getConnectionStatus();
 			relayLogger.debug('Websocket status="%s" statusCode="%s" reason="%s"', after, statusCode, reason);
 			const error = new Error();
-			const [_, ...statusPieces] = statusCode.split('');
+			const code = `${statusCode}`.substring(1);
 			// @ts-expect-error
-			error.code = Number(statusCode.length > 4 ? statusPieces.join('') : statusCode);
+			error.code = Number(code);
 			// @ts-expect-error
 			error.reason = reason;
 			handleError(error);
