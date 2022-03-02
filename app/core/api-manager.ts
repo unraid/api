@@ -281,10 +281,12 @@ export class ApiManager extends EventEmitter {
 		}
 
 		// Invalidate the key
+		apiManagerLogger.debug('Invalidating key %s', name);
 		this.keys.invalidate(name);
 
 		// Ensure the key is invalidated before we emit the event
 		process.nextTick(() => {
+			apiManagerLogger.trace('Emitting "expire" event for %s', name);
 			this.emit('expire', name);
 		});
 	}
