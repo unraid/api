@@ -1,0 +1,25 @@
+type ApiKeyResponse {
+    valid: Boolean
+    error: String
+}
+
+type RelayResponse {
+    status: String!
+    error: String
+}
+
+type MothershipResponse {
+    status: String!
+    error: String
+}
+
+type Cloud {
+    error: String;
+    apiKey: ApiKeyResponse
+    relay: RelayResponse
+    mothership: MothershipResponse
+}
+
+type Query {
+    cloud: Cloud
+}
