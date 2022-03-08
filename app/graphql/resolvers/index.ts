@@ -6,7 +6,7 @@
 import GraphQLJSON from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
-import { GraphQLDateTime } from 'graphql-iso-date';
+import { GraphQLDateTime } from 'graphql-iso-date/dist/dateTime/index.js';
 
 export { Query } from './query';
 export { Mutation } from './mutation';
