@@ -341,9 +341,6 @@ const commands = {
 			// Should hints be enabled?
 			const hints = process.argv.includes('--hints');
 
-			// Should we output a basic report or one that supports markdown?
-			const markdown = process.argv.includes('--markdown');
-
 			// Should we log possibly sensative info?
 			const verboseLogs = process.argv.includes('-v');
 
@@ -391,7 +388,8 @@ const commands = {
 				<-----UNRAID-API-CRASH-LOGS----->
 			` : '';
 
-			// Either output markdown or just a simple report
+			// Should we output a basic report or one that supports markdown?
+			const markdown = process.argv.includes('--markdown');
 			const output = markdown ? dedent`
 				\`\`\`
 				${report}
@@ -402,8 +400,8 @@ const commands = {
 				${crashLogs}
 			` as string;
 
-			// If we have trace logs don't clear the screen
-			if (process.env.LOG_LEVEL !== 'trace') {
+			// If we have trace logs or the user selected --raw don't clear the screen
+			if (process.env.LOG_LEVEL !== 'trace' && !process.argv.includes('--raw')) {
 				// Clear the original log about the report being generated
 				readLine.cursorTo(process.stdout, 0, 0);
 				readLine.clearScreenDown(process.stdout);
