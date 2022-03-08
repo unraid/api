@@ -234,7 +234,11 @@ const commands = {
 		try {
 			setEnv('LOG_TYPE', 'raw');
 
-			stdoutLogger.write('Generating report please standby...');
+			// Check if the user has raw output enabled
+			const rawOutput = process.argv.includes('--raw');
+
+			// Show inital message
+			if (!rawOutput) stdoutLogger.write('Generating report please standby...');
 
 			// Validation endpoint for API keys
 			const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
@@ -401,7 +405,7 @@ const commands = {
 			` as string;
 
 			// If we have trace logs or the user selected --raw don't clear the screen
-			if (process.env.LOG_LEVEL !== 'trace' && !process.argv.includes('--raw')) {
+			if (process.env.LOG_LEVEL !== 'trace' && !rawOutput) {
 				// Clear the original log about the report being generated
 				readLine.cursorTo(process.stdout, 0, 0);
 				readLine.clearScreenDown(process.stdout);
