@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import got from 'got/dist/source';
+import got from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 import { apiManager } from '../../../core';
 import { ensurePermission, validateApiKey, validateApiKeyFormat } from '../../../core/utils';
