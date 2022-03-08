@@ -14,7 +14,7 @@ type MothershipResponse {
 }
 
 type Cloud {
-    error: String;
+    error: String
     apiKey: ApiKeyResponse
     relay: RelayResponse
     mothership: MothershipResponse
