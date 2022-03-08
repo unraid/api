@@ -49,6 +49,11 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	logger.trace('Checking key-server validation for API key');
 	logger.removeContext('apiKey');
 
+	// Check if API key exists
+	if (!apiKey) {
+		throw new Error('Missing API key');
+	}
+
 	// Send apiKey, etc. to key-server for verification
 	const response = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 		guid: varState.data.flashGuid,

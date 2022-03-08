@@ -68,8 +68,8 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 	}
 };
 
-const readyStates = ['CONNECTING', 'OPEN', 'CLOSING', 'CLOSED'];
-const getConnectionStatus = () => readyStates[relay?._ws?.readyState ?? 3];
+const readyStates = ['CONNECTING' as const, 'OPEN' as const, 'CLOSING' as const, 'CLOSED' as const];
+export const getRelayConnectionStatus = () => readyStates[relay?._ws?.readyState ?? 3];
 
 const getRelayHeaders = () => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -155,7 +155,7 @@ interface Message {
 
 // Check our relay connection is correct
 export const checkRelayConnection = debounce(async () => {
-	const before = getConnectionStatus();
+	const before = getRelayConnectionStatus();
 	try {
 		// Bail if we're in the middle of opening a connection
 		if (relay?.isOpening) {
@@ -206,7 +206,7 @@ export const checkRelayConnection = debounce(async () => {
 
 		// Bind on disconnect handler
 		relay.onClose.addListener((statusCode: number, reason: string) => {
-			const after = getConnectionStatus();
+			const after = getRelayConnectionStatus();
 			relayLogger.debug('Websocket status="%s" statusCode="%s" reason="%s"', after, statusCode, reason);
 			const error = new Error();
 			const code = `${statusCode}`.substring(1);
@@ -299,7 +299,7 @@ export const checkRelayConnection = debounce(async () => {
 	} catch (error: unknown) {
 		handleError(error);
 	} finally {
-		const after = getConnectionStatus();
+		const after = getRelayConnectionStatus();
 
 		switch (true) {
 			case before === 'CLOSED' && after === 'OPEN':

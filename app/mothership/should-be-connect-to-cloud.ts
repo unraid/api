@@ -3,25 +3,6 @@ import { apiManager } from '../core/api-manager';
 import { validateApiKey } from '../core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '../core/utils/misc/validate-api-key-format';
 
-// Ensure API key exists and is valid
-const checkApiKey = async () => {
-	const apiKey = apiManager.getKey('my_servers')?.key;
-
-	// Key format must be valid
-	if (!validateApiKeyFormat(apiKey, false)) {
-		logger.trace('My servers API key is not in a valid format');
-		return false;
-	}
-
-	// Key must pass key-server validation
-	if (!(await validateApiKey(apiKey!, false))) {
-		logger.trace('My servers API key failed key-server validation');
-		return false;
-	}
-
-	return true;
-};
-
 export const wsState = {
 	outOfDate: false
 };
@@ -29,7 +10,26 @@ export const wsState = {
 // Ensure we should actually be connected right now
 // If our API key exists and is the right length then we should always try to connect
 export const shouldBeConnectedToCloud = async () => {
-	if (wsState.outOfDate) return false;
-	const shouldBeConnected = await checkApiKey();
-	return shouldBeConnected;
+	try {
+		if (wsState.outOfDate) return false;
+
+		const apiKey = apiManager.getKey('my_servers')?.key;
+
+		if (!apiKey) {
+			logger.trace('My servers API key is missing');
+			return false;
+		}
+
+		// Key format must be valid
+		validateApiKeyFormat(apiKey);
+
+		// Key must pass key-server validation
+		await validateApiKey(apiKey);
+
+		return true;
+	} catch (error: unknown) {
+		if (!(error instanceof Error)) throw new Error(`${error as any}`);
+		logger.trace(error.message);
+		return false;
+	}
 };
