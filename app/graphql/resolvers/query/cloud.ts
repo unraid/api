@@ -73,7 +73,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'cloud',
 		action: 'read',
-		possession: 'any'
+		possession: 'own'
 	});
 
 	return createResponse({
