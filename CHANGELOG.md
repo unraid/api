@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.41.1](https://github.com/unraid/api/compare/v2.41.0...v2.41.1) (2022-03-09)
+
+
+### Bug Fixes
+
+* log on timeout ([ee2c651](https://github.com/unraid/api/commit/ee2c651dc24ff6dbb02754c251a6d37180aa967b))
+
 ## [2.41.0](https://github.com/unraid/api/compare/v2.40.1...v2.41.0) (2022-03-09)
 
 
