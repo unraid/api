@@ -16,8 +16,13 @@ import { shouldBeConnectedToCloud, wsState } from './should-be-connect-to-cloud'
 import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 import { getRelayConnectionStatus } from './get-relay-connection-status';
 
-let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
-let timeout: number | undefined;
+const store: {
+	relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
+	timeout: number | undefined;
+} = {
+	relay: undefined,
+	timeout: undefined
+};
 
 const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
 
@@ -29,7 +34,7 @@ function sendMessage(name: string, type: 'ka');
 function sendMessage(name: string, type: 'error', id: string | number, payload: { error: Record<string, unknown> });
 function sendMessage(name: string, type: 'data', id: string | number, payload: { data: Record<string, unknown> });
 function sendMessage(name: string, type: string, id?: unknown, payload?: Record<string, unknown>): void {
-	if (!relay?.isOpened) return;
+	if (!store.relay?.isOpened) return;
 	const message = JSON.stringify({
 		id,
 		payload,
@@ -45,7 +50,7 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 		relayLogger.removeContext('message');
 	}
 
-	relay.send(message);
+	store.relay.send(message);
 }
 
 const subscriptionCache = {};
@@ -69,7 +74,7 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 	}
 };
 
-export const getRelay = () => relay;
+export const getRelay = () => store.relay;
 
 const getRelayHeaders = () => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
@@ -101,33 +106,33 @@ const handleError = (error: unknown) => {
 
 		case 429:
 			// Reconnect after ~30s
-			timeout = Date.now() + 30_000;
+			store.timeout = Date.now() + 30_000;
 			setTimeout(() => {
-				timeout = undefined;
+				store.timeout = undefined;
 			}, convertToFuzzyTime(15_000, 45_000));
 			break;
 
 		case 500:
 			// Reconnect after ~60s
-			timeout = Date.now() + 60_000;
+			store.timeout = Date.now() + 60_000;
 			setTimeout(() => {
-				timeout = undefined;
+				store.timeout = undefined;
 			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 
 		case 503:
 			// Reconnect after ~60s
-			timeout = Date.now() + 60_000;
+			store.timeout = Date.now() + 60_000;
 			setTimeout(() => {
-				timeout = undefined;
+				store.timeout = undefined;
 			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 
 		default:
 			// Reconnect after ~60s
-			timeout = Date.now() + 60_000;
+			store.timeout = Date.now() + 60_000;
 			setTimeout(() => {
-				timeout = undefined;
+				store.timeout = undefined;
 			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 	}
@@ -136,7 +141,7 @@ const handleError = (error: unknown) => {
 const startKeepAlive = () => {
 	const interval = setInterval(() => {
 		// If we disconnect stop sending keep alive messages
-		if (!relay?.isOpened) {
+		if (!store.relay?.isOpened) {
 			clearInterval(interval);
 			return;
 		}
@@ -158,24 +163,24 @@ export const checkRelayConnection = debounce(async () => {
 	const before = getRelayConnectionStatus();
 	try {
 		// Bail if we're in the middle of opening a connection
-		if (relay?.isOpening) {
+		if (store.relay?.isOpening) {
 			return;
 		}
 
-		// Bail if we're waiting on a timeout for reconnection
-		if (timeout) {
+		// Bail if we're waiting on a store.timeout for reconnection
+		if (store.timeout) {
 			return;
 		}
 
 		// Bail if we're already connected
-		if (await shouldBeConnectedToCloud() && relay?.isOpened) {
+		if (await shouldBeConnectedToCloud() && store.relay?.isOpened) {
 			return;
 		}
 
 		// Close the connection if it's still up
-		if (relay) {
-			const oldRelay = relay;
-			relay = undefined;
+		if (store.relay) {
+			const oldRelay = store.relay;
+			store.relay = undefined;
 			await oldRelay.close();
 		}
 
@@ -191,7 +196,7 @@ export const checkRelayConnection = debounce(async () => {
 		relayLogger.removeContext('headers');
 
 		// Create a new ws instance
-		relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
+		store.relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
 			createWebSocket: url => new WebSocket(url, ['mothership-0.0.1'], {
 				headers
 			}) as any,
@@ -199,13 +204,13 @@ export const checkRelayConnection = debounce(async () => {
 		});
 
 		// Connect to relay
-		await relay.open();
+		await store.relay.open();
 
 		// Start keep alive loop
 		startKeepAlive();
 
 		// Bind on disconnect handler
-		relay.onClose.addListener((statusCode: number, reason: string) => {
+		store.relay.onClose.addListener((statusCode: number, reason: string) => {
 			const after = getRelayConnectionStatus();
 			relayLogger.debug('Websocket status="%s" statusCode="%s" reason="%s"', after, statusCode, reason);
 			const error = new Error();
@@ -218,7 +223,7 @@ export const checkRelayConnection = debounce(async () => {
 		});
 
 		// Bind on message handler
-		relay.onMessage.addListener(async (message: Message) => {
+		store.relay.onMessage.addListener(async (message: Message) => {
 			const { id, type } = message ?? {};
 			const operationName = message.payload.query.definitions[0].name.value;
 			try {
@@ -246,7 +251,7 @@ export const checkRelayConnection = debounce(async () => {
 						relayLogger.removeContext('result');
 
 						// If the socket closed before we could reply then just bail
-						if (!relay?.isOpened) {
+						if (!store.relay?.isOpened) {
 							// Log we can't reply
 							relayLogger.trace('Failed sending reply for %s as the connection to relay is closed.', operationName);
 							return;
@@ -262,7 +267,7 @@ export const checkRelayConnection = debounce(async () => {
 
 					case type === 'start': {
 						// If the socket closed before we could reply then just bail
-						if (!relay?.isOpened) {
+						if (!store.relay?.isOpened) {
 							return;
 						}
 
@@ -275,7 +280,7 @@ export const checkRelayConnection = debounce(async () => {
 						const subId = await pubsub.subscribe(name, subscriptionListener(id, name));
 
 						// When this ws closes remove the listener
-						relay.onClose.addOnceListener(() => {
+						store.relay.onClose.addOnceListener(() => {
 							relayLogger.debug('Unsubscribing from %s as the socket closed', name);
 							pubsub.unsubscribe(subId);
 						});
@@ -322,8 +327,8 @@ export const checkRelayConnection = debounce(async () => {
 				break;
 		}
 
-		if (timeout) {
-			const secondsLeft = Math.floor((timeout - Date.now()) / 1_000);
+		if (store.timeout) {
+			const secondsLeft = Math.floor((store.timeout - Date.now()) / 1_000);
 			relayLogger.debug('Reconnecting in %ss', secondsLeft);
 		}
 	}
