@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import got, { HTTPError, OptionsOfTextResponseBody } from 'got';
+import got, { HTTPError, OptionsOfTextResponseBody, TimeoutError } from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
@@ -12,6 +12,7 @@ import { ensurePermission } from '../../../core/utils/permissions/ensure-permiss
 import { getRelayConnectionStatus } from '../../../mothership/get-relay-connection-status';
 import type { Context } from '../../schema/utils';
 import { version } from '../../../../package.json';
+import { logger } from '../../../core';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -57,17 +58,18 @@ const checkRelay = (): Response['relay'] => ({
 	error: undefined
 });
 
+// Check if we're rate limited, etc.
 const checkMothershipAuthentication = async (url: string, options: OptionsOfTextResponseBody) => {
 	try {
-		// Check if we're rate limited, etc.
 		// This will throw if there is a non 2XX/3XX code
 		await got.head(url, options);
 	} catch (error: unknown) {
+		// HTTP errors
 		if (error instanceof HTTPError) {
 			switch (error.response.statusCode) {
 				case 429: {
 					const retryAfter = error.response.headers['retry-after'];
-					throw new Error(retryAfter ? `${url} is rate limited for another ${retryAfter} seconds` : `${mothershipBaseUrl} is rate limited`);
+					throw new Error(retryAfter ? `${url} is rate limited for another ${retryAfter} seconds` : `${url} is rate limited`);
 				}
 
 				case 401:
@@ -77,6 +79,11 @@ const checkMothershipAuthentication = async (url: string, options: OptionsOfText
 			}
 		}
 
+		// Timeout error
+		if (error instanceof TimeoutError) throw new Error(`Timed-out while connecting to "${url}"`);
+
+		// Unknown error
+		logger.trace('Unknown Error', error);
 		throw new Error('Unknown Error', { cause: error as Error });
 	}
 };
