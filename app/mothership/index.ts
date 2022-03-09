@@ -15,14 +15,7 @@ import { schema } from '../graphql/schema';
 import { shouldBeConnectedToCloud, wsState } from './should-be-connect-to-cloud';
 import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 import { getRelayConnectionStatus } from './get-relay-connection-status';
-
-const store: {
-	relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
-	timeout: number | undefined;
-} = {
-	relay: undefined,
-	timeout: undefined
-};
+import { store } from './store';
 
 const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
 
@@ -73,8 +66,6 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 			break;
 	}
 };
-
-export const getRelay = () => store.relay;
 
 const getRelayHeaders = () => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
