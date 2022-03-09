@@ -9,6 +9,7 @@ import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
+import { getRelayConnectionStatus } from '../../../mothership/get-relay-connection-status';
 import type { Context } from '../../schema/utils';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
@@ -51,7 +52,7 @@ const checkApi = async (): Promise<Response['apiKey']> => {
 };
 
 const checkRelay = (): Response['relay'] => ({
-	status: 'unknown',
+	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
 	error: undefined
 });
 
