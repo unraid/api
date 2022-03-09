@@ -7,9 +7,10 @@ import got from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
-import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { getRelayConnectionStatus } from '../../../mothership';
+// |
+// import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
+// import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
+// import { getRelayConnectionStatus } from '../../../mothership';
 import type { Context } from '../../schema/utils';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
@@ -37,7 +38,7 @@ const checkApi = async (): Promise<Response['apiKey']> => {
 		if (!apiKey) throw new Error('API key is missing');
 
 		// Key format must be valid
-		validateApiKeyFormat(apiKey);
+		// validateApiKeyFormat(apiKey);
 
 		// Key must pass key-server validation
 		await validateApiKey(apiKey);
@@ -52,7 +53,9 @@ const checkApi = async (): Promise<Response['apiKey']> => {
 };
 
 const checkRelay = (): Response['relay'] => ({
-	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+	// |
+	// status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+	status: '' as RelayStates,
 	error: undefined
 });
 
@@ -71,11 +74,12 @@ const checkMothership = async (): Promise<Response['mothership']> => {
 };
 
 export default async (_: unknown, __: unknown, context: Context) => {
-	ensurePermission(context.user, {
-		resource: 'cloud',
-		action: 'read',
-		possession: 'any'
-	});
+	// |
+	// ensurePermission(context.user, {
+	// 	resource: 'cloud',
+	// 	action: 'read',
+	// 	possession: 'any'
+	// });
 
 	return createResponse({
 		apiKey: await checkApi(),
