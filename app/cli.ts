@@ -239,13 +239,16 @@ const commands = {
 			
 			// Check if we have a tty attached to stdout
 			// If we don't then this is being piped to a log file, etc.
-			const hasTTY = process.stdout.isTTY;
+			const hasTTY = process.stdout.isTTY === true;
 
 			// Check if we should show interactive logs
-			const isIteractive = !rawOutput || hasTTY;
+			// If this has a tty it's interactive
+			// AND
+			// If they don't have --raw
+			const isIteractive = hasTTY && !rawOutput;
 
 			// Show inital message
-			if (!isIteractive) stdoutLogger.write('Generating report please standby...');
+			if (isIteractive) stdoutLogger.write('Generating report please standby...');
 
 			// Validation endpoint for API keys
 			const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';
