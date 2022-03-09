@@ -28,7 +28,7 @@ export const shouldBeConnectedToCloud = async () => {
 
 		return true;
 	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(`${error as any}`);
+		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		logger.trace(error.message);
 		return false;
 	}

@@ -44,7 +44,7 @@ const checkApi = async (): Promise<Response['apiKey']> => {
 		await validateApiKey(apiKey);
 		return { valid: true, error: undefined };
 	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(`Unknown error "${error as string}"`);
+		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return {
 			valid: false,
 			error: error.message
@@ -105,7 +105,7 @@ const checkMothership = async (): Promise<Response['mothership']> => {
 	try {
 		await checkMothershipAuthentication(MOTHERSHIP_GRAPHQL_LINK, options);
 	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(`Unknown Error "${(error as Error)?.message}"`);
+		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { status: 'error', error: error.message };
 	}
 
