@@ -423,7 +423,7 @@ const commands = {
 
 			// eslint-disable-next-line no-warning-comments
 			// TODO: Add connection status to mini-graph and relay
-			stdoutLogger.write(output + '\n');
+			process.stdout.write(output + '\n');
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				cliLogger.trace(error);
@@ -431,7 +431,7 @@ const commands = {
 				return;
 			}
 
-			stdoutLogger.write(`${error as string}`);
+			process.stdout.write(`${error as string}`);
 		} finally {
 			// Close the readLine instance
 			stdoutLogger.close();
