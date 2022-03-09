@@ -10,7 +10,6 @@ const files = [
 	'./dist/types/graphql/schema/types/apikeys/apikey.graphql',
 	'./dist/types/graphql/schema/types/array/array.graphql',
 	'./dist/types/graphql/schema/types/array/parity.graphql',
-	'./dist/types/graphql/schema/types/cloud/cloud.graphql',
 	'./dist/types/graphql/schema/types/config/config.graphql',
 	'./dist/types/graphql/schema/types/crash-reporting-enabled/crash-reporting-enabled.graphql',
 	'./dist/types/graphql/schema/types/devices/device.graphql',

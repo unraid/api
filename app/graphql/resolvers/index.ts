@@ -17,19 +17,6 @@ export const Long = GraphQLLong;
 export const UUID = GraphQLUUID;
 export const DateTime = GraphQLDateTime;
 
-if (process.env.PLEASE_LOG_IMPORTS) {
-	console.log({
-		JSON,
-		Long,
-		UUID,
-		DateTime,
-		Query,
-		Mutation,
-		Subscription,
-		UserAccount
-	});
-}
-
 export {
 	Query,
 	Mutation,

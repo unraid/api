@@ -18,7 +18,6 @@ import twoFactor from './two-factor';
 import vms from './vms';
 
 export const Query = {
-	cloud,
 	config,
 	crashReportingEnabled,
 	disks,
