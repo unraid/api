@@ -8,8 +8,8 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 // |
 // import { apiManager } from '../../../core/api-manager';
 // import { ensurePermission, validateApiKey, validateApiKeyFormat } from '../../../core/utils';
-import { getRelayConnectionStatus } from '../../../mothership';
-import type { Context } from '../../schema/utils';
+// import { getRelayConnectionStatus } from '../../../mothership';
+// import type { Context } from '../../schema/utils';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -51,10 +51,10 @@ const createResponse = (options: Response): Response => {
 // 	}
 // };
 
-const checkRelay = (): Response['relay'] => ({
-	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
-	error: undefined
-});
+// const checkRelay = (): Response['relay'] => ({
+// 	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+// 	error: undefined
+// });
 
 // |
 // const checkMothership = async (): Promise<Response['mothership']> => {
@@ -71,7 +71,7 @@ const checkRelay = (): Response['relay'] => ({
 // 	return { status: 'ok', error: undefined };
 // };
 
-export default async (_: unknown, __: unknown, context: Context) => {
+export default async (_: unknown, __: unknown, context: any) => {
 	// |
 	// ensurePermission(context.user, {
 	// 	resource: 'cloud',
