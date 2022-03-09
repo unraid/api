@@ -8,8 +8,8 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 // |
-// import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 // import { getRelayConnectionStatus } from '../../../mothership';
 import type { Context } from '../../schema/utils';
 
@@ -74,12 +74,11 @@ const checkMothership = async (): Promise<Response['mothership']> => {
 };
 
 export default async (_: unknown, __: unknown, context: Context) => {
-	// |
-	// ensurePermission(context.user, {
-	// 	resource: 'cloud',
-	// 	action: 'read',
-	// 	possession: 'any'
-	// });
+	ensurePermission(context.user, {
+		resource: 'cloud',
+		action: 'read',
+		possession: 'any'
+	});
 
 	return createResponse({
 		apiKey: await checkApi(),
