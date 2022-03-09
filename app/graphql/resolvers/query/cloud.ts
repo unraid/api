@@ -5,7 +5,7 @@
 
 import got from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
-import { apiManager } from '../../../core';
+import { apiManager } from '../../../core/api-manager';
 import { ensurePermission, validateApiKey, validateApiKeyFormat } from '../../../core/utils';
 import { getRelayConnectionStatus } from '../../../mothership';
 import { Context } from '../../schema/utils';
