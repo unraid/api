@@ -14,6 +14,7 @@ import { apiKeyToUser } from '../graphql';
 import { schema } from '../graphql/schema';
 import { shouldBeConnectedToCloud, wsState } from './should-be-connect-to-cloud';
 import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
+import { getRelayConnectionStatus } from './get-relay-connection-status';
 
 let relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 let timeout: number | undefined;
@@ -68,8 +69,7 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 	}
 };
 
-const readyStates = ['CONNECTING' as const, 'OPEN' as const, 'CLOSING' as const, 'CLOSED' as const];
-export const getRelayConnectionStatus = () => readyStates[relay?._ws?.readyState ?? 3];
+export const getRelay = () => relay;
 
 const getRelayHeaders = () => {
 	const apiKey = apiManager.getKey('my_servers')?.key!;
