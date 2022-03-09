@@ -242,7 +242,7 @@ const commands = {
 			const hasTTY = process.stdout.isTTY;
 
 			// Check if we should show interactive logs
-			const isIteractive = !rawOutput && hasTTY;
+			const isIteractive = !rawOutput || hasTTY;
 
 			// Show inital message
 			if (!isIteractive) stdoutLogger.write('Generating report please standby...');
