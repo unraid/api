@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import got from 'got';
+import got, { HTTPError, OptionsOfTextResponseBody } from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
@@ -57,20 +57,57 @@ const checkRelay = (): Response['relay'] => ({
 	error: undefined
 });
 
+const checkMothershipAuthentication = async (url: string, options: OptionsOfTextResponseBody) => {
+	try {
+		// Check if we're rate limited, etc.
+		// This will throw if there is a non 2XX/3XX code
+		await got.head(url, options);
+	} catch (error: unknown) {
+		if (error instanceof HTTPError) {
+			switch (error.response.statusCode) {
+				case 429: {
+					const retryAfter = error.response.headers['retry-after'];
+					throw new Error(retryAfter ? `${url} is rate limited for another ${retryAfter} seconds` : `${mothershipBaseUrl} is rate limited`);
+				}
+
+				case 401:
+					throw new Error('Invalid credentials');
+				default:
+					throw new Error(`Failed to connect to ${url} with a "${error.response.statusCode}" HTTP error.`);
+			}
+		}
+
+		throw new Error('Unknown Error', { cause: error as Error });
+	}
+};
+
 const checkMothership = async (): Promise<Response['mothership']> => {
 	const apiVersion = version;
 	const apiKey = apiManager.getKey('my_servers')?.key;
 	if (!apiKey) throw new Error('API key is missing');
 
+	const timeout = { request: 5_000 };
+	const headers = {
+		'Content-Type': 'application/json',
+		Accept: 'application/json',
+		'x-unraid-api-version': apiVersion,
+		'x-api-key': apiKey
+	};
+	const options = { timeout, headers };
+
 	// Check if we can reach mothership
 	// This is mainly testing the user's network config
 	// If they cannot resolve this they may have it blocked or have a routing issue
-	const mothershipCanBeResolved = await got.head(mothershipBaseUrl, { timeout: { request: 1_000 } }).then(() => true).catch(() => false);
+	const mothershipCanBeResolved = await got.head(mothershipBaseUrl, options).then(() => true).catch(() => false);
 	if (!mothershipCanBeResolved) return { status: 'error', error: `Failed resolving ${mothershipBaseUrl}` };
 
-	// Check if we're rate limited
-	const mothershipIsRateLimitingUs = await got.head(MOTHERSHIP_GRAPHQL_LINK, { timeout: { request: 1_000 }, headers: { apiKey, apiVersion } }).then(() => false).catch(() => true);
-	if (mothershipIsRateLimitingUs) return { status: 'error', error: `${mothershipBaseUrl} is rate limited` };
+	// Check auth, rate limiting, etc.
+	try {
+		await checkMothershipAuthentication(MOTHERSHIP_GRAPHQL_LINK, options);
+	} catch (error: unknown) {
+		if (!(error instanceof Error)) throw new Error(`Unknown Error "${(error as Error)?.message}"`);
+		return { status: 'error', error: error.message };
+	}
 
 	return { status: 'ok', error: undefined };
 };
