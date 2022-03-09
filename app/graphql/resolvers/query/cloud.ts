@@ -11,6 +11,7 @@ import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { getRelayConnectionStatus } from '../../../mothership/get-relay-connection-status';
 import type { Context } from '../../schema/utils';
+import { version } from '../../../../package.json';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -57,6 +58,10 @@ const checkRelay = (): Response['relay'] => ({
 });
 
 const checkMothership = async (): Promise<Response['mothership']> => {
+	const apiVersion = version;
+	const apiKey = apiManager.getKey('my_servers')?.key;
+	if (!apiKey) throw new Error('API key is missing');
+
 	// Check if we can reach mothership
 	// This is mainly testing the user's network config
 	// If they cannot resolve this they may have it blocked or have a routing issue
@@ -64,7 +69,7 @@ const checkMothership = async (): Promise<Response['mothership']> => {
 	if (!mothershipCanBeResolved) return { status: 'error', error: `Failed resolving ${mothershipBaseUrl}` };
 
 	// Check if we're rate limited
-	const mothershipIsRateLimitingUs = await got.head(MOTHERSHIP_GRAPHQL_LINK, { timeout: { request: 1_000 } }).then(() => false).catch(() => true);
+	const mothershipIsRateLimitingUs = await got.head(MOTHERSHIP_GRAPHQL_LINK, { timeout: { request: 1_000 }, headers: { apiKey, apiVersion } }).then(() => false).catch(() => true);
 	if (mothershipIsRateLimitingUs) return { status: 'error', error: `${mothershipBaseUrl} is rate limited` };
 
 	return { status: 'ok', error: undefined };
