@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.41.0](https://github.com/unraid/api/compare/v2.40.1...v2.41.0) (2022-03-09)
+
+
+### Features
+
+* add --raw command to report ([850ab1f](https://github.com/unraid/api/commit/850ab1f4b18bbd39739bd335373151db59368dc6))
+* add cloud endpoint ([cf371e6](https://github.com/unraid/api/commit/cf371e62aa45c7bdc4169a9fcf9ece752535bff7))
+
+
+### Bug Fixes
+
+* add cloud endpoint to graphql ([735628a](https://github.com/unraid/api/commit/735628a4f5d450babc424e347d007fdda6d2d6c1))
+* change imports around ([799aefa](https://github.com/unraid/api/commit/799aefa62b39421876eb98964e7b6cbd805e4cd1))
+* cloud permissions ([a9e9b00](https://github.com/unraid/api/commit/a9e9b00d3d7c0026413cd76f6bc9d9990f05597c))
+* got import ([4b5a3c5](https://github.com/unraid/api/commit/4b5a3c53a05cff74ab71ab04fe614b531cf5e0b1))
+* import dateTime from source ([9d65afd](https://github.com/unraid/api/commit/9d65afdd81521a5591007cf1934fa0ff21bca6b2))
+* include apiVersion and apiKey in rate limit check ([f32ace5](https://github.com/unraid/api/commit/f32ace5be4e6f252f8bc8f4335294558a50187d1))
+* mothership auth check ([dfd324f](https://github.com/unraid/api/commit/dfd324f9b9b8ec7c8f163eeb7d8e268a4725260a))
+* remove ; ([221306c](https://github.com/unraid/api/commit/221306cf838e09ee62b8587a21533c97714ea928))
+* supress inital message if in raw mode ([f45b3bb](https://github.com/unraid/api/commit/f45b3bbded764fce2ad8d88750dc2e1758abb6e2))
+
 ### [2.40.1](https://github.com/unraid/api/compare/v2.40.0...v2.40.1) (2022-03-02)
 
 
