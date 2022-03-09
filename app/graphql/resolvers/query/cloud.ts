@@ -4,31 +4,32 @@
  */
 
 import got from 'got';
+import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 // |
-// import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
 // import { apiManager } from '../../../core/api-manager';
 // import { ensurePermission, validateApiKey, validateApiKeyFormat } from '../../../core/utils';
-// import { getRelayConnectionStatus } from '../../../mothership';
+import { getRelayConnectionStatus } from '../../../mothership';
 import type { Context } from '../../schema/utils';
+
+const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
+
+type RelayStates = 'connecting' | 'open' | 'closing' | 'closed';
+
+type Response = {
+	error?: string;
+	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
+	relay: { status: RelayStates; error: undefined } | { status: RelayStates; error: string };
+	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
+};
+
+const createResponse = (options: Response): Response => {
+	return {
+		...options,
+		error: options.apiKey.error ?? options.relay.error ?? options.mothership.error
+	};
+};
+
 // |
-// const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
-
-// type RelayStates = 'connecting' | 'open' | 'closing' | 'closed';
-
-// type Response = {
-// 	error?: string;
-// 	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
-// 	relay: { status: RelayStates; error: undefined } | { status: RelayStates; error: string };
-// 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
-// };
-
-// const createResponse = (options: Response): Response => {
-// 	return {
-// 		...options,
-// 		error: options.apiKey.error ?? options.relay.error ?? options.mothership.error
-// 	};
-// };
-
 // const checkApi = async (): Promise<Response['apiKey']> => {
 // 	try {
 // 		// Check if we have an API key loaded for my servers
@@ -50,11 +51,12 @@ import type { Context } from '../../schema/utils';
 // 	}
 // };
 
-// const checkRelay = (): Response['relay'] => ({
-// 	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
-// 	error: undefined
-// });
+const checkRelay = (): Response['relay'] => ({
+	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+	error: undefined
+});
 
+// |
 // const checkMothership = async (): Promise<Response['mothership']> => {
 // 	// Check if we can reach mothership
 // 	// This is mainly testing the user's network config
