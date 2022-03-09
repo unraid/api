@@ -5,11 +5,12 @@
 
 import got from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
+import { apiManager } from '../../../core/api-manager';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 // |
-// import { apiManager } from '../../../core/api-manager';
 // import { ensurePermission, validateApiKey, validateApiKeyFormat } from '../../../core/utils';
 // import { getRelayConnectionStatus } from '../../../mothership';
-// import type { Context } from '../../schema/utils';
+import type { Context } from '../../schema/utils';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -71,14 +72,14 @@ const createResponse = (options: Response): Response => {
 // 	return { status: 'ok', error: undefined };
 // };
 
-export default async (_: unknown, __: unknown, context: any) => {
-	// |
-	// ensurePermission(context.user, {
-	// 	resource: 'cloud',
-	// 	action: 'read',
-	// 	possession: 'any'
-	// });
+export default async (_: unknown, __: unknown, context: Context) => {
+	ensurePermission(context.user, {
+		resource: 'cloud',
+		action: 'read',
+		possession: 'any'
+	});
 
+	// |
 	// return createResponse({
 	// 	apiKey: await checkApi(),
 	// 	relay: checkRelay(),
