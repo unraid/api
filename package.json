@@ -18,7 +18,7 @@
     "lint:quiet": "eslint --quiet",
     "lint:fix": "eslint --fix",
     "test": "nyc ava",
-    "cover": "npm run cover:types && npm run cover:report",
+    "cover": "npm run cover:types",
     "cover:types": "typescript-coverage-report && tsup ./app/cli.ts --dts",
     "cover:unit": "nyc --silent npm run test",
     "cover:report": "nyc report --reporter=lcov --reporter=text",
