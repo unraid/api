@@ -9,7 +9,7 @@ import { paths } from '../paths';
 import { Slot } from '../types/states';
 import { LooseObject, IniNumberBoolean, IniEnabled } from '../types';
 import { toBoolean, toNumber } from '../utils/casting';
-import { parseConfig } from '../utils/misc';
+import { parseConfig } from '../utils/misc/parse-config';
 import { ArrayState } from './state';
 
 type SlotStatus = 'DISK_OK';

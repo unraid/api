@@ -9,7 +9,7 @@ import { Var } from '../types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';
 import { State } from './state';
 import { toNumber } from '../utils/casting';
-import { parseConfig } from '../utils/misc';
+import { parseConfig } from '../utils/misc/parse-config';
 
 const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
 	if (value === 'no' || value === 'false') {

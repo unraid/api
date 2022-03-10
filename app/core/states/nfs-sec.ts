@@ -6,7 +6,7 @@
 import path from 'path';
 import { paths } from '../paths';
 import { ArrayState } from './state';
-import { parseConfig } from '../utils/misc';
+import { parseConfig } from '../utils/misc/parse-config';
 import { SecIni } from '../types/states';
 import { LooseObject } from '../types';
 

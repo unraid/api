@@ -6,9 +6,9 @@
 import path from 'path';
 import mm from 'micromongo';
 import { paths } from '../paths';
-import { parseConfig } from '../utils/misc';
 import { ArrayState } from './state';
 import { LooseObject } from '../types';
+import { parseConfig } from '../utils/misc/parse-config';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Device {}

@@ -8,7 +8,7 @@ import mm from 'micromongo';
 import { paths } from '../paths';
 import { LooseObject, IniStringBoolean, CommaSeparatedString } from '../types';
 import { toBoolean } from '../utils/casting';
-import { parseConfig } from '../utils/misc';
+import { parseConfig } from '../utils/misc/parse-config';
 import { ArrayState } from './state';
 
 type NetworkIni = Record<string, {

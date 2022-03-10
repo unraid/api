@@ -6,7 +6,7 @@
 import path from 'path';
 import mm from 'micromongo';
 import { paths } from '../paths';
-import { parseConfig } from '../utils/misc';
+import { parseConfig } from '../utils/misc/parse-config';
 import { ArrayState } from './state';
 import { LooseObject } from '../types';
 import { Share } from '../types/states';

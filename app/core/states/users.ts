@@ -8,7 +8,7 @@ import path from 'path';
 import { paths } from '../paths';
 import { User } from '../types/states';
 import { LooseObject } from '../types';
-import { parseConfig } from '../utils/misc';
+import { parseConfig } from '../utils/misc/parse-config';
 import { ArrayState } from './state';
 
 type BooleanString = 'yes' | 'no';
