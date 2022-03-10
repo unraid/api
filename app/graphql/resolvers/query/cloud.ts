@@ -12,27 +12,27 @@ import { ensurePermission } from '../../../core/utils/permissions/ensure-permiss
 import { getRelayConnectionStatus } from '../../../mothership/get-relay-connection-status';
 import type { Context } from '../../schema/utils';
 import { version } from '../../../../package.json';
-import { logger } from '../../../core';
+import { logger } from '../../../core/log';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
 type RelayStates = 'connecting' | 'open' | 'closing' | 'closed' | 'unknown';
 
-type Response = {
+export type Cloud = {
 	error?: string;
 	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
 	relay: { status: RelayStates; error: undefined } | { status: RelayStates; error: string };
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
 };
 
-const createResponse = (options: Response): Response => {
+const createResponse = (options: Cloud): Cloud => {
 	return {
 		...options,
 		error: options.apiKey.error ?? options.relay.error ?? options.mothership.error
 	};
 };
 
-const checkApi = async (): Promise<Response['apiKey']> => {
+const checkApi = async (): Promise<Cloud['apiKey']> => {
 	try {
 		// Check if we have an API key loaded for my servers
 		const apiKey = apiManager.getKey('my_servers')?.key;
@@ -53,7 +53,7 @@ const checkApi = async (): Promise<Response['apiKey']> => {
 	}
 };
 
-const checkRelay = (): Response['relay'] => ({
+const checkRelay = (): Cloud['relay'] => ({
 	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
 	error: undefined
 });
@@ -88,12 +88,12 @@ const checkMothershipAuthentication = async (url: string, options: OptionsOfText
 	}
 };
 
-const checkMothership = async (): Promise<Response['mothership']> => {
+const checkMothership = async (): Promise<Cloud['mothership']> => {
 	const apiVersion = version;
 	const apiKey = apiManager.getKey('my_servers')?.key;
 	if (!apiKey) throw new Error('API key is missing');
 
-	const timeout = { request: 5_000 };
+	const timeout = { request: 2_000 };
 	const headers = {
 		'Content-Type': 'application/json',
 		Accept: 'application/json',
