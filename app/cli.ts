@@ -15,7 +15,6 @@ import pidUsage from 'pidusage';
 import prettyMs from 'pretty-ms';
 import dedent from 'dedent-tabs';
 import camelCaseKeys from 'camelcase-keys';
-import ora from 'ora';
 import { addExitCallback } from 'catch-exit';
 import { version } from '../package.json';
 import { paths } from './core/paths';
@@ -267,15 +266,12 @@ const commands = {
 			output: process.stdout
 		});
 
-		const spinner = ora('Generating report please standby…');
-
 		try {
 			setEnv('LOG_TYPE', 'raw');
 
 			// Show loading message
 			if (isIteractive) {
-				if (isNotSoFancy) stdoutLogger.write('Generating report please standby…');
-				if (isFancyPants) spinner.start();
+				stdoutLogger.write('Generating report please standby…');
 			}
 
 			// Find all processes called "unraid-api" which aren't this process
@@ -310,7 +306,7 @@ const commands = {
 				body: JSON.stringify({
 					query: 'query{cloud{error apiKey{valid error}relay{status error}mothership{status error}}}'
 				})
-			}).then(response => JSON.parse(response.body) as Cloud).catch(() => undefined) : undefined;
+			}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(() => undefined) : undefined;
 
 			// Query local graphl using upc's API key
 			// Get the servers array
@@ -399,11 +395,6 @@ const commands = {
 				readLine.clearScreenDown(process.stdout);
 			}
 
-			// Clear the fancy spinner
-			if (isFancyPants) spinner.stop();
-
-			// eslint-disable-next-line no-warning-comments
-			// TODO: Add connection status to mini-graph and relay
 			process.stdout.write(output + '\n');
 		} catch (error: unknown) {
 			if (error instanceof Error) {
