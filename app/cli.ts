@@ -25,6 +25,7 @@ import { MyServersConfig } from './types/my-servers-config';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
 import type { Cloud } from './graphql/resolvers/query/cloud';
+import { validateApiKey } from './core/utils/misc/validate-api-key';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -244,10 +245,10 @@ const commands = {
 
 		// Check if the user has raw output enabled
 		const rawOutput = process.argv.includes('--raw');
-			
+
 		// Check if we have a tty attached to stdout
 		// If we don't then this is being piped to a log file, etc.
-		const hasTTY = process.stdout.isTTY === true;
+		const hasTTY = process.stdout.isTTY;
 
 		// Check if we should show interactive logs
 		// If this has a tty it's interactive
@@ -257,7 +258,7 @@ const commands = {
 
 		// Check if they want a super fancy report
 		const isFancyPants = isIteractive && process.env.THE_FANCIEST_OF_PANTS_PLEASE;
-		
+
 		// Check if they want the less fancy version
 		const isNotSoFancy = !isFancyPants;
 
@@ -309,15 +310,11 @@ const commands = {
 				body: JSON.stringify({
 					query: 'query{cloud{error apiKey{valid error}relay{status error}mothership{status error}}}'
 				})
-			}).then(response => JSON.parse(response.body) as Cloud) : undefined;
-
-			// We already established the API was running before this
-			// The API must have crashed or it's refusing to accept our connection
-			if (!cloud) throw new Error('Failed connecting to unraid-api');
+			}).then(response => JSON.parse(response.body) as Cloud).catch(() => undefined) : undefined;
 
 			// Query local graphl using upc's API key
 			// Get the servers array
-			const servers = unraidApiPid && config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+			const servers = unraidApiPid && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 				method: 'POST',
 				...gotOpts,
 				body: JSON.stringify({
@@ -355,6 +352,10 @@ const commands = {
 			const varIni = getConfig<{ name: string }>(resolve(paths.get('states')!, 'var.ini'));
 			const serverName = varIni?.name;
 
+			// Check if the API key is valid
+			// If the API is offline check directly with key-server
+			const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
+
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
@@ -363,10 +364,10 @@ const commands = {
 				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
 				UNRAID_VERSION: ${unraidVersion}
-				API_KEY: ${cloud.apiKey.valid ? 'valid' : cloud.apiKey.error}
-				RELAY: ${cloud.relay.error ?? cloud.relay.status}
+				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
+				RELAY: ${cloud?.relay.error ?? cloud?.relay.status ?? 'API is OFFLINE'}
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-				MOTHERSHIP: ${cloud.mothership.error ?? cloud.mothership.status}
+				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'API is offline'}
 				${servers ? serversDetails : 'SERVERS: none found'}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
@@ -407,7 +408,7 @@ const commands = {
 		} catch (error: unknown) {
 			if (error instanceof Error) {
 				cliLogger.trace(error);
-				stdoutLogger.write(`Failed generating report with "${error.message}"`);
+				stdoutLogger.write(`\nFailed generating report with "${error.message}"\n`);
 				return;
 			}
 
