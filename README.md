@@ -39,7 +39,7 @@ Options:
 ## Connecting
 
 ### HTTP
-This can be accessed by default via `http://tower.local/graphql`. If the server is connected to my servers then it's likely to have a DNS hash address, something like `https://www.__HASH_HERE__.unraid.net/graphql`.
+This can be accessed by default via `http://tower.local/graphql`.
 
 See https://graphql.org/learn/serving-over-http/#http-methods-headers-and-body
 
@@ -50,12 +50,12 @@ If you're using the ApolloClient please see https://github.com/apollographql/sub
 
 If installed on a unraid machine logs can be accessed via syslog.
 
-Log levels can be changed on start using the `--log-level` flag like so `--log-level=info/debug/silly/trace`.
+Log levels can be changed on start using the `--log-level` flag like so `--log-level=info/debug/trace`.
 
 ## Debug mode
 
 Debug mode can be enabled with the `-d` or `--debug` flag.
-This will enable debug logs and the playground.
+This will enable the graphql playground and prevent the application starting as a daemon.
 
 
 ## Playground
@@ -109,8 +109,10 @@ NCHAN=disable \ # Disable nchan polling
 
 ## Release
 
-To create a new version run `npm run release`.
+To create a new version run `npm run release` and then run **ONLY** the `git push` section of the commands it returns.
 To create a new prerelease run `npm run release -- --prerelease alpha`.
+
+Pushing to this repo will cause an automatic "rolling" release to be built which can be accessed via the page for the associated Github action run.
 
 ## Using a custom version (e.g. testing a new release)
 1. Download the tgz you want from [the releases page](https://github.com/unraid/api/releases) and copy to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
@@ -120,4 +122,4 @@ To create a new prerelease run `npm run release -- --prerelease alpha`.
 
 
 ## License
-Copyright 2019-2021 Lime Technology Inc. All rights reserved.
+Copyright 2019-2022 Lime Technology Inc. All rights reserved.
