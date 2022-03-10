@@ -134,7 +134,7 @@ jobs:
       run: npm run clean && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune
 
     - name: List files to be packed
-      run: tree .
+      run: tree dist
 
     - name: Pack source
       run: npm pack
