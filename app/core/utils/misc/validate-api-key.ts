@@ -1,7 +1,7 @@
+import got from 'got';
 import { varState } from '../../states';
 import { AppError } from '../../errors';
-import { logger } from '../..';
-import got from 'got';
+import { logger } from '../../log';
 
 const validKeys = new Set();
 
