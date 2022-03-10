@@ -11,10 +11,11 @@ import { Query } from './query';
 import { Mutation } from './mutation';
 import { Subscription } from './subscription';
 import { UserAccount } from './user-account';
+import { GraphQLScalarType } from 'graphql';
 
 export const JSON = GraphQLJSON;
 export const Long = GraphQLLong;
-export const UUID = GraphQLUUID;
+export const UUID = GraphQLUUID as GraphQLScalarType;
 export const DateTime = GraphQLDateTime;
 
 export {

@@ -15,7 +15,7 @@ interface Partition {
 	size: number;
 }
 
-interface Disk extends Systeminformation.DiskLayoutData {
+export interface Disk extends Systeminformation.DiskLayoutData {
 	smartStatus: string;
 	interfaceType: string;
 	temperature: number;

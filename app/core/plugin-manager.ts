@@ -15,7 +15,7 @@ import { logger } from './log';
 import { paths } from './paths';
 import { AppError } from './errors';
 
-interface PluginModule {
+export interface PluginModule {
 	/** The module's absolute file path. */
 	readonly filePath: string;
 	/** If the plugin is currently active. */
