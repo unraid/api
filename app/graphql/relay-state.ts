@@ -9,6 +9,6 @@ export const relayStateToHuman = (relayState?: RelayStates) => {
 		case 'open':
 			return 'connected';
 		default:
-			return relayState ?? 'unknown';
+			return relayState ?? 'API is offline';
 	}
 };
