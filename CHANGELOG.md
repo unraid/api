@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.42.0](https://github.com/unraid/api/compare/v2.41.1...v2.42.0) (2022-03-11)
+
+
+### Features
+
+* don't show interactive logs in redirected shell ([eebcc37](https://github.com/unraid/api/commit/eebcc37d638308244e7850ec6446f902d9707136))
+
+
+### Bug Fixes
+
+* add commit hash to package.json before pack ([2f6259b](https://github.com/unraid/api/commit/2f6259b2d2c5a28c79355c01031f0cd12d13c8ef))
+* add placeholder in package.json for coverage test ([2dfbb69](https://github.com/unraid/api/commit/2dfbb69b5f9f43ba3ce2a75b03095f9535767bf9))
+* allow report to run even if API is offline ([35b25be](https://github.com/unraid/api/commit/35b25be6bb1af0a84ce900ec15efbed66beb272a))
+* disable cli report ([d4c4ecc](https://github.com/unraid/api/commit/d4c4ecc26bac447e8a32269c2472de70c149161b))
+* disable cli tests and add timeout to got ([982f243](https://github.com/unraid/api/commit/982f2430a6eb264e5743e3fb7a6ead149112314a))
+* interactive boolean ([a7462e7](https://github.com/unraid/api/commit/a7462e715d7f2696c00a7cc05c2afc05e2bc9699))
+* isIteractive in report ([d552d7e](https://github.com/unraid/api/commit/d552d7e21d0fd7e74e2f28488d35ab85bcade499))
+* mark RELAY as 'API is offline' when it's offline ([27e5bb9](https://github.com/unraid/api/commit/27e5bb9c8d2cd85488127d97da0818be1d4f602d))
+* only use full version in human shown places ([e7a70c9](https://github.com/unraid/api/commit/e7a70c952e21fc93e0eacde58ddf68ad97229946))
+* starting server in cli ([9b918a3](https://github.com/unraid/api/commit/9b918a386358e3e7621ce584db2719a4ebe57fcb))
+* use --input flag for nexe ([4b17a83](https://github.com/unraid/api/commit/4b17a8394423066e917b8d56af8112cb68288305))
+* use absolute path for nexe ([3317bcd](https://github.com/unraid/api/commit/3317bcd337da5a85862432df9e8d954275e53cf2))
+* write to stdout not readline to fix pipeing ([ae0590b](https://github.com/unraid/api/commit/ae0590ba439518d39b0eb283fb4507864b0f889f))
+
 ### [2.41.1](https://github.com/unraid/api/compare/v2.41.0...v2.41.1) (2022-03-09)
 
 
