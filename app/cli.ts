@@ -22,10 +22,10 @@ import { cliLogger, internalLogger, levels } from './core/log';
 import { loadState } from './core/utils/misc/load-state';
 import { MyServersConfig } from './types/my-servers-config';
 import { parseConfig } from './core/utils/misc/parse-config';
-import { CachedServer } from './cache';
 import type { Cloud } from './graphql/resolvers/query/cloud';
 import { validateApiKey } from './core/utils/misc/validate-api-key';
 import { relayStateToHuman } from './graphql/relay-state';
+import { CachedServer } from './cache/user';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
