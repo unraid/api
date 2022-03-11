@@ -127,6 +127,14 @@ jobs:
     - name: Patch subscriptions-transport-ws
       run: npm run patch:subscriptions-transport-ws
 
+    - name: Add commit hash to version
+      if: startsWith(github.ref, 'refs/tags/v') == false
+      run: |
+        VERSION=$(jq -r .version package.json) && \
+        SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
+        jq --arg version $VERSION-$SHORT_HASH '.version = $version' package.json  > out.json && mv out.json package.json && \
+        echo '✔ Version field updated'
+
     - name: Compile to javascript
       run: npm run build
 
@@ -181,14 +189,6 @@ jobs:
 
     - name: Install nexe
       run: npm i -g nexe
-
-    - name: Add commit hash to version
-      if: startsWith(github.ref, 'refs/tags/v') == false
-      run: |
-        VERSION=$(jq -r .version package.json) && \
-        SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
-        jq --arg version $VERSION-$SHORT_HASH '.version = $version' package.json  > out.json && mv out.json package.json && \
-        echo '✔ Version field updated'
 
     - name: Build binary
       run: npm run build-binary
