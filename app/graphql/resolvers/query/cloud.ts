@@ -25,6 +25,19 @@ export type Cloud = {
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
 };
 
+export const relayStateToHuman = (relayState?: RelayStates) => {
+	switch (relayState) {
+		case 'closing':
+			return 'disconnecting';
+		case 'closed':
+			return 'disconnected';
+		case 'open':
+			return 'connected';
+		default:
+			return relayState ?? 'unknown';
+	}
+};
+
 const createResponse = (options: Cloud): Cloud => {
 	return {
 		...options,

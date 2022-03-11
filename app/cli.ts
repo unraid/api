@@ -23,7 +23,7 @@ import { loadState } from './core/utils/misc/load-state';
 import { MyServersConfig } from './types/my-servers-config';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
-import type { Cloud } from './graphql/resolvers/query/cloud';
+import { Cloud, relayStateToHuman } from './graphql/resolvers/query/cloud';
 import { validateApiKey } from './core/utils/misc/validate-api-key';
 
 const setEnv = (envName: string, value: any) => {
@@ -338,7 +338,7 @@ const commands = {
 				ONLINE_SERVERS: ${onlineServers.join(', ')}
 				OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
 			` : dedent`
-				SERVERS: API offline
+				SERVERS: API is offline
 			`;
 
 			// Check if API has crashed and if it has crash logs
@@ -357,12 +357,12 @@ const commands = {
 				<-----UNRAID-API-REPORT----->
 				SERVER_NAME: ${serverName}
 				ENVIRONMENT: ${process.env.ENVIRONMENT}
-				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
-				NODE_VERSION: ${process.version}
 				UNRAID_VERSION: ${unraidVersion}
 				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
-				RELAY: ${cloud?.relay.error ?? cloud?.relay.status ?? 'API is OFFLINE'}
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
+				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+				NODE_VERSION: ${process.version}
+				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'API is OFFLINE'}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'API is offline'}
 				${servers ? serversDetails : 'SERVERS: none found'}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
