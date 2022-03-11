@@ -4,9 +4,8 @@
  */
 
 import { logger } from '../../../core';
-import { apiManager } from '../../../core/api-manager';
 import { varState } from '../../../core/states';
-import { ensurePermission } from '../../../core/utils';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { Context, getServers } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {

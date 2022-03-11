@@ -4,7 +4,8 @@
  */
 
 import { varState } from '../../../core/states';
-import { ensurePermission, getKeyFile } from '../../../core/utils';
+import { getKeyFile } from '../../../core/utils/misc/get-key-file';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {

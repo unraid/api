@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { ensurePermission } from '../../../core/utils';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { mothership } from '../../../mothership/subscribe-to-servers';
 import { Context } from '../../schema/utils';
 

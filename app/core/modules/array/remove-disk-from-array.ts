@@ -4,9 +4,11 @@
  */
 
 import { CoreContext, CoreResult } from '../../types';
-import { hasFields, arrayIsRunning, ensurePermission } from '../../utils';
 import { ArrayRunningError, FieldMissingError } from '../../errors';
-import { getArray } from '..';
+import { getArray } from '../get-array';
+import { ensurePermission } from '../../utils/permissions/ensure-permission';
+import { hasFields } from '../../utils/validation/has-fields';
+import { arrayIsRunning } from '../../utils/array/array-is-running';
 
 interface Context extends CoreContext {
 	data: {

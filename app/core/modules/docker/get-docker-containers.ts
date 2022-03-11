@@ -6,8 +6,9 @@
 import fs from 'fs';
 import camelCaseKeys from 'camelcase-keys';
 import { paths } from '../../paths';
-import { docker, catchHandlers, ensurePermission } from '../../utils';
+import { docker, ensurePermission } from '../../utils';
 import { CoreContext, CoreResult } from '../../types';
+import { catchHandlers } from '../../utils/misc/catch-handlers';
 
 interface Context extends CoreContext {
 	readonly query: {

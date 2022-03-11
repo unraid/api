@@ -4,8 +4,9 @@
  */
 
 import execa from 'execa';
-import { cleanStdout, ensurePermission } from '../../utils';
+import { ensurePermission } from '../../utils';
 import { CoreContext, CoreResult } from '../../types';
+import { cleanStdout } from '../../utils/misc/clean-stdout';
 
 interface Result extends CoreResult {
 	json: {

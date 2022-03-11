@@ -4,9 +4,13 @@
  */
 
 import { CoreContext, CoreResult } from '../../types';
-import { hasFields, ensurePermission, emcmd, arrayIsRunning, uppercaseFirstChar } from '../../utils';
 import { AppError, FieldMissingError, ParamInvalidError } from '../../errors';
-import { getArray } from '..';
+import { uppercaseFirstChar } from '../../utils/misc/uppercase-first-char';
+import { getArray } from '../get-array';
+import { ensurePermission } from '../../utils/permissions/ensure-permission';
+import { hasFields } from '../../utils/validation/has-fields';
+import { arrayIsRunning } from '../../utils/array/array-is-running';
+import { emcmd } from '../../utils/clients/emcmd';
 
 // @TODO: Fix this not working across node apps
 //        each app has it's own lock since the var is scoped

@@ -4,8 +4,9 @@
  */
 
 import camelCaseKeys from 'camelcase-keys';
-import { docker, catchHandlers, ensurePermission } from '../../utils';
+import { docker, ensurePermission } from '../../utils';
 import { CoreContext, CoreResult } from '../../types';
+import { catchHandlers } from '../../utils/misc/catch-handlers';
 
 export const getDockerNetworks = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;

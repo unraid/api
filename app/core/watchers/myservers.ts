@@ -6,13 +6,13 @@
 import chokidar from 'chokidar';
 import { logger } from '../log';
 import { paths } from '../paths';
-import { loadState } from '../utils';
 import { apiManager } from '../api-manager';
 import { nginx, origins } from '../../server';
 import { MyServersConfig } from '../../types/my-servers-config';
-import { pubsub } from '..';
 import { existsSync } from 'fs';
 import { getNginxState } from '../../common/nginx/get-state';
+import { loadState } from '../utils/misc/load-state';
+import { pubsub } from '../pubsub';
 
 // Get myservers config
 const configPath = paths.get('myservers-config')!;

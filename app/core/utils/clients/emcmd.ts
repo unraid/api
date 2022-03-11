@@ -6,10 +6,10 @@
 import request from 'request-promise-native';
 import { envs } from '../../envs';
 import { logger } from '../../log';
-import { catchHandlers } from '..';
 import { paths } from '../../paths';
 import { varState } from '../../states';
 import { LooseObject } from '../../types';
+import { catchHandlers } from '../misc/catch-handlers';
 
 const socketPath = paths.get('emhttpd-socket')!;
 const dryRun = envs.DRY_RUN;

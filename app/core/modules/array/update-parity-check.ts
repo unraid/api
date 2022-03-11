@@ -5,8 +5,9 @@
 
 import { CoreContext, CoreResult } from '../../types';
 import { FieldMissingError, ParamInvalidError } from '../../errors';
-import { emcmd, ensurePermission } from '../../utils';
 import { varState } from '../../states';
+import { ensurePermission } from '../../utils/permissions/ensure-permission';
+import { emcmd } from '../../utils/clients/emcmd';
 
 type State = 'start' | 'cancel' | 'resume' | 'cancel';
 

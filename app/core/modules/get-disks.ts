@@ -7,7 +7,8 @@ import execa from 'execa';
 import { Systeminformation, blockDevices, diskLayout } from 'systeminformation';
 import { map as asyncMap } from 'p-iteration';
 import { CoreContext, CoreResult } from '../types';
-import { uppercaseFirstChar, ensurePermission } from '../utils';
+import { ensurePermission } from '../utils';
+import { uppercaseFirstChar } from '../utils/misc/uppercase-first-char';
 
 interface Partition {
 	name: string;
@@ -48,9 +49,9 @@ const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToPar
 		// Only get partitions from this disk
 		.filter(partition => partition.name.startsWith(disk.device.split('/dev/')[1]))
 		// Remove unneeded fields
-		.map(({ name, fstype, size }) => ({
+		.map(({ name, fsType, size }) => ({
 			name,
-			fsType: fstype,
+			fsType,
 			size
 		}));
 

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { ensurePermission } from '../../../core/utils';
+import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {

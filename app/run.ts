@@ -1,7 +1,8 @@
 import type { CoreContext, CoreResult } from './core/types';
 import { pubsub, logger } from './core';
-import { isNodeError, sleep } from './core/utils';
+import { isNodeError } from './core/utils';
 import { AppError } from './core/errors';
+import { sleep } from './core/utils/misc/sleep';
 
 /**
  * Publish update to topic channel.

@@ -6,9 +6,9 @@
 import chokidar from 'chokidar';
 import { logger } from '../log';
 import { pubsub } from '../pubsub';
-import { getKeyFile } from '../utils';
 import { bus } from '../bus';
 import { varState } from '../states';
+import { getKeyFile } from '../utils/misc/get-key-file';
 
 const fileWatchers: chokidar.FSWatcher[] = [];
 

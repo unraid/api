@@ -4,8 +4,9 @@
  */
 
 import { CoreResult, CoreContext } from '../types';
-import { addTogether, ensurePermission } from '../utils';
+import { ensurePermission } from '../utils';
 import { varState, slotsState } from '../states';
+import { addTogether } from '../utils/misc/add-together';
 
 /**
  * Get array info.

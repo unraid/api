@@ -5,8 +5,11 @@
 
 import { CoreContext, CoreResult } from '../../types';
 import { FieldMissingError, ArrayRunningError } from '../../errors';
-import { hasFields, arrayIsRunning, emcmd, ensurePermission } from '../../utils';
-import { getArray } from '..';
+import { getArray } from '../get-array';
+import { ensurePermission } from '../../utils/permissions/ensure-permission';
+import { hasFields } from '../../utils/validation/has-fields';
+import { arrayIsRunning } from '../../utils/array/array-is-running';
+import { emcmd } from '../../utils/clients/emcmd';
 
 /**
  * Add a disk to the array.

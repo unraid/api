@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { parseDomain, DomainLookupType } from '..';
 import { Domain } from '../../types';
+import { DomainLookupType, parseDomain } from './parse-domain';
 
 /**
  * Parse domains.

@@ -5,7 +5,7 @@
 
 import { paths } from '../../paths';
 import { PermissionError } from '../../errors';
-import { checkAuth } from '..';
+import { checkAuth } from './check-auth';
 
 interface Options {
 	username: string;

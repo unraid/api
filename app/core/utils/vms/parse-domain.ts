@@ -4,8 +4,8 @@
  */
 
 import pProps from 'p-props';
-import { getHypervisor } from '..';
 import { Domain } from '../../types';
+import { getHypervisor } from './get-hypervisor';
 
 export type DomainLookupType = 'id' | 'uuid' | 'name';
 

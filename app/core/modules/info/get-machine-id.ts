@@ -4,7 +4,8 @@
  */
 
 import { CoreResult, CoreContext } from '../../types';
-import { ensurePermission, getMachineId as getMachineIdFromFile } from '../../utils';
+import { ensurePermission } from '../../utils';
+import { getMachineId as getMachineIdFromFile } from '../../utils/misc/get-machine-id';
 
 /**
  * Get the machine ID.

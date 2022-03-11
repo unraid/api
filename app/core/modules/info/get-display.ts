@@ -5,7 +5,8 @@
 
 import { CoreResult, CoreContext, DynamixConfig } from '../../types';
 import { paths } from '../../paths';
-import { loadState, ensurePermission, toBoolean } from '../../utils';
+import { ensurePermission, toBoolean } from '../../utils';
+import { loadState } from '../../utils/misc/load-state';
 
 interface Result extends CoreResult {
 	json: {

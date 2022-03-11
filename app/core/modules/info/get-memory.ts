@@ -8,7 +8,8 @@ import si from 'systeminformation';
 import toBytes from 'bytes';
 import { CoreContext, CoreResult } from '../../types';
 import { AppError } from '../../errors';
-import { cleanStdout, ensurePermission } from '../../utils';
+import { ensurePermission } from '../../utils';
+import { cleanStdout } from '../../utils/misc/clean-stdout';
 
 /**
  * Get memory.

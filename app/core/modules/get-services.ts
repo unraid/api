@@ -6,7 +6,6 @@
 import { getEmhttpdService, getUnraidApiService } from './services';
 import { logger } from '../log';
 import { envs } from '../envs';
-import { NodeService } from '../utils';
 import { CoreResult, CoreContext } from '../types';
 
 const devNames = [
@@ -18,11 +17,17 @@ const coreNames = [
 	'unraid-api'
 ];
 
-interface ServiceResult extends CoreResult {
-	json: NodeService;
+interface Service {
+	online: boolean;
+	uptime: string;
+	version: string;
 }
 
-interface NodeServiceWithName extends NodeService {
+interface ServiceResult extends CoreResult {
+	json: Service;
+}
+
+interface ServiceWithName extends Service {
 	name: string;
 }
 
@@ -32,7 +37,7 @@ interface NodeServiceWithName extends NodeService {
  * @param services
  * @param names
  */
-const addNameToService = (services: ServiceResult[], names: string[]): NodeServiceWithName[] => {
+const addNameToService = (services: ServiceResult[], names: string[]): ServiceWithName[] => {
 	return services.map((service, index) => ({
 		name: names[index],
 		...service.json
@@ -40,7 +45,7 @@ const addNameToService = (services: ServiceResult[], names: string[]): NodeServi
 };
 
 interface Result extends CoreResult {
-	json: NodeServiceWithName[];
+	json: ServiceWithName[];
 }
 
 /**
@@ -52,13 +57,13 @@ export const getServices = async (context: CoreContext): Promise<Result> => {
 		return [];
 	};
 
-	const devServices = envs.NODE_ENV === 'development' ? await Promise.all([
+	const devServices: ServiceResult[] = envs.NODE_ENV === 'development' ? await Promise.all([
 		getEmhttpdService(context)
-	]).catch(logErrorAndReturnEmptyArray) : [];
+	]).catch(logErrorAndReturnEmptyArray) as ServiceResult[] : [];
 
-	const coreServices = await Promise.all([
+	const coreServices: ServiceResult[] = await Promise.all([
 		getUnraidApiService(context)
-	]).catch(logErrorAndReturnEmptyArray);
+	]).catch(logErrorAndReturnEmptyArray) as ServiceResult[];
 
 	const result = [
 		...addNameToService(devServices, devNames),
