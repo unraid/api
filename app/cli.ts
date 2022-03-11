@@ -16,7 +16,7 @@ import prettyMs from 'pretty-ms';
 import dedent from 'dedent-tabs';
 import camelCaseKeys from 'camelcase-keys';
 import { addExitCallback } from 'catch-exit';
-import { version } from '../package.json';
+import { fullVersion, version } from '../package.json';
 import { paths } from './core/paths';
 import { cliLogger, internalLogger, levels } from './core/log';
 import { loadState } from './core/utils/misc/load-state';
@@ -114,7 +114,7 @@ const commands = {
 		fs.writeFileSync(configPath, stringifiedData);
 
 		// Start API
-		const apiVersion: string = version;
+		const apiVersion: string = fullVersion;
 		cliLogger.info('Starting unraid-api@v%s', apiVersion);
 
 		// If we're in debug mode or we're NOT
@@ -210,7 +210,7 @@ const commands = {
 	async version() {
 		setEnv('LOG_TYPE', 'raw');
 
-		const apiVersion: string = version;
+		const apiVersion: string = fullVersion;
 		cliLogger.info(`Unraid API v${apiVersion}`);
 	},
 	async status() {
@@ -361,7 +361,7 @@ const commands = {
 				UNRAID_VERSION: ${unraidVersion}
 				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-				NODE_API_VERSION: ${version} (${unraidApiPid ? 'running' : 'stopped'})
+				NODE_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
 				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'API is OFFLINE'}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'API is offline'}
