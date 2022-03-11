@@ -361,7 +361,7 @@ const commands = {
 				UNRAID_VERSION: ${unraidVersion}
 				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-				NODE_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
+				NODE_API_VERSION: ${fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? version : fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
 				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'API is OFFLINE'}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'API is offline'}
