@@ -13,29 +13,15 @@ import { getRelayConnectionStatus } from '../../../mothership/get-relay-connecti
 import type { Context } from '../../schema/utils';
 import { version } from '../../../../package.json';
 import { logger } from '../../../core/log';
+import { RelayStates } from '../../relay-state';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
-
-type RelayStates = 'connecting' | 'open' | 'closing' | 'closed' | 'unknown';
 
 export type Cloud = {
 	error?: string;
 	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
 	relay: { status: RelayStates; error: undefined } | { status: RelayStates; error: string };
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
-};
-
-export const relayStateToHuman = (relayState?: RelayStates) => {
-	switch (relayState) {
-		case 'closing':
-			return 'disconnecting';
-		case 'closed':
-			return 'disconnected';
-		case 'open':
-			return 'connected';
-		default:
-			return relayState ?? 'unknown';
-	}
 };
 
 const createResponse = (options: Cloud): Cloud => {

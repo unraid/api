@@ -23,8 +23,9 @@ import { loadState } from './core/utils/misc/load-state';
 import { MyServersConfig } from './types/my-servers-config';
 import { parseConfig } from './core/utils/misc/parse-config';
 import { CachedServer } from './cache';
-import { Cloud, relayStateToHuman } from './graphql/resolvers/query/cloud';
+import type { Cloud } from './graphql/resolvers/query/cloud';
 import { validateApiKey } from './core/utils/misc/validate-api-key';
+import { relayStateToHuman } from './graphql/relay-state';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
