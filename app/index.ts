@@ -15,8 +15,8 @@ import { server } from './server';
 import { checkCloudConnections } from './mothership';
 import { loadState } from './core/utils/misc/load-state';
 import { writeFileSync } from 'fs';
-import { userCache } from './cache';
 import { MyServersConfig } from './types/my-servers-config';
+import { userCache } from './cache/user';
 
 // Ini serializer
 const serializer = new IniSerializer({

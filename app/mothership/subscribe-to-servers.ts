@@ -2,11 +2,11 @@ import { pubsub, mothershipLogger, apiManager } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import WebSocket from 'ws';
 import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
-import { userCache, CachedServers, CachedServer } from '../cache';
 import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
 import { debounce } from './debounce';
 import { GraphQLError } from 'graphql';
 import { version } from '../../package.json';
+import { CachedServer, CachedServers, userCache } from '../cache/user';
 
 export const mothership = new SubscriptionClient(() => {
 	const apiKey = apiManager.getKey('my_servers')?.key ?? 'LARRYS_MAGIC_KEY';

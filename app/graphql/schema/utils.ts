@@ -5,9 +5,9 @@
 
 import { pubsub, utils, errors, states, apiManager, logger, paths } from '../../core';
 import { hasSubscribedToChannel } from '../../ws';
-import { userCache, CachedServer, CachedServers } from '../../cache';
 import { getServers as getUserServers } from '../../utils';
 import { User } from '../../core/types';
+import { CachedServer, CachedServers, userCache } from '../../cache/user';
 
 const { varState, networkState } = states;
 
