@@ -125,6 +125,25 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
+	// If the endpoint is mocked return the mocked data
+	if (process.env.MOCK_CLOUD_ENDPOINT) {
+		return {
+			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR,
+			apiKey: {
+				valid: Boolean(process.env.MOCK_CLOUD_ENDPOINT_APIKEY_VALID ?? true),
+				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR
+			},
+			relay: {
+				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'ok',
+				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
+			},
+			mothership: {
+				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error',
+				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR
+			}
+		};
+	}
+
 	return createResponse({
 		apiKey: await checkApi(),
 		relay: checkRelay(),
