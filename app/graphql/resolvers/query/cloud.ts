@@ -138,7 +138,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
 			},
 			mothership: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error',
+				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
 				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR
 			}
 		};
