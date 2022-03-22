@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.42.2](https://github.com/unraid/api/compare/v2.42.1...v2.42.2) (2022-03-22)
+
+
+### Bug Fixes
+
+* ensure mocked cloud endpoint has mothership as status=ok by default ([ecdba63](https://github.com/unraid/api/commit/ecdba63ce50ad2cbc7ed9f640297b43a6c832832))
+
 ### [2.42.1](https://github.com/unraid/api/compare/v2.42.0...v2.42.1) (2022-03-11)
 
 
