@@ -34,7 +34,7 @@ const createResponse = (options: Cloud): Cloud => {
 const checkApi = async (): Promise<Cloud['apiKey']> => {
 	try {
 		// Check if we have an API key loaded for my servers
-		const apiKey = apiManager.getKey('my_servers')?.key;
+		const apiKey = apiManager.cloudKey;
 		if (!apiKey) throw new Error('API key is missing');
 
 		// Key format must be valid
@@ -89,7 +89,7 @@ const checkMothershipAuthentication = async (url: string, options: OptionsOfText
 
 const checkMothership = async (): Promise<Cloud['mothership']> => {
 	const apiVersion = version;
-	const apiKey = apiManager.getKey('my_servers')?.key;
+	const apiKey = apiManager.cloudKey;
 	if (!apiKey) throw new Error('API key is missing');
 
 	const timeout = { request: 2_000 };

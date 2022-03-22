@@ -347,7 +347,7 @@ export class ApiManager extends EventEmitter {
 				apiManagerLogger.trace(reason);
 
 				// If we have an API key loaded then clear it
-				if (this.getKey('my_servers')?.key) {
+				if (this.cloudKey) {
 					this.expire('my_servers');
 
 					// Clear servers cache
@@ -373,7 +373,7 @@ export class ApiManager extends EventEmitter {
 				if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) return clearKey('API key is missing.');
 
 				// Check if the current loaded API key is the same as the one from the config
-				if (!force && (apiKey === this.getKey('my_servers')?.key)) {
+				if (!force && (apiKey === this.cloudKey)) {
 					apiManagerLogger.debug('%s was updated but the API key didn\'t change.', filePath);
 					return true;
 				}
@@ -418,6 +418,10 @@ export class ApiManager extends EventEmitter {
 	private async getLock() {
 		this.lock ??= new Mutex();
 		return this.lock;
+	}
+
+	get cloudKey() {
+		return this.getKey('my_servers')?.key;
 	}
 }
 

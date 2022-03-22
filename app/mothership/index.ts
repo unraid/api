@@ -68,7 +68,7 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 };
 
 const getRelayHeaders = () => {
-	const apiKey = apiManager.getKey('my_servers')?.key!;
+	const apiKey = apiManager.cloudKey!;
 	const serverName = `${varState.data.name}`;
 
 	return {
@@ -227,7 +227,9 @@ export const checkRelayConnection = debounce(async () => {
 						relayLogger.removeContext('query');
 
 						// Process query
-						const apiKey = apiManager.getKey('my_servers')?.key!;
+						const apiKey = apiManager.cloudKey;
+						if (!apiKey) throw new Error('No API key found for my_servers');
+
 						const user = await apiKeyToUser(apiKey);
 						const result = await graphql({
 							schema,
@@ -282,12 +284,11 @@ export const checkRelayConnection = debounce(async () => {
 						break;
 				}
 			} catch (error: unknown) {
-				relayLogger.addContext('error', error);
-				relayLogger.error('Failed processing message');
-				relayLogger.removeContext('error');
+				if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
+				relayLogger.error('Failed processing message with "%s"', error.message);
 				sendMessage(operationName, 'error', id, {
 					error: {
-						message: error instanceof Error ? error.message : error
+						message: error.message
 					}
 				});
 			}

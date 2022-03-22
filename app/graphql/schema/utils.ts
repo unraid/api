@@ -49,7 +49,7 @@ type makeNullUndefinedAndOptional<T> = {
 
 type Server = makeNullUndefinedAndOptional<CachedServer>;
 
-const getLocalServer = (apiKey: string): [CachedServer] => {
+const getLocalServer = (): [CachedServer] => {
 	const guid = varState?.data?.regGuid;
 	const name = varState?.data?.name;
 	const wanip = null;
@@ -65,7 +65,7 @@ const getLocalServer = (apiKey: string): [CachedServer] => {
 			avatar: ''
 		},
 		guid,
-		apikey: apiKey,
+		apikey: '',
 		name,
 		status: 'online',
 		wanip,
@@ -78,18 +78,14 @@ const getLocalServer = (apiKey: string): [CachedServer] => {
 export const getServers = async (): Promise<Server[]> => {
 	// Check if we have the servers already cached, if so return them
 	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
-	if (cachedServers) {
-		return cachedServers;
-	}
+	if (cachedServers) return cachedServers;
 
 	// For now use the my_servers key
 	// Later we should return the correct one for the current user with the correct scope, etc.
-	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
+	const apiKey = apiManager.cloudKey;
 
 	// Return only current server if we have no key
-	if (!apiKey) {
-		return getLocalServer(apiKey);
-	}
+	if (!apiKey) return getLocalServer();
 
 	// No cached servers found
 	if (!cachedServers) {
@@ -98,11 +94,11 @@ export const getServers = async (): Promise<Server[]> => {
 
 		// If no servers are found return the local copy
 		if (!servers || servers.length === 0) {
-			logger.trace('Generating response locally for /servers endpoint');
-			return getLocalServer(apiKey);
+			logger.trace('Generating response locally for "servers" endpoint');
+			return getLocalServer();
 		}
 
-		logger.trace('Using upstream for /servers endpoint');
+		logger.trace('Using upstream for "servers" endpoint');
 
 		// Cache servers
 		userCache.set<CachedServers>('mine', {
@@ -121,6 +117,6 @@ export const getServers = async (): Promise<Server[]> => {
 		return servers;
 	}
 
-	logger.debug('Falling back to local state for /servers endpoint');
-	return getLocalServer(apiKey);
+	logger.debug('Falling back to local state for "servers" endpoint');
+	return getLocalServer();
 };

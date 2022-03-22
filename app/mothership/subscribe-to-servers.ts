@@ -9,7 +9,7 @@ import { version } from '../../package.json';
 import { CachedServer, CachedServers, userCache } from '../cache/user';
 
 export const mothership = new SubscriptionClient(() => {
-	const apiKey = apiManager.getKey('my_servers')?.key ?? 'LARRYS_MAGIC_KEY';
+	const apiKey = apiManager.cloudKey ?? 'LARRYS_MAGIC_KEY';
 	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
 	url.username = version;
 	url.password = apiKey;
@@ -20,7 +20,7 @@ export const mothership = new SubscriptionClient(() => {
 	minTimeout: ONE_SECOND * 30,
 	connectionParams: () => ({
 		apiVersion: version,
-		apiKey: apiManager.getKey('my_servers')?.key
+		apiKey: apiManager.cloudKey
 	}),
 	connectionCallback: errors => {
 		try {
@@ -52,7 +52,7 @@ export const mothership = new SubscriptionClient(() => {
 mothership.maxConnectTimeGenerator.duration = () => mothership.maxConnectTimeGenerator.max;
 
 mothership.onConnected(async () => {
-	const apiKey = apiManager.getKey('my_servers')?.key;
+	const apiKey = apiManager.cloudKey;
 
 	if (!apiKey) {
 		mothershipLogger.error('Connection attempted with no API key, disconnecting.');

@@ -13,7 +13,7 @@ export const shouldBeConnectedToCloud = async () => {
 	try {
 		if (wsState.outOfDate) return false;
 
-		const apiKey = apiManager.getKey('my_servers')?.key;
+		const apiKey = apiManager.cloudKey;
 
 		if (!apiKey) {
 			logger.trace('My servers API key is missing');
