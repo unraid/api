@@ -60,7 +60,7 @@ const configPath = paths['myservers-config'];
 const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 const initalExtraOrigins = typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : [];
 
-logger.debug('Initial extra origins set origins="%s"', myServersConfig?.api?.extraOrigins);
+logger.debug('Initial extra origins set origins="%s"', myServersConfig?.api?.extraOrigins ?? '');
 
 // To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {

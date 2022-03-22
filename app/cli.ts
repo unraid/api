@@ -211,7 +211,7 @@ const commands = {
 		setEnv('LOG_TYPE', 'raw');
 
 		const apiVersion: string = fullVersion;
-		cliLogger.info(`Unraid API v${apiVersion}`);
+		cliLogger.info(`Unraid API v${fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? apiVersion : fullVersion}`);
 	},
 	async status() {
 		setEnv('LOG_TYPE', 'raw');
