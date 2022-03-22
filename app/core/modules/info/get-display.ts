@@ -37,7 +37,7 @@ export const getDisplay = async function (context: CoreContext): Promise<Result>
 		possession: 'any'
 	});
 
-	const filePath = paths.get('dynamix-config')!;
+	const filePath = paths['dynamix-config'];
 	const { display } = loadState<DynamixConfig>(filePath)!;
 	const result = {
 		...display,

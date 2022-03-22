@@ -43,7 +43,7 @@ class NfsSec extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.get('states')!;
+			const statesDirectory = paths.states;
 			const statePath = path.join(statesDirectory, 'sec_nfs.ini');
 			const state = parseConfig<SecIni[]>({
 				filePath: statePath,

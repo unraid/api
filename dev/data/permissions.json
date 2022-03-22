@@ -93,11 +93,6 @@
         "attributes": "*"
       },
       {
-        "resource": "plugin",
-        "action": "read:any",
-        "attributes": "*"
-      },
-      {
         "resource": "servers",
         "action": "read:any",
         "attributes": "*"

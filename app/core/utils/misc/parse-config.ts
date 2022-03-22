@@ -24,22 +24,6 @@ interface Options {
 }
 
 /**
- * Try to lookup filePath via paths
- */
-const getPath = (filePath?: string) => {
-	if (!filePath) {
-		return '';
-	}
-
-	try {
-		// @ts-expect-error
-		return paths.get(filePath) ?? filePath;
-	} catch {
-		return filePath;
-	}
-};
-
-/**
  * Converts the following
  * ```
  * {
@@ -89,7 +73,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
  */
 export const parseConfig = <T>(options: Options): T => {
 	const { file, type } = options;
-	const filePath = getPath(options.filePath);
+	const filePath = paths[options.filePath as string] ?? options.filePath;
 	const fileContents = filePath ? fs.readFileSync(filePath, 'utf8').toString() : file!;
 	const fileType = type || filePath.split('.').splice(-1)[0];
 

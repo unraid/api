@@ -24,7 +24,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 		possession: 'any'
 	});
 
-	const historyFilePath = paths.get('parity-checks')!;
+	const historyFilePath = paths['parity-checks'];
 	const history = await fs.readFile(historyFilePath).catch(() => {
 		throw new FileMissingError(historyFilePath);
 	});

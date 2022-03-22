@@ -55,35 +55,6 @@ class PermissionManager {
 
 		return this.scopes[apiKey];
 	}
-
-	/**
-	 * Register a plugin.
-	 *
-	 * @param pluginName Name of the plugin to register.
-	 * @param scopes Additional permissions scopes to add to the API key.
-	 */
-	registerPlugin(pluginName: string, scopes: LooseObject = {}): void {
-		validateArgument(pluginName, 'string');
-		validateArgument(scopes, 'object');
-
-		const scopeObject = {
-			...Object.keys(this.scopes).includes(pluginName) && this.scopes[pluginName],
-			...scopes
-		};
-
-		// Update the known list of valid scopes
-		// @ts-expect-error
-		this.knownScopes = [
-			...this.knownScopes,
-			...Object.values(scopeObject)
-		];
-
-		// Update the current scopes
-		this.scopes = {
-			...this.scopes,
-			...scopeObject
-		};
-	}
 }
 
 export const permissionManager = new PermissionManager();

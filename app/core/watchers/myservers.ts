@@ -15,7 +15,7 @@ import { loadState } from '../utils/misc/load-state';
 import { pubsub } from '../pubsub';
 
 // Get myservers config
-const configPath = paths.get('myservers-config')!;
+const configPath = paths['myservers-config'];
 export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 
 const watchConfigFile = () => {
@@ -95,7 +95,7 @@ const watchConfigFile = () => {
 
 const watchStateFile = () => {
 	// State file path
-	const filePath = paths.get('nginx-state')!;
+	const filePath = paths['nginx-state'];
 	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch state file for changes
@@ -120,7 +120,7 @@ export const myservers = () => {
 
 	return {
 		start() {
-			const filePath = paths.get('nginx-state')!;
+			const filePath = paths['nginx-state'];
 
 			// Watch config file for changes to 2fa
 			watchers.push(watchConfigFile());

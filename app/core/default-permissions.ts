@@ -26,7 +26,6 @@ export const admin = {
 		{ resource: 'owner', action: 'read:any', attributes: '*' },
 		{ resource: 'parity-history', action: 'read:any', attributes: '*' },
 		{ resource: 'permission', action: 'read:any', attributes: '*' },
-		{ resource: 'plugin', action: 'read:any', attributes: '*' },
 		{ resource: 'registration', action: 'read:any', attributes: '*' },
 		{ resource: 'servers', action: 'read:any', attributes: '*' },
 		{ resource: 'service', action: 'read:any', attributes: '*' },

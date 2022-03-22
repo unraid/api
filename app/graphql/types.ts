@@ -29,7 +29,6 @@ export const baseTypes = [gql`
 		welcome: Welcome! @func(module: "getWelcome")
 		online: Boolean!
 		info: Info!
-		pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON @func(result: "json")
 	}
 
 	type Mutation {
@@ -42,7 +41,6 @@ export const baseTypes = [gql`
 	type Subscription {
 		ping: String!
 		info: Info!
-		pluginModule(plugin: String!, module: String!, params: JSON, result: String): JSON!
 		online: Boolean!
 	}
 `];

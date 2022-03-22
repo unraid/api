@@ -37,7 +37,7 @@ export const getUnraidVersion = async (context: CoreContext): Promise<Result> =>
 
 	// Only update when cache is empty or doesn't exist yet
 	if (!version) {
-		const filePath = paths.get('unraid-version')!;
+		const filePath = paths['unraid-version'];
 		const file = await fs.promises.readFile(filePath)
 			.catch(() => {
 				throw new FileMissingError(filePath);

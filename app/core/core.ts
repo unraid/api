@@ -6,25 +6,16 @@
 import path from 'path';
 import glob from 'glob';
 import camelCase from 'camelcase';
-import globby from 'globby';
-import pIteration from 'p-iteration';
-import clearModule from 'clear-module';
 import { logger } from './log';
 import { paths } from './paths';
 import { subscribeToNchanEndpoint } from './utils';
 import { config } from './config';
-import { pluginManager } from './plugin-manager';
 import * as watchers from './watchers';
 import { nchanLogger } from '.';
-
-// Have plugins loaded at least once
-let pluginsLoaded = false;
 
 /**
  * Decorated loading logger.
  * @param namespace
- * @param all
- * @param filePath
  */
 const loadingLogger = (namespace: string): void => {
 	logger.debug('Loading %s', namespace);
@@ -34,7 +25,7 @@ const loadingLogger = (namespace: string): void => {
  * Register state paths.
  */
 const loadStatePaths = async (): Promise<void> => {
-	const statesCwd = paths.get('states')!;
+	const statesCwd = paths.states;
 	const cwd = path.join(__dirname, 'states');
 
 	loadingLogger('state paths');
@@ -55,56 +46,6 @@ const loadStatePaths = async (): Promise<void> => {
 };
 
 /**
- * Register all plugins with PluginManager.
- */
-const loadPlugins = async (): Promise<void> => {
-	// Bail in safe mode
-	if (config.get('safe-mode')) {
-		logger.debug('No plugins have been loaded as you\'re in SAFE MODE');
-		return;
-	}
-
-	// Bail if there isn't a plugins directory
-	if (!paths.get('plugins')) {
-		logger.debug('No plugins have been loaded as there was no plugins directory found.');
-		return;
-	}
-
-	const pluginsCwd = paths.get('plugins')!;
-	const packages = globby
-		.sync(['**/package.json', '!**/node_modules/**'], { cwd: pluginsCwd })
-		// Remove all files
-		.filter(packageName => packageName.includes('/'));
-	const plugins = packages.map(plugin => plugin.replace('/package.json', ''));
-
-	loadingLogger('plugins');
-
-	// Reset caches so plugins can load from fresh state
-	if (pluginsLoaded) {
-		// Reset plugin manager
-		pluginManager.reset();
-
-		// Reset require cache
-		// Without this plugin files wouldn't update until the server restarts
-		await pIteration.forEach(plugins, async pluginName => {
-			const cwd = path.join(pluginsCwd, pluginName);
-			const pluginFiles = globby.sync(['**/*', '!**/node_modules/**'], { cwd });
-			await pIteration.forEach(pluginFiles, pluginFile => {
-				const filePath = path.join(pluginsCwd, pluginFile);
-				logger.debug('Clearing plugin file from require cache %s', filePath);
-				clearModule(filePath);
-			});
-		});
-	} else {
-		// Update flag
-		pluginsLoaded = true;
-	}
-
-	// Initialize all plugins with plugin manager
-	await pIteration.forEach(plugins, async pluginName => pluginManager.init(pluginName));
-};
-
-/**
  * Start all watchers.
  */
 const loadWatchers = async (): Promise<void> => {
@@ -120,17 +61,6 @@ const loadWatchers = async (): Promise<void> => {
 		logger.debug('Loading %s watcher', name);
 		watcher().start();
 	});
-};
-
-/**
- * Add api keys for users, etc.
- *
- * @name core.loadApiKeys
- * @async
- * @private
- */
-const loadApiKeys = async (): Promise<void> => {
-	// @TODO: For each key in a json file load them
 };
 
 /**
@@ -165,7 +95,6 @@ const loadNchan = async (): Promise<void> => {
  */
 const loaders = {
 	statePaths: loadStatePaths,
-	plugins: loadPlugins,
 	watchers: loadWatchers
 };
 
@@ -176,9 +105,7 @@ const loaders = {
  */
 const load = async (): Promise<void> => {
 	await loadStatePaths();
-	await loadPlugins();
 	await loadWatchers();
-	await loadApiKeys();
 };
 
 export const core = {

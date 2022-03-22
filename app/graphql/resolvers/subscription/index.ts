@@ -3,11 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { pluginManager, pubsub, errors } from '../../../core';
-import { hasSubscribedToChannel } from '../../../ws';
-import { createSubscription, Context } from '../../schema/utils';
-
-const { PluginError } = errors;
+import { createSubscription } from '../../schema/utils';
 
 export const Subscription = {
 	display: {
@@ -23,9 +19,6 @@ export const Subscription = {
 	array: {
 		...createSubscription('array')
 	},
-	// Devices: {
-	// 	...createSubscription('device')
-	// },
 	dockerContainers: {
 		...createSubscription('docker/container')
 	},
@@ -34,13 +27,6 @@ export const Subscription = {
 	},
 	info: {
 		...createSubscription('info')
-	},
-	ping: {
-		// Subscribe: (_, __, context) => {
-		// 	// startPing();
-		// hasSubscribedToChannel(context.websocketId, 'ping');
-		// 	return pubsub.asyncIterator('ping');
-		// }
 	},
 	services: {
 		...createSubscription('services')
@@ -62,29 +48,6 @@ export const Subscription = {
 	},
 	vms: {
 		...createSubscription('vms')
-	},
-	pluginModule: {
-		subscribe: async (_: unknown, directiveArgs: {
-			plugin: string;
-			module: string;
-		}, context: Context) => {
-			const { plugin: pluginName, module: pluginModuleName } = directiveArgs;
-			const channel = `${pluginName}/${pluginModuleName}`;
-
-			// Verify plugin is installed and active
-			if (!pluginManager.isInstalled(pluginName, pluginModuleName)) {
-				throw new PluginError('Plugin not installed.', 500);
-			}
-
-			if (!pluginManager.isActive(pluginName, pluginModuleName)) {
-				throw new PluginError('Plugin disabled.', 500);
-			}
-
-			// It's up to the plugin to publish new data as needed
-			// so we'll just return the Iterator
-			hasSubscribedToChannel(context.websocketId, channel);
-			return pubsub.asyncIterator(channel);
-		}
 	},
 	registration: {
 		...createSubscription('registration')

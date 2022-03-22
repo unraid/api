@@ -27,7 +27,7 @@ const getState = (fullPath: string) => {
 
 export const states = () => {
 	const STATES_RELOAD_TIME_MS = 5000; // 5s
-	const statesCwd = paths.get('states')!;
+	const statesCwd = paths.states;
 	const watchers: chokidar.FSWatcher[] = [];
 	let timeout: NodeJS.Timeout;
 

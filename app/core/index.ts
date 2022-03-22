@@ -15,5 +15,4 @@ export * from './log';
 export * from './paths';
 export * from './permission-manager';
 export * from './permissions';
-export * from './plugin-manager';
 export * from './pubsub';

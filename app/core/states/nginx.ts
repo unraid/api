@@ -69,7 +69,7 @@ class NginxState extends State {
 
 	get data() {
 		if (!this._data) {
-			const statePath = paths.get('nginx-state')!;
+			const statePath = paths['nginx-state'];
 			const state = parseConfig<NginxIni>({
 				filePath: statePath,
 				type: 'ini'

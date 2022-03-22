@@ -83,7 +83,7 @@ export class ApiManager extends EventEmitter {
 		ApiManager.instance = this;
 
 		// Get my server's config file path
-		const configPath = paths.get('myservers-config')!;
+		const configPath = paths['myservers-config'];
 
 		// Load UPC + notifier keys
 		apiManagerLogger.debug('Loading service API keys...');
@@ -341,7 +341,7 @@ export class ApiManager extends EventEmitter {
 		return lock.runExclusive(async () => {
 			apiManagerLogger.trace('Checking API key for validity.');
 
-			const myServersConfigPath = paths.get('myservers-config')!;
+			const myServersConfigPath = paths['myservers-config'];
 			const configExists = (await fs.promises.stat(myServersConfigPath).catch(() => ({ size: 0 }))).size > 0;
 			const clearKey = (reason: string) => {
 				apiManagerLogger.trace(reason);

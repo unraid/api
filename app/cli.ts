@@ -89,10 +89,10 @@ const commands = {
 		process.title = 'unraid-api';
 
 		// Set cwd
-		process.chdir(paths.get('unraid-api-base')!);
+		process.chdir(paths['unraid-api-base']);
 
 		// Write current version to config file
-		const configPath = paths.get('myservers-config')!;
+		const configPath = paths['myservers-config'];
 		const data = loadState<Partial<MyServersConfig>>(configPath);
 
 		// Ini serializer
@@ -161,7 +161,7 @@ const commands = {
 					env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 					// The process MUST have it's cwd set to the
 					// path where it resides within the Nexe VFS
-					cwd: paths.get('unraid-api-base')!,
+					cwd: paths['unraid-api-base'],
 					stdio: 'ignore',
 					detached: true
 				});
@@ -279,11 +279,11 @@ const commands = {
 			const unraidApiPid = await getUnraidApiPid();
 
 			// Get unraid OS version
-			const unraidVersion = fs.existsSync(paths.get('unraid-version')!) ? fs.readFileSync(paths.get('unraid-version')!, 'utf8').split('"')[1] : 'unknown';
+			const unraidVersion = fs.existsSync(paths['unraid-version']) ? fs.readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
 			cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
 
 			// Load the myservers.cfg
-			const myServersConfigPath = paths.get('myservers-config')!;
+			const myServersConfigPath = paths['myservers-config'];
 			const config = getConfig<Partial<MyServersConfig>>(myServersConfigPath);
 			if (!config) throw new Error(`Failed loading "${myServersConfigPath}"`);
 			if (!config.upc?.apikey) throw new Error('Missing UPC API key');
@@ -346,7 +346,7 @@ const commands = {
 			const hasCrashLogs = (await fs.promises.stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
 
 			// Load the var.ini file
-			const varIni = getConfig<{ name: string }>(resolve(paths.get('states')!, 'var.ini'));
+			const varIni = getConfig<{ name: string }>(resolve(paths.states, 'var.ini'));
 			const serverName = varIni?.name;
 
 			// Check if the API key is valid
@@ -413,8 +413,8 @@ const commands = {
 	async 'switch-env'() {
 		setEnv('LOG_TYPE', 'raw');
 
-		const basePath = paths.get('unraid-api-base')!;
-		const envFlashFilePath = paths.get('myservers-env')!;
+		const basePath = paths['unraid-api-base'];
+		const envFlashFilePath = paths['myservers-env'];
 		const envFile = await fs.promises.readFile(envFlashFilePath, 'utf-8').catch(() => '');
 
 		cliLogger.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);

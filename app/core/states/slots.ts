@@ -86,7 +86,7 @@ class Slots extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.get('states')!;
+			const statesDirectory = paths.states;
 			const statePath = path.join(statesDirectory, 'disks.ini');
 			const state = parseConfig<SlotIni[]>({
 				filePath: statePath,

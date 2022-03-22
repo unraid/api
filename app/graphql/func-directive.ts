@@ -1,10 +1,8 @@
 import get from 'lodash.get';
 import * as core from '../core';
 import { logger } from '../core';
-import { AppError } from '../core/errors';
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils';
-import { isNodeError } from '../core/utils';
-import { getPluginModule, getCoreModule } from './index';
+import { getCoreModule } from './index';
 
 /**
  * Func directive
@@ -63,38 +61,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 			};
 
 			// Resolve func
-			let func;
-			try {
-				if (pluginName) {
-					// @ts-expect-error
-					const { filePath } = getPluginModule(pluginName, pluginModuleName);
-					// eslint-disable-next-line @typescript-eslint/no-var-requires
-					const pluginModule = require(filePath);
-					// The file will either use a default export or a named one
-					// If it's named it should be the same as a module name
-					func = typeof pluginModule === 'function' ? pluginModule : pluginModule[pluginModuleName];
-				} else {
-					func = getCoreModule(moduleName);
-				}
-			} catch (error: unknown) {
-				if (isNodeError(error, AppError)) {
-					// Rethrow clean error message about module being missing
-					if (error.code === 'MODULE_NOT_FOUND') {
-						throw new AppError(`Cannot find ${pluginName ? `Plugin: "${pluginName}" ` : ''}Module: "${pluginName ? pluginModuleName : moduleName}"`);
-					}
-				}
-
-				// In production let's just throw an internal error
-				if (process.env.NODE_ENV === 'production') {
-					throw new AppError('Internal error occurred');
-				}
-
-				// Otherwise re-throw actual error
-				throw error;
-			}
-
-			const pluginOrModule = pluginName ? 'Plugin:' : 'Module:';
-			const pluginOrModuleName = pluginModuleName || moduleName;
+			const func = getCoreModule(moduleName);
 
 			// Run function
 			const [error, coreMethodResult] = await Promise.resolve(func(context, core))
@@ -102,7 +69,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 				.catch(error_ => {
 					// Ensure we aren't leaking anything in production
 					if (process.env.NODE_ENV === 'production') {
-						logger.error(pluginOrModule, pluginOrModuleName, 'Error:', error_.message);
+						logger.error('Module:', moduleName, 'Error:', error_.message);
 						return [new Error(error_.message)];
 					}
 

@@ -73,7 +73,7 @@ const states = {
 };
 
 export default async () => {
-	const dynamixBasePath = paths.get('dynamix-base')!;
+	const dynamixBasePath = paths['dynamix-base'];
 	const configFilePath = join(dynamixBasePath, 'case-model.cfg');
 	const customImageFilePath = join(dynamixBasePath, 'case-model.png');
 

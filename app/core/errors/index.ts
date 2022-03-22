@@ -13,4 +13,3 @@ export * from './param-invalid-error';
 export * from './param-missing-error';
 export * from './permission-error';
 export * from './php-error';
-export * from './plugin-error';

@@ -29,8 +29,8 @@ import { sleep } from './core/utils/misc/sleep';
 import { exitApp } from './core/utils/misc/exit-app';
 import { globalErrorHandler } from './core/utils/misc/global-error-handler';
 
-const configFilePath = path.join(paths.get('dynamix-base')!, 'case-model.cfg');
-const customImageFilePath = path.join(paths.get('dynamix-base')!, 'case-model.png');
+const configFilePath = path.join(paths['dynamix-base'], 'case-model.cfg');
+const customImageFilePath = path.join(paths['dynamix-base'], 'case-model.png');
 
 const updatePubsub = async () => {
 	await pubsub.publish('display', {
@@ -56,7 +56,7 @@ const invalidOrigin = 'The CORS policy for this site does not allow access from 
 // Get nginx state
 export const nginx = getNginxState();
 
-const configPath = paths.get('myservers-config')!;
+const configPath = paths['myservers-config'];
 const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 const initalExtraOrigins = typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : [];
 

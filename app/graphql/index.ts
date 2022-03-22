@@ -5,8 +5,8 @@
 
 import { v4 as uuid } from 'uuid';
 import * as core from '../core';
-import { bus, apiManager, config, pluginManager, modules, paths, pubsub } from '../core';
-import { AppError, FatalAppError, PluginError } from '../core/errors';
+import { bus, apiManager, config, modules, paths, pubsub } from '../core';
+import { AppError, FatalAppError } from '../core/errors';
 import { usersState } from '../core/states';
 import { DockerEventEmitter } from '@gridplus/docker-events';
 import { run } from '../run';
@@ -27,27 +27,11 @@ export const getCoreModule = (moduleName: string) => {
 	return modules[moduleName];
 };
 
-export const getPluginModule = (pluginName: string, pluginModuleName: string) => {
-	if (!pluginManager.isInstalled(pluginName, pluginModuleName)) {
-		throw new PluginError('Plugin not installed.');
-	}
-
-	if (!pluginManager.isActive(pluginName, pluginModuleName)) {
-		throw new PluginError('Plugin disabled.');
-	}
-
-	if (!pluginModuleName) {
-		return pluginManager.get(pluginName);
-	}
-
-	return pluginManager.get(pluginName, pluginModuleName);
-};
-
 // Ensure the provided API key is valid
 const ensureApiKey = async (apiKeyToCheck: string) => {
 	// If there's no my servers key loaded into memory then try to load it
 	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
-		const configPath = paths.get('myservers-config')!;
+		const configPath = paths['myservers-config'];
 		await apiManager.checkKey(configPath, true);
 	}
 

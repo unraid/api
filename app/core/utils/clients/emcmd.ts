@@ -11,7 +11,7 @@ import { varState } from '../../states';
 import { LooseObject } from '../../types';
 import { catchHandlers } from '../misc/catch-handlers';
 
-const socketPath = paths.get('emhttpd-socket')!;
+const socketPath = paths['emhttpd-socket'];
 const dryRun = envs.DRY_RUN;
 
 /**

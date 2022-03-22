@@ -15,7 +15,7 @@ interface DockerError extends NodeJS.ErrnoException {
  */
 export const catchHandlers = {
 	docker: (error: DockerError) => {
-		const socketPath = paths.get('docker-socket');
+		const socketPath = paths['docker-socket'];
 
 		// Throw custom error for docker socket missing
 		if (error.code === 'ENOENT' && error.address === socketPath) {
