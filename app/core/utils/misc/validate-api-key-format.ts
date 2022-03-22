@@ -1,7 +1,7 @@
 import { ApiKeyError } from '../../errors';
 
 export const validateApiKeyFormat = (apiKey: string | undefined, shouldThrow = true) => {
-	const key = `${apiKey}`.trim();
+	const key = (apiKey ?? '').trim();
 	const length = key.length;
 
 	// Bail if key is missing

@@ -41,8 +41,8 @@ export const getVmsCount = async function (context: CoreContext): Promise<Result
 			throw new Error('No hypervisor connection!');
 		}
 
-		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as [];
-		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as [];
+		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as unknown[];
+		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as unknown[];
 		const installed = activeDomains.length + inactiveDomains.length;
 		const started = activeDomains.length;
 

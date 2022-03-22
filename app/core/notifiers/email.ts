@@ -52,7 +52,7 @@ export class EmailNotifier extends Notifier {
 		this.template = Object.keys(templates).includes(type) ? templates[type] : templates.generic;
 		const html = this.render({ ...options, json: JSON.stringify(options.data, null, 2) }, this.helpers);
 
-		return sendMail({
+		sendMail({
 			from,
 			to,
 			replyTo,

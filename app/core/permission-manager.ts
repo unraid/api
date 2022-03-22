@@ -12,8 +12,8 @@ import { AppError } from './errors';
  * Permission manager.
  */
 class PermissionManager {
-	private knownScopes: string[];
-	private scopes: LooseObject;
+	private readonly knownScopes: string[];
+	private readonly scopes: LooseObject;
 
 	/**
 	 * @hideconstructor

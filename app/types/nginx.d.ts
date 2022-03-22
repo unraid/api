@@ -1,4 +1,3 @@
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface NginxState {
 	nginxLanip: string;
 	nginxLanname: string;
