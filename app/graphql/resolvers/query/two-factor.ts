@@ -5,6 +5,7 @@
 
 import { generateTwoFactorToken, setTwoFactorToken } from '../../../common/two-factor';
 import { compareUnraidVersion } from '../../../common/unraid-version-compare';
+import { logger } from '../../../core/log';
 import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { myServersConfig } from '../../../core/watchers/myservers';
@@ -17,6 +18,8 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
+	logger.debug('Generating 2FA response');
+
 	// Check if 2fa is enabled
 	// null is the same as auto
 	const isHighEnoughVersion = compareUnraidVersion('>=6.10');
@@ -24,6 +27,8 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
 	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
 	const isEnabled = isHighEnoughVersion && isSSLAuto && (isRemoteEnabled || isLocalEnabled);
+
+	logger.debug(JSON.stringify({ isHighEnoughVersion, isSSLAuto, isRemoteEnabled, isLocalEnabled, isEnabled }));
 
 	// Bail if it's not enabled
 	if (!isEnabled) {
