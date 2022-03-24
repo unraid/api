@@ -7,10 +7,13 @@ import { pubsub } from '../pubsub';
 import { bus } from '../bus';
 import { checkTwoFactorEnabled } from '../../common/two-factor';
 import { Var } from '../types/states/var';
+import { logger } from '../log';
 
 export const twoFactor = () => {
 	let useSSL;
 	const listener = async (data: Var) => {
+		logger.debug('Checking 2FA status as var state has changed');
+
 		// If the setting hasn't changed just bail
 		if (useSSL === data.useSsl) return;
 
