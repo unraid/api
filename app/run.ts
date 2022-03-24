@@ -67,11 +67,6 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		// Run module
 		const result: CoreResult = await Promise.resolve(moduleToRun(context));
 
-		// Log result
-		logger.addContext('result', result);
-		logger.trace(`run:${moduleToRun.name}`);
-		logger.removeContext('result');
-
 		// Save result
 		await publish(channel, mutation, result.json as any);
 
