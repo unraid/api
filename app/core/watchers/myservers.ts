@@ -13,6 +13,7 @@ import { existsSync } from 'fs';
 import { getNginxState } from '../../common/nginx/get-state';
 import { loadState } from '../utils/misc/load-state';
 import { pubsub } from '../pubsub';
+import { checkTwoFactorEnabled } from '../../common/two-factor';
 
 // Get myservers config
 const configPath = paths['myservers-config'];
@@ -69,14 +70,16 @@ const watchConfigFile = () => {
 			origins.extra = file?.api?.extraOrigins?.split(',') ?? [];
 		}
 
+		const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
+
 		// Publish to 2fa endpoint
 		await pubsub.publish('twoFactor', {
 			twoFactor: {
 				remote: {
-					enabled: myServersConfig.remote?.['2Fa'] === 'yes'
+					enabled: isRemoteEnabled
 				},
 				local: {
-					enabled: myServersConfig.local?.['2Fa'] === 'yes'
+					enabled: isLocalEnabled
 				}
 			}
 		});
@@ -126,12 +129,12 @@ export const myservers = () => {
 			watchers.push(watchConfigFile());
 
 			// Check if state file exists
-			if (!existsSync(filePath)) {
+			if (existsSync(filePath)) {
+				// If it does exist then let's watch it
+				watchers.push(watchStateFile());
+			} else {
 				logger.error('Nginx state file "%s" is missing', filePath);
 			}
-
-			// If it does exist then let's watch it
-			watchers.push(watchStateFile());
 		},
 		stop() {
 			watchers.forEach(async watcher => watcher.close());
