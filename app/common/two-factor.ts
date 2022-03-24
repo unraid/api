@@ -1,5 +1,6 @@
 import { randomBytes } from 'crypto';
 import NodeCache from 'node-cache';
+import { logger } from '../core';
 import { varState } from '../core/states/var';
 import { myServersConfig } from '../core/watchers/myservers';
 import { compareUnraidVersion } from './unraid-version-compare';
@@ -59,6 +60,15 @@ export const checkTwoFactorEnabled = () => {
 	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
 	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
 	const isEnabled = isHighEnoughVersion && isSSLAuto && (isRemoteEnabled || isLocalEnabled);
+
+	logger.debug('Checking 2FA status', {
+		isHighEnoughVersion,
+		isSSLAuto,
+		isRemoteEnabled,
+		isLocalEnabled,
+		isEnabled
+	});
+
 	return {
 		isHighEnoughVersion,
 		isSSLAuto,

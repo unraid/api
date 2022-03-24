@@ -114,7 +114,7 @@ const commands = {
 		fs.writeFileSync(configPath, stringifiedData);
 
 		// Start API
-		const apiVersion: string = fullVersion;
+		const apiVersion: string = fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? version : fullVersion as string;
 		cliLogger.info('Starting unraid-api@v%s', apiVersion);
 
 		// If we're in debug mode or we're NOT
@@ -211,7 +211,7 @@ const commands = {
 		setEnv('LOG_TYPE', 'raw');
 
 		const apiVersion: string = fullVersion;
-		cliLogger.info(`Unraid API v${fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? apiVersion : fullVersion}`);
+		cliLogger.info(`Unraid API v${fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? apiVersion : fullVersion as string}`);
 	},
 	async status() {
 		setEnv('LOG_TYPE', 'raw');
