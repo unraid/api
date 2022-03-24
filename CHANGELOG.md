@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.42.4](https://github.com/unraid/api/compare/v2.42.3...v2.42.4) (2022-03-24)
+
+
+### Bug Fixes
+
+* version string in full release and add logging to 2FA ([75b5ccf](https://github.com/unraid/api/commit/75b5ccffc493012eb09b3531b6106c66be59cba0))
+
 ### [2.42.3](https://github.com/unraid/api/compare/v2.42.2...v2.42.3) (2022-03-24)
 
 
