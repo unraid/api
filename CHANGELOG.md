@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.42.3](https://github.com/unraid/api/compare/v2.42.2...v2.42.3) (2022-03-24)
+
+
+### Bug Fixes
+
+* cli version command ([926379a](https://github.com/unraid/api/commit/926379affd653e84f40a2a01c6f1d19b6a9b37de))
+* ensure rc versions work with semver check ([2f9d026](https://github.com/unraid/api/commit/2f9d026124cd3a5a8a4819f5cde9b3853b63d56f))
+* ensure two-factor is updated on varState change ([f0204ee](https://github.com/unraid/api/commit/f0204eeb39e55680c782280da5b1c3076e7aa9f2))
+
 ### [2.42.2](https://github.com/unraid/api/compare/v2.42.1...v2.42.2) (2022-03-22)
 
 
