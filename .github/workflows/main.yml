@@ -92,8 +92,6 @@ jobs:
   compile-source:
     runs-on: ubuntu-latest
 
-    needs: [lint,coverage]
-
     steps:
     - name: Checkout repo
       uses: actions/checkout@v1
@@ -156,7 +154,7 @@ jobs:
   build-binary:
     runs-on: ubuntu-latest
 
-    needs: [compile-source]
+    needs: [lint,coverage,compile-source]
 
     steps:
     - name: Add SSH deploy key
