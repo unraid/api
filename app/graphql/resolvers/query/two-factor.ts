@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import semver from 'semver';
 import { generateTwoFactorToken, setTwoFactorToken } from '../../../common/two-factor';
+import { compareUnraidVersion } from '../../../common/unraid-version-compare';
 import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { myServersConfig } from '../../../core/watchers/myservers';
@@ -19,7 +19,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	// Check if 2fa is enabled
 	// null is the same as auto
-	const isHighEnoughVersion = semver.satisfies('>=6.10', varState.data.version);
+	const isHighEnoughVersion = compareUnraidVersion('>=6.10');
 	const isSSLAuto = varState.data.useSsl === null;
 	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
 	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
