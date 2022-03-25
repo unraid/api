@@ -114,8 +114,7 @@ const commands = {
 		fs.writeFileSync(configPath, stringifiedData);
 
 		// Start API
-		const apiVersion: string = fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? version : fullVersion as string;
-		cliLogger.info('Starting unraid-api@v%s', apiVersion);
+		cliLogger.info('Starting unraid-api@v%s', fullVersion as string);
 
 		// If we're in debug mode or we're NOT
 		// in debug but ARE in the child process
@@ -210,8 +209,7 @@ const commands = {
 	async version() {
 		setEnv('LOG_TYPE', 'raw');
 
-		const apiVersion: string = fullVersion;
-		cliLogger.info(`Unraid API v${fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? apiVersion : fullVersion as string}`);
+		cliLogger.info(`Unraid API v${fullVersion as string}`);
 	},
 	async status() {
 		setEnv('LOG_TYPE', 'raw');
@@ -361,7 +359,7 @@ const commands = {
 				UNRAID_VERSION: ${unraidVersion}
 				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-				NODE_API_VERSION: ${fullVersion === 'THIS_WILL_BE_REPLACED_WHEN_BUILT' ? version : fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
+				NODE_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
 				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'API is OFFLINE'}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'API is offline'}
