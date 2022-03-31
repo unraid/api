@@ -98,32 +98,40 @@ const handleError = (error: unknown) => {
 		case 429:
 			// Reconnect after ~30s
 			store.timeout = Date.now() + 30_000;
+			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
+				store.reason = undefined;
 			}, convertToFuzzyTime(15_000, 45_000));
 			break;
 
 		case 500:
 			// Reconnect after ~60s
 			store.timeout = Date.now() + 60_000;
+			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
+				store.reason = undefined;
 			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 
 		case 503:
 			// Reconnect after ~60s
 			store.timeout = Date.now() + 60_000;
+			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
+				store.reason = undefined;
 			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 
 		default:
 			// Reconnect after ~60s
 			store.timeout = Date.now() + 60_000;
+			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
+				store.reason = undefined;
 			}, convertToFuzzyTime(45_000, 75_000));
 			break;
 	}
