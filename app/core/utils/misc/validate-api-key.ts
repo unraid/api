@@ -54,7 +54,8 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 
 	// Check if API key exists
 	if (!apiKey) {
-		throw new Error('Missing API key');
+		if (shouldThrow) throw new Error('Missing API key');
+		return false;
 	}
 
 	// Send apiKey, etc. to key-server for verification
