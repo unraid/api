@@ -24,10 +24,10 @@ export type Cloud = {
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
 };
 
-const createResponse = (options: Cloud): Cloud => {
+const createResponse = (cloud: Cloud): Cloud => {
 	return {
-		...options,
-		error: options.apiKey.error ?? options.relay.error ?? options.mothership.error
+		...cloud,
+		error: cloud.apiKey.error ?? cloud.relay.error ?? cloud.mothership.error
 	};
 };
 

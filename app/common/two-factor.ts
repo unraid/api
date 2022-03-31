@@ -61,13 +61,15 @@ export const checkTwoFactorEnabled = () => {
 	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
 	const isEnabled = isHighEnoughVersion && isSSLAuto && (isRemoteEnabled || isLocalEnabled);
 
-	logger.debug('Checking 2FA status', {
+	logger.addContext('details', {
 		isHighEnoughVersion,
 		isSSLAuto,
 		isRemoteEnabled,
 		isLocalEnabled,
 		isEnabled
 	});
+	logger.debug('Checking 2FA status');
+	logger.removeContext('details');
 
 	return {
 		isHighEnoughVersion,
