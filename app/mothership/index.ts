@@ -43,6 +43,9 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 		relayLogger.removeContext('message');
 	}
 
+	// Log all messages
+	if (process.env.LOG_MOTHERSHIP_MESSAGES) relayLogger.info('Sending update to %s with message size %s', message, message.length);
+
 	store.relay.send(message);
 }
 
