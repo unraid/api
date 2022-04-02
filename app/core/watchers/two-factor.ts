@@ -12,10 +12,10 @@ import { logger } from '../log';
 export const twoFactor = () => {
 	let useSSL;
 	const listener = async (data: Var) => {
-		logger.debug('Checking 2FA status as var state has changed');
-
 		// If the setting hasn't changed just bail
 		if (useSSL === data.useSsl) return;
+
+		logger.debug('Checking 2FA status as var state has changed');
 
 		// If useSSL is not set then set it
 		if (useSSL !== data.useSsl) {
