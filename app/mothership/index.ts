@@ -98,45 +98,53 @@ const handleError = (error: unknown) => {
 			wsState.outOfDate = true;
 			break;
 
-		case 429:
+		case 429: {
 			// Reconnect after ~30s
-			store.timeout = Date.now() + 30_000;
+			const timeout = convertToFuzzyTime(15_000, 45_000);
+			store.timeout = Date.now() + timeout;
 			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
 				store.reason = undefined;
-			}, convertToFuzzyTime(15_000, 45_000));
+			}, timeout);
 			break;
+		}
 
-		case 500:
+		case 500: {
 			// Reconnect after ~60s
-			store.timeout = Date.now() + 60_000;
+			const timeout = convertToFuzzyTime(45_000, 75_000);
+			store.timeout = Date.now() + timeout;
 			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
 				store.reason = undefined;
-			}, convertToFuzzyTime(45_000, 75_000));
+			}, timeout);
 			break;
+		}
 
-		case 503:
+		case 503: {
 			// Reconnect after ~60s
-			store.timeout = Date.now() + 60_000;
+			const timeout = convertToFuzzyTime(45_000, 75_000);
+			store.timeout = Date.now() + timeout;
 			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
 				store.reason = undefined;
-			}, convertToFuzzyTime(45_000, 75_000));
+			}, timeout);
 			break;
+		}
 
-		default:
+		default: {
 			// Reconnect after ~60s
-			store.timeout = Date.now() + 60_000;
+			const timeout = convertToFuzzyTime(45_000, 75_000);
+			store.timeout = Date.now() + timeout;
 			store.reason = reason;
 			setTimeout(() => {
 				store.timeout = undefined;
 				store.reason = undefined;
-			}, convertToFuzzyTime(45_000, 75_000));
+			}, timeout);
 			break;
+		}
 	}
 };
 
