@@ -361,8 +361,8 @@ const commands = {
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
 				NODE_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
-				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'API is OFFLINE'}
-				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'API is offline'}
+				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected'}
+				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
