@@ -3,12 +3,12 @@ import { store } from '../mothership/store';
 
 export type RelayStates = 'connecting' | 'open' | 'closing' | 'closed' | 'unknown';
 
-export const relayStateToHuman = (relayState?: RelayStates) => {
+export const relayStateToHuman = (relayState?: RelayStates, timeout = store.timeout) => {
 	switch (relayState) {
 		case 'closing':
 			return 'disconnecting';
 		case 'closed':
-			if (store.timeout !== undefined) return `reconnecting in ${store.timeout >= 1 ? prettyMilliseconds(store.timeout) : 'a few seconds'}`;
+			if (timeout !== undefined) return `reconnecting in ${timeout >= 1 ? prettyMilliseconds(timeout) : 'a few seconds'}`;
 			return 'disconnected';
 		case 'open':
 			return 'connected';

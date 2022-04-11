@@ -9,7 +9,7 @@ import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { getRelayConnectionStatus } from '../../../mothership/get-relay-connection-status';
+import { getRelayConnectionStatus, getRelayDisconnectionReason, getRelayReconnectingTimeout } from '../../../mothership/get-relay-connection-status';
 import type { Context } from '../../schema/utils';
 import { version } from '../../../../package.json';
 import { logger } from '../../../core/log';
@@ -20,7 +20,7 @@ const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 export type Cloud = {
 	error?: string;
 	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
-	relay: { status: RelayStates; error: undefined } | { status: RelayStates; error: string };
+	relay: { status: RelayStates; timeout: number | undefined; reason: string | undefined; error: undefined } | { status: RelayStates; error: string };
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
 };
 
@@ -54,6 +54,8 @@ const checkApi = async (): Promise<Cloud['apiKey']> => {
 
 const checkRelay = (): Cloud['relay'] => ({
 	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+	timeout: getRelayReconnectingTimeout(),
+	reason: getRelayDisconnectionReason(),
 	error: undefined
 });
 
@@ -135,6 +137,8 @@ export default async (_: unknown, __: unknown, context: Context) => {
 			},
 			relay: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'ok',
+				timeout: process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT,
+				reason: process.env.MOCK_CLOUD_ENDPOINT_RELAY_REASON,
 				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
 			},
 			mothership: {
