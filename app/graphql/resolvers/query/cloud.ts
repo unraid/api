@@ -4,7 +4,7 @@
  */
 
 import got, { HTTPError, OptionsOfTextResponseBody, TimeoutError } from 'got';
-import { MOTHERSHIP_GRAPHQL_LINK } from '../../../consts';
+import { MOTHERSHIP_GRAPHQL_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../../../consts';
 import { apiManager } from '../../../core/api-manager';
 import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
@@ -118,7 +118,7 @@ const checkMothership = async (): Promise<Cloud['mothership']> => {
 
 	// Check auth, rate limiting, etc.
 	try {
-		await checkMothershipAuthentication(MOTHERSHIP_GRAPHQL_LINK, options);
+		await checkMothershipAuthentication(MOTHERSHIP_RELAY_WS_LINK, options);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { status: 'error', error: error.message };
