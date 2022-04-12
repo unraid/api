@@ -20,7 +20,15 @@ const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 export type Cloud = {
 	error?: string;
 	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
-	relay: { status: RelayStates; timeout: number | undefined; reason: string | undefined; error: undefined } | { status: RelayStates; error: string };
+	relay: {
+		status: RelayStates;
+		timeout: undefined;
+		error: undefined;
+	} | {
+		status: RelayStates;
+		timeout: number | undefined;
+		error: string;
+	};
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
 };
 
@@ -55,8 +63,7 @@ const checkApi = async (): Promise<Cloud['apiKey']> => {
 const checkRelay = (): Cloud['relay'] => ({
 	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
 	timeout: getRelayReconnectingTimeout(),
-	reason: getRelayDisconnectionReason(),
-	error: undefined
+	error: getRelayDisconnectionReason() ?? ''
 });
 
 // Check if we're rate limited, etc.

@@ -351,6 +351,9 @@ const commands = {
 			// If the API is offline check directly with key-server
 			const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
 
+			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
+			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${cloud?.relay.timeout} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
+
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
@@ -361,7 +364,7 @@ const commands = {
 				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
 				NODE_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
-				RELAY: ${cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected'}
+				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
