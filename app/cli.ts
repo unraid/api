@@ -303,7 +303,7 @@ const commands = {
 				method: 'POST',
 				...gotOpts,
 				body: JSON.stringify({
-					query: 'query{cloud{error apiKey{valid error}relay{status error}mothership{status error}}}'
+					query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}}}'
 				})
 			}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(() => undefined) : undefined;
 

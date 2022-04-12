@@ -6,7 +6,6 @@ type ApiKeyResponse {
 type RelayResponse {
     status: String!
     timeout: Int
-    reason: String
     error: String
 }
 
