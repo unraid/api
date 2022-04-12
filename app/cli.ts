@@ -305,7 +305,10 @@ const commands = {
 				body: JSON.stringify({
 					query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}}}'
 				})
-			}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(() => undefined) : undefined;
+			}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
+				cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
+				return undefined;
+			}) : undefined;
 
 			// Log cloud response
 			cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
