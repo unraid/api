@@ -1,9 +1,6 @@
-import prettyMilliseconds from 'pretty-ms';
-import { store } from '../mothership/store';
-
 export type RelayStates = 'connecting' | 'open' | 'closing' | 'closed' | 'unknown';
 
-export const relayStateToHuman = (relayState?: RelayStates, timeout = store.timeout) => {
+export const relayStateToHuman = (relayState?: RelayStates) => {
 	switch (relayState) {
 		case 'closing':
 			return 'disconnecting';

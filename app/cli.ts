@@ -307,6 +307,9 @@ const commands = {
 				})
 			}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(() => undefined) : undefined;
 
+			// Log cloud response
+			cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
+
 			// Query local graphl using upc's API key
 			// Get the servers array
 			const servers = unraidApiPid && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
@@ -352,7 +355,7 @@ const commands = {
 			const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
 
 			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
-			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${cloud?.relay.timeout} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
+			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(cloud?.relay.timeout)} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
 
 			// Generate the actual report
 			const report = dedent`
