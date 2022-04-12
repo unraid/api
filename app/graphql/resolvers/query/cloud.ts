@@ -118,7 +118,7 @@ const checkMothership = async (): Promise<Cloud['mothership']> => {
 
 	// Check auth, rate limiting, etc.
 	try {
-		await checkMothershipAuthentication(MOTHERSHIP_RELAY_WS_LINK, options);
+		await checkMothershipAuthentication(MOTHERSHIP_RELAY_WS_LINK.replace('ws', 'http'), options);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { status: 'error', error: error.message };
