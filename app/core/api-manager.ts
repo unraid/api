@@ -397,6 +397,9 @@ export class ApiManager extends EventEmitter {
 				// Key is valid
 				return true;
 			} catch (error: unknown) {
+				// Log the error in trace
+				apiManagerLogger.trace(error);
+
 				if (!configExists) {
 					// File was deleted
 					apiManagerLogger.debug(`Removing "my_servers" API key as "${myServersConfigPath}" was deleted.`);

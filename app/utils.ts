@@ -1,9 +1,9 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from './consts';
-import { CachedServer } from './cache';
 import { version } from '../package.json';
 import { mothershipLogger } from './core';
 import { GraphQLError } from 'graphql';
 import got from 'got';
+import type { CachedServer } from './cache/user';
 
 export const getServers = async (apiKey: string) => {
 	try {
