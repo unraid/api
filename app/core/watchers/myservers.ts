@@ -7,13 +7,13 @@ import chokidar from 'chokidar';
 import { logger } from '../log';
 import { paths } from '../paths';
 import { apiManager } from '../api-manager';
-import { nginx, origins } from '../../server';
 import { MyServersConfig } from '../../types/my-servers-config';
 import { existsSync } from 'fs';
 import { getNginxState } from '../../common/nginx/get-state';
 import { loadState } from '../utils/misc/load-state';
 import { pubsub } from '../pubsub';
 import { checkTwoFactorEnabled } from '../../common/two-factor';
+import { nginx, origins } from '../../common/allowed-origins';
 
 // Get myservers config
 const configPath = paths['myservers-config'];
