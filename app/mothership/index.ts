@@ -87,6 +87,16 @@ const handleError = (error: unknown) => {
 	const code = (error as any).code as number ?? 500;
 	relayLogger.debug('Disconnected with status="%s" reason="%s"', code, reason);
 	switch (code) {
+		// Client disconnected
+		case 5:
+			// Bail as the API has disconnected itself
+			break;
+
+		// Client disconnected
+		case 6:
+			// Bail as the API has disconnected itself
+			break;
+
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
 			// Tell api manager to delete the key as it's invalid
