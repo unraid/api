@@ -1,5 +1,5 @@
 import { existsSync } from 'fs';
-import { paths } from '../../core';
+import { paths } from '../../core/paths';
 import { loadState } from '../../core/utils/misc/load-state';
 import { NginxState } from '../../types/nginx';
 

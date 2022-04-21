@@ -26,6 +26,7 @@ import type { Cloud } from './graphql/resolvers/query/cloud';
 import { validateApiKey } from './core/utils/misc/validate-api-key';
 import { relayStateToHuman } from './graphql/relay-state';
 import { CachedServer } from './cache/user';
+import { getAllowedOrigins } from './common/allowed-origins';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -360,6 +361,8 @@ const commands = {
 			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(cloud?.relay.timeout)} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
 
+			const allowedOrigins = getAllowedOrigins();
+
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
@@ -373,6 +376,7 @@ const commands = {
 				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
+				ALLOWED_ORIGINS: ${allowedOrigins.filter(url => !url.endsWith('.sock')).join(', ')}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
 			`;
