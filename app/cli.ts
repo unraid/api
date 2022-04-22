@@ -1,6 +1,7 @@
 import segfaultHandler from 'segfault-handler';
 segfaultHandler.registerHandler('/var/log/unraid-api/crash.log');
 
+import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import fs from 'fs';
 import path, { resolve } from 'path';
@@ -26,7 +27,6 @@ import type { Cloud } from './graphql/resolvers/query/cloud';
 import { validateApiKey } from './core/utils/misc/validate-api-key';
 import { relayStateToHuman } from './graphql/relay-state';
 import { CachedServer } from './cache/user';
-import { getAllowedOrigins } from './common/allowed-origins';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -361,6 +361,13 @@ const commands = {
 			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(cloud?.relay.timeout)} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
 
+			const hashUrlRegex = () => /(https?:\/\/).*\.((?:myunraid|unraid)\.net)/g;
+
+			const anonymiseOrigins = (origins?: string[]): string[] => {
+				const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
+				return originsWithoutSocks.map(origin => origin.replace(ipRegex(), 'ipaddress').replace(hashUrlRegex(), '$1hash.$2'));
+			};
+
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
@@ -374,7 +381,7 @@ const commands = {
 				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
-				ALLOWED_ORIGINS: ${cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')).join(', ')}
+				ALLOWED_ORIGINS: ${anonymiseOrigins(cloud?.allowedOrigins).join(', ')}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
 			`;
