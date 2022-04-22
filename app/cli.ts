@@ -304,7 +304,7 @@ const commands = {
 				method: 'POST',
 				...gotOpts,
 				body: JSON.stringify({
-					query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}}}'
+					query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}allowedOrigins}}'
 				})
 			}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
 				cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
@@ -361,8 +361,6 @@ const commands = {
 			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(cloud?.relay.timeout)} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
 
-			const allowedOrigins = getAllowedOrigins();
-
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
@@ -376,7 +374,7 @@ const commands = {
 				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
-				ALLOWED_ORIGINS: ${allowedOrigins.filter(url => !url.endsWith('.sock')).join(', ')}
+				ALLOWED_ORIGINS: ${cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')).join(', ')}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
 			`;

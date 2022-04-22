@@ -14,6 +14,7 @@ import type { Context } from '../../schema/utils';
 import { version } from '../../../../package.json';
 import { logger } from '../../../core/log';
 import { RelayStates } from '../../relay-state';
+import { getAllowedOrigins } from '../../../common/allowed-origins';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -30,6 +31,7 @@ export type Cloud = {
 		error: string;
 	};
 	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
+	allowedOrigins: string[];
 };
 
 const createResponse = (cloud: Cloud): Cloud => {
@@ -151,13 +153,15 @@ export default async (_: unknown, __: unknown, context: Context) => {
 			mothership: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
 				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR
-			}
+			},
+			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALOWED_ORIGINS ?? '').split(',')
 		};
 	}
 
 	return createResponse({
 		apiKey: await checkApi(),
 		relay: checkRelay(),
-		mothership: await checkMothership()
+		mothership: await checkMothership(),
+		allowedOrigins: getAllowedOrigins()
 	});
 };

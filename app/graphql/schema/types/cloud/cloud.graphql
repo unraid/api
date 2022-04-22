@@ -19,6 +19,7 @@ type Cloud {
     apiKey: ApiKeyResponse
     relay: RelayResponse
     mothership: MothershipResponse
+    allowedOrigins: [String]
 }
 
 type Query {
