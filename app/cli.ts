@@ -40,7 +40,6 @@ interface Flags {
 	port?: string;
 	'log-level'?: string;
 	environment?: string;
-	version?: boolean;
 }
 
 const args: ArgumentConfig<Flags> = {
@@ -51,8 +50,7 @@ const args: ArgumentConfig<Flags> = {
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
 	'log-level': { type: (level?: string) => {
 		return levels.includes(level as any) ? level : undefined;
-	}, typeLabel: `{underline ${levels.join('/')}}`, optional: true, description: 'Set the log level.' },
-	version: { type: Boolean, optional: true, alias: 'v', description: 'Show version.' }
+	}, typeLabel: `{underline ${levels.join('/')}}`, optional: true, description: 'Set the log level.' }
 };
 
 const options: ArgsParseOptions<Flags> = {
@@ -330,10 +328,11 @@ const commands = {
 			else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
 			// Should we log possibly sensative info?
-			const verboseLogs = process.argv.includes('-v');
+			const verbose = process.argv.includes('-v');
+			const veryVerbose = process.argv.includes('-vv');
 
 			// Convert server to string output
-			const serverToString = (server: CachedServer) => `${server.name}${verboseLogs ? `[owner="${server.owner.username}" guid="${server.guid}"]` : ''}`;
+			const serverToString = (server: CachedServer) => `${server.name}${verbose ? `[owner="${server.owner.username}" guid="${server.guid}"]` : ''}`;
 
 			// Get all the types of servers including ones that don't have a online/offline status
 			const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
@@ -368,6 +367,17 @@ const commands = {
 				return originsWithoutSocks.map(origin => origin.replace(ipRegex(), 'ipaddress').replace(hashUrlRegex(), '$1hash.$2'));
 			};
 
+			const getAllowedOrigins = () => {
+				switch (true) {
+					case veryVerbose:
+						return cloud?.allowedOrigins ?? [];
+					case verbose:
+						return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
+					default:
+						return anonymiseOrigins(cloud?.allowedOrigins);
+				}
+			};
+
 			// Generate the actual report
 			const report = dedent`
 				<-----UNRAID-API-REPORT----->
@@ -381,7 +391,7 @@ const commands = {
 				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
-				ALLOWED_ORIGINS: ${anonymiseOrigins(cloud?.allowedOrigins).join(', ')}
+				ALLOWED_ORIGINS: ${getAllowedOrigins().join(', ')}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
 			`;
