@@ -292,7 +292,7 @@ const commands = {
 				'x-api-key': config.upc.apikey
 			};
 			const timeout = {
-				request: 2_000 // Wait a maximum of 2s
+				request: 5_000 // Wait a maximum of 5s
 			};
 			const gotOpts = { headers, timeout };
 
@@ -364,7 +364,7 @@ const commands = {
 
 			const anonymiseOrigins = (origins?: string[]): string[] => {
 				const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
-				return originsWithoutSocks.map(origin => origin.replace(ipRegex(), 'ipaddress').replace(hashUrlRegex(), '$1hash.$2'));
+				return originsWithoutSocks.map(origin => origin.replace(ipRegex(), 'ipaddress').replace(hashUrlRegex(), '$1hash.$2')).filter(Boolean);
 			};
 
 			const getAllowedOrigins = () => {
@@ -374,7 +374,7 @@ const commands = {
 					case verbose:
 						return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
 					default:
-						return anonymiseOrigins(cloud?.allowedOrigins);
+						return anonymiseOrigins(cloud?.allowedOrigins ?? []);
 				}
 			};
 

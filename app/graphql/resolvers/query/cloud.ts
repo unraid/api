@@ -42,6 +42,7 @@ const createResponse = (cloud: Cloud): Cloud => {
 };
 
 const checkApi = async (): Promise<Cloud['apiKey']> => {
+	logger.trace('Cloud endpoint: Checking API');
 	try {
 		// Check if we have an API key loaded for my servers
 		const apiKey = apiManager.cloudKey;
@@ -59,14 +60,23 @@ const checkApi = async (): Promise<Cloud['apiKey']> => {
 			valid: false,
 			error: error.message
 		};
+	} finally {
+		logger.trace('Cloud endpoint: Done API');
 	}
 };
 
-const checkRelay = (): Cloud['relay'] => ({
-	status: getRelayConnectionStatus().toLowerCase() as RelayStates,
-	timeout: getRelayReconnectingTimeout(),
-	error: getRelayDisconnectionReason() ?? ''
-});
+const checkRelay = (): Cloud['relay'] => {
+	logger.trace('Cloud endpoint: Checking relay');
+	try {
+		return {
+			status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+			timeout: getRelayReconnectingTimeout(),
+			error: getRelayDisconnectionReason() ?? ''
+		};
+	} finally {
+		logger.trace('Cloud endpoint: Done relay');
+	}
+};
 
 // Check if we're rate limited, etc.
 const checkMothershipAuthentication = async (url: string, options: OptionsOfTextResponseBody) => {
@@ -99,34 +109,40 @@ const checkMothershipAuthentication = async (url: string, options: OptionsOfText
 };
 
 const checkMothership = async (): Promise<Cloud['mothership']> => {
-	const apiVersion = version;
-	const apiKey = apiManager.cloudKey;
-	if (!apiKey) throw new Error('API key is missing');
+	logger.trace('Cloud endpoint: Checking mothership');
 
-	const timeout = { request: 2_000 };
-	const headers = {
-		'Content-Type': 'application/json',
-		Accept: 'application/json',
-		'x-unraid-api-version': apiVersion,
-		'x-api-key': apiKey
-	};
-	const options = { timeout, headers };
-
-	// Check if we can reach mothership
-	// This is mainly testing the user's network config
-	// If they cannot resolve this they may have it blocked or have a routing issue
-	const mothershipCanBeResolved = await got.head(mothershipBaseUrl, options).then(() => true).catch(() => false);
-	if (!mothershipCanBeResolved) return { status: 'error', error: `Failed resolving ${mothershipBaseUrl}` };
-
-	// Check auth, rate limiting, etc.
 	try {
-		await checkMothershipAuthentication(MOTHERSHIP_RELAY_WS_LINK.replace('ws', 'http'), options);
-	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
-		return { status: 'error', error: error.message };
-	}
+		const apiVersion = version;
+		const apiKey = apiManager.cloudKey;
+		if (!apiKey) throw new Error('API key is missing');
 
-	return { status: 'ok', error: undefined };
+		const timeout = { request: 2_000 };
+		const headers = {
+			'Content-Type': 'application/json',
+			Accept: 'application/json',
+			'x-unraid-api-version': apiVersion,
+			'x-api-key': apiKey
+		};
+		const options = { timeout, headers };
+
+		// Check if we can reach mothership
+		// This is mainly testing the user's network config
+		// If they cannot resolve this they may have it blocked or have a routing issue
+		const mothershipCanBeResolved = await got.head(mothershipBaseUrl, options).then(() => true).catch(() => false);
+		if (!mothershipCanBeResolved) return { status: 'error', error: `Failed resolving ${mothershipBaseUrl}` };
+
+		// Check auth, rate limiting, etc.
+		try {
+			await checkMothershipAuthentication(MOTHERSHIP_RELAY_WS_LINK.replace('ws', 'http'), options);
+		} catch (error: unknown) {
+			if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
+			return { status: 'error', error: error.message };
+		}
+
+		return { status: 'ok', error: undefined };
+	} finally {
+		logger.trace('Cloud endpoint: Done mothership');
+	}
 };
 
 export default async (_: unknown, __: unknown, context: Context) => {
@@ -158,10 +174,12 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		};
 	}
 
+	const [apiKey, mothership] = await Promise.all([checkApi(), checkMothership()]);
+
 	return createResponse({
-		apiKey: await checkApi(),
+		apiKey,
 		relay: checkRelay(),
-		mothership: await checkMothership(),
+		mothership,
 		allowedOrigins: getAllowedOrigins()
 	});
 };
