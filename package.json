@@ -170,7 +170,7 @@
     "cz-conventional-changelog": "3.3.0",
     "eslint": "^7.32.0",
     "got": "^12.0.1",
-    "graphql-tools": "^6.2.6",
+    "graphql-tools": "^8.2.8",
     "ip-regex": "^5.0.0",
     "log4js": "github:OmgImAlexis/log4js-node",
     "modclean": "^3.0.0-beta.1",
