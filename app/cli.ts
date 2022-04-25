@@ -525,11 +525,6 @@ async function main() {
 	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
 
 	if (!command) {
-		if (mainOptions.version) {
-			await commands.version();
-			process.exit(0);
-		}
-
 		// Run help command
 		parse<Flags>(args, { ...options, partial: true, stopAtFirstUnknown: true, argv: ['-h'] });
 	}
