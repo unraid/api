@@ -170,7 +170,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
 				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR
 			},
-			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALOWED_ORIGINS ?? '').split(',')
+			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALOWED_ORIGINS ?? '').split(',').filter(Boolean)
 		};
 	}
 

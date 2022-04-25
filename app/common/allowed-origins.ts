@@ -75,5 +75,5 @@ export const getAllowedOrigins = (): string[] => {
 
 		// Other endpoints should be added below
 		...origins.extra
-	]).values()];
+	]).values()].filter(Boolean);
 };

@@ -351,7 +351,7 @@ const commands = {
 
 			// Load the var.ini file
 			const varIni = getConfig<{ name: string }>(resolve(paths.states, 'var.ini'));
-			const serverName = varIni?.name;
+			const serverName = varIni?.name ?? 'Tower';
 
 			// Check if the API key is valid
 			// If the API is offline check directly with key-server
@@ -360,11 +360,21 @@ const commands = {
 			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(cloud?.relay.timeout)} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
 
-			const hashUrlRegex = () => /(https?:\/\/).*\.((?:myunraid|unraid)\.net)/g;
+			const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
 
 			const anonymiseOrigins = (origins?: string[]): string[] => {
 				const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
-				return originsWithoutSocks.map(origin => origin.replace(ipRegex(), 'ipaddress').replace(hashUrlRegex(), '$1hash.$2')).filter(Boolean);
+				return originsWithoutSocks.map(origin => {
+					return origin
+						// Replace 40 char hash string with "hash"
+						.replace(hashUrlRegex(), '$1hash$3')
+						// Replace ipv4 address using . separator with "ipv4Address"
+						.replace(ipRegex(), 'ipv4Address')
+						// Replace ipv4 address using - separator with "ipv4Address"
+						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'ipv4Address')
+						// Replace the server's name with "serverName"
+						.replace(new RegExp(serverName, 'i'), 'serverName');
+				}).filter(Boolean);
 			};
 
 			const getAllowedOrigins = () => {
