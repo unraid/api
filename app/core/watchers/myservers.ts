@@ -109,6 +109,7 @@ const watchStateFile = () => {
 
 	// Update SSL cert info
 	watcher.on('all', _event => {
+		logger.trace('Update event fired for %s', filePath);
 		const nginxState = getNginxState();
 		nginx.lan = nginxState.lan;
 		nginx.wan = nginxState.wan;
