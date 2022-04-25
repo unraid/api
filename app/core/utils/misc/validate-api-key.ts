@@ -42,7 +42,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 				'content-type': 'application/x-www-form-urlencoded'
 			},
 			timeout: {
-				request: 2_000
+				request: 5_000
 			},
 			body
 		});

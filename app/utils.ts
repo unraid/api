@@ -22,7 +22,7 @@ export const getServers = async (apiKey: string) => {
 				}
 			}),
 			timeout: {
-				request: 2_000 // Wait for 2s at most
+				request: 5_000 // Wait for 5s at most
 			},
 			retry: {
 				methods: ['POST'],
