@@ -158,8 +158,12 @@ const handleError = (error: unknown) => {
 	}
 };
 
+let interval: NodeJS.Timer;
 const startKeepAlive = () => {
-	const interval = setInterval(() => {
+	// If we had an old timer running make sure to clear it
+	if (interval) clearInterval(interval);
+
+	interval = setInterval(() => {
 		// If we disconnect stop sending keep alive messages
 		if (!store.relay?.isOpened) {
 			clearInterval(interval);
