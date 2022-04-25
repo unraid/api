@@ -292,7 +292,7 @@ const commands = {
 				'x-api-key': config.upc.apikey
 			};
 			const timeout = {
-				request: 5_000 // Wait a maximum of 5s
+				request: 10_000 // Wait a maximum of 10s
 			};
 			const gotOpts = { headers, timeout };
 

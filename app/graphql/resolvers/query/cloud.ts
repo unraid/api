@@ -116,7 +116,7 @@ const checkMothership = async (): Promise<Cloud['mothership']> => {
 		const apiKey = apiManager.cloudKey;
 		if (!apiKey) throw new Error('API key is missing');
 
-		const timeout = { request: 2_000 };
+		const timeout = { request: 5_000 };
 		const headers = {
 			'Content-Type': 'application/json',
 			Accept: 'application/json',
