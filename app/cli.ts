@@ -357,7 +357,9 @@ const commands = {
 			// If the API is offline check directly with key-server
 			const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
 
-			const relayStatus = cloud?.relay.error ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
+			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+			const relayError = cloud?.relay.error || undefined;
+			const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(cloud?.relay.timeout)} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
 
 			const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
