@@ -109,10 +109,14 @@ const watchStateFile = () => {
 
 	// Update SSL cert info
 	watcher.on('all', _event => {
-		logger.trace('Update event fired for %s', filePath);
+		// Update nginx values
 		const nginxState = getNginxState();
 		nginx.lan = nginxState.lan;
 		nginx.wan = nginxState.wan;
+
+		// Update remote access details
+		const config = loadState<Partial<MyServersConfig>>(configPath) ?? {};
+		myServersConfig.remote = config.remote;
 	});
 
 	// Save ref for cleanup
