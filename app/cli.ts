@@ -401,10 +401,10 @@ const commands = {
 				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
-				ALLOWED_ORIGINS: ${getAllowedOrigins().join(', ')}
+				${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins().join(', ')}` : ''}
 				HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
 				</----UNRAID-API-REPORT----->
-			`;
+			`.replace(/\n+/g, '\n');
 
 			// If we have a crash log grab it for later
 			const crashLogs = hasCrashLogs ? dedent`
