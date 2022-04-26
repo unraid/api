@@ -118,11 +118,7 @@ const watchStateFile = () => {
 		const config = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 		myServersConfig.remote = config.remote;
 
-		logger.addContext('nginxState', nginx);
-		logger.addContext('myServersConfig', myServersConfig);
-		logger.trace('Updated nginxState and myServerConfig vars');
-		logger.removeContext('nginxState');
-		logger.removeContext('myServersConfig');
+		logger.debug('Updated nginxState and myServerConfig vars', myServersConfig, config);
 	});
 
 	// Save ref for cleanup
