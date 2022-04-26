@@ -14,12 +14,12 @@ import { loadState } from '../utils/misc/load-state';
 import { pubsub } from '../pubsub';
 import { checkTwoFactorEnabled } from '../../common/two-factor';
 import { nginx, origins } from '../../common/allowed-origins';
-
-// Get myservers config
-const configPath = paths['myservers-config'];
-export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
+import { myServersConfig } from '../../common/myservers-config';
 
 const watchConfigFile = () => {
+	// Get myservers config
+	const configPath = paths['myservers-config'];
+
 	logger.debug('Starting watcher for %s', configPath);
 
 	// Watch the my servers config file
@@ -115,12 +115,10 @@ const watchStateFile = () => {
 		nginx.wan = nginxState.wan;
 
 		// Update remote access details
+		const configPath = paths['myservers-config'];
 		const file = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 		if (!myServersConfig.remote) myServersConfig.remote = {};
-		myServersConfig.remote.wanaccess = file.remote?.wanaccess;
-		myServersConfig.remote.wanport = file.remote?.wanport;
-
-		logger.debug('Updated nginxState and myServerConfig vars', myServersConfig, file);
+		myServersConfig.remote = file.remote;
 	});
 
 	// Save ref for cleanup

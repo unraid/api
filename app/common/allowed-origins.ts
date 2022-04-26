@@ -1,15 +1,10 @@
 import { logger } from '../core/log';
-import { paths } from '../core/paths';
 import { networkState, varState } from '../core/states';
-import { loadState } from '../core/utils/misc/load-state';
-import { MyServersConfig } from '../types/my-servers-config';
+import { myServersConfig } from './myservers-config';
 import { getNginxState } from './nginx/get-state';
 
 // Get nginx state
 export const nginx = getNginxState();
-
-const configPath = paths['myservers-config'];
-export const myServersConfig = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 
 logger.debug('Initial extra origins set origins="%s"', myServersConfig?.api?.extraOrigins ?? '');
 
@@ -39,17 +34,6 @@ export const getAllowedOrigins = (): string[] => {
 
 	// Check if wan access is enabled
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
-
-	logger.debug('Using the following for generating the allowed origins', {
-		myServersConfig,
-		localIp,
-		localTld,
-		serverName,
-		webuiHTTPPort,
-		webuiHTTPSPort,
-		wanHTTPSPort,
-		wanAccessEnabled
-	});
 
 	// Only append the port if it's not HTTP/80 or HTTPS/443
 	// We use a "Set" + "array spread" to deduplicate the strings
