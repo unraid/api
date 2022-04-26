@@ -117,8 +117,6 @@ const watchStateFile = () => {
 		// Update remote access details
 		const config = loadState<Partial<MyServersConfig>>(configPath) ?? {};
 		myServersConfig.remote = config.remote;
-
-		logger.debug('Updated nginxState and myServerConfig vars', myServersConfig, config);
 	});
 
 	// Save ref for cleanup

@@ -374,8 +374,6 @@ const commands = {
 						.replace(ipRegex(), 'ipv4Address')
 						// Replace ipv4 address using - separator with "ipv4Address"
 						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'ipv4Address')
-						// Replace the server's name with "serverName"
-						.replace(new RegExp(serverName, 'i'), 'serverName');
 				}).filter(Boolean);
 			};
 

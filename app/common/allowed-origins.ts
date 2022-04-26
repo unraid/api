@@ -40,6 +40,16 @@ export const getAllowedOrigins = (): string[] => {
 	// Check if wan access is enabled
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
 
+	logger.debug('Using the following for generating the allowed origins', {
+		localIp,
+		localTld,
+		serverName,
+		webuiHTTPPort,
+		webuiHTTPSPort,
+		wanHTTPSPort,
+		wanAccessEnabled
+	});
+
 	// Only append the port if it's not HTTP/80 or HTTPS/443
 	// We use a "Set" + "array spread" to deduplicate the strings
 	return [...new Set([
