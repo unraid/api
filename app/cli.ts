@@ -27,6 +27,7 @@ import type { Cloud } from './graphql/resolvers/query/cloud';
 import { validateApiKey } from './core/utils/misc/validate-api-key';
 import { relayStateToHuman } from './graphql/relay-state';
 import { CachedServer } from './cache/user';
+import { myServersConfig } from './common/myservers-config';
 
 const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);
@@ -368,23 +369,24 @@ const commands = {
 				const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
 				return originsWithoutSocks.map(origin => {
 					return origin
-						// Replace 40 char hash string with "hash"
-						.replace(hashUrlRegex(), '$1hash$3')
-						// Replace ipv4 address using . separator with "ipv4Address"
-						.replace(ipRegex(), 'ipv4Address')
-						// Replace ipv4 address using - separator with "ipv4Address"
-						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'ipv4Address');
+						// Replace 40 char hash string with "HASH"
+						.replace(hashUrlRegex(), '$1HASH$3')
+						// Replace ipv4 address using . separator with "IPV4ADDRESS"
+						.replace(ipRegex(), 'IPV4ADDRESS')
+						// Replace ipv4 address using - separator with "IPV4ADDRESS"
+						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'IPV4ADDRESS')
+						.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
 				}).filter(Boolean);
 			};
 
 			const getAllowedOrigins = () => {
 				switch (true) {
 					case veryVerbose:
-						return cloud?.allowedOrigins ?? [];
-					case verbose:
 						return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
-					default:
+					case verbose:
 						return anonymiseOrigins(cloud?.allowedOrigins ?? []);
+					default:
+						return [];
 				}
 			};
 
