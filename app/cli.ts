@@ -368,14 +368,18 @@ const commands = {
 			const anonymiseOrigins = (origins?: string[]): string[] => {
 				const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
 				return originsWithoutSocks.map(origin => {
-					return origin
+					const anonymisedOrigin = origin
 						// Replace 40 char hash string with "HASH"
 						.replace(hashUrlRegex(), '$1HASH$3')
 						// Replace ipv4 address using . separator with "IPV4ADDRESS"
 						.replace(ipRegex(), 'IPV4ADDRESS')
 						// Replace ipv4 address using - separator with "IPV4ADDRESS"
 						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
+						// Report WAN port
 						.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
+					if (anonymisedOrigin.endsWith('.unraid.net')) return anonymisedOrigin.replace('.unraid.net', '.unraid.net:WANPORT');
+					if (anonymisedOrigin.endsWith('.myunraid.net')) return anonymisedOrigin.replace('.myunraid.net', '.myunraid.net:WANPORT');
+					return anonymisedOrigin;
 				}).filter(Boolean);
 			};
 
