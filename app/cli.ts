@@ -333,7 +333,7 @@ const commands = {
 			const veryVerbose = process.argv.includes('-vv');
 
 			// Convert server to string output
-			const serverToString = (server: CachedServer) => `${server.name}${verbose ? `[owner="${server.owner.username}" guid="${server.guid}"]` : ''}`;
+			const serverToString = (server: CachedServer) => `${server.name}${(verbose || veryVerbose) ? `[owner="${server.owner.username}" guid="${server.guid}"]` : ''}`;
 
 			// Get all the types of servers including ones that don't have a online/offline status
 			const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
@@ -374,7 +374,7 @@ const commands = {
 						// Replace ipv4 address using . separator with "IPV4ADDRESS"
 						.replace(ipRegex(), 'IPV4ADDRESS')
 						// Replace ipv4 address using - separator with "IPV4ADDRESS"
-						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'IPV4ADDRESS')
+						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
 						.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
 				}).filter(Boolean);
 			};
