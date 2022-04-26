@@ -397,10 +397,10 @@ const commands = {
 				SERVER_NAME: ${serverName}
 				ENVIRONMENT: ${process.env.ENVIRONMENT}
 				UNRAID_VERSION: ${unraidVersion}
-				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
-				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
 				UNRAID_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
 				NODE_VERSION: ${process.version}
+				API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
+				MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
 				RELAY: ${relayDetails}
 				MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
 				${servers ? serversDetails : 'SERVERS: none found'}
