@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.43.0](https://github.com/unraid/api/compare/v2.42.5...v2.43.0) (2022-04-26)
+
+
+### Features
+
+* add timeout and reason to cloud endpoint ([9ebd195](https://github.com/unraid/api/commit/9ebd195a6430003c24799e30c832abb670ed1f85))
+* cloud->allowedOrigins ([959b678](https://github.com/unraid/api/commit/959b678e6b51a2fc55e1d40bc9a962a342448092))
+
+
+### Bug Fixes
+
+* add ip-regex module ([bbf3527](https://github.com/unraid/api/commit/bbf3527b8543db476dd67849745845bb6477e96d))
+* anonymise allowedOrigins in report ([f729b8f](https://github.com/unraid/api/commit/f729b8f6828a7b0b643c85769d93e4ac5910e93f))
+* anonymise origins in cli report ([40e4799](https://github.com/unraid/api/commit/40e479941c7e10bfd89bac5f7a36fd690cc932a9))
+* don't show ALLOWED_ORIGINS by default ([0affa7c](https://github.com/unraid/api/commit/0affa7c05807c8c26c24190d95d81c7f0a45f256))
+* dont reconnect if API disconnects itself ([d9adb43](https://github.com/unraid/api/commit/d9adb433559d25b30ecb27271692b830ff51fbdd))
+* ensure auth check is against http not ws url ([c53dade](https://github.com/unraid/api/commit/c53dade4ac51f88862af28a9342d8ac8a9310fda))
+* ensure myserversConfig.remote can be updated ([18bc9f1](https://github.com/unraid/api/commit/18bc9f1cd89b27afe3eb14184bc7cfe372c94281))
+* ensure only one keep-alive loop is running at a time ([02295e5](https://github.com/unraid/api/commit/02295e5dcb1a1c993f8fe3616cdc8bdec35d4a4b))
+* ensure there is only one myServersConfig ([aa6009e](https://github.com/unraid/api/commit/aa6009eb6e37f4aa8d7ef93ecb21f4b3f5c0bca9))
+* ensure timeout doesnt go negative ([3883452](https://github.com/unraid/api/commit/3883452ffda45d57dda3a209575f556fc6405826))
+* fetch timeout for relay ([2d21cb6](https://github.com/unraid/api/commit/2d21cb685e1cda5745edf55e285dba47b9b39375))
+* issues with anonymisation of origins ([e8512c0](https://github.com/unraid/api/commit/e8512c006649e74beb646739db1843d9a4558c74))
+* move comment down for 2FA when vars changes ([5e01a70](https://github.com/unraid/api/commit/5e01a7083fc572daeec9edcf16dd2106393825e0))
+* myServersConfig.remote not being updated ([0d6ce40](https://github.com/unraid/api/commit/0d6ce40c8f0ac13bea5e49dc281222d062409279))
+* on nginx state change reload myServersConfig ([d610280](https://github.com/unraid/api/commit/d6102809d8a9a8211b623487345e71193822a54d))
+* relay error might be an empty string ([61b07cb](https://github.com/unraid/api/commit/61b07cbf5c7b7c5aa5dd88aa0b07e7ab78653ab9))
+* use Int not Number for graphql ([7065175](https://github.com/unraid/api/commit/706517545a6ec9dfb80220cda42a85863703cba7))
+* use relay endpoint to check mothership auth not graphql ([4516b85](https://github.com/unraid/api/commit/4516b8589d164bbdf18d6cbf78c680a47da7c076))
+* use String not Int for timeout ([643eeff](https://github.com/unraid/api/commit/643eeff58490f9dfbf5cd29507368107c4c3292c))
+* validateApiKey throwing in non throw mode ([93f3f3e](https://github.com/unraid/api/commit/93f3f3e192eb5a06ee87217019f9eccbb06dca8c))
+* version missing from flags ([6528915](https://github.com/unraid/api/commit/6528915fccb0de96faf0c67c0559beedfe5fc288))
+
 ### [2.42.5](https://github.com/unraid/api/compare/v2.42.4...v2.42.5) (2022-03-25)
 
 ### [2.42.4](https://github.com/unraid/api/compare/v2.42.3...v2.42.4) (2022-03-24)
