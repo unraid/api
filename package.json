@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.43.0",
+  "version": "2.43.1",
   "fullVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
   "main": "dist/index.js",
   "repository": "git@github.com:unraid/api.git",

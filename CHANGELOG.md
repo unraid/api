@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.43.1](https://github.com/unraid/api/compare/v2.43.0...v2.43.1) (2022-04-26)
+
+
+### Bug Fixes
+
+* missing slash in hash origin and missing owners in veryVerbose ([cf98bbb](https://github.com/unraid/api/commit/cf98bbb2abc51b57fdc5485453a3ba027613c882))
+* possibly fix urls without WANPORT ([b460c14](https://github.com/unraid/api/commit/b460c1431163b9d3bc324cb080ae987163b41eb5))
+
 ## [2.43.0](https://github.com/unraid/api/compare/v2.42.5...v2.43.0) (2022-04-26)
 
 
