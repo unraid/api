@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.43.3](https://github.com/unraid/api/compare/v2.43.2...v2.43.3) (2022-04-26)
+
+
+### Bug Fixes
+
+* ensure extraOrigins is trimmed ([a1f05a1](https://github.com/unraid/api/commit/a1f05a186ec975fead726b426c8bac193c9b25b5))
+
 ### [2.43.2](https://github.com/unraid/api/compare/v2.43.1...v2.43.2) (2022-04-26)
 
 ### [2.43.1](https://github.com/unraid/api/compare/v2.43.0...v2.43.1) (2022-04-26)
