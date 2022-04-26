@@ -4,11 +4,8 @@
  */
 
 import { generateTwoFactorToken, checkTwoFactorEnabled, setTwoFactorToken } from '../../../common/two-factor';
-import { compareUnraidVersion } from '../../../common/unraid-version-compare';
 import { logger } from '../../../core/log';
-import { varState } from '../../../core/states';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { myServersConfig } from '../../../core/watchers/myservers';
 import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {

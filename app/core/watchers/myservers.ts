@@ -7,7 +7,7 @@ import chokidar from 'chokidar';
 import { logger } from '../log';
 import { paths } from '../paths';
 import { apiManager } from '../api-manager';
-import { MyServersConfig } from '../../types/my-servers-config';
+import type { MyServersConfig } from '../../types/my-servers-config';
 import { existsSync } from 'fs';
 import { getNginxState } from '../../common/nginx/get-state';
 import { loadState } from '../utils/misc/load-state';

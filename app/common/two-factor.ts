@@ -2,7 +2,7 @@ import { randomBytes } from 'crypto';
 import NodeCache from 'node-cache';
 import { logger } from '../core';
 import { varState } from '../core/states/var';
-import { myServersConfig } from '../core/watchers/myservers';
+import { myServersConfig } from './myservers-config';
 import { compareUnraidVersion } from './unraid-version-compare';
 
 /**
