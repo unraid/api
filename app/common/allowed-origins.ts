@@ -41,6 +41,7 @@ export const getAllowedOrigins = (): string[] => {
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
 
 	logger.debug('Using the following for generating the allowed origins', {
+		myServersConfig,
 		localIp,
 		localTld,
 		serverName,

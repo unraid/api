@@ -373,7 +373,7 @@ const commands = {
 						// Replace ipv4 address using . separator with "ipv4Address"
 						.replace(ipRegex(), 'ipv4Address')
 						// Replace ipv4 address using - separator with "ipv4Address"
-						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'ipv4Address')
+						.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), 'ipv4Address');
 				}).filter(Boolean);
 			};
 
