@@ -115,10 +115,15 @@ const watchStateFile = () => {
 		nginx.wan = nginxState.wan;
 
 		// Update remote access details
-		const config = loadState<Partial<MyServersConfig>>(configPath) ?? {};
-		myServersConfig.remote = config.remote;
+		const file = loadState<Partial<MyServersConfig>>(configPath) ?? {};
+		myServersConfig.remote = {
+			...(myServersConfig.remote ? myServersConfig.remote : {}),
+			wanaccess: file.remote?.wanaccess,
+			wanport: file.remote?.wanport,
+			'2Fa': file.remote?.['2Fa']
+		};
 
-		logger.debug('Updated nginxState and myServerConfig vars', myServersConfig, config);
+		logger.debug('Updated nginxState and myServerConfig vars', myServersConfig, file);
 	});
 
 	// Save ref for cleanup
