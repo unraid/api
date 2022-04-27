@@ -43,11 +43,12 @@ function sendMessage(name: string, type: 'error', id: string | number, payload: 
 function sendMessage(name: string, type: 'data', id: string | number, payload: { data: Record<string, unknown> });
 function sendMessage(name: string, type: string, id?: unknown, payload?: Record<string, unknown>): void {
 	if (!store.relay?.isOpened) return;
-	const message = JSON.stringify({
+	const data = {
 		id,
 		payload,
 		type
-	});
+	};
+	const message = JSON.stringify(data);
 
 	// Log the message
 	if (type === 'ka') {
@@ -59,7 +60,7 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 	}
 
 	// Log all messages
-	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveWebsocketMessageToDisk(message);
+	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveWebsocketMessageToDisk(JSON.stringify(data, null, 2));
 
 	store.relay.send(message);
 }
