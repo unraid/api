@@ -60,7 +60,7 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 	}
 
 	// Log all messages
-	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveWebsocketMessageToDisk(JSON.stringify(data, null, 2));
+	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveWebsocketMessageToDisk(JSON.stringify({ name, data }));
 
 	store.relay.send(message);
 }
