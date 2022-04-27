@@ -1,5 +1,6 @@
 import WebSocket from 'ws';
 import WebSocketAsPromised from 'websocket-as-promised';
+import { createStream as createRotatingFileStream, RotatingFileStream } from 'rotating-file-stream';
 import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '../consts';
@@ -18,6 +19,20 @@ import { getRelayConnectionStatus } from './get-relay-connection-status';
 import { store } from './store';
 
 const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
+
+let stream: RotatingFileStream;
+const saveWebsocketMessageToDisk = (message: string) => {
+	// Start stream if it doesn't exist
+	if (!stream) {
+		stream = createRotatingFileStream('relay-messages.log', {
+			size: '10M', // Rotate every 10 MegaBytes written
+			interval: '1d', // Rotate daily
+			compress: 'gzip' // Compress rotated files
+		});
+	}
+
+	stream.write(`${message}\n`);
+};
 
 /**
  * Send a message to relay if it's open
@@ -44,7 +59,7 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 	}
 
 	// Log all messages
-	if (process.env.LOG_MOTHERSHIP_MESSAGES) relayLogger.info('Sending update to %s with message size %s', name, message.length);
+	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveWebsocketMessageToDisk(message);
 
 	store.relay.send(message);
 }
