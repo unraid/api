@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.44.0](https://github.com/unraid/api/compare/v2.43.3...v2.44.0) (2022-04-28)
+
+
+### Features
+
+* add mothership subscription endpoint ([e197276](https://github.com/unraid/api/commit/e197276477f54bf753087a5e4da8c8e9914e4bc0))
+* allow auditing relay messages ([f2ab89f](https://github.com/unraid/api/commit/f2ab89faa0f1234cbc885c67f056bb7afff2b6c2))
+
 ### [2.43.3](https://github.com/unraid/api/compare/v2.43.2...v2.43.3) (2022-04-26)
 
 
