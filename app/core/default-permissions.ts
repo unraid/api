@@ -74,27 +74,7 @@ export const upc = {
 export const my_servers = {
 	extends: 'guest',
 	permissions: [
-		{ resource: 'array', action: 'read:any', attributes: '*' },
-		{ resource: 'display', action: 'read:any', attributes: '*' },
-		{ resource: 'docker/container', action: 'read:any', attributes: '*' },
-		{ resource: 'docker/network', action: 'read:any', attributes: '*' },
-		{ resource: 'info', action: 'read:any', attributes: '*' },
-		{ resource: 'online', action: 'read:any', attributes: '*' },
-		{ resource: 'service', action: 'read:any', attributes: '*' },
-		{ resource: 'service/emhttpd', action: 'read:any', attributes: '*' },
-		{ resource: 'service/unraid-api', action: 'read:any', attributes: '*' },
-		{ resource: 'services', action: 'read:any', attributes: '*' },
-		{ resource: 'uptime', action: 'read:any', attributes: '*' },
-		{ resource: 'user', action: 'read:any', attributes: '*' },
-		{ resource: 'os', action: 'read:any', attributes: '*' },
-		{ resource: 'unraid-version', action: 'read:any', attributes: '*' },
-		{ resource: 'machine-id', action: 'read:any', attributes: '*' },
-		{ resource: 'software-versions', action: 'read:any', attributes: '*' },
-		{ resource: 'vars', action: 'read:any', attributes: '*' },
-		{ resource: 'vms', action: 'read:any', attributes: '*' },
-		{ resource: 'vms/domain', action: 'read:any', attributes: '*' },
-		{ resource: 'config', action: 'read:any', attributes: '*' },
-		{ resource: 'two-factor', action: 'read:own', attributes: '*' }
+		{ resource: 'mothership', action: 'read:any', attributes: '*' }
 	]
 };
 
