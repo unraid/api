@@ -54,8 +54,6 @@ const ensureApiKey = async (apiKeyToCheck: string) => {
 	}
 };
 
-const debug = config.get('debug');
-
 export const apiKeyToUser = async (apiKey: string) => {
 	try {
 		await ensureApiKey(apiKey);
@@ -178,9 +176,9 @@ logger.debug('Binding to docker events');
 dee.listen();
 
 export const graphql = {
-	debug,
-	introspection: (process.env.INTROSPECTION ?? debug),
-	playground: (process.env.PLAYGROUND ?? debug) ? {
+	debug: config.debug,
+	introspection: (process.env.INTROSPECTION ?? config.debug),
+	playground: (process.env.PLAYGROUND ?? config.debug) ? {
 		subscriptionEndpoint: '/graphql'
 	} : false,
 	schema,

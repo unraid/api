@@ -45,7 +45,7 @@ chokidar.watch(customImageFilePath).on('all', updatePubsub);
 const app = express();
 
 // Graphql port
-const port = process.env.PORT ?? String(config.get('port'));
+const port = process.env.PORT ?? config.port;
 
 // Cors error
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -64,7 +64,7 @@ app.use(cors({
 		// (like mobile apps, curl requests or viewing /graphql directly)
 		if (!origin) {
 			// If in debug mode allow this
-			if (config.get('debug')) {
+			if (config.debug) {
 				logger.debug('Debug mode is enabled, bypassing CORS check.');
 				callback(null, true);
 				return;

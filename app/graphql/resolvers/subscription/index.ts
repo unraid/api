@@ -9,12 +9,19 @@ import { pubsub } from '../../../core/pubsub';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { hasSubscribedToChannel } from '../../../ws';
 import { createSubscription } from '../../schema/utils';
+import { logger } from '../../../core/log';
+import { config } from '../../../core/config';
+import { generateData } from '../../../common/dashboard/generate-data';
 
 let mothershipProducer: NodeJS.Timer;
 const publishToMothership = async () => {
-	await pubsub.publish('mothership', {
-		mothership: {}
-	});
+	try {
+		const data = await generateData();
+		await pubsub.publish('mothership', data);
+	} catch (error: unknown) {
+		logger.error('Failed publishing to mothership');
+		if (config.debug) logger.error(error);
+	}
 };
 
 const stopMothershipProducer = () => {
@@ -101,7 +108,7 @@ export const Subscription = {
 	owner: {
 		...createSubscription('owner')
 	},
-	mothership: {
+	dashboard: {
 		subscribe: async (rootValue, args, context, info: GraphQLResolveInfo) => {
 			if (!context.user) {
 				throw new AppError('<ws> No user found in context.', 500);
@@ -109,19 +116,19 @@ export const Subscription = {
 
 			// Check the user has permission to subscribe to this endpoint
 			ensurePermission(context.user, {
-				resource: 'mothership',
+				resource: 'dashboard',
 				action: 'read',
 				possession: 'any'
 			});
 
 			// Mark channel as subscribed
-			hasSubscribedToChannel(context.websocketId, 'mothership');
+			hasSubscribedToChannel(context.websocketId, 'dashboard');
 
 			// Start producer
 			startMothershipProducer();
 
 			// Return iterator with a cancel method that'll stop the producer
-			const iterator = pubsub.asyncIterator('mothership');
+			const iterator = pubsub.asyncIterator('dashboard');
 			return withCancel(iterator, async () => {
 				stopMothershipProducer();
 			});

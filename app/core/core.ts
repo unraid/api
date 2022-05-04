@@ -49,7 +49,7 @@ const loadStatePaths = async (): Promise<void> => {
  * Start all watchers.
  */
 const loadWatchers = async (): Promise<void> => {
-	if (config.get('safe-mode')) {
+	if (config.safeMode) {
 		logger.debug('Skipping loading watchers');
 		return;
 	}

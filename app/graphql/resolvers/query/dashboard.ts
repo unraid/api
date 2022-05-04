@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import { generateData } from '../../../common/dashboard/generate-data';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { Context } from '../../schema/utils';
 
@@ -13,5 +14,5 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
-	// TODO: Add endpoint
+	return generateData();
 };

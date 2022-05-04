@@ -68,7 +68,7 @@ export const checkTwoFactorEnabled = () => {
 		isLocalEnabled,
 		isEnabled
 	});
-	logger.debug('Checking 2FA status');
+	logger.trace('Checking 2FA status');
 	logger.removeContext('details');
 
 	return {
