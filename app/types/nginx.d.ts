@@ -9,5 +9,7 @@ export interface NginxState {
 	nginxCertname: string;
 	nginxLanfqdn: string;
 	nginxWanfqdn: string;
+	nginxLanfqdn6: string;
+	nginxWanfqdn6: string;
 	nginxWanip: string;
 }

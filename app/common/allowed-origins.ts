@@ -13,6 +13,33 @@ export const origins = {
 	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : []
 };
 
+const allowedSocks = [
+	// Notifier bridge
+	'/var/run/unraid-notifications.sock',
+
+	// Unraid PHP scripts
+	'/var/run/unraid-php.sock',
+
+	// CLI
+	'/var/run/unraid-cli.sock'
+];
+
+const createWanHashOrigins = ({ wanAccessEnabled, wanHTTPSPort }: { wanAccessEnabled: boolean; wanHTTPSPort: string }) => [
+	// WAN hash IPV4
+	...(nginx.ipv4?.wan && wanAccessEnabled ? [`https://${nginx.ipv4.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+
+	// WAN hash IPV6
+	...(nginx.ipv6?.wan && wanAccessEnabled ? [`https://${nginx.ipv6.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : [])
+];
+
+const createLanHashOrigins = ({ webuiHTTPSPort }: { webuiHTTPSPort: number | string }) => [
+	// LAN hash IPV4
+	...(nginx.ipv4?.lan ? [`https://${nginx.ipv4.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+
+	// LAN hash IPV6
+	...(nginx.ipv6?.lan ? [`https://${nginx.ipv6.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : [])
+];
+
 export const getAllowedOrigins = (): string[] => {
 	// Get local ip from first ethernet adapter in the "network" state
 	const localIp = networkState.data[0].ipaddr[0] as string;
@@ -35,40 +62,39 @@ export const getAllowedOrigins = (): string[] => {
 	// Check if wan access is enabled
 	const wanAccessEnabled = myServersConfig?.remote?.wanaccess === 'yes';
 
-	// Only append the port if it's not HTTP/80 or HTTPS/443
-	// We use a "Set" + "array spread" to deduplicate the strings
-	return [...new Set([
-		// Localhost - Used for GUI mode
-		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-
-		// IP
+	// Get IP address origins
+	const ipOrigins = [
 		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
+		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`
+	];
 
+	// Get local TLD address origins
+	const tldOrigins = [
 		// Raw local TLD
 		`http://${serverName}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
 		`https://${serverName}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 
 		// Local TLD
 		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
+		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`
+	];
 
-		// LAN hash
-		...(nginx.lan ? [`https://${nginx.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+	// Get origins for LAN access with hash cert
+	const lanHashOrigins = createLanHashOrigins({ webuiHTTPSPort });
 
-		// WAN hash
-		...(nginx.wan && wanAccessEnabled ? [`https://${nginx.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+	// Get origins for WAN access with hash cert
+	const wanHashOrigins = createWanHashOrigins({ wanAccessEnabled, wanHTTPSPort });
 
-		// Notifier bridge
-		'/var/run/unraid-notifications.sock',
-
-		// Unraid PHP scripts
-		'/var/run/unraid-php.sock',
-
-		// CLI
-		'/var/run/unraid-cli.sock',
-
-		// Other endpoints should be added below
+	// Only append the port if it's not HTTP/80 or HTTPS/443
+	// We use a "Set" + "array spread" to deduplicate the origins
+	return [...new Set([
+		// Localhost - Used for GUI mode
+		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
+		...ipOrigins,
+		...tldOrigins,
+		...lanHashOrigins,
+		...wanHashOrigins,
+		...allowedSocks,
 		...origins.extra
 	]).values()].filter(Boolean);
 };

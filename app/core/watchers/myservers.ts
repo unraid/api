@@ -111,8 +111,17 @@ const watchStateFile = () => {
 	watcher.on('all', _event => {
 		// Update nginx values
 		const nginxState = getNginxState();
-		nginx.lan = nginxState.lan;
-		nginx.wan = nginxState.wan;
+
+		// NOTE: Rebuild both objects to ensure reactivity
+		// 		 still works within the ESM import
+		nginx.ipv4 = {
+			lan: nginxState.ipv4?.lan,
+			wan: nginxState.ipv4?.wan
+		};
+		nginx.ipv6 = {
+			lan: nginxState.ipv6?.lan,
+			wan: nginxState.ipv6?.wan
+		};
 
 		// Update remote access details
 		const configPath = paths['myservers-config'];
