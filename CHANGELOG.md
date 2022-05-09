@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.45.1](https://github.com/unraid/api/compare/v2.45.0...v2.45.1) (2022-05-09)
+
+
+### Bug Fixes
+
+* add missing fields to dashboard ([8124e02](https://github.com/unraid/api/commit/8124e02cf8af6562ac0e7f41eb48080f86c6c08f))
+
 ## [2.45.0](https://github.com/unraid/api/compare/v2.44.0...v2.45.0) (2022-05-09)
 
 
