@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.45.0](https://github.com/unraid/api/compare/v2.44.0...v2.45.0) (2022-05-09)
+
+
+### Features
+
+* add dashboard endpoint ([5b7d1ba](https://github.com/unraid/api/commit/5b7d1ba3f1aa99c0315e67179a5fa8c06d71ced8))
+* add ipv6 hash cert support to allowed origins ([e9021a1](https://github.com/unraid/api/commit/e9021a1cfa3fbd0eea0359e6a724e26d0ba5102f))
+
+
+### Bug Fixes
+
+* ensure dashboard is not inside of own field ([2e49bdb](https://github.com/unraid/api/commit/2e49bdbed78cabccf566afe45e27526e7e1942c1))
+* ensure getVms doesnt throw on missing hypervisor connection ([9a690f6](https://github.com/unraid/api/commit/9a690f63ba8b36b6a7d0050d9b504f8adb86d74c))
+* ensure the API sends dashboard data ([bd69ae1](https://github.com/unraid/api/commit/bd69ae1b8f08d9deeb86aea08c53e90baeb51361))
+* permission on dashboard endpoint ([5e6820a](https://github.com/unraid/api/commit/5e6820a05833d0c280c4c5a84d32294c443741e2))
+* permission on dashboard endpoint ([509ff40](https://github.com/unraid/api/commit/509ff40175c6681780e57476fc6ce1511783c2b7))
+
 ## [2.44.0](https://github.com/unraid/api/compare/v2.43.3...v2.44.0) (2022-04-28)
 
 
