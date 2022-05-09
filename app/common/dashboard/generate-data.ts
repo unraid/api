@@ -9,6 +9,10 @@ import { slotsState } from '../../core/states/slots';
 import { addTogether } from '../../core/utils/misc/add-together';
 import { checkTwoFactorEnabled } from '../two-factor';
 import display from '../../graphql/resolvers/query/display';
+import { paths } from '../../core/paths';
+import { readFile } from 'fs/promises';
+import semver from 'semver';
+import { docker } from '../../core/utils/clients/docker';
 
 const getVmSummary = async () => {
 	const hypervisor = await getHypervisor();
@@ -93,6 +97,30 @@ const services = () => {
 	}];
 };
 
+let unraidVersion: string;
+
+/**
+ * Unraid version string.
+ * @returns The current version.
+ */
+export const getUnraidVersion = async (): Promise<string> => {
+	// If we already have the version just return it
+	if (unraidVersion) return unraidVersion;
+
+	// Get unraid version from file
+	const filePath = paths['unraid-version'];
+	const file = await readFile(filePath).then(buffer => buffer.toString());
+
+	// Ensure string is semver compliant
+	const semverVersion = semver.parse(file.split('"')[1])?.version;
+
+	// If we can't get the version then return "unknown"
+	if (!semverVersion) return 'unknown';
+
+	unraidVersion = semverVersion;
+	return unraidVersion;
+};
+
 export const generateData = async () => pProps({
 	vars: {
 		regState: varState.data.regState,
@@ -100,11 +128,11 @@ export const generateData = async () => pProps({
 		flashGuid: varState.data.flashGuid
 	},
 	apps: {
-		installed: 0,
-		started: 0
+		installed: await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length),
+		started: await docker.listContainers().catch(() => []).then(containers => containers.length)
 	},
 	versions: {
-		unraid: 0
+		unraid: getUnraidVersion()
 	},
 	os: {
 		hostname: await si.osInfo().then(osInfo => osInfo.hostname),
