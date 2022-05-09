@@ -16,6 +16,5 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	});
 
 	const dashboard = await generateData();
-	logger.debug('Generating dashboard data', dashboard);
 	return dashboard;
 };

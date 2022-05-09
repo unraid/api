@@ -107,7 +107,7 @@ export const generateData = async () => pProps({
 		unraid: 0
 	},
 	os: {
-		hostname: si.osInfo().then(osInfo => osInfo.hostname),
+		hostname: await si.osInfo().then(osInfo => osInfo.hostname),
 		uptime: bootTimestamp
 	},
 	vms: getVmSummary(),
