@@ -27,7 +27,8 @@ const saveWebsocketMessageToDisk = (message: string) => {
 		stream = createRotatingFileStream('relay-messages.log', {
 			size: '10M', // Rotate every 10 MegaBytes written
 			interval: '1d', // Rotate daily
-			compress: 'gzip' // Compress rotated files
+			compress: 'gzip', // Compress rotated files
+			maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10) // Keep a maximum of 2 log files
 		});
 	}
 

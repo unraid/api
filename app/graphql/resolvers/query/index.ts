@@ -5,6 +5,7 @@
 import cloud from './cloud';
 import config from './config';
 import crashReportingEnabled from './crash-reporting-enabled';
+import dashboard from './dashboard';
 import disks from './disks';
 import display from './display';
 import flash from './flash';
@@ -21,6 +22,7 @@ export const Query = {
 	cloud,
 	config,
 	crashReportingEnabled,
+	dashboard,
 	disks,
 	display,
 	flash,
