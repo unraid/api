@@ -74,7 +74,7 @@ export const upc = {
 export const my_servers = {
 	extends: 'guest',
 	permissions: [
-		{ resource: 'mothership', action: 'read:any', attributes: '*' }
+		{ resource: 'dashboard', action: 'read:any', attributes: '*' }
 	]
 };
 
