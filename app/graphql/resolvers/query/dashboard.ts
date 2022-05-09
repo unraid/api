@@ -9,7 +9,7 @@ import { Context } from '../../schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
-		resource: 'cloud',
+		resource: 'dashboard',
 		action: 'read',
 		possession: 'own'
 	});
