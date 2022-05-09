@@ -16,8 +16,10 @@ import { generateData } from '../../../common/dashboard/generate-data';
 let mothershipProducer: NodeJS.Timer;
 const publishToMothership = async () => {
 	try {
-		const data = await generateData();
-		await pubsub.publish('mothership', data);
+		const dashboard = await generateData();
+		await pubsub.publish('mothership', {
+			dashboard
+		});
 	} catch (error: unknown) {
 		logger.error('Failed publishing to mothership');
 		if (config.debug) logger.error(error);

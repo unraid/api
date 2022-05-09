@@ -94,36 +94,34 @@ const services = () => {
 };
 
 export const generateData = async () => pProps({
-	dashboard: {
-		vars: {
-			regState: varState.data.regState,
-			regTy: varState.data.regTy,
-			flashGuid: varState.data.flashGuid
-		},
-		apps: {
-			installed: 0,
-			started: 0
-		},
-		versions: {
-			unraid: 0
-		},
-		os: {
-			hostname: si.osInfo().then(osInfo => osInfo.hostname),
-			uptime: bootTimestamp
-		},
-		vms: getVmSummary(),
-		array: getArray(),
-		services: services(),
-		display: display(),
-		config: {
-			valid: varState.data.configValid,
-			error: varState.data.configValid ? undefined : ({
-				error: 'UNKNOWN_ERROR',
-				invalid: 'INVALID',
-				nokeyserver: 'NO_KEY_SERVER',
-				withdrawn: 'WITHDRAWN'
-			}[varState.data.configState] ?? 'UNKNOWN_ERROR')
-		},
-		twoFactor: twoFactor()
-	}
+	vars: {
+		regState: varState.data.regState,
+		regTy: varState.data.regTy,
+		flashGuid: varState.data.flashGuid
+	},
+	apps: {
+		installed: 0,
+		started: 0
+	},
+	versions: {
+		unraid: 0
+	},
+	os: {
+		hostname: si.osInfo().then(osInfo => osInfo.hostname),
+		uptime: bootTimestamp
+	},
+	vms: getVmSummary(),
+	array: getArray(),
+	services: services(),
+	display: display(),
+	config: {
+		valid: varState.data.configValid,
+		error: varState.data.configValid ? undefined : ({
+			error: 'UNKNOWN_ERROR',
+			invalid: 'INVALID',
+			nokeyserver: 'NO_KEY_SERVER',
+			withdrawn: 'WITHDRAWN'
+		}[varState.data.configState] ?? 'UNKNOWN_ERROR')
+	},
+	twoFactor: twoFactor()
 });
