@@ -4,6 +4,7 @@
  */
 
 import { generateData } from '../../../common/dashboard/generate-data';
+import { logger } from '../../../core/log';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { Context } from '../../schema/utils';
 
@@ -14,5 +15,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'own'
 	});
 
-	return generateData();
+	const dashboard = await generateData();
+	logger.debug('Generating dashboard data', dashboard);
+	return dashboard;
 };
