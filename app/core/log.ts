@@ -126,6 +126,7 @@ const getLogger = (name: string) => {
 export const internalLogger = getLogger('internal');
 export const logger = getLogger('app');
 export const mothershipLogger = getLogger('mothership');
+export const dashboardLogger = getLogger('dashboard');
 export const libvirtLogger = getLogger('libvirt');
 export const graphqlLogger = getLogger('graphql');
 export const dockerLogger = getLogger('docker');
@@ -136,6 +137,7 @@ export const apiManagerLogger = getLogger('api-manager');
 export const loggers = [
 	logger,
 	mothershipLogger,
+	dashboardLogger,
 	libvirtLogger,
 	graphqlLogger,
 	dockerLogger,

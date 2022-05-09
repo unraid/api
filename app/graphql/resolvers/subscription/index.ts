@@ -9,34 +9,39 @@ import { pubsub } from '../../../core/pubsub';
 import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
 import { hasSubscribedToChannel } from '../../../ws';
 import { createSubscription } from '../../schema/utils';
-import { logger } from '../../../core/log';
+import { dashboardLogger } from '../../../core/log';
 import { config } from '../../../core/config';
 import { generateData } from '../../../common/dashboard/generate-data';
 
-let mothershipProducer: NodeJS.Timer;
-const publishToMothership = async () => {
+let dashboardProducer: NodeJS.Timer;
+const publishToDashboard = async () => {
 	try {
 		const dashboard = await generateData();
-		await pubsub.publish('mothership', {
+		await pubsub.publish('dashboard', {
 			dashboard
 		});
 	} catch (error: unknown) {
-		logger.error('Failed publishing to mothership');
-		if (config.debug) logger.error(error);
+		dashboardLogger.error('Failed publishing');
+		if (config.debug) dashboardLogger.error(error);
 	}
 };
 
-const stopMothershipProducer = () => {
+const stopDashboardProducer = () => {
 	// Clear last producer
-	if (mothershipProducer) clearInterval(mothershipProducer);
+	if (dashboardProducer) {
+		dashboardLogger.debug('Stopping last producer');
+		clearInterval(dashboardProducer);
+	}
 };
 
-const startMothershipProducer = () => {
-	stopMothershipProducer();
+const startDashboardProducer = () => {
+	stopDashboardProducer();
 
 	// Start new producer
-	mothershipProducer = setInterval(async () => {
-		await publishToMothership();
+	dashboardLogger.debug('Starting new producer');
+	dashboardProducer = setInterval(async () => {
+		dashboardLogger.debug('Publishing');
+		await publishToDashboard();
 	}, 5_000);
 };
 
@@ -127,12 +132,12 @@ export const Subscription = {
 			hasSubscribedToChannel(context.websocketId, 'dashboard');
 
 			// Start producer
-			startMothershipProducer();
+			startDashboardProducer();
 
 			// Return iterator with a cancel method that'll stop the producer
 			const iterator = pubsub.asyncIterator('dashboard');
 			return withCancel(iterator, async () => {
-				stopMothershipProducer();
+				stopDashboardProducer();
 			});
 		}
 	}
