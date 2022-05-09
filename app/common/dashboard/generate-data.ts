@@ -13,7 +13,10 @@ import display from '../../graphql/resolvers/query/display';
 const getVmSummary = async () => {
 	const hypervisor = await getHypervisor();
 	if (!hypervisor) {
-		throw new Error('No hypervisor connection!');
+		return {
+			installed: -1,
+			started: -1
+		};
 	}
 
 	const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as unknown[];
