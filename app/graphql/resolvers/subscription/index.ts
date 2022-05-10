@@ -13,7 +13,7 @@ import { dashboardLogger } from '../../../core/log';
 import { config } from '../../../core/config';
 import { generateData } from '../../../common/dashboard/generate-data';
 
-let dashboardProducer: NodeJS.Timer;
+let dashboardProducer: NodeJS.Timer | undefined;
 const publishToDashboard = async () => {
 	try {
 		const dashboard = await generateData();
@@ -26,19 +26,26 @@ const publishToDashboard = async () => {
 	}
 };
 
+let connectedToDashboard = 0;
+
 const stopDashboardProducer = () => {
-	// Clear last producer
+	// Don't stop if we still have clients using this
+	if (connectedToDashboard >= 1) return;
+
+	// Stop dashboard producer
 	if (dashboardProducer) {
-		dashboardLogger.debug('Stopping last producer');
+		dashboardLogger.debug('Stopping dashboard producer');
 		clearInterval(dashboardProducer);
+		dashboardProducer = undefined;
 	}
 };
 
 const startDashboardProducer = () => {
-	stopDashboardProducer();
+	// Don't start twice
+	if (dashboardProducer) return;
 
 	// Start new producer
-	dashboardLogger.debug('Starting new producer');
+	dashboardLogger.debug('Starting dashboard producer');
 	dashboardProducer = setInterval(async () => {
 		dashboardLogger.debug('Publishing');
 		await publishToDashboard();
@@ -131,12 +138,16 @@ export const Subscription = {
 			// Mark channel as subscribed
 			hasSubscribedToChannel(context.websocketId, 'dashboard');
 
+			// Increase the connected count
+			connectedToDashboard++;
+
 			// Start producer
 			startDashboardProducer();
 
 			// Return iterator with a cancel method that'll stop the producer
 			const iterator = pubsub.asyncIterator('dashboard');
 			return withCancel(iterator, async () => {
+				connectedToDashboard--;
 				stopDashboardProducer();
 			});
 		}
