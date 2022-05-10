@@ -16,7 +16,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	return {
 		valid: varState.data.configValid,
-		error: varState.data.configValid ? undefined : ({
+		error: varState.data.configValid ? null : ({
 			error: 'UNKNOWN_ERROR',
 			invalid: 'INVALID',
 			nokeyserver: 'NO_KEY_SERVER',

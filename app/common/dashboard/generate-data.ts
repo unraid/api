@@ -1,6 +1,4 @@
 import { uptime } from 'os';
-import pProps from 'p-props';
-import si from 'systeminformation';
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { varState } from '../../core/states/var';
 import { getHypervisor } from '../../core/utils/vms/get-hypervisor';
@@ -142,7 +140,7 @@ export const generateData = async () => ({
 		unraid: await getUnraidVersion()
 	},
 	os: {
-		hostname: await si.osInfo().then(osInfo => osInfo.hostname),
+		hostname: varState.data.name,
 		uptime: bootTimestamp
 	},
 	vms: await getVmSummary(),
@@ -151,7 +149,7 @@ export const generateData = async () => ({
 	display: await display(),
 	config: {
 		valid: varState.data.configValid,
-		error: varState.data.configValid ? undefined : ({
+		error: varState.data.configValid ? null : ({
 			error: 'UNKNOWN_ERROR',
 			invalid: 'INVALID',
 			nokeyserver: 'NO_KEY_SERVER',
