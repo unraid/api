@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.46.0](https://github.com/unraid/api/compare/v2.45.1...v2.46.0) (2022-05-10)
+
+
+### Features
+
+* add smart compare to dashboard ([89b42c1](https://github.com/unraid/api/commit/89b42c165adb6e6263a9d62dd28bfb7099826f1a))
+* dumb compare ([e99ef45](https://github.com/unraid/api/commit/e99ef457346236054ddbb3a0db93d607d0c439fa))
+
+
+### Bug Fixes
+
+* dashboard.hostname and add logging to data packet ([bcdb6fb](https://github.com/unraid/api/commit/bcdb6fbcd4998fc2bb11d3e8ba87cd0cebd5ec87))
+* don't include dashboard.uptime.seconds ([13233bb](https://github.com/unraid/api/commit/13233bbf6f34e58cfbb63ee06bec601c39290f13))
+* ensure dashboard producer doesnt get stopped ([98a21d1](https://github.com/unraid/api/commit/98a21d11c0b9e9a54d7343a1998f3823cefead6f))
+* ensure dashboard.versions is resolved before publishing ([10692c9](https://github.com/unraid/api/commit/10692c94f059cc389053d45c660661ff6a00428c))
+* ensure producer is started even on relay sub ([8c8910d](https://github.com/unraid/api/commit/8c8910da7de4e6a6190f2d1f92245a26fb8e9a05))
+* update being sent to dashboard even if it didnt change ([8342419](https://github.com/unraid/api/commit/834241925011f98a6466582e6e2e42f4593fae0a))
+
 ### [2.45.1](https://github.com/unraid/api/compare/v2.45.0...v2.45.1) (2022-05-09)
 
 
