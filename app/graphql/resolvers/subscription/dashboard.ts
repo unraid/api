@@ -24,6 +24,8 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// NO_UPDATE - This is an exact copy of the last data packet
 	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
 
+	console.log(lastDataPacketString === JSON.stringify(dataPacket), lastDataPacketString, JSON.stringify(dataPacket));
+
 	// UPDATE - It's been 5s since last update
 	if (Date.now() - 5_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 5s since the last one');
 
@@ -65,26 +67,10 @@ const publishToDashboard = async () => {
 		// Only update data on change
 		if (!canSendDataPacket(dataPacket)) return;
 
-		console.log(JSON.stringify({
-			before: {
-				lastDataPacketTimestamp,
-				lastDataPacketString,
-				lastDataPacket
-			}
-		}));
-
 		// Save last data packet
 		lastDataPacketTimestamp = Date.now();
 		lastDataPacketString = JSON.stringify(dataPacket);
 		lastDataPacket = dataPacket;
-
-		console.log(JSON.stringify({
-			after: {
-				lastDataPacketTimestamp,
-				lastDataPacketString,
-				lastDataPacket
-			}
-		}));
 
 		// Publish the updated data
 		dashboardLogger.trace('Publishing update');
