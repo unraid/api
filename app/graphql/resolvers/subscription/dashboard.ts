@@ -24,8 +24,8 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// NO_UPDATE - This is an exact copy of the last data packet
 	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
 
-	// UPDATE - It's been 5s since last update
-	if (Date.now() - 5_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 5s since the last one');
+	// UPDATE - It's been 1m since last update
+	if (Date.now() - 60_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 1m since the last one');
 
 	// UPDATE - Apps have been installed/started
 	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending update as docker containers have been un/installed');
@@ -34,11 +34,8 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// UPDATE - Array state changed
 	if (dataPacket.array.state !== lastDataPacket.array.state) return logAndReturn(true, 'debug', 'Sending update as array state has changed');
 
-	// UPDATE - Array total has changed
-	if (dataPacket.array.capacity.bytes.total !== lastDataPacket.array.capacity.bytes.total) return logAndReturn(true, 'debug', 'Sending update as array\'s total size has changed');
-
-	// UPDATE - Array used has changed by more than 1MB in either direction
-	if (!isNumberBetween(lastDataPacket.array.capacity.bytes.used - ONE_MB, lastDataPacket.array.capacity.bytes.used + ONE_MB)(dataPacket.array.capacity.bytes.used)) return logAndReturn(true, 'trace', 'Sending update as array used size has changed by more than 1MB');
+	// UPDATE - Array free has changed by more than 1MB in either direction
+	if (!isNumberBetween(lastDataPacket.array.capacity.bytes.free - ONE_MB, lastDataPacket.array.capacity.bytes.free + ONE_MB)(dataPacket.array.capacity.bytes.free)) return logAndReturn(true, 'trace', 'Sending update as array free size has changed by more than 1MB');
 
 	// UPDATE - Vms have been added/started
 	if (dataPacket.vms.installed !== lastDataPacket.vms.installed) return logAndReturn(true, 'debug', 'Sending update as VMs have been installed');
@@ -52,6 +49,14 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	if (dataPacket.vars.flashGuid !== lastDataPacket.vars.flashGuid) return logAndReturn(true, 'debug', 'Sending update as flashGuid has changed');
 	if (dataPacket.vars.regState !== lastDataPacket.vars.regState) return logAndReturn(true, 'debug', 'Sending update as regState has changed');
 	if (dataPacket.vars.regTy !== lastDataPacket.vars.regTy) return logAndReturn(true, 'debug', 'Sending update as regTy has changed');
+
+	// UPDATE - Display changed
+	if (dataPacket.display.case.icon !== lastDataPacket.display.case.icon) return logAndReturn(true, 'debug', 'Sending update as case icon has changed');
+	if (dataPacket.display.case.url !== lastDataPacket.display.case.url) return logAndReturn(true, 'debug', 'Sending update as case with custom url has changed');
+
+	// UPDATE - Config changed
+	if (dataPacket.config.valid !== lastDataPacket.config.valid) return logAndReturn(true, 'debug', 'Sending update as config.valid has changed');
+	if (dataPacket.config.error !== lastDataPacket.config.error) return logAndReturn(true, 'debug', 'Sending update as config.error has changed');
 
 	// Nothing has changed enough for an update to be sent
 	return logAndReturn(false, 'trace', 'Skipping sending update as not enough data has changed');
