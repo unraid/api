@@ -2,8 +2,9 @@
 
 ## Installation
 
-Ensure you have the latest version of the unraid.net plugin.
-This script should be run automatically on every boot.
+Install the [production](https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.plg) or [staging](https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.staging.plg) plugin on Unraid 6.9.0-rc1 or later (6.9.2 or higher recommended).
+
+This script will be run automatically on every boot.
 ```bash
 /etc/rc.d/rc.unraid-api install
 ```
@@ -23,13 +24,15 @@ Usage:
 
   $ unraid-api command <options> 
 
+@TODO: what are the available commands?
+
 Options:
 
   -h, --help                                      Prints this usage guide.                
   -d, --debug                                     Enabled debug mode.                     
   -p, --port string                               Set the graphql port.                   
-  --environment production/staging/development    Set the working environment.            
-  --log-level error/warn/info/debug/trace/silly   Set the log level.                      
+  --environment production/staging/development    Set the working environment.  @TODO: has this been replaced with environemnt vars?          
+  --log-level error/warn/info/debug/trace/silly   Set the log level.   @TODO: has this been replaced with environemnt vars?                   
   -v, --version                                   Show version.                           
 
   Copyright © 2021 Lime Technology, Inc. 
@@ -48,20 +51,66 @@ If you're using the ApolloClient please see https://github.com/apollographql/sub
 
 ## Logs
 
-If installed on a unraid machine logs can be accessed via syslog.
+Logging can be configured via environment variables.
 
-Log levels can be changed on start using the `--log-level` flag like so `--log-level=info/debug/trace`.
+Log levels can be set when the api starts via `LOG_LEVEL=all/trace/debug/info/warn/error/fatal/mark/off`.
+
+Additional detail for the log entry can be added with `LOG_CONTEXT=true` (warning, generates a lot of data).
+
+By default, logs will be sent to syslog.  Or you can set `LOG_TRANSPORT=file` to have logs saved in `/var/log/unraid-api/stdout.log`. Or enable debug mode to view logs inline.
+
+Examples:
+
+* `unraid-api start`
+* `LOG_LEVEL=debug unraid-api start --debug`
+* `LOG_LEVEL=trace LOG_CONTEXT=true LOG_TRANSPORT=file unraid-api start`
+
+Log levels can be increased without restarting the api by issuing this command:
+```
+kill -s SIGUSR2 `pidof unraid-api`
+```
+and decreased via:
+```
+kill -s SIGUSR1 `pidof unraid-api`
+```
 
 ## Debug mode
 
 Debug mode can be enabled with the `-d` or `--debug` flag.
-This will enable the graphql playground and prevent the application starting as a daemon.
+This will enable the graphql playground and prevent the application starting as a daemon. Logs will be shown inline rather than saved to a file.
 
+Examples:
+* `unraid-api start --debug`
+* `LOG_LEVEL=debug unraid-api start --debug`
+
+
+## Report
+To view the current status of the unraid-api and its connection to mothership, run:
+```
+unraid-api report
+```
+
+To view additional data (anonymized), run:
+```
+unraid-api report -v
+```
+
+To view non-anomyzed data, run:
+```
+unraid-api report -vv
+```
+
+
+## Switching between staging and production environments
+1. Stop the api: `unraid-api stop`
+2. Switch environments: `/etc/rc.d/rc.unraid switch-env`
+3. Start the api: `unraid-api start`
+4. Confirm the environment: `unraid-api report`
 
 ## Playground
 
 The playground can be access via `http://tower.local/graphql` while in debug mode.  
-To get your API key open a terminal on your server and run `cat /boot/config/plugins/dynamix.my.servers/myservers.cfg | grep apikey= | cut -d '"' -f2`. Add that API key in the "HTTP headers" panel of the playground.
+To get your API key open a terminal on your server and run `cat /boot/config/plugins/dynamix.my.servers/myservers.cfg | grep apikey=\"unraid | cut -d '"' -f2`. Add that API key in the "HTTP headers" panel of the playground.
 
 ```json
 {
@@ -88,9 +137,12 @@ You should get something like this back.
   }
 }
 ```
+@TODO currently this responds with: "my_servers doesn't have permission to access \"unraid-version\".",
+
 
 Click the "Schema" and "Docs" button on the right side of the playground to learn more.
-For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/graphql-voyager/).
+
+For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/graphql-voyager/) (click Change Schema -> Introspection, then copy/paste the introspection query into the local Graph Playground, and copy/paste the results back into Voyager).
 
 # Development
 
@@ -115,10 +167,12 @@ To create a new prerelease run `npm run release -- --prerelease alpha`.
 Pushing to this repo will cause an automatic "rolling" release to be built which can be accessed via the page for the associated Github action run.
 
 ## Using a custom version (e.g. testing a new release)
-1. Download the tgz you want from [the releases page](https://github.com/unraid/api/releases) and copy to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
-2. Download the plugin `https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.staging.plg` to a new area on the flash drive. I put it in `/boot/config/custom/`.
-3. Edit that plg and remove the MD5/SHA256 entries from `unraid-api.tgz`. Now when it installs it will use the `unraid-api.tgz` that exists on the flash instead of downloading the latest one.
-4. Go to Plugins -> Install Plugin -> navigate to /boot/config/custom and select the staging plugin.
+1. Install the [production](https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.plg) or [staging](https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.staging.plg) plugin 
+2. Download the tgz you want from [the releases page](https://github.com/unraid/api/releases) and copy to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
+3. Stop the api if it is running: `unraid-api stop`
+4. Install the new api: `/etc/rc.d/rc.unraid _install`
+5. Start the api: `unraid-api start`
+6. Confirm the version: `unraid-api report`
 
 
 ## License
