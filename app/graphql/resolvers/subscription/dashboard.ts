@@ -21,15 +21,15 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// UPDATE - No data packet has been sent since boot
 	if (!lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending data-packet as none have been sent since the API started');
 
-	// UPDATE - It's been 5s before last update
-	if (Date.now() - 5_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending data-packet as its been more than 5s since the last one');
+	// UPDATE - It's been 30s since last update
+	if (Date.now() - 30_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending data-packet as its been more than 5s since the last one');
 
 	// NO_UPDATE - This is an exact copy of the last data packet
 	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending data-packet as its the same as the last one');
 
 	// UPDATE - Apps have been installed/started
-	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending data-packet as docker containers have been installed');
-	if (dataPacket.apps.started !== lastDataPacket.apps.started) return logAndReturn(true, 'debug', 'Sending data-packet as docker containers have been started');
+	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending data-packet as docker containers have been un/installed');
+	if (dataPacket.apps.started !== lastDataPacket.apps.started) return logAndReturn(true, 'debug', 'Sending data-packet as docker containers have been started/stopped');
 
 	// UPDATE - Array state changed
 	if (dataPacket.array.state !== lastDataPacket.array.state) return logAndReturn(true, 'debug', 'Sending data-packet as array state has changed');
