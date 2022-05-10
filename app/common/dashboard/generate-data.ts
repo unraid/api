@@ -128,7 +128,7 @@ export const getUnraidVersion = async (): Promise<string> => {
 	return unraidVersion;
 };
 
-export const generateData = async () => pProps({
+export const generateData = async () => ({
 	vars: {
 		regState: varState.data.regState,
 		regTy: varState.data.regTy,
@@ -145,10 +145,10 @@ export const generateData = async () => pProps({
 		hostname: await si.osInfo().then(osInfo => osInfo.hostname),
 		uptime: bootTimestamp
 	},
-	vms: getVmSummary(),
+	vms: await getVmSummary(),
 	array: getArray(),
 	services: services(),
-	display: display(),
+	display: await display(),
 	config: {
 		valid: varState.data.configValid,
 		error: varState.data.configValid ? undefined : ({
