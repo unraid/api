@@ -65,10 +65,26 @@ const publishToDashboard = async () => {
 		// Only update data on change
 		if (!canSendDataPacket(dataPacket)) return;
 
+		console.log(JSON.stringify({
+			before: {
+				lastDataPacketTimestamp,
+				lastDataPacketString,
+				lastDataPacket
+			}
+		}));
+
 		// Save last data packet
 		lastDataPacketTimestamp = Date.now();
 		lastDataPacketString = JSON.stringify(dataPacket);
 		lastDataPacket = dataPacket;
+
+		console.log(JSON.stringify({
+			after: {
+				lastDataPacketTimestamp,
+				lastDataPacketString,
+				lastDataPacket
+			}
+		}));
 
 		// Publish the updated data
 		dashboardLogger.trace('Publishing update');
