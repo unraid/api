@@ -19,42 +19,42 @@ let lastDataPacket: Dashboard;
 let lastDataPacketString: string;
 const canSendDataPacket = (dataPacket: Dashboard) => {
 	// UPDATE - No data packet has been sent since boot
-	if (!lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending data-packet as none have been sent since the API started');
-
-	// UPDATE - It's been 30s since last update
-	if (Date.now() - 30_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending data-packet as its been more than 5s since the last one');
+	if (!lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as none have been sent since the API started');
 
 	// NO_UPDATE - This is an exact copy of the last data packet
-	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending data-packet as its the same as the last one');
+	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
+
+	// UPDATE - It's been 5s since last update
+	if (Date.now() - 5_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 5s since the last one');
 
 	// UPDATE - Apps have been installed/started
-	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending data-packet as docker containers have been un/installed');
-	if (dataPacket.apps.started !== lastDataPacket.apps.started) return logAndReturn(true, 'debug', 'Sending data-packet as docker containers have been started/stopped');
+	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending update as docker containers have been un/installed');
+	if (dataPacket.apps.started !== lastDataPacket.apps.started) return logAndReturn(true, 'debug', 'Sending update as docker containers have been started/stopped');
 
 	// UPDATE - Array state changed
-	if (dataPacket.array.state !== lastDataPacket.array.state) return logAndReturn(true, 'debug', 'Sending data-packet as array state has changed');
+	if (dataPacket.array.state !== lastDataPacket.array.state) return logAndReturn(true, 'debug', 'Sending update as array state has changed');
 
 	// UPDATE - Array total has changed
-	if (dataPacket.array.capacity.bytes.total !== lastDataPacket.array.capacity.bytes.total) return logAndReturn(true, 'debug', 'Sending data-packet as array\'s total size has changed');
+	if (dataPacket.array.capacity.bytes.total !== lastDataPacket.array.capacity.bytes.total) return logAndReturn(true, 'debug', 'Sending update as array\'s total size has changed');
 
 	// UPDATE - Array used has changed by more than 1MB in either direction
-	if (!isNumberBetween(lastDataPacket.array.capacity.bytes.used - ONE_MB, lastDataPacket.array.capacity.bytes.used + ONE_MB)(dataPacket.array.capacity.bytes.used)) return logAndReturn(true, 'trace', 'Sending data-packet as array used size has changed by more than 1MB');
+	if (!isNumberBetween(lastDataPacket.array.capacity.bytes.used - ONE_MB, lastDataPacket.array.capacity.bytes.used + ONE_MB)(dataPacket.array.capacity.bytes.used)) return logAndReturn(true, 'trace', 'Sending update as array used size has changed by more than 1MB');
 
 	// UPDATE - Vms have been added/started
-	if (dataPacket.vms.installed !== lastDataPacket.vms.installed) return logAndReturn(true, 'debug', 'Sending data-packet as VMs have been installed');
-	if (dataPacket.vms.started !== lastDataPacket.vms.started) return logAndReturn(true, 'debug', 'Sending data-packet as VMs have been started');
+	if (dataPacket.vms.installed !== lastDataPacket.vms.installed) return logAndReturn(true, 'debug', 'Sending update as VMs have been installed');
+	if (dataPacket.vms.started !== lastDataPacket.vms.started) return logAndReturn(true, 'debug', 'Sending update as VMs have been started');
 
 	// UPDATE - Twofactor config has changed
-	if (dataPacket.twoFactor.local.enabled !== lastDataPacket.twoFactor.local.enabled) return logAndReturn(true, 'debug', 'Sending data-packet as local twoFactor has been updated');
-	if (dataPacket.twoFactor.remote.enabled !== lastDataPacket.twoFactor.remote.enabled) return logAndReturn(true, 'debug', 'Sending data-packet as remote twoFactor has been updated');
+	if (dataPacket.twoFactor.local.enabled !== lastDataPacket.twoFactor.local.enabled) return logAndReturn(true, 'debug', 'Sending update as local twoFactor has been updated');
+	if (dataPacket.twoFactor.remote.enabled !== lastDataPacket.twoFactor.remote.enabled) return logAndReturn(true, 'debug', 'Sending update as remote twoFactor has been updated');
 
 	// UPDATE - Vars changed
-	if (dataPacket.vars.flashGuid !== lastDataPacket.vars.flashGuid) return logAndReturn(true, 'debug', 'Sending data-packet as flashGuid has changed');
-	if (dataPacket.vars.regState !== lastDataPacket.vars.regState) return logAndReturn(true, 'debug', 'Sending data-packet as regState has changed');
-	if (dataPacket.vars.regTy !== lastDataPacket.vars.regTy) return logAndReturn(true, 'debug', 'Sending data-packet as regTy has changed');
+	if (dataPacket.vars.flashGuid !== lastDataPacket.vars.flashGuid) return logAndReturn(true, 'debug', 'Sending update as flashGuid has changed');
+	if (dataPacket.vars.regState !== lastDataPacket.vars.regState) return logAndReturn(true, 'debug', 'Sending update as regState has changed');
+	if (dataPacket.vars.regTy !== lastDataPacket.vars.regTy) return logAndReturn(true, 'debug', 'Sending update as regTy has changed');
 
 	// Nothing has changed enough for an update to be sent
-	return logAndReturn(false, 'trace', 'Skipping sending data-packet as not enough data has changed');
+	return logAndReturn(false, 'trace', 'Skipping sending update as not enough data has changed');
 };
 
 let dashboardProducer: NodeJS.Timer | undefined;
