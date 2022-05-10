@@ -17,6 +17,7 @@ import { shouldBeConnectedToCloud, wsState } from './should-be-connect-to-cloud'
 import { clearValidKeyCache } from '../core/utils/misc/validate-api-key';
 import { getRelayConnectionStatus } from './get-relay-connection-status';
 import { store } from './store';
+import { startDashboardProducer, stopDashboardProducer } from '../graphql/resolvers/subscription/dashboard';
 
 const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
 
@@ -322,10 +323,22 @@ export const checkRelayConnection = debounce(async () => {
 						relayLogger.debug('Subscribing to %s', name);
 						const subId = await pubsub.subscribe(name, subscriptionListener(id, name));
 
+						// If this is the dashboard endpoint it also needs its producer started
+						if (name === 'dashboard') {
+							// Start producer
+							startDashboardProducer();
+						}
+
 						// When this ws closes remove the listener
 						store.relay.onClose.addOnceListener(() => {
 							relayLogger.debug('Unsubscribing from %s as the socket closed', name);
 							pubsub.unsubscribe(subId);
+
+							// If this is the dashboard endpoint it also needs its producer stopped
+							if (name === 'dashboard') {
+								// Stop producer
+								stopDashboardProducer();
+							}
 						});
 						break;
 					}
