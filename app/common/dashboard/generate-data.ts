@@ -15,20 +15,27 @@ import semver from 'semver';
 import { docker } from '../../core/utils/clients/docker';
 
 const getVmSummary = async () => {
-	const hypervisor = await getHypervisor();
-	if (!hypervisor) {
+	try {
+		const hypervisor = await getHypervisor();
+		if (!hypervisor) {
+			return {
+				installed: 0,
+				started: 0
+			};
+		}
+
+		const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as unknown[];
+		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as unknown[];
 		return {
-			installed: -1,
-			started: -1
+			installed: activeDomains.length + inactiveDomains.length,
+			started: activeDomains.length
+		};
+	} catch {
+		return {
+			installed: 0,
+			started: 0
 		};
 	}
-
-	const activeDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.ACTIVE) as unknown[];
-	const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as unknown[];
-	return {
-		installed: activeDomains.length + inactiveDomains.length,
-		started: activeDomains.length
-	};
 };
 
 const getArray = () => {
