@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.46.2](https://github.com/unraid/api/compare/v2.46.1...v2.46.2) (2022-05-10)
+
+
+### Bug Fixes
+
+* allow mothership to read two-factor endpoint ([a57a216](https://github.com/unraid/api/commit/a57a2169b3656aa3daf012461371bd2473ee9d96))
+
 ### [2.46.1](https://github.com/unraid/api/compare/v2.46.0...v2.46.1) (2022-05-10)
 
 ## [2.46.0](https://github.com/unraid/api/compare/v2.45.1...v2.46.0) (2022-05-10)
