@@ -89,14 +89,12 @@ const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1000));
 const services = () => {
 	const now = new Date();
 	const uptimeTimestamp = bootTimestamp.toISOString();
-	const uptimeSeconds = (now.getTime() - bootTimestamp.getTime());
 
 	return [{
 		name: 'unraid-api',
 		online: true,
 		uptime: {
-			timestamp: uptimeTimestamp,
-			seconds: uptimeSeconds
+			timestamp: uptimeTimestamp
 		},
 		version
 	}];
