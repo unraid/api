@@ -139,7 +139,7 @@ export const generateData = async () => pProps({
 		started: await docker.listContainers().catch(() => []).then(containers => containers.length)
 	},
 	versions: {
-		unraid: getUnraidVersion()
+		unraid: await getUnraidVersion()
 	},
 	os: {
 		hostname: await si.osInfo().then(osInfo => osInfo.hostname),
