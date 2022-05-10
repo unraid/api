@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.46.3](https://github.com/unraid/api/compare/v2.46.2...v2.46.3) (2022-05-10)
+
+
+### Bug Fixes
+
+* allow my_servers to read top unraid-version field ([76fdb12](https://github.com/unraid/api/commit/76fdb12d53c7c7023b7d9d2b6c57f418c406e171))
+
 ### [2.46.2](https://github.com/unraid/api/compare/v2.46.1...v2.46.2) (2022-05-10)
 
 
