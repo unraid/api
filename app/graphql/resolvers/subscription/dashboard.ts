@@ -24,9 +24,6 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// NO_UPDATE - This is an exact copy of the last data packet
 	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
 
-	// UPDATE - It's been 1m since last update
-	if (Date.now() - 60_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 1m since the last one');
-
 	// UPDATE - Apps have been installed/started
 	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending update as docker containers have been un/installed');
 	if (dataPacket.apps.started !== lastDataPacket.apps.started) return logAndReturn(true, 'debug', 'Sending update as docker containers have been started/stopped');
@@ -57,6 +54,12 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// UPDATE - Config changed
 	if (dataPacket.config.valid !== lastDataPacket.config.valid) return logAndReturn(true, 'debug', 'Sending update as config.valid has changed');
 	if (dataPacket.config.error !== lastDataPacket.config.error) return logAndReturn(true, 'debug', 'Sending update as config.error has changed');
+
+	// UPDATE - OS name changed
+	if (dataPacket.os.hostname !== lastDataPacket.os.hostname) return logAndReturn(true, 'debug', 'Sending update as os.hostname has changed');
+
+	// UPDATE - It's been 1h since last update
+	if (Date.now() - 360_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 1m since the last one');
 
 	// Nothing has changed enough for an update to be sent
 	return logAndReturn(false, 'trace', 'Skipping sending update as not enough data has changed');
