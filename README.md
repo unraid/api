@@ -24,18 +24,19 @@ Usage:
 
   $ unraid-api command <options> 
 
-@TODO: what are the available commands?
+Commands:
+
+  start/stop/restart/version/status/report/switch-env
 
 Options:
 
-  -h, --help                                      Prints this usage guide.                
-  -d, --debug                                     Enabled debug mode.                     
-  -p, --port string                               Set the graphql port.                   
-  --environment production/staging/development    Set the working environment.  @TODO: has this been replaced with environemnt vars?          
-  --log-level error/warn/info/debug/trace/silly   Set the log level.   @TODO: has this been replaced with environemnt vars?                   
-  -v, --version                                   Show version.                           
+  -h, --help                                                   Prints this usage guide.     
+  -d, --debug                                                  Enabled debug mode.          
+  -p, --port string                                            Set the graphql port.        
+  --environment production/staging/development                 Set the working environment. 
+  --log-level ALL/TRACE/DEBUG/INFO/WARN/ERROR/FATAL/MARK/OFF   Set the log level.           
 
-  Copyright © 2021 Lime Technology, Inc. 
+  Copyright © 2021 Lime Technology, Inc.
 
 ```
 
