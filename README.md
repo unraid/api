@@ -103,7 +103,7 @@ unraid-api report -vv
 
 ## Switching between staging and production environments
 1. Stop the api: `unraid-api stop`
-2. Switch environments: `/etc/rc.d/rc.unraid switch-env`
+2. Switch environments: `unraid-api switch-env`
 3. Start the api: `unraid-api start`
 4. Confirm the environment: `unraid-api report`
 
@@ -137,8 +137,6 @@ You should get something like this back.
   }
 }
 ```
-@TODO currently this responds with: "my_servers doesn't have permission to access \"unraid-version\".",
-
 
 Click the "Schema" and "Docs" button on the right side of the playground to learn more.
 
