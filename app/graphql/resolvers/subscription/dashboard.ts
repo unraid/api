@@ -59,7 +59,7 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	if (dataPacket.os.hostname !== lastDataPacket.os.hostname) return logAndReturn(true, 'debug', 'Sending update as os.hostname has changed');
 
 	// UPDATE - It's been 1h since last update
-	if (Date.now() - 360_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 1m since the last one');
+	if (Date.now() - 360_000 >= lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as its been more than 1h since the last one');
 
 	// Nothing has changed enough for an update to be sent
 	return logAndReturn(false, 'trace', 'Skipping sending update as not enough data has changed');
