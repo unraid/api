@@ -75,6 +75,14 @@ and decreased via:
 kill -s SIGUSR1 `pidof unraid-api`
 ```
 
+## Viewing data sent to mothership
+
+If the environment variable `LOG_MOTHERSHIP_MESSAGES=true` exists, any data the unraid-api sends to mothership will be saved in clear text here: `/var/log/unraid-api/relay-messages.log`
+
+Examples:
+* `LOG_MOTHERSHIP_MESSAGES=true unraid-api start`
+* `LOG_MOTHERSHIP_MESSAGES=true LOG_LEVEL=debug unraid-api start --debug`
+
 ## Debug mode
 
 Debug mode can be enabled with the `-d` or `--debug` flag.
@@ -84,19 +92,18 @@ Examples:
 * `unraid-api start --debug`
 * `LOG_LEVEL=debug unraid-api start --debug`
 
-
 ## Report
 To view the current status of the unraid-api and its connection to mothership, run:
 ```
 unraid-api report
 ```
 
-To view additional data (anonymized), run:
+To view verbose data (anonymized), run:
 ```
 unraid-api report -v
 ```
 
-To view non-anomyzed data, run:
+To view non-anomyzed verbose data, run:
 ```
 unraid-api report -vv
 ```
