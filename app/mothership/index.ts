@@ -25,7 +25,7 @@ let stream: RotatingFileStream;
 const saveWebsocketMessageToDisk = (message: string) => {
 	// Start stream if it doesn't exist
 	if (!stream) {
-		stream = createRotatingFileStream('relay-messages.log', {
+		stream = createRotatingFileStream('/var/log/unraid-api/relay-messages.log', {
 			size: '10M', // Rotate every 10 MegaBytes written
 			interval: '1d', // Rotate daily
 			compress: 'gzip', // Compress rotated files
