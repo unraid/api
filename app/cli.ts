@@ -361,7 +361,7 @@ const commands = {
 			// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 			const relayError = cloud?.relay.error || undefined;
 			const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
-			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} [${cloud.relay.error}]` : 'disconnected') : relayStatus;
+			const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${cloud.relay.error ? `[${cloud.relay.error}]` : ''}` : 'disconnected') : relayStatus;
 
 			const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
 
