@@ -33,7 +33,7 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	if (dataPacket.array.state !== lastDataPacket.array.state) return logAndReturn(true, 'debug', 'Sending update as array state has changed');
 
 	// UPDATE - Array free has changed by more than 100MB in either direction
-	if (!isNumberBetween(Number(lastDataPacket.array.capacity.bytes.free) - ONE_HUNDRED_MB, Number(lastDataPacket.array.capacity.bytes.free) + ONE_HUNDRED_MB)(Number(dataPacket.array.capacity.bytes.free))) return logAndReturn(true, 'trace', 'Sending update as array free size has changed by more than 1MB');
+	if (!isNumberBetween(Number(lastDataPacket.array.capacity.bytes.free) - ONE_HUNDRED_MB, Number(lastDataPacket.array.capacity.bytes.free) + ONE_HUNDRED_MB)(Number(dataPacket.array.capacity.bytes.free))) return logAndReturn(true, 'trace', 'Sending update as array free size has changed by more than 100MB');
 
 	// UPDATE - Vms have been added/started
 	if (dataPacket.vms.installed !== lastDataPacket.vms.installed) return logAndReturn(true, 'debug', 'Sending update as VMs have been installed');
