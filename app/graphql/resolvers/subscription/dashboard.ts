@@ -13,6 +13,7 @@ const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace', l
 };
 
 const ONE_MB = 1_024 * 1_024;
+const ONE_HUNDRED_MB = 100 * ONE_MB;
 
 let lastDataPacketTimestamp: number | undefined;
 let lastDataPacket: Dashboard;
@@ -31,8 +32,8 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 	// UPDATE - Array state changed
 	if (dataPacket.array.state !== lastDataPacket.array.state) return logAndReturn(true, 'debug', 'Sending update as array state has changed');
 
-	// UPDATE - Array free has changed by more than 1MB in either direction
-	if (!isNumberBetween(lastDataPacket.array.capacity.bytes.free - ONE_MB, lastDataPacket.array.capacity.bytes.free + ONE_MB)(dataPacket.array.capacity.bytes.free)) return logAndReturn(true, 'trace', 'Sending update as array free size has changed by more than 1MB');
+	// UPDATE - Array free has changed by more than 100MB in either direction
+	if (!isNumberBetween(Number(lastDataPacket.array.capacity.bytes.free) - ONE_HUNDRED_MB, Number(lastDataPacket.array.capacity.bytes.free) + ONE_HUNDRED_MB)(Number(dataPacket.array.capacity.bytes.free))) return logAndReturn(true, 'trace', 'Sending update as array free size has changed by more than 1MB');
 
 	// UPDATE - Vms have been added/started
 	if (dataPacket.vms.installed !== lastDataPacket.vms.installed) return logAndReturn(true, 'debug', 'Sending update as VMs have been installed');
