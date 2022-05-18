@@ -93,9 +93,9 @@ type ArrayCapacity {
 }
 
 type Capacity {
-    free: Long
-    used: Long
-    total: Long
+    free: String
+    used: String
+    total: String
 }
 
 type ArrayDataDisk {

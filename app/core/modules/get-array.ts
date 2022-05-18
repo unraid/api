@@ -45,14 +45,14 @@ export const getArray = (context: CoreContext): CoreResult => {
 	// Array capacity
 	const capacity = {
 		bytes: {
-			free: disksFreeBytes,
-			used: disksTotalBytes - disksFreeBytes,
-			total: disksTotalBytes
+			free: `${disksFreeBytes}`,
+			used: `${disksTotalBytes - disksFreeBytes}`,
+			total: `${disksTotalBytes}`
 		},
 		disks: {
-			free: maxDisks - disks.length,
-			used: disks.length,
-			total: maxDisks
+			free: `${maxDisks - disks.length}`,
+			used: `${disks.length}`,
+			total: `${maxDisks}`
 		}
 	};
 
