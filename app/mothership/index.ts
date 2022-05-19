@@ -196,9 +196,11 @@ const startKeepAlive = () => {
 
 interface Message {
 	id: string;
-	type: 'query' | 'mutation' | 'start';
+	type: 'query' | 'mutation' | 'start' | 'stop';
 	payload: any;
 }
+
+const messageIdLookup = new Map<string, { subId: number; field: string }>();
 
 // Check our relay connection is correct
 export const checkRelayConnection = debounce(async () => {
@@ -317,25 +319,28 @@ export const checkRelayConnection = debounce(async () => {
 
 						// Find which field we're subscribing to
 						// Since subscriptions can only include a single field it's safe to assume 0 is the correct index
-						const name = message.payload.query.definitions[0].selectionSet.selections[0].name.value;
+						const field = message.payload.query.definitions[0].selectionSet.selections[0].name.value;
 
 						// Subscribe to endpoint
-						relayLogger.debug('Subscribing to %s', name);
-						const subId = await pubsub.subscribe(name, subscriptionListener(id, name));
+						relayLogger.debug('Starting subscription to %s', field);
+						const subId = await pubsub.subscribe(field, subscriptionListener(id, field));
+
+						// Save the subId and field for later
+						messageIdLookup.set(id, { subId, field });
 
 						// If this is the dashboard endpoint it also needs its producer started
-						if (name === 'dashboard') {
+						if (field === 'dashboard') {
 							// Start producer
 							startDashboardProducer();
 						}
 
 						// When this ws closes remove the listener
 						store.relay.onClose.addOnceListener(() => {
-							relayLogger.debug('Unsubscribing from %s as the socket closed', name);
+							relayLogger.debug('Stopping subscription to "%s" as the client closed the socket', field);
 							pubsub.unsubscribe(subId);
 
 							// If this is the dashboard endpoint it also needs its producer stopped
-							if (name === 'dashboard') {
+							if (field === 'dashboard') {
 								// Stop producer
 								stopDashboardProducer();
 							}
@@ -343,7 +348,28 @@ export const checkRelayConnection = debounce(async () => {
 						break;
 					}
 
+					case type === 'stop': {
+						const { field, subId } = messageIdLookup.get(id) ?? {};
+						if (!field || !subId) {
+							relayLogger.error('Failed to unsubscribe from %s as there was no known field or subId associated', id);
+							return;
+						}
+
+						// Un-sub this socket from the pubsub interface
+						relayLogger.debug('Stopping subscription to "%s" as the client send a "stop" message', field);
+						pubsub.unsubscribe(subId);
+
+						// If this is the dashboard endpoint it also needs its producer stopped
+						if (field === 'dashboard') {
+							// Stop producer
+							stopDashboardProducer();
+						}
+
+						break;
+					}
+
 					default:
+						relayLogger.error('Unknown message type "%s"', type);
 						break;
 				}
 			} catch (error: unknown) {
