@@ -269,10 +269,11 @@ export const checkRelayConnection = debounce(async () => {
 		// Bind on message handler
 		store.relay.onMessage.addListener(async (message: Message) => {
 			const { id, type } = message ?? {};
-			const operationName = message.payload.query.definitions[0].name.value;
 			try {
 				switch (true) {
 					case type === 'query' || type === 'mutation': {
+						const operationName = message.payload.query.definitions[0].name.value;
+
 						// Convert query to string
 						const query = print(message.payload.query);
 						relayLogger.addContext('query', query);
@@ -356,7 +357,7 @@ export const checkRelayConnection = debounce(async () => {
 						}
 
 						// Un-sub this socket from the pubsub interface
-						relayLogger.debug('Stopping subscription to "%s" as the client send a "stop" message', field);
+						relayLogger.debug('Stopping subscription to "%s" as the client sent a "stop" message', field);
 						pubsub.unsubscribe(subId);
 
 						// If this is the dashboard endpoint it also needs its producer stopped
@@ -375,6 +376,7 @@ export const checkRelayConnection = debounce(async () => {
 			} catch (error: unknown) {
 				if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 				relayLogger.error('Failed processing message with "%s"', error.message);
+				const operationName = message.payload.query.definitions[0].name.value;
 				sendMessage(operationName, 'error', id, {
 					error: {
 						message: error.message
