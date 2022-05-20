@@ -21,11 +21,11 @@ import { startDashboardProducer, stopDashboardProducer } from '../graphql/resolv
 
 const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
 
-let stream: RotatingFileStream;
-const saveWebsocketMessageToDisk = (message: string) => {
+let outgoingStream: RotatingFileStream;
+const saveOutgoingWebsocketMessageToDisk = (message: string) => {
 	// Start stream if it doesn't exist
-	if (!stream) {
-		stream = createRotatingFileStream('/var/log/unraid-api/relay-messages.log', {
+	if (!outgoingStream) {
+		outgoingStream = createRotatingFileStream('/var/log/unraid-api/relay-outgoing-messages.log', {
 			size: '10M', // Rotate every 10 MegaBytes written
 			interval: '1d', // Rotate daily
 			compress: 'gzip', // Compress rotated files
@@ -33,7 +33,22 @@ const saveWebsocketMessageToDisk = (message: string) => {
 		});
 	}
 
-	stream.write(`${message}\n`);
+	outgoingStream.write(`${message}\n`);
+};
+
+let incomingStream: RotatingFileStream;
+const saveIncomingWebsocketMessageToDisk = (message: string) => {
+	// Start stream if it doesn't exist
+	if (!incomingStream) {
+		incomingStream = createRotatingFileStream('/var/log/unraid-api/relay-incoming-messages.log', {
+			size: '10M', // Rotate every 10 MegaBytes written
+			interval: '1d', // Rotate daily
+			compress: 'gzip', // Compress rotated files
+			maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10) // Keep a maximum of 2 log files
+		});
+	}
+
+	incomingStream.write(`${message}\n`);
 };
 
 /**
@@ -62,7 +77,7 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 	}
 
 	// Log all messages
-	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveWebsocketMessageToDisk(JSON.stringify({ name, data }));
+	if (process.env.LOG_MOTHERSHIP_MESSAGES) saveOutgoingWebsocketMessageToDisk(JSON.stringify({ name, data }));
 
 	store.relay.send(message);
 }
@@ -270,6 +285,9 @@ export const checkRelayConnection = debounce(async () => {
 		store.relay.onMessage.addListener(async (message: Message) => {
 			const { id, type } = message ?? {};
 			try {
+				// Log all messages
+				if (process.env.LOG_MOTHERSHIP_MESSAGES) saveIncomingWebsocketMessageToDisk(JSON.stringify(message));
+
 				switch (true) {
 					case type === 'query' || type === 'mutation': {
 						const operationName = message.payload.query.definitions[0].name.value;
