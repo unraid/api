@@ -33,7 +33,7 @@ const saveOutgoingWebsocketMessageToDisk = (message: string) => {
 		});
 	}
 
-	outgoingStream.write(`${message}\n`);
+	outgoingStream.write(`[${new Date().toISOString()}] ${message}\n`);
 };
 
 let incomingStream: RotatingFileStream;
@@ -48,7 +48,7 @@ const saveIncomingWebsocketMessageToDisk = (message: string) => {
 		});
 	}
 
-	incomingStream.write(`${message}\n`);
+	incomingStream.write(`[${new Date().toISOString()}] ${message}\n`);
 };
 
 /**
