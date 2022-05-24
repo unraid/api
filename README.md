@@ -51,5 +51,8 @@ To view non-anomyzed verbose data, run:
 unraid-api report -vv
 ```
 
+## Secrets
+If you found this file you're likely a developer. If you'd like to know more about the API and when it's avaliable please join [our discord](https://discord.gg/unraid).
+
 ## License
 Copyright 2019-2022 Lime Technology Inc. All rights reserved.
