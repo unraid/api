@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.47.1](https://github.com/unraid/api/compare/v2.47.0...v2.47.1) (2022-05-24)
+
+
+### Bug Fixes
+
+* restarting relay crashing API ([5f04196](https://github.com/unraid/api/commit/5f041962714c0d024b0e8bc3e7b335f105f09b28))
+
 ## [2.47.0](https://github.com/unraid/api/compare/v2.46.3...v2.47.0) (2022-05-24)
 
 
