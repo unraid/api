@@ -150,6 +150,9 @@ jobs:
 
     - name: List files to be packed
       run: tree dist
+    
+    - name: Delete change-log
+      run: rm CHANGELOG.md
 
     - name: Pack source
       run: npm pack
