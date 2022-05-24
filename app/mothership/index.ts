@@ -355,8 +355,13 @@ export const checkRelayConnection = debounce(async () => {
 
 						// When this ws closes remove the listener
 						store.relay.onClose.addOnceListener(() => {
-							relayLogger.debug('Stopping subscription to "%s" as the client closed the socket', field);
-							pubsub.unsubscribe(subId);
+							try {
+								relayLogger.debug('Stopping subscription to "%s" as the client closed the socket', field);
+								pubsub.unsubscribe(subId);
+							} catch (error: unknown) {
+								if (!(error instanceof Error)) throw new Error('Unknown error', { cause: error as Error });
+								relayLogger.error('Failed stopping subscription id=%s with "%s"', error.message);
+							}
 
 							// If this is the dashboard endpoint it also needs its producer stopped
 							if (field === 'dashboard') {
