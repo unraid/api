@@ -46,7 +46,7 @@ To view verbose data (anonymized), run:
 unraid-api report -v
 ```
 
-To view non-anomyzed verbose data, run:
+To view non-anonymized verbose data, run:
 ```
 unraid-api report -vv
 ```
