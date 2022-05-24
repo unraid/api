@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.47.0](https://github.com/unraid/api/compare/v2.46.3...v2.47.0) (2022-05-24)
+
+
+### Features
+
+* add os.hostname and increase 1m to 1h for sweep ([ee1ee90](https://github.com/unraid/api/commit/ee1ee908cc7bec15537f0892854f61d4ffdcccae))
+* add timestamp to relay logs ([1712542](https://github.com/unraid/api/commit/1712542440eebd83b0c3917bb53fcba63349903f))
+
+
+### Bug Fixes
+
+* add ending ] to owner ([62ad67c](https://github.com/unraid/api/commit/62ad67c948c0b152740b9de0e653fd3d80f57e00))
+* add support for stopping subscriptions ([71549f3](https://github.com/unraid/api/commit/71549f33f87abfabe3bc45073dcb403d156f0b35))
+* don't show [] when no relay message is shown ([467d30b](https://github.com/unraid/api/commit/467d30b940fcfe24122c7a59e04ed9a02b30fbec))
+* ensure API wont crash on wrong subId stop message ([ca86c95](https://github.com/unraid/api/commit/ca86c952a24fb4aa8c4cb705e64ed0a8ab631419))
+* ensure reconnection timeout is ms not new time ([1f7c1a6](https://github.com/unraid/api/commit/1f7c1a6739930cb0c9694ca0b06fc0250a7630cd))
+* NaN ([8933fae](https://github.com/unraid/api/commit/8933fae63eb5a7da1b66847879f1031ce20ea2a4))
+* on stop dont lookup operationName ([cb27b4b](https://github.com/unraid/api/commit/cb27b4baa85f38f7df690e0622122ba1980d92ab))
+* only show guid in report when using -vv ([326870c](https://github.com/unraid/api/commit/326870ce2e878d2daca559a8badf0d8d2c2febb4))
+* switch from 1MB -> 100MB in dashboard.array update ([d37c37c](https://github.com/unraid/api/commit/d37c37ccf38084c7e084425452c08070f04cf75a))
+* use /var/log/ for relay messages ([8ec9d39](https://github.com/unraid/api/commit/8ec9d39773ae6efddb8e231183ff9a43aacf6c10))
+* use string for array.capacity ([3952edc](https://github.com/unraid/api/commit/3952edc9c8d588e138e33316f44c4b6b5c4282cf))
+
 ### [2.46.3](https://github.com/unraid/api/compare/v2.46.2...v2.46.3) (2022-05-10)
 
 
