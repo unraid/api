@@ -279,6 +279,21 @@ export const checkRelayConnection = debounce(async () => {
 			// @ts-expect-error
 			error.reason = reason;
 			handleError(error);
+
+			// Stop the dashboard producer
+			stopDashboardProducer();
+
+			// Stop all the pubsub subscriptions as the client closed the connection
+			[...messageIdLookup.entries()].forEach(([messageId, { subId, field }]) => {
+				// Un-sub from the pubsub interface
+				try {
+					relayLogger.debug('Stopping subscription to "%s" as the client sent a "stop" message', field);
+					pubsub.unsubscribe(subId);
+				} catch (error: unknown) {
+					if (!(error instanceof Error)) throw new Error('Unknown error', { cause: error as Error });
+					relayLogger.error('Failed stopping subscription id=%s with "%s"', subId, error.message);
+				}
+			});
 		});
 
 		// Bind on message handler
@@ -353,22 +368,6 @@ export const checkRelayConnection = debounce(async () => {
 							startDashboardProducer();
 						}
 
-						// When this ws closes remove the listener
-						store.relay.onClose.addOnceListener(() => {
-							try {
-								relayLogger.debug('Stopping subscription to "%s" as the client closed the socket', field);
-								pubsub.unsubscribe(subId);
-							} catch (error: unknown) {
-								if (!(error instanceof Error)) throw new Error('Unknown error', { cause: error as Error });
-								relayLogger.error('Failed stopping subscription id=%s with "%s"', id, error.message);
-							}
-
-							// If this is the dashboard endpoint it also needs its producer stopped
-							if (field === 'dashboard') {
-								// Stop producer
-								stopDashboardProducer();
-							}
-						});
 						break;
 					}
 
@@ -378,6 +377,10 @@ export const checkRelayConnection = debounce(async () => {
 							relayLogger.error('Failed to unsubscribe from %s as there was no known field or subId associated', id);
 							return;
 						}
+
+						// Remove the subId, etc. so when the socket is closed
+						// it doesn't unsub from subscriptions that are already stopped
+						messageIdLookup.delete(id);
 
 						// Un-sub this socket from the pubsub interface
 						try {
