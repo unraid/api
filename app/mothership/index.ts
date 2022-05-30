@@ -115,80 +115,69 @@ const getRelayHeaders = () => {
 	};
 };
 
-const handleError = (error: unknown) => {
-	const reason = (error as any).reason as string;
-	const code = (error as any).code as number ?? 500;
-	relayLogger.debug('Disconnected with status="%s" reason="%s"', code, reason);
+const handleReconnection = (reason: string, code: number): { reason: string; timeout?: number } | void => {
 	switch (code) {
 		// Client disconnected
 		case 5:
 			// Bail as the API has disconnected itself
-			break;
+			return { reason: 'API disconnected itself' };
 
 		// Client disconnected
 		case 6:
 			// Bail as the API has disconnected itself
-			break;
+			return { reason: 'API disconnected itself' };
+
+		// Relay is updating
+		case 12:
+			return { reason: 'Relay is restarting', timeout: convertToFuzzyTime(10_000, 60_000) };
 
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
 			// Tell api manager to delete the key as it's invalid
 			apiManager.expire('my_servers');
-			break;
+			return { reason: 'API key is invalid' };
 
 		case 426:
 			// Bail as we cannot reconnect
 			wsState.outOfDate = true;
-			break;
+			return { reason: 'API is out of date' };
 
 		case 429: {
 			// Reconnect after ~30s
-			const timeout = convertToFuzzyTime(15_000, 45_000);
-			store.timeout = Date.now() + timeout;
-			store.reason = reason;
-			setTimeout(() => {
-				store.timeout = undefined;
-				store.reason = undefined;
-			}, timeout);
-			break;
+			return { reason: 'You are rate limited', timeout: convertToFuzzyTime(15_000, 45_000) };
 		}
 
 		case 500: {
 			// Reconnect after ~60s
-			const timeout = convertToFuzzyTime(45_000, 75_000);
-			store.timeout = Date.now() + timeout;
-			store.reason = reason;
-			setTimeout(() => {
-				store.timeout = undefined;
-				store.reason = undefined;
-			}, timeout);
-			break;
+			return { reason: 'Relay returned a 500 error', timeout: convertToFuzzyTime(45_000, 75_000) };
 		}
 
 		case 503: {
 			// Reconnect after ~60s
-			const timeout = convertToFuzzyTime(45_000, 75_000);
-			store.timeout = Date.now() + timeout;
-			store.reason = reason;
-			setTimeout(() => {
-				store.timeout = undefined;
-				store.reason = undefined;
-			}, timeout);
-			break;
+			return { reason: 'Relay is unrechable', timeout: convertToFuzzyTime(45_000, 75_000) };
 		}
 
 		default: {
 			// Reconnect after ~60s
-			const timeout = convertToFuzzyTime(45_000, 75_000);
-			store.timeout = Date.now() + timeout;
-			store.reason = reason;
-			setTimeout(() => {
-				store.timeout = undefined;
-				store.reason = undefined;
-			}, timeout);
-			break;
+			return { reason: reason || 'unknown', timeout: convertToFuzzyTime(45_000, 75_000) };
 		}
 	}
+};
+
+const handleError = (error: unknown) => {
+	const reason = (error as any).reason as string;
+	const code = (error as any).code as number ?? 500;
+	const { timeout, reason: reconnectionReason } = handleReconnection(reason, code) ?? {};
+	store.reason = reconnectionReason;
+
+	relayLogger.debug('Disconnected with status="%s" reason="%s"', code, reconnectionReason);
+	if (!timeout) return;
+
+	store.timeout = Date.now() + timeout;
+	setTimeout(() => {
+		store.timeout = undefined;
+		store.reason = undefined;
+	}, timeout);
 };
 
 let interval: NodeJS.Timer;

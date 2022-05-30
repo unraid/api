@@ -65,6 +65,7 @@ mothership.onConnected(async () => {
 		return;
 	}
 
+	// Sub to /servers endpoint
 	mothershipLogger.info('Connected to %s', MOTHERSHIP_GRAPHQL_LINK);
 	subscribeToServers(apiKey);
 }, undefined);
