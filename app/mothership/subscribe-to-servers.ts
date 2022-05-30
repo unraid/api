@@ -17,7 +17,8 @@ export const mothership = new SubscriptionClient(() => {
 }, {
 	reconnect: false,
 	lazy: true,
-	minTimeout: ONE_SECOND * 30,
+	// Should wait 10s for a connection to start
+	minTimeout: ONE_SECOND * 10,
 	connectionParams: () => ({
 		apiVersion: version,
 		apiKey: apiManager.cloudKey
@@ -46,6 +47,10 @@ export const mothership = new SubscriptionClient(() => {
 		}
 	}
 });
+
+// Allow the client to wait 10s for a connection to start
+// @ts-expect-error
+mothership.maxConnectTimeGenerator.setMin(10_000);
 
 // Fix client timing out while trying to connect
 // @ts-expect-error

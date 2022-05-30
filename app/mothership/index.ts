@@ -115,7 +115,7 @@ const getRelayHeaders = () => {
 	};
 };
 
-const handleReconnection = (reason: string, code: number): { reason: string; timeout?: number } | void => {
+const handleReconnection = (reason: string, code: number): { reason: string; timeout?: number } => {
 	switch (code) {
 		// Client disconnected
 		case 5:
@@ -167,7 +167,7 @@ const handleReconnection = (reason: string, code: number): { reason: string; tim
 const handleError = (error: unknown) => {
 	const reason = (error as any).reason as string;
 	const code = (error as any).code as number ?? 500;
-	const { timeout, reason: reconnectionReason } = handleReconnection(reason, code) ?? {};
+	const { timeout, reason: reconnectionReason } = handleReconnection(reason, code);
 	store.reason = reconnectionReason;
 
 	relayLogger.debug('Disconnected with status="%s" reason="%s"', code, reconnectionReason);
