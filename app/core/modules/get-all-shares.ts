@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../types';
+import type { CoreResult, CoreContext } from '../types';
 import { getShares, ensurePermission } from '../utils';
 
 /**

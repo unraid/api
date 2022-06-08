@@ -423,7 +423,7 @@ export const checkRelayConnection = debounce(async () => {
 			default:
 				if (before !== after) {
 					relayLogger.addContext('url', MOTHERSHIP_RELAY_WS_LINK);
-					relayLogger.info('Connection status changed from %s to %s');
+					relayLogger.info('Connection status changed from %s to %s', before, after);
 					relayLogger.removeContext('url');
 				}
 
