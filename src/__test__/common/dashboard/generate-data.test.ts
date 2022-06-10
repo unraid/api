@@ -8,6 +8,14 @@ vi.mock('@vmngr/libvirt', () => ({
 	}
 }));
 
+vi.mock('../../../core/log', () => ({
+	logger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn()
+	}
+}));
+
 vi.mock('../../../core/states/var', () => ({
 	varState: {
 		data: {

@@ -1,4 +1,3 @@
-import { uptime } from 'os';
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { varState } from '../../core/states/var';
 import { getHypervisor } from '../../core/utils/vms/get-hypervisor';
