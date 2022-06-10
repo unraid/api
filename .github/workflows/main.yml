@@ -67,10 +67,10 @@ jobs:
         key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    - name: Install node v17
+    - name: Install node v14
       uses: actions/setup-node@v1
       with:
-        node-version: 17
+        node-version: 14
 
     - name: Load npm cache
       uses: actions/cache@v2
@@ -85,6 +85,12 @@ jobs:
 
     - name: Installing node deps
       run: npm install
+
+    # We need 17 to run the tests but the application uses 14
+    - name: Install node v17
+      uses: actions/setup-node@v1
+      with:
+        node-version: 17
 
     - name: Unit tests and code coverage
       run: npm run test --if-present
