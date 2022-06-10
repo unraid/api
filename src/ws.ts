@@ -53,8 +53,6 @@ export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
 
 /**
  * Websocket has connected.
- *
- * @param ws
  */
 export const wsHasConnected = (id: string) => {
 	subscriptions[id] = {
@@ -65,8 +63,6 @@ export const wsHasConnected = (id: string) => {
 
 /**
  * Websocket has disconnected.
- *
- * @param ws
  */
 export const wsHasDisconnected = (id: string) => {
 	subscriptions[id].total = 0;
