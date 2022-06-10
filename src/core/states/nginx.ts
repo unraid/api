@@ -51,7 +51,7 @@ interface ParseOptions {
 	emit?: boolean;
 }
 
-class NginxState extends State {
+export class NginxState extends State {
 	private static instance: NginxState;
 	public channel = 'nginx';
 	_data: Nginx | undefined;

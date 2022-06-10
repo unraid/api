@@ -3,9 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { ShareType, UserShare, DiskShare } from '../../types/states';
-import { sharesState, slotsState } from '../../states';
-import { processShare } from '.';
+import type { UserShare, DiskShare } from '../../types/states';
+import { sharesState } from '../../states/shares';
+import { slotsState } from '../../states/slots';
+import { processShare } from './process-share';
 import { AppError } from '../../errors';
 
 interface Filter {

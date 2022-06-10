@@ -69,7 +69,7 @@ const parse = (state: SlotIni[]) => {
 /**
  * Slots
  */
-class Slots extends ArrayState {
+export class Slots extends ArrayState {
 	private static instance: Slots;
 	public channel = 'slots';
 
@@ -98,7 +98,7 @@ class Slots extends ArrayState {
 		return this._data;
 	}
 
-	parse(state) {
+	parse(state: any) {
 		const data = parse(state);
 
 		// Update local data

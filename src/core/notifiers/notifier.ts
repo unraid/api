@@ -8,11 +8,11 @@ import { LooseObject } from '../types';
 
 export type NotifierLevel = 'info' | 'error' | 'debug';
 
-export interface NotifierOptions {
+export type NotifierOptions = Partial<{
 	level: NotifierLevel;
 	helpers?: Record<string, unknown>;
 	template?: string;
-}
+}>;
 
 export interface NotifierSendOptions {
 	/** Which type of notification. */

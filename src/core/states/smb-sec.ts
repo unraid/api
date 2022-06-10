@@ -58,7 +58,7 @@ const parse = (state: SmbSecIni[]) => {
 	});
 };
 
-class SmbSec extends ArrayState {
+export class SmbSec extends ArrayState {
 	private static instance: SmbSec;
 	public channel = 'smb-sec';
 

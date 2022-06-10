@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import mqtt from 'mqtt';
+import mqtt, { MqttClient } from 'mqtt';
 import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
 
 interface Options extends NotifierOptions {
@@ -20,9 +20,10 @@ export class MqttNotifier extends Notifier {
 	private static instance: MqttNotifier;
 
 	/** The current MQTT client. */
-	private readonly client;
+	private readonly client!: MqttClient;
+
 	/** The current MQTT topic. */
-	private readonly topic;
+	private readonly topic!: string;
 
 	constructor(options: Options) {
 		super(options);
@@ -52,7 +53,7 @@ export class MqttNotifier extends Notifier {
 
 		// Reconect if needed
 		if (!client.connected) {
-			await client.reconnect();
+			client.reconnect();
 		}
 
 		// Send

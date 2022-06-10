@@ -12,12 +12,12 @@ import { logger } from '../log';
 export class ConsoleNotifier extends Notifier {
 	private readonly log: typeof logger;
 
-	constructor(options: NotifierOptions) {
+	constructor(options: NotifierOptions = {}) {
 		super(options);
 
-		this.level = options.level || 'info';
+		this.level = options.level ?? 'info';
 		this.helpers = options.helpers ?? {};
-		this.template = options.template ?? '{{{ json }}}';
+		this.template = options.template ?? '{{{ data }}}';
 		this.log = logger;
 	}
 

@@ -37,7 +37,7 @@ const parse = (state: SharesIni[]): Share[] => {
 		});
 };
 
-class Shares extends ArrayState {
+export class Shares extends ArrayState {
 	private static instance: Shares;
 	public channel = 'shares';
 

@@ -1,5 +1,5 @@
 import btoa from 'btoa';
-import { promises } from 'fs';
+import { readFile } from 'fs/promises';
 import { varState } from '../../states';
 
 // Get key file
@@ -9,7 +9,6 @@ export const getKeyFile = async function (regFile: string = varState.data.regFil
 		return '';
 	}
 
-	return promises.readFile(regFile, 'binary').then(keyFile => {
-		return btoa(keyFile).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
-	}).catch(() => '');
+	const keyFile = await readFile(regFile, 'binary');
+	return btoa(keyFile).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 };

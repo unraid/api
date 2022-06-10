@@ -26,7 +26,7 @@ const parse = (state: SecIni[]) => {
 	});
 };
 
-class NfsSec extends ArrayState {
+export class NfsSec extends ArrayState {
 	private static instance: NfsSec;
 	public channel = 'nsf-sec';
 

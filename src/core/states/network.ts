@@ -63,7 +63,7 @@ const parse = (state: NetworkIni) => {
 /**
  * Network
  */
-class Network extends ArrayState {
+export class Network extends ArrayState {
 	private static instance: Network;
 	public channel = 'network';
 

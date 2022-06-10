@@ -309,7 +309,7 @@ interface ParseOptions {
 	emit?: boolean;
 }
 
-class VarState extends State {
+export class VarState extends State {
 	private static instance: VarState;
 	public channel = 'var';
 	_data: Var | undefined;
