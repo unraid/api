@@ -3,14 +3,20 @@ import { validateApiKey } from '../../../../core/utils/misc/validate-api-key';
 
 vi.mock('../../../../core/log', () => ({
 	logger: {
+		addContext: vi.fn(),
+		removeContext: vi.fn(),
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
+		debug: vi.fn(),
+		trace: vi.fn()
 	},
 	graphqlLogger: {
+		addContext: vi.fn(),
+		removeContext: vi.fn(),
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
+		debug: vi.fn(),
+		trace: vi.fn()
 	}
 }));
 
