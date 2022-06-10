@@ -1,6 +1,14 @@
 import { v4 as randomUUID } from 'uuid';
-import { expect, test } from 'vitest';
+import { expect, test, vi } from 'vitest';
 import { getWsConnectionCount, getWsConnectionCountInChannel, hasSubscribedToChannel, hasUnsubscribedFromChannel, wsHasConnected } from '../ws';
+
+vi.mock('../core/log', () => ({
+	logger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn()
+	}
+}));
 
 test('Returns 0 when no connections exist', () => {
 	expect(getWsConnectionCount()).toBe(0);
