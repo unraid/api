@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { MqttNotifier } from '../../../core/notifiers';
 
-vi.mock('../core/log', () => ({
+vi.mock('../../../core/log', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
