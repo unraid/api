@@ -7,6 +7,11 @@ vi.mock('../core/log', () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn()
+	},
+	graphqlLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn()
 	}
 }));
 
