@@ -1,4 +1,4 @@
-import { graphqlLogger } from './core/log';
+import { graphqlLogger } from '@app/core/log';
 
 interface subscription {
 	total: number;
