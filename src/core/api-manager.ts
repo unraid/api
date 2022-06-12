@@ -154,7 +154,7 @@ export class ApiManager extends EventEmitter {
 	 *
 	 * Note: This will bump the expiration by the original length.
 	 */
-	replace(name: string, key: string, options: KeyOptions) {
+	replace(name: string, key: string, options: KeyOptions = {}) {
 		// Delete existing key
 		// @ts-expect-error
 		this.keys.items[name] = null;
@@ -174,7 +174,7 @@ export class ApiManager extends EventEmitter {
 	 *
 	 * @memberof ApiManager
 	 */
-	add(name: string, key: string, options: KeyOptions): void {
+	add(name: string, key: string, options: KeyOptions = {}): void {
 		const { userId, expiration = '1y' } = options;
 
 		validateArgument(name, 'string');
