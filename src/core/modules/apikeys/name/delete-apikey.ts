@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { NotImplementedError } from '../../../errors';
-import { CoreContext, CoreResult } from '../../../types';
+import { NotImplementedError } from '@app/core/errors';
+import { CoreContext, CoreResult } from '@app/core/types';
 
 interface Context extends CoreContext {
 	params: {
