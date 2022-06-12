@@ -1,7 +1,8 @@
-// vite.config.ts
-import { defineConfig } from 'vitest/config'
+import { defineConfig } from 'vitest/config';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
+  plugins: [tsconfigPaths()],
   test: {
     coverage: {
       all: true,
@@ -9,4 +10,4 @@ export default defineConfig({
       reporter: ['text', 'json', 'html'],
     },
   },
-})
+});
