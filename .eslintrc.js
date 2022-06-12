@@ -1,11 +1,21 @@
-module.exports = {
+// @ts-check
+
+/** @type {import('eslint').Linter.Config} */
+export default {
     root: true,
-    parser: '@typescript-eslint/parser',
+    
     extends: [
         '@unraid'
     ],
     rules: {
         curly: ["error", "multi-line"],
-        "@typescript-eslint/member-ordering": ["off"]
-    }
-};
+        "quotes": [2, "single", { "avoidEscape": true }]
+    },
+    overrides: [{
+        files: ['*.ts', '*.tsx'],
+        parser: '@typescript-eslint/parser',
+        rules: {
+            "@typescript-eslint/member-ordering": ["off"],
+        }
+    }]
+}
