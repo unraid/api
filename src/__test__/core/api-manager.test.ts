@@ -1,8 +1,8 @@
 import { v4 as randomUUID } from 'uuid';
 import { assert, expect, test, vi } from 'vitest';
-import { ApiManager } from '../../core/api-manager';
+import { ApiManager } from '@app/core/api-manager';
 
-vi.mock('../../core/utils/misc/load-state', () => ({
+vi.mock('@app/core/utils/misc/load-state', () => ({
 	loadState: vi.fn(() => ({
 		upc: {
 			apikey: '123-123-123-123-123-123'

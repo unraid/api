@@ -3,14 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
 import { read as multiIniRead, Parser as MultiIniParser } from 'multi-ini';
 import ini from 'ini';
 import camelCaseKeys from 'camelcase-keys';
 import filterObject from 'filter-obj';
 import mapObject from 'map-obj';
-import { paths } from '../../paths';
-import { AppError } from '../../errors';
+import { paths } from '@app/core/paths';
+import { AppError } from '@app/core/errors/app-error';
+import { readFileSync } from 'fs';
 
 type ConfigType = 'ini' | 'cfg';
 
@@ -74,7 +74,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
 export const parseConfig = <T>(options: Options): T => {
 	const { file, type } = options;
 	const filePath = paths[options.filePath as keyof typeof paths] ?? options.filePath;
-	const fileContents = filePath ? fs.readFileSync(filePath, 'utf8').toString() : file!;
+	const fileContents = filePath ? readFileSync(filePath, 'utf8').toString() : file!;
 	const fileType = type || filePath.split('.').splice(-1)[0];
 
 	// Only allow ini and cfg files.

@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { User } from '../../types/states';
-import { ParameterMissingError } from '../../errors';
-import { ac } from '../../permissions';
+import { User } from '@app/core/types/states';
+import { ParameterMissingError } from '@app/core/errors/param-missing-error';
+import { ac } from '@app/core/permissions';
 
 export interface AccessControlOptions {
 	/** Which resource to verify the user's role against. e.g. 'apikeys' */

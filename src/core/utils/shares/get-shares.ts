@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import type { UserShare, DiskShare } from '../../types/states';
-import { sharesState } from '../../states/shares';
-import { slotsState } from '../../states/slots';
-import { processShare } from './process-share';
-import { AppError } from '../../errors';
+import type { UserShare, DiskShare } from '@app/core/types/states';
+import { sharesState } from '@app/core/states/shares';
+import { slotsState } from '@app/core/states/slots';
+import { processShare } from '@app/core/utils/shares/process-share';
+import { AppError } from '@app/core/errors/app-error';
 
 interface Filter {
 	name: string;

@@ -3,10 +3,12 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../types';
-import { AppError, NotImplementedError } from '../errors';
-import { sharesState, slotsState } from '../states';
-import { ensurePermission } from '../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { NotImplementedError } from '@app/core/errors/not-implemented-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { sharesState } from '@app/core/states/shares';
+import { slotsState } from '@app/core/states/slots';
 
 export const addShare = async (context: CoreContext): Promise<CoreResult> => {
 	const { user, data } = context;

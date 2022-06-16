@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../../types';
-import { AppError } from '../../../errors';
-import { ensurePermission } from '../../../utils';
+import { CoreContext, CoreResult } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 interface Context extends CoreContext {
 	params: {

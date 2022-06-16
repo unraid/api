@@ -3,8 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../../types';
-import { docker, ensurePermission } from '../../utils';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { docker } from '@app/core/utils/clients/docker';
 
 /**
  * Two arrays containing the installed and started containers.

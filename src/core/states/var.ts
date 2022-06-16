@@ -4,12 +4,12 @@
  */
 
 import path from 'path';
-import { paths } from '../paths';
-import { Var } from '../types/states';
-import { IniStringBooleanOrAuto, IniStringBoolean } from '../types/ini';
-import { State } from './state';
-import { toNumber } from '../utils/casting';
-import { parseConfig } from '../utils/misc/parse-config';
+import { paths } from '@app/core/paths';
+import { Var } from '@app/core/types/states';
+import { IniStringBooleanOrAuto, IniStringBoolean } from '@app/core/types/ini';
+import { State } from '@app/core/states/state';
+import { toNumber } from '@app/core/utils/casting';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
 
 const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
 	if (value === 'no' || value === 'false') {

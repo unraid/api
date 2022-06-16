@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { envs } from './envs';
+import { envs } from '@app/core/envs';
 
 const debug = envs.DEBUG;
 const nodeEnv = envs.NODE_ENV;

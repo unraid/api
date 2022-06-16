@@ -1,6 +1,6 @@
-import { paths } from '../core/paths';
-import { loadState } from '../core/utils/misc/load-state';
-import { MyServersConfig } from '../types/my-servers-config';
+import { paths } from '@app/core/paths';
+import { loadState } from '@app/core/utils/misc/load-state';
+import { MyServersConfig } from '@app/types/my-servers-config';
 
 // Get myservers config
 const configPath = paths['myservers-config'];

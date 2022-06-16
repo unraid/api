@@ -3,10 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { getServers } from '../../../graphql/schema/utils';
-import { apiManager } from '../../api-manager';
-import { CoreContext, CoreResult } from '../../types';
-import { ensurePermission } from '../../utils';
+import { getServers } from '@app/graphql/schema/utils';
+import { apiManager } from '@app/core/api-manager';
+import { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get server's owner info

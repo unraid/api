@@ -4,12 +4,12 @@
  */
 
 import { GraphQLResolveInfo } from 'graphql';
-import { AppError } from '../../../core/errors/app-error';
-import { pubsub } from '../../../core/pubsub';
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { hasSubscribedToChannel } from '../../../ws';
-import { createSubscription } from '../../schema/utils';
-import { startDashboardProducer, stopDashboardProducer } from './dashboard';
+import { AppError } from '@app/core/errors/app-error';
+import { pubsub } from '@app/core/pubsub';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { hasSubscribedToChannel } from '@app/ws';
+import { createSubscription } from '@app/graphql/schema/utils';
+import { startDashboardProducer, stopDashboardProducer } from '@app/graphql/resolvers/subscription/dashboard';
 
 export function withCancel<T>(
 	asyncIterator: AsyncIterator<T | undefined>,

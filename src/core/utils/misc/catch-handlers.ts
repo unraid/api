@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '../../paths';
-import { AppError } from '../../errors';
+import { paths } from '@app/core/paths';
+import { AppError } from '@app/core/errors/app-error';
 
 interface DockerError extends NodeJS.ErrnoException {
 	address: string;

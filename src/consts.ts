@@ -1,4 +1,4 @@
-import { config } from './core/config';
+import { config } from '@app/core/config';
 
 const internalWsAddress = () => {
 	const port = config.port as number | string;

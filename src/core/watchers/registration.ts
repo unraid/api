@@ -4,11 +4,11 @@
  */
 
 import chokidar from 'chokidar';
-import { logger } from '../log';
-import { pubsub } from '../pubsub';
-import { bus } from '../bus';
-import { varState } from '../states';
-import { getKeyFile } from '../utils/misc/get-key-file';
+import { logger } from '@app/core/log';
+import { pubsub } from '@app/core/pubsub';
+import { bus } from '@app/core/bus';
+import { varState } from '@app/core/states/var';
+import { getKeyFile } from '@app/core/utils/misc/get-key-file';
 
 const fileWatchers: chokidar.FSWatcher[] = [];
 

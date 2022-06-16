@@ -4,8 +4,8 @@
  */
 
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { CoreResult, CoreContext } from '../../types';
-import { ensurePermission, getHypervisor } from '../../utils';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission, getHypervisor } from '@app/core/utils';
 
 /**
  * Two arrays containing the installed and started VMs.

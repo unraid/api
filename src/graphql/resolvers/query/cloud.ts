@@ -4,17 +4,17 @@
  */
 
 import got, { HTTPError, OptionsOfTextResponseBody, TimeoutError } from 'got';
-import { MOTHERSHIP_GRAPHQL_LINK, MOTHERSHIP_RELAY_WS_LINK } from '../../../consts';
-import { apiManager } from '../../../core/api-manager';
-import { validateApiKey } from '../../../core/utils/misc/validate-api-key';
-import { validateApiKeyFormat } from '../../../core/utils/misc/validate-api-key-format';
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { getRelayConnectionStatus, getRelayDisconnectionReason, getRelayReconnectingTimeout } from '../../../mothership/get-relay-connection-status';
-import type { Context } from '../../schema/utils';
-import { version } from '../../../../package.json';
-import { logger } from '../../../core/log';
-import { RelayStates } from '../../relay-state';
-import { getAllowedOrigins } from '../../../common/allowed-origins';
+import { MOTHERSHIP_GRAPHQL_LINK, MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
+import { apiManager } from '@app/core/api-manager';
+import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
+import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getRelayConnectionStatus, getRelayDisconnectionReason, getRelayReconnectingTimeout } from '@app/mothership/get-relay-connection-status';
+import type { Context } from '@app/graphql/schema/utils';
+import { logger } from '@app/core/log';
+import { RelayStates } from '@app/graphql/relay-state';
+import { getAllowedOrigins } from '@app/common/allowed-origins';
+import { version } from '@app/../package.json';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 

@@ -4,8 +4,9 @@
  */
 
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { CoreResult, CoreContext } from '../../types';
-import { getHypervisor, ensurePermission } from '../../utils';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
 
 const states = {
 	0: 'NOSTATE',

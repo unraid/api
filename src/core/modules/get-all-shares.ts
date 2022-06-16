@@ -3,8 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import type { CoreResult, CoreContext } from '../types';
-import { getShares, ensurePermission } from '../utils';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getShares } from '@app/core/utils/shares/get-shares';
 
 /**
  * Get all shares.

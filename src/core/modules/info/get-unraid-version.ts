@@ -3,13 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
 import semver from 'semver';
-import { paths } from '../../paths';
-import { CacheManager } from '../../cache-manager';
-import { FileMissingError, FatalAppError } from '../../errors';
-import { ensurePermission } from '../../utils';
-import { CoreResult, CoreContext } from '../../types';
+import { paths } from '@app/core/paths';
+import { CacheManager } from '@app/core/cache-manager';
+import { FatalAppError } from '@app/core/errors/fatal-error';
+import { FileMissingError } from '@app/core/errors/file-missing-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { readFile } from 'fs/promises';
 
 const cache = new CacheManager('unraid:modules:get-unraid-version');
 
@@ -38,7 +39,7 @@ export const getUnraidVersion = async (context: CoreContext): Promise<Result> =>
 	// Only update when cache is empty or doesn't exist yet
 	if (!version) {
 		const filePath = paths['unraid-version'];
-		const file = await fs.promises.readFile(filePath)
+		const file = await readFile(filePath)
 			.catch(() => {
 				throw new FileMissingError(filePath);
 			})

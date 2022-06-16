@@ -2,7 +2,7 @@
  * Copyright 2019-2020 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
-import * as notifications from './notifications';
+import * as notifications from '@app/graphql/resolvers/mutation/notifications';
 
 export const Mutation = {
 	...notifications

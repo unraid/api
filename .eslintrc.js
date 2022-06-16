@@ -9,7 +9,14 @@ module.exports = {
 	],
 	rules: {
 		curly: ['error', 'multi-line'],
-		quotes: [2, 'single', { avoidEscape: true }]
+		quotes: [2, 'single', { avoidEscape: true }],
+		'no-restricted-imports': 'off',
+		'@typescript-eslint/no-restricted-imports': ['warn', {
+			patterns: [{
+				group: ['./*', '../*'],
+				message: 'Please use `@app/` instead of a relative import.'
+			}]
+		}]
 	},
 	overrides: [{
 		files: ['*.ts', '*.tsx'],

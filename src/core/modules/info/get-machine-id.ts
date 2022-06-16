@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../../types';
-import { ensurePermission } from '../../utils';
-import { getMachineId as getMachineIdFromFile } from '../../utils/misc/get-machine-id';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getMachineId as getMachineIdFromFile } from '@app/core/utils/misc/get-machine-id';
 
 /**
  * Get the machine ID.

@@ -3,9 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { ac } from '../permissions';
-import { ensurePermission, getPermissions as getUserPermissions } from '../utils';
-import { CoreContext, CoreResult } from '../types';
+import { ac } from '@app/core/permissions';
+import { getPermissions as getUserPermissions } from '@app/core/utils/permissions/get-permissions';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get all permissions.

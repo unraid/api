@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { AppError } from '../../errors';
-import { logger } from '../../log';
+import { AppError } from '@app/core/errors/app-error';
+import { logger } from '@app/core/log';
 
 /**
  * Exit application.

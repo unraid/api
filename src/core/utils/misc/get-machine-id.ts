@@ -1,7 +1,7 @@
-import fs from 'fs';
-import { paths } from '../../paths';
-import { CacheManager } from '../../cache-manager';
-import { FileMissingError } from '../../errors';
+import { paths } from '@app/core/paths';
+import { CacheManager } from '@app/core/cache-manager';
+import { FileMissingError } from '@app/core/errors/file-missing-error';
+import { readFile } from 'fs/promises';
 
 const cache = new CacheManager('unraid:utils:misc/get-machine-id');
 
@@ -17,7 +17,7 @@ export const getMachineId = async (): Promise<string> => {
 	}
 
 	if (!machineId) {
-		machineId = await fs.promises.readFile(path, 'utf8').then(machineId => machineId.split('\n')[0].trim()).catch(() => '');
+		machineId = await readFile(path, 'utf8').then(machineId => machineId.split('\n')[0].trim()).catch(() => '');
 	}
 
 	return machineId;

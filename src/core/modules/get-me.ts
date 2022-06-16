@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../types';
-import { getPermissions } from '../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { getPermissions } from '@app/core/utils/permissions/get-permissions';
 
 /**
  * Get current user.

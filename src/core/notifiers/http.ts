@@ -4,7 +4,7 @@
  */
 
 import got from 'got';
-import { Notifier, NotifierOptions } from './notifier';
+import { Notifier, NotifierOptions } from '@app/core/notifiers/notifier';
 
 export interface Options extends NotifierOptions {}
 

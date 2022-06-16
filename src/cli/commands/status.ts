@@ -1,8 +1,8 @@
 import prettyMs from 'pretty-ms';
 import pidUsage from 'pidusage';
-import { cliLogger } from '../../core/log';
-import { getUnraidApiPid } from '../get-unraid-api-pid';
-import { setEnv } from '../set-env';
+import { cliLogger } from '@app/core/log';
+import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
+import { setEnv } from '@app/cli/set-env';
 
 export const status = async () => {
 	setEnv('LOG_TYPE', 'raw');

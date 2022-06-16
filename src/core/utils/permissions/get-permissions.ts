@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { ac } from '../../permissions';
+import { ac } from '@app/core/permissions';
 
 /**
  * Get permissions from an {@link https://onury.io/accesscontrol/?api=ac#AccessControl | AccessControl} role.

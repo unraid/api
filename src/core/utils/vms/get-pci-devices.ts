@@ -4,8 +4,8 @@
  */
 
 import execa from 'execa';
-import { PciDevice } from '../../types';
-import { cleanStdout } from '../misc/clean-stdout';
+import { PciDevice } from '@app/core/types';
+import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
 
 const regex = new RegExp(/^(?<id>\S+) "(?<type>[^"]+) \[(?<typeid>[a-f\d]{4})]" "(?<vendorname>[^"]+) \[(?<vendorid>[a-f\d]{4})]" "(?<productname>[^"]+) \[(?<productid>[a-f\d]{4})]"/);
 

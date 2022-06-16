@@ -6,9 +6,9 @@
 import execa from 'execa';
 import { Systeminformation, blockDevices, diskLayout } from 'systeminformation';
 import { map as asyncMap } from 'p-iteration';
-import { CoreContext, CoreResult } from '../types';
-import { ensurePermission } from '../utils';
-import { uppercaseFirstChar } from '../utils/misc/uppercase-first-char';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char';
 
 interface Partition {
 	name: string;

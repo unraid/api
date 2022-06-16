@@ -1,5 +1,5 @@
 import { parse, ArgsParseOptions, ArgumentConfig } from 'ts-command-line-args';
-import { levels } from '../core/log';
+import { levels } from '@app/core/log';
 
 export type Flags = {
 	command?: string;

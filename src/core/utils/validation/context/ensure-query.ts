@@ -1,5 +1,5 @@
-import { CoreContext } from '../../../types';
-import { FieldMissingError } from '../../../errors';
+import { CoreContext } from '@app/core/types';
+import { FieldMissingError } from '@app/core/errors/field-missing-error';
 
 export const ensureQuery = (context: CoreContext, field: string) => {
 	const hasQuery = context.query && Object.keys(context.query).includes(field);

@@ -1,4 +1,4 @@
-import { cliLogger } from '../core/log';
+import { cliLogger } from '@app/core/log';
 
 export const setEnv = (envName: string, value: any) => {
 	process.env[envName] = String(value);

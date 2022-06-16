@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../../types';
-import { AppError } from '../../../errors';
-import { usersState } from '../../../states';
-import { ensureParameter } from '../../../utils/validation/context';
-import { ensurePermission } from '../../../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { usersState } from '@app/core/states';
+import { ensureParameter } from '@app/core/utils/validation/context';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 interface Context extends CoreContext {
 	params: {

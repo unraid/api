@@ -4,8 +4,8 @@
  */
 
 import sendmail from 'sendmail';
-import { logger } from '../log';
-import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
+import { logger } from '@app/core/log';
+import { Notifier, NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
 
 interface Options extends NotifierOptions {
 	to: string;

@@ -1,16 +1,16 @@
 import segfaultHandler from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
-import { cliLogger } from '../core/log';
-import { start } from './commands/start';
-import { stop } from './commands/stop';
-import { Flags, mainOptions, options, args } from './options';
-import { report } from './commands/report';
-import { setEnv } from './set-env';
-import { restart } from './commands/restart';
-import { switchEnv } from './commands/switch-env';
-import { version } from './commands/version';
-import { status } from './commands/status';
+import { cliLogger } from '@app/core/log';
+import { start } from '@app/cli/commands/start';
+import { stop } from '@app/cli/commands/stop';
+import { Flags, mainOptions, options, args } from '@app/cli/options';
+import { report } from '@app/cli/commands/report';
+import { setEnv } from '@app/cli/set-env';
+import { restart } from '@app/cli/commands/restart';
+import { switchEnv } from '@app/cli/commands/switch-env';
+import { version } from '@app/cli/commands/version';
+import { status } from '@app/cli/commands/status';
 
 const commands = {
 	start,

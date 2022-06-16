@@ -3,9 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../../../types';
-import { AppError } from '../../../../errors';
-import { parseDomain, getHypervisor, ensurePermission } from '../../../../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
+import { parseDomain } from '@app/core/utils/vms/parse-domain';
 
 interface Context extends CoreContext {
 	params: {

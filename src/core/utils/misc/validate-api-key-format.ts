@@ -1,4 +1,4 @@
-import { ApiKeyError } from '../../errors';
+import { ApiKeyError } from '@app/core/errors/api-key-error';
 
 export const validateApiKeyFormat = (apiKey: string | undefined, shouldThrow = true) => {
 	const key = (apiKey ?? '').trim();

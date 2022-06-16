@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../types';
-import { FieldMissingError, ParamInvalidError } from '../../errors';
-import { varState } from '../../states';
-import { ensurePermission } from '../../utils/permissions/ensure-permission';
-import { emcmd } from '../../utils/clients/emcmd';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { FieldMissingError, ParamInvalidError } from '@app/core/errors';
+import { varState } from '@app/core/states/var';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { emcmd } from '@app/core/utils/clients/emcmd';
 
 type State = 'start' | 'cancel' | 'resume' | 'cancel';
 

@@ -6,7 +6,7 @@
 import { Express } from 'express';
 import expressListEndpoints from 'express-list-endpoints';
 import flatten from 'flatten';
-import { removeDuplicatesFromArray } from './remove-duplicates-from-array';
+import { removeDuplicatesFromArray } from '@app/core/utils/misc/remove-duplicates-from-array';
 
 /**
  * Get array of endpoints with associated methods from express router.

@@ -4,12 +4,12 @@
  */
 
 import request from 'request-promise-native';
-import { envs } from '../../envs';
-import { logger } from '../../log';
-import { paths } from '../../paths';
-import { varState } from '../../states';
-import { LooseObject } from '../../types';
-import { catchHandlers } from '../misc/catch-handlers';
+import { envs } from '@app/core/envs';
+import { logger } from '@app/core/log';
+import { paths } from '@app/core/paths';
+import { varState } from '@app/core/states';
+import { LooseObject } from '@app/core/types';
+import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
 
 const socketPath = paths['emhttpd-socket'];
 const dryRun = envs.DRY_RUN;

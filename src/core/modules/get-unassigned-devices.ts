@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { AppError } from '../errors';
-import { CoreResult, CoreContext } from '../types';
-import { ensurePermission } from '../utils';
+import { AppError } from '@app/core/errors/app-error';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get all unassigned devices.

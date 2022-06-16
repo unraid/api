@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { AppError } from './app-error';
+import { AppError } from '@app/core/errors/app-error';
 
 /**
  * Module is missing a needed field

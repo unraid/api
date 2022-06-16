@@ -10,13 +10,13 @@ import CacheableLookup from 'cacheable-lookup';
 import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
-import { core, logger, apiManager, paths, pubsub } from './core';
-import { server } from './server';
-import { checkCloudConnections } from './mothership';
-import { loadState } from './core/utils/misc/load-state';
+import { core, logger, apiManager, paths, pubsub } from '@app/core';
+import { server } from '@app/server';
+import { checkCloudConnections } from '@app/mothership';
+import { loadState } from '@app/core/utils/misc/load-state';
 import { writeFileSync } from 'fs';
-import { MyServersConfig } from './types/my-servers-config';
-import { userCache } from './cache/user';
+import { MyServersConfig } from '@app/types/my-servers-config';
+import { userCache } from '@app/cache/user';
 
 // Ini serializer
 const serializer = new IniSerializer({

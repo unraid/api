@@ -1,8 +1,8 @@
 import get from 'lodash.get';
-import * as core from '../core';
-import { logger } from '../core';
+import * as core from '@app/core';
+import { logger } from '@app/core';
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils';
-import { getCoreModule } from './index';
+import { getCoreModule } from '@app/graphql/index';
 
 /**
  * Func directive

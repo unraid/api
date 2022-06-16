@@ -3,11 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { utils } from '../../../core';
-import type { Context } from '../../schema/utils';
-import { getServers } from '../../schema/utils';
-
-const { ensurePermission } = utils;
+import type { Context } from '@app/graphql/schema/utils';
+import { getServers } from '@app/graphql/schema/utils';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 export default async (_: unknown, { name }, context: Context) => {
 	ensurePermission(context.user, {

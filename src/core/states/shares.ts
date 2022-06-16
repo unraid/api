@@ -5,11 +5,11 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '../paths';
-import { parseConfig } from '../utils/misc/parse-config';
-import { ArrayState } from './state';
-import { LooseObject } from '../types';
-import { Share } from '../types/states';
+import { paths } from '@app/core/paths';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { ArrayState } from '@app/core/states/state';
+import { LooseObject } from '@app/core/types';
+import { Share } from '@app/core/types/states';
 
 interface SharesIni {
 	name: string;

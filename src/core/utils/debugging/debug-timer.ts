@@ -4,7 +4,7 @@
  */
 
 import { performance } from 'perf_hooks';
-import { logger } from '../../log';
+import { logger } from '@app/core/log';
 
 const timers = new Map();
 

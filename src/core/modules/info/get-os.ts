@@ -5,8 +5,8 @@
 
 import { uptime } from 'os';
 import si from 'systeminformation';
-import { CoreContext, CoreResult } from '../../types';
-import { ensurePermission } from '../../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 // Get uptime on boot and convert to date
 const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1000));

@@ -1,5 +1,5 @@
 import semver from 'semver';
-import { varState } from '../core/states/var';
+import { varState } from '@app/core/states/var';
 
 /**
  * Compare version against the current unraid version.

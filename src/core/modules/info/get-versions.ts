@@ -3,8 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { getUnraidVersion, getSoftwareVersions } from '.';
-import { CoreResult, CoreContext } from '../../types';
+import { CoreResult, CoreContext } from '@app/core/types';
+import { getSoftwareVersions } from '@app/core/modules/info/get-software-versions';
+import { getUnraidVersion } from '@app/core/modules/info/get-unraid-version';
 
 /**
  * Get all version info.

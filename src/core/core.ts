@@ -6,12 +6,11 @@
 import path from 'path';
 import glob from 'glob';
 import camelCase from 'camelcase';
-import { logger } from './log';
-import { paths } from './paths';
-import { subscribeToNchanEndpoint } from './utils';
-import { config } from './config';
-import * as watchers from './watchers';
-import { nchanLogger } from '.';
+import { logger, nchanLogger } from '@app/core/log';
+import { paths } from '@app/core/paths';
+import { subscribeToNchanEndpoint } from '@app/core/utils';
+import { config } from '@app/core/config';
+import * as watchers from '@app/core/watchers';
 
 /**
  * Decorated loading logger.

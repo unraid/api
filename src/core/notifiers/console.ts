@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
-import { logger } from '../log';
+import { Notifier, NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
+import { logger } from '@app/core/log';
 
 /**
  * Console notifier.

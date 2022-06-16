@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult } from '../types';
+import type { CoreResult } from '@app/core/types';
 
 /**
  * Get all apps.

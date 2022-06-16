@@ -1,6 +1,6 @@
-import { cliLogger } from '../../core/log';
-import { getUnraidApiPid } from '../get-unraid-api-pid';
-import { setEnv } from '../set-env';
+import { cliLogger } from '@app/core/log';
+import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
+import { setEnv } from '@app/cli/set-env';
 
 /**
  * Stop a running API process.

@@ -5,9 +5,16 @@
 
 import chokidar from 'chokidar';
 import prettyMilliseconds from 'pretty-ms';
-import { paths } from '../paths';
-import { logger } from '../log';
-import { devicesState, networkState, nfsSecState, sharesState, slotsState, smbSecState, usersState, varState, ArrayState, State } from '../states';
+import { paths } from '@app/core/paths';
+import { logger } from '@app/core/log';
+import { devicesState } from '@app/core/states/devices';
+import { networkState } from '@app/core/states/network';
+import { nfsSecState } from '@app/core/states/nfs-sec';
+import { sharesState } from '@app/core/states/shares';
+import { slotsState } from '@app/core/states/slots';
+import { smbSecState } from '@app/core/states/smb-sec';
+import { usersState } from '@app/core/states/users';
+import { varState } from '@app/core/states/var';
 
 const stateMapping = {
 	'devs.ini': devicesState,

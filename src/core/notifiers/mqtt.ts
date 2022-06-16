@@ -4,7 +4,7 @@
  */
 
 import mqtt, { MqttClient } from 'mqtt';
-import { Notifier, NotifierOptions, NotifierSendOptions } from './notifier';
+import { Notifier, NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
 
 interface Options extends NotifierOptions {
 	connectionUri: string;

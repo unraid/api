@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { generateData } from '../../../common/dashboard/generate-data';
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { Context } from '../../schema/utils';
+import { generateData } from '@app/common/dashboard/generate-data';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { Context } from '@app/graphql/schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {

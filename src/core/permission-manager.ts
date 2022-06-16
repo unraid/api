@@ -5,8 +5,8 @@
 
 // @ts-expect-error
 import { validate as validateArgument } from 'bycontract';
-import { LooseObject } from './types';
-import { AppError } from './errors';
+import { LooseObject } from '@app/core/types';
+import { AppError } from '@app/core/errors';
 
 /**
  * Permission manager.

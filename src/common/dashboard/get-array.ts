@@ -1,6 +1,6 @@
-import { slotsState } from '../../core/states/slots';
-import { varState } from '../../core/states/var';
-import { addTogether } from '../../core/utils/misc/add-together';
+import { slotsState } from '@app/core/states/slots';
+import { varState } from '@app/core/states/var';
+import { addTogether } from '@app/core/utils/misc/add-together';
 
 export const getArray = () => {
 	// Array state

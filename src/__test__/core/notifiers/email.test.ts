@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { EmailNotifier } from '../../../core/notifiers/email';
+import { EmailNotifier } from '@app/core/notifiers/email';
 
-vi.mock('../../../core/log', () => ({
+vi.mock('@app/core/log', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),

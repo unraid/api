@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '../../paths';
-import { PermissionError } from '../../errors';
-import { checkAuth } from './check-auth';
+import { paths } from '@app/core/paths';
+import { PermissionError } from '@app/core/errors/permission-error';
+import { checkAuth } from '@app/core/utils/authentication/check-auth';
 
 interface Options {
 	username: string;

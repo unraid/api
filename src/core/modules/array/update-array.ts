@@ -3,14 +3,16 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../types';
-import { AppError, FieldMissingError, ParamInvalidError } from '../../errors';
-import { uppercaseFirstChar } from '../../utils/misc/uppercase-first-char';
-import { getArray } from '../get-array';
-import { ensurePermission } from '../../utils/permissions/ensure-permission';
-import { hasFields } from '../../utils/validation/has-fields';
-import { arrayIsRunning } from '../../utils/array/array-is-running';
-import { emcmd } from '../../utils/clients/emcmd';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char';
+import { getArray } from '@app/core/modules/get-array';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { hasFields } from '@app/core/utils/validation/has-fields';
+import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
+import { emcmd } from '@app/core/utils/clients/emcmd';
+import { FieldMissingError } from '@app/core/errors/field-missing-error';
+import { ParamInvalidError } from '@app/core/errors/param-invalid-error';
+import { AppError } from '@app/core/errors/app-error';
 
 // @TODO: Fix this not working across node apps
 //        each app has it's own lock since the var is scoped

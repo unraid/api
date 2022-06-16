@@ -1,11 +1,11 @@
 import { exec } from 'child_process';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-import { cliLogger } from '../../core/log';
-import { paths } from '../../core/paths';
-import { getUnraidApiPid } from '../get-unraid-api-pid';
-import { setEnv } from '../set-env';
-import { restart } from './restart';
+import { cliLogger } from '@app/core/log';
+import { paths } from '@app/core/paths';
+import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
+import { setEnv } from '@app/cli/set-env';
+import { restart } from '@app/cli/commands/restart';
 
 export const switchEnv = async () => {
 	setEnv('LOG_TYPE', 'raw');

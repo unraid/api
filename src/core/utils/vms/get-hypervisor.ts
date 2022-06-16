@@ -7,8 +7,8 @@ import fs from 'fs';
 import path from 'path';
 import { ConnectListAllDomainsFlags, Hypervisor } from '@vmngr/libvirt';
 import { watch } from 'chokidar';
-import { libvirtLogger } from '../../log';
-import { pubsub } from '../../pubsub';
+import { libvirtLogger } from '@app/core/log';
+import { pubsub } from '@app/core/pubsub';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
 

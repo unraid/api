@@ -1,5 +1,5 @@
-import { CoreContext } from '../../../types';
-import { FieldMissingError } from '../../../errors';
+import { CoreContext } from '@app/core/types';
+import { FieldMissingError } from '@app/core/errors/field-missing-error';
 
 export const ensureData = (context: CoreContext, field: string) => {
 	const hasData = context.data && Object.keys(context.data).includes(field);

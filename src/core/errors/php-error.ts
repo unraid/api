@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { AppError } from './app-error';
+import { AppError } from '@app/core/errors/app-error';
 
 /**
  * Error bubbled up from a PHP script.

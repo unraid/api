@@ -3,10 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../../../types';
-import { apiManager } from '../../../api-manager';
-import { AppError } from '../../../errors';
-import { ensurePermission } from '../../../utils';
+import { CoreResult, CoreContext } from '@app/core/types';
+import { apiManager } from '@app/core/api-manager';
+import { AppError } from '@app/core/errors/app-error';
+import { ensurePermission } from '@app/core/utils';
 
 interface Result extends CoreResult {
 	json: {

@@ -5,11 +5,11 @@
 
 import mm from 'micromongo';
 import path from 'path';
-import { paths } from '../paths';
-import { User } from '../types/states';
-import { LooseObject } from '../types';
-import { parseConfig } from '../utils/misc/parse-config';
-import { ArrayState } from './state';
+import { paths } from '@app/core/paths';
+import { User } from '@app/core/types/states';
+import { LooseObject } from '@app/core/types';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { ArrayState } from '@app/core/states/state';
 
 type BooleanString = 'yes' | 'no';
 

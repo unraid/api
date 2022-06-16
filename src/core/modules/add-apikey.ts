@@ -5,9 +5,9 @@
 
 import { v4 as uuid } from 'uuid';
 import uuidApiKey from 'uuid-apikey';
-import { CoreContext, CoreResult } from '../types';
-import { ensurePermission } from '../utils';
-import { apiManager, CacheItem } from '../api-manager';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { apiManager, CacheItem } from '@app/core/api-manager';
 
 interface Context extends CoreContext {
 	data: {

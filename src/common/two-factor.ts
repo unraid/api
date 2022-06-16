@@ -1,9 +1,9 @@
 import { randomBytes } from 'crypto';
 import NodeCache from 'node-cache';
-import { logger } from '../core';
-import { varState } from '../core/states/var';
-import { myServersConfig } from './myservers-config';
-import { compareUnraidVersion } from './unraid-version-compare';
+import { logger } from '@app/core/log';
+import { varState } from '@app/core/states/var';
+import { myServersConfig } from '@app/common/myservers-config';
+import { compareUnraidVersion } from '@app/common/unraid-version-compare';
 
 /**
  * Generate two factor token.

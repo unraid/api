@@ -5,10 +5,10 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '../paths';
-import { ArrayState } from './state';
-import { LooseObject } from '../types';
-import { parseConfig } from '../utils/misc/parse-config';
+import { paths } from '@app/core/paths';
+import { ArrayState } from '@app/core/states/state';
+import { LooseObject } from '@app/core/types';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Device {}

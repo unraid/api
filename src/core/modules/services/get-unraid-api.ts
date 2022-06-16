@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { ensurePermission } from '../../utils';
-import { CoreContext, CoreResult } from '../../types';
-import { version } from '../../../../package.json';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { version } from '@app/../package.json';
 
 interface Result extends CoreResult {
 	json: {

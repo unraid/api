@@ -1,7 +1,7 @@
-import { logger } from '../core/log';
-import { networkState, varState } from '../core/states';
-import { myServersConfig } from './myservers-config';
-import { getNginxState } from './nginx/get-state';
+import { logger } from '@app/core/log';
+import { networkState, varState } from '@app/core/states';
+import { myServersConfig } from '@app/common/myservers-config';
+import { getNginxState } from '@app/common/nginx/get-state';
 
 // Get nginx state
 export const nginx = getNginxState();

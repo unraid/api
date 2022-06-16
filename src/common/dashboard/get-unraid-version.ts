@@ -1,6 +1,6 @@
 import { readFile } from 'fs/promises';
 import semver from 'semver';
-import { paths } from '../../core/paths';
+import { paths } from '@app/core/paths';
 
 let unraidVersion: string;
 

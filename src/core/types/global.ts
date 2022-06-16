@@ -1,4 +1,4 @@
-import { User } from './states';
+import { User } from '@app/core/types/states';
 
 /**
  * Example: 1, 2, 3 or 1,2,3
@@ -25,8 +25,8 @@ export interface CoreContext {
 /**
  * Result object
  */
-export interface CoreResult {
-	json?: unknown;
+export interface CoreResult<JSON = unknown> {
+	json?: JSON;
 	text?: string;
 	html?: string;
 }

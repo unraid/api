@@ -1,13 +1,13 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { varState } from '../../core/states/var';
-import { getHypervisor } from '../../core/utils/vms/get-hypervisor';
-import { version } from '../../../package.json';
-import { checkTwoFactorEnabled } from '../two-factor';
-import display from '../../graphql/resolvers/query/display';
-import { docker } from '../../core/utils/clients/docker';
-import { getUnraidVersion } from './get-unraid-version';
-import { getArray } from './get-array';
-import { bootTimestamp } from './boot-timestamp';
+import { varState } from '@app/core/states/var';
+import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
+import { version } from '@app/../package.json';
+import { checkTwoFactorEnabled } from '@app/common/two-factor';
+import display from '@app/graphql/resolvers/query/display';
+import { docker } from '@app/core/utils/clients/docker';
+import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
+import { getArray } from '@app/common/dashboard/get-array';
+import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 
 const getVmSummary = async () => {
 	try {

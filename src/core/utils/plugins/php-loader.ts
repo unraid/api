@@ -5,8 +5,9 @@
 
 import path from 'path';
 import execa from 'execa';
-import { PhpError, FileMissingError } from '../../errors';
-import { LooseObject, LooseStringObject } from '../../types';
+import { FileMissingError } from '@app/core/errors/file-missing-error';
+import { LooseObject, LooseStringObject } from '@app/core/types';
+import { PhpError } from '@app/core/errors/php-error';
 
 /**
  * Encode GET/POST params.

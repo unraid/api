@@ -4,7 +4,7 @@
  */
 
 import Mustache from 'mustache';
-import { LooseObject } from '../types';
+import { LooseObject } from '@app/core/types';
 
 export type NotifierLevel = 'info' | 'error' | 'debug';
 

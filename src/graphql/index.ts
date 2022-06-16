@@ -4,18 +4,23 @@
  */
 
 import { v4 as uuid } from 'uuid';
-import * as core from '../core';
-import { bus, apiManager, config, modules, paths, pubsub } from '../core';
-import { AppError, FatalAppError } from '../core/errors';
-import { usersState } from '../core/states';
+import * as core from '@app/core';
+import { AppError, FatalAppError } from '@app/core/errors';
+import { usersState } from '@app/core/states';
 import { DockerEventEmitter } from '@gridplus/docker-events';
-import { run } from '../run';
-import * as resolvers from './resolvers';
-import { wsHasConnected, wsHasDisconnected } from '../ws';
-import { User } from '../core/types';
-import { types as typeDefs } from './types';
-import { schema } from './schema';
-import { dockerLogger, graphqlLogger, logger } from '../core/log';
+import { run } from '@app/run';
+import * as resolvers from '@app/graphql/resolvers';
+import { wsHasConnected, wsHasDisconnected } from '@app/ws';
+import { User } from '@app/core/types';
+import { types as typeDefs } from '@app/graphql/types';
+import { schema } from '@app/graphql/schema';
+import { dockerLogger, graphqlLogger, logger } from '@app/core/log';
+import { modules } from '@app/core';
+import { bus } from '@app/core/bus';
+import { config } from '@app/core/config';
+import { paths } from '@app/core/paths';
+import { pubsub } from '@app/core/pubsub';
+import { apiManager } from '@app/core/api-manager';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 

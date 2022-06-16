@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../types';
-import { User } from '../types/states';
-import { ensurePermission } from '../utils';
-import { AppError } from '../errors';
-import { usersState } from '../states';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { User } from '@app/core/types/states';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { AppError } from '@app/core/errors/app-error';
+import { usersState } from '@app/core/states/users';
 
 interface Context extends CoreContext {
 	query: {

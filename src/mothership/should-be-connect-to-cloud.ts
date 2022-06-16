@@ -1,7 +1,7 @@
-import { logger } from '../core';
-import { apiManager } from '../core/api-manager';
-import { validateApiKey } from '../core/utils/misc/validate-api-key';
-import { validateApiKeyFormat } from '../core/utils/misc/validate-api-key-format';
+import { apiManager } from '@app/core/api-manager';
+import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
+import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
+import { logger } from '@app/core/log';
 
 export const wsState = {
 	outOfDate: false

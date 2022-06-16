@@ -1,5 +1,5 @@
 import stw from 'spread-the-word';
-import { logger } from '../log';
+import { logger } from '@app/core/log';
 
 /**
  * Listen to devices on the local network via mDNS.

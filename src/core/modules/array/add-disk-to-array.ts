@@ -3,13 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../types';
-import { FieldMissingError, ArrayRunningError } from '../../errors';
-import { getArray } from '../get-array';
-import { ensurePermission } from '../../utils/permissions/ensure-permission';
-import { hasFields } from '../../utils/validation/has-fields';
-import { arrayIsRunning } from '../../utils/array/array-is-running';
-import { emcmd } from '../../utils/clients/emcmd';
+import { CoreContext, CoreResult } from '@app/core/types';
+import { FieldMissingError } from '@app/core/errors/field-missing-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { hasFields } from '@app/core/utils/validation/has-fields';
+import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
+import { emcmd } from '@app/core/utils/clients/emcmd';
+import { ArrayRunningError } from '@app/core/errors/array-running-error';
+import { getArray } from '@app/core/modules/get-array';
 
 /**
  * Add a disk to the array.

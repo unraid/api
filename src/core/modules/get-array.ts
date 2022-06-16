@@ -3,10 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../types';
-import { ensurePermission } from '../utils';
-import { varState, slotsState } from '../states';
-import { addTogether } from '../utils/misc/add-together';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { slotsState } from '@app/core/states/slots';
+import { addTogether } from '@app/core/utils/misc/add-together';
+import { varState } from '@app/core/states/var';
 
 /**
  * Get array info.

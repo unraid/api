@@ -14,13 +14,13 @@ import dotProp from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
 import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
-import { paths } from './paths';
-import { apiManagerLogger } from './log';
-import { MyServersConfig } from '../types/my-servers-config';
-import { userCache } from '../cache/user';
-import { loadState } from './utils/misc/load-state';
-import { validateApiKeyFormat } from './utils/misc/validate-api-key-format';
-import { validateApiKey } from './utils/misc/validate-api-key';
+import { paths } from '@app/core/paths';
+import { apiManagerLogger } from '@app/core/log';
+import { MyServersConfig } from '@app/types/my-servers-config';
+import { userCache } from '@app/cache/user';
+import { loadState } from '@app/core/utils/misc/load-state';
+import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
+import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */

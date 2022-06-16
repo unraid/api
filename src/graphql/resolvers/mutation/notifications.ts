@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { mothership } from '../../../mothership/subscribe-to-servers';
-import { Context } from '../../schema/utils';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { mothership } from '@app/mothership/subscribe-to-servers';
+import { Context } from '@app/graphql/schema/utils';
 
 export const sendNotification = async (_: unknown, args: { notification: Notification }, context: Context) => {
 	const { user } = context;

@@ -4,8 +4,8 @@
  */
 
 import si from 'systeminformation';
-import { CoreContext, CoreResult } from '../../types';
-import { ensurePermission } from '../../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 export const getBaseboard = async (context: CoreContext): Promise<CoreResult> => {
 	const { user } = context;

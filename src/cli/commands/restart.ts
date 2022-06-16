@@ -1,6 +1,6 @@
-import { setEnv } from '../set-env';
-import { start } from './start';
-import { stop } from './stop';
+import { setEnv } from '@app/cli/set-env';
+import { start } from '@app/cli/commands/start';
+import { stop } from '@app/cli/commands/stop';
 
 /**
  * Stop a running API process and then start it again.

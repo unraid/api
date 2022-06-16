@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult, UserShare, DiskShare } from '../../../types';
-import { AppError } from '../../../errors';
-import { getShares, ensurePermission } from '../../../utils';
+import type { CoreContext, CoreResult, UserShare, DiskShare } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { getShares, ensurePermission } from '@app/core/utils';
 
 interface Context extends CoreContext {
 	params: {

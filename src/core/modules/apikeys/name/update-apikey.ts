@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { PermissionError } from '../../../errors';
-import { CoreResult, CoreContext } from '../../../types';
-import { getApikey } from '../..';
+import { PermissionError } from '@app/core/errors/permission-error';
+import { CoreResult, CoreContext } from '@app/core/types';
+import getApikey from '@app/core/modules/apikeys/name/get-apikey';
 
 interface Context extends CoreContext {
 	data: {

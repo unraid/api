@@ -8,9 +8,14 @@ import execa from 'execa';
 import pathExists from 'path-exists';
 import { filter as asyncFilter } from 'p-iteration';
 import { isSymlink } from 'path-type';
-import { vmRegExps, sanitizeProduct, sanitizeVendor, filterDevices, getPciDevices, ensurePermission } from '../../utils';
-import { PciDevice, CoreResult, CoreContext } from '../../types';
-import { varState } from '../../states';
+import type { PciDevice, CoreResult, CoreContext } from '@app/core/types';
+import { varState } from '@app/core/states/var';
+import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
+import { getPciDevices } from '@app/core/utils/vms/get-pci-devices';
+import { filterDevices } from '@app/core/utils/vms/filter-devices';
+import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
+import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * System Network interfaces.

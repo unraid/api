@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../types';
-import { devicesState } from '../states';
-import { ensurePermission } from '../utils';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { devicesState } from '@app/core/states/devices';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get all devices.

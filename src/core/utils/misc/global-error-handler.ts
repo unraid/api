@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { exitApp } from './exit-app';
+import { exitApp } from '@app/core/utils/misc/exit-app';
 
 /**
  * Handles all global, bubbled and uncaught errors.

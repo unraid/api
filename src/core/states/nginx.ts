@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '../paths';
-import { Nginx } from '../types/states';
-import { IniStringBooleanOrAuto } from '../types/ini';
-import { State } from './state';
-import { parseConfig } from '../utils/misc/parse-config';
+import { paths } from '@app/core/paths';
+import { Nginx } from '@app/core/types/states';
+import { IniStringBooleanOrAuto } from '@app/core/types/ini';
+import { State } from '@app/core/states/state';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
 
 interface NginxIni {
 	nginxCertname: string;

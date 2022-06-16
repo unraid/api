@@ -1,12 +1,14 @@
-import { pubsub, mothershipLogger, apiManager } from '../core';
 import { SubscriptionClient } from 'graphql-subscriptions-client';
 import WebSocket from 'ws';
-import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '../consts';
-import { shouldBeConnectedToCloud } from './should-be-connect-to-cloud';
-import { debounce } from './debounce';
+import { MOTHERSHIP_GRAPHQL_LINK, ONE_SECOND } from '@app/consts';
+import { shouldBeConnectedToCloud } from '@app/mothership/should-be-connect-to-cloud';
+import { debounce } from '@app/mothership/debounce';
 import { GraphQLError } from 'graphql';
-import { version } from '../../package.json';
-import { CachedServer, CachedServers, userCache } from '../cache/user';
+import { CachedServer, CachedServers, userCache } from '@app/cache/user';
+import { version } from '@app/../package.json';
+import { apiManager } from '@app/core/api-manager';
+import { mothershipLogger } from '@app/core/log';
+import { pubsub } from '@app/core/pubsub';
 
 export const mothership = new SubscriptionClient(() => {
 	const apiKey = apiManager.cloudKey ?? 'LARRYS_MAGIC_KEY';

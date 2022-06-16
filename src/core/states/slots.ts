@@ -5,12 +5,12 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '../paths';
-import { Slot } from '../types/states';
-import { LooseObject, IniNumberBoolean, IniEnabled } from '../types';
-import { toBoolean, toNumber } from '../utils/casting';
-import { parseConfig } from '../utils/misc/parse-config';
-import { ArrayState } from './state';
+import { paths } from '@app/core/paths';
+import { Slot } from '@app/core/types/states';
+import { LooseObject, IniNumberBoolean, IniEnabled } from '@app/core/types';
+import { toBoolean, toNumber } from '@app/core/utils/casting';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { ArrayState } from '@app/core/states/state';
 
 type SlotStatus = 'DISK_OK';
 type SlotFsStatus = 'Mounted';

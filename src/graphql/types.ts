@@ -1,6 +1,6 @@
 import { mergeTypeDefs } from '@graphql-tools/merge';
 import { gql } from 'graphql-tag';
-import { typeDefs } from './schema/index';
+import { typeDefs } from '@app/graphql/schema/index';
 
 export const baseTypes = [gql`
 	scalar JSON

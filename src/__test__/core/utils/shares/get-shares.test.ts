@@ -1,28 +1,28 @@
 import { expect, test, vi } from 'vitest';
-import { getShares } from '../../../../core/utils/shares/get-shares';
+import { getShares } from '@app/core/utils/shares/get-shares';
 
-vi.mock('../../../../core/states/shares', () => ({
+vi.mock('@app/core/states/shares', () => ({
 	sharesState: {
 		find: vi.fn(() => []),
 		findOne: vi.fn(() => ({}))
 	}
 }));
 
-vi.mock('../../../../core/states/smb-sec', () => ({
+vi.mock('@app/core/states/smb-sec', () => ({
 	smbSecState: {
 		find: vi.fn(() => []),
 		findOne: vi.fn(() => ({}))
 	}
 }));
 
-vi.mock('../../../../core/states/nfs-sec', () => ({
+vi.mock('@app/core/states/nfs-sec', () => ({
 	nfsSecState: {
 		find: vi.fn(() => []),
 		findOne: vi.fn(() => ({}))
 	}
 }));
 
-vi.mock('../../../../core/states/slots', () => ({
+vi.mock('@app/core/states/slots', () => ({
 	slotsState: {
 		find: vi.fn(() => []),
 		findOne: vi.fn(() => ({}))

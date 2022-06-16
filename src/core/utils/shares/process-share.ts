@@ -3,8 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { Share, Slot, DiskShare, UserShare } from '../../types/states';
-import { slotsState, smbSecState, nfsSecState } from '../../states';
+import { nfsSecState } from '@app/core/states/nfs-sec';
+import { smbSecState } from '@app/core/states/smb-sec';
+import { slotsState } from '@app/core/states/slots';
+import type { Slot } from '@app/core/types/states/slot';
+import type { DiskShare, Share, UserShare } from '../../types/states/share';
 
 const processors = {
 	user: (share: Share) => {

@@ -3,9 +3,11 @@
  * Written by: Alexis Tyler
  */
 
+import { statSync, existsSync } from 'fs';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { promises as fs, statSync, existsSync } from 'fs';
-import { paths, logger } from '../../../core';
+import { paths } from '@app/core/paths';
+import { logger } from '@app/core/log';
 
 // Consts
 const ONE_BYTE = 1;
@@ -13,7 +15,7 @@ const ONE_KILOBYTE = ONE_BYTE * 1000;
 const ONE_MEGABYTE = ONE_KILOBYTE * 1000;
 const FIVE_MEGABYTE = ONE_MEGABYTE * 5;
 
-const isOverFileSizeLimit = (filePath, limit = FIVE_MEGABYTE) => {
+const isOverFileSizeLimit = (filePath: string, limit = FIVE_MEGABYTE) => {
 	try {
 		const stats = statSync(filePath);
 		const fileSizeInBytes = stats.size;
@@ -84,7 +86,7 @@ export default async () => {
 	}
 
 	// Attempt to get case from file
-	const serverCase = await fs.readFile(configFilePath)
+	const serverCase = await readFile(configFilePath)
 		.then(buffer => buffer.toString().split('\n')[0])
 		.catch(() => 'error_reading_config_file');
 
@@ -108,7 +110,7 @@ export default async () => {
 
 		try {
 			// Get image buffer
-			const fileBuffer = await fs.readFile(customImageFilePath);
+			const fileBuffer = await readFile(customImageFilePath);
 
 			// Likely not an actual image
 			// 73 bytes is close to the smallest we can get https://garethrees.org/2007/11/14/pngcrush/

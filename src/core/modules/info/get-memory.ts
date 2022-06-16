@@ -6,10 +6,10 @@
 import execa from 'execa';
 import si from 'systeminformation';
 import toBytes from 'bytes';
-import { CoreContext, CoreResult } from '../../types';
-import { AppError } from '../../errors';
-import { ensurePermission } from '../../utils';
-import { cleanStdout } from '../../utils/misc/clean-stdout';
+import { CoreContext, CoreResult } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
 
 /**
  * Get memory.

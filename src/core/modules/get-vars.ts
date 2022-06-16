@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../types';
-import { varState } from '../states';
-import { ensurePermission } from '../utils';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { varState } from '@app/core/states/var';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get all system vars.

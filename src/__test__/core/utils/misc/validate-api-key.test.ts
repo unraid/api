@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { validateApiKey } from '../../../../core/utils/misc/validate-api-key';
+import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 
-vi.mock('../../../../core/log', () => ({
+vi.mock('@app/core/log', () => ({
 	logger: {
 		addContext: vi.fn(),
 		removeContext: vi.fn(),
@@ -20,7 +20,7 @@ vi.mock('../../../../core/log', () => ({
 	}
 }));
 
-vi.mock('../../../../core/states/var', () => ({
+vi.mock('@app/core/states/var', () => ({
 	varState: {
 		data: {
 			flashGuid: '123-123-123-123'

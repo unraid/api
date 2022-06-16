@@ -4,9 +4,9 @@
  */
 
 import si from 'systeminformation';
-import { CacheManager } from '../../cache-manager';
-import { CoreResult, CoreContext } from '../../types';
-import { ensurePermission } from '../../utils';
+import { CacheManager } from '@app/core/cache-manager';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 const cache = new CacheManager('unraid:modules:get-system-versions');
 
@@ -14,7 +14,7 @@ const cache = new CacheManager('unraid:modules:get-system-versions');
  * Software versions.
  * @returns Versions of all the core software.
  */
-export const getSoftwareVersions = async (context: CoreContext): Promise<CoreResult> => {
+export const getSoftwareVersions = async (context: CoreContext): Promise<CoreResult<si.Systeminformation.VersionData>> => {
 	const { user } = context;
 
 	// Check permissions
@@ -34,8 +34,6 @@ export const getSoftwareVersions = async (context: CoreContext): Promise<CoreRes
 
 	return {
 		text: `System versions: ${JSON.stringify(versions, null, 2)}`,
-		json: {
-			...versions
-		}
+		json: versions
 	};
 };

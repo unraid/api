@@ -4,8 +4,8 @@
  */
 
 import graphqlFields from 'graphql-fields';
-import { getDisks } from '../../../core/modules/get-disks';
-import { CoreContext } from '../../../core/types';
+import { getDisks } from '@app/core/modules/get-disks';
+import { CoreContext } from '@app/core/types';
 
 export interface Context extends CoreContext {
 	params: {

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import prettyBytes from 'pretty-bytes';
-import { logger } from '../log';
+import { logger } from '@app/core/log';
 
 const writeFile = async (filePath: string, fileContents: string | Buffer) => {
 	logger.debug(`Writing ${prettyBytes(fileContents.length)} to ${filePath}`);

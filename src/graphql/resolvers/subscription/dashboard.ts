@@ -1,7 +1,7 @@
-import { dashboardLogger } from '../../../core/log';
-import { config } from '../../../core/config';
-import { generateData } from '../../../common/dashboard/generate-data';
-import { pubsub } from '../../../core/pubsub';
+import { dashboardLogger } from '@app/core/log';
+import { config } from '@app/core/config';
+import { generateData } from '@app/common/dashboard/generate-data';
+import { pubsub } from '@app/core/pubsub';
 
 type Dashboard = Awaited<ReturnType<typeof generateData>>;
 

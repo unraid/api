@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { apiManager } from '../api-manager';
-import { checkPermission } from '../utils';
-import { CoreResult, CoreContext } from '../types';
+import { apiManager } from '@app/core/api-manager';
+import { checkPermission } from '@app/core/utils/permissions/check-permission';
+import type { CoreResult, CoreContext } from '@app/core/types';
 
 /**
  * Get all apikeys

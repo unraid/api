@@ -3,10 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { generateTwoFactorToken, checkTwoFactorEnabled, setTwoFactorToken } from '../../../common/two-factor';
-import { logger } from '../../../core/log';
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { Context } from '../../schema/utils';
+import { generateTwoFactorToken, checkTwoFactorEnabled, setTwoFactorToken } from '@app/common/two-factor';
+import { logger } from '@app/core/log';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { Context } from '@app/graphql/schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {

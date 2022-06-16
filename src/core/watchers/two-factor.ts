@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { pubsub } from '../pubsub';
-import { bus } from '../bus';
-import { checkTwoFactorEnabled } from '../../common/two-factor';
-import { Var } from '../types/states/var';
-import { logger } from '../log';
+import { pubsub } from '@app/core/pubsub';
+import { bus } from '@app/core/bus';
+import { checkTwoFactorEnabled } from '@app/common/two-factor';
+import { Var } from '@app/core/types/states/var';
+import { logger } from '@app/core/log';
 
 export const twoFactor = () => {
 	let useSSL;

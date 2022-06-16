@@ -2,13 +2,13 @@ import { writeFileSync } from 'fs';
 import { spawn } from 'child_process';
 import { Serializer as IniSerializer } from 'multi-ini';
 import { addExitCallback } from 'catch-exit';
-import { cliLogger } from '../../core/log';
-import { paths } from '../../core/paths';
-import { loadState } from '../../core/utils/misc/load-state';
-import { MyServersConfig } from '../../types/my-servers-config';
-import { fullVersion, version } from '../../../package.json';
-import { mainOptions } from '../options';
-import { logToSyslog } from '../log-to-syslog';
+import { cliLogger } from '@app/core/log';
+import { paths } from '@app/core/paths';
+import { loadState } from '@app/core/utils/misc/load-state';
+import { MyServersConfig } from '@app/types/my-servers-config';
+import { fullVersion, version } from '@app/../package.json';
+import { mainOptions } from '@app/cli/options';
+import { logToSyslog } from '@app/cli/log-to-syslog';
 
 /**
  * Start a new API process.

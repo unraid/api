@@ -1,7 +1,7 @@
 import { existsSync } from 'fs';
-import { paths } from '../../core/paths';
-import { loadState } from '../../core/utils/misc/load-state';
-import { NginxState } from '../../types/nginx';
+import { paths } from '@app/core/paths';
+import { loadState } from '@app/core/utils/misc/load-state';
+import { NginxState } from '@app/types/nginx';
 
 export const getNginxState = () => {
 	const filePath = paths['nginx-state'];

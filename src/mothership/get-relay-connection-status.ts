@@ -1,4 +1,4 @@
-import { store } from './store';
+import { store } from '@app/mothership/store';
 
 export const readyStates = ['CONNECTING' as const, 'OPEN' as const, 'CLOSING' as const, 'CLOSED' as const, 'RECONNECTING' as const];
 export const getRelayConnectionStatus = () => readyStates[store.relay?._ws?.readyState ?? 3];

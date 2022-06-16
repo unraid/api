@@ -3,10 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext, DynamixConfig } from '../../types';
-import { paths } from '../../paths';
-import { ensurePermission, toBoolean } from '../../utils';
-import { loadState } from '../../utils/misc/load-state';
+import type { CoreResult, CoreContext, DynamixConfig } from '@app/core/types';
+import { paths } from '@app/core/paths';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { toBoolean } from '@app/core/utils/casting';
+import { loadState } from '@app/core/utils/misc/load-state';
 
 interface Result extends CoreResult {
 	json: {

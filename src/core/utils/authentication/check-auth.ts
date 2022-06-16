@@ -4,7 +4,7 @@
  */
 
 import htpasswd from 'htpasswd-js';
-import { paths } from '../../paths';
+import { paths } from '@app/core/paths';
 
 interface Options {
 	username: string;

@@ -3,10 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { getEmhttpdService, getUnraidApiService } from './services';
-import { logger } from '../log';
-import { envs } from '../envs';
-import { CoreResult, CoreContext } from '../types';
+import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
+import { logger } from '@app/core/log';
+import { envs } from '@app/core/envs';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { getUnraidApiService } from '@app/core/services/get-unraid-api';
 
 const devNames = [
 	'emhttpd',

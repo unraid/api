@@ -5,10 +5,11 @@
 
 import fs from 'fs';
 import camelCaseKeys from 'camelcase-keys';
-import { paths } from '../../paths';
-import { docker, ensurePermission } from '../../utils';
-import { CoreContext, CoreResult } from '../../types';
-import { catchHandlers } from '../../utils/misc/catch-handlers';
+import { paths } from '@app/core/paths';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
+import { docker } from '@app/core/utils/clients/docker';
 
 interface Context extends CoreContext {
 	readonly query: {

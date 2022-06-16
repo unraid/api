@@ -5,10 +5,11 @@
 
 // import fs from 'fs';
 // import { log } from '../log';
-import { AppError, NotImplementedError } from '../errors';
-import { CoreContext, CoreResult } from '../types';
-import { ensurePermission } from '../utils';
-import { varState } from '../states';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { varState } from '@app/core/states/var';
+import { NotImplementedError } from '@app/core/errors/not-implemented-error';
+import { AppError } from '@app/core/errors/app-error';
 
 interface Context extends CoreContext {
 	data: {

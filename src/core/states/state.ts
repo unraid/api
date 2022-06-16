@@ -4,8 +4,8 @@
  */
 
 import mm from 'micromongo';
-import { bus } from '../bus';
-import { LooseObject } from '../types';
+import { bus } from '@app/core/bus';
+import { LooseObject } from '@app/core/types';
 
 type Mutation = 'CREATED' | 'UPDATED' | 'DELETED';
 

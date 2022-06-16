@@ -3,10 +3,13 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '../../../types';
-import { AppError, FieldMissingError } from '../../../errors';
-import { emcmd, hasFields, ensurePermission } from '../../../utils';
-import { usersState } from '../../../states';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { AppError } from '@app/core/errors/app-error';
+import { FieldMissingError } from '@app/core/errors/field-missing-error';
+import { usersState } from '@app/core/states/users';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { hasFields } from '@app/core/utils/validation/has-fields';
+import { emcmd } from '@app/core/utils/clients/emcmd';
 
 interface Context extends CoreContext {
 	params: {

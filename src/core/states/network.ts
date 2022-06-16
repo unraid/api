@@ -5,11 +5,11 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '../paths';
-import { LooseObject, IniStringBoolean, CommaSeparatedString } from '../types';
-import { toBoolean } from '../utils/casting';
-import { parseConfig } from '../utils/misc/parse-config';
-import { ArrayState } from './state';
+import { paths } from '@app/core/paths';
+import { LooseObject, IniStringBoolean, CommaSeparatedString } from '@app/core/types';
+import { toBoolean } from '@app/core/utils/casting';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { ArrayState } from '@app/core/states/state';
 
 type NetworkIni = Record<string, {
 	dhcpKeepresolv: IniStringBoolean;

@@ -4,10 +4,10 @@
  */
 
 import { promises as fs } from 'fs';
-import { CoreResult, CoreContext } from '../types';
-import { paths } from '../paths';
-import { FileMissingError } from '../errors';
-import { ensurePermission } from '../utils';
+import { CoreResult, CoreContext } from '@app/core/types';
+import { paths } from '@app/core/paths';
+import { FileMissingError } from '@app/core/errors/file-missing-error';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import Table from 'cli-table';
 
 /**

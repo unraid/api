@@ -5,7 +5,7 @@
 
 import pify from 'pify';
 import Docker from 'dockerode';
-import { paths } from '../../paths';
+import { paths } from '@app/core/paths';
 
 // Borrowed from https://stackoverflow.com/a/52731696 until pify
 // adds their own types, check https://github.com/sindresorhus/pify/issues/74

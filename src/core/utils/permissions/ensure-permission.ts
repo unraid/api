@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { User } from '../.././types/states';
-import { PermissionError } from '../../errors';
-import { checkPermission, AccessControlOptions } from './check-permission';
+import { User } from '@app/core/types/states';
+import { PermissionError } from '@app/core/errors/permission-error';
+import { checkPermission, AccessControlOptions } from '@app/core/utils/permissions/check-permission';
 
 /**
  * Ensure the user has the correct permissions.

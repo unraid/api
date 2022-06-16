@@ -4,17 +4,17 @@
  */
 
 import chokidar from 'chokidar';
-import { logger } from '../log';
-import { paths } from '../paths';
-import { apiManager } from '../api-manager';
-import type { MyServersConfig } from '../../types/my-servers-config';
+import { logger } from '@app/core/log';
+import { paths } from '@app/core/paths';
+import { apiManager } from '@app/core/api-manager';
+import type { MyServersConfig } from '@app/types/my-servers-config';
 import { existsSync } from 'fs';
-import { getNginxState } from '../../common/nginx/get-state';
-import { loadState } from '../utils/misc/load-state';
-import { pubsub } from '../pubsub';
-import { checkTwoFactorEnabled } from '../../common/two-factor';
-import { nginx, origins } from '../../common/allowed-origins';
-import { myServersConfig } from '../../common/myservers-config';
+import { getNginxState } from '@app/common/nginx/get-state';
+import { loadState } from '@app/core/utils/misc/load-state';
+import { pubsub } from '@app/core/pubsub';
+import { checkTwoFactorEnabled } from '@app/common/two-factor';
+import { nginx, origins } from '@app/common/allowed-origins';
+import { myServersConfig } from '@app/common/myservers-config';
 
 const watchConfigFile = () => {
 	// Get myservers config

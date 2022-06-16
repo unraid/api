@@ -4,8 +4,8 @@
  */
 
 import camelCaseKeys from 'camelcase-keys';
-import { logger } from '../../log';
-import { parseConfig } from './parse-config';
+import { logger } from '@app/core/log';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
 
 /**
  * Loads state from path.

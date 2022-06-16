@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { FatalAppError } from './fatal-error';
+import { FatalAppError } from '@app/core/errors/fatal-error';
 
 /**
  * Atomic write error

@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '../../states/var';
+import { varState } from '@app/core/states/var';
 
 /**
  * Is the array running?

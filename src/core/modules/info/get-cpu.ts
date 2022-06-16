@@ -4,8 +4,8 @@
  */
 
 import si from 'systeminformation';
-import { CoreResult, CoreContext } from '../../types';
-import { ensurePermission } from '../../utils';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get CPU info.

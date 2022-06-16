@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreResult, CoreContext } from '../types';
-import { ensurePermission } from '../utils';
-import { getUnraidVersion } from '.';
+import type { CoreResult, CoreContext } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getUnraidVersion } from '@app/core/modules';
 
 /**
  * Get welcome message.

@@ -1,5 +1,5 @@
 import { expect, test, vi } from 'vitest';
-import { generateData } from '../../../common/dashboard/generate-data';
+import { generateData } from '@app/common/dashboard/generate-data';
 
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {

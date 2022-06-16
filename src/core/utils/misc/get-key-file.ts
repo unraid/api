@@ -1,6 +1,6 @@
 import btoa from 'btoa';
 import { readFile } from 'fs/promises';
-import { varState } from '../../states';
+import { varState } from '@app/core/states/var';
 
 // Get key file
 export const getKeyFile = async function (regFile: string = varState.data.regFile) {

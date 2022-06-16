@@ -3,10 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { logger } from '../../../core';
-import { varState } from '../../../core/states';
-import { ensurePermission } from '../../../core/utils/permissions/ensure-permission';
-import { Context, getServers } from '../../schema/utils';
+import { logger } from '@app/core';
+import { varState } from '@app/core/states';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { Context, getServers } from '@app/graphql/schema/utils';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	const { user } = context;

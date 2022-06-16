@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '../../states';
-import { CoreContext, CoreResult } from '../../types';
-import { ensurePermission } from '../../utils';
+import { varState } from '@app/core/states/var';
+import type { CoreContext, CoreResult } from '@app/core/types';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 /**
  * Get server's flash info

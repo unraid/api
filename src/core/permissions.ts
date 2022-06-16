@@ -1,5 +1,5 @@
-import { logger } from './log';
-import { permissions as defaultPermissions } from './default-permissions';
+import { logger } from '@app/core/log';
+import { permissions as defaultPermissions } from '@app/core/default-permissions';
 import { AccessControl } from 'accesscontrol';
 
 const getPermissions = () => {

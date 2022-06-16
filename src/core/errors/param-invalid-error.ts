@@ -4,7 +4,7 @@
  */
 
 import { format } from 'util';
-import { AppError } from './app-error';
+import { AppError } from '@app/core/errors/app-error';
 
 /**
  * Invalid param provided to module

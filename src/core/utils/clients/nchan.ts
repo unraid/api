@@ -6,10 +6,10 @@
 import xhr2 from 'xhr2';
 import windowPolyFill from 'node-window-polyfill';
 import { EventSource } from 'launchdarkly-eventsource';
-import * as states from '../../states';
-import { nchanLogger } from '../../log';
-import { AppError } from '../../errors';
-import { parseConfig } from '../misc/parse-config';
+import * as states from '@app/core/states';
+import { nchanLogger } from '@app/core/log';
+import { AppError } from '@app/core/errors/app-error';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
 
 // Load polyfills for nchan
 windowPolyFill.register(false);
