@@ -22,7 +22,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
 
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
@@ -31,12 +31,12 @@ jobs:
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Install node v14
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: 14
 
     - name: Load npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -59,7 +59,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
 
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
@@ -68,12 +68,12 @@ jobs:
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Install node v14
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
-        node-version: 14
+        node-version: 14.5.3
 
     - name: Load npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -86,11 +86,11 @@ jobs:
     - name: Installing node deps
       run: npm install
 
-    # We need 17 to run the tests but the application uses 14
-    - name: Install node v17
-      uses: actions/setup-node@v1
+    # We need 18 to run the tests but the application uses 14
+    - name: Install node based on .nvmrc file
+      uses: actions/setup-node@v3
       with:
-        node-version: 17
+        node-version-file: '.nvmrc'
 
     - name: Unit tests and code coverage
       run: npm run test --if-present
@@ -102,7 +102,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
 
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
@@ -111,12 +111,12 @@ jobs:
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Install node v14
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: 14.15.3
 
     - name: Load npm cache
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ~/.npm
         key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
@@ -164,7 +164,7 @@ jobs:
       run: npm pack
 
     - name: Upload source tgz to Github artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: unraid-api-source
         path: ${{ github.workspace }}/*.tgz
@@ -182,7 +182,7 @@ jobs:
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Install node v14
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v3
       with:
         node-version: 14.15.3
 
@@ -195,7 +195,7 @@ jobs:
           ${{ runner.os }}-node-
 
     - name: Download unraid-api source tgz
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: unraid-api-source
 
@@ -221,7 +221,7 @@ jobs:
       run: npm pack
 
     - name: Upload binary tgz to Github artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: unraid-api
         path: ${{ github.workspace }}/*.tgz
@@ -237,7 +237,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
 
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
@@ -246,7 +246,7 @@ jobs:
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Download unraid-api binary tgz
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: unraid-api
 
@@ -282,7 +282,7 @@ jobs:
 
     steps:
     - name: Checkout repo
-      uses: actions/checkout@v1
+      uses: actions/checkout@v3
 
     - name: Add SSH deploy key
       uses: shimataro/ssh-key-action@v2
@@ -291,7 +291,7 @@ jobs:
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
     - name: Download unraid-api binary tgz
-      uses: actions/download-artifact@v2
+      uses: actions/download-artifact@v3
       with:
         name: unraid-api
 
