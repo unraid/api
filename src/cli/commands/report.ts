@@ -20,21 +20,83 @@ import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
 import { fullVersion } from '../../../package.json';
 
-// eslint-disable-next-line complexity
-export const report = async () => {
-	const getConfig = <T = unknown>(path: string) => {
-		try {
-			return camelCaseKeys(parseConfig<T>({
-				filePath: path,
-				type: 'ini'
-			}), {
-				deep: true
-			});
-		} catch {}
+const getConfig = <T = unknown>(path: string) => {
+	try {
+		return camelCaseKeys(parseConfig<T>({
+			filePath: path,
+			type: 'ini'
+		}), {
+			deep: true
+		});
+	} catch {}
 
-		return undefined;
+	return undefined;
+};
+
+const createGotOptions = (config: Partial<MyServersConfig>) => {
+	// Create default settings for got
+	const headers = {
+		Origin: '/var/run/unraid-cli.sock',
+		'Content-Type': 'application/json',
+		'x-api-key': config.upc?.apikey
+	};
+	const timeout = {
+		request: 10_000 // Wait a maximum of 10s
 	};
 
+	return { headers, timeout };
+};
+
+// This should return the status of the apiKey, relay and mothership
+export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cloud | undefined> => {
+	const cloud = config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+		method: 'POST',
+		...createGotOptions(config),
+		body: JSON.stringify({
+			query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}allowedOrigins}}'
+		})
+	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
+		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
+		return undefined;
+	}) : undefined;
+
+	return cloud;
+};
+
+const getServersData = async (unraidApiPid: number | undefined, cloud: Cloud | undefined, config: Partial<MyServersConfig>) => {
+	const servers = unraidApiPid && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+		method: 'POST',
+		...createGotOptions(config),
+		body: JSON.stringify({
+			query: 'query{servers{name guid status owner{username}}}'
+		})
+	}).then(response => (JSON.parse(response.body)?.data.servers as CachedServer[] ?? [])).catch(error => {
+		cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
+		return [];
+	}) : [];
+
+	return servers;
+};
+
+const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
+
+const anonymiseOrigins = (origins?: string[]): string[] => {
+	const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
+	return originsWithoutSocks.map(origin => {
+		return origin
+		// Replace 40 char hash string with "HASH"
+			.replace(hashUrlRegex(), '$1HASH$3')
+		// Replace ipv4 address using . separator with "IPV4ADDRESS"
+			.replace(ipRegex(), 'IPV4ADDRESS')
+		// Replace ipv4 address using - separator with "IPV4ADDRESS"
+			.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
+		// Report WAN port
+			.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
+	}).filter(Boolean);
+};
+
+// eslint-disable-next-line complexity
+export const report = async () => {
 	// Which report does the user want?
 
 	// Check if the user has raw output enabled
@@ -82,45 +144,15 @@ export const report = async () => {
 		if (!config) throw new Error(`Failed loading "${myServersConfigPath}"`);
 		if (!config.upc?.apikey) throw new Error('Missing UPC API key');
 
-		// Create default settings for got
-		const headers = {
-			Origin: '/var/run/unraid-cli.sock',
-			'Content-Type': 'application/json',
-			'x-api-key': config.upc.apikey
-		};
-		const timeout = {
-			request: 10_000 // Wait a maximum of 10s
-		};
-		const gotOpts = { headers, timeout };
-
 		// Fetch the cloud endpoint
-		// This should return the status of the apiKey, relay and mothership
-		const cloud = config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
-			method: 'POST',
-			...gotOpts,
-			body: JSON.stringify({
-				query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}allowedOrigins}}'
-			})
-		}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
-			cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
-			return undefined;
-		}) : undefined;
+		const cloud = await getCloudData(config);
 
 		// Log cloud response
 		cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
 
 		// Query local graphl using upc's API key
 		// Get the servers array
-		const servers = unraidApiPid && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
-			method: 'POST',
-			...gotOpts,
-			body: JSON.stringify({
-				query: 'query{servers{name guid status owner{username}}}'
-			})
-		}).then(response => (JSON.parse(response.body)?.data.servers as CachedServer[] ?? [])).catch(error => {
-			cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
-			return [];
-		}) : [];
+		const servers = await getServersData(unraidApiPid, cloud, config);
 		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
 		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
@@ -158,23 +190,6 @@ export const report = async () => {
 		const relayError = cloud?.relay.error || undefined;
 		const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${cloud.relay.error ? `[${cloud.relay.error}]` : ''}` : 'disconnected') : relayStatus;
-
-		const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
-
-		const anonymiseOrigins = (origins?: string[]): string[] => {
-			const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
-			return originsWithoutSocks.map(origin => {
-				return origin
-				// Replace 40 char hash string with "HASH"
-					.replace(hashUrlRegex(), '$1HASH$3')
-				// Replace ipv4 address using . separator with "IPV4ADDRESS"
-					.replace(ipRegex(), 'IPV4ADDRESS')
-				// Replace ipv4 address using - separator with "IPV4ADDRESS"
-					.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
-				// Report WAN port
-					.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
-			}).filter(Boolean);
-		};
 
 		const getAllowedOrigins = () => {
 			switch (true) {
