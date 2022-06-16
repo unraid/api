@@ -1,4 +1,4 @@
-import { randomUUID } from 'uuid';
+import { v4 as randomUUID } from 'uuid';
 import { assert, expect, test, vi } from 'vitest';
 import { ApiManager } from '../../core/api-manager';
 
