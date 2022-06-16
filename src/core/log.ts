@@ -47,42 +47,44 @@ const logLayout = {
 	}
 };
 
-// We log to both the stdout and log file
-// The log file should be changed to errors only unless in debug mode
-configure({
-	appenders: {
-		file: {
-			type: 'file',
-			filename: '/var/log/unraid-api/stdout.log',
-			layout: {
-				...logLayout,
-				// File logs should always be pretty
-				pattern: fullLoggingPattern
+if (process.env.NODE_ENV !== 'test') {
+	// We log to both the stdout and log file
+	// The log file should be changed to errors only unless in debug mode
+	configure({
+		appenders: {
+			file: {
+				type: 'file',
+				filename: '/var/log/unraid-api/stdout.log',
+				layout: {
+					...logLayout,
+					// File logs should always be pretty
+					pattern: fullLoggingPattern
+				}
+			},
+			errorFile: {
+				type: 'file',
+				filename: '/var/log/unraid-api/stderr.log',
+				layout: {
+					...logLayout,
+					// File logs should always be pretty
+					pattern: fullLoggingPattern
+				}
+			},
+			out: {
+				type: 'stdout',
+				layout: logLayout
+			},
+			errors: { type: 'logLevelFilter', appender: 'errorFile', level: 'error' }
+		},
+		categories: {
+			default: {
+				appenders,
+				level,
+				enableCallStack: tracingEnabled
 			}
-		},
-		errorFile: {
-			type: 'file',
-			filename: '/var/log/unraid-api/stderr.log',
-			layout: {
-				...logLayout,
-				// File logs should always be pretty
-				pattern: fullLoggingPattern
-			}
-		},
-		out: {
-			type: 'stdout',
-			layout: logLayout
-		},
-		errors: { type: 'logLevelFilter', appender: 'errorFile', level: 'error' }
-	},
-	categories: {
-		default: {
-			appenders,
-			level,
-			enableCallStack: tracingEnabled
 		}
-	}
-});
+	});
+}
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 const noOp = () => {};
