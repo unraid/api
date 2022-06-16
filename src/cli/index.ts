@@ -24,7 +24,7 @@ const commands = {
 
 const command = mainOptions.command as unknown as string;
 
-export const main = async () => {
+export const main = async (...argv: string[]) => {
 	// Load .env file
 	const envs = dotEnv.config({
 		path: '/usr/local/bin/unraid-api/.env'
@@ -56,7 +56,7 @@ export const main = async () => {
 	}
 
 	// Run the command
-	await commands[command]();
+	await commands[command](...argv);
 
 	// Only segfault in a specific mode
 	if (process.env.PLEASE_SEGFAULT_FOR_ME) {

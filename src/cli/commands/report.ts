@@ -98,11 +98,11 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
 };
 
 // eslint-disable-next-line complexity
-export const report = async () => {
+export const report = async (...argv: string[]) => {
 	// Which report does the user want?
 
 	// Check if the user has raw output enabled
-	const rawOutput = process.argv.includes('--raw');
+	const rawOutput = argv.includes('--raw');
 
 	// Check if we have a tty attached to stdout
 	// If we don't then this is being piped to a log file, etc.
@@ -159,8 +159,8 @@ export const report = async () => {
 		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
 		// Should we log possibly sensative info?
-		const verbose = process.argv.includes('-v');
-		const veryVerbose = process.argv.includes('-vv');
+		const verbose = argv.includes('-v');
+		const veryVerbose = argv.includes('-vv');
 
 		// Convert server to string output
 		const serverToString = (server: CachedServer) => `${server.name}${(verbose || veryVerbose) ? `[owner="${server.owner.username}"${veryVerbose ? ` guid="${server.guid}"]` : ']'}` : ''}`;
@@ -204,6 +204,30 @@ export const report = async () => {
 			}
 		};
 
+		const jsonReport = argv.includes('--json');
+		if (jsonReport) {
+			// If we have trace logs or the user selected --raw don't clear the screen
+			if (process.env.LOG_LEVEL !== 'trace' && isIteractive && !isFancyPants) {
+				// Clear the original log about the report being generated
+				readLine.cursorTo(process.stdout, 0, 0);
+				readLine.clearScreenDown(process.stdout);
+			}
+
+			stdout.write(JSON.stringify({
+				serverName,
+				environment: process.env.ENVIRONMENT,
+				unraidVersion,
+				unraidApiVersion: fullVersion,
+				unraidApiStatus: unraidApiPid ? 'running' : 'stopped',
+				apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
+				onlineServers: servers.map(server => server.status === 'online'),
+				offlineServers: servers.map(server => server.status === 'offline'),
+				hasCrashLogs
+			}) + '\n');
+
+			return;
+		}
+
 		// Generate the actual report
 		const report = dedent`
             <-----UNRAID-API-REPORT----->
@@ -230,8 +254,8 @@ export const report = async () => {
         ` : '';
 
 		// Should we output a basic report or one that supports markdown?
-		const markdown = process.argv.includes('--markdown');
-		const output = markdown ? dedent`
+		const markdownReport = argv.includes('--markdown');
+		const output = markdownReport ? dedent`
             \`\`\`
             ${report}
             ${crashLogs}
