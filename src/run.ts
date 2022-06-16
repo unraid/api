@@ -1,7 +1,7 @@
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { pubsub, logger } from '@app/core';
 import { isNodeError } from '@app/core/utils';
-import { AppError } from '@app/core/errors';
+import { AppError } from '@app/core/errors/app-error';
 import { sleep } from '@app/core/utils/misc/sleep';
 
 /**

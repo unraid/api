@@ -1,7 +1,7 @@
 import stw from 'spread-the-word';
 import { boolToString } from '@app/core/utils';
 import { varState } from '@app/core/states';
-import { AppError } from '@app/core/errors';
+import { AppError } from '@app/core/errors/app-error';
 
 /**
  * Announce to the local network via mDNS.

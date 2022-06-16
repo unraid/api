@@ -1,4 +1,3 @@
-export * as errors from '@app/core/errors';
 export * as modules from '@app/core/modules';
 export * as notifiers from '@app/core/notifiers';
 export * as states from '@app/core/states';

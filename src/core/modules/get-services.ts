@@ -7,7 +7,7 @@ import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
 import { logger } from '@app/core/log';
 import { envs } from '@app/core/envs';
 import type { CoreResult, CoreContext } from '@app/core/types';
-import { getUnraidApiService } from '@app/core/services/get-unraid-api';
+import { getUnraidApiService } from '@app/core/modules/services/get-unraid-api';
 
 const devNames = [
 	'emhttpd',
