@@ -1,4 +1,4 @@
-import { v4 as randomUUID } from 'uuid';
+import { randomUUID } from 'uuid';
 import { expect, test, vi } from 'vitest';
 import { getWsConnectionCount, getWsConnectionCountInChannel, hasSubscribedToChannel, hasUnsubscribedFromChannel, wsHasConnected } from '../ws';
 

@@ -1,4 +1,3 @@
-export * as discovery from './discovery';
 export * as errors from './errors';
 export * as modules from './modules';
 export * as notifiers from './notifiers';
