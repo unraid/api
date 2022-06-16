@@ -19,13 +19,15 @@ import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
 import { fullVersion } from '../../../package.json';
+import { stdout } from 'process';
 
-const getConfig = <T = unknown>(path: string) => {
+export const getConfig = <T = unknown>(path: string) => {
 	try {
-		return camelCaseKeys(parseConfig<T>({
+		const config = parseConfig<T>({
 			filePath: path,
 			type: 'ini'
-		}), {
+		});
+		return camelCaseKeys(config, {
 			deep: true
 		});
 	} catch {}
@@ -33,7 +35,7 @@ const getConfig = <T = unknown>(path: string) => {
 	return undefined;
 };
 
-const createGotOptions = (config: Partial<MyServersConfig>) => {
+export const createGotOptions = (config: Partial<MyServersConfig>) => {
 	// Create default settings for got
 	const headers = {
 		Origin: '/var/run/unraid-cli.sock',
@@ -63,7 +65,7 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 	return cloud;
 };
 
-const getServersData = async (unraidApiPid: number | undefined, cloud: Cloud | undefined, config: Partial<MyServersConfig>) => {
+export const getServersData = async (unraidApiPid: number | undefined, cloud: Cloud | undefined, config: Partial<MyServersConfig>) => {
 	const servers = unraidApiPid && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 		method: 'POST',
 		...createGotOptions(config),
@@ -80,7 +82,7 @@ const getServersData = async (unraidApiPid: number | undefined, cloud: Cloud | u
 
 const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
 
-const anonymiseOrigins = (origins?: string[]): string[] => {
+export const anonymiseOrigins = (origins?: string[]): string[] => {
 	const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
 	return originsWithoutSocks.map(origin => {
 		return origin
@@ -189,7 +191,7 @@ export const report = async () => {
 		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 		const relayError = cloud?.relay.error || undefined;
 		const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
-		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${cloud.relay.error ? `[${cloud.relay.error}]` : ''}` : 'disconnected') : relayStatus;
+		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${relayError ? `[${relayError}]` : ''}` : 'disconnected') : relayStatus;
 
 		const getAllowedOrigins = () => {
 			switch (true) {
@@ -246,15 +248,16 @@ export const report = async () => {
 			readLine.clearScreenDown(process.stdout);
 		}
 
-		process.stdout.write(output + '\n');
+		stdout.write(output + '\n');
 	} catch (error: unknown) {
+		console.log(error);
 		if (error instanceof Error) {
 			cliLogger.trace(error);
 			stdoutLogger.write(`\nFailed generating report with "${error.message}"\n`);
 			return;
 		}
 
-		process.stdout.write(`${error as string}`);
+		stdout.write(`${error as string}`);
 	} finally {
 		// Close the readLine instance
 		stdoutLogger.close();
