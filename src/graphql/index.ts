@@ -5,7 +5,8 @@
 
 import { v4 as uuid } from 'uuid';
 import * as core from '@app/core';
-import { AppError, FatalAppError } from '@app/core/errors';
+import { AppError } from '@app/core/errors/app-error';
+import { FatalAppError } from '@app/core/errors/fatal-error';
 import { usersState } from '@app/core/states';
 import { DockerEventEmitter } from '@gridplus/docker-events';
 import { run } from '@app/run';
