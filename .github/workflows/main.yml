@@ -93,7 +93,7 @@ jobs:
         node-version-file: '.nvmrc'
 
     - name: Unit tests and code coverage
-      run: npm run test --if-present
+      run: npm run coverage --if-present
 
   compile-source:
     runs-on: ubuntu-latest
