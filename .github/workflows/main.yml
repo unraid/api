@@ -33,7 +33,7 @@ jobs:
     - name: Install node v14
       uses: actions/setup-node@v3
       with:
-        node-version: 14.18.3
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v3
@@ -70,7 +70,7 @@ jobs:
     - name: Install node v14
       uses: actions/setup-node@v3
       with:
-        node-version: 14.18.3
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v3
@@ -113,7 +113,7 @@ jobs:
     - name: Install node v14
       uses: actions/setup-node@v3
       with:
-        node-version: 14.18.3
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v3
@@ -184,7 +184,7 @@ jobs:
     - name: Install node v14
       uses: actions/setup-node@v3
       with:
-        node-version: 14.18.3
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v3
