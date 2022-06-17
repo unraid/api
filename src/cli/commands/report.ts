@@ -4,7 +4,7 @@ import camelCaseKeys from 'camelcase-keys';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import got from 'got';
-import { lookup as lookupDNS, resolve as resolveDNS } from 'dns/promises';
+import { lookup as lookupDNS, resolve as resolveDNS } from 'dns';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud';
@@ -22,6 +22,7 @@ import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
 import { fullVersion } from '@app/../package.json';
 import { stdout } from 'process';
+import { promisify } from 'util';
 
 export const getConfig = <T = unknown>(path: string) => {
 	try {
@@ -109,11 +110,11 @@ const hostname = 'mothership.unraid.net';
 const checkDNS = async () => {
 	try {
 		// Check the local resolver like "ping" does
-		const local = await lookupDNS(hostname).then(({ address }) => address);
+		const local = await promisify(lookupDNS)(hostname).then(({ address }) => address);
 
 		// Check the DNS server the server has set
 		// This does a DNS query on the network
-		const network = await resolveDNS(hostname).then(([address]) => address);
+		const network = await promisify(resolveDNS)(hostname).then(([address]) => address);
 
 		// The user's server and the DNS server they're using are returning different results
 		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local}"] [network="${network}"]`);
