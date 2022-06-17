@@ -1,8 +1,10 @@
+import { isPrivate as isPrivateIP } from 'ip';
 import dedent from 'dedent-tabs';
 import camelCaseKeys from 'camelcase-keys';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import got from 'got';
+import { lookup as lookupDNS, resolve as resolveDNS } from 'dns/promises';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud';
@@ -95,6 +97,45 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
 		// Report WAN port
 			.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
 	}).filter(Boolean);
+};
+
+const hostname = 'mothership.unraid.net';
+
+/**
+ * Check if the local and network resolvers are able to see mothership
+ *
+ * See: https://nodejs.org/docs/latest/api/dns.html#dns_implementation_considerations
+ */
+const checkDNS = async () => {
+	try {
+		// Check the local resolver like "ping" does
+		const local = await lookupDNS(hostname).then(({ address }) => address);
+
+		// Check the DNS server the server has set
+		// This does a DNS query on the network
+		const network = await resolveDNS(hostname).then(([address]) => address);
+
+		// The user's server and the DNS server they're using are returning different results
+		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local}"] [network="${network}"]`);
+
+		// The user likely has a PI-hole or something similar running.
+		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local}]`);
+
+		return { cloudIp: local };
+	} catch (error) {
+		return { error };
+	}
+};
+
+const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbose: boolean) => {
+	switch (true) {
+		case veryVerbose:
+			return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
+		case verbose:
+			return anonymiseOrigins(cloud?.allowedOrigins ?? []);
+		default:
+			return [];
+	}
 };
 
 // eslint-disable-next-line complexity
@@ -193,16 +234,8 @@ export const report = async (...argv: string[]) => {
 		const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${relayError ? `[${relayError}]` : ''}` : 'disconnected') : relayStatus;
 
-		const getAllowedOrigins = () => {
-			switch (true) {
-				case veryVerbose:
-					return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
-				case verbose:
-					return anonymiseOrigins(cloud?.allowedOrigins ?? []);
-				default:
-					return [];
-			}
-		};
+		// Check if we can reach mothership via DNS
+		const { error: dnsError, cloudIp } = await checkDNS();
 
 		const jsonReport = argv.includes('--json');
 		if (jsonReport) {
@@ -239,9 +272,9 @@ export const report = async (...argv: string[]) => {
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
             RELAY: ${relayDetails}
-            MOTHERSHIP: ${cloud?.mothership.error ?? cloud?.mothership.status ?? 'disconnected'}
+            CLOUD: ${dnsError ?? cloud?.mothership.error ?? (cloud?.mothership.status ? `${cloud?.mothership.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp}]` : ''}` : null) ?? 'disconnected'}
             ${servers ? serversDetails : 'SERVERS: none found'}
-            ${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins().join(', ')}` : ''}
+            ${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins(cloud, verbose, veryVerbose).join(', ')}`.trim() : ''}
             HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
             </----UNRAID-API-REPORT----->
         `.replace(/\n+/g, '\n');
