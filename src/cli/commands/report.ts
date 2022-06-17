@@ -123,7 +123,8 @@ const checkDNS = async () => {
 		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local}]`);
 
 		return { cloudIp: local };
-	} catch (error) {
+	} catch (error: unknown) {
+		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { error };
 	}
 };
