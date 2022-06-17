@@ -169,6 +169,7 @@ const handleError = (error: unknown) => {
 	const code = (error as any).code as number ?? 500;
 	const { timeout, reason: reconnectionReason } = handleReconnection(reason, code);
 	store.reason = reconnectionReason;
+	store.code = code;
 
 	relayLogger.debug('Disconnected with status="%s" reason="%s"', code, reconnectionReason);
 	if (!timeout) return;
@@ -177,6 +178,7 @@ const handleError = (error: unknown) => {
 	setTimeout(() => {
 		store.timeout = undefined;
 		store.reason = undefined;
+		store.code = undefined;
 	}, timeout);
 };
 
