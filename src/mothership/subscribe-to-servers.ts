@@ -73,7 +73,7 @@ mothership.onConnected(async () => {
 	}
 
 	// Sub to /servers endpoint
-	mothershipLogger.info('Connected to %s', MOTHERSHIP_GRAPHQL_LINK);
+	mothershipLogger.info('Connected to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
 	subscribeToServers(apiKey);
 }, undefined);
 
@@ -100,9 +100,10 @@ export const checkGraphqlConnection = debounce(async () => {
 		}
 
 		// Reconnect
+		mothershipLogger.debug('Connecting to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
 		mothership.connect();
 	} catch (error: unknown) {
-		console.log(error);
+		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
 	}
 }, 5_000);
 
