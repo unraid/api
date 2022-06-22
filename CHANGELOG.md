@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.48.0](https://github.com/unraid/api/compare/v2.47.1...v2.48.0) (2022-06-22)
+
+
+### Features
+
+* add basic version of cli/commands/report --json ([3de9a41](https://github.com/unraid/api/commit/3de9a4116e1945d585420419d9577cf5fe99aae0))
+* add minigraph status and JSON to cli/report ([e5f5712](https://github.com/unraid/api/commit/e5f57121c6b0c9a150057efbf18d245a4c7ffcba))
+
+
+### Bug Fixes
+
+* add wtfnode handler ([79a954e](https://github.com/unraid/api/commit/79a954e0f97b44ec7d1333cfc32199a299059b4c))
+* cleanup json report for cloud ([52fcf4c](https://github.com/unraid/api/commit/52fcf4cc9776faeb037bad91e47ea1d845eeedd3))
+* ensure we bundle wtfnode ([4af1762](https://github.com/unraid/api/commit/4af17626df2687d098157f496391d73441e03536))
+* imports ([1af0d81](https://github.com/unraid/api/commit/1af0d8169e36e76b089c9e2ec5e378cf41f0115c))
+* imports ([bea4257](https://github.com/unraid/api/commit/bea42577ebc87334a264f6f4036bc17774bb3ceb))
+* inconsistencies in report ([ac82003](https://github.com/unraid/api/commit/ac8200339323cafbf40b2d5f072d076a470d9a62))
+* segfaultHandler not writing to json file ([6d1e39f](https://github.com/unraid/api/commit/6d1e39f35e2f8d3964ef3cd4b693743a7de755c3))
+* types of getPermisions ([bb42417](https://github.com/unraid/api/commit/bb42417395655c9063da5849af21e83c93dc8fdb))
+* update tests to match cli/report ([907ce0b](https://github.com/unraid/api/commit/907ce0b945de84e668a4db664108773c6be34506))
+* use sync write for crash.json ([8ce1816](https://github.com/unraid/api/commit/8ce1816d0cfca984c339a53a398818cd6c8de8d1))
+* wait only 10s for connection to start ([13b287f](https://github.com/unraid/api/commit/13b287f266f1d38e89b51db5b216546a7111b087))
+
 ### [2.47.1](https://github.com/unraid/api/compare/v2.47.0...v2.47.1) (2022-05-24)
 
 
