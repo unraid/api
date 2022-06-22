@@ -238,7 +238,7 @@ export const report = async (...argv: string[]) => {
 
 		// Check mini-graphql connection
 		// This is mainly used for the "servers" live data
-		const minigraphqlDetails = cloud?.minigraphql.connected ? 'Connected' : 'Reconnecting';
+		const minigraphqlDetails = cloud?.minigraphql.connected ? 'connected' : 'disconnected';
 
 		// Check if we can reach mothership via DNS
 		const { error: dnsError, cloudIp } = await checkDNS();
@@ -262,6 +262,15 @@ export const report = async (...argv: string[]) => {
 				onlineServers: servers.filter(server => server.status === 'online'),
 				offlineServers: servers.filter(server => server.status === 'offline'),
 				hasCrashLogs,
+				...(hasCrashLogs ? { crashLogs: await readFile('/var/log/unraid-api/crash.log', 'utf-8').then(lines => {
+					return lines.split('\n').map(line => {
+						try {
+							return JSON.parse(line);
+						} catch {}
+
+						return undefined;
+					}).filter(Boolean);
+				}).catch(() => '') } : {}),
 				myServers: config?.remote?.username ? 'authenticated' : 'signed out',
 				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
 				relay: relayStatus,
@@ -283,9 +292,9 @@ export const report = async (...argv: string[]) => {
             NODE_VERSION: ${process.version}
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
+			CLOUD: ${dnsError ?? cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp ?? ''}]` : ''}` : null) ?? 'disconnected'}
             RELAY: ${relayDetails}
             MINI-GRAPH: ${minigraphqlDetails}
-            CLOUD: ${dnsError ?? cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp ?? ''}]` : ''}` : null) ?? 'disconnected'}
             ${servers ? serversDetails : 'SERVERS: none found'}
             ${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins(cloud, verbose, veryVerbose).join(', ')}`.trim() : ''}
             HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
