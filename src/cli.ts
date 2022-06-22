@@ -1,7 +1,7 @@
-import { writeFile } from 'fs/promises';
+import { writeFileSync } from 'fs';
 import segfaultHandler from 'segfault-handler';
-segfaultHandler.registerHandler('/var/log/unraid-api/crash.log', async (signal, address, stack) => {
-	await writeFile('/var/log/unraid-api/crash.json', JSON.stringify({ signal, address, stack }));
+segfaultHandler.registerHandler('/var/log/unraid-api/crash.log', (signal, address, stack) => {
+	writeFileSync('/var/log/unraid-api/crash.json', JSON.stringify({ signal, address, stack }));
 });
 
 import am from 'am';
