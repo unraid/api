@@ -264,8 +264,10 @@ export const report = async (...argv: string[]) => {
 				hasCrashLogs,
 				myServers: config?.remote?.username ? 'authenticated' : 'signed out',
 				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
-				relayStatus,
-				minigraphStatus: cloud?.minigraphql.connected
+				relay: relayStatus,
+				minigraph: cloud?.minigraphql.connected ? 'connected' : 'disconnected',
+				cloud: cloud?.cloud.status,
+				...(cloud?.cloud.error ? { cloudError: cloud.cloud.error } : {})
 			});
 			stdout.write(json + '\n');
 			return;

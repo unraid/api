@@ -97,8 +97,9 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "apiKey": "valid",
+		  "cloud": "ok",
 		  "hasCrashLogs": false,
-		  "minigraphStatus": true,
+		  "minigraph": "connected",
 		  "myServers": "authenticated",
 		  "myServersUsername": "api-test-runner",
 		  "offlineServers": [],
@@ -112,7 +113,7 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		      "status": "online",
 		    },
 		  ],
-		  "relayStatus": "connected",
+		  "relay": "connected",
 		  "serverName": "Tower",
 		  "unraidApiStatus": "running",
 		  "unraidApiVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
