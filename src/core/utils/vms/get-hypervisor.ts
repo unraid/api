@@ -9,6 +9,7 @@ import { ConnectListAllDomainsFlags, Hypervisor } from '@vmngr/libvirt';
 import { watch } from 'chokidar';
 import { libvirtLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
+import { sleep } from '@app/core/utils/misc/sleep';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
 
@@ -68,12 +69,6 @@ export const getHypervisor = async (useCache = true) => {
 
 	return hypervisor;
 };
-
-const sleep = async (ms: number) => new Promise<void>(resolve => {
-	setTimeout(() => {
-		resolve();
-	}, ms);
-});
 
 const states = {
 	0: 'NOSTATE',
