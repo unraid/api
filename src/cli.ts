@@ -1,5 +1,5 @@
 import segfaultHandler from 'segfault-handler';
-segfaultHandler.registerHandler('/var/log/unraid-api/crash.log');
+segfaultHandler.registerHandler('/var/log/unraid-api/crash.log', (signal, address, stack) => JSON.stringify({ signal, address, stack }));
 
 import am from 'am';
 import { main } from '@app/cli/index';
