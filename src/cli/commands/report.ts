@@ -58,7 +58,7 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
-			query: 'query{cloud{error apiKey{valid error}relay{status timeout error}mothership{status error}allowedOrigins}}'
+			query: 'query{cloud{error apiKey{valid error}relay{status timeout error}minigraphql{connected}cloud{status error}allowedOrigins}}'
 		})
 	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
@@ -173,7 +173,7 @@ export const report = async (...argv: string[]) => {
 
 		// Show loading message
 		if (isIteractive) {
-			stdoutLogger.write('Generating report please standby…');
+			stdoutLogger.write('Generating report please wait…');
 		}
 
 		// Find all processes called "unraid-api" which aren't this process
@@ -236,6 +236,10 @@ export const report = async (...argv: string[]) => {
 		const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${relayError ? `[${relayError}]` : ''}` : 'disconnected') : relayStatus;
 
+		// Check mini-graphql connection
+		// This is mainly used for the "servers" live data
+		const minigraphqlDetails = cloud?.minigraphql.connected ? 'Connected' : 'Reconnecting';
+
 		// Check if we can reach mothership via DNS
 		const { error: dnsError, cloudIp } = await checkDNS();
 
@@ -248,18 +252,22 @@ export const report = async (...argv: string[]) => {
 				readLine.clearScreenDown(process.stdout);
 			}
 
-			stdout.write(JSON.stringify({
+			const json = JSON.stringify({
 				serverName,
 				environment: process.env.ENVIRONMENT,
 				unraidVersion,
 				unraidApiVersion: fullVersion,
 				unraidApiStatus: unraidApiPid ? 'running' : 'stopped',
 				apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
-				onlineServers: servers.map(server => server.status === 'online'),
-				offlineServers: servers.map(server => server.status === 'offline'),
-				hasCrashLogs
-			}) + '\n');
-
+				onlineServers: servers.filter(server => server.status === 'online'),
+				offlineServers: servers.filter(server => server.status === 'offline'),
+				hasCrashLogs,
+				myServers: config?.remote?.username ? 'authenticated' : 'signed out',
+				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
+				relayStatus,
+				minigraphStatus: cloud?.minigraphql.connected
+			});
+			stdout.write(json + '\n');
 			return;
 		}
 
@@ -274,7 +282,8 @@ export const report = async (...argv: string[]) => {
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
             RELAY: ${relayDetails}
-            CLOUD: ${dnsError ?? cloud?.mothership.error ?? (cloud?.mothership.status ? `${cloud?.mothership.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp}]` : ''}` : null) ?? 'disconnected'}
+            MINI-GRAPH: ${minigraphqlDetails}
+            CLOUD: ${dnsError ?? cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp ?? ''}]` : ''}` : null) ?? 'disconnected'}
             ${servers ? serversDetails : 'SERVERS: none found'}
             ${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins(cloud, verbose, veryVerbose).join(', ')}`.trim() : ''}
             HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
@@ -282,11 +291,7 @@ export const report = async (...argv: string[]) => {
         `.replace(/\n+/g, '\n');
 
 		// If we have a crash log grab it for later
-		const crashLogs = hasCrashLogs ? dedent`
-            <-----UNRAID-API-CRASH-LOGS----->
-            ${await readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '')}
-            <-----UNRAID-API-CRASH-LOGS----->
-        ` : '';
+		const crashLogs = hasCrashLogs ? `<-----UNRAID-API-CRASH-LOGS----->\n${await readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '')}\n<-----UNRAID-API-CRASH-LOGS----->` : '';
 
 		// Should we output a basic report or one that supports markdown?
 		const markdownReport = argv.includes('--markdown');
@@ -309,7 +314,7 @@ export const report = async (...argv: string[]) => {
 
 		stdout.write(output + '\n');
 	} catch (error: unknown) {
-		console.log(error);
+		console.log({ error });
 		if (error instanceof Error) {
 			cliLogger.trace(error);
 			stdoutLogger.write(`\nFailed generating report with "${error.message}"\n`);

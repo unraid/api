@@ -15,6 +15,7 @@ import { logger } from '@app/core/log';
 import { RelayStates } from '@app/graphql/relay-state';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { version } from '@app/../package.json';
+import { getMinigraphqlConnectionStatus } from '@app/mothership/get-mini-graphql-connection-status';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -30,14 +31,17 @@ export type Cloud = {
 		timeout: number | undefined;
 		error: string;
 	};
-	mothership: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
+	minigraphql: {
+		connected: boolean;
+	};
+	cloud: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
 	allowedOrigins: string[];
 };
 
 const createResponse = (cloud: Cloud): Cloud => {
 	return {
 		...cloud,
-		error: cloud.apiKey.error ?? cloud.relay.error ?? cloud.mothership.error
+		error: cloud.apiKey.error ?? cloud.relay.error ?? cloud.cloud.error
 	};
 };
 
@@ -108,7 +112,7 @@ const checkMothershipAuthentication = async (url: string, options: OptionsOfText
 	}
 };
 
-const checkMothership = async (): Promise<Cloud['mothership']> => {
+const checkMothership = async (): Promise<Cloud['cloud']> => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
 	try {
@@ -145,7 +149,18 @@ const checkMothership = async (): Promise<Cloud['mothership']> => {
 	}
 };
 
-export default async (_: unknown, __: unknown, context: Context) => {
+const checkMinigraphql = () => {
+	logger.trace('Cloud endpoint: Checking mini-graphql');
+	try {
+		return {
+			connected: getMinigraphqlConnectionStatus()
+		};
+	} finally {
+		logger.trace('Cloud endpoint: Done mini-graphql');
+	}
+};
+
+export default async (_: unknown, __: unknown, context: Context): Promise<Cloud> => {
 	ensurePermission(context.user, {
 		resource: 'cloud',
 		action: 'read',
@@ -161,12 +176,15 @@ export default async (_: unknown, __: unknown, context: Context) => {
 				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR
 			},
 			relay: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'ok',
-				timeout: process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT,
+				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'connected',
+				timeout: Number(process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT) ?? null,
 				reason: process.env.MOCK_CLOUD_ENDPOINT_RELAY_REASON,
 				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
 			},
-			mothership: {
+			minigraphql: {
+				connected: Boolean(process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED)
+			},
+			cloud: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
 				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR
 			},
@@ -176,10 +194,13 @@ export default async (_: unknown, __: unknown, context: Context) => {
 
 	const [apiKey, mothership] = await Promise.all([checkApi(), checkMothership()]);
 
-	return createResponse({
+	const response = createResponse({
 		apiKey,
 		relay: checkRelay(),
-		mothership,
+		minigraphql: checkMinigraphql(),
+		cloud: mothership,
 		allowedOrigins: getAllowedOrigins()
 	});
+
+	return response;
 };

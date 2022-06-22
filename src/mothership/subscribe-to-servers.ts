@@ -9,8 +9,9 @@ import { version } from '@app/../package.json';
 import { apiManager } from '@app/core/api-manager';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
+import { miniGraphqlStore } from '@app/mothership/store';
 
-export const mothership = new SubscriptionClient(() => {
+export const minigraphql = new SubscriptionClient(() => {
 	const apiKey = apiManager.cloudKey ?? 'LARRYS_MAGIC_KEY';
 	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
 	url.username = version;
@@ -26,6 +27,7 @@ export const mothership = new SubscriptionClient(() => {
 		apiKey: apiManager.cloudKey
 	}),
 	connectionCallback: errors => {
+		if (errors) miniGraphqlStore.connected = false;
 		try {
 			const graphqlErrors = errors as GraphQLError[] | undefined;
 			if (graphqlErrors) {
@@ -40,8 +42,8 @@ export const mothership = new SubscriptionClient(() => {
 				mothershipLogger.removeContext('reason');
 
 				// Close the connection if it's still open
-				if (mothership.status !== WebSocket.CLOSED) {
-					mothership.close(true, true);
+				if (minigraphql.status !== WebSocket.CLOSED) {
+					minigraphql.close(true, true);
 				}
 			}
 		} catch (error: unknown) {
@@ -52,13 +54,15 @@ export const mothership = new SubscriptionClient(() => {
 
 // Allow the client to wait 10s for a connection to start
 // @ts-expect-error
-mothership.maxConnectTimeGenerator.setMin(10_000);
+minigraphql.maxConnectTimeGenerator.setMin(10_000);
 
 // Fix client timing out while trying to connect
 // @ts-expect-error
-mothership.maxConnectTimeGenerator.duration = () => mothership.maxConnectTimeGenerator.max;
+minigraphql.maxConnectTimeGenerator.duration = () => minigraphql.maxConnectTimeGenerator.max;
 
-mothership.onConnected(async () => {
+// When minigraphql connects
+minigraphql.onConnected(async () => {
+	miniGraphqlStore.connected = true;
 	const apiKey = apiManager.cloudKey;
 
 	if (!apiKey) {
@@ -77,21 +81,29 @@ mothership.onConnected(async () => {
 	subscribeToServers(apiKey);
 }, undefined);
 
+minigraphql.onError(() => {
+	miniGraphqlStore.connected = false;
+}, undefined);
+
+minigraphql.onDisconnected(async () => {
+	miniGraphqlStore.connected = false;
+}, undefined);
+
 export const checkGraphqlConnection = debounce(async () => {
 	try {
 		// Bail if we're in the middle of opening a connection
-		if (mothership.status === WebSocket.CONNECTING) {
+		if (minigraphql.status === WebSocket.CONNECTING) {
 			return;
 		}
 
 		// Bail if we're already connected
-		if (await shouldBeConnectedToCloud() && mothership.status === WebSocket.OPEN) {
+		if (await shouldBeConnectedToCloud() && minigraphql.status === WebSocket.OPEN) {
 			return;
 		}
 
 		// Close the connection if it's still up
-		if (mothership.status !== WebSocket.CLOSED) {
-			mothership.close(true, true);
+		if (minigraphql.status !== WebSocket.CLOSED) {
+			minigraphql.close(true, true);
 		}
 
 		// If we should be disconnected at this point then stay that way
@@ -101,7 +113,7 @@ export const checkGraphqlConnection = debounce(async () => {
 
 		// Reconnect
 		mothershipLogger.debug('Connecting to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
-		mothership.connect();
+		minigraphql.connect();
 	} catch (error: unknown) {
 		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
 	}
@@ -111,7 +123,7 @@ export const subscribeToServers = (apiKey: string) => {
 	mothershipLogger.addContext('apiKey', apiKey);
 	mothershipLogger.debug('Subscribing to servers');
 	mothershipLogger.removeContext('apiKey');
-	const query = mothership.request({
+	const query = minigraphql.request({
 		query: `subscription servers ($apiKey: String!) {
             servers @auth(apiKey: $apiKey)
         }`,

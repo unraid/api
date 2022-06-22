@@ -4,7 +4,7 @@
  */
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { mothership } from '@app/mothership/subscribe-to-servers';
+import { minigraphql } from '@app/mothership/subscribe-to-servers';
 import { Context } from '@app/graphql/schema/utils';
 
 export const sendNotification = async (_: unknown, args: { notification: Notification }, context: Context) => {
@@ -18,12 +18,12 @@ export const sendNotification = async (_: unknown, args: { notification: Notific
 	});
 
 	// If there's no mothership connection then bail
-	if (!mothership) {
+	if (!minigraphql) {
 		throw new Error('Mothership is down');
 	}
 
 	// Prepare query
-	const query = mothership.request({
+	const query = minigraphql.request({
 		query: 'mutation($notification:NotificationInput!){sendNotification(notification:$notification){title subject description importance link status}}',
 		variables: {
 			notification: args.notification

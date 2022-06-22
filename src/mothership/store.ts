@@ -1,6 +1,6 @@
 import type WebSocketAsPromised from 'websocket-as-promised';
 
-export const store: {
+export const relayStore: {
 	relay: (WebSocketAsPromised & { _ws?: WebSocket }) | undefined;
 	timeout: number | undefined;
 	reason: string | undefined;
@@ -10,4 +10,10 @@ export const store: {
 	timeout: undefined,
 	reason: undefined,
 	code: undefined
+};
+
+export const miniGraphqlStore: {
+	connected: boolean;
+} = {
+	connected: false
 };
