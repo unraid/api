@@ -81,9 +81,9 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		NODE_VERSION: v18.3.0
 		API_KEY: valid
 		MY_SERVERS: signed out
-		RELAY: API is offline
-		MINI-GRAPH: Reconnecting
 		CLOUD: ok [IP=52.40.54.163]
+		RELAY: API is offline
+		MINI-GRAPH: disconnected
 		SERVERS: API is offline
 		ALLOWED_ORIGINS:
 		HAS_CRASH_LOGS: no

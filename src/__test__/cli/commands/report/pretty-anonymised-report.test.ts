@@ -78,9 +78,9 @@ test('Returns a pretty anonymised report by default', async () => {
 		NODE_VERSION: v18.3.0
 		API_KEY: valid
 		MY_SERVERS: signed out
-		RELAY: API is offline
-		MINI-GRAPH: Reconnecting
 		CLOUD: ok
+		RELAY: API is offline
+		MINI-GRAPH: disconnected
 		SERVERS: API is offline
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->

@@ -292,7 +292,7 @@ export const report = async (...argv: string[]) => {
             NODE_VERSION: ${process.version}
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-			CLOUD: ${dnsError ?? cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp ?? ''}]` : ''}` : null) ?? 'disconnected'}
+            CLOUD: ${dnsError ?? cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp ?? ''}]` : ''}` : null) ?? 'disconnected'}
             RELAY: ${relayDetails}
             MINI-GRAPH: ${minigraphqlDetails}
             ${servers ? serversDetails : 'SERVERS: none found'}
