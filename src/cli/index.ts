@@ -1,3 +1,4 @@
+import wtf from 'wtfnode';
 import segfaultHandler from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
 import dotEnv from 'dotenv';
@@ -64,5 +65,12 @@ export const main = async (...argv: string[]) => {
 		setTimeout(() => {
 			segfaultHandler.causeSegfault();
 		}, 30_000);
+	}
+
+	// Only log active handles
+	if (process.env.LOG_ACTIVE_HANDLES) {
+		setTimeout(() => {
+			wtf.dump();
+		}, 5_000);
 	}
 };
