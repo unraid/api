@@ -28,11 +28,23 @@ vi.mock('fs/promises', () => ({
 
 vi.mock('got', () => ({
 	default: vi.fn(async (_url, opts) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid error}relay{status timeout error}minigraphql{connected}cloud{status error}allowedOrigins}}"}') {
-			return { body: JSON.stringify({ data: { cloud: { apiKey: { valid: true }, relay: { error: 'API is offline', timeout: undefined }, minigraphql: { connected: false }, cloud: { status: 'ok' }, allowedOrigins: [] } } }) };
+		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}"}') {
+			return {
+				body: JSON.stringify({
+					data: {
+						cloud: {
+							apiKey: { valid: true },
+							relay: { status: 'connected' },
+							minigraphql: { connected: true },
+							cloud: { status: 'ok', ip: '52.40.54.163' },
+							allowedOrigins: []
+						}
+					}
+				})
+			};
 		}
 
-		return undefined;
+		throw new Error(`Unmocked query "${opts.body}"`);
 	})
 }));
 
@@ -68,7 +80,25 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
 	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
 	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', 'unknown']);
-	expect(cliTraceLoggerSpy.mock.calls[1]).toEqual(['Cloud response %s', JSON.stringify({ apiKey: { valid: true }, relay: { error: 'API is offline' }, minigraphql: { connected: false }, cloud: { status: 'ok' }, allowedOrigins: [] })]);
+	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
+	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
+		{
+		  "allowedOrigins": [],
+		  "apiKey": {
+		    "valid": true,
+		  },
+		  "cloud": {
+		    "ip": "52.40.54.163",
+		    "status": "ok",
+		  },
+		  "minigraphql": {
+		    "connected": true,
+		  },
+		  "relay": {
+		    "status": "connected",
+		  },
+		}
+	`);
 	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Skipped checking for servers as local graphql is offline']);
 
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
@@ -82,8 +112,8 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: ok [IP=52.40.54.163]
-		RELAY: API is offline
-		MINI-GRAPH: disconnected
+		RELAY: connected
+		MINI-GRAPH: connected
 		SERVERS: API is offline
 		ALLOWED_ORIGINS:
 		HAS_CRASH_LOGS: no

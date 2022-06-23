@@ -3,6 +3,8 @@
  * Written by: Alexis Tyler
  */
 
+import { lookup as lookupDNS, resolve as resolveDNS } from 'dns';
+import { isPrivate as isPrivateIP } from 'ip';
 import got, { HTTPError, OptionsOfTextResponseBody, TimeoutError } from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK, MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { apiManager } from '@app/core/api-manager';
@@ -16,6 +18,7 @@ import { RelayStates } from '@app/graphql/relay-state';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { version } from '@app/../package.json';
 import { getMinigraphqlConnectionStatus } from '@app/mothership/get-mini-graphql-connection-status';
+import { promisify } from 'util';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -34,7 +37,7 @@ export type Cloud = {
 	minigraphql: {
 		connected: boolean;
 	};
-	cloud: { status: 'ok'; error: undefined } | { status: 'error'; error: string };
+	cloud: { status: 'ok'; error: undefined; ip: string } | { status: 'error'; error: string };
 	allowedOrigins: string[];
 };
 
@@ -112,6 +115,35 @@ const checkMothershipAuthentication = async (url: string, options: OptionsOfText
 	}
 };
 
+const hostname = 'mothership.unraid.net';
+
+/**
+ * Check if the local and network resolvers are able to see mothership
+ *
+ * See: https://nodejs.org/docs/latest/api/dns.html#dns_implementation_considerations
+ */
+const checkDNS = async () => {
+	try {
+		// Check the local resolver like "ping" does
+		const local = await promisify(lookupDNS)(hostname).then(({ address }) => address);
+
+		// Check the DNS server the server has set
+		// This does a DNS query on the network
+		const network = await promisify(resolveDNS)(hostname).then(([address]) => address);
+
+		// The user's server and the DNS server they're using are returning different results
+		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local}"] [network="${network}"]`);
+
+		// The user likely has a PI-hole or something similar running.
+		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local}]`);
+
+		return { cloudIp: local };
+	} catch (error: unknown) {
+		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
+		return { error };
+	}
+};
+
 const checkMothership = async (): Promise<Cloud['cloud']> => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
@@ -119,6 +151,10 @@ const checkMothership = async (): Promise<Cloud['cloud']> => {
 		const apiVersion = version;
 		const apiKey = apiManager.cloudKey;
 		if (!apiKey) throw new Error('API key is missing');
+
+		// // Check DNS
+		// const { error: DNSError, cloudIp } = await checkDNS();
+		// if (DNSError) return { status: 'error', error: DNSError.message };
 
 		const timeout = { request: 5_000 };
 		const headers = {
@@ -143,7 +179,7 @@ const checkMothership = async (): Promise<Cloud['cloud']> => {
 			return { status: 'error', error: error.message };
 		}
 
-		return { status: 'ok', error: undefined };
+		return { status: 'ok', error: undefined, ip: cloudIp };
 	} finally {
 		logger.trace('Cloud endpoint: Done mothership');
 	}
@@ -169,27 +205,29 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 
 	// If the endpoint is mocked return the mocked data
 	if (process.env.MOCK_CLOUD_ENDPOINT) {
-		return {
+		const result: Cloud = {
 			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR,
 			apiKey: {
 				valid: Boolean(process.env.MOCK_CLOUD_ENDPOINT_APIKEY_VALID ?? true),
 				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR
-			},
+			} as unknown as Cloud['apiKey'],
 			relay: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'connected',
 				timeout: Number(process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT) ?? null,
 				reason: process.env.MOCK_CLOUD_ENDPOINT_RELAY_REASON,
 				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
-			},
+			} as unknown as Cloud['relay'],
 			minigraphql: {
 				connected: Boolean(process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED)
 			},
 			cloud: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
-				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR
-			},
+				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR,
+				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP
+			} as unknown as Cloud['cloud'],
 			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALOWED_ORIGINS ?? '').split(',').filter(Boolean)
 		};
+		return result;
 	}
 
 	const [apiKey, mothership] = await Promise.all([checkApi(), checkMothership()]);

@@ -1,10 +1,9 @@
-import { isPrivate as isPrivateIP } from 'ip';
+
 import dedent from 'dedent-tabs';
 import camelCaseKeys from 'camelcase-keys';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import got from 'got';
-import { lookup as lookupDNS, resolve as resolveDNS } from 'dns';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud';
@@ -22,7 +21,6 @@ import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
 import { fullVersion } from '@app/../package.json';
 import { stdout } from 'process';
-import { promisify } from 'util';
 
 export const getConfig = <T = unknown>(path: string) => {
 	try {
@@ -58,7 +56,7 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
-			query: 'query{cloud{error apiKey{valid error}relay{status timeout error}minigraphql{connected}cloud{status error}allowedOrigins}}'
+			query: 'query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}'
 		})
 	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
@@ -100,35 +98,6 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
 	}).filter(Boolean);
 };
 
-const hostname = 'mothership.unraid.net';
-
-/**
- * Check if the local and network resolvers are able to see mothership
- *
- * See: https://nodejs.org/docs/latest/api/dns.html#dns_implementation_considerations
- */
-const checkDNS = async () => {
-	try {
-		// Check the local resolver like "ping" does
-		const local = await promisify(lookupDNS)(hostname).then(({ address }) => address);
-
-		// Check the DNS server the server has set
-		// This does a DNS query on the network
-		const network = await promisify(resolveDNS)(hostname).then(([address]) => address);
-
-		// The user's server and the DNS server they're using are returning different results
-		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local}"] [network="${network}"]`);
-
-		// The user likely has a PI-hole or something similar running.
-		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local}]`);
-
-		return { cloudIp: local };
-	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
-		return { error };
-	}
-};
-
 const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbose: boolean) => {
 	switch (true) {
 		case veryVerbose:
@@ -159,9 +128,6 @@ export const report = async (...argv: string[]) => {
 
 	// Check if they want a super fancy report
 	const isFancyPants = isIteractive && process.env.THE_FANCIEST_OF_PANTS_PLEASE;
-
-	// Check if they want the less fancy version
-	const isNotSoFancy = !isFancyPants;
 
 	const stdoutLogger = readLine.createInterface({
 		input: process.stdin,
@@ -236,13 +202,6 @@ export const report = async (...argv: string[]) => {
 		const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
 		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${relayError ? `[${relayError}]` : ''}` : 'disconnected') : relayStatus;
 
-		// Check mini-graphql connection
-		// This is mainly used for the "servers" live data
-		const minigraphqlDetails = cloud?.minigraphql.connected ? 'connected' : 'disconnected';
-
-		// Check if we can reach mothership via DNS
-		const { error: dnsError, cloudIp } = await checkDNS();
-
 		const jsonReport = argv.includes('--json');
 		if (jsonReport) {
 			// If we have trace logs or the user selected --raw don't clear the screen
@@ -253,15 +212,20 @@ export const report = async (...argv: string[]) => {
 			}
 
 			const json = JSON.stringify({
-				serverName,
-				environment: process.env.ENVIRONMENT,
-				unraidVersion,
-				unraidApiVersion: fullVersion,
-				unraidApiStatus: unraidApiPid ? 'running' : 'stopped',
+				os: {
+					serverName,
+					version: unraidVersion
+				},
+				api: {
+					version: fullVersion,
+					status: unraidApiPid ? 'running' : 'stopped',
+					environment: process.env.ENVIRONMENT
+				},
 				apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
-				onlineServers: servers.filter(server => server.status === 'online'),
-				offlineServers: servers.filter(server => server.status === 'offline'),
-				hasCrashLogs,
+				servers: {
+					offline: servers.filter(server => server.status === 'offline'),
+					online: servers.filter(server => server.status === 'online')
+				},
 				...(hasCrashLogs ? { crashLogs: await readFile('/var/log/unraid-api/crash.log', 'utf-8').then(lines => {
 					return lines.split('\n').map(line => {
 						try {
@@ -271,16 +235,32 @@ export const report = async (...argv: string[]) => {
 						return undefined;
 					}).filter(Boolean);
 				}).catch(() => '') } : {}),
-				myServers: config?.remote?.username ? 'authenticated' : 'signed out',
-				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
-				relay: relayStatus,
-				minigraph: cloud?.minigraphql.connected ? 'connected' : 'disconnected',
-				cloud: cloud?.cloud.status,
-				...(cloud?.cloud.error ? { cloudError: cloud.cloud.error } : {})
+				myServers: {
+					status: config?.remote?.username ? 'authenticated' : 'signed out',
+					...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {})
+				},
+				relay: {
+					status: relayStatus
+				},
+				minigraph: {
+					status: cloud?.minigraphql.connected ? 'connected' : 'disconnected'
+				},
+				cloud: {
+					status: cloud?.cloud.status,
+					...(cloud?.cloud.error ? { erorr: cloud.cloud.error } : {}),
+					...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {})
+				}
 			});
 			stdout.write(json + '\n');
 			return;
 		}
+
+		// Check mini-graphql connection
+		// This is mainly used for the "servers" live data
+		const minigraphqlDetails = cloud?.minigraphql.connected ? 'connected' : 'disconnected';
+
+		// Get the IP of mothership
+		const cloudIp = cloud?.cloud.status === 'ok' ? `[IP=${cloud?.cloud?.ip}]` : '';
 
 		// Generate the actual report
 		const report = dedent`
@@ -292,7 +272,7 @@ export const report = async (...argv: string[]) => {
             NODE_VERSION: ${process.version}
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-            CLOUD: ${dnsError ?? cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` [IP=${cloudIp ?? ''}]` : ''}` : null) ?? 'disconnected'}
+            CLOUD: ${cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` ${cloudIp}` : ''}` : null) ?? 'disconnected'}
             RELAY: ${relayDetails}
             MINI-GRAPH: ${minigraphqlDetails}
             ${servers ? serversDetails : 'SERVERS: none found'}

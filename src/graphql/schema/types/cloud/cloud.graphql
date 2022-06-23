@@ -15,6 +15,7 @@ type MinigraphqlResponse {
 
 type CloudResponse {
     status: String!
+    ip: String
     error: String
 }
 

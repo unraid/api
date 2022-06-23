@@ -36,15 +36,27 @@ vi.mock('fs/promises', () => ({
 
 vi.mock('got', () => ({
 	default: vi.fn(async (_url, opts) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid error}relay{status timeout error}minigraphql{connected}cloud{status error}allowedOrigins}}"}') {
-			return { body: JSON.stringify({ data: { cloud: { apiKey: { valid: true }, relay: { status: 'open', timeout: undefined }, minigraphql: { connected: true }, cloud: { status: 'ok' }, allowedOrigins: [] } } }) };
+		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}"}') {
+			return {
+				body: JSON.stringify({
+					data: {
+						cloud: {
+							apiKey: { valid: true },
+							relay: { status: 'connected' },
+							minigraphql: { connected: true },
+							cloud: { status: 'ok', ip: '52.40.54.163' },
+							allowedOrigins: []
+						}
+					}
+				})
+			};
 		}
 
 		if (opts.body === '{"query":"query{servers{name guid status owner{username}}}"}') {
 			return { body: JSON.stringify({ data: { servers: [{ name: 'Tower', guid: 'ABCD-ABCD-ABCD-ABCD', status: 'online', owner: { username: 'api-test-runner' } }] } }) };
 		}
 
-		return undefined;
+		throw new Error(`Unmocked query "${opts.body}"`);
 	})
 }));
 
@@ -90,34 +102,66 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
 	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
 	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', '6.10.1']);
-	expect(cliTraceLoggerSpy.mock.calls[1]).toEqual(['Cloud response %s', JSON.stringify({ apiKey: { valid: true }, relay: { status: 'open' }, minigraphql: { connected: true }, cloud: { status: 'ok' }, allowedOrigins: [] })]);
+	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
+	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
+		{
+		  "allowedOrigins": [],
+		  "apiKey": {
+		    "valid": true,
+		  },
+		  "cloud": {
+		    "ip": "52.40.54.163",
+		    "status": "ok",
+		  },
+		  "minigraphql": {
+		    "connected": true,
+		  },
+		  "relay": {
+		    "status": "connected",
+		  },
+		}
+	`);
 	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Fetched %s server(s) from local graphql', 1]);
 
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
+		  "api": {
+		    "status": "running",
+		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		  },
 		  "apiKey": "valid",
-		  "cloud": "ok",
-		  "hasCrashLogs": false,
-		  "minigraph": "connected",
-		  "myServers": "authenticated",
-		  "myServersUsername": "api-test-runner",
-		  "offlineServers": [],
-		  "onlineServers": [
-		    {
-		      "guid": "ABCD-ABCD-ABCD-ABCD",
-		      "name": "Tower",
-		      "owner": {
-		        "username": "api-test-runner",
+		  "cloud": {
+		    "ip": "52.40.54.163",
+		    "status": "ok",
+		  },
+		  "minigraph": {
+		    "status": "connected",
+		  },
+		  "myServers": {
+		    "myServersUsername": "api-test-runner",
+		    "status": "authenticated",
+		  },
+		  "os": {
+		    "serverName": "Tower",
+		    "version": "6.10.1",
+		  },
+		  "relay": {
+		    "status": "connected",
+		  },
+		  "servers": {
+		    "offline": [],
+		    "online": [
+		      {
+		        "guid": "ABCD-ABCD-ABCD-ABCD",
+		        "name": "Tower",
+		        "owner": {
+		          "username": "api-test-runner",
+		        },
+		        "status": "online",
 		      },
-		      "status": "online",
-		    },
-		  ],
-		  "relay": "connected",
-		  "serverName": "Tower",
-		  "unraidApiStatus": "running",
-		  "unraidApiVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
-		  "unraidVersion": "6.10.1",
+		    ],
+		  },
 		}
 	`);
 
