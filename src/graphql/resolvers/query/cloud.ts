@@ -152,9 +152,9 @@ const checkMothership = async (): Promise<Cloud['cloud']> => {
 		const apiKey = apiManager.cloudKey;
 		if (!apiKey) throw new Error('API key is missing');
 
-		// // Check DNS
-		// const { error: DNSError, cloudIp } = await checkDNS();
-		// if (DNSError) return { status: 'error', error: DNSError.message };
+		// Check DNS
+		const { error: DNSError, cloudIp } = await checkDNS();
+		if (DNSError) return { status: 'error', error: DNSError.message };
 
 		const timeout = { request: 5_000 };
 		const headers = {
