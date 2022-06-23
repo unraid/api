@@ -50,8 +50,11 @@ export const main = async (...argv: string[]) => {
 		throw new Error(`Invalid command "${command}"`);
 	}
 
+	// Resolve the command import
+	const commandMethod = await commands[command];
+
 	// Run the command
-	await commands[command](...argv);
+	await commandMethod(...argv);
 
 	// Only segfault in a specific mode
 	if (process.env.PLEASE_SEGFAULT_FOR_ME) {
