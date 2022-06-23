@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
 import { generateData } from '@app/common/dashboard/generate-data';
+import { version } from '@app/../package.json';
 
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
@@ -74,7 +75,7 @@ test('Returns generated data', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "2.47.1",
+		      "version": "${version}",
 		    },
 		  ],
 		  "twoFactor": {
