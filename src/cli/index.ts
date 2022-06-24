@@ -42,7 +42,7 @@ export const main = async (...argv: string[]) => {
 		'switch-env': import('@app/cli/commands/no-op').then(pkg => pkg.noop),
 		version: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
 		status: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
-		report: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		report: import('@app/cli/commands/no-op').then(pkg => pkg.noop)
 	};
 
 	// Unknown command
