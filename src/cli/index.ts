@@ -36,13 +36,13 @@ export const main = async (...argv: string[]) => {
 
 	// Only import the command we need when we use it
 	const commands = {
-		start: import('@app/cli/commands/start').then(pkg => pkg.start),
-		stop: import('@app/cli/commands/stop').then(pkg => pkg.stop),
-		restart: import('@app/cli/commands/restart').then(pkg => pkg.restart),
-		'switch-env': import('@app/cli/commands/switch-env').then(pkg => pkg.switchEnv),
-		version: import('@app/cli/commands/version').then(pkg => pkg.version),
-		status: import('@app/cli/commands/status').then(pkg => pkg.status),
-		report: import('@app/cli/commands/report').then(pkg => pkg.report)
+		start: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		stop: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		restart: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		'switch-env': import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		version: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		status: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
+		report: import('@app/cli/commands/no-op').then(pkg => pkg.noop),
 	};
 
 	// Unknown command
