@@ -66,7 +66,7 @@ export const main = async (...argv: string[]) => {
 
 	// Only log active handles
 	if (process.env.LOG_ACTIVE_HANDLES) {
-		setTimeout(() => {
+		setInterval(() => {
 			wtf.dump();
 		}, 5_000);
 	}
