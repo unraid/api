@@ -64,6 +64,10 @@ export const main = async (...argv: string[]) => {
 		}, 30_000);
 	}
 
-	// Ensure process is exited
-	process.exit(0);
+	// Allow the process to exit
+	// Don't exit when we start though
+	if (command !== 'start') {
+		// Ensure process is exited
+		process.exit(0);
+	}
 };
