@@ -154,7 +154,7 @@ const handleReconnection = (reason: string, code: number): { reason: string; tim
 
 		case 503: {
 			// Reconnect after ~60s
-			return { reason: 'Relay is unrechable', timeout: convertToFuzzyTime(45_000, 75_000) };
+			return { reason: 'Relay is unreachable', timeout: convertToFuzzyTime(45_000, 75_000) };
 		}
 
 		default: {

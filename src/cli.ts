@@ -11,4 +11,6 @@ import { internalLogger } from '@app/core/log';
 
 am(main, (error: unknown) => {
 	internalLogger.fatal((error as Error).message);
+	// Ensure process is exited
+	process.exit(1);
 });
