@@ -151,7 +151,7 @@ export const loggers = [
 
 // Send SIGUSR1 to increase log level
 process.on('SIGUSR1', () => {
-	const level = `${logger.level}`;
+	const level = typeof logger.level === 'string' ? logger.level : logger.level.levelStr;
 	const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
 	loggers.forEach(logger => {
 		logger.level = nextLevel;
@@ -161,7 +161,7 @@ process.on('SIGUSR1', () => {
 
 // Send SIGUSR1 to decrease log level
 process.on('SIGUSR2', () => {
-	const level = `${logger.level}`;
+	const level = typeof logger.level === 'string' ? logger.level : logger.level.levelStr;
 	const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
 	loggers.forEach(logger => {
 		logger.level = nextLevel;
