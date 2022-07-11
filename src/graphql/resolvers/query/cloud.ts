@@ -8,6 +8,7 @@ import { isPrivate as isPrivateIP } from 'ip';
 import got, { HTTPError, OptionsOfTextResponseBody, TimeoutError } from 'got';
 import { MOTHERSHIP_GRAPHQL_LINK, MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { apiManager } from '@app/core/api-manager';
+import { getServers } from '@app/graphql/schema/utils';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
@@ -19,6 +20,8 @@ import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { version } from '@app/../package.json';
 import { getMinigraphqlConnectionStatus } from '@app/mothership/get-mini-graphql-connection-status';
 import { promisify } from 'util';
+import { CachedServer } from '@app/cache/user';
+import { varState } from '@app/core/states';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -144,7 +147,7 @@ const checkDNS = async () => {
 	}
 };
 
-const checkMothership = async (): Promise<Cloud['cloud']> => {
+const checkCloud = async (): Promise<Cloud['cloud']> => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
 	try {
@@ -185,11 +188,14 @@ const checkMothership = async (): Promise<Cloud['cloud']> => {
 	}
 };
 
-const checkMinigraphql = () => {
+const checkMinigraphql = async () => {
 	logger.trace('Cloud endpoint: Checking mini-graphql');
 	try {
+		const wsStatus = getMinigraphqlConnectionStatus();
+		const servers = await getServers().catch(() => [] as CachedServer[]);
+		const thisServer = servers.find(server => server.guid === varState.data.flashGuid);
 		return {
-			connected: getMinigraphqlConnectionStatus()
+			connected: wsStatus && thisServer?.owner?.username !== 'root'
 		};
 	} finally {
 		logger.trace('Cloud endpoint: Done mini-graphql');
@@ -230,13 +236,13 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 		return result;
 	}
 
-	const [apiKey, mothership] = await Promise.all([checkApi(), checkMothership()]);
+	const [apiKey, minigraphql, cloud] = await Promise.all([checkApi(), checkMinigraphql(), checkCloud()]);
 
 	const response = createResponse({
 		apiKey,
 		relay: checkRelay(),
-		minigraphql: checkMinigraphql(),
-		cloud: mothership,
+		minigraphql,
+		cloud,
 		allowedOrigins: getAllowedOrigins()
 	});
 

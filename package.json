@@ -274,6 +274,7 @@
     "request",
     "request-promise-native",
     "rotating-file-stream",
+    "runtypes",
     "segfault-handler",
     "semver",
     "sendmail",
