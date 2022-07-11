@@ -66,7 +66,7 @@ export const main = async (...argv: string[]) => {
 
 	// Allow the process to exit
 	// Don't exit when we start though
-	if (command !== 'start') {
+	if (['start', 'restart'].includes(command)) {
 		// Ensure process is exited
 		process.exit(0);
 	}
