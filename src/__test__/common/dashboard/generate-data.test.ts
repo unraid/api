@@ -1,6 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { generateData } from '@app/common/dashboard/generate-data';
-import { version } from '@app/../package.json';
+import { Var } from '@app/core/types/states';
+import { cloneDeep } from '@apollo/client/utilities';
 
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
@@ -9,7 +9,7 @@ vi.mock('@vmngr/libvirt', () => ({
 	}
 }));
 
-vi.mock('../../../core/log', () => ({
+vi.mock('@app/core/log', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
@@ -17,39 +17,71 @@ vi.mock('../../../core/log', () => ({
 	}
 }));
 
-vi.mock('../../../core/states/var', () => ({
-	varState: {
-		data: {
-			flashGuid: '123-123-123-123',
-			mdState: 'STARTED'
-		}
-	}
-}));
+vi.mock('@app/core/states/var', () => {
+	const data = {
+		flashGuid: '123-123-123-123',
+		mdState: 'STARTED',
+		regState: 'PRO',
+		regTy: 'PRO',
+		name: 'Tower',
+		configValid: true
+	};
 
-vi.mock('../../../common/dashboard/get-array', () => ({
+	const varState: {
+		_source: 'nchan' | 'file';
+		_data: Partial<Var>;
+		data: Partial<Var>;
+		switchSource: any;
+	} = {
+		_source: 'nchan',
+		_data: cloneDeep(data),
+		get data() {
+			if (varState._source === 'nchan') return this._data;
+			return cloneDeep(data);
+		},
+		switchSource: vi.fn(source => {
+			varState._source = source;
+		})
+	};
+
+	return {
+		varState
+	};
+});
+
+vi.mock('@app/common/dashboard/get-array', () => ({
 	getArray: vi.fn()
 }));
 
-vi.mock('../../../common/two-factor', () => ({
+vi.mock('@app/common/two-factor', () => ({
 	checkTwoFactorEnabled: vi.fn(() => ({
 		isRemoteEnabled: false,
 		isLocalEnabled: false
 	}))
 }));
 
-vi.mock('../../../common/dashboard/get-unraid-version', () => ({
+vi.mock('@app/common/dashboard/get-unraid-version', () => ({
 	getUnraidVersion: vi.fn(() => '6.0.0')
 }));
 
-vi.mock('../../../graphql/resolvers/query/display', () => ({
-	default: vi.fn().mockResolvedValue({})
+vi.mock('@app/graphql/resolvers/query/display', () => ({
+	default: vi.fn().mockResolvedValue({
+		case: {
+			url: '',
+			icon: 'custom',
+			error: 'could-not-read-image',
+			base64: ''
+		}
+	})
 }));
 
-vi.mock('../../../common/dashboard/boot-timestamp', () => ({
+vi.mock('@app/common/dashboard/boot-timestamp', () => ({
 	bootTimestamp: new Date('2022-06-10T04:35:58.276Z')
 }));
 
 test('Returns generated data', async () => {
+	const { generateData } = await import('@app/common/dashboard/generate-data');
+	const { varState } = await import('@app/core/states/var');
 	const result = await generateData();
 
 	expect(result).toMatchInlineSnapshot(`
@@ -60,13 +92,20 @@ test('Returns generated data', async () => {
 		  },
 		  "array": undefined,
 		  "config": {
-		    "error": "UNKNOWN_ERROR",
-		    "valid": undefined,
+		    "error": null,
+		    "valid": true,
 		  },
-		  "display": {},
+		  "display": {
+		    "case": {
+		      "base64": "",
+		      "error": "could-not-read-image",
+		      "icon": "custom",
+		      "url": "",
+		    },
+		  },
 		  "os": {
-		    "hostname": undefined,
-		    "uptime": 2022-06-10T04:35:58.276Z,
+		    "hostname": "Tower",
+		    "uptime": "2022-06-10T04:35:58.276Z",
 		  },
 		  "services": [
 		    {
@@ -75,7 +114,7 @@ test('Returns generated data', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "${version}",
+		      "version": "2.48.0",
 		    },
 		  ],
 		  "twoFactor": {
@@ -88,8 +127,8 @@ test('Returns generated data', async () => {
 		  },
 		  "vars": {
 		    "flashGuid": "123-123-123-123",
-		    "regState": undefined,
-		    "regTy": undefined,
+		    "regState": "PRO",
+		    "regTy": "PRO",
 		  },
 		  "versions": {
 		    "unraid": "6.0.0",
@@ -100,4 +139,82 @@ test('Returns generated data', async () => {
 		  },
 		}
 	`);
+
+	// .switchSource should not have been called at all since we passed it valid data
+	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
+});
+
+test('Returns generated data', async () => {
+	const { generateData } = await import('@app/common/dashboard/generate-data');
+	const { varState } = await import('@app/core/states/var');
+
+	// Reset mock counter
+	vi.mocked(varState.switchSource).mockClear();
+
+	// Add invalid data to varState
+	(varState._data as Partial<Var>) = {
+		...varState._data,
+		name: 3000 as any
+	};
+
+	const result = await generateData();
+
+	expect(result).toMatchInlineSnapshot(`
+		{
+		  "apps": {
+		    "installed": 0,
+		    "started": 0,
+		  },
+		  "array": undefined,
+		  "config": {
+		    "error": null,
+		    "valid": true,
+		  },
+		  "display": {
+		    "case": {
+		      "base64": "",
+		      "error": "could-not-read-image",
+		      "icon": "custom",
+		      "url": "",
+		    },
+		  },
+		  "os": {
+		    "hostname": "Tower",
+		    "uptime": "2022-06-10T04:35:58.276Z",
+		  },
+		  "services": [
+		    {
+		      "name": "unraid-api",
+		      "online": true,
+		      "uptime": {
+		        "timestamp": "2022-06-10T04:35:58.276Z",
+		      },
+		      "version": "2.48.0",
+		    },
+		  ],
+		  "twoFactor": {
+		    "local": {
+		      "enabled": false,
+		    },
+		    "remote": {
+		      "enabled": false,
+		    },
+		  },
+		  "vars": {
+		    "flashGuid": "123-123-123-123",
+		    "regState": "PRO",
+		    "regTy": "PRO",
+		  },
+		  "versions": {
+		    "unraid": "6.0.0",
+		  },
+		  "vms": {
+		    "installed": 0,
+		    "started": 0,
+		  },
+		}
+	`);
+
+	// .switchSource should have been called as we passed it invalid data
+	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(1);
 });

@@ -6,6 +6,7 @@
 import mm from 'micromongo';
 import { bus } from '@app/core/bus';
 import { LooseObject } from '@app/core/types';
+import { logger } from '@app/core/log';
 
 type Mutation = 'CREATED' | 'UPDATED' | 'DELETED';
 
@@ -62,12 +63,14 @@ export class State {
 	/**
 	 * Switch between nchan and file as the source of data
 	 */
-	switchSource(source: 'nchan' | 'file', timeout = 60_000) {
+	public switchSource(source: 'nchan' | 'file', timeout = 60_000) {
 		// If the source hasn't changed just return
 		if (this._source === source) return;
 
-		// Save original source for timeout
+		// Save original source
 		const originalSource = this._source;
+
+		logger.debug('Switching source from %s to %s for %s', originalSource, source, this.channel);
 
 		// Switch the source and clear the data
 		this._source = source;
@@ -76,6 +79,7 @@ export class State {
 		// Flip back to the original source after the timeout
 		if (timeout) {
 			setTimeout(() => {
+				logger.debug('Switching source from %s to %s for %s', source, originalSource, this.channel);
 				this._source = originalSource;
 			}, timeout);
 		}

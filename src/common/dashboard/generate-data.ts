@@ -76,7 +76,7 @@ const getData = async () => ({
 	},
 	os: {
 		hostname: varState.data.name,
-		uptime: bootTimestamp
+		uptime: bootTimestamp.toISOString()
 	},
 	vms: await getVmSummary(),
 	array: getArray(),
@@ -97,7 +97,7 @@ const getData = async () => ({
 export const generateData = async () => {
 	try {
 		// Validate generated data
-		return validateRunType(Dashboard, await getData());
+		return validateRunType(Dashboard.asPartial(), await getData());
 	} catch (error: unknown) {
 		// Log error for user
 		logger.error('Failed validating dashboard object', error);
