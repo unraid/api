@@ -124,10 +124,10 @@ export const report = async (...argv: string[]) => {
 	// If this has a tty it's interactive
 	// AND
 	// If they don't have --raw
-	const isIteractive = hasTTY && !rawOutput;
+	const isInteractive = hasTTY && !rawOutput;
 
 	// Check if they want a super fancy report
-	const isFancyPants = isIteractive && process.env.THE_FANCIEST_OF_PANTS_PLEASE;
+	const isFancyPants = isInteractive && process.env.THE_FANCIEST_OF_PANTS_PLEASE;
 
 	const stdoutLogger = readLine.createInterface({
 		input: process.stdin,
@@ -138,7 +138,7 @@ export const report = async (...argv: string[]) => {
 		setEnv('LOG_TYPE', 'raw');
 
 		// Show loading message
-		if (isIteractive) {
+		if (isInteractive) {
 			stdoutLogger.write('Generating report please wait…');
 		}
 
@@ -161,13 +161,13 @@ export const report = async (...argv: string[]) => {
 		// Log cloud response
 		cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
 
-		// Query local graphl using upc's API key
+		// Query local graphql using upc's API key
 		// Get the servers array
 		const servers = await getServersData(unraidApiPid, cloud, config);
 		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
 		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
 
-		// Should we log possibly sensative info?
+		// Should we log possibly sensitive info?
 		const verbose = argv.includes('-v');
 		const veryVerbose = argv.includes('-vv');
 
@@ -205,7 +205,7 @@ export const report = async (...argv: string[]) => {
 		const jsonReport = argv.includes('--json');
 		if (jsonReport) {
 			// If we have trace logs or the user selected --raw don't clear the screen
-			if (process.env.LOG_LEVEL !== 'trace' && isIteractive && !isFancyPants) {
+			if (process.env.LOG_LEVEL !== 'trace' && isInteractive && !isFancyPants) {
 				// Clear the original log about the report being generated
 				readLine.cursorTo(process.stdout, 0, 0);
 				readLine.clearScreenDown(process.stdout);
@@ -247,7 +247,7 @@ export const report = async (...argv: string[]) => {
 				},
 				cloud: {
 					status: cloud?.cloud.status,
-					...(cloud?.cloud.error ? { erorr: cloud.cloud.error } : {}),
+					...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
 					...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {})
 				}
 			});
@@ -297,7 +297,7 @@ export const report = async (...argv: string[]) => {
         ` as string;
 
 		// If we have trace logs or the user selected --raw don't clear the screen
-		if (process.env.LOG_LEVEL !== 'trace' && isIteractive && !isFancyPants) {
+		if (process.env.LOG_LEVEL !== 'trace' && isInteractive && !isFancyPants) {
 			// Clear the original log about the report being generated
 			readLine.cursorTo(process.stdout, 0, 0);
 			readLine.clearScreenDown(process.stdout);
