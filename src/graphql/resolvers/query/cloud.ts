@@ -225,7 +225,7 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR,
 				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP
 			} as unknown as Cloud['cloud'],
-			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALOWED_ORIGINS ?? '').split(',').filter(Boolean)
+			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean)
 		};
 		return result;
 	}
