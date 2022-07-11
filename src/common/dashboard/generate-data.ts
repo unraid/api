@@ -11,6 +11,7 @@ import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 import { Dashboard } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
+import { ONE_HOUR } from '@app/consts';
 
 const getVmSummary = async () => {
 	try {
@@ -104,7 +105,7 @@ export const generateData = async () => {
 
 		// If nchan isn't working let's use file access for the next 60s
 		// after that we can try nchan again
-		varState.switchSource('file', 60_000);
+		varState.switchSource('file', ONE_HOUR);
 	}
 
 	// If nchan failed this will retrieve data from the filesystem
