@@ -12,6 +12,7 @@ type Mutation = 'CREATED' | 'UPDATED' | 'DELETED';
 export class State {
 	channel?: string;
 	_data?: Record<string, any>;
+	_source: 'nchan' | 'file' = 'nchan';
 
 	lastUpdated: Date;
 
@@ -56,6 +57,28 @@ export class State {
 				node
 			}
 		});
+	}
+
+	/**
+	 * Switch between nchan and file as the source of data
+	 */
+	switchSource(source: 'nchan' | 'file', timeout = 60_000) {
+		// If the source hasn't changed just return
+		if (this._source === source) return;
+
+		// Save original source for timeout
+		const originalSource = this._source;
+
+		// Switch the source and clear the data
+		this._source = source;
+		this._data = undefined;
+
+		// Flip back to the original source after the timeout
+		if (timeout) {
+			setTimeout(() => {
+				this._source = originalSource;
+			}, timeout);
+		}
 	}
 }
 

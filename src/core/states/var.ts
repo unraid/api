@@ -326,14 +326,16 @@ export class VarState extends State {
 	}
 
 	get data() {
-		if (!this._data) {
+		if (!this._data || this._source === 'file') {
 			const statesDirectory = paths.states;
 			const statePath = path.join(statesDirectory, 'var.ini');
 			const state = parseConfig<VarIni>({
 				filePath: statePath,
 				type: 'ini'
 			});
-			this._data = this.parse(state);
+			const data = this.parse(state);
+			this._data = data;
+			return data;
 		}
 
 		return this._data;
