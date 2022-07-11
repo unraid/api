@@ -120,12 +120,12 @@ const handleReconnection = (reason: string, code: number): { reason: string; tim
 		// Client disconnected
 		case 5:
 			// Bail as the API has disconnected itself
-			return { reason: 'API disconnected itself' };
+			return { reason: 'API disconnected itself', timeout: convertToFuzzyTime(10_000, 60_000) };
 
 		// Client disconnected
 		case 6:
 			// Bail as the API has disconnected itself
-			return { reason: 'API disconnected itself' };
+			return { reason: 'API disconnected itself', timeout: convertToFuzzyTime(10_000, 60_000) };
 
 		// Relay is updating
 		case 12:
