@@ -8,6 +8,9 @@ import { docker } from '@app/core/utils/clients/docker';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { getArray } from '@app/common/dashboard/get-array';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
+import { Dashboard } from '@app/common/run-time/dashboard';
+import { validateRunType } from '@app/common/validate-run-type';
+import { logger } from '@app/core/log';
 
 const getVmSummary = async () => {
 	try {
@@ -58,7 +61,7 @@ const services = () => {
 	}];
 };
 
-export const generateData = async () => ({
+const getData = async () => ({
 	vars: {
 		regState: varState.data.regState,
 		regTy: varState.data.regTy,
@@ -90,3 +93,20 @@ export const generateData = async () => ({
 	},
 	twoFactor: twoFactor()
 });
+
+export const generateData = async () => {
+	try {
+		// Validate generated data
+		return validateRunType(Dashboard, await getData());
+	} catch (error: unknown) {
+		// Log error for user
+		logger.error('Failed validating dashboard object', error);
+
+		// If nchan isn't working let's use file access for the next 60s
+		// after that we can try nchan again
+		varState.switchSource('file', 60_000);
+	}
+
+	// If nchan failed this will retrieve data from the filesystem
+	return getData();
+};
