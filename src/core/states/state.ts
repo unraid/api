@@ -7,6 +7,7 @@ import mm from 'micromongo';
 import { bus } from '@app/core/bus';
 import { LooseObject } from '@app/core/types';
 import { logger } from '@app/core/log';
+import { ONE_HOUR } from '@app/consts';
 
 type Mutation = 'CREATED' | 'UPDATED' | 'DELETED';
 
@@ -63,7 +64,7 @@ export class State {
 	/**
 	 * Switch between nchan and file as the source of data
 	 */
-	public switchSource(source: 'nchan' | 'file', timeout = 60_000) {
+	public switchSource(source: 'nchan' | 'file', timeout = ONE_HOUR) {
 		// If the source hasn't changed just return
 		if (this._source === source) return;
 
