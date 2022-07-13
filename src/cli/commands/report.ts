@@ -6,7 +6,7 @@ import readLine from 'readline';
 import got from 'got';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import type { Cloud } from '@app/graphql/resolvers/query/cloud';
+import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { relayStateToHuman } from '@app/graphql/relay-state';
 import { CachedServer } from '@app/cache/user';
