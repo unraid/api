@@ -1,4 +1,3 @@
-import wtf from 'wtfnode';
 import segfaultHandler from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
 import dotEnv from 'dotenv';

@@ -275,7 +275,7 @@ export const checkRelayConnection = debounce(async () => {
 			stopDashboardProducer();
 
 			// Stop all the pubsub subscriptions as the client closed the connection
-			[...messageIdLookup.entries()].forEach(([messageId, { subId, field }]) => {
+			[...messageIdLookup.entries()].forEach(([_messageId, { subId, field }]) => {
 				// Un-sub from the pubsub interface
 				try {
 					relayLogger.debug('Stopping subscription to "%s" as the client sent a "stop" message', field);
