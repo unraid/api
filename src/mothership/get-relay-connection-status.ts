@@ -4,3 +4,4 @@ export const readyStates = ['CONNECTING' as const, 'OPEN' as const, 'CLOSING' as
 export const getRelayConnectionStatus = () => readyStates[relayStore.relay?._ws?.readyState ?? 3];
 export const getRelayReconnectingTimeout = () => relayStore.timeout ? (relayStore.timeout - Date.now()) : 0;
 export const getRelayDisconnectionReason = () => relayStore.reason;
+export const getRelayDisconnectionCode = () => relayStore.code;
