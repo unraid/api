@@ -1,6 +1,7 @@
 import { expect, SpyInstanceFn, test, vi } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
+import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
 vi.mock('readline', () => {
 	const writeStub = vi.fn();
@@ -27,38 +28,40 @@ vi.mock('fs/promises', () => ({
 }));
 
 vi.mock('got', () => ({
-	default: vi.fn().mockImplementationOnce(async (_url, opts: Record<string, string>) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}"}') {
-			return {
-				body: JSON.stringify({
-					data: {
-						cloud: {
-							apiKey: { valid: true },
-							relay: { status: 'connected' },
-							minigraphql: { connected: true },
-							cloud: { status: 'ok', ip: '52.40.54.163' },
-							allowedOrigins: []
-						}
+	default: vi.fn().mockImplementationOnce(async (_url, opts: { body: string }) => {
+		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
+			const data: { data: { cloud: Cloud } } = {
+				data: {
+					cloud: {
+						apiKey: { valid: true, error: undefined },
+						relay: { status: 'connected', error: undefined, timeout: undefined },
+						minigraphql: { status: 'connected' },
+						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
+						allowedOrigins: []
 					}
-				})
+				}
+			};
+			return {
+				body: JSON.stringify(data)
 			};
 		}
 
 		throw new Error(`Unmocked query "${opts.body}"`);
-	}).mockImplementationOnce(async (_url, opts: Record<string, string>) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}"}') {
-			return {
-				body: JSON.stringify({
-					data: {
-						cloud: {
-							apiKey: { valid: true },
-							relay: { status: 'disconnected', error: 'Mothership is restarting' },
-							minigraphql: { connected: false },
-							cloud: { status: 'error', error: 'Mothership is restarting' },
-							allowedOrigins: []
-						}
+	}).mockImplementationOnce(async (_url, opts: { body: string }) => {
+		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
+			const data: { data: { cloud: Cloud } } = {
+				data: {
+					cloud: {
+						apiKey: { valid: true, error: undefined },
+						relay: { status: 'disconnected', error: 'Mothership is restarting', timeout: Date.now() + 60_000 },
+						minigraphql: { status: 'disconnected' },
+						cloud: { status: 'error', error: 'Mothership is restarting' },
+						allowedOrigins: []
 					}
-				})
+				}
+			};
+			return {
+				body: JSON.stringify(data)
 			};
 		}
 
@@ -110,7 +113,7 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		    "status": "ok",
 		  },
 		  "minigraphql": {
-		    "connected": true,
+		    "status": "connected",
 		  },
 		  "relay": {
 		    "status": "connected",
@@ -158,12 +161,16 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 	vi.mocked(stdout.write).mockClear();
 	vi.mocked(closeStub).mockClear();
 
+	vi.useFakeTimers();
+	vi.setSystemTime(new Date());
+
 	// Mark mothership as restarting
 	const { relayStore } = await import('@app/mothership/store');
+	const timeout = new Date().getTime() + 60_000;
 	relayStore.code = 12;
 	relayStore.reason = 'SERVICE_RESTART';
 	relayStore.relay = undefined;
-	relayStore.timeout = Date.now() + 60_000;
+	relayStore.timeout = timeout;
 
 	// The args we'll pass to the report function
 	const args = ['-v'];
@@ -192,11 +199,12 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 		    "status": "error",
 		  },
 		  "minigraphql": {
-		    "connected": false,
+		    "status": "disconnected",
 		  },
 		  "relay": {
 		    "error": "Mothership is restarting",
 		    "status": "disconnected",
+		    "timeout": ${timeout},
 		  },
 		}
 	`);
@@ -227,4 +235,6 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 
 	// Should close the readline interface at the end of the report
 	expect(closeStub.mock.calls.length).toBe(1);
+
+	vi.useRealTimers();
 }, 10_000);

@@ -1,4 +1,5 @@
 export type RelayStates = 'connecting' | 'open' | 'closing' | 'closed' | 'unknown';
+export type HumanRelayStates = 'connecting' | 'unknown' | 'disconnecting' | 'disconnected' | 'connected';
 
 export const relayStateToHuman = (relayState?: RelayStates) => {
 	switch (relayState) {

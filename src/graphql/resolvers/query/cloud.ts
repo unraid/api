@@ -35,7 +35,7 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
 			} as unknown as Cloud['relay'],
 			minigraphql: {
-				connected: Boolean(process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED)
+				status: process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED as 'connected' | 'disconnected'
 			},
 			cloud: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',

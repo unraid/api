@@ -214,17 +214,17 @@ export const checkRelayConnection = debounce(async () => {
 	try {
 		// Bail if we're in the middle of opening a connection
 		if (relayStore.relay?.isOpening) {
-			return;
+			return false;
 		}
 
 		// Bail if we're waiting on a store.timeout for reconnection
 		if (relayStore.timeout) {
-			return;
+			return false;
 		}
 
 		// Bail if we're already connected
 		if (await shouldBeConnectedToCloud() && relayStore.relay?.isOpened) {
-			return;
+			return false;
 		}
 
 		// Close the connection if it's still up
@@ -236,7 +236,7 @@ export const checkRelayConnection = debounce(async () => {
 
 		// If we should be disconnected at this point then stay that way
 		if (!await shouldBeConnectedToCloud()) {
-			return;
+			return false;
 		}
 
 		const headers = getRelayHeaders();
@@ -281,7 +281,7 @@ export const checkRelayConnection = debounce(async () => {
 					relayLogger.debug('Stopping subscription to "%s" as the client sent a "stop" message', field);
 					pubsub.unsubscribe(subId);
 				} catch (error: unknown) {
-					if (!(error instanceof Error)) throw new Error('Unknown error', { cause: error as Error });
+					if (!(error instanceof Error)) throw new Error('Unknown error');
 					relayLogger.error('Failed stopping subscription id=%s with "%s"', subId, error.message);
 				}
 			});
@@ -378,7 +378,7 @@ export const checkRelayConnection = debounce(async () => {
 							relayLogger.debug('Stopping subscription to "%s" as the client sent a "stop" message', field);
 							pubsub.unsubscribe(subId);
 						} catch (error: unknown) {
-							if (!(error instanceof Error)) throw new Error('Unknown error', { cause: error as Error });
+							if (!(error instanceof Error)) throw new Error('Unknown error');
 							relayLogger.error('Failed stopping subscription id=%s with "%s"', subId, error.message);
 						}
 
@@ -406,8 +406,11 @@ export const checkRelayConnection = debounce(async () => {
 				});
 			}
 		});
+
+		return true;
 	} catch (error: unknown) {
 		handleError(error);
+		return false;
 	} finally {
 		const after = getRelayConnectionStatus();
 
@@ -442,8 +445,6 @@ export const checkRelayConnection = debounce(async () => {
 export const checkCloudConnections = async () => {
 	logger.trace('Checking cloud connections');
 
-	return Promise.all([
-		checkRelayConnection(),
-		checkGraphqlConnection()
-	]);
+	const relayConnected = await checkRelayConnection();
+	if (relayConnected) await checkGraphqlConnection();
 };

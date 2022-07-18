@@ -10,7 +10,7 @@ type RelayResponse {
 }
 
 type MinigraphqlResponse {
-    connected: Boolean
+    status: String!
 }
 
 type CloudResponse {

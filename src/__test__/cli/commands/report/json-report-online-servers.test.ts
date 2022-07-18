@@ -1,6 +1,7 @@
 import { expect, SpyInstanceFn, test, vi } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
+import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
 vi.mock('readline', () => {
 	const writeStub = vi.fn();
@@ -35,20 +36,21 @@ vi.mock('fs/promises', () => ({
 }));
 
 vi.mock('got', () => ({
-	default: vi.fn(async (_url, opts) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}"}') {
-			return {
-				body: JSON.stringify({
-					data: {
-						cloud: {
-							apiKey: { valid: true },
-							relay: { status: 'connected' },
-							minigraphql: { connected: true },
-							cloud: { status: 'ok', ip: '52.40.54.163' },
-							allowedOrigins: []
-						}
+	default: vi.fn(async (_url, opts: { body: string }) => {
+		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
+			const data: { data: { cloud: Cloud } } = {
+				data: {
+					cloud: {
+						apiKey: { valid: true, error: undefined },
+						relay: { status: 'connected', error: undefined, timeout: undefined },
+						minigraphql: { status: 'connected' },
+						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
+						allowedOrigins: []
 					}
-				})
+				}
+			};
+			return {
+				body: JSON.stringify(data)
 			};
 		}
 
@@ -114,7 +116,7 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		    "status": "ok",
 		  },
 		  "minigraphql": {
-		    "connected": true,
+		    "status": "connected",
 		  },
 		  "relay": {
 		    "status": "connected",

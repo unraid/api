@@ -4,7 +4,7 @@
  */
 
 import { logger } from '@app/core/log';
-import { RelayStates } from '@app/graphql/relay-state';
+import { RelayStates, relayStateToHuman } from '@app/graphql/relay-state';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getRelayConnectionStatus, getRelayDisconnectionReason, getRelayReconnectingTimeout } from '@app/mothership/get-relay-connection-status';
 
@@ -12,7 +12,7 @@ export const checkRelay = (): Cloud['relay'] => {
 	logger.trace('Cloud endpoint: Checking relay');
 	try {
 		return {
-			status: getRelayConnectionStatus().toLowerCase() as RelayStates,
+			status: relayStateToHuman(getRelayConnectionStatus().toLowerCase() as RelayStates),
 			timeout: getRelayReconnectingTimeout(),
 			error: getRelayDisconnectionReason() ?? ''
 		};

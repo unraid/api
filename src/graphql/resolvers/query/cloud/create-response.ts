@@ -3,22 +3,22 @@
  * Written by: Alexis Tyler
  */
 
-import { RelayStates } from '@app/graphql/relay-state';
+import { HumanRelayStates } from '@app/graphql/relay-state';
 
 export type Cloud = {
 	error?: string;
 	apiKey: { valid: true; error: undefined } | { valid: false; error: string };
 	relay: {
-		status: RelayStates;
+		status: HumanRelayStates;
 		timeout: undefined;
 		error: undefined;
 	} | {
-		status: RelayStates;
+		status: HumanRelayStates;
 		timeout: number | undefined;
 		error: string;
 	};
 	minigraphql: {
-		connected: boolean;
+		status: 'connected' | 'disconnected';
 	};
 	cloud: { status: 'ok'; error: undefined; ip: string } | { status: 'error'; error: string };
 	allowedOrigins: string[];

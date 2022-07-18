@@ -56,7 +56,7 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
-			query: 'query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{connected}cloud{status error ip}allowedOrigins}}'
+			query: 'query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}'
 		})
 	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
@@ -199,8 +199,9 @@ export const report = async (...argv: string[]) => {
 
 		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
 		const relayError = cloud?.relay.error || undefined;
-		const relayStatus = relayError ?? relayStateToHuman(cloud?.relay.status) ?? 'disconnected';
+		const relayStatus = relayError ?? cloud?.relay.status ?? 'disconnected';
 		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${relayError ? `[${relayError}]` : ''}` : 'disconnected') : relayStatus;
+		const miniGraphqlStatus = cloud?.minigraphql.status ?? 'disconnected';
 
 		const jsonReport = argv.includes('--json');
 		if (jsonReport) {
@@ -243,7 +244,7 @@ export const report = async (...argv: string[]) => {
 					status: relayStatus
 				},
 				minigraph: {
-					status: cloud?.minigraphql.connected ? 'connected' : 'disconnected'
+					status: miniGraphqlStatus
 				},
 				cloud: {
 					status: cloud?.cloud.status,
@@ -254,10 +255,6 @@ export const report = async (...argv: string[]) => {
 			stdout.write(json + '\n');
 			return;
 		}
-
-		// Check mini-graphql connection
-		// This is mainly used for the "servers" live data
-		const minigraphqlDetails = cloud?.minigraphql.connected ? 'connected' : 'disconnected';
 
 		// Get the IP of mothership
 		const cloudIp = cloud?.cloud.status === 'ok' ? `[IP=${cloud?.cloud?.ip}]` : '';
@@ -274,7 +271,7 @@ export const report = async (...argv: string[]) => {
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
             CLOUD: ${cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` ${cloudIp}` : ''}` : null) ?? 'disconnected'}
             RELAY: ${relayDetails}
-            MINI-GRAPH: ${minigraphqlDetails}
+            MINI-GRAPH: ${miniGraphqlStatus}
             ${servers ? serversDetails : 'SERVERS: none found'}
             ${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins(cloud, verbose, veryVerbose).join(', ')}`.trim() : ''}
             HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}

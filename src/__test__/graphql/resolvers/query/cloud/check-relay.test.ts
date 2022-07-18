@@ -9,7 +9,7 @@ test('Defaults', async () => {
 	relayStore.timeout = undefined;
 	expect(checkRelay()).toStrictEqual({
 		error: '',
-		status: 'closed',
+		status: 'disconnected',
 		timeout: 0
 	});
 });
@@ -22,7 +22,7 @@ test('Reconnecting', async () => {
 	relayStore.timeout = Date.now() + 60_000;
 	expect(checkRelay()).toStrictEqual({
 		error: 'SERVICE_RESTART',
-		status: 'closed',
+		status: 'disconnected',
 		timeout: 60_000
 	});
 });
