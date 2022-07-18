@@ -22,5 +22,5 @@ export {
 	Query,
 	Mutation,
 	Subscription,
-	UserAccount
+	UserAccount,
 };

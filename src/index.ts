@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import am from 'am';
+import { am } from 'am';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
@@ -19,13 +19,17 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { userCache } from '@app/cache/user';
 
 // Ini serializer
+
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
-	keep_quotes: false
-});
+
+	keep_quotes: false,
+}) as {
+	serialize: (content: unknown) => string;
+};
 
 // Boot app
-am(async () => {
+void am(async () => {
 	const cacheable = new CacheableLookup();
 
 	// Ensure all DNS lookups are cached for their TTL
@@ -77,13 +81,14 @@ am(async () => {
 			logger.debug('API key in cfg is invalid, attempting to sign user out via cfg.');
 			const configPath = paths['myservers-config'];
 			const myserversConfigFile = loadState<Partial<MyServersConfig>>(configPath);
+
 			const { apikey: _, email: __, username: ___, avatar: ____, wanaccess: _____, ...remote } = myserversConfigFile?.remote ?? {};
 
 			// Rebuild cfg with wiped remote section
 			// All the _ consts above have been removed
 			const data = {
 				...myserversConfigFile,
-				remote
+				remote,
 			};
 
 			// Stringify data
@@ -100,7 +105,7 @@ am(async () => {
 
 			// Publish to servers endpoint
 			await pubsub.publish('servers', {
-				servers: []
+				servers: [],
 			});
 
 			// Publish to owner endpoint
@@ -108,8 +113,8 @@ am(async () => {
 				owner: {
 					username: 'root',
 					url: '',
-					avatar: ''
-				}
+					avatar: '',
+				},
 			});
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on "expire" event with error %s.', error);

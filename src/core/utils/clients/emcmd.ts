@@ -22,8 +22,8 @@ export const emcmd = async (commands: LooseObject) => {
 	const options = {
 		qs: {
 			...commands,
-			csrf_token: varState.data?.csrfToken
-		}
+			csrf_token: varState.data?.csrfToken,
+		},
 	};
 
 	if (dryRun) {

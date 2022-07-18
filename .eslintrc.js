@@ -4,24 +4,13 @@
 module.exports = {
 	root: true,
 	extends: [
-		'@unraid'
+		'@unraid/eslint-config/node',
 	],
 	rules: {
-		curly: ['error', 'multi-line'],
-		quotes: [2, 'single', { avoidEscape: true }],
-		'no-restricted-imports': 'off',
-		'@typescript-eslint/no-restricted-imports': ['warn', {
-			patterns: [{
-				group: ['./*', '../*'],
-				message: 'Please use `@app/` instead of a relative import.'
-			}]
-		}]
+		'@typescript-eslint/no-redundant-type-constituents': 'off',
+		'@typescript-eslint/no-unsafe-call': 'off',
+		'@typescript-eslint/naming-convention': 'off',
+		'@typescript-eslint/no-unsafe-assignment': 'off',
+		'@typescript-eslint/no-unsafe-return': 'off',
 	},
-	overrides: [{
-		files: ['*.ts', '*.tsx'],
-		parser: '@typescript-eslint/parser',
-		rules: {
-			'@typescript-eslint/member-ordering': ['off']
-		}
-	}]
 };

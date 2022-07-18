@@ -30,7 +30,7 @@ export const updateParityCheck = async (context: Context): Promise<CoreResult> =
 	ensurePermission(user, {
 		resource: 'array',
 		action: 'update',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Validation
@@ -42,17 +42,17 @@ export const updateParityCheck = async (context: Context): Promise<CoreResult> =
 	const running = varState?.data?.mdResync !== 0;
 	const states = {
 		pause: {
-			cmdNoCheck: 'Pause'
+			cmdNoCheck: 'Pause',
 		},
 		resume: {
-			cmdCheck: 'Resume'
+			cmdCheck: 'Resume',
 		},
 		cancel: {
-			cmdNoCheck: 'Cancel'
+			cmdNoCheck: 'Cancel',
 		},
 		start: {
-			cmdCheck: 'Check'
-		}
+			cmdCheck: 'Check',
+		},
 	};
 
 	let allowedStates = Object.keys(states);
@@ -73,10 +73,10 @@ export const updateParityCheck = async (context: Context): Promise<CoreResult> =
 	await emcmd({
 		startState: 'STARTED',
 		...states[wantedState],
-		...(writeCorrectionsToParity ? { optionCorrect: 'correct' } : {})
+		...(writeCorrectionsToParity ? { optionCorrect: 'correct' } : {}),
 	});
 
 	return {
-		json: {}
+		json: {},
 	};
 };

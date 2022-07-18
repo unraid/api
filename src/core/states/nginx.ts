@@ -25,24 +25,22 @@ interface NginxIni {
 	nginxWanaccess: string;
 }
 
-const parse = (state: NginxIni): Nginx => {
-	return {
-		certificateName: state.nginxCertname,
-		certificatePath: state.nginxCertpath,
-		defaultUrl: state.nginxDefaulturl,
-		httpPort: Number(state.nginxPort),
-		httpsPort: Number(state.nginxPortssl),
-		lanFqdn: state.nginxLanfqdn,
-		lanIp: state.nginxLanip,
-		lanMdns: state.nginxLanmdns,
-		lanName: state.nginxLanname,
-		sslEnabled: state.nginxUsessl !== 'no',
-		sslMode: state.nginxUsessl,
-		wanAccessEnabled: state.nginxWanaccess === 'yes',
-		wanFqdn: state.nginxWanfqdn,
-		wanIp: state.nginxWanip
-	};
-};
+const parse = (state: NginxIni): Nginx => ({
+	certificateName: state.nginxCertname,
+	certificatePath: state.nginxCertpath,
+	defaultUrl: state.nginxDefaulturl,
+	httpPort: Number(state.nginxPort),
+	httpsPort: Number(state.nginxPortssl),
+	lanFqdn: state.nginxLanfqdn,
+	lanIp: state.nginxLanip,
+	lanMdns: state.nginxLanmdns,
+	lanName: state.nginxLanname,
+	sslEnabled: state.nginxUsessl !== 'no',
+	sslMode: state.nginxUsessl,
+	wanAccessEnabled: state.nginxWanaccess === 'yes',
+	wanFqdn: state.nginxWanfqdn,
+	wanIp: state.nginxWanip,
+});
 
 interface ParseOptions {
 	/** If the internal store should be updated with the new data. */
@@ -72,7 +70,7 @@ export class NginxState extends State {
 			const statePath = paths['nginx-state'];
 			const state = parseConfig<NginxIni>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

@@ -37,7 +37,7 @@ const publishRegistrationEvent = async (registration: {
 	logger.removeContext('data');
 
 	await pubsub.publish('registration', {
-		registration
+		registration,
 	}).catch(error => {
 		logger.error('Failed publishing to "registration" with %s', error);
 	});
@@ -53,8 +53,8 @@ export const keyFile = () => {
 			state: data.var.node.regState,
 			keyFile: {
 				location: data.var.node.regFile,
-				contents: keyFile
-			}
+				contents: keyFile,
+			},
 		});
 	};
 
@@ -67,7 +67,7 @@ export const keyFile = () => {
 			const watcher = chokidar.watch('/boot/config', {
 				persistent: true,
 				ignoreInitial: true,
-				ignored: (path: string) => !path.endsWith('.key')
+				ignored: (path: string) => !path.endsWith('.key'),
 			});
 
 			// Key file has updated, updating registration
@@ -80,8 +80,8 @@ export const keyFile = () => {
 					state: varState.data.regState,
 					keyFile: {
 						location: varState.data.regFile,
-						contents: keyFile
-					}
+						contents: keyFile,
+					},
 				});
 			});
 
@@ -91,6 +91,6 @@ export const keyFile = () => {
 		stop() {
 			bus.removeListener('var', listener);
 			fileWatchers.forEach(async watcher => watcher.close());
-		}
+		},
 	};
 };

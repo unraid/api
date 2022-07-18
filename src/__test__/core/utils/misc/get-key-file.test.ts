@@ -5,9 +5,9 @@ vi.mock('@app/core/states/var', () => ({
 	varState: {
 		data: {
 			flashGuid: '123-123-123-123',
-			mdState: 'STARTED'
-		}
-	}
+			mdState: 'STARTED',
+		},
+	},
 }));
 
 test('Returns the key-file', async () => {

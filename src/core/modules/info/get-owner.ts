@@ -21,10 +21,10 @@ export const getOwner = async function (context: CoreContext): Promise<CoreResul
 	ensurePermission(user, {
 		resource: 'owner',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
-	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString()!;
+	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
 	const server = apiKey ? await getServers().then(servers => servers.find(server => server.apikey === apiKey)) : null;
 
 	return {
@@ -33,8 +33,8 @@ export const getOwner = async function (context: CoreContext): Promise<CoreResul
 		},
 		get json() {
 			return server === null ? null : {
-				...server?.owner
+				...server?.owner,
 			};
-		}
+		},
 	};
 };

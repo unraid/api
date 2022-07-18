@@ -26,13 +26,13 @@ export const getArray = () => {
 			bytes: {
 				free: `${disksFreeBytes}`,
 				used: `${disksTotalBytes - disksFreeBytes}`,
-				total: `${disksTotalBytes}`
+				total: `${disksTotalBytes}`,
 			},
 			disks: {
 				free: `${maxDisks - disks.length}`,
 				used: `${disks.length}`,
-				total: `${maxDisks}`
-			}
-		}
+				total: `${maxDisks}`,
+			},
+		},
 	};
 };

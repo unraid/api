@@ -10,11 +10,11 @@ export const getNginxState = () => {
 	return {
 		ipv4: {
 			lan: state?.nginxLanfqdn,
-			wan: state?.nginxWanfqdn
+			wan: state?.nginxWanfqdn,
 		},
 		ipv6: {
 			lan: state?.nginxLanfqdn6,
-			wan: state?.nginxWanfqdn6
-		}
+			wan: state?.nginxWanfqdn6,
+		},
 	};
 };

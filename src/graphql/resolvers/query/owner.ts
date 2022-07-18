@@ -15,11 +15,11 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(user, {
 		resource: 'owner',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// This should always return the server with a matching guid as this is this server
-	const flashGuid = varState.data.flashGuid;
+	const { flashGuid } = varState.data;
 
 	// Check the user has servers in their account
 	const servers = flashGuid ? await getServers() : [];

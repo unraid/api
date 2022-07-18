@@ -1,4 +1,4 @@
-import { v4 as randomUUID } from 'uuid';
+import { randomUUID } from 'uuid';
 import { expect, test, vi } from 'vitest';
 import { getWsConnectionCount, getWsConnectionCountInChannel, hasSubscribedToChannel, hasUnsubscribedFromChannel, wsHasConnected } from '@app/ws';
 
@@ -6,13 +6,13 @@ vi.mock('@app/core/log', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
+		debug: vi.fn(),
 	},
 	graphqlLogger: {
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
-	}
+		debug: vi.fn(),
+	},
 }));
 
 test('Returns 0 when no connections exist', () => {

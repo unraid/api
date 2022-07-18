@@ -5,13 +5,13 @@ vi.mock('@app/core/log', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
+		debug: vi.fn(),
 	},
 	graphqlLogger: {
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
-	}
+		debug: vi.fn(),
+	},
 }));
 
 test('Creates a mqtt notifier', () => {

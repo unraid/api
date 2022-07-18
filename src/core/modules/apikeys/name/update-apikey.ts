@@ -31,7 +31,7 @@ export const updateApiKey = async (context: Context): Promise<CoreResult> => {
 
 	return {
 		json: {
-			...key
-		}
+			...key,
+		},
 	};
 };

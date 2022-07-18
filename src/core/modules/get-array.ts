@@ -20,7 +20,7 @@ export const getArray = (context: CoreContext): CoreResult => {
 	ensurePermission(user, {
 		resource: 'array',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Array state
@@ -48,13 +48,13 @@ export const getArray = (context: CoreContext): CoreResult => {
 		bytes: {
 			free: `${disksFreeBytes}`,
 			used: `${disksTotalBytes - disksFreeBytes}`,
-			total: `${disksTotalBytes}`
+			total: `${disksTotalBytes}`,
 		},
 		disks: {
 			free: `${maxDisks - disks.length}`,
 			used: `${disks.length}`,
-			total: `${maxDisks}`
-		}
+			total: `${maxDisks}`,
+		},
 	};
 
 	const text = `State: ${state}\nCapacity: ${JSON.stringify(capacity, null, 2)}\n${JSON.stringify(disks, null, 2)}`;
@@ -67,7 +67,7 @@ export const getArray = (context: CoreContext): CoreResult => {
 			boot,
 			parities,
 			disks,
-			caches
-		}
+			caches,
+		},
 	};
 };

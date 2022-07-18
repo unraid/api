@@ -10,7 +10,7 @@ test('Defaults', async () => {
 	expect(checkRelay()).toStrictEqual({
 		error: '',
 		status: 'disconnected',
-		timeout: 0
+		timeout: 0,
 	});
 });
 
@@ -23,6 +23,6 @@ test('Reconnecting', async () => {
 	expect(checkRelay()).toStrictEqual({
 		error: 'SERVICE_RESTART',
 		status: 'disconnected',
-		timeout: 60_000
+		timeout: 60_000,
 	});
 });

@@ -26,7 +26,7 @@ export const checkApi = async (): Promise<Cloud['apiKey']> => {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return {
 			valid: false,
-			error: error.message
+			error: error.message,
 		};
 	} finally {
 		logger.trace('Cloud endpoint: Done API');

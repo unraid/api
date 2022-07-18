@@ -8,13 +8,13 @@ test.fails('Deletes an API key from the API manager', async () => {
 			name: 'root',
 			password: true,
 			role: 'root',
-			description: 'root user'
+			description: 'root user',
 		},
 		data: {
-			password: 'secret-password'
+			password: 'secret-password',
 		},
 		params: {
-			username: 'root'
-		}
+			username: 'root',
+		},
 	})).not.rejects.toThrow();
 });

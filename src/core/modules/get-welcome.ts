@@ -18,7 +18,7 @@ export const getWelcome = async (context: CoreContext): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'welcome',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const version = await getUnraidVersion(context).then(result => result.json.unraid);
@@ -27,7 +27,7 @@ export const getWelcome = async (context: CoreContext): Promise<CoreResult> => {
 	return {
 		text: message,
 		json: {
-			message
-		}
+			message,
+		},
 	};
 };

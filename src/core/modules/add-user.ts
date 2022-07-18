@@ -33,7 +33,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	ensurePermission(context.user, {
 		resource: 'user',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Validation
@@ -56,7 +56,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 		userDesc: description,
 		userPassword: password,
 		userPasswordConf: password,
-		cmdUserEdit: 'Add'
+		cmdUserEdit: 'Add',
 	});
 
 	// Get fresh copy of Users with the new user
@@ -71,20 +71,20 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	bus.emit('users', {
 		users: {
 			mutation: 'CREATED',
-			node: [user]
-		}
+			node: [user],
+		},
 	});
 
 	// Update user channel with new user
 	bus.emit('user', {
 		user: {
 			mutation: 'CREATED',
-			node: user
-		}
+			node: user,
+		},
 	});
 
 	return {
 		text: `User created successfully. ${JSON.stringify(user, null, 2)}`,
-		json: user
+		json: user,
 	};
 };

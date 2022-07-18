@@ -10,7 +10,7 @@ import { ensurePermission } from '@app/core/utils/permissions/ensure-permission'
 import { sharesState } from '@app/core/states/shares';
 import { slotsState } from '@app/core/states/slots';
 
-export const addShare = async (context: CoreContext): Promise<CoreResult> => {
+export const addShare = async (context: CoreContext<unknown, { name: string }>): Promise<CoreResult> => {
 	const { user, data } = context;
 
 	if (!data?.name) {
@@ -21,17 +21,17 @@ export const addShare = async (context: CoreContext): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'share',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
-	const name: string = data.name;
+	const { name } = data;
 	const userShares = sharesState.find().map(({ name }) => name);
 	const diskShares = slotsState.find({ exportable: 'yes' }).filter(({ name }) => name.startsWith('disk')).map(({ name }) => name);
 
 	// Existing share names
 	const inUseNames = new Set([
 		...userShares,
-		...diskShares
+		...diskShares,
 	]);
 
 	if (inUseNames.has(name)) {

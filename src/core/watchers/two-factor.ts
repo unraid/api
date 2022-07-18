@@ -28,12 +28,12 @@ export const twoFactor = () => {
 		await pubsub.publish('twoFactor', {
 			twoFactor: {
 				remote: {
-					enabled: isRemoteEnabled
+					enabled: isRemoteEnabled,
 				},
 				local: {
-					enabled: isLocalEnabled
-				}
-			}
+					enabled: isLocalEnabled,
+				},
+			},
 		});
 	};
 
@@ -44,6 +44,6 @@ export const twoFactor = () => {
 		},
 		stop() {
 			bus.removeListener('var', listener);
-		}
+		},
 	};
 };

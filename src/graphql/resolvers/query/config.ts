@@ -11,7 +11,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'config',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	return {
@@ -20,7 +20,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 			error: 'UNKNOWN_ERROR',
 			invalid: 'INVALID',
 			nokeyserver: 'NO_KEY_SERVER',
-			withdrawn: 'WITHDRAWN'
-		}[varState.data.configState] ?? 'UNKNOWN_ERROR')
+			withdrawn: 'WITHDRAWN',
+		}[varState.data.configState] ?? 'UNKNOWN_ERROR'),
 	};
 };

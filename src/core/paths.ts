@@ -24,5 +24,5 @@ export const paths = {
 	'dynamix-config': '/boot/config/plugins/dynamix/dynamix.cfg' as const,
 	'myservers-base': '/boot/config/plugins/dynamix.my.servers/' as const,
 	'myservers-config': '/boot/config/plugins/dynamix.my.servers/myservers.cfg' as const,
-	'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const
+	'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const,
 };

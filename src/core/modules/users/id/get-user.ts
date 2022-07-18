@@ -25,7 +25,7 @@ export const getUser = async (context: Context): Promise<CoreResult> => {
 	ensurePermission(context.user, {
 		resource: 'user',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	ensureParameter(context, 'id');
@@ -43,6 +43,6 @@ export const getUser = async (context: Context): Promise<CoreResult> => {
 
 	return {
 		text: `User: ${JSON.stringify(user, null, 2)}`,
-		json: user
+		json: user,
 	};
 };

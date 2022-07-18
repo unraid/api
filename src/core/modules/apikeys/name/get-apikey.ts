@@ -48,7 +48,7 @@ export const getApikey = async (context: Context): Promise<Result> => {
 	ensurePermission(user, {
 		resource: 'apikey',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// All valid API key names
@@ -85,8 +85,8 @@ export const getApikey = async (context: Context): Promise<Result> => {
 			name,
 			key: apiKey,
 			expiresAt: expiresAt || Date.now(),
-			scopes
-		}
+			scopes,
+		},
 	};
 };
 

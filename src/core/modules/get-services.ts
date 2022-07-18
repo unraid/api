@@ -11,11 +11,11 @@ import { getUnraidApiService } from '@app/core/modules/services/get-unraid-api';
 
 const devNames = [
 	'emhttpd',
-	'rest-api'
+	'rest-api',
 ];
 
 const coreNames = [
-	'unraid-api'
+	'unraid-api',
 ];
 
 interface Service {
@@ -38,12 +38,10 @@ interface ServiceWithName extends Service {
  * @param services
  * @param names
  */
-const addNameToService = (services: ServiceResult[], names: string[]): ServiceWithName[] => {
-	return services.map((service, index) => ({
-		name: names[index],
-		...service.json
-	}));
-};
+const addNameToService = (services: ServiceResult[], names: string[]): ServiceWithName[] => services.map((service, index) => ({
+	name: names[index],
+	...service.json,
+}));
 
 interface Result extends CoreResult {
 	json: ServiceWithName[];
@@ -59,20 +57,20 @@ export const getServices = async (context: CoreContext): Promise<Result> => {
 	};
 
 	const devServices: ServiceResult[] = envs.NODE_ENV === 'development' ? await Promise.all([
-		getEmhttpdService(context)
+		getEmhttpdService(context),
 	]).catch(logErrorAndReturnEmptyArray) as ServiceResult[] : [];
 
 	const coreServices: ServiceResult[] = await Promise.all([
-		getUnraidApiService(context)
+		getUnraidApiService(context),
 	]).catch(logErrorAndReturnEmptyArray) as ServiceResult[];
 
 	const result = [
 		...addNameToService(devServices, devNames),
-		...addNameToService(coreServices, coreNames)
+		...addNameToService(coreServices, coreNames),
 	];
 
 	return {
 		text: `Services: ${JSON.stringify(result, null, 2)}`,
-		json: result
+		json: result,
 	};
 };

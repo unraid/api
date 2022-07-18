@@ -31,7 +31,7 @@ export const getUnraidVersion = async (context: CoreContext): Promise<Result> =>
 	ensurePermission(user, {
 		resource: 'unraid-version',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	let version = cache.get<string>('version');
@@ -61,7 +61,7 @@ export const getUnraidVersion = async (context: CoreContext): Promise<Result> =>
 	return {
 		text: `Version: ${version}`,
 		json: {
-			unraid: version
-		}
+			unraid: version,
+		},
 	};
 };

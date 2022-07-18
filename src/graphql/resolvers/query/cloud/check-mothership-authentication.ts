@@ -4,14 +4,14 @@ import got, { HTTPError, TimeoutError } from 'got';
 
 const createGotOptions = (apiVersion: string, apiKey: string) => ({
 	timeout: {
-		request: 5_000
+		request: 5_000,
 	},
 	headers: {
 		'Content-Type': 'application/json',
 		Accept: 'application/json',
 		'x-unraid-api-version': apiVersion,
-		'x-api-key': apiKey
-	}
+		'x-api-key': apiKey,
+	},
 });
 
 // Check if we're rate limited, etc.

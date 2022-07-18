@@ -3,9 +3,9 @@ import { beforeEach, expect, test, vi } from 'vitest';
 vi.mock('@app/core/states/var', () => ({
 	varState: {
 		data: {
-			mdState: 'STARTED'
-		}
-	}
+			mdState: 'STARTED',
+		},
+	},
 }));
 
 beforeEach(() => {

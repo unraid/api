@@ -45,26 +45,24 @@ interface SlotIni {
 	type: SlotType;
 }
 
-const parse = (state: SlotIni[]) => {
-	return Object.values(state).map(slot => {
-		const result = {
-			...slot,
-			size: toNumber(slot.size),
-			rotational: toBoolean(slot.rotational),
-			temp: toNumber(slot.temp),
-			numReads: toNumber(slot.numReads),
-			numWrites: toNumber(slot.numWrites),
-			numErrors: toNumber(slot.numErrors),
-			sizeSb: toNumber(slot.sizeSb),
-			fsSize: toNumber(slot.fsSize),
-			fsFree: toNumber(slot.fsFree),
-			exportable: slot.exportable === 'e',
-			fsColor: slot.fsColor?.replace('-', '_')
-		};
+const parse = (state: SlotIni[]) => Object.values(state).map(slot => {
+	const result = {
+		...slot,
+		size: toNumber(slot.size),
+		rotational: toBoolean(slot.rotational),
+		temp: toNumber(slot.temp),
+		numReads: toNumber(slot.numReads),
+		numWrites: toNumber(slot.numWrites),
+		numErrors: toNumber(slot.numErrors),
+		sizeSb: toNumber(slot.sizeSb),
+		fsSize: toNumber(slot.fsSize),
+		fsFree: toNumber(slot.fsFree),
+		exportable: slot.exportable === 'e',
+		fsColor: slot.fsColor?.replace('-', '_'),
+	};
 
-		return result;
-	}).filter(disk => disk.id);
-};
+	return result;
+}).filter(disk => disk.id);
 
 /**
  * Slots
@@ -90,7 +88,7 @@ export class Slots extends ArrayState {
 			const statePath = path.join(statesDirectory, 'disks.ini');
 			const state = parseConfig<SlotIni[]>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

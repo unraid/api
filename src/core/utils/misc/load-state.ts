@@ -15,9 +15,9 @@ export const loadState = <T>(filePath: string): T | undefined => {
 	try {
 		const config = camelCaseKeys(parseConfig<T>({
 			filePath,
-			type: 'ini'
+			type: 'ini',
 		}), {
-			deep: true
+			deep: true,
 		}) as T;
 
 		logger.addContext('config', config);

@@ -10,7 +10,7 @@ import type { Slot } from '@app/core/types/states/slot';
 import type { DiskShare, Share, UserShare } from '../../types/states/share';
 
 const processors = {
-	user: (share: Share) => {
+	user(share: Share) {
 		const { cache, name, ...rest } = share;
 
 		// Get each config for the share
@@ -21,10 +21,10 @@ const processors = {
 			type: 'user',
 			smb,
 			nfs,
-			...rest
+			...rest,
 		};
 	},
-	disk: (share: Slot) => {
+	disk(share: Slot) {
 		const { name } = share;
 		const { name: _, ...smb } = smbSecState.findOne({ name });
 		const { name: __, ...nfs } = (nfsSecState.findOne({ name }) || { name });
@@ -36,9 +36,9 @@ const processors = {
 			size: Number(fsSize),
 			free: Number(fsFree),
 			smb,
-			nfs
+			nfs,
 		};
-	}
+	},
 };
 
 type Overload = {

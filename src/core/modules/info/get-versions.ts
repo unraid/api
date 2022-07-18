@@ -16,13 +16,13 @@ export const getVersions = async function (context: CoreContext): Promise<CoreRe
 
 	const versions = {
 		...unraidVersion,
-		...softwareVersions
+		...softwareVersions,
 	};
 
 	return {
 		text: `Versions: ${JSON.stringify(versions, null, 2)}`,
 		json: {
-			...versions
-		}
+			...versions,
+		},
 	};
 };

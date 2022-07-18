@@ -11,6 +11,4 @@ interface Options {
 /**
  * Execa helper to trim stdout.
  */
-export const cleanStdout = (options: Options) => {
-	return options.stdout.trim();
-};
+export const cleanStdout = (options: Options) => options.stdout.trim();

@@ -298,7 +298,7 @@ const parse = (state: VarIni): Var => {
 		useNtp: iniBooleanToJsBoolean(state.useNtp),
 		useSsh: iniBooleanToJsBoolean(state.useSsh),
 		useSsl: iniBooleanOrAutoToJsBoolean(state.useSsl),
-		useTelnet: iniBooleanToJsBoolean(state.useTelnet)
+		useTelnet: iniBooleanToJsBoolean(state.useTelnet),
 	};
 };
 
@@ -331,7 +331,7 @@ export class VarState extends State {
 			const statePath = path.join(statesDirectory, 'var.ini');
 			const state = parseConfig<VarIni>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			const data = this.parse(state);
 			this._data = data;

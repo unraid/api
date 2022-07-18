@@ -8,7 +8,7 @@ export const ServerArray = Partial({
 		bytes: Partial({
 			free: bytesAboveZero,
 			used: bytesAboveZero,
-			total: bytesAboveZero
-		})
-	})
+			total: bytesAboveZero,
+		}),
+	}),
 });

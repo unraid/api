@@ -9,11 +9,11 @@ export const relayStore: {
 	relay: undefined,
 	timeout: undefined,
 	reason: undefined,
-	code: undefined
+	code: undefined,
 };
 
 export const miniGraphqlStore: {
 	connected: boolean;
 } = {
-	connected: false
+	connected: false,
 };

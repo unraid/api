@@ -42,7 +42,7 @@ export class Devices extends ArrayState {
 			const statePath = path.join(statesDirectory, 'devs.ini');
 			const state = parseConfig<any[]>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

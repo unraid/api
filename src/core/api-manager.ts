@@ -54,7 +54,7 @@ interface Options {
 // Ini serializer
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
-	keep_quotes: false
+	keep_quotes: false,
 });
 
 /**
@@ -70,7 +70,7 @@ export class ApiManager extends EventEmitter {
 
 	constructor(options: Options = { watch: true }) {
 		super({
-			captureRejections: true
+			captureRejections: true,
 		});
 
 		// Return or create the singleton class
@@ -105,11 +105,11 @@ export class ApiManager extends EventEmitter {
 			const data: Partial<MyServersConfig> = {
 				...myserversConfigFile,
 				upc: {
-					apikey: UPCFinalKey
+					apikey: UPCFinalKey,
 				},
 				notifier: {
-					apikey: notifierFinalKey
-				}
+					apikey: notifierFinalKey,
+				},
 			};
 
 			apiManagerLogger.debug('Dumping MyServers config back to file');
@@ -129,7 +129,7 @@ export class ApiManager extends EventEmitter {
 		// @todo Move API keys to their own file
 		if (options.watch) {
 			chokidar.watch(path.basename(configPath), {
-				ignoreInitial: true
+				ignoreInitial: true,
 			}).on('all', async (_eventName, filePath) => {
 				if (filePath === configPath) {
 					await this.checkKey(filePath);
@@ -156,7 +156,7 @@ export class ApiManager extends EventEmitter {
 	 */
 	replace(name: string, key: string, options: KeyOptions = {}) {
 		// Delete existing key
-		// @ts-expect-error
+		// @ts-expect-error - null is not CacheItem<CacheItem>
 		this.keys.items[name] = null;
 
 		// Add new key
@@ -185,7 +185,7 @@ export class ApiManager extends EventEmitter {
 		const keyObject = {
 			name,
 			key,
-			userId
+			userId,
 		};
 
 		// Add new key
@@ -248,10 +248,9 @@ export class ApiManager extends EventEmitter {
 	 * @returns {Object} The API key based on the name provided.
 	 * @memberof ApiManager
 	 */
-	getKey(name: string): CacheItem | null {
+	getKey(name: string): CacheItem | undefined {
 		validateArgument(name, 'string');
-
-		return this.keys.get(name);
+		return this.keys.get(name)!;
 	}
 
 	/**
@@ -263,7 +262,6 @@ export class ApiManager extends EventEmitter {
 	 */
 	expired(name: string): boolean {
 		validateArgument(name, 'string');
-
 		return this.keys.get(name) === null;
 	}
 
@@ -308,7 +306,7 @@ export class ApiManager extends EventEmitter {
 				name,
 				key: item.value.key,
 				userId: item.value.userId,
-				expiresAt: item.expiresAt
+				expiresAt: item.expiresAt,
 			}));
 	}
 
@@ -391,7 +389,7 @@ export class ApiManager extends EventEmitter {
 				// If everything looks good then replace whatever the current key is in API manager
 				// If there's no key it'll set it otherwise it'll override the old one
 				this.replace('my_servers', apiKey, {
-					userId: '-1'
+					userId: '-1',
 				});
 
 				// Key is valid

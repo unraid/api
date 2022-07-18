@@ -11,7 +11,7 @@ export default async (_: unknown, { name }, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'servers',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const servers = await getServers().catch(() => []);

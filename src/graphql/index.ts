@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'uuid';
 import * as core from '@app/core';
 import { AppError } from '@app/core/errors/app-error';
 import { FatalAppError } from '@app/core/errors/fatal-error';
@@ -109,8 +109,8 @@ bus.on('slots', async () => {
 	await run('array', 'UPDATED', {
 		moduleToRun: modules.getArray,
 		context: {
-			user: internalServiceUser
-		}
+			user: internalServiceUser,
+		},
 	});
 });
 
@@ -120,7 +120,7 @@ let hostname: string;
 bus.on('var', async data => {
 	// Publish var changes
 	await pubsub.publish('vars', {
-		vars: data.var.node
+		vars: data.var.node,
 	});
 
 	// Hostname changed
@@ -132,9 +132,9 @@ bus.on('var', async data => {
 		await pubsub.publish('info', {
 			info: {
 				os: {
-					hostname
-				}
-			}
+					hostname,
+				},
+			},
 		});
 	}
 });
@@ -148,7 +148,7 @@ const watchedEvents = [
 	'restart',
 	'start',
 	'stop',
-	'unpause'
+	'unpause',
 ].map(event => `event=${event}`);
 
 // Create docker event emitter instance
@@ -158,10 +158,10 @@ logger.removeContext('events');
 const dee = new DockerEventEmitter(watchedEvents);
 
 // On Docker event update info with { apps: { installed, started } }
-dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' | string; from: string }) => {
+dee.on('*', async (data: { Type: 'container'; Action: 'start' | 'stop'; from: string }) => {
 	// Only listen to container events
 	if (data.Type !== 'container') {
-		dockerLogger.debug(`[${data.Type}] ${data.from} ${data.Action}`);
+		dockerLogger.debug(`[${data.Type as string}] ${data.from} ${data.Action}`);
 		return;
 	}
 
@@ -173,8 +173,8 @@ dee.on('*', async (data: { Type: 'container' | string; Action: 'start' | 'stop' 
 	const { json } = await modules.getAppCount({ user });
 	await pubsub.publish('info', {
 		info: {
-			apps: json
-		}
+			apps: json,
+		},
 	});
 });
 
@@ -185,17 +185,17 @@ export const graphql = {
 	debug: config.debug,
 	introspection: (process.env.INTROSPECTION ?? config.debug),
 	playground: (process.env.PLAYGROUND ?? config.debug) ? {
-		subscriptionEndpoint: '/graphql'
+		subscriptionEndpoint: '/graphql',
 	} : false,
 	schema,
 	types: typeDefs,
 	resolvers,
 	subscriptions: {
 		keepAlive: 10000,
-		onConnect: async (connectionParams: Record<string, string>) => {
+		async onConnect(connectionParams: Record<string, string>) {
 			const apiKey = connectionParams['x-api-key'];
 			const user = await apiKeyToUser(apiKey);
-			const websocketId = uuid();
+			const websocketId = randomUUID();
 
 			graphqlLogger.addContext('websocketId', websocketId);
 			graphqlLogger.debug('%s connected', user.name);
@@ -206,10 +206,17 @@ export const graphql = {
 
 			return {
 				user,
-				websocketId
+				websocketId,
 			};
 		},
-		onDisconnect: async (_, websocketContext) => {
+		async onDisconnect(_, websocketContext: {
+			initPromise: Promise<boolean | {
+				user: {
+					name: string;
+				};
+				websocketId: string;
+			}>;
+		}) {
 			const context = await websocketContext.initPromise;
 
 			// The websocket has disconnected before init event has resolved
@@ -221,12 +228,7 @@ export const graphql = {
 				return;
 			}
 
-			const { user, websocketId } = context as {
-				user: {
-					name: string;
-				};
-				websocketId: string;
-			};
+			const { user, websocketId } = context;
 
 			graphqlLogger.addContext('websocketId', websocketId);
 			graphqlLogger.debug('%s disconnected.', user.name);
@@ -234,14 +236,14 @@ export const graphql = {
 
 			// Update ws connection count and other needed values
 			wsHasDisconnected(websocketId);
-		}
+		},
 	},
-	context: async ({ req, connection }) => {
+	async context({ req, connection }: { req: { headers: Record<string, string> }; connection: { context: Record<string, unknown> } }) {
 		// Normal Websocket connection
 		if (connection && Object.keys(connection.context).length >= 1) {
 			// Check connection for metadata
 			return {
-				...connection.context
+				...connection.context,
 			};
 		}
 
@@ -251,10 +253,10 @@ export const graphql = {
 			const user = await apiKeyToUser(apiKey);
 
 			return {
-				user
+				user,
 			};
 		}
 
 		throw new Error('Invalid API key');
-	}
+	},
 };

@@ -35,11 +35,9 @@ const loadStatePaths = async (): Promise<void> => {
 		const filePath = `${path.join(statesCwd, state)}.ini`;
 
 		// Don't override already set paths
-		// @ts-expect-error
-		if (!paths.has(name)) {
+		if (!paths[name]) {
 			// ['state:Users', '/usr/local/emhttp/state/users.ini']
-			// @ts-expect-error
-			paths.set(name, filePath);
+			paths[name] = filePath;
 		}
 	});
 };
@@ -94,7 +92,7 @@ const loadNchan = async (): Promise<void> => {
  */
 const loaders = {
 	statePaths: loadStatePaths,
-	watchers: loadWatchers
+	watchers: loadWatchers,
 };
 
 /**
@@ -110,5 +108,5 @@ const load = async (): Promise<void> => {
 export const core = {
 	loaders,
 	load,
-	loadNchan
+	loadNchan,
 };

@@ -41,7 +41,7 @@ export class MqttNotifier extends Notifier {
 		// Prevents us reconnecting every time we want to send a notification
 		this.client = mqtt.connect(connectionUri, {
 			username,
-			password
+			password,
 		});
 
 		MqttNotifier.instance = this;
@@ -59,7 +59,7 @@ export class MqttNotifier extends Notifier {
 		// Send
 		return client.publish(topic, JSON.stringify({
 			title,
-			...rest
+			...rest,
 		}));
 	}
 }

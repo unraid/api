@@ -12,18 +12,18 @@ import { intAboveZero } from '@app/common/run-time/int-above-zero';
 export const Dashboard = Record({
 	apps: Record({
 		installed: intAboveZero,
-		started: intAboveZero
+		started: intAboveZero,
 	}),
 	versions: Record({
-		unraid: String.withConstraint(version => semver.valid(version) !== null || `Invalid version tag: "${version}"`)
+		unraid: String.withConstraint(version => semver.valid(version) !== null || `Invalid version tag: "${version}"`),
 	}),
 	os: Record({
 		hostname: String,
-		uptime: String
+		uptime: String,
 	}),
 	vms: Record({
 		installed: intAboveZero,
-		started: intAboveZero
+		started: intAboveZero,
 	}),
 	array: Record({
 		state: String,
@@ -31,15 +31,16 @@ export const Dashboard = Record({
 			bytes: Record({
 				free: bytesAboveZero,
 				used: bytesAboveZero,
-				total: bytesAboveZero
-			})
-		})
+				total: bytesAboveZero,
+			}),
+		}),
 	}),
 	services: Array(Service),
 	display: Display,
 	config: Config,
 	vars: Vars,
-	twoFactor: TwoFactor
+	twoFactor: TwoFactor,
 });
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare -- intentionally naming the variable the same as the type
 export type Dashboard = Static<typeof Dashboard>;

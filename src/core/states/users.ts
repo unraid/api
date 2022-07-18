@@ -27,7 +27,7 @@ const parseUser = (state: UserIni): User => {
 		name,
 		description: desc ?? '',
 		password: passwd === 'yes',
-		role: name === 'root' ? 'admin' : 'user'
+		role: name === 'root' ? 'admin' : 'user',
 	};
 
 	return user;
@@ -56,7 +56,7 @@ export class Users extends ArrayState {
 			const statePath = path.join(statesDirectory, 'users.ini');
 			const state = parseConfig<UserIni[]>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

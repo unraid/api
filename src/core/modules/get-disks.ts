@@ -28,9 +28,7 @@ const getTemperature = async (disk: Systeminformation.DiskLayoutData): Promise<n
 	const lines = stdout.split('\n');
 	const header = lines.find(line => line.startsWith('ID#'))!;
 	const fields = lines.splice(lines.indexOf(header) + 1, lines.length);
-	const field = fields.find(line => {
-		return line.includes('Temperature_Celsius') || line.includes('Airflow_Temperature_Cel');
-	});
+	const field = fields.find(line => line.includes('Temperature_Celsius') || line.includes('Airflow_Temperature_Cel'));
 
 	if (!field) {
 		return -1;
@@ -52,7 +50,7 @@ const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToPar
 		.map(({ name, fsType, size }) => ({
 			name,
 			fsType,
-			size
+			size,
 		}));
 
 	return {
@@ -60,7 +58,7 @@ const parseDisk = async (disk: Systeminformation.DiskLayoutData, partitionsToPar
 		smartStatus: uppercaseFirstChar(disk.smartStatus.toLowerCase()),
 		interfaceType: disk.interfaceType || 'UNKNOWN',
 		temperature: temperature ? await getTemperature(disk) : -1,
-		partitions
+		partitions,
 	};
 };
 
@@ -78,7 +76,7 @@ export const getDisks = async (context: CoreContext, options?: { temperature: bo
 	ensurePermission(user, {
 		resource: 'disk',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Return all fields but temperature
@@ -88,7 +86,7 @@ export const getDisks = async (context: CoreContext, options?: { temperature: bo
 
 		return {
 			text: `Disks: ${JSON.stringify(disks, null, 2)}`,
-			json: disks
+			json: disks,
 		};
 	}
 
@@ -97,6 +95,6 @@ export const getDisks = async (context: CoreContext, options?: { temperature: bo
 
 	return {
 		text: `Disks: ${JSON.stringify(disks, null, 2)}`,
-		json: disks
+		json: disks,
 	};
 };

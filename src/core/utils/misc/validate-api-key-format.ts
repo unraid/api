@@ -2,7 +2,7 @@ import { ApiKeyError } from '@app/core/errors/api-key-error';
 
 export const validateApiKeyFormat = (apiKey: string | undefined, shouldThrow = true) => {
 	const key = (apiKey ?? '').trim();
-	const length = key.length;
+	const { length } = key;
 
 	// Bail if key is missing
 	if (length === 0) {

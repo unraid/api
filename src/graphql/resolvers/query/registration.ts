@@ -12,7 +12,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'registration',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const isTrial = varState.data.regTy.toLowerCase() === 'trial';
@@ -26,7 +26,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		expiration: 1_000 * ((isTrial || isExpired) ? Number(varState.data.regTm2) : 0),
 		keyFile: {
 			location: varState.data.regFile,
-			contents: await getKeyFile()
-		}
+			contents: await getKeyFile(),
+		},
 	};
 };

@@ -10,7 +10,7 @@ const command = mainOptions.command as unknown as string;
 export const main = async (...argv: string[]) => {
 	// Load .env file
 	const envs = dotEnv.config({
-		path: '/usr/local/bin/unraid-api/.env'
+		path: '/usr/local/bin/unraid-api/.env',
 	});
 
 	cliLogger.addContext('envs', envs);
@@ -41,7 +41,7 @@ export const main = async (...argv: string[]) => {
 		'switch-env': import('@app/cli/commands/switch-env').then(pkg => pkg.switchEnv),
 		version: import('@app/cli/commands/version').then(pkg => pkg.version),
 		status: import('@app/cli/commands/status').then(pkg => pkg.status),
-		report: import('@app/cli/commands/report').then(pkg => pkg.report)
+		report: import('@app/cli/commands/report').then(pkg => pkg.report),
 	};
 
 	// Unknown command

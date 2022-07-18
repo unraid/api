@@ -1,12 +1,13 @@
+
 import { config } from '@app/core/config';
 
 const internalWsAddress = () => {
 	const port = config.port as number | string;
-	return isNaN(port as any) ?
+	return isNaN(port as any)
 		// Unix Socket
-		`ws+unix:${port}` :
+		? `ws+unix:${port}`
 		// Numbered port
-		`ws://localhost:${port}`;
+		: `ws://localhost:${port}`;
 };
 
 /**

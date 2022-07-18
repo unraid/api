@@ -34,7 +34,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 	ensurePermission(user, {
 		resource: 'disk/settings',
 		action: 'update',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	/**
@@ -69,6 +69,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 	// Define the 'default' time-out for spinning hard drives down after a period of no I/O activity.
 	// You may also override the default value for an individual disk.
 	check('spindownDelay', {
+
 		0: 'Never',
 		15: '15 minutes',
 		30: '30 minutes',
@@ -81,7 +82,8 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		6: '6 hours',
 		7: '7 hours',
 		8: '8 hours',
-		9: '9 hours'
+		9: '9 hours',
+		/* eslint-enable @typescript-eslint/naming-convention */
 	});
 
 	// Defines the type of partition layout to create when formatting hard drives 2TB in size and smaller **only**. (All devices larger then 2TB are always set up with GPT partition tables.)
@@ -89,15 +91,19 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 	// **MBR: 4K-aligned** setting will create an MBR-style partition table, where the single partition 1 will start in the **64th sector** from the start of the disk. Since the sector size is 512 bytes, this will *align* the start of partition 1 on a 4K-byte boundary.  This is required for proper support of so-called *Advanced Format* drives.
 	// Unless you have a specific requirement do not change this setting from the default **MBR: 4K-aligned**.
 	check('defaultFormat', {
+
 		1: 'MBR: unaligned',
-		2: 'MBR: 4K-aligned'
+		2: 'MBR: 4K-aligned',
+		/* eslint-enable @typescript-eslint/naming-convention */
 	});
 
 	// Selects the method to employ when writing to enabled disk in parity protected array.
 	check('writeMethod', {
 		auto: 'Auto - read/modify/write',
+
 		0: 'read/modify/write',
-		1: 'reconstruct write'
+		1: 'reconstruct write',
+		/* eslint-enable @typescript-eslint/naming-convention */
 	});
 
 	// Defines the default file system type to create when an * unmountable * array device is formatted.
@@ -106,9 +112,11 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		xfs: 'xfs',
 		btrfs: 'btrfs',
 		reiserfs: 'reiserfs',
+
 		'luks:xfs': 'xfs - encrypted',
 		'luks:btrfs': 'btrfs - encrypted',
-		'luks:reiserfs': 'reiserfs - encrypted'
+		'luks:reiserfs': 'reiserfs - encrypted',
+		/* eslint-enable @typescript-eslint/naming-convention */
 	});
 
 	const {
@@ -116,7 +124,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		spindownDelay,
 		defaultFormat,
 		defaultFsType,
-		mdWriteMethod
+		mdWriteMethod,
 	} = data;
 
 	await emcmd({
@@ -124,8 +132,9 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		spindownDelay,
 		defaultFormat,
 		defaultFsType,
+
 		md_write_method: mdWriteMethod,
-		changeDisk: 'Apply'
+		changeDisk: 'Apply',
 	});
 
 	// @todo: return all disk settings
@@ -134,11 +143,11 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		startArray: varState?.data?.startArray,
 		spindownDelay: varState?.data?.spindownDelay,
 		defaultFormat: varState?.data?.defaultFormat,
-		defaultFsType: varState?.data?.defaultFormat
+		defaultFsType: varState?.data?.defaultFormat,
 	};
 
 	return {
 		text: `Disk settings: ${JSON.stringify(result, null, 2)}`,
-		json: result
+		json: result,
 	};
 };

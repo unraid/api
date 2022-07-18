@@ -5,5 +5,5 @@
 import * as notifications from '@app/graphql/resolvers/mutation/notifications';
 
 export const Mutation = {
-	...notifications
+	...notifications,
 };

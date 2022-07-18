@@ -24,7 +24,7 @@ export const getOs = async function (context: CoreContext): Promise<CoreResult> 
 	ensurePermission(user, {
 		resource: 'os',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const os = await si.osInfo();
@@ -36,8 +36,8 @@ export const getOs = async function (context: CoreContext): Promise<CoreResult> 
 		get json() {
 			return {
 				...os,
-				uptime: bootTimestamp
+				uptime: bootTimestamp,
 			};
-		}
+		},
 	};
 };

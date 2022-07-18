@@ -23,6 +23,6 @@ export const checkAuth = async (options: Options): Promise<any> => {
 	return htpasswd.authenticate({
 		username,
 		password,
-		file: file ?? paths.htpasswd
+		file: file ?? paths.htpasswd,
 	});
 };

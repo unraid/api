@@ -40,16 +40,16 @@ export const admin = {
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
 		{ resource: 'vms', action: 'read:any', attributes: '*' },
 		{ resource: 'vms/domain', action: 'read:any', attributes: '*' },
-		{ resource: 'vms/network', action: 'read:any', attributes: '*' }
-	]
+		{ resource: 'vms/network', action: 'read:any', attributes: '*' },
+	],
 };
 
 export const user = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'apikey', action: 'read:own', attributes: '*' },
-		{ resource: 'permission', action: 'read:any', attributes: '*' }
-	]
+		{ resource: 'permission', action: 'read:any', attributes: '*' },
+	],
 };
 
 export const upc = {
@@ -67,8 +67,8 @@ export const upc = {
 		{ resource: 'permission', action: 'read:any', attributes: '*' },
 		{ resource: 'registration', action: 'read:any', attributes: '*' },
 		{ resource: 'servers', action: 'read:any', attributes: '*' },
-		{ resource: 'vars', action: 'read:any', attributes: '*' }
-	]
+		{ resource: 'vars', action: 'read:any', attributes: '*' },
+	],
 };
 
 export const my_servers = {
@@ -76,22 +76,22 @@ export const my_servers = {
 	permissions: [
 		{ resource: 'dashboard', action: 'read:any', attributes: '*' },
 		{ resource: 'two-factor', action: 'read:own', attributes: '*' },
-		{ resource: 'unraid-version', action: 'read:any', attributes: '*' }
-	]
+		{ resource: 'unraid-version', action: 'read:any', attributes: '*' },
+	],
 };
 
 export const notifier = {
 	extends: 'guest',
 	permissions: [
-		{ resource: 'notifications', action: 'create:own', attributes: '*' }
-	]
+		{ resource: 'notifications', action: 'create:own', attributes: '*' },
+	],
 };
 
 export const guest = {
 	permissions: [
 		{ resource: 'me', action: 'read:any', attributes: '*' },
-		{ resource: 'welcome', action: 'read:any', attributes: '*' }
-	]
+		{ resource: 'welcome', action: 'read:any', attributes: '*' },
+	],
 };
 
 export const permissions = {
@@ -100,5 +100,5 @@ export const permissions = {
 	admin,
 	upc,
 	my_servers,
-	notifier
+	notifier,
 };

@@ -16,5 +16,5 @@ export const envs = {
 	DEBUG: _.DEBUG === 'true',
 	PORT: _.PORT!,
 	NODE_API_PORT: _.NODE_API_PORT!,
-	DRY_RUN: Boolean(_.DRY_RUN)
+	DRY_RUN: Boolean(_.DRY_RUN),
 };

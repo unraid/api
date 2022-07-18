@@ -1,8 +1,8 @@
 export const debounce = function<ArgumentsType extends unknown[], ReturnType>(
 	fn: (...args: ArgumentsType) => PromiseLike<ReturnType | void>,
-	wait: number
+	wait: number,
 ): (...args: ArgumentsType) => Promise<ReturnType | void> {
-	let timeout: NodeJS.Timeout | null;
+	let timeout: NodeJS.Timeout | undefined;
 	return async function (this: any, ...args: ArgumentsType) {
 		if (!Number.isFinite(wait)) {
 			throw new TypeError('Expected `wait` to be a finite number');
@@ -15,7 +15,7 @@ export const debounce = function<ArgumentsType extends unknown[], ReturnType>(
 
 		// Start a timeout for the next call
 		timeout = setTimeout(() => {
-			timeout = null;
+			timeout = undefined;
 		}, wait);
 
 		// Resolve

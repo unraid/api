@@ -26,7 +26,7 @@ export const deleteUser = async (context: Context): Promise<CoreResult> => {
 	ensurePermission(context.user, {
 		resource: 'user',
 		action: 'delete',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const { params } = context;
@@ -47,10 +47,10 @@ export const deleteUser = async (context: Context): Promise<CoreResult> => {
 	await emcmd({
 		userName: name,
 		confirmDelete: 'on',
-		cmdUserEdit: 'Delete'
+		cmdUserEdit: 'Delete',
 	});
 
 	return {
-		text: 'User deleted successfully.'
+		text: 'User deleted successfully.',
 	};
 };

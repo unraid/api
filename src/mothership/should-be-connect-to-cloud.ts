@@ -4,7 +4,7 @@ import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-form
 import { logger } from '@app/core/log';
 
 export const wsState = {
-	outOfDate: false
+	outOfDate: false,
 };
 
 // Ensure we should actually be connected right now

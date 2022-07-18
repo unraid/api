@@ -23,7 +23,7 @@ export const getDisk = async (context: Context, Disks): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'disk',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const { id } = params;
@@ -35,6 +35,6 @@ export const getDisk = async (context: Context, Disks): Promise<CoreResult> => {
 
 	return {
 		text: `Disk: ${JSON.stringify(disk, null, 2)}`,
-		json: disk
+		json: disk,
 	};
 };

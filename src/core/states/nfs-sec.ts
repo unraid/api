@@ -13,18 +13,16 @@ import { LooseObject } from '@app/core/types';
 /**
  * Array of NFS shares.
  */
-const parse = (state: SecIni[]) => {
-	return Object.entries(state).map(([_name, item]) => {
-		const { export: enabled, writeList, readList, ...rest } = item;
+const parse = (state: SecIni[]) => Object.entries(state).map(([_name, item]) => {
+	const { export: enabled, writeList, readList, ...rest } = item;
 
-		return {
-			enabled: enabled === 'e',
-			writeList: writeList ? writeList.split(',') : [],
-			readList: readList ? readList.split(',') : [],
-			...rest
-		};
-	});
-};
+	return {
+		enabled: enabled === 'e',
+		writeList: writeList ? writeList.split(',') : [],
+		readList: readList ? readList.split(',') : [],
+		...rest,
+	};
+});
 
 export class NfsSec extends ArrayState {
 	private static instance: NfsSec;
@@ -47,7 +45,7 @@ export class NfsSec extends ArrayState {
 			const statePath = path.join(statesDirectory, 'sec_nfs.ini');
 			const state = parseConfig<SecIni[]>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

@@ -19,7 +19,7 @@ const getVmSummary = async () => {
 		if (!hypervisor) {
 			return {
 				installed: 0,
-				started: 0
+				started: 0,
 			};
 		}
 
@@ -27,12 +27,12 @@ const getVmSummary = async () => {
 		const inactiveDomains = await hypervisor.connectListAllDomains(ConnectListAllDomainsFlags.INACTIVE) as unknown[];
 		return {
 			installed: activeDomains.length + inactiveDomains.length,
-			started: activeDomains.length
+			started: activeDomains.length,
 		};
 	} catch {
 		return {
 			installed: 0,
-			started: 0
+			started: 0,
 		};
 	}
 };
@@ -41,11 +41,11 @@ const twoFactor = () => {
 	const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
 	return {
 		remote: {
-			enabled: isRemoteEnabled
+			enabled: isRemoteEnabled,
 		},
 		local: {
-			enabled: isLocalEnabled
-		}
+			enabled: isLocalEnabled,
+		},
 	};
 };
 
@@ -56,9 +56,9 @@ const services = () => {
 		name: 'unraid-api',
 		online: true,
 		uptime: {
-			timestamp: uptimeTimestamp
+			timestamp: uptimeTimestamp,
 		},
-		version
+		version,
 	}];
 };
 
@@ -66,18 +66,18 @@ const getData = async () => ({
 	vars: {
 		regState: varState.data.regState,
 		regTy: varState.data.regTy,
-		flashGuid: varState.data.flashGuid
+		flashGuid: varState.data.flashGuid,
 	},
 	apps: {
 		installed: await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length),
-		started: await docker.listContainers().catch(() => []).then(containers => containers.length)
+		started: await docker.listContainers().catch(() => []).then(containers => containers.length),
 	},
 	versions: {
-		unraid: await getUnraidVersion()
+		unraid: await getUnraidVersion(),
 	},
 	os: {
 		hostname: varState.data.name,
-		uptime: bootTimestamp.toISOString()
+		uptime: bootTimestamp.toISOString(),
 	},
 	vms: await getVmSummary(),
 	array: getArray(),
@@ -89,10 +89,10 @@ const getData = async () => ({
 			error: 'UNKNOWN_ERROR',
 			invalid: 'INVALID',
 			nokeyserver: 'NO_KEY_SERVER',
-			withdrawn: 'WITHDRAWN'
-		}[varState.data.configState] ?? 'UNKNOWN_ERROR')
+			withdrawn: 'WITHDRAWN',
+		}[varState.data.configState] ?? 'UNKNOWN_ERROR'),
 	},
-	twoFactor: twoFactor()
+	twoFactor: twoFactor(),
 });
 
 export const generateData = async () => {

@@ -44,7 +44,7 @@ import { ensurePermission } from '@app/core/utils/permissions/ensure-permission'
 const addDeviceClass = (device: Readonly<PciDevice>): PciDevice => {
 	const modifiedDevice: PciDevice = {
 		...device,
-		class: 'other'
+		class: 'other',
 	};
 
 	// GPU
@@ -91,28 +91,26 @@ const systemPciDevices = async (): Promise<PciDevice[]> => {
 	 * - Add whether kernel-bound driver exists
 	 * - Cleanup device vendor/product names
 	 */
-	const processedDevices = await filterDevices(filteredDevices).then(async devices => {
-		return Promise.all(devices
-			// @ts-expect-error
-			.map(addDeviceClass)
-			.map(async device => {
-				// Attempt to get the current kernel-bound driver for this pci device
-				await isSymlink(`${basePath}${device.id}/driver`).then(symlink => {
-					if (symlink) {
-						// $strLink = @readlink('/sys/bus/pci/devices/0000:'.$arrMatch['id']. '/driver');
-						// if (!empty($strLink)) {
-						// 	$strDriver = basename($strLink);
-						// }
-					}
-				});
+	const processedDevices = await filterDevices(filteredDevices).then(async devices => Promise.all(devices
+		// @ts-expect-error - Device is not PciDevice
+		.map(device => addDeviceClass(device))
+		.map(async device => {
+			// Attempt to get the current kernel-bound driver for this pci device
+			await isSymlink(`${basePath}${device.id}/driver`).then(symlink => {
+				if (symlink) {
+					// $strLink = @readlink('/sys/bus/pci/devices/0000:'.$arrMatch['id']. '/driver');
+					// if (!empty($strLink)) {
+					// 	$strDriver = basename($strLink);
+					// }
+				}
+			});
 
-				// Clean up the vendor and product name
-				device.vendorname = sanitizeVendor(device.vendorname);
-				device.productname = sanitizeProduct(device.productname);
+			// Clean up the vendor and product name
+			device.vendorname = sanitizeVendor(device.vendorname);
+			device.productname = sanitizeProduct(device.productname);
 
-				return device;
-			}));
-	});
+			return device;
+		})));
 
 	return processedDevices;
 };
@@ -124,11 +122,7 @@ const systemPciDevices = async (): Promise<PciDevice[]> => {
  * @ignore
  * @private
  */
-const systemGPUDevices = systemPciDevices().then(devices => {
-	return devices.filter(device => {
-		return device.class === 'vga' && !device.allowed;
-	});
-});
+const systemGPUDevices = systemPciDevices().then(devices => devices.filter(device => device.class === 'vga' && !device.allowed));
 
 /**
  * System Audio Devices
@@ -137,9 +131,7 @@ const systemGPUDevices = systemPciDevices().then(devices => {
  * @ignore
  * @private
  */
-const systemAudioDevices = systemPciDevices().then(devices => {
-	return devices.filter(device => device.class === 'audio' && !device.allowed);
-});
+const systemAudioDevices = systemPciDevices().then(devices => devices.filter(device => device.class === 'audio' && !device.allowed));
 
 /**
  * System usb devices.
@@ -147,19 +139,16 @@ const systemAudioDevices = systemPciDevices().then(devices => {
  */
 const getSystemUSBDevices = async (): Promise<any[]> => {
 	// Get a list of all usb hubs so we can filter the allowed/disallowed
-	const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true }).then(({ stdout }) => {
-		return stdout.split('\n').map(line => {
-			// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-			const [, id] = line.match(/usb:v(\w{9})/)!;
-			return id.replace('p', ':');
-		});
-	}).catch(() => []);
+	const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true }).then(({ stdout }) => stdout.split('\n').map(line => {
+		// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+		const [, id] = line.match(/usb:v(\w{9})/)!;
+		return id.replace('p', ':');
+	})).catch(() => [] as string[]);
 
 	// Remove boot drive
 	const filterBootDrive = (device: Readonly<PciDevice>): boolean => varState?.data?.flashGuid !== device.guid;
 
 	// Remove usb hubs
-	// @ts-expect-error
 	const filterUsbHubs = (device: Readonly<PciDevice>): boolean => !usbHubs.includes(device.id);
 
 	// Clean up the name
@@ -167,7 +156,7 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 		const vendorname = sanitizeVendor(device.vendorname || '');
 		return {
 			...device,
-			vendorname
+			vendorname,
 		};
 	};
 
@@ -191,14 +180,14 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 
 		return {
 			value: match[0],
-			string: match[1]
+			string: match[1],
 		};
 	};
 
 	// Add extra fields to device
 	const parseDevice = (device: Readonly<PciDevice>) => {
 		const modifiedDevice: PciDevice = {
-			...device
+			...device,
 		};
 		const info = execa.commandSync(`lsusb -d ${device.id} -v`).stdout.split('\n');
 		const deviceName = device.name.trim();
@@ -238,13 +227,11 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 	}) || [];
 
 	// Get all usb devices
-	const usbDevices = await execa('lsusb').then(async ({ stdout }) => {
-		return parseUsbDevices(stdout)
-			.map(parseDevice)
-			.filter(filterBootDrive)
-			.filter(filterUsbHubs)
-			.map(sanitizeVendorName);
-	});
+	const usbDevices = await execa('lsusb').then(async ({ stdout }) => parseUsbDevices(stdout)
+		.map(parseDevice)
+		.filter(filterBootDrive)
+		.filter(filterUsbHubs)
+		.map(sanitizeVendorName));
 
 	return usbDevices;
 };
@@ -259,7 +246,7 @@ export const getAllDevices = async function (context: Readonly<CoreContext>): Pr
 	ensurePermission(user, {
 		resource: 'devices',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const devices = await pProps({
@@ -269,11 +256,11 @@ export const getAllDevices = async function (context: Readonly<CoreContext>): Pr
 		// Move this to interfaces
 		// network: await si.networkInterfaces(),
 		pci: await systemPciDevices(),
-		usb: await getSystemUSBDevices()
+		usb: await getSystemUSBDevices(),
 	});
 
 	return {
 		text: `Devices: ${JSON.stringify(devices, null, 2)}`,
-		json: devices
+		json: devices,
 	};
 };

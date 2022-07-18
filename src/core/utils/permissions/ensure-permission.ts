@@ -21,7 +21,7 @@ export const ensurePermission = (user: User | undefined, options: AccessControlO
 	const permissionGranted = checkPermission(user, {
 		resource,
 		action,
-		possession
+		possession,
 	});
 
 	// Bail if user doesn't have permission

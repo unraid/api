@@ -35,7 +35,7 @@ export const addLicenseKey = async (context: Context): Promise<Result | void> =>
 	ensurePermission(context.user, {
 		resource: 'license-key',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Const { data } = context;

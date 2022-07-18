@@ -5,7 +5,7 @@
 
 /* eslint-disable new-cap */
 import { Boolean, Static, Array, Partial, Null, ValidationError } from 'runtypes';
-import { logger } from '@app/common/log';
+import { logger } from '@app/core/log';
 import { Info } from '@app/common/run-time/info';
 import { Service } from '@app/common/run-time/service';
 import { Dashboard } from '@app/common/run-time/dashboard';
@@ -32,15 +32,16 @@ export const Server = Partial({
 	vars: Vars.Or(Null),
 	config: Config.Or(Null),
 	twoFactor: TwoFactor.Or(Null),
-	dashboard: Dashboard.Or(Null)
+	dashboard: Dashboard.Or(Null),
 });
 
+// eslint-disable-next-line @typescript-eslint/no-redeclare -- intentionally naming the variable the same as the type
 export type Server = Static<typeof Server>;
 
 export const validateServer = ({
 	data,
 	apiVersion,
-	flashGuid
+	flashGuid,
 }: {
 	data: Server;
 	apiVersion: string;

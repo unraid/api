@@ -10,10 +10,10 @@ import execa from 'execa';
 import cors from 'cors';
 import stoppable from 'stoppable';
 import chokidar from 'chokidar';
-import express from 'express';
+import express, { Response } from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import { ApolloServer } from 'apollo-server-express';
+import { ApolloServer, ApolloServerExpressConfig } from 'apollo-server-express';
 import { logger, config, paths, pubsub } from '@app/core';
 import { graphql } from '@app/graphql';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
@@ -31,7 +31,7 @@ const customImageFilePath = path.join(paths['dynamix-base'], 'case-model.png');
 
 const updatePubsub = async () => {
 	await pubsub.publish('display', {
-		display: await display()
+		display: await display(),
 	});
 };
 
@@ -55,7 +55,7 @@ app.use(express.json());
 
 // Cors
 app.use(cors({
-	origin: function (origin, callback) {
+	origin(origin, callback) {
 		// Get currently allowed origins
 		const allowedOrigins = getAllowedOrigins();
 		logger.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
@@ -86,7 +86,7 @@ app.use(cors({
 
 		logger.trace('✔️ Origin check passed, granting CORS!');
 		callback(null, true);
-	}
+	},
 }));
 
 // Add Unraid API version header
@@ -120,14 +120,11 @@ if (process.env.ENVIRONMENT !== 'production') {
 }
 
 // Mount graph endpoint
-// @ts-expect-error
-const graphApp = new ApolloServer(graphql);
+const graphApp = new ApolloServer(graphql as unknown as ApolloServerExpressConfig);
 graphApp.applyMiddleware({ app });
 
 // List all endpoints at start of server
-app.get('/', (_, res) => {
-	return res.send(getEndpoints(app));
-});
+app.get('/', (_, res) => res.send(getEndpoints(app)));
 
 app.post('/verify', async (req, res) => {
 	try {
@@ -152,7 +149,7 @@ app.post('/verify', async (req, res) => {
 });
 
 // Handle errors by logging them and returning a 500.
-app.use((error, _, res, __) => {
+app.use((error: Error & { stackTrace?: string; status?: number }, _, res: Response, __) => {
 	// Don't log CORS errors
 	if (error.message.includes('CORS')) return;
 
@@ -162,7 +159,7 @@ app.use((error, _, res, __) => {
 		error.stackTrace = error.stack;
 	}
 
-	res.status(error.status || 500).send(error);
+	res.status(error.status ?? 500).send(error);
 });
 
 const httpServer = http.createServer(app);
@@ -208,7 +205,7 @@ if (isNaN(parseInt(port, 10))) {
 
 		// Restart the server
 		net.connect({
-			path: port
+			path: port,
 		}, () => {
 			exitApp();
 		}).on('error', (error: NodeJS.ErrnoException) => {
@@ -294,5 +291,5 @@ export const server = {
 
 		// Gracefully exit
 		exitApp();
-	}
+	},
 };

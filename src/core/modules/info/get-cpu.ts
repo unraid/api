@@ -17,7 +17,7 @@ export const getCpu = async function (context: CoreContext): Promise<CoreResult>
 	ensurePermission(user, {
 		resource: 'cpu',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const { cores, physicalCores, ...cpu } = await si.cpu();
@@ -27,11 +27,11 @@ export const getCpu = async function (context: CoreContext): Promise<CoreResult>
 		...cpu,
 		cores: physicalCores,
 		threads: cores,
-		flags
+		flags,
 	};
 
 	return {
 		text: `CPU info: ${JSON.stringify(result, null, 2)}`,
-		json: result
+		json: result,
 	};
 };

@@ -43,22 +43,20 @@ type NetworkIni = Record<string, {
 	type: string;
 }>;
 
-const parse = (state: NetworkIni) => {
-	return Object.values(state).map(network => {
-		const result = {
-			...network,
-			dhcpKeepresolv: toBoolean(network.dhcpKeepresolv),
-			dhcp6Keepresolv: toBoolean(network.dhcp6Keepresolv),
-			bonding: toBoolean(network.bonding),
-			bondnics: network.bondnics.split(','),
-			bridging: toBoolean(network.bridging),
-			'useDhcp:0': toBoolean(network['useDhcp:0']),
-			'useDhcp6:0': toBoolean(network['useDhcp6:0'])
-		};
+const parse = (state: NetworkIni) => Object.values(state).map(network => {
+	const result = {
+		...network,
+		dhcpKeepresolv: toBoolean(network.dhcpKeepresolv),
+		dhcp6Keepresolv: toBoolean(network.dhcp6Keepresolv),
+		bonding: toBoolean(network.bonding),
+		bondnics: network.bondnics.split(','),
+		bridging: toBoolean(network.bridging),
+		'useDhcp:0': toBoolean(network['useDhcp:0']),
+		'useDhcp6:0': toBoolean(network['useDhcp6:0']),
+	};
 
-		return result;
-	});
-};
+	return result;
+});
 
 /**
  * Network
@@ -84,7 +82,7 @@ export class Network extends ArrayState {
 			const statePath = path.join(statesDirectory, 'network.ini');
 			const state = parseConfig<NetworkIni>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

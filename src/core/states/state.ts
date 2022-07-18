@@ -45,7 +45,7 @@ export class State {
 	}
 
 	public emit(mutation: Mutation, node: LooseObject) {
-		const channel = this.channel;
+		const { channel } = this;
 
 		// Bail since we have no channel to post to
 		if (!channel) {
@@ -56,8 +56,8 @@ export class State {
 		bus.emit(channel, {
 			[channel]: {
 				mutation,
-				node
-			}
+				node,
+			},
 		});
 	}
 

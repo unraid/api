@@ -24,9 +24,7 @@ export type Cloud = {
 	allowedOrigins: string[];
 };
 
-export const createResponse = (cloud: Cloud): Cloud => {
-	return {
-		...cloud,
-		error: cloud.apiKey.error ?? cloud.relay.error ?? cloud.cloud.error
-	};
-};
+export const createResponse = (cloud: Cloud): Cloud => ({
+	...cloud,
+	error: cloud.apiKey.error ?? cloud.relay.error ?? cloud.cloud.error,
+});

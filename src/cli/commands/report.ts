@@ -8,7 +8,6 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
-import { relayStateToHuman } from '@app/graphql/relay-state';
 import { CachedServer } from '@app/cache/user';
 import { myServersConfig } from '@app/common/myservers-config';
 import { setEnv } from '@app/cli/set-env';
@@ -26,10 +25,10 @@ export const getConfig = <T = unknown>(path: string) => {
 	try {
 		const config = parseConfig<T>({
 			filePath: path,
-			type: 'ini'
+			type: 'ini',
 		});
 		return camelCaseKeys(config, {
-			deep: true
+			deep: true,
 		});
 	} catch {}
 
@@ -39,12 +38,13 @@ export const getConfig = <T = unknown>(path: string) => {
 export const createGotOptions = (config: Partial<MyServersConfig>) => {
 	// Create default settings for got
 	const headers = {
+
 		Origin: '/var/run/unraid-cli.sock',
 		'Content-Type': 'application/json',
-		'x-api-key': config.upc?.apikey
+		'x-api-key': config.upc?.apikey,
 	};
 	const timeout = {
-		request: 10_000 // Wait a maximum of 10s
+		request: 10_000, // Wait a maximum of 10s
 	};
 
 	return { headers, timeout };
@@ -56,8 +56,8 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
-			query: 'query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}'
-		})
+			query: 'query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}',
+		}),
 	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
 		return undefined;
@@ -71,8 +71,8 @@ export const getServersData = async (unraidApiPid: number | undefined, cloud: Cl
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
-			query: 'query{servers{name guid status owner{username}}}'
-		})
+			query: 'query{servers{name guid status owner{username}}}',
+		}),
 	}).then(response => (JSON.parse(response.body)?.data.servers as CachedServer[] ?? [])).catch(error => {
 		cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
 		return [];
@@ -85,17 +85,15 @@ const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
 
 export const anonymiseOrigins = (origins?: string[]): string[] => {
 	const originsWithoutSocks = origins?.filter(url => !url.endsWith('.sock')) ?? [];
-	return originsWithoutSocks.map(origin => {
-		return origin
+	return originsWithoutSocks.map(origin => origin
 		// Replace 40 char hash string with "HASH"
-			.replace(hashUrlRegex(), '$1HASH$3')
+		.replace(hashUrlRegex(), '$1HASH$3')
 		// Replace ipv4 address using . separator with "IPV4ADDRESS"
-			.replace(ipRegex(), 'IPV4ADDRESS')
+		.replace(ipRegex(), 'IPV4ADDRESS')
 		// Replace ipv4 address using - separator with "IPV4ADDRESS"
-			.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
+		.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
 		// Report WAN port
-			.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT');
-	}).filter(Boolean);
+		.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT')).filter(Boolean);
 };
 
 const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbose: boolean) => {
@@ -118,20 +116,20 @@ export const report = async (...argv: string[]) => {
 
 	// Check if we have a tty attached to stdout
 	// If we don't then this is being piped to a log file, etc.
-	const hasTTY = process.stdout.isTTY;
+	const hasTty = process.stdout.isTTY;
 
 	// Check if we should show interactive logs
 	// If this has a tty it's interactive
 	// AND
 	// If they don't have --raw
-	const isInteractive = hasTTY && !rawOutput;
+	const isInteractive = hasTty && !rawOutput;
 
 	// Check if they want a super fancy report
 	const isFancyPants = isInteractive && process.env.THE_FANCIEST_OF_PANTS_PLEASE;
 
 	const stdoutLogger = readLine.createInterface({
 		input: process.stdin,
-		output: process.stdout
+		output: process.stdout,
 	});
 
 	try {
@@ -215,42 +213,40 @@ export const report = async (...argv: string[]) => {
 			const json = JSON.stringify({
 				os: {
 					serverName,
-					version: unraidVersion
+					version: unraidVersion,
 				},
 				api: {
-					version: fullVersion,
+					version: fullVersion as string,
 					status: unraidApiPid ? 'running' : 'stopped',
-					environment: process.env.ENVIRONMENT
+					environment: process.env.ENVIRONMENT,
 				},
 				apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
 				servers: {
 					offline: servers.filter(server => server.status === 'offline'),
-					online: servers.filter(server => server.status === 'online')
+					online: servers.filter(server => server.status === 'online'),
 				},
-				...(hasCrashLogs ? { crashLogs: await readFile('/var/log/unraid-api/crash.log', 'utf-8').then(lines => {
-					return lines.split('\n').map(line => {
-						try {
-							return JSON.parse(line);
-						} catch {}
+				...(hasCrashLogs ? { crashLogs: await readFile('/var/log/unraid-api/crash.log', 'utf-8').then(lines => lines.split('\n').map(line => {
+					try {
+						return JSON.parse(line) as string;
+					} catch {}
 
-						return undefined;
-					}).filter(Boolean);
-				}).catch(() => '') } : {}),
+					return undefined;
+				}).filter(Boolean)).catch(() => '') } : {}),
 				myServers: {
 					status: config?.remote?.username ? 'authenticated' : 'signed out',
-					...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {})
+					...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
 				},
 				relay: {
-					status: relayStatus
+					status: relayStatus,
 				},
 				minigraph: {
-					status: miniGraphqlStatus
+					status: miniGraphqlStatus,
 				},
 				cloud: {
 					status: cloud?.cloud.status,
 					...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
-					...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {})
-				}
+					...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {}),
+				},
 			});
 			stdout.write(json + '\n');
 			return;
@@ -263,7 +259,7 @@ export const report = async (...argv: string[]) => {
 		const report = dedent`
             <-----UNRAID-API-REPORT----->
             SERVER_NAME: ${serverName}
-            ENVIRONMENT: ${process.env.ENVIRONMENT}
+            ENVIRONMENT: ${process.env.ENVIRONMENT!}
             UNRAID_VERSION: ${unraidVersion}
             UNRAID_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
             NODE_VERSION: ${process.version}
@@ -288,10 +284,10 @@ export const report = async (...argv: string[]) => {
             ${report}
             ${crashLogs}
             \`\`\`
-        ` as string : dedent`
+        ` : dedent`
             ${report}
             ${crashLogs}
-        ` as string;
+        `;
 
 		// If we have trace logs or the user selected --raw don't clear the screen
 		if (process.env.LOG_LEVEL !== 'trace' && isInteractive && !isFancyPants) {

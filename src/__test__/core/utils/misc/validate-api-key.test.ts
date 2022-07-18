@@ -8,7 +8,7 @@ vi.mock('@app/core/log', () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
-		trace: vi.fn()
+		trace: vi.fn(),
 	},
 	graphqlLogger: {
 		addContext: vi.fn(),
@@ -16,16 +16,16 @@ vi.mock('@app/core/log', () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
-		trace: vi.fn()
-	}
+		trace: vi.fn(),
+	},
 }));
 
 vi.mock('@app/core/states/var', () => ({
 	varState: {
 		data: {
-			flashGuid: '123-123-123-123'
-		}
-	}
+			flashGuid: '123-123-123-123',
+		},
+	},
 }));
 
 test('Returns false when API key is invalid', async () => {

@@ -15,10 +15,10 @@ export type LooseStringObject = Record<string, string>;
  * @property data Data object.
  * @property param Params object.
  */
-export interface CoreContext {
-	readonly query?: Readonly<Record<string, any>>;
-	readonly data?: Readonly<Record<string, any>>;
-	readonly params?: Readonly<Record<string, string>>;
+export interface CoreContext<Query = Record<string, unknown>, Data = Record<string, unknown>, Params = Record<string, unknown>> {
+	readonly query?: Readonly<Query>;
+	readonly data?: Readonly<Data>;
+	readonly params?: Readonly<Params>;
 	readonly user: Readonly<User>;
 }
 

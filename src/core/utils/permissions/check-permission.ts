@@ -30,7 +30,7 @@ export const checkPermission = (user: User, options: AccessControlOptions) => {
 		role: user.role,
 		resource,
 		action,
-		possession
+		possession,
 	});
 
 	// Check if user is allowed

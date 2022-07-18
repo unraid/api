@@ -5,16 +5,16 @@ import { cloneDeep } from '@apollo/client/utilities';
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
 		ACTIVE: 0,
-		INACTIVE: 1
-	}
+		INACTIVE: 1,
+	},
 }));
 
 vi.mock('@app/core/log', () => ({
 	logger: {
 		info: vi.fn(),
 		error: vi.fn(),
-		debug: vi.fn()
-	}
+		debug: vi.fn(),
+	},
 }));
 
 vi.mock('@app/core/states/var', () => {
@@ -24,7 +24,7 @@ vi.mock('@app/core/states/var', () => {
 		regState: 'PRO',
 		regTy: 'PRO',
 		name: 'Tower',
-		configValid: true
+		configValid: true,
 	};
 
 	const varState: {
@@ -41,27 +41,27 @@ vi.mock('@app/core/states/var', () => {
 		},
 		switchSource: vi.fn(source => {
 			varState._source = source;
-		})
+		}),
 	};
 
 	return {
-		varState
+		varState,
 	};
 });
 
 vi.mock('@app/common/dashboard/get-array', () => ({
-	getArray: vi.fn()
+	getArray: vi.fn(),
 }));
 
 vi.mock('@app/common/two-factor', () => ({
 	checkTwoFactorEnabled: vi.fn(() => ({
 		isRemoteEnabled: false,
-		isLocalEnabled: false
-	}))
+		isLocalEnabled: false,
+	})),
 }));
 
 vi.mock('@app/common/dashboard/get-unraid-version', () => ({
-	getUnraidVersion: vi.fn(() => '6.0.0')
+	getUnraidVersion: vi.fn(() => '6.0.0'),
 }));
 
 vi.mock('@app/graphql/resolvers/query/display', () => ({
@@ -70,13 +70,13 @@ vi.mock('@app/graphql/resolvers/query/display', () => ({
 			url: '',
 			icon: 'custom',
 			error: 'could-not-read-image',
-			base64: ''
-		}
-	})
+			base64: '',
+		},
+	}),
 }));
 
 vi.mock('@app/common/dashboard/boot-timestamp', () => ({
-	bootTimestamp: new Date('2022-06-10T04:35:58.276Z')
+	bootTimestamp: new Date('2022-06-10T04:35:58.276Z'),
 }));
 
 test('Returns generated data', async () => {
@@ -154,7 +154,7 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	// Add invalid data to varState
 	(varState._data as Partial<Var>) = {
 		...varState._data,
-		name: 3000 as any
+		name: 3000 as any,
 	};
 
 	const result = await generateData();

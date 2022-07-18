@@ -45,11 +45,11 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 			const operationType = info.operation.operation;
 			const query = {
 				...directiveArgs.query,
-				...(operationType === 'query' ? input : {})
+				...(operationType === 'query' ? input : {}),
 			};
 			const data = {
 				...directiveArgs.data,
-				...(operationType === 'mutation' ? input : {})
+				...(operationType === 'mutation' ? input : {}),
 			};
 			// If query    @func(param_1, param_2, input: query?)
 			// If mutation @func(param_1, param_2, input: data)
@@ -57,7 +57,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 				query,
 				params,
 				data,
-				user
+				user,
 			};
 
 			// Resolve func
@@ -82,7 +82,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 			}
 
 			// Get wanted result type or fallback to json
-			let result = coreMethodResult[pluginType || resultType || 'json'];
+			const result = coreMethodResult[pluginType || resultType || 'json'];
 
 			// Allow fields to be extracted
 			if (directiveArgs.extractFromResponse) {

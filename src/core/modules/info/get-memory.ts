@@ -21,7 +21,7 @@ export const getMemory = async (context: CoreContext): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'memory',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const layout = await si.memLayout();
@@ -51,10 +51,10 @@ export const getMemory = async (context: CoreContext): Promise<CoreResult> => {
 	const result = {
 		layout,
 		max,
-		...info
+		...info,
 	};
 
 	return {
-		json: result
+		json: result,
 	};
 };

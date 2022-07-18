@@ -29,7 +29,7 @@ export const getShares: Overload = (type?: string, filter?: Filter) => {
 		user: (name?: string) => processShare('user', sharesState.findOne(name ? { name } : {})),
 		users: () => sharesState.find().map(share => processShare('user', share)),
 		disk: (name?: string) => processShare('disk', slotsState.findOne({ exportable: 'yes', ...(name ? { name } : {}) })),
-		disks: () => slotsState.find({ exportable: 'yes' }).filter(({ name }) => name.startsWith('disk')).map(disk => processShare('disk', disk))
+		disks: () => slotsState.find({ exportable: 'yes' }).filter(({ name }) => name.startsWith('disk')).map(disk => processShare('disk', disk)),
 	};
 
 	// Return a type of share
@@ -44,6 +44,6 @@ export const getShares: Overload = (type?: string, filter?: Filter) => {
 	// Return all shares
 	return {
 		users: types.users(),
-		disks: types.disks()
+		disks: types.disks(),
 	};
 };

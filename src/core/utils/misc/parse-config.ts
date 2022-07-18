@@ -64,7 +64,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
 
 	return {
 		...filteredObject,
-		...temporaryArrays
+		...temporaryArrays,
 	};
 };
 
@@ -86,7 +86,7 @@ export const parseConfig = <T>(options: Options): T => {
 	let data: Record<string, any>;
 	if (filePath) {
 		data = multiIniRead(filePath, {
-			keep_quotes: false
+			keep_quotes: false,
 		});
 	} else {
 		const parser = new MultiIniParser();
@@ -99,22 +99,19 @@ export const parseConfig = <T>(options: Options): T => {
 	}
 
 	// Remove quotes around keys
-	const dataWithoutQuoteKeys = mapObject(data, (key, value) => {
+	const dataWithoutQuoteKeys = mapObject(data, (key, value) =>
 		// @SEE: https://stackoverflow.com/a/19156197/2311366
-		return [(key).replace(/^"(.+(?="$))"$/, '$1'), value];
-	});
+		[(key).replace(/^"(.+(?="$))"$/, '$1'), value],
+	);
 
 	// Result object with array items as actual arrays
 	const result = Object.fromEntries(
 		Object.entries(dataWithoutQuoteKeys)
-			.map(([key, value]) => {
-				return [key, typeof value === 'object' ? fixObjectArrays(value) : value];
-			})
+			.map(([key, value]) => [key, typeof value === 'object' ? fixObjectArrays(value) : value]),
 	);
 
 	// Convert all keys to camel case
-	// @ts-expect-error
 	return camelCaseKeys(result, {
-		deep: true
-	});
+		deep: true,
+	}) as T;
 };

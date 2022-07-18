@@ -14,7 +14,7 @@ export const getBaseboard = async (context: CoreContext): Promise<CoreResult> =>
 	ensurePermission(user, {
 		resource: 'baseboard',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// @TODO: Convert baseboard.model to known model name
@@ -23,7 +23,7 @@ export const getBaseboard = async (context: CoreContext): Promise<CoreResult> =>
 
 	return {
 		json: {
-			...baseboard
-		}
+			...baseboard,
+		},
 	};
 };

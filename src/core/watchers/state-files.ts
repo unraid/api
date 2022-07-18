@@ -15,8 +15,10 @@ import { slotsState } from '@app/core/states/slots';
 import { smbSecState } from '@app/core/states/smb-sec';
 import { usersState } from '@app/core/states/users';
 import { varState } from '@app/core/states/var';
+import { ArrayState, State } from '@app/core/states/state';
 
 const stateMapping = {
+
 	'devs.ini': devicesState,
 	'network.ini': networkState,
 	'sec_nfs.ini': nfsSecState,
@@ -24,22 +26,23 @@ const stateMapping = {
 	'disks.ini': slotsState,
 	'sec.ini': smbSecState,
 	'users.ini': usersState,
-	'var.ini': varState
+	'var.ini': varState,
+	/* eslint-enable @typescript-eslint/naming-convention */
 };
 
 const getState = (fullPath: string) => {
 	const fileName = fullPath.split('/').pop()!;
-	return Object.keys(stateMapping).includes(fileName) ? stateMapping[fileName] : undefined;
+	return Object.keys(stateMapping).includes(fileName) ? stateMapping[fileName as keyof typeof stateMapping] : undefined;
 };
 
 export const states = () => {
-	const STATES_RELOAD_TIME_MS = 5000; // 5s
+	const statesReloadLength = 5_000; // 5s
 	const statesCwd = paths.states;
 	const watchers: chokidar.FSWatcher[] = [];
 	let timeout: NodeJS.Timeout;
 
 	const reloadState = (state: ArrayState | State) => () => {
-		logger.debug('Reloading state as it\'s been %s since last event.', prettyMilliseconds(STATES_RELOAD_TIME_MS));
+		logger.debug('Reloading state as it\'s been %s since last event.', prettyMilliseconds(statesReloadLength));
 
 		// Reload state
 		try {
@@ -60,7 +63,7 @@ export const states = () => {
 			const watcher = chokidar.watch(statesCwd, {
 				persistent: true,
 				ignoreInitial: true,
-				ignored: (path: string) => ['node_modules'].some(s => path.includes(s))
+				ignored: (path: string) => ['node_modules'].some(s => path.includes(s)),
 			});
 
 			logger.debug('Loading watchers for %s', statesCwd);
@@ -77,7 +80,7 @@ export const states = () => {
 				}
 
 				// Update timeout
-				timeout = setTimeout(reloadState(state), STATES_RELOAD_TIME_MS);
+				timeout = setTimeout(reloadState(state), statesReloadLength);
 				logger.debug('States directory %s has emitted %s event.', fullPath, event);
 			});
 
@@ -86,6 +89,6 @@ export const states = () => {
 		},
 		stop() {
 			watchers.forEach(async watcher => watcher.close());
-		}
+		},
 	};
 };

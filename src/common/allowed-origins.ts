@@ -10,7 +10,7 @@ logger.debug('Initial extra origins set origins="%s"', myServersConfig?.api?.ext
 
 // To add additional origins add a field to your myservers.cfg called "extraOrigins" with a comma separated string
 export const origins = {
-	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : []
+	extra: typeof myServersConfig?.api?.extraOrigins === 'string' ? (myServersConfig.api.extraOrigins?.split(',') ?? []) : [],
 };
 
 const allowedSocks = [
@@ -21,7 +21,7 @@ const allowedSocks = [
 	'/var/run/unraid-php.sock',
 
 	// CLI
-	'/var/run/unraid-cli.sock'
+	'/var/run/unraid-cli.sock',
 ];
 
 const createWanHashOrigins = ({ wanAccessEnabled, wanHTTPSPort }: { wanAccessEnabled: boolean; wanHTTPSPort: string }) => [
@@ -29,7 +29,7 @@ const createWanHashOrigins = ({ wanAccessEnabled, wanHTTPSPort }: { wanAccessEna
 	...(nginx.ipv4?.wan && wanAccessEnabled ? [`https://${nginx.ipv4.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 	// WAN hash IPV6
-	...(nginx.ipv6?.wan && wanAccessEnabled ? [`https://${nginx.ipv6.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : [])
+	...(nginx.ipv6?.wan && wanAccessEnabled ? [`https://${nginx.ipv6.wan}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 ];
 
 const createLanHashOrigins = ({ webuiHTTPSPort }: { webuiHTTPSPort: number | string }) => [
@@ -37,7 +37,7 @@ const createLanHashOrigins = ({ webuiHTTPSPort }: { webuiHTTPSPort: number | str
 	...(nginx.ipv4?.lan ? [`https://${nginx.ipv4.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
 	// LAN hash IPV6
-	...(nginx.ipv6?.lan ? [`https://${nginx.ipv6.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : [])
+	...(nginx.ipv6?.lan ? [`https://${nginx.ipv6.lan}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 ];
 
 export const getAllowedOrigins = (): string[] => {
@@ -65,7 +65,7 @@ export const getAllowedOrigins = (): string[] => {
 	// Get IP address origins
 	const ipOrigins = [
 		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`
+		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 	];
 
 	// Get local TLD address origins
@@ -76,7 +76,7 @@ export const getAllowedOrigins = (): string[] => {
 
 		// Local TLD
 		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`
+		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
 	];
 
 	// Get origins for LAN access with hash cert
@@ -95,6 +95,6 @@ export const getAllowedOrigins = (): string[] => {
 		...lanHashOrigins,
 		...wanHashOrigins,
 		...allowedSocks,
-		...origins.extra
+		...origins.extra,
 	]).values()].filter(Boolean);
 };

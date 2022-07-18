@@ -35,7 +35,7 @@ export const getDisplay = async function (context: CoreContext): Promise<Result>
 	ensurePermission(user, {
 		resource: 'display',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const filePath = paths['dynamix-config'];
@@ -53,13 +53,13 @@ export const getDisplay = async function (context: CoreContext): Promise<Result>
 		critical: Number.parseInt(display.critical, 10),
 		hot: Number.parseInt(display.hot, 10),
 		max: Number.parseInt(display.max, 10),
-		locale: display.locale || 'en_US'
+		locale: display.locale || 'en_US',
 	};
 
 	return {
 		text: `Display: ${JSON.stringify(result, null, 2)}`,
 		json: {
-			...result
-		}
+			...result,
+		},
 	};
 };

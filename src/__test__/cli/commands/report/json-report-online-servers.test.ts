@@ -1,5 +1,5 @@
 import { expect, SpyInstanceFn, test, vi } from 'vitest';
-import { v4 as randomUUID } from 'uuid';
+import { randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
@@ -12,9 +12,9 @@ vi.mock('readline', () => {
 		default: {
 			createInterface: vi.fn(() => ({
 				write: writeStub,
-				close: closeStub
-			}))
-		}
+				close: closeStub,
+			})),
+		},
 	};
 });
 
@@ -25,14 +25,14 @@ vi.mock('fs', () => ({
 	},
 	existsSync(path: string) {
 		return path === '/etc/unraid-version';
-	}
+	},
 }));
 
 vi.mock('fs/promises', () => ({
 	readFile: vi.fn(async () => ''),
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
-	})
+	}),
 }));
 
 vi.mock('got', () => ({
@@ -45,12 +45,12 @@ vi.mock('got', () => ({
 						relay: { status: 'connected', error: undefined, timeout: undefined },
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
-						allowedOrigins: []
-					}
-				}
+						allowedOrigins: [],
+					},
+				},
 			};
 			return {
-				body: JSON.stringify(data)
+				body: JSON.stringify(data),
 			};
 		}
 
@@ -59,22 +59,22 @@ vi.mock('got', () => ({
 		}
 
 		throw new Error(`Unmocked query "${opts.body}"`);
-	})
+	}),
 }));
 
 vi.mock('@app/core/utils/misc/parse-config', () => ({
 	parseConfig: vi.fn(() => ({
 		upc: {
-			apikey: randomUUID()
+			apikey: randomUUID(),
 		},
 		remote: {
-			username: 'api-test-runner'
-		}
-	}))
+			username: 'api-test-runner',
+		},
+	})),
 }));
 
 vi.mock('@app/cli/get-unraid-api-pid', () => ({
-	getUnraidApiPid: vi.fn(async () => 234234)
+	getUnraidApiPid: vi.fn(async () => 234234),
 }));
 
 vi.mock('process');

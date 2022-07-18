@@ -17,13 +17,13 @@ export const getVars = async (context: CoreContext): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'vars',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	return {
 		text: `Vars: ${JSON.stringify(varState.data, null, 2)}`,
 		json: {
-			...varState.data
-		}
+			...varState.data,
+		},
 	};
 };

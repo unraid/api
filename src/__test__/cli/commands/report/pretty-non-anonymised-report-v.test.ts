@@ -1,5 +1,5 @@
 import { expect, SpyInstanceFn, test, vi } from 'vitest';
-import { v4 as randomUUID } from 'uuid';
+import { randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
@@ -12,9 +12,9 @@ vi.mock('readline', () => {
 		default: {
 			createInterface: vi.fn(() => ({
 				write: writeStub,
-				close: closeStub
-			}))
-		}
+				close: closeStub,
+			})),
+		},
 	};
 });
 
@@ -24,7 +24,7 @@ vi.mock('fs/promises', () => ({
 	readFile: vi.fn(async () => ''),
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
-	})
+	}),
 }));
 
 vi.mock('got', () => ({
@@ -37,12 +37,12 @@ vi.mock('got', () => ({
 						relay: { status: 'connected', error: undefined, timeout: undefined },
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
-						allowedOrigins: []
-					}
-				}
+						allowedOrigins: [],
+					},
+				},
 			};
 			return {
-				body: JSON.stringify(data)
+				body: JSON.stringify(data),
 			};
 		}
 
@@ -56,25 +56,25 @@ vi.mock('got', () => ({
 						relay: { status: 'disconnected', error: 'Mothership is restarting', timeout: Date.now() + 60_000 },
 						minigraphql: { status: 'disconnected' },
 						cloud: { status: 'error', error: 'Mothership is restarting' },
-						allowedOrigins: []
-					}
-				}
+						allowedOrigins: [],
+					},
+				},
 			};
 			return {
-				body: JSON.stringify(data)
+				body: JSON.stringify(data),
 			};
 		}
 
 		throw new Error(`Unmocked query "${opts.body}"`);
-	})
+	}),
 }));
 
 vi.mock('@app/core/utils/misc/parse-config', () => ({
 	parseConfig: vi.fn(() => ({
 		upc: {
-			apikey: randomUUID()
-		}
-	}))
+			apikey: randomUUID(),
+		},
+	})),
 }));
 
 vi.mock('process');

@@ -17,7 +17,7 @@ export const getUnassignedDevices = async (context: CoreContext): Promise<CoreRe
 	ensurePermission(user, {
 		resource: 'devices/unassigned',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const devices = [];
@@ -28,6 +28,6 @@ export const getUnassignedDevices = async (context: CoreContext): Promise<CoreRe
 
 	return {
 		text: `Unassigned devices: ${JSON.stringify(devices, null, 2)}`,
-		json: devices
+		json: devices,
 	};
 };

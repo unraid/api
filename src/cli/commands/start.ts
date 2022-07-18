@@ -27,7 +27,7 @@ export const start = async () => {
 	// Ini serializer
 	const serializer = new IniSerializer({
 		// This ensures it ADDs quotes
-		keep_quotes: false
+		keep_quotes: false,
 	});
 
 	// Stringify data
@@ -35,8 +35,8 @@ export const start = async () => {
 		...(data ?? {}),
 		api: {
 			...data?.api ?? {},
-			version
-		}
+			version,
+		},
 	});
 
 	// Update config file
@@ -74,6 +74,7 @@ export const start = async () => {
 
 	// Load bundled index file
 	const indexPath = './index.js';
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	require(indexPath);
 
 	if (!mainOptions.debug) {
@@ -91,7 +92,7 @@ export const start = async () => {
 				// path where it resides within the Nexe VFS
 				cwd: paths['unraid-api-base'],
 				stdio: 'ignore',
-				detached: true
+				detached: true,
 			});
 
 			// Convert process into daemon

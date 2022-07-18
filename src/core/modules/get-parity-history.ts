@@ -21,7 +21,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 	ensurePermission(user, {
 		resource: 'parity-history',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const historyFilePath = paths['parity-checks'];
@@ -38,13 +38,13 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 			duration: Number.parseInt(duration, 10),
 			speed,
 			status,
-			errors: Number.parseInt(errors, 10)
+			errors: Number.parseInt(errors, 10),
 		};
 	});
 
 	// Create table for text output
 	const table = new Table({
-		head: ['Date', 'Duration', 'Speed', 'Status', 'Errors']
+		head: ['Date', 'Duration', 'Speed', 'Status', 'Errors'],
 	});
 	// Update raw values with strings
 	parityChecks.forEach(check => {
@@ -52,13 +52,13 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 			...check,
 			speed: check.speed ? check.speed : 'Unavailable',
 			duration: check.duration >= 0 ? check.duration : 'Unavailable',
-			status: check.status === '-4' ? 'Cancelled' : 'OK'
+			status: check.status === '-4' ? 'Cancelled' : 'OK',
 		});
 		table.push(array);
 	});
 
 	return {
 		text: table.toString(),
-		json: parityChecks
+		json: parityChecks,
 	};
 };

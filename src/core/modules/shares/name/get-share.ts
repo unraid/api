@@ -29,7 +29,7 @@ export const getShare = async function (context: Context): Promise<Result> {
 	ensurePermission(user, {
 		resource: 'share',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const userShare = getShares('user', { name });
@@ -37,7 +37,7 @@ export const getShare = async function (context: Context): Promise<Result> {
 
 	const share = [
 		userShare,
-		diskShare
+		diskShare,
 	].filter(_ => _)[0];
 
 	if (!share) {
@@ -46,6 +46,6 @@ export const getShare = async function (context: Context): Promise<Result> {
 
 	return {
 		text: `Share: ${JSON.stringify(share, null, 2)}`,
-		json: share
+		json: share,
 	};
 };

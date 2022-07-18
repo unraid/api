@@ -21,7 +21,7 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 	ensurePermission(user, {
 		resource: 'license',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Get license data
@@ -37,8 +37,8 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 			return {
 				type,
 				state,
-				file
+				file,
 			};
-		}
+		},
 	};
 };

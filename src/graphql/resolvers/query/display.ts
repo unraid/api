@@ -32,13 +32,13 @@ const states = {
 		url: '',
 		icon: 'custom',
 		error: '',
-		base64: ''
+		base64: '',
 	},
 	default: {
 		url: '',
 		icon: 'default',
 		error: '',
-		base64: ''
+		base64: '',
 	},
 
 	// Errors
@@ -46,32 +46,32 @@ const states = {
 		url: '',
 		icon: 'custom',
 		error: 'could-not-read-config-file',
-		base64: ''
+		base64: '',
 	},
 	couldNotReadImage: {
 		url: '',
 		icon: 'custom',
 		error: 'could-not-read-image',
-		base64: ''
+		base64: '',
 	},
 	imageMissing: {
 		url: '',
 		icon: 'custom',
 		error: 'image-missing',
-		base64: ''
+		base64: '',
 	},
 	imageTooBig: {
 		url: '',
 		icon: 'custom',
 		error: 'image-too-big',
-		base64: ''
+		base64: '',
 	},
 	imageCorrupt: {
 		url: '',
 		icon: 'custom',
 		error: 'image-corrupt',
-		base64: ''
-	}
+		base64: '',
+	},
 };
 
 export default async () => {
@@ -116,7 +116,7 @@ export default async () => {
 			// 73 bytes is close to the smallest we can get https://garethrees.org/2007/11/14/pngcrush/
 			if (fileBuffer.length <= 25) {
 				return {
-					case: states.couldNotReadImage
+					case: states.couldNotReadImage,
 				};
 			}
 
@@ -124,12 +124,12 @@ export default async () => {
 				case: {
 					...states.custom,
 					base64: fileBuffer.toString('base64'),
-					url: serverCase
-				}
+					url: serverCase,
+				},
 			};
 		} catch (error: unknown) {
 			return {
-				case: states.couldNotReadImage
+				case: states.couldNotReadImage,
 			};
 		}
 	}
@@ -137,7 +137,7 @@ export default async () => {
 	// Blank cfg file?
 	if (serverCase.trim().length === 0) {
 		return {
-			case: states.default
+			case: states.default,
 		};
 	}
 
@@ -145,7 +145,7 @@ export default async () => {
 	return {
 		case: {
 			...states.default,
-			icon: serverCase
-		}
+			icon: serverCase,
+		},
 	};
 };

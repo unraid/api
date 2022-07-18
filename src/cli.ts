@@ -5,11 +5,11 @@ segfaultHandler.registerHandler('/var/log/unraid-api/crash.log', (signal, addres
 	writeFileSync('/var/log/unraid-api/crash.json', JSON.stringify({ signal, address, stack }));
 });
 
-import am from 'am';
+import { am } from 'am';
 import { main } from '@app/cli/index';
 import { internalLogger } from '@app/core/log';
 
-am(main, (error: unknown) => {
+void am(main, (error: unknown) => {
 	internalLogger.fatal((error as Error).message);
 	// Ensure process is exited
 	process.exit(1);

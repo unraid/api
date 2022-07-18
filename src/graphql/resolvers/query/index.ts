@@ -33,5 +33,5 @@ export const Query = {
 	server,
 	servers,
 	twoFactor,
-	vms
+	vms,
 };

@@ -29,7 +29,7 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
 	ensurePermission(user, {
 		resource: 'docker/container',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	/**
@@ -43,7 +43,7 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
 	const containers = await docker
 		.listContainers({
 			all: Boolean(all),
-			size: true
+			size: true,
 		})
 		.then(containers => containers.map(object => camelCaseKeys(object, { deep: true })))
 		// If docker throws an error return no containers
@@ -56,12 +56,12 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
 			const names = container.names[0];
 			return {
 				...container,
-				autoStart: autoStarts.includes(names.split('/')[1])
+				autoStart: autoStarts.includes(names.split('/')[1]),
 			};
 		});
 
 	return {
 		text: `Containers: ${JSON.stringify(result, null, 2)}`,
-		json: result
+		json: result,
 	};
 };

@@ -33,12 +33,12 @@ export const sendFormToKeyServer = async (url: string, data: Record<string, unkn
 	return got(url, {
 		method: 'POST',
 		headers: {
-			'content-type': 'application/x-www-form-urlencoded'
+			'content-type': 'application/x-www-form-urlencoded',
 		},
 		timeout: {
-			request: 5_000
+			request: 5_000,
 		},
-		body
+		body,
 	});
 };
 
@@ -61,7 +61,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	// Send apiKey, etc. to key-server for verification
 	const response = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
 		guid: varState.data.flashGuid,
-		apikey: apiKey
+		apikey: apiKey,
 	});
 
 	logger.addContext('apiKey', apiKey);
@@ -83,7 +83,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	logger.removeContext('data');
 
 	// Check if key is valid
-	const valid = data.valid;
+	const { valid } = data;
 	if (valid) {
 		logger.trace('key-server marked API key as valid');
 		validKeys.add(apiKey);

@@ -2,14 +2,14 @@ import NodeCache from 'node-cache';
 
 export const userCache = new NodeCache();
 
-type URL = string;
+type Url = string;
 type IpAddress = string;
 type Status = 'online' | 'offline';
 
 export interface Owner {
 	username: string;
-	url: URL;
-	avatar: URL;
+	url: Url;
+	avatar: Url;
 }
 
 export interface CachedServer {
@@ -18,10 +18,10 @@ export interface CachedServer {
 	apikey: string;
 	name: string;
 	status: Status;
-	wanip: IpAddress | null;
+	wanip: IpAddress | undefined;
 	lanip: IpAddress;
-	localurl: URL;
-	remoteurl: string | null;
+	localurl: Url;
+	remoteurl: string | undefined;
 }
 
 export interface CachedServers {

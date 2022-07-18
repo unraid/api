@@ -17,13 +17,13 @@ export const getMachineId = async function (context: CoreContext): Promise<CoreR
 	ensurePermission(user, {
 		resource: 'machine-id',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const machineId = getMachineIdFromFile();
 
 	return {
 		text: `Machine ID: ${JSON.stringify(machineId, null, 2)}`,
-		json: machineId
+		json: machineId,
 	};
 };

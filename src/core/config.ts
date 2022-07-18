@@ -22,5 +22,5 @@ export const config = {
 	debug,
 	nodeEnv,
 	safeMode,
-	port: envs.PORT ?? (nodeEnv === 'development' ? 5000 : '/var/run/unraid-api.sock')
+	port: envs.PORT ?? (nodeEnv === 'development' ? 5000 : '/var/run/unraid-api.sock'),
 };

@@ -10,7 +10,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'crash-reporting-enabled',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Check if crash reporting is enabled

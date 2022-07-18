@@ -27,7 +27,7 @@ export const addRole = async (context: Context): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'user',
 		action: 'update',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Validation
@@ -46,6 +46,6 @@ export const addRole = async (context: Context): Promise<CoreResult> => {
 	// @todo: add user role
 
 	return {
-		text: 'User updated successfully.'
+		text: 'User updated successfully.',
 	};
 };

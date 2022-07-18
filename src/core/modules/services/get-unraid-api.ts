@@ -29,7 +29,7 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 	ensurePermission(context.user, {
 		resource: 'service/unraid-api',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const now = new Date();
@@ -41,13 +41,13 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 		online: true,
 		uptime: {
 			timestamp: uptimeTimestamp,
-			seconds: uptimeSeconds
+			seconds: uptimeSeconds,
 		},
-		version
+		version,
 	};
 
 	return {
 		text: `Service: ${JSON.stringify(service, null, 2)}`,
-		json: service
+		json: service,
 	};
 };

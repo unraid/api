@@ -1,25 +1,21 @@
 import { graphqlLogger } from '@app/core/log';
 
-interface subscription {
+type Subscription = {
 	total: number;
 	channels: string[];
-}
+};
 
-const subscriptions: Record<string, subscription> = {};
+const subscriptions: Record<string, Subscription> = {};
 
 /**
  * Return current ws connection count.
  */
-export const getWsConnectionCount = () => {
-	return Object.values(subscriptions).filter(subscription => subscription.total >= 1).length;
-};
+export const getWsConnectionCount = () => Object.values(subscriptions).filter(subscription => subscription.total >= 1).length;
 
 /**
  * Return current ws connection count in channel.
  */
-export const getWsConnectionCountInChannel = (channel: string) => {
-	return Object.values(subscriptions).filter(subscription => subscription.channels.includes(channel)).length;
-};
+export const getWsConnectionCountInChannel = (channel: string) => Object.values(subscriptions).filter(subscription => subscription.channels.includes(channel)).length;
 
 export const hasSubscribedToChannel = (id: string, channel: string) => {
 	graphqlLogger.debug('Subscribing to %s', channel);
@@ -28,7 +24,7 @@ export const hasSubscribedToChannel = (id: string, channel: string) => {
 	if (subscriptions[id] === undefined) {
 		subscriptions[id] = {
 			total: 1,
-			channels: [channel]
+			channels: [channel],
 		};
 		return;
 	}
@@ -42,7 +38,7 @@ export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
 	if (subscriptions[id] === undefined) {
 		subscriptions[id] = {
 			total: 0,
-			channels: []
+			channels: [],
 		};
 		return;
 	}
@@ -57,7 +53,7 @@ export const hasUnsubscribedFromChannel = (id: string, channel: string) => {
 export const wsHasConnected = (id: string) => {
 	subscriptions[id] = {
 		total: 0,
-		channels: []
+		channels: [],
 	};
 };
 

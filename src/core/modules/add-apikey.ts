@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { v4 as uuid } from 'uuid';
+import { randomUUID } from 'uuid';
 import uuidApiKey from 'uuid-apikey';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
@@ -31,10 +31,10 @@ export const addApikey = async (context: Context): Promise<Result | void> => {
 	ensurePermission(context.user, {
 		resource: 'apikey',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
-	const name = context.data?.name ?? uuid();
+	const name = context.data?.name ?? randomUUID();
 	const key = context.data?.key ?? uuidApiKey.create().apiKey;
 	const userId = context.data?.userId ?? context.user.id;
 	const expiration = context.data?.expiration;
@@ -42,14 +42,14 @@ export const addApikey = async (context: Context): Promise<Result | void> => {
 	if (name && key) {
 		apiManager.add(name, key, {
 			userId,
-			expiration
+			expiration,
 		});
 
 		const result = apiManager.getKey(name);
 
 		if (result) {
 			return {
-				json: result
+				json: result,
 			};
 		}
 	}

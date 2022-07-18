@@ -25,7 +25,7 @@ export const getEmhttpdService = async (context: CoreContext): Promise<Result> =
 	ensurePermission(user, {
 		resource: 'service/emhttpd',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Only get uptime if process is online
@@ -40,7 +40,7 @@ export const getEmhttpdService = async (context: CoreContext): Promise<Result> =
 		text: `Online: ${online}\n Uptime: ${uptime}`,
 		json: {
 			online,
-			uptime
-		}
+			uptime,
+		},
 	};
 };

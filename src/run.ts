@@ -15,14 +15,14 @@ export const publish = async (channel: string, mutation: string, node?: Record<s
 	const data = {
 		[channel]: {
 			mutation,
-			node
-		}
+			node,
+		},
 	};
 
 	// Update clients
 	const fieldName = Object.keys(data)[0];
 	await pubsub.publish(channel, {
-		[fieldName]: data[fieldName].node
+		[fieldName]: data[fieldName].node,
 	});
 };
 
@@ -49,7 +49,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		node,
 		moduleToRun,
 		context,
-		loop
+		loop,
 	} = options;
 
 	if (exiting) {
@@ -85,7 +85,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 		// Run the next loop
 		return run(channel, mutation, {
 			...options,
-			loop: loop - 1
+			loop: loop - 1,
 		});
 	} catch (error: unknown) {
 		if (isNodeError(error, AppError)) {

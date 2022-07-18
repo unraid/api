@@ -19,7 +19,7 @@ type Promisify<T> = {
 
 const socketPath = paths['docker-socket'] ?? '/var/run/docker.sock';
 const client = new Docker({
-	socketPath
+	socketPath,
 });
 
 /**

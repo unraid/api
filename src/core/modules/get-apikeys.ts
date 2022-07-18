@@ -17,7 +17,7 @@ export const getApikeys = async function (context: CoreContext): Promise<CoreRes
 	const canReadAny = checkPermission(user, {
 		resource: 'apikey',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const validKeys = apiManager.getValidKeys();
@@ -25,7 +25,7 @@ export const getApikeys = async function (context: CoreContext): Promise<CoreRes
 
 	return {
 		text: `ApiKeys: ${JSON.stringify(keys, null, 2)}`,
-		json: keys
+		json: keys,
 	};
 };
 

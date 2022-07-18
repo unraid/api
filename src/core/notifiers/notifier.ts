@@ -55,13 +55,13 @@ export class Notifier {
 		 */
 		const computedFunctions = {
 			json: JSON.stringify(data, null, 2),
-			...computed
+			...computed,
 		};
 
 		return Mustache.render(this.template, {
 			...data,
 			...helpers,
-			...computedFunctions
+			...computedFunctions,
 		});
 	}
 

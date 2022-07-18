@@ -82,7 +82,7 @@ const publishToDashboard = async () => {
 		// Publish the updated data
 		dashboardLogger.trace('Publishing update');
 		await pubsub.publish('dashboard', {
-			dashboard: dataPacket
+			dashboard: dataPacket,
 		});
 	} catch (error: unknown) {
 		dashboardLogger.error('Failed publishing');

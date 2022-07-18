@@ -4,17 +4,17 @@ import { Number, String, Record, Partial, Null } from 'runtypes';
 export const Info = Partial({
 	apps: Record({
 		installed: Number,
-		started: Number
+		started: Number,
 	}),
 	versions: Partial({
-		unraid: String.Or(Null)
+		unraid: String.Or(Null),
 	}),
 	os: Partial({
 		hostname: String,
-		uptime: String.Or(Null)
+		uptime: String.Or(Null),
 	}),
 	vms: Record({
 		installed: Number,
-		started: Number
-	}).Or(Null)
+		started: Number,
+	}).Or(Null),
 });

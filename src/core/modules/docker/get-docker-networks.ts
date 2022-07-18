@@ -15,15 +15,13 @@ export const getDockerNetworks = async (context: CoreContext): Promise<CoreResul
 	ensurePermission(user, {
 		resource: 'docker/network',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const networks = await docker.listNetworks()
 		// If docker throws an error return no networks
 		.catch(catchHandlers.docker)
-		.then((networks = []) => {
-			return networks.map(object => camelCaseKeys(object, { deep: true }));
-		});
+		.then((networks = []) => networks.map(object => camelCaseKeys(object, { deep: true })));
 
 	/**
 	 * Get all Docker networks
@@ -35,6 +33,6 @@ export const getDockerNetworks = async (context: CoreContext): Promise<CoreResul
 	 */
 	return {
 		text: `Networks: ${JSON.stringify(networks, null, 2)}`,
-		json: networks
+		json: networks,
 	};
 };

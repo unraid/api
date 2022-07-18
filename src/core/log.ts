@@ -10,7 +10,7 @@ import { serializeError } from 'serialize-error';
 
 const redact = redactSecrets('REDACTED', {
 	keys: [],
-	values: []
+	values: [],
 });
 
 export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
@@ -42,9 +42,9 @@ const logLayout = {
 				.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
 				.filter(([key]) => key !== 'pid');
 			const cleanContext = Object.fromEntries(contextEntries);
-			return ` ${context as string}` ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
-		}
-	}
+			return context ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
+		},
+	},
 };
 
 if (process.env.NODE_ENV !== 'test') {
@@ -58,8 +58,8 @@ if (process.env.NODE_ENV !== 'test') {
 				layout: {
 					...logLayout,
 					// File logs should always be pretty
-					pattern: fullLoggingPattern
-				}
+					pattern: fullLoggingPattern,
+				},
 			},
 			errorFile: {
 				type: 'file',
@@ -67,22 +67,22 @@ if (process.env.NODE_ENV !== 'test') {
 				layout: {
 					...logLayout,
 					// File logs should always be pretty
-					pattern: fullLoggingPattern
-				}
+					pattern: fullLoggingPattern,
+				},
 			},
 			out: {
 				type: 'stdout',
-				layout: logLayout
+				layout: logLayout,
 			},
-			errors: { type: 'logLevelFilter', appender: 'errorFile', level: 'error' }
+			errors: { type: 'logLevelFilter', appender: 'errorFile', level: 'error' },
 		},
 		categories: {
 			default: {
 				appenders,
 				level,
-				enableCallStack: tracingEnabled
-			}
-		}
+				enableCallStack: tracingEnabled,
+			},
+		},
 	});
 }
 
@@ -113,7 +113,7 @@ const getNoOpLogger = (name: string): Logger => {
 		warn: noOp,
 		error: noOp,
 		fatal: noOp,
-		mark: noOp
+		mark: noOp,
 	} as unknown as Logger;
 };
 
@@ -146,7 +146,7 @@ export const loggers = [
 	cliLogger,
 	nchanLogger,
 	relayLogger,
-	apiManagerLogger
+	apiManagerLogger,
 ];
 
 // Send SIGUSR1 to increase log level

@@ -24,7 +24,7 @@ export const ensureAuth = async (options: Options) => {
 	const valid = await checkAuth({
 		username,
 		password,
-		file: file || paths.htpasswd
+		file: file || paths.htpasswd,
 	});
 
 	if (!valid) {

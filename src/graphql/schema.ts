@@ -7,6 +7,6 @@ export const schema = makeExecutableSchema({
 	typeDefs,
 	resolvers,
 	schemaDirectives: {
-		func: FuncDirective
-	}
+		func: FuncDirective,
+	},
 });

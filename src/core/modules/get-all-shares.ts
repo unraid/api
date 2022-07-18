@@ -17,7 +17,7 @@ export const getAllShares = async (context: CoreContext): Promise<CoreResult> =>
 	ensurePermission(user, {
 		resource: 'share',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const userShares = getShares('users');
@@ -25,11 +25,11 @@ export const getAllShares = async (context: CoreContext): Promise<CoreResult> =>
 
 	const shares = [
 		...userShares,
-		...diskShares
+		...diskShares,
 	];
 
 	return {
 		text: `Shares: ${JSON.stringify(shares, null, 2)}`,
-		json: shares
+		json: shares,
 	};
 };

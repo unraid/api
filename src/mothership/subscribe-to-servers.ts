@@ -14,7 +14,7 @@ import { miniGraphqlStore } from '@app/mothership/store';
 export const minigraphql = new SubscriptionClient(() => {
 	const apiKey = apiManager.cloudKey ?? 'LARRYS_MAGIC_KEY';
 	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
-	url.username = version;
+	url.username = version as string;
 	url.password = apiKey;
 	return url.toString().replace('http', 'ws');
 }, {
@@ -23,10 +23,10 @@ export const minigraphql = new SubscriptionClient(() => {
 	// Should wait 10s for a connection to start
 	minTimeout: ONE_SECOND * 10,
 	connectionParams: () => ({
-		apiVersion: version,
-		apiKey: apiManager.cloudKey
+		apiVersion: version as string,
+		apiKey: apiManager.cloudKey,
 	}),
-	connectionCallback: errors => {
+	connectionCallback(errors) {
 		if (errors) miniGraphqlStore.connected = false;
 		try {
 			const graphqlErrors = errors as GraphQLError[] | undefined;
@@ -49,16 +49,14 @@ export const minigraphql = new SubscriptionClient(() => {
 		} catch (error: unknown) {
 			mothershipLogger.trace('Failed connecting to %s with "%s"', MOTHERSHIP_GRAPHQL_LINK, error);
 		}
-	}
+	},
 });
 
-// Allow the client to wait 10s for a connection to start
-// @ts-expect-error
-minigraphql.maxConnectTimeGenerator.setMin(10_000);
-
 // Fix client timing out while trying to connect
-// @ts-expect-error
-minigraphql.maxConnectTimeGenerator.duration = () => minigraphql.maxConnectTimeGenerator.max;
+// @ts-expect-error accessing private field as we need to override this
+(minigraphql.maxConnectTimeGenerator as { setMin: (n: number) => void }).setMin(10_000);
+// @ts-expect-error accessing private field as we need to override this
+minigraphql.maxConnectTimeGenerator.duration = () => minigraphql.maxConnectTimeGenerator.max as number;
 
 // When minigraphql connects
 minigraphql.onConnected(async () => {
@@ -128,13 +126,13 @@ export const subscribeToServers = (apiKey: string) => {
             servers @auth(apiKey: $apiKey)
         }`,
 		variables: {
-			apiKey
-		}
+			apiKey,
+		},
 	});
 
 	// Subscribe
 	const subscription = query.subscribe({
-		next: async ({ data, errors }: { data: { servers: CachedServer[] }; errors: undefined | unknown[] }) => {
+		async next({ data, errors }: { data: { servers: CachedServer[] }; errors: undefined | unknown[] }) {
 			if (errors && errors.length > 0) {
 				mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
 				errors.forEach(error => {
@@ -150,20 +148,20 @@ export const subscribeToServers = (apiKey: string) => {
 
 			// Update internal cache
 			userCache.set<CachedServers>('mine', {
-				servers: data.servers
+				servers: data.servers,
 			});
 
 			// Publish owner event
-			const owner = data.servers[0].owner;
+			const { owner } = data.servers[0];
 			await pubsub.publish('owner', {
-				owner
+				owner,
 			});
 
 			// Publish servers event
 			await pubsub.publish('servers', {
-				servers: data.servers
+				servers: data.servers,
 			});
-		}
+		},
 	});
 
 	return subscription;

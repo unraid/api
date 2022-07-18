@@ -20,7 +20,7 @@ export const getFlash = async function (context: CoreContext): Promise<CoreResul
 	ensurePermission(user, {
 		resource: 'flash',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Get flash data
@@ -36,8 +36,8 @@ export const getFlash = async function (context: CoreContext): Promise<CoreResul
 			return {
 				guid,
 				product,
-				vendor
+				vendor,
 			};
-		}
+		},
 	};
 };

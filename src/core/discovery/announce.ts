@@ -26,11 +26,11 @@ export const announce = async (): Promise<void> => {
 			is_setup: boolToString(false),
 			version,
 			// By default new servers won't need a key
-			requires_api_key: boolToString(false)
-		}
-	}).catch(error => {
+			requires_api_key: boolToString(false),
+		},
+	}).catch((error: Error) => {
 		// We need to change our hostname
-		if (error.messae === 'service_exists') {
+		if (error.message === 'service_exists') {
 			throw new AppError('Hostname is taken.');
 		}
 

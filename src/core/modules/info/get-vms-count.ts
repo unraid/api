@@ -32,7 +32,7 @@ export const getVmsCount = async function (context: CoreContext): Promise<Result
 	ensurePermission(user, {
 		resource: 'vms',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	try {
@@ -50,8 +50,8 @@ export const getVmsCount = async function (context: CoreContext): Promise<Result
 			text: `Installed: ${installed} \nStarted: ${started}`,
 			json: {
 				installed,
-				started
-			}
+				started,
+			},
 		};
 	} catch {
 		const installed = 0;
@@ -60,8 +60,8 @@ export const getVmsCount = async function (context: CoreContext): Promise<Result
 			text: `Installed: ${installed} \nStarted: ${started}`,
 			json: {
 				installed,
-				started
-			}
+				started,
+			},
 		};
 	}
 };

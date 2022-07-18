@@ -11,7 +11,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'dashboard',
 		action: 'read',
-		possession: 'own'
+		possession: 'own',
 	});
 
 	const dashboard = await generateData();

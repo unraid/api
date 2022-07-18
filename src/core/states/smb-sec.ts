@@ -41,22 +41,20 @@ interface SmbSecIni extends SecIni {
 	security: SecSecurity;
 }
 
-const parse = (state: SmbSecIni[]) => {
-	return Object.entries(state).map(([_name, state]) => {
-		const { export: enabled, security, writeList, readList, volsizelimit, ...rest } = state;
+const parse = (state: SmbSecIni[]) => Object.entries(state).map(([_name, state]) => {
+	const { export: enabled, security, writeList, readList, volsizelimit, ...rest } = state;
 
-		return {
-			enabled: enabled === 'e',
-			security,
-			writeList: writeList ? writeList.split(',') : [],
-			readList: readList ? readList.split(',') : [],
-			timemachine: {
-				volsizelimit: Number.parseInt(volsizelimit, 10)
-			},
-			...rest
-		};
-	});
-};
+	return {
+		enabled: enabled === 'e',
+		security,
+		writeList: writeList ? writeList.split(',') : [],
+		readList: readList ? readList.split(',') : [],
+		timemachine: {
+			volsizelimit: Number.parseInt(volsizelimit, 10),
+		},
+		...rest,
+	};
+});
 
 export class SmbSec extends ArrayState {
 	private static instance: SmbSec;
@@ -79,7 +77,7 @@ export class SmbSec extends ArrayState {
 			const statePath = path.join(statesDirectory, 'sec.ini');
 			const state = parseConfig<SmbSecIni[]>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}

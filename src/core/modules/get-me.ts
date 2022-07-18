@@ -14,11 +14,11 @@ export const getMe = (context: CoreContext): CoreResult => {
 
 	const me = {
 		...user,
-		permissions: getPermissions(user.role)
+		permissions: getPermissions(user.role),
 	};
 
 	return {
 		text: `Me: ${JSON.stringify(me, null, 2)}`,
-		json: me
+		json: me,
 	};
 };

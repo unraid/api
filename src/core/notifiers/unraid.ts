@@ -36,7 +36,7 @@ export class UnraidNotifier extends HttpNotifier {
 
 		const headers = {
 			Accept: 'application/json, text/plain, */*',
-			'Content-Type': 'application/json'
+			'Content-Type': 'application/json',
 		};
 
 		return this.$http(endpoint, {
@@ -46,8 +46,8 @@ export class UnraidNotifier extends HttpNotifier {
 				type,
 				title,
 				body,
-				transport
-			})
+				transport,
+			}),
 		});
 	}
 }

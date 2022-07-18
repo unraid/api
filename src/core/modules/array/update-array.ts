@@ -26,7 +26,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 	ensurePermission(user, {
 		resource: 'array',
 		action: 'update',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const missingFields = hasFields(data, ['state']);
@@ -58,7 +58,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 	locked = true;
 	const command = {
 		[`cmd${uppercaseFirstChar(nextState)}`]: uppercaseFirstChar(nextState),
-		startState: startState.toUpperCase()
+		startState: startState.toUpperCase(),
 	};
 
 	// `await` has to be used otherwise the catch
@@ -87,7 +87,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 			...array.json,
 			state: nextState === 'start' ? 'started' : 'stopped',
 			previousState: startState,
-			pendingState
-		}
+			pendingState,
+		},
 	};
 };

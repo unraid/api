@@ -22,7 +22,7 @@ export const addDiskToArray = async function (context: CoreContext): Promise<Cor
 	ensurePermission(user, {
 		resource: 'array',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const missingFields = hasFields(data, ['id']);
@@ -41,7 +41,7 @@ export const addDiskToArray = async function (context: CoreContext): Promise<Cor
 	// Add disk
 	await emcmd({
 		changeDevice: 'apply',
-		[`slotId.${slot}`]: diskId
+		[`slotId.${slot}`]: diskId,
 	});
 
 	const array = getArray(context);
@@ -49,6 +49,6 @@ export const addDiskToArray = async function (context: CoreContext): Promise<Cor
 	// Disk added successfully
 	return {
 		text: `Disk was added to the array in slot ${slot}.`,
-		json: array.json
+		json: array.json,
 	};
 };

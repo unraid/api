@@ -11,24 +11,25 @@ export const getServers = async (apiKey: string) => {
 			method: 'POST',
 			headers: {
 				'Content-Type': 'application/json',
+
 				Accept: 'application/json',
-				'x-unraid-api-version': version,
-				'x-api-key': apiKey
+				'x-unraid-api-version': version as string,
+				'x-api-key': apiKey,
 			},
 			body: JSON.stringify({
 				query: 'query($apiKey: String!) { servers @auth(apiKey: $apiKey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
 				variables: {
-					apiKey
-				}
+					apiKey,
+				},
 			}),
 			timeout: {
-				request: 5_000 // Wait for 5s at most
+				request: 5_000, // Wait for 5s at most
 			},
 			retry: {
 				methods: ['POST'],
 				limit: 5,
-				errorCodes: ['429']
-			}
+				errorCodes: ['429'],
+			},
 		});
 
 		// Invalid API key?

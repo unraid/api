@@ -18,13 +18,13 @@ export const getDevices = async (context: CoreContext): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'device',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const devices = devicesState.find();
 
 	return {
 		text: `Devices: ${JSON.stringify(devices, null, 2)}`,
-		json: devices
+		json: devices,
 	};
 };

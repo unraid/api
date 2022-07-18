@@ -1,16 +1,16 @@
-import { v4 as randomUUID } from 'uuid';
+import { randomUUID } from 'uuid';
 import { assert, expect, test, vi } from 'vitest';
 import { ApiManager } from '@app/core/api-manager';
 
 vi.mock('@app/core/utils/misc/load-state', () => ({
 	loadState: vi.fn(() => ({
 		upc: {
-			apikey: '123-123-123-123-123-123'
+			apikey: '123-123-123-123-123-123',
 		},
 		notifier: {
-			apikey: '123-123-123-123-123-123'
-		}
-	}))
+			apikey: '123-123-123-123-123-123',
+		},
+	})),
 }));
 
 test('api manager can be instantiated', () => {
@@ -33,7 +33,7 @@ test('an API key can be replaced', () => {
 	const user = {
 		key: apiKey,
 		name: 'random',
-		userId: undefined
+		userId: undefined,
 	};
 	apiManager.replace('random', apiKey);
 	expect(emitSpy.mock.calls[0]).toEqual(['add', 'random', user]);

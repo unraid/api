@@ -16,14 +16,12 @@ import { PhpError } from '@app/core/errors/php-error';
  * @ignore
  * @private
  */
-const encodeParameters = (parameters: LooseObject) => {
+const encodeParameters = (parameters: LooseObject) =>
 	// Join query params together
-	return Object.entries(parameters).map(kv => {
+	Object.entries(parameters).map(kv =>
 		// Encode each section and join
-		return kv.map(encodeURIComponent).join('=');
-	}).join('&');
-};
-
+		kv.map(encodeURIComponent).join('='),
+	).join('&');
 interface Options {
 	/** File path */
 	file: string;
@@ -44,7 +42,7 @@ export const phpLoader = async (options: Options) => {
 		'./wrapper.php',
 		method,
 		`${file}${Object.keys(query).length >= 1 ? ('?' + encodeParameters(query)) : ''}`,
-		encodeParameters(body)
+		encodeParameters(body),
 	];
 
 	return execa('php', options_, { cwd: __dirname })

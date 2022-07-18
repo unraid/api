@@ -13,6 +13,6 @@ export const getApps = async (): Promise<CoreResult> => {
 
 	return {
 		text: `Apps: ${JSON.stringify(apps, null, 2)}`,
-		json: apps
+		json: apps,
 	};
 };

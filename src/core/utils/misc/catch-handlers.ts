@@ -14,7 +14,7 @@ interface DockerError extends NodeJS.ErrnoException {
  * Shared catch handlers.
  */
 export const catchHandlers = {
-	docker: (error: DockerError) => {
+	docker(error: DockerError) {
 		const socketPath = paths['docker-socket'];
 
 		// Throw custom error for docker socket missing
@@ -24,11 +24,11 @@ export const catchHandlers = {
 
 		throw error;
 	},
-	emhttpd: (error: NodeJS.ErrnoException) => {
+	emhttpd(error: NodeJS.ErrnoException) {
 		if (error.code === 'ENOENT') {
 			throw new AppError('emhttpd socket unavailable.');
 		}
 
 		throw error;
-	}
+	},
 };

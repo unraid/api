@@ -29,7 +29,7 @@ const saveOutgoingWebsocketMessageToDisk = (message: string) => {
 			size: '10M', // Rotate every 10 MegaBytes written
 			interval: '1d', // Rotate daily
 			compress: 'gzip', // Compress rotated files
-			maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10) // Keep a maximum of 2 log files
+			maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10), // Keep a maximum of 2 log files
 		});
 	}
 
@@ -44,7 +44,7 @@ const saveIncomingWebsocketMessageToDisk = (message: string) => {
 			size: '10M', // Rotate every 10 MegaBytes written
 			interval: '1d', // Rotate daily
 			compress: 'gzip', // Compress rotated files
-			maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10) // Keep a maximum of 2 log files
+			maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10), // Keep a maximum of 2 log files
 		});
 	}
 
@@ -63,7 +63,7 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 	const data = {
 		id,
 		payload,
-		type
+		type,
 	};
 	const message = JSON.stringify(data);
 
@@ -82,8 +82,8 @@ function sendMessage(name: string, type: string, id?: unknown, payload?: Record<
 	relayStore.relay.send(message);
 }
 
-const subscriptionCache = {};
-const subscriptionListener = (id: string | number, name: string) => (data: any) => {
+const subscriptionCache: Record<string, unknown> = {};
+const subscriptionListener = (id: string | number, name: string) => (data: unknown) => {
 	relayLogger.trace('Got message from listener for %s', name);
 
 	// Bail as we've already sent mothership a message exactly like this
@@ -95,10 +95,10 @@ const subscriptionListener = (id: string | number, name: string) => (data: any) 
 	switch (true) {
 		// Array needs dampening as it generates too many events during intense IO
 		case name === 'array':
-			debounce(sendMessage(name, 'data', id, { data }), 1_000);
+			debounce(sendMessage(name, 'data', id, { data } as { data: Record<string, unknown> }), 1_000);
 			break;
 		default:
-			sendMessage(name, 'data', id, { data });
+			sendMessage(name, 'data', id, { data } as { data: Record<string, unknown> });
 			break;
 	}
 };
@@ -111,7 +111,7 @@ const getRelayHeaders = () => {
 		'x-api-key': apiKey,
 		'x-flash-guid': varState.data?.flashGuid,
 		'x-server-name': serverName,
-		'x-unraid-api-version': version
+		'x-unraid-api-version': version,
 	};
 };
 
@@ -248,9 +248,9 @@ export const checkRelayConnection = debounce(async () => {
 		// Create a new ws instance
 		relayStore.relay = new WebSocketAsPromised(MOTHERSHIP_RELAY_WS_LINK, {
 			createWebSocket: url => new WebSocket(url, ['mothership-0.0.1'], {
-				headers
-			}) as any,
-			extractMessageData: event => JSON.parse(event)
+				headers,
+			}) as unknown as globalThis.WebSocket,
+			extractMessageData: event => JSON.parse(event) as unknown,
 		});
 
 		// Connect to relay
@@ -265,9 +265,9 @@ export const checkRelayConnection = debounce(async () => {
 			relayLogger.debug('Websocket status="%s" statusCode="%s" reason="%s"', after, statusCode, reason);
 			const error = new Error();
 			const code = `${statusCode}`.substring(1);
-			// @ts-expect-error
+			// @ts-expect-error Property 'code' does not exist on type 'Error'.
 			error.code = Number(code);
-			// @ts-expect-error
+			// @ts-expect-error Property 'reason' does not exist on type 'Error'.
 			error.reason = reason;
 			handleError(error);
 
@@ -296,7 +296,7 @@ export const checkRelayConnection = debounce(async () => {
 
 				switch (true) {
 					case type === 'query' || type === 'mutation': {
-						const operationName = message.payload.query.definitions[0].name.value;
+						const operationName = message.payload.query.definitions[0].name.value as string;
 
 						// Convert query to string
 						const query = print(message.payload.query);
@@ -313,8 +313,8 @@ export const checkRelayConnection = debounce(async () => {
 							schema,
 							source: query,
 							contextValue: {
-								user
-							}
+								user,
+							},
 						});
 
 						relayLogger.addContext('result', result);
@@ -344,7 +344,7 @@ export const checkRelayConnection = debounce(async () => {
 
 						// Find which field we're subscribing to
 						// Since subscriptions can only include a single field it's safe to assume 0 is the correct index
-						const field = message.payload.query.definitions[0].selectionSet.selections[0].name.value;
+						const field = message.payload.query.definitions[0].selectionSet.selections[0].name.value as string;
 
 						// Subscribe to endpoint
 						relayLogger.debug('Starting subscription to %s', field);
@@ -398,11 +398,11 @@ export const checkRelayConnection = debounce(async () => {
 			} catch (error: unknown) {
 				if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 				relayLogger.error('Failed processing message with "%s"', error.message);
-				const operationName = message.payload.query.definitions[0].name.value;
+				const operationName = message.payload.query.definitions[0].name.value as string;
 				sendMessage(operationName, 'error', id, {
 					error: {
-						message: error.message
-					}
+						message: error.message,
+					},
 				});
 			}
 		});

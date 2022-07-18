@@ -26,7 +26,7 @@ export const getUsers = async (context: Context): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'user',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	// Default to only showing limited fields
@@ -44,12 +44,12 @@ export const getUsers = async (context: Context): Promise<CoreResult> => {
 			id,
 			name,
 			description,
-			role
+			role,
 		};
 	}) : users;
 
 	return {
 		text: `Users: ${JSON.stringify(result, null, 2)}`,
-		json: result
+		json: result,
 	};
 };

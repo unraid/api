@@ -21,7 +21,7 @@ export const getSoftwareVersions = async (context: CoreContext): Promise<CoreRes
 	ensurePermission(user, {
 		resource: 'software-versions',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	let versions = cache.get<si.Systeminformation.VersionData>('versions');
@@ -34,6 +34,6 @@ export const getSoftwareVersions = async (context: CoreContext): Promise<CoreRes
 
 	return {
 		text: `System versions: ${JSON.stringify(versions, null, 2)}`,
-		json: versions
+		json: versions,
 	};
 };

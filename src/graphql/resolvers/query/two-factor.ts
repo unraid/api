@@ -12,7 +12,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'two-factor',
 		action: 'read',
-		possession: 'own'
+		possession: 'own',
 	});
 
 	logger.debug('Generating 2FA response');
@@ -25,11 +25,11 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		return {
 			token: null,
 			remote: {
-				enabled: isRemoteEnabled
+				enabled: isRemoteEnabled,
 			},
 			local: {
-				enabled: isLocalEnabled
-			}
+				enabled: isLocalEnabled,
+			},
 		};
 	}
 
@@ -43,10 +43,10 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	return {
 		token,
 		remote: {
-			enabled: isRemoteEnabled
+			enabled: isRemoteEnabled,
 		},
 		local: {
-			enabled: isLocalEnabled
-		}
+			enabled: isLocalEnabled,
+		},
 	};
 };

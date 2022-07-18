@@ -32,7 +32,7 @@ export const getAppCount = async function (context: CoreContext): Promise<Result
 	ensurePermission(user, {
 		resource: 'docker/container',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const installed = await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length);
@@ -42,7 +42,7 @@ export const getAppCount = async function (context: CoreContext): Promise<Result
 		text: `Installed: ${installed} \nStarted: ${started}`,
 		json: {
 			installed,
-			started
-		}
+			started,
+		},
 	};
 };

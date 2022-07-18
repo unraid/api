@@ -13,7 +13,7 @@ import { startDashboardProducer, stopDashboardProducer } from '@app/graphql/reso
 
 export function withCancel<T>(
 	asyncIterator: AsyncIterator<T | undefined>,
-	onCancel: () => void
+	onCancel: () => void,
 ): AsyncIterator<T | undefined> {
 	if (!asyncIterator.return) {
 		asyncIterator.return = async () => Promise.resolve({ value: undefined, done: true });
@@ -30,59 +30,59 @@ export function withCancel<T>(
 
 export const Subscription = {
 	display: {
-		...createSubscription('display')
+		...createSubscription('display'),
 	},
 	apikeys: {
 		// Not sure how we're going to secure this
 		// ...createSubscription('apikeys')
 	},
 	config: {
-		...createSubscription('config')
+		...createSubscription('config'),
 	},
 	array: {
-		...createSubscription('array')
+		...createSubscription('array'),
 	},
 	dockerContainers: {
-		...createSubscription('docker/container')
+		...createSubscription('docker/container'),
 	},
 	dockerNetworks: {
-		...createSubscription('docker/network')
+		...createSubscription('docker/network'),
 	},
 	info: {
-		...createSubscription('info')
+		...createSubscription('info'),
 	},
 	services: {
-		...createSubscription('services')
+		...createSubscription('services'),
 	},
 	servers: {
-		...createSubscription('servers')
+		...createSubscription('servers'),
 	},
 	shares: {
-		...createSubscription('shares')
+		...createSubscription('shares'),
 	},
 	unassignedDevices: {
-		...createSubscription('devices/unassigned')
+		...createSubscription('devices/unassigned'),
 	},
 	users: {
-		...createSubscription('users')
+		...createSubscription('users'),
 	},
 	vars: {
-		...createSubscription('vars')
+		...createSubscription('vars'),
 	},
 	vms: {
-		...createSubscription('vms')
+		...createSubscription('vms'),
 	},
 	registration: {
-		...createSubscription('registration')
+		...createSubscription('registration'),
 	},
 	online: {
-		...createSubscription('online')
+		...createSubscription('online'),
 	},
 	owner: {
-		...createSubscription('owner')
+		...createSubscription('owner'),
 	},
 	dashboard: {
-		subscribe: async (rootValue, args, context, info: GraphQLResolveInfo) => {
+		async subscribe(rootValue, args, context, info: GraphQLResolveInfo) {
 			if (!context.user) {
 				throw new AppError('<ws> No user found in context.', 500);
 			}
@@ -91,7 +91,7 @@ export const Subscription = {
 			ensurePermission(context.user, {
 				resource: 'dashboard',
 				action: 'read',
-				possession: 'any'
+				possession: 'any',
 			});
 
 			// Mark channel as subscribed
@@ -106,6 +106,6 @@ export const Subscription = {
 				// Stop producer
 				stopDashboardProducer();
 			});
-		}
-	}
+		},
+	},
 };

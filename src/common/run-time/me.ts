@@ -7,5 +7,5 @@ export const Me = Partial({
 	name: String.Or(Null),
 	description: String.Or(Null),
 	role: String.Or(Null),
-	permissions: Permissions.Or(Null)
+	permissions: Permissions.Or(Null),
 });

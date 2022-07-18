@@ -16,7 +16,7 @@ windowPolyFill.register(false);
 global.XMLHttpRequest = xhr2;
 global.EventSource = EventSource;
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const NchanSubscriber = require('nchan');
 
 const getSubEndpoint = () => {
@@ -35,28 +35,28 @@ const endpointToStateMapping = {
 	sec_nfs: states.nfsSecState,
 	shares: states.sharesState,
 	users: states.usersState,
-	var: states.varState
+	var: states.varState,
 };
 
 const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	const sub = new NchanSubscriber(`${getSubEndpoint()}/${endpoint}`, {
-		subscriber: 'eventsource'
+		subscriber: 'eventsource',
 	});
 
-	sub.on('connect', function (_event) {
+	sub.on('connect', _event => {
 		nchanLogger.debug('Connected to %s', endpoint);
 		resolve();
 	});
 
-	sub.on('disconnect', function (_event) {
+	sub.on('disconnect', _event => {
 		nchanLogger.debug('Disconnected from %s', endpoint);
 	});
 
-	sub.on('message', function (message, _messageMetadata) {
+	sub.on('message', (message, _messageMetadata) => {
 		try {
 			const state = parseConfig({
 				file: message,
-				type: 'ini'
+				type: 'ini',
 			});
 
 			// Update state
@@ -64,7 +64,7 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 		} catch {}
 	});
 
-	sub.on('error', function (error, error_description) {
+	sub.on('error', (error, error_description) => {
 		nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
 	});
 

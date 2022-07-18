@@ -45,7 +45,7 @@ export class EmailNotifier extends Notifier {
 			generic: `
 				<h1>{{ title }}</h1>
 				<p><pre>{{ json }}</pre></p>
-			`.trim()
+			`.trim(),
 		};
 
 		// Render template
@@ -57,7 +57,7 @@ export class EmailNotifier extends Notifier {
 			to,
 			replyTo,
 			subject: title,
-			html
+			html,
 		}, (error, reply) => {
 			logger.error(error?.stack);
 			logger.info(reply);

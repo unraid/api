@@ -25,11 +25,11 @@ const watchConfigFile = () => {
 	// Watch the my servers config file
 	const watcher = chokidar.watch(configPath, {
 		persistent: true,
-		ignoreInitial: true
+		ignoreInitial: true,
 	});
 
 	// My servers config has likely changed
-	watcher.on('all', async function (_event, fullPath) {
+	watcher.on('all', async (_event, fullPath) => {
 		const file = loadState<Partial<MyServersConfig>>(fullPath);
 
 		logger.addContext('config', file);
@@ -47,7 +47,8 @@ const watchConfigFile = () => {
 				...(myServersConfig.remote ? myServersConfig.remote : {}),
 				wanaccess: file.remote.wanaccess,
 				wanport: file.remote.wanport,
-				'2Fa': file.remote['2Fa']
+
+				'2Fa': file.remote['2Fa'],
 			};
 		}
 
@@ -60,7 +61,8 @@ const watchConfigFile = () => {
 
 			myServersConfig.local = {
 				...(myServersConfig.local ? myServersConfig.local : {}),
-				'2Fa': file.local['2Fa']
+
+				'2Fa': file.local['2Fa'],
 			};
 		}
 
@@ -76,12 +78,12 @@ const watchConfigFile = () => {
 		await pubsub.publish('twoFactor', {
 			twoFactor: {
 				remote: {
-					enabled: isRemoteEnabled
+					enabled: isRemoteEnabled,
 				},
 				local: {
-					enabled: isLocalEnabled
-				}
-			}
+					enabled: isLocalEnabled,
+				},
+			},
 		});
 
 		try {
@@ -104,7 +106,7 @@ const watchStateFile = () => {
 	// Watch state file for changes
 	const watcher = chokidar.watch(filePath, {
 		persistent: true,
-		ignoreInitial: true
+		ignoreInitial: true,
 	});
 
 	// Update SSL cert info
@@ -116,11 +118,11 @@ const watchStateFile = () => {
 		// 		 still works within the ESM import
 		nginx.ipv4 = {
 			lan: nginxState.ipv4?.lan,
-			wan: nginxState.ipv4?.wan
+			wan: nginxState.ipv4?.wan,
 		};
 		nginx.ipv6 = {
 			lan: nginxState.ipv6?.lan,
-			wan: nginxState.ipv6?.wan
+			wan: nginxState.ipv6?.wan,
 		};
 
 		// Update remote access details
@@ -154,6 +156,6 @@ export const myservers = () => {
 		},
 		stop() {
 			watchers.forEach(async watcher => watcher.close());
-		}
+		},
 	};
 };

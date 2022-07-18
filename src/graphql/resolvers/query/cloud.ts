@@ -17,7 +17,7 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 	ensurePermission(context.user, {
 		resource: 'cloud',
 		action: 'read',
-		possession: 'own'
+		possession: 'own',
 	});
 
 	// If the endpoint is mocked return the mocked data
@@ -26,23 +26,23 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR,
 			apiKey: {
 				valid: Boolean(process.env.MOCK_CLOUD_ENDPOINT_APIKEY_VALID ?? true),
-				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR
+				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR,
 			} as unknown as Cloud['apiKey'],
 			relay: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'connected',
-				timeout: Number(process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT) ?? null,
+				timeout: process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT ? Number(process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT) : undefined,
 				reason: process.env.MOCK_CLOUD_ENDPOINT_RELAY_REASON,
-				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR
+				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR,
 			} as unknown as Cloud['relay'],
 			minigraphql: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED as 'connected' | 'disconnected'
+				status: process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED as 'connected' | 'disconnected',
 			},
 			cloud: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
 				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR,
-				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP
+				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP,
 			} as unknown as Cloud['cloud'],
-			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean)
+			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean),
 		};
 		return result;
 	}
@@ -54,7 +54,7 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 		relay: checkRelay(),
 		minigraphql,
 		cloud,
-		allowedOrigins: getAllowedOrigins()
+		allowedOrigins: getAllowedOrigins(),
 	});
 
 	return response;

@@ -29,7 +29,7 @@ export const removeDiskFromArray = async (context: Context): Promise<CoreResult>
 	ensurePermission(user, {
 		resource: 'array',
 		action: 'create',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const missingFields = hasFields(data, ['id']);
@@ -54,6 +54,6 @@ export const removeDiskFromArray = async (context: Context): Promise<CoreResult>
 	// Disk removed successfully
 	return {
 		text: `Disk was removed from the array in slot ${slot}.`,
-		json: array.json
+		json: array.json,
 	};
 };

@@ -11,12 +11,12 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'flash',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	return {
 		guid: varState.data.flashGuid,
 		vendor: varState.data.flashVendor,
-		product: varState.data.flashProduct
+		product: varState.data.flashProduct,
 	};
 };

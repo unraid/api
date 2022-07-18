@@ -15,7 +15,7 @@ export const generateTwoFactorToken = () => randomBytes(64).toString('hex');
  */
 export const twoFactorTokens = new NodeCache({
 	deleteOnExpire: true,
-	stdTTL: 5 * 60 * 1_000 // Allow 5m of cache time
+	stdTTL: 5 * 60 * 1_000, // Allow 5m of cache time
 });
 
 /**
@@ -66,7 +66,7 @@ export const checkTwoFactorEnabled = () => {
 		isSSLAuto,
 		isRemoteEnabled,
 		isLocalEnabled,
-		isEnabled
+		isEnabled,
 	});
 	logger.trace('Checking 2FA status');
 	logger.removeContext('details');
@@ -76,6 +76,6 @@ export const checkTwoFactorEnabled = () => {
 		isSSLAuto,
 		isRemoteEnabled,
 		isLocalEnabled,
-		isEnabled
+		isEnabled,
 	};
 };

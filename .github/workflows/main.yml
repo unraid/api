@@ -28,12 +28,13 @@ jobs:
       uses: shimataro/ssh-key-action@v2
       with:
         key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }
 
-    - name: Install node v14
+    # We need 18 to run the linter but the application uses 14
+    - name: Install node based on .nvmrc file
       uses: actions/setup-node@v3
       with:
-        node-version: 14.15.3
+        node-version-file: '.nvmrc'
 
     - name: Load npm cache
       uses: actions/cache@v3

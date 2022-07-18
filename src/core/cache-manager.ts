@@ -33,7 +33,7 @@ export class CacheManager {
 		return caches.get(this.name)?.get(key);
 	}
 
-	set<T = null>(key: string, value: T, ttl?: number): T {
+	set<T = undefined>(key: string, value: T, ttl?: number): T {
 		// Get cache
 		const cache = caches.get(this.name);
 

@@ -25,5 +25,5 @@ const allowedGpuClassId = /^(0001|03)/;
 export const vmRegExps = {
 	disallowedClassId,
 	allowedAudioClassId,
-	allowedGpuClassId
+	allowedGpuClassId,
 };

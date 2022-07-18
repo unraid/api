@@ -20,22 +20,20 @@ interface SharesIni {
 	useCache: string;
 }
 
-const parse = (state: SharesIni[]): Share[] => {
-	return Object.entries(state)
-		.map(([_, item]) => {
-			const { free, size, include, exclude, useCache, ...rest } = item;
-			const share: Share = {
-				free: parseInt(free, 10),
-				size: parseInt(size, 10),
-				include: include.split(',').filter(_ => _),
-				exclude: exclude.split(',').filter(_ => _),
-				cache: useCache === 'yes',
-				...rest
-			};
+const parse = (state: SharesIni[]): Share[] => Object.entries(state)
+	.map(([_, item]) => {
+		const { free, size, include, exclude, useCache, ...rest } = item;
+		const share: Share = {
+			free: parseInt(free, 10),
+			size: parseInt(size, 10),
+			include: include.split(',').filter(_ => _),
+			exclude: exclude.split(',').filter(_ => _),
+			cache: useCache === 'yes',
+			...rest,
+		};
 
-			return share;
-		});
-};
+		return share;
+	});
 
 export class Shares extends ArrayState {
 	private static instance: Shares;
@@ -58,7 +56,7 @@ export class Shares extends ArrayState {
 			const statePath = path.join(statesDirectory, 'shares.ini');
 			const state = parseConfig<SharesIni[]>({
 				filePath: statePath,
-				type: 'ini'
+				type: 'ini',
 			});
 			this._data = this.parse(state);
 		}
