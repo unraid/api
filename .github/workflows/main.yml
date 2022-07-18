@@ -30,11 +30,10 @@ jobs:
         key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    # We need 18 to run the linter but the application uses 14
-    - name: Install node based on .nvmrc file
+    - name: Install node v14
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version: 14.15.3
 
     - name: Load npm cache
       uses: actions/cache@v3
