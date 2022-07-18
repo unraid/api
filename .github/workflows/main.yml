@@ -49,6 +49,12 @@ jobs:
     - name: Installing node deps
       run: npm install
 
+    # We need 18 to run the linter
+    - name: Install node based on .nvmrc file
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: '.nvmrc'
+
     - name: Lint
       run: npm run lint
 
