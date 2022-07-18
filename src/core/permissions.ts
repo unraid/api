@@ -2,18 +2,16 @@ import { logger } from '@app/core/log';
 import { permissions as defaultPermissions } from '@app/core/default-permissions';
 import { AccessControl } from 'accesscontrol';
 
-const getPermissions = () => {
-	// Use built in permissions
-	return defaultPermissions;
-};
+// Use built in permissions
+const getPermissions = () => defaultPermissions;
 
 // Build permissions array
 const roles = getPermissions();
 const permissions = Object.entries(roles).flatMap(([roleName, role]) => [
 	...(role?.permissions ?? []).map(permission => ({
 		...permission,
-		role: roleName
-	}))
+		role: roleName,
+	})),
 ]);
 
 const extraPermissions = [
@@ -25,7 +23,7 @@ const extraPermissions = [
 
 const allPermissions = [
 	...permissions,
-	...extraPermissions
+	...extraPermissions,
 ];
 
 // Grant permissions
@@ -43,5 +41,5 @@ logger.trace('Loaded permissions');
 logger.removeContext('permissions');
 
 export {
-	ac
+	ac,
 };
