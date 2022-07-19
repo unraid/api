@@ -1,6 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Var } from '@app/core/types/states';
 import { cloneDeep } from '@apollo/client/utilities';
+import { version } from '@app/../package.json';
 
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
@@ -114,7 +115,7 @@ test('Returns generated data', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "2.48.0",
+		      "version": "${version as string}",
 		    },
 		  ],
 		  "twoFactor": {
@@ -189,7 +190,7 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "2.48.0",
+		      "version": "${version as string}",
 		    },
 		  ],
 		  "twoFactor": {
