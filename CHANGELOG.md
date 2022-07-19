@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.49.1](https://github.com/unraid/api/compare/v2.49.0...v2.49.1) (2022-07-19)
+
+
+### Bug Fixes
+
+* always use the current version ([4932d5d](https://github.com/unraid/api/commit/4932d5da4bb28b45100f17eb395516df52f64986))
+
 ## [2.49.0](https://github.com/unraid/api/compare/v2.48.0...v2.49.0) (2022-07-19)
 
 
