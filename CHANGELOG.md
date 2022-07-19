@@ -2,6 +2,34 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.49.0](https://github.com/unraid/api/compare/v2.48.0...v2.49.0) (2022-07-19)
+
+
+### Features
+
+* allow state to switch between file and nchan ([c5e80fa](https://github.com/unraid/api/commit/c5e80fa6861d8d5d5bde975ff21df5a2050e37b4))
+* enable checking DNS on cloud endpoint ([f234ae4](https://github.com/unraid/api/commit/f234ae4ecf1e891f37dc6dcbbb246e9c5c7bfc1b))
+* fallback to file loading if nchan fails ([4bb0d7f](https://github.com/unraid/api/commit/4bb0d7fbb43e8a5e74781d3b45e3b695e1cbf229))
+
+
+### Bug Fixes
+
+* change mini-graphql connected field to status ([fa9be05](https://github.com/unraid/api/commit/fa9be05c32dbe6a721bff61611005bf5917cfe44))
+* dont exit process on restart command ([e1ba664](https://github.com/unraid/api/commit/e1ba66428bcca5f10a521e82069052d640e3b758))
+* dont exit when starting ([6108a27](https://github.com/unraid/api/commit/6108a274ec378d7f6bf17add9afef35ca8e9c5df))
+* ensure API reconnects on 1005/1006 ([952ae1b](https://github.com/unraid/api/commit/952ae1b95a3d3679968fed48a1d2e005922d1b39))
+* ensure incorrect commands still exit the cli ([48a0417](https://github.com/unraid/api/commit/48a04176d66a2100a95013d82e62d8e8280e63ac))
+* ensure logger.level gets printed as a string and not [object object] ([9583cac](https://github.com/unraid/api/commit/9583cacbc5e5d4bcf93f660aac6b3ee114974fb1))
+* ensure we import the version so it's always correct ([c07235a](https://github.com/unraid/api/commit/c07235a9defdcd82f413e64be5a481f275fae69d))
+* ensure we resolve the promise ([b11a779](https://github.com/unraid/api/commit/b11a7795e7bc30e75b115fced1fa0bdb50f17a05))
+* exit on start/restart ([2e8a412](https://github.com/unraid/api/commit/2e8a4129f5a944641eea01c7beb7bd3534a303d4))
+* got import ([a26d5c9](https://github.com/unraid/api/commit/a26d5c99e190e3a5e6574aa559408e10d2c64f82))
+* importing randomUUID ([58d577d](https://github.com/unraid/api/commit/58d577d377cd70a93cb372edd6c584100c31da74))
+* include runtypes in bundle ([1600217](https://github.com/unraid/api/commit/1600217f37d465ebcb7a478a35dfb800386d2642))
+* only import command as it's used ([ef608ea](https://github.com/unraid/api/commit/ef608ea4c71a646c3d46ea5c00c468a0fb57097a))
+* set State.switchSource timeout to one hour ([ded0234](https://github.com/unraid/api/commit/ded0234fd449cdef8bc7a1815036b40937cb3c05))
+* use 1 hour for switchSource ([b948450](https://github.com/unraid/api/commit/b948450126750e21466aaecf6afd2f6c752de173))
+
 ## [2.48.0](https://github.com/unraid/api/compare/v2.47.1...v2.48.0) (2022-06-22)
 
 
