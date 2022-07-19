@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { randomUUID } from 'uuid';
+import { v4 as randomUUID } from 'uuid';
 import uuidApiKey from 'uuid-apikey';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

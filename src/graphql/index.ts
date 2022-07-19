@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { randomUUID } from 'uuid';
+import { v4 as randomUUID } from 'uuid';
 import * as core from '@app/core';
 import { AppError } from '@app/core/errors/app-error';
 import { FatalAppError } from '@app/core/errors/fatal-error';

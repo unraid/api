@@ -79,3 +79,8 @@ declare module '@vmngr/libvirt' {
 
 	export { Hypervisor };
 }
+
+import * as uuid from 'uuid';
+declare module 'uuid' {
+	export const v4 = randomUUID;
+}
