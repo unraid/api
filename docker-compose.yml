@@ -9,19 +9,32 @@ x-development-volumes: &development-volumes
   - ./dist/:/app/dist/
 
 services: 
+  image: 
+    image: unraid-api
+    build:
+      context: .
+      dockerfile: Dockerfile
+    profiles:
+      - builder
+      - interactive
   interactive:
-    build: 
-      context: ./
+    image: unraid-api
+    depends_on: 
+      - image
     <<: *development-volumes
     stdin_open: true
     tty: true
     platform: linux/amd64
     entrypoint: /bin/bash
     profiles:
-      - "interactive"
+      - interactive
+
   builder:
-    build: 
-      context: ./
+    image: unraid-api
+    depends_on:
+      - image
     <<: *development-volumes
     platform: linux/amd64
     command: "npm run build-binary"
+    profiles:
+      - builder
