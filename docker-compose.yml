@@ -1,0 +1,27 @@
+version: '3.8'
+
+x-development-volumes: &development-volumes
+  volumes:
+  - ./src:/app/src
+  - ./package.json:/app/package.json
+  - ./package-lock.json:/app/package-lock.json
+  - ./tsconfig.json:/app/tsconfig.json
+  - ./dist/:/app/dist/
+
+services: 
+  interactive:
+    build: 
+      context: ./
+    <<: *development-volumes
+    stdin_open: true
+    tty: true
+    platform: linux/amd64
+    entrypoint: /bin/bash
+    profiles:
+      - "interactive"
+  builder:
+    build: 
+      context: ./
+    <<: *development-volumes
+    platform: linux/amd64
+    command: "npm run build-binary"

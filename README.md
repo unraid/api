@@ -54,5 +54,21 @@ unraid-api report -vv
 ## Secrets
 If you found this file you're likely a developer. If you'd like to know more about the API and when it's avaliable please join [our discord](https://discord.gg/unraid).
 
+## Building on Arm / Windows platforms
+
+In order to build on ARM or Windows you may need to use buildx in order to build the image (since libvirt will probably have issues on other architectures.)
+
+To get a development environment running in a different environment start by running this docker command: 
+
+``docker-compose build``
+
+Then run
+
+``docker-compose run interactive``
+
+which will give you an interactive shell inside of the newly build linux container.
+
+If you want to build the plugin, run ``docker-compose run builder`` to build the plugin (currently broken since Nexi doesn't have Node 18 binaries)
+
 ## License
 Copyright 2019-2022 Lime Technology Inc. All rights reserved.
