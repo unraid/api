@@ -1,20 +1,15 @@
 version: '3.8'
 
-x-development-volumes: &development-volumes
-  volumes:
-  - ./src:/app/src
-  # Don't mount package-json in development since it's currently on 
-  # a different node version - the copied one will be modified instead
-  - ./tsconfig.json:/app/tsconfig.json
-  - ./dist/:/app/dist/
-
-x-production-volumes: &production-volumes
+x-volumes: &volumes
   volumes:
   - ./src:/app/src
   - ./package.json:/app/package.json
   - ./package-lock.json:/app/package-lock.json
   - ./tsconfig.json:/app/tsconfig.json
   - ./dist/:/app/dist/
+  - ./deploy/:/app/deploy/
+  - ./README.md:/app/README.md
+  - ./scripts/:/app/scripts/
 
 services: 
   interactive:
@@ -25,8 +20,8 @@ services:
       args: 
         NODE_IMAGE: node:18
         NODE_ENV: development
-        NPM_I_CMD: npm i
-    <<: *development-volumes
+        NPM_I_CMD: npm install --no-save
+    <<: *volumes
     stdin_open: true
     tty: true
     platform: linux/amd64
@@ -40,9 +35,9 @@ services:
       dockerfile: Dockerfile
       args: 
         NODE_IMAGE: node:14.15.3
-        NODE_ENV: production
-        NPM_I_CMD: npm ci
-    <<: *production-volumes
+        NODE_ENV: development
+        NPM_I_CMD: npm i
+    <<: *volumes
     platform: linux/amd64
     stdin_open: true
     tty: true
@@ -56,9 +51,9 @@ services:
       dockerfile: Dockerfile
       args: 
         NODE_IMAGE: node:14.15.3
-        NODE_ENV: production
-        NPM_I_CMD: npm ci
-    <<: *production-volumes
+        NODE_ENV: development
+        NPM_I_CMD: npm i
+    <<: *volumes
     platform: linux/amd64
     command: "npm run build && npm run build-binary && mv ./unraid-api ~/dist/unraid-api"
     profiles:

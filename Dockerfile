@@ -16,14 +16,7 @@ COPY package.json package-lock.json tsconfig.json .npmrc ./
 # Install build tools
 RUN apt-get update -y && apt-get install  -y \
 python \
-iptables \
-libgl1-mesa-dri \
-libgl1-mesa-glx \
-libvirt-daemon-system \
-libvirt-dev \
-qemu-kvm \
-virtinst \
-virt-viewer
+libvirt-dev
 
 # Install deps
 RUN $NPM_I_CMD
