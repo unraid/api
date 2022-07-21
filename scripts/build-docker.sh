@@ -1,7 +1,10 @@
+rm -f /app/deploy/**/*
+
 npm run build
 npm run build-binary-step-1
 mkdir -p ./deploy/release/
 mkdir -p ./deploy/pre-pack/
+rm /app/deploy/**/*
 cp /app/unraid-api ./deploy/pre-pack/
 cp /app/package.json ./deploy/pre-pack/
 cp /app/README.md ./deploy/pre-pack/

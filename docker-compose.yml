@@ -55,6 +55,6 @@ services:
         NPM_I_CMD: npm i
     <<: *volumes
     platform: linux/amd64
-    command: "npm run build && npm run build-binary && mv ./unraid-api ~/dist/unraid-api"
+    command: "./scripts/build-docker.sh"
     profiles:
       - builder
