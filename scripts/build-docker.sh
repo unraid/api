@@ -4,10 +4,10 @@ npm run build
 npm run build-binary-step-1
 mkdir -p ./deploy/release/
 mkdir -p ./deploy/pre-pack/
-rm /app/deploy/**/*
-cp /app/unraid-api ./deploy/pre-pack/
-cp /app/package.json ./deploy/pre-pack/
-cp /app/README.md ./deploy/pre-pack/
-cd /app/deploy/pre-pack
+cp ./unraid-api ./deploy/pre-pack/
+cp ./package.json ./deploy/pre-pack/
+cp ./README.md ./deploy/pre-pack/
+cd ./deploy/pre-pack
 npm pack
-mv /app/deploy/pre-pack/unraid-api-* /app/deploy/release/
+cd ./deploy/pre-pack/
+ls -1 unraid-api-* | xargs -L1 -I{} mv {} ../release/{} 
