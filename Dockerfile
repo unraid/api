@@ -1,11 +1,13 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM node:18 As development
+ARG NODE_IMAGE=node:18
+FROM $NODE_IMAGE As development
 
-
+ARG NODE_ENV=development
+ARG NPM_I_CMD=npm i
 # Set env
-ENV NODE_ENV=development
+ENV NODE_ENV=$NODE_ENV
 
 # Copy package lock and package into build image
 WORKDIR /app
@@ -23,11 +25,11 @@ qemu-kvm \
 virtinst \
 virt-viewer
 
-# Install dev deps
-RUN npm i -f
+# Install deps
+RUN $NPM_I_CMD
 
 RUN npm i -g nexe
 # Run build script if one exists
 # RUN npm run build --if-present
 
-CMD []
+CMD ["npm run build-binary"]

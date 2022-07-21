@@ -3,24 +3,29 @@ version: '3.8'
 x-development-volumes: &development-volumes
   volumes:
   - ./src:/app/src
+  # Don't mount package-json in development since it's currently on 
+  # a different node version - the copied one will be modified instead
+  - ./tsconfig.json:/app/tsconfig.json
+  - ./dist/:/app/dist/
+
+x-production-volumes: &production-volumes
+  volumes:
+  - ./src:/app/src
   - ./package.json:/app/package.json
   - ./package-lock.json:/app/package-lock.json
   - ./tsconfig.json:/app/tsconfig.json
   - ./dist/:/app/dist/
 
 services: 
-  image: 
-    image: unraid-api
-    build:
+  interactive:
+    image: unraid-api-node-18
+    build: 
       context: .
       dockerfile: Dockerfile
-    profiles:
-      - builder
-      - interactive
-  interactive:
-    image: unraid-api
-    depends_on: 
-      - image
+      args: 
+        NODE_IMAGE: node:18
+        NODE_ENV: development
+        NPM_I_CMD: npm i
     <<: *development-volumes
     stdin_open: true
     tty: true
@@ -28,13 +33,33 @@ services:
     entrypoint: /bin/bash
     profiles:
       - interactive
-
-  builder:
-    image: unraid-api
-    depends_on:
-      - image
-    <<: *development-volumes
+  builder-interactive:
+    image: unraid-api-node-14
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:14.15.3
+        NODE_ENV: production
+        NPM_I_CMD: npm ci
+    <<: *production-volumes
     platform: linux/amd64
-    command: "npm run build-binary"
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    profiles:
+      - builder
+  builder:
+    image: unraid-api-node-14
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:14.15.3
+        NODE_ENV: production
+        NPM_I_CMD: npm ci
+    <<: *production-volumes
+    platform: linux/amd64
+    command: "npm run build && npm run build-binary && mv ./unraid-api ~/dist/unraid-api"
     profiles:
       - builder
