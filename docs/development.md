@@ -148,8 +148,12 @@ Pushing to this repo will cause an automatic "rolling" release to be built which
 
 ## Using a custom version (e.g. testing a new release)
 1. Install the [production](https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.plg) or [staging](https://s3.amazonaws.com/dnld.lime-technology.com/unraid-api/dynamix.unraid.net.staging.plg) plugin 
-2. Download the tgz you want from [the releases page](https://github.com/unraid/api/releases) and copy to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
-3. Stop the api if it is running: `unraid-api stop`
-4. Install the new api: `/etc/rc.d/rc.unraid _install`
+2. Download or build the api tgz file you want
+  - Download from [the releases page](https://github.com/unraid/api/releases)
+  - Build it on your local machine (``docker-compose run builder``) and copy from the `deploy/release` folder
+3. Copy the file to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
+4. Install the new api: `/etc/rc.d/rc.unraid (install / _install)`
+  a. _install will no start the plugin for you after running, so you can make sure you launch in dev mode
+  b. install will start the plugin after install
 5. Start the api: `unraid-api start`
 6. Confirm the version: `unraid-api report`

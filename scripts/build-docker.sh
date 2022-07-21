@@ -9,5 +9,4 @@ cp ./package.json ./deploy/pre-pack/
 cp ./README.md ./deploy/pre-pack/
 cd ./deploy/pre-pack
 npm pack
-cd ./deploy/pre-pack/
 ls -1 unraid-api-* | xargs -L1 -I{} mv {} ../release/{} 
