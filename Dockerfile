@@ -25,4 +25,4 @@ RUN npm i -g nexe
 # Run build script if one exists
 # RUN npm run build --if-present
 
-CMD ["npm run build-binary"]
+CMD ["npm run build-docker"]

@@ -152,7 +152,7 @@ Pushing to this repo will cause an automatic "rolling" release to be built which
   - Download from [the releases page](https://github.com/unraid/api/releases)
   - Build it on your local machine (``docker-compose run builder``) and copy from the `deploy/release` folder
 3. Copy the file to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
-4. Install the new api: `/etc/rc.d/rc.unraid (install / _install)`
+4. Install the new api: `/etc/rc.d/rc.unraid-api (install / _install)`
   a. _install will no start the plugin for you after running, so you can make sure you launch in dev mode
   b. install will start the plugin after install
 5. Start the api: `unraid-api start`
