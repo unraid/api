@@ -71,4 +71,5 @@ typescript
 RELEASE_NOTES.md
 
 # Docker Deploy Folder 
-deploy/
+deploy/*
+!deploy/.gitkeep
