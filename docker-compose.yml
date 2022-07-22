@@ -10,6 +10,7 @@ x-volumes: &volumes
   - ./deploy/:/app/deploy/
   - ./README.md:/app/README.md
   - ./scripts/:/app/scripts/
+  - ./.git/:/app/.git/
 
 services: 
   interactive:
@@ -44,6 +45,7 @@ services:
     entrypoint: /bin/bash
     profiles:
       - builder
+
   builder:
     image: unraid-api-node-14
     build: 

@@ -14,7 +14,7 @@
     "build-binary": "npm run build-binary-step-1 && npm run build-binary-step-2",
     "build-docker": "./scripts/build-docker.sh",
     "copy-schemas": "cpx src/**/*.graphql dist/types",
-    "clean": "modclean --no-progress --run --path .",
+    "clean": "modclean --no-progress --run --path . && npm prune --production && node-prune",
     "commit": "npx git-cz",
     "lint": "eslint src/**/*.ts",
     "lint:quiet": "eslint --quiet",
