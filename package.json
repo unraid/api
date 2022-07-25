@@ -171,7 +171,7 @@
     "cpx": "1.5.0",
     "cz-conventional-changelog": "3.3.0",
     "eslint": "^8.20.0",
-    "got": "^12.0.1",
+    "got": "^12.2.0",
     "graphql-tools": "^6.2.6",
     "ip-regex": "^5.0.0",
     "log4js": "github:OmgImAlexis/log4js-node",
