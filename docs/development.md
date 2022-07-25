@@ -18,6 +18,27 @@ If you're using the ApolloClient please see https://github.com/apollographql/sub
 <hr>
 <br>
 
+## Building on Arm / Windows platforms
+
+In order to build on ARM or Windows you may need to use buildx in order to build the image (since libvirt will probably have issues on other architectures.) The docker-compose file specifies the architecture to use, so you can just build the containers with docker compose to get native linux versions
+
+There are two different dev environments in the docker-compose file at the moment. One is for testing and based on node 18, and the other is for building the plugin and based on node 14.
+
+To get a development environment for testing start by running this docker command: 
+
+``docker-compose run interactive``
+
+which will give you an interactive shell inside of the newly build linux container.
+
+To get an environment for building the plugin run this docker command:
+
+``docker-compose run builder`` or ``docker-compose run builder-interactive``
+
+The builder command will build the plugin into deploy/release, and the interactive plugin lets you build the plugin or install node modules how you like. 
+
+If you want to build the plugin, run ``docker-compose run builder`` to build the plugin (currently broken since Nexi doesn't have Node 18 binaries)
+
+
 ## Logs
 
 Logging can be configured via environment variables.
