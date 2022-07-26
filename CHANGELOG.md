@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.49.2](https://github.com/unraid/api/compare/v2.49.1...v2.49.2) (2022-07-26)
+
+
+### Bug Fixes
+
+* return null from cloud error when empty ([da2befe](https://github.com/unraid/api/commit/da2befe1791a3b7d9a767bcea03117d65b6e8dbc))
+
 ### [2.49.1](https://github.com/unraid/api/compare/v2.49.0...v2.49.1) (2022-07-19)
 
 
