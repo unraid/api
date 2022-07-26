@@ -23,23 +23,23 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 	// If the endpoint is mocked return the mocked data
 	if (process.env.MOCK_CLOUD_ENDPOINT) {
 		const result: Cloud = {
-			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR,
+			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR ?? null,
 			apiKey: {
 				valid: Boolean(process.env.MOCK_CLOUD_ENDPOINT_APIKEY_VALID ?? true),
-				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR,
+				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR ?? null,
 			} as unknown as Cloud['apiKey'],
 			relay: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'connected',
 				timeout: process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT ? Number(process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT) : undefined,
 				reason: process.env.MOCK_CLOUD_ENDPOINT_RELAY_REASON,
-				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR,
+				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR ?? null,
 			} as unknown as Cloud['relay'],
 			minigraphql: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED as 'connected' | 'disconnected',
 			},
 			cloud: {
 				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
-				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR,
+				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR ?? null,
 				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP,
 			} as unknown as Cloud['cloud'],
 			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean),

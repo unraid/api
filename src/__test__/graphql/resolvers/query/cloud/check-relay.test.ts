@@ -8,9 +8,9 @@ test('Defaults', async () => {
 	relayStore.relay = undefined;
 	relayStore.timeout = undefined;
 	expect(checkRelay()).toStrictEqual({
-		error: '',
+		error: null,
 		status: 'disconnected',
-		timeout: 0,
+		timeout: null,
 	});
 });
 

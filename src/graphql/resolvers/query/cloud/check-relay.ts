@@ -14,7 +14,7 @@ export const checkRelay = (): Cloud['relay'] => {
 		return {
 			status: relayStateToHuman(getRelayConnectionStatus().toLowerCase() as RelayStates),
 			timeout: getRelayReconnectingTimeout(),
-			error: getRelayDisconnectionReason() ?? '',
+			error: getRelayDisconnectionReason(),
 		};
 	} finally {
 		logger.trace('Cloud endpoint: Done relay');
