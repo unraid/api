@@ -1,0 +1,11 @@
+{
+    "recommendations": [
+        "mikestead.dotenv",
+        "eamodio.gitlens",
+        "dbaeumer.vscode-eslint",
+        "antfu.goto-alias",
+        "bierner.markdown-mermaid",
+        "github.vscode-pull-request-github",
+        "bierner.markdown-preview-github-styles"
+    ]
+}
