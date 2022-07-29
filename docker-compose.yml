@@ -1,0 +1,62 @@
+version: '3.8'
+
+x-volumes: &volumes
+  volumes:
+  - ./src:/app/src
+  - ./package.json:/app/package.json
+  - ./package-lock.json:/app/package-lock.json
+  - ./tsconfig.json:/app/tsconfig.json
+  - ./dist/:/app/dist/
+  - ./deploy/:/app/deploy/
+  - ./README.md:/app/README.md
+  - ./scripts/:/app/scripts/
+  - ./.git/:/app/.git/
+
+services: 
+  interactive:
+    image: unraid-api-node-18
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:18
+        NODE_ENV: development
+        NPM_I_CMD: npm install --no-save
+    <<: *volumes
+    stdin_open: true
+    tty: true
+    platform: linux/amd64
+    entrypoint: /bin/bash
+    profiles:
+      - interactive
+  builder-interactive:
+    image: unraid-api-node-14
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:14.15.3
+        NODE_ENV: development
+        NPM_I_CMD: npm i
+    <<: *volumes
+    platform: linux/amd64
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    profiles:
+      - builder
+
+  builder:
+    image: unraid-api-node-14
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:14.15.3
+        NODE_ENV: development
+        NPM_I_CMD: npm i
+    <<: *volumes
+    platform: linux/amd64
+    command: "./scripts/build-docker.sh"
+    profiles:
+      - builder

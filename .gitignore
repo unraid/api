@@ -69,3 +69,7 @@ typescript
 
 # Github actions
 RELEASE_NOTES.md
+
+# Docker Deploy Folder 
+deploy/*
+!deploy/.gitkeep

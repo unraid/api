@@ -12,8 +12,9 @@
     "build-binary-step-1": "nexe --input dist/cli.js --make=\"-j$(nproc 2> /dev/null || echo 1)\" -r './dist/**/*' -r './node_modules' && mv ./cli ./unraid-api && echo '✔ Binary built: ./unraid-api'",
     "build-binary-step-2": "rm -rf ./node_modules && rm -rf ./dist && echo '✔ Source files deleted'",
     "build-binary": "npm run build-binary-step-1 && npm run build-binary-step-2",
+    "build-docker": "./scripts/build-docker.sh",
     "copy-schemas": "cpx src/**/*.graphql dist/types",
-    "clean": "modclean --no-progress --run --path .",
+    "clean": "modclean --no-progress --run --path . && npm prune --production && node-prune",
     "commit": "npx git-cz",
     "lint": "eslint src/**/*.ts",
     "lint:quiet": "eslint --quiet",
@@ -37,8 +38,10 @@
     "@apollo/client": "^3.5.5",
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
     "@schemastore/package": "0.0.6",
+    "@vmngr/libvirt": "github:omgimalexis/libvirt",
     "accesscontrol": "^2.2.1",
     "ain2": "^3.0.0",
+    "am": "github:omgimalexis/am",
     "apollo-server": "2.25.2",
     "apollo-server-express": "2.25.2",
     "async-exit-hook": "^2.0.1",
@@ -104,7 +107,7 @@
     "pify": "^5.0.0",
     "pretty-bytes": "^5.6.0",
     "pretty-ms": "^7.0.1",
-    "redact-secrets": "OmgImAlexis/redact-secrets#master",
+    "redact-secrets": "github:OmgImAlexis/redact-secrets#master",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
     "rotating-file-stream": "^3.0.3",
@@ -165,7 +168,6 @@
     "@types/uuid": "^8.3.3",
     "@typescript-eslint/parser": "^5.4.0",
     "@unraid/eslint-config": "github:unraid/eslint-config",
-    "am": "github:omgimalexis/am",
     "bundle-dependencies": "^1.0.2",
     "c8": "^7.11.3",
     "cpx": "1.5.0",
@@ -191,9 +193,6 @@
     "vite-tsconfig-paths": "^3.5.0",
     "vitest": "^0.14.1",
     "websocket-as-promised": "github:omgimalexis/websocket-as-promised"
-  },
-  "optionalDependencies": {
-    "@vmngr/libvirt": "github:omgimalexis/libvirt"
   },
   "config": {
     "commitizen": {
