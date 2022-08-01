@@ -1,23 +1,10 @@
-import WebSocket from 'ws';
-import WebSocketAsPromised from 'websocket-as-promised';
 import { createStream as createRotatingFileStream, RotatingFileStream } from 'rotating-file-stream';
-import { graphql } from 'graphql';
-import { print } from 'graphql/language/printer';
-import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { debounce } from '@app/mothership/debounce';
-import { logger, relayLogger } from '@app/core/log';
+import { relayLogger } from '@app/core/log';
 import { apiManager } from '@app/core/api-manager';
-import { varState } from '@app/core/states/var';
-import { pubsub } from '@app/core/pubsub';
-import { checkGraphqlConnection } from '@app/mothership/subscribe-to-servers';
-import { apiKeyToUser } from '@app/graphql';
-import { schema } from '@app/graphql/schema';
-import { shouldBeConnectedToCloud, wsState } from '@app/mothership/should-be-connect-to-cloud';
-import { clearValidKeyCache } from '@app/core/utils/misc/validate-api-key';
-import { getRelayConnectionStatus } from '@app/mothership/get-relay-connection-status';
+import { wsState } from '@app/mothership/should-be-connect-to-cloud';
 import { relayStore } from '@app/mothership/store';
-import { startDashboardProducer, stopDashboardProducer } from '@app/graphql/resolvers/subscription/dashboard';
-import { version } from '@app/../package.json';
+import { MothershipJobs } from './jobs';
 
 const convertToFuzzyTime = (min: number, max: number): number => Math.floor((Math.random() * (max - min + 1)) + min);
 
@@ -196,10 +183,3 @@ interface Message {
 
 const messageIdLookup = new Map<string, { subId: number; field: string }>();
 
-
-export const checkCloudConnections = async () => {
-	logger.trace('Checking cloud connections');
-
-	const relayConnected = await checkRelayConnection();
-	if (relayConnected) await checkGraphqlConnection();
-};

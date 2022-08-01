@@ -12,11 +12,11 @@ import exitHook from 'async-exit-hook';
 import getServerAddress from 'get-server-address';
 import { core, logger, apiManager, paths, pubsub } from '@app/core';
 import { server } from '@app/server';
-import { checkCloudConnections } from '@app/mothership';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { writeFileSync } from 'fs';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { userCache } from '@app/cache/user';
+import { cloudConnector } from './mothership/cloud-connector';
 
 // Ini serializer
 
@@ -63,8 +63,8 @@ void am(async () => {
 				});
 			});
 
+			await cloudConnector.checkCloudConnections();
 			// Check cloud connections
-			await checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
@@ -98,7 +98,7 @@ void am(async () => {
 			writeFileSync(configPath, stringifiedData);
 
 			// Check cloud connections
-			await checkCloudConnections();
+			await cloudConnector.checkCloudConnections();
 
 			// Clear servers cache
 			userCache.del('mine');
@@ -124,21 +124,11 @@ void am(async () => {
 	apiManager.on('replace', async () => {
 		try {
 			// Check cloud connections
-			await checkCloudConnections();
+			await cloudConnector.checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}
 	});
-
-	// Every 5s check if our connection to relay is okay
-	setInterval(async () => {
-		try {
-			// Check cloud connections
-			await checkCloudConnections();
-		} catch (error: unknown) {
-			logger.error('Failed checking connection with error %s.', error);
-		}
-	}, 5_000);
 
 	// Load nchan
 	core.loadNchan().catch(error => {

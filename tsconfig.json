@@ -8,6 +8,7 @@
 		"node_modules"
 	],
   	"compilerOptions": {
+		"experimentalDecorators": true,
 		"paths": {
 			"@app/*": [
 				"./src/*"
