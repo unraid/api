@@ -9,6 +9,7 @@
 	],
   	"compilerOptions": {
 		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
 		"paths": {
 			"@app/*": [
 				"./src/*"

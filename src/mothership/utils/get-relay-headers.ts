@@ -1,6 +1,6 @@
-import { apiManager } from "@app/core";
+import { apiManager } from "@app/core/api-manager";
 import { varState } from "@app/core/states";
-import { version } from "systeminformation";
+import { version } from "@app/../package.json"
 
 export const getRelayHeaders = () => {
 	const apiKey = apiManager.cloudKey!;

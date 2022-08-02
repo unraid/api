@@ -1,5 +1,5 @@
-import { logger, relayLogger } from '@app/core/log';
-import { checkRelayConnection } from './check-relay-connected';
+import { logger } from '@app/core/log';
+import { checkRelayConnection } from '@app/mothership/check-relay-connected';
 import { checkGraphqlConnection } from '@app/mothership/subscribe-to-servers';
 
 class CloudConnector {
@@ -18,14 +18,17 @@ class CloudConnector {
 	public async checkCloudConnections() {
 		if (this.isRunning) {
 			logger.trace('Skipping cloud check since one is already running');
-		} else {
-			this.isRunning = true;
-			logger.trace('Checking cloud connections');
-
-			const relayConnected = await checkRelayConnection();
-			if (relayConnected) await checkGraphqlConnection();
-			this.isRunning = false;
+			return;
 		}
+
+		this.isRunning = true;
+		logger.trace('Checking cloud connections');
+		const relayConnected = await checkRelayConnection();
+		if (relayConnected) {
+			await checkGraphqlConnection();
+		}
+
+		this.isRunning = false;
 	}
 }
 

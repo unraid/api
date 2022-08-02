@@ -2,7 +2,7 @@
  * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
-
+import 'reflect-metadata';
 import { am } from 'am';
 import http from 'http';
 import https from 'https';
@@ -17,6 +17,8 @@ import { writeFileSync } from 'fs';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { userCache } from '@app/cache/user';
 import { cloudConnector } from './mothership/cloud-connector';
+import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
+import { initCronJobs } from '@reflet/cron';
 
 // Ini serializer
 
@@ -38,6 +40,9 @@ void am(async () => {
 
 	// Load core
 	await core.load();
+
+	// Startup Mothership Job
+	initCronJobs(MothershipJobs).startAll();
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

@@ -5,14 +5,27 @@ x-volumes: &volumes
   - ./src:/app/src
   - ./package.json:/app/package.json
   - ./package-lock.json:/app/package-lock.json
-  - ./node_modules:/app/node_modules
   - ./tsconfig.json:/app/tsconfig.json
   - ./dist/:/app/dist/
   - ./deploy/:/app/deploy/
   - ./README.md:/app/README.md
   - ./scripts/:/app/scripts/
   - ./.git/:/app/.git/
+  - ./.env.production:/app/.env.production
+  - ./.env.staging:/app/.env.staging
 
+x-build-volumes: &build-volumes
+  volumes: 
+    - ./src:/app/src
+    - ./tsconfig.json:/app/tsconfig.json
+    - ./dist/:/app/dist/
+    - ./deploy/:/app/deploy/
+    - ./README.md:/app/README.md
+    - ./scripts/:/app/scripts/
+    - ./.git/:/app/.git/
+    - ./.env.production:/app/.env.production
+    - ./.env.staging:/app/.env.staging
+  
 services: 
   interactive:
     image: unraid-api-node-18
@@ -39,7 +52,7 @@ services:
         NODE_IMAGE: node:14.15.3
         NODE_ENV: development
         NPM_I_CMD: npm i
-    <<: *volumes
+    <<: *build-volumes
     platform: linux/amd64
     stdin_open: true
     tty: true
@@ -52,11 +65,11 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-      args: 
+      args:
         NODE_IMAGE: node:14.15.3
         NODE_ENV: development
         NPM_I_CMD: npm i
-    <<: *volumes
+    <<: *build-volumes
     platform: linux/amd64
     command: "./scripts/build-docker.sh"
     profiles:

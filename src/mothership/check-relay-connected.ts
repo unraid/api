@@ -15,6 +15,19 @@ import { getRelayConnectionStatus } from '@app/mothership/get-relay-connection-s
 import { relayStore } from '@app/mothership/store';
 import { startDashboardProducer, stopDashboardProducer } from '@app/graphql/resolvers/subscription/dashboard';
 import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
+import { RelayKeepAlive } from '@app/mothership/jobs/relay-keep-alive-jobs';
+import { handleError } from '@app/mothership/handle-error';
+import { saveIncomingWebsocketMessageToDisk } from '@app/mothership/save-websocket-message-to-disk';
+import { sendMessage } from '@app/mothership/send-message';
+import { subscriptionListener } from '@app/mothership/subscription-listener';
+
+const messageIdLookup = new Map<string, { subId: number; field: string }>();
+
+interface Message {
+	id: string;
+	type: 'query' | 'mutation' | 'start' | 'stop';
+	payload: any;
+}
 
 // Check our relay connection is correct
 export const checkRelayConnection = debounce(async () => {
@@ -65,7 +78,7 @@ export const checkRelayConnection = debounce(async () => {
 		await relayStore.relay.open();
 
 		// Start keep alive loop
-		startKeepAlive();
+		RelayKeepAlive.init();
 
 		// Bind on disconnect handler
 		relayStore.relay.onClose.addListener((statusCode: number, reason: string) => {
