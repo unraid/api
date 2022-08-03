@@ -34,6 +34,7 @@ jobs:
       uses: actions/setup-node@v3
       with:
         node-version: 14.15.3
+    - run: npm i -g npm@7
 
     - name: Load npm cache
       uses: actions/cache@v3
