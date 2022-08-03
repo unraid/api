@@ -24,7 +24,7 @@ import { sleep } from '@app/core/utils/misc/sleep';
 import { exitApp } from '@app/core/utils/misc/exit-app';
 import { globalErrorHandler } from '@app/core/utils/misc/global-error-handler';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 
 const configFilePath = path.join(paths['dynamix-base'], 'case-model.cfg');
 const customImageFilePath = path.join(paths['dynamix-base'], 'case-model.png');

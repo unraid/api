@@ -18,7 +18,7 @@ import { cliLogger } from '@app/core/log';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
-import { fullVersion } from '@app/../package.json';
+import { fullVersion } from '@app/version';
 import { stdout } from 'process';
 
 export const getConfig = <T = unknown>(path: string) => {

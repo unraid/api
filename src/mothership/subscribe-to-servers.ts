@@ -5,7 +5,7 @@ import { shouldBeConnectedToCloud } from '@app/mothership/should-be-connect-to-c
 import { debounce } from '@app/mothership/debounce';
 import { GraphQLError } from 'graphql';
 import { CachedServer, CachedServers, userCache } from '@app/cache/user';
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 import { apiManager } from '@app/core/api-manager';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';

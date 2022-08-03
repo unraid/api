@@ -1,5 +1,6 @@
 import { relayLogger } from '@app/core/log';
 import { relayStore } from '@app/mothership/store';
+import { saveOutgoingWebsocketMessageToDisk } from '@app/mothership/save-websocket-message-to-disk';
 /**
  * Send a message to relay if it's open
  * @param type ka = keep-alive, error or data

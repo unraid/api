@@ -1,6 +1,6 @@
 import { cliLogger } from '@app/core/log';
 import { setEnv } from '@app/cli/set-env';
-import { fullVersion } from '@app/../package.json';
+import { fullVersion } from '@app/version';
 
 /**
  * Print API version.

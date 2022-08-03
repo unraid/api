@@ -5,7 +5,7 @@
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 
 interface Result extends CoreResult {
 	json: {
