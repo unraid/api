@@ -179,3 +179,18 @@ Pushing to this repo will cause an automatic "rolling" release to be built which
     -  `install` will start the plugin after install
 5. Start the api: `unraid-api start`
 6. Confirm the version: `unraid-api report`
+
+
+## Cloning Secrets from AWS
+1. Go here to create security credentials for your user [S3 Creds](https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1&skipRegion=true#/security_credentials)
+2. Export your AWS secrets OR run `aws configure` to setup your environment 
+```
+export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+export AWS_DEFAULT_REGION=us-east-1
+
+```
+4. Set variables for staging and production to the ARN of the secret you would like to clone:
+  - `STAGING_SECRET_ID`
+  - `PRODUCTION_SECRET_ID`
+3. Run `scripts/copy-env-from-aws.sh` to pull down the secrets into their respective files
