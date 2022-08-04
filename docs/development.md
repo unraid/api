@@ -91,6 +91,24 @@ Examples:
 <hr>
 <br>
 
+## Crash API On Demand
+The `PLEASE_SEGFAULT_FOR_ME` env var can be to used to make the api crash after 30 seconds:
+
+Examples: 
+* `PLEASE_SEGFAULT_FOR_ME=true LOG_LEVEL=debug unraid-api start --debug`
+* `PLEASE_SEGFAULT_FOR_ME=true unraid-api start`
+
+The crash log will be stored here:
+* `/var/log/unraid-api/crash.log`
+* `/var/log/unraid-api/crash.json`
+
+`crash.json` just includes the most recent crash, while the reports get appended to `crash.log`.
+
+
+<br>
+<hr>
+<br>
+
 ## Switching between staging and production environments
 1. Stop the api: `unraid-api stop`
 2. Switch environments: `unraid-api switch-env`
