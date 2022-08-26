@@ -1,4 +1,4 @@
-# Copy full version into package.json
+#!/usr/bin/env bash
 
 export GIT_SHA_SHORT=$(git rev-parse --short HEAD)
 export GIT_TAG=$(git describe --tags --abbrev=0)

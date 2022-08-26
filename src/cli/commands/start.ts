@@ -9,6 +9,7 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { fullVersion, version } from '@app/version';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
+import { join } from 'path';
 
 /**
  * Start a new API process.
@@ -16,9 +17,6 @@ import { logToSyslog } from '@app/cli/log-to-syslog';
 export const start = async () => {
 	// Set process title
 	process.title = 'unraid-api';
-
-	// Set cwd
-	process.chdir(paths['unraid-api-base']);
 
 	// Write current version to config file
 	const configPath = paths['myservers-config'];
@@ -73,9 +71,8 @@ export const start = async () => {
 	}
 
 	// Load bundled index file
-	const indexPath = './index.js';
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	require(indexPath);
+	require('../../index');
 
 	if (!mainOptions.debug) {
 		if ('_DAEMONIZE_PROCESS' in process.env) {

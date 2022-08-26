@@ -31,7 +31,7 @@ export const options: ArgsParseOptions<Flags> = {
 	}, {
 		header: 'Options:',
 	}],
-	footerContentSections: [{ header: '', content: 'Copyright © 2021 Lime Technology, Inc.' }],
+	footerContentSections: [{ header: '', content: `Copyright © ${(new Date()).getFullYear()} Lime Technology, Inc.` }],
 };
 
 export const mainOptions = parse<Flags>(args, { ...options, partial: true, stopAtFirstUnknown: true });

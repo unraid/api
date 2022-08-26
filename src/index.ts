@@ -9,7 +9,6 @@ import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
 import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
-import getServerAddress from 'get-server-address';
 import { core, logger, apiManager, paths, pubsub } from '@app/core';
 import { server } from '@app/server';
 import { loadState } from '@app/core/utils/misc/load-state';
@@ -19,12 +18,12 @@ import { userCache } from '@app/cache/user';
 import { cloudConnector } from './mothership/cloud-connector';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { initCronJobs } from '@reflet/cron';
+import { getServerAddress } from '@app/common/get-server-address';
 
 // Ini serializer
 
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
-
 	keep_quotes: false,
 }) as {
 	serialize: (content: unknown) => string;

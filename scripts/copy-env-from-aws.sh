@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 
 # Pull Staging Env File
 aws secretsmanager get-secret-value --secret-id api.env.staging --region=us-west-2 | \

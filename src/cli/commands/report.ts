@@ -1,5 +1,5 @@
 
-import dedent from 'dedent-tabs';
+import { dedent } from '@app/common/dedent';
 import camelCaseKeys from 'camelcase-keys';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
@@ -177,12 +177,12 @@ export const report = async (...argv: string[]) => {
 		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
 		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
 
-		const serversDetails = unraidApiPid ? dedent`
+		const serversDetails = unraidApiPid ? dedent(`
             ONLINE_SERVERS: ${onlineServers.join(', ')}
             OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
-        ` : dedent`
+        `) : dedent(`
             SERVERS: API is offline
-        `;
+        `);
 
 		// Check if API has crashed and if it has crash logs
 		const hasCrashLogs = (await stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
