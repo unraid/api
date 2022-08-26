@@ -135,13 +135,4 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: unraid-api
-        path: ${{ github.workspace }}/deploy/release/*.tgz
-
-    - name: Add comment with artifact links
-      uses: tonyhallett/artifacts-url-comments@v1.1.0
-      env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-          prefix: "New unraid-api build: "
-          format: name
-          addTo: pull
+        path: /app/deploy/release/*.tgz

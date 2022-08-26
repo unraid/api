@@ -1,0 +1,16 @@
+on:
+  workflow_run:
+    workflows: ["Pull Request"]
+    types: [completed]
+
+jobs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Add comment with artifact links
+        uses: tonyhallett/artifacts-url-comments@v1.1.0
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            prefix: "New unraid-api build: "
+            format: name
+            addTo: pull
