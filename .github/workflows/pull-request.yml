@@ -132,10 +132,16 @@ jobs:
       run: npm run build
 
     - name: Upload tgz to Github artifacts
-      uses: gavv/pull-request-artifacts@v1.0.0
+      uses: actions/upload-artifact@v3
       with:
-        commit: ${{ github.event.pull_request.head.sha }}
-        repo-token: ${{ secrets.GITHUB_TOKEN }}
-        artifacts-branch: artifacts
-        artifacts: |
-          ${{ github.workspace }}/deploy/release/*.tgz
+        name: unraid-api
+        path: ${{ github.workspace }}/deploy/release/*.tgz
+
+      - name: Add comment with artifact links
+        uses: tonyhallett/artifacts-url-comments@v1.1.0
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            prefix: New unraid-api build: 
+            format: name
+            addTo: pull
