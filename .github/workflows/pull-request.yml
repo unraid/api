@@ -107,14 +107,6 @@ jobs:
       with:
         node-version-file: '.nvmrc'
 
-    - name: Load npm cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
     - name: Install libvirt-dev
       run: sudo apt-get update && sudo apt-get install libvirt-dev
 
