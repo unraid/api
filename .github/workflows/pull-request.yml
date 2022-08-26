@@ -86,3 +86,68 @@ jobs:
 
     - name: Run unit tests with code coverage
       run: npm run coverage
+
+  build:
+    runs-on: ubuntu-latest
+
+    needs: [lint, test]
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v3
+
+    - name: Add SSH deploy key
+      uses: shimataro/ssh-key-action@v2
+      with:
+        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
+        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+    - name: Install node
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: '.nvmrc'
+
+    - name: Load npm cache
+      uses: actions/cache@v3
+      with:
+        path: ~/.npm
+        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
+    - name: Install libvirt-dev
+      run: sudo apt-get update && sudo apt-get install libvirt-dev
+
+    - name: Installing node deps
+      run: npm install
+
+    # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
+    - name: Patch subscriptions-transport-ws
+      run: npm run patch:subscriptions-transport-ws
+
+    - name: Add commit hash to full version
+      if: startsWith(github.ref, 'refs/tags/v') == true
+      run: |
+        VERSION=$(jq -r .version package.json) && \
+        jq --arg version $VERSION '.fullVersion = $version' package.json > out.json && mv out.json package.json && \
+        echo '✔ Version field updated'
+
+    - name: Add commit hash to version
+      if: startsWith(github.ref, 'refs/tags/v') == false
+      run: |
+        VERSION=$(jq -r .version package.json) && \
+        SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
+        jq --arg version $VERSION-$SHORT_HASH '.fullVersion = $version' package.json > out.json && mv out.json package.json && \
+        echo '✔ Version field updated'
+
+    - name: Build unraid-api and then pack into tgz
+      run: npm run build
+
+    - name: Upload tgz to Github artifacts
+      uses: gavv/pull-request-artifacts@v1.0.0
+      with:
+        commit: ${{ github.event.pull_request.head.sha }}
+        repo-token: ${{ secrets.GITHUB_TOKEN }}
+        artifacts-branch: artifacts
+        artifacts: |
+          ${{ github.workspace }}/deploy/release/*.tgz
