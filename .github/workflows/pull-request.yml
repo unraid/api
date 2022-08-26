@@ -129,7 +129,7 @@ jobs:
       run: npm i -g pkg
 
     - name: Build and pack binary
-      run: npm run docker-build
+      run: npm run build-docker
 
     - name: Upload tgz to Github artifacts
       uses: actions/upload-artifact@v3
