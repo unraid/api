@@ -13,4 +13,4 @@ cp /app/.env.staging /app/deploy/pre-pack/.env.staging
 cp /app/README.md /app/deploy/pre-pack/
 cd /app/deploy/pre-pack
 npm pack
-ls -1 unraid-api-* | xargs -L1 -I{} mv {} ../release/{} 
+ls -1 unraid-api-* | xargs -L1 -I{} mv {} /app/deploy/release/{} 
