@@ -27,7 +27,7 @@ export const getDomain = async function (context: Context): Promise<CoreResult> 
 	ensurePermission(user, {
 		resource: 'domain',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	const hypervisor = await getHypervisor();
@@ -42,6 +42,6 @@ export const getDomain = async function (context: Context): Promise<CoreResult> 
 
 	return {
 		text: `${domain.name}: ${JSON.stringify(domain, null, 2)}`,
-		json: domain
+		json: domain,
 	};
 };

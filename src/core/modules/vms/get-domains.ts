@@ -16,7 +16,7 @@ const states = {
 	4: 'SHUTDOWN',
 	5: 'SHUTOFF',
 	6: 'CRASHED',
-	7: 'PMSUSPENDED'
+	7: 'PMSUSPENDED',
 };
 
 /**
@@ -29,7 +29,7 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 	ensurePermission(user, {
 		resource: 'vms/domain',
 		action: 'read',
-		possession: 'any'
+		possession: 'any',
 	});
 
 	try {
@@ -52,19 +52,19 @@ export const getDomains = async (context: CoreContext): Promise<CoreResult> => {
 				uuid: await hypervisor.domainGetUUIDString(domain),
 				state: states[info.state],
 				autoStart: autoStartDomainNames.includes(name),
-				features
+				features,
 			};
 		}));
 
 		return {
 			text: `Defined domains: ${JSON.stringify(activeDomainNames, null, 2)}\nActive domains: ${JSON.stringify(inactiveDomainNames, null, 2)}`,
-			json: resolvedDomains
+			json: resolvedDomains,
 		};
 	} catch (error: unknown) {
 		// If we hit an error expect libvirt to be offline
 		return {
 			text: `Defined domains: ${JSON.stringify([], null, 2)}\nActive domains: ${JSON.stringify([], null, 2)}`,
-			json: null
+			json: null,
 		};
 	}
 };

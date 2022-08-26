@@ -13,5 +13,6 @@ export const getPermissions = (role: string): Record<string, Record<string, stri
 	const grants: Record<string, Record<string, string[]>> = ac.getGrants();
 	const { $extend, ...roles } = grants[role] ?? {};
 	const inheritedRoles = Array.isArray($extend) ? $extend.map(role => getPermissions(role))[0] : {};
+	// eslint-disable-next-line prefer-object-spread
 	return Object.assign({}, roles, inheritedRoles);
 };

@@ -12,5 +12,6 @@ module.exports = {
 		'@typescript-eslint/naming-convention': 'off',
 		'@typescript-eslint/no-unsafe-assignment': 'off',
 		'@typescript-eslint/no-unsafe-return': 'off',
+		'@typescript-eslint/ban-types': 'off',
 	},
 };

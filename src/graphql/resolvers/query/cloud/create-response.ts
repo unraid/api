@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 /*!
  * Copyright 2022 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler

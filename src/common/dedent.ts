@@ -1,3 +1,4 @@
+/* eslint-disable */
 // Source: https://www.npmjs.com/package/dedent-tabs
 // License: MIT - https://github.com/adrianjost/dedent-tabs/blob/master/LICENSE
 export const dedent = (

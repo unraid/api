@@ -1,5 +1,3 @@
-
-/* eslint-disable @typescript-eslint/ban-types */
 declare module '*.json';
 
 declare module 'dedent-tabs' {
