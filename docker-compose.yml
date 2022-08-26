@@ -11,6 +11,9 @@ x-volumes: &volumes
   - ./README.md:/app/README.md
   - ./scripts/:/app/scripts/
   - ./.git/:/app/.git/
+  - ./.env.production:/app/.env.production
+  - ./.env.staging:/app/.env.staging
+
 
 services: 
   interactive:
@@ -51,7 +54,7 @@ services:
     build: 
       context: .
       dockerfile: Dockerfile
-      args: 
+      args:
         NODE_IMAGE: node:14.15.3
         NODE_ENV: development
         NPM_I_CMD: npm i

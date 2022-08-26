@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { Var } from '@app/core/types/states';
 import { cloneDeep } from '@apollo/client/utilities';
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {

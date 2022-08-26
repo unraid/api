@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { apiManager } from '@app/core/api-manager';
 import { logger } from '@app/core/log';

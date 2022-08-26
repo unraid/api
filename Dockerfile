@@ -4,6 +4,8 @@
 ARG NODE_IMAGE=node:18
 FROM $NODE_IMAGE As development
 
+RUN npm i -g npm@7
+
 ARG NODE_ENV=development
 ARG NPM_I_CMD=npm i
 
@@ -14,7 +16,6 @@ ENV NODE_ENV=$NODE_ENV
 WORKDIR /app
 
 COPY package.json package-lock.json tsconfig.json .git .npmrc ./
-
 # Install build tools
 RUN apt-get update -y && apt-get install  -y \
 python \

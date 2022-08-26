@@ -6,7 +6,7 @@ import { cliLogger } from '@app/core/log';
 import { paths } from '@app/core/paths';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { MyServersConfig } from '@app/types/my-servers-config';
-import { fullVersion, version } from '@app/../package.json';
+import { fullVersion, version } from '@app/version';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
 

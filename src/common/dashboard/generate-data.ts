@@ -1,7 +1,7 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { varState } from '@app/core/states/var';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 import { checkTwoFactorEnabled } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
 import { docker } from '@app/core/utils/clients/docker';

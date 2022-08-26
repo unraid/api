@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { mothershipLogger } from '@app/core';
 import type { CachedServer } from '@app/cache/user';
-import { version } from '@app/../package.json';
+import { version } from '@app/version';
 
 export const getServers = async (apiKey: string) => {
 	try {
