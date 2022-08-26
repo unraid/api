@@ -12,12 +12,12 @@ fi;
 
 if [ "$EXACT_TAG" = "TRUE" ]
 then
-    echo 'Setting up package.json with just semvar'
+    echo 'Setting up version.ts with just semvar (Tag Matched)'
     VERSION=$(jq -r .version package.json)
     printf "export const version = '$VERSION';\nexport const fullVersion = '$VERSION';\n" > src/version.ts
     echo '✔ Version field updated'
 else
-    echo 'Setting up package.json with semvar and sha'
+    echo 'Setting up version.ts with semvar and sha (No Tag Matched)'
     VERSION=$(jq -r .version package.json) && \
     printf "export const version = '$VERSION';\nexport const fullVersion = '$VERSION-$GIT_SHA_SHORT';\n" > src/version.ts
     echo '✔ Version field updated'
