@@ -25,10 +25,10 @@ jobs:
         git config --global url."https://github.com/".insteadOf
         ssh://git@github.com/
 
-    - name: Install node v14
+    - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version: 14.15.3
+        node-version-file: '.nvmrc'
 
     - name: Get npm cache directory
       id: npm-cache
@@ -45,11 +45,6 @@ jobs:
 
     - name: Installing node deps
       run: npm install
-
-    - name: Install node v18
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.3.0
 
     - name: Lint files
       run: npm run lint
@@ -68,10 +63,10 @@ jobs:
         git config --global url."https://github.com/".insteadOf
         ssh://git@github.com/
 
-    - name: Install node v14
+    - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version: 14.15.3
+        node-version-file: '.nvmrc'
 
     - name: Get npm cache directory
       id: npm-cache
@@ -88,11 +83,6 @@ jobs:
 
     - name: Installing node deps
       run: npm install
-
-    - name: Install node v18
-      uses: actions/setup-node@v3
-      with:
-        node-version: 18.3.0
 
     - name: Run unit tests with code coverage
       run: npm run coverage
