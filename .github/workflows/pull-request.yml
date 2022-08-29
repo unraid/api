@@ -117,8 +117,8 @@ jobs:
     - name: Patch subscriptions-transport-ws
       run: npm run patch:subscriptions-transport-ws
 
-    - name: Install pkg
-      run: npm i -g pkg
+    - name: Install pkg and node-prune
+      run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
 
     - name: Build and pack binary
       run: WORKDIR=${{ github.workspace }} && npm run build-pkg
