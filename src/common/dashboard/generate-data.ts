@@ -111,3 +111,5 @@ export const generateData = async () => {
 	// If nchan failed this will retrieve data from the filesystem
 	return getData();
 };
+
+export type Dashboard = Awaited<ReturnType<typeof generateData>>;

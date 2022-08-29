@@ -36,7 +36,9 @@
     "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.cjs",
     "release": "standard-version",
     "update-bundle-dependencies": "bundle-dependencies update",
-    "typesync": "typesync"
+    "typesync": "typesync",
+    "install-in-unraid": "cp ./deploy/release/unraid-api-2.49.2.tgz /boot/config/plugins/dynamix.my.servers/ && /etc/rc.d/rc.unraid-api _install unraid-api-2.49.2.tgz",
+    "start-plugin": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug"
   },
   "files": [
     ".env.staging",
