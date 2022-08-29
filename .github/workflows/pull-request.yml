@@ -121,7 +121,7 @@ jobs:
       run: npm i -g pkg
 
     - name: Build and pack binary
-      run: WORKDIR=${{ github.workspace }} && npm run build
+      run: WORKDIR=${{ github.workspace }} && npm run build-pkg
 
     - name: Upload tgz to Github artifacts
       uses: actions/upload-artifact@v3
