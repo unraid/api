@@ -9,7 +9,6 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { fullVersion, version } from '@app/version';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
-import { join } from 'path';
 
 /**
  * Start a new API process.
@@ -82,7 +81,7 @@ export const start = async () => {
 			cliLogger.debug('Daemonizing process.');
 
 			// Spawn child
-			const child = spawn(process.execPath, process.argv.slice(2), {
+			const child = spawn(process.execPath, process.argv.slice(1), {
 				// In the parent set the tracking environment variable
 				env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 				// The process MUST have it's cwd set to the
