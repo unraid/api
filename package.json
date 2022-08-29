@@ -80,7 +80,7 @@
     "execa": "^5.1.1",
     "express": "^4.17.1",
     "express-list-endpoints": "^5.0.0",
-    "filter-obj": "^2.0.2",
+    "filter-obj": "^5.1.0",
     "find-process": "^1.4.7",
     "flatten": "^1.0.3",
     "glob": "^7.2.0",
