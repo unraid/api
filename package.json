@@ -23,7 +23,7 @@
     "compile": "tsup --config ./tsup.config.ts",
     "bundle": "pkg . --public",
     "build": "npm run compile && npm run bundle",
-    "build-docker": "./scripts/build-docker.sh",
+    "build-docker": "./scripts/build.sh",
     "clean": "modclean --no-progress --run --path . && npm prune --production && node-prune",
     "commit": "npx git-cz",
     "lint": "eslint src/**/*.ts",

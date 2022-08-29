@@ -121,10 +121,10 @@ jobs:
       run: npm i -g pkg
 
     - name: Build and pack binary
-      run: npm run build-docker
+      run: WORKDIR=${{ github.workspace }} && npm run build
 
     - name: Upload tgz to Github artifacts
       uses: actions/upload-artifact@v3
       with:
         name: unraid-api
-        path: /app/deploy/release/*.tgz
+        path: ${{ github.workspace }}/deploy/release/*.tgz

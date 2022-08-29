@@ -61,6 +61,6 @@ services:
         NPM_I_CMD: npm i
     <<: *volumes
     platform: linux/amd64
-    command: "./scripts/build-docker.sh"
+    command: "./scripts/build.sh"
     profiles:
       - builder
