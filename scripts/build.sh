@@ -6,9 +6,10 @@ cd $WORKDIR
 
 rm -f ./deploy/**/**/*
 
+./scripts/copy-full-version.sh
+
 npm run build
 npm run clean
-./scripts/copy-full-version.sh
 mkdir -p ./deploy/release/
 mkdir -p ./deploy/pre-pack/
 cp ./dist/api ./deploy/pre-pack/unraid-api
