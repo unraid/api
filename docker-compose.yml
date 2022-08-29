@@ -6,6 +6,7 @@ x-volumes: &volumes
   - ./package.json:/app/package.json
   - ./package-lock.json:/app/package-lock.json
   - ./tsconfig.json:/app/tsconfig.json
+  - ./tsup.config.ts:/app/tsup.config.ts
   - ./dist/:/app/dist/
   - ./deploy/:/app/deploy/
   - ./README.md:/app/README.md
@@ -15,7 +16,7 @@ x-volumes: &volumes
   - ./.env.staging:/app/.env.staging
 
 
-services: 
+services:
   interactive:
     image: unraid-api-node-18
     build: 
@@ -33,12 +34,12 @@ services:
     profiles:
       - interactive
   builder-interactive:
-    image: unraid-api-node-14
+    image: unraid-api-node-18
     build: 
       context: .
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:14.15.3
+        NODE_IMAGE: node:18
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
@@ -50,16 +51,16 @@ services:
       - builder
 
   builder:
-    image: unraid-api-node-14
+    image: unraid-api-node-18
     build: 
       context: .
       dockerfile: Dockerfile
-      args:
-        NODE_IMAGE: node:14.15.3
+      args: 
+        NODE_IMAGE: node:18
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
     platform: linux/amd64
-    command: "./scripts/build-docker.sh"
+    command: "./scripts/build.sh"
     profiles:
       - builder

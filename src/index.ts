@@ -9,7 +9,6 @@ import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
 import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
-import getServerAddress from 'get-server-address';
 import { core, logger, apiManager, paths, pubsub } from '@app/core';
 import { server } from '@app/server';
 import { loadState } from '@app/core/utils/misc/load-state';
@@ -18,13 +17,12 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { userCache } from '@app/cache/user';
 import { cloudConnector } from './mothership/cloud-connector';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
-import { initCronJobs } from '@reflet/cron';
+import { getServerAddress } from '@app/common/get-server-address';
 
 // Ini serializer
 
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
-
 	keep_quotes: false,
 }) as {
 	serialize: (content: unknown) => string;
@@ -41,8 +39,9 @@ void am(async () => {
 	// Load core
 	await core.load();
 
-	// Startup Mothership Job
-	initCronJobs(MothershipJobs).startAll();
+	// Init mothership jobs - they are started by decorators on the class
+	MothershipJobs.init()
+
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

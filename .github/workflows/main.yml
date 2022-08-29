@@ -23,26 +23,28 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
-
-    - name: Add SSH deploy key
-      uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        persist-credentials: false
 
-    - name: Install node v14
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://github.com/".insteadOf
+        ssh://git@github.com/
+
+    - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version: 14.15.3
-    - run: npm i -g npm@7
+        node-version-file: '.nvmrc'
 
-    - name: Load npm cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+    # - name: Get npm cache directory
+    #   id: npm-cache
+    #   run: echo "::set-output name=dir::$(npm config get cache)"
+
+    # - name: Load npm cache
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: ${{ steps.npm-cache.outputs.dir }}
+    #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
 
     - name: Install libvirt-dev
       run: sudo apt-get update && sudo apt-get install libvirt-dev
@@ -50,13 +52,7 @@ jobs:
     - name: Installing node deps
       run: npm install
 
-    # We need 18 to run the linter
-    - name: Install node based on .nvmrc file
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: '.nvmrc'
-
-    - name: Lint
+    - name: Lint files
       run: npm run lint
 
   test:
@@ -67,25 +63,28 @@ jobs:
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
-
-    - name: Add SSH deploy key
-      uses: shimataro/ssh-key-action@v2
       with:
-        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+        persist-credentials: false
 
-    - name: Install node v14
+    - name: Reconfigure git to use HTTP authentication
+      run: >
+        git config --global url."https://github.com/".insteadOf
+        ssh://git@github.com/
+
+    - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version: 14.15.3
+        node-version-file: '.nvmrc'
 
-    - name: Load npm cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+    # - name: Get npm cache directory
+    #   id: npm-cache
+    #   run: echo "::set-output name=dir::$(npm config get cache)"
+
+    # - name: Load npm cache
+    #   uses: actions/cache@v3
+    #   with:
+    #     path: ${{ steps.npm-cache.outputs.dir }}
+    #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
 
     - name: Install libvirt-dev
       run: sudo apt-get update && sudo apt-get install libvirt-dev
@@ -93,19 +92,13 @@ jobs:
     - name: Installing node deps
       run: npm install
 
-    # We need 18 to run the tests but the application uses 14
-    - name: Install node based on .nvmrc file
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: '.nvmrc'
+    - name: Run unit tests with code coverage
+      run: npm run coverage
 
-    - name: Unit tests and code coverage
-      run: npm run coverage --if-present
-
-  compile-source:
+  build:
     runs-on: ubuntu-latest
 
-    needs: [start]
+    needs: [lint, test]
 
     steps:
     - name: Checkout repo
@@ -117,18 +110,10 @@ jobs:
         key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
         known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    - name: Install node v14
+    - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version: 14.15.3
-
-    - name: Load npm cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
+        node-version-file: '.nvmrc'
 
     - name: Install libvirt-dev
       run: sudo apt-get update && sudo apt-get install libvirt-dev
@@ -140,98 +125,17 @@ jobs:
     - name: Patch subscriptions-transport-ws
       run: npm run patch:subscriptions-transport-ws
 
-    - name: Add commit hash to full version
-      if: startsWith(github.ref, 'refs/tags/v') == true
-      run: |
-        VERSION=$(jq -r .version package.json) && \
-        jq --arg version $VERSION '.fullVersion = $version' package.json > out.json && mv out.json package.json && \
-        echo '✔ Version field updated'
+    - name: Install pkg and node-prune
+      run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
 
-    - name: Add commit hash to version
-      if: startsWith(github.ref, 'refs/tags/v') == false
-      run: |
-        VERSION=$(jq -r .version package.json) && \
-        SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
-        jq --arg version $VERSION-$SHORT_HASH '.fullVersion = $version' package.json > out.json && mv out.json package.json && \
-        echo '✔ Version field updated'
+    - name: Build and pack binary
+      run: WORKDIR=${{ github.workspace }} && npm run build-pkg
 
-    - name: Compile to javascript
-      run: npm run build
-
-    - name: Clean node_modules
-      run: npm run clean && curl -sf https://gobinaries.com/tj/node-prune | sh && node-prune
-
-    - name: List files to be packed
-      run: tree dist
-    
-    - name: Delete change-log
-      run: rm CHANGELOG.md
-
-    - name: Pack source
-      run: npm pack
-
-    - name: Upload source tgz to Github artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: unraid-api-source
-        path: ${{ github.workspace }}/*.tgz
-
-  build-binary:
-    runs-on: ubuntu-latest
-
-    needs: [lint,test,compile-source]
-
-    steps:
-    - name: Add SSH deploy key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
-
-    - name: Install node v14
-      uses: actions/setup-node@v3
-      with:
-        node-version: 14.15.3
-
-    - name: Load npm cache
-      uses: actions/cache@v3
-      with:
-        path: ~/.npm
-        key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-        restore-keys: |
-          ${{ runner.os }}-node-
-
-    - name: Download unraid-api source tgz
-      uses: actions/download-artifact@v3
-      with:
-        name: unraid-api-source
-
-    - name: Unpack unraid-api source tgz
-      shell: bash
-      run: tar xvzf ./unraid-api-*.tgz --strip 1 && rm ./unraid-api-*.tgz
-
-    - name: Install nexe
-      run: npm i -g nexe
-
-    - name: Add commit hash to version
-      if: startsWith(github.ref, 'refs/tags/v') == false
-      run: |
-        VERSION=$(jq -r .version package.json) && \
-        SHORT_HASH=$(echo $GITHUB_SHA | cut -c 1-7) && \
-        jq --arg version $VERSION-$SHORT_HASH '.version = $version' package.json  > out.json && mv out.json package.json && \
-        echo '✔ Version field updated'
-
-    - name: Build binary
-      run: npm run build-binary
-
-    - name: Pack binary
-      run: npm pack
-
-    - name: Upload binary tgz to Github artifacts
+    - name: Upload tgz to Github artifacts
       uses: actions/upload-artifact@v3
       with:
         name: unraid-api
-        path: ${{ github.workspace }}/*.tgz
+        path: ${{ github.workspace }}/deploy/release/*.tgz
 
   pre-release:
     # Only release if this is a alpha|beta|rc tag
@@ -240,7 +144,7 @@ jobs:
         (contains(github.ref, 'alpha') || contains(github.ref, 'beta') || contains(github.ref, 'rc'))
     runs-on: ubuntu-latest
 
-    needs: [build-binary]
+    needs: [build]
 
     steps:
     - name: Checkout repo
@@ -285,7 +189,7 @@ jobs:
         (!contains(github.ref, 'alpha') && !contains(github.ref, 'beta') && !contains(github.ref, 'rc'))
     runs-on: ubuntu-latest
 
-    needs: [build-binary]
+    needs: [build]
 
     steps:
     - name: Checkout repo

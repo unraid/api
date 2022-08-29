@@ -20,7 +20,7 @@ export const parseDomain = async (type: DomainLookupType, id: string): Promise<D
 	const types = {
 		id: 'lookupDomainByIdAsync',
 		uuid: 'lookupDomainByUUIDAsync',
-		name: 'lookupDomainByNameAsync'
+		name: 'lookupDomainByNameAsync',
 	};
 
 	if (!type || !Object.keys(types).includes(type)) {
@@ -42,7 +42,7 @@ export const parseDomain = async (type: DomainLookupType, id: string): Promise<D
 		securityLabel: domain.getSecurityLabelAsync(),
 		name: domain.getNameAsync(),
 		...info,
-		state: info.state.replace(' ', '_')
+		state: info.state.replace(' ', '_'),
 	});
 
 	if (info.state === 'running') {
@@ -50,6 +50,6 @@ export const parseDomain = async (type: DomainLookupType, id: string): Promise<D
 		results.memoryStats = await domain.getMemoryStatsAsync();
 	}
 
-	// @ts-expect-error
+	// @ts-expect-error fix pProps inferred type
 	return results;
 };

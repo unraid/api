@@ -31,7 +31,7 @@ Options:
   --environment production/staging/development                 Set the working environment. 
   --log-level ALL/TRACE/DEBUG/INFO/WARN/ERROR/FATAL/MARK/OFF   Set the log level.           
 
-  Copyright © 2021 Lime Technology, Inc.
+  Copyright © 2022 Lime Technology, Inc.
 
 ```
 

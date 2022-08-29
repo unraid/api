@@ -35,12 +35,12 @@ export const createSubscription = (channel: string, resource?: string) => ({
 		ensurePermission(context.user, {
 			resource: resource ?? channel,
 			action: 'read',
-			possession: 'any'
+			possession: 'any',
 		});
 
 		hasSubscribedToChannel(context.websocketId, channel);
 		return pubsub.asyncIterator(channel);
-	}
+	},
 });
 
 // Add null to types
@@ -63,7 +63,7 @@ const getLocalServer = (): [CachedServer] => {
 		owner: {
 			username: 'root',
 			url: '',
-			avatar: ''
+			avatar: '',
 		},
 		guid,
 		apikey: '',
@@ -72,7 +72,7 @@ const getLocalServer = (): [CachedServer] => {
 		wanip,
 		lanip,
 		localurl,
-		remoteurl
+		remoteurl,
 	}];
 };
 
@@ -103,15 +103,15 @@ export const getServers = async (): Promise<Server[]> => {
 
 		// Cache servers
 		userCache.set<CachedServers>('mine', {
-			servers
+			servers,
 		});
 
 		// Get first server's owner object
-		const owner = servers[0].owner;
+		const { owner } = servers[0];
 
 		// Publish owner event
 		await pubsub.publish('owner', {
-			owner
+			owner,
 		});
 
 		// Return servers from mothership

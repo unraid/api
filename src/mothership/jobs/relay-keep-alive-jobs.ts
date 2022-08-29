@@ -6,11 +6,7 @@ import { sendMessage } from '@app/mothership/send-message';
 import { relayStore } from '@app/mothership/store';
 
 export class RelayKeepAlive extends Initializer<typeof RelayKeepAlive> {
-
-	constructor() {
-		super();
-	}
-
+	@Cron.Start()
 	@Cron.PreventOverlap
 	@Cron(Expression.EVERY_30_SECONDS)
 	async sendKeepAlive(@CurrentJob runningKeepAliveJob: Job) {

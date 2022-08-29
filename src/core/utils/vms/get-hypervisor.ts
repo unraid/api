@@ -20,7 +20,7 @@ const libvirtDir = '/var/run/libvirt/';
 // Watch extra origin path for changes
 const libvirtDirWatcher = watch(libvirtDir, {
 	persistent: true,
-	ignoreInitial: true
+	ignoreInitial: true,
 });
 
 // Restart hypervisor connection
@@ -33,9 +33,7 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 		}
 
 		// Kill connection
-		await hypervisor.connectClose().catch(() => {
-			return undefined;
-		});
+		await hypervisor.connectClose().catch(() => undefined);
 
 		hypervisor = null;
 	}
@@ -78,7 +76,7 @@ const states = {
 	4: 'SHUTDOWN',
 	5: 'SHUTOFF',
 	6: 'CRASHED',
-	7: 'PMSUSPENDED'
+	7: 'PMSUSPENDED',
 };
 
 type CachedDomain = {
@@ -115,7 +113,7 @@ const watchLibvirt = async (useCache = true) => {
 				uuid,
 				state: states[info.state],
 				autoStart: autoStartDomainNames?.includes(name),
-				features
+				features,
 			};
 			return result as CachedDomain;
 		}));
@@ -140,14 +138,14 @@ const watchLibvirt = async (useCache = true) => {
 			info: {
 				vms: {
 					installed,
-					started
-				}
-			}
+					started,
+				},
+			},
 		};
 		const full = {
 			vms: {
-				domain: cachedDomains
-			}
+				domain: cachedDomains,
+			},
 		};
 
 		// Publish changes to pub/sub
