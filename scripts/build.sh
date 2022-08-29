@@ -14,7 +14,14 @@ mkdir -p ./deploy/pre-pack/
 cp ./dist/api ./deploy/pre-pack/unraid-api
 cp ./.env.production ./deploy/pre-pack/.env.production
 cp ./.env.staging ./deploy/pre-pack/.env.staging
-cp ./package-deployment.json ./deploy/pre-pack/package.json
+
+NAME=$(jq -r .name package.json)
+VERSION=$(jq -r .version package.json)
+jq --null-input \
+  --arg name "$NAME" \
+  --arg version "$VERSION" \
+  '{"name": $name, "version": $version}' > ./deploy/pre-pack/package.json
+
 cp ./README.md ./deploy/pre-pack/
 cd ./deploy/pre-pack
 npm pack
