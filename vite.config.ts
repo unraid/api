@@ -10,5 +10,6 @@ export default defineConfig({
 			reporter: ['text', 'json', 'html'],
 		},
 		clearMocks: true,
+		setupFiles: ['dotenv/config'],
 	},
 });
