@@ -1,6 +1,6 @@
 import { apiManager } from '@app/core/api-manager';
 import { varState } from '@app/core/states';
-import { version } from '@app/version';
+import { store } from '@app/store';
 
 export const getRelayHeaders = () => {
 	const apiKey = apiManager.cloudKey!;
@@ -11,7 +11,7 @@ export const getRelayHeaders = () => {
 		'x-api-key': apiKey,
 		'x-flash-guid': varState.data?.flashGuid,
 		'x-server-name': serverName,
-		'x-unraid-api-version': version,
-		'x-unraid-server-version': serverVersion
+		'x-unraid-api-version': store.getState().version.version,
+		'x-unraid-server-version': serverVersion,
 	};
 };

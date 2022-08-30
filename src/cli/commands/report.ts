@@ -18,7 +18,7 @@ import { cliLogger } from '@app/core/log';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
-import { fullVersion } from '@app/version';
+import { store } from '@app/store';
 import { stdout } from 'process';
 
 export const getConfig = <T = unknown>(path: string) => {
@@ -177,12 +177,12 @@ export const report = async (...argv: string[]) => {
 		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
 		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
 
-		const serversDetails = unraidApiPid ? dedent(`
+		const serversDetails = unraidApiPid ? dedent`
             ONLINE_SERVERS: ${onlineServers.join(', ')}
             OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
-        `) : dedent(`
+        ` : dedent`
             SERVERS: API is offline
-        `);
+        `;
 
 		// Check if API has crashed and if it has crash logs
 		const hasCrashLogs = (await stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
@@ -216,7 +216,7 @@ export const report = async (...argv: string[]) => {
 					version: unraidVersion,
 				},
 				api: {
-					version: fullVersion as string,
+					version: store.getState().version.version,
 					status: unraidApiPid ? 'running' : 'stopped',
 					environment: process.env.ENVIRONMENT,
 				},
@@ -261,7 +261,7 @@ export const report = async (...argv: string[]) => {
             SERVER_NAME: ${serverName}
             ENVIRONMENT: ${process.env.ENVIRONMENT!}
             UNRAID_VERSION: ${unraidVersion}
-            UNRAID_API_VERSION: ${fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
+            UNRAID_API_VERSION: ${store.getState().version.fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
             NODE_VERSION: ${process.version}
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
