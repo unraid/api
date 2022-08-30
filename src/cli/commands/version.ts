@@ -1,6 +1,6 @@
 import { cliLogger } from '@app/core/log';
 import { setEnv } from '@app/cli/set-env';
-import { fullVersion } from '@app/version';
+import { store } from '@app/store';
 
 /**
  * Print API version.
@@ -8,5 +8,5 @@ import { fullVersion } from '@app/version';
 export const version = async () => {
 	setEnv('LOG_TYPE', 'raw');
 
-	cliLogger.info(`Unraid API v${fullVersion as string}`);
+	cliLogger.info(`Unraid API v${store.getState().version.fullVersion}`);
 };

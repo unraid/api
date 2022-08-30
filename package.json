@@ -1,7 +1,6 @@
 {
   "name": "@unraid/api",
   "version": "2.50.0",
-  "fullVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
   "main": "dist/index.js",
   "bin": "dist/unraid-api.cjs",
   "type": "module",
@@ -12,6 +11,7 @@
     "assets": [
       "dist/index.cjs",
       "node_modules/segfault-handler",
+      "node_modules/@vmngr/libvirt/build/Release",
       "src/**/*.graphql"
     ],
     "targets": [
@@ -24,7 +24,6 @@
     "bundle": "pkg . --public",
     "build": "npm run compile && npm run bundle",
     "build-pkg": "./scripts/build.sh",
-    "clean": "modclean --no-progress --run --path . && npm prune --production && node-prune",
     "commit": "npx git-cz",
     "lint": "eslint src/**/*.ts",
     "lint:quiet": "eslint --quiet",
@@ -49,6 +48,7 @@
   "dependencies": {
     "@apollo/client": "^3.5.5",
     "@gridplus/docker-events": "github:OmgImAlexis/docker-events",
+    "@reduxjs/toolkit": "^1.8.5",
     "@reflet/cron": "^1.3.1",
     "@schemastore/package": "0.0.6",
     "accesscontrol": "^2.2.1",
@@ -76,7 +76,7 @@
     "dl-tgz": "^0.7.1",
     "dockerode": "^3.3.1",
     "dot-prop": "^6.0.1",
-    "dotenv": "^10.0.0",
+    "dotenv": "^16.0.1",
     "execa": "^5.1.1",
     "express": "^4.17.1",
     "express-list-endpoints": "^5.0.0",
@@ -119,6 +119,7 @@
     "pify": "^5.0.0",
     "pretty-bytes": "^5.6.0",
     "pretty-ms": "^7.0.1",
+    "react-redux": "^8.0.2",
     "redact-secrets": "github:OmgImAlexis/redact-secrets#master",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
@@ -193,7 +194,6 @@
     "graphql-tools": "^6.2.6",
     "ip-regex": "^5.0.0",
     "log4js": "github:OmgImAlexis/log4js-node",
-    "modclean": "^3.0.0-beta.1",
     "ora": "^6.1.0",
     "p-each-series": "^3.0.0",
     "p-props": "^5.0.0",

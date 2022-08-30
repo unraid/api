@@ -5,16 +5,16 @@ import { shouldBeConnectedToCloud } from '@app/mothership/should-be-connect-to-c
 import { debounce } from '@app/mothership/debounce';
 import { GraphQLError } from 'graphql';
 import { CachedServer, CachedServers, userCache } from '@app/cache/user';
-import { version } from '@app/version';
 import { apiManager } from '@app/core/api-manager';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { miniGraphqlStore } from '@app/mothership/store';
+import { store } from '@app/store';
 
 export const minigraphql = new SubscriptionClient(() => {
 	const apiKey = apiManager.cloudKey ?? 'LARRYS_MAGIC_KEY';
 	const url = new URL(MOTHERSHIP_GRAPHQL_LINK);
-	url.username = version as string;
+	url.username = store.getState().version.version;
 	url.password = apiKey;
 	return url.toString().replace('http', 'ws');
 }, {
@@ -23,7 +23,7 @@ export const minigraphql = new SubscriptionClient(() => {
 	// Should wait 10s for a connection to start
 	minTimeout: ONE_SECOND * 10,
 	connectionParams: () => ({
-		apiVersion: version as string,
+		apiVersion: store.getState().version.version,
 		apiKey: apiManager.cloudKey,
 	}),
 	connectionCallback(errors) {

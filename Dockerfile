@@ -7,10 +7,14 @@ FROM $NODE_IMAGE As development
 ARG NODE_ENV=development
 ARG NPM_I_CMD=npm i
 
-# Set env
+WORKDIR /app
+
+# Set app env
 ENV NODE_ENV=$NODE_ENV
 
-WORKDIR /app
+# Setup cache for pkg
+ENV PKG_CACHE_PATH /app/.pkg-cache
+RUN mkdir -p ${PKG_CACHE_PATH}
 
 COPY package.json package-lock.json ./
 COPY tsconfig.json tsup.config.ts ./
@@ -27,8 +31,7 @@ jq
 # Install deps
 RUN $NPM_I_CMD
 
-# Install pkg and node-prune
+# Install pkg
 RUN npm i -g pkg
-RUN curl -sf https://gobinaries.com/tj/node-prune | sh
 
-CMD ["npm run build-docker"]
+CMD ["npm", "run", "build-pkg"]

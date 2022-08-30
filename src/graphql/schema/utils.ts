@@ -77,16 +77,16 @@ const getLocalServer = (): [CachedServer] => {
 };
 
 export const getServers = async (): Promise<Server[]> => {
-	// Check if we have the servers already cached, if so return them
-	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
-	if (cachedServers) return cachedServers;
-
 	// For now use the my_servers key
 	// Later we should return the correct one for the current user with the correct scope, etc.
 	const apiKey = apiManager.cloudKey;
 
 	// Return only current server if we have no key
 	if (!apiKey) return getLocalServer();
+
+	// Check if we have the servers already cached, if so return them
+	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
+	if (cachedServers) return cachedServers;
 
 	// No cached servers found
 	if (!cachedServers) {
