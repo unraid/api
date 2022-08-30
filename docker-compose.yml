@@ -14,7 +14,7 @@ x-volumes: &volumes
   - ./.git/:/app/.git/
   - ./.env.production:/app/.env.production
   - ./.env.staging:/app/.env.staging
-
+  - ./.pkg-cache:/app/.pkg-cache
 
 services:
   interactive:
@@ -33,6 +33,7 @@ services:
     entrypoint: /bin/bash
     profiles:
       - interactive
+
   builder-interactive:
     image: unraid-api-node-18
     build: 
@@ -61,6 +62,5 @@ services:
         NPM_I_CMD: npm i
     <<: *volumes
     platform: linux/amd64
-    command: "./scripts/build.sh"
     profiles:
       - builder
