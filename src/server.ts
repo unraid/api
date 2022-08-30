@@ -24,7 +24,7 @@ import { sleep } from '@app/core/utils/misc/sleep';
 import { exitApp } from '@app/core/utils/misc/exit-app';
 import { globalErrorHandler } from '@app/core/utils/misc/global-error-handler';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { store } from '@app/store';
+import { getters } from '@app/store';
 
 const configFilePath = path.join(paths['dynamix-base'], 'case-model.cfg');
 const customImageFilePath = path.join(paths['dynamix-base'], 'case-model.png');
@@ -94,7 +94,7 @@ app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
 	if (!app.get('x-unraid-api-version')) {
-		app.set('x-unraid-api-version', store.getState().version.version);
+		app.set('x-unraid-api-version', getters.config().version);
 	}
 
 	// Update header with unraid API version

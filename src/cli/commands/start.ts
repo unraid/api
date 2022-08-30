@@ -8,7 +8,7 @@ import { loadState } from '@app/core/utils/misc/load-state';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
-import { store } from '@app/store';
+import { getters } from '@app/store';
 
 /**
  * Start a new API process.
@@ -32,7 +32,7 @@ export const start = async () => {
 		...(data ?? {}),
 		api: {
 			...data?.api ?? {},
-			version: store.getState().version.version,
+			version: getters.config().version,
 		},
 	});
 
@@ -40,7 +40,7 @@ export const start = async () => {
 	writeFileSync(configPath, stringifiedData);
 
 	// Start API
-	cliLogger.info('Starting unraid-api@v%s', store.getState().version.fullVersion);
+	cliLogger.info('Starting unraid-api@v%s', getters.config().fullVersion);
 
 	// If we're in debug mode or we're NOT
 	// in debug but ARE in the child process

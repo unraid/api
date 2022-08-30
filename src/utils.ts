@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql';
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { mothershipLogger } from '@app/core';
 import type { CachedServer } from '@app/cache/user';
-import { store } from '@app/store';
+import { getters } from '@app/store';
 
 export const getServers = async (apiKey: string) => {
 	try {
@@ -13,7 +13,7 @@ export const getServers = async (apiKey: string) => {
 				'Content-Type': 'application/json',
 
 				Accept: 'application/json',
-				'x-unraid-api-version': store.getState().version.version,
+				'x-unraid-api-version': getters.config().version,
 				'x-api-key': apiKey,
 			},
 			body: JSON.stringify({
