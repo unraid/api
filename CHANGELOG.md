@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.50.0](https://github.com/unraid/api/compare/v2.49.2...v2.50.0) (2022-08-29)
+
+
+### Features
+
+* 🎸 reflet cron added to fix connection issues, mothership refactor ([#294](https://github.com/unraid/api/issues/294)) ([c58473f](https://github.com/unraid/api/commit/c58473fb9ce9af570764071df89937938a01e513))
+* switch to node 18 and pkg ([#303](https://github.com/unraid/api/issues/303)) ([22590a8](https://github.com/unraid/api/commit/22590a80a016ca65b445b01c32d7b64df3382378))
+
+
+### Bug Fixes
+
+* new args to fix daemonized process ([#308](https://github.com/unraid/api/issues/308)) ([0a5b977](https://github.com/unraid/api/commit/0a5b9779267bdf7e0b7c1553ff7d84e2606886e8))
+* SSH URLs ([#297](https://github.com/unraid/api/issues/297)) ([a25ebe1](https://github.com/unraid/api/commit/a25ebe1732115ff9c5d7a59f0b764fca6255e4a1))
+
 ### [2.49.2](https://github.com/unraid/api/compare/v2.49.1...v2.49.2) (2022-07-26)
 
 
