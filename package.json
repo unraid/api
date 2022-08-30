@@ -12,6 +12,7 @@
     "assets": [
       "dist/index.cjs",
       "node_modules/segfault-handler",
+      "node_modules/@vmngr/libvirt/build/Release",
       "src/**/*.graphql"
     ],
     "targets": [

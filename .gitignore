@@ -74,3 +74,6 @@ RELEASE_NOTES.md
 # Docker Deploy Folder 
 deploy/*
 !deploy/.gitkeep
+
+# pkg cache
+.pkg-cache
