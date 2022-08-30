@@ -1,7 +1,6 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { varState } from '@app/core/states/var';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
-import { version } from '@app/version';
 import { checkTwoFactorEnabled } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
 import { docker } from '@app/core/utils/clients/docker';
@@ -12,6 +11,7 @@ import { Dashboard } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { ONE_HOUR } from '@app/consts';
+import { store } from '@app/store';
 
 const getVmSummary = async () => {
 	try {
@@ -58,7 +58,7 @@ const services = () => {
 		uptime: {
 			timestamp: uptimeTimestamp,
 		},
-		version,
+		version: store.getState().version.version,
 	}];
 };
 

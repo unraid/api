@@ -3,7 +3,6 @@
  * Written by: Alexis Tyler
  */
 
-import { version } from '@app/version';
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { apiManager } from '@app/core/api-manager';
 import { logger } from '@app/core/log';
@@ -11,6 +10,7 @@ import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
 import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/check-mothership-restarting';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
+import { store } from '@app/store';
 import got from 'got';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
@@ -40,7 +40,7 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
 	try {
-		const apiVersion = version;
+		const apiVersion = store.getState().version.version;
 		const apiKey = apiManager.cloudKey;
 		if (!apiKey) throw new Error('API key is missing');
 

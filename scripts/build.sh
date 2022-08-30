@@ -9,9 +9,6 @@ rm -f ./deploy/**/**/*
 mkdir -p ./deploy/release/
 mkdir -p ./deploy/pre-pack/
 
-# Add "fullVersion" field to package.json
-./scripts/copy-full-version.sh
-
 # Build binary
 npm run build
 
