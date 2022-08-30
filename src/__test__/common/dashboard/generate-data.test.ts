@@ -81,6 +81,7 @@ vi.mock('@app/common/dashboard/boot-timestamp', () => ({
 }));
 
 test('Returns generated data', async () => {
+	console.log(process.env);
 	const { generateData } = await import('@app/common/dashboard/generate-data');
 	const { varState } = await import('@app/core/states/var');
 	const result = await generateData();
