@@ -171,6 +171,7 @@
     "@types/wtfnode": "^0.7.0",
     "@typescript-eslint/parser": "^5.36.1",
     "@unraid/eslint-config": "github:unraid/eslint-config",
+    "@vitest/coverage-c8": "^0.22.1",
     "bundle-dependencies": "^1.0.2",
     "c8": "^7.12.0",
     "cpx": "1.5.0",
