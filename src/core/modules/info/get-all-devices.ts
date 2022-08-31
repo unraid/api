@@ -5,7 +5,7 @@
 
 import pProps from 'p-props';
 import { execaCommandSync, execa } from 'execa';
-import pathExists from 'path-exists';
+import { pathExists } from 'path-exists';
 import { filter as asyncFilter } from 'p-iteration';
 import { isSymlink } from 'path-type';
 import type { PciDevice, CoreResult, CoreContext } from '@app/core/types';
