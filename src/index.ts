@@ -61,7 +61,7 @@ void am(async () => {
 				});
 			});
 
-			await cloudConnector.checkCloudConnections();
+			// Await cloudConnector.checkCloudConnections();
 			// Check cloud connections
 		} catch (error: unknown) {
 			logger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
@@ -90,7 +90,7 @@ void am(async () => {
 			}));
 
 			// Check cloud connections
-			await cloudConnector.checkCloudConnections();
+			// await cloudConnector.checkCloudConnections();
 
 			// Clear servers cache
 			userCache.del('mine');
@@ -116,7 +116,7 @@ void am(async () => {
 	apiManager.on('replace', async () => {
 		try {
 			// Check cloud connections
-			await cloudConnector.checkCloudConnections();
+			// await cloudConnector.checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}

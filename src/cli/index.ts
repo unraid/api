@@ -1,6 +1,5 @@
 import segfaultHandler from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
-import dotEnv from 'dotenv';
 import { cliLogger } from '@app/core/log';
 import { Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
@@ -8,12 +7,8 @@ import { setEnv } from '@app/cli/set-env';
 const command = mainOptions.command as unknown as string;
 
 export const main = async (...argv: string[]) => {
-	// Load .env file
-	const envs = dotEnv.config({
-		path: '/usr/local/bin/unraid-api/.env',
-	});
-
-	cliLogger.addContext('envs', envs);
+	const { env } = await import('@app/dotenv');
+	cliLogger.addContext('envs', env);
 	cliLogger.debug('Loading env file');
 	cliLogger.removeContext('envs');
 

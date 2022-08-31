@@ -14,6 +14,8 @@ export const relayStore: {
 
 export const miniGraphqlStore: {
 	connected: boolean;
+	status: any;
 } = {
 	connected: false,
+	status: 'DISCONNECTED',
 };
