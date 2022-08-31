@@ -4,7 +4,7 @@
  */
 
 import pProps from 'p-props';
-import execa from 'execa';
+import { execaCommandSync, execa } from 'execa';
 import pathExists from 'path-exists';
 import { filter as asyncFilter } from 'p-iteration';
 import { isSymlink } from 'path-type';
@@ -189,7 +189,7 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 		const modifiedDevice: PciDevice = {
 			...device,
 		};
-		const info = execa.commandSync(`lsusb -d ${device.id} -v`).stdout.split('\n');
+		const info = execaCommandSync(`lsusb -d ${device.id} -v`).stdout.split('\n');
 		const deviceName = device.name.trim();
 		const iSerial = parseDeviceLine(info.filter(line => line.includes('iSerial'))[0]);
 		const iProduct = parseDeviceLine(info.filter(line => line.includes('iProduct'))[0]);

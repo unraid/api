@@ -1,3 +1,3 @@
-import { commandSync } from 'execa';
+import { execaCommandSync } from 'execa';
 
-export const logToSyslog = (text: string) => commandSync(`logger -t unraid-api[${process.pid}] ${text}`);
+export const logToSyslog = (text: string) => execaCommandSync(`logger -t unraid-api[${process.pid}] ${text}`);
