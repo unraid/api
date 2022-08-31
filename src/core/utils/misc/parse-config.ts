@@ -6,7 +6,7 @@
 import { read as multiIniRead, Parser as MultiIniParser } from 'multi-ini';
 import ini from 'ini';
 import camelCaseKeys from 'camelcase-keys';
-import filterObject from 'filter-obj';
+import { excludeKeys } from 'filter-obj';
 import mapObject from 'map-obj';
 import { paths } from '@app/core/paths';
 import { AppError } from '@app/core/errors/app-error';
@@ -43,7 +43,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
 	const temporaryArrays = {};
 
 	// An object without any array items
-	const filteredObject = filterObject(object, (key, value) => {
+	const filteredObject = excludeKeys(object, (key, value) => {
 		// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
 		const [_, name, index] = [...((key).match(/(.*):(\d+$)/) ?? [])];
 		if (!name || !index) {

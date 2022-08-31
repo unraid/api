@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import execa from 'execa';
+import { execa } from 'execa';
 import { PciDevice } from '@app/core/types';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
 
