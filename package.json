@@ -174,7 +174,7 @@
     "filter-obj": "^5.1.0",
     "get-server-address": "^1.0.1",
     "got": "^12.3.1",
-    "graphql-tools": "^6.2.6",
+    "graphql-tools": "^8.3.4",
     "ip-regex": "^5.0.0",
     "log4js": "github:OmgImAlexis/log4js-node",
     "map-obj": "^5.0.2",
