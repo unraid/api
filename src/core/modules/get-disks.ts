@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import execa from 'execa';
+import { execa } from 'execa';
 import { Systeminformation, blockDevices, diskLayout } from 'systeminformation';
 import { map as asyncMap } from 'p-iteration';
 import type { CoreContext, CoreResult } from '@app/core/types';

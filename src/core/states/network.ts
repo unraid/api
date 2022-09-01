@@ -10,6 +10,7 @@ import { LooseObject, IniStringBoolean, CommaSeparatedString } from '@app/core/t
 import { toBoolean } from '@app/core/utils/casting';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { ArrayState } from '@app/core/states/state';
+import { logger } from '@app/core/log';
 
 type NetworkIni = Record<string, {
 	dhcpKeepresolv: IniStringBoolean;
@@ -49,7 +50,7 @@ const parse = (state: NetworkIni) => Object.values(state).map(network => {
 		dhcpKeepresolv: toBoolean(network.dhcpKeepresolv),
 		dhcp6Keepresolv: toBoolean(network.dhcp6Keepresolv),
 		bonding: toBoolean(network.bonding),
-		bondnics: network.bondnics.split(','),
+		bondnics: network.bondnics?.split(','),
 		bridging: toBoolean(network.bridging),
 		'useDhcp:0': toBoolean(network['useDhcp:0']),
 		'useDhcp6:0': toBoolean(network['useDhcp6:0']),

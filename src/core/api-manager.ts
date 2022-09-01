@@ -10,7 +10,7 @@ import path from 'path';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
-import dotProp from 'dot-prop';
+import { getProperty } from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
 import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
@@ -365,7 +365,7 @@ export class ApiManager extends EventEmitter {
 				if (!file) return clearKey(`File is missing "${myServersConfigPath}"`);
 
 				// Get the user's API key
-				const apiKey: string | undefined = dotProp.get(file, 'remote.apikey');
+				const apiKey: string | undefined = getProperty(file, 'remote.apikey');
 
 				// Check if the API key we loaded from the config is empty
 				if (apiKey === undefined || (typeof apiKey === 'string' && apiKey.trim() === '')) return clearKey('API key is missing.');

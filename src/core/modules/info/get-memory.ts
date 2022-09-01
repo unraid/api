@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import execa from 'execa';
+import { execa } from 'execa';
 import si from 'systeminformation';
 import toBytes from 'bytes';
 import { CoreContext, CoreResult } from '@app/core/types';

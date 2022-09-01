@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import execa from 'execa';
+import { execa } from 'execa';
 import { map as asyncMap } from 'p-iteration';
 import { sync as commandExistsSync } from 'command-exists';
 

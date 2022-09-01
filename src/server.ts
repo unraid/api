@@ -6,7 +6,7 @@
 import fs from 'fs';
 import net from 'net';
 import path from 'path';
-import execa from 'execa';
+import { execaCommand } from 'execa';
 import cors from 'cors';
 import stoppable from 'stoppable';
 import chokidar from 'chokidar';
@@ -185,7 +185,7 @@ if (isNaN(parseInt(port, 10))) {
 		}
 
 		// Check if the process that made this file is still alive
-		const pid = await execa.command(`lsof -t ${port}`)
+		const pid = await execaCommand(`lsof -t ${port}`)
 			.then(output => {
 				const pids = cleanStdout(output).split('\n');
 				return pids[0];
@@ -193,7 +193,7 @@ if (isNaN(parseInt(port, 10))) {
 
 		// Try to kill it?
 		if (pid) {
-			await execa.command(`kill -9 ${pid}`);
+			await execaCommand(`kill -9 ${pid}`);
 			await sleep(2000);
 		}
 
