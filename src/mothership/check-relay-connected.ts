@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { debounce } from '@app/mothership/debounce';
-import { relayLogger } from '@app/core/log';
+import { logger, relayLogger } from '@app/core/log';
 import { apiManager } from '@app/core/api-manager';
 import { pubsub } from '@app/core/pubsub';
 import { apiKeyToUser } from '@app/graphql';
@@ -35,17 +35,21 @@ export const checkRelayConnection = debounce(async () => {
 	try {
 		// Bail if we're in the middle of opening a connection
 		if (relayStore.relay?.isOpening) {
+			relayLogger.trace('[Check-Connected] - RelayStore isOpening, returning false')
 			return false;
 		}
 
 		// Bail if we're waiting on a store.timeout for reconnection
 		if (relayStore.timeout) {
+			relayLogger.trace('[Check-Connected] - RelayStore timeout, returning false')
+
 			return false;
 		}
 
 		// Bail if we're already connected
 		if (await shouldBeConnectedToCloud() && relayStore.relay?.isOpened) {
-			return false;
+			relayLogger.trace('[Check-Connected] - Already connected to cloud, bailing on reconnect attempt')
+			return true;
 		}
 
 		// Close the connection if it's still up

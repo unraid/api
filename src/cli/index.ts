@@ -3,11 +3,11 @@ import { parse } from 'ts-command-line-args';
 import { cliLogger } from '@app/core/log';
 import { Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
+import { env } from '@app/dotenv'
 
 const command = mainOptions.command as unknown as string;
 
 export const main = async (...argv: string[]) => {
-	const { env } = await import('@app/dotenv');
 	cliLogger.addContext('envs', env);
 	cliLogger.debug('Loading env file');
 	cliLogger.removeContext('envs');
