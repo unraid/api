@@ -11,7 +11,7 @@ import { Dashboard } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { ONE_HOUR } from '@app/consts';
-import { store } from '@app/store';
+import { getters } from '@app/store';
 
 const getVmSummary = async () => {
 	try {
@@ -58,7 +58,7 @@ const services = () => {
 		uptime: {
 			timestamp: uptimeTimestamp,
 		},
-		version: store.getState().version.version,
+		version: getters.config().version,
 	}];
 };
 

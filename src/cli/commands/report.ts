@@ -18,7 +18,7 @@ import { cliLogger } from '@app/core/log';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
-import { store } from '@app/store';
+import { getters } from '@app/store';
 import { stdout } from 'process';
 
 export const getConfig = <T = unknown>(path: string) => {
@@ -216,7 +216,7 @@ export const report = async (...argv: string[]) => {
 					version: unraidVersion,
 				},
 				api: {
-					version: store.getState().version.version,
+					version: getters.config().version,
 					status: unraidApiPid ? 'running' : 'stopped',
 					environment: process.env.ENVIRONMENT,
 				},
@@ -261,7 +261,7 @@ export const report = async (...argv: string[]) => {
             SERVER_NAME: ${serverName}
             ENVIRONMENT: ${process.env.ENVIRONMENT!}
             UNRAID_VERSION: ${unraidVersion}
-            UNRAID_API_VERSION: ${store.getState().version.fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
+            UNRAID_API_VERSION: ${getters.config().fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
             NODE_VERSION: ${process.version}
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
