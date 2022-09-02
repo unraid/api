@@ -27,7 +27,7 @@
     "commit": "npx git-cz",
     "lint": "eslint src/**/*.ts",
     "lint:quiet": "eslint --quiet",
-    "lint:fix": "eslint --fix",
+    "lint:fix": "eslint --fix src/**/*.ts",
     "test-watch": "vitest",
     "test": "vitest run",
     "coverage": "vitest run --coverage && typescript-coverage-report",

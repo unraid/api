@@ -35,20 +35,20 @@ export const checkRelayConnection = debounce(async () => {
 	try {
 		// Bail if we're in the middle of opening a connection
 		if (relayStore.relay?.isOpening) {
-			relayLogger.trace('[Check-Connected] - RelayStore isOpening, returning false')
+			relayLogger.trace('[Check-Connected] - RelayStore isOpening, returning false');
 			return false;
 		}
 
 		// Bail if we're waiting on a store.timeout for reconnection
 		if (relayStore.timeout) {
-			relayLogger.trace('[Check-Connected] - RelayStore timeout, returning false')
+			relayLogger.trace('[Check-Connected] - RelayStore timeout, returning false');
 
 			return false;
 		}
 
 		// Bail if we're already connected
 		if (await shouldBeConnectedToCloud() && relayStore.relay?.isOpened) {
-			relayLogger.trace('[Check-Connected] - Already connected to cloud, bailing on reconnect attempt')
+			relayLogger.trace('[Check-Connected] - Already connected to cloud, bailing on reconnect attempt');
 			return true;
 		}
 

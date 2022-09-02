@@ -3,7 +3,7 @@ import { parse } from 'ts-command-line-args';
 import { cliLogger } from '@app/core/log';
 import { Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
-import { env } from '@app/dotenv'
+import { env } from '@app/dotenv';
 
 const command = mainOptions.command as unknown as string;
 

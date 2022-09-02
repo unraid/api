@@ -4,6 +4,7 @@ import { apiManager } from '@app/core/api-manager';
 import { minigraphLogger } from '@app/core/log';
 import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
 import { getters } from '@app/store';
+import { varState } from '@app/core/states';
 import { Client, createClient, ExecutionResult, SubscribePayload } from 'graphql-ws';
 import { bus } from '@app/core/bus';
 import { v4 } from 'uuid';
@@ -31,7 +32,8 @@ interface MinigraphClientState {
 	error: unknown;
 	subscriptions: MinigraphClientSubscription[];
 }
-
+// Disabled until swapped to use Redux
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class MinigraphClient {
 	private static client: Client | null = null;
 	private static clientState: MinigraphClientState = {
@@ -39,8 +41,6 @@ export class MinigraphClient {
 		error: null,
 		subscriptions: [],
 	};
-
-	private constructor() { }
 
 	private static readonly setClientState = (newState: MinigraphStatus) => {
 		bus.emit('minigraph-state', newState);
@@ -64,6 +64,7 @@ export class MinigraphClient {
 			connectionParams: () => ({
 				apiVersion: getters.config().version,
 				apiKey: apiManager.cloudKey,
+				unraidVersion: varState.data.version,
 			}),
 			shouldRetry() {
 				return true;

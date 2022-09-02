@@ -24,7 +24,7 @@ class CloudConnector {
 		this.isRunning = true;
 		cloudConnectorLogger.trace('Checking cloud connections');
 		const relayConnected = await checkRelayConnection();
-		cloudConnectorLogger.trace('Relay is connected?', relayConnected)
+		cloudConnectorLogger.trace('Relay is connected?', relayConnected);
 		if (relayConnected) {
 			await checkGraphqlConnection();
 		}
