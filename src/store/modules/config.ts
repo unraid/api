@@ -24,8 +24,6 @@ const initialState = {
 	},
 };
 
-console.log('Using initial env config', initialState);
-
 export const config = createSlice({
 	name: 'config',
 	initialState,
