@@ -7,6 +7,7 @@ import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { miniGraphqlStore } from '@app/mothership/store';
 import { MinigraphClient } from './minigraph-client';
+import { isKeySubscribed, SubscriptionKey } from '@app/store/modules/minigraph';
 
 export const checkGraphqlConnection = async () => {
 	try {
@@ -21,11 +22,11 @@ export const checkGraphqlConnection = async () => {
 			return;
 		}
 
-		const isSubscribedToServers = MinigraphClient.isKeySubscribed('SERVERS');
+		const isSubscribedToServers = isKeySubscribed(SubscriptionKey.SERVERS);
 
 		if (!isSubscribedToServers && apiManager.cloudKey) {
 			mothershipLogger.debug('Subscribing to servers');
-			subscribeToServers(apiManager.cloudKey);
+			await subscribeToServers(apiManager.cloudKey);
 		}
 
 		if (isSubscribedToServers) {
@@ -36,7 +37,7 @@ export const checkGraphqlConnection = async () => {
 	}
 };
 
-export const subscribeToServers = (apiKey: string) => {
+export const subscribeToServers = async (apiKey: string) => {
 	mothershipLogger.addContext('apiKey', apiKey);
 	mothershipLogger.debug('Subscribing to servers');
 	mothershipLogger.removeContext('apiKey');
@@ -83,6 +84,6 @@ export const subscribeToServers = (apiKey: string) => {
 		}
 	};
 
-	MinigraphClient.subscribe({ query, nextFn, subscriptionKey: 'SERVERS' });
+	await MinigraphClient.subscribe({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
 };
 

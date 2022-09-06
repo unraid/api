@@ -4,7 +4,6 @@
  */
 
 import { getters } from '@app/store';
-
 /**
  * Default paths.
  *

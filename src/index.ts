@@ -60,9 +60,6 @@ void am(async () => {
 					server.stop();
 				});
 			});
-
-			// Await cloudConnector.checkCloudConnections();
-			// Check cloud connections
 		} catch (error: unknown) {
 			logger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}

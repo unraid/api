@@ -4,6 +4,7 @@ import { cliLogger } from '@app/core/log';
 import { Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
 import { env } from '@app/dotenv';
+import { paths } from '@app/core';
 
 const command = mainOptions.command as unknown as string;
 
@@ -16,6 +17,7 @@ export const main = async (...argv: string[]) => {
 	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
 
 	cliLogger.debug('Starting CLI');
+	cliLogger.debug('PATHS', paths);
 
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
