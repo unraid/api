@@ -10,4 +10,4 @@ import { getters } from '@app/store';
  *
  * @name Paths
  */
-export const { paths } = getters.config();
+export const paths = getters.paths();

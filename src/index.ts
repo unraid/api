@@ -18,6 +18,8 @@ import { userCache } from '@app/cache/user';
 import { cloudConnector } from './mothership/cloud-connector';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
+import { getters, store } from '@app/store';
+import { loadConfigFile } from '@app/store/modules/config';
 
 // Ini serializer
 
@@ -40,8 +42,10 @@ void am(async () => {
 	await core.load();
 
 	// Init mothership jobs - they are started by decorators on the class
-	MothershipJobs.init()
+	MothershipJobs.init();
 
+	// Load my servers config file into store
+	await store.dispatch(loadConfigFile(getters.paths()['myservers-config']));
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

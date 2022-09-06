@@ -1,31 +1,132 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { Serializer as IniSerializer } from 'multi-ini';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { MyServersConfig } from '@app/types/my-servers-config';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { writeFile } from 'fs/promises';
 
-const initialState = {
+type SliceState = {
+	status: 'unloaded' | 'loading' | 'loaded';
+	version: string;
+	fullVersion: string;
+	nodeEnv: string;
+	remote: {
+		'2Fa': string;
+		wanaccess: string;
+		wanport: string;
+		apikey: string;
+		email: string;
+		username: string;
+		avatar: string;
+	};
+	local: {
+		'2Fa': string;
+	};
+	api: {
+		extraOrigins: string;
+	};
+	upc: {
+		apikey: string;
+	};
+	notifier: {
+		apikey: string;
+	};
+};
+
+const initialState: SliceState = {
+	status: 'unloaded',
 	version: process.env.VERSION!, // This will be baked in at build time
 	fullVersion: process.env.FULL_VERSION!, // This will be baked in at build time
 	nodeEnv: process.env.NODE_ENV ?? 'production',
-	paths: {
-		core: __dirname,
-		'unraid-api-base': '/usr/local/bin/unraid-api/' as const,
-		'unraid-version': '/etc/unraid-version' as const,
-		'unraid-data': process.env.PATHS_UNRAID_DATA ?? '/boot/config/plugins/dynamix.my.servers/data/' as const,
-		'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
-		'docker-socket': '/var/run/docker.sock' as const,
-		'parity-checks': '/boot/config/parity-checks.log' as const,
-		htpasswd: '/etc/nginx/htpasswd' as const,
-		'emhttpd-socket': '/var/run/emhttpd.socket' as const,
-		states: process.env.PATHS_STATES ?? '/usr/local/emhttp/state/' as const,
-		'nginx-state': '/usr/local/emhttp/state/nginx.ini' as const,
-		'dynamix-base': process.env.PATHS_DYNAMIX_BASE ?? '/boot/config/plugins/dynamix/' as const,
-		'dynamix-config': process.env.PATH_DYNAMIX_CONFIG ?? '/boot/config/plugins/dynamix/dynamix.cfg' as const,
-		'myservers-base': '/boot/config/plugins/dynamix.my.servers/' as const,
-		'myservers-config': process.env.PATHS_MY_SERVERS_CONFIG ?? '/boot/config/plugins/dynamix.my.servers/myservers.cfg' as const,
-		'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const,
+	remote: {
+		'2Fa': '',
+		wanaccess: '',
+		wanport: '',
+		apikey: '',
+		email: '',
+		username: '',
+		avatar: '',
+	},
+	local: {
+		'2Fa': '',
+	},
+	api: {
+		extraOrigins: '',
+	},
+	upc: {
+		apikey: '',
+	},
+	notifier: {
+		apikey: '',
 	},
 };
+
+// Ini serializer
+const serializer = new IniSerializer({
+	// This ensures it ADDs quotes
+	keep_quotes: false,
+});
+
+export const writeConfigToDisk = createAsyncThunk<void, string, { state: { config: SliceState } }>('config/write-config-to-disk', async (filePath, thunkAPI) => {
+	try {
+		console.debug('Dumping MyServers config back to file');
+
+		// Get current state
+		const { config: { api, local, notifier, remote, upc } } = thunkAPI.getState();
+
+		// Stringify state
+		const stringifiedData = serializer.serialize({ api, local, notifier, remote, upc });
+
+		// Update config file
+		await writeFile(filePath, stringifiedData);
+	} catch (error: unknown) {
+		if (!(error instanceof Error)) throw new Error(error as string);
+		console.error('Failed writing config to disk with "%s"', error.message);
+	}
+});
+
+export const loadConfigFile = createAsyncThunk<MyServersConfig, string>('config/load-config-file', async filePath => parseConfig<MyServersConfig>({
+	filePath,
+	type: 'ini',
+}));
 
 export const config = createSlice({
 	name: 'config',
 	initialState,
-	reducers: {},
+	reducers: {
+		updateUserConfig(state, action: PayloadAction<MyServersConfig>) {
+			return {
+				...state,
+				remote: {
+					...state.remote,
+					...action.payload.remote,
+				},
+				local: {
+					...state.local,
+					...action.payload.local,
+				},
+				api: {
+					...state.api,
+					...action.payload.api,
+				},
+				upc: {
+					...state.upc,
+					...action.payload.upc,
+				},
+				notifier: {
+					...state.notifier,
+					...action.payload.notifier,
+				},
+			};
+		},
+	},
+	extraReducers(builder) {
+		builder.addCase(loadConfigFile.pending, (state, _action) => {
+			state.status = 'loading';
+		});
+		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
+			Object.assign(state, action.payload, { status: 'loaded' });
+		});
+	},
 });
+
+export const { updateUserConfig } = config.actions;
