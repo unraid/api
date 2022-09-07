@@ -22,7 +22,6 @@ import { getters, store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 
 // Ini serializer
-
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
 	keep_quotes: false,
@@ -45,7 +44,7 @@ void am(async () => {
 	MothershipJobs.init();
 
 	// Load my servers config file into store
-	await store.dispatch(loadConfigFile(getters.paths()['myservers-config']));
+	await store.dispatch(loadConfigFile());
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

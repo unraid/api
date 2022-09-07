@@ -4,6 +4,7 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { writeFile } from 'fs/promises';
 import merge from 'lodash.merge';
+import { logger } from '@app/core/log';
 
 type SliceState = {
 	status: 'unloaded' | 'loading' | 'loaded';
@@ -67,9 +68,10 @@ const serializer = new IniSerializer({
 	keep_quotes: false,
 });
 
-export const writeConfigToDisk = createAsyncThunk<void, string, { state: { config: SliceState } }>('config/write-config-to-disk', async (filePath, thunkAPI) => {
+export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { state: { config: SliceState } }>('config/write-config-to-disk', async (filePath, thunkAPI) => {
 	try {
-		console.debug('Dumping MyServers config back to file');
+		const paths = await import('@app/store').then(_ => _.getters.paths());
+		logger.debug('Dumping MyServers config back to file');
 
 		// Get current state
 		const { config: { api, local, notifier, remote, upc } } = thunkAPI.getState();
@@ -78,17 +80,20 @@ export const writeConfigToDisk = createAsyncThunk<void, string, { state: { confi
 		const stringifiedData = serializer.serialize({ api, local, notifier, remote, upc });
 
 		// Update config file
-		await writeFile(filePath, stringifiedData);
+		await writeFile(filePath ?? paths['myservers-config'], stringifiedData);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(error as string);
 		console.error('Failed writing config to disk with "%s"', error.message);
 	}
 });
 
-export const loadConfigFile = createAsyncThunk<MyServersConfig, string>('config/load-config-file', async filePath => parseConfig<MyServersConfig>({
-	filePath,
-	type: 'ini',
-}));
+export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined>('config/load-config-file', async filePath => {
+	const paths = await import('@app/store').then(_ => _.getters.paths());
+	return parseConfig<MyServersConfig>({
+		filePath: filePath ?? paths['myservers-config'],
+		type: 'ini',
+	});
+});
 
 export const config = createSlice({
 	name: 'config',
