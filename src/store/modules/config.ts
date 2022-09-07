@@ -3,6 +3,7 @@ import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { writeFile } from 'fs/promises';
+import merge from 'lodash.merge';
 
 type SliceState = {
 	status: 'unloaded' | 'loading' | 'loaded';
@@ -93,30 +94,8 @@ export const config = createSlice({
 	name: 'config',
 	initialState,
 	reducers: {
-		updateUserConfig(state, action: PayloadAction<MyServersConfig>) {
-			return {
-				...state,
-				remote: {
-					...state.remote,
-					...action.payload.remote,
-				},
-				local: {
-					...state.local,
-					...action.payload.local,
-				},
-				api: {
-					...state.api,
-					...action.payload.api,
-				},
-				upc: {
-					...state.upc,
-					...action.payload.upc,
-				},
-				notifier: {
-					...state.notifier,
-					...action.payload.notifier,
-				},
-			};
+		updateUserConfig(state, action: PayloadAction<Partial<MyServersConfig>>) {
+			return merge(state, action.payload);
 		},
 	},
 	extraReducers(builder) {
@@ -124,7 +103,7 @@ export const config = createSlice({
 			state.status = 'loading';
 		});
 		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
-			Object.assign(state, action.payload, { status: 'loaded' });
+			merge(state, action.payload, { status: 'loaded' });
 		});
 	},
 });
