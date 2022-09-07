@@ -1,6 +1,6 @@
-import { paths } from '@app/store/modules/paths';
 import { configureStore } from '@reduxjs/toolkit';
-import { config, loadConfigFile } from './modules/config';
+import { paths } from '@app/store/modules/paths';
+import { config } from '@app/store/modules/config';
 
 export const store = configureStore({
 	reducer: {
