@@ -8,7 +8,6 @@ import ini from 'ini';
 import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';
 import mapObject from 'map-obj';
-import { paths } from '@app/core/paths';
 import { AppError } from '@app/core/errors/app-error';
 import { readFileSync } from 'fs';
 
@@ -73,7 +72,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
  */
 export const parseConfig = <T>(options: Options): T => {
 	const { file, type } = options;
-	const filePath = paths[options.filePath as keyof typeof paths] ?? options.filePath;
+	const filePath = options.filePath!;
 	const fileContents = filePath ? readFileSync(filePath, 'utf8').toString() : file!;
 	const fileType = type || filePath.split('.').splice(-1)[0];
 
