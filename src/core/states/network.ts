@@ -78,7 +78,7 @@ export class Network extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = getters.config().paths.states;
+			const statesDirectory = getters.paths().states;
 			const statePath = path.join(statesDirectory, 'network.ini');
 			const state = parseConfig<NetworkIni>({
 				filePath: statePath,

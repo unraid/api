@@ -1,36 +1,31 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { shouldBeConnectedToCloud } from '@app/mothership/should-be-connect-to-cloud';
 import { GraphQLError } from 'graphql';
 import { CachedServer, CachedServers, userCache } from '@app/cache/user';
 import { apiManager } from '@app/core/api-manager';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
-import { miniGraphqlStore } from '@app/mothership/store';
 import { MinigraphClient } from './minigraph-client';
-import { isKeySubscribed, SubscriptionKey } from '@app/store/modules/minigraph';
+import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/modules/minigraph';
+import { getters } from '@app/store';
 
-export const checkGraphqlConnection = async () => {
+export const subscribeToMinigraphServers = async () => {
 	try {
 		// Bail if we're in the middle of opening a connection
-		if (miniGraphqlStore.status === 'CONNECTING') {
+		if (getters.minigraph().status === MinigraphStatus.CONNECTING) {
 			mothershipLogger.debug('Bailing on trying to fix graph connection when connecting');
-			return;
-		}
-
-		// Bail if we're already connected
-		if (await shouldBeConnectedToCloud() && miniGraphqlStore.status === 'CONNECTED') {
 			return;
 		}
 
 		const isSubscribedToServers = await isKeySubscribed(SubscriptionKey.SERVERS);
 
+		if (isSubscribedToServers) {
+			mothershipLogger.debug('Already subscribed to servers, skipping resubscribe');
+			return;
+		}
+
 		if (!isSubscribedToServers && apiManager.cloudKey) {
 			mothershipLogger.debug('Subscribing to servers');
 			await subscribeToServers(apiManager.cloudKey);
-		}
-
-		if (isSubscribedToServers) {
-			mothershipLogger.debug('Already subscribed to servers, skipping resubscribe');
 		}
 	} catch (error: unknown) {
 		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);

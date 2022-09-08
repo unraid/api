@@ -340,7 +340,7 @@ export class ApiManager extends EventEmitter {
 		return lock.runExclusive(async () => {
 			apiManagerLogger.trace('Checking API key for validity.');
 
-			const { paths } = getters.config();
+			const paths = getters.paths();
 			const myServersConfigPath = paths['myservers-config'];
 			const configExists = (await stat(myServersConfigPath).catch(() => ({ size: 0 }))).size > 0;
 			const clearKey = (reason: string) => {

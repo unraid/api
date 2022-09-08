@@ -53,7 +53,7 @@ export class Users extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = getters.config().paths.states;
+			const statesDirectory = getters.paths().states;
 			const statePath = path.join(statesDirectory, 'users.ini');
 			const state = parseConfig<UserIni[]>({
 				filePath: statePath,

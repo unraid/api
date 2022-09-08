@@ -327,7 +327,7 @@ export class VarState extends State {
 
 	get data() {
 		if (!this._data || this._source === 'file') {
-			const { paths } = getters.config();
+			const paths = getters.paths();
 			const statesDirectory = paths.states;
 			const statePath = path.join(statesDirectory, 'var.ini');
 			const state = parseConfig<VarIni>({
