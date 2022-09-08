@@ -35,7 +35,7 @@ test('Before init returns default values for all fields', async () => {
 		    "wanaccess": "",
 		    "wanport": "",
 		  },
-		  "status": "unloaded",
+		  "status": "UNLOADED",
 		  "upc": {
 		    "apikey": "",
 		  },
@@ -81,9 +81,9 @@ test('After init returns values from cfg file for all fields', async () => {
 		    "regWizTime": "1611175408732_0951-1653-3509-FBA155FA23C0",
 		    "username": "zspearmint",
 		    "wanaccess": "no",
-		    "wanport": "0",
+		    "wanport": "8443",
 		  },
-		  "status": "loaded",
+		  "status": "LOADED",
 		  "upc": {
 		    "apikey": "unupc_5239e6c0cd18221202174e80b56ded12956b700b92bea1b529836b4d3c",
 		  },
@@ -126,9 +126,9 @@ test('updateUserConfig merges in changes to current state', async () => {
 		    "regWizTime": "1611175408732_0951-1653-3509-FBA155FA23C0",
 		    "username": "zspearmint",
 		    "wanaccess": "no",
-		    "wanport": "0",
+		    "wanport": "8443",
 		  },
-		  "status": "loaded",
+		  "status": "LOADED",
 		  "upc": {
 		    "apikey": "unupc_5239e6c0cd18221202174e80b56ded12956b700b92bea1b529836b4d3c",
 		  },
