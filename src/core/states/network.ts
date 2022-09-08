@@ -5,12 +5,11 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '@app/core/paths';
 import { LooseObject, IniStringBoolean, CommaSeparatedString } from '@app/core/types';
 import { toBoolean } from '@app/core/utils/casting';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { ArrayState } from '@app/core/states/state';
-import { logger } from '@app/core/log';
+import { getters } from '@app/store';
 
 type NetworkIni = Record<string, {
 	dhcpKeepresolv: IniStringBoolean;
@@ -79,7 +78,7 @@ export class Network extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.config().paths.states;
 			const statePath = path.join(statesDirectory, 'network.ini');
 			const state = parseConfig<NetworkIni>({
 				filePath: statePath,

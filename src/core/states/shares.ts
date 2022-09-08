@@ -5,11 +5,11 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '@app/core/paths';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { ArrayState } from '@app/core/states/state';
 import { LooseObject } from '@app/core/types';
 import { Share } from '@app/core/types/states';
+import { getters } from '@app/store';
 
 interface SharesIni {
 	name: string;
@@ -52,7 +52,7 @@ export class Shares extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.config().paths.states;
 			const statePath = path.join(statesDirectory, 'shares.ini');
 			const state = parseConfig<SharesIni[]>({
 				filePath: statePath,

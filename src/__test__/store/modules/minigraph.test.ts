@@ -1,10 +1,8 @@
-
-import { logger } from '@app/core';
 import { defaultAppMiddleware } from '@app/store/middleware';
 import { getNewMinigraphClient, isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/modules/minigraph';
 import { configureStore } from '@reduxjs/toolkit';
 import { Client } from 'graphql-ws';
-import { test, expect, beforeEach, vi, beforeAll } from 'vitest';
+import { test, expect, vi } from 'vitest';
 
 vi.mock('@app/core/api-manager', () => ({
 	apiManager: { cloudKey: 'hi' },
@@ -96,7 +94,7 @@ test('setStatus works as expected', async () => {
 		  ],
 		}
 	`);
-	expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).toBe(true);
+	expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).resolves.toBe(true);
 
 	store.dispatch(minigraph.actions.removeSubscriptionById('my-sub-id'));
 	expect(store.getState().minigraph).toMatchInlineSnapshot(`
@@ -152,5 +150,5 @@ test('setStatus works as expected', async () => {
 		}
 	`);
 	expect(store.getState().minigraph.client.dispose).not.toHaveBeenCalled();
-	expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).toBe(false);
+	expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).resolves.toBe(false);
 });

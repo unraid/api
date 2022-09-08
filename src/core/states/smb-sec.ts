@@ -8,6 +8,7 @@ import { paths } from '@app/core/paths';
 import { ArrayState } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { SecIni } from '@app/core/types';
+import { getters } from '@app/store';
 
 /**
  * Security
@@ -73,7 +74,7 @@ export class SmbSec extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.config().paths.states;
 			const statePath = path.join(statesDirectory, 'sec.ini');
 			const state = parseConfig<SmbSecIni[]>({
 				filePath: statePath,

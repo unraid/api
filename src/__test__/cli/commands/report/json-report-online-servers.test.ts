@@ -1,4 +1,4 @@
-import { expect, SpyInstanceFn, test, vi } from 'vitest';
+import { expect, test, vi, SpyInstance } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
@@ -26,6 +26,7 @@ vi.mock('fs', () => ({
 	existsSync(path: string) {
 		return path === '/etc/unraid-version';
 	},
+	writeFileSync() {}
 }));
 
 vi.mock('fs/promises', () => ({
@@ -81,7 +82,7 @@ vi.mock('@app/cli/get-unraid-api-pid', () => ({
 vi.mock('process');
 
 test('Returns a JSON anonymised report when provided the --json cli argument [online servers]', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn<any[]>; closeStub: SpyInstanceFn<any[]> };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance<any[]>; closeStub: SpyInstance<any[]> };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');

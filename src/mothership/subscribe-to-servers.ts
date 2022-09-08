@@ -22,7 +22,7 @@ export const checkGraphqlConnection = async () => {
 			return;
 		}
 
-		const isSubscribedToServers = isKeySubscribed(SubscriptionKey.SERVERS);
+		const isSubscribedToServers = await isKeySubscribed(SubscriptionKey.SERVERS);
 
 		if (!isSubscribedToServers && apiManager.cloudKey) {
 			mothershipLogger.debug('Subscribing to servers');

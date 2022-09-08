@@ -3,6 +3,8 @@ import { Var } from '@app/core/types/states';
 import { cloneDeep } from '@apollo/client/utilities';
 import { getters } from '@app/store';
 
+vi.mock('fs');
+
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
 		ACTIVE: 0,
@@ -15,6 +17,13 @@ vi.mock('@app/core/log', () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
+		trace: vi.fn(),
+	},
+	apiManagerLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn(),
+		trace: vi.fn(),
 	},
 }));
 

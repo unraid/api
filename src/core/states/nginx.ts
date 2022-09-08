@@ -8,6 +8,7 @@ import { Nginx } from '@app/core/types/states';
 import { IniStringBooleanOrAuto } from '@app/core/types/ini';
 import { State } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { getters } from '@app/store';
 
 interface NginxIni {
 	nginxCertname: string;
@@ -67,7 +68,7 @@ export class NginxState extends State {
 
 	get data() {
 		if (!this._data) {
-			const statePath = paths['nginx-state'];
+			const statePath = getters.config().paths['nginx-state'];
 			const state = parseConfig<NginxIni>({
 				filePath: statePath,
 				type: 'ini',
