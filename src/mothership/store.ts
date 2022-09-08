@@ -11,11 +11,3 @@ export const relayStore: {
 	reason: undefined,
 	code: undefined,
 };
-
-export const miniGraphqlStore: {
-	connected: boolean;
-	status: any;
-} = {
-	connected: false,
-	status: 'DISCONNECTED',
-};
