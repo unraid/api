@@ -3,6 +3,7 @@ import { paths } from '@app/store/modules/paths';
 import { config, FileLoadStatus } from '@app/store/modules/config';
 import { writeFile } from 'fs/promises';
 import { Serializer as IniSerializer } from 'multi-ini';
+import { logger } from '@app/core/log';
 
 export const store = configureStore({
 	reducer: {
@@ -22,7 +23,7 @@ store.subscribe(async () => {
 	if (config.status !== FileLoadStatus.LOADED) return;
 
 	const paths = await import('@app/store').then(_ => _.getters.paths());
-	console.debug('Dumping MyServers config back to file');
+	logger.debug('Dumping MyServers config back to file');
 
 	// Get current state
 	const { api, local, notifier, remote, upc } = config;

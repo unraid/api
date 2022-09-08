@@ -1,4 +1,4 @@
-import { expect, SpyInstanceFn, test, vi } from 'vitest';
+import { expect, SpyInstance, test, vi } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
@@ -22,6 +22,7 @@ vi.mock('fs');
 
 vi.mock('fs/promises', () => ({
 	readFile: vi.fn(async () => ''),
+	writeFile: vi.fn(async () => ''),
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),
@@ -61,7 +62,7 @@ vi.mock('@app/core/utils/misc/parse-config', () => ({
 vi.mock('process');
 
 test('Returns a JSON anonymised report when provided the --json cli argument [no servers]', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn<any[]>; closeStub: SpyInstanceFn<any[]> };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');

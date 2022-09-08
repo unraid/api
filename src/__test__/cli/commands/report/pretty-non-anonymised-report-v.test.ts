@@ -1,4 +1,4 @@
-import { expect, SpyInstanceFn, test, vi } from 'vitest';
+import { expect, SpyInstance, test, vi } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
@@ -22,6 +22,7 @@ vi.mock('fs');
 
 vi.mock('fs/promises', () => ({
 	readFile: vi.fn(async () => ''),
+	writeFile: vi.fn(async () => ''),
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),
@@ -33,10 +34,11 @@ vi.mock('got', () => ({
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
-						apiKey: { valid: true, error: undefined },
-						relay: { status: 'connected', error: undefined, timeout: undefined },
+						error: null,
+						apiKey: { valid: true, error: null },
+						relay: { status: 'connected', error: null, timeout: null },
 						minigraphql: { status: 'connected' },
-						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
+						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
 					},
 				},
@@ -52,7 +54,8 @@ vi.mock('got', () => ({
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
-						apiKey: { valid: true, error: undefined },
+						error: null,
+						apiKey: { valid: true, error: null },
 						relay: { status: 'disconnected', error: 'Mothership is restarting', timeout: Date.now() + 60_000 },
 						minigraphql: { status: 'disconnected' },
 						cloud: { status: 'error', error: 'Mothership is restarting' },
@@ -80,7 +83,7 @@ vi.mock('@app/core/utils/misc/parse-config', () => ({
 vi.mock('process');
 
 test('Returns a pretty non-anonymised report with -v', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn<any[]>; closeStub: SpyInstanceFn<any[]> };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
@@ -106,17 +109,22 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		{
 		  "allowedOrigins": [],
 		  "apiKey": {
+		    "error": null,
 		    "valid": true,
 		  },
 		  "cloud": {
+		    "error": null,
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
+		  "error": null,
 		  "minigraphql": {
 		    "status": "connected",
 		  },
 		  "relay": {
+		    "error": null,
 		    "status": "connected",
+		    "timeout": null,
 		  },
 		}
 	`);
@@ -150,7 +158,7 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 }, 10_000);
 
 test('Returns a pretty non-anonymised report with -v [mothership restarting]', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn<any[]>; closeStub: SpyInstanceFn<any[]> };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
@@ -188,26 +196,26 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
 	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', 'unknown']);
 	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
-	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
-		{
-		  "allowedOrigins": [],
-		  "apiKey": {
-		    "valid": true,
-		  },
-		  "cloud": {
-		    "error": "Mothership is restarting",
-		    "status": "error",
-		  },
-		  "minigraphql": {
-		    "status": "disconnected",
-		  },
-		  "relay": {
-		    "error": "Mothership is restarting",
-		    "status": "disconnected",
-		    "timeout": ${timeout},
-		  },
-		}
-	`);
+	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchObject({
+		allowedOrigins: [],
+		apiKey: {
+			error: null,
+			valid: true,
+		},
+		cloud: {
+			error: 'Mothership is restarting',
+			status: 'error',
+		},
+		error: null,
+		minigraphql: {
+			status: 'disconnected',
+		},
+		relay: {
+			error: 'Mothership is restarting',
+			status: 'disconnected',
+			timeout: expect.any(Number),
+		},
+	});
 	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Skipped checking for servers as local graphql is offline']);
 
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
