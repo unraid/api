@@ -7,27 +7,18 @@ import { am } from 'am';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
-import { Serializer as IniSerializer } from 'multi-ini';
 import exitHook from 'async-exit-hook';
-import { core, logger, apiManager, paths, pubsub } from '@app/core';
 import { server } from '@app/server';
-import { loadState } from '@app/core/utils/misc/load-state';
-import { writeFileSync } from 'fs';
-import { MyServersConfig } from '@app/types/my-servers-config';
 import { userCache } from '@app/cache/user';
 import { cloudConnector } from './mothership/cloud-connector';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
-import { getters, store } from '@app/store';
-import { loadConfigFile } from '@app/store/modules/config';
-
-// Ini serializer
-const serializer = new IniSerializer({
-	// This ensures it ADDs quotes
-	keep_quotes: false,
-}) as {
-	serialize: (content: unknown) => string;
-};
+import { store } from '@app/store';
+import { loadConfigFile, updateUserConfig } from '@app/store/modules/config';
+import { core } from '@app/core/core';
+import { logger } from '@app/core/log';
+import { apiManager } from '@app/core/api-manager';
+import { pubsub } from '@app/core/pubsub';
 
 // Boot app
 void am(async () => {
@@ -86,23 +77,17 @@ void am(async () => {
 			}
 
 			logger.debug('API key in cfg is invalid, attempting to sign user out via cfg.');
-			const configPath = paths['myservers-config'];
-			const myserversConfigFile = loadState<Partial<MyServersConfig>>(configPath);
-
-			const { apikey: _, email: __, username: ___, avatar: ____, wanaccess: _____, ...remote } = myserversConfigFile?.remote ?? {};
 
 			// Rebuild cfg with wiped remote section
-			// All the _ consts above have been removed
-			const data = {
-				...myserversConfigFile,
-				remote,
-			};
-
-			// Stringify data
-			const stringifiedData = serializer.serialize(data);
-
-			// Update config file
-			writeFileSync(configPath, stringifiedData);
+			store.dispatch(updateUserConfig({
+				remote: {
+					apikey: undefined,
+					email: undefined,
+					username: undefined,
+					avatar: undefined,
+					wanaccess: undefined,
+				},
+			}));
 
 			// Check cloud connections
 			await cloudConnector.checkCloudConnections();
