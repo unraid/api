@@ -57,7 +57,7 @@ export const createMinigraphClient = () => {
 
 export const MinigraphClient = {
 	// eslint-disable-next-line no-async-promise-executor
-	query: async (query: SubscribePayload): Promise<any> => new Promise(async (resolve, reject) => {
+	query: async (query: SubscribePayload): Promise<ExecutionResult<Record<string, unknown>, unknown>> => new Promise(async (resolve, reject) => {
 		let result: ExecutionResult<Record<string, unknown>, unknown>;
 
 		const client = getters.minigraph().client ?? await getNewMinigraphClient();

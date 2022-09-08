@@ -51,6 +51,10 @@ export const minigraph = createSlice({
 		setStatus(state, action: PayloadAction<Pick<MinigraphClientState, 'status' | 'error'>>) {
 			state.status = action.payload.status;
 			state.error = action.payload.error;
+
+			if (action.payload.status === MinigraphStatus.DISCONNECTED) {
+				state.subscriptions = [];
+			}
 		},
 		setClient(state, action: PayloadAction<Client>) {
 			state.client = action.payload;
