@@ -7,7 +7,7 @@ import { writeFileSync } from 'fs';
 import { stat } from 'fs/promises';
 import { Serializer as IniSerializer } from 'multi-ini';
 import crypto from 'crypto';
-import path from 'path';
+import path, { resolve as resolvePath } from 'path';
 import chokidar from 'chokidar';
 import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
@@ -84,7 +84,7 @@ export class ApiManager extends EventEmitter {
 		ApiManager.instance = this;
 
 		// Get my server's config file path
-		const configPath = process.env.PATHS_MY_SERVERS_CONFIG ?? '/boot/config/plugins/dynamix.my.servers/myservers.cfg' as const;
+		const configPath = resolvePath(process.env.PATHS_MY_SERVERS_CONFIG ?? '/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
 		// Load UPC + notifier keys
 		apiManagerLogger.debug('Loading service API keys...');
