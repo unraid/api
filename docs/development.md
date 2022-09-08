@@ -166,7 +166,7 @@ NCHAN=disable \ # Disable nchan polling
   PATHS_STATES=$(pwd)/dev/states \ # Where .ini files live (e.g. vars.ini)
   PATHS_DYNAMIX_BASE=$(pwd)/dev/dynamix \ # Dynamix's data directory
   PATHS_DYNAMIX_CONFIG=$(pwd)/dev/dynamix/dynamix.cfg \ # Dynamix's config file
-  PATHS_MY_SERVERS_CONFIG=$(pwd)/dev/unraid.net/myservers.cfg \ # My servers config file
+  PATHS_MY_SERVERS_CONFIG=$(pwd)/dev/Unraid.net/myservers.cfg \ # My servers config file
   PORT=8500 \ # What port unraid-api should start on (e.g. /var/run/unraid-api.sock or 8000)
   node dist/cli.js --debug # Enable debug logging
 ```

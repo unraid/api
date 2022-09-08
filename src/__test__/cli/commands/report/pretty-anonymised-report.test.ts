@@ -22,6 +22,7 @@ vi.mock('fs');
 
 vi.mock('fs/promises', () => ({
 	readFile: vi.fn(async () => ''),
+	writeFile: vi.fn(async () => ''),
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),

@@ -9,7 +9,6 @@ import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { CachedServer } from '@app/cache/user';
-import { myServersConfig } from '@app/common/myservers-config';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
@@ -18,8 +17,9 @@ import { cliLogger } from '@app/core/log';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
 import { stdout } from 'process';
+import { loadConfigFile } from '@app/store/modules/config';
 
 export const getConfig = <T = unknown>(path: string) => {
 	try {
@@ -27,9 +27,9 @@ export const getConfig = <T = unknown>(path: string) => {
 			filePath: path,
 			type: 'ini',
 		});
-		return camelCaseKeys(config, {
+		return camelCaseKeys(config as any, {
 			deep: true,
-		});
+		}) as T;
 	} catch {}
 
 	return undefined;
@@ -93,7 +93,7 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
 		// Replace ipv4 address using - separator with "IPV4ADDRESS"
 		.replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
 		// Report WAN port
-		.replace(`:${myServersConfig.remote?.wanport ?? 443}`, ':WANPORT')).filter(Boolean);
+		.replace(`:${getters.config().remote.wanport || 443}`, ':WANPORT')).filter(Boolean);
 };
 
 const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbose: boolean) => {
@@ -147,11 +147,11 @@ export const report = async (...argv: string[]) => {
 		const unraidVersion = existsSync(paths['unraid-version']) ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
 		cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
 
-		// Load the myservers.cfg
-		const myServersConfigPath = paths['myservers-config'];
-		const config = getConfig<Partial<MyServersConfig>>(myServersConfigPath);
-		if (!config) throw new Error(`Failed loading "${myServersConfigPath}"`);
-		if (!config.upc?.apikey) throw new Error('Missing UPC API key');
+		// Load my servers config file into store
+		await store.dispatch(loadConfigFile());
+
+		const { config } = store.getState();
+		if (!config.upc.apikey) throw new Error('Missing UPC API key');
 
 		// Fetch the cloud endpoint
 		const cloud = await getCloudData(config);
