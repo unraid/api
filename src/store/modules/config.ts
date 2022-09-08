@@ -6,7 +6,7 @@ import { writeFile } from 'fs/promises';
 import merge from 'lodash.merge';
 import { logger } from '@app/core/log';
 
-enum FileLoadStatus {
+export enum FileLoadStatus {
 	UNLOADED = 'UNLOADED',
 	LOADING = 'LOADING',
 	LOADED = 'LOADED',
