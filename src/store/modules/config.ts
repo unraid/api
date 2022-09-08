@@ -6,8 +6,14 @@ import { writeFile } from 'fs/promises';
 import merge from 'lodash.merge';
 import { logger } from '@app/core/log';
 
+enum FileLoadStatus {
+	UNLOADED = 'UNLOADED',
+	LOADING = 'LOADING',
+	LOADED = 'LOADED',
+}
+
 type SliceState = {
-	status: 'unloaded' | 'loading' | 'loaded';
+	status: FileLoadStatus;
 	version: string;
 	fullVersion: string;
 	nodeEnv: string;
@@ -35,7 +41,7 @@ type SliceState = {
 };
 
 const initialState: SliceState = {
-	status: 'unloaded',
+	status: FileLoadStatus.UNLOADED,
 	version: process.env.VERSION!, // This will be baked in at build time
 	fullVersion: process.env.FULL_VERSION!, // This will be baked in at build time
 	nodeEnv: process.env.NODE_ENV ?? 'production',
@@ -105,10 +111,10 @@ export const config = createSlice({
 	},
 	extraReducers(builder) {
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
-			state.status = 'loading';
+			state.status = FileLoadStatus.LOADING;
 		});
 		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
-			merge(state, action.payload, { status: 'loaded' });
+			merge(state, action.payload, { status: FileLoadStatus.LOADED });
 		});
 	},
 });
