@@ -8,8 +8,8 @@ on:
     # Don't run tests when markdown or yml files are edited
     paths-ignore:
       - plugin
-      - '**.md'
-      - '**.yml'
+      - "**.md"
+      - "**.yml"
 defaults:
   run:
     working-directory: api
@@ -17,81 +17,76 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        persist-credentials: false
-    - name: Test
-      run: |
-        pwd
-        ls -al
-    - name: Reconfigure git to use HTTP authenti:cation
-      run: >
-        git config --global url."https://github.com/".insteadOf
-        ssh://git@github.com/
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: Reconfigure git to use HTTP authenti:cation
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
 
-    - name: Install node
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: 'api/.nvmrc'
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "api/.nvmrc"
 
+      # - name: Get npm cache directory
+      #   id: npm-cache
+      #   run: echo "::set-output name=dir::$(npm config get cache)"
 
-    # - name: Get npm cache directory
-    #   id: npm-cache
-    #   run: echo "::set-output name=dir::$(npm config get cache)"
+      # - name: Load npm cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.npm-cache.outputs.dir }}
+      #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
 
-    # - name: Load npm cache
-    #   uses: actions/cache@v3
-    #   with:
-    #     path: ${{ steps.npm-cache.outputs.dir }}
-    #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
+      - name: Install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
 
-    - name: Install libvirt-dev
-      run: sudo apt-get update && sudo apt-get install libvirt-dev
+      - name: Installing node deps
+        run: npm install
 
-    - name: Installing node deps
-      run: npm install
-
-    - name: Lint files
-      run: npm run lint
+      - name: Lint files
+        run: npm run lint
 
   test:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
-      with:
-        persist-credentials: false
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
-    - name: Reconfigure git to use HTTP authentication
-      run: >
-        git config --global url."https://github.com/".insteadOf
-        ssh://git@github.com/
+      - name: Reconfigure git to use HTTP authentication
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
 
-    - name: Install node
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: 'api/.nvmrc'
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "api/.nvmrc"
 
-    # - name: Get npm cache directory
-    #   id: npm-cache
-    #   run: echo "::set-output name=dir::$(npm config get cache)"
+      # - name: Get npm cache directory
+      #   id: npm-cache
+      #   run: echo "::set-output name=dir::$(npm config get cache)"
 
-    # - name: Load npm cache
-    #   uses: actions/cache@v3
-    #   with:
-    #     path: ${{ steps.npm-cache.outputs.dir }}
-    #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
+      # - name: Load npm cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.npm-cache.outputs.dir }}
+      #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
 
-    - name: Install libvirt-dev
-      run: sudo apt-get update && sudo apt-get install libvirt-dev
+      - name: Install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
 
-    - name: Installing node deps
-      run: npm install
+      - name: Installing node deps
+        run: npm install
 
-    - name: Run unit tests with code coverage
-      run: npm run coverage
+      - name: Run unit tests with code coverage
+        run: npm run coverage
 
   build:
     runs-on: ubuntu-latest
@@ -99,39 +94,38 @@ jobs:
     needs: [lint, test]
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
-    - name: Add SSH deploy key
-      uses: shimataro/ssh-key-action@v2
-      with:
-        key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
-        known_hosts: ${{ secrets.KNOWN_HOSTS }}
+      - name: Add SSH deploy key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
 
-    - name: Install node
-      uses: actions/setup-node@v3
-      with:
-        node-version-file: 'api/.nvmrc'
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "api/.nvmrc"
 
-    - name: Install libvirt-dev
-      run: sudo apt-get update && sudo apt-get install libvirt-dev
+      - name: Install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
 
-    - name: Installing node deps
-      run: npm install
+      - name: Installing node deps
+        run: npm install
 
-    # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
-    - name: Patch subscriptions-transport-ws
-      run: npm run patch:subscriptions-transport-ws
+      # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
+      - name: Patch subscriptions-transport-ws
+        run: npm run patch:subscriptions-transport-ws
 
-    - name: Install pkg and node-prune
-      run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
+      - name: Install pkg and node-prune
+        run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
 
-    - name: Build and pack binary
-      run: WORKDIR=${{ github.workspace }} && npm run build-pkg
+      - name: Build and pack binary
+        run: WORKDIR=${{ github.workspace }} && npm run build-pkg
 
-    - name: Upload tgz to Github artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        name: unraid-api
-        path: ${{ github.workspace }}/api/deploy/release/*.tgz
-
+      - name: Upload tgz to Github artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: unraid-api
+          path: ${{ github.workspace }}/api/deploy/release/*.tgz
