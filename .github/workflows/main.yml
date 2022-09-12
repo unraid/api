@@ -1,10 +1,17 @@
-name: CI - Main
+name: CI - Main (API)
 
 on:
   push:
     branches: [ 'main' ]
     tags: [ 'v*' ]
-
+  # Don't run main when plugin is edited
+    paths-ignore:
+      - plugin
+      - '**.md'
+      - '**.yml'
+defaults:
+  run:
+    working-directory: ./api
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
@@ -17,9 +24,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-
     needs: [start]
-
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
@@ -34,7 +39,7 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: 'api/.nvmrc'
 
     # - name: Get npm cache directory
     #   id: npm-cache
@@ -61,6 +66,8 @@ jobs:
     needs: [start]
 
     steps:
+    - name: CD to api
+      run: cd api
     - name: Checkout repo
       uses: actions/checkout@v3
       with:
@@ -74,7 +81,7 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: 'api/.nvmrc'
 
     # - name: Get npm cache directory
     #   id: npm-cache
@@ -101,6 +108,8 @@ jobs:
     needs: [lint, test]
 
     steps:
+    - name: CD to api
+      run: cd api
     - name: Checkout repo
       uses: actions/checkout@v3
 
@@ -113,7 +122,7 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: 'api/.nvmrc'
 
     - name: Install libvirt-dev
       run: sudo apt-get update && sudo apt-get install libvirt-dev

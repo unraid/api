@@ -1,4 +1,4 @@
-name: Pull Request
+name: Pull Request (API)
 
 on:
   pull_request:
@@ -7,20 +7,25 @@ on:
 
     # Don't run tests when markdown or yml files are edited
     paths-ignore:
+      - plugin
       - '**.md'
       - '**.yml'
-
+defaults:
+  run:
+    working-directory: ./api
 jobs:
   lint:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout repo
       uses: actions/checkout@v3
       with:
         persist-credentials: false
-
-    - name: Reconfigure git to use HTTP authentication
+    - name: Test
+      run: |
+        pwd
+        ls -al
+    - name: Reconfigure git to use HTTP authenti:cation
       run: >
         git config --global url."https://github.com/".insteadOf
         ssh://git@github.com/
@@ -28,7 +33,8 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: 'api/.nvmrc'
+
 
     # - name: Get npm cache directory
     #   id: npm-cache
@@ -66,7 +72,7 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: 'api/.nvmrc'
 
     # - name: Get npm cache directory
     #   id: npm-cache
@@ -105,7 +111,7 @@ jobs:
     - name: Install node
       uses: actions/setup-node@v3
       with:
-        node-version-file: '.nvmrc'
+        node-version-file: 'api/.nvmrc'
 
     - name: Install libvirt-dev
       run: sudo apt-get update && sudo apt-get install libvirt-dev
@@ -127,4 +133,5 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: unraid-api
-        path: ${{ github.workspace }}/deploy/release/*.tgz
+        path: ${{ github.workspace }}/api/deploy/release/*.tgz
+
