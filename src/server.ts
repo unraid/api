@@ -9,12 +9,12 @@ import path from 'path';
 import { execaCommand } from 'execa';
 import cors from 'cors';
 import stoppable from 'stoppable';
-import chokidar from 'chokidar';
-import express, { Response } from 'express';
+import { watch } from 'chokidar';
+import express, { json, Response } from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import { ApolloServer, ApolloServerExpressConfig } from 'apollo-server-express';
-import { logger, config, paths, pubsub } from '@app/core';
+import { logger, config, pubsub } from '@app/core';
 import { graphql } from '@app/graphql';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
@@ -26,8 +26,8 @@ import { globalErrorHandler } from '@app/core/utils/misc/global-error-handler';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { getters } from '@app/store';
 
-const configFilePath = path.join(paths['dynamix-base'], 'case-model.cfg');
-const customImageFilePath = path.join(paths['dynamix-base'], 'case-model.png');
+const configFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.cfg');
+const customImageFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.png');
 
 const updatePubsub = async () => {
 	await pubsub.publish('display', {
@@ -36,8 +36,8 @@ const updatePubsub = async () => {
 };
 
 // Update pub/sub when config/image file is added/updated/removed
-chokidar.watch(configFilePath).on('all', updatePubsub);
-chokidar.watch(customImageFilePath).on('all', updatePubsub);
+watch(configFilePath).on('all', updatePubsub);
+watch(customImageFilePath).on('all', updatePubsub);
 
 /**
  * The Graphql server.
@@ -51,7 +51,7 @@ const port = process.env.PORT ?? config.port;
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
 
 // Ensure json bodies can be parsed
-app.use(express.json());
+app.use(json());
 
 // Cors
 app.use(cors({

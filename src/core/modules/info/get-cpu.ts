@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import si from 'systeminformation';
+import { cpu, cpuFlags } from 'systeminformation';
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
@@ -20,11 +20,11 @@ export const getCpu = async function (context: CoreContext): Promise<CoreResult>
 		possession: 'any',
 	});
 
-	const { cores, physicalCores, ...cpu } = await si.cpu();
-	const flags = await si.cpuFlags().then(flags => flags.split(' '));
+	const { cores, physicalCores, ...rest } = await cpu();
+	const flags = await cpuFlags().then(flags => flags.split(' '));
 
 	const result = {
-		...cpu,
+		...rest,
 		cores: physicalCores,
 		threads: cores,
 		flags,

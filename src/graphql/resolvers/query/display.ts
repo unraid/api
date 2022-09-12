@@ -6,8 +6,8 @@
 import { statSync, existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { paths } from '@app/core/paths';
 import { logger } from '@app/core/log';
+import { getters } from '@app/store';
 
 // Consts
 const ONE_BYTE = 1;
@@ -75,7 +75,7 @@ const states = {
 };
 
 export default async () => {
-	const dynamixBasePath = paths['dynamix-base'];
+	const dynamixBasePath = getters.paths()['dynamix-base'];
 	const configFilePath = join(dynamixBasePath, 'case-model.cfg');
 	const customImageFilePath = join(dynamixBasePath, 'case-model.png');
 

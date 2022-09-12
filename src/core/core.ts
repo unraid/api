@@ -3,11 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import path from 'path';
-import glob from 'glob';
-import camelCase from 'camelcase';
 import { logger, nchanLogger } from '@app/core/log';
-import { paths } from '@app/core/paths';
 import { subscribeToNchanEndpoint } from '@app/core/utils';
 import { config } from '@app/core/config';
 import * as watchers from '@app/core/watchers';
@@ -18,28 +14,6 @@ import * as watchers from '@app/core/watchers';
  */
 const loadingLogger = (namespace: string): void => {
 	logger.debug('Loading %s', namespace);
-};
-
-/**
- * Register state paths.
- */
-const loadStatePaths = async (): Promise<void> => {
-	const statesCwd = paths.states;
-	const cwd = path.join(__dirname, 'states');
-
-	loadingLogger('state paths');
-
-	const states = glob.sync('*.js', { cwd }).map(state => state.replace('.js', ''));
-	states.forEach(state => {
-		const name = `state:${camelCase(state, { pascalCase: true })}`;
-		const filePath = `${path.join(statesCwd, state)}.ini`;
-
-		// Don't override already set paths
-		if (!paths[name]) {
-			// ['state:Users', '/usr/local/emhttp/state/users.ini']
-			paths[name] = filePath;
-		}
-	});
 };
 
 /**
@@ -91,7 +65,6 @@ const loadNchan = async (): Promise<void> => {
  * Core loaders.
  */
 const loaders = {
-	statePaths: loadStatePaths,
 	watchers: loadWatchers,
 };
 
@@ -101,7 +74,6 @@ const loaders = {
  * @name core.load
  */
 const load = async (): Promise<void> => {
-	await loadStatePaths();
 	await loadWatchers();
 };
 

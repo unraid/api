@@ -4,7 +4,7 @@ import { graphql } from 'graphql';
 import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { debounce } from '@app/mothership/debounce';
-import { logger, relayLogger } from '@app/core/log';
+import { relayLogger } from '@app/core/log';
 import { apiManager } from '@app/core/api-manager';
 import { pubsub } from '@app/core/pubsub';
 import { apiKeyToUser } from '@app/graphql';

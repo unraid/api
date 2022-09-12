@@ -29,7 +29,7 @@ vi.mock('fs/promises', () => ({
 }));
 
 vi.mock('got', () => ({
-	default: vi.fn().mockImplementationOnce(async (_url, opts: { body: string }) => {
+	got: vi.fn().mockImplementationOnce(async (_url, opts: { body: string }) => {
 		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
 			const data: { data: { cloud: Cloud } } = {
 				data: {
@@ -134,10 +134,10 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
 		"<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
-		ENVIRONMENT: undefined
+		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
-		NODE_VERSION: ${process.version}
+		NODE_VERSION: v18.3.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: ok [IP=52.40.54.163]
@@ -222,7 +222,7 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
 		"<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
-		ENVIRONMENT: undefined
+		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
 		NODE_VERSION: v18.3.0

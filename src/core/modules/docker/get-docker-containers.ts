@@ -5,11 +5,11 @@
 
 import fs from 'fs';
 import camelCaseKeys from 'camelcase-keys';
-import { paths } from '@app/core/paths';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
 import { docker } from '@app/core/utils/clients/docker';
+import { getters } from '@app/store';
 
 interface Context extends CoreContext {
 	readonly query: {
@@ -38,7 +38,7 @@ export const getDockerContainers = async (context: Context): Promise<CoreResult>
      * @note Doesn't exist if array is offline.
      * @see https://github.com/limetech/webgui/issues/502#issue-480992547
      */
-	const autoStartFile = await fs.promises.readFile(paths['docker-autostart'], 'utf8').then(file => file.toString()).catch(() => '');
+	const autoStartFile = await fs.promises.readFile(getters.paths()['docker-autostart'], 'utf8').then(file => file.toString()).catch(() => '');
 	const autoStarts = autoStartFile.split('\n');
 	const containers = await docker
 		.listContainers({

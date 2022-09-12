@@ -1,11 +1,6 @@
-import { writeFileSync } from 'fs';
 import { spawn } from 'child_process';
-import { Serializer as IniSerializer } from 'multi-ini';
 import { addExitCallback } from 'catch-exit';
 import { cliLogger } from '@app/core/log';
-import { paths } from '@app/core/paths';
-import { loadState } from '@app/core/utils/misc/load-state';
-import { MyServersConfig } from '@app/types/my-servers-config';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
 import { getters } from '@app/store';
@@ -16,28 +11,6 @@ import { getters } from '@app/store';
 export const start = async () => {
 	// Set process title
 	process.title = 'unraid-api';
-
-	// Write current version to config file
-	const configPath = paths['myservers-config'];
-	const data = loadState<Partial<MyServersConfig>>(configPath);
-
-	// Ini serializer
-	const serializer = new IniSerializer({
-		// This ensures it ADDs quotes
-		keep_quotes: false,
-	});
-
-	// Stringify data
-	const stringifiedData = serializer.serialize({
-		...(data ?? {}),
-		api: {
-			...data?.api ?? {},
-			version: getters.config().version,
-		},
-	});
-
-	// Update config file
-	writeFileSync(configPath, stringifiedData);
 
 	// Start API
 	cliLogger.info('Starting unraid-api@v%s', getters.config().fullVersion);
@@ -86,7 +59,7 @@ export const start = async () => {
 				env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 				// The process MUST have it's cwd set to the
 				// path where it resides within the Nexe VFS
-				cwd: paths['unraid-api-base'],
+				cwd: getters.paths()['unraid-api-base'],
 				stdio: 'ignore',
 				detached: true,
 			});

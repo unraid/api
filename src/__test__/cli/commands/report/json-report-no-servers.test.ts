@@ -29,15 +29,16 @@ vi.mock('fs/promises', () => ({
 }));
 
 vi.mock('got', () => ({
-	default: vi.fn(async (url, opts: { body: string }) => {
+	got: vi.fn(async (url, opts: { body: string }) => {
 		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
-						apiKey: { valid: true, error: undefined },
-						relay: { status: 'disconnected', error: 'API is offline', timeout: undefined },
+						error: null,
+						apiKey: { valid: true, error: null },
+						relay: { status: 'disconnected', error: 'API is offline', timeout: null },
 						minigraphql: { status: 'disconnected' },
-						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
+						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
 					},
 				},
@@ -88,18 +89,22 @@ test('Returns a JSON anonymised report when provided the --json cli argument [no
 		{
 		  "allowedOrigins": [],
 		  "apiKey": {
+		    "error": null,
 		    "valid": true,
 		  },
 		  "cloud": {
+		    "error": null,
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
+		  "error": null,
 		  "minigraphql": {
 		    "status": "disconnected",
 		  },
 		  "relay": {
 		    "error": "API is offline",
 		    "status": "disconnected",
+		    "timeout": null,
 		  },
 		}
 	`);

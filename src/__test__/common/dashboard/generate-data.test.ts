@@ -164,7 +164,8 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	// Add invalid data to varState
 	(varState._data as Partial<Var>) = {
 		...varState._data,
-		name: 3000 as any,
+		// This is purposely incorrect for the test
+		name: 3000 as unknown as string,
 	};
 
 	const result = await generateData();

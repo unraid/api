@@ -3,14 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import semver from 'semver';
-import { paths } from '@app/core/paths';
+import { parse } from 'semver';
 import { CacheManager } from '@app/core/cache-manager';
 import { FatalAppError } from '@app/core/errors/fatal-error';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { readFile } from 'fs/promises';
+import { getters } from '@app/store';
 
 const cache = new CacheManager('unraid:modules:get-unraid-version');
 
@@ -38,7 +38,7 @@ export const getUnraidVersion = async (context: CoreContext): Promise<Result> =>
 
 	// Only update when cache is empty or doesn't exist yet
 	if (!version) {
-		const filePath = paths['unraid-version'];
+		const filePath = getters.paths()['unraid-version'];
 		const file = await readFile(filePath)
 			.catch(() => {
 				throw new FileMissingError(filePath);
@@ -46,7 +46,7 @@ export const getUnraidVersion = async (context: CoreContext): Promise<Result> =>
 			.then(buffer => buffer.toString());
 
 		// Ensure string is semver compliant
-		const semverVersion = semver.parse(file.split('"')[1])?.version;
+		const semverVersion = parse(file.split('"')[1])?.version;
 
 		if (!semverVersion) {
 			throw new FatalAppError('Invalid unraid version file.');

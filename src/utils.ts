@@ -1,4 +1,3 @@
-import { GraphQLError } from 'graphql';
 import { mothershipLogger } from '@app/core';
 import type { CachedServer } from '@app/cache/user';
 import { MinigraphClient } from '@app/mothership/minigraph-client';
@@ -28,6 +27,7 @@ export const getServers = async (apiKey: string) => {
 		mothershipLogger.addContext('error', error);
 		mothershipLogger.error('Failed getting servers', error);
 		mothershipLogger.removeContext('error');
-		return [];
 	}
+
+	return [];
 };

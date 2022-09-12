@@ -82,7 +82,7 @@ export const Subscription = {
 		...createSubscription('owner'),
 	},
 	dashboard: {
-		async subscribe(rootValue, args, context, info: GraphQLResolveInfo) {
+		async subscribe(rootValue, args, context, _: GraphQLResolveInfo) {
 			if (!context.user) {
 				throw new AppError('<ws> No user found in context.', 500);
 			}

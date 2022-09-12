@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '@app/core/paths';
 import { PermissionError } from '@app/core/errors/permission-error';
 import { checkAuth } from '@app/core/utils/authentication/check-auth';
+import { getters } from '@app/store';
 
 interface Options {
 	username: string;
@@ -24,7 +24,7 @@ export const ensureAuth = async (options: Options) => {
 	const valid = await checkAuth({
 		username,
 		password,
-		file: file || paths.htpasswd,
+		file: file || getters.paths().htpasswd,
 	});
 
 	if (!valid) {

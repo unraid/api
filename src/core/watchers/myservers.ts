@@ -3,133 +3,41 @@
  * Written by: Alexis Tyler
  */
 
-import chokidar from 'chokidar';
+import chokidar, { watch } from 'chokidar';
 import { logger } from '@app/core/log';
-import { paths } from '@app/core/paths';
-import { apiManager } from '@app/core/api-manager';
-import type { MyServersConfig } from '@app/types/my-servers-config';
 import { existsSync } from 'fs';
-import { getNginxState } from '@app/common/nginx/get-state';
 import { loadState } from '@app/core/utils/misc/load-state';
-import { pubsub } from '@app/core/pubsub';
-import { checkTwoFactorEnabled } from '@app/common/two-factor';
-import { nginx, origins } from '@app/common/allowed-origins';
-import { myServersConfig } from '@app/common/myservers-config';
-
-const watchConfigFile = () => {
-	// Get myservers config
-	const configPath = paths['myservers-config'];
-
-	logger.debug('Starting watcher for %s', configPath);
-
-	// Watch the my servers config file
-	const watcher = chokidar.watch(configPath, {
-		persistent: true,
-		ignoreInitial: true,
-	});
-
-	// My servers config has likely changed
-	watcher.on('all', async (_event, fullPath) => {
-		const file = loadState<Partial<MyServersConfig>>(fullPath);
-
-		logger.addContext('config', file);
-		logger.trace('"%s" was updated', fullPath);
-		logger.removeContext('config');
-
-		// Update remote section for remote access
-		if (file?.remote) {
-			// If 2fa was enabled/disabled comment on it changing
-			if (myServersConfig.remote?.['2Fa'] && myServersConfig.remote?.['2Fa'] !== file.remote['2Fa']) {
-				logger.debug('Remote 2FA status="%s" type="%s"', file.remote['2Fa'] === 'yes' ? 'enabled' : 'disabled', 'transparent');
-			}
-
-			myServersConfig.remote = {
-				...(myServersConfig.remote ? myServersConfig.remote : {}),
-				wanaccess: file.remote.wanaccess,
-				wanport: file.remote.wanport,
-
-				'2Fa': file.remote['2Fa'],
-			};
-		}
-
-		// Update local section for LAN access
-		if (file?.local) {
-			// If 2fa was enabled/disabled comment on it changing
-			if (myServersConfig.remote?.['2Fa'] && myServersConfig.local?.['2Fa'] !== file.local['2Fa']) {
-				logger.debug('Local 2FA status="%s" type="%s"', file.local['2Fa'] === 'yes' ? 'enabled' : 'disabled', 'transparent');
-			}
-
-			myServersConfig.local = {
-				...(myServersConfig.local ? myServersConfig.local : {}),
-
-				'2Fa': file.local['2Fa'],
-			};
-		}
-
-		// Update extra origins for CORS
-		if (typeof file?.api?.extraOrigins === 'string' && file?.api?.extraOrigins !== myServersConfig.api?.extraOrigins) {
-			logger.debug('Extra origins updated origins="%s"', file?.api?.extraOrigins ?? '');
-			origins.extra = file?.api?.extraOrigins?.split(',').map(origin => origin.trim()) ?? [];
-		}
-
-		const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
-
-		// Publish to 2fa endpoint
-		await pubsub.publish('twoFactor', {
-			twoFactor: {
-				remote: {
-					enabled: isRemoteEnabled,
-				},
-				local: {
-					enabled: isLocalEnabled,
-				},
-			},
-		});
-
-		try {
-			// Ensure api manager has the correct keys loaded
-			await apiManager.checkKey(configPath, true);
-		} catch (error: unknown) {
-			logger.debug('Failed checking API key with "%s"', (error as Error)?.message || error);
-		}
-	});
-
-	// Save ref for cleanup
-	return watcher;
-};
+import { getters, store } from '@app/store';
+import { updateNginxState } from '@app/store/modules/nginx';
+import { NginxIni } from '@app/core/states/nginx';
 
 const watchStateFile = () => {
 	// State file path
-	const filePath = paths['nginx-state'];
+	const filePath = getters.paths()['nginx-state'];
 	logger.debug('Starting watcher for %s', filePath);
 
 	// Watch state file for changes
-	const watcher = chokidar.watch(filePath, {
+	const watcher = watch(filePath, {
 		persistent: true,
 		ignoreInitial: true,
 	});
 
 	// Update SSL cert info
-	watcher.on('all', _event => {
+	watcher.on('all', async _event => {
+		// Get latest nginx config
+		const state = loadState<Partial<NginxIni>>(filePath);
+
 		// Update nginx values
-		const nginxState = getNginxState();
-
-		// NOTE: Rebuild both objects to ensure reactivity
-		// 		 still works within the ESM import
-		nginx.ipv4 = {
-			lan: nginxState.ipv4?.lan,
-			wan: nginxState.ipv4?.wan,
-		};
-		nginx.ipv6 = {
-			lan: nginxState.ipv6?.lan,
-			wan: nginxState.ipv6?.wan,
-		};
-
-		// Update remote access details
-		const configPath = paths['myservers-config'];
-		const file = loadState<Partial<MyServersConfig>>(configPath) ?? {};
-		if (!myServersConfig.remote) myServersConfig.remote = {};
-		myServersConfig.remote = file.remote;
+		store.dispatch(updateNginxState({
+			ipv4: {
+				lan: state?.nginxLanfqdn ?? null,
+				wan: state?.nginxWanfqdn ?? null,
+			},
+			ipv6: {
+				lan: state?.nginxLanfqdn6 ?? null,
+				wan: state?.nginxWanfqdn6 ?? null,
+			},
+		}));
 	});
 
 	// Save ref for cleanup
@@ -141,10 +49,7 @@ export const myservers = () => {
 
 	return {
 		start() {
-			const filePath = paths['nginx-state'];
-
-			// Watch config file for changes to 2fa
-			watchers.push(watchConfigFile());
+			const filePath = getters.paths()['nginx-state'];
 
 			// Check if state file exists
 			if (existsSync(filePath)) {

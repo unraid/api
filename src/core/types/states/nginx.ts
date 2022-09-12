@@ -5,6 +5,7 @@ export interface Nginx {
 	httpPort: number;
 	httpsPort: number;
 	lanFqdn: string;
+	lanFqdn6: string;
 	lanIp: string;
 	lanMdns: string;
 	lanName: string;
@@ -12,5 +13,6 @@ export interface Nginx {
 	sslMode: 'yes' | 'no' | 'auto';
 	wanAccessEnabled: boolean;
 	wanFqdn: string;
+	wanFqdn6: string;
 	wanIp: string;
 }

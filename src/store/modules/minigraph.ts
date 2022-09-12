@@ -95,11 +95,11 @@ export const minigraph = createSlice({
 export const { setStatus, setClient, addSubscription, removeSubscriptionById } = minigraph.actions;
 
 export const getNewMinigraphClient = async (appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
-	const store = (appStore ?? await import('@app/store/index').then(_ => _.store))!;
-	return store.dispatch(createNewClient(store.getState().minigraph)).unwrap();
+	const store = (appStore ?? await import('@app/store/index').then(_ => _.store));
+	return store?.dispatch(createNewClient(store.getState().minigraph)).unwrap();
 };
 
 export const isKeySubscribed = async (subscriptionKey: SubscriptionKey, appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
-	const store = (appStore ?? await import('@app/store/index').then(_ => _.store))!;
-	return store.getState().minigraph.subscriptions.some(subscription => subscription.subscriptionKey === subscriptionKey);
+	const store = (appStore ?? await import('@app/store/index').then(_ => _.store));
+	return store?.getState().minigraph.subscriptions.some(subscription => subscription.subscriptionKey === subscriptionKey);
 };

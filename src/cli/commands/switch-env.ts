@@ -2,14 +2,15 @@ import { exec } from 'child_process';
 import { readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { cliLogger } from '@app/core/log';
-import { paths } from '@app/core/paths';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { setEnv } from '@app/cli/set-env';
 import { restart } from '@app/cli/commands/restart';
+import { getters } from '@app/store';
 
 export const switchEnv = async () => {
 	setEnv('LOG_TYPE', 'raw');
 
+	const paths = getters.paths();
 	const basePath = paths['unraid-api-base'];
 	const envFlashFilePath = paths['myservers-env'];
 	const envFile = await readFile(envFlashFilePath, 'utf-8').catch(() => '');

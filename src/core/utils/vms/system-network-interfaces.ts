@@ -3,6 +3,6 @@
  * Written by: Alexis Tyler
  */
 
-import si from 'systeminformation';
+import { networkInterfaces } from 'systeminformation';
 
-export const systemNetworkInterfaces = si.networkInterfaces();
+export const systemNetworkInterfaces = networkInterfaces();

@@ -10,6 +10,7 @@ import { watch } from 'chokidar';
 import { libvirtLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { sleep } from '@app/core/utils/misc/sleep';
+import type { Domain } from '@vmngr/libvirt';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
 
@@ -104,9 +105,9 @@ const watchLibvirt = async (useCache = true) => {
 		// Get all domains
 		const domains = await hypervisor.connectListAllDomains() as unknown[];
 		const resolvedDomains = await Promise.all(domains.map(async (domain: unknown): Promise<CachedDomain> => {
-			const info = await hypervisor.domainGetInfo(domain) as { state: string };
-			const name = await hypervisor.domainGetName(domain) as string;
-			const uuid = await hypervisor.domainGetUUIDString(domain) as string;
+			const info = await hypervisor.domainGetInfo(domain as Domain) as { state: string };
+			const name = await hypervisor.domainGetName(domain as Domain);
+			const uuid = await hypervisor.domainGetUUIDString(domain as Domain);
 			const features = {};
 			const result = {
 				name,

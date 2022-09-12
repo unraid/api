@@ -4,7 +4,7 @@
  */
 
 import { execa } from 'execa';
-import si from 'systeminformation';
+import { memLayout, mem } from 'systeminformation';
 import toBytes from 'bytes';
 import { CoreContext, CoreResult } from '@app/core/types';
 import { AppError } from '@app/core/errors/app-error';
@@ -24,8 +24,8 @@ export const getMemory = async (context: CoreContext): Promise<CoreResult> => {
 		possession: 'any',
 	});
 
-	const layout = await si.memLayout();
-	const info = await si.mem();
+	const layout = await memLayout();
+	const info = await mem();
 	let max = info.total;
 
 	// Max memory

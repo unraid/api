@@ -5,7 +5,6 @@
 
 import mm from 'micromongo';
 import path from 'path';
-import { paths } from '@app/core/paths';
 import { User } from '@app/core/types/states';
 import { LooseObject } from '@app/core/types';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
