@@ -1,4 +1,4 @@
-import { FileLoadStatus, loadConfigFile } from '@app/store/modules/config';
+import { FileLoadStatus } from '@app/store/modules/config';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash.merge';
 
@@ -33,14 +33,6 @@ export const nginx = createSlice({
 		updateNginxState(state, action: PayloadAction<Partial<typeof initialState>>) {
 			return merge(state, action.payload);
 		},
-	},
-	extraReducers(builder) {
-		builder.addCase(loadConfigFile.pending, (state, _action) => {
-			state.status = FileLoadStatus.LOADING;
-		});
-		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
-			merge(state, action.payload, { status: FileLoadStatus.LOADED });
-		});
 	},
 });
 
