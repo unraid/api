@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import si from 'systeminformation';
+import { baseboard } from 'systeminformation';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
@@ -19,11 +19,11 @@ export const getBaseboard = async (context: CoreContext): Promise<CoreResult> =>
 
 	// @TODO: Convert baseboard.model to known model name
 	// 		  e.g. 084YMW -> R510
-	const baseboard = await si.baseboard();
+	const result = await baseboard();
 
 	return {
 		json: {
-			...baseboard,
+			...result,
 		},
 	};
 };

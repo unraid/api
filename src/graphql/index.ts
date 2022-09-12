@@ -19,9 +19,9 @@ import { dockerLogger, graphqlLogger, logger } from '@app/core/log';
 import { modules } from '@app/core';
 import { bus } from '@app/core/bus';
 import { config } from '@app/core/config';
-import { paths } from '@app/core/paths';
 import { pubsub } from '@app/core/pubsub';
 import { apiManager } from '@app/core/api-manager';
+import { getters } from '@app/store';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
@@ -37,7 +37,7 @@ export const getCoreModule = (moduleName: string) => {
 const ensureApiKey = async (apiKeyToCheck: string) => {
 	// If there's no my servers key loaded into memory then try to load it
 	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
-		const configPath = paths['myservers-config'];
+		const configPath = getters.paths()['myservers-config'];
 		await apiManager.checkKey(configPath, true);
 	}
 

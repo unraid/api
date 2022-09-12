@@ -3,24 +3,25 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
+import { writeFileSync } from 'fs';
+import { stat } from 'fs/promises';
 import { Serializer as IniSerializer } from 'multi-ini';
 import crypto from 'crypto';
-import path from 'path';
-import chokidar from 'chokidar';
+import path, { resolve as resolvePath } from 'path';
+import { watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
 import { getProperty } from 'dot-prop';
 import { Cache as MemoryCache } from 'clean-cache';
 import { validate as validateArgument } from 'bycontract';
 import { Mutex, MutexInterface } from 'async-mutex';
-import { paths } from '@app/core/paths';
 import { apiManagerLogger } from '@app/core/log';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { userCache } from '@app/cache/user';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
+import { getters } from '@app/store';
 
 export interface CacheItem {
 	/** Machine readable name of the key. */
@@ -83,7 +84,7 @@ export class ApiManager extends EventEmitter {
 		ApiManager.instance = this;
 
 		// Get my server's config file path
-		const configPath = paths['myservers-config'];
+		const configPath = resolvePath(process.env.PATHS_MY_SERVERS_CONFIG ?? '/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
 		// Load UPC + notifier keys
 		apiManagerLogger.debug('Loading service API keys...');
@@ -118,7 +119,7 @@ export class ApiManager extends EventEmitter {
 			const stringifiedData = serializer.serialize(data);
 
 			// Update config file
-			fs.writeFileSync(configPath, stringifiedData);
+			writeFileSync(configPath, stringifiedData);
 
 			// Update api manager with key
 			this.replace('upc', UPCFinalKey, { userId: '-1' });
@@ -128,7 +129,7 @@ export class ApiManager extends EventEmitter {
 		// Watch for changes to the myservers.cfg file
 		// @todo Move API keys to their own file
 		if (options.watch) {
-			chokidar.watch(path.basename(configPath), {
+			watch(path.basename(configPath), {
 				ignoreInitial: true,
 			}).on('all', async (_eventName, filePath) => {
 				if (filePath === configPath) {
@@ -339,8 +340,9 @@ export class ApiManager extends EventEmitter {
 		return lock.runExclusive(async () => {
 			apiManagerLogger.trace('Checking API key for validity.');
 
+			const paths = getters.paths();
 			const myServersConfigPath = paths['myservers-config'];
-			const configExists = (await fs.promises.stat(myServersConfigPath).catch(() => ({ size: 0 }))).size > 0;
+			const configExists = (await stat(myServersConfigPath).catch(() => ({ size: 0 }))).size > 0;
 			const clearKey = (reason: string) => {
 				apiManagerLogger.trace(reason);
 

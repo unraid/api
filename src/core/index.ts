@@ -10,7 +10,6 @@ export * from '@app/core/config';
 export * from '@app/core/core';
 export * from '@app/core/envs';
 export * from '@app/core/log';
-export * from '@app/core/paths';
 export * from '@app/core/permission-manager';
 export * from '@app/core/permissions';
 export * from '@app/core/pubsub';

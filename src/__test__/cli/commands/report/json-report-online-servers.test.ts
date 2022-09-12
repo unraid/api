@@ -1,4 +1,4 @@
-import { expect, SpyInstanceFn, test, vi } from 'vitest';
+import { expect, test, vi, SpyInstance } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
@@ -26,6 +26,9 @@ vi.mock('fs', () => ({
 	existsSync(path: string) {
 		return path === '/etc/unraid-version';
 	},
+	writeFileSync() {
+		return undefined;
+	},
 }));
 
 vi.mock('fs/promises', () => ({
@@ -37,15 +40,16 @@ vi.mock('fs/promises', () => ({
 }));
 
 vi.mock('got', () => ({
-	default: vi.fn(async (_url, opts: { body: string }) => {
+	got: vi.fn(async (_url, opts: { body: string }) => {
 		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
-						apiKey: { valid: true, error: undefined },
-						relay: { status: 'connected', error: undefined, timeout: undefined },
+						error: null,
+						apiKey: { valid: true, error: null },
+						relay: { status: 'connected', error: null, timeout: null },
 						minigraphql: { status: 'connected' },
-						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
+						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
 					},
 				},
@@ -81,7 +85,7 @@ vi.mock('@app/cli/get-unraid-api-pid', () => ({
 vi.mock('process');
 
 test('Returns a JSON anonymised report when provided the --json cli argument [online servers]', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn<any[]>; closeStub: SpyInstanceFn<any[]> };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
@@ -110,17 +114,22 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		{
 		  "allowedOrigins": [],
 		  "apiKey": {
+		    "error": null,
 		    "valid": true,
 		  },
 		  "cloud": {
+		    "error": null,
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
+		  "error": null,
 		  "minigraphql": {
 		    "status": "connected",
 		  },
 		  "relay": {
+		    "error": null,
 		    "status": "connected",
+		    "timeout": null,
 		  },
 		}
 	`);

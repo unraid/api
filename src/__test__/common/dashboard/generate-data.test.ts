@@ -3,6 +3,8 @@ import { Var } from '@app/core/types/states';
 import { cloneDeep } from '@apollo/client/utilities';
 import { getters } from '@app/store';
 
+vi.mock('fs');
+
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
 		ACTIVE: 0,
@@ -15,6 +17,13 @@ vi.mock('@app/core/log', () => ({
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
+		trace: vi.fn(),
+	},
+	apiManagerLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn(),
+		trace: vi.fn(),
 	},
 }));
 
@@ -143,7 +152,7 @@ test('Returns generated data', async () => {
 
 	// .switchSource should not have been called at all since we passed it valid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
-});
+}, 10000);
 
 test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	const { generateData } = await import('@app/common/dashboard/generate-data');
@@ -155,7 +164,8 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	// Add invalid data to varState
 	(varState._data as Partial<Var>) = {
 		...varState._data,
-		name: 3000 as any,
+		// This is purposely incorrect for the test
+		name: 3000 as unknown as string,
 	};
 
 	const result = await generateData();

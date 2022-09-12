@@ -7,13 +7,14 @@ import { logger } from '@app/core/log';
 import { getServers } from '@app/graphql/schema/utils';
 import { CachedServer } from '@app/cache/user';
 import { varState } from '@app/core/states';
-import { getMinigraphqlConnectionStatus } from '@app/mothership/get-mini-graphql-connection-status';
+import { getters } from '@app/store';
+import { MinigraphStatus } from '@app/store/modules/minigraph';
 
 export const checkMinigraphql = async (): Promise<{ status: 'connected' | 'disconnected' }> => {
 	logger.trace('Cloud endpoint: Checking mini-graphql');
 	try {
 		// Do we have a connection to mothership?
-		const connected = getMinigraphqlConnectionStatus();
+		const connected = getters.minigraph().status === MinigraphStatus.CONNECTED;
 		if (!connected) return { status: 'disconnected' };
 
 		// Is the server online?

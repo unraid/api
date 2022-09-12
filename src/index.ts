@@ -10,7 +10,6 @@ import CacheableLookup from 'cacheable-lookup';
 import exitHook from 'async-exit-hook';
 import { server } from '@app/server';
 import { userCache } from '@app/cache/user';
-import { cloudConnector } from './mothership/cloud-connector';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
 import { store } from '@app/store';
@@ -19,6 +18,7 @@ import { core } from '@app/core/core';
 import { logger } from '@app/core/log';
 import { apiManager } from '@app/core/api-manager';
 import { pubsub } from '@app/core/pubsub';
+import { startStoreSync } from '@app/store/store-sync';
 
 // Boot app
 void am(async () => {
@@ -36,6 +36,9 @@ void am(async () => {
 
 	// Load my servers config file into store
 	await store.dispatch(loadConfigFile());
+
+	// Start file <-> store sync
+	await startStoreSync();
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');
@@ -60,9 +63,6 @@ void am(async () => {
 					server.stop();
 				});
 			});
-
-			await cloudConnector.checkCloudConnections();
-			// Check cloud connections
 		} catch (error: unknown) {
 			logger.error('Failed creating sockets on "ready" event with error %s.', (error as Error).message);
 		}
@@ -90,7 +90,7 @@ void am(async () => {
 			}));
 
 			// Check cloud connections
-			await cloudConnector.checkCloudConnections();
+			// await cloudConnector.checkCloudConnections();
 
 			// Clear servers cache
 			userCache.del('mine');
@@ -116,7 +116,7 @@ void am(async () => {
 	apiManager.on('replace', async () => {
 		try {
 			// Check cloud connections
-			await cloudConnector.checkCloudConnections();
+			// await cloudConnector.checkCloudConnections();
 		} catch (error: unknown) {
 			logger.error('Failed updating sockets on apiKey "replace" event with error %s.', error);
 		}

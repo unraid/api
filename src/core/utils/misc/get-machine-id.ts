@@ -1,12 +1,12 @@
-import { paths } from '@app/core/paths';
 import { CacheManager } from '@app/core/cache-manager';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
+import { getters } from '@app/store';
 import { readFile } from 'fs/promises';
 
 const cache = new CacheManager('unraid:utils:misc/get-machine-id');
 
 export const getMachineId = async (): Promise<string> => {
-	const path = paths['machine-id'];
+	const path = getters.paths()['machine-id'];
 	let machineId: string = cache.get('machine-id');
 
 	if (!path) {

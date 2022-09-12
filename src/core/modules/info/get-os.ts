@@ -4,7 +4,7 @@
  */
 
 import { uptime } from 'os';
-import si from 'systeminformation';
+import { osInfo } from 'systeminformation';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
@@ -27,7 +27,7 @@ export const getOs = async function (context: CoreContext): Promise<CoreResult> 
 		possession: 'any',
 	});
 
-	const os = await si.osInfo();
+	const os = await osInfo();
 
 	return {
 		get text() {

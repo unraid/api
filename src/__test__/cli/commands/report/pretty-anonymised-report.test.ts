@@ -29,15 +29,16 @@ vi.mock('fs/promises', () => ({
 }));
 
 vi.mock('got', () => ({
-	default: vi.fn(async (_url, opts: { body: string }) => {
+	got: vi.fn(async (_url, opts: { body: string }) => {
 		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
-						apiKey: { valid: true, error: undefined },
-						relay: { status: 'connected', error: undefined, timeout: undefined },
+						error: null,
+						apiKey: { valid: true, error: null },
+						relay: { status: 'connected', error: null, timeout: null },
 						minigraphql: { status: 'connected' },
-						cloud: { status: 'ok', ip: '52.40.54.163', error: undefined },
+						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
 					},
 				},
@@ -66,7 +67,7 @@ vi.mock('@app/core/utils/misc/parse-config', () => ({
 vi.mock('process');
 
 test('Returns a pretty anonymised report by default', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn<any[]>; closeStub: SpyInstanceFn<any[]> };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn; closeStub: SpyInstanceFn };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
@@ -89,17 +90,22 @@ test('Returns a pretty anonymised report by default', async () => {
 		{
 		  "allowedOrigins": [],
 		  "apiKey": {
+		    "error": null,
 		    "valid": true,
 		  },
 		  "cloud": {
+		    "error": null,
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
+		  "error": null,
 		  "minigraphql": {
 		    "status": "connected",
 		  },
 		  "relay": {
+		    "error": null,
 		    "status": "connected",
+		    "timeout": null,
 		  },
 		}
 	`);
@@ -109,7 +115,7 @@ test('Returns a pretty anonymised report by default', async () => {
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
 		"<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
-		ENVIRONMENT: undefined
+		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
 		NODE_VERSION: v18.3.0

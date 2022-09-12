@@ -2,8 +2,8 @@ import { randomBytes } from 'crypto';
 import NodeCache from 'node-cache';
 import { logger } from '@app/core/log';
 import { varState } from '@app/core/states/var';
-import { myServersConfig } from '@app/common/myservers-config';
 import { compareUnraidVersion } from '@app/common/unraid-version-compare';
+import { getters } from '@app/store';
 
 /**
  * Generate two factor token.
@@ -57,8 +57,8 @@ export const checkTwoFactorEnabled = () => {
 	// Check if 2fa is enabled
 	const isHighEnoughVersion = compareUnraidVersion('>=6.10');
 	const isSSLAuto = varState.data.useSsl === null; // In this case `null` is the same as auto
-	const isRemoteEnabled = myServersConfig.remote?.['2Fa'] === 'yes';
-	const isLocalEnabled = myServersConfig.local?.['2Fa'] === 'yes';
+	const isRemoteEnabled = getters.config().remote['2Fa'] === 'yes';
+	const isLocalEnabled = getters.config().local['2Fa'] === 'yes';
 	const isEnabled = isHighEnoughVersion && isSSLAuto && (isRemoteEnabled || isLocalEnabled);
 
 	logger.addContext('details', {

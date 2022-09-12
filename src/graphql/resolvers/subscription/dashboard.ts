@@ -2,7 +2,7 @@ import { dashboardLogger } from '@app/core/log';
 import { config } from '@app/core/config';
 import { generateData, Dashboard } from '@app/common/dashboard/generate-data';
 import { pubsub } from '@app/core/pubsub';
-import { dashboardStore } from '@app/graphql/resolvers/subscription/store/dashboard-store'
+import { dashboardStore } from '@app/graphql/resolvers/subscription/store/dashboard-store';
 import { DashboardPublisher } from '@app/graphql/resolvers/subscription/jobs/dashboard-jobs';
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
@@ -15,15 +15,16 @@ const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace', l
 const ONE_MB = 1_024 * 1_024;
 const ONE_HUNDRED_MB = 100 * ONE_MB;
 
+// eslint-disable-next-line complexity
 const canSendDataPacket = (dataPacket: Dashboard) => {
-	const { lastDataPacketTimestamp, lastDataPacketString, lastDataPacket} = dashboardStore
+	const { lastDataPacketTimestamp, lastDataPacketString, lastDataPacket } = dashboardStore;
 	// UPDATE - No data packet has been sent since boot
 	if (!lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as none have been sent since the API started');
 
 	// NO_UPDATE - This is an exact copy of the last data packet
 	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
 
-	if (!lastDataPacket) return logAndReturn(true, 'debug', 'Sending update as no data packets have been stored in state yet')
+	if (!lastDataPacket) return logAndReturn(true, 'debug', 'Sending update as no data packets have been stored in state yet');
 	// UPDATE - Apps have been installed/started
 	if (dataPacket.apps.installed !== lastDataPacket.apps.installed) return logAndReturn(true, 'debug', 'Sending update as docker containers have been un/installed');
 	if (dataPacket.apps.started !== lastDataPacket.apps.started) return logAndReturn(true, 'debug', 'Sending update as docker containers have been started/stopped');
@@ -73,9 +74,9 @@ export const publishToDashboard = async () => {
 		if (!canSendDataPacket(dataPacket)) return;
 
 		// Save last data packet
-		dashboardStore.lastDataPacketTimestamp = Date.now()
-		dashboardStore.lastDataPacketString = JSON.stringify(dataPacket)
-		dashboardStore.lastDataPacket = dataPacket
+		dashboardStore.lastDataPacketTimestamp = Date.now();
+		dashboardStore.lastDataPacketString = JSON.stringify(dataPacket);
+		dashboardStore.lastDataPacket = dataPacket;
 
 		// Publish the updated data
 		dashboardLogger.trace('Publishing update');
@@ -96,20 +97,20 @@ export const stopDashboardProducer = () => {
 
 	// Stop dashboard producer
 	if (dashboardStore.cronJobs) {
-		dashboardStore.cronJobs.get('publishToDashboardJob').stop()
+		dashboardStore.cronJobs.get('publishToDashboardJob').stop();
 	}
 };
 
 export const startDashboardProducer = () => {
 	if (!dashboardStore.cronJobs) {
 		// Don't init twice
-		dashboardLogger.debug('Dashboard Cron Job has not been instantiated, running init')
-		dashboardStore.cronJobs = DashboardPublisher.init()
+		dashboardLogger.debug('Dashboard Cron Job has not been instantiated, running init');
+		dashboardStore.cronJobs = DashboardPublisher.init();
 	}
-	dashboardStore.connectedToDashboard +=1 
 
+	dashboardStore.connectedToDashboard += 1;
 
 	// Start new producer
 	dashboardLogger.trace('Starting dashboard producer');
-	dashboardStore.cronJobs.get('publishToDashboardJob').start()
+	dashboardStore.cronJobs.get('publishToDashboardJob').start();
 };

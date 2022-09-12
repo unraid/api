@@ -4,12 +4,12 @@
  */
 
 import path from 'path';
-import { paths } from '@app/core/paths';
 import { Var } from '@app/core/types/states';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '@app/core/types/ini';
 import { State } from '@app/core/states/state';
 import { toNumber } from '@app/core/utils/casting';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { getters } from '@app/store';
 
 const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
 	if (value === 'no' || value === 'false') {
@@ -327,6 +327,7 @@ export class VarState extends State {
 
 	get data() {
 		if (!this._data || this._source === 'file') {
+			const paths = getters.paths();
 			const statesDirectory = paths.states;
 			const statePath = path.join(statesDirectory, 'var.ini');
 			const state = parseConfig<VarIni>({

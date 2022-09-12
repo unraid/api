@@ -20,9 +20,19 @@ cp ./.env.staging ./deploy/pre-pack/.env.staging
 # Create deployment package.json
 NAME=$(jq -r .name package.json)
 VERSION=$(jq -r .version package.json)
+
+# Decide whether to use full version or just tag
+export GIT_SHA_SHORT=$(git rev-parse --short HEAD)
+if git describe --tags --abbrev=0 --exact-match; 
+then 
+    export VERSION_TO_USE="${VERSION}"; 
+else 
+    export VERSION_TO_USE="${VERSION}+${GIT_SHA_SHORT}"; 
+fi;
+
 jq --null-input \
   --arg name "$NAME" \
-  --arg version "$VERSION" \
+  --arg version "$VERSION_TO_USE" \
   '{"name": $name, "version": $version}' > ./deploy/pre-pack/package.json
 
 # Create final tgz

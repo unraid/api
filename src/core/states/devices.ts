@@ -5,10 +5,10 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '@app/core/paths';
 import { ArrayState } from '@app/core/states/state';
 import { LooseObject } from '@app/core/types';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { getters } from '@app/store';
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface Device {}
@@ -38,7 +38,7 @@ export class Devices extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.paths().states;
 			const statePath = path.join(statesDirectory, 'devs.ini');
 			const state = parseConfig<any[]>({
 				filePath: statePath,

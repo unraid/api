@@ -5,7 +5,7 @@
 
 import { PermissionError } from '@app/core/errors/permission-error';
 import { CoreResult, CoreContext } from '@app/core/types';
-import getApikey from '@app/core/modules/apikeys/name/get-apikey';
+import { getApikey } from '@app/core/modules/apikeys/name/get-apikey';
 
 interface Context extends CoreContext {
 	data: {

@@ -7,7 +7,7 @@ import { docker } from '@app/core/utils/clients/docker';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { getArray } from '@app/common/dashboard/get-array';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
-import { Dashboard } from '@app/common/run-time/dashboard';
+import { Dashboard as DashboardType } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { ONE_HOUR } from '@app/consts';
@@ -98,7 +98,7 @@ const getData = async () => ({
 export const generateData = async () => {
 	try {
 		// Validate generated data
-		return validateRunType(Dashboard.asPartial(), await getData());
+		return validateRunType(DashboardType.asPartial(), await getData());
 	} catch (error: unknown) {
 		// Log error for user
 		logger.error('Failed validating dashboard object', error);

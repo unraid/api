@@ -5,12 +5,12 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '@app/core/paths';
 import { Slot } from '@app/core/types/states';
 import { LooseObject, IniNumberBoolean, IniEnabled } from '@app/core/types';
 import { toBoolean, toNumber } from '@app/core/utils/casting';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { ArrayState } from '@app/core/states/state';
+import { getters } from '@app/store';
 
 type SlotStatus = 'DISK_OK';
 type SlotFsStatus = 'Mounted';
@@ -84,7 +84,7 @@ export class Slots extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.paths().states;
 			const statePath = path.join(statesDirectory, 'disks.ini');
 			const state = parseConfig<SlotIni[]>({
 				filePath: statePath,

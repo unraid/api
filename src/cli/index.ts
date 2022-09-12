@@ -1,19 +1,15 @@
-import segfaultHandler from 'segfault-handler';
+import { causeSegfault } from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
-import dotEnv from 'dotenv';
 import { cliLogger } from '@app/core/log';
 import { Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
+import { env } from '@app/dotenv';
+import { getters } from '@app/store';
 
 const command = mainOptions.command as unknown as string;
 
 export const main = async (...argv: string[]) => {
-	// Load .env file
-	const envs = dotEnv.config({
-		path: '/usr/local/bin/unraid-api/.env',
-	});
-
-	cliLogger.addContext('envs', envs);
+	cliLogger.addContext('envs', env);
 	cliLogger.debug('Loading env file');
 	cliLogger.removeContext('envs');
 
@@ -21,6 +17,7 @@ export const main = async (...argv: string[]) => {
 	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
 
 	cliLogger.debug('Starting CLI');
+	cliLogger.debug('PATHS', getters.paths());
 
 	setEnv('DEBUG', mainOptions.debug ?? false);
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
@@ -59,7 +56,7 @@ export const main = async (...argv: string[]) => {
 	if (process.env.PLEASE_SEGFAULT_FOR_ME) {
 		// Wait 30s and then segfault
 		setTimeout(() => {
-			segfaultHandler.causeSegfault();
+			causeSegfault();
 		}, 30_000);
 	}
 

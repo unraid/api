@@ -5,10 +5,10 @@
 
 import { promises as fs } from 'fs';
 import { CoreResult, CoreContext } from '@app/core/types';
-import { paths } from '@app/core/paths';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import Table from 'cli-table';
+import { getters } from '@app/store';
 
 /**
  * Get parity history.
@@ -24,7 +24,7 @@ export const getParityHistory = async (context: CoreContext): Promise<CoreResult
 		possession: 'any',
 	});
 
-	const historyFilePath = paths['parity-checks'];
+	const historyFilePath = getters.paths()['parity-checks'];
 	const history = await fs.readFile(historyFilePath).catch(() => {
 		throw new FileMissingError(historyFilePath);
 	});

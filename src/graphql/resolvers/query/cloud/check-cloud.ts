@@ -4,14 +4,13 @@
  */
 
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { apiManager } from '@app/core/api-manager';
 import { logger } from '@app/core/log';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
 import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/check-mothership-restarting';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters } from '@app/store';
-import got from 'got';
+import { got } from 'got';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
 
@@ -40,8 +39,9 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
 	try {
-		const apiVersion = getters.config().version;
-		const apiKey = apiManager.cloudKey;
+		const config = getters.config();
+		const apiVersion = config.version;
+		const apiKey = config.remote.apikey;
 		if (!apiKey) throw new Error('API key is missing');
 
 		// Check DNS
@@ -57,7 +57,7 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		checkMothershipRestarting();
 
 		// All is good
-		return { status: 'ok', error: undefined, ip: cloudIp };
+		return { status: 'ok', error: null, ip: cloudIp };
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { status: 'error', error: error.message };

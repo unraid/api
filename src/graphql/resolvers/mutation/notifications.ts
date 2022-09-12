@@ -4,8 +4,10 @@
  */
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { minigraphql } from '@app/mothership/subscribe-to-servers';
 import { Context } from '@app/graphql/schema/utils';
+import { graphqlLogger } from '@app/core';
+import { MinigraphClient } from '@app/mothership/minigraph-client';
+import { getters } from '@app/store';
 
 export const sendNotification = async (_: unknown, args: { notification: Notification }, context: Context) => {
 	const { user } = context;
@@ -18,26 +20,19 @@ export const sendNotification = async (_: unknown, args: { notification: Notific
 	});
 
 	// If there's no mothership connection then bail
-	if (!minigraphql) {
+	if (!getters.minigraph().client) {
+		graphqlLogger.error('Mothership is not working');
 		throw new Error('Mothership is down');
 	}
 
 	// Prepare query
-	const query = minigraphql.request({
+	const query = {
 		query: 'mutation($notification:NotificationInput!){sendNotification(notification:$notification){title subject description importance link status}}',
 		variables: {
 			notification: args.notification,
 		},
-	});
+	};
 
-	// Send notification to mothership
-	query.subscribe({
-		async next({ data, errors }) {
-			if (!errors || errors.length === 0) {
-				return;
-			}
-
-			console.log('FAILED_SENDING_NOTIFICATION', errors);
-		},
-	});
+	const result = await MinigraphClient.query(query);
+	graphqlLogger.debug('Query Result from Notifications.ts', result);
 };

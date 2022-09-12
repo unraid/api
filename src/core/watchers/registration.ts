@@ -3,14 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import chokidar from 'chokidar';
+import { FSWatcher, watch } from 'chokidar';
 import { logger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { bus } from '@app/core/bus';
 import { varState } from '@app/core/states/var';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
 
-const fileWatchers: chokidar.FSWatcher[] = [];
+const fileWatchers: FSWatcher[] = [];
 
 let oldData: string;
 const publishRegistrationEvent = async (registration: {
@@ -64,7 +64,7 @@ export const keyFile = () => {
 			bus.on('var', listener);
 
 			// Update registration when key file is updated on disk
-			const watcher = chokidar.watch('/boot/config', {
+			const watcher = watch('/boot/config', {
 				persistent: true,
 				ignoreInitial: true,
 				ignored: (path: string) => !path.endsWith('.key'),

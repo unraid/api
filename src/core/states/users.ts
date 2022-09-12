@@ -5,11 +5,11 @@
 
 import mm from 'micromongo';
 import path from 'path';
-import { paths } from '@app/core/paths';
 import { User } from '@app/core/types/states';
 import { LooseObject } from '@app/core/types';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { ArrayState } from '@app/core/states/state';
+import { getters } from '@app/store';
 
 type BooleanString = 'yes' | 'no';
 
@@ -52,7 +52,7 @@ export class Users extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.paths().states;
 			const statePath = path.join(statesDirectory, 'users.ini');
 			const state = parseConfig<UserIni[]>({
 				filePath: statePath,

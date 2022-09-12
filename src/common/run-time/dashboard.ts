@@ -1,4 +1,4 @@
-import semver from 'semver';
+import { valid } from 'semver';
 /* eslint-disable new-cap */
 import { String, Record, Array, Static } from 'runtypes';
 import { bytesAboveZero } from '@app/common/run-time/bytes-above-zero';
@@ -15,7 +15,7 @@ export const Dashboard = Record({
 		started: intAboveZero,
 	}),
 	versions: Record({
-		unraid: String.withConstraint(version => semver.valid(version) !== null || `Invalid version tag: "${version}"`),
+		unraid: String.withConstraint(version => valid(version) !== null || `Invalid version tag: "${version}"`),
 	}),
 	os: Record({
 		hostname: String,

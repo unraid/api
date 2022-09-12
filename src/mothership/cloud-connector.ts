@@ -1,6 +1,6 @@
-import { logger } from '@app/core/log';
+import { cloudConnectorLogger, logger } from '@app/core/log';
 import { checkRelayConnection } from '@app/mothership/check-relay-connected';
-import { checkGraphqlConnection } from '@app/mothership/subscribe-to-servers';
+import { subscribeToMinigraphServers } from '@app/mothership/subscribe-to-servers';
 
 class CloudConnector {
 	public static instance: CloudConnector;
@@ -22,10 +22,11 @@ class CloudConnector {
 		}
 
 		this.isRunning = true;
-		logger.trace('Checking cloud connections');
+		cloudConnectorLogger.trace('Checking cloud connections');
 		const relayConnected = await checkRelayConnection();
+		cloudConnectorLogger.trace('Relay is connected?', relayConnected);
 		if (relayConnected) {
-			await checkGraphqlConnection();
+			await subscribeToMinigraphServers();
 		}
 
 		this.isRunning = false;

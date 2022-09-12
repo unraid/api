@@ -1,6 +1,6 @@
 import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { logger } from '@app/core';
-import got, { HTTPError, TimeoutError } from 'got';
+import { got, HTTPError, TimeoutError } from 'got';
 
 const createGotOptions = (apiVersion: string, apiKey: string) => ({
 	timeout: {

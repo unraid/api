@@ -3,17 +3,18 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '@app/core/paths';
 import { Nginx } from '@app/core/types/states';
 import { IniStringBooleanOrAuto } from '@app/core/types/ini';
 import { State } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { getters } from '@app/store';
 
-interface NginxIni {
+export interface NginxIni {
 	nginxCertname: string;
 	nginxCertpath: string;
 	nginxDefaulturl: string;
 	nginxLanfqdn: string;
+	nginxLanfqdn6: string;
 	nginxLanip: string;
 	nginxLanmdns: string;
 	nginxLanname: string;
@@ -21,6 +22,7 @@ interface NginxIni {
 	nginxPortssl: string;
 	nginxUsessl: IniStringBooleanOrAuto;
 	nginxWanfqdn: string;
+	nginxWanfqdn6: string;
 	nginxWanip: string;
 	nginxWanaccess: string;
 }
@@ -32,6 +34,7 @@ const parse = (state: NginxIni): Nginx => ({
 	httpPort: Number(state.nginxPort),
 	httpsPort: Number(state.nginxPortssl),
 	lanFqdn: state.nginxLanfqdn,
+	lanFqdn6: state.nginxLanfqdn6,
 	lanIp: state.nginxLanip,
 	lanMdns: state.nginxLanmdns,
 	lanName: state.nginxLanname,
@@ -39,6 +42,7 @@ const parse = (state: NginxIni): Nginx => ({
 	sslMode: state.nginxUsessl,
 	wanAccessEnabled: state.nginxWanaccess === 'yes',
 	wanFqdn: state.nginxWanfqdn,
+	wanFqdn6: state.nginxWanfqdn6,
 	wanIp: state.nginxWanip,
 });
 
@@ -67,7 +71,7 @@ export class NginxState extends State {
 
 	get data() {
 		if (!this._data) {
-			const statePath = paths['nginx-state'];
+			const statePath = getters.paths()['nginx-state'];
 			const state = parseConfig<NginxIni>({
 				filePath: statePath,
 				type: 'ini',

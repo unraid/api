@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { paths } from '@app/core/paths';
 import { AppError } from '@app/core/errors/app-error';
+import { getters } from '@app/store';
 
 interface DockerError extends NodeJS.ErrnoException {
 	address: string;
@@ -15,7 +15,7 @@ interface DockerError extends NodeJS.ErrnoException {
  */
 export const catchHandlers = {
 	docker(error: DockerError) {
-		const socketPath = paths['docker-socket'];
+		const socketPath = getters.paths()['docker-socket'];
 
 		// Throw custom error for docker socket missing
 		if (error.code === 'ENOENT' && error.address === socketPath) {

@@ -2,6 +2,7 @@ version: '3.8'
 
 x-volumes: &volumes
   volumes:
+  - ./dev:/app/dev
   - ./src:/app/src
   - ./package.json:/app/package.json
   - ./package-lock.json:/app/package-lock.json
@@ -26,7 +27,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:18
+        NODE_IMAGE: node:18.3
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
@@ -43,7 +44,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:18
+        NODE_IMAGE: node:18.3
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes

@@ -4,11 +4,11 @@
  */
 
 import path from 'path';
-import { paths } from '@app/core/paths';
 import { ArrayState } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { SecIni } from '@app/core/types/states/sec';
 import { LooseObject } from '@app/core/types';
+import { getters } from '@app/store';
 
 /**
  * Array of NFS shares.
@@ -41,7 +41,7 @@ export class NfsSec extends ArrayState {
 
 	get data() {
 		if (this._data.length === 0) {
-			const statesDirectory = paths.states;
+			const statesDirectory = getters.paths().states;
 			const statePath = path.join(statesDirectory, 'sec_nfs.ini');
 			const state = parseConfig<SecIni[]>({
 				filePath: statePath,
