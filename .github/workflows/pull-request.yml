@@ -12,7 +12,7 @@ on:
       - '**.yml'
 defaults:
   run:
-    working-directory: ./api
+    working-directory: api
 jobs:
   lint:
     runs-on: ubuntu-latest

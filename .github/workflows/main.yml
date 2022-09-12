@@ -11,7 +11,7 @@ on:
       - '**.yml'
 defaults:
   run:
-    working-directory: ./api
+    working-directory: api
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
