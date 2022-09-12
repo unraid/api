@@ -3,7 +3,7 @@ import { dedent } from '@app/common/dedent';
 import camelCaseKeys from 'camelcase-keys';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
-import got from 'got';
+import { got } from 'got';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
@@ -12,7 +12,6 @@ import { CachedServer } from '@app/cache/user';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
-import { paths } from '@app/core/paths';
 import { cliLogger } from '@app/core/log';
 import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
@@ -27,7 +26,7 @@ export const getConfig = <T = unknown>(path: string) => {
 			filePath: path,
 			type: 'ini',
 		});
-		return camelCaseKeys(config as any, {
+		return camelCaseKeys(config as unknown as readonly unknown[], {
 			deep: true,
 		}) as T;
 	} catch {}
@@ -142,6 +141,8 @@ export const report = async (...argv: string[]) => {
 
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
+
+		const paths = getters.paths();
 
 		// Get unraid OS version
 		const unraidVersion = existsSync(paths['unraid-version']) ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
@@ -259,7 +260,7 @@ export const report = async (...argv: string[]) => {
 		const report = dedent`
             <-----UNRAID-API-REPORT----->
             SERVER_NAME: ${serverName}
-            ENVIRONMENT: ${process.env.ENVIRONMENT!}
+            ENVIRONMENT: ${process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT'}
             UNRAID_VERSION: ${unraidVersion}
             UNRAID_API_VERSION: ${getters.config().fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
             NODE_VERSION: ${process.version}

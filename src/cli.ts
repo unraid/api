@@ -1,7 +1,7 @@
 import 'wtfnode';
 import { writeFileSync } from 'fs';
-import segfaultHandler from 'segfault-handler';
-segfaultHandler.registerHandler('/var/log/unraid-api/crash.log', (signal, address, stack) => {
+import { registerHandler } from 'segfault-handler';
+registerHandler('/var/log/unraid-api/crash.log', (signal, address, stack) => {
 	writeFileSync('/var/log/unraid-api/crash.json', JSON.stringify({ signal, address, stack }));
 });
 

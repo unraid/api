@@ -4,10 +4,10 @@
  */
 
 import type { CoreResult, CoreContext, DynamixConfig } from '@app/core/types';
-import { paths } from '@app/core/paths';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { toBoolean } from '@app/core/utils/casting';
 import { loadState } from '@app/core/utils/misc/load-state';
+import { getters } from '@app/store';
 
 interface Result extends CoreResult {
 	json: {
@@ -38,7 +38,8 @@ export const getDisplay = async function (context: CoreContext): Promise<Result>
 		possession: 'any',
 	});
 
-	const filePath = paths['dynamix-config'];
+	// @TODO: Move to store
+	const filePath = getters.paths()['dynamix-config'];
 	const { display } = loadState<DynamixConfig>(filePath)!;
 	const result = {
 		...display,

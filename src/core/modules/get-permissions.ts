@@ -35,7 +35,7 @@ export const getPermissions = async function (context: CoreContext): Promise<Cor
 	const grants = Object.entries(ac.getGrants())
 		.map(([name, grant]) => {
 			// @ts-expect-error - $extend and grants are any
-			const { $extend, ...grants } = grant;
+			const { $extend: _, ...grants } = grant;
 			return [name, grants];
 		})
 		.reduce((object, {

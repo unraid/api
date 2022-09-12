@@ -1,5 +1,5 @@
 import { checkRelay } from '@app/graphql/resolvers/query/cloud/check-relay';
-import { expect, test, vi } from 'vitest';
+import { expect, test } from 'vitest';
 
 test('Defaults', async () => {
 	const { relayStore } = await import('@app/mothership/store');

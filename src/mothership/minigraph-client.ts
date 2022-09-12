@@ -61,7 +61,7 @@ export const MinigraphClient = {
 		let result: ExecutionResult<Record<string, unknown>, unknown>;
 
 		const client = getters.minigraph().client ?? await getNewMinigraphClient();
-		client.subscribe(
+		client?.subscribe(
 			query,
 			{
 				next(data) {
@@ -85,20 +85,18 @@ export const MinigraphClient = {
 	}) {
 		const subscriptionId = v4();
 		const client = getters.minigraph().client ?? await getNewMinigraphClient();
-		const subscription = client.subscribe(
-			query,
-			{
-				next: nextFn,
-				error(anyError: Error | readonly GraphQLError[] | CloseEvent) {
-					minigraphLogger.error('Encountered a Subscription Error', anyError);
-					store.dispatch(removeSubscriptionById(subscriptionId));
-				},
-				complete() {
-					minigraphLogger.debug(`Subscription with ID: ${subscriptionId} complete, removing from tracked subscriptions`);
-					store.dispatch(removeSubscriptionById(subscriptionId));
-				},
+		if (!client) throw new Error('Failed to create a mini-graphql client');
+		const subscription = client?.subscribe(query, {
+			next: nextFn,
+			error(anyError: Error | readonly GraphQLError[] | CloseEvent) {
+				minigraphLogger.error('Encountered a Subscription Error', anyError);
+				store.dispatch(removeSubscriptionById(subscriptionId));
 			},
-		);
+			complete() {
+				minigraphLogger.debug(`Subscription with ID: ${subscriptionId} complete, removing from tracked subscriptions`);
+				store.dispatch(removeSubscriptionById(subscriptionId));
+			},
+		});
 		store.dispatch(addSubscription({ subscriptionId, subscriptionKey, subscription }));
 		minigraphLogger.trace('Current Subscriptions: %o', getters.minigraph().subscriptions);
 	},

@@ -19,4 +19,4 @@ test('calls stop and then start', async () => {
 	// Check stop was called first
 	expect(vi.mocked(stop).mock.invocationCallOrder).toStrictEqual([1]);
 	expect(vi.mocked(start).mock.invocationCallOrder).toStrictEqual([2]);
-});
+}, 15_000);

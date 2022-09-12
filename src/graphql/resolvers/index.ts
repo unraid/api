@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import GraphQLJSON from 'graphql-type-json';
+import { GraphQLJSON } from 'graphql-type-json';
 import GraphQLLong from 'graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { GraphQLDateTime } from 'graphql-iso-date';

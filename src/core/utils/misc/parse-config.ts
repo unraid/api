@@ -4,7 +4,7 @@
  */
 
 import { read as multiIniRead, Parser as MultiIniParser } from 'multi-ini';
-import ini from 'ini';
+import { parse as parseIni } from 'ini';
 import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';
 import mapObject from 'map-obj';
@@ -72,8 +72,8 @@ const fixObjectArrays = (object: Record<string, any>) => {
  */
 export const parseConfig = <T>(options: Options): T => {
 	const { file, type } = options;
-	const filePath = options.filePath!;
-	const fileContents = filePath ? readFileSync(filePath, 'utf8').toString() : file!;
+	const filePath = options.filePath ?? 'stdin://file.ini';
+	const fileContents = filePath ? readFileSync(filePath, 'utf8').toString() : file;
 	const fileType = type || filePath.split('.').splice(-1)[0];
 
 	// Only allow ini and cfg files.
@@ -93,8 +93,8 @@ export const parseConfig = <T>(options: Options): T => {
 	}
 
 	// If multi-ini failed try ini
-	if (fileContents.length >= 1 && Object.keys(data).length === 0) {
-		data = ini.parse(fileContents);
+	if (fileContents && fileContents.length >= 1 && Object.keys(data).length === 0) {
+		data = parseIni(fileContents);
 	}
 
 	// Remove quotes around keys

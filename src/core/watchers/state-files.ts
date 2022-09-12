@@ -3,9 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import chokidar from 'chokidar';
+import chokidar, { watch } from 'chokidar';
 import prettyMilliseconds from 'pretty-ms';
-import { paths } from '@app/core/paths';
 import { logger } from '@app/core/log';
 import { devicesState } from '@app/core/states/devices';
 import { networkState } from '@app/core/states/network';
@@ -16,9 +15,9 @@ import { smbSecState } from '@app/core/states/smb-sec';
 import { usersState } from '@app/core/states/users';
 import { varState } from '@app/core/states/var';
 import { ArrayState, State } from '@app/core/states/state';
+import { getters } from '@app/store';
 
 const stateMapping = {
-
 	'devs.ini': devicesState,
 	'network.ini': networkState,
 	'sec_nfs.ini': nfsSecState,
@@ -31,13 +30,13 @@ const stateMapping = {
 };
 
 const getState = (fullPath: string) => {
-	const fileName = fullPath.split('/').pop()!;
-	return Object.keys(stateMapping).includes(fileName) ? stateMapping[fileName as keyof typeof stateMapping] : undefined;
+	const fileName = fullPath.split('/').pop();
+	return fileName ? (Object.keys(stateMapping).includes(fileName) ? stateMapping[fileName as keyof typeof stateMapping] : undefined) : undefined;
 };
 
 export const states = () => {
 	const statesReloadLength = 5_000; // 5s
-	const statesCwd = paths.states;
+	const statesCwd = getters.paths().states;
 	const watchers: chokidar.FSWatcher[] = [];
 	let timeout: NodeJS.Timeout;
 
@@ -60,7 +59,7 @@ export const states = () => {
 			}
 
 			// Update states when state files change
-			const watcher = chokidar.watch(statesCwd, {
+			const watcher = watch(statesCwd, {
 				persistent: true,
 				ignoreInitial: true,
 				ignored: (path: string) => ['node_modules'].some(s => path.includes(s)),

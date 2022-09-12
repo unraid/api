@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
+import { getters } from '@app/store';
 import htpasswd from 'htpasswd-js';
-import { paths } from '@app/core/paths';
 
 interface Options {
 	username: string;
@@ -15,7 +15,7 @@ interface Options {
 /**
  * Check if the username and password match a htpasswd file.
  */
-export const checkAuth = async (options: Options): Promise<any> => {
+export const checkAuth = async (options: Options): Promise<unknown> => {
 	const { username, password, file } = options;
 
 	// `valid` will be true if and only if
@@ -23,6 +23,6 @@ export const checkAuth = async (options: Options): Promise<any> => {
 	return htpasswd.authenticate({
 		username,
 		password,
-		file: file ?? paths.htpasswd,
+		file: file ?? getters.paths().htpasswd,
 	});
 };

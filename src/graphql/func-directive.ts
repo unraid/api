@@ -41,7 +41,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 				module: string;
 				result: string;
 			};
-			const { plugin: pluginName, module: pluginModuleName, result: pluginType, input, ...params } = directiveArgs;
+			const { plugin: _, module: __, result: pluginType, input, ...params } = directiveArgs;
 			const operationType = info.operation.operation;
 			const query = {
 				...directiveArgs.query,

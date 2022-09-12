@@ -5,7 +5,6 @@
 
 import path from 'path';
 import mm from 'micromongo';
-import { paths } from '@app/core/paths';
 import { Slot } from '@app/core/types/states';
 import { LooseObject, IniNumberBoolean, IniEnabled } from '@app/core/types';
 import { toBoolean, toNumber } from '@app/core/utils/casting';

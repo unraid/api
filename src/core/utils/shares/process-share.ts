@@ -11,11 +11,11 @@ import type { DiskShare, Share, UserShare } from '../../types/states/share';
 
 const processors = {
 	user(share: Share) {
-		const { cache, name, ...rest } = share;
+		const { cache: _, name, ...rest } = share;
 
 		// Get each config for the share
-		const { name: _, ...smb } = (smbSecState.findOne({ name }) || { name });
-		const { name: __, ...nfs } = (nfsSecState.findOne({ name }) || { name });
+		const { name: __, ...smb } = (smbSecState.findOne({ name }) || { name });
+		const { name: ___, ...nfs } = (nfsSecState.findOne({ name }) || { name });
 
 		return {
 			type: 'user',

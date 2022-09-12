@@ -4,7 +4,6 @@
  */
 
 import path from 'path';
-import { paths } from '@app/core/paths';
 import { ArrayState } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { SecIni } from '@app/core/types';

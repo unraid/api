@@ -8,7 +8,7 @@ import { stat } from 'fs/promises';
 import { Serializer as IniSerializer } from 'multi-ini';
 import crypto from 'crypto';
 import path, { resolve as resolvePath } from 'path';
-import chokidar from 'chokidar';
+import { watch } from 'chokidar';
 import { EventEmitter } from 'events';
 import toMillisecond from 'ms';
 import { getProperty } from 'dot-prop';
@@ -129,7 +129,7 @@ export class ApiManager extends EventEmitter {
 		// Watch for changes to the myservers.cfg file
 		// @todo Move API keys to their own file
 		if (options.watch) {
-			chokidar.watch(path.basename(configPath), {
+			watch(path.basename(configPath), {
 				ignoreInitial: true,
 			}).on('all', async (_eventName, filePath) => {
 				if (filePath === configPath) {

@@ -94,7 +94,7 @@ test('setStatus works as expected', async () => {
 		  ],
 		}
 	`);
-	expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).resolves.toBe(true);
+	await expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).resolves.toBe(true);
 
 	store.dispatch(minigraph.actions.removeSubscriptionById('my-sub-id'));
 	expect(store.getState().minigraph).toMatchInlineSnapshot(`
@@ -150,5 +150,5 @@ test('setStatus works as expected', async () => {
 		}
 	`);
 	expect(store.getState().minigraph.client.dispose).not.toHaveBeenCalled();
-	expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).resolves.toBe(false);
+	await expect(isKeySubscribed(SubscriptionKey.SERVERS, store)).resolves.toBe(false);
 });

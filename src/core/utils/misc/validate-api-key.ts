@@ -1,4 +1,4 @@
-import got from 'got';
+import { got } from 'got';
 import { varState } from '@app/core/states/var';
 import { AppError } from '@app/core/errors/app-error';
 import { logger } from '@app/core/log';
