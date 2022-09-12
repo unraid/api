@@ -152,7 +152,7 @@ test('Returns generated data', async () => {
 
 	// .switchSource should not have been called at all since we passed it valid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
-});
+}, 10000);
 
 test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	const { generateData } = await import('@app/common/dashboard/generate-data');

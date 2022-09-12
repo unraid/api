@@ -262,7 +262,7 @@ export const report = async (...argv: string[]) => {
             SERVER_NAME: ${serverName}
             ENVIRONMENT: ${process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT'}
             UNRAID_VERSION: ${unraidVersion}
-            UNRAID_API_VERSION: ${getters.config().fullVersion} (${unraidApiPid ? 'running' : 'stopped'})
+            UNRAID_API_VERSION: ${getters.config().version} (${unraidApiPid ? 'running' : 'stopped'})
             NODE_VERSION: ${process.version}
             API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
             MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}

@@ -15,7 +15,6 @@ export enum FileLoadStatus {
 type SliceState = {
 	status: FileLoadStatus;
 	version: string;
-	fullVersion: string;
 	nodeEnv: string;
 	remote: {
 		'2Fa': string;
@@ -43,7 +42,6 @@ type SliceState = {
 const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
 	version: process.env.VERSION ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT', // This will be baked in at build time
-	fullVersion: process.env.FULL_VERSION ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT', // This will be baked in at build time
 	nodeEnv: process.env.NODE_ENV ?? 'production',
 	remote: {
 		'2Fa': '',

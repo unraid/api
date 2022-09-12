@@ -13,7 +13,7 @@ export const start = async () => {
 	process.title = 'unraid-api';
 
 	// Start API
-	cliLogger.info('Starting unraid-api@v%s', getters.config().fullVersion);
+	cliLogger.info('Starting unraid-api@v%s', getters.config().version);
 
 	// If we're in debug mode or we're NOT
 	// in debug but ARE in the child process

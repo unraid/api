@@ -18,7 +18,6 @@ test('Before init returns default values for all fields', async () => {
 		  "api": {
 		    "extraOrigins": "",
 		  },
-		  "fullVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  "local": {
 		    "2Fa": "",
 		  },
@@ -62,7 +61,6 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "api": {
 		    "extraOrigins": "",
 		  },
-		  "fullVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  "local": {
 		    "2Fa": "",
 		  },
@@ -107,7 +105,6 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  "api": {
 		    "extraOrigins": "",
 		  },
-		  "fullVersion": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  "local": {
 		    "2Fa": "",
 		  },

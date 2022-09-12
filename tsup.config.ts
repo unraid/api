@@ -27,7 +27,6 @@ export default defineConfig({
         if (!options.define) options.define = {};
         const gitShortSHA = runCommand('git rev-parse --short HEAD');
         const isCommitTagged = runCommand('git describe --tags --abbrev=0 --exact-match') !== undefined;
-        options.define['process.env.VERSION'] = `"${version}"`;
-        options.define['process.env.FULL_VERSION'] = isCommitTagged ? `"${version}"` : `"${version}-${gitShortSHA}"`;
+        options.define['process.env.VERSION'] = isCommitTagged ? `"${version}"` : `"${version}+${gitShortSHA}"`;
     },
 });
