@@ -101,9 +101,9 @@ jobs:
       - test-api
 
     outputs:
-      API_VERSION: ${{ steps.setEnv.outputs.API_VERSION }}
-      API_MD5: ${{ steps.setEnv.outputs.API_MD5 }}
-      API_SHA256: ${{ steps.setEnv.outputs.API_SHA256 }}
+      API_VERSION: ${{ steps.build-pack-binary.outputs.API_VERSION }}
+      API_MD5: ${{ steps.set-hashes.outputs.API_MD5 }}
+      API_SHA256: ${{ steps.set-hashes.outputs.API_SHA256 }}
 
     steps:
       - name: Checkout repo
@@ -133,13 +133,15 @@ jobs:
       - name: Install pkg and node-prune
         run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
 
-      - name: Build and pack binary
+      - name: Build and Pack
+        id: build-pack-binary
         run: WORKDIR=${{ github.workspace }} && npm run build-pkg
 
-      - name: setEnv
+      - name: Set Hashes
+        id: set-hashes
         run: |
-          API_MD5=md5sum deploy/release/*.tgz | awk '{ print $1 }'
-          API_SHA256=sha256sum deploy/release/*.tgz | awk '{ print $1 }'
+          API_MD5=$(md5sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')
+          API_SHA256=$(sha256sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')
           echo "::set-output name=API_MD5::${API_MD5}"
           echo "::set-output name=API_SHA256::${API_SHA256}"
 
@@ -158,14 +160,12 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      - name: setEnv
-        run: |
-          API_VERSION=${{needs.build-api.outputs.API_VERSION}}
-          API_MD5=${{needs.build-api.outputs.API_MD5}}
-          API_SHA256=${{needs.build-api.outputs.API_SHA256}}
       - name: Build Plugin
         run: |
           cd source/dynamix.unraid.net
+          export API_VERSION=${{needs.build-api.outputs.API_VERSION}}
+          export API_MD5=${{needs.build-api.outputs.API_MD5}}
+          export API_SHA256=${{needs.build-api.outputs.API_SHA256}}
           bash ./pkg_build.sh s
           bash ./pkg_build.sh p
       - name: Upload binary txz and plg to Github artifacts
