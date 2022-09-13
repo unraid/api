@@ -1,4 +1,4 @@
-name: Pull Request (API)
+name: Pull Request
 
 on:
   pull_request:
@@ -7,14 +7,14 @@ on:
 
     # Don't run tests when markdown or yml files are edited
     paths-ignore:
-      - plugin
       - "**.md"
       - "**.yml"
-defaults:
-  run:
-    working-directory: api
+
 jobs:
-  lint:
+  lint-api:
+    defaults:
+      run:
+        working-directory: api
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -50,7 +50,10 @@ jobs:
       - name: Lint files
         run: npm run lint
 
-  test:
+  test-api:
+    defaults:
+      run: 
+        working-directory: api
     runs-on: ubuntu-latest
 
     steps:
@@ -88,10 +91,19 @@ jobs:
       - name: Run unit tests with code coverage
         run: npm run coverage
 
-  build:
+  build-api:
+    defaults:
+      run:
+        working-directory: api
     runs-on: ubuntu-latest
+    needs: 
+      - lint-api
+      - test-api
 
-    needs: [lint, test]
+    outputs:
+      API_VERSION: ${{ steps.setEnv.outputs.API_VERSION }}
+      API_MD5: ${{ steps.setEnv.outputs.API_MD5 }}
+      API_SHA256: ${{ steps.setEnv.outputs.API_SHA256 }}
 
     steps:
       - name: Checkout repo
@@ -124,8 +136,45 @@ jobs:
       - name: Build and pack binary
         run: WORKDIR=${{ github.workspace }} && npm run build-pkg
 
+      - name: setEnv
+        run: |
+          API_MD5=md5sum deploy/release/*.tgz | awk '{ print $1 }'
+          API_SHA256=sha256sum deploy/release/*.tgz | awk '{ print $1 }'
+          echo "::set-output name=API_MD5::${API_MD5}"
+          echo "::set-output name=API_SHA256::${API_SHA256}"
+
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v3
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/release/*.tgz
+  build-plugin:
+    defaults:
+      run:
+        working-directory: plugin
+    runs-on: ubuntu-latest
+    needs: 
+      - build-api
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: setEnv
+        run: |
+          API_VERSION=${{needs.build-api.outputs.API_VERSION}}
+          API_MD5=${{needs.build-api.outputs.API_MD5}}
+          API_SHA256=${{needs.build-api.outputs.API_SHA256}}
+      - name: Build Plugin
+        run: |
+          cd source/dynamix.unraid.net
+          bash ./pkg_build.sh s
+          bash ./pkg_build.sh p
+      - name: Upload binary txz and plg to Github artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: connect-files
+          path: |
+            ${{ github.workspace }}/plugin/archive/*.txz
+            ${{ github.workspace }}/plugin/plugins/*.plg
+          retention-days: 5
+          if-no-files-found: error
+        

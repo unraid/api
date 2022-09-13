@@ -13,7 +13,7 @@ x-volumes: &volumes
   - ./deploy/:/app/deploy/
   - ./README.md:/app/README.md
   - ./scripts/:/app/scripts/
-  - ./.git/:/app/.git/
+  - ../.git/:/app/.git/
   - ./.env.production:/app/.env.production
   - ./.env.staging:/app/.env.staging
   - ./.env.test:/app/.env.test

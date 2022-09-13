@@ -23,17 +23,16 @@ VERSION=$(jq -r .version package.json)
 
 # Decide whether to use full version or just tag
 export GIT_SHA_SHORT=$(git rev-parse --short HEAD)
-if git describe --tags --abbrev=0 --exact-match; 
-then 
-    export VERSION_TO_USE="${VERSION}"; 
-else 
-    export VERSION_TO_USE="${VERSION}+${GIT_SHA_SHORT}"; 
-fi;
+if git describe --tags --abbrev=0 --exact-match; then
+  export VERSION_TO_USE="${VERSION}"
+else
+  export VERSION_TO_USE="${VERSION}+${GIT_SHA_SHORT}"
+fi
 
 jq --null-input \
   --arg name "$NAME" \
   --arg version "$VERSION_TO_USE" \
-  '{"name": $name, "version": $version}' > ./deploy/pre-pack/package.json
+  '{"name": $name, "version": $version}' >./deploy/pre-pack/package.json
 
 # Create final tgz
 cp ./README.md ./deploy/pre-pack/
@@ -41,4 +40,6 @@ cd ./deploy/pre-pack
 npm pack
 
 # Move unraid-api.tgz to release directory
-ls -1 unraid-api-* | xargs -n 1 | xargs -I{} mv {} ../release/{} 
+ls -1 unraid-api-* | xargs -n 1 | xargs -I{} mv {} ../release/{}
+# Set API_VERSION output based on this command
+echo "::set-output name=API_VERSION::${VERSION_TO_USE}"
