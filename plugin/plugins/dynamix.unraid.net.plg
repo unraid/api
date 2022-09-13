@@ -313,7 +313,7 @@ exit 0
 
 <!-- download main txz -->
 <FILE Name="&source;.txz">
-<URL>&downloadserver;/unraid-api/&name;.txz</URL>
+<URL>&downloadserver;/unraid-api/&name;-&version;.txz</URL>
 <MD5>&MD5;</MD5>
 <SHA256>&SHA256;</SHA256>
 </FILE>

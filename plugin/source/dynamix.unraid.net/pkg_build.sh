@@ -12,7 +12,7 @@ plugin=$(basename "${DIR}")
 [[ "${env}" == "staging" ]] && plugin="${plugin}.staging"
 version=$(date +"%Y.%m.%d.%H%M")
 plgfile="${MAINDIR}/plugins/${plugin}.plg"
-txzfile="${MAINDIR}/archive/${plugin}.txz"
+txzfile="${MAINDIR}/archive/${plugin}-${version}.txz"
 
 # create txz package
 mkdir -p "$(dirname "${txzfile}")"
