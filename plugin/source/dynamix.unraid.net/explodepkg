@@ -1,0 +1,108 @@
+#!/bin/bash
+# Copyright 1994, 1998, 2000  Patrick Volkerding, Concord, CA, USA
+# Copyright 2001, 2003  Slackware Linux, Inc., Concord, CA, USA
+# Copyright 2007, 2009, 2017, 2018  Patrick Volkerding, Sebeka, MN, USA
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+if [ $# = 0 ]; then
+  cat << EOF
+Usage: explodepkg package_name [package_name2, ...]
+
+Explodes a Slackware compatible software package
+(or any tar+{gzip,bzip2,lz,xz archive) in the current directory.
+Equivalent to (for each package listed):
+
+  ( umask 000 ; cat package_name | COMPRESSOR -dc | tar xpvf package_name )
+
+Note: This should only be used for debugging or examining packages, not for
+installing them. It doesn't execute installation scripts or update the package
+indexes in /var/lib/pkgtools/packages and /var/lib/pkgtools/scripts.
+
+EOF
+fi
+
+# Set maximum number of threads to use. By default, this will be the number
+# of CPU threads:
+THREADS="$(nproc)"
+
+# Main loop:
+for PKG in $* ; do
+  echo "Exploding package $PKG in current directory:"
+  # Determine extension:
+  packageext="$( echo $PKG | rev | cut -f 1 -d . | rev)"
+  # Determine compression utility:
+  case $packageext in
+  'tgz' )
+    packagecompression=gzip
+    ;;
+  'gz' )
+    packagecompression=gzip
+    ;;
+  'tbz' )
+    if which lbzip2 1> /dev/null 2> /dev/null ; then
+      packagecompression=lbzip2
+    else
+      packagecompression=bzip2
+    fi
+    ;;
+  'bz2' )
+    if which lbzip2 1> /dev/null 2> /dev/null ; then
+      packagecompression=lbzip2
+    else
+      packagecompression=bzip2
+    fi
+    ;;
+  'tlz' )
+    if which plzip 1> /dev/null 2> /dev/null ; then
+      packagecompression="plzip --threads=${THREADS}"
+    elif which lzip 1> /dev/null 2> /dev/null ; then
+      packagecompression=lzip
+    else
+      echo "ERROR:  lzip compression utility not found in \$PATH."
+      exit 3
+    fi
+    ;;
+  'lz' )
+    if which plzip 1> /dev/null 2> /dev/null ; then
+      packagecompression="plzip --threads=${THREADS}"
+    elif which lzip 1> /dev/null 2> /dev/null ; then
+      packagecompression=lzip
+    else
+      echo "ERROR:  lzip compression utility not found in \$PATH."
+      exit 3
+    fi
+    ;;
+  'lzma' )
+    packagecompression=lzma
+    ;;
+  'txz' )
+    packagecompression="xz --threads=${THREADS}"
+    ;;
+  'xz' )
+    packagecompression="xz --threads=${THREADS}"
+    ;;
+  esac
+  ( umask 000 ; cat $PKG | $packagecompression -dc | tar --xattrs --xattrs-include='*' --keep-directory-symlink -xpvf - 2> /dev/null )
+  if [ -r install/doinst.sh ]; then
+    echo
+    echo "An installation script was detected in ./install/doinst.sh, but"
+    echo "was not executed."
+  fi
+done
