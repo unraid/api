@@ -1,0 +1,490 @@
+#!/bin/bash
+# Copyright 1999  Patrick Volkerding, Moorhead, Minnesota, USA 
+# Copyright 2001, 2002, 2003  Slackware Linux, Inc., Concord, California, USA
+# Copyright 2009, 2015, 2021  Patrick J. Volkerding, Sebeka, MN, USA
+# Copyright 2015  Michal Nazarewicz <mina86@mina86.com>
+# All rights reserved.
+#
+# Redistribution and use of this script, with or without modification, is
+# permitted provided that the following conditions are met:
+#
+# 1. Redistributions of this script must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#
+#  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO
+#  EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+#  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+#  PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS;
+#  OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+#  WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+#  OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF
+#  ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+# Wed May 19 04:46:53 UTC 2021
+# export PRE_INSTALL_PASS="true" if we'll be running installpkg a second time
+# for each package. Perhaps then we could skip some expensive install script
+# functions until the final pass. Thanks to Stuart Winter.
+#
+# Mon Jun  4 21:17:58 UTC 2018
+# Use /var/lib/pkgtools, not /var/log.
+#
+# Thu May 24 20:23:55 UTC 2018
+# Added --terselength option to set the line length in --terse mode.
+# Use a lockfile to prevent output collisions in --terse mode.
+#
+# Wed May 23 03:35:28 UTC 2018
+# Added --terse, which limits screen output to one line per package.
+#
+# Sat 17 Jan 16:21:32 UTC 2015  mina86
+# Various optimisation mostly resolving around avoiding having to fork
+# and call cut, basename and other helper commands.  Slight
+# refactoring of code calling removepkg.
+#
+# Sat Apr 25 21:18:53 UTC 2009
+# Support new compression types and package extensions.
+# Converted to use new pkgbase() function to remove pathname and
+# valid package extensions.
+#
+# Added --dry-run, Sat Apr 26 18:13:29 PDT 2003
+#
+# Added --install-new and --reinstall, Fri May 31 14:11:14 PDT 2002 volkerdi
+#
+# Rewritten to clean out _all_ old packages of a given basename, not just
+# the first one found, Thu Apr  4 01:01:05 PST 2002 volkerdi
+#
+# Modified to handle either old 8.3 or new package-version-arch-build.tgz
+# packages, Sat Nov 17 14:25:58 PST 2001 volkerdi
+
+# Modified to prevent installing an older package unless 'reinstall' flag
+# is set, Thu Mar  3 11:58:49 PST 2022 limetech
+
+# Return a package name that has been stripped of the dirname portion
+# and any of the valid extensions (only):
+pkgbase() {
+  PKGRETURN=${1##*/}
+  case "$PKGRETURN" in *.t[gblx]z)
+    PKGRETURN=${PKGRETURN%.*}
+  esac
+  echo "$PKGRETURN"
+}
+
+usage() {
+ cat << EOF
+
+Usage: upgradepkg [options] <newpackage> ...
+       upgradepkg [options] <oldpackage%newpackage> ...
+
+Upgrade, install, or reinstall Slackware packages (.tgz, .tbz, .tlz, .txz).
+
+To operate on an alternate directory, such as /mnt:
+   ROOT=/mnt upgradepkg package.txz
+
+Options:
+ --dry-run              only display what would be done
+ --install-new          install new packages also
+ --reinstall            upgrade packages of the same version
+ --terse                display a single line for each package operation
+ --terselength <length> maximum line length of terse output
+ --verbose              display all the gory details of the upgrade
+ --help                 display this help
+ 
+For more details see upgradepkg(8).
+EOF
+}
+
+# Set the prefix for the package database directories (packages, scripts).
+ADM_DIR="$ROOT/var/lib/pkgtools"
+
+# Make sure there's a proper temp directory:
+TMP=$ADM_DIR/setup/tmp
+# If the $TMP directory doesn't exist, create it:
+if [ ! -d $TMP ]; then
+  mkdir -p $TMP
+  chmod 700 $TMP # no need to leave it open
+fi
+
+# This script expects an 022 umask:
+umask 022
+
+# $ROOT defined?
+if [ -d "$ROOT" ]; then
+  export ROOT
+else
+  unset ROOT
+fi
+
+# --help or no args?
+if [ "$1" = "" -o "$1" = "-help" -o "$1" = "--help" -o "$1" = "-?" ]; then
+  usage;
+  exit 1;
+fi
+
+# Create a lockfile directory if it doesn't exist. We can use it to prevent
+# output line collisions in --terse mode.
+INSTLOCKDIR=${INSTLOCKDIR:-/run/lock/pkgtools}
+if [ ! -d $INSTLOCKDIR ]; then
+  mkdir -p $INSTLOCKDIR
+fi
+
+# Set default line length for terse mode:
+if tty -s && which tput 1> /dev/null 2> /dev/null ; then
+  TERSELENGTH=$(tput cols)
+else
+  TERSELENGTH=80
+fi
+
+# Arg processing loop. These must come before any packages are listed.
+while [ 0 ]; do
+  if [ "$1" = "-no-paranoia" -o "$1" = "--no-paranoia" ]; then
+    # Enable --no-paranoia mode. This is so not-recommended that we're
+    # not even going to document it. ;) If a file used to be directly
+    # managed and now is moved into place, using --no-paranoia will cause
+    # it to improperly disappear. It does slightly speed things up, though.
+    # Don't use it.
+    NOT_PARANOID="true"
+    shift 1
+  elif [ "$1" = "-install-new" -o "$1" = "--install-new" ]; then
+    # Install packages that do not already have an installed version.
+    # The usual default is to skip them.
+    INSTALL_NEW="yes"
+    shift 1
+  elif [ "$1" = "-reinstall" -o "$1" = "--reinstall" ]; then
+    # Reinstall packages even if the installed one is the same version.
+    REINSTALL="true"
+    shift 1
+  elif [ "$1" = "-verbose" -o "$1" = "--verbose" -o "$1" = "-v" ]; then
+    # We're adding a --verbose mode that doesn't filter removepkg as much
+    VERBOSE="verbose"
+    shift 1
+  elif [ "$1" = "-dry-run" -o "$1" = "--dry-run" ]; then
+    # Output a report about which packages would be installed or upgraded
+    # but don't actually perform the upgrades.
+    DRY_RUN="true"
+    shift 1
+  elif [ "$1" = "-terse" -o "$1" = "--terse" ]; then
+    # Output one line per installed/upgraded package by calling installpkg
+    # with --terse. Use TERSE=0 for true, so we can check with test.
+    TERSE=0
+    shift 1
+  elif [ "$1" = "-terselength" -o "$1" = "--terselength" ]; then
+    # Set line length in --terse mode:
+    TERSELENGTH=$2
+    shift 2
+  else # no more args
+    break;
+  fi
+done # processing args
+
+# A couple not-really-documented features to adjust the behavior of --terse
+# mode. These need to be used in addition to --terse, and passed in as
+# environment variables.
+# PLAINTERSE=0 (This outputs the standard terse line from installpkg, rather
+# than prefixing it with "Upgrading:" or "Installing:")
+# INFOBOX=0 (This outputs the installpkg --infobox instead of a terse line)
+
+# Here's a function to figure out the package name from one of those
+# new long filenames. We'll need this to double check the name of the
+# old package.
+
+package_name() {
+  STRING=$(pkgbase "$1")
+  case "$STRING" in
+  *-*-*-*)
+    # At least four segments, strip version arch and build and return name:
+    echo "${STRING%-*-*-*}"
+    # cruft for later ;)
+    # BUILD=${STRING##*-}
+    # STRING=${STRING%*-}
+    # ARCH=${STRING##*-}
+    # STRING=${STRING%*-}
+    # VER=${STRING%*-}
+    ;;
+  *)
+    # Old style package name with one segment or we don't have four
+    # segments: return the old-style (or out of spec) package name.
+    echo $STRING
+  esac
+}
+
+# limetech -
+# Here's a function that figures out if one package is a newer version than
+# another package.  We use this to prevent "upgrading" an existing package
+# to an older one.
+# We're lazy so use PHP's version_compare() function to do the heavy lifting.
+
+version_compare() {
+  STRING="$1"
+  BUILD=${STRING##*-}
+  STRING=${STRING%*-}
+  ARCH=${STRING##*-}
+  STRING=${STRING%*-}
+  VER=${STRING%*-}
+  OLDVERSION="$VER.$BUILD"
+
+  STRING="$2"
+  BUILD=${STRING##*-}
+  STRING=${STRING%*-}
+  ARCH=${STRING##*-}
+  STRING=${STRING%*-}
+  VER=${STRING%*-}
+  NEWVERSION="$VER.$BUILD"
+
+  php -r "echo version_compare('$OLDVERSION', '$NEWVERSION');"
+}
+
+ERRCODE=0
+
+# Main processing loop:
+for ARG; do
+  OLD=${ARG%'%'*}  # first segment, = $ARG if no %
+  NEW=${ARG#*'%'}  # second segment, = $ARG if no %
+
+  # Simple package integrity check:
+  if ! [ -f "$NEW" ]; then
+    ERRCODE=4
+    echo "Cannot install $NEW: file not found"
+    continue;
+  fi
+
+  # Figure out the names of the old and new packages:
+  INCOMINGDIR=$(dirname $NEW)
+  # These are the package names with the extension:
+  NNAME=${NEW##*/}
+  ONAME=${OLD##*/}
+  # These are the package names without the extension:
+  OLD=$(pkgbase $OLD)
+  NEW=$(pkgbase $NEW)
+
+  # Make sure the extension is valid:
+  if [ "$NNAME" = "$NEW" ]; then
+    # We won't throw an ERRCODE for this, but the package is skipped:
+    echo "Cannot install $OLD: invalid package extension"
+    continue;
+  fi
+
+  # Check and fix the old package name:
+  SHORT="$(package_name $OLD)"
+  if [ ! -r $ADM_DIR/packages/$OLD ]; then
+    if ls $ADM_DIR/packages/$SHORT* 1> /dev/null 2> /dev/null ; then
+      for installed_package in $ADM_DIR/packages/$SHORT* ; do
+        if [ "$(package_name $installed_package)" = "$SHORT" ]; then # found one
+          OLD="${installed_package##*/}"
+          break
+        fi
+      done
+    fi
+  fi
+
+  # Test to see if both the old and new packages are where we expect them
+  # to be - skip to the next package (or package pair) if anything's wrong:
+
+  if [ ! -r $ADM_DIR/packages/$OLD ]; then
+    if [ ! "$INSTALL_NEW" = "yes" ]; then
+      if [ "$DRY_RUN" = "true" ]; then
+        echo "$OLD would not be upgraded (no installed package named $SHORT)."
+      else
+        ! [ $TERSE ] && echo
+        echo "Error: there is no installed package named $OLD."
+        ! [ $TERSE ] && echo "       (looking for $ADM_DIR/packages/$OLD)"
+        ! [ $TERSE ] && echo
+      fi
+      ERRCODE=1
+    else # --install-new was given, so install the new package:
+      if [ "$DRY_RUN" = "true" ]; then
+        echo "$NEW would be installed (new package)."
+      else
+        if [ $PLAINTERSE ]; then
+          /sbin/installpkg --terse --terselength $TERSELENGTH $INCOMINGDIR/$NNAME
+        elif [ $INFOBOX ]; then
+          /sbin/installpkg --infobox $INCOMINGDIR/$NNAME
+        elif [ $TERSE ]; then
+          OUTPUTLINE="$(/sbin/installpkg --terse --terselength $(expr $TERSELENGTH - 12) $INCOMINGDIR/$NNAME)"
+          ( flock 9 || exit 11
+            echo "Installing: ${OUTPUTLINE}"
+          ) 9> $INSTLOCKDIR/outputline.lock
+        else
+          cat << EOF
+
++==============================================================================
+| Installing new package $INCOMINGDIR/$NNAME
++==============================================================================
+
+EOF
+          /sbin/installpkg $INCOMINGDIR/$NNAME
+        fi
+      fi
+    fi
+    continue;
+  elif [ ! -r "$INCOMINGDIR/$NNAME" ]; then
+    if [ "$DRY_RUN" = "true" ]; then
+      echo "$NEW incoming package not found (command line)."
+    else
+      ! [ $TERSE ] && echo
+      echo "Error: incoming package $INCOMINGDIR/$NNAME not found."
+      ! [ $TERSE ] && echo
+    fi
+    ERRCODE=1
+    continue;
+  fi
+
+  # Unless --reinstall was given, compare the package names
+  # and skip any exact matches:
+  if [ ! "$REINSTALL" = "true" ]; then
+    if [ "$OLD" = "$NEW" ]; then
+      if [ "$DRY_RUN" = "true" ]; then
+        echo "$NEW would be skipped (already installed)."
+      else
+        if ! [ $TERSE ]; then
+          cat << EOF
+
++==============================================================================
+| Skipping package $NEW (already installed)
++==============================================================================
+
+EOF
+        fi
+      fi
+      continue;
+    fi
+  fi
+
+  # limetech - compare versions and lets not install
+  # an older package unless reinstall given.
+  if [ ! "$REINSTALL" = "true" ]; then
+    if [ $(version_compare "$OLD" "$NEW") -gt 0 ]; then
+      if [ "$DRY_RUN" = "true" ]; then
+        echo "$NEW would be skipped (newer version already installed)."
+      else
+        if ! [ $TERSE ]; then
+          cat << EOF
+
++==============================================================================
+| Skipping package $NEW (newer vesion already installed)
++==============================================================================
+
+EOF
+        fi
+      fi
+      continue;
+    fi
+  fi
+
+  # Showtime.  Let's do the upgrade.  First, we will rename all the
+  # installed packages with this basename to make them easy to remove later:
+
+  TIMESTAMP=$(date +%Y-%m-%d,%T)
+  SHORT="$(package_name $OLD)"
+  if [ "$DRY_RUN" = "true" ]; then
+    echo -n "$NEW would upgrade:"
+    for installed_package in $ADM_DIR/packages/$SHORT* ; do
+    if [ "$(package_name $installed_package)" = "$SHORT" ]; then
+      echo -n " $(pkgbase $installed_package)"
+    fi
+    done
+    echo
+    continue
+  fi
+  for installed_package in $ADM_DIR/packages/$SHORT* ; do
+    if [ "$(package_name $installed_package)" = "$SHORT" ]; then
+      mv $installed_package ${installed_package}-upgraded-$TIMESTAMP
+    fi
+  done
+  for installed_script in $ADM_DIR/scripts/$SHORT* ; do
+    if [ "$(package_name $installed_script)" = "$SHORT" ]; then
+      if [ -r $installed_script ]; then
+        mv $installed_script ${installed_script}-upgraded-$TIMESTAMP
+      fi
+    fi
+  done
+
+  # Print a banner for the current upgrade:
+  if ! [ $TERSE ]; then
+    cat << EOF
+
++==============================================================================
+| Upgrading $OLD package using $INCOMINGDIR/$NNAME
++==============================================================================
+EOF
+  fi
+
+  # Next, the new package is pre-installed:
+
+  # Signal to the install script that this is a pre-install, in case it cares:
+  if [ ! "$NOT_PARANOID" = "true" ]; then
+     export PRE_INSTALL_PASS="true"
+  fi
+
+  if [ "$VERBOSE" = "verbose" ]; then
+    if ! [ $TERSE ]; then
+      /sbin/installpkg $INCOMINGDIR/$NNAME
+      RETCODE=$?
+    else
+      /sbin/installpkg $INCOMINGDIR/$NNAME 1> /dev/null
+      RETCODE=$?
+    fi
+  else
+    if [ $PLAINTERSE ]; then
+      /sbin/installpkg --terse --terselength $TERSELENGTH $INCOMINGDIR/$NNAME
+    elif [ $INFOBOX ]; then
+      /sbin/installpkg --infobox $INCOMINGDIR/$NNAME
+    elif [ $TERSE ]; then
+      OUTPUTLINE="$(/sbin/installpkg --terse --terselength $(expr $TERSELENGTH - 12) $INCOMINGDIR/$NNAME)"
+      RETCODE=$?
+      ( flock 9 || exit 11
+        echo "Upgrading:  ${OUTPUTLINE}"
+      ) 9> $INSTLOCKDIR/outputline.lock
+    else
+      echo "Pre-installing package $NEW..."
+      /sbin/installpkg $INCOMINGDIR/$NNAME 1> /dev/null
+      RETCODE=$?
+    fi
+  fi
+
+  # At this stage, if the operator supplied --no-paranoia, the package
+  # installation process (as far as unpacking content and running setup scripts
+  # is concerned) is complete.
+  # By default there will be a second and final installation pass, and to avoid
+  # executing expensive actions (such as re-generating data files or creating
+  # a large number of symlinks) installpkg skips running the install script on
+  # that first pass. Now we'll unset the PRE_INSTALL_PASS environment variable
+  # so that installpkg will run the install script.
+  unset PRE_INSTALL_PASS
+
+  # Make sure that worked:
+  if [ ! $RETCODE = 0 ]; then
+    echo "ERROR: Package $INCOMINGDIR/$NNAME did not install"
+    echo "correctly. You may need to reinstall your old package"
+    echo "to avoid problems. Make sure the new package is not"
+    echo "corrupted."
+    sleep 15
+    # Skip this package, but still try to proceed.  Good luck...
+    continue;
+  fi
+  # Now, the leftovers from the old package(s) can go.  Pretty simple, huh? :)
+  ( flock 9 || exit 11
+    for rempkg in "$ADM_DIR/packages/"*"-$TIMESTAMP"; do
+      if [ "$VERBOSE" = "verbose" ]; then
+        /sbin/removepkg "${rempkg##*/}"
+      elif ! [ $TERSE ]; then
+        /sbin/removepkg "${rempkg##*/}" | grep -v 'Skipping\.\|Removing files:'
+      else
+        /sbin/removepkg "${rempkg##*/}" > /dev/null
+      fi
+    done
+  ) 9> $INSTLOCKDIR/removepkg.lock
+  # Again!  Again!
+  # Seriously, the reinstalling of a package can be crucial if any files
+  # shift location, so we should always reinstall as the final step:
+  if [ ! "$NOT_PARANOID" = "true" ]; then
+    if ! [ $TERSE ]; then
+      /sbin/installpkg --no-overwrite $INCOMINGDIR/$NNAME
+    else
+      /sbin/installpkg --no-overwrite $INCOMINGDIR/$NNAME 1> /dev/null
+    fi
+  fi
+  ! [ $TERSE ] && echo "Package $OLD upgraded with new package $INCOMINGDIR/$NNAME."
+  ERRCODE=0
+done
+exit $ERRCODE

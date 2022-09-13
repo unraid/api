@@ -1,0 +1,138 @@
+#!/bin/bash
+# This file is /etc/rc.d/rc.flash_backup
+# use at queue "f" for flash backup
+QUEUE=" -q f "
+TASKNAME="/etc/rc.d/rc.flash_backup watch"
+TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBackup update"
+# set GIT_OPTIONAL_LOCKS=0 globally to reduce/eliminate writes to /boot
+export GIT_OPTIONAL_LOCKS=0
+status() {
+  local flash_backup_pid
+  flash_backup_pid=$(pgrep --full "${TASKNAME}")
+  _signedin && SIGNEDIN="system is signed in to Unraid.net." || SIGNEDIN="system is not signed in to Unraid.net."
+  if [[ ${flash_backup_pid} ]]; then
+    echo "flash backup monitor is running. ${SIGNEDIN}"
+    _hasqueue && echo "changes detected, backup queued."
+    exit 0
+  else
+    if _enabled; then
+      echo "flash backup is enabled but the monitor is not running. ${SIGNEDIN}"
+    else
+      echo "flash backup is disabled so the monitor is disabled. ${SIGNEDIN}"
+    fi
+    exit 1
+  fi
+}
+start() {
+  # Note: can start if not signed in, but watcher loop will not process until signed in
+  # only run if flash_backup is enabled
+  _enabled || exit 1
+  # terminate watcher loop/process
+  pkill --full "${TASKNAME}" &>/dev/null
+  # flush: this will ensure we start with a clean repo
+  flush
+  # start watcher loop as background process
+  exec ${TASKNAME} &>/dev/null &
+  exit 0
+}
+stop() {
+  # terminate watcher loop/process
+  pkill --full "${TASKNAME}" &>/dev/null
+  # remove any queued jobs and flush changes
+  flush
+  exit 0
+}
+reload() {
+  stop
+  sleep 1
+  start
+  sleep 1
+  status
+  exit 0
+}
+flush() {
+  # remove any queued jobs
+  _removequeue
+  # push any changes ad-hoc
+  # shellcheck disable=SC2086
+  echo "${TASKACTION}_nolimit &>/dev/null" | at ${QUEUE} -M now &>/dev/null
+}
+_watch() {
+  # start watcher loop
+  while true; do
+    # wait for system to sign in, then process flash backups
+    _signedin && (
+      if [ "$(git -C /boot status -s)" ]; then
+        _hasqueue || (
+          errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
+          # @TODO shellcheck SC2166
+          if [ ${#errorstring} -le 2 -o $(($(date +"%M") % 10)) -eq 0 ]; then
+            logger "adding task: ${TASKACTION}" --tag flash_backup
+          fi
+          sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
+          # shellcheck disable=SC2086
+          echo "${TASKACTION} &>/dev/null" | at ${QUEUE} -M now +1 minute &>/dev/null
+        )
+      fi
+    )
+    sleep 60
+  done
+}
+_hasqueue() {
+  # returns false if the queue is empty, true otherwise
+  # shellcheck disable=SC2086
+  if [ -z "$(atq ${QUEUE})" ]; then
+    return 1
+  fi
+  return 0
+}
+_removequeue() {
+  # delete any at jobs in queue f
+  # @TODO shellcheck SC2162
+  # shellcheck disable=SC2086
+  atq ${QUEUE} | while read line; do
+    id=$(echo ${line} | cut -d " " -f 1)
+    atrm ${id}
+  done
+}
+_enabled() {
+  local output
+  output=$(git -C /boot config --get remote.origin.url 2>&1)
+  if [[ "${output}" == *"backup.unraid.net"* ]]; then
+    return 0
+  fi
+  return 1
+}
+_signedin() {
+  CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
+  [[ ! -f "${CFG}" ]] && return 1
+  # shellcheck disable=SC1090
+  source <(sed -nr '/\[remote\]/,/\[/{/username/p}' "${CFG}" 2>/dev/null)
+  if [ -z "${username}" ]; then
+    return 1
+  fi
+  return 0
+}
+case "$1" in
+'status')
+  status
+  ;;
+'start')
+  start
+  ;;
+'stop')
+  stop
+  ;;
+'reload')
+  reload
+  ;;
+'flush')
+  flush
+  ;;
+'watch')
+  _watch
+  ;;
+*)
+  echo "usage $0 status|start|stop|reload|flush"
+  ;;
+esac

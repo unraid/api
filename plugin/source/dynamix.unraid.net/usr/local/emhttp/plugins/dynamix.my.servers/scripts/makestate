@@ -1,0 +1,231 @@
+#!/usr/bin/php
+<?PHP
+// from UpdateDNS.php
+if (!function_exists('ipaddr')) {
+  function ipaddr($ethX='eth0', $prot=4) {
+    global $$ethX;
+    switch ($$ethX['PROTOCOL:0']) {
+    case 'ipv4':
+      return $$ethX['IPADDR:0'];
+    case 'ipv6':
+      return $$ethX['IPADDR6:0'];
+    case 'ipv4+ipv6':
+      switch ($prot) {
+      case 4: return $$ethX['IPADDR:0'];
+      case 6: return $$ethX['IPADDR6:0'];
+      default:return [$$ethX['IPADDR:0'],$$ethX['IPADDR6:0']];}
+    default:
+      return $$ethX['IPADDR:0'];
+    }
+  }
+}
+  
+// from UpdateDNS.php
+function generate_internal_host($host, $ip) {
+  if (strpos($host,'.myunraid.net') !== false) {
+    $host = str_replace('*', str_replace('.', '-', $ip), $host);
+  }
+  return $host;
+}
+
+// from UpdateDNS.php
+function generate_external_host($host, $ip) {
+  if (strpos($host,'.myunraid.net') !== false) {
+    $host = str_replace('*', str_replace('.', '-', $ip), $host);
+  } elseif (strpos($host,'.unraid.net') !== false) {
+    $host = "www.".$host;
+  }
+  return $host;
+}
+
+
+function getCertCn($file, $servername) {
+  // make sure file exists before calling!
+  if (!file_exists($file)) return '';
+
+  $data = null;
+  exec("/usr/bin/openssl x509 -noout -subject -nameopt multiline -in ".escapeshellarg($file), $data);
+  $data = implode("\n", $data);
+  preg_match('/ *commonName *= (.*)/', $data, $matches);
+  $cn = trim($matches[1]);
+
+  // if Unraid LE cert, return it directly
+  if ( (strpos($cn, ".myunraid.net") !== false) or (strpos($cn, ".unraid.net") !== false) ) {
+    return $cn;
+  }
+
+  // handle custom wildcard certs
+  $cn = str_replace('*', $servername, $cn);
+  return $cn;
+} 
+
+function getServernameFromCn($cn) {
+  preg_match('/([^\.]*)\..*/', $cn, $matches);
+  $servername = $matches[1];
+  return $servername;
+}
+
+function isUnraidCert($cn) {
+  return preg_match('/.*\.(my)?unraid\.net$/', $cn);
+}
+
+$state = array(
+  'NGINX_LANIP' => '',
+  'NGINX_LANNAME' => '',
+  'NGINX_LANMDNS' => '',
+  'NGINX_CERTPATH' => '',
+  'NGINX_USESSL' => '',
+  'NGINX_PORT' => '',
+  'NGINX_PORTSSL' => '',
+  'NGINX_DEFAULTURL' => '',
+  'NGINX_CERTNAME' => '', 
+  'NGINX_LANFQDN' => '',
+  'NGINX_WANACCESS' => '',
+  'NGINX_WANIP' => '',
+  'NGINX_WANFQDN' => ''  
+);
+
+$var = parse_ini_file('/var/local/emhttp/var.ini');
+
+// distinguish between 6.9 and 6.10.0-rc[12] that don't have /var/local/emhttp/nginx.ini
+$is69 = version_compare($var['version'],"6.9.9","<");
+
+// internalip
+extract(parse_ini_file('/var/local/emhttp/network.ini',true));
+$ethX       = 'eth0';
+$internalip = ipaddr($ethX);
+$state['NGINX_LANIP'] = $internalip;
+
+$https_1_cert = "/boot/config/ssl/certs/{$var['NAME']}_unraid_bundle.pem";
+$https_2_cert = '/boot/config/ssl/certs/certificate_bundle.pem';
+
+// initially define values based on settings. in Unraid 6.9 this can be overridden by certificate data
+$state['NGINX_LANNAME'] = $var['NAME'];
+$state['NGINX_LANMDNS'] = $var['NAME'] . (empty($var['LOCAL_TLD']) ? '' : '.'.$var['LOCAL_TLD']);
+
+// TODO: does this need further validation that the values are integers in a certain range?
+$state['NGINX_PORT'] = ($var['PORT']) ? $var['PORT'] : 80;
+$state['NGINX_PORTSSL'] = ($var['PORTSSL']) ? $var['PORTSSL'] : 443;
+
+$state['NGINX_USESSL'] = $var['USE_SSL'];
+// if neither cert file exists, then NGINX_USESSL is no
+if (!file_exists($https_1_cert) && !file_exists($https_2_cert)) {
+  $state['NGINX_USESSL'] = 'no';
+}
+// in 6.9, USE_SSL='auto' means 'yes' if certificate_bundle.pem exists and 'no' if it does not exist
+if ($is69 && $state['NGINX_USESSL']=='auto') {
+  $state['NGINX_USESSL'] = file_exists($https_2_cert) ? "yes" : "no";
+}
+
+// NGINX_CERTPATH is a constant, always refers to certificate_bundle.pem whether the file exists or not
+$state['NGINX_CERTPATH'] = $https_2_cert;
+
+// in 6.9, only look at $https_2_cert if USE_SSL != no
+// in 6.10.0-rc[12] always look at $https_2_cert if it exists
+if (file_exists($https_2_cert) && ( ($is69 && $state['NGINX_USESSL']!='no') || !$is69 ) ) {
+  // get the hostname from certificate_bundle.pem
+  // this is normally a (my)unraid.net cert, but can also be a custom cert
+  $cn2 = getCertCn($https_2_cert, $var['NAME']);
+
+  if ($is69 && !isUnraidCert($cn2)) {
+    // this is a custom cert, not (my)unraid.net
+    // in Unraid 6.9, certificate data takes precidence over $var['NAME'] and $var['LOCAL_TLD']
+    // (in Unraid 6.10 they always match so this isn't an issue)
+    $state['NGINX_LANNAME'] = getServernameFromCn($cn2);
+    $state['NGINX_LANMDNS'] = $cn2;
+  }
+
+  // NOTE: NGINX_CERTNAME and NGINX_LANFQDN are only defined from certificate_bundle.pem not Server_unraid_bundle.pem
+  $state['NGINX_CERTNAME'] = $cn2;
+  $state['NGINX_LANFQDN'] = generate_internal_host($cn2, $internalip);
+}
+// in 6.9, only look at $https_1_cert if USE_SSL != no
+// also in 6.10.0-rc[12], only look at $https_1_cert if USE_SSL != no
+if (file_exists($https_1_cert) && $state['NGINX_USESSL']!='no') {
+  // get the hostname from Server_unraid_bundle.pem
+  // this is normally a self-signed cert, but can also be a custom cert. is not a (my)unraid.net cert
+  $cn1 = getCertCn($https_1_cert, $var['NAME']);
+
+  // NOTE: NGINX_CERTNAME and NGINX_LANFQDN are only defined from certificate_bundle.pem not Server_unraid_bundle.pem
+
+  if ($is69) {
+    // in Unraid 6.9, certificate data takes precidence over $var['NAME'] and $var['LOCAL_TLD']
+    // (in Unraid 6.10 they always match so this isn't an issue)
+    $state['NGINX_LANNAME'] = getServernameFromCn($cn1);
+    $state['NGINX_LANMDNS'] = $cn1;
+  }
+} 
+
+// determine NGINX_DEFAULTURL as scheme://host(:port)
+// scripts should use this when generating a link to the server
+switch ($state['NGINX_USESSL']) {
+  case 'no':
+    $host = "http://{$state['NGINX_LANMDNS']}";
+    $port = $state['NGINX_PORT'];
+    break;
+  case 'yes':
+    if ($is69 && !empty($state['NGINX_LANFQDN'])) {
+      $host = "https://{$state['NGINX_LANFQDN']}";
+    } else {
+      $host = "https://{$state['NGINX_LANMDNS']}";
+    }
+    $port = $state['NGINX_PORTSSL'];
+    break;
+  case 'auto':
+    $host = "https://{$state['NGINX_LANFQDN']}";
+    $port = $state['NGINX_PORTSSL'];
+    break;
+}
+$state['NGINX_DEFAULTURL'] = $host.(($port != 80 && $port != 443) ? ":{$port}" : "");
+
+// remote access enabled? 
+if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) {
+  @extract(parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true));
+}
+$isRegistered = !empty($remote) && !empty($remote['username']);
+$remoteaccess = (!empty($remote) && !empty($remote['wanaccess'])) ? $remote['wanaccess'] : 'no';
+// must be signed in and have a (my)unraid.net certificate to have remoteaccess
+if (!$isRegistered || !isUnraidCert($state['NGINX_CERTNAME']) || $remoteaccess != 'yes') $remoteaccess = 'no';
+// in Unraid 6.9, USE_SSL must be 'yes' or 'auto' to have remoteaccess
+if ($is69 && $state['NGINX_USESSL']=='no') $remoteaccess = 'no';
+
+// scripts can determine whether remoteaccess is configred with:
+//   $remoteaccess = ($nginx['NGINX_WANACCESS'] == 'yes')) ? 'yes' : 'no';
+// scripts can determine whether remoteaccess is actually enabled with:
+//   $remoteaccess = (empty($nginx['NGINX_WANFQDN'])) ? 'no' : 'yes';
+if ($remoteaccess == 'yes') {
+  $state['NGINX_WANACCESS'] = 'yes';
+  $wanip = trim(@file_get_contents("https://wanip4.unraid.net/"));
+  if ($wanip) {
+    $state['NGINX_WANFQDN'] = generate_external_host($cn2, $wanip);
+    $state['NGINX_WANIP'] = $wanip;
+  }
+}
+
+// start output
+echo "Unraid version {$var['version']}".PHP_EOL;
+echo "USE_SSL is {$var['USE_SSL']}".(($var['USE_SSL'] != $state['NGINX_USESSL']) ? " (but is treated as {$state['NGINX_USESSL']}) " : "").PHP_EOL;
+
+// display values from existing /var/local/emhttp/nginx.ini
+$statefile = '/var/local/emhttp/nginx.ini';
+if (file_exists($statefile)) {
+  $nginx = parse_ini_file($statefile);
+  echo "values from {$statefile}\n";
+  print_r($nginx);
+}
+
+echo "calculated values\n";
+print_r($state);
+
+// on 6.9 and 6.10.0-rc[12], the plugin will modify rc.nginx to run this script when it builds the nginx config files
+if (version_compare($var['version'],"6.10.0-rc2","<=")) {
+  // generate ini content from $state array and atomically write to $statefile
+  $output = '';
+  foreach ($state as $key => $value) {
+    $output .= $key.'="'.$value.'"'.PHP_EOL;
+  }
+  @mkdir(dirname($statefile));
+  file_put_contents($statefile.'.new', $output);
+  rename($statefile.'.new', $statefile);
+}
+?>

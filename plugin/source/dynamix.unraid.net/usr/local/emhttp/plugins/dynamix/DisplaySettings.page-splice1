@@ -1,0 +1,8 @@
+_(Header show description)_:
+: <select name="headerdescription">
+  <?=mk_option($display['headerdescription'], "yes",_('Yes'))?>
+  <?=mk_option($display['headerdescription'], "no",_('No'))?>
+  </select>
+
+_(Header custom secondary text color)_:
+: <input type="text" class="narrow" name="headermetacolor" value="<?=$display['headermetacolor']?>" maxlength="6" pattern="([0-9a-fA-F]{3}){1,2}" title="HTML color code of 3 or 6 hexadecimal digits">

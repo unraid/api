@@ -1,0 +1,31 @@
+#!/bin/bash
+
+# this git filter removes PrivateKey, PublicKey, and PresharedKey from WireGuard config files
+# that are passed in on stdin
+#
+# The regex converts the following:
+#
+# wg0.conf peer.conf
+# OLD: PresharedKey=uL3XBHpCoIxafVonnt1vj3cT8GbNhB+X/wNwroyYY7U=
+# NEW: PresharedKey=
+#
+# wg0.conf peer.conf
+# OLD: PrivateKey=gJt06xDlyntpoGKqYEK3GCuWtxVAzZPx4BNwKxg7jnQ=
+# NEW: PrivateKey=
+#
+# wg0.conf peer.conf
+# OLD: PublicKey=98PcRLFD9PiI8BbW6K61psNIYNsKrWKiJ/iJ87E1i0U=
+# NEW: PublicKey=
+#
+# wg0.cfg
+# OLD: PrivateKey:1="8FBfXXj8OBUNFpeRrvBYjl1YT5X/U5wENZUQ8F/Ukkk="
+# NEW: PrivateKey:1=""
+#
+# wg0.cfg
+# OLD: PublicKey:0="9xTdy0W7rLjQucP8I0lDcST3dkOnJfDFT+rtcInQ6UM="
+# NEW: PublicKey:0=""
+
+OLDTEXT='(PrivateKey(:[[:digit:]]*)?|PublicKey(:[[:digit:]]*)?|PresharedKey)=(.*)=(["])?'
+NEWTEXT='\1=\5\5'
+
+sed -E "s@${OLDTEXT}@${NEWTEXT}@g"

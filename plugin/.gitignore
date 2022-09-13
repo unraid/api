@@ -1,0 +1,7 @@
+
+# Thumbnails
+._*
+Thumbs.db
+.DS_Store
+
+source/dynamix.unraid.net/sftp-config.json

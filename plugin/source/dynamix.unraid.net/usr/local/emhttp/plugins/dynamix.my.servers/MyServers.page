@@ -1,0 +1,500 @@
+Menu="ManagementAccess:100"
+Title="My Servers"
+Icon="icon-u-globe"
+Tag="globe"
+---
+<?PHP
+/* Copyright 2005-2018, Lime Technology
+ * Copyright 2012-2018, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+// more:
+// - if someone deletes the myservers.cfg or directly edits [remote] section therein, it may be possible
+// that server will appear 'unregistered' in webgui but not on My Servers.
+// - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
+// now can remotely access using url that matches their cert. This is probably a bug here, but we might
+// want to rework this somewhat to explicitly enable this 'feature' (remote access using user-provided cert).
+
+$keyfile = @file_get_contents($var['regFILE']);
+if ($keyfile !== false)
+  $keyfile = @base64_encode($keyfile);
+
+if (empty($remote)) {
+    $remote = [
+        "apikey" => "",
+        "wanaccess" => "no",
+        "wanport" => "443"
+    ];
+}
+if (empty($remote['wanport'])) {
+    $remote['wanport'] = 443;
+}
+
+$nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
+$hasCert = preg_match('/.*\.(my)?unraid\.net$/', $nginx['NGINX_CERTNAME']);
+$hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $nginx['NGINX_CERTNAME']);
+
+$oldVersion = version_compare('6.9.9', $var['version'], '>');
+if ($oldVersion) {
+    $hasCert = $hasCert && $var['USE_SSL']!='no';
+}
+
+$isRegistered = !empty($remote['username']);
+
+$passwd_result = exec('/usr/bin/passwd --status root');
+$boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
+
+/**
+ * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
+ * by disabling html attrs and vars before the post sends to set the field
+ */
+$enableRemoteT2fa = !$oldVersion && $remote['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
+$enableLocalT2fa = !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
+?>
+<script>
+const oldVersion = <?=($oldVersion ? 'true' : 'false')?>;
+const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
+let wanAccessEnabled = $('#wanaccess').val() === 'yes'; // changes when changeRemoteAccess() is fired
+let enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
+// we don't set `enableRemoteT2fa` here b/c we need to read the value of `wanAccessEnabled` directly before submission
+
+$('body').on('change keyup', '#UnraidNetSettings', function(data) {
+  validateExtraOrigins();
+  if (!isExtraOriginsValid) {
+    return $(this).find('.applyBtn').prop("disabled",true);
+  }
+  return $(this).find('.applyBtn').removeAttr('disabled');
+});
+
+function registerServer(button) {
+    var oldlabel = $.trim($(button).text());
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal({
+          title: "Oops",
+          text: msg,
+          type: "error",
+          html: true,
+          confirmButtonText: "_(Ok)_"
+        });
+    };
+
+    var success = function(data) {
+        const wanAccessEnabled = $('#wanaccess').val() === 'yes';
+        const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
+
+        var postobj = {
+            "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
+            "remote_wanaccess": $('#wanaccess').val(),
+            "remote_wanport": $('#wanport').val(),
+             // only allow 'yes' value when fields are enabled
+            "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
+            "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
+            "api_extraOrigins": validateExtraOrigins(),
+        };
+
+        if (data && data.apikey) {
+            postobj["remote_apikey"] = data.apikey;
+        }
+
+        $(button).prop("disabled", false).html(oldlabel);
+        $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
+<?if(!$isRegistered):?>
+            swal({
+              title: "",
+              text: "_(Your server has been registered)_",
+              type: "success",
+              html: true,
+              allowEscapeKey: false,
+              confirmButtonText: "_(Ok)_"
+            }, function() {
+              button.form.submit();
+            });
+<?else:?>
+            button.form.submit();
+<?endif?>
+        });
+    };
+
+    $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+    $.post("/webGui/include/UpdateDNS.php",{
+      externalport: $('#wanport').val(),
+      remoteaccess: $('#wanaccess').val()
+    }, success).fail(failure);
+}
+
+function dnsCheckServer(button) {
+    var oldlabel = $.trim($(button).text());
+
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal({
+          title: "Oops",
+          text: msg,
+          type: "error",
+          html: true,
+          confirmButtonText: "_(Ok)_"
+        });
+    };
+
+    var success = function(data) {
+        $(button).prop("disabled", false).html(oldlabel);
+        if (data.status) {
+            swal({
+              title: "",
+              text: "_(Your Unraid Server is reachable from the internet)_",
+              type: "success",
+              html: true,
+              confirmButtonText: "_(Ok)_"
+            });
+        } else {
+            swal({
+              title: "Oops",
+              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>",
+              type: "error",
+              html: true,
+              confirmButtonText: "_(Ok)_"
+            });
+        }
+    };
+
+    $(button).prop("disabled", true).html("_(Checking)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+    $.post("https://keys.lime-technology.com/account/server/checkdns",{externalport:$('#wanport').val(),keyfile:"<?=$keyfile?>"},success).fail(failure);
+}
+
+function changeRemoteAccess(dropdown) {
+    let $wanPanel = $("#wanpanel");
+    let $remote2faSelect = $('#remote2fa');
+    let $remote2faRemark = $('#remote2fa_remark');
+    if ($(dropdown).val() == 'yes') {
+        $wanPanel.slideDown('fast');
+        if (!oldVersion) {
+          $remote2faSelect.prop('disabled', false);
+          $remote2faRemark.fadeOut();
+        }
+        changeWanPortAccess();
+    } else {
+        $wanPanel.slideUp('fast');
+        $remote2faRemark.fadeIn();
+        $remote2faSelect.prop('disabled', true);
+        // perhaps we don't want this to auto set to no when remote access is toggled to no. Rather the submission of the form sets the value to no.
+        // this way if the user toggles remote access to no then decided to put back to yes, Remote T2FA wouldn't accidentally be turned off.
+        // $remote2faSelect.val('no'); // set value to 'no' since it's not allowed to be yes when remote access is NOT enabled
+    }
+}
+
+function changeWanPortAccess() {
+    $enabled = ($("#wanaccess").val() == $("#wanaccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig'));
+    $("#wancheck").prop("disabled", !$enabled);
+}
+
+function enableFlashBackup(button) {
+    var oldlabel = $.trim($(button).text());
+
+    var failure = function(data) {
+        var status = data.status;
+        var obj = data.responseJSON;
+        var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
+        $(button).prop("disabled", false).html(oldlabel);
+        swal({
+          title: "",
+          text: msg,
+          type: "error",
+          allowEscapeKey: false,
+          html: true,
+          confirmButtonText: "_(Ok)_"
+        },function(){button.form.submit();});
+    };
+
+    var success = function(data) {
+        $(button).prop("disabled", false).html(oldlabel);
+        button.form.submit();
+    };
+
+    if (oldlabel == "_(Activate)_") {
+        $(button).prop("disabled", true).html("_(Activating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+        $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"activate"},success).fail(failure);
+    }
+    if (oldlabel == "_(Deactivate)_") {
+        swal({title:"_(Deactivate)_",text:"_(Are you sure you want pause communication with your remote flash backup on unraid.net?)_",type:'warning',confirmButtonText:"_(Deactivate)_",showCancelButton:true},function(){
+            $(button).prop("disabled", true).html("_(Deactivating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+            $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+        });
+    }
+    if (oldlabel == "_(Update)_") {
+        $(button).prop("disabled", true).html("_(Updating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+        $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"flush"},success).fail(failure);
+    }
+    if (oldlabel == "_(Reinitialize)_") {
+        swal({title:"_(Reinitialize)_",text:"_(Are you sure you want to erase all change history in both local and unraid.net remote?)_",type:'warning',confirmButtonText:"_(Reinitialize)_",showCancelButton:true},function(){
+            $(button).prop("disabled", true).html("_(Reinitializing)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+            $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"reinit"},success).fail(failure);
+        });
+    }
+    if (oldlabel == "_(Changes)_") {
+        openBox("/webGui/include/gitstatus.php", "_(Changes)_", 600,600, false);
+    }
+}
+
+function buttonStateReset(newstate) {
+    $('#inactivespanel,#activepanel,#changespanel,#uptodatepanel,#errorpanel').hide();
+
+    if (newstate['loading'] && newstate['loading']!='') {
+      if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
+        $('#flashbackuptext').html('<span class="green p0">_(Activated)_:</span> <span class="blue p0">' + newstate['loading'] + ' <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>');
+      } else {
+        $('#flashbackuptext').html('<span class="orange p0">_(Not activated)_:</span> <span class="blue p0">' + newstate['loading'] + ' <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span>');
+      }
+      $('#uptodatepanel').show();
+      return;
+    }
+
+    if (newstate['error'] && newstate['error']!='') {
+      $('#flashbackuperror').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['error']);
+      $('#errorpanel').show();
+
+      // if rate limited, disable the Update button
+      if (newstate['error'].includes('Rate limited')) {
+        $('#changespanel button').first().prop("disabled",true);
+      }
+    }
+
+    if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
+        $('#activepanel').show();
+
+        if (newstate['uptodate'] == 'true' || newstate['uptodate'] == 'yes') {
+            $('#flashbackuptext').html('<span class="green p0">_(Activated)_:</span> <span class="green p0">_(up-to-date)_</span>');
+            $('#uptodatepanel').show();
+        } else {
+            $('#flashbackuptext').html('<span class="green p0">_(Activated)_:</span> <span class="orange p0">_(Not up-to-date)_</span>');
+            $('#changespanel').show();
+        }
+    } else {
+        $('#flashbackuptext').html('<span class="orange p0">_(Not activated)_</span>');
+        $('#inactivespanel').show();
+    }
+}
+$.post('/plugins/dynamix.my.servers/include/UpdateFlashBackup.php',{command:"status"});
+
+let isExtraOriginsValid = false;
+const validateExtraOrigins = () => {
+  const val = $('.js-extraOrigins').val();
+  const $grandParent = $('.js-extraOrigins').parent().parent(); // setting here in this scope b/c it didn't work setting outside of this function
+  if (!val) {
+    $grandParent.removeClass('red-text');
+    isExtraOriginsValid = true;
+    return '';
+  }
+  let trimmed = val.replace(/\s+/g, '');
+  if (trimmed.slice(-1) === ',') trimmed = trimmed.slice(0, -1); // if last char is in string is a comma we need to remove it other wise `isCommaSeparatedURLs` will fail
+  const isValid = isCommaSeparatedURLs(trimmed);
+  if (!isValid) { // tell the user to fix it
+    $grandParent.addClass('red-text');
+    isExtraOriginsValid = false;
+    return '';
+  }
+  // remove any negative feedback
+  $grandParent.removeClass('red-text');
+  isExtraOriginsValid = true;
+  return trimmed;
+};
+const isCommaSeparatedURLs = input =>
+  input
+    .split(",")
+    .every(value => /^(http|https):\/\/[^ "]+$/.test(value));
+</script>
+
+<form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
+_(Unraid.net account status)_:
+: <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
+
+<?if($isRegistered):?>
+_(Allow Remote Access)_:
+<?if(!$hasCert):?>
+<?if($oldVersion):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
+<?else:?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert)_</span>
+<?endif?>
+<input type="hidden" id="wanaccess" value="no">
+<input type="hidden" id="wanport" value="0">
+<?elseif(!$boolWebUIAuth):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
+<input type="hidden" id="wanaccess" value="no">
+<input type="hidden" id="wanport" value="0">
+<?else:?>
+: <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
+  <?=mk_option($remote['wanaccess'], "no", _("No"))?>
+  <?=mk_option($remote['wanaccess'], "yes", _("Yes"))?>
+  </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>" />
+
+<div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
+_(WAN Port)_:
+: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" id="wancheck"onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
+
+:unraidnet_wanpanel_help:
+
+</div>
+<? /** for the time being only display remote T2FA field when enabled manually by Unraid developers */ ?>
+<?if($local['showT2Fa'] === 'yes'):?>
+<?
+$remoteT2faRemarks = [
+  'all' => _('Remote T2FA requires Remote Access to be enabled, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
+  'need610' => _('Remote T2FA requires Unraid 6.10 or higher'),
+  'needRemote' => _('Remote T2FA requires Remote Access to be enabled'),
+  'needRemoteAnd610' => _('Remote T2FA requires Remote Access to be enabled and Unraid 6.10 or higher'),
+  'needRemoteAndCert' => _('Remote T2FA requires Remote Access to be enabled and a *.myunraid.net certificate'),
+  'need610AndCert' => _('Remote T2FA requires Unraid 6.10 or higher and a *.myunraid.net certificate'),
+  'needCert' => _('Remote T2FA requires a *.myunraid.net certificate'),
+];
+
+if ($enableRemoteT2fa)
+  $remoteT2faRemark = '';
+elseif ($oldVersion && $remote['wanaccess'] === 'yes' && $hasMyUnraidNetCert)
+  $remoteT2faRemark = $remoteT2faRemarks['need610'];
+elseif (!$oldVersion && $remote['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
+  $remoteT2faRemark = $remoteT2faRemarks['needRemote'];
+elseif ($oldVersion && $remote['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
+  $remoteT2faRemark = $remoteT2faRemarks['needRemoteAnd610'];
+elseif (!$oldVersion && $remote['wanaccess'] !== 'yes' && !$hasMyUnraidNetCert)
+  $remoteT2faRemark = $remoteT2faRemarks['needRemoteAndCert'];
+elseif ($oldVersion && $remote['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
+  $remoteT2faRemark = $remoteT2faRemarks['need610AndCert'];
+elseif (!$oldVersion && $remote['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
+  $remoteT2faRemark = $remoteT2faRemarks['needCert'];
+else
+  $remoteT2faRemark = $remoteT2faRemarks['all'];
+
+$localT2faRemarks = [
+  'all' => _('Local T2FA requires Use SSL/TLS to be Strict, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
+  'needSSLAuto' => _('Local T2FA requires Use SSL/TLS to be Strict'),
+  'needSSLAutoAnd610' => _('Local T2FA requires Use SSL/TLS to be Strict and Unraid 6.10 or higher'),
+  'needSSLAutoAndCert' => _('Local T2FA requires Use SSL/TLS to be Strict and a *.myunraid.net certificate'),
+  'need610' => _('Local T2FA requires Unraid 6.10 or higher'),
+  'need610AndCert' => _('Local T2FA requires Unraid 6.10 or higher and a *.myunraid.net certificate'),
+  'needCert' => _('Local T2FA requires a *.myunraid.net certificate'),
+];
+
+if($enableLocalT2fa)
+  $localT2faRemark = '';
+elseif ($oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert)
+  $localT2faRemark = $localT2faRemarks['need610'];
+elseif (!$oldVersion && $var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
+  $localT2faRemark = $localT2faRemarks['needSSLAuto'];
+elseif ($oldVersion && $var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
+  $localT2faRemark = $localT2faRemarks['needSSLAutoAnd610'];
+elseif (!$oldVersion && $var['USE_SSL'] !== 'auto' && !$hasMyUnraidNetCert)
+  $localT2faRemark = $localT2faRemarks['needSSLAutoAndCert'];
+elseif ($oldVersion && $var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
+  $localT2faRemark = $localT2faRemarks['need610AndCert'];
+elseif (!$oldVersion && $var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
+  $localT2faRemark = $localT2faRemarks['needCert'];
+else
+  $localT2faRemark = $localT2faRemarks['all'];
+?>
+
+_(Enable Transparent 2FA for Remote Access)_:
+: <select id="remote2fa" size="1" <?=($enableRemoteT2fa ? '' : 'disabled')?>>
+  <?=mk_option($remote['2Fa'], "no", _("No"))?>
+  <?=mk_option($remote['2Fa'], "yes", _("Yes"))?>
+  </select> <span id="remote2fa_remark" style="display:<?=($enableRemoteT2fa ? 'none' : 'inline')?>;"><?=$remoteT2faRemark?></span>
+
+:myservers_remote_t2fa_help:
+
+_(Enable Transparent 2FA for Local Access)_:
+: <select id="local2fa" size="1" <?=($enableLocalT2fa ? '' : 'disabled')?>>
+  <?=mk_option($local['2Fa'], "no", _("No"))?>
+  <?=mk_option($local['2Fa'], "yes", _("Yes"))?>
+  </select> <span id="local2fa_remark" style="display:<?=($enableLocalT2fa ? 'none' : 'inline')?>;"><?=$localT2faRemark?></span>
+
+:myservers_local_t2fa_help:
+
+_(Unraid API extra origins)_:
+: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$api['extraOrigins']?>">
+
+:unraidnet_extraorigins_help:
+<?endif?>
+
+&nbsp;
+: <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button>
+<?endif?>
+<?endif?>
+</form>
+
+<?if($isRegistered):?>
+<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
+_(Flash backup)_:
+: <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
+
+<div markdown="1" id="errorpanel" style="display:none">
+&nbsp;
+: <span id="flashbackuperror"></span>
+
+</div>
+<div markdown="1" id="inactivespanel" style="display:none">
+&nbsp;
+<?if(disk_free_space('/boot') > 1024*1000*1000):?>
+: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+<?else:?>
+: <button type="button" disabled>_(Activate)_</button> <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
+<?endif?>
+
+:unraidnet_inactivespanel_help:
+
+</div>
+<div markdown="1" id="changespanel" style="display:none">
+&nbsp;
+: <button type="button" onclick="enableFlashBackup(this)">_(Update)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Changes)_</button>
+
+:unraidnet_changespanel_help:
+
+</div>
+<div markdown="1" id="uptodatepanel" style="display:none">
+&nbsp;
+: <button type="button" disabled>_(Update)_</button>
+
+:unraidnet_activepanel_help:
+
+</div>
+<div markdown="1" id="activepanel" style="display:none">
+&nbsp;
+: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Reinitialize)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+
+<?if (($_COOKIE['UPC_ENV'] === 'development' || $_COOKIE['UPC_ENV'] === 'staging') && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
+&nbsp;
+: <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>  <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
+<?endif?>
+
+:unraidnet_activepanel_help:
+
+</div>
+</form>
+<script>
+var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
+flashbackupsub.on('message', function(data) {
+  var ini = parseINI(data);
+
+  buttonStateReset(ini['flashbackup']);
+});
+$(function() {
+  flashbackupsub.start();
+  if ( typeof caPluginUpdateCheck === "function" ) {
+    caPluginUpdateCheck("dynamix.unraid.net.plg",{name:"My Servers"});
+  }
+});
+</script>
+<?endif?>
