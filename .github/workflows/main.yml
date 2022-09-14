@@ -215,10 +215,10 @@ jobs:
           body_path: ${{ github.workspace }}/RELEASE_NOTES.md
           draft: false
           prerelease: true
-          files: 
-            - unraid-api-*.tgz
-            - plugins/dynamix.unraid.net*
-            - archive/dynamix.unraid.net*
+          files: |
+            unraid-api-*.tgz
+            plugins/dynamix.unraid.net*
+            archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -281,10 +281,10 @@ jobs:
           body_path: ${{ github.workspace }}/RELEASE_NOTES.md
           draft: false
           prerelease: false
-          files: 
-            - unraid-api-*.tgz
-            - plugins/dynamix.unraid.net*
-            - archive/dynamix.unraid.net*
+          files: |
+              unraid-api-*.tgz
+              plugins/dynamix.unraid.net*
+              archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
