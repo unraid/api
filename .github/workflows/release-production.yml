@@ -1,0 +1,79 @@
+name: Publish Release to Digital Ocean
+
+on:
+  release:
+    types: [ published ]
+jobs:
+  publish-to-digital-ocean:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+       
+      - name: Download Release Artifacts (API)
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          file: 'unraid-api-*.tgz'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Download Release Artifacts (Plugins)
+        uses: dsaltares/fetch-gh-release-asset@master
+        with:
+          file: 'dynamix.unraid.net*'
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print Downloaded Files
+        run: |
+          ls -al
+          exit 0
+
+      - name: Upload API to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: unraid-api-*.tgz
+          out_dir: unraid-api
+
+      - name: Upload staging txz to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: archive/dynamix.unraid.net.staging-*.txz
+          out_dir: unraid-api
+
+      - name: Upload staging plg to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: plugins/dynamix.unraid.net.staging.txz
+          out_dir: unraid-api
+
+      - name: Upload production txz to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: archive/dynamix.unraid.net-*.txz
+          out_dir: unraid-api
+
+      - name: Upload production plg to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: plugins/dynamix.unraid.net.txz
+          out_dir: unraid-api

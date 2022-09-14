@@ -12,7 +12,7 @@ plugin=$(basename "${DIR}")
 [[ "${env}" == "staging" ]] && plugin="${plugin}.staging"
 version=$(date +"%Y.%m.%d.%H%M")
 plgfile="${MAINDIR}/plugins/${plugin}.plg"
-txzfile="${MAINDIR}/archive/${plugin}.txz"
+txzfile="${MAINDIR}/archive/${plugin}-${version}.txz"
 
 # create txz package
 mkdir -p "$(dirname "${txzfile}")"
@@ -49,6 +49,11 @@ sed -i -E "s#(ENTITY env\s*)\".*\"#\1\"${env}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY version\s*)\".*\"#\1\"${version}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MD5\s*)\".*\"#\1\"${md5}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
+
+# update plg file (set api version)
+sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY API_MD5\s*)\".*\"#\1\"${API_MD5}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY API_SHA256\s*)\".*\"#\1\"${API_SHA256}\"#g" "${plgfile}"
 
 # add changelog for major versions
 # sed -i "/<CHANGES>/a ###${version}\n" ${plgfile}
