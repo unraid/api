@@ -10,9 +10,7 @@ on:
   pull_request:
     branches:
       - main
-defaults:
-  run:
-    working-directory: api
+
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
@@ -22,7 +20,6 @@ jobs:
     steps:
       - name: Validate branch and tag
         run: exit 0
-        working-directory: /
 
   lint-api:
     defaults:
