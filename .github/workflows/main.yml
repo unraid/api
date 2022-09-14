@@ -195,7 +195,7 @@ jobs:
 
   staging-release:
     # Only release if this is a push to the main branch
-    if: startsWith(github.ref, 'refs/heads/main')
+    #if: startsWith(github.ref, 'refs/heads/main')
     runs-on: ubuntu-latest
     needs: [build-plugin]
 
@@ -236,6 +236,16 @@ jobs:
             archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload API to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: unraid-api-*.tgz
+          out_dir: unraid-api
 
       - name: Upload staging txz to DigitalOcean Spaces
         uses: BetaHuhn/do-spaces-action@v2
@@ -302,6 +312,16 @@ jobs:
               archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload API to DigitalOcean Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
+          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
+          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
+          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          source: unraid-api-*.tgz
+          out_dir: unraid-api
 
       - name: Upload staging txz to DigitalOcean Spaces
         uses: BetaHuhn/do-spaces-action@v2
