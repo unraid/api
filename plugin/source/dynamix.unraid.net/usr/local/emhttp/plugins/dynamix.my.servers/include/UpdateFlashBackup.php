@@ -102,9 +102,6 @@ function exec_log($command, &$output = [], &$retval = 0) {
   try {
     exec($command.' 2>&1', $output, $retval);
 
-    // reduce logging when connection is down
-    if (!empty($arrState['error']) && date('i') % 10 != 0) return;
-
     if ($retval === 0) {
       error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval."\n\n", 3, $gitflash); 
     } else {
