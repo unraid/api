@@ -7,10 +7,6 @@ on:
     tags:
       - "v*"
 
-  pull_request:
-    branches:
-      - main
-
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
