@@ -199,60 +199,39 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+      
+      - name: Make Staging Release Folder
+        run: mkdir staging-release/
 
       - name: Download unraid-api binary tgz
         uses: actions/download-artifact@v3
         with:
           name: unraid-api
+          path: staging-release
 
       - name: Download plugin binary tgz
         uses: actions/download-artifact@v3
         with:
           name: connect-files
 
-      - name: Create release notes
+      - name: Run LS in unraid-api folder
         run: |
-          # Get the last release tag
-          LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1); \
-          # Get all the commit messages between now and the last tag
-          RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse) \
-          # Save release notes to a file
-          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md && \
-          # Log release notes
-          cat ${{ github.workspace }}/RELEASE_NOTES.md
+          cp archive/dynamix.unraid.net.staging-*.txz staging-release/
+          cp plugins/dynamix.unraid.net.staging.plg staging-release/
+          ls -al staging-release
 
-      - name: Upload API to DigitalOcean Spaces
+      - name: Upload Staging Plugin to DO Spaces
         uses: BetaHuhn/do-spaces-action@v2
         with:
           access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
           secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
           space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
           space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: unraid-api-*.tgz
+          source: staging-release
           out_dir: unraid-api
 
-      - name: Upload staging txz to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: archive/dynamix.unraid.net.staging-*.txz
-          out_dir: unraid-api
-
-      - name: Upload staging plg to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: plugins/dynamix.unraid.net.staging.txz
-          out_dir: unraid-api
-
-  release-production:
-    # Only release if this is a version tag
+  create-draft-release:
+    # Only create new draft if this is a version tag
     if: |
       startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
@@ -272,77 +251,14 @@ jobs:
         with:
           name: connect-files
 
-      - name: Create release notes
-        run: |
-          # Get the last release tag
-          # We get the second to last tag as the last is the current one
-          LAST_RELEASE=$(git tag --list  --sort=v:refname | grep -v 'alpha\|beta\|rc' | tail -2 | head -1); \
-          # Get all the commit messages between now and the last non-pre-release tag
-          RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse | sed \$d) \
-          # Save release notes to a file
-          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md && \
-          # Log release notes
-          cat ${{ github.workspace }}/RELEASE_NOTES.md
-
       - name: Create Github release
         uses: softprops/action-gh-release@v1
         with:
-          body_path: ${{ github.workspace }}/RELEASE_NOTES.md
-          draft: false
+          draft: true
           prerelease: false
           files: |
-              unraid-api-*.tgz
+              staging-release/unraid-api-*.tgz
               plugins/dynamix.unraid.net*
               archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Upload API to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: unraid-api-*.tgz
-          out_dir: unraid-api
-
-      - name: Upload staging txz to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: archive/dynamix.unraid.net.staging-*.txz
-          out_dir: unraid-api
-
-      - name: Upload staging plg to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: plugins/dynamix.unraid.net.staging.txz
-          out_dir: unraid-api
-
-      - name: Upload production txz to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: archive/dynamix.unraid.net-*.txz
-          out_dir: unraid-api
-
-      - name: Upload production plg to DigitalOcean Spaces
-        uses: BetaHuhn/do-spaces-action@v2
-        with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
-          source: plugins/dynamix.unraid.net.txz
-          out_dir: unraid-api
