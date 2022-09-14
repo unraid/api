@@ -1,6 +1,7 @@
-import { apiManager } from '@app/core/api-manager';
 import { wsState } from '@app/mothership/should-be-connect-to-cloud';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
+import { store } from '@app/store';
+import { updateUserConfig } from '@app/store/modules/config';
 
 export const handleReconnection = (reason: string, code: number): { reason: string; timeout?: number } => {
 	switch (code) {
@@ -20,8 +21,12 @@ export const handleReconnection = (reason: string, code: number): { reason: stri
 
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
-			// Tell api manager to delete the key as it's invalid
-			apiManager.expire('my_servers');
+			// Clear the key from the store
+			store.dispatch(updateUserConfig({
+				remote: {
+					apikey: undefined,
+				},
+			}));
 			return { reason: 'API key is invalid' };
 
 		case 426:

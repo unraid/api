@@ -30,7 +30,7 @@ export class FuncDirective extends SchemaDirectiveVisitor {
 	visitFieldDefinition(field: Record<string, any>) {
 		const { args } = this;
 		field.resolve = async function (_source, directiveArgs: {
-			[key: string]: string | any;
+			[key: string]: any;
 			plugin: string;
 			module: string;
 			result: string;

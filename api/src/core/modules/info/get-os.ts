@@ -9,7 +9,7 @@ import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 // Get uptime on boot and convert to date
-const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1000));
+const bootTimestamp = new Date(new Date().getTime() - (uptime() * 1_000));
 
 /**
  * Get OS info

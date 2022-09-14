@@ -8,7 +8,7 @@ import { Cache } from 'clean-cache';
 export const caches = new Map<string, Cache>();
 
 // In seconds
-const ONE_MINUTE = 60 * 1000;
+const ONE_MINUTE = 60 * 1_000;
 
 /**
  * Cache manager.

@@ -4,8 +4,8 @@
  */
 
 //  @todo: remove string and add rest of the options
-type FsType = 'xfs' | string;
-type RegistrationType = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO' | string;
+type FsType = 'xfs';
+type RegistrationType = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO';
 
 export type ConfigErrorState =
 	'UNKNOWN_ERROR' |

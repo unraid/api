@@ -4,13 +4,6 @@ vi.mock('@app/mothership/get-relay-connection-status', () => ({
 	getRelayConnectionStatus: vi.fn(),
 }));
 
-vi.mock('@app/core/api-manager', () => ({
-	apiManager: {
-		cloudKey: 'my-cloud-key',
-		expire: vi.fn(),
-	},
-}));
-
 vi.mock('fs', () => ({
 	default: {
 		readFileSync: vi.fn().mockReturnValue('my-file'),
@@ -97,8 +90,3 @@ Test('getRelayHeaders', () => {
 		'x-unraid-api-version': expect.anything(),
 	}));
 }); */
-
-test('Successfully runs the mothership API successfully', async () => {
-	// Const { apiManager } = await import('@app/core/api-manager');
-	// await import('@app/mothership/index');
-});

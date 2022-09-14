@@ -13,7 +13,7 @@ const internalWsAddress = () => {
 /**
  * One second in milliseconds.
  */
-export const ONE_SECOND = 1000;
+export const ONE_SECOND = 1_000;
 
 /**
  * One minute in milliseconds.

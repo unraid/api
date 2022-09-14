@@ -1,5 +1,5 @@
 import { checkRelay } from '@app/graphql/resolvers/query/cloud/check-relay';
-import { expect, test} from 'vitest';
+import { expect, test } from 'vitest';
 
 test('Defaults', async () => {
 	const { relayStore } = await import('@app/mothership/store');
@@ -25,5 +25,5 @@ test('Reconnecting', async () => {
 		error: 'SERVICE_RESTART',
 		status: 'disconnected',
 	}));
-	expect(checkRelay().timeout).toBeLessThanOrEqual(60000)
+	expect(checkRelay().timeout).toBeLessThanOrEqual(60_000);
 });

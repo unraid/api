@@ -1,6 +1,6 @@
 export type IniEnabled = 'e' | '';
 export type IniNumberBoolean = '0' | '1';
-export type IniStringBoolean = 'no' | 'yes';
+export type IniStringBoolean = 'no' | 'false' | 'yes' | 'true';
 export type IniStringBooleanOrAuto = 'auto' | 'no' | 'yes';
 
 type Unit = 'C' | 'F';

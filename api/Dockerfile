@@ -32,6 +32,6 @@ jq
 RUN $NPM_I_CMD
 
 # Install pkg
-RUN npm i -g pkg
+RUN npm i -g pkg zx
 
 CMD ["npm", "run", "build-pkg"]

@@ -18,6 +18,9 @@ module.exports = {
 		'@typescript-eslint/no-unsafe-return': 'off',
 		'@typescript-eslint/ban-types': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
+		'unicorn/numeric-separators-style': [
+			'error', { number: { minimumDigits: 0, groupLength: 3 } },
+		],
 		'import/no-cycle': 'off', // Change this to "error" to find circular imports
 		'no-unused-vars': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',

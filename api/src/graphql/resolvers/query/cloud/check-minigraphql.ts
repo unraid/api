@@ -5,10 +5,10 @@
 
 import { logger } from '@app/core/log';
 import { getServers } from '@app/graphql/schema/utils';
-import { CachedServer } from '@app/cache/user';
 import { varState } from '@app/core/states';
 import { getters } from '@app/store';
 import { MinigraphStatus } from '@app/store/modules/minigraph';
+import { Server } from '@app/store/modules/servers';
 
 export const checkMinigraphql = async (): Promise<{ status: 'connected' | 'disconnected' }> => {
 	logger.trace('Cloud endpoint: Checking mini-graphql');
@@ -18,7 +18,7 @@ export const checkMinigraphql = async (): Promise<{ status: 'connected' | 'disco
 		if (!connected) return { status: 'disconnected' };
 
 		// Is the server online?
-		const servers = await getServers().catch(() => [] as CachedServer[]);
+		const servers = await getServers().catch(() => [] as Server[]);
 		const thisServer = servers.find(server => server.guid === varState.data.flashGuid);
 		if (thisServer?.status === 'offline' || thisServer?.owner?.username === 'root') return { status: 'disconnected' };
 

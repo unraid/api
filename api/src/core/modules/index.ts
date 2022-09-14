@@ -1,6 +1,5 @@
 // Created from 'create-ts-index'
 
-export * from './apikeys';
 export * from './array';
 export * from './debug';
 export * from './disks';
@@ -15,7 +14,6 @@ export * from './add-license-key';
 export * from './add-share';
 export * from './add-user';
 export * from './get-all-shares';
-export * from './get-apikeys';
 export * from './get-apps';
 export * from './get-array';
 export * from './get-devices';

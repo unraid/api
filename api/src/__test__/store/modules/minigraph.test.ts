@@ -4,10 +4,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import { Client } from 'graphql-ws';
 import { test, expect, vi } from 'vitest';
 
-vi.mock('@app/core/api-manager', () => ({
-	apiManager: { cloudKey: 'hi' },
-}));
-
 vi.mock('@app/store', () => ({
 	getters: { config: () => ({ version: '2.50.0' }) },
 }));

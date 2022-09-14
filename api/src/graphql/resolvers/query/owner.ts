@@ -21,6 +21,8 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	// This should always return the server with a matching guid as this is this server
 	const { flashGuid } = varState.data;
 
+	logger.trace('Looking for cached server with flashGuid=%s', flashGuid);
+
 	// Check the user has servers in their account
 	const servers = flashGuid ? await getServers() : [];
 	if (servers.length === 0) {

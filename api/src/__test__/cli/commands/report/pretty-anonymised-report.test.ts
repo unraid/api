@@ -1,4 +1,4 @@
-import { expect, SpyInstanceFn, test, vi } from 'vitest';
+import { expect, SpyInstance, test, vi } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
@@ -67,7 +67,7 @@ vi.mock('@app/core/utils/misc/parse-config', () => ({
 vi.mock('process');
 
 test('Returns a pretty anonymised report by default', async () => {
-	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstanceFn; closeStub: SpyInstanceFn };
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
 	const { cliLogger } = await import('@app/core/log');
 	const { stdout } = await import('process');
 	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');

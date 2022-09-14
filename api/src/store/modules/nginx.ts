@@ -1,4 +1,4 @@
-import { FileLoadStatus } from '@app/store/modules/config';
+import { FileLoadStatus } from '@app/store/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash.merge';
 
