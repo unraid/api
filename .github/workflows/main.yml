@@ -193,7 +193,7 @@ jobs:
           retention-days: 5
           if-no-files-found: error
 
-  staging-release:
+  release-staging:
     # Only release if this is a push to the main branch
     #if: startsWith(github.ref, 'refs/heads/main')
     runs-on: ubuntu-latest
@@ -223,19 +223,6 @@ jobs:
           echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md && \
           # Log release notes
           cat ${{ github.workspace }}/RELEASE_NOTES.md
-
-      - name: Create Github release
-        uses: softprops/action-gh-release@v1
-        with:
-          body_path: ${{ github.workspace }}/RELEASE_NOTES.md
-          draft: false
-          prerelease: true
-          files: |
-            unraid-api-*.tgz
-            plugins/dynamix.unraid.net*
-            archive/dynamix.unraid.net*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload API to DigitalOcean Spaces
         uses: BetaHuhn/do-spaces-action@v2
@@ -267,7 +254,7 @@ jobs:
           source: plugins/dynamix.unraid.net.staging.txz
           out_dir: unraid-api
 
-  release:
+  release-production:
     # Only release if this is a version tag
     if: |
       startsWith(github.ref, 'refs/tags/v')
