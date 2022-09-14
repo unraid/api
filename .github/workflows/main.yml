@@ -192,7 +192,7 @@ jobs:
 
   release-staging:
     # Only release if this is a push to the main branch
-    #if: startsWith(github.ref, 'refs/heads/main')
+    if: startsWith(github.ref, 'refs/heads/main')
     runs-on: ubuntu-latest
     needs: [build-plugin]
 
