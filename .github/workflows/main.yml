@@ -223,10 +223,10 @@ jobs:
       - name: Upload Staging Plugin to DO Spaces
         uses: BetaHuhn/do-spaces-action@v2
         with:
-          access_key: ${{ secrets.DO_ACCESS_KEY_TEST }}
-          secret_key: ${{ secrets.DO_SECRET_KEY_TEST }}
-          space_name: ${{ secrets.DO_SPACE_NAME_TEST }}
-          space_region: ${{ secrets.DO_SPACE_REGION_TEST }}
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
           source: staging-release
           out_dir: unraid-api
 
@@ -257,7 +257,7 @@ jobs:
           draft: true
           prerelease: false
           files: |
-              staging-release/unraid-api-*.tgz
+              unraid-api-*.tgz
               plugins/dynamix.unraid.net*
               archive/dynamix.unraid.net*
         env:
