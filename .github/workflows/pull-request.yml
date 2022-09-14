@@ -91,9 +91,7 @@ jobs:
       run:
         working-directory: api
     runs-on: ubuntu-latest
-    needs: 
-      - lint-api
-      - test-api
+    needs: [lint-api, test-api]
 
     outputs:
       API_VERSION: ${{ steps.build-pack-binary.outputs.API_VERSION }}
@@ -150,8 +148,7 @@ jobs:
       run:
         working-directory: plugin
     runs-on: ubuntu-latest
-    needs: 
-      - build-api
+    needs: [build-api]
     steps:
       - name: Set Timezone
         uses: szenius/set-timezone@v1.0
