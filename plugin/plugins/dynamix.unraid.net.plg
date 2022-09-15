@@ -13,10 +13,6 @@
 <!ENTITY API_version            "2.50.0">
 <!ENTITY API_MD5                "ffee242081d5585e30eeb66ec880a54d">
 <!ENTITY API_SHA256             "d4c67669f05c49fc130513af0c29c9b26cb4362a1b9f491bc39b8d9e3131e8f1">
-<!ENTITY LIBVIRT_MD5            "074f31dd6736e17630e725b3a86d4899">
-<!ENTITY LIBVIRT_SHA256         "5130c3e623e49df76343afbd4c7805cdbe8dbcf4aaaa794cf4460b410ba5bf68">
-<!ENTITY SEGFAULT_MD5           "8480e6b10464c680b5cbf449988cf645">
-<!ENTITY SEGFAULT_SHA256        "59339f8d3ec13daa6a6484b368043200dcc9ef7ea55f9560bf960b783a78a494">
 <!ENTITY downloadserver         "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com">
 <!ENTITY JSDLsserver            "https://registration.unraid.net/">
 ]>
@@ -24,199 +20,6 @@
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
 
 <CHANGES>
-## 2022.09.06
-### This version resolves:
-- flashbackup.ini error messages in header
-
-
-## 2022.09.02
-### This version resolves:
-- Behind the scenes improvements to the unraid-api
-
-### This version adds:
-- The unraid-api will be restarted automatically if it stops
-- Improved logging submitted by UpdateDNS to help track down issues
-- Flash Backup - warn when signing out that flash backup will be disabled
-- Flash Backup - better display of error states
-- Flash Backup - add rate limiting so systems with issues do not waste resources trying to connect
-
-
-## 2022.07.26
-### This version resolves:
-- Plugin install failures due to zero byte files
-- Issues getting data from nchan, read from ini files when needed
-
-### This version adds:
-- Warn user not to close the installation window early
-- Better logging if the unraid-api crashes
-- UpdateDNS reports the status of the api
-- Notifications in the UPC if the My Servers plugin is out of date
-- Better handling of errors if "click to copy IP address" fails
-
-
-## 2022.05.24
-### This version resolves:
-- Some systems always offline or "Unable to connect to mothership"
-- Removed GUIDs from `unraid-api report -v`, this output can be posted to the forums now
-- Resolved some "Unraid.net re-authentication required" messages
-- Resolved some "unexpected response for owner" messages
-
-### This version adds:
-- Significant reduction in the frequency of data being sent from unraid-api to mothership. Now most data is sent only when you are actually viewing the My Servers dashboard ( https://forums.unraid.net/my-servers/ ). BTW if you are curious about the data being sent, see https://wiki.unraid.net/My_Servers#Privacy
-
-
-## 2022.05.10
-### This version resolves:
-- conflicts with browser extensions interfering with registration popup window
-
-### This version adds:
-- compatibility with Unraid 6.10.0 IPv6 urls
-- streamlined communication between the unraid-api and mothership. BTW if you are curious about the data being sent, see https://wiki.unraid.net/My_Servers#Privacy
-
-
-## 2022.04.26
-### This version resolves:
-- Garbled text in diagnostics.zip - unraid-api.txt
-
-### This version adds:
-- `unraid-api report -v` improvements to help track down "invalid owner" errors and CORS issues
-- Ability to restart the unraid-api from the UPC dropdown - if the UPC detects that the unraid-api has stopped, after 30 seconds a `restart unraid-api` option will be added to the UPC.
-- Continued behind the scenes improvements
-
-
-## 2022.04.22
-### This version resolves:
-- Incorrect urls being shown on the My Servers dashboard for Unraid 6.9.2
-- UpdateDNS making unnecessary rebind test checks
-- Flash backup log file getting unnecessarily large
-
-### This version adds:
-- Compatibility with 6.10.0-rc5
-- Ability to disable the background fade the UPC places on your header image. This should only be used if your header image has a solid background, otherwise the text will not be readable. See Settings → Display Settings → Show banner background color fade
-- Back-ported the version of updatepkg from Unraid 6.10.0-rc5, to prevent other plugins from downgrading the version of git that comes with Unraid
-
-
-## 2022.03.01
-### This version fixes:
-- API error unexpected response for "owner"
-
-
-## 2022.02.28
-### This version adds:
-- Enhancements to `unraid-api report`
-
-
-## 2022.02.17
-### This version resolves:
-- unraid-api making too many connections to mothership
-- CORS issues with Unraid 6.10.0-rc3
-- flash backup causing excessive writes to the flash drive 
-
-
-## 2022.01.25
-### This version resolves:
-- issues connecting to mothership!
-- unnecessary load when Docker health checks are processed
-- flash backup spamming the logs when user is not signed in
-- error messages when activating flash backup not being shown
-
-### This version adds:
-- compatibility with Unraid 6.10.0-rc3 wildcard certificates
-
-
-## 2021.10.12
-### This version resolves:
-- broken settings page when there are DNS issues
-- flash backup errors when there are DNS issues
-- cannot read property 'sendCrashInfo' of undefined error
-
-### This version adds:
-- warnings during install when there are DNS issues
-- Unraid 6.10.0-rc2 compatibility
-
-
-## 2021.08.25
-### This version resolves:
-- "status code 500" on localhost
-- unneeded warning icon in the UPC
-- various issues with UpdateDNS.php
-- add "Sign Out of Unraid.net" to the UPC dropdown for consistency with Unraid 6.10, which does not have a My Servers settings page.
-- having links to "Unraid Forums" and "Join Unraid Discord", as they were causing confusion
-
-### This version adds:
-- new My Servers support URL
-- uninstall improvements - when uninstalling the plugin it will now Sign Out of Unraid.net, disable remote access, and delete the local flash backup.
-- flash backup only runs if the server is currently signed in
-
-
-## 2021.07.28
-### This version resolves:
-- issues with Local Access urls 
-- issues booting when Internet is down
-
-### This version adds:
-- more Unraid 6.10 compatibility
-
-
-## 2021.07.21
-### This version resolves:
-- Issues connecting to mothership
-- Flash backup issues after uninstall
-- Docker stats missing in specific conditions
-- Unexpected disk spin up
-
-### This version adds:
-- Unraid 6.10 compatibility
-- Streamlined communication between between unraid-api and mothership
-- Ability to track server uptime on dashboard
-- Ability to see number of VMs installed and running 
-- Origin checks to unraid-api
-
-
-##2021.06.07
-###This version resolves:
-- Flash backup unable to recover from "unable to connect" errors
-- Flash backup excessive logging when connection is down
-- Flash backup some users seeing "fatal: .git/index: index file smaller than expected"
-- Flash backup some users seeing "Your branch is ahead of origin/master by 1 commit"
-- UPC unable to load user avatars in some cases, now displays Unraid logo when this happens
-- UPC errors after replacing license key
-
-###This version adds:
-- UPC opens websocket to unraid-api rather than polling state.php
-- Unraid 6.10 compatibility
-
-
-##2021.05.18
-###This version resolves:
-- Branding confusion, plugin is now known as "My Servers"
-- Flash backup failure points, is now more resilient
-- Various bug fixes and enhancements
-- Prepare for Unraid 6.10
-
-
-##2021.04.05.2045
-###This version resolves:
-- Replace Key issues
-
-
-##2021.03.31.1425
-###This version resolves:
-- connection issues
-- various UI/UX issues
-
-
-##2021.03.22.1700
-###This version resolves:
-- "guest access" issue while viewing UPC
-- showing incorrect process status in unraid-api command
-- the need to manually run 'unraid-api restart' after an install or reboot
-- not reconnecting to mothership when connection drops
-
-###This version adds:
-- a check for plugin update when viewing settings page
-
-
 ##a long time ago in a galaxy far far away
 - initial release
 </CHANGES>
@@ -295,8 +98,6 @@ sha256check() {
 ]]>
 sha256check "&source;.txz" "&SHA256;"
 sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
-sha256check "/boot/config/plugins/dynamix.my.servers/libvirt.node" "&LIBVIRT_SHA256;"
-sha256check "/boot/config/plugins/dynamix.my.servers/segfault-handler.node" "&SEGFAULT_SHA256;"
 <![CDATA[
 //always re-download latest unraid.min.js
 rm -f /tmp/unraid.min.js.tmp1
@@ -330,20 +131,6 @@ exit 0
 <URL>&JSDLsserver;/webComps/unraid.min.js</URL>
 </FILE>
 
-<!-- HACK: manually download libvirt.node -->
-<FILE Name="/boot/config/plugins/dynamix.my.servers/libvirt.node">
-<URL>&downloadserver;/unraid-api/libvirt.node</URL>
-<MD5>&LIBVIRT_MD5;</MD5>
-<SHA256>&LIBVIRT_SHA256;</SHA256>
-</FILE>
-
-<!-- HACK: manually download segfault-handler.node -->
-<FILE Name="/boot/config/plugins/dynamix.my.servers/segfault-handler.node">
-<URL>&downloadserver;/unraid-api/segfault-handler.node</URL>
-<MD5>&SEGFAULT_MD5;</MD5>
-<SHA256>&SEGFAULT_SHA256;</SHA256>
-</FILE>
-
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 MAINTXZ="&source;.txz"
@@ -351,8 +138,6 @@ MAINTXZ="&source;.txz"
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 FILE=/boot/config/plugins/dynamix.my.servers/unraid-api.tgz && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
-FILE=/boot/config/plugins/dynamix.my.servers/libvirt.node && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
-FILE=/boot/config/plugins/dynamix.my.servers/segfault-handler.node && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 
 # before uninstalling anything, verify unraid.min.js was downloaded and looks valid, or that we already have an existing copy
 JS_FLASH_DEST=/boot/config/plugins/dynamix.my.servers/webComps/
@@ -501,6 +286,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
   # delete any legacy files that may exist
+  rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node
+  rm -rf /boot/config/plugins/dynamix.my.servers/segfault-handler.node
   rm -rf /boot/config/plugins/dynamix.my.servers/wc
   rm -f /boot/config/plugins/Unraid.net/unraid-api.tgz
   rm -f /boot/config/plugins/Unraid.net/.gitignore
