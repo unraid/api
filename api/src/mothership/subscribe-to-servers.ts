@@ -1,12 +1,11 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { GraphQLError } from 'graphql';
-import { CachedServer, CachedServers, userCache } from '@app/cache/user';
-import { apiManager } from '@app/core/api-manager';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { MinigraphClient } from './minigraph-client';
 import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/modules/minigraph';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
+import { cacheServers, Server } from '@app/store/modules/servers';
 
 export const subscribeToMinigraphServers = async () => {
 	try {
@@ -23,9 +22,9 @@ export const subscribeToMinigraphServers = async () => {
 			return;
 		}
 
-		if (!isSubscribedToServers && apiManager.cloudKey) {
+		if (!isSubscribedToServers && getters.config().remote.apikey) {
 			mothershipLogger.debug('Subscribing to servers');
-			await subscribeToServers(apiManager.cloudKey);
+			await subscribeToServers(getters.config().remote.apikey);
 		}
 	} catch (error: unknown) {
 		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
@@ -45,7 +44,7 @@ export const subscribeToServers = async (apiKey: string) => {
 		},
 	};
 
-	const nextFn = async ({ data, errors }: { data?: { servers: CachedServer[] } | null | undefined; errors?: readonly GraphQLError[] | undefined }) => {
+	const nextFn = async ({ data, errors }: { data?: { servers: Server[] } | null | undefined; errors?: readonly GraphQLError[] | undefined }) => {
 		if (errors && errors.length > 0) {
 			mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
 			errors.forEach(error => {
@@ -55,19 +54,14 @@ export const subscribeToServers = async (apiKey: string) => {
 		}
 
 		if (data) {
-			mothershipLogger.addContext('data', data);
 			mothershipLogger.debug('Received subscription data for %o', data.servers);
-			mothershipLogger.removeContext('data');
 
-			// Update internal cache
-			userCache.set<CachedServers>('mine', {
-				servers: data.servers,
-			});
+			// Update servers cache
+			store.dispatch(cacheServers(data.servers));
 
 			// Publish owner event
-			const { owner } = data.servers[0];
 			await pubsub.publish('owner', {
-				owner,
+				owner: data?.servers?.[0]?.owner,
 			});
 
 			// Publish servers event

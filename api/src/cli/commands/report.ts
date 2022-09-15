@@ -8,7 +8,6 @@ import { MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
-import { CachedServer } from '@app/cache/user';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
@@ -19,6 +18,7 @@ import prettyMs from 'pretty-ms';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
+import { Server } from '@app/store/modules/servers';
 
 export const getConfig = <T = unknown>(path: string) => {
 	try {
@@ -72,7 +72,7 @@ export const getServersData = async (unraidApiPid: number | undefined, cloud: Cl
 		body: JSON.stringify({
 			query: 'query{servers{name guid status owner{username}}}',
 		}),
-	}).then(response => (JSON.parse(response.body)?.data.servers as CachedServer[] ?? [])).catch(error => {
+	}).then(response => (JSON.parse(response.body)?.data.servers as Server[] ?? [])).catch(error => {
 		cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
 		return [];
 	}) : [];
@@ -171,7 +171,7 @@ export const report = async (...argv: string[]) => {
 		const veryVerbose = argv.includes('-vv');
 
 		// Convert server to string output
-		const serverToString = (server: CachedServer) => `${server.name}${(verbose || veryVerbose) ? `[owner="${server.owner.username}"${veryVerbose ? ` guid="${server.guid}"]` : ']'}` : ''}`;
+		const serverToString = (server: Server) => `${server.name}${(verbose || veryVerbose) ? `[owner="${server.owner.username}"${veryVerbose ? ` guid="${server.guid}"]` : ']'}` : ''}`;
 
 		// Get all the types of servers including ones that don't have a online/offline status
 		const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));

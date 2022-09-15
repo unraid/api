@@ -1,7 +1,7 @@
-import { apiManager } from '@app/core/api-manager';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
 import { logger } from '@app/core/log';
+import { getters } from '@app/store';
 
 export const wsState = {
 	outOfDate: false,
@@ -13,7 +13,7 @@ export const shouldBeConnectedToCloud = async () => {
 	try {
 		if (wsState.outOfDate) return false;
 
-		const apiKey = apiManager.cloudKey;
+		const apiKey = getters.config().remote.apikey;
 
 		if (!apiKey) {
 			logger.trace('My servers API key is missing');

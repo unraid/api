@@ -5,12 +5,8 @@ import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { writeFile } from 'fs/promises';
 import merge from 'lodash.merge';
 import { logger } from '@app/core/log';
-
-export enum FileLoadStatus {
-	UNLOADED = 'UNLOADED',
-	LOADING = 'LOADING',
-	LOADED = 'LOADED',
-}
+import { FileLoadStatus } from '@app/store/types';
+import { randomBytes } from 'crypto';
 
 type SliceState = {
 	status: FileLoadStatus;
@@ -93,9 +89,17 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 
 export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined>('config/load-config-file', async filePath => {
 	const paths = await import('@app/store').then(_ => _.getters.paths());
-	return parseConfig<MyServersConfig>({
+	const file = parseConfig<Partial<MyServersConfig>>({
 		filePath: filePath ?? paths['myservers-config'],
 		type: 'ini',
+	});
+	return merge(file, {
+		upc: {
+			apikey: file.upc?.apikey ?? `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
+		},
+		notifier: {
+			apikey: file.notifier?.apikey ?? `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
+		},
 	});
 });
 

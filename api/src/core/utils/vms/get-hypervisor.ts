@@ -94,7 +94,7 @@ const watchLibvirt = async (useCache = true) => {
 	try {
 		const hypervisor = await getHypervisor(useCache);
 		if (!hypervisor) {
-			await sleep(1000);
+			await sleep(1_000);
 			return watchLibvirt(useCache);
 		}
 

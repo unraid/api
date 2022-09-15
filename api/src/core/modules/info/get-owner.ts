@@ -3,10 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { getServers } from '@app/graphql/schema/utils';
-import { apiManager } from '@app/core/api-manager';
 import { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getters } from '@app/store';
 
 /**
  * Get server's owner info
@@ -24,16 +23,15 @@ export const getOwner = async function (context: CoreContext): Promise<CoreResul
 		possession: 'any',
 	});
 
-	const apiKey = apiManager.getValidKeys().find(key => key.name === 'my_servers')?.key.toString();
-	const server = apiKey ? await getServers().then(servers => servers.find(server => server.apikey === apiKey)) : null;
-
 	return {
 		get text() {
-			return `Owner: ${server?.owner?.username ?? 'root'}`;
+			return `Owner: ${getters.config().remote.username ?? 'root'}`;
 		},
 		get json() {
-			return server === null ? null : {
-				...server?.owner,
+			return {
+				username: getters.config().remote.username ?? 'root',
+				url: '',
+				avatar: getters.config().remote.avatar,
 			};
 		},
 	};

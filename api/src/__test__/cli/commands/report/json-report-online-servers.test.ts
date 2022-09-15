@@ -79,7 +79,7 @@ vi.mock('@app/core/utils/misc/parse-config', () => ({
 }));
 
 vi.mock('@app/cli/get-unraid-api-pid', () => ({
-	getUnraidApiPid: vi.fn(async () => 234234),
+	getUnraidApiPid: vi.fn(async () => 234_234),
 }));
 
 vi.mock('process');

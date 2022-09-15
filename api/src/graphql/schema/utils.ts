@@ -6,14 +6,14 @@
 import { hasSubscribedToChannel } from '@app/ws';
 import { getServers as getUserServers } from '@app/utils';
 import { User } from '@app/core/types';
-import { CachedServer, CachedServers, userCache } from '@app/cache/user';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { pubsub } from '@app/core/pubsub';
 import { varState } from '@app/core/states/var';
 import { networkState } from '@app/core/states/network';
-import { apiManager } from '@app/core/api-manager';
 import { logger } from '@app/core/log';
+import { getters, store } from '@app/store';
+import { cacheServers, Server } from '@app/store/modules/servers';
 
 export interface Context {
 	user?: User;
@@ -43,14 +43,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
 	},
 });
 
-// Add null to types
-type makeNullUndefinedAndOptional<T> = {
-	[K in keyof T]?: T[K] | null | undefined;
-};
-
-type Server = makeNullUndefinedAndOptional<CachedServer>;
-
-const getLocalServer = (): [CachedServer] => {
+const getLocalServer = (): [Server] => {
 	const guid = varState?.data?.regGuid;
 	const name = varState?.data?.name;
 	const wanip = null;
@@ -79,45 +72,32 @@ const getLocalServer = (): [CachedServer] => {
 export const getServers = async (): Promise<Server[]> => {
 	// For now use the my_servers key
 	// Later we should return the correct one for the current user with the correct scope, etc.
-	const apiKey = apiManager.cloudKey;
+	const apiKey = getters.config().remote.apikey;
 
 	// Return only current server if we have no key
 	if (!apiKey) return getLocalServer();
 
 	// Check if we have the servers already cached, if so return them
-	const cachedServers = userCache.get<CachedServers>('mine')?.servers;
-	if (cachedServers) return cachedServers;
+	const cachedServers = getters.servers().servers;
+	if (cachedServers.length >= 1) return cachedServers;
 
-	// No cached servers found
-	if (!cachedServers) {
-		// Fetch servers from mothership
-		const servers = await getUserServers(apiKey);
+	// Fetch servers from mothership
+	const servers = await getUserServers(apiKey);
 
-		// If no servers are found return the local copy
-		if (!servers || servers.length === 0) {
-			logger.trace('Generating response locally for "servers" endpoint');
-			return getLocalServer();
-		}
-
-		logger.trace('Using upstream for "servers" endpoint');
-
-		// Cache servers
-		userCache.set<CachedServers>('mine', {
-			servers,
-		});
-
-		// Get first server's owner object
-		const { owner } = servers[0];
-
-		// Publish owner event
-		await pubsub.publish('owner', {
-			owner,
-		});
-
-		// Return servers from mothership
-		return servers;
+	// If no servers are found return the local copy
+	if (!servers || servers.length === 0) {
+		logger.trace('Generating response locally for "servers" endpoint');
+		return getLocalServer();
 	}
 
-	logger.debug('Falling back to local state for "servers" endpoint');
-	return getLocalServer();
+	// Cache servers
+	store.dispatch(cacheServers(servers));
+
+	// Publish owner event
+	await pubsub.publish('owner', {
+		owner: servers?.[0]?.owner,
+	});
+
+	// Return servers from mothership
+	return servers;
 };

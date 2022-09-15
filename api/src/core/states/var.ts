@@ -11,7 +11,7 @@ import { toNumber } from '@app/core/utils/casting';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { getters } from '@app/store';
 
-const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: any) => {
+const iniBooleanToJsBoolean = (value: string, defaultValue?: any) => {
 	if (value === 'no' || value === 'false') {
 		return false;
 	}
@@ -27,7 +27,7 @@ const iniBooleanToJsBoolean = (value: IniStringBoolean | string, defaultValue?: 
 	throw new Error(`Value "${value}" is not false/true or no/yes.`);
 };
 
-const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => {
+const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto) => {
 	try {
 		// Either it'll return true/false or throw
 		return iniBooleanToJsBoolean((value as IniStringBoolean));
@@ -38,7 +38,7 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto | string) => 
 		}
 	}
 
-	throw new Error(`Value "${value}" is not auto/no/yes.`);
+	throw new Error(`Value "${value as string}" is not auto/no/yes.`);
 };
 
 /**

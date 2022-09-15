@@ -1,6 +1,5 @@
 import WebSocket from 'ws';
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { apiManager } from '@app/core/api-manager';
 import { minigraphLogger } from '@app/core/log';
 import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
 import { getters, store } from '@app/store';
@@ -24,7 +23,7 @@ export const createMinigraphClient = () => {
 		webSocketImpl: WebsocketWithRelayHeaders,
 		connectionParams: () => ({
 			apiVersion: getters.config().version,
-			apiKey: apiManager.cloudKey,
+			apiKey: getters.config().remote.apikey,
 			unraidVersion: varState.data.version,
 		}),
 		shouldRetry() {

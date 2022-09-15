@@ -5,7 +5,6 @@ import { print } from 'graphql/language/printer';
 import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
 import { debounce } from '@app/mothership/debounce';
 import { relayLogger } from '@app/core/log';
-import { apiManager } from '@app/core/api-manager';
 import { pubsub } from '@app/core/pubsub';
 import { apiKeyToUser } from '@app/graphql';
 import { schema } from '@app/graphql/schema';
@@ -20,6 +19,7 @@ import { handleError } from '@app/mothership/handle-error';
 import { saveIncomingWebsocketMessageToDisk } from '@app/mothership/save-websocket-message-to-disk';
 import { sendMessage } from '@app/mothership/send-message';
 import { subscriptionListener } from '@app/mothership/subscription-listener';
+import { getters } from '@app/store';
 
 const messageIdLookup = new Map<string, { subId: number; field: string }>();
 
@@ -130,7 +130,7 @@ export const checkRelayConnection = debounce(async () => {
 						relayLogger.removeContext('query');
 
 						// Process query
-						const apiKey = apiManager.cloudKey;
+						const apiKey = getters.config().remote.apikey;
 						if (!apiKey) throw new Error('No API key found for my_servers');
 
 						const user = await apiKeyToUser(apiKey);

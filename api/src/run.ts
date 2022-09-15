@@ -77,7 +77,7 @@ export const run = async (channel: string, mutation: string, options: RunOptions
 
 		// If we haven't waited long enough wait a little more
 		const timeTaken = (new Date().getTime() - timestamp);
-		const minimumTime = 1000;
+		const minimumTime = 1_000;
 		if (timeTaken < minimumTime) {
 			await sleep(minimumTime - timeTaken);
 		}

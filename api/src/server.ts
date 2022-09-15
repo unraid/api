@@ -194,7 +194,7 @@ if (isNaN(parseInt(port, 10))) {
 		// Try to kill it?
 		if (pid) {
 			await execaCommand(`kill -9 ${pid}`);
-			await sleep(2000);
+			await sleep(2_000);
 		}
 
 		// No pid found or we just killed the old process
@@ -227,7 +227,7 @@ if (isNaN(parseInt(port, 10))) {
 
 			setTimeout(() => {
 				stoppableServer.listen(port);
-			}, 1000);
+			}, 1_000);
 		});
 	});
 

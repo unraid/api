@@ -14,8 +14,8 @@ export const getArray = () => {
 	const disks = allDisks.filter(disk => disk.name.startsWith('disk'));
 
 	// Disk sizes
-	const disksTotalBytes = addTogether(disks.map(_ => _.fsSize * 1024));
-	const disksFreeBytes = addTogether(disks.map(_ => _.fsFree * 1024));
+	const disksTotalBytes = addTogether(disks.map(_ => _.fsSize * 1_024));
+	const disksFreeBytes = addTogether(disks.map(_ => _.fsFree * 1_024));
 
 	// Max
 	const maxDisks = varState?.data?.maxArraysz ?? disks.length;

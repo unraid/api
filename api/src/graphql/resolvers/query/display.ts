@@ -11,8 +11,8 @@ import { getters } from '@app/store';
 
 // Consts
 const ONE_BYTE = 1;
-const ONE_KILOBYTE = ONE_BYTE * 1000;
-const ONE_MEGABYTE = ONE_KILOBYTE * 1000;
+const ONE_KILOBYTE = ONE_BYTE * 1_000;
+const ONE_MEGABYTE = ONE_KILOBYTE * 1_000;
 const FIVE_MEGABYTE = ONE_MEGABYTE * 5;
 
 const isOverFileSizeLimit = (filePath: string, limit = FIVE_MEGABYTE) => {

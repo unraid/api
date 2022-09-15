@@ -19,12 +19,6 @@ vi.mock('@app/core/log', () => ({
 		debug: vi.fn(),
 		trace: vi.fn(),
 	},
-	apiManagerLogger: {
-		info: vi.fn(),
-		error: vi.fn(),
-		debug: vi.fn(),
-		trace: vi.fn(),
-	},
 }));
 
 vi.mock('@app/core/states/var', () => {
@@ -152,7 +146,7 @@ test('Returns generated data', async () => {
 
 	// .switchSource should not have been called at all since we passed it valid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
-}, 10000);
+}, 10_000);
 
 test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	const { generateData } = await import('@app/common/dashboard/generate-data');
@@ -165,7 +159,7 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	(varState._data as Partial<Var>) = {
 		...varState._data,
 		// This is purposely incorrect for the test
-		name: 3000 as unknown as string,
+		name: 3_000 as unknown as string,
 	};
 
 	const result = await generateData();

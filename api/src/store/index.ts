@@ -3,6 +3,7 @@ import { paths } from '@app/store/modules/paths';
 import { minigraph } from '@app/store/modules/minigraph';
 import { config } from '@app/store/modules/config';
 import { nginx } from '@app/store/modules/nginx';
+import { servers } from '@app/store/modules/servers';
 
 export const store = configureStore({
 	reducer: {
@@ -10,6 +11,7 @@ export const store = configureStore({
 		minigraph: minigraph.reducer,
 		paths: paths.reducer,
 		nginx: nginx.reducer,
+		servers: servers.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
@@ -27,4 +29,5 @@ export const getters = {
 	minigraph: () => store.getState().minigraph,
 	paths: () => store.getState().paths,
 	nginx: () => store.getState().nginx,
+	servers: () => store.getState().servers,
 };

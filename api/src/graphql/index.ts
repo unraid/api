@@ -4,10 +4,7 @@
  */
 
 import { v4 as randomUUID } from 'uuid';
-import * as core from '@app/core';
-import { AppError } from '@app/core/errors/app-error';
 import { FatalAppError } from '@app/core/errors/fatal-error';
-import { usersState } from '@app/core/states';
 import { DockerEventEmitter } from '@gridplus/docker-events';
 import { run } from '@app/run';
 import * as resolvers from '@app/graphql/resolvers';
@@ -20,7 +17,6 @@ import { modules } from '@app/core';
 import { bus } from '@app/core/bus';
 import { config } from '@app/core/config';
 import { pubsub } from '@app/core/pubsub';
-import { apiManager } from '@app/core/api-manager';
 import { getters } from '@app/store';
 
 const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
@@ -33,69 +29,12 @@ export const getCoreModule = (moduleName: string) => {
 	return modules[moduleName];
 };
 
-// Ensure the provided API key is valid
-const ensureApiKey = async (apiKeyToCheck: string) => {
-	// If there's no my servers key loaded into memory then try to load it
-	if (core.apiManager.getValidKeys().filter(key => key.name === 'my_servers').length === 0) {
-		const configPath = getters.paths()['myservers-config'];
-		await apiManager.checkKey(configPath, true);
-	}
-
-	// Check there are any valid keys then check if the key given is valid
-	// If my_servers wasn't loaded before the function above should have fixed that
-	if (core.apiManager.getValidKeys().length >= 1) {
-		// API manager has keys but we didn't give one to check
-		if (!apiKeyToCheck) {
-			throw new AppError('Missing API key.', 403);
-		}
-
-		// API manger has keys but the key we gave isn't valid
-		if (!apiManager.isValid(apiKeyToCheck)) {
-			throw new AppError('Invalid API key.', 403);
-		}
-	} else if (process.env.NODE_ENV !== 'development') {
-		// API manager has no keys
-		// This is skipped in development
-		throw new AppError('No valid API keys active.', 401);
-	}
-};
-
 export const apiKeyToUser = async (apiKey: string) => {
 	try {
-		await ensureApiKey(apiKey);
-	} catch (error: unknown) {
-		graphqlLogger.debug('Failed looking up API key with "%s"', (error as Error).message);
-
-		return { name: 'guest', role: 'guest' };
-	}
-
-	try {
-		const keyName = apiManager.getNameFromKey(apiKey);
-
-		graphqlLogger.trace('Found key "%s".', keyName);
-
-		// Force upc into it's own group that's not a user group
-		if (keyName && keyName === 'upc') {
-			return { id: -1, description: 'UPC service account', name: 'upc', role: 'upc' };
-		}
-
-		// Force notifier into it's own group that's not a user group
-		if (keyName && keyName === 'notifier') {
-			return { id: -1, description: 'Notifier service account', name: 'notifier', role: 'notifier' };
-		}
-
-		// Force my_servers into it's own group that's not a user group
-		if (keyName && keyName === 'my_servers') {
-			return { id: -1, description: 'My servers service account', name: 'my_servers', role: 'my_servers' };
-		}
-
-		if (keyName) {
-			const id = apiManager.getKey(keyName)?.userId;
-			const foundUser = usersState.findOne({ id });
-			if (foundUser) {
-				return foundUser;
-			}
-		}
+		const config = getters.config();
+		if (apiKey === config.remote.apikey) return { id: -1, description: 'My servers service account', name: 'my_servers', role: 'my_servers' };
+		if (apiKey === config.upc.apikey) return { id: -1, description: 'UPC service account', name: 'upc', role: 'upc' };
+		if (apiKey === config.notifier.apikey) return { id: -1, description: 'Notifier service account', name: 'notifier', role: 'notifier' };
 	} catch (error: unknown) {
 		graphqlLogger.debug('Failed looking up API key with "%s"', (error as Error).message);
 	}
@@ -191,7 +130,7 @@ export const graphql = {
 	types: typeDefs,
 	resolvers,
 	subscriptions: {
-		keepAlive: 10000,
+		keepAlive: 10_000,
 		async onConnect(connectionParams: Record<string, string>) {
 			const apiKey = connectionParams['x-api-key'];
 			const user = await apiKeyToUser(apiKey);
