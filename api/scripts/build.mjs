@@ -44,6 +44,9 @@ try {
 
   // Move unraid-api.tgz to release directory
   await $`mv unraid-api-${deploymentVersion}.tgz ../release`;
+
+  // Set API_VERSION output based on this command
+  await $`echo "::set-output name=API_VERSION::${deploymentVersion}"`
 } catch (error) {
   // Error with a command
   if (Object.keys(error).includes('stderr')) {
