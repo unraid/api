@@ -4,9 +4,9 @@
  */
 
 import { GraphQLJSON } from 'graphql-type-json';
-import GraphQLLong from 'graphql-type-long';
+import {GraphQLLong} from '@app/common/graphql/graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
-import { GraphQLDateTime } from 'graphql-iso-date';
+import { DateTimeTypeDefinition } from 'graphql-scalars';
 import { GraphQLScalarType } from 'graphql';
 import { Query } from '@app/graphql/resolvers/query';
 import { Mutation } from '@app/graphql/resolvers/mutation';
@@ -16,7 +16,7 @@ import { UserAccount } from '@app/graphql/resolvers/user-account';
 export const JSON = GraphQLJSON;
 export const Long = GraphQLLong;
 export const UUID = GraphQLUUID as GraphQLScalarType;
-export const DateTime = GraphQLDateTime;
+export const DateTime = DateTimeTypeDefinition;
 
 export {
 	Query,
