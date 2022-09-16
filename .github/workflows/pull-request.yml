@@ -37,7 +37,9 @@ jobs:
         run: sudo apt-get update && sudo apt-get install libvirt-dev 
 
       - name: Attempt to fix npm 
-        run: npm config set registry https://registry.npmjs.org/
+        run: |
+          npm config set registry https://registry.npmjs.org/
+          npm i -g npm@latest
 
       - name: Installing node deps
         run: npm ci
