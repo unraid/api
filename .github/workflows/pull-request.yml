@@ -34,7 +34,10 @@ jobs:
           restore-keys: npm-
 
       - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev 
+
+      - name: Attempt to fix npm 
+        run: npm config set registry https://registry.npmjs.org/
 
       - name: Installing node deps
         run: npm ci
