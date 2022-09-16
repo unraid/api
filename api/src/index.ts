@@ -11,11 +11,14 @@ import exitHook from 'async-exit-hook';
 import { server } from '@app/server';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
-import { store } from '@app/store';
+import { getters, store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { core } from '@app/core/core';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
+import { updateNginxState } from '@app/store/modules/nginx';
+import { loadState } from '@app/core/utils/misc/load-state';
+import { NginxIni } from '@app/core/states/nginx';
 
 // Boot app
 void am(async () => {
@@ -33,6 +36,19 @@ void am(async () => {
 
 	// Load my servers config file into store
 	await store.dispatch(loadConfigFile());
+
+	// Load nginx.ini into store
+	const state = loadState<Partial<NginxIni>>(getters.paths()['nginx-state']);
+	store.dispatch(updateNginxState({
+		ipv4: {
+			lan: state?.nginxLanfqdn ?? null,
+			wan: state?.nginxWanfqdn ?? null,
+		},
+		ipv6: {
+			lan: state?.nginxLanfqdn6 ?? null,
+			wan: state?.nginxWanfqdn6 ?? null,
+		},
+	}));
 
 	// Start file <-> store sync
 	await startStoreSync();
