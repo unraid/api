@@ -26,20 +26,15 @@ jobs:
         with:
           node-version-file: "api/.nvmrc"
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
+#      - name: Cache dependencies
+#        uses: actions/cache@v2
+#        with:
+#          path: ~/.npm
+#          key: npm-${{ hashFiles('package-lock.json') }}
+#          restore-keys: npm-
 
       - name: Install libvirt-dev
         run: sudo apt-get update && sudo apt-get install libvirt-dev 
-
-      - name: Attempt to fix npm 
-        run: |
-          npm config set registry https://registry.npmjs.org/
-          npm i -g npm@latest
 
       - name: Installing node deps
         run: npm ci
@@ -69,12 +64,12 @@ jobs:
         with:
           node-version-file: "api/.nvmrc"
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
+#      - name: Cache dependencies
+#        uses: actions/cache@v2
+#        with:
+#          path: ~/.npm
+#          key: npm-${{ hashFiles('package-lock.json') }}
+#          restore-keys: npm-
 
       - name: Install libvirt-dev
         run: sudo apt-get update && sudo apt-get install libvirt-dev
@@ -109,12 +104,12 @@ jobs:
       - name: Install libvirt-dev
         run: sudo apt-get update && sudo apt-get install libvirt-dev
 
-      - name: Cache dependencies
-        uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: npm-${{ hashFiles('package-lock.json') }}
-          restore-keys: npm-
+#      - name: Cache dependencies
+#        uses: actions/cache@v2
+#        with:
+#          path: ~/.npm
+#          key: npm-${{ hashFiles('package-lock.json') }}
+#          restore-keys: npm-
 
       - name: Installing node deps
         run: npm install
