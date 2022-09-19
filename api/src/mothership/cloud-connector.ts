@@ -27,6 +27,8 @@ class CloudConnector {
 		cloudConnectorLogger.trace('Relay is connected?', relayConnected);
 		if (relayConnected) {
 			await subscribeToMinigraphServers();
+		} else {
+			cloudConnectorLogger.trace('Skipping connection to minigraph since relay is disconnected')
 		}
 
 		this.isRunning = false;
