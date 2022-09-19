@@ -45,9 +45,9 @@ export const createMinigraphClient = () => {
 		store.dispatch(setStatus({ status: MinigraphStatus.ERROR, error: { message: normalError?.message ?? 'no message' } }));
 		minigraphLogger.error('Error in MinigraphClient', error);
 	});
-	client.on('closed', (event) => {
+	client.on('closed', event => {
 		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
-		store.dispatch(clearAllServers())
+		store.dispatch(clearAllServers());
 		minigraphLogger.debug('MinigraphClient closed connection', event);
 	});
 	client.on('message', message => {
