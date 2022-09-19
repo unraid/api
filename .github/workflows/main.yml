@@ -11,7 +11,6 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
@@ -63,7 +62,7 @@ jobs:
 
   test-api:
     defaults:
-      run: 
+      run:
         working-directory: api
     runs-on: ubuntu-latest
 
@@ -200,7 +199,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      
+
       - name: Make Staging Release Folder
         run: mkdir staging-release/
 
@@ -214,7 +213,7 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: connect-files
-      
+
       - name: Create release notes
         run: |
           LAST_RELEASE=$(git tag --list --sort=v:refname | tail -1)
@@ -267,8 +266,8 @@ jobs:
           draft: true
           prerelease: false
           files: |
-              unraid-api-*.tgz
-              plugins/dynamix.unraid.net*
-              archive/dynamix.unraid.net*
+            unraid-api-*.tgz
+            plugins/dynamix.unraid.net*
+            archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

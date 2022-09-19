@@ -2,7 +2,7 @@ name: Publish Release to Digital Ocean
 
 on:
   release:
-    types: [ published ]
+    types: [published]
 
 jobs:
   publish-to-digital-ocean:
@@ -12,11 +12,11 @@ jobs:
       - name: Download Release Artifacts (Plugins)
         uses: dsaltares/fetch-gh-release-asset@master
         with:
-          file: '.*'
+          file: ".*"
           regex: true
           token: ${{ secrets.GITHUB_TOKEN }}
           target: "./"
-          version: 'latest'
+          version: "latest"
 
       - uses: cardinalby/git-get-release-action@v1
         id: release-info
