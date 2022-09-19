@@ -32,6 +32,7 @@ void am(async () => {
 	await core.load();
 
 	// Start file <-> store sync
+	// Must occur before config is loaded to ensure that the handler can fix broken configs
 	await startStoreSync();
 
 	// Init mothership jobs - they are started by decorators on the class
