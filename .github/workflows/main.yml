@@ -213,11 +213,11 @@ jobs:
       - name: Create release notes
         run: |
           # Get the last release tag
-          LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1); \
+          LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1);
           # Get all the commit messages between now and the last tag
-          RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse) \
+          RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse)
           # Save release notes to a file
-          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md && \
+          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md
           # Log release notes
           cat ${{ github.workspace }}/RELEASE_NOTES.md
 
