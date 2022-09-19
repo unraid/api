@@ -7,6 +7,11 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
