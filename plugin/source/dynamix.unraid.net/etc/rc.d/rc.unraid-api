@@ -109,11 +109,6 @@ _install() {
     echo "Note: ${flash}/webComps/unraid.min.js is missing"
   fi
 
-  # HACK
-  mkdir -p "${api_base_directory}/unraid-api/build"
-  cp "${flash}/libvirt.node" "${api_base_directory}/unraid-api/build"
-  cp "${flash}/segfault-handler.node" "${api_base_directory}/unraid-api/build"
-
   # bail if expected file does not exist
   [[ ! -f "${api_base_directory}/unraid-api/unraid-api" ]] && echo "unraid-api install failed" && exit 1
 }
