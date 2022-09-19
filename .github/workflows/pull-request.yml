@@ -159,6 +159,19 @@ jobs:
           export API_SHA256=${{needs.build-api.outputs.API_SHA256}}
           bash ./pkg_build.sh s
           bash ./pkg_build.sh p
+      - name: Create release notes
+        run: |
+          # Get the last release tag
+          LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1);
+          # Get all the commit messages between now and the last tag
+          RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse)
+          # Save release notes to a file
+          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md
+          # Log release notes
+          cat ${{ github.workspace }}/RELEASE_NOTES.md
+
+          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$RELEASE_NOTES")
+          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v3
         with:
