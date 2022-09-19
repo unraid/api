@@ -26,6 +26,9 @@ vi.mock('fs/promises', () => ({
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),
+	access: vi.fn(async () => {
+		throw new Error('missing file');
+	}),
 }));
 
 vi.mock('got', () => ({

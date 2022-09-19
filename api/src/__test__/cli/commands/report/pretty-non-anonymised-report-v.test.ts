@@ -26,6 +26,9 @@ vi.mock('fs/promises', () => ({
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),
+	access: vi.fn(async () => {
+		throw new Error('missing file');
+	}),
 }));
 
 vi.mock('got', () => ({
@@ -137,7 +140,7 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
-		NODE_VERSION: v18.3.0
+		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: ok [IP=52.40.54.163]
@@ -225,7 +228,7 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
-		NODE_VERSION: v18.3.0
+		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: Mothership is restarting

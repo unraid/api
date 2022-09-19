@@ -89,6 +89,9 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 });
 
 type LoadedConfig = Partial<MyServersConfig> & {
+	api: {
+		version: string;
+	};
 	upc: {
 		apikey: string;
 	};
@@ -117,10 +120,10 @@ export const loadConfigFile = createAsyncThunk<LoadedConfig, string | undefined>
 			version: config.version,
 		},
 		upc: {
-			apikey: file.upc?.apikey ?? `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
+			apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
 		},
 		notifier: {
-			apikey: file.notifier?.apikey ?? `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
+			apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
 		},
 	}) as LoadedConfig;
 });

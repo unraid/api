@@ -37,6 +37,9 @@ vi.mock('fs/promises', () => ({
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),
+	access: vi.fn(async () => {
+		throw new Error('missing file');
+	}),
 }));
 
 vi.mock('got', () => ({
@@ -151,8 +154,7 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		    "status": "connected",
 		  },
 		  "myServers": {
-		    "myServersUsername": "api-test-runner",
-		    "status": "authenticated",
+		    "status": "signed out",
 		  },
 		  "os": {
 		    "serverName": "Tower",
