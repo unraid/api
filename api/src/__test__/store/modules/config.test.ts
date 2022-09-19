@@ -13,7 +13,7 @@ test('Before init returns default values for all fields', async () => {
 		},
 	});
 	const state = store.getState().config;
-	expect(state).toMatchInlineSnapshot(`
+	expect(state).toEqual(
 		{
 		  "api": {
 		    "extraOrigins": "",
@@ -40,7 +40,7 @@ test('Before init returns default values for all fields', async () => {
 		    "apikey": "",
 		  },
 		}
-	`);
+	);
 });
 
 test('After init returns values from cfg file for all fields', async () => {
