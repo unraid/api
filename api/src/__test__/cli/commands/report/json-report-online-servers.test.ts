@@ -38,7 +38,8 @@ vi.mock('fs/promises', () => ({
 		throw new Error('missing file');
 	}),
 	access: vi.fn(async () => {
-		throw new Error('missing file');
+		const fs = await vi.importActual<typeof import('fs')>('fs');
+		return fs.access;
 	}),
 }));
 
@@ -154,7 +155,8 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		    "status": "connected",
 		  },
 		  "myServers": {
-		    "status": "signed out",
+		    "myServersUsername": "api-test-runner",
+		    "status": "authenticated",
 		  },
 		  "os": {
 		    "serverName": "Tower",
