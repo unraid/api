@@ -169,13 +169,9 @@ jobs:
           LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1);
           # Get all the commit messages between now and the last tag
           RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse)
-          # Save release notes to a file
-          cat $RELEASE_NOTES
-          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md
-          # Log release notes
-          cat ${{ github.workspace }}/RELEASE_NOTES.md
+          echo $RELEASE_NOTES
 
-          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$RELEASE_NOTES")
+          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${RELEASE_NOTES}")
           sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v3
