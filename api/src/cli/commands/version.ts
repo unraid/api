@@ -8,5 +8,5 @@ import { getters } from '@app/store';
 export const version = async () => {
 	setEnv('LOG_TYPE', 'raw');
 
-	cliLogger.info(`Unraid API v${getters.config().version}`);
+	cliLogger.info(`Unraid API v${getters.config().api.version}`);
 };

@@ -22,7 +22,7 @@ export const createMinigraphClient = () => {
 		url: MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'),
 		webSocketImpl: WebsocketWithRelayHeaders,
 		connectionParams: () => ({
-			apiVersion: getters.config().version,
+			apiVersion: getters.config().api.version,
 			apiKey: getters.config().remote.apikey,
 			unraidVersion: varState.data.version,
 		}),
@@ -83,6 +83,10 @@ export const MinigraphClient = {
 		nextFn: (value: ExecutionResult<any, unknown>) => void;
 	}) {
 		const subscriptionId = v4();
+		if (!getters.config().remote.apikey) {
+			throw new Error('missing api key, did not subscribe');
+		}
+
 		const client = getters.minigraph().client ?? await getNewMinigraphClient();
 		if (!client) throw new Error('Failed to create a mini-graphql client');
 		const subscription = client?.subscribe(query, {

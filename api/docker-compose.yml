@@ -27,7 +27,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:18.3
+        NODE_IMAGE: node:18.5
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
@@ -44,7 +44,7 @@ services:
       context: .
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:18.3
+        NODE_IMAGE: node:18.5
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes

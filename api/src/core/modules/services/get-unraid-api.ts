@@ -43,7 +43,7 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 			timestamp: uptimeTimestamp,
 			seconds: uptimeSeconds,
 		},
-		version: getters.config().version,
+		version: getters.config().api.version,
 	};
 
 	return {

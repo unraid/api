@@ -16,11 +16,13 @@ test.each([
 	{ name: 'data-test', type: 'whatever', id: 'my-id', payload: { 'test-data': 'this-is-unknown-data-for-whatever' } },
 ])('SendMessage types', async input => {
 	const { relayStore } = await import('@app/mothership/store');
-	relayStore.relay.isOpened = false;
+	relayStore.relay!.isOpened = false;
 	const { sendMessage } = await import('@app/mothership/send-message');
 
 	// Onst importedFile = await import('@app/mothership/index');
 
 	// @TODO: Add some expects here, probably requires a refactor to mock better
+
+	// @ts-expect-error This is untyped input
 	sendMessage(...Object.values(input));
 });

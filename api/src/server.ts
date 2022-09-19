@@ -94,7 +94,7 @@ app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
 	if (!app.get('x-unraid-api-version')) {
-		app.set('x-unraid-api-version', getters.config().version);
+		app.set('x-unraid-api-version', getters.config().api.version);
 	}
 
 	// Update header with unraid API version

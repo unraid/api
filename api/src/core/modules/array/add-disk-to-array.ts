@@ -36,7 +36,7 @@ export const addDiskToArray = async function (context: CoreContext): Promise<Cor
 	}
 
 	const { id: diskId, slot: preferredSlot } = data;
-	const slot = Number.parseInt(preferredSlot, 10);
+	const slot = Number.parseInt(preferredSlot as string, 10);
 
 	// Add disk
 	await emcmd({

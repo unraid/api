@@ -13,10 +13,11 @@ test('Before init returns default values for all fields', async () => {
 		},
 	});
 	const state = store.getState().config;
-	expect(state).toMatchInlineSnapshot(`
+	expect(state).toEqual(
 		{
 		  "api": {
 		    "extraOrigins": "",
+			"version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -38,9 +39,8 @@ test('Before init returns default values for all fields', async () => {
 		  "upc": {
 		    "apikey": "",
 		  },
-		  "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		}
-	`);
+	);
 });
 
 test('After init returns values from cfg file for all fields', async () => {
@@ -86,7 +86,6 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "upc": {
 		    "apikey": "unupc_5239e6c0cd18221202174e80b56ded12956b700b92bea1b529836b4d3c",
 		  },
-		  "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		}
 	`);
 });
@@ -131,7 +130,6 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  "upc": {
 		    "apikey": "unupc_5239e6c0cd18221202174e80b56ded12956b700b92bea1b529836b4d3c",
 		  },
-		  "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		}
 	`);
 });
