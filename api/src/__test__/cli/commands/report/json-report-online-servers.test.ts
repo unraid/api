@@ -37,6 +37,10 @@ vi.mock('fs/promises', () => ({
 	stat: vi.fn(async () => {
 		throw new Error('missing file');
 	}),
+	access: vi.fn(async () => {
+		const fs = await vi.importActual<typeof import('fs')>('fs');
+		return fs.access;
+	}),
 }));
 
 vi.mock('got', () => ({
