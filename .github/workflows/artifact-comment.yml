@@ -1,7 +1,7 @@
 name: add artifact links to pull request and related issues
 on:
   workflow_run:
-    workflows: ["Pull Request (API)"]
+    workflows: ["Pull Request"]
     types: [completed]
 
 jobs:
