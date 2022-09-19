@@ -9,9 +9,8 @@ import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 
-type SliceState = {
+export type SliceState = {
 	status: FileLoadStatus;
-	version: string;
 	nodeEnv: string;
 	remote: {
 		'2Fa': string;
@@ -27,6 +26,7 @@ type SliceState = {
 	};
 	api: {
 		extraOrigins: string;
+		version: string;
 	};
 	upc: {
 		apikey: string;
@@ -36,9 +36,8 @@ type SliceState = {
 	};
 };
 
-const initialState: SliceState = {
+export const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
-	version: process.env.VERSION ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT', // This will be baked in at build time
 	nodeEnv: process.env.NODE_ENV ?? 'production',
 	remote: {
 		'2Fa': '',
@@ -54,6 +53,7 @@ const initialState: SliceState = {
 	},
 	api: {
 		extraOrigins: '',
+		version: process.env.VERSION ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT', // This will be baked in at build time
 	},
 	upc: {
 		apikey: '',
@@ -117,7 +117,7 @@ export const loadConfigFile = createAsyncThunk<LoadedConfig, string | undefined>
 	}) : {};
 	return merge(file, {
 		api: {
-			version: config.version,
+			version: config.api.version,
 		},
 		upc: {
 			apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),

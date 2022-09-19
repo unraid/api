@@ -16,7 +16,7 @@ export const shouldBeConnectedToCloud = async () => {
 		const apiKey = getters.config().remote.apikey;
 
 		if (!apiKey) {
-			logger.trace('My servers API key is missing');
+			logger.trace('[Cloud Check] My servers API key is missing');
 			return false;
 		}
 

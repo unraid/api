@@ -44,6 +44,7 @@ export class CacheManager {
 		}
 
 		// Update cache
+		// @ts-expect-error Todo fix the value type here when refactored to global store
 		cache?.add(key, value, ttl ?? this.ttl ?? ONE_MINUTE);
 		return value;
 	}

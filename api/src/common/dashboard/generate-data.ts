@@ -58,7 +58,7 @@ const services = () => {
 		uptime: {
 			timestamp: uptimeTimestamp,
 		},
-		version: getters.config().version,
+		version: getters.config().api.version,
 	}];
 };
 

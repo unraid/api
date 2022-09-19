@@ -40,7 +40,7 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 
 	try {
 		const config = getters.config();
-		const apiVersion = config.version;
+		const apiVersion = config.api.version;
 		const apiKey = config.remote.apikey;
 		if (!apiKey) throw new Error('API key is missing');
 

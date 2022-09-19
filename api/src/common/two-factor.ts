@@ -57,8 +57,8 @@ export const checkTwoFactorEnabled = () => {
 	// Check if 2fa is enabled
 	const isHighEnoughVersion = compareUnraidVersion('>=6.10');
 	const isSSLAuto = varState.data.useSsl === null; // In this case `null` is the same as auto
-	const isRemoteEnabled = getters.config().remote['2Fa'] === 'yes';
-	const isLocalEnabled = getters.config().local['2Fa'] === 'yes';
+	const isRemoteEnabled = getters.config()?.remote?.['2Fa'] === 'yes';
+	const isLocalEnabled = getters.config()?.local?.['2Fa'] === 'yes';
 	const isEnabled = isHighEnoughVersion && isSSLAuto && (isRemoteEnabled || isLocalEnabled);
 
 	logger.addContext('details', {

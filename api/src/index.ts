@@ -31,6 +31,9 @@ void am(async () => {
 	// Load core
 	await core.load();
 
+	// Start file <-> store sync
+	await startStoreSync();
+
 	// Init mothership jobs - they are started by decorators on the class
 	MothershipJobs.init();
 
@@ -49,9 +52,6 @@ void am(async () => {
 			wan: state?.nginxWanfqdn6 ?? null,
 		},
 	}));
-
-	// Start file <-> store sync
-	await startStoreSync();
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

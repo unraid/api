@@ -38,10 +38,10 @@ vi.mock('@app/core/states/var', () => {
 		switchSource: any;
 	} = {
 		_source: 'nchan',
-		_data: cloneDeep(data),
+		_data: cloneDeep(data) as unknown as Partial<Var>,
 		get data() {
 			if (varState._source === 'nchan') return this._data;
-			return cloneDeep(data);
+			return cloneDeep(data) as unknown as Partial<Var>;
 		},
 		switchSource: vi.fn(source => {
 			varState._source = source;
@@ -118,7 +118,7 @@ test('Returns generated data', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "${getters.config().version}",
+		      "version": "${getters.config().api.version}",
 		    },
 		  ],
 		  "twoFactor": {
@@ -194,7 +194,7 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "${getters.config().version}",
+		      "version": "${getters.config().api.version}",
 		    },
 		  ],
 		  "twoFactor": {

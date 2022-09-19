@@ -10,7 +10,7 @@ export const getRelayHeaders = () => {
 		'x-api-key': apiKey,
 		'x-flash-guid': varState.data?.flashGuid,
 		'x-server-name': serverName,
-		'x-unraid-api-version': getters.config().version,
+		'x-unraid-api-version': getters.config().api.version,
 		'x-unraid-server-version': serverVersion,
 	};
 };
