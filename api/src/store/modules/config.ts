@@ -2,11 +2,12 @@ import { Serializer as IniSerializer } from 'multi-ini';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { writeFile } from 'fs/promises';
+import { access, writeFile } from 'fs/promises';
 import merge from 'lodash.merge';
 import { logger } from '@app/core/log';
 import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
+import { F_OK } from 'constants';
 
 type SliceState = {
 	status: FileLoadStatus;
@@ -87,20 +88,41 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 	}
 });
 
-export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined>('config/load-config-file', async filePath => {
-	const paths = await import('@app/store').then(_ => _.getters.paths());
-	const file = parseConfig<Partial<MyServersConfig>>({
-		filePath: filePath ?? paths['myservers-config'],
+type LoadedConfig = Partial<MyServersConfig> & {
+	upc: {
+		apikey: string;
+	};
+	notifier: {
+		apikey: string;
+	};
+};
+
+/**
+ * Load the myservers.cfg into the store.
+ *
+ * Note: If the file doesn't exist this will fallback to default values.
+ */
+export const loadConfigFile = createAsyncThunk<LoadedConfig, string | undefined>('config/load-config-file', async filePath => {
+	const store = await import('@app/store');
+	const paths = store.getters.paths();
+	const config = store.getters.config();
+	const path = filePath ?? paths['myservers-config'];
+	const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
+	const file = fileExists ? parseConfig<Partial<MyServersConfig>>({
+		filePath: path,
 		type: 'ini',
-	});
+	}) : {};
 	return merge(file, {
+		api: {
+			version: config.version,
+		},
 		upc: {
 			apikey: file.upc?.apikey ?? `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
 		},
 		notifier: {
 			apikey: file.notifier?.apikey ?? `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
 		},
-	});
+	}) as LoadedConfig;
 });
 
 export const config = createSlice({
