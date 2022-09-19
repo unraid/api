@@ -7,6 +7,10 @@ on:
     tags:
       - "v*"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   start:
     # This prevents a tag running twice as it'll have a "tag" and a "commit" event
@@ -58,7 +62,7 @@ jobs:
 
   test-api:
     defaults:
-      run: 
+      run:
         working-directory: api
     runs-on: ubuntu-latest
 
@@ -195,7 +199,7 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-      
+
       - name: Make Staging Release Folder
         run: mkdir staging-release/
 
@@ -209,19 +213,14 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: connect-files
-      
+
       - name: Create release notes
         run: |
-          # Get the last release tag
-          LAST_RELEASE=$(git tag --list  --sort=v:refname | tail -1);
-          # Get all the commit messages between now and the last tag
+          LAST_RELEASE=$(git tag --list --sort=v:refname | tail -1)
+          echo ${LAST_RELEASE}
           RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse)
-          # Save release notes to a file
-          echo "$RELEASE_NOTES" > ${{ github.workspace }}/RELEASE_NOTES.md
-          # Log release notes
-          cat ${{ github.workspace }}/RELEASE_NOTES.md
-
-          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$RELEASE_NOTES")
+          echo "${RELEASE_NOTES}"
+          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${RELEASE_NOTES}")
           sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
 
       - name: Run LS in unraid-api folder
@@ -267,8 +266,8 @@ jobs:
           draft: true
           prerelease: false
           files: |
-              unraid-api-*.tgz
-              plugins/dynamix.unraid.net*
-              archive/dynamix.unraid.net*
+            unraid-api-*.tgz
+            plugins/dynamix.unraid.net*
+            archive/dynamix.unraid.net*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

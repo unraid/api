@@ -5,6 +5,7 @@ import { syncConfigToDisk } from '@app/store/sync/config-disk-sync';
 import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
 import { setupConfigPathWatch } from './watch/config-path-watch';
+import { FileLoadStatus } from './types';
 
 export const getWriteableConfig = (config: ConfigSliceState): MyServersConfig => {
 	// Get current state
@@ -27,11 +28,16 @@ export const startStoreSync = async () => {
 	// Update cfg when store changes
 	store.subscribe(async () => {
 		const state = store.getState();
-		await syncConfigToDisk(lastState);
-		// Update api key
-		await syncApiKeyChanges(lastState);
-		// Update 2FA when store changes
-		await sync2FA();
+
+		// Config Dependent Options, Wait Until Config Loads to Execute
+		if (state.config.status === FileLoadStatus.LOADED) {
+			await syncConfigToDisk(lastState);
+			// Update api key
+			await syncApiKeyChanges(lastState);
+
+			// Update 2FA when store changes
+			await sync2FA();
+		}
 
 		lastState = state;
 	});

@@ -8,6 +8,7 @@ import { createClient, ExecutionResult, SubscribePayload } from 'graphql-ws';
 import { v4 } from 'uuid';
 import { GraphQLError } from 'graphql';
 import { addSubscription, getNewMinigraphClient, MinigraphStatus, removeSubscriptionById, setStatus, SubscriptionKey } from '@app/store/modules/minigraph';
+import { clearAllServers } from '@app/store/modules/servers';
 
 class WebsocketWithRelayHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -44,12 +45,13 @@ export const createMinigraphClient = () => {
 		store.dispatch(setStatus({ status: MinigraphStatus.ERROR, error: { message: normalError?.message ?? 'no message' } }));
 		minigraphLogger.error('Error in MinigraphClient', error);
 	});
-	client.on('closed', () => {
+	client.on('closed', event => {
 		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
-		minigraphLogger.debug('MinigraphClient closed connection');
+		store.dispatch(clearAllServers());
+		minigraphLogger.debug('MinigraphClient closed connection', event);
 	});
 	client.on('message', message => {
-		minigraphLogger.trace('Message from Minigraph:', message);
+		minigraphLogger.trace('Message from Minigraph: %o', message);
 	});
 	return client;
 };

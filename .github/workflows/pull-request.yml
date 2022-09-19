@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-api:
     defaults:
@@ -26,15 +30,15 @@ jobs:
         with:
           node-version-file: "api/.nvmrc"
 
-#      - name: Cache dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.npm
-#          key: npm-${{ hashFiles('package-lock.json') }}
-#          restore-keys: npm-
+      #      - name: Cache dependencies
+      #        uses: actions/cache@v2
+      #        with:
+      #          path: ~/.npm
+      #          key: npm-${{ hashFiles('package-lock.json') }}
+      #          restore-keys: npm-
 
       - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev 
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
 
       - name: Installing node deps
         run: npm ci
@@ -44,7 +48,7 @@ jobs:
 
   test-api:
     defaults:
-      run: 
+      run:
         working-directory: api
     runs-on: ubuntu-latest
 
@@ -64,12 +68,12 @@ jobs:
         with:
           node-version-file: "api/.nvmrc"
 
-#      - name: Cache dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.npm
-#          key: npm-${{ hashFiles('package-lock.json') }}
-#          restore-keys: npm-
+      #      - name: Cache dependencies
+      #        uses: actions/cache@v2
+      #        with:
+      #          path: ~/.npm
+      #          key: npm-${{ hashFiles('package-lock.json') }}
+      #          restore-keys: npm-
 
       - name: Install libvirt-dev
         run: sudo apt-get update && sudo apt-get install libvirt-dev
@@ -104,12 +108,12 @@ jobs:
       - name: Install libvirt-dev
         run: sudo apt-get update && sudo apt-get install libvirt-dev
 
-#      - name: Cache dependencies
-#        uses: actions/cache@v2
-#        with:
-#          path: ~/.npm
-#          key: npm-${{ hashFiles('package-lock.json') }}
-#          restore-keys: npm-
+      #      - name: Cache dependencies
+      #        uses: actions/cache@v2
+      #        with:
+      #          path: ~/.npm
+      #          key: npm-${{ hashFiles('package-lock.json') }}
+      #          restore-keys: npm-
 
       - name: Installing node deps
         run: npm install
@@ -159,6 +163,14 @@ jobs:
           export API_SHA256=${{needs.build-api.outputs.API_SHA256}}
           bash ./pkg_build.sh s
           bash ./pkg_build.sh p
+      - name: Create release notes
+        run: |
+          LAST_RELEASE=$(git tag --list --sort=v:refname | tail -1) 
+          echo ${LAST_RELEASE}
+          RELEASE_NOTES=$(git log "$LAST_RELEASE...HEAD" --pretty=format:"- %s [\`%h\`](http://github.com/$GITHUB_REPOSITORY/commit/%H)" --reverse)
+          echo "${RELEASE_NOTES}"
+          # escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${RELEASE_NOTES}")
+          # sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v3
         with:
@@ -168,4 +180,3 @@ jobs:
             ${{ github.workspace }}/plugin/plugins/*.plg
           retention-days: 5
           if-no-files-found: error
-        

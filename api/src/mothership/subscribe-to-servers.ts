@@ -24,6 +24,7 @@ export const subscribeToMinigraphServers = async () => {
 
 		if (!isSubscribedToServers && getters.config().remote.apikey) {
 			mothershipLogger.debug('Subscribing to servers');
+
 			await subscribeToServers(getters.config().remote.apikey);
 		}
 	} catch (error: unknown) {
@@ -32,9 +33,6 @@ export const subscribeToMinigraphServers = async () => {
 };
 
 export const subscribeToServers = async (apiKey: string) => {
-	mothershipLogger.addContext('apiKey', apiKey);
-	mothershipLogger.debug('Subscribing to servers');
-	mothershipLogger.removeContext('apiKey');
 	const query = {
 		query: `subscription servers ($apiKey: String!) {
             servers @auth(apiKey: $apiKey)
@@ -54,7 +52,7 @@ export const subscribeToServers = async (apiKey: string) => {
 		}
 
 		if (data) {
-			mothershipLogger.debug('Received subscription data for %o', data.servers);
+			mothershipLogger.trace('Received subscription data for servers %o', data.servers);
 
 			// Update servers cache
 			store.dispatch(cacheServers(data.servers));
