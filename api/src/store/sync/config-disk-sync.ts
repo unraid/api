@@ -4,6 +4,7 @@ import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
 import { writeFile } from 'fs/promises';
 import { getWriteableConfig } from '@app/store/store-sync';
 import { store } from '@app/store';
+import { getDiff } from 'json-difference';
 
 // Ini serializer
 const serializer = new IniSerializer({
@@ -19,13 +20,15 @@ export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 	// Create new state
 	const newConfig = getWriteableConfig(config);
 	const oldConfig = lastState?.config ? getWriteableConfig(lastState.config) : null;
+
 	// We already wrote this to the file
-	if (newConfig === oldConfig) {
+	if (JSON.stringify(newConfig) === JSON.stringify(oldConfig)) {
 		logger.debug('Not dumping config, state on disk is the same');
 		return;
 	}
 
 	logger.debug('Dumping MyServers config back to file');
+	logger.trace(getDiff(oldConfig ?? {}, newConfig, true));
 
 	// Stringify state
 	const stringifiedData = serializer.serialize(newConfig);

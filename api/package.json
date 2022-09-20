@@ -182,6 +182,7 @@
     "got": "^12.4.1",
     "graphql-tools": "^6.2.6",
     "ip-regex": "^5.0.0",
+    "json-difference": "^1.8.2",
     "lodash.merge": "^4.6.2",
     "log4js": "github:OmgImAlexis/log4js-node",
     "map-obj": "^5.0.2",
