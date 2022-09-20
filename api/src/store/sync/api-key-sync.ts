@@ -30,13 +30,13 @@ export const syncApiKeyChanges: StoreSubscriptionHandler = async lastState => {
 			// Clear user config
 			store.dispatch(updateUserConfig({
 				remote: {
-					'2Fa': undefined,
-					apikey: undefined,
-					avatar: undefined,
-					email: undefined,
-					username: undefined,
-					wanaccess: undefined,
-					wanport: undefined,
+					'2Fa': '',
+					apikey: '',
+					avatar: '',
+					email: '',
+					username: '',
+					wanaccess: '',
+					wanport: '',
 				},
 			}));
 
@@ -72,7 +72,7 @@ export const syncApiKeyChanges: StoreSubscriptionHandler = async lastState => {
 		// Reset key as it's not valid at this point
 		store.dispatch(updateUserConfig({
 			remote: {
-				apikey: undefined,
+				apikey: '',
 			},
 		}));
 	}
