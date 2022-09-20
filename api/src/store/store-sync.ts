@@ -29,13 +29,15 @@ export const startStoreSync = async () => {
 	store.subscribe(async () => {
 		const state = store.getState();
 
-		// Config Dependent Options, Wait Until Config Loads to Execute
+		// Config dependent options, wait until config loads to execute
 		if (state.config.status === FileLoadStatus.LOADED) {
+			// Write changes to disk
 			await syncConfigToDisk(lastState);
-			// Update api key
+
+			// Update API key
 			await syncApiKeyChanges(lastState);
 
-			// Update 2FA when store changes
+			// Update 2FA
 			await sync2FA();
 		}
 

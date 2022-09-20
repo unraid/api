@@ -1,4 +1,4 @@
-import get from 'lodash.get';
+import get from 'lodash/get';
 import * as core from '@app/core';
 import { logger } from '@app/core';
 import { SchemaDirectiveVisitor } from '@graphql-tools/utils';

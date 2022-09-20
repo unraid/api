@@ -1,6 +1,6 @@
 import { MemoryCacheStatus } from '@app/store/types';
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import merge from 'lodash.merge';
+import merge from 'lodash/merge';
 
 type Url = string;
 type IpAddress = string;
