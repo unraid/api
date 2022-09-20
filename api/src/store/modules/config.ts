@@ -3,7 +3,7 @@ import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { MyServersConfig } from '@app/types/my-servers-config';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { access, writeFile } from 'fs/promises';
-import merge from 'lodash.merge';
+import merge from 'lodash/merge';
 import { logger } from '@app/core/log';
 import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
