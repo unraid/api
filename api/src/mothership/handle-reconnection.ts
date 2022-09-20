@@ -24,7 +24,7 @@ export const handleReconnection = (reason: string, code: number): { reason: stri
 			// Clear the key from the store
 			store.dispatch(updateUserConfig({
 				remote: {
-					apikey: undefined,
+					apikey: '',
 				},
 			}));
 			return { reason: 'API key is invalid' };
