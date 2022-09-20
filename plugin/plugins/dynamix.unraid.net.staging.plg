@@ -99,7 +99,7 @@ sha256check() {
 sha256check "&source;.txz" "&SHA256;"
 sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
 <![CDATA[
-//always re-download latest unraid.min.js
+# always re-download latest unraid.min.js
 rm -f /tmp/unraid.min.js.tmp1
 
 if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
