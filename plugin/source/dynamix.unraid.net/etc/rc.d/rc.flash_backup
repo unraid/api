@@ -63,7 +63,7 @@ _watch() {
   while true; do
     # wait for system to sign in, then process flash backups
     _signedin && _f1
-    sleep 10
+    sleep 60
   done
 }
 _f1() {
