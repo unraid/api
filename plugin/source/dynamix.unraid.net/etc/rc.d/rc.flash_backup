@@ -4,6 +4,7 @@
 QUEUE=" -q f "
 TASKNAME="/etc/rc.d/rc.flash_backup watch"
 TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBackup update"
+last=$(date +%s)
 # set GIT_OPTIONAL_LOCKS=0 globally to reduce/eliminate writes to /boot
 export GIT_OPTIONAL_LOCKS=0
 status() {
@@ -61,22 +62,24 @@ _watch() {
   # start watcher loop
   while true; do
     # wait for system to sign in, then process flash backups
-    _signedin && (
-      if [ "$(git -C /boot status -s)" ]; then
-        _hasqueue || (
-          errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
-          # @TODO shellcheck SC2166
-          if [ ${#errorstring} -le 2 -o $(($(date +"%M") % 10)) -eq 0 ]; then
-            logger "adding task: ${TASKACTION}" --tag flash_backup
-          fi
-          sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
-          # shellcheck disable=SC2086
-          echo "${TASKACTION} &>/dev/null" | at ${QUEUE} -M now +1 minute &>/dev/null
-        )
-      fi
-    )
+    _signedin && _f1
     sleep 60
   done
+}
+_f1() {
+  if [ "$(git -C /boot status -s)" ]; then
+    _hasqueue || _f2
+  elif _haserror && _beenawhile; then
+    # we are in an error state and it has been 3 hours since we last tried submitting. run the task now.
+    _runtaskaction
+  fi
+}
+_f2() {
+  if ! _haserror || [[ $(($(date +"%M") % 10)) -eq 0 ]]; then
+    logger "adding task: ${TASKACTION}" --tag flash_backup
+  fi
+  sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
+  _runtaskaction
 }
 _hasqueue() {
   # returns false if the queue is empty, true otherwise
@@ -95,6 +98,11 @@ _removequeue() {
     atrm ${id}
   done
 }
+_runtaskaction() {
+  # shellcheck disable=SC2086
+  echo "${TASKACTION} &>/dev/null" | at ${QUEUE} -M now +1 minute &>/dev/null
+  last=$(date +%s)
+}
 _enabled() {
   local output
   output=$(git -C /boot config --get remote.origin.url 2>&1)
@@ -112,6 +120,20 @@ _signedin() {
     return 1
   fi
   return 0
+}
+_haserror() {
+  errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
+  if [ ${#errorstring} -le 2 ]; then
+    return 1
+  fi
+  return 0
+}
+_beenawhile() {
+  now=$(date +%s)
+  age=$((now-last))
+  maxage=$((3*60*60))  # three hours
+  [[ $age -gt $maxage ]] && return 0
+  return 1
 }
 case "$1" in
 'status')
