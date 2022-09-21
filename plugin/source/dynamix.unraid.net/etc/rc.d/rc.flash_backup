@@ -4,6 +4,7 @@
 QUEUE=" -q f "
 TASKNAME="/etc/rc.d/rc.flash_backup watch"
 TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBackup update"
+last=$(date +%s)
 # set GIT_OPTIONAL_LOCKS=0 globally to reduce/eliminate writes to /boot
 export GIT_OPTIONAL_LOCKS=0
 status() {
@@ -69,9 +70,11 @@ _watch() {
             logger "adding task: ${TASKACTION}" --tag flash_backup
           fi
           sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
-          # shellcheck disable=SC2086
-          echo "${TASKACTION} &>/dev/null" | at ${QUEUE} -M now +1 minute &>/dev/null
+          _runtaskaction
         )
+      elif _haserror && _beenawhile; then
+        # we are in an error state and it has been 3 hours since we last tried submitting. run the task now.
+        _runtaskaction
       fi
     )
     sleep 60
@@ -94,6 +97,11 @@ _removequeue() {
     atrm ${id}
   done
 }
+_runtaskaction() {
+  # shellcheck disable=SC2086
+  echo "${TASKACTION} &>/dev/null" | at ${QUEUE} -M now +1 minute &>/dev/null
+  last=$(date +%s)
+}
 _enabled() {
   local output
   output=$(git -C /boot config --get remote.origin.url 2>&1)
@@ -111,6 +119,20 @@ _signedin() {
     return 1
   fi
   return 0
+}
+_haserror() {
+  errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
+  if [ ${#errorstring} -le 2 ]; then
+    return 0
+  fi
+  return 1
+}
+_beenawhile() {
+  now=$(date +%s)
+  age=$((now-last))
+  maxage=$((3*60*60))  # three hours
+  [[ $age -gt $maxage ]] && return 0
+  return 1
 }
 case "$1" in
 'status')
