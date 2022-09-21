@@ -62,23 +62,24 @@ _watch() {
   # start watcher loop
   while true; do
     # wait for system to sign in, then process flash backups
-    _signedin && (
-      if [ "$(git -C /boot status -s)" ]; then
-        _hasqueue || (
-          errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
-          if [[ ${#errorstring} -le 2 ]] || [[ $(($(date +"%M") % 10)) -eq 0 ]]; then
-            logger "adding task: ${TASKACTION}" --tag flash_backup
-          fi
-          sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
-          _runtaskaction
-        )
-      elif _haserror && _beenawhile; then
-        # we are in an error state and it has been 3 hours since we last tried submitting. run the task now.
-        _runtaskaction
-      fi
-    )
-    sleep 60
+    _signedin && _f1
+    sleep 10
   done
+}
+_f1() {
+  if [ "$(git -C /boot status -s)" ]; then
+    _hasqueue || _f2
+  elif _haserror && _beenawhile; then
+    # we are in an error state and it has been 3 hours since we last tried submitting. run the task now.
+    _runtaskaction
+  fi
+}
+_f2() {
+  if ! _haserror || [[ $(($(date +"%M") % 10)) -eq 0 ]]; then
+    logger "adding task: ${TASKACTION}" --tag flash_backup
+  fi
+  sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
+  _runtaskaction
 }
 _hasqueue() {
   # returns false if the queue is empty, true otherwise
