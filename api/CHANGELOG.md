@@ -2,6 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.51.0](https://github.com/unraid/api/compare/v2.49.2...v2.51.0) (2022-09-21)
+
+
+### Features
+
+* 🎸 reflet cron added to fix connection issues, mothership refactor ([#294](https://github.com/unraid/api/issues/294)) ([c58473f](https://github.com/unraid/api/commit/c58473fb9ce9af570764071df89937938a01e513))
+* merge api-manager into store ([#330](https://github.com/unraid/api/issues/330)) ([3e403c6](https://github.com/unraid/api/commit/3e403c65d4e183e374e537090cbc1e8edbf9d7b0))
+* move myservers config into store ([#317](https://github.com/unraid/api/issues/317)) ([60588f8](https://github.com/unraid/api/commit/60588f8522f2579230a6734ca527e7b6038b0279))
+* switch to node 18 and pkg ([#303](https://github.com/unraid/api/issues/303)) ([22590a8](https://github.com/unraid/api/commit/22590a80a016ca65b445b01c32d7b64df3382378))
+
+
+### Bug Fixes
+
+* api version written to config on startup ([#337](https://github.com/unraid/api/issues/337)) ([dba09f1](https://github.com/unraid/api/commit/dba09f14207f67f978ac2c0944f02236002e318e))
+* attempt to fix workflow again ([cae6002](https://github.com/unraid/api/commit/cae600210a7cdfacaf16a216dcc20d29d16bc8b5))
+* better subscription handling ([#338](https://github.com/unraid/api/issues/338)) ([93d140c](https://github.com/unraid/api/commit/93d140c5cb337d215211d5b77b97a3d882896aaf))
+* caching issues causing bugs ([#342](https://github.com/unraid/api/issues/342)) ([8f5a891](https://github.com/unraid/api/commit/8f5a8916d59c460436f35cd938bd6c2643928f4f))
+* config written with no changes ([#343](https://github.com/unraid/api/issues/343)) ([c059984](https://github.com/unraid/api/commit/c0599846891f457f0c14708c858e3e22bf7e5159))
+* correct version output for mjs ([#334](https://github.com/unraid/api/issues/334)) ([5679459](https://github.com/unraid/api/commit/5679459395af75e6a05946810245a6e228e1434b))
+* fix main workflow ([00d6167](https://github.com/unraid/api/commit/00d6167ba3727339d0f7967b040b2af16f78242f))
+* libvirt not being bundled ([#310](https://github.com/unraid/api/issues/310)) ([03c5223](https://github.com/unraid/api/commit/03c522311736d68c20ffb8f019da0000b82032d9))
+* logout user when they have a bad key ([#346](https://github.com/unraid/api/issues/346)) ([2cb6a95](https://github.com/unraid/api/commit/2cb6a95961737c34c5004e024a7bc43698fafcd9))
+* merge empty strings instead of undefined ([#345](https://github.com/unraid/api/issues/345)) ([7ae095b](https://github.com/unraid/api/commit/7ae095bd70a099eac0a7d588fdaff9385f1a4128))
+* new args to fix daemonized process ([#308](https://github.com/unraid/api/issues/308)) ([0a5b977](https://github.com/unraid/api/commit/0a5b9779267bdf7e0b7c1553ff7d84e2606886e8))
+* nginx.ini not being read at startup ([#335](https://github.com/unraid/api/issues/335)) ([5d50209](https://github.com/unraid/api/commit/5d502094c8948280d84617d74edaa383955fe938))
+* remove hack node files ([#339](https://github.com/unraid/api/issues/339)) ([f06413d](https://github.com/unraid/api/commit/f06413d26318128b62470a9897fcd6e9f0da50fc))
+* remove legacy peer deps ([#336](https://github.com/unraid/api/issues/336)) ([93a9830](https://github.com/unraid/api/commit/93a983073f8f4c0d9848d93267d61fbeaf9c03dd))
+* remove ssh key req for PR build ([#331](https://github.com/unraid/api/issues/331)) ([d2deaf3](https://github.com/unraid/api/commit/d2deaf36d12e07f38f2550716a0c9872c241ef20))
+* return no servers from endpoint to reset cache ([#307](https://github.com/unraid/api/issues/307)) ([c701f14](https://github.com/unraid/api/commit/c701f1464df0786f30fd408b2f6d09b549c587e2))
+* SSH URLs ([#297](https://github.com/unraid/api/issues/297)) ([a25ebe1](https://github.com/unraid/api/commit/a25ebe1732115ff9c5d7a59f0b764fca6255e4a1))
+* swap to correct import for datetime scalars ([#340](https://github.com/unraid/api/issues/340)) ([13016c2](https://github.com/unraid/api/commit/13016c27305da1c62e8de72a7dbbd3f4047228d6))
+* use bash-style comment ([#344](https://github.com/unraid/api/issues/344)) ([4753912](https://github.com/unraid/api/commit/4753912ff2431f08dfe1f00ea0aa19a969057df9))
+
 ## [2.50.0](https://github.com/unraid/api/compare/v2.49.2...v2.50.0) (2022-08-29)
 
 
