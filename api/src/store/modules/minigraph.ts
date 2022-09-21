@@ -1,7 +1,7 @@
 import { minigraphLogger } from '@app/core/log';
 import { createAsyncThunk, createSlice, EnhancedStore, PayloadAction } from '@reduxjs/toolkit';
 import { Client } from 'graphql-ws';
-import { store } from '@app/store';
+import { RootState, store } from '@app/store';
 import { createMinigraphClient } from '@app/mothership/minigraph-client';
 
 export enum MinigraphStatus {
@@ -36,10 +36,11 @@ const initialState: MinigraphClientState = {
 	client: null,
 };
 
-const createNewClient = createAsyncThunk<Client, MinigraphClientState>(
+const createNewClient = createAsyncThunk<Client, void, { state: RootState }>(
 	'minigraph/createNewClient',
-	async state => {
-		if (state.client) await state.client.dispose();
+	async (_, { getState }) => {
+		const { minigraph } = getState();
+		if (minigraph.client) await minigraph.client.dispose();
 		return createMinigraphClient();
 	},
 );
@@ -96,7 +97,7 @@ export const { setStatus, setClient, addSubscription, removeSubscriptionById } =
 
 export const getNewMinigraphClient = async (appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
 	const store = (appStore ?? await import('@app/store/index').then(_ => _.store));
-	return store?.dispatch(createNewClient(store.getState().minigraph)).unwrap();
+	return store?.dispatch(createNewClient()).unwrap();
 };
 
 export const isKeySubscribed = async (subscriptionKey: SubscriptionKey, appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
