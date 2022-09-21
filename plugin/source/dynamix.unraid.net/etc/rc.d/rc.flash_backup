@@ -65,8 +65,7 @@ _watch() {
       if [ "$(git -C /boot status -s)" ]; then
         _hasqueue || (
           errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
-          # @TODO shellcheck SC2166
-          if [ ${#errorstring} -le 2 -o $(($(date +"%M") % 10)) -eq 0 ]; then
+          if [[ ${#errorstring} -le 2 ]] || [[ $(($(date +"%M") % 10)) -eq 0 ]]; then
             logger "adding task: ${TASKACTION}" --tag flash_backup
           fi
           sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
