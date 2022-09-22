@@ -46,7 +46,7 @@ exit 0
 </INLINE>
 </FILE>
 
-<!-- DNS check, then download and validate files before doing anything destructive -->
+<!-- gzip check, DNS check, then download and validate files before doing anything destructive -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 DLHOST=$(echo "&downloadserver;" | awk -F/ '{print $3}')
@@ -55,6 +55,12 @@ JSHOST=$(echo "&JSDLsserver;" | awk -F/ '{print $3}')
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
+
+# ensure gzip is available and executes, is needed by '/etc/rc.d/rc.unraid-api install'
+if [ ! -x /bin/gzip ] || ! /bin/gzip -V &>/dev/null; then
+  echo "⚠️ Unable to install as gzip is not available on this system. For help, post your diagnostics.zip to a new support thread in the forum."
+  exit 1
+fi
 
 dnscheck() {
   HOST=$1
