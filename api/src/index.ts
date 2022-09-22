@@ -73,6 +73,7 @@ void am(async () => {
 
 	// Load nchan
 	core.loadNchan().catch(error => {
+		logger.debug('Caught error connecting to nchan');
 		logger.error(error);
 	});
 }, async (error: NodeJS.ErrnoException) => {

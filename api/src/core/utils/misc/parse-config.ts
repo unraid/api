@@ -3,22 +3,27 @@
  * Written by: Alexis Tyler
  */
 
-import { read as multiIniRead, Parser as MultiIniParser } from 'multi-ini';
+import { Parser as MultiIniParser } from 'multi-ini';
 import { parse as parseIni } from 'ini';
 import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';
 import mapObject from 'map-obj';
 import { AppError } from '@app/core/errors/app-error';
-import { readFileSync } from 'fs';
+import { fileExistsSync } from '@app/core/utils/files/file-exists';
+import { getExtensionFromPath } from '@app/core/utils/files/get-extension-from-path';
+import { loadFileFromPathSync } from '@app/core/utils/files/load-file-from-path';
 
 type ConfigType = 'ini' | 'cfg';
 
-interface Options {
+interface OptionsWithPath {
 	/** Relative or absolute file path. */
-	filePath?: string;
-	/** A string containing the raw file contents. */
-	file?: string;
+	filePath: string;
+	type?: ConfigType;
 	/** If the file is an "ini" or a "cfg". */
+}
+
+interface OptionsWithLoadedFile {
+	file: string;
 	type: ConfigType;
 }
 
@@ -68,35 +73,66 @@ const fixObjectArrays = (object: Record<string, any>) => {
 };
 
 /**
- * Parse ini and cfg files.
+ *
+ * @param extension File extension
+ * @returns boolean whether extension is ini or cfg
  */
-export const parseConfig = <T>(options: Options): T => {
-	const { file, type } = options;
-	const filePath = options.filePath ?? 'stdin://file.ini';
-	const fileContents = filePath ? readFileSync(filePath, 'utf8').toString() : file;
-	const fileType = type || filePath.split('.').splice(-1)[0];
-
-	// Only allow ini and cfg files.
-	if (!['ini', 'cfg'].includes(fileType)) {
-		throw new AppError('Invalid file extension.');
+const isValidConfigExtension = (extension: string): boolean => {
+	if (!['ini', 'cfg'].includes(extension)) {
+		return false;
 	}
 
-	// Parse file
+	return true;
+};
+
+/**
+ * @param fileContents ini or cfg file to parse with ini parser
+ * @returns Parsed file as Record<string, any>
+ */
+const readIniFromString = (fileContents: string): Record<string, any> => {
+	const parser = new MultiIniParser();
 	let data: Record<string, any>;
-	if (filePath) {
-		data = multiIniRead(filePath, {
-			keep_quotes: false,
-		});
-	} else {
-		const parser = new MultiIniParser();
-		data = parser.parse(fileContents);
-	}
+	data = parser.parse(fileContents, { keep_quotes: false });
 
 	// If multi-ini failed try ini
 	if (fileContents && fileContents.length >= 1 && Object.keys(data).length === 0) {
 		data = parseIni(fileContents);
 	}
 
+	return data;
+};
+
+/**
+ * Parse Ini or Cfg File
+ */
+export const parseConfig = <T>(options: OptionsWithLoadedFile | OptionsWithPath): T => {
+	let fileContents: string;
+	let extension: string;
+
+	if ('filePath' in options) {
+		const { filePath, type } = options;
+
+		const validFile = fileExistsSync(filePath);
+		extension = type ?? getExtensionFromPath(filePath);
+		const validExtension = isValidConfigExtension(extension);
+
+		if (validFile && validExtension) {
+			fileContents = loadFileFromPathSync(options.filePath);
+		} else {
+			throw new AppError(`Invalid File Path: ${options.filePath}, or Extension: ${extension}`);
+		}
+	} else if ('file' in options) {
+		const { file, type } = options;
+		fileContents = file;
+		const extension = type;
+		if (!isValidConfigExtension(extension)) {
+			throw new AppError(`Invalid Extension for Ini File: ${extension}`);
+		}
+	} else {
+		throw new AppError('Invalid Parameters Passed to ParseConfig');
+	}
+
+	const data: Record<string, any> = readIniFromString(fileContents);
 	// Remove quotes around keys
 	const dataWithoutQuoteKeys = mapObject(data, (key, value) =>
 		// @SEE: https://stackoverflow.com/a/19156197/2311366

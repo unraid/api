@@ -61,7 +61,9 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 
 			// Update state
 			endpointToStateMapping[endpoint].parse(state);
-		} catch {}
+		} catch (error: unknown) {
+			nchanLogger.trace('caught error with nchan message', error);
+		}
 	});
 
 	sub.on('error', (error, error_description) => {
