@@ -64,7 +64,7 @@ fi
 
 dnscheck() {
   HOST=$1
-  if [ -f /usr/bin/host ] && ! /usr/bin/host "${HOST}" >/dev/null 2>&1; then
+  if [ -x /usr/bin/host ] && ! /usr/bin/host "${HOST}" &>/dev/null; then
     echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'"
     DNSERR=yes
   fi
@@ -74,6 +74,7 @@ dnscheck() {
 source <(grep "DNS_SERVER1" /usr/local/emhttp/state/network.ini 2>/dev/null)
 DNSERR=no
 
+echo "Checking DNS..."
 dnscheck "${DLHOST}"
 dnscheck "${JSHOST}"
 dnscheck "mothership.unraid.net"
