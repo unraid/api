@@ -10,7 +10,6 @@ import { State } from '@app/core/states/state';
 import { toNumber } from '@app/core/utils/casting';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { getters } from '@app/store';
-import { logger } from '@app/core/log';
 
 const iniBooleanToJsBoolean = (value: string, defaultValue?: any) => {
 	if (value === 'no' || value === 'false') {
@@ -344,7 +343,6 @@ export class VarState extends State {
 	}
 
 	parse(state: VarIni, options?: ParseOptions): Var {
-		logger.debug('Varstate parse', state);
 		const { set, emit } = { emit: true, set: true, ...options };
 		const data = parse(state);
 

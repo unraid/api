@@ -15,13 +15,14 @@ const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace', l
 const ONE_MB = 1_024 * 1_024;
 const ONE_HUNDRED_MB = 100 * ONE_MB;
 
+// eslint-disable-next-line complexity
 const canSendDataPacket = (dataPacket: Dashboard) => {
 	const { lastDataPacketTimestamp, lastDataPacketString, lastDataPacket } = dashboardStore;
 	// UPDATE - No data packet has been sent since boot
 	if (!lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as none have been sent since the API started');
 
 	// NO_UPDATE - This is an exact copy of the last data packet
-	// if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
+	if (lastDataPacketString === JSON.stringify(dataPacket)) return logAndReturn(false, 'trace', 'Skipping sending update as its the same as the last one');
 
 	if (!lastDataPacket) return logAndReturn(true, 'debug', 'Sending update as no data packets have been stored in state yet');
 	// UPDATE - Apps have been installed/started
