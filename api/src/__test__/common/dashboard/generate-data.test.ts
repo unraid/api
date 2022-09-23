@@ -146,14 +146,14 @@ test('Returns generated data', async () => {
 
 	// .switchSource should not have been called at all since we passed it valid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
-}, 10_000);
+}, 30_000);
 
 test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	const { generateData } = await import('@app/common/dashboard/generate-data');
 	const { varState } = await import('@app/core/states/var');
 
 	// Reset mock counter
-	vi.mocked(varState.switchSource).mockClear();
+	vi.mocked(varState.switchSource)?.mockClear?.();
 
 	// Add invalid data to varState
 	(varState._data as Partial<Var>) = {
@@ -222,4 +222,4 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 
 	// .switchSource should have been called as we passed it invalid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(1);
-});
+}, 10_000);

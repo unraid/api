@@ -1,6 +1,6 @@
 import { test, expect } from 'vitest';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { read as multiIniRead, Parser as MultiIniParser, serialize, Serializer as IniSerializer } from 'multi-ini';
+import { Parser as MultiIniParser, Serializer as IniSerializer } from 'multi-ini';
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'ini';
 
@@ -53,7 +53,6 @@ test('it loads a config from a passed in ini file successfully', () => {
 test('it loads a config from disk properly', () => {
 	const path = './dev/states/var.ini';
 	const res = parseConfig<any>({ filePath: path, type: 'ini' });
-	console.log(res);
 	expect(res.DOMAIN_SHORT).toEqual(undefined);
 	expect(res.domainShort).toEqual('');
 	expect(res.shareCount).toEqual('0');
