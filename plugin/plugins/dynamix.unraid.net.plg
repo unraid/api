@@ -27,8 +27,12 @@
 <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
+name="&name;"
+version="&version;"
+API_version="&API_version;"
 PLGTYPE="&env;"
 <![CDATA[
+echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [ "${PLGTYPE}" = "production" ] && [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
   echo "⚠️ Please uninstall the My Servers staging plugin before installing the production version"
   exit 1
@@ -42,7 +46,7 @@ exit 0
 </INLINE>
 </FILE>
 
-<!-- DNS check, then download and validate files before doing anything destructive -->
+<!-- gzip check, DNS check, then download and validate files before doing anything destructive -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 DLHOST=$(echo "&downloadserver;" | awk -F/ '{print $3}')
@@ -52,9 +56,15 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
+# ensure gzip is available and executes, is needed by '/etc/rc.d/rc.unraid-api install'
+if [ ! -x /bin/gzip ] || ! /bin/gzip -V &>/dev/null; then
+  echo "⚠️ Unable to install as gzip is not available on this system. For help, post your diagnostics.zip to a new support thread in the forum."
+  exit 1
+fi
+
 dnscheck() {
   HOST=$1
-  if [ -f /usr/bin/host ] && ! /usr/bin/host "${HOST}" >/dev/null 2>&1; then
+  if [ -x /usr/bin/host ] && ! /usr/bin/host "${HOST}" &>/dev/null; then
     echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'"
     DNSERR=yes
   fi
@@ -64,6 +74,7 @@ dnscheck() {
 source <(grep "DNS_SERVER1" /usr/local/emhttp/state/network.ini 2>/dev/null)
 DNSERR=no
 
+echo "Checking DNS..."
 dnscheck "${DLHOST}"
 dnscheck "${JSHOST}"
 dnscheck "mothership.unraid.net"
