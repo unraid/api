@@ -8,6 +8,7 @@ import { logger } from '@app/core/log';
 import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
+import { clearAllServers } from '@app/store/modules/servers';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -63,10 +64,43 @@ export const initialState: SliceState = {
 	},
 };
 
+type LoadedConfig = Partial<MyServersConfig> & {
+	api: {
+		version: string;
+	};
+	upc: {
+		apikey: string;
+	};
+	notifier: {
+		apikey: string;
+	};
+};
+
 // Ini serializer
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
 	keep_quotes: false,
+});
+
+export const logoutUser = createAsyncThunk<void>('config/logout-user', async () => {
+	const { store } = await import ('@app/store');
+	const { pubsub } = await import ('@app/core/pubsub');
+	// Clear servers cache
+	store.dispatch(clearAllServers());
+
+	// Publish to servers endpoint
+	await pubsub.publish('servers', {
+		servers: [],
+	});
+
+	// Publish to owner endpoint
+	await pubsub.publish('owner', {
+		owner: {
+			username: 'root',
+			url: '',
+			avatar: '',
+		},
+	});
 });
 
 export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { state: { config: SliceState } }>('config/write-config-to-disk', async (filePath, thunkAPI) => {
@@ -87,18 +121,6 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 		console.error('Failed writing config to disk with "%s"', error.message);
 	}
 });
-
-type LoadedConfig = Partial<MyServersConfig> & {
-	api: {
-		version: string;
-	};
-	upc: {
-		apikey: string;
-	};
-	notifier: {
-		apikey: string;
-	};
-};
 
 /**
  * Load the myservers.cfg into the store.
@@ -140,8 +162,23 @@ export const config = createSlice({
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
 			state.status = FileLoadStatus.LOADING;
 		});
+
 		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
 			merge(state, action.payload, { status: FileLoadStatus.LOADED });
+		});
+
+		builder.addCase(logoutUser.pending, (state, _action) => {
+			merge(state, { remote:
+				{
+					'2Fa': '',
+					apikey: '',
+					avatar: '',
+					email: '',
+					username: '',
+					wanaccess: '',
+					wanport: '',
+				},
+			});
 		});
 	},
 });

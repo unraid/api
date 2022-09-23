@@ -1,7 +1,8 @@
+import { logger } from '@app/core';
 import { wsState } from '@app/mothership/should-be-connect-to-cloud';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
 import { store } from '@app/store';
-import { updateUserConfig } from '@app/store/modules/config';
+import { logoutUser } from '@app/store/modules/config';
 
 export const handleReconnection = (reason: string, code: number): { reason: string; timeout?: number } => {
 	switch (code) {
@@ -22,11 +23,12 @@ export const handleReconnection = (reason: string, code: number): { reason: stri
 		case 401:
 			// Bail as the key is invalid and we need a valid one to connect
 			// Clear the key from the store
-			store.dispatch(updateUserConfig({
-				remote: {
-					apikey: '',
-				},
-			}));
+
+			store.dispatch(logoutUser())
+				.catch(err => {
+					logger.error('Error logging user out in handle-reconnection');
+					logger.trace(err);
+				});
 			return { reason: 'API key is invalid' };
 
 		case 426:
