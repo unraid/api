@@ -3,11 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import type { UserShare, DiskShare } from '@app/core/types/states/share';
-import { sharesState } from '@app/core/states/shares';
-import { slotsState } from '@app/core/states/slots';
 import { processShare } from '@app/core/utils/shares/process-share';
 import { AppError } from '@app/core/errors/app-error';
+import { getters } from '@app/store';
+import { DiskShare, UserShare } from '@app/core/types/states/share';
 
 interface Filter {
 	name: string;
@@ -25,11 +24,12 @@ type Overload = {
  * Get all share types.
  */
 export const getShares: Overload = (type?: string, filter?: Filter) => {
+	const emhttp = getters.emhttp();
 	const types = {
-		user: (name?: string) => processShare('user', sharesState.findOne(name ? { name } : {})),
-		users: () => sharesState.find().map(share => processShare('user', share)),
-		disk: (name?: string) => processShare('disk', slotsState.findOne({ exportable: 'yes', ...(name ? { name } : {}) })),
-		disks: () => slotsState.find({ exportable: 'yes' }).filter(({ name }) => name.startsWith('disk')).map(disk => processShare('disk', disk)),
+		user: (name?: string) => processShare('user', emhttp.shares.find(share => share.name === name) ?? {}),
+		users: () => emhttp.shares.map(share => processShare('user', share)),
+		disk: (name?: string) => processShare('disk', emhttp.slots.find(slot => slot.exportable && slot.name === name) ?? {}),
+		disks: () => emhttp.slots.filter(slot => slot.exportable && slot.name.startsWith('disk')).map(disk => processShare('disk', disk)),
 	};
 
 	// Return a type of share

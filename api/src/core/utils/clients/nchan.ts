@@ -6,9 +6,7 @@
 import xhr2 from 'xhr2';
 import windowPolyFill from 'node-window-polyfill';
 import { EventSource } from 'launchdarkly-eventsource';
-import * as states from '@app/core/states';
 import { nchanLogger } from '@app/core/log';
-import { AppError } from '@app/core/errors/app-error';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { parsers, updateEmhttpState } from '@app/store/modules/emhttp';
 import { getters, store } from '@app/store';
@@ -20,61 +18,6 @@ global.EventSource = EventSource;
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
 const NchanSubscriber = require('nchan');
-
-const getSubEndpoint = () => {
-	const httpPort = states.varState.data?.port;
-	return `http://localhost:${httpPort as unknown as string}/sub`;
-};
-
-const endpointToStateMapping = {
-	devs: states.devicesState,
-	disks: states.slotsState,
-	network: states.networkState,
-	sec: states.smbSecState,
-	sec_nfs: states.nfsSecState,
-	shares: states.sharesState,
-	users: states.usersState,
-	var: states.varState,
-};
-
-export const oldSubscribeToNchanEndpointMethodToBeRemoved = async (endpoint: string) => new Promise<void>(resolve => {
-	if (!Object.keys(endpointToStateMapping).includes(endpoint)) {
-		throw new AppError(`Invalid nchan endpoint "${endpoint}".`);
-	}
-
-	const sub = new NchanSubscriber(`${getSubEndpoint()}/${endpoint}`, {
-		subscriber: 'eventsource',
-	});
-
-	sub.on('connect', _event => {
-		nchanLogger.debug('Connected to %s', endpoint);
-		resolve();
-	});
-
-	sub.on('disconnect', _event => {
-		nchanLogger.debug('Disconnected from %s', endpoint);
-	});
-
-	sub.on('message', (message: string, _messageMetadata) => {
-		try {
-			const state = parseConfig({
-				file: message,
-				type: 'ini',
-			});
-
-			// Update state
-			endpointToStateMapping[endpoint].parse(state);
-		} catch (error: unknown) {
-			nchanLogger.trace('caught error with nchan message', error);
-		}
-	});
-
-	sub.on('error', (error, error_description) => {
-		nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
-	});
-
-	sub.start();
-});
 
 export const subscribeToNchan = async (field: keyof typeof parsers) => new Promise<void>(resolve => {
 	const emhttp = getters.emhttp();

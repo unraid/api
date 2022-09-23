@@ -5,9 +5,9 @@
 
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { AppError } from '@app/core/errors/app-error';
-import { usersState } from '@app/core/states';
 import { ensureParameter } from '@app/core/utils/validation/context';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getters } from '@app/store';
 
 interface Context extends CoreContext {
 	params: {
@@ -35,7 +35,8 @@ export const getUser = async (context: Context): Promise<CoreResult> => {
 		throw new AppError('No id passed.');
 	}
 
-	const user = usersState.findOne({ id });
+	const user = getters.emhttp().users.find(user => user.id === id);
+
 	if (!user) {
 		// This is likely a new install or something went horribly wrong
 		throw new AppError(`No users found matching ${id}`, 404);

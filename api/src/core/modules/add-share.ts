@@ -7,8 +7,7 @@ import type { CoreContext, CoreResult } from '@app/core/types';
 import { AppError } from '@app/core/errors/app-error';
 import { NotImplementedError } from '@app/core/errors/not-implemented-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { sharesState } from '@app/core/states/shares';
-import { slotsState } from '@app/core/states/slots';
+import { getters } from '@app/store';
 
 export const addShare = async (context: CoreContext<unknown, { name: string }>): Promise<CoreResult> => {
 	const { user, data } = context;
@@ -24,9 +23,11 @@ export const addShare = async (context: CoreContext<unknown, { name: string }>):
 		possession: 'any',
 	});
 
+	const { shares, slots } = getters.emhttp();
+
 	const { name } = data;
-	const userShares = sharesState.find().map(({ name }) => name);
-	const diskShares = slotsState.find({ exportable: 'yes' }).filter(({ name }) => name.startsWith('disk')).map(({ name }) => name);
+	const userShares = shares.map(({ name }) => name);
+	const diskShares = slots.filter(slot => slot.exportable).filter(({ name }) => name.startsWith('disk')).map(({ name }) => name);
 
 	// Existing share names
 	const inUseNames = new Set([

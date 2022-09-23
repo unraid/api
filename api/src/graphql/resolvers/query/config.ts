@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '@app/core/states';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { Context } from '@app/graphql/schema/utils';
+import { getters } from '@app/store';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
@@ -14,13 +14,15 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'any',
 	});
 
+	const emhttp = getters.emhttp();
+
 	return {
-		valid: varState.data.configValid,
-		error: varState.data.configValid ? null : ({
+		valid: emhttp.var.configValid,
+		error: emhttp.var.configValid ? null : ({
 			error: 'UNKNOWN_ERROR',
 			invalid: 'INVALID',
 			nokeyserver: 'NO_KEY_SERVER',
 			withdrawn: 'WITHDRAWN',
-		}[varState.data.configState] ?? 'UNKNOWN_ERROR'),
+		}[emhttp.var.configState] ?? 'UNKNOWN_ERROR'),
 	};
 };

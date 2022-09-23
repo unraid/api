@@ -1,13 +1,7 @@
 import { expect, test, vi } from 'vitest';
-import { Var } from '@app/core/types/states/var';
-import { cloneDeep } from '@apollo/client/utilities';
-import { getters } from '@app/store';
+import { store } from '@app/store';
 
-// Preloading imports for faster tests
-import '@app/common/dashboard/generate-data';
-import '@app/core/states/var';
-
-vi.mock('fs');
+import { loadStateFiles } from '@app/store/modules/emhttp';
 
 vi.mock('@vmngr/libvirt', () => ({
 	ConnectListAllDomainsFlags: {
@@ -26,38 +20,6 @@ vi.mock('@app/core/log', () => ({
 		removeContext: vi.fn(),
 	},
 }));
-
-vi.mock('@app/core/states/var', () => {
-	const data = {
-		flashGuid: '123-123-123-123',
-		mdState: 'STARTED',
-		regState: 'PRO',
-		regTy: 'PRO',
-		name: 'Tower',
-		configValid: true,
-	};
-
-	const varState: {
-		_source: 'nchan' | 'file';
-		_data: Partial<Var>;
-		data: Partial<Var>;
-		switchSource: any;
-	} = {
-		_source: 'nchan',
-		_data: cloneDeep(data) as unknown as Partial<Var>,
-		get data() {
-			if (varState._source === 'nchan') return this._data;
-			return cloneDeep(data) as unknown as Partial<Var>;
-		},
-		switchSource: vi.fn(source => {
-			varState._source = source;
-		}),
-	};
-
-	return {
-		varState,
-	};
-});
 
 vi.mock('@app/common/dashboard/get-array', () => ({
 	getArray: vi.fn(),
@@ -90,8 +52,9 @@ vi.mock('@app/common/dashboard/boot-timestamp', () => ({
 }));
 
 test('Returns generated data', async () => {
+	await store.dispatch(loadStateFiles()).unwrap();
+
 	const { generateData } = await import('@app/common/dashboard/generate-data');
-	const { varState } = await import('@app/core/states/var');
 	const result = await generateData();
 
 	expect(result).toMatchInlineSnapshot(`
@@ -124,7 +87,7 @@ test('Returns generated data', async () => {
 		      "uptime": {
 		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
-		      "version": "${getters.config().api.version}",
+		      "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    },
 		  ],
 		  "twoFactor": {
@@ -136,7 +99,7 @@ test('Returns generated data', async () => {
 		    },
 		  },
 		  "vars": {
-		    "flashGuid": "123-123-123-123",
+		    "flashGuid": "0000-0000-0000-000000000000",
 		    "regState": "PRO",
 		    "regTy": "PRO",
 		  },
@@ -149,83 +112,4 @@ test('Returns generated data', async () => {
 		  },
 		}
 	`);
-
-	// .switchSource should not have been called at all since we passed it valid data
-	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
-});
-
-test('Calls .switchSource("file") if nchan data is invalid', async () => {
-	const { generateData } = await import('@app/common/dashboard/generate-data');
-	const { varState } = await import('@app/core/states/var');
-
-	// Reset mock counter
-	vi.mocked(varState.switchSource)?.mockClear?.();
-
-	// Add invalid data to varState
-	(varState._data as Partial<Var>) = {
-		...varState._data,
-		// This is purposely incorrect for the test
-		name: 3_000 as unknown as string,
-	};
-
-	const result = await generateData();
-
-	expect(result).toMatchInlineSnapshot(`
-		{
-		  "apps": {
-		    "installed": 0,
-		    "started": 0,
-		  },
-		  "array": undefined,
-		  "config": {
-		    "error": null,
-		    "valid": true,
-		  },
-		  "display": {
-		    "case": {
-		      "base64": "",
-		      "error": "could-not-read-image",
-		      "icon": "custom",
-		      "url": "",
-		    },
-		  },
-		  "os": {
-		    "hostname": "Tower",
-		    "uptime": "2022-06-10T04:35:58.276Z",
-		  },
-		  "services": [
-		    {
-		      "name": "unraid-api",
-		      "online": true,
-		      "uptime": {
-		        "timestamp": "2022-06-10T04:35:58.276Z",
-		      },
-		      "version": "${getters.config().api.version}",
-		    },
-		  ],
-		  "twoFactor": {
-		    "local": {
-		      "enabled": false,
-		    },
-		    "remote": {
-		      "enabled": false,
-		    },
-		  },
-		  "vars": {
-		    "flashGuid": "123-123-123-123",
-		    "regState": "PRO",
-		    "regTy": "PRO",
-		  },
-		  "versions": {
-		    "unraid": "6.0.0",
-		  },
-		  "vms": {
-		    "installed": 0,
-		    "started": 0,
-		  },
-		}
-	`);
-
-	// .switchSource should have been called as we passed it invalid data
-	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(1);
-});
+}, 10_000);

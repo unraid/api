@@ -3,19 +3,18 @@
  * Written by: Alexis Tyler
  */
 
-import { nfsSecState } from '@app/core/states/nfs-sec';
-import { smbSecState } from '@app/core/states/smb-sec';
-import { slotsState } from '@app/core/states/slots';
 import type { Slot } from '@app/core/types/states/slots';
-import type { DiskShare, Share, UserShare } from '../../types/states/share';
+import { getters } from '@app/store';
+import type { DiskShare, Share, UserShare } from '@app/core/types/states/share';
 
 const processors = {
 	user(share: Share) {
 		const { cache: _, name, ...rest } = share;
+		const { smbShares, nfsShares } = getters.emhttp();
 
 		// Get each config for the share
-		const { name: __, ...smb } = (smbSecState.findOne({ name }) || { name });
-		const { name: ___, ...nfs } = (nfsSecState.findOne({ name }) || { name });
+		const { name: __, ...smb } = smbShares.find(share => share.name === name) ?? { name };
+		const { name: ___, ...nfs } = nfsShares.find(share => share.name === name) ?? { name };
 
 		return {
 			type: 'user',
@@ -25,10 +24,11 @@ const processors = {
 		};
 	},
 	disk(share: Slot) {
+		const { smbShares, nfsShares, slots } = getters.emhttp();
 		const { name } = share;
-		const { name: _, ...smb } = smbSecState.findOne({ name });
-		const { name: __, ...nfs } = (nfsSecState.findOne({ name }) || { name });
-		const { fsSize, fsFree } = slotsState.findOne({ name });
+		const { name: __, ...smb } = smbShares.find(share => share.name === name) ?? { name };
+		const { name: ___, ...nfs } = nfsShares.find(share => share.name === name) ?? { name };
+		const { fsSize, fsFree } = slots.find(slot => slot.name === name) ?? {};
 
 		return {
 			name,

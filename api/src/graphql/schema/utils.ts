@@ -9,8 +9,6 @@ import { User } from '@app/core/types/states/user';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { pubsub } from '@app/core/pubsub';
-import { varState } from '@app/core/states/var';
-import { networkState } from '@app/core/states/network';
 import { logger } from '@app/core/log';
 import { getters, store } from '@app/store';
 import { cacheServers, Server } from '@app/store/modules/servers';
@@ -44,11 +42,12 @@ export const createSubscription = (channel: string, resource?: string) => ({
 });
 
 const getLocalServer = (): [Server] => {
-	const guid = varState?.data?.regGuid;
-	const name = varState?.data?.name;
+	const emhttp = getters.emhttp();
+	const guid = emhttp.var.regGuid;
+	const { name } = emhttp.var;
 	const wanip = null;
-	const lanip: string = networkState.data[0].ipaddr[0];
-	const port = varState?.data?.port;
+	const lanip: string = emhttp.networks[0].ipaddr[0];
+	const port = emhttp.var?.port;
 	const localurl = `http://${lanip}:${port}`;
 	const remoteurl = null;
 

@@ -7,23 +7,24 @@ import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';
 import mapObject from 'map-obj';
 import { AppError } from '@app/core/errors/app-error';
-import { fileExistsSync } from '@app/core/utils/files/file-exists';
-import { getExtensionFromPath } from '@app/core/utils/files/get-extension-from-path';
-import { loadFileFromPathSync } from '@app/core/utils/files/load-file-from-path';
+import { accessSync, readFileSync } from 'fs';
+import { access } from 'fs/promises';
+import { F_OK } from 'constants';
+import { extname } from 'path';
 
 type ConfigType = 'ini' | 'cfg';
 
-interface OptionsWithPath {
+type OptionsWithPath = {
 	/** Relative or absolute file path. */
 	filePath: string;
-	type?: ConfigType;
 	/** If the file is an "ini" or a "cfg". */
-}
+	type?: ConfigType;
+};
 
-interface OptionsWithLoadedFile {
+type OptionsWithLoadedFile = {
 	file: string;
 	type: ConfigType;
-}
+};
 
 /**
  * Converts the following
@@ -70,6 +71,30 @@ const fixObjectArrays = (object: Record<string, any>) => {
 	};
 };
 
+export const fileExists = async (path: string) => access(path, F_OK).then(() => true).catch(() => false);
+export const fileExistsSync = (path: string) => {
+	try {
+		accessSync(path, F_OK);
+		return true;
+	} catch (error: unknown) {
+		return false;
+	}
+};
+
+export const getExtensionFromPath = (filePath: string): string => extname(filePath);
+
+const isFilePathOptions = (options: OptionsWithLoadedFile | OptionsWithPath): options is OptionsWithPath => Object.keys(options).includes('filePath');
+const isFileOptions = (options: OptionsWithLoadedFile | OptionsWithPath): options is OptionsWithLoadedFile => Object.keys(options).includes('file');
+
+export const loadFileFromPathSync = (filePath: string): string => {
+	if (fileExistsSync(filePath)) {
+		const fileContents = readFileSync(filePath, 'utf-8').toString();
+		return fileContents;
+	}
+
+	throw new Error(`Failed to load file at path: ${filePath}`);
+};
+
 /**
  *
  * @param extension File extension
@@ -84,13 +109,15 @@ const isValidConfigExtension = (extension: string): boolean => {
 };
 
 /**
- * Parse Ini or Cfg File
+ *
+ * @param extension File extension
+ * @returns boolean whether extension is ini or cfg
  */
 export const parseConfig = <T extends Record<string, any>>(options: OptionsWithLoadedFile | OptionsWithPath): T => {
 	let fileContents: string;
 	let extension: string;
 
-	if ('filePath' in options) {
+	if (isFilePathOptions(options)) {
 		const { filePath, type } = options;
 
 		const validFile = fileExistsSync(filePath);
@@ -102,7 +129,7 @@ export const parseConfig = <T extends Record<string, any>>(options: OptionsWithL
 		} else {
 			throw new AppError(`Invalid File Path: ${options.filePath}, or Extension: ${extension}`);
 		}
-	} else if ('file' in options) {
+	} else if (isFileOptions(options)) {
 		const { file, type } = options;
 		fileContents = file;
 		const extension = type;

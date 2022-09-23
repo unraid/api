@@ -1,5 +1,4 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { varState } from '@app/core/states/var';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
 import { checkTwoFactorEnabled } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
@@ -10,7 +9,6 @@ import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 import { Dashboard as DashboardType } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
-import { ONE_HOUR } from '@app/consts';
 import { getters } from '@app/store';
 
 const getVmSummary = async () => {
@@ -62,54 +60,54 @@ const services = () => {
 	}];
 };
 
-const getData = async () => ({
-	vars: {
-		regState: varState.data.regState,
-		regTy: varState.data.regTy,
-		flashGuid: varState.data.flashGuid,
-	},
-	apps: {
-		installed: await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length),
-		started: await docker.listContainers().catch(() => []).then(containers => containers.length),
-	},
-	versions: {
-		unraid: await getUnraidVersion(),
-	},
-	os: {
-		hostname: varState.data.name,
-		uptime: bootTimestamp.toISOString(),
-	},
-	vms: await getVmSummary(),
-	array: getArray(),
-	services: services(),
-	display: await display(),
-	config: {
-		valid: varState.data.configValid,
-		error: varState.data.configValid ? null : ({
-			error: 'UNKNOWN_ERROR',
-			invalid: 'INVALID',
-			nokeyserver: 'NO_KEY_SERVER',
-			withdrawn: 'WITHDRAWN',
-		}[varState.data.configState] ?? 'UNKNOWN_ERROR'),
-	},
-	twoFactor: twoFactor(),
-});
+const getData = async () => {
+	const emhttp = getters.emhttp();
+
+	return {
+		vars: {
+			regState: emhttp.var.regState,
+			regTy: emhttp.var.regTy,
+			flashGuid: emhttp.var.flashGuid,
+		},
+		apps: {
+			installed: await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length),
+			started: await docker.listContainers().catch(() => []).then(containers => containers.length),
+		},
+		versions: {
+			unraid: await getUnraidVersion(),
+		},
+		os: {
+			hostname: emhttp.var.name,
+			uptime: bootTimestamp.toISOString(),
+		},
+		vms: await getVmSummary(),
+		array: getArray(),
+		services: services(),
+		display: await display(),
+		config: {
+			valid: emhttp.var.configValid,
+			error: emhttp.var.configValid ? null : ({
+				error: 'UNKNOWN_ERROR',
+				invalid: 'INVALID',
+				nokeyserver: 'NO_KEY_SERVER',
+				withdrawn: 'WITHDRAWN',
+			}[emhttp.var.configState] ?? 'UNKNOWN_ERROR'),
+		},
+		twoFactor: twoFactor(),
+	};
+};
 
 export const generateData = async () => {
+	const data = await getData();
+
 	try {
 		// Validate generated data
-		return validateRunType(DashboardType.asPartial(), await getData());
+		return validateRunType(DashboardType.asPartial(), data);
 	} catch (error: unknown) {
 		// Log error for user
 		logger.error('Failed validating dashboard object', error);
-
-		// If nchan isn't working let's use file access for the next 60s
-		// after that we can try nchan again
-		varState.switchSource('file', ONE_HOUR);
+		logger.error('Invalidated dashboard object', data);
 	}
-
-	// If nchan failed this will retrieve data from the filesystem
-	return getData();
 };
 
 export type Dashboard = Awaited<ReturnType<typeof generateData>>;

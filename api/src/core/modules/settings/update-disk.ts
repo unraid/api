@@ -4,11 +4,11 @@
  */
 
 import { CoreContext, CoreResult } from '@app/core/types';
-import { Var } from '@app/core/types/states/var';
-import { varState } from '@app/core/states/var';
 import { EmCmdError } from '@app/core/errors/em-cmd-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { emcmd } from '@app/core/utils/clients/emcmd';
+import { Var } from '@app/core/types/states/var';
+import { getters } from '@app/store';
 
 interface Context extends CoreContext {
 	data: Var;
@@ -137,13 +137,15 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		changeDisk: 'Apply',
 	});
 
+	const emhttp = getters.emhttp();
+
 	// @todo: return all disk settings
 	const result = {
-		mdwriteMethod: varState?.data?.mdWriteMethod,
-		startArray: varState?.data?.startArray,
-		spindownDelay: varState?.data?.spindownDelay,
-		defaultFormat: varState?.data?.defaultFormat,
-		defaultFsType: varState?.data?.defaultFormat,
+		mdwriteMethod: emhttp.var.mdWriteMethod,
+		startArray: emhttp.var.startArray,
+		spindownDelay: emhttp.var.spindownDelay,
+		defaultFormat: emhttp.var.defaultFormat,
+		defaultFsType: emhttp.var.defaultFormat,
 	};
 
 	return {

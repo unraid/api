@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '@app/core/states';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { Context } from '@app/graphql/schema/utils';
+import { getters } from '@app/store';
 
 export default async (_: unknown, __: unknown, context: Context) => {
 	ensurePermission(context.user, {
@@ -14,9 +14,11 @@ export default async (_: unknown, __: unknown, context: Context) => {
 		possession: 'any',
 	});
 
+	const emhttp = getters.emhttp();
+
 	return {
-		guid: varState.data.flashGuid,
-		vendor: varState.data.flashVendor,
-		product: varState.data.flashProduct,
+		guid: emhttp.var.flashGuid,
+		vendor: emhttp.var.flashVendor,
+		product: emhttp.var.flashProduct,
 	};
 };

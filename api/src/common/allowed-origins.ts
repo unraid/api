@@ -1,4 +1,3 @@
-import { networkState, varState } from '@app/core/states';
 import { getters } from '@app/store';
 
 const allowedSocks = [
@@ -29,23 +28,26 @@ const createLanHashOrigins = ({ webuiHTTPSPort }: { webuiHTTPSPort: number | str
 ];
 
 export const getAllowedOrigins = (): string[] => {
+	const config = getters.config();
+	const emhttp = getters.emhttp();
+
 	// Get local ip from first ethernet adapter in the "network" state
-	const localIp = networkState.data[0].ipaddr[0] as string;
+	const localIp = emhttp.networks[0].ipaddr[0];
 
 	// Get local tld (in lowercase)
-	const localTld = varState.data.localTld.toLowerCase();
+	const localTld = emhttp.var.localTld.toLowerCase();
 
 	// Get server's hostname (in lowercase)
-	const serverName = varState.data.name.toLowerCase();
+	const serverName = emhttp.var.name.toLowerCase();
 
 	// Get webui http port (default to 80)
-	const webuiHTTPPort = (varState.data.port ?? 80) === 80 ? '' : varState.data.port;
+	const webuiHTTPPort = (emhttp.var.port ?? 80) === 80 ? '' : emhttp.var.port;
 
 	// Get webui https port (default to 443)
-	const webuiHTTPSPort = (varState.data.portssl ?? 443) === 443 ? '' : varState.data.portssl;
+	const webuiHTTPSPort = (emhttp.var.portssl ?? 443) === 443 ? '' : emhttp.var.portssl;
 
 	// Get wan https port (default to 443)
-	const wanHTTPSPort = parseInt(getters.config().remote.wanport ?? '', 10) === 443 ? '' : (getters.config().remote.wanport ?? '');
+	const wanHTTPSPort = parseInt(config.remote.wanport ?? '', 10) === 443 ? '' : (config.remote.wanport ?? '');
 
 	// Check if wan access is enabled
 	const wanAccessEnabled = getters.config().remote.wanaccess === 'yes';

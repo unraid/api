@@ -7,8 +7,8 @@ import { FSWatcher, watch } from 'chokidar';
 import { logger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { bus } from '@app/core/bus';
-import { varState } from '@app/core/states/var';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
+import { getters } from '@app/store';
 
 const fileWatchers: FSWatcher[] = [];
 
@@ -72,14 +72,15 @@ export const keyFile = () => {
 
 			// Key file has updated, updating registration
 			watcher.on('all', async () => {
+				const emhttp = getters.emhttp();
 				// Get key file
-				const keyFile = varState.data.regFile ? await getKeyFile(varState.data.regFile) : '';
+				const keyFile = await getKeyFile(emhttp.var.regFile);
 				await publishRegistrationEvent({
-					guid: varState.data.regGuid,
-					type: varState.data.regTy.toUpperCase(),
-					state: varState.data.regState,
+					guid: emhttp.var.regGuid,
+					type: emhttp.var.regTy.toUpperCase(),
+					state: emhttp.var.regState,
 					keyFile: {
-						location: varState.data.regFile,
+						location: emhttp.var.regFile,
 						contents: keyFile,
 					},
 				});

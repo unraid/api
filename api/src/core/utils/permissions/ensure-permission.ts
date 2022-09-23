@@ -3,14 +3,14 @@
  * Written by: Alexis Tyler
  */
 
-import { User } from '@app/core/types/states/user';
 import { PermissionError } from '@app/core/errors/permission-error';
+import { User } from '@app/core/types/states/user';
 import { checkPermission, AccessControlOptions } from '@app/core/utils/permissions/check-permission';
 
 /**
  * Ensure the user has the correct permissions.
  * @param user The user to check permissions on.
- * @param permissions A permissions object.
+ * @param options A permissions object.
  */
 export const ensurePermission = (user: User | undefined, options: AccessControlOptions) => {
 	const { resource, action, possession = 'own' } = options;

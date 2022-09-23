@@ -4,10 +4,10 @@
  */
 
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { User } from '@app/core/types/states/user';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { AppError } from '@app/core/errors/app-error';
-import { usersState } from '@app/core/states/users';
+import { getters } from '@app/store';
+import { User } from '@app/core/types/states/user';
 
 interface Context extends CoreContext {
 	query: {
@@ -31,7 +31,7 @@ export const getUsers = async (context: Context): Promise<CoreResult> => {
 
 	// Default to only showing limited fields
 	const { slim = 'true' } = query;
-	const users = usersState.find();
+	const { users } = getters.emhttp();
 
 	if (users.length === 0) {
 		// This is likely a new install or something went horribly wrong

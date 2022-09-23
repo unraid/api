@@ -3,7 +3,6 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
 import { getters, store } from '@app/store';
-import { varState } from '@app/core/states';
 import { createClient, ExecutionResult, SubscribePayload } from 'graphql-ws';
 import { v4 } from 'uuid';
 import { GraphQLError } from 'graphql';
@@ -19,13 +18,15 @@ class WebsocketWithRelayHeaders extends WebSocket {
 }
 
 export const createMinigraphClient = () => {
+	const config = getters.config();
+	const emhttp = getters.emhttp();
 	const client = createClient({
 		url: MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'),
 		webSocketImpl: WebsocketWithRelayHeaders,
 		connectionParams: () => ({
-			apiVersion: getters.config().api.version,
-			apiKey: getters.config().remote.apikey,
-			unraidVersion: varState.data.version,
+			apiVersion: config.api.version,
+			apiKey: config.remote.apikey,
+			unraidVersion: emhttp.var.version,
 		}),
 		shouldRetry() {
 			return true;

@@ -5,7 +5,6 @@
 
 import request from 'request-promise-native';
 import { logger } from '@app/core/log';
-import { varState } from '@app/core/states';
 import { LooseObject } from '@app/core/types';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
 import { getters } from '@app/store';
@@ -15,13 +14,14 @@ import { getters } from '@app/store';
  */
 export const emcmd = async (commands: LooseObject) => {
 	const socketPath = getters.paths()['emhttpd-socket'];
+	const { csrfToken } = getters.emhttp().var;
 	const dryRun = process.env.DRY_RUN;
 
 	const url = `http://unix:${socketPath}:/update.htm`;
 	const options = {
 		qs: {
 			...commands,
-			csrf_token: varState.data?.csrfToken,
+			csrf_token: csrfToken,
 		},
 	};
 

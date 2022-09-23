@@ -5,7 +5,6 @@
 
 import pify from 'pify';
 import Docker from 'dockerode';
-import { getters } from '@app/store';
 
 // Borrowed from https://stackoverflow.com/a/52731696 until pify
 // adds their own types, check https://github.com/sindresorhus/pify/issues/74

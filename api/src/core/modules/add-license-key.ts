@@ -7,9 +7,9 @@
 // import { log } from '../log';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { varState } from '@app/core/states/var';
 import { NotImplementedError } from '@app/core/errors/not-implemented-error';
 import { AppError } from '@app/core/errors/app-error';
+import { getters } from '@app/store';
 
 interface Context extends CoreContext {
 	data: {
@@ -39,7 +39,8 @@ export const addLicenseKey = async (context: Context): Promise<Result | void> =>
 	});
 
 	// Const { data } = context;
-	const guid = varState?.data?.regGuid;
+	const emhttp = getters.emhttp();
+	const guid = emhttp.var.regGuid;
 	// Const timestamp = new Date();
 
 	if (!guid) {

@@ -9,7 +9,7 @@ import { existsSync } from 'fs';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { getters, store } from '@app/store';
 import { updateNginxState } from '@app/store/modules/nginx';
-import { NginxIni } from '@app/core/states/nginx';
+import { NginxIni } from '@app/store/modules/state-parsers/nginx';
 
 const watchStateFile = () => {
 	// State file path

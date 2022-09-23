@@ -4,7 +4,7 @@
  */
 
 import { GraphQLJSON } from 'graphql-type-json';
-import {GraphQLLong} from '@app/common/graphql/graphql-type-long';
+import { GraphQLLong } from '@app/common/graphql/graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { GraphQLDateTime } from 'graphql-scalars';
 import { GraphQLScalarType } from 'graphql';
