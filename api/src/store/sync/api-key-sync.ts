@@ -11,7 +11,6 @@ export const syncApiKeyChanges: StoreSubscriptionHandler = async lastState => {
 	// Skip checking if the the API key hasn't changed
 	const { config } = store.getState();
 	if (config.status !== FileLoadStatus.LOADED) return;
-
 	const apiKey = config?.remote?.apikey;
 	if (lastState?.config?.remote?.apikey === apiKey) {
 		logger.trace('Remote API key is the same');

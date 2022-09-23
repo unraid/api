@@ -4,10 +4,9 @@ import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
 import { writeFile } from 'fs/promises';
 import { getWriteableConfig } from '@app/store/store-sync';
 import { store } from '@app/store';
-import isEqual from 'lodash/isEqual'
+import isEqual from 'lodash/isEqual';
 import { getDiff } from 'json-difference';
 
-// Ini serializer
 const serializer = new IniSerializer({
 	// This ensures it ADDs quotes
 	keep_quotes: false,

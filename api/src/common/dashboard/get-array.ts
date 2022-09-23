@@ -1,3 +1,4 @@
+import { logger } from '@app/core';
 import { slotsState } from '@app/core/states/slots';
 import { varState } from '@app/core/states/var';
 import { addTogether } from '@app/core/utils/misc/add-together';
@@ -5,6 +6,7 @@ import { addTogether } from '@app/core/utils/misc/add-together';
 export const getArray = () => {
 	// Array state
 	const arrayState = varState?.data?.mdState.toLowerCase();
+	logger.debug('Current Raw Array State is: ', varState?.data?.mdState);
 	const state: string = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
 
 	// All known disks

@@ -15,33 +15,33 @@ test('Before init returns default values for all fields', async () => {
 	const state = store.getState().config;
 	expect(state).toEqual(
 		{
-		  "api": {
-		    "extraOrigins": "",
-			"version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
-		  },
-		  "local": {
-		    "2Fa": "",
-		  },
-		  "nodeEnv": "test",
-		  "notifier": {
-		    "apikey": "",
-		  },
-		  "remote": {
-		    "2Fa": "",
-		    "apikey": "",
-		    "avatar": "",
-		    "email": "",
-		    "username": "",
-		    "wanaccess": "",
-		    "wanport": "",
-		  },
-		  "status": "UNLOADED",
-		  "upc": {
-		    "apikey": "",
-		  },
-		}
+			api: {
+				extraOrigins: '',
+				version: 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
+			},
+			local: {
+				'2Fa': '',
+			},
+			nodeEnv: 'test',
+			notifier: {
+				apikey: '',
+			},
+			remote: {
+				'2Fa': '',
+				apikey: '',
+				avatar: '',
+				email: '',
+				username: '',
+				wanaccess: '',
+				wanport: '',
+			},
+			status: 'UNLOADED',
+			upc: {
+				apikey: '',
+			},
+		},
 	);
-});
+}, 10_000);
 
 test('After init returns values from cfg file for all fields', async () => {
 	const { config, loadConfigFile } = await import('@app/store/modules/config');
@@ -88,7 +88,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		}
 	`);
-});
+}, 10_000);
 
 test('updateUserConfig merges in changes to current state', async () => {
 	const { config, loadConfigFile, updateUserConfig } = await import('@app/store/modules/config');
