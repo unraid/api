@@ -1,3 +1,4 @@
+import { Serializer as IniSerializer } from 'multi-ini';
 import { logger } from '@app/core/log';
 import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
 import { writeFile } from 'fs/promises';
@@ -5,7 +6,11 @@ import { getWriteableConfig } from '@app/store/store-sync';
 import { store } from '@app/store';
 import isEqual from 'lodash/isEqual';
 import { getDiff } from 'json-difference';
-import { stringify } from 'ini';
+
+const serializer = new IniSerializer({
+	// This ensures it ADDs quotes
+	keep_quotes: false,
+});
 
 export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 	const { config, paths } = store.getState();
@@ -26,7 +31,7 @@ export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 	logger.trace(getDiff(oldConfig ?? {}, newConfig, true));
 
 	// Stringify state
-	const stringifiedData = stringify(newConfig);
+	const stringifiedData = serializer.serialize(newConfig);
 
 	// Update config file
 	await writeFile(configPath, stringifiedData);
