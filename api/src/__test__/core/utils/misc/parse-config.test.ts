@@ -1,6 +1,8 @@
 import { test, expect } from 'vitest';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { read as multiIniRead, Parser as MultiIniParser } from 'multi-ini';
+import { read as multiIniRead, Parser as MultiIniParser, serialize, Serializer as IniSerializer } from 'multi-ini';
+import { readFile, writeFile } from 'fs/promises';
+import { parse } from 'ini';
 
 const iniTestData = `["root"]
 idx="0"
@@ -57,4 +59,56 @@ test('it loads a config from disk properly', () => {
 	expect(res.shareCount).toEqual('0');
 });
 
-test()
+test('Confirm Multi-Ini Parser Still Broken', () => {
+	const parser = new MultiIniParser();
+	const res = parser.parse(iniTestData);
+	expect(res).toMatchInlineSnapshot('{}');
+});
+
+test('Combine Ini and Multi-Ini to read and then write a file with quotes', async () => {
+	const parsedFile = parse(iniTestData);
+	expect(parsedFile).toMatchInlineSnapshot(`
+		{
+		  "root": {
+		    "desc": "Console and webGui login account",
+		    "idx": "0",
+		    "name": "root",
+		    "passwd": "yes",
+		  },
+		  "test_user": {
+		    "desc": "",
+		    "idx": "2",
+		    "name": "test_user",
+		    "passwd": "no",
+		  },
+		  "xo": {
+		    "desc": "",
+		    "idx": "1",
+		    "name": "xo",
+		    "passwd": "yes",
+		  },
+		}
+	`);
+	const serializer = new IniSerializer();
+	const ini = serializer.serialize(parsedFile, { keep_quotes: false });
+	await writeFile('/tmp/test.ini', ini);
+	const file = await readFile('/tmp/test.ini', 'utf-8');
+	expect(file).toMatchInlineSnapshot(`
+		"[root]
+		idx=\\"0\\"
+		name=\\"root\\"
+		desc=\\"Console and webGui login account\\"
+		passwd=\\"yes\\"
+		[xo]
+		idx=\\"1\\"
+		name=\\"xo\\"
+		desc=\\"\\"
+		passwd=\\"yes\\"
+		[test_user]
+		idx=\\"2\\"
+		name=\\"test_user\\"
+		desc=\\"\\"
+		passwd=\\"no\\"
+		"
+	`);
+});

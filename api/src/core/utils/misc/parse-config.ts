@@ -2,8 +2,6 @@
  * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
-
-import { Parser as MultiIniParser } from 'multi-ini';
 import { parse as parseIni } from 'ini';
 import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';
@@ -86,23 +84,6 @@ const isValidConfigExtension = (extension: string): boolean => {
 };
 
 /**
- * @param fileContents ini or cfg file to parse with ini parser
- * @returns Parsed file as Record<string, any>
- */
-const readIniFromString = (fileContents: string): Record<string, any> => {
-	const parser = new MultiIniParser();
-	let data: Record<string, any>;
-	data = parser.parse(fileContents, { keep_quotes: false });
-
-	// If multi-ini failed try ini
-	if (fileContents && fileContents.length >= 1 && Object.keys(data).length === 0) {
-		data = parseIni(fileContents);
-	}
-
-	return data;
-};
-
-/**
  * Parse Ini or Cfg File
  */
 export const parseConfig = <T>(options: OptionsWithLoadedFile | OptionsWithPath): T => {
@@ -132,7 +113,7 @@ export const parseConfig = <T>(options: OptionsWithLoadedFile | OptionsWithPath)
 		throw new AppError('Invalid Parameters Passed to ParseConfig');
 	}
 
-	const data: Record<string, any> = readIniFromString(fileContents);
+	const data: Record<string, any> = parseIni(fileContents);
 	// Remove quotes around keys
 	const dataWithoutQuoteKeys = mapObject(data, (key, value) =>
 		// @SEE: https://stackoverflow.com/a/19156197/2311366
