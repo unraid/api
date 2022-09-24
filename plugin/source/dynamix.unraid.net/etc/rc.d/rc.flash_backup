@@ -30,6 +30,8 @@ start() {
   _enabled || exit 1
   # terminate watcher loop/process
   pkill --full "${TASKNAME}" &>/dev/null
+  # safely clean up git *.lock files
+  _clearlocks
   # flush: this will ensure we start with a clean repo
   flush
   # start watcher loop as background process
@@ -134,6 +136,11 @@ _beenawhile() {
   maxage=$((3*60*60))  # three hours
   [[ $age -gt $maxage ]] && return 0
   return 1
+}
+_clearlocks() {
+  if [[ $(pgrep -f '^git -C /boot' -c) -eq 0 ]]; then
+    find /boot/.git -type f -name '*.lock' -delete
+  fi
 }
 case "$1" in
 'status')
