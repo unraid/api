@@ -296,6 +296,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /usr/local/sbin/unraid-api
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
+  rm -f /etc/rc.d/rc6.d/K10_flash_backup
   # delete any legacy files that may exist
   rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node
   rm -rf /boot/config/plugins/dynamix.my.servers/segfault-handler.node
@@ -440,6 +441,11 @@ fi
 
 # make the unraid-api work globally for easy cli access
 ln -s /usr/local/bin/unraid-api/unraid-api /usr/local/sbin/unraid-api
+
+# configure flash backup to stop when the system starts shutting down
+[[ ! -d /etc/rc.d/rc6.d ]] && mkdir /etc/rc.d/rc6.d
+[[ ! -h /etc/rc.d/rc0.d ]] && ln -s /etc/rc.d/rc6.d /etc/rc.d/rc0.d
+[[ ! -h /etc/rc.d/rc6.d/K10_flash_backup  ]] && ln -s /etc/rc.d/rc.flash_backup /etc/rc.d/rc6.d/K10_flash_backup
 
 if [ -f /var/local/emhttp/var.ini ]; then
   echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
