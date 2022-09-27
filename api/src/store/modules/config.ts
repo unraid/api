@@ -167,7 +167,7 @@ export const config = createSlice({
 			merge(state, action.payload, { status: FileLoadStatus.LOADED });
 		});
 
-		builder.addCase(logoutUser.pending, (state, _action) => {
+		builder.addCase(logoutUser.pending, state => {
 			merge(state, { remote:
 				{
 					'2Fa': '',

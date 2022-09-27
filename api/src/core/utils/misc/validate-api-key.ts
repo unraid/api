@@ -2,6 +2,8 @@ import { got } from 'got';
 import { varState } from '@app/core/states/var';
 import { AppError } from '@app/core/errors/app-error';
 import { logger } from '@app/core/log';
+import { store } from '@app/store';
+import { logoutUser } from '@app/store/modules/config';
 
 const validKeys = new Set();
 
@@ -95,6 +97,7 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 
 	// Throw or return if invalid
 	logger.trace('key-server marked API key as invalid');
+	await store.dispatch(logoutUser()).unwrap();
 	if (shouldThrow) throw new Error('Invalid API key');
 	return false;
 };
