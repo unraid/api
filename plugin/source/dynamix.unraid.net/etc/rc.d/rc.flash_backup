@@ -132,8 +132,8 @@ _haserror() {
 }
 _beenawhile() {
   now=$(date +%s)
-  age=$((now-last))
-  maxage=$((3*60*60))  # three hours
+  age=$((now - last))
+  maxage=$((3 * 60 * 60)) # three hours
   [[ $age -gt $maxage ]] && return 0
   return 1
 }
