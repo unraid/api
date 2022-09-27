@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.52.0](https://github.com/unraid/api/compare/v2.51.0...v2.52.0) (2022-09-27)
+
+
+### Features
+
+* stop flash backup during shutdown/reboot ([#355](https://github.com/unraid/api/issues/355)) ([06d59ef](https://github.com/unraid/api/commit/06d59ef23124eab49971893c6447db059888d784))
+* wait for git to exit, then clean up *.lock files ([#356](https://github.com/unraid/api/issues/356)) ([2ddb193](https://github.com/unraid/api/commit/2ddb1932dc303eb1c4a6786073b3e5c29fd0a65e))
+
+
+### Bug Fixes
+
+* better logout behavior ([#357](https://github.com/unraid/api/issues/357)) ([db2bdd5](https://github.com/unraid/api/commit/db2bdd582a49d27d7a475e3aca904f51ab4f7734))
+* fix bug with reading configs from nchan ([#350](https://github.com/unraid/api/issues/350)) ([9e21f09](https://github.com/unraid/api/commit/9e21f09e0923614b3b5722d0407203918839f432))
+* update logout logic to use a thunk ([#348](https://github.com/unraid/api/issues/348)) ([cc997d8](https://github.com/unraid/api/commit/cc997d8e9f96eec5c47d60519254f60b56ff6cd7))
+
 ## [2.51.0](https://github.com/unraid/api/compare/v2.49.2...v2.51.0) (2022-09-21)
 
 
