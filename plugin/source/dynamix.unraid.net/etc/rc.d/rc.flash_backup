@@ -137,10 +137,12 @@ _beenawhile() {
   [[ $age -gt $maxage ]] && return 0
   return 1
 }
+# wait for git commands to end, then delete any stale lock files
 _clearlocks() {
-  if [[ $(pgrep -f '^git -C /boot' -c) -eq 0 ]]; then
-    find /boot/.git -type f -name '*.lock' -delete
-  fi
+  while [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; do
+    sleep 1
+  done
+  find /boot/.git -type f -name '*.lock' -delete
 }
 case "$1" in
 'status')
