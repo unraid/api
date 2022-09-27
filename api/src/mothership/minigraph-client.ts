@@ -70,6 +70,7 @@ export const MinigraphClient = {
 				},
 				error: reject,
 				complete() {
+					minigraphLogger.trace('Finished a query %s', query);
 					resolve(result);
 				},
 			},

@@ -37,11 +37,10 @@ export const syncApiKeyChanges: StoreSubscriptionHandler = async lastState => {
 		// Something happened?
 		logger.debug('Removing remote API key as it failed validation.');
 		logger.trace(error);
-		// Log out the user as their API key is invalid
-		await store.dispatch(logoutUser());
 		hasError = true;
 	} finally {
 		if (hasError) {
+			// Log out the user as their API key is invalid
 			await store.dispatch(logoutUser());
 		} else {
 			logger.debug('Key-server marked this API key as valid.');
