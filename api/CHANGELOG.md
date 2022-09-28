@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.52.1](https://github.com/unraid/api/compare/v2.52.0...v2.52.1) (2022-09-28)
+
+
+### Bug Fixes
+
+* don't exit install if network unavailable ([#358](https://github.com/unraid/api/issues/358)) ([ef6bc81](https://github.com/unraid/api/commit/ef6bc81360d9bd1d40b2e78a51da4aa2571fe99e))
+
 ## [2.52.0](https://github.com/unraid/api/compare/v2.51.0...v2.52.0) (2022-09-27)
 
 
