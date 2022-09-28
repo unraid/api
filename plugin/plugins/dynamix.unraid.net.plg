@@ -14,7 +14,7 @@
 <!ENTITY API_MD5                "ffee242081d5585e30eeb66ec880a54d">
 <!ENTITY API_SHA256             "d4c67669f05c49fc130513af0c29c9b26cb4362a1b9f491bc39b8d9e3131e8f1">
 <!ENTITY downloadserver         "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com">
-<!ENTITY JSDLsserver            "https://registration.unraid.net">
+<!ENTITY js_dl_server           "https://registration.unraid.net">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
@@ -50,7 +50,7 @@ exit 0
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 DLHOST=$(echo "&downloadserver;" | awk -F/ '{print $3}')
-JSHOST=$(echo "&JSDLsserver;" | awk -F/ '{print $3}')
+JSHOST=$(echo "&js_dl_server;" | awk -F/ '{print $3}')
 <![CDATA[
 version=
 # shellcheck disable=SC1091
@@ -139,7 +139,7 @@ exit 0
 
 <!-- download unraid.min.js, no MD5 or SHA256 for comparison, need to validate later -->
 <FILE Name="/tmp/unraid.min.js.tmp1">
-<URL>&JSDLsserver;/webComps/unraid.min.js</URL>
+<URL>&js_dl_server;/webComps/unraid.min.js</URL>
 </FILE>
 
 <FILE Run="/bin/bash" Method="install">
