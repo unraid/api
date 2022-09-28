@@ -14,7 +14,7 @@
 <!ENTITY API_MD5                "ffee242081d5585e30eeb66ec880a54d">
 <!ENTITY API_SHA256             "d4c67669f05c49fc130513af0c29c9b26cb4362a1b9f491bc39b8d9e3131e8f1">
 <!ENTITY downloadserver         "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com">
-<!ENTITY JSDLsserver            "https://registration.unraid.net">
+<!ENTITY js_dl_server           "https://registration.unraid.net">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
@@ -46,11 +46,11 @@ exit 0
 </INLINE>
 </FILE>
 
-<!-- gzip check, DNS check, then download and validate files before doing anything destructive -->
+<!-- gzip check, DNS check, then validate files before doing anything destructive -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 DLHOST=$(echo "&downloadserver;" | awk -F/ '{print $3}')
-JSHOST=$(echo "&JSDLsserver;" | awk -F/ '{print $3}')
+JSHOST=$(echo "&js_dl_server;" | awk -F/ '{print $3}')
 <![CDATA[
 version=
 # shellcheck disable=SC1091
@@ -109,17 +109,7 @@ sha256check() {
 ]]>
 sha256check "&source;.txz" "&SHA256;"
 sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
-<![CDATA[
-# always re-download latest unraid.min.js
-rm -f /tmp/unraid.min.js.tmp1
-
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
 exit 0
-]]>
 </INLINE>
 </FILE>
 
@@ -137,11 +127,6 @@ exit 0
 <SHA256>&API_SHA256;</SHA256>
 </FILE>
 
-<!-- download unraid.min.js, no MD5 or SHA256 for comparison, need to validate later -->
-<FILE Name="/tmp/unraid.min.js.tmp1">
-<URL>&JSDLsserver;/webComps/unraid.min.js</URL>
-</FILE>
-
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 MAINTXZ="&source;.txz"
@@ -149,14 +134,44 @@ MAINTXZ="&source;.txz"
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 FILE=/boot/config/plugins/dynamix.my.servers/unraid-api.tgz && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
+exit 0
+]]>
+</INLINE>
+</FILE>
 
-# before uninstalling anything, verify unraid.min.js was downloaded and looks valid, or that we already have an existing copy
+<!-- download and install JavaScript web components -->
+<!-- (installing this won't hurt anything if we exit the installer later) -->
+<FILE Run="/bin/bash" Method="install">
+<INLINE>
+js_dl_server=&js_dl_server;
+<![CDATA[
+version=
+# shellcheck disable=SC1091
+source /etc/unraid-version
+
+if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+  echo
+  echo "⚠️ Do not close this window yet"
+  echo
+fi
+
+# manually download the JavaScript web components
 JS_FLASH_DEST=/boot/config/plugins/dynamix.my.servers/webComps/
 JS_FINAL_DEST=/usr/local/emhttp/plugins/dynamix.my.servers/webComps/
 JS_FILE=unraid.min.js
 
-# file was downloaded as /tmp/unraid.min.js.tmp1
-rm -f /tmp/${JS_FILE}.tmp2
+echo "🕹️ Installing JavaScript web components"
+
+# on first install, no limits to wget retries/timeouts.
+# on subsequent installs, don't let wget prevent Unraid from booting when network is down
+WGET_LIMIT=
+[[ -f "${JS_FLASH_DEST}${JS_FILE}" ]] && WGET_LIMIT=" -t 1 -T 20 "
+
+# always re-download latest unraid.min.js
+rm -f "/tmp/${JS_FILE}.tmp1"
+rm -f "/tmp/${JS_FILE}.tmp2"
+
+wget ${WGET_LIMIT} -q --compression=auto --no-cache "${js_dl_server}/webComps/${JS_FILE}" -O "/tmp/${JS_FILE}.tmp1" &>/dev/null
 if [[ -f "/tmp/${JS_FILE}.tmp1" && -s "/tmp/${JS_FILE}.tmp1" ]]; then
   # simple validatation that the file was downloaded correctly
   if grep -q "sourceMappingURL=unraid.min.js.map" "/tmp/${JS_FILE}.tmp1"; then
@@ -165,12 +180,25 @@ if [[ -f "/tmp/${JS_FILE}.tmp1" && -s "/tmp/${JS_FILE}.tmp1" ]]; then
     rm "/tmp/${JS_FILE}.tmp1"
   fi
 fi
-if [[ ! -f "/tmp/${JS_FILE}.tmp2" && ! -f "${JS_FLASH_DEST}${JS_FILE}" && ! -f "${JS_FINAL_DEST}${JS_FILE}" ]]; then
-  # unraid.min.js could not be downloaded, and it does not already exist in JS_FLASH_DEST or JS_FINAL_DEST, we have to bail
-  echo "⚠️ file missing - unraid.min.js" && exit 1
+
+# if /tmp/${JS_FILE}.tmp2 was downloaded above, move it to JS_FLASH_DEST
+[[ -f "/tmp/${JS_FILE}.tmp2" ]] && mkdir -p "${JS_FLASH_DEST}" && mv "/tmp/${JS_FILE}.tmp2" "${JS_FLASH_DEST}${JS_FILE}"
+
+# NOTE: if download was not successful, there may still be a previous copy in JS_FLASH_DEST
+# if unraid.min.js exists in JS_FLASH_DEST, copy it from JS_FLASH_DEST to JS_FINAL_DEST
+# @TODO: validate that the unraid.min.js in JS_FLASH_DEST is not older than an existing one in JS_FINAL_DEST
+[[ -f "${JS_FLASH_DEST}${JS_FILE}" ]] && mkdir -p "${JS_FINAL_DEST}" && cp "${JS_FLASH_DEST}${JS_FILE}" "${JS_FINAL_DEST}"
+
+# NOTE: if file does not exist in JS_FLASH_DEST, there should still be a previous copy in JS_FINAL_DEST (unless Unraid 6.9)
+#       if not, we have to exit
+[[ ! -f "${JS_FINAL_DEST}${JS_FILE}" ]] && echo "⚠️ Install failed - ${JS_FILE} missing" && exit 1
+echo "✅ Finished installing web components"
+
+if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+  echo
+  echo "⚠️ Do not close this window yet"
+  echo
 fi
-# at this point, /tmp/unraid.min.js.tmp2 is ready to be moved elsewhere as unraid.min.js
-# OR there is an existing copy of unraid.min.js in JS_FLASH_DEST or JS_FINAL_DEST
 exit 0
 ]]>
 </INLINE>
@@ -366,26 +394,6 @@ fi
 if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.servers/env ]; then
   echo "env=\"${PLGTYPE}\"" >/boot/config/plugins/dynamix.my.servers/env
 fi
-
-# process unraid.min.js
-echo
-echo "🕹️ Installing JavaScript web components"
-JS_FLASH_DEST=/boot/config/plugins/dynamix.my.servers/webComps/
-JS_FINAL_DEST=/usr/local/emhttp/plugins/dynamix.my.servers/webComps/
-JS_FILE=unraid.min.js
-
-# if /tmp/${JS_FILE}.tmp2 was downloaded above, move it to JS_FLASH_DEST
-[[ -f "/tmp/${JS_FILE}.tmp2" ]] && mkdir -p "${JS_FLASH_DEST}" && mv "/tmp/${JS_FILE}.tmp2" "${JS_FLASH_DEST}${JS_FILE}"
-
-# NOTE: if download was not successful, there may still be a previous copy in JS_FLASH_DEST
-# if unraid.min.js exists in JS_FLASH_DEST, copy it from JS_FLASH_DEST to JS_FINAL_DEST
-# @TODO: validate that the unraid.min.js in JS_FLASH_DEST is not older than an existing one in JS_FINAL_DEST
-[[ -f "${JS_FLASH_DEST}${JS_FILE}" ]] && mkdir -p "${JS_FINAL_DEST}" && cp "${JS_FLASH_DEST}${JS_FILE}" "${JS_FINAL_DEST}"
-
-# NOTE: if file does not exist in JS_FLASH_DEST, there may still be a previous copy in JS_FINAL_DEST
-# WARNING: failure here results in broken install. this should never happen as previous tests confirmed unraid.min.js does exist
-[[ ! -f "${JS_FINAL_DEST}${JS_FILE}" ]] && echo "⚠️ Install failed - ${JS_FILE} missing" && exit 1
-echo "✅ Finished installing web components"
 
 if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
   echo
