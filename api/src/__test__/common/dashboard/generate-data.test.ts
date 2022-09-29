@@ -1,7 +1,11 @@
 import { expect, test, vi } from 'vitest';
-import { Var } from '@app/core/types/states';
+import { Var } from '@app/core/types/states/var';
 import { cloneDeep } from '@apollo/client/utilities';
 import { getters } from '@app/store';
+
+// Preloading imports for faster tests
+import '@app/common/dashboard/generate-data';
+import '@app/core/states/var';
 
 vi.mock('fs');
 
@@ -18,6 +22,8 @@ vi.mock('@app/core/log', () => ({
 		error: vi.fn(),
 		debug: vi.fn(),
 		trace: vi.fn(),
+		addContext: vi.fn(),
+		removeContext: vi.fn(),
 	},
 }));
 
@@ -146,7 +152,7 @@ test('Returns generated data', async () => {
 
 	// .switchSource should not have been called at all since we passed it valid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(0);
-}, 30_000);
+});
 
 test('Calls .switchSource("file") if nchan data is invalid', async () => {
 	const { generateData } = await import('@app/common/dashboard/generate-data');
@@ -222,4 +228,4 @@ test('Calls .switchSource("file") if nchan data is invalid', async () => {
 
 	// .switchSource should have been called as we passed it invalid data
 	expect(vi.mocked(varState.switchSource)).toBeCalledTimes(1);
-}, 10_000);
+});

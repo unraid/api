@@ -3,6 +3,10 @@ import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
+// Preloading imports for faster tests
+import '@app/core/log';
+import '@app/cli/commands/report';
+
 vi.mock('readline', () => {
 	const writeStub = vi.fn();
 	const closeStub = vi.fn();
@@ -138,4 +142,4 @@ test('Returns a pretty anonymised report by default', async () => {
 
 	// Should close the readline interface at the end of the report
 	expect(closeStub.mock.calls.length).toBe(1);
-}, 15_000);
+});

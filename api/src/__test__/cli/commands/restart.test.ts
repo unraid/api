@@ -1,5 +1,10 @@
 import { expect, test, vi } from 'vitest';
 
+// Preloading imports for faster tests
+import '@app/cli/commands/restart';
+import '@app/cli/commands/start';
+import '@app/cli/commands/stop';
+
 test('calls stop and then start', async () => {
 	vi.mock('@app/cli/commands/start');
 	vi.mock('@app/cli/commands/stop');
@@ -19,4 +24,4 @@ test('calls stop and then start', async () => {
 	// Check stop was called first
 	expect(vi.mocked(stop).mock.invocationCallOrder).toStrictEqual([1]);
 	expect(vi.mocked(start).mock.invocationCallOrder).toStrictEqual([2]);
-}, 15_000);
+});

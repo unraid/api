@@ -1,5 +1,8 @@
 import { expect, test, vi } from 'vitest';
 
+// Preloading imports for faster tests
+import '@app/core/states/state';
+
 vi.mock('@app/core/log', () => ({
 	logger: {
 		info: vi.fn(),
