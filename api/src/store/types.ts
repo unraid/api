@@ -4,6 +4,7 @@ export enum FileLoadStatus {
 	UNLOADED = 'UNLOADED',
 	LOADING = 'LOADING',
 	LOADED = 'LOADED',
+	FAILED_LOADING = 'FAILED_LOADING',
 }
 
 export enum MemoryCacheStatus {

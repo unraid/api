@@ -6,7 +6,7 @@
 import { nfsSecState } from '@app/core/states/nfs-sec';
 import { smbSecState } from '@app/core/states/smb-sec';
 import { slotsState } from '@app/core/states/slots';
-import type { Slot } from '@app/core/types/states/slot';
+import type { Slot } from '@app/core/types/states/slots';
 import type { DiskShare, Share, UserShare } from '../../types/states/share';
 
 const processors = {

@@ -4,7 +4,7 @@
  */
 
 import { CoreContext, CoreResult } from '@app/core/types';
-import { Var } from '@app/core/types/states';
+import { Var } from '@app/core/types/states/var';
 import { varState } from '@app/core/states/var';
 import { EmCmdError } from '@app/core/errors/em-cmd-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

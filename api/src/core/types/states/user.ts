@@ -3,12 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-/**
- *
- * User
- * @interface User
- */
-export interface User {
+export type User = {
 	/** User's ID */
 	id: string;
 	/** Display name */
@@ -18,4 +13,6 @@ export interface User {
 	password: boolean;
 	/** The main {@link Permissions~Role | role} linked to this account. */
 	role: string;
-}
+};
+
+export type Users = User[];

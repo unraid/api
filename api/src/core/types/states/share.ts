@@ -3,11 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-/**
- * Share
- * @interface Share
- */
-export interface Share {
+export type Share = {
 	/** Share name. */
 	name: string;
 	/** Free space in bytes. */
@@ -20,7 +16,9 @@ export interface Share {
 	exclude: string[];
 	/** If the share should use the cache. */
 	cache: boolean;
-}
+};
+
+export type Shares = Share[];
 
 /**
  * Disk share
@@ -37,10 +35,3 @@ export interface UserShare extends Share {
 }
 
 export type ShareType = 'user' | 'users' | 'disk' | 'disks';
-
-// Name,
-// type: 'disk',
-// size: Number(fsSize),
-// free: Number(fsFree),
-// smb,
-// nfs,

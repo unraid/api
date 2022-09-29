@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { User } from '@app/core/types/states';
+import { User } from '@app/core/types/states/user';
 import { PermissionError } from '@app/core/errors/permission-error';
 import { checkPermission, AccessControlOptions } from '@app/core/utils/permissions/check-permission';
 

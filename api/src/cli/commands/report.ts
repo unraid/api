@@ -37,7 +37,6 @@ export const getConfig = <T = unknown>(path: string) => {
 export const createGotOptions = (config: Partial<MyServersConfig>) => {
 	// Create default settings for got
 	const headers = {
-
 		Origin: '/var/run/unraid-cli.sock',
 		'Content-Type': 'application/json',
 		'x-api-key': config.upc?.apikey,
@@ -108,8 +107,6 @@ const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbo
 
 // eslint-disable-next-line complexity
 export const report = async (...argv: string[]) => {
-	// Which report does the user want?
-
 	// Check if the user has raw output enabled
 	const rawOutput = argv.includes('--raw');
 

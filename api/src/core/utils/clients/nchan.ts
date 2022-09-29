@@ -10,6 +10,8 @@ import * as states from '@app/core/states';
 import { nchanLogger } from '@app/core/log';
 import { AppError } from '@app/core/errors/app-error';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { parsers, updateEmhttpState } from '@app/store/modules/emhttp';
+import { getters, store } from '@app/store';
 
 // Load polyfills for nchan
 windowPolyFill.register(false);
@@ -25,11 +27,8 @@ const getSubEndpoint = () => {
 };
 
 const endpointToStateMapping = {
-	// Cpuload: ,
 	devs: states.devicesState,
-	// Diskload: ,
 	disks: states.slotsState,
-	// Monitor: ,
 	network: states.networkState,
 	sec: states.smbSecState,
 	sec_nfs: states.nfsSecState,
@@ -38,7 +37,11 @@ const endpointToStateMapping = {
 	var: states.varState,
 };
 
-const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
+export const oldSubscribeToNchanEndpointMethodToBeRemoved = async (endpoint: string) => new Promise<void>(resolve => {
+	if (!Object.keys(endpointToStateMapping).includes(endpoint)) {
+		throw new AppError(`Invalid nchan endpoint "${endpoint}".`);
+	}
+
 	const sub = new NchanSubscriber(`${getSubEndpoint()}/${endpoint}`, {
 		subscriber: 'eventsource',
 	});
@@ -52,7 +55,7 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 		nchanLogger.debug('Disconnected from %s', endpoint);
 	});
 
-	sub.on('message', (message, _messageMetadata) => {
+	sub.on('message', (message: string, _messageMetadata) => {
 		try {
 			const state = parseConfig({
 				file: message,
@@ -73,11 +76,44 @@ const subscribe = async (endpoint: string) => new Promise<void>(resolve => {
 	sub.start();
 });
 
-export const subscribeToNchanEndpoint = async (endpoint: string) => {
-	if (!Object.keys(endpointToStateMapping).includes(endpoint)) {
-		throw new AppError(`Invalid nchan endpoint "${endpoint}".`);
-	}
+export const subscribeToNchan = async (field: keyof typeof parsers) => new Promise<void>(resolve => {
+	const emhttp = getters.emhttp();
+	const httpPort = emhttp.var.port;
+	const endpoint = `${`http://localhost:${httpPort}/sub`}/${field}`;
 
-	// Subscribe
-	await subscribe(endpoint);
-};
+	const sub = new NchanSubscriber(endpoint, {
+		subscriber: 'eventsource',
+	});
+
+	sub.on('connect', _event => {
+		nchanLogger.debug('Connected to %s', endpoint);
+		resolve();
+	});
+
+	sub.on('disconnect', _event => {
+		nchanLogger.debug('Disconnected from %s', endpoint);
+	});
+
+	sub.on('message', (message: string, _messageMetadata) => {
+		try {
+			const parser = parsers[field];
+			const state = parser(parseConfig({
+				file: message,
+				type: 'ini',
+			}));
+
+			nchanLogger.trace('Received update for %s', field);
+
+			// Update state
+			store.dispatch(updateEmhttpState({ field, state }));
+		} catch (error: unknown) {
+			nchanLogger.error('Failed parsing nchan response for %s with %s', field, error);
+		}
+	});
+
+	sub.on('error', (error, error_description) => {
+		nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
+	});
+
+	sub.start();
+});

@@ -8,7 +8,7 @@ import mm from 'micromongo';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { ArrayState } from '@app/core/states/state';
 import { LooseObject } from '@app/core/types';
-import { Share } from '@app/core/types/states';
+import { Share } from '@app/core/types/states/share';
 import { getters } from '@app/store';
 
 interface SharesIni {

@@ -4,7 +4,7 @@
  */
 
 import { logger, nchanLogger } from '@app/core/log';
-import { subscribeToNchanEndpoint } from '@app/core/utils';
+import { oldSubscribeToNchanEndpointMethodToBeRemoved } from '@app/core/utils';
 import { config } from '@app/core/config';
 import * as watchers from '@app/core/watchers';
 
@@ -41,7 +41,7 @@ const loadWatchers = async (): Promise<void> => {
  */
 const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
 	nchanLogger.debug('Connected, setting-up endpoints.');
-	const connections = endpoints.map(async endpoint => subscribeToNchanEndpoint(endpoint));
+	const connections = endpoints.map(async endpoint => oldSubscribeToNchanEndpointMethodToBeRemoved(endpoint));
 	await Promise.all(connections);
 };
 
