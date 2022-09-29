@@ -5,7 +5,7 @@
 
 import { hasSubscribedToChannel } from '@app/ws';
 import { getServers as getUserServers } from '@app/utils';
-import { User } from '@app/core/types';
+import { User } from '@app/core/types/states/user';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { pubsub } from '@app/core/pubsub';

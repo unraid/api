@@ -26,6 +26,7 @@
     "build:docker": "docker-compose run --rm builder",
     "build-pkg": "./scripts/build.mjs",
     "commit": "npx git-cz",
+    "tsc": "tsc --noEmit",
     "lint": "eslint src/**/*.ts",
     "lint:quiet": "eslint --quiet",
     "lint:fix": "eslint --fix src/**/*.ts",

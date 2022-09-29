@@ -86,7 +86,7 @@ const isValidConfigExtension = (extension: string): boolean => {
 /**
  * Parse Ini or Cfg File
  */
-export const parseConfig = <T>(options: OptionsWithLoadedFile | OptionsWithPath): T => {
+export const parseConfig = <T extends Record<string, any>>(options: OptionsWithLoadedFile | OptionsWithPath): T => {
 	let fileContents: string;
 	let extension: string;
 

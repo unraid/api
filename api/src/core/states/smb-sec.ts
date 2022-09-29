@@ -6,7 +6,7 @@
 import path from 'path';
 import { ArrayState } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { SecIni } from '@app/core/types';
+import { SecIni } from '@app/core/types/states/sec';
 import { getters } from '@app/store';
 
 /**
