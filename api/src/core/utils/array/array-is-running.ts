@@ -3,9 +3,12 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '@app/core/states/var';
+import { getters } from '@app/store';
 
 /**
  * Is the array running?
  */
-export const arrayIsRunning = () => varState.data?.mdState.toLowerCase() === 'started';
+export const arrayIsRunning = () => {
+	const emhttp = getters.emhttp();
+	return emhttp.var.mdState.toLowerCase() === 'started';
+};

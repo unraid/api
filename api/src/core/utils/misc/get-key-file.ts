@@ -1,14 +1,15 @@
+import { getters } from '@app/store';
 import btoa from 'btoa';
 import { readFile } from 'fs/promises';
-import { varState } from '@app/core/states/var';
 
 // Get key file
-export const getKeyFile = async function (regFile: string = varState.data.regFile) {
-	// Bail if key is missing
-	if (regFile.trim() === '') {
-		return '';
-	}
+export const getKeyFile = async function (path?: string) {
+	const emhttp = getters.emhttp();
+	const registrationKeyFilePath = (path ?? emhttp.var.regFile).trim();
 
-	const keyFile = await readFile(regFile, 'binary');
+	// Bail if key file path is empty
+	if (registrationKeyFilePath === '') return '';
+
+	const keyFile = await readFile(registrationKeyFilePath, 'binary');
 	return btoa(keyFile).trim().replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
 };

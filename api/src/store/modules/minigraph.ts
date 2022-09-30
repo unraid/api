@@ -16,18 +16,18 @@ export enum SubscriptionKey {
 	'SERVERS',
 }
 
-interface MinigraphClientSubscription {
+export type MinigraphClientSubscription = {
 	subscription: () => void;
 	subscriptionId: string;
 	subscriptionKey: SubscriptionKey;
-}
+};
 
-interface MinigraphClientState {
+export type MinigraphClientState = {
 	status: MinigraphStatus;
 	error: null | { message: string };
 	subscriptions: MinigraphClientSubscription[];
 	client: Client | null;
-}
+};
 
 const initialState: MinigraphClientState = {
 	status: MinigraphStatus.DISCONNECTED,

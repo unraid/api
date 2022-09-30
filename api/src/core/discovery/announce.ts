@@ -1,15 +1,14 @@
 import stw from 'spread-the-word';
 import { boolToString } from '@app/core/utils';
-import { varState } from '@app/core/states';
 import { AppError } from '@app/core/errors/app-error';
+import { getters } from '@app/store';
 
 /**
  * Announce to the local network via mDNS.
  */
 export const announce = async (): Promise<void> => {
-	const name: string = varState.data?.name;
-	const localTld: string = varState.data?.localTld;
-	const version: string = varState.data?.version;
+	const emhttp = getters.emhttp();
+	const { name, localTld, version } = emhttp.var;
 
 	if (!name || !localTld || !version) {
 		throw new AppError('Missing require fields to announce.');

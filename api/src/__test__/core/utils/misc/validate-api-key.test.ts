@@ -3,7 +3,6 @@ import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 
 // Preloading imports for faster tests
 import '@app/core/log';
-import '@app/core/states/var';
 
 vi.mock('@app/core/log', () => ({
 	logger: {
@@ -21,14 +20,6 @@ vi.mock('@app/core/log', () => ({
 		error: vi.fn(),
 		debug: vi.fn(),
 		trace: vi.fn(),
-	},
-}));
-
-vi.mock('@app/core/states/var', () => ({
-	varState: {
-		data: {
-			flashGuid: '123-123-123-123',
-		},
 	},
 }));
 

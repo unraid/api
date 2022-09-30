@@ -7,35 +7,33 @@ const devConfigPath = resolvePath(__dirname, '../../../../dev/Unraid.net/myserve
 
 test('Before init returns default values for all fields', async () => {
 	const state = store.getState().config;
-	expect(state).toEqual(
-		{
-			api: {
-				extraOrigins: '',
-				version: 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
-			},
-			local: {
-				'2Fa': '',
-			},
-			nodeEnv: 'test',
-			notifier: {
-				apikey: '',
-			},
-			remote: {
-				'2Fa': '',
-				apikey: '',
-				avatar: '',
-				email: '',
-				username: '',
-				wanaccess: '',
-				wanport: '',
-			},
-			status: 'UNLOADED',
-			upc: {
-				apikey: '',
-			},
+	expect(state).toEqual({
+		api: {
+			extraOrigins: '',
+			version: 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
 		},
-	);
-});
+		local: {
+			'2Fa': '',
+		},
+		nodeEnv: 'test',
+		notifier: {
+			apikey: '',
+		},
+		remote: {
+			'2Fa': '',
+			apikey: '',
+			avatar: '',
+			email: '',
+			username: '',
+			wanaccess: '',
+			wanport: '',
+		},
+		status: 'UNLOADED',
+		upc: {
+			apikey: '',
+		},
+	});
+}, 10_000);
 
 test('After init returns values from cfg file for all fields', async () => {
 	const { loadConfigFile } = await import('@app/store/modules/config');

@@ -4,11 +4,11 @@
  */
 
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { varState } from '@app/core/states/var';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { emcmd } from '@app/core/utils/clients/emcmd';
 import { FieldMissingError } from '@app/core/errors/field-missing-error';
 import { ParamInvalidError } from '@app/core/errors/param-invalid-error';
+import { getters } from '@app/store';
 
 type State = 'start' | 'cancel' | 'resume' | 'cancel';
 
@@ -39,7 +39,8 @@ export const updateParityCheck = async (context: Context): Promise<CoreResult> =
 	}
 
 	const { state: wantedState } = data;
-	const running = varState?.data?.mdResync !== 0;
+	const emhttp = getters.emhttp();
+	const running = emhttp.var.mdResync !== 0;
 	const states = {
 		pause: {
 			cmdNoCheck: 'Pause',

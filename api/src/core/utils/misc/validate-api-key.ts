@@ -1,9 +1,8 @@
 import { got } from 'got';
-import { varState } from '@app/core/states/var';
 import { AppError } from '@app/core/errors/app-error';
 import { logger } from '@app/core/log';
-import { store } from '@app/store';
 import { logoutUser } from '@app/store/modules/config';
+import { store, getters } from '@app/store';
 
 const validKeys = new Set();
 
@@ -60,9 +59,11 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 		return false;
 	}
 
+	const emhttp = getters.emhttp();
+
 	// Send apiKey, etc. to key-server for verification
 	const response = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
-		guid: varState.data.flashGuid,
+		guid: emhttp.var.flashGuid,
 		apikey: apiKey,
 	});
 

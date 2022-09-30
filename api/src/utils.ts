@@ -18,10 +18,10 @@ export const getServers = async (apiKey: string) => {
 		};
 
 		mothershipLogger.debug('Testing servers endpoint with minigraph');
-		const response = await MinigraphClient.query(query);
+		const response = await MinigraphClient.query<ExecutionResult<{ servers: Server[] }>>(query);
 		mothershipLogger.trace('Got response from query: %o', response);
 
-		const { data, errors } = response as ExecutionResult<{ servers: Server[] }>;
+		const { data, errors } = response;
 		if (data) {
 			return data.servers;
 		}

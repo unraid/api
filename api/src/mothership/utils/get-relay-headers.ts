@@ -1,16 +1,17 @@
-import { varState } from '@app/core/states';
 import { getters } from '@app/store';
 
 export const getRelayHeaders = () => {
-	const apiKey = getters.config().remote.apikey;
-	const serverName = varState.data.name;
-	const serverVersion = varState.data.version;
+	const config = getters.config();
+	const emhttp = getters.emhttp();
+	const apiKey = config.remote.apikey;
+	const serverName = emhttp.var.name;
+	const serverVersion = emhttp.var.version;
 
 	return {
 		'x-api-key': apiKey,
-		'x-flash-guid': varState.data?.flashGuid,
+		'x-flash-guid': emhttp.var.flashGuid,
 		'x-server-name': serverName,
-		'x-unraid-api-version': getters.config().api.version,
+		'x-unraid-api-version': config.api.version,
 		'x-unraid-server-version': serverVersion,
 	};
 };

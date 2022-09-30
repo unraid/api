@@ -3,7 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import type { CoreResult, CoreContext, DynamixConfig } from '@app/core/types';
+import type { CoreResult, CoreContext } from '@app/core/types/global';
+import type { DynamixConfig } from '@app/core/types/ini';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { toBoolean } from '@app/core/utils/casting';
 import { loadState } from '@app/core/utils/misc/load-state';

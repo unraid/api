@@ -69,9 +69,10 @@ const canSendDataPacket = (dataPacket: Dashboard) => {
 export const publishToDashboard = async () => {
 	try {
 		const dataPacket = await generateData();
-		dashboardLogger.debug('Data Packet Is: ', dataPacket);
 		// Only update data on change
 		if (!canSendDataPacket(dataPacket)) return;
+
+		dashboardLogger.debug('New Data Packet Is: %o', dataPacket);
 
 		// Save last data packet
 		dashboardStore.lastDataPacketTimestamp = Date.now();

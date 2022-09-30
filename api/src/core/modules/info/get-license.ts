@@ -3,10 +3,10 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '@app/core/states/var';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
+import { getters } from '@app/store';
 
 /**
  * Get server's license info
@@ -24,9 +24,11 @@ export const getLicense = async function (context: CoreContext): Promise<CoreRes
 		possession: 'any',
 	});
 
+	const emhttp = getters.emhttp();
+
 	// Get license data
-	const type = varState.data.regTy.toUpperCase();
-	const state = varState.data.regState;
+	const type = emhttp.var.regTy.toUpperCase();
+	const state = emhttp.var.regState;
 	const file = await getKeyFile();
 
 	return {

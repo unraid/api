@@ -5,9 +5,8 @@
 
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { slotsState } from '@app/core/states/slots';
 import { addTogether } from '@app/core/utils/misc/add-together';
-import { varState } from '@app/core/states/var';
+import { getters } from '@app/store';
 
 /**
  * Get array info.
@@ -23,12 +22,14 @@ export const getArray = (context: CoreContext): CoreResult => {
 		possession: 'any',
 	});
 
+	const emhttp = getters.emhttp();
+
 	// Array state
-	const arrayState = varState?.data?.mdState.toLowerCase();
+	const arrayState = emhttp.var.mdState.toLowerCase();
 	const state: string = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
 
 	// All known disks
-	const allDisks = slotsState.find().filter(disk => disk.device);
+	const allDisks = emhttp.slots.filter(disk => disk.device);
 
 	// Array boot/parities/disks/caches
 	const boot = allDisks.find(disk => disk.name === 'flash');
@@ -41,7 +42,7 @@ export const getArray = (context: CoreContext): CoreResult => {
 	const disksFreeBytes = addTogether(disks.map(_ => _.fsFree * 1_024));
 
 	// Max
-	const maxDisks = varState?.data?.maxArraysz ?? disks.length;
+	const maxDisks = emhttp.var.maxArraysz ?? disks.length;
 
 	// Array capacity
 	const capacity = {

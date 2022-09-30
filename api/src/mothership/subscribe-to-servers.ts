@@ -1,11 +1,13 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { GraphQLError } from 'graphql';
+import { ExecutionResult } from 'graphql';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { MinigraphClient } from './minigraph-client';
 import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/modules/minigraph';
 import { getters, store } from '@app/store';
 import { cacheServers, Server } from '@app/store/modules/servers';
+
+type ServersExecutionResult = ExecutionResult<{ servers: Server[] }>;
 
 export const subscribeToServers = async (apiKey: string) => {
 	const query = {
@@ -17,7 +19,7 @@ export const subscribeToServers = async (apiKey: string) => {
 		},
 	};
 
-	const nextFn = async ({ data, errors }: { data?: { servers: Server[] } | null | undefined; errors?: readonly GraphQLError[] | undefined }) => {
+	const nextFn = async ({ data, errors }: ServersExecutionResult) => {
 		if (errors && errors.length > 0) {
 			mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
 			errors.forEach(error => {
@@ -46,7 +48,7 @@ export const subscribeToServers = async (apiKey: string) => {
 		}
 	};
 
-	await MinigraphClient.subscribe({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
+	await MinigraphClient.subscribe<ServersExecutionResult>({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
 };
 
 export const subscribeToMinigraphServers = async () => {

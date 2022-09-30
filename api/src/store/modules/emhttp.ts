@@ -4,8 +4,8 @@
  */
 
 import { FileLoadStatus } from '@app/store/types';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import merge from 'lodash.merge';
+import { createAsyncThunk, createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
+import merge from 'lodash/merge';
 import { join } from 'path';
 import { logger } from '@app/core';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
@@ -105,16 +105,19 @@ export const emhttp = createSlice({
 	initialState,
 	reducers: {
 		updateEmhttpState(state, action: PayloadAction<{ field: keyof typeof parsers; state: Partial<typeof initialState[keyof typeof initialState]> }>) {
-			return merge(state, action.payload);
+			const field = action.payload.field
+			return merge(state, { [field]: action.payload.state })
 		},
 	},
 	extraReducers(builder) {
 		builder.addCase(loadStateFiles.pending, (state, _action) => {
 			state.status = FileLoadStatus.LOADING;
 		});
+
 		builder.addCase(loadStateFiles.fulfilled, (state, action) => {
 			merge(state, action.payload, { status: FileLoadStatus.LOADED });
 		});
+
 		builder.addCase(loadStateFiles.rejected, (state, action) => {
 			merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
 		});

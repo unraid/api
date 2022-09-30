@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
-import { varState } from '@app/core/states/var';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getters } from '@app/store';
 
 /**
  * Get server's flash info
@@ -23,10 +23,12 @@ export const getFlash = async function (context: CoreContext): Promise<CoreResul
 		possession: 'any',
 	});
 
+	const emhttp = getters.emhttp();
+
 	// Get flash data
-	const guid = varState.data.flashGuid;
-	const product = varState.data.flashProduct;
-	const vendor = varState.data.flashVendor;
+	const guid = emhttp.var.flashGuid;
+	const product = emhttp.var.flashProduct;
+	const vendor = emhttp.var.flashVendor;
 
 	return {
 		get text() {

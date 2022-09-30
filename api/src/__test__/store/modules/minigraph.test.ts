@@ -8,6 +8,7 @@ vi.mock('@app/store', () => ({
 	getters: { config: () => ({ version: '2.50.0' }) },
 }));
 
+// This is now in the store
 vi.mock('@app/core/states', () => ({
 	varState: { data: { version: '6.11.0' } },
 }));

@@ -9,13 +9,13 @@ import { pathExists } from 'path-exists';
 import { filter as asyncFilter } from 'p-iteration';
 import { isSymlink } from 'path-type';
 import type { PciDevice, CoreResult, CoreContext } from '@app/core/types';
-import { varState } from '@app/core/states/var';
 import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
 import { getPciDevices } from '@app/core/utils/vms/get-pci-devices';
 import { filterDevices } from '@app/core/utils/vms/filter-devices';
 import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
 import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getters } from '@app/store';
 
 /**
  * System Network interfaces.
@@ -145,8 +145,10 @@ const getSystemUSBDevices = async (): Promise<any[]> => {
 		return id.replace('p', ':');
 	})).catch(() => [] as string[]);
 
+	const emhttp = getters.emhttp();
+
 	// Remove boot drive
-	const filterBootDrive = (device: Readonly<PciDevice>): boolean => varState?.data?.flashGuid !== device.guid;
+	const filterBootDrive = (device: Readonly<PciDevice>): boolean => emhttp.var.flashGuid !== device.guid;
 
 	// Remove usb hubs
 	const filterUsbHubs = (device: Readonly<PciDevice>): boolean => !usbHubs.includes(device.id);

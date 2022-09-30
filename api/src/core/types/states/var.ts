@@ -15,7 +15,7 @@ export type ConfigErrorState =
 /**
  * Global vars
  */
-export interface Var {
+export type Var = {
 	bindMgt: boolean | undefined;
 	cacheNumDevices: number;
 	cacheSbNumDisks: number;
@@ -199,4 +199,4 @@ export interface Var {
 	version: string;
 	/** The SMB workgroup. */
 	workgroup: string;
-}
+};

@@ -4,8 +4,8 @@
  */
 
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { varState } from '@app/core/states/var';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { getters } from '@app/store';
 
 /**
  * Get all system vars.
@@ -20,10 +20,12 @@ export const getVars = async (context: CoreContext): Promise<CoreResult> => {
 		possession: 'any',
 	});
 
+	const emhttp = getters.emhttp();
+
 	return {
-		text: `Vars: ${JSON.stringify(varState.data, null, 2)}`,
+		text: `Vars: ${JSON.stringify(emhttp.var, null, 2)}`,
 		json: {
-			...varState.data,
+			...emhttp.var,
 		},
 	};
 };

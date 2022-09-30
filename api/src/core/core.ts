@@ -3,8 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { logger, nchanLogger } from '@app/core/log';
-import { oldSubscribeToNchanEndpointMethodToBeRemoved } from '@app/core/utils';
+import { logger } from '@app/core/log';
 import { config } from '@app/core/config';
 import * as watchers from '@app/core/watchers';
 
@@ -35,33 +34,6 @@ const loadWatchers = async (): Promise<void> => {
 };
 
 /**
- * Connect to nchan endpoints.
- *
- * @param endpoints
- */
-const connectToNchanEndpoints = async (endpoints: string[]): Promise<void> => {
-	nchanLogger.debug('Connected, setting-up endpoints.');
-	const connections = endpoints.map(async endpoint => oldSubscribeToNchanEndpointMethodToBeRemoved(endpoint));
-	await Promise.all(connections);
-};
-
-/**
- * Start nchan subscriptions
- *
- * @name core.loadNchan
- * @async
- * @private
- */
-const loadNchan = async (): Promise<void> => {
-	const endpoints = ['devs', 'disks', 'sec', 'sec_nfs', 'shares', 'users', 'var'];
-
-	logger.debug('Trying to connect to nchan');
-
-	// Connect to each known endpoint
-	await connectToNchanEndpoints(endpoints);
-};
-
-/**
  * Core loaders.
  */
 const loaders = {
@@ -80,5 +52,4 @@ const load = async (): Promise<void> => {
 export const core = {
 	loaders,
 	load,
-	loadNchan,
 };

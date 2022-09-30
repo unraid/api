@@ -6,11 +6,11 @@
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { bus } from '@app/core/bus';
 import { AppError } from '@app/core/errors/app-error';
-import { usersState } from '@app/core/states/users';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { hasFields } from '@app/core/utils/validation/has-fields';
 import { FieldMissingError } from '@app/core/errors/field-missing-error';
 import { emcmd } from '@app/core/utils/clients/emcmd';
+import { getters } from '@app/store';
 
 interface Context extends CoreContext {
 	readonly data: {
@@ -46,7 +46,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	}
 
 	// Check user name isn't taken
-	if (usersState.findOne({ name })) {
+	if (getters.emhttp().users.find(user => user.name === name)) {
 		throw new AppError('A user account with that name already exists.');
 	}
 
@@ -60,8 +60,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	});
 
 	// Get fresh copy of Users with the new user
-	const user = usersState.findOne({ name });
-
+	const user = getters.emhttp().users.find(user => user.name === name);
 	if (!user) {
 		// User managed to disappear between us creating it and the lookup?
 		throw new AppError('Internal Server Error!');

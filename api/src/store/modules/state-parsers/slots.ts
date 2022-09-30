@@ -1,4 +1,4 @@
-import { IniEnabled, IniNumberBoolean } from '@app/core/types/ini';
+import { IniEnabled, IniNumberBoolean } from '@app/core/types';
 import { toNumber, toBoolean } from '@app/core/utils';
 
 type SlotStatus = 'DISK_OK';

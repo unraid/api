@@ -6,9 +6,9 @@
 import { CoreContext, CoreResult } from '@app/core/types';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { usersState } from '@app/core/states/users';
 import { hasFields } from '@app/core/utils/validation/has-fields';
 import { FieldMissingError } from '@app/core/errors/field-missing-error';
+import { getters } from '@app/store';
 
 interface Context extends CoreContext {
 	params: {
@@ -39,7 +39,7 @@ export const addRole = async (context: Context): Promise<CoreResult> => {
 	}
 
 	// Check user exists
-	if (!usersState.findOne({ name })) {
+	if (!getters.emhttp().users.find(user => user.name === name)) {
 		throw new AppError('No user exists with this name.');
 	}
 
