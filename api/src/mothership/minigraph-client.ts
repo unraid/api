@@ -49,10 +49,14 @@ export const createMinigraphClient = () => {
 	client.on('closed', event => {
 		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
 		store.dispatch(clearAllServers());
-		minigraphLogger.debug('MinigraphClient closed connection', event);
+		minigraphLogger.addContext('closeEvent', event);
+		minigraphLogger.debug('MinigraphClient closed connection');
+		minigraphLogger.removeContext('closeEvent');
 	});
 	client.on('message', message => {
-		minigraphLogger.trace('Message from Minigraph: %o', message);
+		minigraphLogger.addContext('message', message);
+		minigraphLogger.trace('Message from Minigraph');
+		minigraphLogger.removeContext('message');
 	});
 	return client;
 };
@@ -71,7 +75,9 @@ export const MinigraphClient = {
 				},
 				error: reject,
 				complete() {
-					minigraphLogger.trace('Finished a query %s', query);
+					minigraphLogger.addContext('query', query);
+					minigraphLogger.trace('Finished a query');
+					minigraphLogger.removeContext('query');
 					resolve(result as T);
 				},
 			},
@@ -105,6 +111,8 @@ export const MinigraphClient = {
 			},
 		});
 		store.dispatch(addSubscription({ subscriptionId, subscriptionKey, subscription }));
-		minigraphLogger.trace('Current Subscriptions: %o', getters.minigraph().subscriptions);
+		minigraphLogger.addContext('subscriptions', getters.minigraph().subscriptions);
+		minigraphLogger.trace('Current Subscriptions: %i', getters.minigraph().subscriptions.length);
+		minigraphLogger.removeContext('subscriptions');
 	},
 };

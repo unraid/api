@@ -40,6 +40,7 @@
     "typesync": "typesync",
     "install:unraid": "./scripts/install-in-unraid.sh",
     "start:plugin": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
+    "start:plugin-verbose": "LOG_CONTEXT=true LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
     "start:dev": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty NODE_ENV=development LOG_LEVEL=trace NODE_ENV=development tsup --config ./tsup.config.ts --watch --onSuccess 'DOTENV_CONFIG_PATH=./.env.development node -r dotenv/config dist/unraid-api.cjs start --debug'",
     "start:docker": "docker compose run --rm builder-interactive"
   },
@@ -103,7 +104,6 @@
     "p-iteration": "^1.1.8",
     "pidusage": "^3.0.0",
     "react-redux": "^8.0.2",
-    "redact-secrets": "github:OmgImAlexis/redact-secrets#master",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",
@@ -276,7 +276,6 @@
     "pify",
     "pretty-bytes",
     "pretty-ms",
-    "redact-secrets",
     "request",
     "request-promise-native",
     "rotating-file-stream",

@@ -4,14 +4,8 @@
  */
 
 import chalk from 'chalk';
-import { redactSecrets } from 'redact-secrets';
 import { configure, getLogger as getRealLogger, Logger } from 'log4js';
 import { serializeError } from 'serialize-error';
-
-const redact = redactSecrets('REDACTED', {
-	keys: [],
-	values: [],
-});
 
 export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
 
@@ -34,7 +28,7 @@ const logLayout = {
 			return chalk`{gray [${process.pid}]}`;
 		},
 		context({ context }: { context?: any }) {
-			if (!contextEnabled) {
+			if (!contextEnabled || !context) {
 				return '';
 			}
 
@@ -42,7 +36,7 @@ const logLayout = {
 				.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
 				.filter(([key]) => key !== 'pid');
 			const cleanContext = Object.fromEntries(contextEntries);
-			return context ? (' ' + Object.entries(redact.map(cleanContext)).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')) : '';
+			return `\n${Object.entries(cleanContext).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')}`;
 		},
 	},
 };
