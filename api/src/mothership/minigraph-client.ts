@@ -59,7 +59,7 @@ export const createMinigraphClient = () => {
 
 export const MinigraphClient = {
 	// eslint-disable-next-line no-async-promise-executor
-	query: async (query: SubscribePayload): Promise<ExecutionResult<Record<string, unknown>, unknown>> => new Promise(async (resolve, reject) => {
+	query: async <T extends ExecutionResult>(query: SubscribePayload): Promise<T> => new Promise(async (resolve, reject) => {
 		let result: ExecutionResult<Record<string, unknown>, unknown>;
 
 		const client = getters.minigraph().client ?? await getNewMinigraphClient();
@@ -72,19 +72,19 @@ export const MinigraphClient = {
 				error: reject,
 				complete() {
 					minigraphLogger.trace('Finished a query %s', query);
-					resolve(result);
+					resolve(result as T);
 				},
 			},
 		);
 	}),
-	async subscribe({
+	async subscribe<T extends ExecutionResult>({
 		subscriptionKey,
 		query,
 		nextFn,
 	}: {
 		subscriptionKey: SubscriptionKey;
 		query: SubscribePayload;
-		nextFn: (value: ExecutionResult<any, unknown>) => void;
+		nextFn: (value: T) => void;
 	}) {
 		const subscriptionId = v4();
 		if (!getters.config().remote.apikey) {
