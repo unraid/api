@@ -23,12 +23,12 @@ export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 
 	// We already wrote this to the file
 	if (isEqual(newConfig, oldConfig)) {
-		logger.debug('Not dumping config, state on disk is the same');
 		return;
 	}
 
-	logger.debug('Dumping MyServers config back to file');
-	logger.trace(getDiff(oldConfig ?? {}, newConfig, true));
+	logger.addContext('diff', getDiff(oldConfig ?? {}, newConfig, true));
+	logger.trace('Dumping MyServers config back to file');
+	logger.removeContext('diff');
 
 	// Stringify state
 	const stringifiedData = serializer.serialize(newConfig);
