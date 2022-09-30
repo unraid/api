@@ -1,10 +1,10 @@
+import { logger } from '@app/core';
 import { addTogether } from '@app/core/utils/misc/add-together';
 import { getters } from '@app/store';
 
 export const getArray = () => {
 	const emhttp = getters.emhttp();
 
-	// Array state
 	const arrayState = emhttp.var.mdState.toLowerCase();
 	const state: string = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
 
