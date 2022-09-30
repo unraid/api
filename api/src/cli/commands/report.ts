@@ -1,6 +1,5 @@
 
 import { dedent } from '@app/common/dedent';
-import camelCaseKeys from 'camelcase-keys';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import { got } from 'got';
@@ -20,24 +19,9 @@ import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
 import { Server } from '@app/store/modules/servers';
 
-export const getConfig = <T = unknown>(path: string) => {
-	try {
-		const config = parseConfig<T>({
-			filePath: path,
-			type: 'ini',
-		});
-		return camelCaseKeys(config as unknown as readonly unknown[], {
-			deep: true,
-		}) as T;
-	} catch {}
-
-	return undefined;
-};
-
 export const createGotOptions = (config: Partial<MyServersConfig>) => {
 	// Create default settings for got
 	const headers = {
-
 		Origin: '/var/run/unraid-cli.sock',
 		'Content-Type': 'application/json',
 		'x-api-key': config.upc?.apikey,
@@ -108,8 +92,6 @@ const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbo
 
 // eslint-disable-next-line complexity
 export const report = async (...argv: string[]) => {
-	// Which report does the user want?
-
 	// Check if the user has raw output enabled
 	const rawOutput = argv.includes('--raw');
 
@@ -189,8 +171,16 @@ export const report = async (...argv: string[]) => {
 		const hasCrashLogs = (await stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
 
 		// Load the var.ini file
-		const varIni = getConfig<{ name: string }>(resolve(paths.states, 'var.ini'));
-		const serverName = varIni?.name ?? 'Tower';
+		// @TODO Use the global state here?
+		let serverName = 'Tower';
+		try {
+			const varIni = parseConfig<{ name: string }>({ filePath: resolve(paths.states, 'var.ini'), type: 'ini' });
+			if (varIni.name) {
+				serverName = varIni.name;
+			}
+		} catch (error: unknown) {
+			cliLogger.error('Error loading states ini for report, defaulting server name to Tower');
+		}
 
 		// Check if the API key is valid
 		// If the API is offline check directly with key-server

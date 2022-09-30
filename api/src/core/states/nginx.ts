@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { Nginx } from '@app/core/types/states';
+import { Nginx } from '@app/core/types/states/nginx';
 import { IniStringBooleanOrAuto } from '@app/core/types/ini';
 import { State } from '@app/core/states/state';
 import { parseConfig } from '@app/core/utils/misc/parse-config';

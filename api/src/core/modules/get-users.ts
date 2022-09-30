@@ -4,7 +4,7 @@
  */
 
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { User } from '@app/core/types/states';
+import { User } from '@app/core/types/states/user';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { AppError } from '@app/core/errors/app-error';
 import { usersState } from '@app/core/states/users';

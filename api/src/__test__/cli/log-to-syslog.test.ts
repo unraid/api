@@ -1,5 +1,8 @@
 import { expect, test, vi } from 'vitest';
 
+// Preloading imports for faster tests
+import '@app/cli/log-to-syslog';
+
 test('logs using the logger cli tool', async () => {
 	vi.mock('execa');
 

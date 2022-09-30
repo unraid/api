@@ -24,11 +24,13 @@ module.exports = {
 		'import/no-cycle': 'off', // Change this to "error" to find circular imports
 		'no-unused-vars': 'off',
 		'@typescript-eslint/no-non-null-assertion': 'off',
-		'@typescript-eslint/no-unused-vars': ['warn', {
+		'@typescript-eslint/no-unused-vars': ['error', {
 			argsIgnorePattern: '^_',
 			varsIgnorePattern: '^_',
 			caughtErrorsIgnorePattern: '^_',
 		}],
+		'no-use-before-define': 'off',
+		'@typescript-eslint/no-use-before-define': ['error'],
 	},
 	settings: {
 		'import/parsers': {

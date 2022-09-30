@@ -3,6 +3,10 @@ import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
+// Preloading imports for faster tests
+import '@app/core/log';
+import '@app/cli/commands/report';
+
 vi.mock('readline', () => {
 	const writeStub = vi.fn();
 	const closeStub = vi.fn();
@@ -53,14 +57,6 @@ vi.mock('got', () => ({
 
 		throw new Error(`Unmocked query "${opts.body}"`);
 	}),
-}));
-
-vi.mock('@app/core/utils/misc/parse-config', () => ({
-	parseConfig: vi.fn(() => ({
-		upc: {
-			apikey: randomUUID(),
-		},
-	})),
 }));
 
 vi.mock('process');

@@ -31,7 +31,6 @@ services:
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
-    platform: linux/amd64
     stdin_open: true
     tty: true
     entrypoint: /bin/bash

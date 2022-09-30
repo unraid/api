@@ -1,5 +1,10 @@
 import { beforeEach, expect, test, vi } from 'vitest';
 
+// Preloading imports for faster tests
+import '@app/mothership/utils/convert-to-fuzzy-time';
+import '@app/mothership/save-websocket-message-to-disk';
+import '@app/mothership/subscription-listener';
+
 vi.mock('@app/mothership/get-relay-connection-status', () => ({
 	getRelayConnectionStatus: vi.fn(),
 }));

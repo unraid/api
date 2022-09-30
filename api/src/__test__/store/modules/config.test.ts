@@ -1,17 +1,11 @@
-import { configureStore } from '@reduxjs/toolkit';
 import { resolve as resolvePath } from 'path';
-import { test, expect } from 'vitest';
+import { test, expect, vi } from 'vitest';
 import { temporaryFile } from 'tempy';
+import { store } from '@app/store';
 
 const devConfigPath = resolvePath(__dirname, '../../../../dev/Unraid.net/myservers.cfg');
 
 test('Before init returns default values for all fields', async () => {
-	const { config } = await import('@app/store/modules/config');
-	const store = configureStore({
-		reducer: {
-			config: config.reducer,
-		},
-	});
 	const state = store.getState().config;
 	expect(state).toEqual(
 		{
@@ -41,15 +35,10 @@ test('Before init returns default values for all fields', async () => {
 			},
 		},
 	);
-}, 10_000);
+});
 
 test('After init returns values from cfg file for all fields', async () => {
-	const { config, loadConfigFile } = await import('@app/store/modules/config');
-	const store = configureStore({
-		reducer: {
-			config: config.reducer,
-		},
-	});
+	const { loadConfigFile } = await import('@app/store/modules/config');
 
 	// Load cfg into store
 	await store.dispatch(loadConfigFile(devConfigPath));
@@ -88,17 +77,17 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		}
 	`);
-}, 10_000);
+});
 
 test('updateUserConfig merges in changes to current state', async () => {
-	const { config, loadConfigFile, updateUserConfig } = await import('@app/store/modules/config');
-	const store = configureStore({
-		reducer: {
-			config: config.reducer,
-		},
-	});
+	const { loadConfigFile, updateUserConfig } = await import('@app/store/modules/config');
+
+	// Load cfg into store
 	await store.dispatch(loadConfigFile(devConfigPath));
+
+	// Update store
 	store.dispatch(updateUserConfig({ remote: { avatar: 'https://via.placeholder.com/500' } }));
+
 	const state = store.getState().config;
 	expect(state).toMatchInlineSnapshot(`
 		{
@@ -135,16 +124,13 @@ test('updateUserConfig merges in changes to current state', async () => {
 });
 
 test('File on disk matches state after writing', async () => {
-	const { config, loadConfigFile, updateUserConfig, writeConfigToDisk } = await import('@app/store/modules/config');
-	const store = configureStore({
-		reducer: {
-			config: config.reducer,
-		},
-	});
-	const configFile = await store.dispatch(loadConfigFile(devConfigPath)).unwrap();
+	const { loadConfigFile, updateUserConfig, writeConfigToDisk } = await import('@app/store/modules/config');
+
+	// Load cfg into store
+	await store.dispatch(loadConfigFile(devConfigPath));
 
 	// Update store
-	store.dispatch(updateUserConfig({ ...configFile, remote: { ...configFile.remote, avatar: 'https://via.placeholder.com/500' } }));
+	store.dispatch(updateUserConfig({ remote: { avatar: 'https://via.placeholder.com/500' } }));
 
 	// Update file on disk
 	const newConfigFilePath = temporaryFile();

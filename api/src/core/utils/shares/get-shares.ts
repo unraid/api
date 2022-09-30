@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import type { UserShare, DiskShare } from '@app/core/types/states';
+import type { UserShare, DiskShare } from '@app/core/types/states/share';
 import { sharesState } from '@app/core/states/shares';
 import { slotsState } from '@app/core/states/slots';
 import { processShare } from '@app/core/utils/shares/process-share';

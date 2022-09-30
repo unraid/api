@@ -19,6 +19,8 @@ import { startStoreSync } from '@app/store/store-sync';
 import { updateNginxState } from '@app/store/modules/nginx';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { NginxIni } from '@app/core/states/nginx';
+import { loadStateFiles } from '@app/store/modules/emhttp';
+import { setupNchanWatch } from '@app/store/watch/nchan-watch';
 
 // Boot app
 void am(async () => {
@@ -40,6 +42,12 @@ void am(async () => {
 
 	// Load my servers config file into store
 	await store.dispatch(loadConfigFile());
+
+	// Load emhttp state into store
+	await store.dispatch(loadStateFiles());
+
+	// Start listening to nchan updates
+	await setupNchanWatch();
 
 	// Load nginx.ini into store
 	const state = loadState<Partial<NginxIni>>(getters.paths()['nginx-state']);

@@ -4,7 +4,7 @@
  */
 
 import path from 'path';
-import { Var } from '@app/core/types/states';
+import { Var } from '@app/core/types/states/var';
 import { IniStringBooleanOrAuto, IniStringBoolean } from '@app/core/types/ini';
 import { State } from '@app/core/states/state';
 import { toNumber } from '@app/core/utils/casting';

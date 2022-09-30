@@ -3,7 +3,6 @@
 export * from './array';
 export * from './authentication';
 export * from './clients';
-export * from './debugging';
 export * from './permissions';
 export * from './plugins';
 export * from './shares';

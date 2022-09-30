@@ -4,6 +4,7 @@ import { minigraph } from '@app/store/modules/minigraph';
 import { config } from '@app/store/modules/config';
 import { nginx } from '@app/store/modules/nginx';
 import { servers } from '@app/store/modules/servers';
+import { emhttp } from '@app/store/modules/emhttp';
 
 export const store = configureStore({
 	reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
 		paths: paths.reducer,
 		nginx: nginx.reducer,
 		servers: servers.reducer,
+		emhttp: emhttp.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
@@ -30,4 +32,5 @@ export const getters = {
 	paths: () => store.getState().paths,
 	nginx: () => store.getState().nginx,
 	servers: () => store.getState().servers,
+	emhttp: () => store.getState().emhttp,
 };

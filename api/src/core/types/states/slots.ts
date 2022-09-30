@@ -1,4 +1,4 @@
-export interface Slot {
+export type Slot = {
 	/** The internal slot number for the pool. */
 	idx: string;
 	name: string;
@@ -20,4 +20,7 @@ export interface Slot {
 	fsSize: number;
 	/** Free space on disk. */
 	fsFree: number;
-}
+	exportable: boolean;
+};
+
+export type Slots = Slot[];

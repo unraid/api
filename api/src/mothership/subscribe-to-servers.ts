@@ -7,31 +7,6 @@ import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/mo
 import { getters, store } from '@app/store';
 import { cacheServers, Server } from '@app/store/modules/servers';
 
-export const subscribeToMinigraphServers = async () => {
-	try {
-		// Bail if we're in the middle of opening a connection
-		if (getters.minigraph().status === MinigraphStatus.CONNECTING) {
-			mothershipLogger.debug('Bailing on trying to fix graph connection when connecting');
-			return;
-		}
-
-		const isSubscribedToServers = await isKeySubscribed(SubscriptionKey.SERVERS);
-
-		if (isSubscribedToServers) {
-			mothershipLogger.debug('Already subscribed to servers, skipping resubscribe');
-			return;
-		}
-
-		if (!isSubscribedToServers && getters.config().remote.apikey) {
-			mothershipLogger.debug('Subscribing to servers');
-
-			await subscribeToServers(getters.config().remote.apikey);
-		}
-	} catch (error: unknown) {
-		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
-	}
-};
-
 export const subscribeToServers = async (apiKey: string) => {
 	const query = {
 		query: `subscription servers ($apiKey: String!) {
@@ -74,3 +49,27 @@ export const subscribeToServers = async (apiKey: string) => {
 	await MinigraphClient.subscribe({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
 };
 
+export const subscribeToMinigraphServers = async () => {
+	try {
+		// Bail if we're in the middle of opening a connection
+		if (getters.minigraph().status === MinigraphStatus.CONNECTING) {
+			mothershipLogger.debug('Bailing on trying to fix graph connection when connecting');
+			return;
+		}
+
+		const isSubscribedToServers = await isKeySubscribed(SubscriptionKey.SERVERS);
+
+		if (isSubscribedToServers) {
+			mothershipLogger.debug('Already subscribed to servers, skipping resubscribe');
+			return;
+		}
+
+		if (!isSubscribedToServers && getters.config().remote.apikey) {
+			mothershipLogger.debug('Subscribing to servers');
+
+			await subscribeToServers(getters.config().remote.apikey);
+		}
+	} catch (error: unknown) {
+		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
+	}
+};

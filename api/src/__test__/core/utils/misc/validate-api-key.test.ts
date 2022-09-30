@@ -1,6 +1,10 @@
 import { expect, test, vi } from 'vitest';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 
+// Preloading imports for faster tests
+import '@app/core/log';
+import '@app/core/states/var';
+
 vi.mock('@app/core/log', () => ({
 	logger: {
 		addContext: vi.fn(),

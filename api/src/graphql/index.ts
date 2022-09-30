@@ -9,7 +9,7 @@ import { DockerEventEmitter } from '@gridplus/docker-events';
 import { run } from '@app/run';
 import * as resolvers from '@app/graphql/resolvers';
 import { wsHasConnected, wsHasDisconnected } from '@app/ws';
-import { User } from '@app/core/types';
+import { User } from '@app/core/types/states/user';
 import { types as typeDefs } from '@app/graphql/types';
 import { schema } from '@app/graphql/schema';
 import { dockerLogger, graphqlLogger, logger } from '@app/core/log';

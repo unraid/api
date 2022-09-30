@@ -11,7 +11,7 @@ import { parseConfig } from '@app/core/utils/misc/parse-config';
  * Loads state from path.
  * @param filePath Path to state file.
  */
-export const loadState = <T>(filePath: string): T | undefined => {
+export const loadState = <T extends Record<string, any>>(filePath: string): T | undefined => {
 	try {
 		const config = camelCaseKeys(parseConfig<T>({
 			filePath,

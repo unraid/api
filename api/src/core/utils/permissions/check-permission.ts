@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { User } from '@app/core/types/states';
+import { User } from '@app/core/types/states/user';
 import { ParameterMissingError } from '@app/core/errors/param-missing-error';
 import { ac } from '@app/core/permissions';
 

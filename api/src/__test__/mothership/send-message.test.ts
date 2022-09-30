@@ -1,5 +1,9 @@
 import { test, vi } from 'vitest';
 
+// Preloading imports for faster tests
+import '@app/mothership/store';
+import '@app/mothership/send-message';
+
 vi.mock('@app/mothership/store', () => ({
 	relayStore: {
 		relay: {
@@ -19,7 +23,8 @@ test.each([
 	relayStore.relay!.isOpened = false;
 	const { sendMessage } = await import('@app/mothership/send-message');
 
-	// Onst importedFile = await import('@app/mothership/index');
+	// |
+	// const importedFile = await import('@app/mothership/index');
 
 	// @TODO: Add some expects here, probably requires a refactor to mock better
 

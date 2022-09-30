@@ -3,9 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-//  @todo: remove string and add rest of the options
-type FsType = 'xfs';
-type RegistrationType = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO';
+export type FsType = 'xfs';
+export type RegistrationTypeAllCaps = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO';
 
 export type ConfigErrorState =
 	'UNKNOWN_ERROR' |
@@ -131,7 +130,7 @@ export interface Var {
 	/** Who the current Unraid key is registered to. */
 	regTo: string;
 	/** Which type of key this is. */
-	regTy: RegistrationType;
+	regTy: RegistrationTypeAllCaps;
 	/** Is the server currently in safe mode. */
 	safeMode: boolean;
 	sbClean: boolean;
