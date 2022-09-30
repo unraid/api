@@ -1,5 +1,5 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { ExecutionResult, GraphQLError } from 'graphql';
+import { ExecutionResult } from 'graphql';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { MinigraphClient } from './minigraph-client';
@@ -7,7 +7,7 @@ import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/mo
 import { getters, store } from '@app/store';
 import { cacheServers, Server } from '@app/store/modules/servers';
 
-type ServersExecutionResult = ExecutionResult<{ servers: Server[] }>
+type ServersExecutionResult = ExecutionResult<{ servers: Server[] }>;
 
 export const subscribeToServers = async (apiKey: string) => {
 	const query = {
