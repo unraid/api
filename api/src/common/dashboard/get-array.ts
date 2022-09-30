@@ -1,4 +1,3 @@
-import { logger } from '@app/core';
 import { addTogether } from '@app/core/utils/misc/add-together';
 import { getters } from '@app/store';
 
