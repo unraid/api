@@ -58,15 +58,6 @@ vi.mock('got', () => ({
 		throw new Error(`Unmocked query "${opts.body}"`);
 	}),
 }));
-
-vi.mock('@app/core/utils/misc/parse-config', () => ({
-	parseConfig: vi.fn(() => ({
-		upc: {
-			apikey: randomUUID(),
-		},
-	})),
-}));
-
 vi.mock('process');
 
 test('Returns a JSON anonymised report when provided the --json cli argument [no servers]', async () => {

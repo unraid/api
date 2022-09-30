@@ -63,14 +63,6 @@ vi.mock('got', () => ({
 	}),
 }));
 
-vi.mock('@app/core/utils/misc/parse-config', () => ({
-	parseConfig: vi.fn(() => ({
-		upc: {
-			apikey: randomUUID(),
-		},
-	})),
-}));
-
 vi.mock('process');
 
 test('Returns a pretty anonymised report by default', async () => {

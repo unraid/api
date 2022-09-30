@@ -175,7 +175,9 @@ export const report = async (...argv: string[]) => {
 		let serverName = 'Tower';
 		try {
 			const varIni = parseConfig<{ name: string }>({ filePath: resolve(paths.states, 'var.ini'), type: 'ini' });
-			serverName = varIni.name;
+			if (varIni.name) {
+				serverName = varIni.name;
+			}
 		} catch (error: unknown) {
 			cliLogger.error('Error loading states ini for report, defaulting server name to Tower');
 		}

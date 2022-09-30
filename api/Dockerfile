@@ -18,15 +18,14 @@ RUN mkdir -p ${PKG_CACHE_PATH}
 
 COPY package.json package-lock.json ./
 COPY tsconfig.json tsup.config.ts ./
-COPY .git/ ./.git/
 COPY .npmrc ./
 COPY .env.production .env.staging  ./
 
 # Install build tools
 RUN apt-get update -y && apt-get install  -y \
-python \
-libvirt-dev \
-jq
+    python \
+    libvirt-dev \
+    jq
 
 # Install deps
 RUN $NPM_I_CMD
