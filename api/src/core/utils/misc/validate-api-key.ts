@@ -1,46 +1,13 @@
-import { got } from 'got';
-import { AppError } from '@app/core/errors/app-error';
 import { logger } from '@app/core/log';
 import { logoutUser } from '@app/store/modules/config';
 import { store, getters } from '@app/store';
+import { sendFormToKeyServer } from '@app/core/utils/misc/send-form-to-keyserver';
 
 const validKeys = new Set();
 
 export const clearValidKeyCache = () => {
 	validKeys.clear();
 	logger.debug('Cleared all keys from validity cache');
-};
-
-export const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
-	if (!data) {
-		throw new AppError('Missing data field.');
-	}
-
-	// Create form
-	const form = new URLSearchParams();
-	Object.entries(data).forEach(([key, value]) => {
-		if (value !== undefined) {
-			form.append(key, String(value));
-		}
-	});
-
-	// Convert form to string
-	const body = form.toString();
-	logger.addContext('form', body);
-	logger.trace('Sending form to key-server');
-	logger.removeContext('form');
-
-	// Send form
-	return got(url, {
-		method: 'POST',
-		headers: {
-			'content-type': 'application/x-www-form-urlencoded',
-		},
-		timeout: {
-			request: 5_000,
-		},
-		body,
-	});
 };
 
 export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
@@ -53,26 +20,46 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	logger.trace('Checking key-server validation for API key');
 	logger.removeContext('apiKey');
 
+	const emhttp = getters.emhttp();
 	// Check if API key exists
-	if (!apiKey) {
-		if (shouldThrow) throw new Error('Missing API key');
+	if (!apiKey || !emhttp.var.flashGuid) {
+		if (shouldThrow) throw new Error('Missing API key or flashGuid');
 		return false;
 	}
 
-	const emhttp = getters.emhttp();
-
 	// Send apiKey, etc. to key-server for verification
-	const response = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
-		guid: emhttp.var.flashGuid,
-		apikey: apiKey,
-	});
+	let response;
+	try {
+		response = await sendFormToKeyServer(KEY_SERVER_KEY_VERIFICATION_ENDPOINT, {
+			guid: emhttp.var.flashGuid,
+			apikey: apiKey,
+		});
+	} catch (error: unknown) {
+		logger.addContext('networkError', error);
+		logger.error('Caught error reaching Key Server');
+		logger.removeContext('networkError');
+		if (shouldThrow) {
+			throw error;
+		}
+
+		return false;
+	}
 
 	logger.addContext('apiKey', apiKey);
 	logger.trace('Got response back from key-server while validating API key');
 	logger.removeContext('apiKey');
 
 	// Get response data
-	const data = JSON.parse(response.body) as { valid: boolean };
+	let data;
+	try {
+		data = JSON.parse(response.body) as { valid: boolean };
+	} catch (error: unknown) {
+		if (shouldThrow) {
+			throw new Error('Could not parse JSON response from API Key Validation');
+		}
+
+		return false;
+	}
 
 	// Something went wrong
 	if (response.statusCode !== 200) {
@@ -84,7 +71,6 @@ export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	logger.addContext('data', data);
 	logger.trace('Response from key-server for API key validation');
 	logger.removeContext('data');
-
 	// Check if key is valid
 	const { valid } = data;
 	if (valid) {

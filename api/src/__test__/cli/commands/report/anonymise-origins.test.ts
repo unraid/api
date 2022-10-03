@@ -1,4 +1,3 @@
-import { resolve as resolvePath } from 'path';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { beforeAll, expect, test } from 'vitest';
@@ -6,11 +5,9 @@ import { beforeAll, expect, test } from 'vitest';
 // Preloading imports for faster tests
 import '@app/cli/commands/report';
 
-const devConfigPath = resolvePath(__dirname, '../../../../../dev/Unraid.net/myservers.cfg');
-
 beforeAll(async () => {
 	// Load cfg into store
-	await store.dispatch(loadConfigFile(devConfigPath));
+	await store.dispatch(loadConfigFile());
 });
 
 test('anonymise origins removes .sock origins', async () => {
