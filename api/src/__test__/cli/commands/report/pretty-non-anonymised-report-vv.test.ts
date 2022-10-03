@@ -72,7 +72,7 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 	const args = ['-vv'];
 
 	// The report should succeed
-	const { report } = await import('../../../../cli/commands/report');
+	const { report } = await import('@app/cli/commands/report');
 	await expect(report(...args)).resolves.toBe(undefined);
 
 	// This should be run in interactive mode
