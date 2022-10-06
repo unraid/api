@@ -251,7 +251,7 @@ function enableFlashBackup(button) {
 }
 
 function buttonStateReset(newstate) {
-    $('#inactivespanel,#activepanel,#changespanel,#uptodatepanel,#errorpanel').hide();
+    $('#inactivespanel,#activepanel,#changespanel,#uptodatepanel,#errorpanel,#remoteerrorpanel').hide();
 
     if (newstate['loading'] && newstate['loading']!='') {
       if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
@@ -271,6 +271,11 @@ function buttonStateReset(newstate) {
       if (newstate['error'].includes('Rate limited')) {
         $('#changespanel button').first().prop("disabled",true);
       }
+    }
+
+    if (newstate['remoteerror'] && newstate['remoteerror']!='') {
+      $('#flashbackupremoteerror').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['remoteerror']);
+      $('#remoteerrorpanel').show();
     }
 
     if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
@@ -443,6 +448,11 @@ _(Flash backup)_:
 <div markdown="1" id="errorpanel" style="display:none">
 &nbsp;
 : <span id="flashbackuperror"></span>
+
+</div>
+<div markdown="1" id="remoteerrorpanel" style="display:none">
+&nbsp;
+: <span id="flashbackupremoteerror"></span>
 
 </div>
 <div markdown="1" id="inactivespanel" style="display:none">

@@ -331,6 +331,11 @@ if (empty($json) || empty($json['ssh_privkey'])) {
   response_complete(406, $result);
 }
 
+// Show any warnings from the key-server
+if (!empty($json['warn'])) {
+  $arrState['remoteerror'] = $json['warn'];
+}
+
 // save the public and private keys
 if (!file_exists('/root/.ssh')) {
   mkdir('/root/.ssh', 0700);
@@ -520,10 +525,7 @@ if ($arrState['uptodate'] == 'yes') {
   }
 }
 
-// Show any warnings from the key-server
-if (!empty($json['warn'])) {
-  $arrState['error'] = $json['warn'];
-} else if ($arrState['error'] != 'Failed to sync flash backup') {
+if ($arrState['error'] != 'Failed to sync flash backup') {
   $arrState['error'] = '';
 }
 
