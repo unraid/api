@@ -1,8 +1,9 @@
 import { test, expect } from 'vitest';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { Parser as MultiIniParser, Serializer as IniSerializer } from 'multi-ini';
+import { Parser as MultiIniParser } from 'multi-ini';
 import { readFile, writeFile } from 'fs/promises';
 import { parse } from 'ini';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 
 const iniTestData = `["root"]
 idx="0"
@@ -88,8 +89,8 @@ test('Combine Ini and Multi-Ini to read and then write a file with quotes', asyn
 		  },
 		}
 	`);
-	const serializer = new IniSerializer();
-	const ini = serializer.serialize(parsedFile, { keep_quotes: false });
+
+	const ini = safelySerializeObjectToIni(parsedFile);
 	await writeFile('/tmp/test.ini', ini);
 	const file = await readFile('/tmp/test.ini', 'utf-8');
 	expect(file).toMatchInlineSnapshot(`

@@ -1,6 +1,6 @@
-import { Serializer as IniSerializer } from 'multi-ini';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { MyServersConfig } from '@app/types/my-servers-config';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { access, writeFile } from 'fs/promises';
 import merge from 'lodash/merge';
@@ -76,12 +76,6 @@ type LoadedConfig = Partial<MyServersConfig> & {
 	};
 };
 
-// Ini serializer
-const serializer = new IniSerializer({
-	// This ensures it ADDs quotes
-	keep_quotes: false,
-});
-
 export const logoutUser = createAsyncThunk<void>('config/logout-user', async () => {
 	const { store } = await import ('@app/store');
 	const { pubsub } = await import ('@app/core/pubsub');
@@ -112,7 +106,7 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 		const { config: { api, local, notifier, remote, upc } } = thunkAPI.getState();
 
 		// Stringify state
-		const stringifiedData = serializer.serialize({ api, local, notifier, remote, upc });
+		const stringifiedData = safelySerializeObjectToIni({ api, local, notifier, remote, upc });
 
 		// Update config file
 		await writeFile(filePath ?? paths['myservers-config'], stringifiedData);
