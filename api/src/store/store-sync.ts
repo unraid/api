@@ -4,7 +4,7 @@ import type { MyServersConfig } from '@app/types/my-servers-config';
 import { syncConfigToDisk } from '@app/store/sync/config-disk-sync';
 import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
-import { setupConfigPathWatch } from './watch/config-path-watch';
+import { setupConfigPathWatch } from './watch/config-watch';
 import { FileLoadStatus } from './types';
 
 export const getWriteableConfig = (config: ConfigSliceState): MyServersConfig => {

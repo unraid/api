@@ -4,12 +4,13 @@ import { loadConfigFile } from '@app/store/modules/config';
 
 export const setupConfigPathWatch = () => {
 	const configPath = getters.paths()?.['myservers-config'];
+
 	// Update store when cfg changes
 	watch(configPath, {
 		persistent: true,
 		ignoreInitial: true,
 	}).on('change', async () => {
-		// Load my servers config file into store
+		// Load updated myservers config file into store
 		await store.dispatch(loadConfigFile());
 	});
 };
