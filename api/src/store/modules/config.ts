@@ -161,6 +161,10 @@ export const config = createSlice({
 			merge(state, action.payload, { status: FileLoadStatus.LOADED });
 		});
 
+		builder.addCase(loadConfigFile.rejected, (state, action) => {
+			merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
+		});
+
 		builder.addCase(logoutUser.pending, state => {
 			merge(state, { remote:
 				{
