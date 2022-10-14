@@ -13,18 +13,18 @@ const allowedSocks = [
 
 const createWanHashOrigins = ({ wanAccessEnabled, wanHTTPSPort }: { wanAccessEnabled: boolean; wanHTTPSPort: string }) => [
 	// WAN hash IPV4
-	...(getters.nginx().ipv4.wan && wanAccessEnabled ? [`https://${getters.nginx().ipv4.wan ?? ''}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+	...(getters.emhttp().nginx.wanFqdn && wanAccessEnabled ? [`https://${getters.emhttp().nginx.wanFqdn ?? ''}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 
 	// WAN hash IPV6
-	...(getters.nginx().ipv6.wan && wanAccessEnabled ? [`https://${getters.nginx().ipv6.wan ?? ''}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+	...(getters.emhttp().nginx.wanFqdn6 && wanAccessEnabled ? [`https://${getters.emhttp().nginx.wanFqdn6 ?? ''}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
 ];
 
 const createLanHashOrigins = ({ webuiHTTPSPort }: { webuiHTTPSPort: number | string }) => [
 	// LAN hash IPV4
-	...(getters.nginx().ipv4.lan ? [`https://${getters.nginx().ipv4.lan ?? ''}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+	...(getters.emhttp().nginx.lanFqdn ? [`https://${getters.emhttp().nginx.lanFqdn ?? ''}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 
 	// LAN hash IPV6
-	...(getters.nginx().ipv6.lan ? [`https://${getters.nginx().ipv6.lan ?? ''}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
+	...(getters.emhttp().nginx.lanFqdn6 ? [`https://${getters.emhttp().nginx.lanFqdn6 ?? ''}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
 ];
 
 export const getAllowedOrigins = (): string[] => {
