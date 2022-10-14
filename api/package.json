@@ -90,6 +90,7 @@
     "htpasswd-js": "^1.0.2",
     "ini": "^3.0.1",
     "ip": "^1.1.8",
+    "jose": "^4.10.0",
     "launchdarkly-eventsource": "^1.4.4",
     "lodash": "^4.17.21",
     "micromongo": "^0.3.1",
