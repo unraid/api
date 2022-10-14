@@ -13,7 +13,6 @@ import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
-import { core } from '@app/core/core';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
 import { loadStateFiles } from '@app/store/modules/emhttp';
@@ -26,9 +25,6 @@ void am(async () => {
 	// Ensure all DNS lookups are cached for their TTL
 	cacheable.install(http.globalAgent);
 	cacheable.install(https.globalAgent);
-
-	// Load core
-	await core.load();
 
 	// Start file <-> store sync
 	// Must occur before config is loaded to ensure that the handler can fix broken configs
