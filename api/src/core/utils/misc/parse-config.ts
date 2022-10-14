@@ -87,12 +87,8 @@ const isFilePathOptions = (options: OptionsWithLoadedFile | OptionsWithPath): op
 const isFileOptions = (options: OptionsWithLoadedFile | OptionsWithPath): options is OptionsWithLoadedFile => Object.keys(options).includes('file');
 
 export const loadFileFromPathSync = (filePath: string): string => {
-	if (fileExistsSync(filePath)) {
-		const fileContents = readFileSync(filePath, 'utf-8').toString();
-		return fileContents;
-	}
-
-	throw new Error(`Failed to load file at path: ${filePath}`);
+	if (!fileExistsSync(filePath)) throw new Error(`Failed to load file at path: ${filePath}`);
+	return readFileSync(filePath, 'utf-8').toString();
 };
 
 /**
@@ -100,19 +96,8 @@ export const loadFileFromPathSync = (filePath: string): string => {
  * @param extension File extension
  * @returns boolean whether extension is ini or cfg
  */
-const isValidConfigExtension = (extension: string): boolean => {
-	if (!['ini', 'cfg'].includes(extension)) {
-		return false;
-	}
+const isValidConfigExtension = (extension: string): boolean => ['ini', 'cfg'].includes(extension);
 
-	return true;
-};
-
-/**
- *
- * @param extension File extension
- * @returns boolean whether extension is ini or cfg
- */
 export const parseConfig = <T extends Record<string, any>>(options: OptionsWithLoadedFile | OptionsWithPath): T => {
 	let fileContents: string;
 	let extension: string;
