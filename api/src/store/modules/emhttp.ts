@@ -43,10 +43,10 @@ export type SliceState = {
 
 const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
-	var: {} as Var,
+	var: {} as unknown as Var,
 	devices: [] as Devices,
 	networks: [] as Networks,
-	nginx: {} as Nginx,
+	nginx: {} as unknown as Nginx,
 	shares: [] as Shares,
 	slots: [] as Slots,
 	users: [] as Users,
