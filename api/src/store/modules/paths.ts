@@ -12,7 +12,6 @@ const initialState = {
 	htpasswd: '/etc/nginx/htpasswd' as const,
 	'emhttpd-socket': '/var/run/emhttpd.socket' as const,
 	states: resolvePath(process.env.PATHS_STATES ?? '/usr/local/emhttp/state/' as const),
-	'nginx-state': '/usr/local/emhttp/state/nginx.ini' as const,
 	'dynamix-base': resolvePath(process.env.PATHS_DYNAMIX_BASE ?? '/boot/config/plugins/dynamix/' as const),
 	'dynamix-config': resolvePath(process.env.PATH_DYNAMIX_CONFIG ?? '/boot/config/plugins/dynamix/dynamix.cfg' as const),
 	'myservers-base': '/boot/config/plugins/dynamix.my.servers/' as const,

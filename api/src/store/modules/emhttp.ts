@@ -4,13 +4,14 @@
  */
 
 import { FileLoadStatus } from '@app/store/types';
-import { createAsyncThunk, createSlice, PayloadAction, Slice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { join } from 'path';
 import { logger } from '@app/core';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { Devices } from '@app/core/types/states/devices';
 import { Networks } from '@app/core/types/states/network';
+import { Nginx } from '@app/core/types/states/nginx';
 import { Shares } from '@app/core/types/states/share';
 import { Users } from '@app/core/types/states/user';
 import { NfsShares } from '@app/core/types/states/nfs';
@@ -19,6 +20,7 @@ import { SmbShares } from '@app/core/types/states/smb';
 import { Var } from '@app/core/types/states/var';
 import { parse as parseDevices } from '@app/store/state-parsers/devices';
 import { parse as parseNetwork } from '@app/store/state-parsers/network';
+import { parse as parseNginx } from '@app/store/state-parsers/nginx';
 import { parse as parseNfsShares } from '@app/store/state-parsers/nfs';
 import { parse as parseShares } from '@app/store/state-parsers/shares';
 import { parse as parseSlots } from '@app/store/state-parsers/slots';
@@ -31,6 +33,7 @@ export type SliceState = {
 	var: Var;
 	devices: Devices;
 	networks: Networks;
+	nginx: Nginx;
 	shares: Shares;
 	slots: Slots;
 	users: Users;
@@ -40,9 +43,10 @@ export type SliceState = {
 
 const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
-	var: {} as unknown as Var,
+	var: {} as Var,
 	devices: [] as Devices,
 	networks: [] as Networks,
+	nginx: {} as Nginx,
 	shares: [] as Shares,
 	slots: [] as Slots,
 	users: [] as Users,
@@ -54,6 +58,7 @@ export const parsers = {
 	var: parseVar,
 	devs: parseDevices,
 	network: parseNetwork,
+	nginx: parseNginx,
 	shares: parseShares,
 	disks: parseSlots,
 	users: parseUsers,
@@ -90,6 +95,7 @@ export const loadStateFiles = createAsyncThunk<SliceState, string | undefined>('
 		var: parseState(path, 'var', {} as Var),
 		devices: parseState(path, 'devs', []),
 		networks: parseState(path, 'network', []),
+		nginx: parseState(path, 'nginx', {} as Nginx),
 		shares: parseState(path, 'shares', []),
 		slots: parseState(path, 'disks', []),
 		users: parseState(path, 'users', []),
@@ -105,8 +111,8 @@ export const emhttp = createSlice({
 	initialState,
 	reducers: {
 		updateEmhttpState(state, action: PayloadAction<{ field: keyof typeof parsers; state: Partial<typeof initialState[keyof typeof initialState]> }>) {
-			const field = action.payload.field
-			return merge(state, { [field]: action.payload.state })
+			const { field } = action.payload;
+			return merge(state, { [field]: action.payload.state });
 		},
 	},
 	extraReducers(builder) {

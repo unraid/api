@@ -11,14 +11,11 @@ import exitHook from 'async-exit-hook';
 import { server } from '@app/server';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
-import { getters, store } from '@app/store';
+import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { core } from '@app/core/core';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
-import { updateNginxState } from '@app/store/modules/nginx';
-import { loadState } from '@app/core/utils/misc/load-state';
-import { NginxIni } from '@app/store/modules/state-parsers/nginx';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { setupNchanWatch } from '@app/store/watch/nchan-watch';
 
@@ -45,19 +42,6 @@ void am(async () => {
 
 	// Load emhttp state into store
 	await store.dispatch(loadStateFiles());
-
-	// Load nginx.ini into store
-	const state = loadState<Partial<NginxIni>>(getters.paths()['nginx-state']);
-	store.dispatch(updateNginxState({
-		ipv4: {
-			lan: state?.nginxLanfqdn ?? null,
-			wan: state?.nginxWanfqdn ?? null,
-		},
-		ipv6: {
-			lan: state?.nginxLanfqdn6 ?? null,
-			wan: state?.nginxWanfqdn6 ?? null,
-		},
-	}));
 
 	// Start listening to nchan updates
 	await setupNchanWatch();
