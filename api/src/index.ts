@@ -17,6 +17,7 @@ import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { setupNchanWatch } from '@app/store/watch/nchan-watch';
+import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 
 // Boot app
 void am(async () => {
@@ -41,6 +42,9 @@ void am(async () => {
 
 	// Start listening to nchan updates
 	await setupNchanWatch();
+
+	// Start listening to key file changes
+	setupRegistrationKeyWatch();
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

@@ -6,6 +6,7 @@ import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
 import { setupConfigPathWatch } from './watch/config-watch';
 import { FileLoadStatus } from './types';
+import { syncRegistration } from '@app/store/sync/registration-sync';
 
 export const getWriteableConfig = (config: ConfigSliceState): MyServersConfig => {
 	// Get current state
@@ -39,6 +40,9 @@ export const startStoreSync = async () => {
 
 			// Update 2FA
 			await sync2FA();
+
+			// Update registration
+			await syncRegistration(lastState);
 		}
 
 		lastState = state;
