@@ -1,14 +1,13 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { MyServersConfig } from '@app/types/my-servers-config';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { access, writeFile } from 'fs/promises';
+import { access } from 'fs/promises';
 import merge from 'lodash/merge';
-import { logger } from '@app/core/log';
 import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
+import { HumanRelayStates } from '@app/graphql/relay-state';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -34,6 +33,10 @@ export type SliceState = {
 	};
 	notifier: {
 		apikey: string;
+	};
+	connectionStatus: {
+		minigraph: 'connected' | 'disconnected';
+		relay: HumanRelayStates;
 	};
 };
 
@@ -61,6 +64,10 @@ export const initialState: SliceState = {
 	},
 	notifier: {
 		apikey: '',
+	},
+	connectionStatus: {
+		minigraph: 'disconnected',
+		relay: 'disconnected',
 	},
 };
 
@@ -95,25 +102,6 @@ export const logoutUser = createAsyncThunk<void>('config/logout-user', async () 
 			avatar: '',
 		},
 	});
-});
-
-export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { state: { config: SliceState } }>('config/write-config-to-disk', async (filePath, thunkAPI) => {
-	try {
-		const paths = await import('@app/store').then(_ => _.getters.paths());
-		logger.debug('Dumping MyServers config back to file');
-
-		// Get current state
-		const { config: { api, local, notifier, remote, upc } } = thunkAPI.getState();
-
-		// Stringify state
-		const stringifiedData = safelySerializeObjectToIni({ api, local, notifier, remote, upc });
-
-		// Update config file
-		await writeFile(filePath ?? paths['myservers-config'], stringifiedData);
-	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(error as string);
-		console.error('Failed writing config to disk with "%s"', error.message);
-	}
 });
 
 /**
@@ -151,6 +139,9 @@ export const config = createSlice({
 		updateUserConfig(state, action: PayloadAction<Partial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
+		setConnectionStatus(state, action: PayloadAction<SliceState['connectionStatus']>) {
+			state.connectionStatus = action.payload;
+		},
 	},
 	extraReducers(builder) {
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
@@ -177,4 +168,4 @@ export const config = createSlice({
 	},
 });
 
-export const { updateUserConfig } = config.actions;
+export const { updateUserConfig, setConnectionStatus } = config.actions;
