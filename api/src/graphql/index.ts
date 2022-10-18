@@ -6,7 +6,6 @@
 import { v4 as randomUUID } from 'uuid';
 import { FatalAppError } from '@app/core/errors/fatal-error';
 import { DockerEventEmitter } from '@gridplus/docker-events';
-import { run } from '@app/run';
 import * as resolvers from '@app/graphql/resolvers';
 import { wsHasConnected, wsHasDisconnected } from '@app/ws';
 import { User } from '@app/core/types/states/user';
@@ -14,12 +13,9 @@ import { types as typeDefs } from '@app/graphql/types';
 import { schema } from '@app/graphql/schema';
 import { dockerLogger, graphqlLogger, logger } from '@app/core/log';
 import { modules } from '@app/core';
-import { bus } from '@app/core/bus';
 import { config } from '@app/core/config';
 import { pubsub } from '@app/core/pubsub';
 import { getters } from '@app/store';
-
-const internalServiceUser: User = { id: '-1', description: 'Internal service account', name: 'internal', role: 'admin', password: false };
 
 export const getCoreModule = (moduleName: string) => {
 	if (!Object.keys(modules).includes(moduleName)) {
@@ -41,42 +37,6 @@ export const apiKeyToUser = async (apiKey: string) => {
 
 	return { id: -1, description: 'A guest user', name: 'guest', role: 'guest' };
 };
-
-// Update array values when slots change
-bus.on('slots', async () => {
-	dockerLogger.trace('slots updated: running getArray');
-	await run('array', 'UPDATED', {
-		moduleToRun: modules.getArray,
-		context: {
-			user: internalServiceUser,
-		},
-	});
-});
-
-let hostname: string;
-
-// Update info/hostname when hostname changes
-bus.on('var', async data => {
-	// Publish var changes
-	await pubsub.publish('vars', {
-		vars: data.var.node,
-	});
-
-	// Hostname changed
-	if (hostname !== data.var.node.name) {
-		// Update cache
-		hostname = data.var.node.name;
-
-		// Publish new hostname
-		await pubsub.publish('info', {
-			info: {
-				os: {
-					hostname,
-				},
-			},
-		});
-	}
-});
 
 // Only watch container events equal to start/stop
 const watchedEvents = [
