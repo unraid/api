@@ -18,6 +18,7 @@ import { startStoreSync } from '@app/store/store-sync';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { setupNchanWatch } from '@app/store/watch/nchan-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
+import { loadRegistrationKey } from '@app/store/modules/registration';
 
 // Boot app
 void am(async () => {
@@ -39,6 +40,9 @@ void am(async () => {
 
 	// Load emhttp state into store
 	await store.dispatch(loadStateFiles());
+
+	// Load initial registration key into store
+	await store.dispatch(loadRegistrationKey());
 
 	// Start listening to nchan updates
 	await setupNchanWatch();
