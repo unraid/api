@@ -1,16 +1,13 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { MyServersConfig } from '@app/types/my-servers-config';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { access, writeFile } from 'fs/promises';
+import { access } from 'fs/promises';
 import merge from 'lodash/merge';
-import { logger } from '@app/core/log';
 import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
 import { HumanRelayStates } from '@app/graphql/relay-state';
-import { getWriteableConfig } from '@app/store/store-sync';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -107,27 +104,6 @@ export const logoutUser = createAsyncThunk<void>('config/logout-user', async () 
 	});
 });
 
-export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { state: { config: SliceState } }>('config/write-config-to-disk', async (filePath, thunkAPI) => {
-	try {
-		const paths = await import('@app/store').then(_ => _.getters.paths());
-		logger.debug('Dumping MyServers config back to file');
-
-		// Get current state
-		const { config } = thunkAPI.getState();
-		const writeableConfig = getWriteableConfig(config);
-		// Stringify state
-		const stringifiedData = safelySerializeObjectToIni(writeableConfig);
-
-		// Update config file
-		const writeConfigToFlash = writeFile(filePath ?? paths['myservers-config'], stringifiedData);
-		const writeConfigToStates = writeFile(paths['myservers-config-states'], stringifiedData);
-		await Promise.all([writeConfigToFlash, writeConfigToStates]);
-	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(error as string);
-		console.error('Failed writing config to disk with "%s"', error.message);
-	}
-});
-
 /**
  * Load the myservers.cfg into the store.
  *
@@ -163,8 +139,8 @@ export const config = createSlice({
 		updateUserConfig(state, action: PayloadAction<Partial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
-		setConnectionStatus(state, action: PayloadAction<NonNullable<Pick<MyServersConfig, 'connectionStatus'>['connectionStatus']>>) {
-			return merge(state, { connectionStatus: action.payload });
+		setConnectionStatus(state, action: PayloadAction<SliceState['connectionStatus']>) {
+			state.connectionStatus = action.payload;
 		},
 	},
 	extraReducers(builder) {
