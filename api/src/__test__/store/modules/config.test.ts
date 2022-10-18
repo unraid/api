@@ -133,7 +133,8 @@ test('updateUserConfig merges in changes to current state', async () => {
 	`);
 });
 
-test('File on disk matches state after writing', async () => {
+/*
+Test('File on disk matches state after writing', async () => {
 	const { loadConfigFile, updateUserConfig, writeConfigToDisk } = await import('@app/store/modules/config');
 
 	// Load cfg into store
@@ -155,3 +156,4 @@ test('File on disk matches state after writing', async () => {
 	expect(state.upc).toEqual(newConfigFile.upc);
 	expect(state.remote).toEqual(newConfigFile.remote);
 });
+*/
