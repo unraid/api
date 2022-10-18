@@ -3,6 +3,7 @@
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
 import { cloudConnector } from '../cloud-connector';
+import { updateConnectionStatusInConfig } from '@app/mothership/update-connection-status-in-config';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.Start()
@@ -19,6 +20,12 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 			await cloudConnector.checkCloudConnections();
 		} catch (error: unknown) {
 			mothershipLogger.error('Failed checking connection with error %s.', error);
+		}
+
+		try {
+			await updateConnectionStatusInConfig();
+		} catch (error: unknown) {
+			mothershipLogger.error('Failed to update the config with the connection status %s.', error);
 		}
 	}
 }

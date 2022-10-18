@@ -9,7 +9,7 @@ import { FileLoadStatus } from './types';
 
 export const getWriteableConfig = (config: ConfigSliceState): MyServersConfig => {
 	// Get current state
-	const { api, local, notifier, remote, upc } = config;
+	const { api, local, notifier, remote, upc, connectionStatus } = config;
 
 	// Create new state
 	const newState: MyServersConfig = {
@@ -17,7 +17,9 @@ export const getWriteableConfig = (config: ConfigSliceState): MyServersConfig =>
 		local: local ?? initialState.local,
 		notifier: notifier ?? initialState.notifier,
 		remote: remote ?? initialState.remote,
-		upc: upc ?? initialState.upc };
+		upc: upc ?? initialState.upc,
+		connectionStatus: connectionStatus ?? initialState.connectionStatus,
+	};
 	return newState;
 };
 

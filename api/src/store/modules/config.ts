@@ -9,6 +9,8 @@ import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
+import { HumanRelayStates } from '@app/graphql/relay-state';
+import { getWriteableConfig } from '@app/store/store-sync';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -34,6 +36,10 @@ export type SliceState = {
 	};
 	notifier: {
 		apikey: string;
+	};
+	connectionStatus: {
+		minigraph: 'connected' | 'disconnected';
+		relay: HumanRelayStates;
 	};
 };
 
@@ -61,6 +67,10 @@ export const initialState: SliceState = {
 	},
 	notifier: {
 		apikey: '',
+	},
+	connectionStatus: {
+		minigraph: 'disconnected',
+		relay: 'disconnected',
 	},
 };
 
@@ -103,13 +113,15 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 		logger.debug('Dumping MyServers config back to file');
 
 		// Get current state
-		const { config: { api, local, notifier, remote, upc } } = thunkAPI.getState();
-
+		const { config } = thunkAPI.getState();
+		const writeableConfig = getWriteableConfig(config);
 		// Stringify state
-		const stringifiedData = safelySerializeObjectToIni({ api, local, notifier, remote, upc });
+		const stringifiedData = safelySerializeObjectToIni(writeableConfig);
 
 		// Update config file
-		await writeFile(filePath ?? paths['myservers-config'], stringifiedData);
+		const writeConfigToFlash = writeFile(filePath ?? paths['myservers-config'], stringifiedData);
+		const writeConfigToStates = writeFile(paths['myservers-config-states'], stringifiedData);
+		await Promise.all([writeConfigToFlash, writeConfigToStates]);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(error as string);
 		console.error('Failed writing config to disk with "%s"', error.message);
@@ -151,6 +163,9 @@ export const config = createSlice({
 		updateUserConfig(state, action: PayloadAction<Partial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
+		setConnectionStatus(state, action: PayloadAction<NonNullable<Pick<MyServersConfig, 'connectionStatus'>['connectionStatus']>>) {
+			return merge(state, { connectionStatus: action.payload });
+		},
 	},
 	extraReducers(builder) {
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
@@ -177,4 +192,4 @@ export const config = createSlice({
 	},
 });
 
-export const { updateUserConfig } = config.actions;
+export const { updateUserConfig, setConnectionStatus } = config.actions;

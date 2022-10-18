@@ -1,3 +1,5 @@
+import { HumanRelayStates } from '@app/graphql/relay-state';
+
 export interface MyServersConfig {
 	remote: {
 		'2Fa'?: string;
@@ -19,5 +21,9 @@ export interface MyServersConfig {
 	};
 	notifier: {
 		apikey?: string;
+	};
+	connectionStatus?: {
+		minigraph: 'connected' | 'disconnected';
+		relay: HumanRelayStates;
 	};
 }

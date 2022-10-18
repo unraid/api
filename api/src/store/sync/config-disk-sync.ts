@@ -9,7 +9,6 @@ import { getDiff } from 'json-difference';
 
 export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 	const { config, paths } = store.getState();
-	const configPath = paths['myservers-config'];
 	if (config.status !== FileLoadStatus.LOADED) return;
 
 	// Create new state
@@ -29,5 +28,7 @@ export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 	const stringifiedData = safelySerializeObjectToIni(newConfig);
 
 	// Update config file
-	await writeFile(configPath, stringifiedData);
+	const writeConfigToFlash = writeFile(paths['myservers-config'], stringifiedData);
+	const writeConfigToStates = writeFile(paths['myservers-config-states'], stringifiedData);
+	await Promise.all([writeConfigToFlash, writeConfigToStates]);
 };
