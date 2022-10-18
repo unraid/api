@@ -6,7 +6,6 @@
 import NanoBus from 'nanobus';
 
 /**
- * Main event bus.
+ * Graphql event bus.
  */
 export const bus = new NanoBus();
-
