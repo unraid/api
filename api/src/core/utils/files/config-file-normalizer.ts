@@ -24,12 +24,12 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 			...(api.extraOrigins ? { extraOrigins: api.extraOrigins } : {}),
 		},
 		local: {
-			...(local['2Fa'] ? { '2Fa': local['2Fa'] } : {}),
+			...(local['2Fa'] === 'yes' ? { '2Fa': local['2Fa'] } : {}),
 			...(local.showT2Fa === 'yes' ? { showT2Fa: local.showT2Fa } : {}),
 		},
 		notifier: { apikey: notifier.apikey ?? initialState.notifier.apikey },
 		remote: {
-			...(remote['2Fa'] ? { '2Fa': remote['2Fa'] } : {}),
+			...(remote['2Fa'] === 'yes' ? { '2Fa': remote['2Fa'] } : {}),
 			wanaccess: remote.wanaccess ?? initialState.remote.wanaccess,
 			wanport: remote.wanport ?? initialState.remote.wanport,
 			apikey: remote.apikey ?? initialState.remote.apikey,

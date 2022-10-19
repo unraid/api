@@ -7,6 +7,7 @@ import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
+import { RecursivePartial } from '@app/types';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -90,7 +91,7 @@ export const loadConfigFile = createAsyncThunk<LoadedConfig, string | undefined>
 	const config = store.getters.config();
 	const path = filePath ?? paths['myservers-config'];
 	const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
-	const file = fileExists ? parseConfig<Partial<MyServersConfig>>({
+	const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
 		filePath: path,
 		type: 'ini',
 	}) : {};
@@ -111,7 +112,7 @@ export const config = createSlice({
 	name: 'config',
 	initialState,
 	reducers: {
-		updateUserConfig(state, action: PayloadAction<Partial<MyServersConfig>>) {
+		updateUserConfig(state, action: PayloadAction<RecursivePartial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
 		setConnectionStatus(state, action: PayloadAction<SliceState['connectionStatus']>) {

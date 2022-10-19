@@ -75,3 +75,7 @@ declare module '@vmngr/libvirt' {
 		nodeGetInfo(): Promise<NodeInfo>;
 	}
 }
+
+export type RecursivePartial<T> = {
+	[P in keyof T]?: RecursivePartial<T[P]>;
+};
