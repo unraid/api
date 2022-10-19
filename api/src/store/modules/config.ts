@@ -1,5 +1,5 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { MyServersConfig } from '@app/types/my-servers-config';
+import { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
@@ -7,38 +7,12 @@ import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
-import { HumanRelayStates } from '@app/graphql/relay-state';
+import { RecursivePartial } from '@app/types';
 
 export type SliceState = {
 	status: FileLoadStatus;
 	nodeEnv: string;
-	remote: {
-		'2Fa': string;
-		wanaccess: string;
-		wanport: string;
-		apikey: string;
-		email: string;
-		username: string;
-		avatar: string;
-	};
-	local: {
-		'2Fa': string;
-	};
-	api: {
-		extraOrigins: string;
-		version: string;
-	};
-	upc: {
-		apikey: string;
-	};
-	notifier: {
-		apikey: string;
-	};
-	connectionStatus: {
-		minigraph: 'connected' | 'disconnected';
-		relay: HumanRelayStates;
-	};
-};
+} & MyServersConfigMemory;
 
 export const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
@@ -51,8 +25,10 @@ export const initialState: SliceState = {
 		email: '',
 		username: '',
 		avatar: '',
+		regWizTime: '',
 	},
 	local: {
+		showT2Fa: '',
 		'2Fa': '',
 	},
 	api: {
@@ -115,7 +91,7 @@ export const loadConfigFile = createAsyncThunk<LoadedConfig, string | undefined>
 	const config = store.getters.config();
 	const path = filePath ?? paths['myservers-config'];
 	const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
-	const file = fileExists ? parseConfig<Partial<MyServersConfig>>({
+	const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
 		filePath: path,
 		type: 'ini',
 	}) : {};
@@ -136,7 +112,7 @@ export const config = createSlice({
 	name: 'config',
 	initialState,
 	reducers: {
-		updateUserConfig(state, action: PayloadAction<Partial<MyServersConfig>>) {
+		updateUserConfig(state, action: PayloadAction<RecursivePartial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
 		setConnectionStatus(state, action: PayloadAction<SliceState['connectionStatus']>) {
