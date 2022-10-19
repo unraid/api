@@ -1,5 +1,5 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { MyServersConfig } from '@app/types/my-servers-config';
+import { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
@@ -7,38 +7,11 @@ import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
-import { HumanRelayStates } from '@app/graphql/relay-state';
 
 export type SliceState = {
 	status: FileLoadStatus;
 	nodeEnv: string;
-	remote: {
-		'2Fa': string;
-		wanaccess: string;
-		wanport: string;
-		apikey: string;
-		email: string;
-		username: string;
-		avatar: string;
-	};
-	local: {
-		'2Fa': string;
-	};
-	api: {
-		extraOrigins: string;
-		version: string;
-	};
-	upc: {
-		apikey: string;
-	};
-	notifier: {
-		apikey: string;
-	};
-	connectionStatus: {
-		minigraph: 'connected' | 'disconnected';
-		relay: HumanRelayStates;
-	};
-};
+} & MyServersConfigMemory;
 
 export const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
@@ -51,8 +24,10 @@ export const initialState: SliceState = {
 		email: '',
 		username: '',
 		avatar: '',
+		regWizTime: '',
 	},
 	local: {
+		showT2Fa: '',
 		'2Fa': '',
 	},
 	api: {

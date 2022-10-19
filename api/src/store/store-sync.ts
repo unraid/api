@@ -1,27 +1,9 @@
 import { RootState, store } from '@app/store';
-import { SliceState as ConfigSliceState, initialState } from '@app/store/modules/config';
-import type { MyServersConfig } from '@app/types/my-servers-config';
 import { syncConfigToDisk } from '@app/store/sync/config-disk-sync';
 import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
 import { setupConfigPathWatch } from './watch/config-path-watch';
 import { FileLoadStatus } from './types';
-
-export const getWriteableConfig = (config: ConfigSliceState): MyServersConfig => {
-	// Get current state
-	const { api, local, notifier, remote, upc, connectionStatus } = config;
-
-	// Create new state
-	const newState: MyServersConfig = {
-		api: api ?? initialState.api,
-		local: local ?? initialState.local,
-		notifier: notifier ?? initialState.notifier,
-		remote: remote ?? initialState.remote,
-		upc: upc ?? initialState.upc,
-		connectionStatus: connectionStatus ?? initialState.connectionStatus,
-	};
-	return newState;
-};
 
 export const startStoreSync = async () => {
 	// The last state is stored so we don't end up in a loop of writing -> reading -> writing
