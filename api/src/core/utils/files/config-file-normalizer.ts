@@ -12,6 +12,7 @@ type ConfigObject<T> =
  * @param mode 'flash' or 'memory', changes what fields are included in the writeable payload
  * @returns
  */
+// eslint-disable-next-line complexity
 export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceState, mode: T): ConfigObject<T> => {
 	// Get current state
 	const { api, local, notifier, remote, upc, connectionStatus } = config;
@@ -37,6 +38,9 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 			username: remote.username ?? initialState.remote.username,
 			avatar: remote.avatar ?? initialState.remote.avatar,
 			regWizTime: remote.regWizTime ?? initialState.remote.regWizTime,
+			idtoken: remote.idtoken ?? initialState.remote.idtoken,
+			accesstoken: remote.accesstoken ?? initialState.remote.accesstoken,
+			refreshtoken: remote.refreshtoken ?? initialState.remote.refreshtoken,
 		},
 		upc: {
 			apikey: upc.apikey ?? initialState.upc.apikey,

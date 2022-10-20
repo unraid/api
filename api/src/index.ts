@@ -71,6 +71,9 @@ void am(async () => {
 		logger.info('Server is up! %s', getServerAddress(server.server));
 	});
 
+	// Disabled until we need the access token to work
+	// TokenRefresh.init();
+
 	// Try to start HTTP server
 	await server.start();
 

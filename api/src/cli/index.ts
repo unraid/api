@@ -39,6 +39,7 @@ export const main = async (...argv: string[]) => {
 		version: import('@app/cli/commands/version').then(pkg => pkg.version),
 		status: import('@app/cli/commands/status').then(pkg => pkg.status),
 		report: import('@app/cli/commands/report').then(pkg => pkg.report),
+		'validate-token': import('@app/cli/commands/validate-token').then(pkg => pkg.validateToken),
 	};
 
 	// Unknown command
