@@ -1,6 +1,6 @@
 import { logger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
-import { store } from '@app/store';
+import { RootState, store } from '@app/store';
 import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
 import isEqual from 'lodash/isEqual';
 
@@ -12,7 +12,7 @@ type HostnameEvent = {
 	};
 };
 
-const createHostnameEvent = (state: Parameters<StoreSubscriptionHandler>[0]): HostnameEvent | null => {
+export const createHostnameEvent = (state: RootState | null): HostnameEvent | null => {
 	// Var state isn't loaded
 	if (state === null || Object.keys(state.emhttp.var).length === 0) return null;
 
