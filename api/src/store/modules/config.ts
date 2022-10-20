@@ -112,7 +112,7 @@ export const writeConfigToDisk = createAsyncThunk<void, string | undefined, { st
 		await writeFile(filePath ?? paths['myservers-config'], stringifiedData);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(error as string);
-		console.error('Failed writing config to disk with "%s"', error.message);
+		logger.error('Failed writing config to disk with "%s"', error.message);
 	}
 });
 

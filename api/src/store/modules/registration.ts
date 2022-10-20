@@ -1,5 +1,5 @@
+import { logger } from '@app/core/log';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
-import { getters } from '@app/store';
 import { FileLoadStatus } from '@app/store/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
@@ -14,12 +14,17 @@ const initialState = {
 	keyFile: null,
 };
 
-export const loadRegistrationKey = createAsyncThunk<{ keyFile: string }>('config/load-config-file', async () => {
-	const keyFile = await getKeyFile(getters.emhttp().var.regFile);
+export const loadRegistrationKey = createAsyncThunk<{ keyFile: string }>('registration/load-registration-key', async () => {
+	try {
+		logger.trace('Loading registration key file');
 
-	return {
-		keyFile,
-	};
+		return {
+			keyFile: await getKeyFile(),
+		};
+	} catch (error: unknown) {
+		if (!(error instanceof Error)) throw new Error(error as string);
+		logger.error('Failed loading registration key with "%s"', error.message);
+	}
 });
 
 export const registration = createSlice({

@@ -27,6 +27,7 @@ import { parse as parseSlots } from '@app/store/state-parsers/slots';
 import { parse as parseSmbShares } from '@app/store/state-parsers/smb';
 import { parse as parseUsers } from '@app/store/state-parsers/users';
 import { parse as parseVar } from '@app/store/state-parsers/var';
+import { format } from 'util';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -76,8 +77,8 @@ const parseState = <Parser extends keyof typeof parsers, DefaultValue = ReturnTy
 			type: 'ini',
 		})) as DefaultValue;
 	} catch (error: unknown) {
-		logger.error('Failed loading state file from "%s" with error', filePath);
-		logger.error(error);
+		if (!(error instanceof Error)) throw new Error(format('Failed loading state file from "%s" with unknown error "%s"', filePath, String(error)));
+		logger.error('Failed loading state file from "%s" with "%s"', filePath, error.message);
 	}
 
 	return defaultValue;
