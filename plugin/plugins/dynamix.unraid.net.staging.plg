@@ -310,6 +310,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/etc/nginx/nginx.conf && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -393,6 +394,19 @@ fi
 # setup env
 if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.servers/env ]; then
   echo "env=\"${PLGTYPE}\"" >/boot/config/plugins/dynamix.my.servers/env
+fi
+
+# allow webgui to be iframed only on Connect dashboard
+if [ "${PLGTYPE}" = "staging" ]; then
+  FILE=/etc/nginx/nginx.conf
+  cp "$FILE" "$FILE-"
+  OLD="add_header X-Frame-Options 'SAMEORIGIN';"
+  NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://connect-staging.myunraid.net/ https://staging.connect.myunraid.net/\";"
+  sed -i "s#${OLD}#${NEW}#" "${FILE}"
+
+  # reload nginx
+  echo "Reloading Web Server"
+  /etc/rc.d/rc.nginx reload &>/dev/null
 fi
 
 if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
