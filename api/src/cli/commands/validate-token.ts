@@ -18,6 +18,12 @@ export const validateToken = async (...argv: string[]): Promise<void> => {
 	// and positively match them to determine whether token is valid for that user
 	setEnv('LOG_TYPE', 'raw');
 
+	if (argv.length === 1) {
+		cliLogger.info('Usage: "unraid-api validate-token YOUR_TOKEN"');
+		cliLogger.info('Returns JSON: { error: string | null, valid: boolean }');
+		return;
+	}
+
 	if (argv.length > 2) {
 		cliLogger.error('Too many args, please pass just the token');
 		return;
