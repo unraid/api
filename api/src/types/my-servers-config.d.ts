@@ -21,6 +21,9 @@ interface MyServersConfig {
 		username: string;
 		avatar: string;
 		regWizTime: string;
+		accesstoken: string;
+		idtoken: string;
+		refreshtoken: string;
 	};
 	upc: {
 		apikey: string;

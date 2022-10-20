@@ -1,10 +1,17 @@
 import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts';
 import { cliLogger } from '@app/core';
-import { createLocalJWKSet, createRemoteJWKSet, JWTPayload, jwtVerify } from 'jose';
+import { createLocalJWKSet, createRemoteJWKSet, decodeJwt, JWTPayload, jwtVerify } from 'jose';
 import { setEnv } from '@app/cli/set-env';
+import { store } from '@app/store';
+import { loadConfigFile } from '@app/store/modules/config';
 
 const JWKSOffline = createLocalJWKSet(JWKS_LOCAL_PAYLOAD);
 const JWKSOnline = createRemoteJWKSet(new URL(JWKS_REMOTE_LINK));
+
+const createJsonErrorString = (errorMessage: string) => JSON.stringify({
+	error: errorMessage,
+	valid: false,
+});
 
 export const validateToken = async (...argv: string[]): Promise<void> => {
 	// @TODO Please add ability to read the users ID from myservers.cfg
@@ -33,8 +40,31 @@ export const validateToken = async (...argv: string[]): Promise<void> => {
 	}
 
 	if (caughtError) {
-		cliLogger.error('Caught error validating jwt token', caughtError);
+		if (caughtError instanceof Error) {
+			cliLogger.error(createJsonErrorString(`Caught error validating jwt token: ${caughtError.message}`));
+		} else {
+			cliLogger.error(createJsonErrorString('Caught error validating jwt token'));
+		}
+
+		return;
 	}
 
-	cliLogger.info('%o', tokenPayload);
+	if (tokenPayload === null) {
+		cliLogger.error(createJsonErrorString('No data in JWT to use for user validation'));
+		return;
+	}
+
+	const username = tokenPayload.username ?? tokenPayload['cognito:username'];
+	const configFile = await store.dispatch(loadConfigFile()).unwrap();
+	if (!configFile.remote?.accesstoken) {
+		cliLogger.error(createJsonErrorString('No local user token set to compare to'));
+		return;
+	}
+
+	const existingUserPayload = decodeJwt(configFile.remote?.accesstoken);
+	if (username === existingUserPayload.username) {
+		cliLogger.info(JSON.stringify({ error: null, valid: true }));
+	} else {
+		cliLogger.error(createJsonErrorString('Username on token does not match logged in user name'));
+	}
 };
