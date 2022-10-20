@@ -7,7 +7,7 @@ type SlotFsType = 'vfat' | 'ntfs';
 type SlotType = 'Flash';
 type SlotColor = 'green-on';
 
-type SlotIni = {
+export type IniSlot = {
 	color: SlotColor;
 	comment: string;
 	device: string;
@@ -34,7 +34,9 @@ type SlotIni = {
 	type: SlotType;
 };
 
-export const parse = (state: SlotIni[]) => Object.values(state).map(slot => {
+export type SlotsIni = IniSlot[];
+
+export const parse = (state: SlotsIni) => Object.values(state).map(slot => {
 	const result = {
 		...slot,
 		size: toNumber(slot.size),

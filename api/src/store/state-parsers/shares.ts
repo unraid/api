@@ -1,15 +1,15 @@
 import { Share, Shares } from '@app/core/types/states/share';
 
-type SharesIni = {
+export type SharesIni = Array<{
 	name: string;
 	free: string;
 	size: string;
 	include: string;
 	exclude: string;
 	useCache: string;
-};
+}>;
 
-export const parse = (state: SharesIni[]): Shares => Object.entries(state)
+export const parse = (state: SharesIni): Shares => Object.entries(state)
 	.map(([_, item]) => {
 		const { free, size, include, exclude, useCache, ...rest } = item;
 		const share: Share = {
