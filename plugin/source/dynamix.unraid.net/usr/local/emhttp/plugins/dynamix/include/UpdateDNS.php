@@ -414,7 +414,7 @@ if (!empty($unraidreport)) {
   $post['unraidreport'] = json_encode($unraidreport);
 
   // if the api is stopped and there are no crashLogs, or any crashLogs are more than maxCrashAge, start the api
-  $maxCrashAge = 12*60*60; // 12 hours
+  $maxCrashAge = 1*60*60; // 1 hour
   if ($unraidreport['api']['status'] == 'stopped' && (empty($unraidreport['crashLogs']) || $crashAge > $maxCrashAge)) {
     exec("echo \"/usr/local/sbin/unraid-api start\" | at -M now >/dev/null 2>&1");
   }
