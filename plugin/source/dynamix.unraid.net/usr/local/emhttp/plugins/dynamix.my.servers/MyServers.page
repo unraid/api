@@ -49,6 +49,10 @@ if ($oldVersion) {
 
 $isRegistered = !empty($remote['username']);
 
+$myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+$isConnected = ($myStatus['relay']=='connected')?true:false;
+$fbStatus = @parse_ini_file('/var/local/emhttp/flashbackup.ini');
+
 $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
 
@@ -328,20 +332,30 @@ _(Unraid.net account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
+
+_(Connected to Mothership)_: 
+<?if($isConnected):?>
+: _(Yes)_
+<?else:?>
+: <i class="fa fa-warning icon warning"></i> _(No)_
+<?endif?>
+
 _(Allow Remote Access)_:
 <?if(!$hasCert):?>
 <?if($oldVersion):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
 <?else:?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert)_</span>
-<?endif?>
+<?endif // end check for ($oldVersion) ?>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?elseif(!$boolWebUIAuth):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
-<?else:?>
+<?elseif(!$isConnected && $remote['wanaccess']!="yes"):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until the Unraid API is connected to Mothership)_</span>
+<?else: // begin show remote access form ?>
 : <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
   <?=mk_option($remote['wanaccess'], "no", _("No"))?>
   <?=mk_option($remote['wanaccess'], "yes", _("Yes"))?>
@@ -432,17 +446,20 @@ _(Unraid API extra origins)_:
 : <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$api['extraOrigins']?>">
 
 :unraidnet_extraorigins_help:
-<?endif?>
+<?endif // end show remote access form ?>
 
 &nbsp;
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button>
-<?endif?>
-<?endif?>
+<?endif // end check for (!$hasCert) ?>
+<?endif // end check for ($isRegistered) ?>
 </form>
 
 <?if($isRegistered):?>
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 _(Flash backup)_:
+<?if(!$isConnected && !$fbStatus['activated']):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until the Unraid API is connected to Mothership)_</span>
+<?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
 
 <div markdown="1" id="errorpanel" style="display:none">
@@ -507,4 +524,5 @@ $(function() {
   }
 });
 </script>
-<?endif?>
+<?endif // end show flash backup form ?>
+<?endif // end check for ($isRegistered) ?>
