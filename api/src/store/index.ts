@@ -5,6 +5,7 @@ import { config } from '@app/store/modules/config';
 import { nginx } from '@app/store/modules/nginx';
 import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
+import { cache } from '@app/store/modules/cache';
 
 export const store = configureStore({
 	reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
 		nginx: nginx.reducer,
 		servers: servers.reducer,
 		emhttp: emhttp.reducer,
+		cache: cache.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
@@ -33,4 +35,5 @@ export const getters = {
 	nginx: () => store.getState().nginx,
 	servers: () => store.getState().servers,
 	emhttp: () => store.getState().emhttp,
+	cache: () => store.getState().cache,
 };

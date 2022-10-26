@@ -77,6 +77,8 @@ export const getAllowedOrigins = (): string[] => {
 
 	// Only append the port if it's not HTTP/80 or HTTPS/443
 	// We use a "Set" + "array spread" to deduplicate the origins
+	const extraOrigins = (getters.config().api.extraOrigins ?? '').split(', ').filter(origin => origin.startsWith('http://') || origin.startsWith('https://'));
+
 	return [...new Set([
 		// Localhost - Used for GUI mode
 		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
@@ -85,6 +87,6 @@ export const getAllowedOrigins = (): string[] => {
 		...lanHashOrigins,
 		...wanHashOrigins,
 		...allowedSocks,
-		...getters.config().api.extraOrigins.split(', ').filter(origin => origin.startsWith('http://') || origin.startsWith('https://')),
+		...extraOrigins,
 	]).values()].filter(Boolean);
 };

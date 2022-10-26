@@ -9,7 +9,9 @@ import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
 import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/check-mothership-restarting';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
+import { getCloudCache } from '@app/store/getters';
+import { setCache } from '@app/store/modules/cache';
 import { got } from 'got';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
@@ -44,6 +46,12 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		const apiKey = config.remote.apikey;
 		if (!apiKey) throw new Error('API key is missing');
 
+		const oldCheckResult = getCloudCache();
+		if (oldCheckResult) {
+			logger.trace('Using cached result for cloud check', oldCheckResult);
+			return oldCheckResult;
+		}
+
 		// Check DNS
 		const { cloudIp } = await checkDNS();
 
@@ -57,7 +65,10 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		checkMothershipRestarting();
 
 		// All is good
-		return { status: 'ok', error: null, ip: cloudIp };
+		const result: Cloud['cloud'] = { status: 'ok', error: null, ip: cloudIp };
+		// Cache for 10 minutes
+		store.dispatch(setCache({ key: 'check-cloud', value: result, ttl: 60 * 10 }));
+		return result;
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { status: 'error', error: error.message };
