@@ -39,7 +39,6 @@ export class TokenRefresh extends Initializer<typeof TokenRefresh> {
 		});
 
 		const newTokens = await client.refresh(refreshtoken);
-		this.expiresAt = newTokens.expires_at;
 		mothershipLogger.debug('tokens %o', newTokens);
 		if (newTokens.access_token && newTokens.id_token) {
 			store.dispatch(updateAccessTokens({ accesstoken: newTokens.access_token, idtoken: newTokens.id_token }));

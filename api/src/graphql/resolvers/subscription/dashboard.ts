@@ -7,7 +7,7 @@ import { DashboardPublisher } from '@app/graphql/resolvers/subscription/jobs/das
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
 
-const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace', logLine: string, ...logParams: any[]): T => {
+const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace' | 'error', logLine: string, ...logParams: any[]): T => {
 	dashboardLogger[logLevel](logLine, ...logParams);
 	return returnValue;
 };
@@ -18,6 +18,8 @@ const ONE_HUNDRED_MB = 100 * ONE_MB;
 // eslint-disable-next-line complexity
 const canSendDataPacket = (dataPacket: Dashboard) => {
 	const { lastDataPacketTimestamp, lastDataPacketString, lastDataPacket } = dashboardStore;
+	if (dataPacket === undefined) return logAndReturn(false, 'error', 'Not sending update to dashboard becuase the data packet is empty');
+
 	// UPDATE - No data packet has been sent since boot
 	if (!lastDataPacketTimestamp) return logAndReturn(true, 'debug', 'Sending update as none have been sent since the API started');
 

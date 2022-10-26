@@ -10,6 +10,7 @@ import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/clou
 import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/check-mothership-restarting';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters, store } from '@app/store';
+import { getCloudCache } from '@app/store/getters';
 import { setCache } from '@app/store/modules/cache';
 import { got } from 'got';
 
@@ -45,9 +46,9 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		const apiKey = config.remote.apikey;
 		if (!apiKey) throw new Error('API key is missing');
 
-		const { nodeCache } = getters.cache();
-		const oldCheckResult: Cloud['cloud'] | undefined = nodeCache.get('check-cloud');
+		const oldCheckResult = getCloudCache();
 		if (oldCheckResult) {
+			logger.trace('Using cached result for cloud check', oldCheckResult);
 			return oldCheckResult;
 		}
 
