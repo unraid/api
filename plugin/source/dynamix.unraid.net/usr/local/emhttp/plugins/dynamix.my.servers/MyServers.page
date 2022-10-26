@@ -328,12 +328,12 @@ const isCommaSeparatedURLs = input =>
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
-_(Unraid.net account status)_:
+_(Account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
 
-_(Connected to Mothership)_: 
+_(Connected to My Servers Cloud)_: 
 <?if($isConnected):?>
 : _(Yes)_
 <?else:?>
@@ -354,7 +354,7 @@ _(Allow Remote Access)_:
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?elseif(!$isConnected && $remote['wanaccess']!="yes"):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until the Unraid API is connected to Mothership)_</span>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
 <?else: // begin show remote access form ?>
 : <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
   <?=mk_option($remote['wanaccess'], "no", _("No"))?>
@@ -458,7 +458,7 @@ _(Unraid API extra origins)_:
 <form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 _(Flash backup)_:
 <?if(!$isConnected && !$fbStatus['activated']):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until the Unraid API is connected to Mothership)_</span>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
 <?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
 
