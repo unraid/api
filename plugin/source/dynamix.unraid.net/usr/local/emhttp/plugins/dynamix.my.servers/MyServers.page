@@ -349,7 +349,7 @@ _(Allow Remote Access)_:
 <?if($oldVersion):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
 <?else:?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert)_</span>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
 <?endif // end check for ($oldVersion) ?>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
