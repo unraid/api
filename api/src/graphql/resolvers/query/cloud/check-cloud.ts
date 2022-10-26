@@ -32,7 +32,7 @@ const createGotOptions = (apiVersion: string, apiKey: string) => ({
  */
 const checkCanReachMothership = async (apiVersion: string, apiKey: string): Promise<void> => {
 	const mothershipCanBeResolved = await got.head(mothershipBaseUrl, createGotOptions(apiVersion, apiKey)).then(() => true).catch(() => false);
-	if (!mothershipCanBeResolved) throw new Error(`Failed resolving ${mothershipBaseUrl}`);
+	if (!mothershipCanBeResolved) throw new Error(`Unable to connect to ${mothershipBaseUrl}`);
 };
 
 export const checkCloud = async (): Promise<Cloud['cloud']> => {
