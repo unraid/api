@@ -328,24 +328,28 @@ const isCommaSeparatedURLs = input =>
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
-_(Unraid.net account status)_:
+_(Account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
-
-_(Connected to Mothership)_: 
+_(Connected to My Servers Cloud)_: 
 <?if($isConnected):?>
 : _(Yes)_
 <?else:?>
 : <i class="fa fa-warning icon warning"></i> _(No)_
-<?endif?>
+<?endif // end check for ($isConnected) ?>
+<?endif // end check for ($isRegistered) ?>
 
 _(Allow Remote Access)_:
-<?if(!$hasCert):?>
+<?if(!$isRegistered):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
+<?elseif(!$isConnected && $remote['wanaccess']!="yes"):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
+<?elseif(!$hasCert):?>
 <?if($oldVersion):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
 <?else:?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert)_</span>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
 <?endif // end check for ($oldVersion) ?>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
@@ -353,8 +357,6 @@ _(Allow Remote Access)_:
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
-<?elseif(!$isConnected && $remote['wanaccess']!="yes"):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until the Unraid API is connected to Mothership)_</span>
 <?else: // begin show remote access form ?>
 : <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
   <?=mk_option($remote['wanaccess'], "no", _("No"))?>
@@ -451,16 +453,17 @@ _(Unraid API extra origins)_:
 &nbsp;
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button>
 <?endif // end check for (!$hasCert) ?>
-<?endif // end check for ($isRegistered) ?>
 </form>
 
-<?if($isRegistered):?>
-<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 _(Flash backup)_:
-<?if(!$isConnected && !$fbStatus['activated']):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until the Unraid API is connected to Mothership)_</span>
+<?if(!$isRegistered):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
+<?elseif(!$isConnected && !$fbStatus['activated']):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
 <?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
+
+<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 
 <div markdown="1" id="errorpanel" style="display:none">
 &nbsp;
@@ -525,4 +528,3 @@ $(function() {
 });
 </script>
 <?endif // end show flash backup form ?>
-<?endif // end check for ($isRegistered) ?>
