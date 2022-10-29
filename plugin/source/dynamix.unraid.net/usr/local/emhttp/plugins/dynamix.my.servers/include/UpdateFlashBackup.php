@@ -291,6 +291,9 @@ if (!empty($loadingMessage)) {
 if ($command == 'deactivate') {
   exec_log('git -C /boot remote remove origin');
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
+  // rename /boot/.git to /boot/.git1, then start process to delete in background
+  rename("/boot/.git", "/boot/.git1");
+  exec('echo "rm -rf /boot/.git1 &>/dev/null" | at -q f -M now &>/dev/null');
   response_complete(200, '{}');
 }
 
