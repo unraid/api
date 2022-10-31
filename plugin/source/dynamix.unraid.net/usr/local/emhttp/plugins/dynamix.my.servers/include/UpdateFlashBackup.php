@@ -249,6 +249,11 @@ if (@filesize($gitflash) > 100000) { // 100kb
 
 load_flash_backup_state();
 
+// if already processing, bail
+if ($arrState['loading'] == 'Processing' && $loadingMessage == 'Processing') {
+  response_complete(403, '{}');
+}
+
 // check if signed-in
 if (empty($remote['username'])) {
   response_complete(406,  array('error' => 'Must be signed in to My Servers to use Flash Backup'));
