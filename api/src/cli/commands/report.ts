@@ -374,7 +374,6 @@ ENVIRONMENT: ${reportObject.api.environment}
 UNRAID_VERSION: ${reportObject.os.version}
 UNRAID_API_VERSION: ${reportObject.api.version}
 UNRAID_API_STATUS: ${reportObject.api.status}
-NODE_VERSION: ${reportObject.api.nodeVersion}
 API_KEY: ${reportObject.apiKey}
 MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
 CLOUD: ${getReadableCloudDetails(reportObject, v)}

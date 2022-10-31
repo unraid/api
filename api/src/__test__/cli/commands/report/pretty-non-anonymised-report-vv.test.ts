@@ -109,7 +109,6 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_API_STATUS: running
-		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: 

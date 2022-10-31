@@ -103,7 +103,6 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_API_STATUS: stopped
-		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: 
@@ -166,7 +165,6 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_API_STATUS: stopped
-		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: 

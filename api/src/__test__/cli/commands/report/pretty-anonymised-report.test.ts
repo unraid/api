@@ -84,7 +84,6 @@ test('Returns a pretty anonymised report by default', async () => {
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_API_STATUS: stopped
-		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
 		CLOUD: 
