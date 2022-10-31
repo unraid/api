@@ -41,10 +41,10 @@ export const checkDNS = async (hostname = msHostname): Promise<{ cloudIp: string
 		network = await promisify(resolveDNS)(hostname).then(([address]) => address);
 
 		// The user's server and the DNS server they're using are returning different results
-		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local}"] [network="${network}"]`);
+		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${network ?? 'NOT FOUND'}"]`);
 
 		// The user likely has a PI-hole or something similar running.
-		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local!}]`);
+		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local ?? 'NOT FOUND'}]`);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) {
 			throw error;
