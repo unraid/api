@@ -33,13 +33,14 @@ export const checkDNS = async (hostname = msHostname): Promise<{ cloudIp: string
 	let local: string | null = null;
 	let network: string | null = null;
 	try {
-	// Check the local resolver like "ping" does
-		local = await promisify(lookupDNS)(hostname).then(({ address }) => address);
-
-		// Check the DNS server the server has set
-		// This does a DNS query on the network
-		network = await promisify(resolveDNS)(hostname).then(([address]) => address);
-
+		// Check the local resolver like "ping" does
+		// Check the DNS server the server has set - does a DNS query on the network
+		const [localRes, networkRes] = await Promise.all([
+			promisify(lookupDNS)(hostname).then(({ address }) => address),
+			promisify(resolveDNS)(hostname).then(([address]) => address),
+		]);
+		local = localRes;
+		network = networkRes;
 		// The user's server and the DNS server they're using are returning different results
 		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${network ?? 'NOT FOUND'}"]`);
 

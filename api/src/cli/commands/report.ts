@@ -210,13 +210,13 @@ const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): str
 		return '';
 	}
 
-	const invalid = v === '-v' || v === '-vv' ? `\nINVALID: ${reportObject.servers.invalid.map(serverToString(v)).join(',')}` : '';
+	const invalid = (v === '-v' || v === '-vv') && reportObject.servers.invalid.length > 0 ? `
+	INVALID: ${reportObject.servers.invalid.map(serverToString(v)).join(',')}` : '';
 
 	return `
-		SERVERS:
-			ONLINE: ${reportObject.servers.online.map(serverToString(v)).join(',')},
-			OFFLINE: ${reportObject.servers.offline.map(serverToString(v)).join(',')},${invalid}
-		`;
+SERVERS:
+	ONLINE: ${reportObject.servers.online.map(serverToString(v)).join(',')}
+	OFFLINE: ${reportObject.servers.offline.map(serverToString(v)).join(',')}${invalid}`;
 };
 
 const getReadableAllowedOrigins = (reportObject: ReportObject): string => {

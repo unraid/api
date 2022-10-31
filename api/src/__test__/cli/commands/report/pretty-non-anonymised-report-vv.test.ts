@@ -54,8 +54,34 @@ vi.mock('got', () => ({
 			};
 		}
 
+		if (opts.body === '{"query":"query{servers{name guid status owner{username}}}"}') {
+			return { body: JSON.stringify(
+				{ data:
+					{ servers: [
+						{ name: 'Tower',
+							guid: 'ABCD-ABCD-ABCD-ABCD',
+							status: 'online',
+							owner: { username: 'api-test-runner' } },
+						{ name: 'Tower2',
+							guid: 'CBDA-CBDA-CBDA-CBDA',
+							status: 'offline',
+							owner: { username: 'api-test-runner' } },
+						{ name: 'Tower43',
+							guid: 'MY_GUID',
+							status: 'unknown',
+							owner: { username: 'api-test-runner' } },
+					],
+					},
+				}),
+			};
+		}
+
 		throw new Error(`Unmocked query "${opts.body}"`);
 	}),
+}));
+
+vi.mock('@app/cli/get-unraid-api-pid', () => ({
+	getUnraidApiPid: vi.fn(async () => 234_234),
 }));
 
 vi.mock('process');
@@ -82,7 +108,7 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
 		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
-		UNRAID_API_STATUS: stopped
+		UNRAID_API_STATUS: running
 		NODE_VERSION: v18.5.0
 		API_KEY: valid
 		MY_SERVERS: signed out
@@ -92,7 +118,10 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 		RELAY: 
 			STATUS: [connected]  
 		MINI-GRAPH: connected
-		SERVERS: API is offline
+		SERVERS:
+			ONLINE: Tower[owner=\\"api-test-runner\\" guid=\\"ABCD-ABCD-ABCD-ABCD\\"]
+			OFFLINE: Tower2[owner=\\"api-test-runner\\" guid=\\"CBDA-CBDA-CBDA-CBDA\\"]
+			INVALID: Tower43[owner=\\"api-test-runner\\" guid=\\"MY_GUID\\"]
 		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->
