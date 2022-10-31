@@ -71,6 +71,7 @@
     "clean-cache": "github:OmgImAlexis/clean-cache#master",
     "cli-table": "^0.3.11",
     "command-exists": "^1.2.9",
+    "dedent-js": "^1.0.1",
     "dedent-tabs": "^0.10.1",
     "dockerode": "^3.3.4",
     "dotenv": "^16.0.2",
