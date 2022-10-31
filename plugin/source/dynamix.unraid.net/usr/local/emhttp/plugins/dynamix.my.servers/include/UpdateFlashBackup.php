@@ -525,6 +525,8 @@ if ($arrState['uptodate'] == 'yes') {
   exec('git -C /boot rev-list origin/master..master --count 2>&1', $revlist_output);
   if (trim($revlist_output[0]) != '0') {
     $arrState['uptodate'] = 'no';
+  } else {
+    $arrState['error'] = '';
   }
 }
 
@@ -562,6 +564,7 @@ if (($command == 'update') || ($command == 'reinit')) {
       response_complete($httpcode, '{}');
     }
     $arrState['uptodate'] = 'yes';
+    $arrState['error'] = '';
   }
 
   if ($arrState['error'] == 'Failed to sync flash backup') {
