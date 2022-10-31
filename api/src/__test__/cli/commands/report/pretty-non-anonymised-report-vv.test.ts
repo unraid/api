@@ -117,7 +117,8 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 			IP: [52.40.54.163] 
 		RELAY: 
 			STATUS: [connected]  
-		MINI-GRAPH: connected
+		MINI-GRAPH: 
+			STATUS: [connected]
 		SERVERS:
 			ONLINE: Tower[owner=\\"api-test-runner\\" guid=\\"ABCD-ABCD-ABCD-ABCD\\"]
 			OFFLINE: Tower2[owner=\\"api-test-runner\\" guid=\\"CBDA-CBDA-CBDA-CBDA\\"]

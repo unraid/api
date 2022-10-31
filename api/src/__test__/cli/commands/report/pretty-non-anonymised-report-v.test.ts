@@ -111,7 +111,8 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 			IP: [52.40.54.163] 
 		RELAY: 
 			STATUS: [connected]  
-		MINI-GRAPH: connected
+		MINI-GRAPH: 
+			STATUS: [connected]
 		SERVERS: API is offline
 		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
@@ -174,7 +175,8 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 		RELAY: 
 			STATUS: [disconnected]  
 			ERROR: [Mothership is restarting]
-		MINI-GRAPH: disconnected
+		MINI-GRAPH: 
+			STATUS: [disconnected]
 		SERVERS: API is offline
 		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
