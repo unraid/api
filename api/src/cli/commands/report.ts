@@ -359,8 +359,7 @@ API_KEY: ${reportObject.apiKey}
 MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
 RELAY: ${getReadableRelayDetails(reportObject)}
-MINI-GRAPH: ${reportObject.minigraph.status}${getReadableServerDetails(reportObject, v)}
-${(cloud?.allowedOrigins) ? `ALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ')}`.trim() : ''}
+MINI-GRAPH: ${reportObject.minigraph.status}${getReadableServerDetails(reportObject, v)}${(cloud?.allowedOrigins) ? `\nALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ')}`.trim() : ''}
 HAS_CRASH_LOGS: ${crashes ? 'yes' : 'no'}
 </----UNRAID-API-REPORT----->
 ${crashes ? `<-----UNRAID-API-CRASH-LOGS----->\n${crashes}\n<-----UNRAID-API-CRASH-LOGS----->` : ''}

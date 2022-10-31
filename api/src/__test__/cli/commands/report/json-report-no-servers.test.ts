@@ -1,5 +1,4 @@
 import { expect, SpyInstance, test, vi } from 'vitest';
-import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
