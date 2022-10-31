@@ -1,5 +1,4 @@
 import { expect, SpyInstance, test, vi } from 'vitest';
-import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
@@ -62,10 +61,8 @@ vi.mock('process');
 
 test('Returns a JSON anonymised report when provided the --json cli argument [no servers]', async () => {
 	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
-	const { cliLogger } = await import('@app/core/log');
+
 	const { stdout } = await import('process');
-	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
-	const cliTraceLoggerSpy = vi.spyOn(cliLogger, 'trace');
 
 	// The args we'll pass to the report function
 	const args = ['--json'];
@@ -77,42 +74,13 @@ test('Returns a JSON anonymised report when provided the --json cli argument [no
 	// This should be run in interactive mode
 	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
 
-	// Should have logged report to console
-	expect(cliDebugLoggerSpy.mock.calls.length).toBe(1);
-	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
-	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
-	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', 'unknown']);
-	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
-	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
-		{
-		  "allowedOrigins": [],
-		  "apiKey": {
-		    "error": null,
-		    "valid": true,
-		  },
-		  "cloud": {
-		    "error": null,
-		    "ip": "52.40.54.163",
-		    "status": "ok",
-		  },
-		  "error": null,
-		  "minigraphql": {
-		    "status": "disconnected",
-		  },
-		  "relay": {
-		    "error": "API is offline",
-		    "status": "disconnected",
-		    "timeout": null,
-		  },
-		}
-	`);
-	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Skipped checking for servers as local graphql is offline']);
-
 	// Check cloud data was fetched correctly
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "api": {
+		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "nodeVersion": "v18.5.0",
 		    "status": "stopped",
 		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
@@ -121,6 +89,7 @@ test('Returns a JSON anonymised report when provided the --json cli argument [no
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
+		  "crashLogs": null,
 		  "minigraph": {
 		    "status": "disconnected",
 		  },
@@ -132,9 +101,67 @@ test('Returns a JSON anonymised report when provided the --json cli argument [no
 		    "version": "unknown",
 		  },
 		  "relay": {
-		    "status": "API is offline",
+		    "error": "API is offline",
+		    "status": "disconnected",
+		  },
+		}
+	`);
+
+	// Should not call readline write as this is non-interactive
+	expect(writeStub.mock.calls.length).toBe(0);
+
+	// Should close the readline interface at the end of the report
+	expect(closeStub.mock.calls.length).toBe(1);
+});
+
+test('Returns a JSON anonymised report when provided the --json cli argument [no servers] [-vv]', async () => {
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
+
+	const { stdout } = await import('process');
+
+	// The args we'll pass to the report function
+	const args = ['--json', '-vv'];
+
+	// The report should succeed
+	const { report } = await import('@app/cli/commands/report');
+	await expect(report(...args)).resolves.toBe(undefined);
+
+	// This should be run in interactive mode
+	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
+
+	// Check cloud data was fetched correctly
+	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
+	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
+		{
+		  "api": {
+		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "nodeVersion": "v18.5.0",
+		    "status": "stopped",
+		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		  },
+		  "apiKey": "valid",
+		  "cloud": {
+		    "allowedOrigins": [],
+		    "ip": "52.40.54.163",
+		    "status": "ok",
+		  },
+		  "crashLogs": null,
+		  "minigraph": {
+		    "status": "disconnected",
+		  },
+		  "myServers": {
+		    "status": "signed out",
+		  },
+		  "os": {
+		    "serverName": "Tower",
+		    "version": "unknown",
+		  },
+		  "relay": {
+		    "error": "API is offline",
+		    "status": "disconnected",
 		  },
 		  "servers": {
+		    "invalid": [],
 		    "offline": [],
 		    "online": [],
 		  },
