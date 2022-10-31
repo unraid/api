@@ -11,7 +11,7 @@ import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/ch
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters, store } from '@app/store';
 import { getCloudCache } from '@app/store/getters';
-import { setCache } from '@app/store/modules/cache';
+import { setCloudCheck } from '@app/store/modules/cache';
 import { got } from 'got';
 
 const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
@@ -67,7 +67,7 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		// All is good
 		const result: Cloud['cloud'] = { status: 'ok', error: null, ip: cloudIp };
 		// Cache for 10 minutes
-		store.dispatch(setCache({ key: 'check-cloud', value: result, ttl: 60 * 13 }));
+		store.dispatch(setCloudCheck(result));
 		return result;
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);

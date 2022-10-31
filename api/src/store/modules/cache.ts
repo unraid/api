@@ -24,7 +24,13 @@ export const cache = createSlice({
 			const ttl = action.payload.error === null ? 60 * 60 * 12 : 60 * 5; // 12 hours for a success, 5 minutes for a failure
 			state.nodeCache.set(CacheKeys.checkDns, action.payload, ttl);
 		},
+		clearKey(state, action: PayloadAction<CacheKeys>) {
+			state.nodeCache.del(action.payload);
+		},
+		flushCache(state) {
+			state.nodeCache.flushAll();
+		},
 	},
 });
 
-export const { setCache, setDNSCheck } = cache.actions;
+export const { setCache, setCloudCheck, setDNSCheck, clearKey, flushCache } = cache.actions;
