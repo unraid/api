@@ -1,4 +1,3 @@
-import dedent from 'dedent-js';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import { got } from 'got';
@@ -367,7 +366,7 @@ export const report = async (...argv: string[]) => {
 		}
 
 		// Generate the actual report
-		const report = dedent`
+		const report = `
 <-----UNRAID-API-REPORT----->
 SERVER_NAME: ${reportObject.os.serverName}
 ENVIRONMENT: ${reportObject.api.environment}

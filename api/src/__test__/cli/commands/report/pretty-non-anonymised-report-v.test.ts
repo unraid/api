@@ -97,7 +97,8 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
-		"<-----UNRAID-API-REPORT----->
+		"
+		<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
@@ -116,6 +117,7 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->
+
 		"
 	`);
 
@@ -159,7 +161,8 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
-		"<-----UNRAID-API-REPORT----->
+		"
+		<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
@@ -179,6 +182,7 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->
+
 		"
 	`);
 
