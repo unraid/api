@@ -234,9 +234,21 @@ function enableFlashBackup(button) {
         $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"activate"},success).fail(failure);
     }
     if (oldlabel == "_(Deactivate)_") {
-        swal({title:"_(Deactivate)_",text:"_(Are you sure you want pause communication with your remote flash backup on unraid.net?)_",type:'warning',confirmButtonText:"_(Deactivate)_",showCancelButton:true},function(){
+        swal({
+            title:_("Deactivate"),
+            showCancelButton:true,
+            confirmButtonText:_('Deactivate'),
+            cancelButtonText:_('Cancel'),
+            text:_("Are you sure you want wipe your local flash backup?")+"<br><br><label style='font-weight:bold;color:red;'><input type='checkbox' id='remove_remote_backups'> "+_("Also remove all remote files. Restore from backup will be unavailable")+"</label>",
+            html:true,
+        },function(confirm){
+            if (!confirm) return;
             $(button).prop("disabled", true).html("_(Deactivating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
             $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+            if ($('#remove_remote_backups').is(':checked')) {
+                // post to key-server to remove remote backup
+                $.post("https://keys.lime-technology.com/backup/flash/delete",{keyfile:"<?=$keyfile?>"}).fail(failure);
+            }
         });
     }
     if (oldlabel == "_(Update)_") {
