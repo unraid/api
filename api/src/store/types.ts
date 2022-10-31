@@ -13,3 +13,13 @@ export enum MemoryCacheStatus {
 }
 
 export type StoreSubscriptionHandler = (lastState: RootState | null) => Promise<void>;
+
+export enum CacheKeys {
+	checkCloud = 'check-cloud',
+	checkDns = 'check-dns',
+}
+
+export type DNSCheck = {
+	cloudIp: string;
+	error: null;
+} | { error: Error; cloudIp: null };

@@ -67,7 +67,7 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		// All is good
 		const result: Cloud['cloud'] = { status: 'ok', error: null, ip: cloudIp };
 		// Cache for 10 minutes
-		store.dispatch(setCache({ key: 'check-cloud', value: result, ttl: 60 * 10 }));
+		store.dispatch(setCache({ key: 'check-cloud', value: result, ttl: 60 * 13 }));
 		return result;
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
