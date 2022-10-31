@@ -181,7 +181,7 @@
     "filter-obj": "^5.1.0",
     "get-server-address": "^1.0.1",
     "got": "^12.4.1",
-    "graphql-tools": "^6.2.6",
+    "graphql-tools": "^8.3.8",
     "ip-regex": "^5.0.0",
     "json-difference": "^1.8.2",
     "log4js": "github:OmgImAlexis/log4js-node",
@@ -207,7 +207,7 @@
     "vite-tsconfig-paths": "^3.5.0",
     "vitest": "^0.23.4",
     "websocket-as-promised": "github:omgimalexis/websocket-as-promised",
-    "zx": "^7.0.8"
+    "zx": "^7.1.1"
   },
   "optionalDependencies": {
     "@vmngr/libvirt": "github:omgimalexis/libvirt"
