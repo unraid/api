@@ -219,6 +219,16 @@ const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): str
 		`;
 };
 
+const getReadableAllowedOrigins = (reportObject: ReportObject): string => {
+	const { cloud } = reportObject;
+	if (cloud?.allowedOrigins) {
+		return `
+ALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ').trim()}`;
+	}
+
+	return '';
+};
+
 const getServerName = async (paths: ReturnType<typeof getters.paths>): Promise<string> => {
 	// Load the var.ini file
 	let serverName = 'Tower';
@@ -341,6 +351,13 @@ export const report = async (...argv: string[]) => {
 			},
 		};
 
+		// If we have trace logs or the user selected --raw don't clear the screen
+		if (process.env.LOG_LEVEL !== 'trace' && isInteractive) {
+			// Clear the original log about the report being generated
+			readLine.cursorTo(process.stdout, 0, 0);
+			readLine.clearScreenDown(process.stdout);
+		}
+
 		if (jsonReport) {
 			stdout.write(JSON.stringify(reportObject, null, 2) + '\n');
 			return;
@@ -359,18 +376,11 @@ API_KEY: ${reportObject.apiKey}
 MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
 RELAY: ${getReadableRelayDetails(reportObject)}
-MINI-GRAPH: ${reportObject.minigraph.status}${getReadableServerDetails(reportObject, v)}${(cloud?.allowedOrigins) ? `\nALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ')}`.trim() : ''}
+MINI-GRAPH: ${reportObject.minigraph.status}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}
 HAS_CRASH_LOGS: ${crashes ? 'yes' : 'no'}
 </----UNRAID-API-REPORT----->
 ${crashes ? `<-----UNRAID-API-CRASH-LOGS----->\n${crashes}\n<-----UNRAID-API-CRASH-LOGS----->` : ''}
 `;
-
-		// If we have trace logs or the user selected --raw don't clear the screen
-		if (process.env.LOG_LEVEL !== 'trace' && isInteractive) {
-			// Clear the original log about the report being generated
-			readLine.cursorTo(process.stdout, 0, 0);
-			readLine.clearScreenDown(process.stdout);
-		}
 
 		stdout.write(report);
 	} catch (error: unknown) {

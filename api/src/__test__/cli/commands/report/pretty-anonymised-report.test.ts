@@ -93,7 +93,6 @@ test('Returns a pretty anonymised report by default', async () => {
 			STATUS: [connected]  
 		MINI-GRAPH: connected
 		SERVERS: API is offline
-		ALLOWED_ORIGINS:
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->
 		"

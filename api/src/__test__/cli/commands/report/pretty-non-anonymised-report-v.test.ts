@@ -113,7 +113,7 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 			STATUS: [connected]  
 		MINI-GRAPH: connected
 		SERVERS: API is offline
-		ALLOWED_ORIGINS:
+		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->
 		"
@@ -176,7 +176,7 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 			ERROR: [Mothership is restarting]
 		MINI-GRAPH: disconnected
 		SERVERS: API is offline
-		ALLOWED_ORIGINS:
+		ALLOWED_ORIGINS: 
 		HAS_CRASH_LOGS: no
 		</----UNRAID-API-REPORT----->
 		"
