@@ -566,7 +566,7 @@ if (($command == 'update') || ($command == 'reinit')) {
     }
     if ($return_var != 0) {
       // check for permission denied
-      if (strpos($push_output,'permission denied') !== false) {
+      if (stripos($push_output,'permission denied') !== false) {
         $arrState['error'] = 'Permission Denied';
       } else {
         $arrState['error'] = 'Failed to sync flash backup';
