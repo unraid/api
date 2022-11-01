@@ -39,7 +39,6 @@ type ReportObject = {
 	};
 	apiKey: 'valid' | 'invalid' | string;
 	servers?: ServersPayload | null;
-	crashLogs: string[] | null;
 	myServers: {
 		status: 'authenticated' | 'signed out';
 		myServersUsername?: string;
@@ -148,39 +147,6 @@ const getUnraidVersion = async (paths: ReturnType<typeof getters.paths>): Promis
 	return unraidVersion;
 };
 
-const parseCrashLogsToJson = (logs: string | null): string[] | null => {
-	if (!logs) {
-		return null;
-	}
-
-	return logs.split('\n').map(line => {
-		try {
-			return JSON.parse(line) ?? '';
-		} catch {
-			return undefined;
-		}
-	}).filter(Boolean);
-};
-
-const getCrashLogs = async (v: Verbosity): Promise<string | null> => {
-	if (v === '') {
-		return null;
-	}
-
-	const hasCrashLogs = (await stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
-	if (hasCrashLogs) {
-		try {
-			const crashLogs = await readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '');
-			return crashLogs;
-		} catch (error: unknown) {
-			cliLogger.error('Error parsing crash logs %o', error);
-			return '';
-		}
-	}
-
-	return null;
-};
-
 const getReadableRelayDetails = (reportObject: ReportObject): string => {
 	const timeout = reportObject.relay.timeout ? `\n	TIMEOUT: [Reconnecting in ${prettyMs(Number(reportObject.relay.timeout))}]` : '';
 	const { status } = reportObject.relay;
@@ -204,12 +170,12 @@ const getReadableMinigraphDetails = (reportObject: ReportObject): string => `
 const serverToString = (v: Verbosity) => (server: Server) => `${server.name}${(v === '-v' || v === '-vv') ? `[owner="${server.owner.username}"${v === '-vv' ? ` guid="${server.guid}"]` : ']'}` : ''}`;
 
 const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): string => {
-	if (reportObject.api.status === 'stopped') {
-		return '\nSERVERS: API is offline';
-	}
-
 	if (!reportObject.servers) {
 		return '';
+	}
+
+	if (reportObject.api.status === 'stopped') {
+		return '\nSERVERS: API is offline';
 	}
 
 	const invalid = (v === '-v' || v === '-vv') && reportObject.servers.invalid.length > 0 ? `
@@ -317,8 +283,6 @@ export const report = async (...argv: string[]) => {
 		// If the API is offline check directly with key-server
 		const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
 
-		const crashes = await getCrashLogs(v);
-
 		const reportObject: ReportObject = {
 			os: {
 				serverName: await getServerName(paths),
@@ -332,7 +296,6 @@ export const report = async (...argv: string[]) => {
 			},
 			apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
 			...(servers ? { servers } : {}),
-			crashLogs: parseCrashLogsToJson(crashes),
 			myServers: {
 				status: config?.remote?.username ? 'authenticated' : 'signed out',
 				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
@@ -361,7 +324,7 @@ export const report = async (...argv: string[]) => {
 		}
 
 		if (jsonReport) {
-			stdout.write(JSON.stringify(reportObject, null, 2) + '\n');
+			stdout.write(JSON.stringify(reportObject) + '\n');
 			return;
 		}
 
@@ -378,9 +341,7 @@ MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUs
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
 RELAY: ${getReadableRelayDetails(reportObject)}
 MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}
-HAS_CRASH_LOGS: ${crashes ? 'yes' : 'no'}
 </----UNRAID-API-REPORT----->
-${crashes ? `<-----UNRAID-API-CRASH-LOGS----->\n${crashes}\n<-----UNRAID-API-CRASH-LOGS----->` : ''}
 `;
 
 		stdout.write(report);
