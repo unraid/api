@@ -565,7 +565,12 @@ if (($command == 'update') || ($command == 'reinit')) {
       }
     }
     if ($return_var != 0) {
-      $arrState['error'] = 'Failed to sync flash backup';
+      // check for permission denied
+      if (strpos($push_output,'permission denied') !== false) {
+        $arrState['error'] = 'Permission Denied';
+      } else {
+        $arrState['error'] = 'Failed to sync flash backup';
+      }
       response_complete($httpcode, '{}');
     }
     $arrState['uptodate'] = 'yes';
