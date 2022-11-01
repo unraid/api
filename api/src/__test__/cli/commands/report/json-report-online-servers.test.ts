@@ -121,7 +121,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
-		  "crashLogs": null,
 		  "minigraph": {
 		    "status": "connected",
 		  },
@@ -176,7 +175,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		    "ip": "52.40.54.163",
 		    "status": "ok",
 		  },
-		  "crashLogs": null,
 		  "minigraph": {
 		    "status": "connected",
 		  },
