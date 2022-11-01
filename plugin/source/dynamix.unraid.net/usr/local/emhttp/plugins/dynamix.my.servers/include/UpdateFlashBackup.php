@@ -574,7 +574,9 @@ if (($command == 'update') || ($command == 'reinit')) {
     if ($return_var != 0) {
       // check for permission denied
       if (stripos($push_output[0],'permission denied') !== false) {
-        $arrState['error'] = 'Permission Denied';
+        $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+        $isConnected = ($myStatus['relay']=='connected')?true:false;
+        $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
       } else {
         $arrState['error'] = 'Failed to sync flash backup';
       }
