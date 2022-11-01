@@ -186,6 +186,16 @@ function cleanupCounter(string $dataFile, int $time): int {
   return count($data);
 }
 
+// rename /boot/.git to /boot/.git{random}, then start process to delete in background
+function deleteLocalRepo() {
+  $mainGitDir = '/boot/.git';
+  $tmpGitDir = '/boot/.git'.rand();
+  if (is_dir($mainGitDir)) {
+    rename($mainGitDir, $tmpGitDir);
+    exec('echo "rm -rf '.$tmpGitDir.' &>/dev/null" | at -q f -M now &>/dev/null');
+  }
+}
+
 $validCommands = [
   'init', //default
   'activate',
@@ -292,13 +302,10 @@ if (!empty($loadingMessage)) {
   save_flash_backup_state($loadingMessage);
 }
 
-// if deactivate command, just remove our origin
 if ($command == 'deactivate') {
   exec_log('git -C /boot remote remove origin');
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
-  // rename /boot/.git to /boot/.git1, then start process to delete in background
-  rename("/boot/.git", "/boot/.git1");
-  exec('echo "rm -rf /boot/.git1 &>/dev/null" | at -q f -M now &>/dev/null');
+  deleteLocalRepo();
   response_complete(200, '{}');
 }
 
@@ -373,7 +380,7 @@ if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.s
 
 // blow away existing repo if reinit command
 if ( ($command == 'activate' || $command == 'reinit') && file_exists('/boot/.git')) {
-  exec_log('rm -rf /boot/.git');
+  deleteLocalRepo();
 }
 
 // ensure git repo is setup on the flash drive
