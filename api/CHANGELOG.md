@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.53.0](https://github.com/unraid/api/compare/v2.52.1...v2.53.0) (2022-11-02)
+
+
+### Features
+
+* add emhttp store module ([#359](https://github.com/unraid/api/issues/359)) ([d890acd](https://github.com/unraid/api/commit/d890acd86577008b3a2f096490307977812a2373))
+* connection to mothership required to enable flash backup and re… ([#382](https://github.com/unraid/api/issues/382)) ([dcbe726](https://github.com/unraid/api/commit/dcbe726714c40280eabc590ada1b4ef125a1deeb))
+* improvements to My Servers settings page ([#385](https://github.com/unraid/api/issues/385)) ([30bdf64](https://github.com/unraid/api/commit/30bdf6464f4e60aadc810b5e0c2a8bd9490c3355))
+* UpdateDNS shorten delay when restarting crashed api ([#381](https://github.com/unraid/api/issues/381)) ([8cee5be](https://github.com/unraid/api/commit/8cee5beddf63f11f12adddb45c321ffa49d7cb64))
+
+
+### Bug Fixes
+
+* add dns lookup cache ([#387](https://github.com/unraid/api/issues/387)) ([79685cc](https://github.com/unraid/api/commit/79685cca9a8bcf706361812a9729511159573aff))
+* better keyfile validation and tests ([#362](https://github.com/unraid/api/issues/362)) ([6db87bc](https://github.com/unraid/api/commit/6db87bc534b37f4acf08a632e62d19cd594508dc))
+* downgrade cachable lookup to fix bug ([#384](https://github.com/unraid/api/issues/384)) ([0b1326d](https://github.com/unraid/api/commit/0b1326de988b5c9e577e833491acfdcd16ab1882))
+* report improvements ([#397](https://github.com/unraid/api/issues/397)) ([83efee8](https://github.com/unraid/api/commit/83efee8811f1e1d6ec0c10e6a44cc29259d624a6))
+* update cachable lookup, update cloud check ([#380](https://github.com/unraid/api/issues/380)) ([2d5c7e9](https://github.com/unraid/api/commit/2d5c7e98fe0bc9cfe269584d8da39eff8da8c868))
+* update cachable lookup, update cloud check ([#383](https://github.com/unraid/api/issues/383)) ([1359ef7](https://github.com/unraid/api/commit/1359ef77164f4337cea8cc01eabda12b7ea3e1ed))
+* update jwt configuration ([#379](https://github.com/unraid/api/issues/379)) ([db42a1c](https://github.com/unraid/api/commit/db42a1cccfa054e5f870d6d9e03976246af60829))
+* update multi-ini to serialize booleans ([#364](https://github.com/unraid/api/issues/364)) ([544976a](https://github.com/unraid/api/commit/544976a5d64010c4ae06cb11ad705a25019fb559))
+
 ### [2.52.1](https://github.com/unraid/api/compare/v2.52.0...v2.52.1) (2022-09-28)
 
 
