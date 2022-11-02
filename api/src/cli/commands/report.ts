@@ -1,5 +1,3 @@
-
-import { dedent } from '@app/common/dedent';
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import { got } from 'got';
@@ -18,6 +16,48 @@ import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
 import { Server } from '@app/store/modules/servers';
+import { HumanRelayStates } from '@app/graphql/relay-state';
+
+type Verbosity = '' | '-v' | '-vv';
+
+type ServersPayload = {
+	online: Server[];
+	offline: Server[];
+	invalid: Server[];
+};
+
+type ReportObject = {
+	os: {
+		serverName: string;
+		version: string;
+	};
+	api: {
+		version: string;
+		status: 'running' | 'stopped';
+		environment: string;
+		nodeVersion: string;
+	};
+	apiKey: 'valid' | 'invalid' | string;
+	servers?: ServersPayload | null;
+	myServers: {
+		status: 'authenticated' | 'signed out';
+		myServersUsername?: string;
+	};
+	relay: {
+		status: HumanRelayStates | 'disconnected';
+		timeout?: number;
+		error?: string;
+	};
+	minigraph: {
+		status: 'disconnected' | 'connected';
+	};
+	cloud: {
+		status: 'error' | 'ok';
+		error?: string;
+		ip?: string;
+		allowedOrigins?: string[] | null;
+	};
+};
 
 export const createGotOptions = (config: Partial<MyServersConfig>) => {
 	// Create default settings for got
@@ -49,8 +89,13 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 	return cloud;
 };
 
-export const getServersData = async (unraidApiPid: number | undefined, cloud: Cloud | undefined, config: Partial<MyServersConfig>) => {
-	const servers = unraidApiPid && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
+export const getServersData = async ({ isApiRunning, cloud, config, v }: { isApiRunning: boolean; cloud: Cloud | undefined; config: Partial<MyServersConfig>; v: Verbosity }):
+Promise<ServersPayload | null> => {
+	if (v === '') {
+		return null;
+	}
+
+	const servers = isApiRunning && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
@@ -61,7 +106,12 @@ export const getServersData = async (unraidApiPid: number | undefined, cloud: Cl
 		return [];
 	}) : [];
 
-	return servers;
+	const online = servers.filter(server => server.status === 'online');
+	const offline = servers.filter(server => server.status === 'offline');
+	const invalid = servers.filter(server => server.status !== 'online' && server.status !== 'offline');
+	return {
+		online, offline, invalid,
+	};
 };
 
 const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
@@ -79,15 +129,99 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
 		.replace(`:${getters.config().remote.wanport || 443}`, ':WANPORT')).filter(Boolean);
 };
 
-const getAllowedOrigins = (cloud: Cloud | undefined, verbose: boolean, veryVerbose: boolean) => {
-	switch (true) {
-		case veryVerbose:
+const getAllowedOrigins = (cloud: Cloud | undefined, v: Verbosity): string[] | null => {
+	switch (v) {
+		case '-vv':
 			return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
-		case verbose:
+		case '-v':
 			return anonymiseOrigins(cloud?.allowedOrigins ?? []);
 		default:
-			return [];
+			return null;
 	}
+};
+
+const getUnraidVersion = async (paths: ReturnType<typeof getters.paths>): Promise<string> => {
+	// Get unraid OS version
+	const unraidVersion = existsSync(paths['unraid-version']) ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
+	cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
+	return unraidVersion;
+};
+
+const getReadableRelayDetails = (reportObject: ReportObject): string => {
+	const timeout = reportObject.relay.timeout ? `\n	TIMEOUT: [Reconnecting in ${prettyMs(Number(reportObject.relay.timeout))}]` : '';
+	const { status } = reportObject.relay;
+	const error = reportObject.relay.error ? `\n	ERROR: [${reportObject.relay.error}]` : '';
+	return `
+	STATUS: [${status}] ${timeout} ${error}`;
+};
+
+const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): string => {
+	const error = reportObject.cloud.error ? `\n	ERROR [${reportObject.cloud.error}]` : '';
+	const status = reportObject.cloud.status ? reportObject.cloud.status : 'disconnected';
+	const ip = reportObject.cloud.ip && v !== '' ? `\n	IP: [${reportObject.cloud.ip}]` : '';
+	return `
+	STATUS: [${status}] ${ip} ${error}`;
+};
+
+const getReadableMinigraphDetails = (reportObject: ReportObject): string => `
+	STATUS: [${reportObject.minigraph.status}]`;
+
+// Convert server to string output
+const serverToString = (v: Verbosity) => (server: Server) => `${server.name}${(v === '-v' || v === '-vv') ? `[owner="${server.owner.username}"${v === '-vv' ? ` guid="${server.guid}"]` : ']'}` : ''}`;
+
+const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): string => {
+	if (!reportObject.servers) {
+		return '';
+	}
+
+	if (reportObject.api.status === 'stopped') {
+		return '\nSERVERS: API is offline';
+	}
+
+	const invalid = (v === '-v' || v === '-vv') && reportObject.servers.invalid.length > 0 ? `
+	INVALID: ${reportObject.servers.invalid.map(serverToString(v)).join(',')}` : '';
+
+	return `
+SERVERS:
+	ONLINE: ${reportObject.servers.online.map(serverToString(v)).join(',')}
+	OFFLINE: ${reportObject.servers.offline.map(serverToString(v)).join(',')}${invalid}`;
+};
+
+const getReadableAllowedOrigins = (reportObject: ReportObject): string => {
+	const { cloud } = reportObject;
+	if (cloud?.allowedOrigins) {
+		return `
+ALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ').trim()}`;
+	}
+
+	return '';
+};
+
+const getServerName = async (paths: ReturnType<typeof getters.paths>): Promise<string> => {
+	// Load the var.ini file
+	let serverName = 'Tower';
+	try {
+		const varIni = parseConfig<{ name: string }>({ filePath: resolve(paths.states, 'var.ini'), type: 'ini' });
+		if (varIni.name) {
+			serverName = varIni.name;
+		}
+	} catch (error: unknown) {
+		cliLogger.error('Error loading states ini for report, defaulting server name to Tower');
+	}
+
+	return serverName;
+};
+
+const getVerbosity = (argv: string[]): Verbosity => {
+	if (argv.includes('-v')) {
+		return '-v';
+	}
+
+	if (argv.includes('-vv')) {
+		return '-vv';
+	}
+
+	return '';
 };
 
 // eslint-disable-next-line complexity
@@ -105,9 +239,6 @@ export const report = async (...argv: string[]) => {
 	// If they don't have --raw
 	const isInteractive = hasTty && !rawOutput;
 
-	// Check if they want a super fancy report
-	const isFancyPants = isInteractive && process.env.THE_FANCIEST_OF_PANTS_PLEASE;
-
 	const stdoutLogger = readLine.createInterface({
 		input: process.stdin,
 		output: process.stdout,
@@ -121,14 +252,14 @@ export const report = async (...argv: string[]) => {
 			stdoutLogger.write('Generating report please wait…');
 		}
 
+		const jsonReport = argv.includes('--json');
+		const v = getVerbosity(argv);
+
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
+		const isApiRunning = typeof unraidApiPid === 'number';
 
 		const paths = getters.paths();
-
-		// Get unraid OS version
-		const unraidVersion = existsSync(paths['unraid-version']) ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
-		cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
 
 		// Load my servers config file into store
 		await store.dispatch(loadConfigFile());
@@ -142,152 +273,78 @@ export const report = async (...argv: string[]) => {
 		// Log cloud response
 		cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
 
+		cliLogger.trace('Here to fix errros');
+
 		// Query local graphql using upc's API key
 		// Get the servers array
-		const servers = await getServersData(unraidApiPid, cloud, config);
-		if (unraidApiPid) cliLogger.trace('Fetched %s server(s) from local graphql', servers.length);
-		else cliLogger.trace('Skipped checking for servers as local graphql is offline');
-
-		// Should we log possibly sensitive info?
-		const verbose = argv.includes('-v');
-		const veryVerbose = argv.includes('-vv');
-
-		// Convert server to string output
-		const serverToString = (server: Server) => `${server.name}${(verbose || veryVerbose) ? `[owner="${server.owner.username}"${veryVerbose ? ` guid="${server.guid}"]` : ']'}` : ''}`;
-
-		// Get all the types of servers including ones that don't have a online/offline status
-		const onlineServers = servers.filter(server => server.status === 'online').map(server => serverToString(server));
-		const offlineServers = servers.filter(server => server.status === 'offline').map(server => serverToString(server));
-		const invalidServers = servers.filter(server => server.status !== 'online' && server.status !== 'offline').map(server => serverToString(server));
-
-		const serversDetails = unraidApiPid ? dedent`
-            ONLINE_SERVERS: ${onlineServers.join(', ')}
-            OFFLINE_SERVERS: ${offlineServers.join(', ')}${invalidServers.length > 0 ? `\nINVALID_SERVERS: ${invalidServers.join(', ')}` : ''}
-        ` : dedent`
-            SERVERS: API is offline
-        `;
-
-		// Check if API has crashed and if it has crash logs
-		const hasCrashLogs = (await stat('/var/log/unraid-api/crash.log').catch(() => ({ size: 0 }))).size > 0;
-
-		// Load the var.ini file
-		// @TODO Use the global state here?
-		let serverName = 'Tower';
-		try {
-			const varIni = parseConfig<{ name: string }>({ filePath: resolve(paths.states, 'var.ini'), type: 'ini' });
-			if (varIni.name) {
-				serverName = varIni.name;
-			}
-		} catch (error: unknown) {
-			cliLogger.error('Error loading states ini for report, defaulting server name to Tower');
-		}
+		const servers = await getServersData({ isApiRunning, cloud, config, v });
 
 		// Check if the API key is valid
 		// If the API is offline check directly with key-server
 		const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
 
-		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-		const relayError = cloud?.relay.error || undefined;
-		const relayStatus = relayError ?? cloud?.relay.status ?? 'disconnected';
-		const relayDetails = relayStatus === 'disconnected' ? (cloud?.relay.timeout ? `reconnecting in ${prettyMs(Number(cloud?.relay.timeout))} ${relayError ? `[${relayError}]` : ''}` : 'disconnected') : relayStatus;
-		const miniGraphqlStatus = cloud?.minigraphql.status ?? 'disconnected';
-
-		const jsonReport = argv.includes('--json');
-		if (jsonReport) {
-			// If we have trace logs or the user selected --raw don't clear the screen
-			if (process.env.LOG_LEVEL !== 'trace' && isInteractive && !isFancyPants) {
-				// Clear the original log about the report being generated
-				readLine.cursorTo(process.stdout, 0, 0);
-				readLine.clearScreenDown(process.stdout);
-			}
-
-			const json = JSON.stringify({
-				os: {
-					serverName,
-					version: unraidVersion,
-				},
-				api: {
-					version: getters.config().api.version,
-					status: unraidApiPid ? 'running' : 'stopped',
-					environment: process.env.ENVIRONMENT,
-				},
-				apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
-				servers: {
-					offline: servers.filter(server => server.status === 'offline'),
-					online: servers.filter(server => server.status === 'online'),
-				},
-				...(hasCrashLogs ? { crashLogs: await readFile('/var/log/unraid-api/crash.log', 'utf-8').then(lines => lines.split('\n').map(line => {
-					try {
-						return JSON.parse(line) as string;
-					} catch {}
-
-					return undefined;
-				}).filter(Boolean)).catch(() => '') } : {}),
-				myServers: {
-					status: config?.remote?.username ? 'authenticated' : 'signed out',
-					...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
-				},
-				relay: {
-					status: relayStatus,
-				},
-				minigraph: {
-					status: miniGraphqlStatus,
-				},
-				cloud: {
-					status: cloud?.cloud.status,
-					...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
-					...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {}),
-				},
-			});
-			stdout.write(json + '\n');
-			return;
-		}
-
-		// Get the IP of mothership
-		const cloudIp = cloud?.cloud.status === 'ok' ? `[IP=${cloud?.cloud?.ip}]` : '';
-
-		// Generate the actual report
-		const report = dedent`
-            <-----UNRAID-API-REPORT----->
-            SERVER_NAME: ${serverName}
-            ENVIRONMENT: ${process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT'}
-            UNRAID_VERSION: ${unraidVersion}
-            UNRAID_API_VERSION: ${getters.config().api.version} (${unraidApiPid ? 'running' : 'stopped'})
-            NODE_VERSION: ${process.version}
-            API_KEY: ${(cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid')}
-            MY_SERVERS: ${config?.remote?.username ? 'authenticated' : 'signed out'}${config?.remote?.username ? `\nMY_SERVERS_USERNAME: ${config?.remote?.username}` : ''}
-            CLOUD: ${cloud?.cloud.error ?? (cloud?.cloud.status ? `${cloud?.cloud.status}${(verbose || veryVerbose) ? ` ${cloudIp}` : ''}` : null) ?? 'disconnected'}
-            RELAY: ${relayDetails}
-            MINI-GRAPH: ${miniGraphqlStatus}
-            ${servers ? serversDetails : 'SERVERS: none found'}
-            ${(verbose || veryVerbose) ? `ALLOWED_ORIGINS: ${getAllowedOrigins(cloud, verbose, veryVerbose).join(', ')}`.trim() : ''}
-            HAS_CRASH_LOGS: ${hasCrashLogs ? 'yes' : 'no'}
-            </----UNRAID-API-REPORT----->
-        `.replace(/\n+/g, '\n');
-
-		// If we have a crash log grab it for later
-		const crashLogs = hasCrashLogs ? `<-----UNRAID-API-CRASH-LOGS----->\n${await readFile('/var/log/unraid-api/crash.log', 'utf-8').catch(() => '')}\n<-----UNRAID-API-CRASH-LOGS----->` : '';
-
-		// Should we output a basic report or one that supports markdown?
-		const markdownReport = argv.includes('--markdown');
-		const output = markdownReport ? dedent`
-            \`\`\`
-            ${report}
-            ${crashLogs}
-            \`\`\`
-        ` : dedent`
-            ${report}
-            ${crashLogs}
-        `;
+		const reportObject: ReportObject = {
+			os: {
+				serverName: await getServerName(paths),
+				version: await getUnraidVersion(paths),
+			},
+			api: {
+				version: getters.config().api.version,
+				status: unraidApiPid ? 'running' : 'stopped',
+				environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
+				nodeVersion: process.version,
+			},
+			apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
+			...(servers ? { servers } : {}),
+			myServers: {
+				status: config?.remote?.username ? 'authenticated' : 'signed out',
+				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
+			},
+			relay: {
+				status: cloud?.relay.status ?? 'disconnected',
+				...(cloud?.relay.timeout && v === '-vv' ? { timeout: cloud?.relay.timeout } : {}),
+				...(cloud?.relay.error ? { error: cloud.relay.error } : {}),
+			},
+			minigraph: {
+				status: cloud?.minigraphql.status ?? 'disconnected',
+			},
+			cloud: {
+				status: cloud?.cloud.status ?? 'error',
+				...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
+				...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {}),
+				...(getAllowedOrigins(cloud, v) ? { allowedOrigins: getAllowedOrigins(cloud, v) } : {}),
+			},
+		};
 
 		// If we have trace logs or the user selected --raw don't clear the screen
-		if (process.env.LOG_LEVEL !== 'trace' && isInteractive && !isFancyPants) {
+		if (process.env.LOG_LEVEL !== 'trace' && isInteractive) {
 			// Clear the original log about the report being generated
 			readLine.cursorTo(process.stdout, 0, 0);
 			readLine.clearScreenDown(process.stdout);
 		}
 
-		stdout.write(output + '\n');
+		if (jsonReport) {
+			stdout.write(JSON.stringify(reportObject) + '\n');
+			return;
+		}
+
+		// Generate the actual report
+		const report = `
+<-----UNRAID-API-REPORT----->
+SERVER_NAME: ${reportObject.os.serverName}
+ENVIRONMENT: ${reportObject.api.environment}
+UNRAID_VERSION: ${reportObject.os.version}
+UNRAID_API_VERSION: ${reportObject.api.version}
+UNRAID_API_STATUS: ${reportObject.api.status}
+API_KEY: ${reportObject.apiKey}
+MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
+CLOUD: ${getReadableCloudDetails(reportObject, v)}
+RELAY: ${getReadableRelayDetails(reportObject)}
+MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}
+</----UNRAID-API-REPORT----->
+`;
+
+		stdout.write(report);
 	} catch (error: unknown) {
 		console.log({ error });
 		if (error instanceof Error) {

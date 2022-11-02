@@ -5,6 +5,7 @@ import { config } from '@app/store/modules/config';
 import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
 import { registration } from '@app/store/modules/registration';
+import { cache } from '@app/store/modules/cache';
 
 export const store = configureStore({
 	reducer: {
@@ -14,10 +15,11 @@ export const store = configureStore({
 		servers: servers.reducer,
 		emhttp: emhttp.reducer,
 		registration: registration.reducer,
+		cache: cache.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
-			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions'],
+			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
 			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient'],
 		},
 	}),
@@ -33,4 +35,5 @@ export const getters = {
 	servers: () => store.getState().servers,
 	emhttp: () => store.getState().emhttp,
 	registration: () => store.getState().registration,
+	cache: () => store.getState().cache,
 };

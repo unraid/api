@@ -26,6 +26,9 @@ export const initialState: SliceState = {
 		username: '',
 		avatar: '',
 		regWizTime: '',
+		accesstoken: '',
+		idtoken: '',
+		refreshtoken: '',
 	},
 	local: {
 		showT2Fa: '',
@@ -118,6 +121,9 @@ export const config = createSlice({
 		setConnectionStatus(state, action: PayloadAction<SliceState['connectionStatus']>) {
 			state.connectionStatus = action.payload;
 		},
+		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
+			return merge(state, { remote: action.payload });
+		},
 	},
 	extraReducers(builder) {
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
@@ -148,4 +154,4 @@ export const config = createSlice({
 	},
 });
 
-export const { updateUserConfig, setConnectionStatus } = config.actions;
+export const { updateUserConfig, setConnectionStatus, updateAccessTokens } = config.actions;
