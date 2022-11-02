@@ -188,12 +188,20 @@ function cleanupCounter(string $dataFile, int $time): int {
 
 // rename /boot/.git to /boot/.git{random}, then start process to delete in background
 function deleteLocalRepo() {
+  global $arrState;
+
   $mainGitDir = '/boot/.git';
   $tmpGitDir = '/boot/.git'.rand();
   if (is_dir($mainGitDir)) {
     rename($mainGitDir, $tmpGitDir);
     exec('echo "rm -rf '.$tmpGitDir.' &>/dev/null" | at -q f -M now &>/dev/null');
   }
+
+  // reset state
+  $arrState['activated'] = 'no';
+  $arrState['uptodate'] = 'no';
+  $arrState['loading'] = '';
+  $arrState['error'] = '';
 }
 
 $validCommands = [
