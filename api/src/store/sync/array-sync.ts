@@ -39,7 +39,7 @@ const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0]): Array
 	const arrayState = mdState.startsWith('error') ? mdState.split(':')[1] : mdState;
 
 	// All known disks
-	const allDisks = emhttp.slots.filter(disk => disk.device);
+	const allDisks = emhttp.disks.filter(disk => disk.device);
 
 	// Array boot/parities/disks/caches
 	const boot = allDisks.find(disk => disk.name === 'flash') ?? null;
@@ -68,7 +68,7 @@ const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0]): Array
 		},
 	};
 
-	return {
+	const event = {
 		array: {
 			state: arrayState,
 			capacity,
@@ -78,6 +78,12 @@ const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0]): Array
 			caches,
 		},
 	};
+
+	logger.addContext('event', event);
+	logger.trace('New event created');
+	logger.removeContext('event');
+
+	return event;
 };
 
 export const syncArray: StoreSubscriptionHandler = async lastState => {
