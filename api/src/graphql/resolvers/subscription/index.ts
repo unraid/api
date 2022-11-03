@@ -9,7 +9,8 @@ import { pubsub } from '@app/core/pubsub';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { hasSubscribedToChannel } from '@app/ws';
 import { createSubscription } from '@app/graphql/schema/utils';
-import { startDashboardProducer, stopDashboardProducer } from '@app/graphql/resolvers/subscription/dashboard';
+import { store } from '@app/store';
+import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
 
 export function withCancel<T>(
 	asyncIterator: AsyncIterator<T | undefined>,
@@ -98,13 +99,13 @@ export const Subscription = {
 			hasSubscribedToChannel(context.websocketId, 'dashboard');
 
 			// Start producer
-			startDashboardProducer();
+			store.dispatch(startDashboardProducer());
 
 			// Return iterator with a cancel method that'll stop the producer
 			const iterator = pubsub.asyncIterator('dashboard');
 			return withCancel(iterator, async () => {
 				// Stop producer
-				stopDashboardProducer();
+				store.dispatch(stopDashboardProducer());
 			});
 		},
 	},

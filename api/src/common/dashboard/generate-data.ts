@@ -6,12 +6,14 @@ import { docker } from '@app/core/utils/clients/docker';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { getArray } from '@app/common/dashboard/get-array';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
-import { Dashboard as DashboardType } from '@app/common/run-time/dashboard';
+import { Dashboard, Dashboard as DashboardType } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { getters } from '@app/store';
+import { Service } from '@app/common/run-time/service';
+import { TwoFactor } from '@app/common/run-time/two-factor';
 
-const getVmSummary = async () => {
+const getVmSummary = async (): Promise<Dashboard['vms']> => {
 	try {
 		const hypervisor = await getHypervisor();
 		if (!hypervisor) {
@@ -35,7 +37,7 @@ const getVmSummary = async () => {
 	}
 };
 
-const twoFactor = () => {
+const twoFactor = (): Dashboard['twoFactor'] => {
 	const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
 	return {
 		remote: {
@@ -47,7 +49,7 @@ const twoFactor = () => {
 	};
 };
 
-const services = () => {
+const services = (): Dashboard['services'] => {
 	const uptimeTimestamp = bootTimestamp.toISOString();
 
 	return [{
@@ -60,7 +62,7 @@ const services = () => {
 	}];
 };
 
-const getData = async () => {
+const getData = async (): Promise<Dashboard> => {
 	const emhttp = getters.emhttp();
 
 	return {
@@ -84,20 +86,20 @@ const getData = async () => {
 		array: getArray(),
 		services: services(),
 		display: await display(),
-		config: {
-			valid: emhttp.var.configValid,
-			error: emhttp.var.configValid ? null : ({
+		config: emhttp.var.configValid ? { valid: true } : {
+			valid: false,
+			error: {
 				error: 'UNKNOWN_ERROR',
 				invalid: 'INVALID',
 				nokeyserver: 'NO_KEY_SERVER',
 				withdrawn: 'WITHDRAWN',
-			}[emhttp.var.configState] ?? 'UNKNOWN_ERROR'),
+			}[emhttp.var.configState] ?? 'UNKNOWN_ERROR',
 		},
 		twoFactor: twoFactor(),
 	};
 };
 
-export const generateData = async () => {
+export const generateData = async (): Promise<Dashboard | null> => {
 	const data = await getData();
 
 	try {
@@ -108,6 +110,7 @@ export const generateData = async () => {
 		logger.error('Failed validating dashboard object', error);
 		logger.error('Invalidated dashboard object', data);
 	}
+
+	return null;
 };
 
-export type Dashboard = Awaited<ReturnType<typeof generateData>>;

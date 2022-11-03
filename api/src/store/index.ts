@@ -6,6 +6,7 @@ import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
 import { registration } from '@app/store/modules/registration';
 import { cache } from '@app/store/modules/cache';
+import { dashboard } from '@app/store/modules/dashboard';
 
 export const store = configureStore({
 	reducer: {
@@ -16,6 +17,7 @@ export const store = configureStore({
 		emhttp: emhttp.reducer,
 		registration: registration.reducer,
 		cache: cache.reducer,
+		dashboard: dashboard.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
@@ -36,4 +38,5 @@ export const getters = {
 	emhttp: () => store.getState().emhttp,
 	registration: () => store.getState().registration,
 	cache: () => store.getState().cache,
+	dashboard: () => store.getState().dashboard,
 };
