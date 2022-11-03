@@ -1,21 +1,18 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
-import { PublishToDashboardJob } from '@app/graphql/resolvers/subscription/jobs/dashboard-jobs';
+import { getPublishToDashboardJob } from '@app/graphql/resolvers/subscription/jobs/dashboard-jobs';
 import { dashboardLogger } from '@app/core/log';
 import { Dashboard } from '@app/common/run-time/dashboard';
-import type { Job } from '@reflet/cron';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
 	lastDataPacket: Dashboard | null;
 	connectedToDashboard: number;
-	publishJob: Job;
 }
 
 export const initialState: DashboardState = {
 	lastDataPacketTimestamp: null,
 	lastDataPacket: null,
 	connectedToDashboard: 0,
-	publishJob: PublishToDashboardJob,
 };
 
 export const dashboard = createSlice({
@@ -27,7 +24,7 @@ export const dashboard = createSlice({
 
 			// Start new producer
 			dashboardLogger.trace('Starting dashboard producer');
-			state.publishJob.start();
+			getPublishToDashboardJob().start();
 		},
 
 		stopDashboardProducer(state) {
@@ -36,7 +33,7 @@ export const dashboard = createSlice({
 			// Don't stop if we still have clients using this
 			if (state.connectedToDashboard >= 1) return;
 
-			state.publishJob.stop();
+			getPublishToDashboardJob().stop();
 			state.lastDataPacket = null;
 			state.lastDataPacketTimestamp = null;
 		},

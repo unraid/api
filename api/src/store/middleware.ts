@@ -2,7 +2,7 @@ import { CurriedGetDefaultMiddleware } from '@reduxjs/toolkit/dist/getDefaultMid
 
 export const defaultAppMiddleware = (getDefaultMiddleware: CurriedGetDefaultMiddleware) => getDefaultMiddleware({
 	serializableCheck: {
-		ignoredPaths: ['minigraph.client', 'minigraph.subscriptions'],
+		ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'dashboard.publishJob'],
 		ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient'],
 	},
 });

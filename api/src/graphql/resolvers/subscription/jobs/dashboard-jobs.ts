@@ -15,4 +15,4 @@ class DashboardPublisher extends Initializer<typeof DashboardPublisher> {
 
 const DashboardCronJobs = DashboardPublisher.init();
 
-export const PublishToDashboardJob = DashboardCronJobs.get('publishToDashboardJob');
+export const getPublishToDashboardJob = () => DashboardCronJobs.get('publishToDashboardJob');
