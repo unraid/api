@@ -84,7 +84,9 @@ export const publishToDashboard = async () => {
 		store.dispatch(saveDataPacket({ lastDataPacket: dataPacket }));
 
 		// Publish the updated data
+		dashboardLogger.addContext('update', dataPacket);
 		dashboardLogger.trace('Publishing update');
+		dashboardLogger.removeContext('update');
 		await pubsub.publish('dashboard', {
 			dashboard: dataPacket,
 		});
