@@ -28,8 +28,8 @@ export const getShares: Overload = (type?: string, filter?: Filter) => {
 	const types = {
 		user: (name?: string) => processShare('user', emhttp.shares.find(share => share.name === name) ?? {}),
 		users: () => emhttp.shares.map(share => processShare('user', share)),
-		disk: (name?: string) => processShare('disk', emhttp.slots.find(slot => slot.exportable && slot.name === name) ?? {}),
-		disks: () => emhttp.slots.filter(slot => slot.exportable && slot.name.startsWith('disk')).map(disk => processShare('disk', disk)),
+		disk: (name?: string) => processShare('disk', emhttp.disks.find(slot => slot.exportable && slot.name === name) ?? {}),
+		disks: () => emhttp.disks.filter(slot => slot.exportable && slot.name.startsWith('disk')).map(disk => processShare('disk', disk)),
 	};
 
 	// Return a type of share
