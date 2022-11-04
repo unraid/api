@@ -1,12 +1,12 @@
 /* eslint-disable new-cap */
-import { String, Boolean, Record, Union, Static } from 'runtypes';
+import { String, Record, Union, Static, Literal } from 'runtypes';
 
 const ValidConfig = Record({
-	valid: Boolean.withConstraint(valid => valid),
+	valid: Literal(true),
 });
 
 const InvalidConfig = Record({
-	valid: Boolean.withConstraint(valid => !valid),
+	valid: Literal(false),
 	error: String,
 });
 

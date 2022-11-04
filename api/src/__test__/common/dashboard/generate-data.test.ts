@@ -65,7 +65,6 @@ test('Returns generated data', async () => {
 		  },
 		  "array": undefined,
 		  "config": {
-		    "error": null,
 		    "valid": true,
 		  },
 		  "display": {

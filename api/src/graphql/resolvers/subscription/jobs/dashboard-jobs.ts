@@ -2,8 +2,9 @@
 
 import { Cron, Expression, Initializer } from '@reflet/cron';
 import { publishToDashboard } from '@app/graphql/resolvers/subscription/dashboard';
+import 'reflect-metadata';
 
-export class DashboardPublisher extends Initializer<typeof DashboardPublisher> {
+class DashboardPublisher extends Initializer<typeof DashboardPublisher> {
 	@Cron.PreventOverlap
 	@Cron(Expression.EVERY_SECOND)
 	async publishToDashboardJob() {
@@ -11,3 +12,7 @@ export class DashboardPublisher extends Initializer<typeof DashboardPublisher> {
 		await publishToDashboard();
 	}
 }
+
+const DashboardCronJobs = DashboardPublisher.init();
+
+export const getPublishToDashboardJob = () => DashboardCronJobs.get('publishToDashboardJob');

@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import { Number, String, Boolean, Record, Null } from 'runtypes';
+import { Number, String, Boolean, Record, Null, Static } from 'runtypes';
 
 const uptime = Record({
 	timestamp: String.Or(Null),
@@ -11,3 +11,6 @@ export const Service = Record({
 	uptime: Number.Or(uptime).Or(Null),
 	version: String.Or(Null),
 });
+
+// eslint-disable-next-line @typescript-eslint/no-redeclare
+export type Service = Static<typeof Service>;

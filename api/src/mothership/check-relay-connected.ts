@@ -12,14 +12,14 @@ import { shouldBeConnectedToCloud } from '@app/mothership/should-be-connect-to-c
 import { clearValidKeyCache } from '@app/core/utils/misc/validate-api-key';
 import { getRelayConnectionStatus } from '@app/mothership/get-relay-connection-status';
 import { relayStore } from '@app/mothership/store';
-import { startDashboardProducer, stopDashboardProducer } from '@app/graphql/resolvers/subscription/dashboard';
 import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
 import { RelayKeepAlive } from '@app/mothership/jobs/relay-keep-alive-jobs';
 import { handleError } from '@app/mothership/handle-error';
 import { saveIncomingWebsocketMessageToDisk } from '@app/mothership/save-websocket-message-to-disk';
 import { sendMessage } from '@app/mothership/send-message';
 import { subscriptionListener } from '@app/mothership/subscription-listener';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
+import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
 
 const messageIdLookup = new Map<string, { subId: number; field: string }>();
 
@@ -97,7 +97,7 @@ export const checkRelayConnection = debounce(async () => {
 			handleError(error);
 
 			// Stop the dashboard producer
-			stopDashboardProducer();
+			store.dispatch(stopDashboardProducer());
 
 			// Stop all the pubsub subscriptions as the client closed the connection
 			[...messageIdLookup.entries()].forEach(([_messageId, { subId, field }]) => {
@@ -181,7 +181,7 @@ export const checkRelayConnection = debounce(async () => {
 						// If this is the dashboard endpoint it also needs its producer started
 						if (field === 'dashboard') {
 							// Start producer
-							startDashboardProducer();
+							store.dispatch(startDashboardProducer());
 						}
 
 						break;
@@ -210,7 +210,7 @@ export const checkRelayConnection = debounce(async () => {
 						// If this is the dashboard endpoint it also needs its producer stopped
 						if (field === 'dashboard') {
 							// Stop producer
-							stopDashboardProducer();
+							store.dispatch(stopDashboardProducer());
 						}
 
 						break;
