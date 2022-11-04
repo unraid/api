@@ -1,5 +1,4 @@
 import { expect, SpyInstance, test, vi } from 'vitest';
-import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
 import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
@@ -55,18 +54,42 @@ vi.mock('got', () => ({
 			};
 		}
 
+		if (opts.body === '{"query":"query{servers{name guid status owner{username}}}"}') {
+			return { body: JSON.stringify(
+				{ data:
+					{ servers: [
+						{ name: 'Tower',
+							guid: 'ABCD-ABCD-ABCD-ABCD',
+							status: 'online',
+							owner: { username: 'api-test-runner' } },
+						{ name: 'Tower2',
+							guid: 'CBDA-CBDA-CBDA-CBDA',
+							status: 'offline',
+							owner: { username: 'api-test-runner' } },
+						{ name: 'Tower43',
+							guid: 'MY_GUID',
+							status: 'unknown',
+							owner: { username: 'api-test-runner' } },
+					],
+					},
+				}),
+			};
+		}
+
 		throw new Error(`Unmocked query "${opts.body}"`);
 	}),
+}));
+
+vi.mock('@app/cli/get-unraid-api-pid', () => ({
+	getUnraidApiPid: vi.fn(async () => 234_234),
 }));
 
 vi.mock('process');
 
 test('Returns a pretty non-anonymised report with -vv', async () => {
 	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
-	const { cliLogger } = await import('@app/core/log');
+
 	const { stdout } = await import('process');
-	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
-	const cliTraceLoggerSpy = vi.spyOn(cliLogger, 'trace');
 
 	// The args we'll pass to the report function
 	const args = ['-vv'];
@@ -78,53 +101,29 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 	// This should be run in interactive mode
 	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
 
-	// Should have logged report to console
-	expect(cliDebugLoggerSpy.mock.calls.length).toBe(1);
-	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
-	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
-	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', 'unknown']);
-	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
-	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
-		{
-		  "allowedOrigins": [],
-		  "apiKey": {
-		    "error": null,
-		    "valid": true,
-		  },
-		  "cloud": {
-		    "error": null,
-		    "ip": "52.40.54.163",
-		    "status": "ok",
-		  },
-		  "error": null,
-		  "minigraphql": {
-		    "status": "connected",
-		  },
-		  "relay": {
-		    "error": null,
-		    "status": "connected",
-		    "timeout": null,
-		  },
-		}
-	`);
-	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Skipped checking for servers as local graphql is offline']);
-
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
-		"<-----UNRAID-API-REPORT----->
+		"
+		<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
-		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
-		NODE_VERSION: ${process.version}
+		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
+		UNRAID_API_STATUS: running
 		API_KEY: valid
 		MY_SERVERS: signed out
-		CLOUD: ok [IP=52.40.54.163]
-		RELAY: connected
-		MINI-GRAPH: connected
-		SERVERS: API is offline
-		ALLOWED_ORIGINS:
-		HAS_CRASH_LOGS: no
+		CLOUD: 
+			STATUS: [ok] 
+			IP: [52.40.54.163] 
+		RELAY: 
+			STATUS: [connected]  
+		MINI-GRAPH: 
+			STATUS: [connected]
+		SERVERS:
+			ONLINE: Tower[owner=\\"api-test-runner\\" guid=\\"ABCD-ABCD-ABCD-ABCD\\"]
+			OFFLINE: Tower2[owner=\\"api-test-runner\\" guid=\\"CBDA-CBDA-CBDA-CBDA\\"]
+			INVALID: Tower43[owner=\\"api-test-runner\\" guid=\\"MY_GUID\\"]
+		ALLOWED_ORIGINS: 
 		</----UNRAID-API-REPORT----->
 		"
 	`);

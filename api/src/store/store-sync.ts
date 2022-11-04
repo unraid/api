@@ -5,6 +5,7 @@ import { sync2FA } from '@app/store/sync/2fa-sync';
 import { setupConfigPathWatch } from './watch/config-watch';
 import { FileLoadStatus } from './types';
 import { syncRegistration } from '@app/store/sync/registration-sync';
+import { syncArray } from '@app/store/sync/array-sync';
 
 export const startStoreSync = async () => {
 	// The last state is stored so we don't end up in a loop of writing -> reading -> writing
@@ -27,6 +28,9 @@ export const startStoreSync = async () => {
 
 			// Update registration
 			await syncRegistration(lastState);
+
+			// Update array
+			await syncArray(lastState);
 		}
 
 		lastState = state;

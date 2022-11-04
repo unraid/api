@@ -49,6 +49,10 @@ if ($oldVersion) {
 
 $isRegistered = !empty($remote['username']);
 
+$myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+$isConnected = ($myStatus['relay']=='connected')?true:false;
+$fbStatus = @parse_ini_file('/var/local/emhttp/flashbackup.ini');
+
 $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
 
@@ -230,9 +234,21 @@ function enableFlashBackup(button) {
         $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"activate"},success).fail(failure);
     }
     if (oldlabel == "_(Deactivate)_") {
-        swal({title:"_(Deactivate)_",text:"_(Are you sure you want pause communication with your remote flash backup on unraid.net?)_",type:'warning',confirmButtonText:"_(Deactivate)_",showCancelButton:true},function(){
+        swal({
+            title:_("Deactivate"),
+            showCancelButton:true,
+            confirmButtonText:_('Deactivate'),
+            cancelButtonText:_('Cancel'),
+            text:_("Are you sure you want wipe your local flash backup?")+"<br><br><label style='font-weight:bold;color:red;'><input type='checkbox' id='remove_remote_backups'> "+_("Also remove all remote files. Restore from backup will be unavailable")+"</label>",
+            html:true,
+        },function(confirm){
+            if (!confirm) return;
             $(button).prop("disabled", true).html("_(Deactivating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
             $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"deactivate"},success).fail(failure);
+            if ($('#remove_remote_backups').is(':checked')) {
+                // post to key-server to remove remote backup
+                $.post("https://keys.lime-technology.com/backup/flash/delete",{keyfile:"<?=$keyfile?>"}).fail(failure);
+            }
         });
     }
     if (oldlabel == "_(Update)_") {
@@ -324,24 +340,36 @@ const isCommaSeparatedURLs = input =>
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
-_(Unraid.net account status)_:
+_(Account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
+_(Connected to My Servers Cloud)_: 
+<?if($isConnected):?>
+: _(Yes)_
+<?else:?>
+: <i class="fa fa-warning icon warning"></i> _(No)_
+<?endif // end check for ($isConnected) ?>
+<?endif // end check for ($isRegistered) ?>
+
 _(Allow Remote Access)_:
-<?if(!$hasCert):?>
+<?if(!$isRegistered):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
+<?elseif(!$isConnected && $remote['wanaccess']!="yes"):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
+<?elseif(!$hasCert):?>
 <?if($oldVersion):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
 <?else:?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert)_</span>
-<?endif?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
+<?endif // end check for ($oldVersion) ?>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?elseif(!$boolWebUIAuth):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
-<?else:?>
+<?else: // begin show remote access form ?>
 : <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
   <?=mk_option($remote['wanaccess'], "no", _("No"))?>
   <?=mk_option($remote['wanaccess'], "yes", _("Yes"))?>
@@ -432,18 +460,22 @@ _(Unraid API extra origins)_:
 : <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$api['extraOrigins']?>">
 
 :unraidnet_extraorigins_help:
-<?endif?>
+<?endif // end show remote access form ?>
 
 &nbsp;
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button>
-<?endif?>
-<?endif?>
+<?endif // end check for (!$hasCert) ?>
 </form>
 
-<?if($isRegistered):?>
-<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 _(Flash backup)_:
+<?if(!$isRegistered):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
+<?elseif(!$isConnected && !$fbStatus['activated']):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
+<?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
+
+<form markdown="1" name="FlashBackup" method="POST" action="/update.htm" target="progressFrame">
 
 <div markdown="1" id="errorpanel" style="display:none">
 &nbsp;
@@ -507,4 +539,4 @@ $(function() {
   }
 });
 </script>
-<?endif?>
+<?endif // end show flash backup form ?>

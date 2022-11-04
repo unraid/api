@@ -29,7 +29,7 @@ export const getArray = (context: CoreContext): CoreResult => {
 	const state: string = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
 
 	// All known disks
-	const allDisks = emhttp.slots.filter(disk => disk.device);
+	const allDisks = emhttp.disks.filter(disk => disk.device);
 
 	// Array boot/parities/disks/caches
 	const boot = allDisks.find(disk => disk.name === 'flash');

@@ -12,13 +12,14 @@ import { server } from '@app/server';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
 import { store } from '@app/store';
-import { loadConfigFile } from '@app/store/modules/config';
+import { loadConfigFile, setConnectionStatus } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { setupNchanWatch } from '@app/store/watch/nchan-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
+import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
 
 // Boot app
 void am(async () => {
@@ -58,20 +59,29 @@ void am(async () => {
 		logger.info('Server is up! %s', getServerAddress(server.server));
 	});
 
+	// Disabled until we need the access token to work
+	// TokenRefresh.init();
+
 	// Try to start HTTP server
 	await server.start();
 
 	// On process exit stop HTTP server
-	exitHook(async () => {
+	exitHook(() => {
 		// Stop the HTTP server
 		server.stop();
+		store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
+		writeMemoryConfigSync();
 	});
 }, async (error: NodeJS.ErrnoException) => {
 	// Log error to syslog
 	logger.error(error);
 
+	// Write the new memory config with disconnected status
+	store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
+	writeMemoryConfigSync();
 	// Stop server
 	logger.debug('Stopping HTTP server');
+
 	server.stop(async () => {
 		// Kill application
 		process.exitCode = 1;

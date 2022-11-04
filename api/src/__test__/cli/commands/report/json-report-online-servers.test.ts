@@ -94,13 +94,8 @@ vi.mock('process');
 
 test('Returns a JSON anonymised report when provided the --json cli argument [online servers]', async () => {
 	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
-	const { cliLogger } = await import('@app/core/log');
-	const { stdout } = await import('process');
-	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
-	const cliTraceLoggerSpy = vi.spyOn(cliLogger, 'trace');
 
-	// Reset mock counters to 0
-	cliTraceLoggerSpy.mockClear();
+	const { stdout } = await import('process');
 
 	// The args we'll pass to the report function
 	const args = ['--json'];
@@ -112,41 +107,12 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	// This should be run in interactive mode
 	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
 
-	// Should have logged report to console
-	expect(cliDebugLoggerSpy.mock.calls.length).toBe(1);
-	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
-	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
-	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', '6.10.1']);
-	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
-	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
-		{
-		  "allowedOrigins": [],
-		  "apiKey": {
-		    "error": null,
-		    "valid": true,
-		  },
-		  "cloud": {
-		    "error": null,
-		    "ip": "52.40.54.163",
-		    "status": "ok",
-		  },
-		  "error": null,
-		  "minigraphql": {
-		    "status": "connected",
-		  },
-		  "relay": {
-		    "error": null,
-		    "status": "connected",
-		    "timeout": null,
-		  },
-		}
-	`);
-	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Fetched %s server(s) from local graphql', 1]);
-
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "api": {
+		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "nodeVersion": "v18.5.0",
 		    "status": "running",
 		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
@@ -169,7 +135,62 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		  "relay": {
 		    "status": "connected",
 		  },
+		}
+	`);
+
+	// Should not call readline write as this is non-interactive
+	expect(writeStub.mock.calls.length).toBe(0);
+
+	// Should close the readline interface at the end of the report
+	expect(closeStub.mock.calls.length).toBe(1);
+});
+
+test('Returns a JSON anonymised report when provided the --json cli argument [online servers] [-vv]', async () => {
+	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
+
+	const { stdout } = await import('process');
+
+	// The args we'll pass to the report function
+	const args = ['--json', '-vv'];
+
+	// The report should succeed
+	const { report } = await import('@app/cli/commands/report');
+	await expect(report(...args)).resolves.toBe(undefined);
+
+	// This should be run in interactive mode
+	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
+
+	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
+	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
+		{
+		  "api": {
+		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "nodeVersion": "v18.5.0",
+		    "status": "running",
+		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		  },
+		  "apiKey": "valid",
+		  "cloud": {
+		    "allowedOrigins": [],
+		    "ip": "52.40.54.163",
+		    "status": "ok",
+		  },
+		  "minigraph": {
+		    "status": "connected",
+		  },
+		  "myServers": {
+		    "myServersUsername": "api-test-runner",
+		    "status": "authenticated",
+		  },
+		  "os": {
+		    "serverName": "Tower",
+		    "version": "6.10.1",
+		  },
+		  "relay": {
+		    "status": "connected",
+		  },
 		  "servers": {
+		    "invalid": [],
 		    "offline": [],
 		    "online": [
 		      {

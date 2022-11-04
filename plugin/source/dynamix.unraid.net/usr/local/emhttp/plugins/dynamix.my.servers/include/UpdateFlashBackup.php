@@ -186,6 +186,16 @@ function cleanupCounter(string $dataFile, int $time): int {
   return count($data);
 }
 
+// rename /boot/.git to /boot/.git{random}, then start process to delete in background
+function deleteLocalRepo() {
+  $mainGitDir = '/boot/.git';
+  $tmpGitDir = '/boot/.git'.rand();
+  if (is_dir($mainGitDir)) {
+    rename($mainGitDir, $tmpGitDir);
+    exec('echo "rm -rf '.$tmpGitDir.' &>/dev/null" | at -q f -M now &>/dev/null');
+  }
+}
+
 $validCommands = [
   'init', //default
   'activate',
@@ -249,6 +259,11 @@ if (@filesize($gitflash) > 100000) { // 100kb
 
 load_flash_backup_state();
 
+// if already processing, bail
+if ($arrState['loading'] == 'Processing' && $loadingMessage == 'Processing') {
+  response_complete(403, '{}');
+}
+
 // check if signed-in
 if (empty($remote['username'])) {
   response_complete(406,  array('error' => 'Must be signed in to My Servers to use Flash Backup'));
@@ -287,10 +302,10 @@ if (!empty($loadingMessage)) {
   save_flash_backup_state($loadingMessage);
 }
 
-// if deactivate command, just remove our origin
 if ($command == 'deactivate') {
   exec_log('git -C /boot remote remove origin');
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
+  deleteLocalRepo();
   response_complete(200, '{}');
 }
 
@@ -365,7 +380,7 @@ if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.s
 
 // blow away existing repo if reinit command
 if ( ($command == 'activate' || $command == 'reinit') && file_exists('/boot/.git')) {
-  exec_log('rm -rf /boot/.git');
+  deleteLocalRepo();
 }
 
 // ensure git repo is setup on the flash drive
@@ -522,6 +537,8 @@ if ($arrState['uptodate'] == 'yes') {
   exec('git -C /boot rev-list origin/master..master --count 2>&1', $revlist_output);
   if (trim($revlist_output[0]) != '0') {
     $arrState['uptodate'] = 'no';
+  } else {
+    $arrState['error'] = '';
   }
 }
 
@@ -555,10 +572,18 @@ if (($command == 'update') || ($command == 'reinit')) {
       }
     }
     if ($return_var != 0) {
-      $arrState['error'] = 'Failed to sync flash backup';
+      // check for permission denied
+      if (stripos($push_output[0],'permission denied') !== false) {
+        $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+        $isConnected = ($myStatus['relay']=='connected')?true:false;
+        $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+      } else {
+        $arrState['error'] = 'Failed to sync flash backup';
+      }
       response_complete($httpcode, '{}');
     }
     $arrState['uptodate'] = 'yes';
+    $arrState['error'] = '';
   }
 
   if ($arrState['error'] == 'Failed to sync flash backup') {

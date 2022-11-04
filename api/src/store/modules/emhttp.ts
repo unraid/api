@@ -7,7 +7,7 @@ import { FileLoadStatus } from '@app/store/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { join } from 'path';
-import { logger } from '@app/core';
+import { logger } from '@app/core/log';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { Devices } from '@app/core/types/states/devices';
 import { Networks } from '@app/core/types/states/network';
@@ -36,7 +36,7 @@ export type SliceState = {
 	networks: Networks;
 	nginx: Nginx;
 	shares: Shares;
-	slots: Slots;
+	disks: Slots;
 	users: Users;
 	smbShares: SmbShares;
 	nfsShares: NfsShares;
@@ -49,7 +49,7 @@ const initialState: SliceState = {
 	networks: [] as Networks,
 	nginx: {} as unknown as Nginx,
 	shares: [] as Shares,
-	slots: [] as Slots,
+	disks: [] as Slots,
 	users: [] as Users,
 	smbShares: [] as SmbShares,
 	nfsShares: [] as NfsShares,
@@ -98,7 +98,7 @@ export const loadStateFiles = createAsyncThunk<SliceState, string | undefined>('
 		networks: parseState(path, 'network', []),
 		nginx: parseState(path, 'nginx', {} as Nginx),
 		shares: parseState(path, 'shares', []),
-		slots: parseState(path, 'disks', []),
+		disks: parseState(path, 'disks', []),
 		users: parseState(path, 'users', []),
 		smbShares: parseState(path, 'sec', []),
 		nfsShares: parseState(path, 'sec_nfs', []),

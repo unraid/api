@@ -82,10 +82,8 @@ vi.mock('process');
 
 test('Returns a pretty non-anonymised report with -v', async () => {
 	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
-	const { cliLogger } = await import('@app/core/log');
+
 	const { stdout } = await import('process');
-	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
-	const cliTraceLoggerSpy = vi.spyOn(cliLogger, 'trace');
 
 	// The args we'll pass to the report function
 	const args = ['-v'];
@@ -97,53 +95,26 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 	// This should be run in interactive mode
 	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
 
-	// Should have logged report to console
-	expect(cliDebugLoggerSpy.mock.calls.length).toBe(1);
-	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
-	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
-	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', 'unknown']);
-	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
-	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchInlineSnapshot(`
-		{
-		  "allowedOrigins": [],
-		  "apiKey": {
-		    "error": null,
-		    "valid": true,
-		  },
-		  "cloud": {
-		    "error": null,
-		    "ip": "52.40.54.163",
-		    "status": "ok",
-		  },
-		  "error": null,
-		  "minigraphql": {
-		    "status": "connected",
-		  },
-		  "relay": {
-		    "error": null,
-		    "status": "connected",
-		    "timeout": null,
-		  },
-		}
-	`);
-	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Skipped checking for servers as local graphql is offline']);
-
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
-		"<-----UNRAID-API-REPORT----->
+		"
+		<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
-		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
-		NODE_VERSION: ${process.version}
+		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
+		UNRAID_API_STATUS: stopped
 		API_KEY: valid
 		MY_SERVERS: signed out
-		CLOUD: ok [IP=52.40.54.163]
-		RELAY: connected
-		MINI-GRAPH: connected
+		CLOUD: 
+			STATUS: [ok] 
+			IP: [52.40.54.163] 
+		RELAY: 
+			STATUS: [connected]  
+		MINI-GRAPH: 
+			STATUS: [connected]
 		SERVERS: API is offline
-		ALLOWED_ORIGINS:
-		HAS_CRASH_LOGS: no
+		ALLOWED_ORIGINS: 
 		</----UNRAID-API-REPORT----->
 		"
 	`);
@@ -157,10 +128,8 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 
 test('Returns a pretty non-anonymised report with -v [mothership restarting]', async () => {
 	const { writeStub, closeStub } = await import('readline') as unknown as { writeStub: SpyInstance; closeStub: SpyInstance };
-	const { cliLogger } = await import('@app/core/log');
+
 	const { stdout } = await import('process');
-	const cliDebugLoggerSpy = vi.spyOn(cliLogger, 'debug');
-	const cliTraceLoggerSpy = vi.spyOn(cliLogger, 'trace');
 
 	// Reset mock counters
 	vi.mocked(readline.createInterface).mockClear();
@@ -172,7 +141,7 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 
 	// Mark mothership as restarting
 	const { relayStore } = await import('@app/mothership/store');
-	const timeout = new Date().getTime() + 60_000;
+	const timeout = 60_000;
 	relayStore.code = 12;
 	relayStore.reason = 'SERVICE_RESTART';
 	relayStore.relay = undefined;
@@ -188,50 +157,27 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 	// This should be run in interactive mode
 	expect(vi.mocked(readline).createInterface.mock.calls.length).toBe(1);
 
-	// Should have logged report to console
-	expect(cliDebugLoggerSpy.mock.calls.length).toBe(1);
-	expect(cliDebugLoggerSpy.mock.calls[0]).toEqual(['Setting process.env[LOG_TYPE] = raw']);
-	expect(cliTraceLoggerSpy.mock.calls.length).toBe(3);
-	expect(cliTraceLoggerSpy.mock.calls[0]).toEqual(['Got unraid OS version "%s"', 'unknown']);
-	expect(cliTraceLoggerSpy.mock.calls[1][0]).toEqual('Cloud response %s');
-	expect(JSON.parse(cliTraceLoggerSpy.mock.calls[1][1])).toMatchObject({
-		allowedOrigins: [],
-		apiKey: {
-			error: null,
-			valid: true,
-		},
-		cloud: {
-			error: 'Mothership is restarting',
-			status: 'error',
-		},
-		error: null,
-		minigraphql: {
-			status: 'disconnected',
-		},
-		relay: {
-			error: 'Mothership is restarting',
-			status: 'disconnected',
-			timeout: expect.any(Number),
-		},
-	});
-	expect(cliTraceLoggerSpy.mock.calls[2]).toEqual(['Skipped checking for servers as local graphql is offline']);
-
 	expect(vi.mocked(stdout).write.mock.calls.length).toBe(1);
 	expect(vi.mocked(stdout).write.mock.calls[0][0]).toMatchInlineSnapshot(`
-		"<-----UNRAID-API-REPORT----->
+		"
+		<-----UNRAID-API-REPORT----->
 		SERVER_NAME: Tower
 		ENVIRONMENT: THIS_WILL_BE_REPLACED_WHEN_BUILT
 		UNRAID_VERSION: unknown
-		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT (stopped)
-		NODE_VERSION: ${process.version}
+		UNRAID_API_VERSION: THIS_WILL_BE_REPLACED_WHEN_BUILT
+		UNRAID_API_STATUS: stopped
 		API_KEY: valid
 		MY_SERVERS: signed out
-		CLOUD: Mothership is restarting
-		RELAY: Mothership is restarting
-		MINI-GRAPH: disconnected
+		CLOUD: 
+			STATUS: [error]  
+			ERROR [Mothership is restarting]
+		RELAY: 
+			STATUS: [disconnected]  
+			ERROR: [Mothership is restarting]
+		MINI-GRAPH: 
+			STATUS: [disconnected]
 		SERVERS: API is offline
-		ALLOWED_ORIGINS:
-		HAS_CRASH_LOGS: no
+		ALLOWED_ORIGINS: 
 		</----UNRAID-API-REPORT----->
 		"
 	`);
