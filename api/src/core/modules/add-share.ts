@@ -23,11 +23,11 @@ export const addShare = async (context: CoreContext<unknown, { name: string }>):
 		possession: 'any',
 	});
 
-	const { shares, slots } = getters.emhttp();
+	const { shares, disks } = getters.emhttp();
 
 	const { name } = data;
 	const userShares = shares.map(({ name }) => name);
-	const diskShares = slots.filter(slot => slot.exportable).filter(({ name }) => name.startsWith('disk')).map(({ name }) => name);
+	const diskShares = disks.filter(slot => slot.exportable).filter(({ name }) => name.startsWith('disk')).map(({ name }) => name);
 
 	// Existing share names
 	const inUseNames = new Set([

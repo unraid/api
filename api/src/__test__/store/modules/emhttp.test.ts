@@ -11,11 +11,11 @@ test('Before init returns default values for all fields', async () => {
 	expect(state).toMatchInlineSnapshot(`
 		{
 		  "devices": [],
+		  "disks": [],
 		  "networks": [],
 		  "nfsShares": [],
 		  "nginx": {},
 		  "shares": [],
-		  "slots": [],
 		  "smbShares": [],
 		  "users": [],
 		  "var": {},
@@ -30,7 +30,7 @@ test('After init returns values from cfg file for all fields', async () => {
 	await store.dispatch(loadStateFiles());
 
 	// Check if store has state files loaded
-	const { devices, networks, nfsShares, nginx, shares, slots, smbShares, status, users, var: varState } = store.getState().emhttp;
+	const { devices, networks, nfsShares, nginx, shares, disks, smbShares, status, users, var: varState } = store.getState().emhttp;
 	expect(status).toBe(FileLoadStatus.LOADED);
 	expect(devices).toMatchInlineSnapshot('[]');
 	expect(networks).toMatchInlineSnapshot(`
@@ -119,7 +119,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "wanIp": "",
 		}
 	`);
-	expect(slots).toMatchInlineSnapshot(`
+	expect(disks).toMatchInlineSnapshot(`
 		[
 		  {
 		    "color": "green-on",
