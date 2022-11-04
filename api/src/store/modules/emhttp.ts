@@ -7,10 +7,11 @@ import { FileLoadStatus } from '@app/store/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { join } from 'path';
-import { logger } from '@app/core';
+import { logger } from '@app/core/log';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { Devices } from '@app/core/types/states/devices';
 import { Networks } from '@app/core/types/states/network';
+import { Nginx } from '@app/core/types/states/nginx';
 import { Shares } from '@app/core/types/states/share';
 import { Users } from '@app/core/types/states/user';
 import { NfsShares } from '@app/core/types/states/nfs';
@@ -19,20 +20,23 @@ import { SmbShares } from '@app/core/types/states/smb';
 import { Var } from '@app/core/types/states/var';
 import { parse as parseDevices } from '@app/store/state-parsers/devices';
 import { parse as parseNetwork } from '@app/store/state-parsers/network';
+import { parse as parseNginx } from '@app/store/state-parsers/nginx';
 import { parse as parseNfsShares } from '@app/store/state-parsers/nfs';
 import { parse as parseShares } from '@app/store/state-parsers/shares';
 import { parse as parseSlots } from '@app/store/state-parsers/slots';
 import { parse as parseSmbShares } from '@app/store/state-parsers/smb';
 import { parse as parseUsers } from '@app/store/state-parsers/users';
 import { parse as parseVar } from '@app/store/state-parsers/var';
+import { format } from 'util';
 
 export type SliceState = {
 	status: FileLoadStatus;
 	var: Var;
 	devices: Devices;
 	networks: Networks;
+	nginx: Nginx;
 	shares: Shares;
-	slots: Slots;
+	disks: Slots;
 	users: Users;
 	smbShares: SmbShares;
 	nfsShares: NfsShares;
@@ -43,8 +47,9 @@ const initialState: SliceState = {
 	var: {} as unknown as Var,
 	devices: [] as Devices,
 	networks: [] as Networks,
+	nginx: {} as unknown as Nginx,
 	shares: [] as Shares,
-	slots: [] as Slots,
+	disks: [] as Slots,
 	users: [] as Users,
 	smbShares: [] as SmbShares,
 	nfsShares: [] as NfsShares,
@@ -54,6 +59,7 @@ export const parsers = {
 	var: parseVar,
 	devs: parseDevices,
 	network: parseNetwork,
+	nginx: parseNginx,
 	shares: parseShares,
 	disks: parseSlots,
 	users: parseUsers,
@@ -71,8 +77,8 @@ const parseState = <Parser extends keyof typeof parsers, DefaultValue = ReturnTy
 			type: 'ini',
 		})) as DefaultValue;
 	} catch (error: unknown) {
-		logger.error('Failed loading state file from "%s" with error', filePath);
-		logger.error(error);
+		if (!(error instanceof Error)) throw new Error(format('Failed loading state file from "%s" with unknown error "%s"', filePath, String(error)));
+		logger.error('Failed loading state file from "%s" with "%s"', filePath, error.message);
 	}
 
 	return defaultValue;
@@ -90,8 +96,9 @@ export const loadStateFiles = createAsyncThunk<SliceState, string | undefined>('
 		var: parseState(path, 'var', {} as Var),
 		devices: parseState(path, 'devs', []),
 		networks: parseState(path, 'network', []),
+		nginx: parseState(path, 'nginx', {} as Nginx),
 		shares: parseState(path, 'shares', []),
-		slots: parseState(path, 'disks', []),
+		disks: parseState(path, 'disks', []),
 		users: parseState(path, 'users', []),
 		smbShares: parseState(path, 'sec', []),
 		nfsShares: parseState(path, 'sec_nfs', []),

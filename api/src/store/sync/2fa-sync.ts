@@ -4,7 +4,7 @@ import { pubsub } from '@app/core/pubsub';
 export const sync2FA = async () => {
 	const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
 
-	// Publish to 2fa endpoint
+	// Publish to graphql
 	await pubsub.publish('twoFactor', {
 		twoFactor: {
 			remote: {

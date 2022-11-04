@@ -2,9 +2,9 @@ import { configureStore } from '@reduxjs/toolkit';
 import { paths } from '@app/store/modules/paths';
 import { minigraph } from '@app/store/modules/minigraph';
 import { config } from '@app/store/modules/config';
-import { nginx } from '@app/store/modules/nginx';
 import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
+import { registration } from '@app/store/modules/registration';
 import { cache } from '@app/store/modules/cache';
 
 export const store = configureStore({
@@ -12,9 +12,9 @@ export const store = configureStore({
 		config: config.reducer,
 		minigraph: minigraph.reducer,
 		paths: paths.reducer,
-		nginx: nginx.reducer,
 		servers: servers.reducer,
 		emhttp: emhttp.reducer,
+		registration: registration.reducer,
 		cache: cache.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
@@ -32,8 +32,8 @@ export const getters = {
 	config: () => store.getState().config,
 	minigraph: () => store.getState().minigraph,
 	paths: () => store.getState().paths,
-	nginx: () => store.getState().nginx,
 	servers: () => store.getState().servers,
 	emhttp: () => store.getState().emhttp,
+	registration: () => store.getState().registration,
 	cache: () => store.getState().cache,
 };

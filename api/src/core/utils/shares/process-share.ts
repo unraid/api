@@ -17,6 +17,7 @@ const processors = {
 		const { name: ___, ...nfs } = nfsShares.find(share => share.name === name) ?? { name };
 
 		return {
+			name,
 			type: 'user',
 			smb,
 			nfs,
@@ -24,11 +25,11 @@ const processors = {
 		};
 	},
 	disk(share: Slot) {
-		const { smbShares, nfsShares, slots } = getters.emhttp();
+		const { smbShares, nfsShares, disks } = getters.emhttp();
 		const { name } = share;
 		const { name: __, ...smb } = smbShares.find(share => share.name === name) ?? { name };
 		const { name: ___, ...nfs } = nfsShares.find(share => share.name === name) ?? { name };
-		const { fsSize, fsFree } = slots.find(slot => slot.name === name) ?? {};
+		const { fsSize, fsFree } = disks.find(slot => slot.name === name) ?? {};
 
 		return {
 			name,

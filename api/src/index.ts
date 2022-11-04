@@ -11,16 +11,14 @@ import exitHook from 'async-exit-hook';
 import { server } from '@app/server';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { getServerAddress } from '@app/common/get-server-address';
-import { getters, store } from '@app/store';
+import { store } from '@app/store';
 import { loadConfigFile, setConnectionStatus } from '@app/store/modules/config';
-import { core } from '@app/core/core';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
-import { updateNginxState } from '@app/store/modules/nginx';
-import { loadState } from '@app/core/utils/misc/load-state';
-import { NginxIni } from '@app/store/modules/state-parsers/nginx';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { setupNchanWatch } from '@app/store/watch/nchan-watch';
+import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
+import { loadRegistrationKey } from '@app/store/modules/registration';
 import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
 
 // Boot app
@@ -30,9 +28,6 @@ void am(async () => {
 	// Ensure all DNS lookups are cached for their TTL
 	cacheable.install(http.globalAgent);
 	cacheable.install(https.globalAgent);
-
-	// Load core
-	await core.load();
 
 	// Start file <-> store sync
 	// Must occur before config is loaded to ensure that the handler can fix broken configs
@@ -47,21 +42,14 @@ void am(async () => {
 	// Load emhttp state into store
 	await store.dispatch(loadStateFiles());
 
-	// Load nginx.ini into store
-	const state = loadState<Partial<NginxIni>>(getters.paths()['nginx-state']);
-	store.dispatch(updateNginxState({
-		ipv4: {
-			lan: state?.nginxLanfqdn ?? null,
-			wan: state?.nginxWanfqdn ?? null,
-		},
-		ipv6: {
-			lan: state?.nginxLanfqdn6 ?? null,
-			wan: state?.nginxWanfqdn6 ?? null,
-		},
-	}));
+	// Load initial registration key into store
+	await store.dispatch(loadRegistrationKey());
 
 	// Start listening to nchan updates
 	await setupNchanWatch();
+
+	// Start listening to key file changes
+	setupRegistrationKeyWatch();
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');

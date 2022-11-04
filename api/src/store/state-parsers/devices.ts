@@ -1,5 +1,5 @@
 type Device = {};
 
-type DeviceIni = {};
+export type DevicesIni = Array<Record<string, unknown>>;
 
-export const parse = (iniFile: DeviceIni[]): Device[] => Object.values(iniFile);
+export const parse = (iniFile: DevicesIni): Device[] => Object.values(iniFile);

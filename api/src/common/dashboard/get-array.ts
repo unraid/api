@@ -8,7 +8,7 @@ export const getArray = () => {
 	const state: string = arrayState.startsWith('error') ? arrayState.split(':')[1] : arrayState;
 
 	// All known disks
-	const allDisks = emhttp.slots.filter(disk => disk.device);
+	const allDisks = emhttp.disks.filter(disk => disk.device);
 
 	// Array disks
 	const disks = allDisks.filter(disk => disk.name.startsWith('disk'));

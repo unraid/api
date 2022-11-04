@@ -2,14 +2,16 @@ import { User, Users } from '@app/core/types/states/user';
 
 type BooleanString = 'yes' | 'no';
 
-interface UserIni {
+export type IniUser = {
 	idx: string;
 	name: string;
 	desc?: string;
 	passwd: BooleanString;
-}
+};
 
-const parseUser = (state: UserIni): User => {
+export type UsersIni = IniUser[];
+
+const parseUser = (state: IniUser): User => {
 	const { idx, name, desc, passwd } = state;
 	const user: User = {
 		id: idx,
@@ -22,4 +24,4 @@ const parseUser = (state: UserIni): User => {
 	return user;
 };
 
-export const parse = (states: UserIni[]): Users => Object.values(states).map(parseUser);
+export const parse = (states: UsersIni): Users => Object.values(states).map(parseUser);

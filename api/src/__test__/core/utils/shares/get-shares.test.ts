@@ -3,7 +3,7 @@ import { getShares } from '@app/core/utils/shares/get-shares';
 import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 
-test('Returns all the servers shares', async () => {
+test('Returns both disk and user shares', async () => {
 	await store.dispatch(loadStateFiles());
 
 	expect(getShares()).toMatchInlineSnapshot(`
@@ -21,6 +21,7 @@ test('Returns all the servers shares', async () => {
 		      "free": 9091184,
 		      "include": [],
 		      "luksStatus": "0",
+		      "name": "appdata",
 		      "nameOrig": "appdata",
 		      "nfs": {},
 		      "size": 0,
@@ -40,6 +41,7 @@ test('Returns all the servers shares', async () => {
 		      "free": 9091184,
 		      "include": [],
 		      "luksStatus": "0",
+		      "name": "domains",
 		      "nameOrig": "domains",
 		      "nfs": {},
 		      "size": 0,
@@ -59,6 +61,7 @@ test('Returns all the servers shares', async () => {
 		      "free": 9091184,
 		      "include": [],
 		      "luksStatus": "0",
+		      "name": "isos",
 		      "nameOrig": "isos",
 		      "nfs": {},
 		      "size": 0,
@@ -78,6 +81,7 @@ test('Returns all the servers shares', async () => {
 		      "free": 9091184,
 		      "include": [],
 		      "luksStatus": "0",
+		      "name": "system",
 		      "nameOrig": "system",
 		      "nfs": {},
 		      "size": 0,
@@ -91,60 +95,30 @@ test('Returns all the servers shares', async () => {
 	`);
 });
 
-test('Returns all shares for label', async () => {
+test('Returns shares by type', async () => {
 	await store.dispatch(loadStateFiles());
-	const userShare = getShares('user');
-	expect(userShare).toMatchInlineSnapshot(`
+	expect(getShares('user')).toMatchInlineSnapshot(`
 		{
-		  "nfs": {
-		    "enabled": false,
-		    "hostList": "",
-		    "readList": [],
-		    "security": "public",
-		    "writeList": [],
-		  },
-		  "smb": {
-		    "caseSensitive": "auto",
-		    "enabled": true,
-		    "fruit": "no",
-		    "readList": [],
-		    "security": "public",
-		    "timemachine": {
-		      "volsizelimit": NaN,
-		    },
-		    "writeList": [],
-		  },
+		  "allocator": "highwater",
+		  "cachePool": "cache",
+		  "color": "yellow-on",
+		  "comment": "",
+		  "cow": "auto",
+		  "exclude": [],
+		  "floor": "0",
+		  "free": 9091184,
+		  "include": [],
+		  "luksStatus": "0",
+		  "name": "appdata",
+		  "nameOrig": "appdata",
+		  "nfs": {},
+		  "size": 0,
+		  "smb": {},
+		  "splitLevel": "",
 		  "type": "user",
+		  "used": "32831348",
 		}
 	`);
-
-	expect(getShares('disk')).toMatchInlineSnapshot(`
-		{
-		  "free": NaN,
-		  "name": undefined,
-		  "nfs": {
-		    "enabled": false,
-		    "hostList": "",
-		    "readList": [],
-		    "security": "public",
-		    "writeList": [],
-		  },
-		  "size": NaN,
-		  "smb": {
-		    "caseSensitive": "auto",
-		    "enabled": true,
-		    "fruit": "no",
-		    "readList": [],
-		    "security": "public",
-		    "timemachine": {
-		      "volsizelimit": NaN,
-		    },
-		    "writeList": [],
-		  },
-		  "type": "disk",
-		}
-	`);
-
 	expect(getShares('users')).toMatchInlineSnapshot(`
 		[
 		  {
@@ -158,6 +132,7 @@ test('Returns all shares for label', async () => {
 		    "free": 9091184,
 		    "include": [],
 		    "luksStatus": "0",
+		    "name": "appdata",
 		    "nameOrig": "appdata",
 		    "nfs": {},
 		    "size": 0,
@@ -177,6 +152,7 @@ test('Returns all shares for label', async () => {
 		    "free": 9091184,
 		    "include": [],
 		    "luksStatus": "0",
+		    "name": "domains",
 		    "nameOrig": "domains",
 		    "nfs": {},
 		    "size": 0,
@@ -196,6 +172,7 @@ test('Returns all shares for label', async () => {
 		    "free": 9091184,
 		    "include": [],
 		    "luksStatus": "0",
+		    "name": "isos",
 		    "nameOrig": "isos",
 		    "nfs": {},
 		    "size": 0,
@@ -215,6 +192,7 @@ test('Returns all shares for label', async () => {
 		    "free": 9091184,
 		    "include": [],
 		    "luksStatus": "0",
+		    "name": "system",
 		    "nameOrig": "system",
 		    "nfs": {},
 		    "size": 0,
@@ -225,6 +203,35 @@ test('Returns all shares for label', async () => {
 		  },
 		]
 	`);
-
+	expect(getShares('disk')).toMatchInlineSnapshot('null');
 	expect(getShares('disks')).toMatchInlineSnapshot('[]');
+});
+
+test('Returns shares by name', async () => {
+	expect(getShares('user', { name: 'domains' })).toMatchInlineSnapshot(`
+		{
+		  "allocator": "highwater",
+		  "cachePool": "cache",
+		  "color": "yellow-on",
+		  "comment": "saved VM instances",
+		  "cow": "auto",
+		  "exclude": [],
+		  "floor": "0",
+		  "free": 9091184,
+		  "include": [],
+		  "luksStatus": "0",
+		  "name": "domains",
+		  "nameOrig": "domains",
+		  "nfs": {},
+		  "size": 0,
+		  "smb": {},
+		  "splitLevel": "1",
+		  "type": "user",
+		  "used": "32831348",
+		}
+	`);
+	expect(getShares('user', { name: 'non-existent-user-share' })).toMatchInlineSnapshot('null');
+	// @TODO: disk shares need to be added to the dev ini files
+	expect(getShares('disk', { name: 'disk1' })).toMatchInlineSnapshot('null');
+	expect(getShares('disk', { name: 'non-existent-disk-share' })).toMatchInlineSnapshot('null');
 });
