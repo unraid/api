@@ -17,6 +17,7 @@ const processors = {
 		const { name: ___, ...nfs } = nfsShares.find(share => share.name === name) ?? { name };
 
 		return {
+			name,
 			type: 'user',
 			smb,
 			nfs,

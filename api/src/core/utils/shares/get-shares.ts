@@ -13,9 +13,9 @@ interface Filter {
 }
 
 type Overload = {
-	(type: 'disk', filter?: Filter): DiskShare;
+	(type: 'disk', filter?: Filter): DiskShare | null;
 	(type: 'disks', filter?: Filter): DiskShare[];
-	(type: 'user', filter?: Filter): UserShare;
+	(type: 'user', filter?: Filter): UserShare | null;
 	(type: 'users', filter?: Filter): UserShare[];
 	(): { disks: DiskShare[]; users: UserShare[] };
 };
@@ -26,10 +26,22 @@ type Overload = {
 export const getShares: Overload = (type?: string, filter?: Filter) => {
 	const emhttp = getters.emhttp();
 	const types = {
-		user: (name?: string) => processShare('user', emhttp.shares.find(share => share.name === name) ?? {}),
+		user(name: string) {
+			// If a name was provided find a matching share otherwise return the first share
+			const share = name ? emhttp.shares.find(share => share.name === name) : emhttp.shares[0];
+			if (!share) return null;
+			return processShare('user', share);
+		},
 		users: () => emhttp.shares.map(share => processShare('user', share)),
-		disk: (name?: string) => processShare('disk', emhttp.disks.find(slot => slot.exportable && slot.name === name) ?? {}),
-		disks: () => emhttp.disks.filter(slot => slot.exportable && slot.name.startsWith('disk')).map(disk => processShare('disk', disk)),
+		disk(name: string) {
+			const diskShares = emhttp.slots.filter(slot => slot.exportable && slot.name.startsWith('disk'));
+
+			// If a name was provided find a matching share otherwise return the first share
+			const share = name ? diskShares.find(slot => slot.name === name) : diskShares[0];
+			if (!share) return null;
+			return processShare('disk', share);
+		},
+		disks: () => emhttp.slots.filter(slot => slot.exportable && slot.name.startsWith('disk')).map(disk => processShare('disk', disk)),
 	};
 
 	// Return a type of share

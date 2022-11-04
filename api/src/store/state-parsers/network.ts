@@ -3,7 +3,7 @@ import { IniStringBoolean } from '@app/core/types/ini';
 import { Network } from '@app/core/types/states/network';
 import { toBoolean } from '@app/core/utils/casting';
 
-type NetworkIni = Record<string, {
+export type NetworkIni = Record<string, {
 	dhcpKeepresolv: IniStringBoolean;
 	dnsServer1: string;
 	dnsServer2: string;

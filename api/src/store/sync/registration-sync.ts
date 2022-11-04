@@ -4,7 +4,7 @@ import { store } from '@app/store';
 import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
 import isEqual from 'lodash/isEqual';
 
-type RegistrationEvent = {
+export type RegistrationEvent = {
 	registration: {
 		guid: string;
 		type: string;
@@ -16,7 +16,7 @@ type RegistrationEvent = {
 	};
 };
 
-const createRegistrationEvent = (state: Parameters<StoreSubscriptionHandler>[0]): RegistrationEvent | null => {
+export const createRegistrationEvent = (state: Parameters<StoreSubscriptionHandler>[0]): RegistrationEvent | null => {
 	// Var state isn't loaded
 	if (state === null || Object.keys(state.emhttp.var).length === 0) return null;
 
