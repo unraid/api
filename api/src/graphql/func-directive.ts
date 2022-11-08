@@ -15,18 +15,11 @@ interface FuncDirective {
 
 const funcDirectiveResolver: (directiveArgs: FuncDirective) => GraphQLFieldResolver<undefined, { user?: User }, { result?: any }> | undefined = ({
 	module: coreModule,
-	data: directiveData,
-	query: directiveQuery,
+	data,
+	query,
 	extractFromResponse,
-}) => async (_, args, context) => {
+}) => async (_, args, context, _info) => {
 	const func = getCoreModule(coreModule);
-
-	const query = {
-		...directiveQuery,
-	};
-	const data = {
-		...directiveData,
-	};
 
 	const functionContext = {
 		query,
@@ -79,26 +72,23 @@ export function getFuncDirective() {
 				extractFromResponse: String
 			) on FIELD_DEFINITION
 		`,
-		funcDirectiveTransformer: (schema: GraphQLSchema): GraphQLSchema =>
-			mapSchema(schema, {
-				[MapperKind.MUTATION_ROOT_FIELD](fieldConfig) {
-					const funcDirective = getDirective(schema, fieldConfig, directiveName)?.[0] as FuncDirective | undefined;
-					if (funcDirective?.module) {
-						fieldConfig.resolve = funcDirectiveResolver(funcDirective);
-					}
+		funcDirectiveTransformer: (schema: GraphQLSchema): GraphQLSchema => mapSchema(schema, {
+			[MapperKind.MUTATION_ROOT_FIELD](fieldConfig) {
+				const funcDirective = getDirective(schema, fieldConfig, directiveName)?.[0] as FuncDirective | undefined;
+				if (funcDirective?.module) {
+					fieldConfig.resolve = funcDirectiveResolver(funcDirective);
+				}
 
-					return fieldConfig;
-				},
-				[MapperKind.QUERY_ROOT_FIELD](fieldConfig) {
-					const funcDirective = getDirective(schema, fieldConfig, directiveName)?.[0] as FuncDirective | undefined;
-					graphqlLogger.info(funcDirective);
-					if (funcDirective?.module) {
-						fieldConfig.resolve = funcDirectiveResolver(funcDirective);
-					}
+				return fieldConfig;
+			},
+			[MapperKind.QUERY_ROOT_FIELD](fieldConfig) {
+				const funcDirective = getDirective(schema, fieldConfig, directiveName)?.[0] as FuncDirective | undefined;
+				if (funcDirective?.module) {
+					fieldConfig.resolve = funcDirectiveResolver(funcDirective);
+				}
 
-					return fieldConfig;
-				},
-			}),
-
+				return fieldConfig;
+			},
+		}),
 	};
 }
