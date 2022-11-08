@@ -4,6 +4,7 @@ import * as resolvers from '@app/graphql/resolvers';
 import { types as typeDefs } from '@app/graphql/types';
 import { ApolloServerExpressConfig } from 'apollo-server-express';
 import { apiKeyToUser } from '@app/graphql';
+import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache';
 
 export const apolloConfig: ApolloServerExpressConfig = {
 	debug: config.debug,
@@ -11,6 +12,7 @@ export const apolloConfig: ApolloServerExpressConfig = {
 	schema,
 	typeDefs,
 	resolvers,
+	cache: new InMemoryLRUCache(),
 	async context({ req, connection }: { req: { headers: Record<string, string> }; connection: { context: Record<string, unknown> } }) {
 		// Normal Websocket connection
 		if (connection && Object.keys(connection.context).length >= 1) {

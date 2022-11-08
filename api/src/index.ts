@@ -19,8 +19,9 @@ import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
 import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
 import { app, httpServer, server } from '@app/server';
-import { getServerAddress } from '@app/common/get-server-address';
 import { config } from '@app/core/config';
+import { unlinkSync } from 'fs';
+import { fileExistsSync } from '@app/core/utils/files/file-exists';
 
 // Boot app
 void am(async () => {
@@ -58,15 +59,25 @@ void am(async () => {
 	// Disabled until we need the access token to work
 	// TokenRefresh.init();
 
+	// If port is unix socket, delete old socket before starting http server
+	if (isNaN(parseInt(config.port, 10))) {
+		if (fileExistsSync(config.port)) unlinkSync(config.port);
+	}
+
 	// Start apollo
 	await server.start();
 	server.applyMiddleware({ app });
 
 	// Start webserver
-	httpServer.listen(process.env.PORT ?? config.port);
+	httpServer.listen(config.port);
 
 	// On process exit stop HTTP server
 	exitHook(() => {
+		// If port is unix socket, delete socket before exiting
+		if (isNaN(parseInt(config.port, 10))) {
+			if (fileExistsSync(config.port)) unlinkSync(config.port);
+		}
+
 		store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
 		writeMemoryConfigSync();
 	});

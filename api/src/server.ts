@@ -9,9 +9,10 @@ import { watch } from 'chokidar';
 import express, { json, Response } from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import * as resolvers from '@app/graphql/resolvers';
-import { types as typeDefs } from '@app/graphql/types';
-import { ApolloServerPluginLandingPageGraphQLPlayground as apolloServerPluginLandingPageGraphQLPlayground, ApolloServerPluginLandingPageDisabled as apolloServerPluginLandingPageDisabled } from 'apollo-server-core';
+import {
+	ApolloServerPluginLandingPageGraphQLPlayground as apolloServerPluginLandingPageGraphQLPlayground,
+	ApolloServerPluginDrainHttpServer as apolloServerPluginDrainHttpServer,
+} from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import { logger, config, pubsub, graphqlLogger } from '@app/core';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
@@ -129,21 +130,29 @@ httpServer.on('listening', () => {
 // eslint-disable-next-line prefer-const
 let subscriptionServer: SubscriptionServer;
 
+const apolloServerPluginOnExit = {
+	async serverWillStart() {
+		return {
+			/**
+			 * When the app exits this will be run.
+			 */
+			async drainServer() {
+				// Close all connections to subscriptions server
+				subscriptionServer.close();
+			},
+		};
+	},
+};
+
 // Create graphql instance
 export const server = new ApolloServer({
-	schema,
-	typeDefs,
-	resolvers,
-	context: apolloConfig.context,
-	plugins: [{
-		async serverWillStart() {
-			return {
-				async drainServer() {
-					subscriptionServer.close();
-				},
-			};
-		},
-	}, apolloServerPluginLandingPageGraphQLPlayground()],
+	...apolloConfig,
+	plugins: [
+		apolloServerPluginOnExit,
+		(process.env.PLAYGROUND ?? config.debug) ? apolloServerPluginLandingPageGraphQLPlayground() : apolloServerPluginLandingPageDisabled(),
+		// Close all connections to http server when the app closes
+		apolloServerPluginDrainHttpServer({ httpServer }),
+	],
 });
 
 subscriptionServer = SubscriptionServer.create({
@@ -173,8 +182,6 @@ subscriptionServer = SubscriptionServer.create({
 
 		// Update ws connection count and other needed values
 		wsHasConnected(websocketId);
-
-		graphqlLogger.info('user:', user);
 
 		return {
 			user,
