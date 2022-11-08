@@ -57,7 +57,7 @@
     "accesscontrol": "^2.2.1",
     "am": "github:omgimalexis/am",
     "apollo-server": "2.25.2",
-    "apollo-server-express": "2.25.2",
+    "apollo-server-express": "3.11.1",
     "async-exit-hook": "^2.0.1",
     "btoa": "^1.2.1",
     "bycontract": "^2.0.11",
