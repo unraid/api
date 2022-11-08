@@ -10,8 +10,9 @@ import express, { json, Response } from 'express';
 import http from 'http';
 import WebSocket from 'ws';
 import {
-	ApolloServerPluginLandingPageGraphQLPlayground as apolloServerPluginLandingPageGraphQLPlayground,
-	ApolloServerPluginDrainHttpServer as apolloServerPluginDrainHttpServer,
+	ApolloServerPluginLandingPageGraphQLPlayground,
+	ApolloServerPluginDrainHttpServer,
+	ApolloServerPluginLandingPageDisabled
 } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import { logger, config, pubsub, graphqlLogger } from '@app/core';
@@ -149,9 +150,9 @@ export const server = new ApolloServer({
 	...apolloConfig,
 	plugins: [
 		apolloServerPluginOnExit,
-		(process.env.PLAYGROUND ?? config.debug) ? apolloServerPluginLandingPageGraphQLPlayground() : apolloServerPluginLandingPageDisabled(),
+		(process.env.PLAYGROUND ?? config.debug) ? ApolloServerPluginLandingPageGraphQLPlayground() : ApolloServerPluginLandingPageDisabled(),
 		// Close all connections to http server when the app closes
-		apolloServerPluginDrainHttpServer({ httpServer }),
+		ApolloServerPluginDrainHttpServer({ httpServer }),
 	],
 });
 
