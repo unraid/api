@@ -3,28 +3,32 @@
  * Written by: Alexis Tyler
  */
 
-import fs from 'fs';
-import net from 'net';
 import path from 'path';
-import { execaCommand } from 'execa';
 import cors from 'cors';
-import stoppable from 'stoppable';
 import { watch } from 'chokidar';
 import express, { json, Response } from 'express';
 import http from 'http';
 import WebSocket from 'ws';
-import { ApolloServer, ApolloServerExpressConfig } from 'apollo-server-express';
-import { logger, config, pubsub } from '@app/core';
-import { graphql } from '@app/graphql';
+import {
+	ApolloServerPluginLandingPageGraphQLPlayground,
+	ApolloServerPluginDrainHttpServer,
+	ApolloServerPluginLandingPageDisabled
+} from 'apollo-server-core';
+import { ApolloServer } from 'apollo-server-express';
+import { logger, config, pubsub, graphqlLogger } from '@app/core';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
 import { getEndpoints } from '@app/core/utils/misc/get-endpoints';
-import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
-import { sleep } from '@app/core/utils/misc/sleep';
-import { exitApp } from '@app/core/utils/misc/exit-app';
-import { globalErrorHandler } from '@app/core/utils/misc/global-error-handler';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { getters } from '@app/store';
+import { schema } from '@app/graphql/schema';
+import { execute, subscribe } from 'graphql';
+import { ConnectionContext, SubscriptionServer } from 'subscriptions-transport-ws';
+import { wsHasConnected, wsHasDisconnected } from '@app/ws';
+import { apiKeyToUser } from '@app/graphql';
+import { randomUUID } from 'crypto';
+import { getServerAddress } from '@app/common/get-server-address';
+import { apolloConfig } from '@app/graphql/config';
 
 const configFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.cfg');
 const customImageFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.png');
@@ -40,12 +44,9 @@ watch(configFilePath).on('all', updatePubsub);
 watch(customImageFilePath).on('all', updatePubsub);
 
 /**
- * The Graphql server.
+ * The webserver.
  */
-const app = express();
-
-// Graphql port
-const port = process.env.PORT ?? config.port;
+export const app = express();
 
 // Cors error
 const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
@@ -119,9 +120,109 @@ if (process.env.ENVIRONMENT !== 'production') {
 	});
 }
 
-// Mount graph endpoint
-const graphApp = new ApolloServer(graphql as unknown as ApolloServerExpressConfig);
-graphApp.applyMiddleware({ app });
+export const httpServer = http.createServer(app);
+
+// Log only if the server actually binds to the port
+httpServer.on('listening', () => {
+	logger.info('Server is up! %s', getServerAddress(httpServer));
+});
+
+// This needs to be a let as it's referenced before it's used
+// eslint-disable-next-line prefer-const
+let subscriptionServer: SubscriptionServer;
+
+const apolloServerPluginOnExit = {
+	async serverWillStart() {
+		return {
+			/**
+			 * When the app exits this will be run.
+			 */
+			async drainServer() {
+				// Close all connections to subscriptions server
+				subscriptionServer.close();
+			},
+		};
+	},
+};
+
+// Create graphql instance
+export const server = new ApolloServer({
+	...apolloConfig,
+	plugins: [
+		apolloServerPluginOnExit,
+		(process.env.PLAYGROUND ?? config.debug) ? ApolloServerPluginLandingPageGraphQLPlayground() : ApolloServerPluginLandingPageDisabled(),
+		// Close all connections to http server when the app closes
+		ApolloServerPluginDrainHttpServer({ httpServer }),
+	],
+});
+
+subscriptionServer = SubscriptionServer.create({
+	// This is the `schema` we just created.
+	schema,
+	// These are imported from `graphql`.
+	execute,
+	subscribe,
+	// This `server` is the instance returned from `new ApolloServer`.
+	// Ensures the same graphql validation rules are applied to both the Subscription Server and the ApolloServer
+	validationRules: server.requestOptions.validationRules,
+	// Providing `onConnect` is the `SubscriptionServer` equivalent to the
+	// `context` function in `ApolloServer`. Please [see the docs](https://github.com/apollographql/subscriptions-transport-ws#constructoroptions-socketoptions--socketserver)
+	// for more information on this hook.
+	async onConnect(
+		connectionParams: Object,
+		_webSocket: WebSocket,
+		_context: ConnectionContext,
+	) {
+		const apiKey = connectionParams['x-api-key'];
+		const user = await apiKeyToUser(apiKey);
+		const websocketId = randomUUID();
+
+		graphqlLogger.addContext('websocketId', websocketId);
+		graphqlLogger.debug('%s connected', user.name);
+		graphqlLogger.removeContext('websocketId');
+
+		// Update ws connection count and other needed values
+		wsHasConnected(websocketId);
+
+		return {
+			user,
+			websocketId,
+		};
+	},
+	async onDisconnect(_, websocketContext: {
+		initPromise: Promise<boolean | {
+			user: {
+				name: string;
+			};
+			websocketId: string;
+		}>;
+	}) {
+		const context = await websocketContext.initPromise;
+
+		// The websocket has disconnected before init event has resolved
+		// @see: https://github.com/apollographql/subscriptions-transport-ws/issues/349
+		if (context === true || context === false) {
+			// This seems to also happen if a tab is left open and then a server starts up
+			// The tab hits the server over and over again without sending init
+			graphqlLogger.debug('unknown disconnected');
+			return;
+		}
+
+		const { user, websocketId } = context;
+
+		graphqlLogger.addContext('websocketId', websocketId);
+		graphqlLogger.debug('%s disconnected.', user.name);
+		graphqlLogger.removeContext('websocketId');
+
+		// Update ws connection count and other needed values
+		wsHasDisconnected(websocketId);
+	},
+}, {
+	// This is the `httpServer` we created in a previous step.
+	server: httpServer,
+	// This `server` is the instance returned from `new ApolloServer`.
+	path: server.graphqlPath,
+});
 
 // List all endpoints at start of server
 app.get('/', (_, res) => res.send(getEndpoints(app)));
@@ -161,135 +262,3 @@ app.use((error: Error & { stackTrace?: string; status?: number }, _, res: Respon
 
 	res.status(error.status ?? 500).send(error);
 });
-
-const httpServer = http.createServer(app);
-const stoppableServer = stoppable(httpServer);
-
-// Port is a UNIX socket file
-if (isNaN(parseInt(port, 10))) {
-	stoppableServer.on('listening', () => {
-		// Set permissions
-		fs.chmodSync(port, 660);
-	});
-
-	stoppableServer.on('error', async (error: NodeJS.ErrnoException) => {
-		if (error.code !== 'EADDRINUSE') {
-			logger.error(error);
-			throw error;
-		}
-
-		// Check if port is unix socket or numbered port
-		// If it's a numbered port then throw
-		if (!isNaN(parseInt(port, 10))) {
-			throw error;
-		}
-
-		// Check if the process that made this file is still alive
-		const pid = await execaCommand(`lsof -t ${port}`)
-			.then(output => {
-				const pids = cleanStdout(output).split('\n');
-				return pids[0];
-			}).catch(() => undefined);
-
-		// Try to kill it?
-		if (pid) {
-			await execaCommand(`kill -9 ${pid}`);
-			await sleep(2_000);
-		}
-
-		// No pid found or we just killed the old process
-		// Now let's retry
-
-		// Stop the server
-		stoppableServer.close();
-
-		// Restart the server
-		net.connect({
-			path: port,
-		}, () => {
-			exitApp();
-		}).on('error', (error: NodeJS.ErrnoException) => {
-			// Port was set to a path that already exists and isn't a unix socket
-			// Let's bail since we don't know if this was intentional
-			if (error.code === 'ENOTSOCK') {
-				logger.warn('%s is not a unix socket and already exists', port);
-				exitApp();
-			}
-
-			if (error.code !== 'ECONNREFUSED') {
-				logger.error(error);
-
-				process.exitCode = 1;
-			}
-
-			// Not in use: delete it and re-listen
-			fs.unlinkSync(port);
-
-			setTimeout(() => {
-				stoppableServer.listen(port);
-			}, 1_000);
-		});
-	});
-
-	process.once('uncaughtException', (error: NodeJS.ErrnoException) => {
-		// Skip EADDRINUSE as it's already handled above
-		if (error.code !== 'EADDRINUSE') {
-			globalErrorHandler(error);
-		}
-	});
-
-	process.once('unhandledRejection', error => {
-		if (error instanceof Error) {
-			globalErrorHandler(error);
-		}
-	});
-}
-
-// Main ws server
-const wsServer = new WebSocket.Server({ noServer: true });
-
-// Add ws upgrade functionality back in.
-stoppableServer.on('upgrade', (request, socket, head) => {
-	wsServer.handleUpgrade(request, socket as net.Socket, head, ws => {
-		wsServer.emit('connection', ws);
-	});
-});
-
-// Add graphql subscription handlers
-graphApp.installSubscriptionHandlers(wsServer);
-
-export const server = {
-	httpServer,
-	server: stoppableServer,
-	async start() {
-		// Start http server
-		return stoppableServer.listen(port);
-	},
-	stop(callback?: () => void) {
-		// Stop http server from accepting new connections and close existing connections
-		stoppableServer.stop(error => {
-			if (error) {
-				globalErrorHandler(error);
-			}
-		});
-
-		// Stop ws server
-		wsServer.close();
-
-		// Unlink socket file
-		if (isNaN(parseInt(port, 10))) {
-			try {
-				fs.unlinkSync(port);
-			} catch { }
-		}
-
-		// Run callback
-		if (callback) {
-			callback();
-			return;
-		}
-
-		// Gracefully exit
-		exitApp();
-	},
-};

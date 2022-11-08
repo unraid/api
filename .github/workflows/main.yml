@@ -128,6 +128,11 @@ jobs:
         with:
           node-version-file: "api/.nvmrc"
 
+      # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
+      - name: Patch subscriptions-transport-ws
+        run: npm run patch:subscriptions-transport-ws
+
+
       - name: Install libvirt-dev
         run: sudo apt-get update && sudo apt-get install libvirt-dev
 

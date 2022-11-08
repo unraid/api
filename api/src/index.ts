@@ -8,9 +8,7 @@ import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
 import exitHook from 'async-exit-hook';
-import { server } from '@app/server';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
-import { getServerAddress } from '@app/common/get-server-address';
 import { store } from '@app/store';
 import { loadConfigFile, setConnectionStatus } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
@@ -20,6 +18,10 @@ import { setupNchanWatch } from '@app/store/watch/nchan-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
 import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
+import { app, httpServer, server } from '@app/server';
+import { config } from '@app/core/config';
+import { unlinkSync } from 'fs';
+import { fileExistsSync } from '@app/core/utils/files/file-exists';
 
 // Boot app
 void am(async () => {
@@ -54,21 +56,28 @@ void am(async () => {
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');
 
-	// Log only if the server actually binds to the port
-	server.server.on('listening', () => {
-		logger.info('Server is up! %s', getServerAddress(server.server));
-	});
-
 	// Disabled until we need the access token to work
 	// TokenRefresh.init();
 
-	// Try to start HTTP server
+	// If port is unix socket, delete old socket before starting http server
+	if (isNaN(parseInt(config.port, 10))) {
+		if (fileExistsSync(config.port)) unlinkSync(config.port);
+	}
+
+	// Start apollo
 	await server.start();
+	server.applyMiddleware({ app });
+
+	// Start webserver
+	httpServer.listen(config.port);
 
 	// On process exit stop HTTP server
 	exitHook(() => {
-		// Stop the HTTP server
-		server.stop();
+		// If port is unix socket, delete socket before exiting
+		if (isNaN(parseInt(config.port, 10))) {
+			if (fileExistsSync(config.port)) unlinkSync(config.port);
+		}
+
 		store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
 		writeMemoryConfigSync();
 	});
@@ -79,11 +88,11 @@ void am(async () => {
 	// Write the new memory config with disconnected status
 	store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
 	writeMemoryConfigSync();
+
 	// Stop server
 	logger.debug('Stopping HTTP server');
+	await server.stop();
 
-	server.stop(async () => {
-		// Kill application
-		process.exitCode = 1;
-	});
+	// Kill application
+	process.exitCode = 1;
 });

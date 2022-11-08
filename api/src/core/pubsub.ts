@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { PubSub } from 'apollo-server';
+import { PubSub } from 'graphql-subscriptions';
 import EventEmitter from 'events';
 
 // Allow subscriptions to have 30 connections
