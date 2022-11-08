@@ -134,10 +134,6 @@ jobs:
       - name: Installing node deps
         run: npm install
 
-      # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
-      - name: Patch subscriptions-transport-ws
-        run: npm run patch:subscriptions-transport-ws
-
       - name: Install pkg and node-prune
         run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
 

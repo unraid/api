@@ -8,14 +8,6 @@ export const baseTypes = [gql`
 	scalar UUID
 	scalar DateTime
 
-	directive @func(
-		module: String
-		data: JSON
-		query: JSON
-		result: String
-		extractFromResponse: String
-	) on FIELD_DEFINITION
-
 	directive @subscription(
 		channel: String!
 	) on FIELD_DEFINITION
