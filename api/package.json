@@ -32,6 +32,7 @@
     "test:watch": "vitest --segfault-retry=3",
     "test": "vitest run --segfault-retry=3",
     "coverage": "vitest run --coverage && typescript-coverage-report",
+    "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.cjs",
     "release": "standard-version",
     "update-bundle-dependencies": "bundle-dependencies update",
     "typesync": "typesync",
