@@ -473,10 +473,10 @@ $commitCountFile = "/var/log/gitcount";
 $time = time();
 $commitCount = cleanupCounter($commitCountFile, $time);
 if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
-  $arrState['error'] = 'Rate limited, will try again later';
+  $arrState['remoteerror'] = 'Rate limited, will try again later';
   # log once every 10 minutes
-  if (date("i") % 10 === 0) error_log('['.date("Y/m/d H:i:s e").'] '.$arrState['error']."\n", 3, $gitflash); 
-  response_complete(406, array('error' => $arrState['error']));
+  if (date("i") % 10 === 0) error_log('['.date("Y/m/d H:i:s e").'] '.$arrState['error'].'; '.$arrState['remoteerror']."\n", 3, $gitflash); 
+  response_complete(406, array('error' => $arrState['remoteerror']));
 }
 
 // test which ssh port allows a connection (standard ssh port 22 or alternative port 443)
