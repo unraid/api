@@ -12,7 +12,7 @@ import WebSocket from 'ws';
 import {
 	ApolloServerPluginLandingPageGraphQLPlayground,
 	ApolloServerPluginDrainHttpServer,
-	ApolloServerPluginLandingPageDisabled
+	ApolloServerPluginLandingPageDisabled,
 } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import { logger, config, pubsub, graphqlLogger } from '@app/core';
@@ -150,8 +150,10 @@ export const server = new ApolloServer({
 	...apolloConfig,
 	plugins: [
 		apolloServerPluginOnExit,
+		// eslint-disable-next-line new-cap
 		(process.env.PLAYGROUND ?? config.debug) ? ApolloServerPluginLandingPageGraphQLPlayground() : ApolloServerPluginLandingPageDisabled(),
 		// Close all connections to http server when the app closes
+		// eslint-disable-next-line new-cap
 		ApolloServerPluginDrainHttpServer({ httpServer }),
 	],
 });
@@ -162,6 +164,8 @@ subscriptionServer = SubscriptionServer.create({
 	// These are imported from `graphql`.
 	execute,
 	subscribe,
+	// Ensure keep-alive packets are sent
+	keepAlive: 10_000,
 	// This `server` is the instance returned from `new ApolloServer`.
 	// Ensures the same graphql validation rules are applied to both the Subscription Server and the ApolloServer
 	validationRules: server.requestOptions.validationRules,
