@@ -246,13 +246,9 @@ if (file_exists("/boot/.git")) {
   echo "\nStopping flash backup service. Please wait…";
   exec("/etc/rc.d/rc.flash_backup stop &>/dev/null");
 
-  # deactivate flash backup
+  # deactivate and delete local flash backup
   echo "\nDeactivating flash backup. Please wait…";
   passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
-
-  # delete local flash backup
-  echo "\nDeleting local flash backup. Please wait…\n";
-  exec("rm -rf /boot/.git");
 }
 
 # set "Allow Remote Access" to "No" and sign out from My Servers
@@ -278,7 +274,7 @@ if ($msini !== false) {
   # remove myservers.cfg
   unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
-  # reload nginx
+  # reload nginx to disable Remote Access
   echo "\nReloading Web Server\n";
   exec("/etc/rc.d/rc.nginx reload &>/dev/null");
 }
@@ -326,6 +322,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
   rm -f /etc/rc.d/rc6.d/K10_flash_backup
+  rm -f /var/log/gitcount
+  rm -f /var/log/gitflash
   # delete any legacy files that may exist
   rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node
   rm -rf /boot/config/plugins/dynamix.my.servers/segfault-handler.node
@@ -404,8 +402,8 @@ if [ "${PLGTYPE}" = "staging" ]; then
   NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://connect-staging.myunraid.net/ https://staging.connect.myunraid.net/\";"
   sed -i "s#${OLD}#${NEW}#" "${FILE}"
 
-  # reload nginx
-  echo "Reloading Web Server"
+  # reload nginx for iframe changes
+  echo "Reloading Web Server."
   /etc/rc.d/rc.nginx reload &>/dev/null
 fi
 
