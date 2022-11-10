@@ -116,6 +116,18 @@ install() {
   # Install the files
   _install "$1"
 
+  # wait for emhttpd to start and create var.ini before starting the api after a reboot
+  if [[ ! -f /var/local/emhttp/var.ini ]]; then
+    echo -n "waiting for emhttpd"
+      # shellcheck disable=SC2034
+      for i in {1..30}; do
+      [[ -f /var/local/emhttp/var.ini ]] && break
+      echo -n "."
+      sleep 1
+    done
+    echo ".done"
+  fi
+
   # Start new process
   start
 

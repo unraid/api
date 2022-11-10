@@ -469,11 +469,8 @@ ln -s /usr/local/bin/unraid-api/unraid-api /usr/local/sbin/unraid-api
 [[ ! -h /etc/rc.d/rc0.d ]] && ln -s /etc/rc.d/rc6.d /etc/rc.d/rc0.d
 [[ ! -h /etc/rc.d/rc6.d/K10_flash_backup  ]] && ln -s /etc/rc.d/rc.flash_backup /etc/rc.d/rc6.d/K10_flash_backup
 
-if [ -f /var/local/emhttp/var.ini ]; then
-  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
-elif grep -q 6.9.0-beta35 /etc/unraid-version; then
-  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 minute &>/dev/null
-fi
+# start background process to install the api and start flash backup
+echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
 
 # modify older rc.nginx versions to run this makestate when it builds the nginx config files
 if ! grep -q 'scripts/makestate\|/var/local/nginx/state.ini\|/var/local/emhttp/nginx.ini' /etc/rc.d/rc.nginx; then
