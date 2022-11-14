@@ -211,7 +211,6 @@ $validCommands = [
   'update',
   'update_nolimit',
   'flush',
-  'reinit',
   'deactivate'
 ];
 
@@ -224,11 +223,7 @@ if ($cli) {
 }
 if (!in_array($command, $validCommands)) $command = 'init';
 if (empty($commitmsg)) {
-  if ($command == 'reinit') {
-    $commitmsg = 'Initial commit';
-  } else {
-    $commitmsg = 'Config change';
-  }
+  $commitmsg = 'Config change';
 }
 $ignoreRateLimit = false;
 if ($command == 'update_nolimit') {
@@ -249,9 +244,6 @@ switch ($command) {
   case 'update_nolimit':
   case 'flush':
     $loadingMessage = 'Processing';
-    break;
-  case 'reinit':
-    $loadingMessage = 'Reinitializing';
     break;
   case 'status':
     $loadingMessage = 'Loading';
@@ -386,8 +378,8 @@ if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.s
   file_put_contents('/root/.ssh/known_hosts', $strKnownHost, FILE_APPEND);
 }
 
-// blow away existing repo if reinit command
-if ( ($command == 'activate' || $command == 'reinit') && file_exists('/boot/.git')) {
+// blow away existing repo if activate command
+if ($command == 'activate' && file_exists('/boot/.git')) {
   deleteLocalRepo();
 }
 
@@ -505,10 +497,8 @@ if (strpos(file_get_contents('/boot/.git/config'),'[remote "origin"]') === false
   exec('git -C /boot remote set-url origin ssh://git@backup.unraid.net:'.$SSH_PORT.'/~/flash.git &>/dev/null');
 }
 
-if ($command != 'reinit') {
-  exec_log('git -C /boot reset origin/master');
-  exec_log('git -C /boot checkout -B master origin/master');
-}
+exec_log('git -C /boot reset origin/master');
+exec_log('git -C /boot checkout -B master origin/master');
 
 // establish status
 exec('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
@@ -559,7 +549,7 @@ if ($command == 'status') {
   response_complete($httpcode, array('data' => $data), $data);
 }
 
-if (($command == 'update') || ($command == 'reinit')) {
+if ($command == 'update') {
   
   if ($arrState['uptodate'] == 'no') {
     // increment git commit counter
@@ -571,13 +561,9 @@ if (($command == 'update') || ($command == 'reinit')) {
       exec_log('git -C /boot commit -m ' . escapeshellarg($commitmsg));
     }
     // push changes upstream
-    if ($command == 'reinit') {
+    exec_log('git -C /boot push --set-upstream origin master', $push_output, $return_var);
+    if ($return_var != 0) {
       exec_log('git -C /boot push --force --set-upstream origin master', $push_output, $return_var);
-    } else {
-      exec_log('git -C /boot push --set-upstream origin master', $push_output, $return_var);
-      if ($return_var != 0) {
-        exec_log('git -C /boot push --force --set-upstream origin master', $push_output, $return_var);
-      }
     }
     if ($return_var != 0) {
       // check for permission denied
