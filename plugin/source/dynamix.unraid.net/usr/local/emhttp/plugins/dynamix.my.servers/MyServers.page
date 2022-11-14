@@ -255,12 +255,6 @@ function enableFlashBackup(button) {
         $(button).prop("disabled", true).html("_(Updating)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
         $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"flush"},success).fail(failure);
     }
-    if (oldlabel == "_(Reinitialize)_") {
-        swal({title:"_(Reinitialize)_",text:"_(Are you sure you want to erase all change history in both local and unraid.net remote?)_",type:'warning',confirmButtonText:"_(Reinitialize)_",showCancelButton:true},function(){
-            $(button).prop("disabled", true).html("_(Reinitializing)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-            $.post("/plugins/dynamix.my.servers/include/UpdateFlashBackup.php",{command:"reinit"},success).fail(failure);
-        });
-    }
     if (oldlabel == "_(Changes)_") {
         openBox("/webGui/include/gitstatus.php", "_(Changes)_", 600,600, false);
     }
@@ -514,7 +508,7 @@ _(Flash backup)_:
 </div>
 <div markdown="1" id="activepanel" style="display:none">
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <button type="button" onclick="enableFlashBackup(this)">_(Reinitialize)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
 
 <?if (($_COOKIE['UPC_ENV'] === 'development' || $_COOKIE['UPC_ENV'] === 'staging') && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
 &nbsp;
