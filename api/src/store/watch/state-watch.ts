@@ -1,13 +1,13 @@
 
-import { nchanLogger } from '@app/core';
+import { logger, nchanLogger } from '@app/core';
 import { createNchanSubscription } from '@app/core/utils/clients/nchan';
 
-import { watch, FSWatcher} from 'chokidar';
+import { watch, FSWatcher } from 'chokidar';
 import type NchanSubscriber from 'nchan';
 import { getters, store } from '@app/store';
 import { setConnectionStatus } from '@app/store/modules/config';
 import { StateFileKey } from '@app/store/types';
-import { parse } from 'path';
+import { parse, join } from 'path';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
 
 // Configure any excluded nchan channels that we support here
@@ -16,7 +16,7 @@ const excludedWatches: StateFileKey[] = [StateFileKey.devs];
 export class StateManager {
 	public static instance: StateManager | null = null;
 	private readonly subs: NchanSubscriber[] = [];
-	private fileWatcher: FSWatcher | null = null;
+	private readonly fileWatchers: FSWatcher[] = [];
 	private fallbackIsRunning = false;
 
 	private constructor() {
@@ -44,25 +44,33 @@ export class StateManager {
 
 	private readonly setupChokidarWatchForState = () => {
 		const { states } = getters.paths();
-		this.fileWatcher = watch(states, { ignoreInitial: false, persistent: true });
-		this.fileWatcher.on('change', async path => {
-			const stateFile = this.getStateFileKeyFromPath(path);
-			if (stateFile) {
-				try {
-					await store.dispatch(loadSingleStateFile(stateFile));
-				} catch (error: unknown) {
-					nchanLogger.error('Failed to load state file: [%s]\nerror:  %o', stateFile, error);
-				}
-			} else {
-				nchanLogger.trace('Failed to resolve a stateFileKey from path: %s', path);
+		for (const key of Object.values(StateFileKey)) {
+			if (!excludedWatches.includes(key)) {
+				const pathToWatch = join(states, `${key}.ini`);
+				logger.debug('Setting up watch for path: %s', pathToWatch);
+				const stateWatch = watch(pathToWatch);
+				stateWatch.on('change', async path => {
+					const stateFile = this.getStateFileKeyFromPath(path);
+					if (stateFile) {
+						try {
+							nchanLogger.debug('Loading state file for %s', stateFile);
+							await store.dispatch(loadSingleStateFile(stateFile));
+						} catch (error: unknown) {
+							nchanLogger.error('Failed to load state file: [%s]\nerror:  %o', stateFile, error);
+						}
+					} else {
+						nchanLogger.trace('Failed to resolve a stateFileKey from path: %s', path);
+					}
+				});
+				this.fileWatchers.push(stateWatch);
 			}
-		});
+		}
 	};
 
 	private readonly closeNchanSubscriptions = () => {
 		nchanLogger.debug('Disabling nchan subscriptions');
 		this.subs.forEach(sub => {
-			sub.stop();
+			sub?.stop();
 		});
 	};
 

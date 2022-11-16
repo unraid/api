@@ -64,8 +64,8 @@ export const main = async (...argv: string[]) => {
 
 	if (process.env.PLEASE_CRASH_NCHAN_FOR_ME) {
 		// Wait 30s and then crash nchan
-		setTimeout(() => {
-			store.dispatch(beginFileLoadFallback({ message: 'Nchan Crashed Through process.env.PLEASE_CRASH_NCHAN_FOR_ME' }));
+		setTimeout(async () => {
+			await store.dispatch(beginFileLoadFallback({ message: 'Nchan Crashed Through process.env.PLEASE_CRASH_NCHAN_FOR_ME' }));
 		}, 30_000);
 	}
 

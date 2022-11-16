@@ -149,6 +149,12 @@ export const loadStateFiles = createAsyncThunk<Omit<SliceState, 'mode' | 'status
 	return state;
 });
 
+export const beginFileLoadFallback = createAsyncThunk<void, { message: string }>('states/file-load-fallback', async ({ message }) => {
+	const stateManager = StateManager.getInstance();
+	stateManager.fallbackToFileWatch();
+	nchanLogger.error('Received error from nchan subscriber, falling back to file watch mode: %s', message);
+});
+
 export const emhttp = createSlice({
 	name: 'emhttp',
 	initialState,
@@ -161,12 +167,6 @@ export const emhttp = createSlice({
 			}
 
 			return state;
-		},
-		beginFileLoadFallback(state, action: PayloadAction<{ message: string }>) {
-			state.mode = 'watch';
-			const stateManager = StateManager.getInstance();
-			stateManager.fallbackToFileWatch();
-			nchanLogger.error('Received error from nchan subscriber, falling back to file watch mode: %s', action.payload.message);
 		},
 	},
 	extraReducers(builder) {
@@ -189,7 +189,13 @@ export const emhttp = createSlice({
 				logger.warn('Invalid payload returned from loadSingleStateFile()');
 			}
 		});
+
+		builder.addCase(beginFileLoadFallback.pending, (state, action) => {
+			state.mode = 'watch';
+			return state;
+		});
+		builder.addCase(beginFileLoadFallback.fulfilled, (state, action) => state);
 	},
 });
 
-export const { updateEmhttpState, beginFileLoadFallback } = emhttp.actions;
+export const { updateEmhttpState } = emhttp.actions;
