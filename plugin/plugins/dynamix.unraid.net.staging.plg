@@ -324,6 +324,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /etc/rc.d/rc6.d/K10_flash_backup
   rm -f /var/log/gitcount
   rm -f /var/log/gitflash
+  rm -f /usr/local/emhttp/state/flashbackup.ini
+  rm -f /usr/local/emhttp/state/myservers.cfg
   # delete any legacy files that may exist
   rm -rf /boot/config/plugins/dynamix.my.servers/libvirt.node
   rm -rf /boot/config/plugins/dynamix.my.servers/segfault-handler.node
