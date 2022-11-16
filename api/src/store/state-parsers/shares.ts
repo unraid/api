@@ -1,4 +1,5 @@
-import { Share, Shares } from '@app/core/types/states/share';
+import type { Share } from '@app/core/types/states/share';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 export type SharesIni = Array<{
 	name: string;
@@ -9,7 +10,7 @@ export type SharesIni = Array<{
 	useCache: string;
 }>;
 
-export const parse = (state: SharesIni): Shares => Object.entries(state)
+export const parse: StateFileToIniParserMap['shares'] = state => Object.entries(state)
 	.map(([_, item]) => {
 		const { free, size, include, exclude, useCache, ...rest } = item;
 		const share: Share = {

@@ -14,7 +14,7 @@ import { loadConfigFile, setConnectionStatus } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
 import { loadStateFiles } from '@app/store/modules/emhttp';
-import { setupNchanWatch } from '@app/store/watch/nchan-watch';
+import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
 import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
@@ -47,8 +47,8 @@ void am(async () => {
 	// Load initial registration key into store
 	await store.dispatch(loadRegistrationKey());
 
-	// Start listening to nchan updates
-	await setupNchanWatch();
+	// Start listening to nchan updates - initializing this sets up nchan
+	StateManager.getInstance();
 
 	// Start listening to key file changes
 	setupRegistrationKeyWatch();

@@ -1,5 +1,5 @@
-import { IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { Nginx } from '@app/core/types/states/nginx';
+import type { IniStringBooleanOrAuto } from '@app/core/types/ini';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 export type NginxIni = {
 	nginxCertname: string;
@@ -19,7 +19,7 @@ export type NginxIni = {
 	nginxWanaccess: string;
 };
 
-export const parse = (state: NginxIni): Nginx => ({
+export const parse: StateFileToIniParserMap['nginx'] = state => ({
 	certificateName: state.nginxCertname,
 	certificatePath: state.nginxCertpath,
 	defaultUrl: state.nginxDefaulturl,

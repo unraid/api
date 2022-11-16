@@ -2,6 +2,7 @@ import { CommaSeparatedString } from '@app/core/types/global';
 import { IniStringBoolean } from '@app/core/types/ini';
 import { Network } from '@app/core/types/states/network';
 import { toBoolean } from '@app/core/utils/casting';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 export type NetworkIni = Record<string, {
 	dhcpKeepresolv: IniStringBoolean;
@@ -35,7 +36,7 @@ export type NetworkIni = Record<string, {
 	type: string[];
 }>;
 
-export const parse = (iniFile: NetworkIni) => Object.values(iniFile).map(network => {
+export const parse: StateFileToIniParserMap['network'] = iniFile => Object.values(iniFile).map(network => {
 	const result: Network = {
 		...network,
 		dhcpKeepresolv: toBoolean(network.dhcpKeepresolv),

@@ -47,6 +47,7 @@ export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
 		minigraph: 'connected' | 'disconnected';
 		relay: HumanRelayStates;
+		nchan: 'enabled' | 'disabled';
 	};
 }
 
@@ -54,6 +55,7 @@ export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServer
 	connectionStatus: {
 		minigraph: 'connected' | 'disconnected';
 		relay: HumanRelayStates;
+		nchan: 'enabled' | 'disabled';
 	};
 }
 

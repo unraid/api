@@ -1,5 +1,6 @@
 import { IniEnabled, IniNumberBoolean } from '@app/core/types/ini';
 import { toNumber, toBoolean } from '@app/core/utils';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 type SlotStatus = 'DISK_OK';
 type SlotFsStatus = 'Mounted';
@@ -36,7 +37,7 @@ export type IniSlot = {
 
 export type SlotsIni = IniSlot[];
 
-export const parse = (state: SlotsIni) => Object.values(state).map(slot => {
+export const parse: StateFileToIniParserMap['disks'] = state => Object.values(state).map(slot => {
 	const result = {
 		...slot,
 		size: toNumber(slot.size),
