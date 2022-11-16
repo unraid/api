@@ -276,16 +276,16 @@ function buttonStateReset(newstate) {
     if (newstate['error'] && newstate['error']!='') {
       $('#flashbackuperror').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['error']);
       $('#errorpanel').show();
-
-      // if rate limited, disable the Update button
-      if (newstate['error'].includes('Rate limited')) {
-        $('#changespanel button').first().prop("disabled",true);
-      }
     }
 
     if (newstate['remoteerror'] && newstate['remoteerror']!='') {
       $('#flashbackupremoteerror').html('<i class="fa fa-warning icon warning" aria-hidden="true"></i> ' + newstate['remoteerror']);
       $('#remoteerrorpanel').show();
+
+      // if rate limited, disable the Update button
+      if (newstate['remoteerror'].includes('Rate limited')) {
+        $('#changespanel button').first().prop("disabled",true);
+      }
     }
 
     if (newstate['activated'] == 'true' || newstate['activated'] == 'yes') {
