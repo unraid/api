@@ -5,6 +5,7 @@ import type { RootState } from '@app/store';
 import '@app/store/sync/hostname-sync';
 import '@app/common/two-factor';
 import '@app/store/modules/emhttp';
+import { StateFileKey } from '@app/store/types';
 
 vi.mock('@app/core/pubsub', () => ({
 	pubsub: { publish: vi.fn() },
@@ -53,7 +54,7 @@ test('syncs hostname', async () => {
 		},
 	};
 	const newState = {
-		field: 'var' as const,
+		field: StateFileKey.var,
 		state: {
 			name: 'Not-Tower',
 		},
@@ -111,7 +112,7 @@ test('skips hostname sync if the hostname didnt change', async () => {
 		},
 	};
 	const newState = {
-		field: 'var' as const,
+		field: StateFileKey.var,
 		state: {
 			name: 'Tower',
 		},

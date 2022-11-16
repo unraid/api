@@ -47,7 +47,6 @@ export const initialState: SliceState = {
 	connectionStatus: {
 		minigraph: 'disconnected',
 		relay: 'disconnected',
-		nchan: 'enabled',
 	},
 };
 

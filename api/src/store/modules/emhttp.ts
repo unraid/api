@@ -159,14 +159,9 @@ export const emhttp = createSlice({
 	name: 'emhttp',
 	initialState,
 	reducers: {
-		updateEmhttpState(state, action: PayloadAction<{ field: keyof typeof parsers; state: Partial<typeof initialState[keyof typeof initialState]> }>) {
+		updateEmhttpState(state, action: PayloadAction<{ field: StateFileKey; state: Partial<typeof initialState[keyof typeof initialState]> }>) {
 			const { field } = action.payload;
-			// Only update the state if we've finished loading the emhttp files, otherwise we might get into a strange state
-			if (state.status === FileLoadStatus.LOADED) {
-				return merge(state, { [field]: action.payload.state });
-			}
-
-			return state;
+			return merge(state, { [field]: action.payload.state });
 		},
 	},
 	extraReducers(builder) {
@@ -190,11 +185,9 @@ export const emhttp = createSlice({
 			}
 		});
 
-		builder.addCase(beginFileLoadFallback.pending, (state, action) => {
+		builder.addCase(beginFileLoadFallback.pending, state => {
 			state.mode = 'watch';
-			return state;
 		});
-		builder.addCase(beginFileLoadFallback.fulfilled, (state, action) => state);
 	},
 });
 

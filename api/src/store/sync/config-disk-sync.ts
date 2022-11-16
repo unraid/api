@@ -1,5 +1,5 @@
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
-import { logger, mothershipLogger } from '@app/core/log';
+import { logger } from '@app/core/log';
 import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
 import { writeFile } from 'fs/promises';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';

@@ -111,6 +111,7 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "api": {
+		    "emhttpMode": "nchan",
 		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    "nodeVersion": "v18.5.0",
 		    "status": "running",
@@ -164,6 +165,7 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "api": {
+		    "emhttpMode": "nchan",
 		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    "nodeVersion": "v18.5.0",
 		    "status": "running",

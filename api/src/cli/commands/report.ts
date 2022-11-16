@@ -16,6 +16,7 @@ import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
 import { Server } from '@app/store/modules/servers';
 import { HumanRelayStates } from '@app/graphql/relay-state';
+import { SliceState as EmhttpState } from '@app/store/modules/emhttp';
 
 type Verbosity = '' | '-v' | '-vv';
 
@@ -35,6 +36,7 @@ type ReportObject = {
 		status: 'running' | 'stopped';
 		environment: string;
 		nodeVersion: string;
+		emhttpMode: EmhttpState['mode'];
 	};
 	apiKey: 'valid' | 'invalid' | string;
 	servers?: ServersPayload | null;
@@ -292,6 +294,7 @@ export const report = async (...argv: string[]) => {
 				status: unraidApiPid ? 'running' : 'stopped',
 				environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
 				nodeVersion: process.version,
+				emhttpMode: getters.emhttp().mode,
 			},
 			apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
 			...(servers ? { servers } : {}),

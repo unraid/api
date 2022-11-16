@@ -32,9 +32,13 @@ export const createNchanSubscription = (field: keyof typeof parsers): NchanSubsc
 		nchanLogger.debug('Connected to %s', endpoint);
 	});
 
-	sub.on('disconnect', _event => {
+	sub.on('disconnect', async _event => {
 		nchanLogger.debug('Disconnected from %s', endpoint);
-		store.dispatch(beginFileLoadFallback({ message: `Disconnected from ${endpoint}` }));
+		try {
+			await store.dispatch(beginFileLoadFallback({ message: `Disconnected from ${endpoint}` }));
+		} catch (error: unknown) {
+			nchanLogger.error('Caught error attempting fallback to file', error);
+		}
 	});
 
 	sub.on('message', (message: string, _messageMetadata) => {
@@ -54,9 +58,9 @@ export const createNchanSubscription = (field: keyof typeof parsers): NchanSubsc
 		}
 	});
 
-	sub.on('error', (error, error_description) => {
+	sub.on('error', async (error, error_description) => {
 		nchanLogger.error('Error: "%s" \nDescription: "%s"', error, error_description);
-		store.dispatch(beginFileLoadFallback({ message: `Error from ${endpoint}` }));
+		await store.dispatch(beginFileLoadFallback({ message: `Error from ${endpoint}` }));
 	});
 
 	sub.reconnect = false;

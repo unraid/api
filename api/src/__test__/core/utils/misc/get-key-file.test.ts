@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { store } from '@app/store';
-import { FileLoadStatus } from '@app/store/types';
+import { FileLoadStatus, StateFileKey } from '@app/store/types';
 
 import '@app/core/utils/misc/get-key-file';
 import '@app/store/modules/emhttp';
@@ -33,7 +33,7 @@ test('Returns empty key if key location is empty', async () => {
 	// Set key file location as empty
 	// This should only happen if the user doesn't have a key file
 	store.dispatch(updateEmhttpState({
-		field: 'var',
+		field: StateFileKey.var,
 		state: {
 			regFile: '',
 		},

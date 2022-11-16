@@ -4,6 +4,7 @@ import { FileLoadStatus } from '@app/store/types';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { format } from 'util';
+import type { RootState } from '@app/store';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -15,12 +16,12 @@ const initialState = {
 	keyFile: null,
 };
 
-export const loadRegistrationKey = createAsyncThunk<{ keyFile: string | null }>('registration/load-registration-key', async () => {
+export const loadRegistrationKey = createAsyncThunk<{ keyFile: string | null }, void, { state: RootState }>('registration/load-registration-key', async (_, { getState }) => {
 	try {
 		logger.trace('Loading registration key file');
 
 		return {
-			keyFile: await getKeyFile(),
+			keyFile: await getKeyFile(getState()),
 		};
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(format('Failed loading registration key with unknown error "%s"', String(error)));
