@@ -4,6 +4,7 @@ import { cliLogger } from '@app/core/log';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
 import { getters } from '@app/store';
+import { getAllUnraidApiPids } from '../get-unraid-api-pid';
 
 /**
  * Start a new API process.
@@ -11,6 +12,12 @@ import { getters } from '@app/store';
 export const start = async () => {
 	// Set process title
 	process.title = 'unraid-api';
+	const runningProcesses = await getAllUnraidApiPids();
+	if (runningProcesses.length > 0) {
+		cliLogger.info('unraid-api is Already Running!');
+		cliLogger.info('Run "unraid-api restart" to stop all running processes and restart');
+		process.exit(1);
+	}
 
 	// Start API
 	cliLogger.info('Starting unraid-api@v%s', getters.config().api.version);

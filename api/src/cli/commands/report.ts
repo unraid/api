@@ -9,7 +9,6 @@ import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
 import { cliLogger } from '@app/core/log';
-import { readFile, stat } from 'fs/promises';
 import { resolve } from 'path';
 import prettyMs from 'pretty-ms';
 import { getters, store } from '@app/store';
