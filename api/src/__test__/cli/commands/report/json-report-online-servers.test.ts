@@ -49,7 +49,7 @@ vi.mock('fs/promises', () => ({
 
 vi.mock('got', () => ({
 	got: vi.fn(async (_url, opts: { body: string }) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
+		if (opts.body.includes('cloud')) {
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
@@ -59,6 +59,7 @@ vi.mock('got', () => ({
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
+						emhttp: { mode: 'nchan' },
 					},
 				},
 			};

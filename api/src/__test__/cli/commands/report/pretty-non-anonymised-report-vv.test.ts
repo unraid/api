@@ -36,7 +36,7 @@ vi.mock('fs/promises', () => ({
 
 vi.mock('got', () => ({
 	got: vi.fn(async (_url, opts: { body: string }) => {
-		if (opts.body === '{"query":"query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}"}') {
+		if (opts.body.includes('cloud')) {
 			const data: { data: { cloud: Cloud } } = {
 				data: {
 					cloud: {
@@ -46,6 +46,7 @@ vi.mock('got', () => ({
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
+						emhttp: { mode: 'nchan' },
 					},
 				},
 			};
@@ -124,6 +125,7 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 			OFFLINE: Tower2[owner=\\"api-test-runner\\" guid=\\"CBDA-CBDA-CBDA-CBDA\\"]
 			INVALID: Tower43[owner=\\"api-test-runner\\" guid=\\"MY_GUID\\"]
 		ALLOWED_ORIGINS: 
+		NCHAN_MODE: nchan
 		</----UNRAID-API-REPORT----->
 		"
 	`);
