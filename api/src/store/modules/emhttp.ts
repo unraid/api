@@ -98,7 +98,7 @@ const parseState = <T extends StateFileKey, Q = ReturnType<StateFileToIniParserM
 };
 
 // @TODO Fix the type here Pick<SliceState, 'var' | 'devices' | 'networks' | 'nginx' | 'shares' | 'disks' | 'users' | 'smbShares' | 'nfsShares'> | null
-export const loadSingleStateFile = createAsyncThunk<any, StateFileKey, { state: RootState }>('states/load-single-state-file', async (stateFileKey, { getState }) => {
+export const loadSingleStateFile = createAsyncThunk<any, StateFileKey, { state: RootState }>('emhttp/load-single-state-file', async (stateFileKey, { getState }) => {
 	const path = getState().paths.states;
 
 	const config = parseState(path, stateFileKey);
@@ -132,7 +132,7 @@ export const loadSingleStateFile = createAsyncThunk<any, StateFileKey, { state: 
 /**
  * Load the emhttp states into the store.
  */
-export const loadStateFiles = createAsyncThunk<Omit<SliceState, 'mode' | 'status'>, void, { state: RootState }>('states/load-state-file', async (_, { getState }) => {
+export const loadStateFiles = createAsyncThunk<Omit<SliceState, 'mode' | 'status'>, void, { state: RootState }>('emhttp/load-state-file', async (_, { getState }) => {
 	const path = getState().paths.states;
 	const state: Omit<SliceState, 'mode' | 'status'> = {
 		var: parseState(path, StateFileKey.var, {} as Var),
@@ -149,10 +149,11 @@ export const loadStateFiles = createAsyncThunk<Omit<SliceState, 'mode' | 'status
 	return state;
 });
 
-export const beginFileLoadFallback = createAsyncThunk<void, { message: string }>('states/file-load-fallback', async ({ message }) => {
+export const beginFileLoadFallback = createAsyncThunk<boolean, { message: string }>('emhttp/file-load-fallback', async ({ message }) => {
 	const stateManager = StateManager.getInstance();
 	stateManager.fallbackToFileWatch();
 	nchanLogger.error('Received error from nchan subscriber, falling back to file watch mode: %s', message);
+	return true;
 });
 
 export const emhttp = createSlice({
@@ -186,7 +187,18 @@ export const emhttp = createSlice({
 		});
 
 		builder.addCase(beginFileLoadFallback.pending, state => {
+			logger.warn('GOT HERE', state.mode);
 			state.mode = 'watch';
+			logger.warn('GOT HERE', state.mode);
+			return state;
+		});
+
+		builder.addCase(beginFileLoadFallback.fulfilled, state => {
+			logger.warn('GOT HERE 2', state.mode);
+
+			state.mode = 'watch';
+			logger.warn('GOT HERE 2', state.mode);
+			return state;
 		});
 	},
 });

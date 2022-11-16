@@ -80,7 +80,33 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 		method: 'POST',
 		...createGotOptions(config),
 		body: JSON.stringify({
-			query: 'query{cloud{error apiKey{valid}relay{status timeout error}minigraphql{status}cloud{status error ip}allowedOrigins}}',
+			query: /* GraphQL */`
+			query {
+				cloud {
+					error 
+					apiKey {
+						valid
+					}
+					relay {
+						status 
+						timeout 
+						error
+					}
+					minigraphql {
+						status
+					}
+					cloud {
+						status 
+						error 
+						ip
+					}
+					allowedOrigins
+					emhttp {
+						mode
+					}
+				}
+			}
+			`,
 		}),
 	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
@@ -198,6 +224,15 @@ ALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ').trim()}`;
 	return '';
 };
 
+const getReadableEmhttpDetails = (reportObject: ReportObject, v: Verbosity): string => {
+	if (v === '') {
+		return '';
+	}
+
+	return `
+NCHAN_MODE: ${reportObject.api.emhttpMode}`;
+};
+
 const getServerName = async (paths: ReturnType<typeof getters.paths>): Promise<string> => {
 	// Load the var.ini file
 	let serverName = 'Tower';
@@ -294,7 +329,7 @@ export const report = async (...argv: string[]) => {
 				status: unraidApiPid ? 'running' : 'stopped',
 				environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
 				nodeVersion: process.version,
-				emhttpMode: getters.emhttp().mode,
+				emhttpMode: cloud?.emhttp.mode ?? 'nchan',
 			},
 			apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
 			...(servers ? { servers } : {}),
@@ -342,7 +377,7 @@ API_KEY: ${reportObject.apiKey}
 MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
 RELAY: ${getReadableRelayDetails(reportObject)}
-MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}
+MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}${getReadableEmhttpDetails(reportObject, v)}
 </----UNRAID-API-REPORT----->
 `;
 
