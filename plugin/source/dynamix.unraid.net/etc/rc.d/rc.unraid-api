@@ -116,26 +116,17 @@ install() {
   # Install the files
   _install "$1"
 
-  # wait for emhttpd to start and create var.ini before starting the api after a reboot
-  if [[ ! -f /var/local/emhttp/var.ini ]]; then
-    echo -n "waiting for emhttpd"
-      # shellcheck disable=SC2034
-      for i in {1..30}; do
-      [[ -f /var/local/emhttp/var.ini ]] && break
-      echo -n "."
-      sleep 1
-    done
-    echo ".done"
+  # if nginx is running, start the api. if not, it will be started by rc.nginx
+  if /etc/rc.d/rc.nginx status &>/dev/null; then 
+    # Start new process
+    start
+
+    # Wait for api to initialize
+    sleep 2
+
+    # Print status and exit
+    status
   fi
-
-  # Start new process
-  start
-
-  # Wait for inital process to boot
-  sleep 2
-
-  # Print status and exit
-  status
   exit 0
 }
 uninstall() {
