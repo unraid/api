@@ -120,12 +120,11 @@ install() {
   if /etc/rc.d/rc.nginx status &>/dev/null; then 
     # Start new process
     start
-
-    # Wait for api to initialize
-    sleep 2
-
-    # Print status and exit
-    status
+    # Note: do not run another unraid-api command until you see "UNRAID API started successfully!" in syslog
+    sleep 3
+    echo "unraid-api installed and started"
+  else
+    echo "unraid-api installed"
   fi
   exit 0
 }
