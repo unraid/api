@@ -1,5 +1,6 @@
 import { SecIni } from '@app/core/types/states/sec';
 import { SmbSecurity, SmbShares } from '@app/core/types/states/smb';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 export interface IniSmbShare extends SecIni {
 	/**
@@ -12,7 +13,7 @@ export interface IniSmbShare extends SecIni {
 
 export type SmbIni = IniSmbShare[];
 
-export const parse = (state: SmbIni) => Object.entries(state).map(([name, state]) => {
+export const parse: StateFileToIniParserMap['sec'] = state => Object.entries(state).map(([name, state]) => {
 	const { export: enabled, security, writeList, readList, volsizelimit, ...rest } = state;
 
 	return {

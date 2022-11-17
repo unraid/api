@@ -1,6 +1,7 @@
 import { IniStringBoolean, IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { FsType, RegistrationTypeAllCaps, Var } from '@app/core/types/states/var';
+import { FsType, RegistrationTypeAllCaps } from '@app/core/types/states/var';
 import { toNumber } from '@app/core/utils';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 /**
  * Unraid registration check
@@ -219,7 +220,7 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto) => {
 	throw new Error(`Value "${value as string}" is not auto/no/yes.`);
 };
 
-export const parse = (iniFile: VarIni): Var => {
+export const parse: StateFileToIniParserMap['var'] = iniFile => {
 	const configValid = iniBooleanToJsBoolean(iniFile.configValid, false);
 	return {
 		...iniFile,

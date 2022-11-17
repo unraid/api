@@ -118,8 +118,8 @@ export const config = createSlice({
 		updateUserConfig(state, action: PayloadAction<RecursivePartial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
-		setConnectionStatus(state, action: PayloadAction<SliceState['connectionStatus']>) {
-			state.connectionStatus = action.payload;
+		setConnectionStatus(state, action: PayloadAction<Partial<SliceState['connectionStatus']>>) {
+			state.connectionStatus = merge(state.connectionStatus, action.payload);
 		},
 		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
 			return merge(state, { remote: action.payload });

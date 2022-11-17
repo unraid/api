@@ -12,6 +12,7 @@ import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minig
 import { checkRelay } from '@app/graphql/resolvers/query/cloud/check-relay';
 import { Cloud, createResponse } from '@app/graphql/resolvers/query/cloud/create-response';
 import type { Context } from '@app/graphql/schema/utils';
+import { getters } from '@app/store';
 
 export default async (_: unknown, __: unknown, context: Context): Promise<Cloud> => {
 	ensurePermission(context.user, {
@@ -43,6 +44,9 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP,
 			} as unknown as Cloud['cloud'],
 			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean),
+			emhttp: {
+				mode: 'nchan',
+			},
 		};
 		return result;
 	}
@@ -55,6 +59,9 @@ export default async (_: unknown, __: unknown, context: Context): Promise<Cloud>
 		minigraphql,
 		cloud,
 		allowedOrigins: getAllowedOrigins(),
+		emhttp: {
+			mode: getters.emhttp().mode,
+		},
 	});
 
 	return response;

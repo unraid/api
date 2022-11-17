@@ -1,12 +1,11 @@
-import { getters } from '@app/store';
+import { RootState, store } from '@app/store';
 import btoa from 'btoa';
 import { basename, join } from 'path';
 import { readFile } from 'fs/promises';
 
 // Get key file
-export const getKeyFile = async function () {
-	const emhttp = getters.emhttp();
-	const paths = getters.paths();
+export const getKeyFile = async function (appStore: RootState = store.getState()) {
+	const { emhttp, paths } = appStore;
 
 	// If emhttp's state isn't loaded then return null as we can't load the key yet
 	if (emhttp.var?.regFile === undefined) return null;

@@ -1,4 +1,5 @@
-import { User, Users } from '@app/core/types/states/user';
+import { User } from '@app/core/types/states/user';
+import type { StateFileToIniParserMap } from '@app/store/types';
 
 type BooleanString = 'yes' | 'no';
 
@@ -24,4 +25,4 @@ const parseUser = (state: IniUser): User => {
 	return user;
 };
 
-export const parse = (states: UsersIni): Users => Object.values(states).map(parseUser);
+export const parse: StateFileToIniParserMap['users'] = states => Object.values(states).map(parseUser);

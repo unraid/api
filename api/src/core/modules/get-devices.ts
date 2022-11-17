@@ -5,7 +5,6 @@
 
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getters } from '@app/store';
 
 /**
  * Get all devices.
@@ -20,11 +19,16 @@ export const getDevices = async (context: CoreContext): Promise<CoreResult> => {
 		action: 'read',
 		possession: 'any',
 	});
-
-	const { devices } = getters.emhttp();
+	/*
+	Const { devices } = getters.emhttp();
 
 	return {
 		text: `Devices: ${JSON.stringify(devices, null, 2)}`,
 		json: devices,
+	};
+	*/
+	return {
+		text: 'Disabled Due To Bug With Devs Sub',
+		json: {},
 	};
 };
