@@ -6,6 +6,7 @@ import { setupConfigPathWatch } from './watch/config-watch';
 import { FileLoadStatus } from './types';
 import { syncRegistration } from '@app/store/sync/registration-sync';
 import { syncArray } from '@app/store/sync/array-sync';
+import { syncInfoApps } from '@app/store/sync/info-apps-sync';
 
 export const startStoreSync = async () => {
 	// The last state is stored so we don't end up in a loop of writing -> reading -> writing
@@ -31,6 +32,9 @@ export const startStoreSync = async () => {
 
 			// Update array
 			await syncArray(lastState);
+
+			// Update docker app counts
+			await syncInfoApps(lastState);
 		}
 
 		lastState = state;

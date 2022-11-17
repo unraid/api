@@ -22,6 +22,7 @@ import { app, httpServer, server } from '@app/server';
 import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
+import { setupDockerWatch } from '@app/store/watch/docker-watch';
 
 // Boot app
 void am(async () => {
@@ -52,6 +53,9 @@ void am(async () => {
 
 	// Start listening to key file changes
 	setupRegistrationKeyWatch();
+
+	// Start listening to docker events
+	setupDockerWatch();
 
 	// Try and load the HTTP server
 	logger.debug('Starting HTTP server');
