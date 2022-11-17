@@ -52,7 +52,11 @@ export interface StateFileToIniParserMap {
 	[StateFileKey.users]: (state: UsersIni) => Users;
 	[StateFileKey.sec]: (state: SmbIni) => SmbShares;
 	[StateFileKey.sec_nfs]: (state: NfsSharesIni) => NfsShares;
+}
 
+export enum DaemonConnectionStatus {
+	CONNECTED = 'CONNECTED',
+	DISCONNECTED = 'DISCONNECTED',
 }
 
 export type StoreSubscriptionHandler = (lastState: RootState | null) => Promise<void>;
