@@ -470,22 +470,22 @@ ln -s /usr/local/bin/unraid-api/unraid-api /usr/local/sbin/unraid-api
 [[ ! -h /etc/rc.d/rc0.d ]] && ln -s /etc/rc.d/rc6.d /etc/rc.d/rc0.d
 [[ ! -h /etc/rc.d/rc6.d/K10_flash_backup  ]] && ln -s /etc/rc.d/rc.flash_backup /etc/rc.d/rc6.d/K10_flash_backup
 
-# start background process to install/start the api
+# start background process to install/start the api and flash backup
 echo
 if [ -f /var/local/emhttp/var.ini ]; then
   # the system has fully booted, emhttpd and nginx are running
-  echo "Installing and starting the API in the background"
-  echo "/etc/rc.d/rc.unraid-api install" | at -M now &>/dev/null
+  echo "Installing and starting the Unraid API"
+  echo "Starting flash backup (if enabled)"
+  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
 elif grep -q 6.9.0-beta35 /etc/unraid-version; then
   # this really old version of Unraid does not automatically install/start the api, so we need to do it (after a delay)
-  echo "Installing and starting the API in the background"
-  echo "/etc/rc.d/rc.unraid-api install" | at -M now + 1 minute &>/dev/null
+  echo "Installing and starting the Unraid API"
+  echo "Starting flash backup (if enabled)"
+  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 minute &>/dev/null
 # else
-  # the system is booting, emhttpd will install the api and rc.nginx will start it
+  # the system is booting, emhttpd will install the api and start rc.flash_backup. rc.nginx will start the api.
   # nothing to do here
 fi
-echo "Starting flash backup (if enabled)"
-echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
 
 # modify older rc.nginx versions to run this makestate when it builds the nginx config files
 if ! grep -q 'scripts/makestate\|/var/local/nginx/state.ini\|/var/local/emhttp/nginx.ini' /etc/rc.d/rc.nginx; then
