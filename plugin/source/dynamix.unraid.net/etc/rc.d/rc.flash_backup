@@ -27,7 +27,10 @@ status() {
 start() {
   # Note: can start if not signed in, but watcher loop will not process until signed in
   # only run if flash_backup is enabled
-  _enabled || exit 1
+  if ! _enabled; then
+    logger "flash backup disabled, exiting" --tag flash_backup
+    exit 1
+  fi
   # terminate watcher loop/process
   pkill --full "${TASKNAME}" &>/dev/null
   # safely clean up git *.lock files
@@ -39,6 +42,7 @@ start() {
   exit 0
 }
 stop() {
+  logger "stop watching for file changes" --tag flash_backup
   # terminate watcher loop/process
   pkill --full "${TASKNAME}" &>/dev/null
   # remove any queued jobs and flush changes
@@ -56,11 +60,13 @@ reload() {
 flush() {
   # remove any queued jobs
   _removequeue
+  logger "flush: ${TASKACTION}" --tag flash_backup
   # push any changes ad-hoc
   # shellcheck disable=SC2086
   echo "${TASKACTION}_nolimit &>/dev/null" | at ${QUEUE} -M now &>/dev/null
 }
 _watch() {
+  logger "start watching for file changes" --tag flash_backup
   # start watcher loop
   while true; do
     # wait for system to sign in, then process flash backups
@@ -139,9 +145,12 @@ _beenawhile() {
 }
 # wait for git commands to end, then delete any stale lock files
 _clearlocks() {
-  while [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; do
-    sleep 1
-  done
+  if [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; then
+    logger "waiting for current backup to complete" --tag flash_backup
+    while [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; do
+      sleep 1
+    done
+  fi
   find /boot/.git -type f -name '*.lock' -delete
 }
 case "$1" in
