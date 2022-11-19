@@ -33,12 +33,6 @@ start() {
   fi
   # terminate watcher loop/process
   pkill --full "${TASKNAME}" &>/dev/null
-  # TODO: 'status' will show the monitor is not running while waiting for '_clearlocks' and 'flush' to finish
-  #       user might 'start' a second time during this delay
-  # safely clean up git *.lock files
-  _clearlocks
-  # flush: this will ensure we start with a clean repo
-  flush
   # start watcher loop as background process
   exec ${TASKNAME} &>/dev/null &
   exit 0
@@ -69,6 +63,10 @@ flush() {
 }
 _watch() {
   logger "start watching for file changes" --tag flash_backup
+  # safely clean up git *.lock files
+  _clearlocks
+  # flush: this will ensure we start with a clean repo
+  flush
   # start watcher loop
   while true; do
     # wait for system to sign in, then process flash backups
