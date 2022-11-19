@@ -45,8 +45,8 @@ stop() {
   logger "stop watching for file changes" --tag flash_backup
   # terminate watcher loop/process
   pkill --full "${TASKNAME}" &>/dev/null
-  # remove any queued jobs and flush changes
-  flush
+  # do not flush. better to have unsaved changes than to corrupt the backup during shutdown
+  # note that an existing backup could still be running
   exit 0
 }
 reload() {
