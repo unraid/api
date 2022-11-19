@@ -7,11 +7,27 @@ TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBack
 last=$(date +%s)
 # set GIT_OPTIONAL_LOCKS=0 globally to reduce/eliminate writes to /boot
 export GIT_OPTIONAL_LOCKS=0
+
+FAST=1  #  1 second delay when waiting for git
+SLOW=10 # 10 second delay when waiting for git
+# wait for existing git commands to complete
+# $1 is the time in seconds to sleep when waiting. SLOW or FAST
+_waitforgit() {
+  while [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; do
+    sleep "$1"
+  done
+}
+# log to syslog, then wait for existing git commands to complete
+# $1 is the time in seconds to sleep when waiting. SLOW or FAST
+_waitforgitlog() {
+  if [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; then
+    logger "waiting for current backup to complete" --tag flash_backup
+    _waitforgit "$1"
+  fi
+}
 status() {
-  local flash_backup_pid
-  flash_backup_pid=$(pgrep --full "${TASKNAME}")
   _signedin && SIGNEDIN="system is signed in to Unraid.net." || SIGNEDIN="system is not signed in to Unraid.net."
-  if [[ ${flash_backup_pid} ]]; then
+  if _watching; then
     echo "flash backup monitor is running. ${SIGNEDIN}"
     _hasqueue && echo "changes detected, backup queued."
     exit 0
@@ -25,42 +41,62 @@ status() {
   fi
 }
 start() {
-  # Note: can start if not signed in, but watcher loop will not process until signed in
-  # only run if flash_backup is enabled
-  _enabled || exit 1
-  # terminate watcher loop/process
-  pkill --full "${TASKNAME}" &>/dev/null
-  # safely clean up git *.lock files
-  _clearlocks
-  # flush: this will ensure we start with a clean repo
-  flush
-  # start watcher loop as background process
-  exec ${TASKNAME} &>/dev/null &
+  _start
   exit 0
 }
 stop() {
-  # terminate watcher loop/process
-  pkill --full "${TASKNAME}" &>/dev/null
-  # remove any queued jobs and flush changes
-  flush
+  _stop
   exit 0
 }
 reload() {
-  stop
-  sleep 1
-  start
+  _start
   sleep 1
   status
-  exit 0
+}
+_start() {
+  # Note: can start if not signed in, but watcher loop will not process until signed in
+  # only run if flash_backup is enabled
+  if ! _enabled; then
+    logger "flash backup disabled, exiting" --tag flash_backup
+    exit 1
+  fi
+  _stop
+  # start watcher loop as background process
+  exec ${TASKNAME} &>/dev/null &
+}
+_stop() {
+  if _watching; then
+    logger "stop watching for file changes" --tag flash_backup
+    # terminate watcher loop/process
+    pkill --full "${TASKNAME}" &>/dev/null
+  fi
+  # do not flush. better to have unsaved changes than to corrupt the backup during shutdown
+  # note that an existing git process could still be running
 }
 flush() {
   # remove any queued jobs
   _removequeue
+  # wait for existing git commands to finish before flushing
+  _waitforgitlog "${FAST}"
+  logger "flush: ${TASKACTION}" --tag flash_backup
   # push any changes ad-hoc
   # shellcheck disable=SC2086
   echo "${TASKACTION}_nolimit &>/dev/null" | at ${QUEUE} -M now &>/dev/null
 }
+_watching() {
+  local flash_backup_pid
+  flash_backup_pid=$(pgrep --full "${TASKNAME}")
+  if [[ ${flash_backup_pid} ]]; then
+    return 0
+  fi
+  return 1
+}
 _watch() {
+  # safely clean up git *.lock files
+  _clearlocks
+  # flush: this will ensure we start with a clean repo
+  flush
+  logger "start watching for file changes" --tag flash_backup
   # start watcher loop
   while true; do
     # wait for system to sign in, then process flash backups
@@ -69,6 +105,8 @@ _watch() {
   done
 }
 _f1() {
+  # wait for existing git commands to finish before checking for updates
+  _waitforgit "${SLOW}"
   if [ "$(git -C /boot status -s)" ]; then
     _hasqueue || _f2
   elif _haserror && _beenawhile; then
@@ -139,9 +177,7 @@ _beenawhile() {
 }
 # wait for git commands to end, then delete any stale lock files
 _clearlocks() {
-  while [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; do
-    sleep 1
-  done
+  _waitforgitlog "${FAST}"
   find /boot/.git -type f -name '*.lock' -delete
 }
 case "$1" in
