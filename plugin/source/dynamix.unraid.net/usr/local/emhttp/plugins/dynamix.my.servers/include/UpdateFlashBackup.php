@@ -484,18 +484,24 @@ if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
 
 // test which ssh port allows a connection (standard ssh port 22 or alternative port 443)
 $SSH_PORT = '';
-exec('timeout 5 bash -c "</dev/tcp/backup.unraid.net/22"', $status_output, $return_var);
-if ($return_var == 0) {
+exec('ssh -o ConnectTimeout=5 -T git@backup.unraid.net', $ssh_output, $return_var);
+if ($return_var == 128) {
   $SSH_PORT = '22';
 } else {
-  exec('timeout 5 bash -c "</dev/tcp/backup.unraid.net/443"', $status_output, $return_var);
-  if ($return_var == 0) {
+  exec('ssh -o ConnectTimeout=5 -p 443 -T git@backup.unraid.net', $ssh_output, $return_var);
+  if ($return_var == 128) {
     $SSH_PORT = '443';
   }
 }
 if (empty($SSH_PORT)) {
   $arrState['loading'] = '';
-  $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+  if (stripos($ssh_output[0],'permission denied') !== false) {
+    $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+    $isConnected = ($myStatus['relay']=='connected')?true:false;
+    $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+  } else {
+    $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+  }
   response_complete(406, array('error' => $arrState['error']));
 } else if ($arrState['error'] == 'Unable to connect to backup.unraid.net:22') {
   $arrState['error'] = '';
