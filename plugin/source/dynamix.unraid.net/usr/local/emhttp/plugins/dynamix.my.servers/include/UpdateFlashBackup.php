@@ -495,7 +495,7 @@ if ($return_var == 128) {
 }
 if (empty($SSH_PORT)) {
   $arrState['loading'] = '';
-  if (stripos($ssh_output[0],'permission denied') !== false) {
+  if (stripos(implode($ssh_output),'permission denied') !== false) {
     $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
     $isConnected = ($myStatus['relay']=='connected')?true:false;
     $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
@@ -584,7 +584,7 @@ if ($command == 'update') {
     }
     if ($return_var != 0) {
       // check for permission denied
-      if (stripos($push_output[0],'permission denied') !== false) {
+      if (stripos(implode($push_output),'permission denied') !== false) {
         $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
         $isConnected = ($myStatus['relay']=='connected')?true:false;
         $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
