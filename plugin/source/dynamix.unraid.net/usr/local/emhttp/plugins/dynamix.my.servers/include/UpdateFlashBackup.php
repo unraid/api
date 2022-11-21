@@ -380,10 +380,16 @@ IdentitiesOnly yes
   chmod('/root/.ssh/config', 0644);
 }
 
-// add our server as a known host
-$strKnownHost = 'backup.unraid.net,54.70.72.154 ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKrKXKQwPZTY25MoveIw7fZ3IoZvvffnItrx6q7nkNriDMr2WAsoxu0DrU2QrSLH5zFF1ibv4tChS1hOpiYObiI='."\n";
-if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),$strKnownHost) === false) {
-  file_put_contents('/root/.ssh/known_hosts', $strKnownHost, FILE_APPEND);
+// add all of our server keys as known hosts
+$arrKnownHosts = [
+  'backup.unraid.net ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCg2CMfRk0Vmkmec04TlgHyZB4F/u+EyfL1BtrWQzu8p2DzRKZww0JXTxHfNc06kQ/EvRW6lkJUQX2eug7UgnRImenxusgMAYnxBCdj+txnzHQ6/JPpXtde54H8tpC8c6xV5BP8UVQ/whBskGIMeM5HTcvSd5cZa1+KaFanygQ20kM6YbZMP9M+UYG59USJs2XD9HP9Pcb4W18y1lMCU2PPrhxCK4dtZxe/903ir6jt3VXES1EV5q6uLAyPtEhB5sybr5a/P9dy41q0v/GxK12VNDJxywHx1muYuSilOXz5lB6KSc1lLKAtitgC5Q5K/A1akgdXY7MDPwnF/rji3jgF',
+  'backup.unraid.net ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKrKXKQwPZTY25MoveIw7fZ3IoZvvffnItrx6q7nkNriDMr2WAsoxu0DrU2QrSLH5zFF1ibv4tChS1hOpiYObiI=',
+  'backup.unraid.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINw447tJ+nQ/dGz05Gn9VtzGZdXI7o+srED3Gi9kImY5'
+];
+foreach ($arrKnownHosts as $strKnownHost) {
+  if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),$strKnownHost) === false) {
+    file_put_contents('/root/.ssh/known_hosts', $strKnownHost, FILE_APPEND);
+  }
 }
 
 // blow away existing repo if activate command
@@ -484,18 +490,24 @@ if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
 
 // test which ssh port allows a connection (standard ssh port 22 or alternative port 443)
 $SSH_PORT = '';
-exec('timeout 5 bash -c "</dev/tcp/backup.unraid.net/22"', $status_output, $return_var);
-if ($return_var == 0) {
+exec('ssh -o ConnectTimeout=5 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
+if ($return_var == 128) {
   $SSH_PORT = '22';
 } else {
-  exec('timeout 5 bash -c "</dev/tcp/backup.unraid.net/443"', $status_output, $return_var);
-  if ($return_var == 0) {
+  exec('ssh -o ConnectTimeout=5 -p 443 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
+  if ($return_var == 128) {
     $SSH_PORT = '443';
   }
 }
 if (empty($SSH_PORT)) {
   $arrState['loading'] = '';
-  $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+  if (stripos(implode($ssh_output),'permission denied') !== false) {
+    $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+    $isConnected = ($myStatus['relay']=='connected')?true:false;
+    $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+  } else {
+    $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+  }
   response_complete(406, array('error' => $arrState['error']));
 } else if ($arrState['error'] == 'Unable to connect to backup.unraid.net:22') {
   $arrState['error'] = '';
@@ -578,7 +590,7 @@ if ($command == 'update') {
     }
     if ($return_var != 0) {
       // check for permission denied
-      if (stripos($push_output[0],'permission denied') !== false) {
+      if (stripos(implode($push_output),'permission denied') !== false) {
         $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
         $isConnected = ($myStatus['relay']=='connected')?true:false;
         $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
