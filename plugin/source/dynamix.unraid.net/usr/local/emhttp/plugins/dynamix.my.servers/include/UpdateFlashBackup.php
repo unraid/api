@@ -265,11 +265,12 @@ if ($arrState['loading'] == 'Processing' && $loadingMessage == 'Processing') {
   response_complete(403, '{}');
 }
 
-// if git is still running, bail
-// this is an extra check in case $loadingMessage is not current
-exec("pgrep -f '^git -C /boot' -c 2>&1", $pgrep_output, $retval);
-if ($pgrep_output[0] != "0") {
-  response_complete(403, '{}');
+if ($command != 'status') {
+  // if git is still running, bail
+  exec("pgrep -f '^git -C /boot' -c 2>&1", $pgrep_output, $retval);
+  if ($pgrep_output[0] != "0") {
+    response_complete(403, '{}');
+  }
 }
 
 // check if signed-in
