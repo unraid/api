@@ -529,15 +529,13 @@ exec('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
 
 if ($return_var != 0) {
   // detect git submodule
-  foreach ($status_output as $status_line) {
-    if (strpos($status_line,'failed in submodule') !== false) {
-      $arrState['loading'] = '';
-      $arrState['error'] = 'git submodules are incompatible with our flash backup solution';
-      response_complete(406, array('error' => $arrState['error']));
-    }
+  if (stripos(implode($status_output),'failed in submodule') !== false) {
+    $arrState['loading'] = '';
+    $arrState['error'] = 'git submodules are incompatible with our flash backup solution';
+    response_complete(406, array('error' => $arrState['error']));
   }
 
-  if (strpos($status_output[0],'index file smaller than expected') !== false) {
+  if (stripos(implode($status_output),'index file smaller than expected') !== false) {
     // repair git index
     exec_log('rm -f /boot/.git/index');
     exec_log('git -C /boot reset HEAD .');
