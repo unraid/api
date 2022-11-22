@@ -206,6 +206,14 @@ function changeWanPortAccess() {
     $("#wancheck").prop("disabled", !$enabled);
 }
 
+function checkFlashBackup() {
+    $.post("https://keys.lime-technology.com/backup/flash/check",{keyfile:"<?=$keyfile?>"}, function(data) {
+      if (data && data.size) {
+        $("#deletecloudbackup").prop("disabled", false);
+      }
+    });
+}
+
 function enableFlashBackup(button) {
     var oldlabel = $.trim($(button).text());
 
@@ -249,6 +257,20 @@ function enableFlashBackup(button) {
                 // post to key-server to remove remote backup
                 $.post("https://keys.lime-technology.com/backup/flash/delete",{keyfile:"<?=$keyfile?>"}).fail(failure);
             }
+        });
+    }
+    if (oldlabel == "_(Delete Cloud Backup)_") {
+        swal({
+            title:_("Delete Cloud Backup"),
+            showCancelButton:true,
+            confirmButtonText:_('Delete'),
+            cancelButtonText:_('Cancel'),
+            text:_("Are you sure you want to remove all remote files. Restore from backup will be unavailable"),
+            html:true,
+        },function(confirm){
+            if (!confirm) return;
+            // post to key-server to remove remote backup
+            $.post("https://keys.lime-technology.com/backup/flash/delete",{keyfile:"<?=$keyfile?>"},success).fail(failure);
         });
     }
     if (oldlabel == "_(Update)_") {
@@ -301,6 +323,7 @@ function buttonStateReset(newstate) {
     } else {
         $('#flashbackuptext').html('<span class="orange p0">_(Not activated)_</span>');
         $('#inactivespanel').show();
+        checkFlashBackup();
     }
 }
 $.post('/plugins/dynamix.my.servers/include/UpdateFlashBackup.php',{command:"status"});
@@ -488,6 +511,9 @@ _(Flash backup)_:
 <?else:?>
 : <button type="button" disabled>_(Activate)_</button> <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
 <?endif?>
+
+&nbsp;
+: <button type="button" onclick="enableFlashBackup(this)" id="deletecloudbackup" disabled>_(Delete Cloud Backup)_</button>
 
 :unraidnet_inactivespanel_help:
 
