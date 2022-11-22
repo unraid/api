@@ -506,15 +506,20 @@ if ($return_var == 128) {
   }
 }
 if (empty($SSH_PORT)) {
-  $arrState['loading'] = '';
-  if (stripos(implode($ssh_output),'permission denied') !== false) {
-    $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
-    $isConnected = ($myStatus['relay']=='connected')?true:false;
-    $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+  if ($loadingMessage == 'Activating') {
+    // still syncing auth_keys on the serverside, ignore for activation
+    $SSH_PORT = '22';
   } else {
-    $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+    $arrState['loading'] = '';
+    if (stripos(implode($ssh_output),'permission denied') !== false) {
+      $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+      $isConnected = ($myStatus['relay']=='connected')?true:false;
+      $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+    } else {
+      $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+    }
+    response_complete(406, array('error' => $arrState['error']));
   }
-  response_complete(406, array('error' => $arrState['error']));
 } else if ($arrState['error'] == 'Unable to connect to backup.unraid.net:22') {
   $arrState['error'] = '';
 }
