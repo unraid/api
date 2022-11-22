@@ -394,7 +394,7 @@ _(Allow Remote Access)_:
 
 <div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" id="wancheck"onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
+: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
 
 :unraidnet_wanpanel_help:
 
