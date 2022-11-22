@@ -394,7 +394,7 @@ $arrKnownHosts = [
 ];
 foreach ($arrKnownHosts as $strKnownHost) {
   if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),$strKnownHost) === false) {
-    file_put_contents('/root/.ssh/known_hosts', $strKnownHost, FILE_APPEND);
+    file_put_contents('/root/.ssh/known_hosts', $strKnownHost."\n", FILE_APPEND);
   }
 }
 
