@@ -273,13 +273,10 @@ if ($arrState['loading'] == 'Processing' && $loadingMessage == 'Processing') {
   exit('{}');
 }
 
-// TODO do we need to block status here?
-if ($command != 'statusAAA') {
-  // if git is still running, bail
-  exec("pgrep -f '^git -C /boot' -c 2>&1", $pgrep_output, $retval);
-  if ($pgrep_output[0] != "0") {
-    exit('{}');
-  }
+// if git is still running, bail
+exec("pgrep -f '^git -C /boot' -c 2>&1", $pgrep_output, $retval);
+if ($pgrep_output[0] != "0") {
+  exit('{}');
 }
 
 // check if signed-in
