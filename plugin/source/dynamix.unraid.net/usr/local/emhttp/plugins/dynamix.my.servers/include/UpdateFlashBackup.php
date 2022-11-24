@@ -96,19 +96,22 @@ function load_flash_backup_state() {
   $arrState['registered'] = !empty($remote['username']) ? 'yes' : 'no';
 }
 
-function exec_log($command, &$output = [], &$retval = 0) {
-  global $arrState, $gitflash;
+function write_log($msg) {
+  global $gitflash, $command;
+  error_log('['.date("Y/m/d H:i:s e").'] '.$command.' '.$msg."\n\n", 3, $gitflash); 
+}
 
+function exec_log($cmd, &$output = [], &$retval = 0) {
   try {
-    exec($command.' 2>&1', $output, $retval);
+    exec($cmd.' 2>&1', $output, $retval);
 
     if ($retval === 0) {
-      error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval."\n\n", 3, $gitflash); 
+      write_log(' Command  \''.$cmd.'\' exited with code '.$retval);
     } else {
-      error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval.', response was:'."\n".implode("\n", $output)."\n\n", 3, $gitflash); 
+      write_log(' Command \''.$cmd.'\' exited with code '.$retval.', response was:'."\n".implode("\n", $output));
     }
   } catch (Exception $e) {
-    error_log('['.date("Y/m/d H:i:s e").'] Command \''.$command.'\' exited with code '.$retval.' with exception:'."\n".$e->getMessage()."\n\n", 3, $gitflash); 
+    write_log(' Command \''.$cmd.'\' exited with code '.$retval.' with exception:'."\n".$e->getMessage());
   }
 }
 
@@ -260,17 +263,20 @@ if (@filesize($gitflash) > 100000) { // 100kb
 
 load_flash_backup_state();
 
-// if already processing, bail
-if ($arrState['loading'] == 'Processing' && $loadingMessage == 'Processing') {
-  response_complete(403, '{}');
+// don't interrupt activate command
+if ($command != 'activate' && $loadingMessage == 'Activating') {
+  exit('{}');
 }
 
-if ($command != 'status') {
-  // if git is still running, bail
-  exec("pgrep -f '^git -C /boot' -c 2>&1", $pgrep_output, $retval);
-  if ($pgrep_output[0] != "0") {
-    response_complete(403, '{}');
-  }
+// if already processing, bail
+if ($arrState['loading'] == 'Processing' && $loadingMessage == 'Processing') {
+  exit('{}');
+}
+
+// if git is still running, bail
+exec("pgrep -f '^git -C /boot' -c 2>&1", $pgrep_output, $retval);
+if ($pgrep_output[0] != "0") {
+  exit('{}');
 }
 
 // check if signed-in
@@ -389,7 +395,7 @@ $arrKnownHosts = [
 ];
 foreach ($arrKnownHosts as $strKnownHost) {
   if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),$strKnownHost) === false) {
-    file_put_contents('/root/.ssh/known_hosts', $strKnownHost, FILE_APPEND);
+    file_put_contents('/root/.ssh/known_hosts', $strKnownHost."\n", FILE_APPEND);
   }
 }
 
@@ -482,7 +488,7 @@ $commitCount = cleanupCounter($commitCountFile, $time);
 if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
   $arrState['remoteerror'] = 'Rate limited, will try again later';
   // log once every 10 minutes
-  if (date("i") % 10 === 0) error_log('['.date("Y/m/d H:i:s e").'] '.$arrState['error'].'; '.$arrState['remoteerror']."\n", 3, $gitflash); 
+  if (date("i") % 10 === 0) write_log($arrState['error'].'; '.$arrState['remoteerror']); 
   response_complete(406, array('error' => $arrState['remoteerror']));
 } elseif ($arrState['remoteerror'] == 'Rate limited, will try again later') {
   // no longer rate limited, clear the 'remoteerror'
@@ -491,26 +497,33 @@ if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
 
 // test which ssh port allows a connection (standard ssh port 22 or alternative port 443)
 $SSH_PORT = '';
-exec('ssh -o ConnectTimeout=5 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
+exec('timeout 7 ssh -o ConnectTimeout=5 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
 if ($return_var == 128) {
   $SSH_PORT = '22';
 } else {
-  exec('ssh -o ConnectTimeout=5 -p 443 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
+  exec('timeout 7 ssh -o ConnectTimeout=5 -p 443 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
   if ($return_var == 128) {
     $SSH_PORT = '443';
   }
 }
+write_log('ssh_output '.implode($ssh_output));
 if (empty($SSH_PORT)) {
-  $arrState['loading'] = '';
-  if (stripos(implode($ssh_output),'permission denied') !== false) {
-    $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
-    $isConnected = ($myStatus['relay']=='connected')?true:false;
-    $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+  if ($loadingMessage == 'Activating') {
+    // still syncing auth_keys on the serverside, ignore for activation
+    $SSH_PORT = '22';
   } else {
-    $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+    $arrState['loading'] = '';
+    if (stripos(implode($ssh_output),'permission denied') !== false) {
+      $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
+      $isConnected = ($myStatus['relay']=='connected')?true:false;
+      $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+    } else {
+      $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
+    }
+    response_complete(406, array('error' => $arrState['error']));
   }
-  response_complete(406, array('error' => $arrState['error']));
 } else if ($arrState['error'] == 'Unable to connect to backup.unraid.net:22') {
+  // can now connect, clear previous error
   $arrState['error'] = '';
 }
 
@@ -521,67 +534,75 @@ if (strpos(file_get_contents('/boot/.git/config'),'[remote "origin"]') === false
   exec('git -C /boot remote set-url origin ssh://git@backup.unraid.net:'.$SSH_PORT.'/~/flash.git &>/dev/null');
 }
 
-exec_log('git -C /boot reset origin/master');
-exec_log('git -C /boot checkout -B master origin/master');
+if ($command == 'activate') {
+  $arrState['uptodate'] == 'no';
 
-// establish status
-exec('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
+} else {
+  // determine current status of local repo
 
-if ($return_var != 0) {
-  // detect git submodule
-  if (stripos(implode($status_output),'failed in submodule') !== false) {
+  exec_log('git -C /boot reset origin/master');
+  exec_log('git -C /boot checkout -B master origin/master');
+
+  // establish status
+  exec_log('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
+
+  if ($return_var != 0) {
+    // detect git submodule
+    if (stripos(implode($status_output),'failed in submodule') !== false) {
+      $arrState['loading'] = '';
+      $arrState['error'] = 'git submodules are incompatible with our flash backup solution';
+      response_complete(406, array('error' => $arrState['error']));
+    }
+
+    if (stripos(implode($status_output),'index file smaller than expected') !== false) {
+      // repair git index
+      exec_log('rm -f /boot/.git/index');
+      exec_log('git -C /boot reset HEAD .');
+      exec('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
+    }
+  }
+
+  if ($return_var != 0) {
+    write_log('bailing - status return_var is '.$return_var); 
     $arrState['loading'] = '';
-    $arrState['error'] = 'git submodules are incompatible with our flash backup solution';
+    $arrState['error'] = $status_output[0];
     response_complete(406, array('error' => $arrState['error']));
   }
 
-  if (stripos(implode($status_output),'index file smaller than expected') !== false) {
-    // repair git index
-    exec_log('rm -f /boot/.git/index');
-    exec_log('git -C /boot reset HEAD .');
-    exec('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
+  $arrState['uptodate'] = empty($status_output) ? 'yes' : 'no';
+
+  // check for any pending commits
+  if ($arrState['uptodate'] == 'yes') {
+    // no untracked files; check if there are pending commits
+    exec('git -C /boot rev-list origin/master..master --count 2>&1', $revlist_output);
+    if (trim($revlist_output[0]) != '0') {
+      $arrState['uptodate'] = 'no';
+    } else {
+      $arrState['error'] = '';
+    }
   }
-}
 
-if ($return_var != 0) {
-  $arrState['loading'] = '';
-  $arrState['error'] = $status_output[0];
-  response_complete(406, array('error' => $arrState['error']));
-}
-
-$arrState['uptodate'] = empty($status_output) ? 'yes' : 'no';
-
-// check for any pending commits
-if ($arrState['uptodate'] == 'yes') {
-  // no untracked files; check if there are pending commits
-  exec('git -C /boot rev-list origin/master..master --count 2>&1', $revlist_output);
-  if (trim($revlist_output[0]) != '0') {
-    $arrState['uptodate'] = 'no';
-  } else {
+  if ($arrState['error'] != 'Failed to sync flash backup') {
     $arrState['error'] = '';
   }
-}
 
-if ($arrState['error'] != 'Failed to sync flash backup') {
-  $arrState['error'] = '';
-}
+  if ($command == 'status') {
+    $data = implode("\n", $status_output);
+    response_complete($httpcode, array('data' => $data), $data);
+  }
 
-if ($command == 'status') {
-  $data = implode("\n", $status_output);
-  response_complete($httpcode, array('data' => $data), $data);
-}
+} // end check for ($command == 'activate')
 
-if ($command == 'update') {
+if ($command == 'update' || $command == 'activate') {
   
   if ($arrState['uptodate'] == 'no') {
     // increment git commit counter
     appendToFile($commitCountFile, $time."\n");
 
     // add and commit all file changes
-    if (!empty($status_output)) {
-      exec_log('git -C /boot add -A');
-      exec_log('git -C /boot commit -m ' . escapeshellarg($commitmsg));
-    }
+    exec_log('git -C /boot add -A');
+    exec_log('git -C /boot commit -m ' . escapeshellarg($commitmsg));
+
     // push changes upstream
     exec_log('git -C /boot push --set-upstream origin master', $push_output, $return_var);
     if ($return_var != 0) {
