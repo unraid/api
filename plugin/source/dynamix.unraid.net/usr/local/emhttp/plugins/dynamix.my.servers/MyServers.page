@@ -247,7 +247,7 @@ function enableFlashBackup(button) {
             showCancelButton:true,
             confirmButtonText:_('Deactivate'),
             cancelButtonText:_('Cancel'),
-            text:_("Are you sure you want wipe your local flash backup?")+"<br><br><label style='font-weight:bold;color:red;'><input type='checkbox' id='remove_remote_backups'> "+_("Also remove all remote files. Restore from backup will be unavailable")+"</label>",
+            text:_("Are you sure you want to delete your local flash backup?")+"<br><br><label style='font-weight:bold;color:red;'><input type='checkbox' id='remove_remote_backups'> "+_("Also delete cloud backup. Restore from backup will be unavailable.")+"</label>",
             html:true,
         },function(confirm){
             if (!confirm) return;
@@ -265,7 +265,7 @@ function enableFlashBackup(button) {
             showCancelButton:true,
             confirmButtonText:_('Delete'),
             cancelButtonText:_('Cancel'),
-            text:_("Are you sure you want to remove all remote files. Restore from backup will be unavailable"),
+            text:_("Are you sure you want to delete your cloud backup? Restore from backup will be unavailable."),
             html:true,
         },function(confirm){
             if (!confirm) return;
@@ -529,7 +529,7 @@ _(Flash backup)_:
 &nbsp;
 : <button type="button" disabled>_(Update)_</button>
 
-:unraidnet_activepanel_help:
+:unraidnet_uptodatepanel_help:
 
 </div>
 <div markdown="1" id="activepanel" style="display:none">
@@ -540,8 +540,6 @@ _(Flash backup)_:
 &nbsp;
 : <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>  <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
 <?endif?>
-
-:unraidnet_activepanel_help:
 
 </div>
 </form>
