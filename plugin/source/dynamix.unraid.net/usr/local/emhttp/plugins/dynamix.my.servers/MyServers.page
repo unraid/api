@@ -529,7 +529,7 @@ _(Flash backup)_:
 &nbsp;
 : <button type="button" disabled>_(Update)_</button>
 
-:unraidnet_activepanel_help:
+:unraidnet_uptodatepanel_help:
 
 </div>
 <div markdown="1" id="activepanel" style="display:none">
@@ -540,8 +540,6 @@ _(Flash backup)_:
 &nbsp;
 : <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>  <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
 <?endif?>
-
-:unraidnet_activepanel_help:
 
 </div>
 </form>
