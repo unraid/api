@@ -586,6 +586,15 @@ if ($command == 'activate') {
     $arrState['error'] = '';
   }
 
+  // detect corruption #1
+  exec_log('git -C /boot show --summary 2>&1', $show_output, $return_var);
+  if ($return_var != 0) {
+    if (stripos(implode($show_output),'fatal: your current branch appears to be broken') !== false) {
+      $arrState['error'] = 'Error: Backup corrupted';
+      exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
+    }
+  }
+
   if ($command == 'status') {
     $data = implode("\n", $status_output);
     response_complete($httpcode, array('data' => $data), $data);
@@ -614,6 +623,10 @@ if ($command == 'update' || $command == 'activate') {
         $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
         $isConnected = ($myStatus['relay']=='connected')?true:false;
         $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+      } elseif (stripos(implode($push_output),'fatal: loose object') !== false && stripos(implode($push_output),'is corrupt') !== false) {
+        // detect corruption #2
+        $arrState['error'] = 'Error: Backup corrupted';
+        exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
       } else {
         $arrState['error'] = 'Failed to sync flash backup';
       }
