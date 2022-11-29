@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.54.0](https://github.com/unraid/api/compare/v2.53.0...v2.54.0) (2022-11-29)
+
+
+### Features
+
+* flash backup enhancements ([#425](https://github.com/unraid/api/issues/425)) ([4ae5d18](https://github.com/unraid/api/commit/4ae5d18817f86b5be0abb1e5c9f73b5d0caa3f58))
+* move dashboard to global store and fix bugs ([#402](https://github.com/unraid/api/issues/402)) ([b1ab666](https://github.com/unraid/api/commit/b1ab6667520e3a2dea28cb777c26fa68c2a4853a))
+* remove unused packages ([#389](https://github.com/unraid/api/issues/389)) ([be8b679](https://github.com/unraid/api/commit/be8b67921c877ec19c4d6a81d02ddaeb60b48efc))
+
+
+### Bug Fixes
+
+* add keepAlive back ([#407](https://github.com/unraid/api/issues/407)) ([7095a97](https://github.com/unraid/api/commit/7095a97013a3589fb90c80dd7e505bf2fde10989))
+* be more specific with the bin for unraid-api ([#423](https://github.com/unraid/api/issues/423)) ([81c7d0c](https://github.com/unraid/api/commit/81c7d0c27bb8e5cb35aa976a5b24c3e5a9f5ea71))
+* clear flash backup rate limit message ([#415](https://github.com/unraid/api/issues/415)) ([9405cf2](https://github.com/unraid/api/commit/9405cf27983a3e757ace3e3d0dfb3f39f6518426))
+* delete state files when upgrading plugin ([#414](https://github.com/unraid/api/issues/414)) ([cf1fe01](https://github.com/unraid/api/commit/cf1fe01c90173702d033968b4a9b69fb67895b73))
+* ensure only 1 api can run at a time ([#418](https://github.com/unraid/api/issues/418)) ([949db4c](https://github.com/unraid/api/commit/949db4c6d4c3c3a96430dd2caa148ad1912e756a))
+* fix install on slower systems ([#424](https://github.com/unraid/api/issues/424)) ([7d10182](https://github.com/unraid/api/commit/7d1018262f911e14bfe1b745e76d0c662cea3ffa))
+* flash backup - when rate limited disable update button ([#413](https://github.com/unraid/api/issues/413)) ([e4b3383](https://github.com/unraid/api/commit/e4b33833c2f12c75908c9e94facffc77c4d55db7))
+* reorder build to fix missing package ([1200aed](https://github.com/unraid/api/commit/1200aed378eb92c5ccbf14d322920f82dfa7ca15))
+* rework api install/start ([#422](https://github.com/unraid/api/issues/422)) ([5150222](https://github.com/unraid/api/commit/51502227e3c685508779e6f2ab075790715c8082))
+* stop all api's on uninstall/upgrade ([#419](https://github.com/unraid/api/issues/419)) ([93c39ba](https://github.com/unraid/api/commit/93c39ba2d5b03574b19b48b11cf103987024bbb5))
+
 ## [2.53.0](https://github.com/unraid/api/compare/v2.52.1...v2.53.0) (2022-11-02)
 
 
