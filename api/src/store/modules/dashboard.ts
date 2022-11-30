@@ -34,8 +34,6 @@ export const dashboard = createSlice({
 			if (state.connectedToDashboard >= 1) return;
 
 			getPublishToDashboardJob().stop();
-			state.lastDataPacket = null;
-			state.lastDataPacketTimestamp = null;
 		},
 		saveDataPacket(state, action: PayloadAction<{ lastDataPacket: Dashboard | null }>) {
 			state.lastDataPacket = action.payload.lastDataPacket;
