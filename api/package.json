@@ -20,6 +20,7 @@
     "outputPath": "dist"
   },
   "scripts": {
+    "postinstall": "patch-package",
     "compile": "tsup --config ./tsup.config.ts",
     "bundle": "pkg . --public",
     "build": "npm run compile && npm run bundle",
@@ -162,9 +163,10 @@
     "got": "^12.4.1",
     "ip-regex": "^5.0.0",
     "json-difference": "^1.8.2",
-    "log4js": "github:OmgImAlexis/log4js-node",
+    "log4js": "^6.7.0",
     "map-obj": "^5.0.2",
     "p-props": "^5.0.0",
+    "patch-package": "^6.5.0",
     "path-exists": "^5.0.0",
     "path-type": "^5.0.0",
     "pify": "^6.0.0",
