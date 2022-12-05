@@ -20,6 +20,8 @@ x-volumes: &volumes
   - ./.env.test:/app/.env.test
   - ./.env.development:/app/.env.development
   - ./.pkg-cache:/app/.pkg-cache
+  - ./codegen.yml:/app/codegen.yml
+  - ./fix-array-type.cjs:/app/fix-array-type.cjs
 
 services:
 

@@ -1,0 +1,18 @@
+overwrite: true
+emitLegacyCommonJSImports: false
+ignoreNoDocuments: true
+
+schema: 
+  'https://staging.mothership.unraid.net/graphql': 
+    headers:
+      origin: 'https://forums.unraid.net'
+generates:
+  src/graphql/generated.ts:
+    config:
+      useTypeImports: true
+    plugins:
+      - typescript
+      - add: { content: '/* eslint-disable */' }
+config:
+  namingConvention: 
+    typeNames: './fix-array-type.cjs'
