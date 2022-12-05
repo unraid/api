@@ -7,7 +7,7 @@ schema:
     headers:
       origin: 'https://forums.unraid.net'
 generates:
-  src/graphql/generated.ts:
+  src/graphql/generated/types.ts:
     config:
       useTypeImports: true
     plugins:
