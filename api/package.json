@@ -26,6 +26,8 @@
     "build": "npm run compile && npm run bundle",
     "build:docker": "docker-compose run --rm builder",
     "build-pkg": "./scripts/build.mjs",
+    "codegen": "graphql-codegen --config codegen.yml -r dotenv/config ./.env.staging",
+    "codegen:watch": "graphql-codegen-esm --config codegen.yml --watch -r dotenv/config ./.env.staging",
     "tsc": "tsc --noEmit",
     "lint": "eslint src/**/*.ts",
     "lint:quiet": "eslint --quiet",
@@ -122,6 +124,11 @@
     "xhr2": "^0.2.1"
   },
   "devDependencies": {
+    "@babel/runtime": "^7.20.6",
+    "@graphql-codegen/add": "^3.2.1",
+    "@graphql-codegen/cli": "2.15.0",
+    "@graphql-codegen/typescript": "2.8.3",
+    "@graphql-codegen/typescript-resolvers": "2.7.8",
     "@swc/core": "^1.3.4",
     "@types/async-exit-hook": "^2.0.0",
     "@types/btoa": "^1.2.3",
