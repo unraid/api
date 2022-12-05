@@ -1,6 +1,6 @@
 
 import { config } from '@app/core/config';
-import { JSONWebKeySet } from 'jose';
+import { type JSONWebKeySet } from 'jose';
 
 const internalWsAddress = () => {
 	const port = config.port as number | string;
