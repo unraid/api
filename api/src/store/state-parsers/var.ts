@@ -188,6 +188,7 @@ export type VarIni = {
 	useTelnet: string;
 	version: string;
 	workgroup: string;
+	useUpnp: IniStringBoolean;
 };
 
 const iniBooleanToJsBoolean = (value: string, defaultValue?: any) => {
@@ -291,5 +292,6 @@ export const parse: StateFileToIniParserMap['var'] = iniFile => {
 		useSsh: iniBooleanToJsBoolean(iniFile.useSsh),
 		useSsl: iniBooleanOrAutoToJsBoolean(iniFile.useSsl),
 		useTelnet: iniBooleanToJsBoolean(iniFile.useTelnet),
+		useUpnp: iniBooleanToJsBoolean(iniFile.useUpnp),
 	};
 };

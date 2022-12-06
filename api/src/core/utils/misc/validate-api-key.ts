@@ -3,7 +3,7 @@ import { logoutUser } from '@app/store/modules/config';
 import { store, getters } from '@app/store';
 import { sendFormToKeyServer } from '@app/core/utils/misc/send-form-to-keyserver';
 
-const validKeys = new Set();
+const validKeys = process.env.NODE_ENV === 'development' ? new Set(['_______________________BIG_API_KEY_HERE_________________________']) : new Set();
 
 export const clearValidKeyCache = () => {
 	validKeys.clear();
@@ -12,6 +12,10 @@ export const clearValidKeyCache = () => {
 
 export const validateApiKey = async (apiKey: string, shouldThrow = true) => {
 	// If we have the validity cached then return that
+	if (process.env.NODE_ENV === 'development') {
+		logger.warn('API_KEY VALIDATION DISABLED IN DEV MODE');
+	}
+
 	if (validKeys.has(apiKey)) return true;
 
 	const KEY_SERVER_KEY_VERIFICATION_ENDPOINT = process.env.KEY_SERVER_KEY_VERIFICATION_ENDPOINT ?? 'https://keys.lime-technology.com/validate/apikey';

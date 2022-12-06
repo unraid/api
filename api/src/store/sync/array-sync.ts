@@ -80,7 +80,7 @@ export const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0])
 	};
 
 	logger.addContext('event', event);
-	logger.trace('New event created');
+	logger.trace('New array event created');
 	logger.removeContext('event');
 
 	return event;

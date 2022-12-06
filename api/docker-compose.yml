@@ -18,6 +18,7 @@ x-volumes: &volumes
   - ./.env.production:/app/.env.production
   - ./.env.staging:/app/.env.staging
   - ./.env.test:/app/.env.test
+  - ./.env.development:/app/.env.development
   - ./.pkg-cache:/app/.pkg-cache
 
 services:

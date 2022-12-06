@@ -22,7 +22,7 @@ const logLayout = {
 	// Depending on what this env is set to we'll either get raw or pretty logs
 	// The reason we do this is to allow the app to change this value
 	// This way pretty logs can be turned off programmatically
-	pattern: () => process.env.LOG_TYPE === 'pretty' ? fullLoggingPattern : minimumLoggingPattern,
+	pattern: process.env.LOG_TYPE === 'pretty' ? fullLoggingPattern : minimumLoggingPattern,
 	tokens: {
 		id() {
 			return chalk`{gray [${process.pid}]}`;
