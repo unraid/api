@@ -1,7 +1,7 @@
 import { causeSegfault } from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
 import { cliLogger } from '@app/core/log';
-import { Flags, mainOptions, options, args } from '@app/cli/options';
+import { type Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
 import { env } from '@app/dotenv';
 import { getters, store } from '@app/store';

@@ -1,22 +1,22 @@
-import { Devices } from '@app/core/types/states/devices';
-import { Networks } from '@app/core/types/states/network';
-import { NfsShares } from '@app/core/types/states/nfs';
-import { Nginx } from '@app/core/types/states/nginx';
-import { Shares } from '@app/core/types/states/share';
-import { Slots } from '@app/core/types/states/slots';
-import { SmbShares } from '@app/core/types/states/smb';
-import { Users } from '@app/core/types/states/user';
-import { Var } from '@app/core/types/states/var';
+import { type Devices } from '@app/core/types/states/devices';
+import { type Networks } from '@app/core/types/states/network';
+import { type NfsShares } from '@app/core/types/states/nfs';
+import { type Nginx } from '@app/core/types/states/nginx';
+import { type Shares } from '@app/core/types/states/share';
+import { type Slots } from '@app/core/types/states/slots';
+import { type SmbShares } from '@app/core/types/states/smb';
+import { type Users } from '@app/core/types/states/user';
+import { type Var } from '@app/core/types/states/var';
 import type { RootState } from '@app/store';
-import { DevicesIni } from './state-parsers/devices';
-import { NetworkIni } from './state-parsers/network';
-import { NfsSharesIni } from './state-parsers/nfs';
-import { NginxIni } from './state-parsers/nginx';
-import { SharesIni } from './state-parsers/shares';
-import { SlotsIni } from './state-parsers/slots';
-import { SmbIni } from './state-parsers/smb';
-import { UsersIni } from './state-parsers/users';
-import { VarIni } from './state-parsers/var';
+import { type DevicesIni } from './state-parsers/devices';
+import { type NetworkIni } from './state-parsers/network';
+import { type NfsSharesIni } from './state-parsers/nfs';
+import { type NginxIni } from './state-parsers/nginx';
+import { type SharesIni } from './state-parsers/shares';
+import { type SlotsIni } from './state-parsers/slots';
+import { type SmbIni } from './state-parsers/smb';
+import { type UsersIni } from './state-parsers/users';
+import { type VarIni } from './state-parsers/var';
 
 export enum FileLoadStatus {
 	UNLOADED = 'UNLOADED',

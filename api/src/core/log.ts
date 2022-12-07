@@ -4,7 +4,7 @@
  */
 
 import chalk from 'chalk';
-import { configure, getLogger as getRealLogger, Logger } from 'log4js';
+import { configure, getLogger as getRealLogger, type Logger } from 'log4js';
 import { serializeError } from 'serialize-error';
 
 export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
@@ -144,7 +144,7 @@ export const loggers = [
 	relayLogger,
 	minigraphLogger,
 	cloudConnectorLogger,
-	upnpLogger
+	upnpLogger,
 ];
 
 // Send SIGUSR1 to increase log level

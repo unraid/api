@@ -1,4 +1,4 @@
-import { ValidationError } from 'runtypes';
+import { type ValidationError } from 'runtypes';
 import type { RuntypeBase } from 'runtypes/lib/runtype';
 
 export const validateRunType = <T = unknown>(runType: RuntypeBase, data: T): T => {
