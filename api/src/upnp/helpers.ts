@@ -1,6 +1,6 @@
 import { logger, upnpLogger } from '@app/core/log';
 import { getters, store } from '@app/store';
-import { setError, type LeaseRenewalArgs } from '@app/store/modules/upnp';
+import { setError, updateMappings, upnpStoreHasError, type LeaseRenewalArgs } from '@app/store/modules/upnp';
 import { Client } from '@runonflux/nat-upnp';
 
 const upnpClient = new Client();
@@ -16,7 +16,7 @@ export const parseStringToNumberOrNull = (myString: string): number | null => {
 	return null;
 };
 
-export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = getters.upnp() as LeaseRenewalArgs) => {
+export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = getters.upnp() as LeaseRenewalArgs): Promise<void> => {
 	upnpLogger.trace('Running UPNP Renewal Job. Local Port: [%s] Remote Port [%s]', localPortForUpnp, wanPortForUpnp);
 	if (localPortForUpnp && wanPortForUpnp) {
 		try {
@@ -30,17 +30,31 @@ export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = gett
 			await upnpClient.getMappings();
 		} catch (error: unknown) {
 			upnpLogger.error('UPNP Renewal Failed with Error %o.', error);
-			store.dispatch(setError(error));
+			if (error instanceof Error) {
+				await store.dispatch(setError({ message: error.message, type: 'renewal' }));
+			}
 		}
 	}
 };
 
-export const getUpnpMappings = async () => upnpClient.getMappings();
+export const getUpnpMappings = async (): Promise<void> => {
+	upnpLogger.trace('Fetching UPNP Mappings');
 
-export const removeUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = getters.upnp() as LeaseRenewalArgs) => {
+	try {
+		const mappings = await upnpClient.getMappings();
+		store.dispatch(updateMappings(mappings));
+	} catch (error: unknown) {
+		upnpLogger.error('Failed to get UPNP Mappings');
+		if (error instanceof Error) {
+			await store.dispatch(setError({ message: error.message, type: 'mapping' }));
+		}
+	}
+};
+
+export const removeUpnpLease = async ({ localPortForUpnp, wanPortForUpnp, errors } = getters.upnp() as LeaseRenewalArgs): Promise<void> => {
 	upnpLogger.warn('REMOVING UPNP LEASE FOR PORT %s', wanPortForUpnp);
 
-	if (wanPortForUpnp && localPortForUpnp) {
+	if (wanPortForUpnp && localPortForUpnp && !upnpStoreHasError(errors)) {
 		try {
 			const result = await upnpClient.removeMapping({
 				public: wanPortForUpnp,
@@ -50,6 +64,9 @@ export const removeUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = get
 			upnpLogger.trace('UPNP Removal Result %o', result);
 		} catch (error: unknown) {
 			upnpLogger.error('UPNP Removal Failed with Error %o.', error);
+			if (error instanceof Error) {
+				await store.dispatch(setError({ message: error.message, type: 'removal' }));
+			}
 		}
 	}
 };

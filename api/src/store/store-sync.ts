@@ -1,4 +1,5 @@
-import { RootState, store } from '@app/store';
+import type { RootState } from '@app/store';
+import { store } from '@app/store';
 import { syncConfigToDisk } from '@app/store/sync/config-disk-sync';
 import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';

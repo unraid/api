@@ -1,4 +1,4 @@
-import { SliceState as ConfigSliceState, initialState } from '@app/store/modules/config';
+import { type SliceState as ConfigSliceState, initialState } from '@app/store/modules/config';
 import type { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
 
 type ConfigType = 'flash' | 'memory';
@@ -33,7 +33,7 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 			...(remote['2Fa'] === 'yes' ? { '2Fa': remote['2Fa'] } : {}),
 			wanaccess: remote.wanaccess ?? initialState.remote.wanaccess,
 			wanport: remote.wanport ?? initialState.remote.wanport,
-			...(remote['upnpEnabled'] === 'yes' ? { 'upnpEnabled': remote['upnpEnabled'] } : {}),
+			...(remote.upnpEnabled ? { upnpEnabled: remote.upnpEnabled } : {}),
 			apikey: remote.apikey ?? initialState.remote.apikey,
 			email: remote.email ?? initialState.remote.email,
 			username: remote.username ?? initialState.remote.username,

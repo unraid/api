@@ -1,6 +1,6 @@
 import { mothershipLogger } from '@app/core';
 import { MinigraphClient } from '@app/mothership/minigraph-client';
-import { ExecutionResult } from 'graphql-ws';
+import { type ExecutionResult } from 'graphql-ws';
 import { getters } from '@app/store';
 import type { Server } from '@app/store/modules/servers';
 
