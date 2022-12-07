@@ -1,10 +1,10 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
-import { renewUpnpLease, removeUpnpLease } from '@app/upnp/helpers';
+import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
 import type { RootState } from '@app/store';
 import { upnpLogger } from '@app/core';
-import { setUpnpToOff } from './config';
+import { setUpnpEnabledToValue, setWanPortToValue } from '@app/store/modules/config';
 
 interface UpnpState {
 	upnpEnabled: boolean;
@@ -32,40 +32,102 @@ export const initialState: UpnpState = {
 	renewalJobRunning: false,
 };
 
-export type LeaseRenewalArgs = Pick<UpnpState, 'localPortForUpnp' | 'wanPortForUpnp' | 'errors'>;
-type UpnpEnableReturnValue = LeaseRenewalArgs & Pick<UpnpState, 'renewalJobRunning'>;
+export type LeaseRenewalArgs = { localPortForUpnp: number; wanPortForUpnp: number };
+type UpnpEnableReturnValue = Pick<UpnpState, 'renewalJobRunning' | 'wanPortForUpnp' | 'localPortForUpnp'>;
 type ErrorMessagePayload = { message: string; type: 'removal' | 'renewal' | 'mapping' };
 
-export const upnpStoreHasError = (errors: UpnpState['errors']): boolean => errors.mapping !== null || errors.removal !== null || errors.renewal !== null;
+type EnableUpnpThunkArgs = { portssl: number; wanport?: string } | void;
 
-export const renewLease = createAsyncThunk<void, LeaseRenewalArgs | void, { state: RootState }>('upnp/renew', async (leaseRenewalArgs, { getState }) => {
-	const { wanPortForUpnp, localPortForUpnp, errors } = leaseRenewalArgs ?? getState().upnp;
-	await renewUpnpLease({ wanPortForUpnp, localPortForUpnp, errors });
-});
+/**
+ * Return if the removal or renewal set failed, this indicates that an error was probably fatal
+ * @param errors
+ * @returns
+ */
+export const upnpStoreHasFatalError = (errors: UpnpState['errors'] | null): boolean => errors ? errors.removal !== null || errors.renewal !== null : false;
 
-export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, LeaseRenewalArgs, { state: RootState }>('upnp/enable', async (leaseRenewalArgs, { getState, dispatch }) => {
-	const { upnp } = getState();
-	// If the wan port changes we should negotiate this by removing the old lease and creating a new one
-	const renewalJobRunning = upnp.renewalJobRunning ? true : initUpnpJobs();
-	upnpLogger.info('current upnp state', upnp);
-	if (upnp.wanPortForUpnp || upnp.localPortForUpnp) {
-		await removeUpnpLease(leaseRenewalArgs);
+/*
+* Choose port to use - if we pass arguments it means we're re-initing this function, so ignore upnp.wanPortForUpnp
+* If we don't pass args, use the saved WAN port since that means the job is running
+*/
+const getWanPortToUse = async ({
+	leaseRenewalArgs,
+	wanPortArgAsNumber,
+	wanPortForUpnp,
+	dispatch,
+}:
+{
+	leaseRenewalArgs: EnableUpnpThunkArgs;
+	wanPortArgAsNumber: number | null;
+	wanPortForUpnp: null | number;
+	dispatch: any;
+}): Promise<number | null> => {
+	if (leaseRenewalArgs) {
+		if (wanPortArgAsNumber) {
+			return wanPortArgAsNumber;
+		}
+
+		const currentMappings = await getUpnpMappings();
+
+		const newPort = getWanPortForUpnp(currentMappings);
+		if (newPort) {
+			dispatch(setWanPortToValue(newPort));
+		}
+
+		return newPort;
 	}
 
-	await renewUpnpLease(leaseRenewalArgs);
+	return wanPortForUpnp;
+};
 
-	return { renewalJobRunning, ...leaseRenewalArgs };
+export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThunkArgs, { state: RootState }>('upnp/enable', async (leaseRenewalArgs, { getState, dispatch }) => {
+	const { upnp } = getState();
+
+	const wanPortArgAsNumber = leaseRenewalArgs?.wanport ? parseStringToNumberOrNull(leaseRenewalArgs?.wanport) : null;
+
+	// If the wan port changes we try to negotiate this by removing the old lease first
+	if (leaseRenewalArgs
+		&& upnp.wanPortForUpnp
+		&& upnp.localPortForUpnp
+		&& (wanPortArgAsNumber !== upnp.wanPortForUpnp || leaseRenewalArgs.portssl !== upnp.localPortForUpnp)) {
+		try {
+			await removeUpnpLease({ wanPortForUpnp: upnp.wanPortForUpnp, localPortForUpnp: upnp.localPortForUpnp });
+		} catch (error: unknown) {
+			upnpLogger.warn(`Caught error [${error instanceof Error ? error.message : 'N/A'}] when removing lease, could be non-fatal, so continuing`);
+		}
+	}
+
+	// Start the renewal Job if it's not already running. When run from inside a job this will return true
+	const renewalJobRunning = upnp.renewalJobRunning ? true : initUpnpJobs();
+
+	const wanPortToUse = await getWanPortToUse({ leaseRenewalArgs, wanPortForUpnp: upnp.wanPortForUpnp, dispatch, wanPortArgAsNumber });
+	const localPortToUse = leaseRenewalArgs ? leaseRenewalArgs.portssl : upnp.localPortForUpnp;
+	if (wanPortToUse && localPortToUse) {
+		try {
+			await renewUpnpLease({ localPortForUpnp: localPortToUse, wanPortForUpnp: wanPortToUse });
+			return { renewalJobRunning, wanPortForUpnp: wanPortToUse, localPortForUpnp: localPortToUse };
+		} catch (error: unknown) {
+			const message = `Error: Failed Opening UPNP Public Port [${wanPortToUse}] Local Port [${localPortToUse}] Message: [${error instanceof Error ? error.message : 'N/A'}]`;
+			dispatch(setUpnpEnabledToValue(message));
+			throw new Error(message);
+		}
+	}
+
+	throw new Error('No wan port found, disabling UPNP');
 });
 
-export const disableUpnp = createAsyncThunk< { renewalJobRunning: boolean }, void, { state: RootState }>('upnp/disable', async ({ dispatch }) => {
+export const disableUpnp = createAsyncThunk<{ renewalJobRunning: boolean }, void, { state: RootState }>('upnp/disable', async (_, { getState }) => {
+	const { upnp: { localPortForUpnp, wanPortForUpnp } } = getState();
+
 	const renewalJobRunning = stopUpnpJobs();
-	return { renewalJobRunning };
-});
+	if (localPortForUpnp && wanPortForUpnp) {
+		try {
+			await removeUpnpLease({ localPortForUpnp, wanPortForUpnp });
+		} catch (error: unknown) {
+			upnpLogger.warn(`Failed to remove UPNP Binding with Error [${error instanceof Error ? error.message : 'N/A'}]`);
+		}
+	}
 
-export const setError = createAsyncThunk<ErrorMessagePayload, ErrorMessagePayload>('upnp/setError', async (errorPayload, { dispatch }) => {
-	dispatch(setUpnpToOff());
-	await dispatch(disableUpnp());
-	return errorPayload;
+	return { renewalJobRunning };
 });
 
 export const upnp = createSlice({
@@ -85,12 +147,14 @@ export const upnp = createSlice({
 			state.wanPortForUpnp = action.payload.wanPortForUpnp;
 			state.renewalJobRunning = action.payload.renewalJobRunning;
 		});
-
-		builder.addCase(setError.fulfilled, (state, action) => {
-			state.errors[action.payload.type] = action.payload.message;
+		builder.addCase(enableUpnp.rejected, (state, action) => {
+			state.errors.renewal = action.error.message ?? 'Undefined Error When Renewing UPNP Lease';
 		});
+
 		builder.addCase(disableUpnp.fulfilled, (state, action) => {
 			state.renewalJobRunning = action.payload.renewalJobRunning;
+			state.wanPortForUpnp = null;
+			state.localPortForUpnp = null;
 			state.upnpEnabled = false;
 		});
 	},

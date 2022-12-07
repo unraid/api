@@ -12,10 +12,9 @@ const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
 	}
 
 	const { useUpnp } = state.emhttp.var;
-	const { wanport: wanPort, upnpEnabled, wanaccess } = state.config.remote;
-	const wanPortAsNumber = parseStringToNumberOrNull(wanPort);
+	const { upnpEnabled, wanaccess } = state.config.remote;
 
-	return useUpnp && wanPortAsNumber !== null && upnpEnabled === 'yes' && wanaccess === 'yes';
+	return useUpnp && upnpEnabled === 'yes' && wanaccess === 'yes';
 };
 
 export const syncUpnpChanges: StoreSubscriptionHandler = async lastState => {
@@ -25,18 +24,17 @@ export const syncUpnpChanges: StoreSubscriptionHandler = async lastState => {
 	const upnpShouldBeEnabledNow = shouldUpnpBeEnabled(store.getState());
 	const upnpWasEnabledBefore = shouldUpnpBeEnabled(lastState);
 
-	const wanPortAsNumber = parseStringToNumberOrNull(wanport);
 	const enablementStatusUnchanged = upnpShouldBeEnabledNow === upnpWasEnabledBefore;
 	const portsUnchanged = wanport === lastState?.config.remote.wanport && portssl === lastState.emhttp.var.portssl;
 
 	if (enablementStatusUnchanged && portsUnchanged) return;
 
-	upnpLogger.trace('UPNP Enabled: (%s)  Wan Port: [%s]', upnpShouldBeEnabledNow, wanport);
+	upnpLogger.trace('UPNP Enabled: (%s)  Wan Port: [%s]', upnpShouldBeEnabledNow, wanport === '' ? 'Will Generate New WAN Port' : wanport);
 
-	if (upnpShouldBeEnabledNow && wanPortAsNumber) {
-		logger.info('Enabling UPNP For Port %s', wanPortAsNumber);
-		await store.dispatch(enableUpnp({ wanPortForUpnp: wanPortAsNumber, localPortForUpnp: portssl, errors: { removal: null, renewal: null, mapping: null } }));
-	} else if (!upnpShouldBeEnabledNow) {
+	if (upnpShouldBeEnabledNow) {
+		await store.dispatch(enableUpnp({ wanport, portssl }));
+	} else {
+		upnpLogger.warn('Disabling UPNP');
 		await store.dispatch(disableUpnp());
 	}
 };

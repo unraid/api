@@ -12,7 +12,7 @@ import { upnp } from '@app/store/modules/upnp';
 import debounce from 'lodash/debounce';
 import { batchedSubscribe } from 'redux-batched-subscribe';
 
-const debounceNotify = debounce(notify => notify(), 1_000);
+const debounceNotify = debounce(notify => notify(), 2_000);
 
 export const store = configureStore({
 	reducer: {
