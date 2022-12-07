@@ -31,11 +31,15 @@ if (empty($remote)) {
     $remote = [
         "apikey" => "",
         "wanaccess" => "no",
+        "upnpEnabled" => "no",
         "wanport" => "443"
     ];
 }
 if (empty($remote['wanport'])) {
     $remote['wanport'] = 443;
+}
+if (empty($remote['upnpEnabled'])) {
+  $remote['upnpEnabled'] = "no";
 }
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
@@ -102,6 +106,7 @@ function registerServer(button) {
             "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
             "remote_wanaccess": $('#wanaccess').val(),
             "remote_wanport": $('#wanport').val(),
+            "remote_upnpEnabled": $('#upnpEnabled').val(),
              // only allow 'yes' value when fields are enabled
             "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
             "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
@@ -201,8 +206,21 @@ function changeRemoteAccess(dropdown) {
     }
 }
 
+function changeUpnp() {
+    $enabled = ($("#upnpEnabled").val() == "yes");
+    if ($enabled) {
+      // can't disable this until we can submit the form with an empty value
+      // $("#wanport").prop("disabled", true);
+      $("#wanportmsg").hide();
+    } else {
+      // $("#wanport").prop("disabled", false);
+      $("#wanportmsg").show();
+    }
+    changeWanPortAccess();
+}
+
 function changeWanPortAccess() {
-    $enabled = ($("#wanaccess").val() == $("#wanaccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig'));
+    $enabled = ($("#wanaccess").val() == $("#wanaccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig') && $("#upnpEnabled").val() == $("#upnpEnabled").data('orig'));
     $("#wancheck").prop("disabled", !$enabled);
 }
 
@@ -393,8 +411,25 @@ _(Allow Remote Access)_:
   </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>" />
 
 <div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
+
+<? /** for the time being only display UPnP field when enabled manually by Unraid developers */ ?>
+<?if($local['showT2Fa'] === 'yes' || $remote['upnpEnabled'] === 'yes'):?>
+
+_(Use UPnP)_:
+<?if($var['USE_UPNP'] === 'yes'):?>
+: <select id="upnpEnabled" size="1" data-orig="<?=$remote['upnpEnabled']?>" onchange="changeUpnp()" style="vertical-align: top;">
+<?=mk_option($remote['upnpEnabled'], "no", _("No"))?>
+<?=mk_option($remote['upnpEnabled'], "yes", _("Yes"))?>
+</select> <?=$myStatus['upnpError']??""?>
+<?else:?>
+: <i class="fa fa-warning icon warning" aria-hidden="true"></i> _(UPnP must be enabled on Settings -> Management Access)_
+<?endif ?>
+
+<?endif // end check for showT2Fa ?>
+
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button> <?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>
+: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+ <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?></span>
 
 :unraidnet_wanpanel_help:
 
@@ -544,6 +579,7 @@ _(Flash backup)_:
 </div>
 </form>
 <script>
+changeUpnp();
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
 flashbackupsub.on('message', function(data) {
   var ini = parseINI(data);
