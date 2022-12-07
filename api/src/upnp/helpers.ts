@@ -37,13 +37,14 @@ export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = gett
 
 export const getUpnpMappings = async () => upnpClient.getMappings();
 
-export const removeUpnpLease = async (wanPort: number | null = getters.upnp().wanPortForUpnp) => {
-	upnpLogger.warn('REMOVING UPNP LEASE FOR PORT %s', wanPort);
+export const removeUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = getters.upnp() as LeaseRenewalArgs) => {
+	upnpLogger.warn('REMOVING UPNP LEASE FOR PORT %s', wanPortForUpnp);
 
-	if (wanPort) {
+	if (wanPortForUpnp && localPortForUpnp) {
 		try {
 			const result = await upnpClient.removeMapping({
-				public: wanPort,
+				public: wanPortForUpnp,
+				private: localPortForUpnp,
 			});
 
 			upnpLogger.trace('UPNP Removal Result %o', result);

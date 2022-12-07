@@ -1,7 +1,7 @@
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
-import { renewUpnpLease } from '@app/upnp/helpers';
+import { renewUpnpLease, removeUpnpLease } from '@app/upnp/helpers';
 import type { RootState } from '@app/store';
 
 interface UpnpState {
@@ -33,12 +33,13 @@ export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, LeaseRenewalAr
 	const { upnp } = getState();
 	// If the wan port changes we should negotiate this by removing the old lease and creating a new one
 	const renewalJobRunning = upnp.renewalJobRunning ? true : initUpnpJobs();
-	if (upnp.wan)
-	dispatch();
+	if (upnp.wanPortForUpnp || upnp.localPortForUpnp) {
+		await removeUpnpLease(leaseRenewalArgs);
+	}
 
-	await renewUpnpLease(leaseRenewalArgs);
+	void dispatch(renewLease(leaseRenewalArgs));
 
-	return { wanPortForUpnp, localPortForUpnp, renewalJobRunning };
+	return { renewalJobRunning, ...leaseRenewalArgs };
 });
 
 export const upnp = createSlice({
@@ -61,9 +62,10 @@ export const upnp = createSlice({
 			state.upnpEnabled = true;
 		});
 		builder.addCase(enableUpnp.fulfilled, (state, action) => {
-			state.wanPortForUpnp = action.payload.wanPort;
-			state.localPortForUpnp = action.payload.localPort;
-			state.renewalJobRunning = action.payload.running;
+			state = {
+				...state,
+				...action.payload,
+			};
 		});
 	},
 });
