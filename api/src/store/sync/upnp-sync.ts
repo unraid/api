@@ -1,28 +1,36 @@
 import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
-import { store } from '@app/store';
-import { logger } from '@app/core';
-import { UPNPJobs } from '@app/upnp/jobs';
-import { renewUpnpLease } from '@app/upnp/helpers';
+import { RootState, store } from '@app/store';
+import { upnpLogger } from '@app/core';
+import { enableUpnp, disableUpnp } from '@app/store/modules/upnp';
+import { parseStringToNumberOrNull } from '@app/upnp/helpers';
 
-let lastRun: number | null = null;
+const shouldUpnpBeEnabled = (state: RootState): boolean => {
+	const { useUpnp } = state.emhttp.var;
+	const { wanport: wanPort, upnpEnabled, wanaccess } = state.config.remote;
+	const wanPortAsNumber = parseStringToNumberOrNull(wanPort);
+
+	return useUpnp && wanPortAsNumber !== null && upnpEnabled === 'yes' && wanaccess === 'yes';
+};
 
 export const syncUpnpChanges: StoreSubscriptionHandler = async lastState => {
-	const { config, emhttp } = store.getState();
-	if (emhttp.status !== FileLoadStatus.LOADED || config.status !== FileLoadStatus.LOADED) return;
+	const { config: { status: configStatus, remote: { wanport } }, emhttp: { status: emhttpStatus, var: { portssl } }, upnp } = store.getState();
+	if (configStatus !== FileLoadStatus.LOADED || emhttpStatus !== FileLoadStatus.LOADED) return;
 
-	const { useUpnp } = emhttp.var;
-	logger.trace('upnp enabled', useUpnp);
-	if (!lastRun || Date.now() - lastRun > 5_000) {
-		if (useUpnp) {
-			lastRun = Date.now();
-			const { wanport } = config.remote;
-			logger.trace('Wan PORT IS', wanport, useUpnp);
-			// Try to open wan port
-			await renewUpnpLease();
-			UPNPJobs.get('renewUpnpLeaseJob').start();
-		} else {
-			UPNPJobs.get('renewUpnpLeaseJob').stop();
-		}
+	const upnpShouldBeEnabledNow = shouldUpnpBeEnabled(store.getState());
+	const upnpWasEnabledBefore = shouldUpnpBeEnabled(lastState!);
+
+	const wanPortAsNumber = parseStringToNumberOrNull(wanport);
+	const enablementStatusUnchanged = upnpShouldBeEnabledNow === upnpWasEnabledBefore;
+	const portsUnchanged = wanPortAsNumber === upnp.wanPortForUpnp && portssl === upnp.localPortForUpnp;
+
+	if (enablementStatusUnchanged && portsUnchanged) return;
+
+	upnpLogger.trace('UPNP Enabled: (%s)  Wan Port: [%s]', upnpShouldBeEnabledNow, wanport);
+
+	if (upnpShouldBeEnabledNow && wanPortAsNumber) {
+		void store.dispatch(enableUpnp({ wanPort: wanPortAsNumber, localPort: portssl }));
+	} else if (!upnpShouldBeEnabledNow) {
+		store.dispatch(disableUpnp());
 	}
 };
 

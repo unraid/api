@@ -16,6 +16,7 @@ interface MyServersConfig {
 		'2Fa'?: string;
 		wanaccess: string;
 		wanport: string;
+		upnpEnabled?: string;
 		apikey: string;
 		email: string;
 		username: string;
@@ -40,6 +41,7 @@ interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 	};
 	remote: {
 		'2Fa': string;
+		upnpEnabled: string;
 	};
 }
 

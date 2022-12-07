@@ -8,6 +8,7 @@ import { registration } from '@app/store/modules/registration';
 import { cache } from '@app/store/modules/cache';
 import { dashboard } from '@app/store/modules/dashboard';
 import { docker } from '@app/store/modules/docker';
+import { upnp } from '@app/store/modules/upnp';
 
 export const store = configureStore({
 	reducer: {
@@ -20,6 +21,7 @@ export const store = configureStore({
 		cache: cache.reducer,
 		dashboard: dashboard.reducer,
 		docker: docker.reducer,
+		upnp: upnp.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
@@ -42,4 +44,5 @@ export const getters = {
 	cache: () => store.getState().cache,
 	dashboard: () => store.getState().dashboard,
 	docker: () => store.getState().docker,
+	upnp: () => store.getState().upnp,
 };

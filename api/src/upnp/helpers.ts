@@ -1,32 +1,54 @@
-import { logger } from '@app/core/log';
-import { getters } from '@app/store';
+import { logger, upnpLogger } from '@app/core/log';
+import { getters, store } from '@app/store';
+import { setError, type LeaseRenewalArgs } from '@app/store/modules/upnp';
 import { Client } from '@runonflux/nat-upnp';
 
 const upnpClient = new Client();
 
-const parseWanPort = (wanport: string): number | null => {
-	if (wanport && !isNaN(Number(wanport))) {
-		return Number(wanport);
+const SIX_HOURS = 60 * 60 * 6;
+
+export const parseStringToNumberOrNull = (myString: string): number | null => {
+	if (myString && !isNaN(Number(myString))) {
+		return Number(myString);
 	}
 
+	logger.error('Failed to parse "%s" to a number!', myString);
 	return null;
 };
 
-export const renewUpnpLease = async () => {
-	const { remote: { wanport } } = getters.config();
-	const { var: { useUpnp } } = getters.emhttp();
-	const parsedWanPort = parseWanPort(wanport);
-	logger.trace('Running UPNP Renewal Job', parsedWanPort, useUpnp);
-	if (useUpnp && parsedWanPort) {
+export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp } = getters.upnp() as LeaseRenewalArgs) => {
+	upnpLogger.trace('Running UPNP Renewal Job. Local Port: [%s] Remote Port [%s]', localPortForUpnp, wanPortForUpnp);
+	if (localPortForUpnp && wanPortForUpnp) {
 		try {
-			logger.trace('Opening Port to WAN');
 			const result = await upnpClient.createMapping({
-				public: parsedWanPort,
-				private: 443,
+				public: wanPortForUpnp,
+				private: localPortForUpnp,
+				description: 'Unraid API UPNP',
+				ttl: SIX_HOURS,
 			});
-			logger.debug('MAPPING RESULT %o', result);
+			upnpLogger.trace('Opening Port Result %o', result);
+			await upnpClient.getMappings();
 		} catch (error: unknown) {
-			logger.error('Failed sending keepalive message with error %s.', error);
+			upnpLogger.error('UPNP Renewal Failed with Error %o.', error);
+			store.dispatch(setError(error));
+		}
+	}
+};
+
+export const getUpnpMappings = async () => upnpClient.getMappings();
+
+export const removeUpnpLease = async (wanPort: number | null = getters.upnp().wanPortForUpnp) => {
+	upnpLogger.warn('REMOVING UPNP LEASE FOR PORT %s', wanPort);
+
+	if (wanPort) {
+		try {
+			const result = await upnpClient.removeMapping({
+				public: wanPort,
+			});
+
+			upnpLogger.trace('UPNP Removal Result %o', result);
+		} catch (error: unknown) {
+			upnpLogger.error('UPNP Removal Failed with Error %o.', error);
 		}
 	}
 };

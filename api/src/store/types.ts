@@ -7,7 +7,7 @@ import { Slots } from '@app/core/types/states/slots';
 import { SmbShares } from '@app/core/types/states/smb';
 import { Users } from '@app/core/types/states/user';
 import { Var } from '@app/core/types/states/var';
-import { RootState } from '@app/store';
+import type { RootState } from '@app/store';
 import { DevicesIni } from './state-parsers/devices';
 import { NetworkIni } from './state-parsers/network';
 import { NfsSharesIni } from './state-parsers/nfs';

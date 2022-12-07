@@ -131,6 +131,7 @@ export const nchanLogger = getLogger('nchan');
 export const relayLogger = getLogger('relay');
 export const minigraphLogger = getLogger('minigraph');
 export const cloudConnectorLogger = getLogger('cloud-connector');
+export const upnpLogger = getLogger('upnp');
 export const loggers = [
 	logger,
 	mothershipLogger,
@@ -143,6 +144,7 @@ export const loggers = [
 	relayLogger,
 	minigraphLogger,
 	cloudConnectorLogger,
+	upnpLogger
 ];
 
 // Send SIGUSR1 to increase log level
