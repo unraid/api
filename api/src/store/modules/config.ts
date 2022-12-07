@@ -1,13 +1,13 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
-import { RecursivePartial } from '@app/types';
+import { type RecursivePartial } from '@app/types';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -124,6 +124,14 @@ export const config = createSlice({
 		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
 			return merge(state, { remote: action.payload });
 		},
+		setUpnpState(state, action: PayloadAction<{ enabled: 'no' | 'yes'; error: string | null }>) {
+			state.remote.upnpEnabled = action.payload.enabled;
+			state.connectionStatus.upnpError = action.payload.error;
+		},
+
+		setWanPortToValue(state, action: PayloadAction<number>) {
+			state.remote.wanport = String(action.payload);
+		},
 	},
 	extraReducers(builder) {
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
@@ -154,4 +162,4 @@ export const config = createSlice({
 	},
 });
 
-export const { updateUserConfig, setConnectionStatus, updateAccessTokens } = config.actions;
+export const { updateUserConfig, setConnectionStatus, updateAccessTokens, setUpnpState, setWanPortToValue } = config.actions;

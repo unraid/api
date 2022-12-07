@@ -20,13 +20,14 @@ export class StateManager {
 	private fallbackIsRunning = false;
 
 	private constructor() {
-		for (const key of Object.values(StateFileKey)) {
+		this.fallbackToFileWatch()
+		/* for (const key of Object.values(StateFileKey)) {
 			if (!excludedWatches.includes(key)) {
 				this.subs.push(
 					createNchanSubscription(key),
 				);
 			}
-		}
+		} */
 	}
 
 	public static getInstance(): StateManager {

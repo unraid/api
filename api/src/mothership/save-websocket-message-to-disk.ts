@@ -1,4 +1,4 @@
-import { createStream as createRotatingFileStream, RotatingFileStream } from 'rotating-file-stream';
+import { createStream as createRotatingFileStream, type RotatingFileStream } from 'rotating-file-stream';
 
 let outgoingStream: RotatingFileStream;
 export const saveOutgoingWebsocketMessageToDisk = (message: string) => {

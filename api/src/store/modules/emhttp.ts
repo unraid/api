@@ -194,10 +194,7 @@ export const emhttp = createSlice({
 		});
 
 		builder.addCase(beginFileLoadFallback.fulfilled, state => {
-			logger.warn('GOT HERE 2', state.mode);
-
 			state.mode = 'watch';
-			logger.warn('GOT HERE 2', state.mode);
 			return state;
 		});
 	},

@@ -3,10 +3,10 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
 import { getters, store } from '@app/store';
-import { createClient, ExecutionResult, SubscribePayload } from 'graphql-ws';
+import { createClient, type ExecutionResult, type SubscribePayload } from 'graphql-ws';
 import { v4 } from 'uuid';
-import { GraphQLError } from 'graphql';
-import { addSubscription, getNewMinigraphClient, MinigraphStatus, removeSubscriptionById, setStatus, SubscriptionKey } from '@app/store/modules/minigraph';
+import { type GraphQLError } from 'graphql';
+import { addSubscription, getNewMinigraphClient, MinigraphStatus, removeSubscriptionById, setStatus, type SubscriptionKey } from '@app/store/modules/minigraph';
 import { clearAllServers } from '@app/store/modules/servers';
 
 class WebsocketWithRelayHeaders extends WebSocket {

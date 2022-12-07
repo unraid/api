@@ -18,6 +18,7 @@ module.exports = {
 		'@typescript-eslint/no-unsafe-return': 'off',
 		'@typescript-eslint/ban-types': 'off',
 		'@typescript-eslint/no-explicit-any': 'off',
+		'@typescript-eslint/consistent-type-imports': ['warn', { fixStyle: 'inline-type-imports' }],
 		'unicorn/numeric-separators-style': [
 			'error', { number: { minimumDigits: 0, groupLength: 3 } },
 		],

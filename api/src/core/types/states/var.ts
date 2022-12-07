@@ -199,4 +199,6 @@ export type Var = {
 	version: string;
 	/** The SMB workgroup. */
 	workgroup: string;
+	/** UPNP Setting */
+	useUpnp: boolean;
 };

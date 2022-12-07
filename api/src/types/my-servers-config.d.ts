@@ -16,6 +16,7 @@ interface MyServersConfig {
 		'2Fa'?: string;
 		wanaccess: string;
 		wanport: string;
+		upnpEnabled?: string;
 		apikey: string;
 		email: string;
 		username: string;
@@ -40,6 +41,7 @@ interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 	};
 	remote: {
 		'2Fa': string;
+		upnpEnabled: string;
 	};
 }
 
@@ -47,6 +49,7 @@ export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
 		minigraph: 'connected' | 'disconnected';
 		relay: HumanRelayStates;
+		upnpError?: null | string;
 	};
 }
 
@@ -54,6 +57,7 @@ export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServer
 	connectionStatus: {
 		minigraph: 'connected' | 'disconnected';
 		relay: HumanRelayStates;
+		upnpError: null | string;
 	};
 }
 

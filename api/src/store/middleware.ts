@@ -1,4 +1,4 @@
-import { CurriedGetDefaultMiddleware } from '@reduxjs/toolkit/dist/getDefaultMiddleware';
+import { type CurriedGetDefaultMiddleware } from '@reduxjs/toolkit/dist/getDefaultMiddleware';
 
 export const defaultAppMiddleware = (getDefaultMiddleware: CurriedGetDefaultMiddleware) => getDefaultMiddleware({
 	serializableCheck: {

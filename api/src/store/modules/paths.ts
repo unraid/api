@@ -18,7 +18,7 @@ const initialState = {
 	'myservers-config': resolvePath(process.env.PATHS_MY_SERVERS_CONFIG ?? '/boot/config/plugins/dynamix.my.servers/myservers.cfg' as const),
 	'myservers-config-states': join(resolvePath(process.env.PATHS_STATES ?? '/usr/local/emhttp/state/' as const), 'myservers.cfg' as const),
 	'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const,
-	'keyfile-base': resolvePath(process.env.PATHS_KEYFILE_BASE ?? '/boot/config' as const)
+	'keyfile-base': resolvePath(process.env.PATHS_KEYFILE_BASE ?? '/boot/config' as const),
 };
 
 export const paths = createSlice({

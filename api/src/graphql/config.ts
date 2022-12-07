@@ -2,7 +2,7 @@ import { config } from '@app/core/config';
 import { schema } from '@app/graphql/schema';
 import * as resolvers from '@app/graphql/resolvers';
 import { types as typeDefs } from '@app/graphql/types';
-import { ApolloServerExpressConfig } from 'apollo-server-express';
+import { type ApolloServerExpressConfig } from 'apollo-server-express';
 import { apiKeyToUser } from '@app/graphql';
 import { InMemoryLRUCache } from '@apollo/utils.keyvaluecache';
 

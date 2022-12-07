@@ -1,4 +1,4 @@
-import { Server } from 'http';
+import { type Server } from 'http';
 
 export const getServerAddress = (server: Server) => {
 	const address = server.address();

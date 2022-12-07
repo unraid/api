@@ -4,7 +4,7 @@
  */
 
 import chalk from 'chalk';
-import { configure, getLogger as getRealLogger, Logger } from 'log4js';
+import { configure, getLogger as getRealLogger, type Logger } from 'log4js';
 import { serializeError } from 'serialize-error';
 
 export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
@@ -22,7 +22,7 @@ const logLayout = {
 	// Depending on what this env is set to we'll either get raw or pretty logs
 	// The reason we do this is to allow the app to change this value
 	// This way pretty logs can be turned off programmatically
-	pattern: () => process.env.LOG_TYPE === 'pretty' ? fullLoggingPattern : minimumLoggingPattern,
+	pattern: process.env.LOG_TYPE === 'pretty' ? fullLoggingPattern : minimumLoggingPattern,
 	tokens: {
 		id() {
 			return chalk`{gray [${process.pid}]}`;
@@ -131,6 +131,7 @@ export const nchanLogger = getLogger('nchan');
 export const relayLogger = getLogger('relay');
 export const minigraphLogger = getLogger('minigraph');
 export const cloudConnectorLogger = getLogger('cloud-connector');
+export const upnpLogger = getLogger('upnp');
 export const loggers = [
 	logger,
 	mothershipLogger,
@@ -143,6 +144,7 @@ export const loggers = [
 	relayLogger,
 	minigraphLogger,
 	cloudConnectorLogger,
+	upnpLogger,
 ];
 
 // Send SIGUSR1 to increase log level
