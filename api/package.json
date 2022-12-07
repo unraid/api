@@ -104,7 +104,6 @@
     "p-iteration": "^1.1.8",
     "pidusage": "^3.0.0",
     "react-redux": "^8.0.2",
-    "redux-batched-subscribe": "^0.1.6",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.9",

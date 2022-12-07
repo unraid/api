@@ -9,10 +9,6 @@ import { cache } from '@app/store/modules/cache';
 import { dashboard } from '@app/store/modules/dashboard';
 import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
-import debounce from 'lodash/debounce';
-import { batchedSubscribe } from 'redux-batched-subscribe';
-
-const debounceNotify = debounce(notify => notify(), 2_000);
 
 export const store = configureStore({
 	reducer: {
@@ -27,7 +23,6 @@ export const store = configureStore({
 		docker: docker.reducer,
 		upnp: upnp.reducer,
 	},
-	enhancers: [batchedSubscribe(debounceNotify)],
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
 			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
