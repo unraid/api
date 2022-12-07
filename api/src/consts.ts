@@ -46,4 +46,4 @@ export const OAUTH_BASE_URL = 'https://cognito-idp.us-west-2.amazonaws.com/us-we
 export const OAUTH_CLIENT_ID = '6j48osc811hgbn4nqkhge3su5q';
 export const OAUTH_OPENID_CONFIGURATION_URL = OAUTH_BASE_URL + '/.well-known/openid-configuration';
 export const JWKS_REMOTE_LINK = OAUTH_BASE_URL + '/.well-known/jwks.json';
-export const UNRAID_API_BIN = '/usr/local/bin/unraid-api/unraid-api';
+export const RCD_SCRIPT = 'rc.unraid-api';

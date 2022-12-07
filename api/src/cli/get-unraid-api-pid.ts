@@ -1,9 +1,9 @@
-import { UNRAID_API_BIN } from '@app/consts';
+import { RCD_SCRIPT } from '@app/consts';
 import findProcess from 'find-process';
 
 export const getAllUnraidApiPids = async (): Promise<number[]> => {
 	const pids = await findProcess('name', 'unraid-api', true);
-	return pids.filter(allProcess => allProcess.pid !== process.pid && allProcess.cmd.includes(UNRAID_API_BIN))
+	return pids.filter(allProcess => allProcess.pid !== process.pid && !allProcess.cmd.includes(RCD_SCRIPT))
 		.map(apiProcess => apiProcess.pid);
 };
 
@@ -11,5 +11,5 @@ export const getUnraidApiPid = async (): Promise<number | undefined> => {
 	// Find all processes called "unraid-api" which aren't this process
 	const pids = await findProcess('name', 'unraid-api', true);
 
-	return pids.find(_ => _.pid !== process.pid && _.cmd.includes(UNRAID_API_BIN))?.pid;
+	return pids.find(_ => _.pid !== process.pid && !_.cmd.includes(RCD_SCRIPT))?.pid;
 };
