@@ -997,7 +997,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "useSsh": true,
 		  "useSsl": null,
 		  "useTelnet": true,
-		  "useUpnp": "no",
+		  "useUpnp": true,
 		  "useWsd": "no",
 		  "version": "6.9.0-beta25",
 		  "workgroup": "WORKGROUP",

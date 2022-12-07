@@ -69,7 +69,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		  "nodeEnv": "test",
 		  "notifier": {
-		    "apikey": "unnotify_675cd11051f572ee83a5ce3400b9fb4d6518763c34ce2dc9d2384ba",
+		    "apikey": "unnotify_30994bfaccf839c65bae75f7fa12dd5ee16e69389f754c3b98ed7d5",
 		  },
 		  "remote": {
 		    "2Fa": "",
@@ -77,19 +77,17 @@ test('After init returns values from cfg file for all fields', async () => {
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
 		    "avatar": "https://via.placeholder.com/200",
 		    "email": "test@example.com",
-		    "event": "REG_WIZARD",
 		    "idtoken": "",
-		    "keyfile": "_____________________EVEN_BIGGER_KEY_HERE_________________________",
-		    "license": "",
 		    "refreshtoken": "",
 		    "regWizTime": "1611175408732_0951-1653-3509-FBA155FA23C0",
+		    "upnpEnabled": "no",
 		    "username": "zspearmint",
-		    "wanaccess": "no",
+		    "wanaccess": "yes",
 		    "wanport": "8443",
 		  },
 		  "status": "LOADED",
 		  "upc": {
-		    "apikey": "unupc_5239e6c0cd18221202174e80b56ded12956b700b92bea1b529836b4d3c",
+		    "apikey": "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
 		  },
 		}
 	`);
@@ -121,7 +119,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  },
 		  "nodeEnv": "test",
 		  "notifier": {
-		    "apikey": "unnotify_675cd11051f572ee83a5ce3400b9fb4d6518763c34ce2dc9d2384ba",
+		    "apikey": "unnotify_30994bfaccf839c65bae75f7fa12dd5ee16e69389f754c3b98ed7d5",
 		  },
 		  "remote": {
 		    "2Fa": "",
@@ -129,19 +127,17 @@ test('updateUserConfig merges in changes to current state', async () => {
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
 		    "avatar": "https://via.placeholder.com/500",
 		    "email": "test@example.com",
-		    "event": "REG_WIZARD",
 		    "idtoken": "",
-		    "keyfile": "_____________________EVEN_BIGGER_KEY_HERE_________________________",
-		    "license": "",
 		    "refreshtoken": "",
 		    "regWizTime": "1611175408732_0951-1653-3509-FBA155FA23C0",
+		    "upnpEnabled": "no",
 		    "username": "zspearmint",
-		    "wanaccess": "no",
+		    "wanaccess": "yes",
 		    "wanport": "8443",
 		  },
 		  "status": "LOADED",
 		  "upc": {
-		    "apikey": "unupc_5239e6c0cd18221202174e80b56ded12956b700b92bea1b529836b4d3c",
+		    "apikey": "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
 		  },
 		}
 	`);
