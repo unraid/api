@@ -124,9 +124,11 @@ export const config = createSlice({
 		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
 			return merge(state, { remote: action.payload });
 		},
-		setUpnpEnabledToValue(state, action: PayloadAction<'no' | 'yes' | string>) {
-			state.remote.upnpEnabled = action.payload;
+		setUpnpState(state, action: PayloadAction<{ enabled: 'no' | 'yes'; error: string | null }>) {
+			state.remote.upnpEnabled = action.payload.enabled;
+			state.connectionStatus.upnpError = action.payload.error;
 		},
+
 		setWanPortToValue(state, action: PayloadAction<number>) {
 			state.remote.wanport = String(action.payload);
 		},
@@ -160,4 +162,4 @@ export const config = createSlice({
 	},
 });
 
-export const { updateUserConfig, setConnectionStatus, updateAccessTokens, setUpnpEnabledToValue, setWanPortToValue } = config.actions;
+export const { updateUserConfig, setConnectionStatus, updateAccessTokens, setUpnpState, setWanPortToValue } = config.actions;

@@ -4,7 +4,7 @@ import type { Mapping } from '@runonflux/nat-upnp';
 import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
 import type { RootState } from '@app/store';
 import { upnpLogger } from '@app/core';
-import { setUpnpEnabledToValue, setWanPortToValue } from '@app/store/modules/config';
+import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
 
 interface UpnpState {
 	upnpEnabled: boolean;
@@ -34,8 +34,6 @@ export const initialState: UpnpState = {
 
 export type LeaseRenewalArgs = { localPortForUpnp: number; wanPortForUpnp: number };
 type UpnpEnableReturnValue = Pick<UpnpState, 'renewalJobRunning' | 'wanPortForUpnp' | 'localPortForUpnp'>;
-type ErrorMessagePayload = { message: string; type: 'removal' | 'renewal' | 'mapping' };
-
 type EnableUpnpThunkArgs = { portssl: number; wanport?: string } | void;
 
 /**
@@ -107,7 +105,7 @@ export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThun
 			return { renewalJobRunning, wanPortForUpnp: wanPortToUse, localPortForUpnp: localPortToUse };
 		} catch (error: unknown) {
 			const message = `Error: Failed Opening UPNP Public Port [${wanPortToUse}] Local Port [${localPortToUse}] Message: [${error instanceof Error ? error.message : 'N/A'}]`;
-			dispatch(setUpnpEnabledToValue(message));
+			dispatch(setUpnpState({ enabled: 'no', error: message }));
 			throw new Error(message);
 		}
 	}

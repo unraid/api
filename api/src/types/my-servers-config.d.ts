@@ -49,6 +49,7 @@ export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
 		minigraph: 'connected' | 'disconnected';
 		relay: HumanRelayStates;
+		upnpError?: null | string;
 	};
 }
 
@@ -56,6 +57,7 @@ export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServer
 	connectionStatus: {
 		minigraph: 'connected' | 'disconnected';
 		relay: HumanRelayStates;
+		upnpError: null | string;
 	};
 }
 
