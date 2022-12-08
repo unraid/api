@@ -1,6 +1,6 @@
 import { getters } from '@app/store';
 
-export const getRelayHeaders = () => {
+export const getMothershipWebsocketHeaders = () => {
 	const config = getters.config();
 	const emhttp = getters.emhttp();
 	const apiKey = config.remote.apikey;

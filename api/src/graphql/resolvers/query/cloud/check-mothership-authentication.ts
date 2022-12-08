@@ -1,4 +1,4 @@
-import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { logger } from '@app/core';
 import { got, HTTPError, TimeoutError } from 'got';
 
@@ -16,7 +16,7 @@ const createGotOptions = (apiVersion: string, apiKey: string) => ({
 
 // Check if we're rate limited, etc.
 export const checkMothershipAuthentication = async (apiVersion: string, apiKey: string) => {
-	const url = MOTHERSHIP_RELAY_WS_LINK.replace('ws', 'http');
+	const url = MOTHERSHIP_GRAPHQL_LINK.replace('ws', 'http');
 
 	try {
 		const options = createGotOptions(apiVersion, apiKey);

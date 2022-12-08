@@ -6,7 +6,7 @@
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { Context } from '@app/graphql/schema/utils';
 import { graphqlLogger } from '@app/core';
-import { MinigraphClient } from '@app/mothership/minigraph-client';
+import { GraphqlClient } from '@app/mothership/graphql-client';
 import { getters } from '@app/store';
 
 export const sendNotification = async (_: unknown, args: { notification: Notification }, context: Context) => {
@@ -33,6 +33,6 @@ export const sendNotification = async (_: unknown, args: { notification: Notific
 		},
 	};
 
-	const result = await MinigraphClient.query(query);
+	const result = await GraphqlClient.query(query);
 	graphqlLogger.debug('Query Result from Notifications.ts', result);
 };

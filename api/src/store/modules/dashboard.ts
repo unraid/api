@@ -22,6 +22,9 @@ export const dashboard = createSlice({
 		startDashboardProducer(state) {
 			state.connectedToDashboard += 1;
 
+			// It's already been started
+			if (state.connectedToDashboard >= 2) return;
+
 			// Start new producer
 			dashboardLogger.trace('Starting dashboard producer');
 			getPublishToDashboardJob().start();
@@ -29,6 +32,9 @@ export const dashboard = createSlice({
 
 		stopDashboardProducer(state) {
 			state.connectedToDashboard -= 1;
+
+			// Make sure we don't go negative
+			if (state.connectedToDashboard < 0) state.connectedToDashboard = 0;
 
 			// Don't stop if we still have clients using this
 			if (state.connectedToDashboard >= 1) return;

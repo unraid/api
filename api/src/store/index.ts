@@ -1,6 +1,6 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { paths } from '@app/store/modules/paths';
-import { minigraph } from '@app/store/modules/minigraph';
+import { mothership } from '@app/store/modules/minigraph';
 import { config } from '@app/store/modules/config';
 import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
@@ -13,7 +13,7 @@ import { upnp } from '@app/store/modules/upnp';
 export const store = configureStore({
 	reducer: {
 		config: config.reducer,
-		minigraph: minigraph.reducer,
+		minigraph: mothership.reducer,
 		paths: paths.reducer,
 		servers: servers.reducer,
 		emhttp: emhttp.reducer,

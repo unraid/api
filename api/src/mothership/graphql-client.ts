@@ -1,7 +1,7 @@
 import WebSocket from 'ws';
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
-import { getRelayHeaders } from '@app/mothership/utils/get-relay-headers';
+import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
 import { createClient, type ExecutionResult, type SubscribePayload } from 'graphql-ws';
 import { v4 } from 'uuid';
@@ -9,23 +9,25 @@ import { type GraphQLError } from 'graphql';
 import { addSubscription, getNewMinigraphClient, MinigraphStatus, removeSubscriptionById, setStatus, type SubscriptionKey } from '@app/store/modules/minigraph';
 import { clearAllServers } from '@app/store/modules/servers';
 
-class WebsocketWithRelayHeaders extends WebSocket {
+class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
 		super(address, protocols, {
-			headers: getRelayHeaders(),
+			headers: getMothershipWebsocketHeaders(),
 		});
 	}
 }
 
-export const createMinigraphClient = () => {
+export const createGraphqlClient = () => {
 	const config = getters.config();
 	const emhttp = getters.emhttp();
 	const client = createClient({
 		url: MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'),
-		webSocketImpl: WebsocketWithRelayHeaders,
+		webSocketImpl: WebsocketWithMothershipHeaders,
 		connectionParams: () => ({
+			clientType: 'API',
 			apiVersion: config.api.version,
 			apiKey: config.remote.apikey,
+			flashGuid: emhttp.var.flashGuid,
 			unraidVersion: emhttp.var.version,
 		}),
 		shouldRetry() {
@@ -61,7 +63,7 @@ export const createMinigraphClient = () => {
 	return client;
 };
 
-export const MinigraphClient = {
+export const GraphqlClient = {
 	// eslint-disable-next-line no-async-promise-executor
 	query: async <T extends ExecutionResult>(query: SubscribePayload): Promise<T> => new Promise(async (resolve, reject) => {
 		let result: ExecutionResult<Record<string, unknown>, unknown>;

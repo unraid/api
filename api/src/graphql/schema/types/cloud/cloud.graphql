@@ -3,12 +3,6 @@ type ApiKeyResponse {
     error: String
 }
 
-type RelayResponse {
-    status: String!
-    timeout: String
-    error: String
-}
-
 type MinigraphqlResponse {
     status: String!
 }
@@ -26,7 +20,6 @@ type EmhttpResponse {
 type Cloud {
     error: String
     apiKey: ApiKeyResponse
-    relay: RelayResponse
     minigraphql: MinigraphqlResponse
     cloud: CloudResponse
     allowedOrigins: [String]

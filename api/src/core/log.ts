@@ -128,7 +128,6 @@ export const libvirtLogger = getLogger('libvirt');
 export const graphqlLogger = getLogger('graphql');
 export const dockerLogger = getLogger('docker');
 export const cliLogger = getLogger('cli');
-export const relayLogger = getLogger('relay');
 export const minigraphLogger = getLogger('minigraph');
 export const cloudConnectorLogger = getLogger('cloud-connector');
 export const upnpLogger = getLogger('upnp');
@@ -141,7 +140,6 @@ export const loggers = [
 	graphqlLogger,
 	dockerLogger,
 	cliLogger,
-	relayLogger,
 	minigraphLogger,
 	cloudConnectorLogger,
 	upnpLogger,
