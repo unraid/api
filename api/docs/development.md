@@ -154,7 +154,6 @@ For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/
 
 ## Running this locally
 ```bash
-NCHAN=disable \ # Disable nchan polling
   MOTHERSHIP_RELAY_WS_LINK=ws://localhost:8000 \ # Switch to local copy of mothership
   PATHS_UNRAID_DATA=$(pwd)/dev/data \ # Where we store plugin data (e.g. permissions.json)
   PATHS_STATES=$(pwd)/dev/states \ # Where .ini files live (e.g. vars.ini)

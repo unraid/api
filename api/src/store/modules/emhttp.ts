@@ -3,21 +3,21 @@
  * Written by: Alexis Tyler
  */
 
-import { FileLoadStatus, StateFileKey, StateFileToIniParserMap } from '@app/store/types';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { FileLoadStatus, StateFileKey, type StateFileToIniParserMap } from '@app/store/types';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { join } from 'path';
-import { logger, nchanLogger } from '@app/core/log';
+import { emhttpLogger } from '@app/core/log';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { Devices } from '@app/core/types/states/devices';
-import { Networks } from '@app/core/types/states/network';
-import { Nginx } from '@app/core/types/states/nginx';
-import { Shares } from '@app/core/types/states/share';
-import { Users } from '@app/core/types/states/user';
-import { NfsShares } from '@app/core/types/states/nfs';
-import { Slots } from '@app/core/types/states/slots';
-import { SmbShares } from '@app/core/types/states/smb';
-import { Var } from '@app/core/types/states/var';
+import { type Devices } from '@app/core/types/states/devices';
+import { type Networks } from '@app/core/types/states/network';
+import { type Nginx } from '@app/core/types/states/nginx';
+import { type Shares } from '@app/core/types/states/share';
+import { type Users } from '@app/core/types/states/user';
+import { type NfsShares } from '@app/core/types/states/nfs';
+import { type Slots } from '@app/core/types/states/slots';
+import { type SmbShares } from '@app/core/types/states/smb';
+import { type Var } from '@app/core/types/states/var';
 import { parse as parseDevices } from '@app/store/state-parsers/devices';
 import { parse as parseNetwork } from '@app/store/state-parsers/network';
 import { parse as parseNginx } from '@app/store/state-parsers/nginx';
@@ -28,12 +28,11 @@ import { parse as parseSmbShares } from '@app/store/state-parsers/smb';
 import { parse as parseUsers } from '@app/store/state-parsers/users';
 import { parse as parseVar } from '@app/store/state-parsers/var';
 import { format } from 'util';
-import { StateManager } from '../watch/state-watch';
+
 import type { RootState } from '@app/store';
 
 export type SliceState = {
 	status: FileLoadStatus;
-	mode: 'nchan' | 'watch';
 	var: Var;
 	devices: Devices;
 	networks: Networks;
@@ -47,7 +46,6 @@ export type SliceState = {
 
 const initialState: SliceState = {
 	status: FileLoadStatus.UNLOADED,
-	mode: 'nchan',
 	var: {} as unknown as Var,
 	devices: [] as Devices,
 	networks: [] as Networks,
@@ -77,7 +75,7 @@ const parseState = <T extends StateFileKey, Q = ReturnType<StateFileToIniParserM
 	const filePath = join(statesDirectory, `${parser}.ini`);
 
 	try {
-		logger.trace('Loading state file from "%s"', filePath);
+		emhttpLogger.trace('Loading state file from "%s"', filePath);
 		const config = parseConfig<Parameters<StateFileToIniParserMap[T]>[0]>({
 			filePath,
 			type: 'ini',
@@ -86,8 +84,7 @@ const parseState = <T extends StateFileKey, Q = ReturnType<StateFileToIniParserM
 		// @TODO Not sure why this type doesn't work
 		return parserFn((config as unknown as any)) as Q;
 	} catch (error: unknown) {
-		if (!(error instanceof Error)) throw new Error(format('Failed loading state file from "%s" with unknown error "%s"', filePath, String(error)));
-		logger.error('Failed loading state file from "%s" with "%s"', filePath, error.message);
+		emhttpLogger.error('Failed loading state file from "%s" with "%s"', filePath, error instanceof Error ? error.message : String(error));
 	}
 
 	if (defaultValue) {
@@ -149,13 +146,6 @@ export const loadStateFiles = createAsyncThunk<Omit<SliceState, 'mode' | 'status
 	return state;
 });
 
-export const beginFileLoadFallback = createAsyncThunk<boolean, { message: string }>('emhttp/file-load-fallback', async ({ message }) => {
-	const stateManager = StateManager.getInstance();
-	stateManager.fallbackToFileWatch();
-	nchanLogger.error('Received error from nchan subscriber, falling back to file watch mode: %s', message);
-	return true;
-});
-
 export const emhttp = createSlice({
 	name: 'emhttp',
 	initialState,
@@ -182,20 +172,8 @@ export const emhttp = createSlice({
 			if (action.payload) {
 				merge(state, action.payload);
 			} else {
-				logger.warn('Invalid payload returned from loadSingleStateFile()');
+				emhttpLogger.warn('Invalid payload returned from loadSingleStateFile()');
 			}
-		});
-
-		builder.addCase(beginFileLoadFallback.pending, state => {
-			logger.warn('GOT HERE', state.mode);
-			state.mode = 'watch';
-			logger.warn('GOT HERE', state.mode);
-			return state;
-		});
-
-		builder.addCase(beginFileLoadFallback.fulfilled, state => {
-			state.mode = 'watch';
-			return state;
 		});
 	},
 });

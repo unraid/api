@@ -4,8 +4,7 @@ import { cliLogger } from '@app/core/log';
 import { type Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
 import { env } from '@app/dotenv';
-import { getters, store } from '@app/store';
-import { beginFileLoadFallback } from '@app/store/modules/emhttp';
+import { getters } from '@app/store';
 
 const command = mainOptions.command as unknown as string;
 
@@ -59,13 +58,6 @@ export const main = async (...argv: string[]) => {
 		// Wait 30s and then segfault
 		setTimeout(() => {
 			causeSegfault();
-		}, 30_000);
-	}
-
-	if (process.env.PLEASE_CRASH_NCHAN_FOR_ME) {
-		// Wait 30s and then crash nchan
-		setTimeout(async () => {
-			await store.dispatch(beginFileLoadFallback({ message: 'Nchan Crashed Through process.env.PLEASE_CRASH_NCHAN_FOR_ME' }));
 		}, 30_000);
 	}
 

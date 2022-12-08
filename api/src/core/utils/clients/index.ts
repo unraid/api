@@ -2,4 +2,3 @@
 
 export * from './docker';
 export * from './emcmd';
-export * from './nchan';

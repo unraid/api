@@ -48,7 +48,7 @@ void am(async () => {
 	// Load initial registration key into store
 	await store.dispatch(loadRegistrationKey());
 
-	// Start listening to nchan updates - initializing this sets up nchan
+	// Start listening to file updates
 	StateManager.getInstance();
 
 	// Start listening to key file changes

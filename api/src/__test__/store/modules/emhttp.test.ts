@@ -12,7 +12,6 @@ test('Before init returns default values for all fields', async () => {
 		{
 		  "devices": [],
 		  "disks": [],
-		  "mode": "nchan",
 		  "networks": [],
 		  "nfsShares": [],
 		  "nginx": {},

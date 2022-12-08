@@ -1,12 +1,12 @@
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { logger } from '@app/core/log';
-import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
+import { FileLoadStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import { writeFile } from 'fs/promises';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { store } from '@app/store';
 import isEqual from 'lodash/isEqual';
 import { getDiff } from 'json-difference';
-import { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
+import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config';
 import { writeFileSync } from 'fs';
 
 /**

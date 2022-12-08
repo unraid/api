@@ -1,7 +1,7 @@
-import { expect, test, vi, SpyInstance } from 'vitest';
+import { expect, test, vi, type SpyInstance } from 'vitest';
 import { v4 as randomUUID } from 'uuid';
 import readline from 'readline';
-import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
+import { type Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
 // Preloading imports for faster tests
 import '@app/core/log';
@@ -59,7 +59,6 @@ vi.mock('got', () => ({
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
-						emhttp: { mode: 'nchan' },
 					},
 				},
 			};
@@ -112,7 +111,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "api": {
-		    "emhttpMode": "nchan",
 		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    "nodeVersion": "v18.5.0",
 		    "status": "running",
@@ -166,7 +164,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 	expect(JSON.parse(vi.mocked(stdout).write.mock.calls[0][0] as string)).toMatchInlineSnapshot(`
 		{
 		  "api": {
-		    "emhttpMode": "nchan",
 		    "environment": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    "nodeVersion": "v18.5.0",
 		    "status": "running",
