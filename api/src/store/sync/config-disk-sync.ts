@@ -17,7 +17,7 @@ import { writeFileSync } from 'fs';
 const writeConfigIfChanged = async <T extends MyServersConfig | MyServersConfigMemory>(oldConfig: T | null, newConfig: T, pathToConfig: string) => {
 	if (!isEqual(oldConfig, newConfig)) {
 		logger.addContext('diff', getDiff(oldConfig ?? {}, newConfig, true));
-		logger.trace('Dumping MyServers config back to file');
+		logger.trace('Dumping MyServers config back to: %s', pathToConfig);
 		logger.removeContext('diff');
 
 		// Stringify state
@@ -58,5 +58,6 @@ export const syncConfigToDisk: StoreSubscriptionHandler = async lastState => {
 	const memoryConfigWriter = writeConfigIfChanged(
 		oldMemoryConfig, newMemoryConfig, paths['myservers-config-states'],
 	);
+
 	await Promise.all([flashConfigWriter, memoryConfigWriter]);
 };

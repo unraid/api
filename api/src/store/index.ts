@@ -9,6 +9,7 @@ import { cache } from '@app/store/modules/cache';
 import { dashboard } from '@app/store/modules/dashboard';
 import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
+import { listenerMiddleware } from '@app/store/listeners/listenerMiddleware';
 
 export const store = configureStore({
 	reducer: {
@@ -28,7 +29,7 @@ export const store = configureStore({
 			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
 			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient'],
 		},
-	}),
+	}).prepend(listenerMiddleware.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;

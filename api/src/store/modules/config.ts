@@ -4,7 +4,6 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
-import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
 import { type RecursivePartial } from '@app/types';
@@ -22,6 +21,7 @@ export const initialState: SliceState = {
 		'2Fa': '',
 		wanaccess: '',
 		wanport: '',
+		upnpEnabled: '',
 		apikey: '',
 		email: '',
 		username: '',
@@ -47,19 +47,8 @@ export const initialState: SliceState = {
 	},
 	connectionStatus: {
 		minigraph: MinigraphStatus.DISCONNECTED,
+		upnpStatus: '',
 	},
-};
-
-type LoadedConfig = Partial<MyServersConfig> & {
-	api: {
-		version: string;
-	};
-	upc: {
-		apikey: string;
-	};
-	notifier: {
-		apikey: string;
-	};
 };
 
 export const logoutUser = createAsyncThunk<void>('config/logout-user', async () => {
@@ -84,31 +73,37 @@ export const logoutUser = createAsyncThunk<void>('config/logout-user', async () 
 });
 
 /**
- * Load the myservers.cfg into the store.
+ * Load the myservers.cfg into the store. Returns null if the state after loading doesn't change
  *
  * Note: If the file doesn't exist this will fallback to default values.
  */
-export const loadConfigFile = createAsyncThunk<LoadedConfig, string | undefined>('config/load-config-file', async filePath => {
-	const store = await import('@app/store');
-	const paths = store.getters.paths();
-	const config = store.getters.config();
+export const loadConfigFile = createAsyncThunk<MyServersConfig | null, string | undefined, { state: RootState }>('config/load-config-file', async (filePath, { getState }) => {
+	const { paths, config } = getState();
+
 	const path = filePath ?? paths['myservers-config'];
 	const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
 	const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
 		filePath: path,
 		type: 'ini',
 	}) : {};
-	return merge(file, {
-		api: {
-			version: config.api.version,
+
+	if (areConfigsEquivalent(file, config)) {
+		return null;
+	}
+
+	return merge(file,
+		{
+			api: {
+				version: config.api.version,
+			},
+			upc: {
+				apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
+			},
+			notifier: {
+				apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
+			},
 		},
-		upc: {
-			apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
-		},
-		notifier: {
-			apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
-		},
-	}) as LoadedConfig;
+	) as MyServersConfig;
 });
 
 export const config = createSlice({
@@ -124,9 +119,14 @@ export const config = createSlice({
 		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
 			return merge(state, { remote: action.payload });
 		},
-		setUpnpState(state, action: PayloadAction<{ enabled: 'no' | 'yes'; error: string | null }>) {
-			state.remote.upnpEnabled = action.payload.enabled;
-			state.connectionStatus.upnpError = action.payload.error;
+		setUpnpState(state, action: PayloadAction<{ enabled?: 'no' | 'yes'; status?: string | null }>) {
+			if (action.payload.enabled) {
+				state.remote.upnpEnabled = action.payload.enabled;
+			}
+
+			if (action.payload.status) {
+				state.connectionStatus.upnpStatus = action.payload.status;
+			}
 		},
 
 		setWanPortToValue(state, action: PayloadAction<number>) {
@@ -139,10 +139,13 @@ export const config = createSlice({
 		});
 
 		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
-			merge(state, action.payload, { status: FileLoadStatus.LOADED });
+			if (action.payload) {
+				merge(state, action.payload, { status: FileLoadStatus.LOADED });
+			}
 		});
 
 		builder.addCase(loadConfigFile.rejected, (state, action) => {
+			logger.error('Config File Load Failed', action.error);
 			merge(state, action.payload, { status: FileLoadStatus.FAILED_LOADING });
 		});
 
