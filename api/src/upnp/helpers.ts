@@ -38,7 +38,7 @@ export const parseStringToNumberOrNull = (myString: string): number | null => {
  * @throws Error, if renewal fails
  */
 export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp, serverName }: { localPortForUpnp: number; wanPortForUpnp: number; serverName?: string }): Promise<void> => {
-	upnpLogger.info('Renewing UPNP Lease: Public Port [%s] Local Port [%s]', localPortForUpnp, wanPortForUpnp);
+	upnpLogger.info('Renewing UPNP Lease: Public Port [%s] Local Port [%s]', wanPortForUpnp, localPortForUpnp);
 	const result = await upnpClient.createMapping({
 		public: wanPortForUpnp,
 		private: localPortForUpnp,
