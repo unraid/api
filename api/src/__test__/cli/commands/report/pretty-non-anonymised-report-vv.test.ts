@@ -125,7 +125,6 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 			OFFLINE: Tower2[owner=\\"api-test-runner\\" guid=\\"CBDA-CBDA-CBDA-CBDA\\"]
 			INVALID: Tower43[owner=\\"api-test-runner\\" guid=\\"MY_GUID\\"]
 		ALLOWED_ORIGINS: 
-		NCHAN_MODE: nchan
 		</----UNRAID-API-REPORT----->
 		"
 	`);

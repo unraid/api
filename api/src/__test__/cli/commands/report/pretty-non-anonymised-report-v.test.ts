@@ -117,7 +117,6 @@ test('Returns a pretty non-anonymised report with -v', async () => {
 			STATUS: [connected]
 		SERVERS: API is offline
 		ALLOWED_ORIGINS: 
-		NCHAN_MODE: nchan
 		</----UNRAID-API-REPORT----->
 		"
 	`);
@@ -181,7 +180,6 @@ test('Returns a pretty non-anonymised report with -v [mothership restarting]', a
 			STATUS: [disconnected]
 		SERVERS: API is offline
 		ALLOWED_ORIGINS: 
-		NCHAN_MODE: nchan
 		</----UNRAID-API-REPORT----->
 		"
 	`);

@@ -123,11 +123,11 @@ export const internalLogger = getLogger('internal');
 export const logger = getLogger('app');
 export const mothershipLogger = getLogger('mothership');
 export const dashboardLogger = getLogger('dashboard');
+export const emhttpLogger = getLogger('emhttp');
 export const libvirtLogger = getLogger('libvirt');
 export const graphqlLogger = getLogger('graphql');
 export const dockerLogger = getLogger('docker');
 export const cliLogger = getLogger('cli');
-export const nchanLogger = getLogger('nchan');
 export const relayLogger = getLogger('relay');
 export const minigraphLogger = getLogger('minigraph');
 export const cloudConnectorLogger = getLogger('cloud-connector');
@@ -136,11 +136,11 @@ export const loggers = [
 	logger,
 	mothershipLogger,
 	dashboardLogger,
+	emhttpLogger,
 	libvirtLogger,
 	graphqlLogger,
 	dockerLogger,
 	cliLogger,
-	nchanLogger,
 	relayLogger,
 	minigraphLogger,
 	cloudConnectorLogger,
