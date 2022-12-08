@@ -27,8 +27,6 @@ import { parse as parseSlots } from '@app/store/state-parsers/slots';
 import { parse as parseSmbShares } from '@app/store/state-parsers/smb';
 import { parse as parseUsers } from '@app/store/state-parsers/users';
 import { parse as parseVar } from '@app/store/state-parsers/var';
-import { format } from 'util';
-
 import type { RootState } from '@app/store';
 
 export type SliceState = {

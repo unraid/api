@@ -19,6 +19,14 @@ vi.mock('@app/core/log', () => ({
 		addContext: vi.fn(),
 		removeContext: vi.fn(),
 	},
+	emhttpLogger: {
+		info: vi.fn(),
+		error: vi.fn(),
+		debug: vi.fn(),
+		trace: vi.fn(),
+		addContext: vi.fn(),
+		removeContext: vi.fn(),
+	},
 }));
 
 vi.mock('@app/common/dashboard/get-array', () => ({
