@@ -2,7 +2,7 @@ import { minigraphLogger } from '@app/core/log';
 import { createAsyncThunk, createSlice, EnhancedStore, PayloadAction } from '@reduxjs/toolkit';
 import { Client } from 'graphql-ws';
 import { RootState, store } from '@app/store';
-import { createMinigraphClient } from '@app/mothership/minigraph-client';
+import { createGraphqlClient } from '@app/mothership/graphql-client';
 
 export enum MinigraphStatus {
 	'CONNECTING',
@@ -14,9 +14,10 @@ export enum MinigraphStatus {
 
 export enum SubscriptionKey {
 	'SERVERS',
+	'EVENTS',
 }
 
-export type MinigraphClientSubscription = {
+export type GraphqlClientSubscription = {
 	subscription: () => void;
 	subscriptionId: string;
 	subscriptionKey: SubscriptionKey;
@@ -25,7 +26,7 @@ export type MinigraphClientSubscription = {
 export type MinigraphClientState = {
 	status: MinigraphStatus;
 	error: null | { message: string };
-	subscriptions: MinigraphClientSubscription[];
+	subscriptions: GraphqlClientSubscription[];
 	client: Client | null;
 };
 
@@ -37,16 +38,16 @@ const initialState: MinigraphClientState = {
 };
 
 const createNewClient = createAsyncThunk<Client, void, { state: RootState }>(
-	'minigraph/createNewClient',
+	'mothership/createNewClient',
 	async (_, { getState }) => {
 		const { minigraph } = getState();
 		if (minigraph.client) await minigraph.client.dispose();
-		return createMinigraphClient();
+		return createGraphqlClient();
 	},
 );
 
-export const minigraph = createSlice({
-	name: 'minigraph',
+export const mothership = createSlice({
+	name: 'mothership',
 	initialState,
 	reducers: {
 		setStatus(state, action: PayloadAction<Pick<MinigraphClientState, 'status' | 'error'>>) {
@@ -60,7 +61,7 @@ export const minigraph = createSlice({
 		setClient(state, action: PayloadAction<Client>) {
 			state.client = action.payload;
 		},
-		addSubscription(state, action: PayloadAction<MinigraphClientSubscription>) {
+		addSubscription(state, action: PayloadAction<GraphqlClientSubscription>) {
 			state.subscriptions.push(action.payload);
 		},
 		removeSubscriptionById(state, action: PayloadAction<string>) {
@@ -93,7 +94,7 @@ export const minigraph = createSlice({
 	},
 });
 
-export const { setStatus, setClient, addSubscription, removeSubscriptionById } = minigraph.actions;
+export const { setStatus, setClient, addSubscription, removeSubscriptionById } = mothership.actions;
 
 export const getNewMinigraphClient = async (appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
 	const store = (appStore ?? await import('@app/store/index').then(_ => _.store));

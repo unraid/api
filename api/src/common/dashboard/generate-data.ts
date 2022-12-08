@@ -10,8 +10,6 @@ import { Dashboard, Dashboard as DashboardType } from '@app/common/run-time/dash
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { getters } from '@app/store';
-import { Service } from '@app/common/run-time/service';
-import { TwoFactor } from '@app/common/run-time/two-factor';
 
 const getVmSummary = async (): Promise<Dashboard['vms']> => {
 	try {

@@ -6,6 +6,7 @@ import { getters, store } from '@app/store';
 import { saveDataPacket } from '@app/store/modules/dashboard';
 import { isEqual } from 'lodash';
 import { Dashboard } from '@app/common/run-time/dashboard';
+import { GraphqlClient } from '@app/mothership/graphql-client';
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
 
@@ -87,8 +88,18 @@ export const publishToDashboard = async () => {
 		dashboardLogger.addContext('update', dataPacket);
 		dashboardLogger.trace('Publishing update');
 		dashboardLogger.removeContext('update');
+
+		// Update local clients
 		await pubsub.publish('dashboard', {
 			dashboard: dataPacket,
+		});
+
+		// Update mothership
+		await GraphqlClient.query({
+			query: 'mutation($dashboard:DashboardInput!){updateDashboard(dashboard:$dashboard){ apps { installed } }}',
+			variables: {
+				dashboard: dataPacket,
+			},
 		});
 	} catch (error: unknown) {
 		dashboardLogger.error('Failed publishing');

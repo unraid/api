@@ -82,7 +82,7 @@ void am(async () => {
 			if (fileExistsSync(config.port)) unlinkSync(config.port);
 		}
 
-		store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
+		store.dispatch(setConnectionStatus({ minigraph: 'disconnected' }));
 		writeMemoryConfigSync();
 	});
 }, async (error: NodeJS.ErrnoException) => {
@@ -90,7 +90,7 @@ void am(async () => {
 	logger.error(error);
 
 	// Write the new memory config with disconnected status
-	store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
+	store.dispatch(setConnectionStatus({ minigraph: 'disconnected' }));
 	writeMemoryConfigSync();
 
 	// Stop server

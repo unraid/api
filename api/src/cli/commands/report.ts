@@ -10,12 +10,10 @@ import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
 import { cliLogger } from '@app/core/log';
 import { resolve } from 'path';
-import prettyMs from 'pretty-ms';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
 import { type Server } from '@app/store/modules/servers';
-import { type HumanRelayStates } from '@app/graphql/relay-state';
 import { type SliceState as EmhttpState } from '@app/store/modules/emhttp';
 
 type Verbosity = '' | '-v' | '-vv';
@@ -44,11 +42,6 @@ type ReportObject = {
 		status: 'authenticated' | 'signed out';
 		myServersUsername?: string;
 	};
-	relay: {
-		status: HumanRelayStates | 'disconnected';
-		timeout?: number;
-		error?: string;
-	};
 	minigraph: {
 		status: 'disconnected' | 'connected';
 	};
@@ -74,7 +67,7 @@ export const createGotOptions = (config: Partial<MyServersConfig>) => {
 	return { headers, timeout };
 };
 
-// This should return the status of the apiKey, relay and mothership
+// This should return the status of the apiKey and mothership
 export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cloud | undefined> => {
 	const cloud = config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
 		method: 'POST',
@@ -86,11 +79,6 @@ export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cl
 					error 
 					apiKey {
 						valid
-					}
-					relay {
-						status 
-						timeout 
-						error
 					}
 					minigraphql {
 						status
@@ -172,14 +160,6 @@ const getUnraidVersion = async (paths: ReturnType<typeof getters.paths>): Promis
 	const unraidVersion = existsSync(paths['unraid-version']) ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
 	cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
 	return unraidVersion;
-};
-
-const getReadableRelayDetails = (reportObject: ReportObject): string => {
-	const timeout = reportObject.relay.timeout ? `\n	TIMEOUT: [Reconnecting in ${prettyMs(Number(reportObject.relay.timeout))}]` : '';
-	const { status } = reportObject.relay;
-	const error = reportObject.relay.error ? `\n	ERROR: [${reportObject.relay.error}]` : '';
-	return `
-	STATUS: [${status}] ${timeout} ${error}`;
 };
 
 const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): string => {
@@ -327,11 +307,6 @@ export const report = async (...argv: string[]) => {
 				status: config?.remote?.username ? 'authenticated' : 'signed out',
 				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
 			},
-			relay: {
-				status: cloud?.relay.status ?? 'disconnected',
-				...(cloud?.relay.timeout && v === '-vv' ? { timeout: cloud?.relay.timeout } : {}),
-				...(cloud?.relay.error ? { error: cloud.relay.error } : {}),
-			},
 			minigraph: {
 				status: cloud?.minigraphql.status ?? 'disconnected',
 			},
@@ -366,7 +341,6 @@ UNRAID_API_STATUS: ${reportObject.api.status}
 API_KEY: ${reportObject.apiKey}
 MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
-RELAY: ${getReadableRelayDetails(reportObject)}
 MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}
 </----UNRAID-API-REPORT----->
 `;

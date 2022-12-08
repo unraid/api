@@ -21,7 +21,7 @@ vi.mock('@app/mothership/minigraph-client', () => ({ createMinigraphClient: () =
 }) }));
 
 test('Before init returns default values for all fields', async () => {
-	const { minigraph } = await import ('@app/store/modules/minigraph');
+	const { mothership: minigraph } = await import ('@app/store/modules/minigraph');
 	const store = configureStore({
 		reducer: {
 			minigraph: minigraph.reducer,
@@ -40,7 +40,7 @@ test('Before init returns default values for all fields', async () => {
 });
 
 test('setStatus works as expected', async () => {
-	const { minigraph } = await import ('@app/store/modules/minigraph');
+	const { mothership: minigraph } = await import ('@app/store/modules/minigraph');
 	const store = configureStore({
 		reducer: {
 			minigraph: minigraph.reducer,

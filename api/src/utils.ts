@@ -1,5 +1,5 @@
 import { mothershipLogger } from '@app/core';
-import { MinigraphClient } from '@app/mothership/minigraph-client';
+import { GraphqlClient } from '@app/mothership/graphql-client';
 import { type ExecutionResult } from 'graphql-ws';
 import { getters } from '@app/store';
 import type { Server } from '@app/store/modules/servers';
@@ -18,7 +18,7 @@ export const getServers = async (apiKey: string) => {
 		};
 
 		mothershipLogger.debug('Testing servers endpoint with minigraph');
-		const response = await MinigraphClient.query<ExecutionResult<{ servers: Server[] }>>(query);
+		const response = await GraphqlClient.query<ExecutionResult<{ servers: Server[] }>>(query);
 		mothershipLogger.trace('Got response from query: %o', response);
 
 		const { data, errors } = response;
