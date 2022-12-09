@@ -13,6 +13,7 @@ generates:
     plugins:
       - typescript
       - typescript-operations
+      - typed-document-node
       - add: { content: '/* eslint-disable */' }
 documents: 'src/graphql/mothership/**/*.graphql'
 config:
