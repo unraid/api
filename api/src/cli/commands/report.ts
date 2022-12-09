@@ -14,7 +14,6 @@ import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
 import { type Server } from '@app/store/modules/servers';
-import { type SliceState as EmhttpState } from '@app/store/modules/emhttp';
 
 type Verbosity = '' | '-v' | '-vv';
 
@@ -34,7 +33,6 @@ type ReportObject = {
 		status: 'running' | 'stopped';
 		environment: string;
 		nodeVersion: string;
-		emhttpMode: EmhttpState['mode'];
 	};
 	apiKey: 'valid' | 'invalid' | string;
 	servers?: ServersPayload | null;

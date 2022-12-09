@@ -49,7 +49,6 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 		...(mode === 'memory'
 			? { connectionStatus: {
 				minigraph: connectionStatus.minigraph ?? initialState.connectionStatus.minigraph,
-				relay: connectionStatus.relay ?? initialState.connectionStatus.relay,
 				...(connectionStatus.upnpError ? { upnpError: connectionStatus.upnpError } : {}),
 			} }
 			: {}),
