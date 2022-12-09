@@ -1,0 +1,20 @@
+subscription events($apiKey: String!) {
+	events @auth(apiKey: $apiKey) {
+		... on ClientConnectedEvent {
+            connectedData: data {
+                type
+                version
+                flashGuid
+            }
+            connectedEvent: event
+        }
+		... on ClientDisconnectedEvent {
+            disconnectedData: data {
+                type
+                version
+                flashGuid
+            }
+            disconnectedEvent: event
+        }
+	}
+}

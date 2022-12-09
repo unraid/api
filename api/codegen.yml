@@ -3,7 +3,7 @@ emitLegacyCommonJSImports: false
 ignoreNoDocuments: true
 
 schema: 
-  'https://staging.mothership.unraid.net/graphql': 
+  'https://staging.mothership.unraid.net/ws': 
     headers:
       origin: 'https://forums.unraid.net'
 generates:
@@ -12,7 +12,9 @@ generates:
       useTypeImports: true
     plugins:
       - typescript
+      - typescript-operations
       - add: { content: '/* eslint-disable */' }
+documents: 'src/graphql/mothership/**/*.graphql'
 config:
   namingConvention: 
     typeNames: './fix-array-type.cjs'
