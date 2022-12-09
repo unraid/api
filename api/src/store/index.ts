@@ -1,7 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit';
 import { paths } from '@app/store/modules/paths';
 import { mothership } from '@app/store/modules/minigraph';
-import { config } from '@app/store/modules/config';
+import { configReducer } from '@app/store/modules/config';
 import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
 import { registration } from '@app/store/modules/registration';
@@ -13,7 +13,7 @@ import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
 
 export const store = configureStore({
 	reducer: {
-		config: config.reducer,
+		config: configReducer,
 		minigraph: mothership.reducer,
 		paths: paths.reducer,
 		servers: servers.reducer,

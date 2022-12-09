@@ -4,7 +4,7 @@ import { disableUpnp, enableUpnp } from '@app/store/modules/upnp';
 import { upnpLogger } from '@app/core/log';
 import { loadConfigFile } from '@app/store/modules/config';
 import { loadSingleStateFile, loadStateFiles } from '@app/store/modules/emhttp';
-import { FileLoadStatus } from '../types';
+import { FileLoadStatus } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
 
 const shouldUpnpBeEnabled = (state: RootState | null): boolean => {

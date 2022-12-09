@@ -51,11 +51,10 @@ export const initialState: SliceState = {
 	},
 };
 
-export const logoutUser = createAsyncThunk<void>('config/logout-user', async () => {
-	const { store } = await import ('@app/store');
+export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async (_, { dispatch }) => {
 	const { pubsub } = await import ('@app/core/pubsub');
 	// Clear servers cache
-	store.dispatch(clearAllServers());
+	dispatch(clearAllServers());
 
 	// Publish to servers endpoint
 	await pubsub.publish('servers', {
@@ -164,5 +163,8 @@ export const config = createSlice({
 		});
 	},
 });
+const { actions, reducer } = config;
 
-export const { updateUserConfig, setConnectionStatus, updateAccessTokens, setUpnpState, setWanPortToValue } = config.actions;
+export const { updateUserConfig, setConnectionStatus, updateAccessTokens, setUpnpState, setWanPortToValue } = actions;
+
+export const configReducer = reducer;
