@@ -34,6 +34,40 @@ export type ArrayCapacityBytes = {
   used?: Maybe<Scalars['Long']>;
 };
 
+export type ArrayCapacityBytesInput = {
+  free?: InputMaybe<Scalars['Long']>;
+  total?: InputMaybe<Scalars['Long']>;
+  used?: InputMaybe<Scalars['Long']>;
+};
+
+export type ArrayCapacityInput = {
+  bytes?: InputMaybe<ArrayCapacityBytesInput>;
+};
+
+export type ClientConnectedEvent = {
+  __typename?: 'ClientConnectedEvent';
+  data?: Maybe<ClientConnectionEventData>;
+  type: EventType;
+};
+
+export type ClientConnectionEventData = {
+  __typename?: 'ClientConnectionEventData';
+  flashGuid?: Maybe<Scalars['String']>;
+  type: ClientType;
+  version: Scalars['String'];
+};
+
+export type ClientDisconnectedEvent = {
+  __typename?: 'ClientDisconnectedEvent';
+  data?: Maybe<ClientConnectionEventData>;
+  type?: Maybe<EventType>;
+};
+
+export enum ClientType {
+  Api = 'API',
+  Dashboard = 'DASHBOARD'
+}
+
 export type Config = {
   __typename?: 'Config';
   error?: Maybe<ConfigErrorState>;
@@ -49,16 +83,16 @@ export enum ConfigErrorState {
 
 export type Dashboard = {
   __typename?: 'Dashboard';
-  apps: DashboardApps;
+  apps?: Maybe<DashboardApps>;
   array: DashboardArray;
-  config: DashboardConfig;
-  display: DashboardDisplay;
-  os: DashboardOs;
-  services: Array<Maybe<DashboardService>>;
-  twoFactor: DashboardTwoFactor;
-  vars: DashboardVars;
-  versions: DashboardVersions;
-  vms: DashboardVms;
+  config?: Maybe<DashboardConfig>;
+  display?: Maybe<DashboardDisplay>;
+  os?: Maybe<DashboardOs>;
+  services?: Maybe<Array<Maybe<DashboardService>>>;
+  twoFactor?: Maybe<DashboardTwoFactor>;
+  vars?: Maybe<DashboardVars>;
+  versions?: Maybe<DashboardVersions>;
+  vms?: Maybe<DashboardVms>;
 };
 
 export type DashboardApps = {
@@ -67,10 +101,22 @@ export type DashboardApps = {
   started?: Maybe<Scalars['Int']>;
 };
 
+export type DashboardAppsInput = {
+  installed?: InputMaybe<Scalars['Int']>;
+  started?: InputMaybe<Scalars['Int']>;
+};
+
 export type DashboardArray = {
   __typename?: 'DashboardArray';
   /** Current array capacity */
   capacity: ArrayCapacity;
+  /** Current array state */
+  state: Scalars['String'];
+};
+
+export type DashboardArrayInput = {
+  /** Current array capacity */
+  capacity: ArrayCapacityInput;
   /** Current array state */
   state: Scalars['String'];
 };
@@ -83,10 +129,22 @@ export type DashboardCase = {
   url?: Maybe<Scalars['String']>;
 };
 
+export type DashboardCaseInput = {
+  base64?: InputMaybe<Scalars['String']>;
+  error?: InputMaybe<Scalars['String']>;
+  icon?: InputMaybe<Scalars['String']>;
+  url?: InputMaybe<Scalars['String']>;
+};
+
 export type DashboardConfig = {
   __typename?: 'DashboardConfig';
   error?: Maybe<Scalars['String']>;
   valid?: Maybe<Scalars['Boolean']>;
+};
+
+export type DashboardConfigInput = {
+  error?: InputMaybe<Scalars['String']>;
+  valid?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type DashboardDisplay = {
@@ -94,10 +152,32 @@ export type DashboardDisplay = {
   case?: Maybe<DashboardCase>;
 };
 
+export type DashboardDisplayInput = {
+  case?: InputMaybe<DashboardCaseInput>;
+};
+
+export type DashboardInput = {
+  apps?: InputMaybe<DashboardAppsInput>;
+  array: DashboardArrayInput;
+  config?: InputMaybe<DashboardConfigInput>;
+  display?: InputMaybe<DashboardDisplayInput>;
+  os?: InputMaybe<DashboardOsInput>;
+  services?: InputMaybe<Array<InputMaybe<DashboardServiceInput>>>;
+  twoFactor?: InputMaybe<DashboardTwoFactorInput>;
+  vars?: InputMaybe<DashboardVarsInput>;
+  versions?: InputMaybe<DashboardVersionsInput>;
+  vms?: InputMaybe<DashboardVmsInput>;
+};
+
 export type DashboardOs = {
   __typename?: 'DashboardOs';
   hostname?: Maybe<Scalars['String']>;
   uptime?: Maybe<Scalars['DateTime']>;
+};
+
+export type DashboardOsInput = {
+  hostname?: InputMaybe<Scalars['String']>;
+  uptime?: InputMaybe<Scalars['DateTime']>;
 };
 
 export type DashboardService = {
@@ -108,9 +188,20 @@ export type DashboardService = {
   version?: Maybe<Scalars['String']>;
 };
 
+export type DashboardServiceInput = {
+  name?: InputMaybe<Scalars['String']>;
+  online?: InputMaybe<Scalars['Boolean']>;
+  uptime?: InputMaybe<DashboardServiceUptimeInput>;
+  version?: InputMaybe<Scalars['String']>;
+};
+
 export type DashboardServiceUptime = {
   __typename?: 'DashboardServiceUptime';
   timestamp?: Maybe<Scalars['DateTime']>;
+};
+
+export type DashboardServiceUptimeInput = {
+  timestamp?: InputMaybe<Scalars['DateTime']>;
 };
 
 export type DashboardTwoFactor = {
@@ -119,14 +210,27 @@ export type DashboardTwoFactor = {
   remote?: Maybe<DashboardTwoFactorRemote>;
 };
 
+export type DashboardTwoFactorInput = {
+  local?: InputMaybe<DashboardTwoFactorLocalInput>;
+  remote?: InputMaybe<DashboardTwoFactorRemoteInput>;
+};
+
 export type DashboardTwoFactorLocal = {
   __typename?: 'DashboardTwoFactorLocal';
   enabled?: Maybe<Scalars['Boolean']>;
 };
 
+export type DashboardTwoFactorLocalInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
+};
+
 export type DashboardTwoFactorRemote = {
   __typename?: 'DashboardTwoFactorRemote';
   enabled?: Maybe<Scalars['Boolean']>;
+};
+
+export type DashboardTwoFactorRemoteInput = {
+  enabled?: InputMaybe<Scalars['Boolean']>;
 };
 
 export type DashboardVars = {
@@ -136,15 +240,30 @@ export type DashboardVars = {
   regTy?: Maybe<Scalars['String']>;
 };
 
+export type DashboardVarsInput = {
+  flashGuid?: InputMaybe<Scalars['String']>;
+  regState?: InputMaybe<Scalars['String']>;
+  regTy?: InputMaybe<Scalars['String']>;
+};
+
 export type DashboardVersions = {
   __typename?: 'DashboardVersions';
   unraid?: Maybe<Scalars['String']>;
+};
+
+export type DashboardVersionsInput = {
+  unraid?: InputMaybe<Scalars['String']>;
 };
 
 export type DashboardVms = {
   __typename?: 'DashboardVms';
   installed?: Maybe<Scalars['Int']>;
   started?: Maybe<Scalars['Int']>;
+};
+
+export type DashboardVmsInput = {
+  installed?: InputMaybe<Scalars['Int']>;
+  started?: InputMaybe<Scalars['Int']>;
 };
 
 export type Display = {
@@ -159,6 +278,12 @@ export type DisplayCase = {
   icon: Scalars['String'];
   url: Scalars['String'];
 };
+
+export type Event = ClientConnectedEvent | ClientDisconnectedEvent;
+
+export enum EventType {
+  ClientConnected = 'CLIENT_CONNECTED'
+}
 
 export enum Importance {
   Alert = 'alert',
@@ -222,11 +347,17 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   sendNotification?: Maybe<Notification>;
+  updateDashboard?: Maybe<Dashboard>;
 };
 
 
 export type MutationsendNotificationArgs = {
   notification: NotificationInput;
+};
+
+
+export type MutationupdateDashboardArgs = {
+  data: DashboardInput;
 };
 
 export type Notification = {
@@ -363,6 +494,7 @@ export type Subscription = {
   config?: Maybe<Config>;
   dashboard?: Maybe<Dashboard>;
   display?: Maybe<Display>;
+  events?: Maybe<Array<Maybe<Event>>>;
   info?: Maybe<Info>;
   me?: Maybe<Me>;
   online?: Maybe<Scalars['Boolean']>;
