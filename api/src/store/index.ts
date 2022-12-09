@@ -9,7 +9,7 @@ import { cache } from '@app/store/modules/cache';
 import { dashboard } from '@app/store/modules/dashboard';
 import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
-import { listenerMiddleware } from '@app/store/listeners/listenerMiddleware';
+import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
 
 export const store = configureStore({
 	reducer: {
