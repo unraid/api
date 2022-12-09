@@ -8,7 +8,7 @@ import { logger } from '@app/core/log';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
 import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/check-mothership-restarting';
-import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
+import { type Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters, store } from '@app/store';
 import { getCloudCache } from '@app/store/getters';
 import { setCloudCheck } from '@app/store/modules/cache';
@@ -60,9 +60,6 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 
 		// Check auth, rate limiting, etc.
 		await checkMothershipAuthentication(apiVersion, apiKey);
-
-		// Check if we got a 1012 which means mothership is restarting
-		checkMothershipRestarting();
 
 		// All is good
 		const result: Cloud['cloud'] = { status: 'ok', error: null, ip: cloudIp };
