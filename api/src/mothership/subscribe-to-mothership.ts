@@ -1,13 +1,13 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { ExecutionResult } from 'graphql';
+import { type ExecutionResult } from 'graphql';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { GraphqlClient } from './graphql-client';
 import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/modules/minigraph';
 import { getters, store } from '@app/store';
-import { cacheServers, Server } from '@app/store/modules/servers';
+import { cacheServers, type Server } from '@app/store/modules/servers';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { gql } from 'graphql-tag';
+import { eventsDocument, type eventsSubscription, ClientType } from '@app/graphql/generated/types';
 
 type ServersExecutionResult = ExecutionResult<{ servers: Server[] }>;
 
@@ -53,37 +53,11 @@ export const subscribeToServers = async (apiKey: string) => {
 	await GraphqlClient.subscribe<ServersExecutionResult>({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
 };
 
-type Event = {
-	type: 'CLIENT_CONNECTED' | 'CLIENT_DISCONNECTED';
-	data: {
-		type: 'dashboard';
-		dashboardVersion: string;
-	} | {
-		type: 'API';
-		flashGuid: string;
-		apiVersion: string;
-	};
-} | {
-	type: 'GRAPHQL_QUERY' | 'GRAPHQL_MUTATION';
-	data: {
-		id: string | number;
-		query: string;
-		variables: Record<string, string | number | boolean>;
-	};
-};
-
-type EventsExecutionResult = ExecutionResult<{ events: Event[] }>;
+type EventsExecutionResult = ExecutionResult<{ events: eventsSubscription['events'] }>;
 
 export const subscribeToEvents = async (apiKey: string) => {
 	const query = {
-		query: gql`
-			subscription events($apiKey: String!) {
-				events @auth(apiKey: $apiKey) {
-					type
-					data
-				}
-			}
-		`.loc!.source.body,
+		query: eventsDocument,
 		variables: { apiKey },
 	};
 
@@ -103,27 +77,31 @@ export const subscribeToEvents = async (apiKey: string) => {
 			}
 
 			mothershipLogger.trace('Received new events from mothership %s', JSON.stringify(data));
+			if (!data.events) {
+				return;
+			}
+
 			for (const event of data.events) {
-				switch (event.type) {
-					case 'CLIENT_CONNECTED':
+				switch (event?.__typename) {
+					case 'ClientConnectedEvent':
 						// Another server connected to mothership
-						if (event.data.type === 'API') {
+						if (event.connectedData?.type === 'API') {
 							// This could trigger a fetch for more server data?
 
 							// Another server connected with this flashGUID?
 							// TODO: maybe we should disconnect at this point?
-							if (event.data.flashGuid === getters.emhttp().var.flashGuid) return;
+							// if (event.connectedData.flashGuid === getters.emhttp().var.flashGuid) return;
 						}
 
 						// Someone opened the dashboard
-						if (event.data.type === 'dashboard') {
+						if (event.connectedData?.type === ClientType.Dashboard) {
 							store.dispatch(startDashboardProducer());
 						}
 
 						break;
-					case 'CLIENT_DISCONNECTED':
+					case 'ClientDisconnectedEvent':
 						// The dashboard was closed or went idle
-						if (event.data.type === 'dashboard') {
+						if (event.disconnectedData?.type === ClientType.Dashboard) {
 							store.dispatch(stopDashboardProducer());
 						}
 

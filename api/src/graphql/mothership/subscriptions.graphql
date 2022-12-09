@@ -6,7 +6,7 @@ subscription events($apiKey: String!) {
                 version
                 flashGuid
             }
-            connectedEvent: event
+            connectedEvent: type
         }
 		... on ClientDisconnectedEvent {
             disconnectedData: data {
@@ -14,7 +14,7 @@ subscription events($apiKey: String!) {
                 version
                 flashGuid
             }
-            disconnectedEvent: event
+            disconnectedEvent: type
         }
 	}
 }
