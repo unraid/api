@@ -1,0 +1,7 @@
+mutation updateDashboard($data: DashboardInput!) {
+	updateDashboard(data: $data) {
+		apps {
+			installed
+		}
+	}
+}

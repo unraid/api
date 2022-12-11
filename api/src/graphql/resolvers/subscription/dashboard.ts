@@ -5,8 +5,10 @@ import { pubsub } from '@app/core/pubsub';
 import { getters, store } from '@app/store';
 import { saveDataPacket } from '@app/store/modules/dashboard';
 import { isEqual } from 'lodash';
-import { Dashboard } from '@app/common/run-time/dashboard';
+import { type Dashboard } from '@app/common/run-time/dashboard';
 import { GraphqlClient } from '@app/mothership/graphql-client';
+import { updateDashboardDocument, type updateDashboardMutation } from '../../generated/types';
+import { type ExecutionResult } from 'graphql';
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
 
@@ -95,10 +97,10 @@ export const publishToDashboard = async () => {
 		});
 
 		// Update mothership
-		await GraphqlClient.query({
-			query: 'mutation($dashboard:DashboardInput!){updateDashboard(dashboard:$dashboard){ apps { installed } }}',
+		await GraphqlClient.query<ExecutionResult<updateDashboardMutation>>({
+			query: updateDashboardDocument.loc!.source.body,
 			variables: {
-				dashboard: dataPacket,
+				data: dataPacket,
 			},
 		});
 	} catch (error: unknown) {

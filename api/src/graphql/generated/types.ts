@@ -61,7 +61,7 @@ export type ClientConnectionEventData = {
 export type ClientDisconnectedEvent = {
   __typename?: 'ClientDisconnectedEvent';
   data?: Maybe<ClientConnectionEventData>;
-  type?: Maybe<EventType>;
+  type: EventType;
 };
 
 export enum ClientType {
@@ -85,7 +85,7 @@ export enum ConfigErrorState {
 export type Dashboard = {
   __typename?: 'Dashboard';
   apps?: Maybe<DashboardApps>;
-  array: DashboardArray;
+  array?: Maybe<DashboardArray>;
   config?: Maybe<DashboardConfig>;
   display?: Maybe<DashboardDisplay>;
   os?: Maybe<DashboardOs>;
@@ -283,7 +283,8 @@ export type DisplayCase = {
 export type Event = ClientConnectedEvent | ClientDisconnectedEvent;
 
 export enum EventType {
-  ClientConnected = 'CLIENT_CONNECTED'
+  ClientConnectedEvent = 'ClientConnectedEvent',
+  ClientDisconnectedEvent = 'ClientDisconnectedEvent'
 }
 
 export enum Importance {
@@ -575,12 +576,20 @@ export type Vms = {
   domain?: Maybe<Array<VmDomain>>;
 };
 
+export type updateDashboardMutationVariables = Exact<{
+  data: DashboardInput;
+}>;
+
+
+export type updateDashboardMutation = { __typename?: 'Mutation', updateDashboard?: { __typename?: 'Dashboard', apps?: { __typename?: 'DashboardApps', installed?: number | null } | null } | null };
+
 export type eventsSubscriptionVariables = Exact<{
   apiKey: Scalars['String'];
 }>;
 
 
-export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename?: 'ClientConnectedEvent', connectedEvent: EventType, connectedData?: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, flashGuid?: string | null } | null } | { __typename?: 'ClientDisconnectedEvent', disconnectedEvent?: EventType | null, disconnectedData?: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, flashGuid?: string | null } | null } | null> | null };
+export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename?: 'ClientConnectedEvent', connectedEvent: EventType, connectedData?: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, flashGuid?: string | null } | null } | { __typename?: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData?: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, flashGuid?: string | null } | null } | null> | null };
 
 
+export const updateDashboardDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateDashboard"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DashboardInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDashboard"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installed"}}]}}]}}]}}]} as unknown as DocumentNode<updateDashboardMutation, updateDashboardMutationVariables>;
 export const eventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"events"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientConnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"connectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"flashGuid"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"connectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientDisconnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"disconnectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"flashGuid"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"disconnectedEvent"},"name":{"kind":"Name","value":"type"}}]}}]}}]}}]} as unknown as DocumentNode<eventsSubscription, eventsSubscriptionVariables>;
