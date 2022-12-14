@@ -1,7 +1,7 @@
 import { minigraphLogger } from '@app/core/log';
-import { createAsyncThunk, createSlice, EnhancedStore, PayloadAction } from '@reduxjs/toolkit';
-import { Client } from 'graphql-ws';
-import { RootState, store } from '@app/store';
+import { createAsyncThunk, createSlice, type EnhancedStore, type PayloadAction } from '@reduxjs/toolkit';
+import { type Client } from 'graphql-ws';
+import { type RootState, type store } from '@app/store';
 import { createGraphqlClient } from '@app/mothership/graphql-client';
 
 export enum MinigraphStatus {

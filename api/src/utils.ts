@@ -1,8 +1,10 @@
-import { mothershipLogger } from '@app/core';
+import { logger, mothershipLogger } from '@app/core';
 import { GraphqlClient } from '@app/mothership/graphql-client';
 import { type ExecutionResult } from 'graphql-ws';
 import { getters } from '@app/store';
 import type { Server } from '@app/store/modules/servers';
+import { print } from 'graphql';
+import { queryServersFromMothershipDocument } from './graphql/generated/types';
 
 export const getServers = async (apiKey: string) => {
 	try {
@@ -10,8 +12,9 @@ export const getServers = async (apiKey: string) => {
 			throw new Error('No API Key Set, Skipping Server Fetch');
 		}
 
+		logger.debug('Fetching servers for user');
 		const query = {
-			query: 'query($apiKey: String!) { servers @auth(apiKey: $apiKey) { owner { username url avatar } guid apikey name status wanip lanip localurl remoteurl } }',
+			query: print(queryServersFromMothershipDocument),
 			variables: {
 				apiKey,
 			},

@@ -19,3 +19,4 @@ documents: 'src/graphql/mothership/**/*.graphql'
 config:
   namingConvention: 
     typeNames: './fix-array-type.cjs'
+    enumValues: 'change-case#upperCase'

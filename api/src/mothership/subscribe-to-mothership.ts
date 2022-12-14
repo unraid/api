@@ -1,5 +1,5 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { type ExecutionResult } from 'graphql';
+import { type ExecutionResult, print } from 'graphql';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { GraphqlClient } from './graphql-client';
@@ -7,15 +7,13 @@ import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/mo
 import { getters, store } from '@app/store';
 import { cacheServers, type Server } from '@app/store/modules/servers';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { eventsDocument, type eventsSubscription, ClientType } from '@app/graphql/generated/types';
+import { eventsDocument, type eventsSubscription, ClientType, serversDocument } from '@app/graphql/generated/types';
 
 type ServersExecutionResult = ExecutionResult<{ servers: Server[] }>;
 
 export const subscribeToServers = async (apiKey: string) => {
 	const query = {
-		query: `subscription servers ($apiKey: String!) {
-            servers @auth(apiKey: $apiKey)
-        }`,
+		query: print(serversDocument),
 		variables: {
 			apiKey,
 		},
@@ -57,7 +55,7 @@ type EventsExecutionResult = ExecutionResult<{ events: eventsSubscription['event
 
 export const subscribeToEvents = async (apiKey: string) => {
 	const query = {
-		query: eventsDocument,
+		query: print(eventsDocument),
 		variables: { apiKey },
 	};
 
@@ -81,11 +79,13 @@ export const subscribeToEvents = async (apiKey: string) => {
 				return;
 			}
 
-			for (const event of data.events) {
+			for (const event of data.events.filter(event => event)) {
 				switch (event?.__typename) {
-					case 'ClientConnectedEvent':
+					case 'ClientConnectedEvent': {
 						// Another server connected to mothership
-						if (event.connectedData?.type === 'API') {
+						const { connectedData: { type, apiKey: eventApiKey } } = event;
+
+						if (type === ClientType.API) {
 							// This could trigger a fetch for more server data?
 
 							// Another server connected with this flashGUID?
@@ -94,18 +94,24 @@ export const subscribeToEvents = async (apiKey: string) => {
 						}
 
 						// Someone opened the dashboard
-						if (event.connectedData?.type === ClientType.Dashboard) {
+						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
 							store.dispatch(startDashboardProducer());
 						}
 
 						break;
-					case 'ClientDisconnectedEvent':
+					}
+
+					case 'ClientDisconnectedEvent': {
 						// The dashboard was closed or went idle
-						if (event.disconnectedData?.type === ClientType.Dashboard) {
+						const { disconnectedData: { type, apiKey: eventApiKey } } = event;
+
+						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
 							store.dispatch(stopDashboardProducer());
 						}
 
 						break;
+					}
+
 					default:
 						break;
 				}
@@ -115,7 +121,7 @@ export const subscribeToEvents = async (apiKey: string) => {
 		}
 	};
 
-	await GraphqlClient.subscribe<EventsExecutionResult>({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
+	await GraphqlClient.subscribe<EventsExecutionResult>({ query, nextFn, subscriptionKey: SubscriptionKey.EVENTS });
 };
 
 export const subscribeToMothership = async () => {
@@ -140,6 +146,7 @@ export const subscribeToMothership = async () => {
 
 		// Subscribe to "events"
 		await subscribeToEvents(getters.config().remote.apikey);
+		await subscribeToServers(getters.config().remote.apikey);
 	} catch (error: unknown) {
 		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
 	}

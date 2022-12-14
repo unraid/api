@@ -57,7 +57,7 @@ export const createGraphqlClient = () => {
 	});
 	client.on('message', message => {
 		minigraphLogger.addContext('message', message);
-		minigraphLogger.trace('Message from Minigraph');
+		minigraphLogger.trace('Message from Mothership');
 		minigraphLogger.removeContext('message');
 	});
 	return client;
