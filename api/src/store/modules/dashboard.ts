@@ -2,10 +2,11 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { getPublishToDashboardJob } from '@app/graphql/resolvers/subscription/jobs/dashboard-jobs';
 import { dashboardLogger } from '@app/core/log';
 import { type Dashboard } from '@app/common/run-time/dashboard';
+import { type DashboardInput } from '../../graphql/generated/client/graphql';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
-	lastDataPacket: Dashboard | null;
+	lastDataPacket: DashboardInput | null;
 	connectedToDashboard: number;
 }
 
@@ -42,7 +43,7 @@ export const dashboard = createSlice({
 
 			getPublishToDashboardJob().stop();
 		},
-		saveDataPacket(state, action: PayloadAction<{ lastDataPacket: Dashboard | null }>) {
+		saveDataPacket(state, action: PayloadAction<{ lastDataPacket: DashboardInput | null }>) {
 			state.lastDataPacket = action.payload.lastDataPacket;
 			state.lastDataPacketTimestamp = Date.now();
 		},

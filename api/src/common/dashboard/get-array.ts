@@ -1,7 +1,8 @@
 import { addTogether } from '@app/core/utils/misc/add-together';
 import { getters } from '@app/store';
+import { type DashboardArrayInput } from '../../graphql/generated/client/graphql';
 
-export const getArray = () => {
+export const getArray = (): DashboardArrayInput => {
 	const emhttp = getters.emhttp();
 
 	const arrayState = emhttp.var.mdState.toLowerCase();
@@ -20,6 +21,12 @@ export const getArray = () => {
 	// Max
 	const maxDisks = emhttp.var.maxArraysz ?? disks.length;
 
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const disksPayload = {
+		free: `${maxDisks - disks.length}`,
+		used: `${disks.length}`,
+		total: `${maxDisks}`,
+	};
 	return {
 		state,
 		capacity: {
@@ -27,11 +34,6 @@ export const getArray = () => {
 				free: `${disksFreeBytes}`,
 				used: `${disksTotalBytes - disksFreeBytes}`,
 				total: `${disksTotalBytes}`,
-			},
-			disks: {
-				free: `${maxDisks - disks.length}`,
-				used: `${disks.length}`,
-				total: `${maxDisks}`,
 			},
 		},
 	};

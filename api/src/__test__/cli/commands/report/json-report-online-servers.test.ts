@@ -55,7 +55,6 @@ vi.mock('got', () => ({
 					cloud: {
 						error: null,
 						apiKey: { valid: true, error: null },
-						relay: { status: 'connected', error: null, timeout: null },
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
