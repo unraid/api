@@ -2,8 +2,8 @@
 
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
-import { cloudConnector } from '../cloud-connector';
 import { updateConnectionStatusInConfig } from '@app/mothership/update-connection-status-in-config';
+import { subscribeToMothership } from '../subscribe-to-mothership';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.Start()
@@ -14,10 +14,10 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 
 	@Cron.Start()
 	@Cron.PreventOverlap
-	@Cron(Expression.EVERY_10_SECONDS)
+	@Cron(Expression.EVERY_30_SECONDS)
 	async checkCloudConnection() {
 		try {
-			await cloudConnector.checkCloudConnections();
+			await subscribeToMothership();
 		} catch (error: unknown) {
 			mothershipLogger.error('Failed checking connection with error %s.', error);
 		}

@@ -4,7 +4,7 @@ subscription events($apiKey: String!) {
             connectedData: data {
                 type
                 version
-                flashGuid
+                apiKey
             }
             connectedEvent: type
         }
@@ -12,9 +12,13 @@ subscription events($apiKey: String!) {
             disconnectedData: data {
                 type
                 version
-                flashGuid
+                apiKey
             }
             disconnectedEvent: type
         }
 	}
+}
+
+subscription servers ($apiKey: String!) {
+    servers @auth(apiKey: $apiKey)
 }

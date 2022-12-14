@@ -1,7 +1,7 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { getPublishToDashboardJob } from '@app/graphql/resolvers/subscription/jobs/dashboard-jobs';
 import { dashboardLogger } from '@app/core/log';
-import { Dashboard } from '@app/common/run-time/dashboard';
+import { type Dashboard } from '@app/common/run-time/dashboard';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
@@ -21,6 +21,7 @@ export const dashboard = createSlice({
 	reducers: {
 		startDashboardProducer(state) {
 			state.connectedToDashboard += 1;
+			dashboardLogger.trace('Starting dashboard producer, clients connected: %s', state.connectedToDashboard);
 
 			// It's already been started
 			if (state.connectedToDashboard >= 2) return;

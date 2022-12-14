@@ -47,26 +47,26 @@ export type ArrayCapacityInput = {
 
 export type ClientConnectedEvent = {
   __typename?: 'ClientConnectedEvent';
-  data?: Maybe<ClientConnectionEventData>;
+  data: ClientConnectionEventData;
   type: EventType;
 };
 
 export type ClientConnectionEventData = {
   __typename?: 'ClientConnectionEventData';
-  flashGuid?: Maybe<Scalars['String']>;
+  apiKey: Scalars['String'];
   type: ClientType;
   version: Scalars['String'];
 };
 
 export type ClientDisconnectedEvent = {
   __typename?: 'ClientDisconnectedEvent';
-  data?: Maybe<ClientConnectionEventData>;
+  data: ClientConnectionEventData;
   type: EventType;
 };
 
 export enum ClientType {
-  Api = 'API',
-  Dashboard = 'DASHBOARD'
+  API = 'API',
+  DASHBOARD = 'DASHBOARD'
 }
 
 export type Config = {
@@ -76,10 +76,10 @@ export type Config = {
 };
 
 export enum ConfigErrorState {
-  Invalid = 'INVALID',
-  NoKeyServer = 'NO_KEY_SERVER',
-  UnknownError = 'UNKNOWN_ERROR',
-  Withdrawn = 'WITHDRAWN'
+  INVALID = 'INVALID',
+  NO_KEY_SERVER = 'NO_KEY_SERVER',
+  UNKNOWN_ERROR = 'UNKNOWN_ERROR',
+  WITHDRAWN = 'WITHDRAWN'
 }
 
 export type Dashboard = {
@@ -110,9 +110,9 @@ export type DashboardAppsInput = {
 export type DashboardArray = {
   __typename?: 'DashboardArray';
   /** Current array capacity */
-  capacity: ArrayCapacity;
+  capacity?: Maybe<ArrayCapacity>;
   /** Current array state */
-  state: Scalars['String'];
+  state?: Maybe<Scalars['String']>;
 };
 
 export type DashboardArrayInput = {
@@ -283,14 +283,30 @@ export type DisplayCase = {
 export type Event = ClientConnectedEvent | ClientDisconnectedEvent;
 
 export enum EventType {
-  ClientConnectedEvent = 'ClientConnectedEvent',
-  ClientDisconnectedEvent = 'ClientDisconnectedEvent'
+  CLIENT_CONNECTED_EVENT = 'CLIENT_CONNECTED_EVENT',
+  CLIENT_DISCONNECTED_EVENT = 'CLIENT_DISCONNECTED_EVENT'
 }
 
+export type FullServerDetails = {
+  __typename?: 'FullServerDetails';
+  array?: Maybe<ArrayType>;
+  config?: Maybe<Config>;
+  dashboard?: Maybe<Dashboard>;
+  display?: Maybe<Display>;
+  domains?: Maybe<Array<VmDomain>>;
+  info?: Maybe<Info>;
+  me?: Maybe<Me>;
+  online?: Maybe<Scalars['Boolean']>;
+  services?: Maybe<Array<ServiceObject>>;
+  twoFactor?: Maybe<TwoFactorWithoutToken>;
+  vars?: Maybe<Vars>;
+  vms?: Maybe<Vms>;
+};
+
 export enum Importance {
-  Alert = 'alert',
-  Info = 'info',
-  Warning = 'warning'
+  ALERT = 'ALERT',
+  INFO = 'INFO',
+  WARNING = 'WARNING'
 }
 
 export type Info = {
@@ -349,7 +365,7 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   sendNotification?: Maybe<Notification>;
-  updateDashboard?: Maybe<Dashboard>;
+  updateDashboard: Dashboard;
 };
 
 
@@ -381,11 +397,18 @@ export type NotificationInput = {
 };
 
 export enum NotificationStatus {
-  FailedToSend = 'FAILED_TO_SEND',
-  NotFound = 'NOT_FOUND',
-  Pending = 'PENDING',
-  Sent = 'SENT'
+  FAILED_TO_SEND = 'FAILED_TO_SEND',
+  NOT_FOUND = 'NOT_FOUND',
+  PENDING = 'PENDING',
+  SENT = 'SENT'
 }
+
+export type ProfileModel = {
+  __typename?: 'ProfileModel';
+  avatar?: Maybe<Scalars['String']>;
+  url?: Maybe<Scalars['String']>;
+  username?: Maybe<Scalars['String']>;
+};
 
 export type Query = {
   __typename?: 'Query';
@@ -397,8 +420,7 @@ export type Query = {
   info?: Maybe<Info>;
   me?: Maybe<Me>;
   online?: Maybe<Scalars['Boolean']>;
-  pluginModule?: Maybe<Scalars['JSON']>;
-  servers?: Maybe<Array<Maybe<Server>>>;
+  servers: Array<Maybe<Server>>;
   services?: Maybe<Array<Maybe<ServiceObject>>>;
   status?: Maybe<ServerStatus>;
   twoFactor?: Maybe<TwoFactorWithToken>;
@@ -406,52 +428,46 @@ export type Query = {
   vms?: Maybe<Vms>;
 };
 
-
-export type QuerypluginModuleArgs = {
-  module?: InputMaybe<Scalars['String']>;
-  plugin?: InputMaybe<Scalars['String']>;
-};
-
 export enum RegistrationState {
   /** Basic */
-  Basic = 'BASIC',
+  BASIC = 'BASIC',
   /** BLACKLISTED */
-  Eblacklisted = 'EBLACKLISTED',
+  EBLACKLISTED = 'EBLACKLISTED',
   /** BLACKLISTED */
-  Eblacklisted1 = 'EBLACKLISTED1',
+  EBLACKLISTED1 = 'EBLACKLISTED1',
   /** BLACKLISTED */
-  Eblacklisted2 = 'EBLACKLISTED2',
+  EBLACKLISTED2 = 'EBLACKLISTED2',
   /** Trial Expired */
-  Eexpired = 'EEXPIRED',
+  EEXPIRED = 'EEXPIRED',
   /** GUID Error */
-  Eguid = 'EGUID',
+  EGUID = 'EGUID',
   /** Multiple License Keys Present */
-  Eguid1 = 'EGUID1',
+  EGUID1 = 'EGUID1',
   /** Trial Requires Internet Connection */
-  Enoconn = 'ENOCONN',
+  ENOCONN = 'ENOCONN',
   /** No Flash */
-  Enoflash = 'ENOFLASH',
-  Enoflash1 = 'ENOFLASH1',
-  Enoflash2 = 'ENOFLASH2',
-  Enoflash3 = 'ENOFLASH3',
-  Enoflash4 = 'ENOFLASH4',
-  Enoflash5 = 'ENOFLASH5',
-  Enoflash6 = 'ENOFLASH6',
-  Enoflash7 = 'ENOFLASH7',
+  ENOFLASH = 'ENOFLASH',
+  ENOFLASH1 = 'ENOFLASH1',
+  ENOFLASH2 = 'ENOFLASH2',
+  ENOFLASH3 = 'ENOFLASH3',
+  ENOFLASH4 = 'ENOFLASH4',
+  ENOFLASH5 = 'ENOFLASH5',
+  ENOFLASH6 = 'ENOFLASH6',
+  ENOFLASH7 = 'ENOFLASH7',
   /** No Keyfile */
-  Enokeyfile = 'ENOKEYFILE',
+  ENOKEYFILE = 'ENOKEYFILE',
   /** No Keyfile */
-  Enokeyfile1 = 'ENOKEYFILE1',
+  ENOKEYFILE1 = 'ENOKEYFILE1',
   /** Missing key file */
-  Enokeyfile2 = 'ENOKEYFILE2',
+  ENOKEYFILE2 = 'ENOKEYFILE2',
   /** Invalid installation */
-  Etrial = 'ETRIAL',
+  ETRIAL = 'ETRIAL',
   /** Plus */
-  Plus = 'PLUS',
+  PLUS = 'PLUS',
   /** Pro */
-  Pro = 'PRO',
+  PRO = 'PRO',
   /** Trial */
-  Trial = 'TRIAL'
+  TRIAL = 'TRIAL'
 }
 
 export type Server = {
@@ -467,6 +483,16 @@ export type Server = {
   wanip?: Maybe<Scalars['String']>;
 };
 
+export type ServerModel = {
+  apikey: Scalars['String'];
+  guid: Scalars['String'];
+  lanip: Scalars['String'];
+  localurl: Scalars['String'];
+  name: Scalars['String'];
+  remoteurl: Scalars['String'];
+  wanip: Scalars['String'];
+};
+
 export type ServerOwner = {
   __typename?: 'ServerOwner';
   avatar?: Maybe<Scalars['String']>;
@@ -475,9 +501,9 @@ export type ServerOwner = {
 };
 
 export enum ServerStatus {
-  NeverConnected = 'never_connected',
-  Offline = 'offline',
-  Online = 'online'
+  NEVER_CONNECTED = 'never_connected',
+  OFFLINE = 'offline',
+  ONLINE = 'online'
 }
 
 export type Service = {
@@ -500,19 +526,12 @@ export type Subscription = {
   info?: Maybe<Info>;
   me?: Maybe<Me>;
   online?: Maybe<Scalars['Boolean']>;
-  pluginModule?: Maybe<Scalars['JSON']>;
   servers?: Maybe<Scalars['JSON']>;
   services?: Maybe<Array<Maybe<ServiceObject>>>;
   status?: Maybe<ServerStatus>;
   twoFactor?: Maybe<TwoFactorWithoutToken>;
   vars?: Maybe<Vars>;
   vms?: Maybe<Vms>;
-};
-
-
-export type SubscriptionpluginModuleArgs = {
-  module?: InputMaybe<Scalars['String']>;
-  plugin?: InputMaybe<Scalars['String']>;
 };
 
 export type TwoFactorLocal = {
@@ -543,11 +562,19 @@ export type Uptime = {
   timestamp?: Maybe<Scalars['String']>;
 };
 
+export type UserProfileModelWithServers = {
+  __typename?: 'UserProfileModelWithServers';
+  profile: ProfileModel;
+  servers: Array<Server>;
+};
+
 export type Vars = {
   __typename?: 'Vars';
   expireTime?: Maybe<Scalars['DateTime']>;
   flashGuid?: Maybe<Scalars['String']>;
   regState?: Maybe<RegistrationState>;
+  regTm2?: Maybe<Scalars['String']>;
+  regTy?: Maybe<Scalars['String']>;
 };
 
 /** A virtual machine */
@@ -561,14 +588,14 @@ export type VmDomain = {
 };
 
 export enum VmState {
-  Crashed = 'CRASHED',
-  Idle = 'IDLE',
-  Nostate = 'NOSTATE',
-  Paused = 'PAUSED',
-  Pmsuspended = 'PMSUSPENDED',
-  Running = 'RUNNING',
-  Shutdown = 'SHUTDOWN',
-  Shutoff = 'SHUTOFF'
+  CRASHED = 'CRASHED',
+  IDLE = 'IDLE',
+  NOSTATE = 'NOSTATE',
+  PAUSED = 'PAUSED',
+  PMSUSPENDED = 'PMSUSPENDED',
+  RUNNING = 'RUNNING',
+  SHUTDOWN = 'SHUTDOWN',
+  SHUTOFF = 'SHUTOFF'
 }
 
 export type Vms = {
@@ -581,15 +608,31 @@ export type updateDashboardMutationVariables = Exact<{
 }>;
 
 
-export type updateDashboardMutation = { __typename?: 'Mutation', updateDashboard?: { __typename?: 'Dashboard', apps?: { __typename?: 'DashboardApps', installed?: number | null } | null } | null };
+export type updateDashboardMutation = { __typename?: 'Mutation', updateDashboard: { __typename?: 'Dashboard', apps?: { __typename?: 'DashboardApps', installed?: number | null } | null } };
+
+export type queryServersFromMothershipQueryVariables = Exact<{
+  apiKey: Scalars['String'];
+}>;
+
+
+export type queryServersFromMothershipQuery = { __typename?: 'Query', servers: Array<{ __typename?: 'Server', guid?: string | null, apikey?: string | null, name?: string | null, status?: ServerStatus | null, wanip?: string | null, lanip?: string | null, localurl?: string | null, remoteurl?: string | null, owner?: { __typename?: 'ServerOwner', username?: string | null, url?: string | null, avatar?: string | null } | null } | null> };
 
 export type eventsSubscriptionVariables = Exact<{
   apiKey: Scalars['String'];
 }>;
 
 
-export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename?: 'ClientConnectedEvent', connectedEvent: EventType, connectedData?: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, flashGuid?: string | null } | null } | { __typename?: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData?: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, flashGuid?: string | null } | null } | null> | null };
+export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename?: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename?: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | null> | null };
+
+export type serversSubscriptionVariables = Exact<{
+  apiKey: Scalars['String'];
+}>;
+
+
+export type serversSubscription = { __typename?: 'Subscription', servers?: any | null };
 
 
 export const updateDashboardDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateDashboard"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DashboardInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDashboard"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installed"}}]}}]}}]}}]} as unknown as DocumentNode<updateDashboardMutation, updateDashboardMutationVariables>;
-export const eventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"events"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientConnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"connectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"flashGuid"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"connectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientDisconnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"disconnectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"flashGuid"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"disconnectedEvent"},"name":{"kind":"Name","value":"type"}}]}}]}}]}}]} as unknown as DocumentNode<eventsSubscription, eventsSubscriptionVariables>;
+export const queryServersFromMothershipDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"queryServersFromMothership"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"servers"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"avatar"}}]}},{"kind":"Field","name":{"kind":"Name","value":"guid"}},{"kind":"Field","name":{"kind":"Name","value":"apikey"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"wanip"}},{"kind":"Field","name":{"kind":"Name","value":"lanip"}},{"kind":"Field","name":{"kind":"Name","value":"localurl"}},{"kind":"Field","name":{"kind":"Name","value":"remoteurl"}}]}}]}}]} as unknown as DocumentNode<queryServersFromMothershipQuery, queryServersFromMothershipQueryVariables>;
+export const eventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"events"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientConnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"connectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"connectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientDisconnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"disconnectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"disconnectedEvent"},"name":{"kind":"Name","value":"type"}}]}}]}}]}}]} as unknown as DocumentNode<eventsSubscription, eventsSubscriptionVariables>;
+export const serversDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"servers"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"servers"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}]}]}}]} as unknown as DocumentNode<serversSubscription, serversSubscriptionVariables>;
