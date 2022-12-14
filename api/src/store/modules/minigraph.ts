@@ -1,8 +1,4 @@
-import { minigraphLogger } from '@app/core/log';
-import { createAsyncThunk, createSlice, type EnhancedStore, type PayloadAction } from '@reduxjs/toolkit';
-import { type Client } from 'graphql-ws';
-import { type RootState, type store } from '@app/store';
-import { createGraphqlClient } from '@app/mothership/graphql-client';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 export enum MinigraphStatus {
 	'CONNECTING',
@@ -13,38 +9,28 @@ export enum MinigraphStatus {
 }
 
 export enum SubscriptionKey {
-	'SERVERS',
-	'EVENTS',
+	SERVERS = 'SERVERS',
+	EVENTS = 'EVENTS',
 }
 
 export type GraphqlClientSubscription = {
-	subscription: () => void;
-	subscriptionId: string;
 	subscriptionKey: SubscriptionKey;
 };
 
 export type MinigraphClientState = {
 	status: MinigraphStatus;
 	error: null | { message: string };
-	subscriptions: GraphqlClientSubscription[];
-	client: Client | null;
+	subscriptions: Record<SubscriptionKey, boolean>;
 };
 
 const initialState: MinigraphClientState = {
 	status: MinigraphStatus.DISCONNECTED,
 	error: null,
-	subscriptions: [],
-	client: null,
-};
-
-const createNewClient = createAsyncThunk<Client, void, { state: RootState }>(
-	'mothership/createNewClient',
-	async (_, { getState }) => {
-		const { minigraph } = getState();
-		if (minigraph.client) await minigraph.client.dispose();
-		return createGraphqlClient();
+	subscriptions: {
+		[SubscriptionKey.EVENTS]: false,
+		[SubscriptionKey.SERVERS]: false,
 	},
-);
+};
 
 export const mothership = createSlice({
 	name: 'mothership',
@@ -55,53 +41,16 @@ export const mothership = createSlice({
 			state.error = action.payload.error;
 
 			if (action.payload.status === MinigraphStatus.DISCONNECTED) {
-				state.subscriptions = [];
+				state.subscriptions = initialState.subscriptions;
 			}
 		},
-		setClient(state, action: PayloadAction<Client>) {
-			state.client = action.payload;
+		addSubscription(state, action: PayloadAction<SubscriptionKey>) {
+			state.subscriptions[action.payload] = true;
 		},
-		addSubscription(state, action: PayloadAction<GraphqlClientSubscription>) {
-			state.subscriptions.push(action.payload);
+		removeSubscription(state, action: PayloadAction<SubscriptionKey>) {
+			state.subscriptions[action.payload] = false;
 		},
-		removeSubscriptionById(state, action: PayloadAction<string>) {
-			const newSubscriptions = state.subscriptions
-				.filter(subscriptions => subscriptions.subscriptionId !== action.payload);
-			if (newSubscriptions.length === state.subscriptions.length) {
-				minigraphLogger.error('Failed to remove subscription with ID: %s', action.payload);
-			}
-
-			state.subscriptions = newSubscriptions;
-		},
-	},
-	extraReducers(builder) {
-		builder.addCase(createNewClient.fulfilled, (state, action) => {
-			if (action.payload) {
-				// Client was destroyed and existed
-			} else {
-				minigraphLogger.warn('Minigraph Client was not destroyed because it did not exist');
-			}
-
-			state.status = MinigraphStatus.DISCONNECTED;
-			state.subscriptions = [];
-			state.error = null;
-			state.client = action.payload;
-		});
-		builder.addCase(createNewClient.rejected, state => {
-			state.status = MinigraphStatus.ERROR;
-			state.error = new Error('Failed to destroy minigraph client');
-		});
 	},
 });
 
-export const { setStatus, setClient, addSubscription, removeSubscriptionById } = mothership.actions;
-
-export const getNewMinigraphClient = async (appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
-	const store = (appStore ?? await import('@app/store/index').then(_ => _.store));
-	return store?.dispatch(createNewClient()).unwrap();
-};
-
-export const isKeySubscribed = async (subscriptionKey: SubscriptionKey, appStore?: typeof store | EnhancedStore<{ minigraph: MinigraphClientState }>) => {
-	const store = (appStore ?? await import('@app/store/index').then(_ => _.store));
-	return store?.getState().minigraph.subscriptions.some(subscription => subscription.subscriptionKey === subscriptionKey);
-};
+export const { setStatus, addSubscription, removeSubscription } = mothership.actions;

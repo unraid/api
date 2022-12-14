@@ -14,7 +14,7 @@ export default async (_: unknown, { name }, context: Context) => {
 		possession: 'any',
 	});
 
-	const servers = await getServers().catch(() => []);
+	const servers = getServers();
 
 	// Single server
 	return servers.find(server => server.name === name);

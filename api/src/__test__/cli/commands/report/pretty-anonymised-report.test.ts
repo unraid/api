@@ -1,6 +1,6 @@
-import { expect, SpyInstance, test, vi } from 'vitest';
+import { expect, type SpyInstance, test, vi } from 'vitest';
 import readline from 'readline';
-import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
+import { type Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 
 // Preloading imports for faster tests
 import '@app/core/log';
@@ -42,11 +42,9 @@ vi.mock('got', () => ({
 					cloud: {
 						error: null,
 						apiKey: { valid: true, error: null },
-						relay: { status: 'connected', error: null, timeout: null },
 						minigraphql: { status: 'connected' },
 						cloud: { status: 'ok', ip: '52.40.54.163', error: null },
 						allowedOrigins: [],
-						emhttp: { mode: 'nchan' },
 					},
 				},
 			};

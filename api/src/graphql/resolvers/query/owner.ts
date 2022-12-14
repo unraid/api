@@ -5,7 +5,7 @@
 
 import { logger } from '@app/core';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { Context, getServers } from '@app/graphql/schema/utils';
+import { type Context, getServers } from '@app/graphql/schema/utils';
 import { getters } from '@app/store';
 
 export default async (_: unknown, __: unknown, context: Context) => {
@@ -25,7 +25,7 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	logger.trace('Looking for cached server with flashGuid=%s', flashGuid);
 
 	// Check the user has servers in their account
-	const servers = flashGuid ? await getServers() : [];
+	const servers = getServers();
 	if (servers.length === 0) {
 		logger.trace('While resolving "owner" we found no servers.');
 		return null;

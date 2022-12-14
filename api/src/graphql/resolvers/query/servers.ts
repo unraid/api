@@ -15,5 +15,5 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	});
 
 	// All servers
-	return getServers().catch(() => []);
+	return getServers();
 };

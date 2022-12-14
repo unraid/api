@@ -6,7 +6,7 @@ import 'reflect-metadata';
 
 class DashboardPublisher extends Initializer<typeof DashboardPublisher> {
 	@Cron.PreventOverlap
-	@Cron(Expression.EVERY_SECOND)
+	@Cron(Expression.EVERY_5_SECONDS)
 	async publishToDashboardJob() {
 		// No need to try catch since publishToDashboard has that handled
 		await publishToDashboard();

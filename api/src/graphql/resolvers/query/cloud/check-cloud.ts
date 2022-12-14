@@ -7,7 +7,6 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { logger } from '@app/core/log';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
-import { checkMothershipRestarting } from '@app/graphql/resolvers/query/cloud/check-mothership-restarting';
 import { type Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters, store } from '@app/store';
 import { getCloudCache } from '@app/store/getters';

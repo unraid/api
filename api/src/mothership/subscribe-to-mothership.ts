@@ -1,38 +1,41 @@
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
-import { type ExecutionResult, print } from 'graphql';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
-import { GraphqlClient } from './graphql-client';
-import { isKeySubscribed, MinigraphStatus, SubscriptionKey } from '@app/store/modules/minigraph';
+import { GraphQLClient, isAPIStateDataFullyLoaded } from './graphql-client';
+import { addSubscription, MinigraphStatus, removeSubscription, SubscriptionKey } from '@app/store/modules/minigraph';
 import { getters, store } from '@app/store';
-import { cacheServers, type Server } from '@app/store/modules/servers';
+import { cacheServers } from '@app/store/modules/servers';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { eventsDocument, type eventsSubscription, ClientType, serversDocument } from '@app/graphql/generated/types';
+import { GET_SERVERS_FROM_MOTHERSHIP } from '../graphql/mothership/queries';
+import { EVENTS_SUBSCRIPTION, SERVERS_SUBSCRIPTION } from '../graphql/mothership/subscriptions';
+import { ClientType } from '../graphql/generated/client/graphql';
 
-type ServersExecutionResult = ExecutionResult<{ servers: Server[] }>;
+function notNull<T>(value: T): value is NonNullable<T> {
+	return value !== null;
+}
 
-export const subscribeToServers = async (apiKey: string) => {
-	const query = {
-		query: print(serversDocument),
-		variables: {
-			apiKey,
-		},
-	};
+export const queryAndSubscribeToServers = async (apiKey: string) => {
+	const client = GraphQLClient.getInstance();
+	const queryResult = await client.query({ query: GET_SERVERS_FROM_MOTHERSHIP, variables: { apiKey } });
+	if (queryResult.data.servers) {
+		const serversToSet = queryResult.data.servers.filter(notNull);
+		store.dispatch(cacheServers(serversToSet));
+	}
 
-	const nextFn = async ({ data, errors }: ServersExecutionResult) => {
-		if (errors && errors.length > 0) {
-			mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
-			errors.forEach(error => {
-				mothershipLogger.error(error);
-			});
-			return;
-		}
+	if (queryResult.errors) {
+		mothershipLogger.error('Error querying servers: %s', queryResult.errors.join(','));
+	}
 
-		if (data) {
-			mothershipLogger.trace('Received subscription data for servers %o', data.servers);
-
-			// Update servers cache
-			store.dispatch(cacheServers(data.servers));
+	const serversub = client.subscribe({ query: SERVERS_SUBSCRIPTION, variables: { apiKey } });
+	store.dispatch(addSubscription(SubscriptionKey.SERVERS));
+	serversub.subscribe(async ({ data, errors }) => {
+		mothershipLogger.trace('Received subscription data for servers %o', data?.servers);
+		if (errors) {
+			mothershipLogger.error('Error with servers subscription: %s', errors.join(','));
+			// @TODO: Types for this payload
+		} else if (data?.servers) {
+			const serversToSet = data.servers.filter(notNull);
+			store.dispatch(cacheServers(serversToSet));
 
 			// Publish owner event
 			await pubsub.publish('owner', {
@@ -43,44 +46,24 @@ export const subscribeToServers = async (apiKey: string) => {
 			await pubsub.publish('servers', {
 				servers: data.servers,
 			});
-		} else {
-			mothershipLogger.debug('Failed to get subscription data for servers');
 		}
-	};
-
-	await GraphqlClient.subscribe<ServersExecutionResult>({ query, nextFn, subscriptionKey: SubscriptionKey.SERVERS });
+	}, (err: unknown) => {
+		mothershipLogger.error('Error in subscription %o', err);
+	}, () => {
+		store.dispatch(removeSubscription(SubscriptionKey.SERVERS));
+	});
 };
 
-type EventsExecutionResult = ExecutionResult<{ events: eventsSubscription['events'] }>;
-
 export const subscribeToEvents = async (apiKey: string) => {
-	const query = {
-		query: print(eventsDocument),
-		variables: { apiKey },
-	};
-
-	const nextFn = async ({ data, errors }: EventsExecutionResult) => {
-		try {
-			if (errors && errors.length > 0) {
-				mothershipLogger.error('Failed subscribing to %s', MOTHERSHIP_GRAPHQL_LINK);
-				errors.forEach(error => {
-					mothershipLogger.error(error);
-				});
-				return;
-			}
-
-			if (!data) {
-				mothershipLogger.debug('Failed to get event data');
-				return;
-			}
-
-			mothershipLogger.trace('Received new events from mothership %s', JSON.stringify(data));
-			if (!data.events) {
-				return;
-			}
-
-			for (const event of data.events.filter(event => event)) {
-				switch (event?.__typename) {
+	const client = GraphQLClient.getInstance();
+	store.dispatch(addSubscription(SubscriptionKey.EVENTS));
+	const eventsSub = client.subscribe({ query: EVENTS_SUBSCRIPTION, variables: { apiKey } });
+	eventsSub.subscribe(async ({ data, errors }) => {
+		if (errors) {
+			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
+		} else if (data?.events) {
+			for (const event of data.events.filter(notNull)) {
+				switch (event.__typename) {
 					case 'ClientConnectedEvent': {
 						// Another server connected to mothership
 						const { connectedData: { type, apiKey: eventApiKey } } = event;
@@ -116,37 +99,41 @@ export const subscribeToEvents = async (apiKey: string) => {
 						break;
 				}
 			}
-		} catch (error: unknown) {
-			mothershipLogger.error('Failed processing events from mothership', error);
 		}
-	};
-
-	await GraphqlClient.subscribe<EventsExecutionResult>({ query, nextFn, subscriptionKey: SubscriptionKey.EVENTS });
+	}, err => {
+		mothershipLogger.error('Error in events subscription %o', err);
+	}, () => {
+		store.dispatch(removeSubscription(SubscriptionKey.EVENTS));
+	});
 };
 
 export const subscribeToMothership = async () => {
 	try {
+		if (!isAPIStateDataFullyLoaded()) {
+			mothershipLogger.warn('Waiting for state to initialize');
+			return;
+		}
+
 		// Bail if we're in the middle of opening a connection
 		if (getters.minigraph().status === MinigraphStatus.CONNECTING) {
 			mothershipLogger.debug('Bailing on trying to fix mothership connection, currently connecting');
 			return;
 		}
 
+		const isSubscribedToEvents = getters.minigraph().subscriptions[SubscriptionKey.EVENTS];
+
+		if (!isSubscribedToEvents) {
+			mothershipLogger.info('Subscribing to Events');
+			await subscribeToEvents(getters.config().remote.apikey);
+		}
+
 		// Check if we're already subscribed
-		const isSubscribedToServers = await isKeySubscribed(SubscriptionKey.SERVERS);
+		const isSubscribedToServers = getters.minigraph().subscriptions[SubscriptionKey.SERVERS];
 
-		// If they're not subbed and don't have a key skip this
-		if (!isSubscribedToServers && !getters.config().remote.apikey) return;
-
-		// If we're already subbed skip this
-		if (isSubscribedToServers) return;
-
-		// If we have a key and aren't subbed, start the subs
-		mothershipLogger.debug('Subscribing to mothership');
-
-		// Subscribe to "events"
-		await subscribeToEvents(getters.config().remote.apikey);
-		await subscribeToServers(getters.config().remote.apikey);
+		if (!isSubscribedToServers) {
+			mothershipLogger.info('Querying and Subscribing to Servers');
+			await queryAndSubscribeToServers(getters.config().remote.apikey);
+		}
 	} catch (error: unknown) {
 		mothershipLogger.error('Failed to connect to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'), error);
 	}

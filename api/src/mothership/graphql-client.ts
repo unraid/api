@@ -3,11 +3,10 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
-import { createClient, type ExecutionResult, type SubscribePayload } from 'graphql-ws';
-import { v4 } from 'uuid';
-import { type GraphQLError } from 'graphql';
-import { addSubscription, getNewMinigraphClient, MinigraphStatus, removeSubscriptionById, setStatus, type SubscriptionKey } from '@app/store/modules/minigraph';
-import { clearAllServers } from '@app/store/modules/servers';
+import { createClient } from 'graphql-ws';
+import { MinigraphStatus, setStatus } from '@app/store/modules/minigraph';
+import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -16,6 +15,17 @@ class WebsocketWithMothershipHeaders extends WebSocket {
 		});
 	}
 }
+
+/**
+ * Checks that config.api.version, config.remote.apiKey, emhttp.var.flashGuid, and emhttp.var.version
+ * are all set before returning true
+ * @returns boolean, are variables set
+ */
+export const isAPIStateDataFullyLoaded = () => {
+	const config = getters.config();
+	const emhttp = getters.emhttp();
+	return Boolean(config.api.version) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
+};
 
 export const createGraphqlClient = () => {
 	const config = getters.config();
@@ -35,6 +45,13 @@ export const createGraphqlClient = () => {
 		},
 		retryAttempts: Infinity,
 	});
+	const wsLink = new GraphQLWsLink(client);
+	const apolloClient = new ApolloClient({
+		uri: MOTHERSHIP_GRAPHQL_LINK,
+		link: wsLink,
+		cache: new InMemoryCache(),
+	});
+	// Maybe a listener to initiate this
 	client.on('connecting', () => {
 		store.dispatch(setStatus({ status: MinigraphStatus.CONNECTING, error: null }));
 		minigraphLogger.info('Connecting to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
@@ -50,9 +67,9 @@ export const createGraphqlClient = () => {
 	});
 	client.on('closed', event => {
 		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
-		store.dispatch(clearAllServers());
+		// Store.dispatch(clearAllServers());
 		minigraphLogger.addContext('closeEvent', event);
-		minigraphLogger.debug('MinigraphClient closed connection');
+		minigraphLogger.debug('MinigraphClient closed connection', event);
 		minigraphLogger.removeContext('closeEvent');
 	});
 	client.on('message', message => {
@@ -60,61 +77,22 @@ export const createGraphqlClient = () => {
 		minigraphLogger.trace('Message from Mothership');
 		minigraphLogger.removeContext('message');
 	});
-	return client;
+	return apolloClient;
 };
 
-export const GraphqlClient = {
-	// eslint-disable-next-line no-async-promise-executor
-	query: async <T extends ExecutionResult>(query: SubscribePayload): Promise<T> => new Promise(async (resolve, reject) => {
-		let result: ExecutionResult<Record<string, unknown>, unknown>;
+export const graphQLClient: ReturnType<typeof createGraphqlClient> | null = null;
 
-		const client = getters.minigraph().client ?? await getNewMinigraphClient();
-		client?.subscribe(
-			query,
-			{
-				next(data) {
-					result = data;
-				},
-				error: reject,
-				complete() {
-					minigraphLogger.addContext('query', query);
-					minigraphLogger.trace('Finished a query');
-					minigraphLogger.removeContext('query');
-					resolve(result as T);
-				},
-			},
-		);
-	}),
-	async subscribe<T extends ExecutionResult>({
-		subscriptionKey,
-		query,
-		nextFn,
-	}: {
-		subscriptionKey: SubscriptionKey;
-		query: SubscribePayload;
-		nextFn: (value: T) => void;
-	}) {
-		const subscriptionId = v4();
-		if (!getters.config().remote.apikey) {
-			throw new Error('missing api key, did not subscribe');
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+export class GraphQLClient {
+	public static instance: ApolloClient<NormalizedCacheObject> | null = null;
+	private constructor() {}
+
+	public static getInstance(): ApolloClient<NormalizedCacheObject> {
+		// @TODO: Should this check to make sure it's able to get a valid instance before it returns Apollo?
+		if (!GraphQLClient.instance) {
+			GraphQLClient.instance = createGraphqlClient();
 		}
 
-		const client = getters.minigraph().client ?? await getNewMinigraphClient();
-		if (!client) throw new Error('Failed to create a mini-graphql client');
-		const subscription = client?.subscribe(query, {
-			next: nextFn,
-			error(anyError: Error | readonly GraphQLError[] | CloseEvent) {
-				minigraphLogger.error('Encountered a Subscription Error', anyError);
-				store.dispatch(removeSubscriptionById(subscriptionId));
-			},
-			complete() {
-				minigraphLogger.debug(`Subscription with ID: ${subscriptionId} complete, removing from tracked subscriptions`);
-				store.dispatch(removeSubscriptionById(subscriptionId));
-			},
-		});
-		store.dispatch(addSubscription({ subscriptionId, subscriptionKey, subscription }));
-		minigraphLogger.addContext('subscriptions', getters.minigraph().subscriptions);
-		minigraphLogger.trace('Current Subscriptions: %i', getters.minigraph().subscriptions.length);
-		minigraphLogger.removeContext('subscriptions');
-	},
-};
+		return GraphQLClient.instance;
+	}
+}

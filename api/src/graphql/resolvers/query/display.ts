@@ -77,7 +77,6 @@ const states = {
 export default async () => {
 	const dynamixBasePath = getters.paths()['dynamix-base'];
 	const configFilePath = join(dynamixBasePath, 'case-model.cfg');
-	const customImageFilePath = join(dynamixBasePath, 'case-model.png');
 
 	// If the config file doesn't exist then it's a new OS install
 	// Default to "default"
@@ -94,6 +93,27 @@ export default async () => {
 	if (serverCase === 'error_reading_config_file') {
 		return { case: states.couldNotReadConfigFile };
 	}
+
+	// Blank cfg file?
+	if (serverCase.trim().length === 0) {
+		return {
+			case: states.default,
+		};
+	}
+
+	// Non-custom icon
+	return {
+		case: {
+			...states.default,
+			icon: serverCase,
+		},
+	};
+};
+
+/* Custom Icon Logic (To Return Later) */
+
+/*
+	const customImageFilePath = join(dynamixBasePath, 'case-model.png');
 
 	// Custom icon
 	if (serverCase.includes('.')) {
@@ -134,18 +154,4 @@ export default async () => {
 		}
 	}
 
-	// Blank cfg file?
-	if (serverCase.trim().length === 0) {
-		return {
-			case: states.default,
-		};
-	}
-
-	// Non-custom icon
-	return {
-		case: {
-			...states.default,
-			icon: serverCase,
-		},
-	};
-};
+	*/

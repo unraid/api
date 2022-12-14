@@ -4,12 +4,14 @@
  */
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { Context } from '@app/graphql/schema/utils';
+import { type Context } from '@app/graphql/schema/utils';
 import { graphqlLogger } from '@app/core';
-import { GraphqlClient } from '@app/mothership/graphql-client';
-import { getters } from '@app/store';
+import { GraphQLClient } from '@app/mothership/graphql-client';
+import { SEND_NOTIFICATION_MUTATION } from '../../mothership/mutations';
+import { getters } from '../../../store';
+import { type NotificationInput } from '../../generated/client/graphql';
 
-export const sendNotification = async (_: unknown, args: { notification: Notification }, context: Context) => {
+export const sendNotification = async (_: unknown, args: { notification: NotificationInput }, context: Context) => {
 	const { user } = context;
 
 	// Check permissions
@@ -20,19 +22,14 @@ export const sendNotification = async (_: unknown, args: { notification: Notific
 	});
 
 	// If there's no mothership connection then bail
-	if (!getters.minigraph().client) {
+	if (!GraphQLClient.getInstance()) {
 		graphqlLogger.error('Mothership is not working');
 		throw new Error('Mothership is down');
 	}
 
-	// Prepare query
-	const query = {
-		query: 'mutation($notification:NotificationInput!){sendNotification(notification:$notification){title subject description importance link status}}',
-		variables: {
-			notification: args.notification,
-		},
-	};
-
-	const result = await GraphqlClient.query(query);
+	const result = await GraphQLClient.getInstance().query({ query: SEND_NOTIFICATION_MUTATION, variables: {
+		notification: args.notification,
+		apiKey: getters.config().remote.apikey,
+	} });
 	graphqlLogger.debug('Query Result from Notifications.ts', result);
 };

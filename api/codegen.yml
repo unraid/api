@@ -1,21 +1,20 @@
 overwrite: true
 emitLegacyCommonJSImports: false
-ignoreNoDocuments: true
-
+verbose: true
 schema: 
   'https://staging.mothership.unraid.net/ws': 
     headers:
       origin: 'https://forums.unraid.net'
 generates:
-  src/graphql/generated/types.ts:
-    config:
+  src/graphql/generated/client/:
+    preset: client
+    presetConfig:
+      gqlTagName: gql
+    config: 
       useTypeImports: true
     plugins:
-      - typescript
-      - typescript-operations
-      - typed-document-node
       - add: { content: '/* eslint-disable */' }
-documents: 'src/graphql/mothership/**/*.graphql'
+documents: './src/graphql/mothership/*.ts'
 config:
   namingConvention: 
     typeNames: './fix-array-type.cjs'

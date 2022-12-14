@@ -13,7 +13,7 @@ import { resolve } from 'path';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
-import { type Server } from '@app/store/modules/servers';
+import { type Server } from '../../graphql/generated/client/graphql';
 
 type Verbosity = '' | '-v' | '-vv';
 
@@ -172,7 +172,7 @@ const getReadableMinigraphDetails = (reportObject: ReportObject): string => `
 	STATUS: [${reportObject.minigraph.status}]`;
 
 // Convert server to string output
-const serverToString = (v: Verbosity) => (server: Server) => `${server.name}${(v === '-v' || v === '-vv') ? `[owner="${server.owner.username}"${v === '-vv' ? ` guid="${server.guid}"]` : ']'}` : ''}`;
+const serverToString = (v: Verbosity) => (server: Server) => `${server?.name ?? 'No Server Name'}${(v === '-v' || v === '-vv') ? `[owner="${server.owner?.username ?? 'No Owner Found'}"${v === '-vv' ? ` guid="${server.guid ?? 'No GUID'}"]` : ']'}` : ''}`;
 
 const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): string => {
 	if (!reportObject.servers) {

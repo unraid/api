@@ -2,12 +2,6 @@ import { beforeEach, expect, test, vi } from 'vitest';
 
 // Preloading imports for faster tests
 import '@app/mothership/utils/convert-to-fuzzy-time';
-import '@app/mothership/save-websocket-message-to-disk';
-import '@app/mothership/subscription-listener';
-
-vi.mock('@app/mothership/get-relay-connection-status', () => ({
-	getRelayConnectionStatus: vi.fn(),
-}));
 
 vi.mock('fs', () => ({
 	default: {
@@ -56,42 +50,3 @@ test.each(generateTestCases())('Successfully converts to fuzzy time %o', async (
 	expect(res).toBeGreaterThanOrEqual(min);
 	expect(res).toBeLessThanOrEqual(max);
 });
-
-test('saveIncomingWebsocketMessageToDisk', async () => {
-	const { saveIncomingWebsocketMessageToDisk } = await import('@app/mothership/save-websocket-message-to-disk');
-	const { createStream } = await import('rotating-file-stream');
-
-	// Expect throw because for some reason the current implementation won't use the mocked write function
-
-	saveIncomingWebsocketMessageToDisk('my-message');
-
-	expect(createStream).toHaveBeenCalledWith('/var/log/unraid-api/relay-incoming-messages.log', {
-		size: '10M', // Rotate every 10 MegaBytes written
-		interval: '1d', // Rotate daily
-		compress: 'gzip', // Compress rotated files
-		maxFiles: parseInt(process.env.LOG_MOTHERSHIP_MESSAGES_MAX_FILES ?? '2', 10), // Keep a maximum of 2 log files
-	});
-});
-
-test('Runs subscriptionListener successfully', async () => {
-	const index = await import('@app/mothership/subscription-listener');
-
-	index.subscriptionListener('my-id', 'my-name')('my-data');
-	// @TODO: This should be refactored to be an actual async function, otherwise we can have errors that are uncatchable.
-	index.subscriptionListener('my-id', 'array')('my-data-2');
-	index.subscriptionListener('my-id', 'my-data');
-});
-
-/*
-Test('getRelayHeaders', () => {
-	varState.data.flashGuid = 'my-guid';
-	varState.data.name = 'my-server-name';
-
-	const headers = getRelayHeaders();
-	expect(headers).toEqual(expect.objectContaining({
-		'x-api-key': 'my-cloud-key',
-		'x-flash-guid': varState.data?.flashGuid,
-		'x-server-name': 'my-server-name',
-		'x-unraid-api-version': expect.anything(),
-	}));
-}); */
