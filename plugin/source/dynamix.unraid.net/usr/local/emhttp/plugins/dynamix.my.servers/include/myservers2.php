@@ -561,7 +561,7 @@
       ],
       "deviceCount" => $var['deviceCount'],
       "email" => $remote['email'] ?? '',
-      "extraOrigins" => $api['extraOrigins'] ? explode(',', $api['extraOrigins']) : [],
+      "extraOrigins" => explode(',', $api['extraOrigins'] ?? ''),
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "flashBackupActivated" => $flashBackup['activated'] ? 'true' : '',
@@ -611,12 +611,12 @@
       banner="<?=$display['banner'] ?? ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
       csrf="<?=$var['csrf_token']?>"
-      displaydesc="<?=($display['headerdescription']!='no') ? 'true' : ''?>"
+      displaydesc="<?=($display['headerdescription']??''!='no') ? 'true' : ''?>"
       expiretime="<?=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0)?>"
       hide-my-servers="<?=$plgInstalled ? '' : 'yes' ?>"
       locale="<?=($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US'?>"
       locale-messages="<?=rawurlencode(json_encode($upc_translations, JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE))?>"
-      metacolor="<?=($display['headermetacolor']) ? '#'.$display['headermetacolor'] : ''?>"
+      metacolor="<?=($display['headermetacolor']??'') ? '#'.$display['headermetacolor'] : ''?>"
       plg-path="dynamix.my.servers"
       reg-wiz-time="<?=$remote['regWizTime'] ?? ''?>"
       serverdesc="<?=$var['COMMENT']?>"

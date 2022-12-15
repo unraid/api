@@ -58,7 +58,7 @@ $arr['internalport'] = $_SERVER['SERVER_PORT'];
 $arr['apiVersion'] = $api['version'] ?? '';
 $arr['plgVersion'] = trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net*.plg 2>/dev/null'));
 $arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
-$arr['locale'] = $_SESSION['locale'] ? $_SESSION['locale'] : 'en_US';
+$arr['locale'] = $_SESSION['locale'] ?? 'en_US';
 $arr['expiretime']=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0);
 $arr['uptime']=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')));
 $arr['hasRemoteApikey'] = empty($remote['apikey']) ? 0 : 1;
