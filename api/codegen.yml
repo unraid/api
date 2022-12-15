@@ -1,21 +1,35 @@
 overwrite: true
 emitLegacyCommonJSImports: false
 verbose: true
-schema: 
-  'https://staging.mothership.unraid.net/ws': 
-    headers:
-      origin: 'https://forums.unraid.net'
+require: 
+  - ts-node/register
 generates:
   src/graphql/generated/client/:
+    documents: './src/graphql/mothership/*.ts'
+    schema: 
+      'https://staging.mothership.unraid.net/ws': 
+        headers:
+          origin: 'https://forums.unraid.net'
     preset: client
     presetConfig:
       gqlTagName: gql
-    config: 
-      useTypeImports: true
     plugins:
       - add: { content: '/* eslint-disable */' }
-documents: './src/graphql/mothership/*.ts'
+
+  src/graphql/generated/api/types.ts:
+    schema: 
+      - './src/graphql/types.ts'
+      - './src/graphql/schema/types/**/*.graphql'
+    plugins:
+      - typescript
+      - typescript-resolvers
+      - add: { content: '/* eslint-disable */' }
+    config:
+      contextType: '@app/graphql/schema/utils#Context'
+      useIndexSignature: true
+
 config:
   namingConvention: 
     typeNames: './fix-array-type.cjs'
     enumValues: 'change-case#upperCase'
+    useTypeImports: true

@@ -7,7 +7,7 @@ import { GraphQLJSON } from 'graphql-type-json';
 import { GraphQLLong } from '@app/common/graphql/graphql-type-long';
 import GraphQLUUID from 'graphql-type-uuid';
 import { GraphQLDateTime } from 'graphql-scalars';
-import { GraphQLScalarType } from 'graphql';
+import { type GraphQLScalarType } from 'graphql';
 import { Query } from '@app/graphql/resolvers/query';
 import { Mutation } from '@app/graphql/resolvers/mutation';
 import { Subscription } from '@app/graphql/resolvers/subscription';

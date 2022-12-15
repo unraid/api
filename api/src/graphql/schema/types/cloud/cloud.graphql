@@ -17,9 +17,16 @@ type EmhttpResponse {
     mode: String
 }
 
+type RelayResponse {
+     status: String!
+     timeout: String
+     error: String
+ }
+
 type Cloud {
     error: String
     apiKey: ApiKeyResponse
+    relay: RelayResponse
     minigraphql: MinigraphqlResponse
     cloud: CloudResponse
     allowedOrigins: [String]

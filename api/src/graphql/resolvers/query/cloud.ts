@@ -8,45 +8,30 @@ import { ensurePermission } from '@app/core/utils/permissions/ensure-permission'
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud';
 import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql';
-import { type Cloud, createResponse } from '@app/graphql/resolvers/query/cloud/create-response';
 import type { Context } from '@app/graphql/schema/utils';
+import { type QueryResolvers } from '@app/graphql/generated/api/types';
 
-export default async (_: unknown, __: unknown, context: Context): Promise<Cloud> => {
+const cloudResolver: QueryResolvers['cloud'] = async (_, __, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'cloud',
 		action: 'read',
 		possession: 'own',
 	});
 
-	// If the endpoint is mocked return the mocked data
-	if (process.env.MOCK_CLOUD_ENDPOINT) {
-		const result: Cloud = {
-			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR ?? null,
-			apiKey: {
-				valid: Boolean(process.env.MOCK_CLOUD_ENDPOINT_APIKEY_VALID ?? true),
-				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR ?? null,
-			} as unknown as Cloud['apiKey'],
-			minigraphql: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED as 'connected' | 'disconnected',
-			},
-			cloud: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
-				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR ?? null,
-				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP,
-			} as unknown as Cloud['cloud'],
-			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean),
-		};
-		return result;
-	}
-
 	const [apiKey, minigraphql, cloud] = await Promise.all([checkApi(), checkMinigraphql(), checkCloud()]);
 
-	const response = createResponse({
+	return {
+		relay: { // Left in for UPC backwards compat.
+			error: undefined,
+			status: 'connected',
+			timeout: null,
+		},
 		apiKey,
 		minigraphql,
 		cloud,
 		allowedOrigins: getAllowedOrigins(),
-	});
-
-	return response;
+		error: apiKey.error ?? cloud.error ?? null,
+	};
 };
+
+export default cloudResolver;

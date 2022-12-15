@@ -69,3 +69,5 @@ export const types = mergeTypeDefs([
 	...baseTypes,
 	typeDefs,
 ]);
+
+export default types;

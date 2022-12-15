@@ -29,7 +29,7 @@ export const ONE_HOUR = 60 * ONE_MINUTE;
 /**
  * Graphql link.
  */
-export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK ?? (process.env.ENVIRONMENT === 'staging' ? 'https://staging.mothership.unraid.net/graphql' : 'https://mothership.unraid.net/graphql');
+export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK ?? (process.env.ENVIRONMENT === 'staging' ? 'https://staging.mothership.unraid.net/ws' : 'https://mothership.unraid.net/ws');
 
 /**
  * Internal ws link.

@@ -13,7 +13,7 @@ import { getCloudCache } from '@app/store/getters';
 import { setCloudCheck } from '@app/store/modules/cache';
 import { got } from 'got';
 
-const mothershipBaseUrl = MOTHERSHIP_GRAPHQL_LINK.replace('/graphql', '');
+const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 
 const createGotOptions = (apiVersion: string, apiKey: string) => ({
 	timeout: {
