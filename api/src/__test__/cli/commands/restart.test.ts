@@ -1,14 +1,17 @@
-import { expect, test, vi } from 'vitest';
+import { beforeEach, expect, test, vi } from 'vitest';
 
 // Preloading imports for faster tests
 import '@app/cli/commands/restart';
 import '@app/cli/commands/start';
 import '@app/cli/commands/stop';
 
+beforeEach(() => {
+	vi.resetAllMocks();
+});
+
 test('calls stop and then start', async () => {
 	vi.mock('@app/cli/commands/start');
 	vi.mock('@app/cli/commands/stop');
-
 	// Call restart
 	const { restart } = await import('@app/cli/commands/restart');
 	const { start } = await import('@app/cli/commands/start');

@@ -29,12 +29,14 @@ test('Before init returns default values for all fields', async () => {
 	});
 	const state = store.getState().minigraph;
 	expect(state).toMatchInlineSnapshot(`
-	{
-	  "client": null,
-	  "error": null,
-	  "status": 3,
-	  "subscriptions": [],
-	}
+		{
+		  "error": null,
+		  "status": 3,
+		  "subscriptions": {
+		    "EVENTS": false,
+		    "SERVERS": false,
+		  },
+		}
 	`);
 });
 

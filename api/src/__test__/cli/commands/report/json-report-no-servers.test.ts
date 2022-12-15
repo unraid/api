@@ -98,10 +98,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [no
 		    "serverName": "Tower",
 		    "version": "unknown",
 		  },
-		  "relay": {
-		    "error": "API is offline",
-		    "status": "disconnected",
-		  },
 		}
 	`);
 
@@ -152,10 +148,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [no
 		  "os": {
 		    "serverName": "Tower",
 		    "version": "unknown",
-		  },
-		  "relay": {
-		    "error": "API is offline",
-		    "status": "disconnected",
 		  },
 		  "servers": {
 		    "invalid": [],

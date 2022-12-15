@@ -114,8 +114,6 @@ test('Returns a pretty non-anonymised report with -vv', async () => {
 		CLOUD: 
 			STATUS: [ok] 
 			IP: [52.40.54.163] 
-		RELAY: 
-			STATUS: [connected]  
 		MINI-GRAPH: 
 			STATUS: [connected]
 		SERVERS:

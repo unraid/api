@@ -44,7 +44,6 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "disconnected",
-		    "relay": "disconnected",
 		  },
 		  "local": {},
 		  "notifier": {
@@ -124,7 +123,6 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "disconnected",
-		    "relay": "disconnected",
 		  },
 		  "local": {
 		    "2Fa": "yes",

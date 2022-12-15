@@ -14,7 +14,6 @@ test('Before init returns default values for all fields', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "disconnected",
-		    "relay": "disconnected",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -61,7 +60,6 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "disconnected",
-		    "relay": "disconnected",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -111,7 +109,6 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "disconnected",
-		    "relay": "disconnected",
 		  },
 		  "local": {
 		    "2Fa": "",
