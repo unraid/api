@@ -118,7 +118,7 @@ function exec_log($cmd, &$output = [], &$retval = 0) {
 function set_git_config($name, $value) {
   $config_output = $return_var = null;
   exec('git -C /boot config --get '.escapeshellarg($name).' 2>&1', $config_output, $return_var);
-  if (strcmp($config_output[0], $value) !== 0) {
+  if (empty($config_output) || strcmp($config_output[0], $value) !== 0) {
     exec_log('git -C /boot config '.escapeshellarg($name).' '.escapeshellarg($value));
   }
 }
@@ -222,8 +222,8 @@ if ($cli) {
   if ($argc > 1) $command = $argv[1];
   if ($argc > 2) $commitmsg = $argv[2];
 } else {
-  $command = $_POST['command'];
-  $commitmsg = $_POST['commitmsg'];
+  $command = $_POST['command']??'';
+  $commitmsg = $_POST['commitmsg']??'';
 }
 if (!in_array($command, $validCommands)) $command = 'init';
 if (empty($commitmsg)) {
@@ -490,7 +490,7 @@ if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
   // log once every 10 minutes
   if (date("i") % 10 === 0) write_log($arrState['error'].'; '.$arrState['remoteerror']); 
   response_complete(406, array('error' => $arrState['remoteerror']));
-} elseif ($arrState['remoteerror'] == 'Rate limited, will try again later') {
+} elseif ($arrState['remoteerror']??'' == 'Rate limited, will try again later') {
   // no longer rate limited, clear the 'remoteerror'
   $arrState['remoteerror'] = '';
 }

@@ -173,7 +173,7 @@ function dnsCheckServer(button) {
         } else {
             swal({
               title: "Oops",
-              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?>",
+              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $remote['wanport']??'', htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
               type: "error",
               html: true,
               confirmButtonText: "_(Ok)_"
@@ -406,8 +406,8 @@ _(Allow Remote Access)_:
 <input type="hidden" id="wanport" value="0">
 <?else: // begin show remote access form ?>
 : <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
-  <?=mk_option($remote['wanaccess'], "no", _("No"))?>
-  <?=mk_option($remote['wanaccess'], "yes", _("Yes"))?>
+  <?=mk_option($remote['wanaccess']??'', "no", _("No"))?>
+  <?=mk_option($remote['wanaccess']??'', "yes", _("Yes"))?>
   </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>" />
 
 <div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
@@ -418,9 +418,9 @@ _(Allow Remote Access)_:
 _(Use UPnP)_:
 <?if($var['USE_UPNP'] === 'yes'):?>
 : <select id="upnpEnabled" size="1" data-orig="<?=$remote['upnpEnabled']?>" onchange="changeUpnp()" style="vertical-align: top;">
-<?=mk_option($remote['upnpEnabled'], "no", _("No"))?>
-<?=mk_option($remote['upnpEnabled'], "yes", _("Yes"))?>
-</select> <?=$myStatus['upnpError']??""?>
+<?=mk_option($remote['upnpEnabled']??'', "no", _("No"))?>
+<?=mk_option($remote['upnpEnabled']??'', "yes", _("Yes"))?>
+</select> <?=$myStatus['upnpError']??''?>
 <?else:?>
 : <i class="fa fa-warning icon warning" aria-hidden="true"></i> _(UPnP must be enabled on Settings -> Management Access)_
 <?endif ?>
@@ -428,8 +428,8 @@ _(Use UPnP)_:
 <?endif // end check for showT2Fa ?>
 
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
- <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport'], htmlspecialchars($eth0['IPADDR:0']), $var['PORTSSL']??443)?></span>
+: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']??''?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport']??'')?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+ <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport']??'', htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?></span>
 
 :unraidnet_wanpanel_help:
 
@@ -494,22 +494,22 @@ else
 
 _(Enable Transparent 2FA for Remote Access)_:
 : <select id="remote2fa" size="1" <?=($enableRemoteT2fa ? '' : 'disabled')?>>
-  <?=mk_option($remote['2Fa'], "no", _("No"))?>
-  <?=mk_option($remote['2Fa'], "yes", _("Yes"))?>
-  </select> <span id="remote2fa_remark" style="display:<?=($enableRemoteT2fa ? 'none' : 'inline')?>;"><?=$remoteT2faRemark?></span>
+  <?=mk_option($remote['2Fa']??'', "no", _("No"))?>
+  <?=mk_option($remote['2Fa']??'', "yes", _("Yes"))?>
+  </select> <span id="remote2fa_remark" style="display:<?=($enableRemoteT2fa ? 'none' : 'inline')?>;"><?=$remoteT2faRemark??''?></span>
 
 :myservers_remote_t2fa_help:
 
 _(Enable Transparent 2FA for Local Access)_:
 : <select id="local2fa" size="1" <?=($enableLocalT2fa ? '' : 'disabled')?>>
-  <?=mk_option($local['2Fa'], "no", _("No"))?>
-  <?=mk_option($local['2Fa'], "yes", _("Yes"))?>
-  </select> <span id="local2fa_remark" style="display:<?=($enableLocalT2fa ? 'none' : 'inline')?>;"><?=$localT2faRemark?></span>
+  <?=mk_option($local['2Fa']??'', "no", _("No"))?>
+  <?=mk_option($local['2Fa']??'', "yes", _("Yes"))?>
+  </select> <span id="local2fa_remark" style="display:<?=($enableLocalT2fa ? 'none' : 'inline')?>;"><?=$localT2faRemark??''?></span>
 
 :myservers_local_t2fa_help:
 
 _(Unraid API extra origins)_:
-: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$api['extraOrigins']?>">
+: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$api['extraOrigins']??''?>">
 
 :unraidnet_extraorigins_help:
 <?endif // end show remote access form ?>

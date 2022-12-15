@@ -39,7 +39,7 @@ if (!function_exists('ipaddr')) {
 
 function host_lookup_ip($host) {
   $result = @dns_get_record($host, DNS_A);
-  $ip = ($result) ? $result[0]['ip'] : '';
+  $ip = ($result) ? $result[0]['ip']??'' : '';
   return($ip);
 }
 function rebindDisabled() {
@@ -192,11 +192,11 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 
 $cli = php_sapi_name()=='cli';
 $verbose = $anon = false;
-if ($cli && $argv[1] == "-v") {
+if ($cli && ($argc > 1) && $argv[1] == "-v") {
   $verbose = true;
   $anon = true;
 }
-if ($cli && $argv[1] == "-vv") {
+if ($cli && ($argc > 1) && $argv[1] == "-vv") {
   $verbose = true;
 }
 $var = parse_ini_file('/var/local/emhttp/var.ini');
@@ -421,7 +421,7 @@ if (!empty($unraidreport)) {
 }
 
 // if remoteaccess is enabled in 6.10.0-rc3+ and WANIP has changed since nginx started, reload nginx
-if ($post['_wanip'] && ($post['_wanip'] != $nginx['NGINX_WANIP']) && version_compare($var['version'],"6.10.0-rc2",">")) $reloadNginx = true;
+if ($post['_wanip']??'' && ($post['_wanip'] != $nginx['NGINX_WANIP']) && version_compare($var['version'],"6.10.0-rc2",">")) $reloadNginx = true;
 // if remoteaccess is currently disabled (perhaps because a wanip was not available when nginx was started)
 //    BUT the system is configured to have it enabled AND a wanip is now available
 //    then reload nginx
