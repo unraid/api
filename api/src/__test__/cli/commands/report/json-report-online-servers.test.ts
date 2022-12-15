@@ -131,9 +131,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		    "serverName": "Tower",
 		    "version": "6.10.1",
 		  },
-		  "relay": {
-		    "status": "connected",
-		  },
 		}
 	`);
 
@@ -184,9 +181,6 @@ test('Returns a JSON anonymised report when provided the --json cli argument [on
 		  "os": {
 		    "serverName": "Tower",
 		    "version": "6.10.1",
-		  },
-		  "relay": {
-		    "status": "connected",
 		  },
 		  "servers": {
 		    "invalid": [],

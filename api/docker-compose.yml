@@ -25,7 +25,8 @@ x-volumes: &volumes
 
 services:
 
-  builder-interactive:
+  dev:
+    network_mode: host
     image: unraid-api-node-18
     build: 
       context: .

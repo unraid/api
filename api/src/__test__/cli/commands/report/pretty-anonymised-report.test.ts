@@ -88,8 +88,6 @@ test('Returns a pretty anonymised report by default', async () => {
 		MY_SERVERS: signed out
 		CLOUD: 
 			STATUS: [ok]  
-		RELAY: 
-			STATUS: [connected]  
 		MINI-GRAPH: 
 			STATUS: [connected]
 		</----UNRAID-API-REPORT----->
