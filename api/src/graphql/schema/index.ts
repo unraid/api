@@ -4,7 +4,7 @@
  */
 
 import { join } from 'path';
-import { readFileSync } from 'fs';
+import { loadFilesSync } from '@graphql-tools/load-files';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 
 const filesPaths = [
@@ -50,6 +50,6 @@ const filesPaths = [
 	join(__dirname, '../src/graphql/schema/types/vms/network.graphql'),
 ];
 
-const files = filesPaths.map(file => readFileSync(file, 'utf8'));
+const files = loadFilesSync(join(__dirname, '../src/graphql/schema/types'), { extensions: ['graphql'] });
 
 export const typeDefs = mergeTypeDefs(files);
