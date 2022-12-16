@@ -1,5 +1,5 @@
 type Info {
-    os: Os @func(module: "getOs")
+    os: Os
 }
 
 type Os {

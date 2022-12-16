@@ -2,6 +2,7 @@
  * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
+import { type QueryResolvers } from '@app/graphql/generated/api/types';
 import cloud from '@app/graphql/resolvers/query/cloud';
 import config from '@app/graphql/resolvers/query/config';
 import crashReportingEnabled from '@app/graphql/resolvers/query/crash-reporting-enabled';
@@ -18,7 +19,7 @@ import servers from '@app/graphql/resolvers/query/servers';
 import twoFactor from '@app/graphql/resolvers/query/two-factor';
 import vms from '@app/graphql/resolvers/query/vms';
 
-export const Query = {
+export const Query: QueryResolvers = {
 	cloud,
 	config,
 	crashReportingEnabled,
