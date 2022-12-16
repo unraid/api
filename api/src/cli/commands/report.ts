@@ -5,16 +5,15 @@ import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
-import { cliLogger } from '@app/core/log';
+import { cliLogger, logger } from '@app/core/log';
 import { resolve } from 'path';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
-import { getApiApolloClient } from '../../graphql/client/api/getApiApolloClient';
+import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
 import { getCloudDocument, getServersDocument, type getServersQuery, type getCloudQuery } from '../../graphql/generated/api/operations';
-import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client';
+import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client/core';
 import { type MinigraphStatus } from '../../graphql/generated/api/types';
-import { ApolloError } from 'apollo-server-express';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
@@ -62,9 +61,9 @@ export const getCloudData = async (client: ApolloClient<NormalizedCacheObject>):
 		const cloud = await client.query({ query: getCloudDocument });
 		return cloud.data.cloud ?? null;
 	} catch (error: unknown) {
-		cliLogger.addContext('error', error);
+		cliLogger.addContext('error-stack', error instanceof Error ? error.stack : error);
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error instanceof Error ? error.message : 'Unknown Error');
-		cliLogger.removeContext('error');
+		cliLogger.removeContext('error-stack');
 
 		return null;
 	}
@@ -186,7 +185,7 @@ const getServerName = async (paths: ReturnType<typeof getters.paths>): Promise<s
 	let serverName = 'Tower';
 	try {
 		const varIni = parseConfig<{ name: string }>({ filePath: resolve(paths.states, 'var.ini'), type: 'ini' });
-		if (varIni.name) {
+		if (varIni?.name) {
 			serverName = varIni.name;
 		}
 	} catch (error: unknown) {
@@ -236,6 +235,8 @@ export const report = async (...argv: string[]) => {
 			stdoutLogger.write('Generating report please wait…');
 		}
 
+		const testclient = getApiApolloClient({ upcApiKey: 'myapikey' });
+		const result = await testclient.query({ query: getCloudDocument });
 		const jsonReport = argv.includes('--json');
 		const v = getVerbosity(argv);
 
@@ -251,7 +252,6 @@ export const report = async (...argv: string[]) => {
 		if (!config.upc.apikey) throw new Error('Missing UPC API key');
 
 		const client = getApiApolloClient({ upcApiKey: config.upc.apikey });
-
 		// Fetch the cloud endpoint
 		const cloud = await getCloudData(client);
 

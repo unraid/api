@@ -10,7 +10,6 @@ export const apolloConfig: ApolloServerExpressConfig = {
 	introspection: Boolean(process.env.INTROSPECTION ?? config.debug),
 	schema,
 	typeDefs,
-
 	cache: new InMemoryLRUCache(),
 	async context({ req, connection }: { req: { headers: Record<string, string> }; connection: { context: Record<string, unknown> } }) {
 		// Normal Websocket connection
