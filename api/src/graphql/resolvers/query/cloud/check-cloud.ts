@@ -3,15 +3,16 @@
  * Written by: Alexis Tyler
  */
 
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { FIVE_DAYS_SECS, MOTHERSHIP_GRAPHQL_LINK, ONE_DAY_SECS } from '@app/consts';
 import { logger } from '@app/core/log';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
-import { type Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters, store } from '@app/store';
-import { getCloudCache } from '@app/store/getters';
-import { setCloudCheck } from '@app/store/modules/cache';
+import { getCloudCache, getDnsCache } from '@app/store/getters';
+import { setCloudCheck, setDNSCheck } from '@app/store/modules/cache';
 import { got } from 'got';
+import { MinigraphStatus } from '@app/store/modules/minigraph';
+import { type CloudResponse, type Resolvers } from '@app/graphql/generated/api/types';
 
 const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 
@@ -36,13 +37,44 @@ const checkCanReachMothership = async (apiVersion: string, apiKey: string): Prom
 	if (!mothershipCanBeResolved) throw new Error(`Unable to connect to ${mothershipBaseUrl}`);
 };
 
-export const checkCloud = async (): Promise<Cloud['cloud']> => {
+/**
+ * Run a more performant cloud check with permanent DNS checking
+ */
+const fastCloudCheck = async (): Promise<CloudResponse> => {
+	const result = { status: 'ok', error: null, ip: 'NO_IP_FOUND' };
+
+	const cloudIp = getDnsCache()?.cloudIp ?? null;
+	if (!cloudIp) {
+		try {
+			result.ip = (await checkDNS()).cloudIp;
+			store.dispatch(setDNSCheck({ cloudIp: result.ip, ttl: FIVE_DAYS_SECS, error: null }));
+		} catch (error: unknown) {
+			logger.warn('Failed to fetch DNS, but Minigraph is connected - continuing');
+			result.ip = `ERROR: ${error instanceof Error ? error.message : 'Unknown Error'}`;
+			// Don't set an error since we're actually connected to the cloud
+			store.dispatch(setDNSCheck({ cloudIp: result.ip, ttl: ONE_DAY_SECS, error: null }));
+		}
+	}
+
+	return result;
+};
+
+export const checkCloud: NonNullable<Resolvers['Cloud']>['cloud'] = async () => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
 	try {
 		const config = getters.config();
 		const apiVersion = config.api.version;
 		const apiKey = config.remote.apikey;
+		const graphqlStatus = getters.minigraph().status;
+		const result = { status: 'ok', error: null, ip: 'NO_IP_FOUND' };
+
+		// If minigraph is connected, skip the follow cloud checks
+		if (graphqlStatus === MinigraphStatus.CONNECTED) {
+			return await fastCloudCheck();
+		}
+
+		// Check GraphQL Conneciton State, if it's broken, run these checks
 		if (!apiKey) throw new Error('API key is missing');
 
 		const oldCheckResult = getCloudCache();
@@ -52,18 +84,16 @@ export const checkCloud = async (): Promise<Cloud['cloud']> => {
 		}
 
 		// Check DNS
-		const { cloudIp } = await checkDNS();
-
+		result.ip = (await checkDNS()).cloudIp;
 		// Check if we can reach mothership
 		await checkCanReachMothership(apiVersion, apiKey);
 
 		// Check auth, rate limiting, etc.
 		await checkMothershipAuthentication(apiVersion, apiKey);
 
-		// All is good
-		const result: Cloud['cloud'] = { status: 'ok', error: null, ip: cloudIp };
 		// Cache for 10 minutes
 		store.dispatch(setCloudCheck(result));
+
 		return result;
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);

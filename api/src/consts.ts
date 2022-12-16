@@ -11,20 +11,15 @@ const internalWsAddress = () => {
 		: `ws://localhost:${port}`;
 };
 
-/**
- * One second in milliseconds.
- */
+// Milliseconds
 export const ONE_SECOND = 1_000;
-
-/**
- * One minute in milliseconds.
-*/
 export const ONE_MINUTE = 60 * ONE_SECOND;
-
-/**
- * One hour in milliseconds.
-*/
 export const ONE_HOUR = 60 * ONE_MINUTE;
+
+// Seconds
+export const ONE_HOUR_SECS = 60 * 60;
+export const ONE_DAY_SECS = ONE_HOUR_SECS * 24;
+export const FIVE_DAYS_SECS = ONE_DAY_SECS * 5;
 
 /**
  * Graphql link.
