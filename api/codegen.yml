@@ -35,9 +35,10 @@ generates:
       - './src/graphql/schema/types/**/*.graphql'
     preset: import-types
     presetConfig:
-      typesPath: './src/graphql/generated/api/types.ts'
+      typesPath: '@app/graphql/generated/api/types'
     plugins:
       - typescript-operations
+      - typed-document-node
       - add: { content: '/* eslint-disable */' }
 
 config:

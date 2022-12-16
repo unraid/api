@@ -3,7 +3,6 @@
  * Written by: Alexis Tyler
  */
 
-import type { Context } from '@app/graphql/schema/utils';
 import { getServers } from '@app/graphql/schema/utils';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { type Resolvers } from '../../generated/api/types';

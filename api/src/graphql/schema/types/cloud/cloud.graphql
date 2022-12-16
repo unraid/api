@@ -1,10 +1,19 @@
 type ApiKeyResponse {
-    valid: Boolean
+    valid: Boolean!
     error: String
 }
 
+enum MinigraphStatus {
+    CONNECTING
+	CONNECTED
+	ERROR
+	DISCONNECTED
+	RETRY_WAITING
+}
+
 type MinigraphqlResponse {
-    status: String!
+    status: MinigraphStatus!
+    error: String
 }
 
 type CloudResponse {
@@ -25,11 +34,11 @@ type RelayResponse {
 
 type Cloud {
     error: String
-    apiKey: ApiKeyResponse
+    apiKey: ApiKeyResponse!
     relay: RelayResponse
-    minigraphql: MinigraphqlResponse
-    cloud: CloudResponse
-    allowedOrigins: [String]
+    minigraphql: MinigraphqlResponse!
+    cloud: CloudResponse!
+    allowedOrigins: [String!]!
     emhttp: EmhttpResponse
 }
 

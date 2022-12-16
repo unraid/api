@@ -2,13 +2,14 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { GraphQLClient, isAPIStateDataFullyLoaded } from './graphql-client';
-import { addSubscription, MinigraphStatus, removeSubscription, SubscriptionKey } from '@app/store/modules/minigraph';
+import { addSubscription, removeSubscription, SubscriptionKey } from '@app/store/modules/minigraph';
 import { getters, store } from '@app/store';
 import { cacheServers } from '@app/store/modules/servers';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
 import { GET_SERVERS_FROM_MOTHERSHIP } from '../graphql/mothership/queries';
 import { EVENTS_SUBSCRIPTION, SERVERS_SUBSCRIPTION } from '../graphql/mothership/subscriptions';
-import { ClientType } from '../graphql/generated/client/graphql';
+import { ClientType } from '@app/graphql/generated/client/graphql';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 function notNull<T>(value: T): value is NonNullable<T> {
 	return value !== null;

@@ -1,12 +1,14 @@
-export const GET_REPORT_OBJECT = /* GraphQL */`
-query {
+export const GET_CLOUD_OBJECT = /* GraphQL */`
+query getCloud {
     cloud {
         error 
         apiKey {
             valid
+            error
         }
         minigraphql {
             status
+            error
         }
         cloud {
             status 
@@ -16,6 +18,19 @@ query {
         allowedOrigins
         emhttp {
             mode
+        }
+    }
+}
+`;
+
+export const GET_SERVERS = /* GraphQL */`
+query getServers {
+    servers {
+        name
+        guid
+        status
+        owner {
+            username
         }
     }
 }

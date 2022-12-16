@@ -1,12 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-
-export enum MinigraphStatus {
-	'CONNECTING',
-	'CONNECTED',
-	'ERROR',
-	'DISCONNECTED',
-	'RETRY_WAITING',
-}
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 export enum SubscriptionKey {
 	SERVERS = 'SERVERS',
@@ -19,7 +12,7 @@ export type GraphqlClientSubscription = {
 
 export type MinigraphClientState = {
 	status: MinigraphStatus;
-	error: null | { message: string };
+	error: string | null;
 	subscriptions: Record<SubscriptionKey, boolean>;
 };
 

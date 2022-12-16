@@ -11,14 +11,14 @@ import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minig
 import type { Context } from '@app/graphql/schema/utils';
 import { type QueryResolvers } from '@app/graphql/generated/api/types';
 
-const cloudResolver: QueryResolvers['cloud'] = async (_, __, context: Context) => {
+const cloudResolver: QueryResolvers['cloud'] = async (parent, args, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'cloud',
 		action: 'read',
 		possession: 'own',
 	});
-
-	const [apiKey, minigraphql, cloud] = await Promise.all([checkApi(), checkMinigraphql(), checkCloud()]);
+	const minigraphql = checkMinigraphql();
+	const [apiKey, cloud] = await Promise.all([checkApi(), checkCloud()]);
 
 	return {
 		relay: { // Left in for UPC backwards compat.
@@ -30,7 +30,7 @@ const cloudResolver: QueryResolvers['cloud'] = async (_, __, context: Context) =
 		minigraphql,
 		cloud,
 		allowedOrigins: getAllowedOrigins(),
-		error: apiKey.error ?? cloud.error ?? null,
+		error: apiKey.error ?? cloud.error ?? minigraphql.error ?? null,
 	};
 };
 

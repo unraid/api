@@ -4,9 +4,10 @@ import { minigraphLogger } from '@app/core/log';
 import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
 import { createClient } from 'graphql-ws';
-import { MinigraphStatus, setStatus } from '@app/store/modules/minigraph';
+import { setStatus } from '@app/store/modules/minigraph';
 import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -62,11 +63,11 @@ export const createGraphqlClient = () => {
 	});
 	client.on('error', error => {
 		const normalError = (error instanceof Error) ? error : new Error('Unknown Minigraph Client Error');
-		store.dispatch(setStatus({ status: MinigraphStatus.ERROR, error: { message: normalError?.message ?? 'no message' } }));
+		store.dispatch(setStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
 		minigraphLogger.error('Error in MinigraphClient', error);
 	});
 	client.on('closed', event => {
-		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: { message: 'Client Closed Connection' } }));
+		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
 		// Store.dispatch(clearAllServers());
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection', event);
@@ -85,6 +86,7 @@ export const graphQLClient: ReturnType<typeof createGraphqlClient> | null = null
 // eslint-disable-next-line @typescript-eslint/no-extraneous-class
 export class GraphQLClient {
 	public static instance: ApolloClient<NormalizedCacheObject> | null = null;
+	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private constructor() {}
 
 	public static getInstance(): ApolloClient<NormalizedCacheObject> {

@@ -1,6 +1,6 @@
-import { gql } from '@app/graphql/generated/client/gql';
+import { graphql } from '@app/graphql/generated/client/gql';
 
-export const EVENTS_SUBSCRIPTION = gql(/* GraphQL */ `
+export const EVENTS_SUBSCRIPTION = graphql(/* GraphQL */ `
 subscription events($apiKey: String!) {
   events @auth(apiKey: $apiKey) {
     ... on ClientConnectedEvent {
@@ -23,7 +23,7 @@ subscription events($apiKey: String!) {
 }
 `);
 
-export const SERVERS_SUBSCRIPTION = gql(/* GraphQL */ `
+export const SERVERS_SUBSCRIPTION = graphql(/* GraphQL */ `
 subscription serversSubscription ($apiKey: String!) {
     servers @auth(apiKey: $apiKey)
 }

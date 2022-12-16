@@ -22,6 +22,7 @@ test('Returns paths', async () => {
 		  "myservers-config-states",
 		  "myservers-env",
 		  "keyfile-base",
+		  "machine-id",
 		]
 	`);
 });

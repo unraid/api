@@ -21,28 +21,28 @@ const documents = {
 };
 
 /**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}"): (typeof documents)["\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}"];
+export function graphql(source: "\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}"): (typeof documents)["\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}"];
 /**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}"): (typeof documents)["\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}"];
+export function graphql(source: "\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}"): (typeof documents)["\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}"];
 /**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n"): (typeof documents)["\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n"];
+export function graphql(source: "\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n"): (typeof documents)["\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n"];
 /**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"): (typeof documents)["\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"];
+export function graphql(source: "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"): (typeof documents)["\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"];
 /**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function gql(source: "\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n"): (typeof documents)["\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n"];
+export function graphql(source: "\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n"): (typeof documents)["\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n"];
 
 /**
- * The gql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  *
  *
  * @example
@@ -53,9 +53,9 @@ export function gql(source: "\nsubscription serversSubscription ($apiKey: String
  * The query argument is unknown!
  * Please regenerate the types.
 **/
-export function gql(source: string): unknown;
+export function graphql(source: string): unknown;
 
-export function gql(source: string) {
+export function graphql(source: string) {
   return (documents as any)[source] ?? {};
 }
 

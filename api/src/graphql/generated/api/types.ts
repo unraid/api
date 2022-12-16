@@ -32,7 +32,7 @@ export type ApiKey = {
 export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']>;
-  valid?: Maybe<Scalars['Boolean']>;
+  valid: Scalars['Boolean'];
 };
 
 export type ArrayType = {
@@ -186,12 +186,12 @@ export type Case = {
 
 export type Cloud = {
   __typename?: 'Cloud';
-  allowedOrigins?: Maybe<Array<Maybe<Scalars['String']>>>;
-  apiKey?: Maybe<ApiKeyResponse>;
-  cloud?: Maybe<CloudResponse>;
+  allowedOrigins: Array<Scalars['String']>;
+  apiKey: ApiKeyResponse;
+  cloud: CloudResponse;
   emhttp?: Maybe<EmhttpResponse>;
   error?: Maybe<Scalars['String']>;
-  minigraphql?: Maybe<MinigraphqlResponse>;
+  minigraphql: MinigraphqlResponse;
   relay?: Maybe<RelayResponse>;
 };
 
@@ -617,9 +617,18 @@ export enum MemoryType {
   DDR4 = 'DDR4'
 }
 
+export enum MinigraphStatus {
+  CONNECTED = 'CONNECTED',
+  CONNECTING = 'CONNECTING',
+  DISCONNECTED = 'DISCONNECTED',
+  ERROR = 'ERROR',
+  RETRY_WAITING = 'RETRY_WAITING'
+}
+
 export type MinigraphqlResponse = {
   __typename?: 'MinigraphqlResponse';
-  status: Scalars['String'];
+  error?: Maybe<Scalars['String']>;
+  status: MinigraphStatus;
 };
 
 export type Mount = {
@@ -938,7 +947,7 @@ export type Query = {
   permissions?: Maybe<Permissions>;
   registration?: Maybe<Registration>;
   server?: Maybe<Server>;
-  servers?: Maybe<Array<Maybe<Server>>>;
+  servers: Array<Server>;
   service?: Maybe<Service>;
   services?: Maybe<Array<Maybe<Service>>>;
   /** Network Shares */
@@ -1046,15 +1055,15 @@ export type Scope = {
 
 export type Server = {
   __typename?: 'Server';
-  apikey?: Maybe<Scalars['String']>;
-  guid?: Maybe<Scalars['String']>;
-  lanip?: Maybe<Scalars['String']>;
-  localurl?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
-  owner?: Maybe<Owner>;
-  remoteurl?: Maybe<Scalars['String']>;
-  status?: Maybe<Status>;
-  wanip?: Maybe<Scalars['String']>;
+  apikey: Scalars['String'];
+  guid: Scalars['String'];
+  lanip: Scalars['String'];
+  localurl: Scalars['String'];
+  name: Scalars['String'];
+  owner: Owner;
+  remoteurl: Scalars['String'];
+  status: Status;
+  wanip: Scalars['String'];
 };
 
 export type Service = {
@@ -1784,6 +1793,7 @@ export type ResolversTypes = ResolversObject<{
   MemoryFormFactor: MemoryFormFactor;
   MemoryLayout: ResolverTypeWrapper<MemoryLayout>;
   MemoryType: MemoryType;
+  MinigraphStatus: MinigraphStatus;
   MinigraphqlResponse: ResolverTypeWrapper<MinigraphqlResponse>;
   Mount: ResolverTypeWrapper<Mount>;
   Mutation: ResolverTypeWrapper<{}>;
@@ -1966,7 +1976,7 @@ export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversP
 
 export type ApiKeyResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKeyResponse'] = ResolversParentTypes['ApiKeyResponse']> = ResolversObject<{
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  valid?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  valid?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2044,12 +2054,12 @@ export type CaseResolvers<ContextType = Context, ParentType extends ResolversPar
 }>;
 
 export type CloudResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Cloud'] = ResolversParentTypes['Cloud']> = ResolversObject<{
-  allowedOrigins?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
-  apiKey?: Resolver<Maybe<ResolversTypes['ApiKeyResponse']>, ParentType, ContextType>;
-  cloud?: Resolver<Maybe<ResolversTypes['CloudResponse']>, ParentType, ContextType>;
+  allowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  apiKey?: Resolver<ResolversTypes['ApiKeyResponse'], ParentType, ContextType>;
+  cloud?: Resolver<ResolversTypes['CloudResponse'], ParentType, ContextType>;
   emhttp?: Resolver<Maybe<ResolversTypes['EmhttpResponse']>, ParentType, ContextType>;
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  minigraphql?: Resolver<Maybe<ResolversTypes['MinigraphqlResponse']>, ParentType, ContextType>;
+  minigraphql?: Resolver<ResolversTypes['MinigraphqlResponse'], ParentType, ContextType>;
   relay?: Resolver<Maybe<ResolversTypes['RelayResponse']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2427,7 +2437,8 @@ export type MemoryLayoutResolvers<ContextType = Context, ParentType extends Reso
 }>;
 
 export type MinigraphqlResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MinigraphqlResponse'] = ResolversParentTypes['MinigraphqlResponse']> = ResolversObject<{
-  status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['MinigraphStatus'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2628,7 +2639,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   permissions?: Resolver<Maybe<ResolversTypes['Permissions']>, ParentType, ContextType>;
   registration?: Resolver<Maybe<ResolversTypes['Registration']>, ParentType, ContextType>;
   server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType, RequireFields<QueryserverArgs, 'name'>>;
-  servers?: Resolver<Maybe<Array<Maybe<ResolversTypes['Server']>>>, ParentType, ContextType>;
+  servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
   service?: Resolver<Maybe<ResolversTypes['Service']>, ParentType, ContextType, RequireFields<QueryserviceArgs, 'name'>>;
   services?: Resolver<Maybe<Array<Maybe<ResolversTypes['Service']>>>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
@@ -2666,15 +2677,15 @@ export type ScopeResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type ServerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Server'] = ResolversParentTypes['Server']> = ResolversObject<{
-  apikey?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  guid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  lanip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  localurl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
-  remoteurl?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  status?: Resolver<Maybe<ResolversTypes['Status']>, ParentType, ContextType>;
-  wanip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  apikey?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  guid?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lanip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  localurl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  owner?: Resolver<ResolversTypes['Owner'], ParentType, ContextType>;
+  remoteurl?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  status?: Resolver<ResolversTypes['Status'], ParentType, ContextType>;
+  wanip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
