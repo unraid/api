@@ -1,6 +1,6 @@
 import { makeExecutableSchema } from '@graphql-tools/schema';
 import { types as typeDefs } from '@app/graphql/types';
-import * as resolvers from '@app/graphql/resolvers';
+import { resolvers } from '@app/graphql/resolvers/resolvers';
 import { getFuncDirective } from '@app/graphql/func-directive';
 import { mergeTypeDefs } from '@graphql-tools/merge';
 

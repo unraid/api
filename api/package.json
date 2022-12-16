@@ -43,7 +43,8 @@
     "start:plugin": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
     "start:plugin-verbose": "LOG_CONTEXT=true LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
     "start:dev": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty NODE_ENV=development LOG_LEVEL=trace NODE_ENV=development tsup --config ./tsup.config.ts --watch --onSuccess 'DOTENV_CONFIG_PATH=./.env.development node -r dotenv/config dist/unraid-api.cjs start --debug'",
-    "start:docker": "docker compose run --rm builder-interactive"
+    "start:docker": "docker compose run --rm builder-interactive",
+    "docker:dev": "docker-compose run --rm --service-ports dev"
   },
   "files": [
     ".env.staging",

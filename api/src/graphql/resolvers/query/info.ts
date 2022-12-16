@@ -6,7 +6,7 @@
 import { uptime } from 'os';
 import { baseboard, cpu, cpuFlags, mem, memLayout, osInfo, system, versions } from 'systeminformation';
 import { docker } from '@app/core/utils/clients/docker';
-import { type InfoApps, type QueryResolvers, type Os as InfoOs, type Info, type InfoCpu, type Display, type Theme, type Temperature, type Baseboard, type Versions, type InfoMemory, type MemoryLayout, type Device, Gpu, type System, type Devices, Vms, type InfoVMs } from '@app/graphql/generated/api/types';
+import { type InfoApps, type Os as InfoOs, type InfoCpu, type Display, type Theme, type Temperature, type Baseboard, type Versions, type InfoMemory, type MemoryLayout, type System, type Devices, type InfoVMs, type InfoResolvers, type Resolvers } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { type DynamixConfig } from '@app/core/types/ini';
@@ -29,7 +29,7 @@ import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 
-const generateApps = async (): Promise<InfoApps> => {
+export const generateApps = async (): Promise<InfoApps> => {
 	const installed = await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length);
 	const started = await docker.listContainers().catch(() => []).then(containers => containers.length);
 	return { installed, started };
@@ -376,22 +376,16 @@ const generateVms = async (): Promise<InfoVMs> => {
 	}
 };
 
-const infoResolver: QueryResolvers['info'] = async () => {
-	const info: Info = {
-		apps: await generateApps(),
-		baseboard: await generateBaseboard(),
-		cpu: await generateCpu(),
-		devices: await generateDevices(),
-		display: await generateDisplay(),
-		machineId: await generateMachineId(),
-		memory: await generateMemory(),
-		os: await generateOs(),
-		system: await generateSystem(),
-		versions: await generateVersions(),
-		vms: await generateVms(),
-	};
-
-	return info;
-};
-
-export default infoResolver;
+export const infoSubResolvers: InfoResolvers = ({
+	apps: async () => generateApps(),
+	baseboard: async () => generateBaseboard(),
+	cpu: async () => generateCpu(),
+	devices: async () => generateDevices(),
+	display: async () => generateDisplay(),
+	machineId: async () => generateMachineId(),
+	memory: async () => generateMemory(),
+	os: async () => generateOs(),
+	system: async () => generateSystem(),
+	versions: async () => generateVersions(),
+	vms: async () => generateVms(),
+});

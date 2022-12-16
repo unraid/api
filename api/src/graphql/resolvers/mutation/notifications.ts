@@ -4,14 +4,13 @@
  */
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { type Context } from '@app/graphql/schema/utils';
 import { graphqlLogger } from '@app/core';
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { SEND_NOTIFICATION_MUTATION } from '../../mothership/mutations';
 import { getters } from '../../../store';
-import { type NotificationInput } from '../../generated/client/graphql';
+import { type Resolvers } from '../../generated/api/types';
 
-export const sendNotification = async (_: unknown, args: { notification: NotificationInput }, context: Context) => {
+export const sendNotification: NonNullable<Resolvers['Mutation']>['sendNotification'] = async (_, args: { notification }, context) => {
 	const { user } = context;
 
 	// Check permissions
@@ -32,4 +31,5 @@ export const sendNotification = async (_: unknown, args: { notification: Notific
 		apiKey: getters.config().remote.apikey,
 	} });
 	graphqlLogger.debug('Query Result from Notifications.ts', result);
+	return args.notification;
 };
