@@ -6,7 +6,7 @@
 import { uptime } from 'os';
 import { baseboard, cpu, cpuFlags, mem, memLayout, osInfo, system, versions } from 'systeminformation';
 import { docker } from '@app/core/utils/clients/docker';
-import { type InfoApps, type QueryResolvers, type Os as InfoOs, type Info, type InfoCpu, type Display, type Theme, type Temperature, type Baseboard, type Versions, type InfoMemory, type MemoryLayout, type Device, Gpu, type System, type Devices } from '@app/graphql/generated/api/types';
+import { type InfoApps, type QueryResolvers, type Os as InfoOs, type Info, type InfoCpu, type Display, type Theme, type Temperature, type Baseboard, type Versions, type InfoMemory, type MemoryLayout, type Device, Gpu, type System, type Devices, Vms, type InfoVMs } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { loadState } from '@app/core/utils/misc/load-state';
 import { type DynamixConfig } from '@app/core/types/ini';
@@ -352,7 +352,7 @@ const generateMachineId = async (): Promise<string> => getMachineId();
 
 const generateSystem = async (): Promise<System> => system();
 
-const generateVms = async () => {
+const generateVms = async (): Promise<InfoVMs> => {
 	try {
 		const hypervisor = await getHypervisor();
 		if (!hypervisor) {
@@ -365,11 +365,8 @@ const generateVms = async () => {
 		const started = activeDomains.length;
 
 		return {
-			text: `Installed: ${installed} \nStarted: ${started}`,
-			json: {
-				installed,
-				started,
-			},
+			installed,
+			started,
 		};
 	} catch {
 		return {
@@ -393,8 +390,6 @@ const infoResolver: QueryResolvers['info'] = async () => {
 		versions: await generateVersions(),
 		vms: await generateVms(),
 	};
-
-	console.log(info);
 
 	return info;
 };
