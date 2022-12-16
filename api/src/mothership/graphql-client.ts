@@ -66,7 +66,7 @@ export const createGraphqlClient = () => {
 		minigraphLogger.error('Error in MinigraphClient', error);
 	});
 	client.on('closed', event => {
-		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
+		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: { message: 'Client Closed Connection' } }));
 		// Store.dispatch(clearAllServers());
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection', event);
