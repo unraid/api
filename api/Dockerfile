@@ -34,4 +34,6 @@ RUN $NPM_I_CMD
 # Install pkg
 RUN npm i -g pkg zx
 
+EXPOSE 4000
+
 CMD ["npm", "run", "build-pkg"]

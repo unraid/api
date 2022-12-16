@@ -1,6 +1,6 @@
 type Info {
     """Count of VMs"""
-    vms: InfoVMs @func(module: "getVmsCount")
+    vms: InfoVMs
 }
 
 type InfoVMs {

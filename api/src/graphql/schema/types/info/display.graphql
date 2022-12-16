@@ -1,5 +1,5 @@
 type Info {
-    display: Display @func(module: "getDisplay")
+    display: Display
 }
 
 type Display {

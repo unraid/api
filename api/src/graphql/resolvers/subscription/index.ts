@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { GraphQLResolveInfo } from 'graphql';
+import { type GraphQLResolveInfo } from 'graphql';
 import { AppError } from '@app/core/errors/app-error';
 import { pubsub } from '@app/core/pubsub';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

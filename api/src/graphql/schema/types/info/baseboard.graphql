@@ -1,5 +1,5 @@
 type Info {
-    baseboard: Baseboard @func(module: "getBaseboard")
+    baseboard: Baseboard
 }
 
 type Baseboard {
