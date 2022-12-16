@@ -16,9 +16,6 @@ query getCloud {
             ip
         }
         allowedOrigins
-        emhttp {
-            mode
-        }
     }
 }
 `;

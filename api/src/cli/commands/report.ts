@@ -14,6 +14,7 @@ import { getApiApolloClient } from '../../graphql/client/api/getApiApolloClient'
 import { getCloudDocument, getServersDocument, type getServersQuery, type getCloudQuery } from '../../graphql/generated/api/operations';
 import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client';
 import { type MinigraphStatus } from '../../graphql/generated/api/types';
+import { ApolloError } from 'apollo-server-express';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
@@ -61,7 +62,10 @@ export const getCloudData = async (client: ApolloClient<NormalizedCacheObject>):
 		const cloud = await client.query({ query: getCloudDocument });
 		return cloud.data.cloud ?? null;
 	} catch (error: unknown) {
+		cliLogger.addContext('error', error);
 		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error instanceof Error ? error.message : 'Unknown Error');
+		cliLogger.removeContext('error');
+
 		return null;
 	}
 };
@@ -91,7 +95,9 @@ Promise<ServersPayload | null> => {
 		}, { online: [], offline: [], invalid: [] });
 		return foundServers;
 	} 	catch (error: unknown) {
+		cliLogger.addContext('error', error);
 		cliLogger.trace('Failed fetching servers from local graphql with "%s"', error instanceof Error ? error.message : 'Unknown Error');
+		cliLogger.removeContext('error');
 		return {
 			online: [],
 			offline: [],
@@ -251,8 +257,6 @@ export const report = async (...argv: string[]) => {
 
 		// Log cloud response
 		cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
-
-		cliLogger.trace('Here to fix errros');
 
 		// Query local graphql using upc's API key
 		// Get the servers array

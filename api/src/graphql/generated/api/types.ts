@@ -189,7 +189,6 @@ export type Cloud = {
   allowedOrigins: Array<Scalars['String']>;
   apiKey: ApiKeyResponse;
   cloud: CloudResponse;
-  emhttp?: Maybe<EmhttpResponse>;
   error?: Maybe<Scalars['String']>;
   minigraphql: MinigraphqlResponse;
   relay?: Maybe<RelayResponse>;
@@ -475,11 +474,6 @@ export type DockerNetwork = {
   name?: Maybe<Scalars['String']>;
   options?: Maybe<Scalars['JSON']>;
   scope?: Maybe<Scalars['String']>;
-};
-
-export type EmhttpResponse = {
-  __typename?: 'EmhttpResponse';
-  mode?: Maybe<Scalars['String']>;
 };
 
 export type Flash = {
@@ -1774,7 +1768,6 @@ export type ResolversTypes = ResolversObject<{
   Display: ResolverTypeWrapper<Display>;
   DockerContainer: ResolverTypeWrapper<DockerContainer>;
   DockerNetwork: ResolverTypeWrapper<DockerNetwork>;
-  EmhttpResponse: ResolverTypeWrapper<EmhttpResponse>;
   Flash: ResolverTypeWrapper<Flash>;
   Float: ResolverTypeWrapper<Scalars['Float']>;
   Gpu: ResolverTypeWrapper<Gpu>;
@@ -1892,7 +1885,6 @@ export type ResolversParentTypes = ResolversObject<{
   Display: Display;
   DockerContainer: DockerContainer;
   DockerNetwork: DockerNetwork;
-  EmhttpResponse: EmhttpResponse;
   Flash: Flash;
   Float: Scalars['Float'];
   Gpu: Gpu;
@@ -2057,7 +2049,6 @@ export type CloudResolvers<ContextType = Context, ParentType extends ResolversPa
   allowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   apiKey?: Resolver<ResolversTypes['ApiKeyResponse'], ParentType, ContextType>;
   cloud?: Resolver<ResolversTypes['CloudResponse'], ParentType, ContextType>;
-  emhttp?: Resolver<Maybe<ResolversTypes['EmhttpResponse']>, ParentType, ContextType>;
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   minigraphql?: Resolver<ResolversTypes['MinigraphqlResponse'], ParentType, ContextType>;
   relay?: Resolver<Maybe<ResolversTypes['RelayResponse']>, ParentType, ContextType>;
@@ -2309,11 +2300,6 @@ export type DockerNetworkResolvers<ContextType = Context, ParentType extends Res
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   options?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   scope?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type EmhttpResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['EmhttpResponse'] = ResolversParentTypes['EmhttpResponse']> = ResolversObject<{
-  mode?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3110,7 +3096,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Display?: DisplayResolvers<ContextType>;
   DockerContainer?: DockerContainerResolvers<ContextType>;
   DockerNetwork?: DockerNetworkResolvers<ContextType>;
-  EmhttpResponse?: EmhttpResponseResolvers<ContextType>;
   Flash?: FlashResolvers<ContextType>;
   Gpu?: GpuResolvers<ContextType>;
   Info?: InfoResolvers<ContextType>;
