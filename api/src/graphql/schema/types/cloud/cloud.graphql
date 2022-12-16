@@ -22,10 +22,6 @@ type CloudResponse {
     error: String
 }
 
-type EmhttpResponse {
-    mode: String
-}
-
 type RelayResponse {
      status: String!
      timeout: String
@@ -39,7 +35,6 @@ type Cloud {
     minigraphql: MinigraphqlResponse!
     cloud: CloudResponse!
     allowedOrigins: [String!]!
-    emhttp: EmhttpResponse
 }
 
 type Query {
