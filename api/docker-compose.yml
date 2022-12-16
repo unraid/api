@@ -26,8 +26,9 @@ x-volumes: &volumes
 services:
 
   dev:
-    network_mode: host
     image: unraid-api-node-18
+    ports:
+      - "4000:4000"
     build: 
       context: .
       dockerfile: Dockerfile
@@ -41,6 +42,7 @@ services:
     entrypoint: /bin/bash
     profiles:
       - builder
+
 
   builder:
     image: unraid-api-node-18

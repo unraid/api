@@ -4,7 +4,6 @@ export * from './array';
 export * from './debug';
 export * from './disks';
 export * from './docker';
-export * from './info';
 export * from './services';
 export * from './settings';
 export * from './shares';

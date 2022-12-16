@@ -1,5 +1,5 @@
 type Info {
-    memory: InfoMemory @func(module: "getMemory")
+    memory: InfoMemory
 }
 
 type InfoMemory {

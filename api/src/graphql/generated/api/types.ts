@@ -929,10 +929,10 @@ export type Query = {
   /** All Docker networks */
   dockerNetworks: Array<Maybe<DockerNetwork>>;
   flash?: Maybe<Flash>;
-  info: Info;
+  info?: Maybe<Info>;
   /** Current user account */
   me?: Maybe<Me>;
-  online: Scalars['Boolean'];
+  online?: Maybe<Scalars['Boolean']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
   permissions?: Maybe<Permissions>;
@@ -955,7 +955,7 @@ export type Query = {
   vmNetwork?: Maybe<Scalars['JSON']>;
   /** Virtual machines */
   vms?: Maybe<Vms>;
-  welcome: Welcome;
+  welcome?: Maybe<Welcome>;
 };
 
 
@@ -2620,9 +2620,9 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   dockerNetwork?: Resolver<ResolversTypes['DockerNetwork'], ParentType, ContextType, RequireFields<QuerydockerNetworkArgs, 'id'>>;
   dockerNetworks?: Resolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, ParentType, ContextType, Partial<QuerydockerNetworksArgs>>;
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;
-  info?: Resolver<ResolversTypes['Info'], ParentType, ContextType>;
+  info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
-  online?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;
   permissions?: Resolver<Maybe<ResolversTypes['Permissions']>, ParentType, ContextType>;
@@ -2640,7 +2640,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   vars?: Resolver<Maybe<ResolversTypes['Vars']>, ParentType, ContextType>;
   vmNetwork?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<QueryvmNetworkArgs, 'name'>>;
   vms?: Resolver<Maybe<ResolversTypes['Vms']>, ParentType, ContextType>;
-  welcome?: Resolver<ResolversTypes['Welcome'], ParentType, ContextType>;
+  welcome?: Resolver<Maybe<ResolversTypes['Welcome']>, ParentType, ContextType>;
 }>;
 
 export type RegistrationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Registration'] = ResolversParentTypes['Registration']> = ResolversObject<{

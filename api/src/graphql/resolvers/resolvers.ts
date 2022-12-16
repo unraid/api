@@ -12,15 +12,20 @@ import { Query } from '@app/graphql/resolvers/query';
 import { Mutation } from '@app/graphql/resolvers/mutation';
 import { Subscription } from '@app/graphql/resolvers/subscription';
 import { UserAccount } from '@app/graphql/resolvers/user-account';
+import { type Resolvers } from '../generated/api/types';
+import { infoSubResolvers } from './query/info';
 
-export const JSON = GraphQLJSON;
-export const Long = GraphQLLong;
-export const UUID = GraphQLUUID as GraphQLScalarType;
-export const DateTime = GraphQLDateTime;
-
-export {
+export const resolvers: Resolvers = {
+	JSON: GraphQLJSON,
+	Long: GraphQLLong,
+	UUID: GraphQLUUID as GraphQLScalarType,
+	DateTime: GraphQLDateTime,
 	Query,
 	Mutation,
 	Subscription,
 	UserAccount,
+	Info: {
+		...infoSubResolvers,
+	},
+
 };

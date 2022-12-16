@@ -3,9 +3,9 @@
  * Written by: Alexis Tyler
  */
 
+import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { getUnraidVersion } from '@app/core/modules';
 
 /**
  * Get welcome message.
@@ -21,7 +21,7 @@ export const getWelcome = async (context: CoreContext): Promise<CoreResult> => {
 		possession: 'any',
 	});
 
-	const version = await getUnraidVersion(context).then(result => result.json.unraid);
+	const version = await getUnraidVersion();
 	const message = `Welcome ${user.name} to this Unraid ${version} server`;
 
 	return {
