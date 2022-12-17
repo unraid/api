@@ -43,7 +43,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "disconnected",
+		    "minigraph": "DISCONNECTED",
 		  },
 		  "local": {},
 		  "notifier": {
@@ -122,7 +122,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "disconnected",
+		    "minigraph": "DISCONNECTED",
 		  },
 		  "local": {
 		    "2Fa": "yes",
