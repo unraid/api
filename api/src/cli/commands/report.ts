@@ -146,8 +146,12 @@ const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): stri
 	STATUS: [${status}] ${ip} ${error}`;
 };
 
-const getReadableMinigraphDetails = (reportObject: ReportObject): string => `
-	STATUS: [${reportObject.minigraph.status}]`;
+const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
+	const statusLine = `STATUS: [${reportObject.minigraph.status ?? 'Failed to connect to local API'}]`;
+	const errorLine = reportObject.minigraph.error ? `ERROR: [${reportObject.minigraph.error}]` : null;
+	return `
+	${statusLine}${errorLine ? `\n${errorLine}` : ''}`;
+};
 
 // Convert server to string output
 const serverToString = (v: Verbosity) => (server: ServersQueryResultServer) => `${server?.name ?? 'No Server Name'}${(v === '-v' || v === '-vv') ? `[owner="${server.owner?.username ?? 'No Owner Found'}"${v === '-vv' ? ` guid="${server.guid ?? 'No GUID'}"]` : ']'}` : ''}`;
@@ -235,8 +239,6 @@ export const report = async (...argv: string[]) => {
 			stdoutLogger.write('Generating report please wait…');
 		}
 
-		const testclient = getApiApolloClient({ upcApiKey: 'myapikey' });
-		const result = await testclient.query({ query: getCloudDocument });
 		const jsonReport = argv.includes('--json');
 		const v = getVerbosity(argv);
 
