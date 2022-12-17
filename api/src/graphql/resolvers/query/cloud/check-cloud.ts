@@ -11,8 +11,7 @@ import { getters, store } from '@app/store';
 import { getCloudCache, getDnsCache } from '@app/store/getters';
 import { setCloudCheck, setDNSCheck } from '@app/store/modules/cache';
 import { got } from 'got';
-import { MinigraphStatus } from '@app/store/modules/minigraph';
-import { type CloudResponse, type Resolvers } from '@app/graphql/generated/api/types';
+import { type CloudResponse, type Resolvers, MinigraphStatus } from '@app/graphql/generated/api/types';
 
 const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 

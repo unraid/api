@@ -30,7 +30,7 @@ export const queryAndSubscribeToServers = async (apiKey: string) => {
 	const serversub = client.subscribe({ query: SERVERS_SUBSCRIPTION, variables: { apiKey } });
 	store.dispatch(addSubscription(SubscriptionKey.SERVERS));
 	serversub.subscribe(async ({ data, errors }) => {
-		mothershipLogger.trace('Received subscription data for servers %o', data?.servers);
+		mothershipLogger.trace('Received subscription data for servers %o', data);
 		if (errors) {
 			mothershipLogger.error('Error with servers subscription: %s', errors.join(','));
 			// @TODO: Types for this payload

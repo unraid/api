@@ -2,7 +2,7 @@ import NodeCache from 'node-cache';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { CacheKeys, type DNSCheck } from '@app/store/types';
 
-import { FIVE_DAYS_SECS, ONE_HOUR_SECS } from '../../consts';
+import { ONE_HOUR_SECS } from '@app/consts';
 import { type CloudResponse } from '../../graphql/generated/api/types';
 
 const initialState: {
