@@ -13,7 +13,7 @@ import { loadConfigFile } from '@app/store/modules/config';
 import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
 import { getCloudDocument, getServersDocument, type getServersQuery, type getCloudQuery } from '../../graphql/generated/api/operations';
 import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client/core';
-import { type MinigraphStatus } from '../../graphql/generated/api/types';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
@@ -44,8 +44,8 @@ type ReportObject = {
 		myServersUsername?: string;
 	};
 	minigraph: {
-		status?: MinigraphStatus;
-		error?: string | null;
+		status: MinigraphStatus;
+		error: string | null;
 	};
 	cloud: {
 		status: string;
@@ -147,8 +147,8 @@ const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): stri
 };
 
 const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
-	const statusLine = `STATUS: [${reportObject.minigraph.status ?? 'Failed to connect to local API'}]`;
-	const errorLine = reportObject.minigraph.error ? `ERROR: [${reportObject.minigraph.error}]` : null;
+	const statusLine = `STATUS: [${reportObject.minigraph.status}]`;
+	const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null
 	return `
 	${statusLine}${errorLine ? `\n${errorLine}` : ''}`;
 };
@@ -286,8 +286,8 @@ export const report = async (...argv: string[]) => {
 				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
 			},
 			minigraph: {
-				status: cloud?.minigraphql.status,
-				error: cloud?.minigraphql.error,
+				status: cloud?.minigraphql.status ?? MinigraphStatus.DISCONNECTED,
+				error: cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected': null,
 			},
 			cloud: {
 				status: cloud?.cloud.status ?? 'error',

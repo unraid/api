@@ -22,9 +22,3 @@ subscription events($apiKey: String!) {
   }
 }
 `);
-
-export const SERVERS_SUBSCRIPTION = graphql(/* GraphQL */ `
-subscription serversSubscription ($apiKey: String!) {
-    servers @auth(apiKey: $apiKey)
-}
-`);

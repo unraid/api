@@ -79,9 +79,7 @@ export const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0])
 		},
 	};
 
-	logger.addContext('event', event);
-	logger.trace('New array event created');
-	logger.removeContext('event');
+// @TODO: Simplify array events to only happen when the size changes in megabytes (it looks like this is easy)
 
 	return event;
 };

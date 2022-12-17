@@ -44,13 +44,27 @@ export const createGraphqlClient = () => {
 		shouldRetry() {
 			return true;
 		},
+		lazy: false,
 		retryAttempts: Infinity,
+		onNonLazyError: async (error) => {
+			minigraphLogger.error('Non-Lazy Error %o', error)
+		}
 	});
 	const wsLink = new GraphQLWsLink(client);
 	const apolloClient = new ApolloClient({
 		uri: MOTHERSHIP_GRAPHQL_LINK,
 		link: wsLink,
 		cache: new InMemoryCache(),
+		defaultOptions: {
+			watchQuery: {
+				fetchPolicy: 'no-cache',
+				errorPolicy: 'ignore',
+			  },
+			  query: {
+				fetchPolicy: 'no-cache',
+				errorPolicy: 'all',
+			},
+		}
 	});
 	// Maybe a listener to initiate this
 	client.on('connecting', () => {
@@ -72,11 +86,6 @@ export const createGraphqlClient = () => {
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection', event);
 		minigraphLogger.removeContext('closeEvent');
-	});
-	client.on('message', message => {
-		minigraphLogger.addContext('message', message);
-		minigraphLogger.trace('Message from Mothership');
-		minigraphLogger.removeContext('message');
 	});
 	return apolloClient;
 };

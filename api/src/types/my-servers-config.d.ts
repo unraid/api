@@ -1,3 +1,5 @@
+import { MinigraphStatus } from "@app/graphql/generated/api/types";
+
 interface MyServersConfig {
 	api: {
 		version: string;
@@ -45,14 +47,14 @@ interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 
 export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
-		minigraph: 'connected' | 'disconnected';
+		minigraph: MinigraphStatus;
 		upnpError?: null | string;
 	};
 }
 
 export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServersConfigMemoryWithMandatoryHiddenFields {
 	connectionStatus: {
-		minigraph: 'connected' | 'disconnected';
+		minigraph: MinigraphStatus;
 		upnpError: null | string;
 	};
 }

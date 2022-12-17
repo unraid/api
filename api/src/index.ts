@@ -23,6 +23,8 @@ import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
+import { setStatus } from '@app/store/modules/minigraph';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 // Boot app
 void am(async () => {
@@ -81,8 +83,7 @@ void am(async () => {
 		if (isNaN(parseInt(config.port, 10))) {
 			if (fileExistsSync(config.port)) unlinkSync(config.port);
 		}
-
-		store.dispatch(setConnectionStatus({ minigraph: 'disconnected' }));
+		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }))
 		writeMemoryConfigSync();
 	});
 }, async (error: NodeJS.ErrnoException) => {
@@ -90,7 +91,7 @@ void am(async () => {
 	logger.error(error);
 
 	// Write the new memory config with disconnected status
-	store.dispatch(setConnectionStatus({ minigraph: 'disconnected' }));
+	store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
 	writeMemoryConfigSync();
 
 	// Stop server

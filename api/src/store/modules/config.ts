@@ -8,6 +8,7 @@ import { randomBytes } from 'crypto';
 import { F_OK } from 'constants';
 import { clearAllServers } from '@app/store/modules/servers';
 import { type RecursivePartial } from '@app/types';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -45,7 +46,7 @@ export const initialState: SliceState = {
 		apikey: '',
 	},
 	connectionStatus: {
-		minigraph: 'disconnected',
+		minigraph: MinigraphStatus.DISCONNECTED,
 	},
 };
 

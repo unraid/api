@@ -11,7 +11,7 @@ import { getters, store } from '@app/store';
 import { getCloudCache, getDnsCache } from '@app/store/getters';
 import { setCloudCheck, setDNSCheck } from '@app/store/modules/cache';
 import { got } from 'got';
-import { type CloudResponse, type Resolvers, MinigraphStatus } from '@app/graphql/generated/api/types';
+import { type CloudResponse, MinigraphStatus } from '@app/graphql/generated/api/types';
 
 const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 
@@ -40,12 +40,14 @@ const checkCanReachMothership = async (apiVersion: string, apiKey: string): Prom
  * Run a more performant cloud check with permanent DNS checking
  */
 const fastCloudCheck = async (): Promise<CloudResponse> => {
-	const result = { status: 'ok', error: null, ip: 'NO_IP_FOUND' };
+	const result = { status: 'ok', error: null, ip: 'FAST_CHECK_NO_IP_FOUND' };
 
 	const cloudIp = getDnsCache()?.cloudIp ?? null;
+
 	if (!cloudIp) {
 		try {
 			result.ip = (await checkDNS()).cloudIp;
+			logger.debug('DNS_CHECK_RESULT', await checkDNS())
 			store.dispatch(setDNSCheck({ cloudIp: result.ip, ttl: FIVE_DAYS_SECS, error: null }));
 		} catch (error: unknown) {
 			logger.warn('Failed to fetch DNS, but Minigraph is connected - continuing');
@@ -53,12 +55,14 @@ const fastCloudCheck = async (): Promise<CloudResponse> => {
 			// Don't set an error since we're actually connected to the cloud
 			store.dispatch(setDNSCheck({ cloudIp: result.ip, ttl: ONE_DAY_SECS, error: null }));
 		}
+	} else {
+		result.ip = cloudIp;
 	}
 
 	return result;
 };
 
-export const checkCloud: NonNullable<Resolvers['Cloud']>['cloud'] = async () => {
+export const checkCloud = async (): Promise<CloudResponse> => {
 	logger.trace('Cloud endpoint: Checking mothership');
 
 	try {
@@ -97,7 +101,5 @@ export const checkCloud: NonNullable<Resolvers['Cloud']>['cloud'] = async () => 
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Unknown Error "${error as string}"`);
 		return { status: 'error', error: error.message };
-	} finally {
-		logger.trace('Cloud endpoint: Done mothership');
 	}
 };

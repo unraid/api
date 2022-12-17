@@ -17,7 +17,6 @@ const documents = {
     "\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}": types.sendNotificationDocument,
     "\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n": types.queryServersFromMothershipDocument,
     "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n": types.eventsDocument,
-    "\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n": types.serversSubscriptionDocument,
 };
 
 /**
@@ -36,10 +35,6 @@ export function graphql(source: "\nquery queryServersFromMothership($apiKey: Str
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"): (typeof documents)["\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n"): (typeof documents)["\nsubscription serversSubscription ($apiKey: String!) {\n    servers @auth(apiKey: $apiKey)\n}\n"];
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
