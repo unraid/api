@@ -21,8 +21,8 @@ export const dashboard = createSlice({
 	initialState,
 	reducers: {
 		startDashboardProducer(state) {
+			dashboardLogger.trace('Starting Publisher - clients connected before: %s', state.connectedToDashboard);
 			state.connectedToDashboard += 1;
-			dashboardLogger.trace('Starting Publisher - clients connected: %s', state.connectedToDashboard);
 
 			// It's already been started
 			if (state.connectedToDashboard >= 2) return;
@@ -33,7 +33,7 @@ export const dashboard = createSlice({
 		},
 
 		stopDashboardProducer(state) {
-			dashboardLogger.trace('Stopping Publisher - clients connected: %s', state.connectedToDashboard);
+			dashboardLogger.trace('Stopping Publisher - clients connected before: %s', state.connectedToDashboard);
 			state.connectedToDashboard -= 1;
 			// Make sure we don't go negative
 			if (state.connectedToDashboard < 0) state.connectedToDashboard = 0;

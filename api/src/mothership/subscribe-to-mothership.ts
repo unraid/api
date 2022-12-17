@@ -50,23 +50,16 @@ export const subscribeToEvents = async (apiKey: string) => {
 		if (errors) {
 			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
 		} else if (data) {
-			mothershipLogger.trace('Got events from mothership', data)
+			mothershipLogger.trace('Got events from mothership %o', data.events)
 			for (const event of data.events?.filter(notNull) ?? []) {
 				switch (event.__typename) {
 					case 'ClientConnectedEvent': {
-						// Another server connected to mothership
 						const { connectedData: { type, apiKey: eventApiKey } } = event;
-
+						// Another server connected to Mothership
 						if (type === ClientType.API) {
 							await queryServers(apiKey)
-							// This could trigger a fetch for more server data?
-
-							// Another server connected with this flashGUID?
-							// TODO: maybe we should disconnect at this point?
-							// if (event.connectedData.flashGuid === getters.emhttp().var.flashGuid) return;
 						}
-
-						// Someone opened the dashboard
+						// Dashboard Connected to Mothership
 						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
 							store.dispatch(startDashboardProducer());
 						}
@@ -75,12 +68,14 @@ export const subscribeToEvents = async (apiKey: string) => {
 					}
 
 					case 'ClientDisconnectedEvent': {
-						// The dashboard was closed or went idle
 						const { disconnectedData: { type, apiKey: eventApiKey } } = event;
+						
+						// Server Disconnected From Mothership
 						if (type === ClientType.API) {
 							await queryServers(apiKey)
 						}
 
+						// The dashboard was closed or went idle
 						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
 							store.dispatch(stopDashboardProducer());
 						}
