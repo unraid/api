@@ -86,8 +86,8 @@ app.use(cors({
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
-			callback(new Error(invalidOrigin), false);
 			logger.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
+			callback(new Error(invalidOrigin), false);
 			return;
 		}
 

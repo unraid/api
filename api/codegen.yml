@@ -12,10 +12,10 @@ generates:
           origin: 'https://forums.unraid.net'
     preset: client
     presetConfig:
-      gqlTagName: gql
+      gqlTagName: graphql
     plugins:
       - add: { content: '/* eslint-disable */' }
-
+# Generate Types for the API Server
   src/graphql/generated/api/types.ts:
     schema: 
       - './src/graphql/types.ts'
@@ -27,6 +27,19 @@ generates:
     config:
       contextType: '@app/graphql/schema/utils#Context'
       useIndexSignature: true
+# Generate Operations for any built in API Server Operations (ie report.ts)
+  src/graphql/generated/api/operations.ts:
+    documents: './src/graphql/client/api/*.ts'
+    schema: 
+      - './src/graphql/types.ts'
+      - './src/graphql/schema/types/**/*.graphql'
+    preset: import-types
+    presetConfig:
+      typesPath: '@app/graphql/generated/api/types'
+    plugins:
+      - typescript-operations
+      - typed-document-node
+      - add: { content: '/* eslint-disable */' }
 
 config:
   namingConvention: 

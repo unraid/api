@@ -388,4 +388,5 @@ export const infoSubResolvers: InfoResolvers = ({
 	system: async () => generateSystem(),
 	versions: async () => generateVersions(),
 	vms: async () => generateVms(),
+
 });

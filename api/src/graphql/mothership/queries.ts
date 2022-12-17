@@ -1,6 +1,6 @@
-import { gql } from '@app/graphql/generated/client/gql';
+import { graphql } from '@app/graphql/generated/client/gql';
 
-export const GET_SERVERS_FROM_MOTHERSHIP = gql(/* GraphQL */`
+export const GET_SERVERS_FROM_MOTHERSHIP = graphql(/* GraphQL */`
 query queryServersFromMothership($apiKey: String!) {
 	servers @auth(apiKey: $apiKey) {
 		owner {

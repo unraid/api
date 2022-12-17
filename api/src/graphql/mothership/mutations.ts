@@ -1,6 +1,6 @@
-import { gql } from '@app/graphql/generated/client/gql';
+import { graphql } from '@app/graphql/generated/client/gql';
 
-export const SEND_DASHBOARD_PAYLOAD_MUTATION = gql(/* GraphQL */`
+export const SEND_DASHBOARD_PAYLOAD_MUTATION = graphql(/* GraphQL */`
 mutation updateDashboard($data: DashboardInput!, $apiKey: String!) {
 	updateDashboard(data: $data) @auth(apiKey: $apiKey) {
 		apps {
@@ -10,7 +10,7 @@ mutation updateDashboard($data: DashboardInput!, $apiKey: String!) {
 }`,
 );
 
-export const SEND_NOTIFICATION_MUTATION = gql(/* GraphQL */ `
+export const SEND_NOTIFICATION_MUTATION = graphql(/* GraphQL */ `
 mutation sendNotification($notification:NotificationInput!, $apiKey: String!) {
 	sendNotification(notification: $notification) @auth(apiKey: $apiKey)
 	{

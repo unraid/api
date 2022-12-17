@@ -4,8 +4,9 @@
  */
 
 import { PermissionError } from '@app/core/errors/permission-error';
-import { User } from '@app/core/types/states/user';
-import { checkPermission, AccessControlOptions } from '@app/core/utils/permissions/check-permission';
+import { type User } from '@app/core/types/states/user';
+import { checkPermission, type AccessControlOptions } from '@app/core/utils/permissions/check-permission';
+import { logger } from '../../log';
 
 /**
  * Ensure the user has the correct permissions.
@@ -23,6 +24,11 @@ export const ensurePermission = (user: User | undefined, options: AccessControlO
 		action,
 		possession,
 	});
+
+	if (process.env.NODE_ENV === 'development' && process.env.BYPASS_PERMISSION_CHECKS) {
+		logger.warn(`BYPASSING_PERMISSION_CHECK: ${user.name} doesn't have permission to access "${resource}".`);
+		return;
+	}
 
 	// Bail if user doesn't have permission
 	if (!permissionGranted) throw new PermissionError(`${user.name} doesn't have permission to access "${resource}".`);
