@@ -17,7 +17,7 @@ const createGotOptions = (apiVersion: string, apiKey: string) => ({
 // Check if we're rate limited, etc.
 export const checkMothershipAuthentication = async (apiVersion: string, apiKey: string) => {
 	const msURL = new URL(MOTHERSHIP_GRAPHQL_LINK);
-	const url = new URL(`https://${msURL.hostname}${msURL.pathname}`).toString();
+	const url = `https://${msURL.hostname}${msURL.pathname}`;
 
 	try {
 		const options = createGotOptions(apiVersion, apiKey);
