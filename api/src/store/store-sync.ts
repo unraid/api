@@ -16,7 +16,6 @@ export const startStoreSync = async () => {
 	// Update cfg when store changes
 	store.subscribe(async () => {
 		const state = store.getState();
-
 		// Config dependent options, wait until config loads to execute
 		if (state.config.status === FileLoadStatus.LOADED) {
 			// Write changes to disk

@@ -2,8 +2,7 @@
 
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
-import { updateConnectionStatusInConfig } from '@app/mothership/update-connection-status-in-config';
-import { isAPIStateDataFullyLoaded } from '../graphql-client';
+import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { subscribeToMothership } from '../subscribe-to-mothership';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
@@ -23,12 +22,6 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 				await subscribeToMothership();
 			} catch (error: unknown) {
 				mothershipLogger.error('Failed checking connection with error %s.', error);
-			}
-
-			try {
-				await updateConnectionStatusInConfig();
-			} catch (error: unknown) {
-				mothershipLogger.error('Failed to update the config with the connection status %s.', error);
 			}
 		}
 	}

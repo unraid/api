@@ -141,6 +141,8 @@ export const config = createSlice({
 		builder.addCase(loadConfigFile.fulfilled, (state, action) => {
 			if (action.payload) {
 				merge(state, action.payload, { status: FileLoadStatus.LOADED });
+			} else {
+				state.status = FileLoadStatus.LOADED;
 			}
 		});
 
@@ -163,6 +165,7 @@ export const config = createSlice({
 			});
 		});
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
+			logger.debug('Setting graphql connection status', action.payload)
 			state.connectionStatus.minigraph = action.payload.status;
 		});
 	},
