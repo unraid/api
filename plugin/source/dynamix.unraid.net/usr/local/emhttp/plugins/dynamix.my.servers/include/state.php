@@ -53,6 +53,7 @@ $arr['reggen'] = $var['regGen'];
 $arr['flashproduct'] = $var['flashProduct'];
 $arr['flashvendor'] = $var['flashVendor'];
 $arr['servername'] = $var['NAME'];
+$arr['serverdesc'] = $var['COMMENT'];
 $arr['internalip'] = $_SERVER['SERVER_ADDR'];
 $arr['internalport'] = $_SERVER['SERVER_PORT'];
 $arr['apiVersion'] = $api['version'] ?? '';
@@ -63,7 +64,6 @@ $arr['expiretime']=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')
 $arr['uptime']=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')));
 $arr['hasRemoteApikey'] = empty($remote['apikey']) ? 0 : 1;
 $arr['hideMyServers'] = (file_exists('/usr/local/sbin/unraid-api')) ? '' : 'yes';
-$arr['serverdesc'] = $var['COMMENT'];
 $arr['config'] = [
   'valid' => $var['configValid'] === 'yes',
   'error' => $var['configValid'] !== 'yes'
