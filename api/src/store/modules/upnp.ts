@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
 import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
-import type { RootState } from '@app/store';
+import { RootState, store } from '@app/store';
 import { upnpLogger } from '@app/core';
 import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
 
@@ -117,13 +117,14 @@ export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThun
 	throw new Error('No WAN port found, disabling UPNP');
 });
 
-export const disableUpnp = createAsyncThunk<{ renewalJobRunning: boolean }, void, { state: RootState }>('upnp/disable', async (_, { getState }) => {
+export const disableUpnp = createAsyncThunk<{ renewalJobRunning: boolean }, void, { state: RootState }>('upnp/disable', async (_, { dispatch, getState }) => {
 	const { upnp: { localPortForUpnp, wanPortForUpnp } } = getState();
 
 	const renewalJobRunning = stopUpnpJobs();
 	if (localPortForUpnp && wanPortForUpnp) {
 		try {
 			await removeUpnpLease({ localPortForUpnp, wanPortForUpnp });
+			dispatch(setUpnpState({ enabled: 'no', status: 'UPNP Disabled'}))
 		} catch (error: unknown) {
 			upnpLogger.warn(`Failed to remove UPNP Binding with Error [${error instanceof Error ? error.message : 'N/A'}]`);
 		}
