@@ -163,4 +163,7 @@ export const upnp = createSlice({
 	},
 });
 
-export const { updateMappings } = upnp.actions;
+const { actions, reducer } = upnp;
+
+export const { updateMappings } = actions;
+export const upnpReducer = reducer

@@ -2,7 +2,7 @@ import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { logger, mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { GraphQLClient, isAPIStateDataFullyLoaded } from './graphql-client';
-import { addSubscription, removeSubscription, SubscriptionKey } from '@app/store/modules/minigraph';
+import { addSubscription, mothership, removeSubscription, SubscriptionKey } from '@app/store/modules/minigraph';
 import { getters, store } from '@app/store';
 import { cacheServers } from '@app/store/modules/servers';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
@@ -21,7 +21,9 @@ export const queryServers = async (apiKey: string) => {
 	const queryResult = await client.query({ query: GET_SERVERS_FROM_MOTHERSHIP, variables: { apiKey } });
 	if (queryResult.data.servers) {	
 		const serversToSet = queryResult.data.servers.filter(notNull);
-		mothershipLogger.trace('Got server query result %o, nulls removed: %o', queryResult.data, serversToSet)
+		mothershipLogger.addContext('result', serversToSet)
+		mothershipLogger.trace('Got %s servers for user', serversToSet.length)
+		mothershipLogger.removeContext('result')
 
 		store.dispatch(cacheServers(serversToSet));
 		if (serversToSet.length> 0) {

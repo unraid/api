@@ -81,21 +81,19 @@ export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('co
  *
  * Note: If the file doesn't exist this will fallback to default values.
  */
-export const loadConfigFile = createAsyncThunk<MyServersConfig | null, string | undefined, { state: RootState }>('config/load-config-file', async (filePath, { getState }) => {
+export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file', 
+	async (filePath, { getState }) => {
 	const { paths, config } = getState();
-
+	
 	const path = filePath ?? paths['myservers-config'];
+	
 	const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
 	const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
 		filePath: path,
 		type: 'ini',
 	}) : {};
 
-	if (areConfigsEquivalent(file, config)) {
-		return null;
-	}
-
-	return merge(file,
+	const newConfigFile = merge(file,
 		{
 			api: {
 				version: config.api.version,
@@ -108,6 +106,9 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig | null, string | 
 			},
 		},
 	) as MyServersConfig;
+
+	return newConfigFile;
+
 });
 
 export const config = createSlice({
