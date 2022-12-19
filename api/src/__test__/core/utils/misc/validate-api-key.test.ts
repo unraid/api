@@ -59,7 +59,7 @@ describe('tests without key cache', () => {
 			apikey: 'this-api-key-is-valid-because-of-spy',
 		});
 
-		expect(vi.mocked(appStore.store.dispatch)).toHaveBeenCalledTimes(2);
+		expect(vi.mocked(appStore.store.dispatch)).toHaveBeenCalledTimes(1);
 	});
 
 	test('when guid is not found, rejects', async () => {

@@ -14,6 +14,7 @@ test('Before init returns default values for all fields', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpStatus": "",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -32,6 +33,7 @@ test('Before init returns default values for all fields', async () => {
 		    "idtoken": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
+		    "upnpEnabled": "",
 		    "username": "",
 		    "wanaccess": "",
 		    "wanport": "",
@@ -60,6 +62,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpStatus": "",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -109,6 +112,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpStatus": "",
 		  },
 		  "local": {
 		    "2Fa": "",
