@@ -1,6 +1,6 @@
 import { addListener, createListenerMiddleware, type TypedAddListener, type TypedStartListening } from '@reduxjs/toolkit';
 import { type AppDispatch, type RootState } from '@app/store';
-import { upnpListener } from '@app/store/listeners/upnp-listener';
+import { enableUpnpListener } from '@app/store/listeners/upnp-listener';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -16,4 +16,5 @@ RootState,
 AppDispatch
 >;
 
-startAppListening(upnpListener);
+// Begin listening for events
+enableUpnpListener();

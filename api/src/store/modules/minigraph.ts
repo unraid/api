@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 
 export enum SubscriptionKey {
 	SERVERS = 'SERVERS',
@@ -29,14 +30,6 @@ export const mothership = createSlice({
 	name: 'mothership',
 	initialState,
 	reducers: {
-		setStatus(state, action: PayloadAction<Pick<MinigraphClientState, 'status' | 'error'>>) {
-			state.status = action.payload.status;
-			state.error = action.payload.error;
-
-			if (action.payload.status === MinigraphStatus.DISCONNECTED) {
-				state.subscriptions = initialState.subscriptions;
-			}
-		},
 		addSubscription(state, action: PayloadAction<SubscriptionKey>) {
 			state.subscriptions[action.payload] = true;
 		},
@@ -44,6 +37,12 @@ export const mothership = createSlice({
 			state.subscriptions[action.payload] = false;
 		},
 	},
+	extraReducers(builder) {
+		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
+			state.status = action.payload.status;
+			state.error = action.payload.error;
+		});
+	},
 });
 
-export const { setStatus, addSubscription, removeSubscription } = mothership.actions;
+export const { addSubscription, removeSubscription } = mothership.actions;

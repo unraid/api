@@ -1,6 +1,6 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config';
-import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, Slice, type PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
@@ -12,6 +12,7 @@ import { type RootState } from '@app/store';
 import { areConfigsEquivalent } from '@app/core/utils/files/config-file-normalizer';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
+import { setGraphqlConnectionStatus } from '../actions/set-minigraph-status';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -116,9 +117,6 @@ export const config = createSlice({
 		updateUserConfig(state, action: PayloadAction<RecursivePartial<MyServersConfig>>) {
 			return merge(state, action.payload);
 		},
-		setConnectionStatus(state, action: PayloadAction<Partial<SliceState['connectionStatus']>>) {
-			state.connectionStatus = merge(state.connectionStatus, action.payload);
-		},
 		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
 			return merge(state, { remote: action.payload });
 		},
@@ -131,7 +129,6 @@ export const config = createSlice({
 				state.connectionStatus.upnpStatus = action.payload.status;
 			}
 		},
-
 		setWanPortToValue(state, action: PayloadAction<number>) {
 			state.remote.wanport = String(action.payload);
 		},
@@ -165,10 +162,13 @@ export const config = createSlice({
 				},
 			});
 		});
+		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
+			state.connectionStatus.minigraph = action.payload.status;
+		});
 	},
 });
 const { actions, reducer } = config;
 
-export const { updateUserConfig, setConnectionStatus, updateAccessTokens, setUpnpState, setWanPortToValue } = actions;
+export const { updateUserConfig, updateAccessTokens, setUpnpState, setWanPortToValue } = actions;
 
 export const configReducer = reducer;
