@@ -74,6 +74,8 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 	basicConfig.local['2Fa'] = 'yes';
 	basicConfig.local.showT2Fa = 'yes';
 	basicConfig.api.extraOrigins = 'myextra.origins';
+	basicConfig.remote.upnpEnabled = 'yes';
+	basicConfig.connectionStatus.upnpStatus = 'Turned On';
 	const config = getWriteableConfig(basicConfig, 'flash');
 	expect(config).toMatchInlineSnapshot(`
 		{
@@ -97,6 +99,7 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 		    "idtoken": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
+		    "upnpEnabled": "yes",
 		    "username": "",
 		    "wanaccess": "",
 		    "wanport": "",
@@ -114,6 +117,8 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 	basicConfig.local['2Fa'] = 'yes';
 	basicConfig.local.showT2Fa = 'yes';
 	basicConfig.api.extraOrigins = 'myextra.origins';
+	basicConfig.remote.upnpEnabled = 'yes';
+	basicConfig.connectionStatus.upnpStatus = 'Turned On';
 	const config = getWriteableConfig(basicConfig, 'memory');
 	expect(config).toMatchInlineSnapshot(`
 		{
@@ -123,6 +128,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpError": "Turned On",
 		  },
 		  "local": {
 		    "2Fa": "yes",
@@ -140,6 +146,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		    "idtoken": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
+		    "upnpEnabled": "yes",
 		    "username": "",
 		    "wanaccess": "",
 		    "wanport": "",
