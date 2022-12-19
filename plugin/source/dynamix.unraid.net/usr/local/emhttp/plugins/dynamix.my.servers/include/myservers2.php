@@ -184,7 +184,7 @@
           'ENOKEYFILE' => [
             'humanReadable' => _('No Keyfile'),
             'heading' => _("Let's unleash your hardware").'!',
-            'message' => '<p>'._('Your server will not be usable until you purchase a Registration key or install a free 30-day Trial key').'. '._('A Trial key provides all the functionality of a Pro Registration key').'.</p><p>'._('Registration keys are bound to your USB Flash boot device serial number (GUID)').'. '._('Please use a high quality name brand device at least 1GB in size').'.</p><p>'._('Note: USB memory card readers are generally not supported because most do not present unique serial numbers').'.</p>',
+            'message' => '<p>'._('Your server will not be usable until you purchase a Registration key or install a free 30-day Trial key').'. '._('A Trial key provides all the functionality of a Pro Registration key').'.</p><p>'._('Registration keys are bound to your USB Flash boot device serial number (GUID)').'. '._('Please use a high quality name brand device at least 1GB in size (min 4GB recommended)').'.</p><p>'._('Note: USB memory card readers are generally not supported because most do not present unique serial numbers').'.</p>',
           ],
           'TRIAL' => [
             'humanReadable' => _('Trial'),
@@ -561,10 +561,10 @@
       ],
       "deviceCount" => $var['deviceCount'],
       "email" => $remote['email'] ?? '',
-      "extraOrigins" => explode(',', $api['extraOrigins'] ?? ''),
+      "extraOrigins" => explode(',', $api['extraOrigins']??''),
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
-      "flashBackupActivated" => $flashBackup['activated'] ? 'true' : '',
+      "flashBackupActivated" => isset($flashBackup['activated']) ? 'true' : '',
       "guid" => $var['flashGUID'],
       "hasRemoteApikey" => !empty($remote['apikey']),
       "internalip" => ipaddr(),

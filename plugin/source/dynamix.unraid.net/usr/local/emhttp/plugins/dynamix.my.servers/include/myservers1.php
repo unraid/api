@@ -36,7 +36,7 @@ $ALLOWED_UPC_ENV_VALS = [
   'development',
   'local',
 ];
-$UPC_ENV_CK = in_array($_COOKIE['UPC_ENV'], $ALLOWED_UPC_ENV_VALS)
+$UPC_ENV_CK = in_array($_COOKIE['UPC_ENV']??'', $ALLOWED_UPC_ENV_VALS)
   ? $_COOKIE['UPC_ENV']
   : null;
 // Determine what source we should use for web components
