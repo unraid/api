@@ -17,7 +17,7 @@ import { loadStateFiles } from '@app/store/modules/emhttp';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
-import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
+import { writeMemoryConfigSync } from '@app/store/sync/write-memory-config-sync';
 import { app, httpServer, server } from '@app/server';
 import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
