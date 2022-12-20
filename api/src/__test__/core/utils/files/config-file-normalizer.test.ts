@@ -128,7 +128,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
-		    "upnpError": "Turned On",
+		    "upnpStatus": "Turned On",
 		  },
 		  "local": {
 		    "2Fa": "yes",
