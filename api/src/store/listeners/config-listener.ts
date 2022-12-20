@@ -5,9 +5,10 @@ import { writeFile } from 'fs/promises';
 import { isAnyOf } from '@reduxjs/toolkit';
 import { setUpnpState, setWanPortToValue, updateAccessTokens, updateUserConfig } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 
 export const enableConfigListener = () => startAppListening({
-	matcher: isAnyOf(updateUserConfig, updateAccessTokens, setUpnpState, setWanPortToValue),
+	matcher: isAnyOf(updateUserConfig, updateAccessTokens, setUpnpState, setWanPortToValue, setGraphqlConnectionStatus),
 	async effect(_action, { getState }) {
 		// Get state
 		const state = getState();
