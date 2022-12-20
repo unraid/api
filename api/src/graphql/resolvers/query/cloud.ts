@@ -5,64 +5,33 @@
 
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { RelayStates } from '@app/graphql/relay-state';
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud';
 import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql';
-import { checkRelay } from '@app/graphql/resolvers/query/cloud/check-relay';
-import { Cloud, createResponse } from '@app/graphql/resolvers/query/cloud/create-response';
 import type { Context } from '@app/graphql/schema/utils';
-import { getters } from '@app/store';
+import { type QueryResolvers } from '@app/graphql/generated/api/types';
 
-export default async (_: unknown, __: unknown, context: Context): Promise<Cloud> => {
+const cloudResolver: QueryResolvers['cloud'] = async (parent, args, context: Context) => {
 	ensurePermission(context.user, {
 		resource: 'cloud',
 		action: 'read',
 		possession: 'own',
 	});
+	const minigraphql = checkMinigraphql();
+	const [apiKey, cloud] = await Promise.all([checkApi(), checkCloud()]);
 
-	// If the endpoint is mocked return the mocked data
-	if (process.env.MOCK_CLOUD_ENDPOINT) {
-		const result: Cloud = {
-			error: process.env.MOCK_CLOUD_ENDPOINT_ERROR ?? null,
-			apiKey: {
-				valid: Boolean(process.env.MOCK_CLOUD_ENDPOINT_APIKEY_VALID ?? true),
-				error: process.env.MOCK_CLOUD_ENDPOINT_APIKEY_ERROR ?? null,
-			} as unknown as Cloud['apiKey'],
-			relay: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_RELAY_STATUS as RelayStates ?? 'connected',
-				timeout: process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT ? Number(process.env.MOCK_CLOUD_ENDPOINT_RELAY_TIMEOUT) : undefined,
-				reason: process.env.MOCK_CLOUD_ENDPOINT_RELAY_REASON,
-				error: process.env.MOCK_CLOUD_ENDPOINT_RELAY_ERROR ?? null,
-			} as unknown as Cloud['relay'],
-			minigraphql: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_MINIGRAPHQL_CONNECTED as 'connected' | 'disconnected',
-			},
-			cloud: {
-				status: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_STATUS as 'ok' | 'error' ?? 'ok',
-				error: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_ERROR ?? null,
-				ip: process.env.MOCK_CLOUD_ENDPOINT_MOTHERSHIP_IP,
-			} as unknown as Cloud['cloud'],
-			allowedOrigins: (process.env.MOCK_CLOUD_ENDPOINT_ALLOWED_ORIGINS ?? '').split(',').filter(Boolean),
-			emhttp: {
-				mode: 'nchan',
-			},
-		};
-		return result;
-	}
-
-	const [apiKey, minigraphql, cloud] = await Promise.all([checkApi(), checkMinigraphql(), checkCloud()]);
-
-	const response = createResponse({
+	return {
+		relay: { // Left in for UPC backwards compat.
+			error: undefined,
+			status: 'connected',
+			timeout: null,
+		},
 		apiKey,
-		relay: checkRelay(),
 		minigraphql,
 		cloud,
 		allowedOrigins: getAllowedOrigins(),
-		emhttp: {
-			mode: getters.emhttp().mode,
-		},
-	});
-
-	return response;
+		error: apiKey.error ?? cloud.error ?? minigraphql.error ?? null,
+	};
 };
+
+export default cloudResolver;

@@ -18,9 +18,9 @@ export const baseTypes = [gql`
 
 	type Query {
 		# This should always be available even for guest users
-		welcome: Welcome! @func(module: "getWelcome")
-		online: Boolean!
-		info: Info!
+		welcome: Welcome @func(module: "getWelcome")
+		online: Boolean
+		info: Info
 	}
 
 	type Mutation {
@@ -69,3 +69,5 @@ export const types = mergeTypeDefs([
 	...baseTypes,
 	typeDefs,
 ]);
+
+export default types;

@@ -1,6 +1,6 @@
 
 import { config } from '@app/core/config';
-import { JSONWebKeySet } from 'jose';
+import { type JSONWebKeySet } from 'jose';
 
 const internalWsAddress = () => {
 	const port = config.port as number | string;
@@ -11,30 +11,20 @@ const internalWsAddress = () => {
 		: `ws://localhost:${port}`;
 };
 
-/**
- * One second in milliseconds.
- */
+// Milliseconds
 export const ONE_SECOND = 1_000;
-
-/**
- * One minute in milliseconds.
-*/
 export const ONE_MINUTE = 60 * ONE_SECOND;
-
-/**
- * One hour in milliseconds.
-*/
 export const ONE_HOUR = 60 * ONE_MINUTE;
 
-/**
- * Relay ws link.
- */
-export const MOTHERSHIP_RELAY_WS_LINK = process.env.MOTHERSHIP_RELAY_WS_LINK ?? (process.env.ENVIRONMENT === 'staging' ? 'wss://staging.mothership.unraid.net/relay' : 'wss://mothership.unraid.net/relay');
+// Seconds
+export const ONE_HOUR_SECS = 60 * 60;
+export const ONE_DAY_SECS = ONE_HOUR_SECS * 24;
+export const FIVE_DAYS_SECS = ONE_DAY_SECS * 5;
 
 /**
  * Graphql link.
  */
-export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK ?? (process.env.ENVIRONMENT === 'staging' ? 'https://staging.mothership.unraid.net/graphql' : 'https://mothership.unraid.net/graphql');
+export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK ?? (process.env.ENVIRONMENT === 'staging' ? 'https://staging.mothership.unraid.net/ws' : 'https://mothership.unraid.net/ws');
 
 /**
  * Internal ws link.

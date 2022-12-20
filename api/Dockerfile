@@ -4,6 +4,13 @@
 ARG NODE_IMAGE=node:18
 FROM $NODE_IMAGE As development
 
+# Install build tools
+RUN apt-get update -y && apt-get install  -y \
+    python \
+    libvirt-dev \
+    jq
+
+
 ARG NODE_ENV=development
 ARG NPM_I_CMD=npm i
 
@@ -21,16 +28,12 @@ COPY tsconfig.json tsup.config.ts ./
 COPY .npmrc ./
 COPY .env.production .env.staging  ./
 
-# Install build tools
-RUN apt-get update -y && apt-get install  -y \
-    python \
-    libvirt-dev \
-    jq
-
 # Install deps
 RUN $NPM_I_CMD
 
 # Install pkg
 RUN npm i -g pkg zx
+
+EXPOSE 4000
 
 CMD ["npm", "run", "build-pkg"]

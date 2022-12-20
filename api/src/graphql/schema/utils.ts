@@ -4,14 +4,12 @@
  */
 
 import { hasSubscribedToChannel } from '@app/ws';
-import { getServers as getUserServers } from '@app/utils';
-import { User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { pubsub } from '@app/core/pubsub';
-import { logger } from '@app/core/log';
-import { getters, store } from '@app/store';
-import { cacheServers, Server } from '@app/store/modules/servers';
+import { getters } from '@app/store';
+import { ServerStatus, type Server } from '@app/graphql/generated/client/graphql';
 
 export interface Context {
 	user?: User;
@@ -60,7 +58,7 @@ const getLocalServer = (): [Server] => {
 		guid,
 		apikey: '',
 		name,
-		status: 'online',
+		status: ServerStatus.ONLINE,
 		wanip,
 		lanip,
 		localurl,
@@ -68,7 +66,7 @@ const getLocalServer = (): [Server] => {
 	}];
 };
 
-export const getServers = async (): Promise<Server[]> => {
+export const getServers = (): Server[] => {
 	// For now use the my_servers key
 	// Later we should return the correct one for the current user with the correct scope, etc.
 	const apiKey = getters.config().remote.apikey;
@@ -80,23 +78,5 @@ export const getServers = async (): Promise<Server[]> => {
 	const cachedServers = getters.servers().servers;
 	if (cachedServers.length >= 1) return cachedServers;
 
-	// Fetch servers from mothership
-	const servers = await getUserServers(apiKey);
-
-	// If no servers are found return the local copy
-	if (!servers || servers.length === 0) {
-		logger.trace('Generating response locally for "servers" endpoint');
-		return getLocalServer();
-	}
-
-	// Cache servers
-	store.dispatch(cacheServers(servers));
-
-	// Publish owner event
-	await pubsub.publish('owner', {
-		owner: servers?.[0]?.owner,
-	});
-
-	// Return servers from mothership
-	return servers;
+	return getLocalServer();
 };

@@ -69,4 +69,5 @@ export enum CacheKeys {
 export type DNSCheck = {
 	cloudIp: string;
 	error: null;
+	ttl?: number;
 } | { error: Error; cloudIp: null };

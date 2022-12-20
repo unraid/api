@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import type { Context } from '@app/graphql/schema/utils';
 import { getServers } from '@app/graphql/schema/utils';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
+import { type Resolvers } from '../../generated/api/types';
 
-export default async (_: unknown, __: unknown, context: Context) => {
+export const servers: NonNullable<Resolvers['Query']>['servers'] = async (_, __, context) => {
 	ensurePermission(context.user, {
 		resource: 'servers',
 		action: 'read',
@@ -15,5 +15,5 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	});
 
 	// All servers
-	return getServers().catch(() => []);
+	return getServers();
 };

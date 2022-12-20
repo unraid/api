@@ -1,4 +1,4 @@
-import type { HumanRelayStates } from '@app/graphql/relay-state';
+import { type MinigraphStatus } from '@app/graphql/generated/api/types';
 
 interface MyServersConfig {
 	api: {
@@ -31,7 +31,7 @@ interface MyServersConfig {
 	};
 }
 
-interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
+export interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 	api: {
 		extraOrigins: string;
 	};
@@ -47,17 +47,15 @@ interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 
 export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
-		minigraph: 'connected' | 'disconnected';
-		relay: HumanRelayStates;
-		upnpError?: null | string;
+		minigraph: MinigraphStatus;
+		upnpStatus?: null | string;
 	};
 }
 
 export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServersConfigMemoryWithMandatoryHiddenFields {
 	connectionStatus: {
-		minigraph: 'connected' | 'disconnected';
-		relay: HumanRelayStates;
-		upnpError: null | string;
+		minigraph: MinigraphStatus;
+		upnpStatus?: null | string;
 	};
 }
 

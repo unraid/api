@@ -1,8 +1,8 @@
 import { getters } from '@app/store';
-import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { CacheKeys, type DNSCheck } from '@app/store/types';
+import { type CloudResponse } from '../../graphql/generated/api/types';
 
-export const getCloudCache = (): Cloud['cloud'] | undefined => {
+export const getCloudCache = (): CloudResponse | undefined => {
 	const { nodeCache } = getters.cache();
 	return nodeCache.get(CacheKeys.checkCloud);
 };

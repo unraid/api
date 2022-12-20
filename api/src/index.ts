@@ -10,7 +10,7 @@ import CacheableLookup from 'cacheable-lookup';
 import exitHook from 'async-exit-hook';
 import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { store } from '@app/store';
-import { loadConfigFile, setConnectionStatus } from '@app/store/modules/config';
+import { loadConfigFile } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
 import { startStoreSync } from '@app/store/store-sync';
 import { loadStateFiles } from '@app/store/modules/emhttp';
@@ -23,6 +23,8 @@ import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 // Boot app
 void am(async () => {
@@ -82,7 +84,7 @@ void am(async () => {
 			if (fileExistsSync(config.port)) unlinkSync(config.port);
 		}
 
-		store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
+		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
 		writeMemoryConfigSync();
 	});
 }, async (error: NodeJS.ErrnoException) => {
@@ -90,7 +92,7 @@ void am(async () => {
 	logger.error(error);
 
 	// Write the new memory config with disconnected status
-	store.dispatch(setConnectionStatus({ minigraph: 'disconnected', relay: 'disconnected' }));
+	store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
 	writeMemoryConfigSync();
 
 	// Stop server

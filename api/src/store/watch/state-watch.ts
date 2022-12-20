@@ -1,5 +1,5 @@
 
-import { emhttpLogger } from '@app/core';
+import { emhttpLogger } from '@app/core/log';
 
 import { watch, type FSWatcher } from 'chokidar';
 import { getters, store } from '@app/store';

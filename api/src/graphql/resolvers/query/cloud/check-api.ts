@@ -6,10 +6,10 @@
 import { logger } from '@app/core/log';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { validateApiKeyFormat } from '@app/core/utils/misc/validate-api-key-format';
-import { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { getters } from '@app/store';
+import { type ApiKeyResponse } from '../../../generated/api/types';
 
-export const checkApi = async (): Promise<Cloud['apiKey']> => {
+export const checkApi = async (): Promise<ApiKeyResponse> => {
 	logger.trace('Cloud endpoint: Checking API');
 	try {
 		// Check if we have an API key loaded for my servers

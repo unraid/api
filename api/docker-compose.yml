@@ -20,11 +20,15 @@ x-volumes: &volumes
   - ./.env.test:/app/.env.test
   - ./.env.development:/app/.env.development
   - ./.pkg-cache:/app/.pkg-cache
+  - ./codegen.yml:/app/codegen.yml
+  - ./fix-array-type.cjs:/app/fix-array-type.cjs
 
 services:
 
-  builder-interactive:
+  dev:
     image: unraid-api-node-18
+    ports:
+      - "4000:4000"
     build: 
       context: .
       dockerfile: Dockerfile
@@ -38,6 +42,7 @@ services:
     entrypoint: /bin/bash
     profiles:
       - builder
+
 
   builder:
     image: unraid-api-node-18

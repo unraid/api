@@ -6,9 +6,9 @@
 import path from 'path';
 import cors from 'cors';
 import { watch } from 'chokidar';
-import express, { json, Response } from 'express';
+import express, { json, type Response } from 'express';
 import http from 'http';
-import WebSocket from 'ws';
+import type WebSocket from 'ws';
 import {
 	ApolloServerPluginLandingPageGraphQLPlayground,
 	ApolloServerPluginDrainHttpServer,
@@ -23,7 +23,7 @@ import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { getters } from '@app/store';
 import { schema } from '@app/graphql/schema';
 import { execute, subscribe } from 'graphql';
-import { ConnectionContext, SubscriptionServer } from 'subscriptions-transport-ws';
+import { type ConnectionContext, SubscriptionServer } from 'subscriptions-transport-ws';
 import { wsHasConnected, wsHasDisconnected } from '@app/ws';
 import { apiKeyToUser } from '@app/graphql';
 import { randomUUID } from 'crypto';
@@ -58,6 +58,12 @@ app.use(json());
 app.use(cors({
 	origin(origin, callback) {
 		// Get currently allowed origins
+		if (process.env.NODE_ENV === 'development') {
+			logger.trace('Dev Mode Enabled, Bypassing Cors Check');
+			callback(null, true);
+			return;
+		}
+
 		const allowedOrigins = getAllowedOrigins();
 		logger.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
 
@@ -80,8 +86,8 @@ app.use(cors({
 
 		// Only allow known origins
 		if (!allowedOrigins.includes(origin.toLowerCase())) {
-			callback(new Error(invalidOrigin), false);
 			logger.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
+			callback(new Error(invalidOrigin), false);
 			return;
 		}
 

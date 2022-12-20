@@ -2,8 +2,11 @@ name: Pull Request
 
 on:
   pull_request:
-    branches:
-      - main
+    types: [opened, reopened, edited]
+    paths:
+      - '**.js'
+      - '**.ts'
+
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}

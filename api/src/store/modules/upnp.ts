@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
 import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
-import type { RootState } from '@app/store';
+import { RootState, store } from '@app/store';
 import { upnpLogger } from '@app/core';
 import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
 
@@ -78,7 +78,7 @@ const getWanPortToUse = async ({
 };
 
 export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThunkArgs, { state: RootState }>('upnp/enable', async (leaseRenewalArgs, { getState, dispatch }) => {
-	const { upnp } = getState();
+	const { upnp, emhttp } = getState();
 
 	const wanPortArgAsNumber = leaseRenewalArgs?.wanport ? parseStringToNumberOrNull(leaseRenewalArgs?.wanport) : null;
 
@@ -101,25 +101,30 @@ export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThun
 	const localPortToUse = leaseRenewalArgs ? leaseRenewalArgs.portssl : upnp.localPortForUpnp;
 	if (wanPortToUse && localPortToUse) {
 		try {
-			await renewUpnpLease({ localPortForUpnp: localPortToUse, wanPortForUpnp: wanPortToUse });
+			await renewUpnpLease({ localPortForUpnp: localPortToUse, wanPortForUpnp: wanPortToUse, serverName: emhttp?.var?.name });
+			const today = new Date();
+			const todayFormatted = `${today.toLocaleDateString()} ${today.toLocaleTimeString()}`;
+			dispatch(setUpnpState({ status: `Success: UPNP Lease Renewed [${todayFormatted}] Public Port [${wanPortToUse}] Local Port [${localPortToUse}]` }));
+
 			return { renewalJobRunning, wanPortForUpnp: wanPortToUse, localPortForUpnp: localPortToUse };
 		} catch (error: unknown) {
 			const message = `Error: Failed Opening UPNP Public Port [${wanPortToUse}] Local Port [${localPortToUse}] Message: [${error instanceof Error ? error.message : 'N/A'}]`;
-			dispatch(setUpnpState({ enabled: 'no', error: message }));
+			dispatch(setUpnpState({ enabled: 'no', status: message }));
 			throw new Error(message);
 		}
 	}
 
-	throw new Error('No wan port found, disabling UPNP');
+	throw new Error('No WAN port found, disabling UPNP');
 });
 
-export const disableUpnp = createAsyncThunk<{ renewalJobRunning: boolean }, void, { state: RootState }>('upnp/disable', async (_, { getState }) => {
+export const disableUpnp = createAsyncThunk<{ renewalJobRunning: boolean }, void, { state: RootState }>('upnp/disable', async (_, { dispatch, getState }) => {
 	const { upnp: { localPortForUpnp, wanPortForUpnp } } = getState();
 
 	const renewalJobRunning = stopUpnpJobs();
 	if (localPortForUpnp && wanPortForUpnp) {
 		try {
 			await removeUpnpLease({ localPortForUpnp, wanPortForUpnp });
+			dispatch(setUpnpState({ enabled: 'no', status: 'UPNP Disabled'}))
 		} catch (error: unknown) {
 			upnpLogger.warn(`Failed to remove UPNP Binding with Error [${error instanceof Error ? error.message : 'N/A'}]`);
 		}
@@ -158,4 +163,7 @@ export const upnp = createSlice({
 	},
 });
 
-export const { updateMappings } = upnp.actions;
+const { actions, reducer } = upnp;
+
+export const { updateMappings } = actions;
+export const upnpReducer = reducer

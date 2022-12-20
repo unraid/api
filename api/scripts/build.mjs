@@ -19,6 +19,8 @@ try {
 	// Ensure all deps are installed
 	await $`npm i`;
 
+	// Build Generated Types
+	await $`npm run codegen`;
 	// Build binary
 	await $`npm run build`;
 

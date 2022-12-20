@@ -1,6 +1,6 @@
 type Info {
     """Count of docker containers"""
-    apps: InfoApps @func(module: "getAppCount")
+    apps: InfoApps
 }
 
 type InfoApps {

@@ -1,29 +1,29 @@
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
-import { got } from 'got';
-import { type MyServersConfig } from '@app/types/my-servers-config';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import type { Cloud } from '@app/graphql/resolvers/query/cloud/create-response';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
-import { cliLogger } from '@app/core/log';
+import { cliLogger, logger } from '@app/core/log';
 import { resolve } from 'path';
-import prettyMs from 'pretty-ms';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
-import { type Server } from '@app/store/modules/servers';
-import { type HumanRelayStates } from '@app/graphql/relay-state';
-import { type SliceState as EmhttpState } from '@app/store/modules/emhttp';
+import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
+import { getCloudDocument, getServersDocument, type getServersQuery, type getCloudQuery } from '../../graphql/generated/api/operations';
+import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client/core';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
+
+type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
+type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
 
 type Verbosity = '' | '-v' | '-vv';
 
 type ServersPayload = {
-	online: Server[];
-	offline: Server[];
-	invalid: Server[];
+	online: ServersQueryResultServer[];
+	offline: ServersQueryResultServer[];
+	invalid: ServersQueryResultServer[];
 };
 
 type ReportObject = {
@@ -36,7 +36,6 @@ type ReportObject = {
 		status: 'running' | 'stopped';
 		environment: string;
 		nodeVersion: string;
-		emhttpMode: EmhttpState['mode'];
 	};
 	apiKey: 'valid' | 'invalid' | string;
 	servers?: ServersPayload | null;
@@ -44,101 +43,66 @@ type ReportObject = {
 		status: 'authenticated' | 'signed out';
 		myServersUsername?: string;
 	};
-	relay: {
-		status: HumanRelayStates | 'disconnected';
-		timeout?: number;
-		error?: string;
-	};
 	minigraph: {
-		status: 'disconnected' | 'connected';
+		status: MinigraphStatus;
+		error: string | null;
 	};
 	cloud: {
-		status: 'error' | 'ok';
+		status: string;
 		error?: string;
 		ip?: string;
 		allowedOrigins?: string[] | null;
 	};
 };
 
-export const createGotOptions = (config: Partial<MyServersConfig>) => {
-	// Create default settings for got
-	const headers = {
-		Origin: '/var/run/unraid-cli.sock',
-		'Content-Type': 'application/json',
-		'x-api-key': config.upc?.apikey,
-	};
-	const timeout = {
-		request: 10_000, // Wait a maximum of 10s
-	};
+// This should return the status of the apiKey and mothership
+export const getCloudData = async (client: ApolloClient<NormalizedCacheObject>): Promise<CloudQueryResult | null> => {
+	try {
+		const cloud = await client.query({ query: getCloudDocument });
+		return cloud.data.cloud ?? null;
+	} catch (error: unknown) {
+		cliLogger.addContext('error-stack', error instanceof Error ? error.stack : error);
+		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error instanceof Error ? error.message : 'Unknown Error');
+		cliLogger.removeContext('error-stack');
 
-	return { headers, timeout };
+		return null;
+	}
 };
 
-// This should return the status of the apiKey, relay and mothership
-export const getCloudData = async (config: Partial<MyServersConfig>): Promise<Cloud | undefined> => {
-	const cloud = config?.upc?.apikey ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
-		method: 'POST',
-		...createGotOptions(config),
-		body: JSON.stringify({
-			query: /* GraphQL */`
-			query {
-				cloud {
-					error 
-					apiKey {
-						valid
-					}
-					relay {
-						status 
-						timeout 
-						error
-					}
-					minigraphql {
-						status
-					}
-					cloud {
-						status 
-						error 
-						ip
-					}
-					allowedOrigins
-					emhttp {
-						mode
-					}
-				}
-			}
-			`,
-		}),
-	}).then(response => JSON.parse(response.body)?.data.cloud as Cloud).catch(error => {
-		cliLogger.trace('Failed fetching cloud from local graphql with "%s"', error.message);
-		return undefined;
-	}) : undefined;
-
-	return cloud;
-};
-
-export const getServersData = async ({ isApiRunning, cloud, config, v }: { isApiRunning: boolean; cloud: Cloud | undefined; config: Partial<MyServersConfig>; v: Verbosity }):
+export const getServersData = async ({ client, v }: { client: ApolloClient<NormalizedCacheObject>; v: Verbosity }):
 Promise<ServersPayload | null> => {
 	if (v === '') {
 		return null;
 	}
 
-	const servers = isApiRunning && config?.upc?.apikey && cloud ? await got('http://unix:/var/run/unraid-api.sock:/graphql', {
-		method: 'POST',
-		...createGotOptions(config),
-		body: JSON.stringify({
-			query: 'query{servers{name guid status owner{username}}}',
-		}),
-	}).then(response => (JSON.parse(response.body)?.data.servers as Server[] ?? [])).catch(error => {
-		cliLogger.trace('Failed fetching servers from local graphql with "%s"', error.message);
-		return [];
-	}) : [];
+	try {
+		const servers = await client.query({ query: getServersDocument });
+		const foundServers = servers.data.servers.reduce<ServersPayload>((acc, curr) => {
+			switch (curr.status) {
+				case 'online':
+					acc.online.push(curr);
+					break;
+				case 'offline':
+					acc.offline.push(curr);
+					break;
+				default:
+					acc.invalid.push(curr);
+					break;
+			}
 
-	const online = servers.filter(server => server.status === 'online');
-	const offline = servers.filter(server => server.status === 'offline');
-	const invalid = servers.filter(server => server.status !== 'online' && server.status !== 'offline');
-	return {
-		online, offline, invalid,
-	};
+			return acc;
+		}, { online: [], offline: [], invalid: [] });
+		return foundServers;
+	} 	catch (error: unknown) {
+		cliLogger.addContext('error', error);
+		cliLogger.trace('Failed fetching servers from local graphql with "%s"', error instanceof Error ? error.message : 'Unknown Error');
+		cliLogger.removeContext('error');
+		return {
+			online: [],
+			offline: [],
+			invalid: [],
+		};
+	}
 };
 
 const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
@@ -156,7 +120,7 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
 		.replace(`:${getters.config().remote.wanport || 443}`, ':WANPORT')).filter(Boolean);
 };
 
-const getAllowedOrigins = (cloud: Cloud | undefined, v: Verbosity): string[] | null => {
+const getAllowedOrigins = (cloud: CloudQueryResult | null, v: Verbosity): string[] | null => {
 	switch (v) {
 		case '-vv':
 			return cloud?.allowedOrigins.filter(url => !url.endsWith('.sock')) ?? [];
@@ -174,14 +138,6 @@ const getUnraidVersion = async (paths: ReturnType<typeof getters.paths>): Promis
 	return unraidVersion;
 };
 
-const getReadableRelayDetails = (reportObject: ReportObject): string => {
-	const timeout = reportObject.relay.timeout ? `\n	TIMEOUT: [Reconnecting in ${prettyMs(Number(reportObject.relay.timeout))}]` : '';
-	const { status } = reportObject.relay;
-	const error = reportObject.relay.error ? `\n	ERROR: [${reportObject.relay.error}]` : '';
-	return `
-	STATUS: [${status}] ${timeout} ${error}`;
-};
-
 const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): string => {
 	const error = reportObject.cloud.error ? `\n	ERROR [${reportObject.cloud.error}]` : '';
 	const status = reportObject.cloud.status ? reportObject.cloud.status : 'disconnected';
@@ -190,11 +146,15 @@ const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): stri
 	STATUS: [${status}] ${ip} ${error}`;
 };
 
-const getReadableMinigraphDetails = (reportObject: ReportObject): string => `
-	STATUS: [${reportObject.minigraph.status}]`;
+const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
+	const statusLine = `STATUS: [${reportObject.minigraph.status}]`;
+	const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null
+	return `
+	${statusLine}${errorLine ? `\n${errorLine}` : ''}`;
+};
 
 // Convert server to string output
-const serverToString = (v: Verbosity) => (server: Server) => `${server.name}${(v === '-v' || v === '-vv') ? `[owner="${server.owner.username}"${v === '-vv' ? ` guid="${server.guid}"]` : ']'}` : ''}`;
+const serverToString = (v: Verbosity) => (server: ServersQueryResultServer) => `${server?.name ?? 'No Server Name'}${(v === '-v' || v === '-vv') ? `[owner="${server.owner?.username ?? 'No Owner Found'}"${v === '-vv' ? ` guid="${server.guid ?? 'No GUID'}"]` : ']'}` : ''}`;
 
 const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): string => {
 	if (!reportObject.servers) {
@@ -229,7 +189,7 @@ const getServerName = async (paths: ReturnType<typeof getters.paths>): Promise<s
 	let serverName = 'Tower';
 	try {
 		const varIni = parseConfig<{ name: string }>({ filePath: resolve(paths.states, 'var.ini'), type: 'ini' });
-		if (varIni.name) {
+		if (varIni?.name) {
 			serverName = varIni.name;
 		}
 	} catch (error: unknown) {
@@ -284,7 +244,6 @@ export const report = async (...argv: string[]) => {
 
 		// Find all processes called "unraid-api" which aren't this process
 		const unraidApiPid = await getUnraidApiPid();
-		const isApiRunning = typeof unraidApiPid === 'number';
 
 		const paths = getters.paths();
 
@@ -294,17 +253,16 @@ export const report = async (...argv: string[]) => {
 		const { config } = store.getState();
 		if (!config.upc.apikey) throw new Error('Missing UPC API key');
 
+		const client = getApiApolloClient({ upcApiKey: config.upc.apikey });
 		// Fetch the cloud endpoint
-		const cloud = await getCloudData(config);
+		const cloud = await getCloudData(client);
 
 		// Log cloud response
 		cliLogger.trace('Cloud response %s', JSON.stringify(cloud, null, 0));
 
-		cliLogger.trace('Here to fix errros');
-
 		// Query local graphql using upc's API key
 		// Get the servers array
-		const servers = await getServersData({ isApiRunning, cloud, config, v });
+		const servers = await getServersData({ client, v });
 
 		// Check if the API key is valid
 		// If the API is offline check directly with key-server
@@ -327,18 +285,14 @@ export const report = async (...argv: string[]) => {
 				status: config?.remote?.username ? 'authenticated' : 'signed out',
 				...(config?.remote?.username ? { myServersUsername: config?.remote?.username } : {}),
 			},
-			relay: {
-				status: cloud?.relay.status ?? 'disconnected',
-				...(cloud?.relay.timeout && v === '-vv' ? { timeout: cloud?.relay.timeout } : {}),
-				...(cloud?.relay.error ? { error: cloud.relay.error } : {}),
-			},
 			minigraph: {
-				status: cloud?.minigraphql.status ?? 'disconnected',
+				status: cloud?.minigraphql.status ?? MinigraphStatus.DISCONNECTED,
+				error: cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected': null,
 			},
 			cloud: {
 				status: cloud?.cloud.status ?? 'error',
 				...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
-				...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip } : {}),
+				...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip ?? 'NO_IP' } : {}),
 				...(getAllowedOrigins(cloud, v) ? { allowedOrigins: getAllowedOrigins(cloud, v) } : {}),
 			},
 		};
@@ -366,7 +320,6 @@ UNRAID_API_STATUS: ${reportObject.api.status}
 API_KEY: ${reportObject.apiKey}
 MY_SERVERS: ${reportObject.myServers.status}${reportObject.myServers.myServersUsername ? `\nMY_SERVERS_USERNAME: ${reportObject.myServers.myServersUsername}` : ''}
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
-RELAY: ${getReadableRelayDetails(reportObject)}
 MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(reportObject, v)}${getReadableAllowedOrigins(reportObject)}
 </----UNRAID-API-REPORT----->
 `;

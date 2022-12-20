@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { MOTHERSHIP_RELAY_WS_LINK } from '@app/consts';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { store } from '@app/store';
 import { getDnsCache } from '@app/store/getters';
 import { setDNSCheck } from '@app/store/modules/cache';
@@ -11,7 +11,7 @@ import { lookup as lookupDNS, resolve as resolveDNS } from 'dns';
 import { isPrivate as isPrivateIP } from 'ip';
 import { promisify } from 'util';
 
-const msHostname = new URL(MOTHERSHIP_RELAY_WS_LINK).host;
+const msHostname = new URL(MOTHERSHIP_GRAPHQL_LINK).host;
 
 /**
  * Check if the local and network resolvers are able to see mothership
@@ -42,7 +42,7 @@ export const checkDNS = async (hostname = msHostname): Promise<{ cloudIp: string
 		local = localRes;
 		network = networkRes;
 		// The user's server and the DNS server they're using are returning different results
-		if (local !== network) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${network ?? 'NOT FOUND'}"]`);
+		if (!local.includes(network)) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${network ?? 'NOT FOUND'}"]`);
 
 		// The user likely has a PI-hole or something similar running.
 		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local ?? 'NOT FOUND'}]`);

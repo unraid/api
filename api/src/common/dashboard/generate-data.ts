@@ -6,12 +6,11 @@ import { docker } from '@app/core/utils/clients/docker';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { getArray } from '@app/common/dashboard/get-array';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
-import { Dashboard, Dashboard as DashboardType } from '@app/common/run-time/dashboard';
+import { type Dashboard, Dashboard as DashboardType } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { getters } from '@app/store';
-import { Service } from '@app/common/run-time/service';
-import { TwoFactor } from '@app/common/run-time/two-factor';
+import { type DashboardInput } from '../../graphql/generated/client/graphql';
 
 const getVmSummary = async (): Promise<Dashboard['vms']> => {
 	try {
@@ -49,7 +48,7 @@ const twoFactor = (): Dashboard['twoFactor'] => {
 	};
 };
 
-const services = (): Dashboard['services'] => {
+const services = (): DashboardInput['services'] => {
 	const uptimeTimestamp = bootTimestamp.toISOString();
 
 	return [{
@@ -62,7 +61,7 @@ const services = (): Dashboard['services'] => {
 	}];
 };
 
-const getData = async (): Promise<Dashboard> => {
+const getData = async (): Promise<DashboardInput> => {
 	const emhttp = getters.emhttp();
 
 	return {
@@ -99,11 +98,12 @@ const getData = async (): Promise<Dashboard> => {
 	};
 };
 
-export const generateData = async (): Promise<Dashboard | null> => {
+export const generateData = async (): Promise<DashboardInput | null> => {
 	const data = await getData();
 
 	try {
 		// Validate generated data
+		// @TODO: Fix this runtype to use generated types from the Zod validators (as seen in mothership Codegen)
 		return validateRunType(DashboardType.asPartial(), data);
 	} catch (error: unknown) {
 		// Log error for user

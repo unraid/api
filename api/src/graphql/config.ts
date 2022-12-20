@@ -1,6 +1,5 @@
 import { config } from '@app/core/config';
 import { schema } from '@app/graphql/schema';
-import * as resolvers from '@app/graphql/resolvers';
 import { types as typeDefs } from '@app/graphql/types';
 import { type ApolloServerExpressConfig } from 'apollo-server-express';
 import { apiKeyToUser } from '@app/graphql';
@@ -11,7 +10,6 @@ export const apolloConfig: ApolloServerExpressConfig = {
 	introspection: Boolean(process.env.INTROSPECTION ?? config.debug),
 	schema,
 	typeDefs,
-	resolvers,
 	cache: new InMemoryLRUCache(),
 	async context({ req, connection }: { req: { headers: Record<string, string> }; connection: { context: Record<string, unknown> } }) {
 		// Normal Websocket connection

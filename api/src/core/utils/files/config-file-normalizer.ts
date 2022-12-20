@@ -1,5 +1,7 @@
 import { type SliceState as ConfigSliceState, initialState } from '@app/store/modules/config';
+import { type RecursivePartial } from '@app/types';
 import type { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
+import { isEqual } from 'lodash';
 
 type ConfigType = 'flash' | 'memory';
 type ConfigObject<T> =
@@ -49,10 +51,17 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 		...(mode === 'memory'
 			? { connectionStatus: {
 				minigraph: connectionStatus.minigraph ?? initialState.connectionStatus.minigraph,
-				relay: connectionStatus.relay ?? initialState.connectionStatus.relay,
-				...(connectionStatus.upnpError ? { upnpError: connectionStatus.upnpError } : {}),
+				...(connectionStatus.upnpStatus ? { upnpStatus: connectionStatus.upnpStatus } : {}),
 			} }
 			: {}),
 	} as ConfigObject<T>;
 	return newState;
 };
+
+/**
+ * Helper function to convert an object into a normalized config file.
+ * This is used for loading config files and ensure changes have been made before the state is merged.
+ */
+export const areConfigsEquivalent = (newConfigFile: RecursivePartial<MyServersConfig>, currentConfig: ConfigSliceState): boolean =>
+	// Enable to view config diffs: logger.debug(getDiff(getWriteableConfig(currentConfig, 'flash'), newConfigFile));
+	isEqual(newConfigFile, getWriteableConfig(currentConfig, 'flash'));

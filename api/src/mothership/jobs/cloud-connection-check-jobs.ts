@@ -2,8 +2,8 @@
 
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
-import { cloudConnector } from '../cloud-connector';
-import { updateConnectionStatusInConfig } from '@app/mothership/update-connection-status-in-config';
+import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
+import { subscribeToMothership } from '../subscribe-to-mothership';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.Start()
@@ -16,16 +16,13 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.PreventOverlap
 	@Cron(Expression.EVERY_10_SECONDS)
 	async checkCloudConnection() {
-		try {
-			await cloudConnector.checkCloudConnections();
-		} catch (error: unknown) {
-			mothershipLogger.error('Failed checking connection with error %s.', error);
-		}
-
-		try {
-			await updateConnectionStatusInConfig();
-		} catch (error: unknown) {
-			mothershipLogger.error('Failed to update the config with the connection status %s.', error);
+		// @TODO: Convert this to a listener instead of a recurring job.
+		if (isAPIStateDataFullyLoaded()) {
+			try {
+				await subscribeToMothership();
+			} catch (error: unknown) {
+				mothershipLogger.error('Failed checking connection with error %s.', error);
+			}
 		}
 	}
 }

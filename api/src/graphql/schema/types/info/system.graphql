@@ -1,5 +1,5 @@
 type Info {
-    system: System @func(module: "getSystem")
+    system: System
 }
 
 type System {
