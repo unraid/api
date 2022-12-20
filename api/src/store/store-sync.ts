@@ -3,12 +3,11 @@ import { store } from '@app/store';
 import { syncConfigToDisk } from '@app/store/sync/config-disk-sync';
 import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
-import { setupConfigPathWatch } from './watch/config-watch';
 import { FileLoadStatus } from './types';
 import { syncRegistration } from '@app/store/sync/registration-sync';
 import { syncArray } from '@app/store/sync/array-sync';
 import { syncInfoApps } from '@app/store/sync/info-apps-sync';
-import { syncUpnpChanges } from '@app/store/sync/upnp-sync';
+import { setupConfigPathWatch } from '@app/store/watch/config-watch';
 
 export const startStoreSync = async () => {
 	// The last state is stored so we don't end up in a loop of writing -> reading -> writing
@@ -17,7 +16,6 @@ export const startStoreSync = async () => {
 	// Update cfg when store changes
 	store.subscribe(async () => {
 		const state = store.getState();
-
 		// Config dependent options, wait until config loads to execute
 		if (state.config.status === FileLoadStatus.LOADED) {
 			// Write changes to disk
@@ -25,9 +23,6 @@ export const startStoreSync = async () => {
 
 			// Update API key
 			await syncApiKeyChanges(lastState);
-
-			// Sync UPNP Changes
-			await syncUpnpChanges(lastState);
 
 			// Update 2FA
 			await sync2FA();
@@ -47,3 +42,4 @@ export const startStoreSync = async () => {
 
 	setupConfigPathWatch();
 };
+

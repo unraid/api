@@ -14,6 +14,7 @@ test('Before init returns default values for all fields', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpStatus": "",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -32,6 +33,7 @@ test('Before init returns default values for all fields', async () => {
 		    "idtoken": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
+		    "upnpEnabled": "",
 		    "username": "",
 		    "wanaccess": "",
 		    "wanport": "",
@@ -60,6 +62,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpStatus": "",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -109,6 +112,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
+		    "upnpStatus": "",
 		  },
 		  "local": {
 		    "2Fa": "",
@@ -139,28 +143,3 @@ test('updateUserConfig merges in changes to current state', async () => {
 		}
 	`);
 });
-
-/*
-Test('File on disk matches state after writing', async () => {
-	const { loadConfigFile, updateUserConfig, writeConfigToDisk } = await import('@app/store/modules/config');
-
-	// Load cfg into store
-	await store.dispatch(loadConfigFile(devConfigPath));
-
-	// Update store
-	store.dispatch(updateUserConfig({ remote: { avatar: 'https://via.placeholder.com/500' } }));
-
-	// Update file on disk
-	const newConfigFilePath = temporaryFile();
-	await store.dispatch(writeConfigToDisk(newConfigFilePath));
-
-	// Check state matches disk
-	const newConfigFile = await store.dispatch(loadConfigFile(newConfigFilePath)).unwrap();
-	const state = store.getState().config;
-	expect(state.api).toEqual(newConfigFile.api);
-	expect(state.local).toEqual(newConfigFile.local);
-	expect(state.notifier).toEqual(newConfigFile.notifier);
-	expect(state.upc).toEqual(newConfigFile.upc);
-	expect(state.remote).toEqual(newConfigFile.remote);
-});
-*/

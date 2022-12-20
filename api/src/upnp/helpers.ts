@@ -37,12 +37,12 @@ export const parseStringToNumberOrNull = (myString: string): number | null => {
  * @returns void
  * @throws Error, if renewal fails
  */
-export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp }: { localPortForUpnp: number; wanPortForUpnp: number }): Promise<void> => {
-	upnpLogger.info('Renewing UPNP Lease: Public Port [%s] Local Port [%s]', localPortForUpnp, wanPortForUpnp);
+export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp, serverName }: { localPortForUpnp: number; wanPortForUpnp: number; serverName?: string }): Promise<void> => {
+	upnpLogger.info('Renewing UPNP Lease: Public Port [%s] Local Port [%s]', wanPortForUpnp, localPortForUpnp);
 	const result = await upnpClient.createMapping({
 		public: wanPortForUpnp,
 		private: localPortForUpnp,
-		description: 'Unraid API UPNP',
+		description: `Unraid Remote Access - ${serverName ?? 'No Server Name Found'}`,
 		ttl: SIX_HOURS,
 	});
 	upnpLogger.trace('Opening Port Result %o', result);

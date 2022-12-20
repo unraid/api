@@ -1,4 +1,4 @@
-import { MinigraphStatus } from "@app/graphql/generated/api/types";
+import { type MinigraphStatus } from '@app/graphql/generated/api/types';
 
 interface MyServersConfig {
 	api: {
@@ -31,7 +31,7 @@ interface MyServersConfig {
 	};
 }
 
-interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
+export interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 	api: {
 		extraOrigins: string;
 	};
@@ -48,14 +48,14 @@ interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfig {
 export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
 		minigraph: MinigraphStatus;
-		upnpError?: null | string;
+		upnpStatus?: null | string;
 	};
 }
 
 export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServersConfigMemoryWithMandatoryHiddenFields {
 	connectionStatus: {
 		minigraph: MinigraphStatus;
-		upnpError: null | string;
+		upnpStatus?: null | string;
 	};
 }
 

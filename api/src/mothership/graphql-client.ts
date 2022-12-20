@@ -4,7 +4,7 @@ import { minigraphLogger } from '@app/core/log';
 import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
 import { createClient } from 'graphql-ws';
-import { setStatus } from '@app/store/modules/minigraph';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
@@ -46,9 +46,9 @@ export const createGraphqlClient = () => {
 		},
 		lazy: false,
 		retryAttempts: Infinity,
-		onNonLazyError: async (error) => {
-			minigraphLogger.error('Non-Lazy Error %o', error)
-		}
+		async onNonLazyError(error) {
+			minigraphLogger.error('Non-Lazy Error %o', error);
+		},
 	});
 	const wsLink = new GraphQLWsLink(client);
 	const apolloClient = new ApolloClient({
@@ -64,24 +64,24 @@ export const createGraphqlClient = () => {
 				fetchPolicy: 'no-cache',
 				errorPolicy: 'all',
 			},
-		}
+		},
 	});
 	// Maybe a listener to initiate this
 	client.on('connecting', () => {
-		store.dispatch(setStatus({ status: MinigraphStatus.CONNECTING, error: null }));
+		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.CONNECTING, error: null }));
 		minigraphLogger.info('Connecting to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
 	});
 	client.on('connected', () => {
-		store.dispatch(setStatus({ status: MinigraphStatus.CONNECTED, error: null }));
+		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.CONNECTED, error: null }));
 		minigraphLogger.info('Connected to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
 	});
 	client.on('error', error => {
 		const normalError = (error instanceof Error) ? error : new Error('Unknown Minigraph Client Error');
-		store.dispatch(setStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
+		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
 		minigraphLogger.error('Error in MinigraphClient', error);
 	});
 	client.on('closed', event => {
-		store.dispatch(setStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
+		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
 		// Store.dispatch(clearAllServers());
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection', event);
