@@ -17,9 +17,6 @@ export const startStoreSync = async () => {
 		const state = store.getState();
 		// Config dependent options, wait until config loads to execute
 		if (state.config.status === FileLoadStatus.LOADED) {
-			// Update API key
-			await syncApiKeyChanges(lastState);
-
 			// Update 2FA
 			await sync2FA();
 

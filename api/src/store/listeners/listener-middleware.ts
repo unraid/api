@@ -2,6 +2,7 @@ import { addListener, createListenerMiddleware, type TypedAddListener, type Type
 import { type AppDispatch, type RootState } from '@app/store';
 import { enableUpnpListener } from '@app/store/listeners/upnp-listener';
 import { enableConfigListener } from '@app/store/listeners/config-listener';
+import { enableApiKeyListener } from './api-key-listener';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -16,3 +17,4 @@ export const addAppListener = addListener as TypedAddListener<RootState, AppDisp
 // Begin listening for events
 enableUpnpListener();
 enableConfigListener();
+enableApiKeyListener();
