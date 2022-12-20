@@ -58,7 +58,7 @@
 # packages, Sat Nov 17 14:25:58 PST 2001 volkerdi
 
 # Modified to prevent installing an older package unless 'reinstall' flag
-# is set, Thu Mar  3 11:58:49 PST 2022 limetech
+# is set, Tue Nov 29 10:54:51 PST 2022 limetech
 
 # Return a package name that has been stripped of the dirname portion
 # and any of the valid extensions (only):
@@ -208,32 +208,6 @@ package_name() {
   esac
 }
 
-# limetech -
-# Here's a function that figures out if one package is a newer version than
-# another package.  We use this to prevent "upgrading" an existing package
-# to an older one.
-# We're lazy so use PHP's version_compare() function to do the heavy lifting.
-
-version_compare() {
-  STRING="$1"
-  BUILD=${STRING##*-}
-  STRING=${STRING%*-}
-  ARCH=${STRING##*-}
-  STRING=${STRING%*-}
-  VER=${STRING%*-}
-  OLDVERSION="$VER.$BUILD"
-
-  STRING="$2"
-  BUILD=${STRING##*-}
-  STRING=${STRING%*-}
-  ARCH=${STRING##*-}
-  STRING=${STRING%*-}
-  VER=${STRING%*-}
-  NEWVERSION="$VER.$BUILD"
-
-  php -r "echo version_compare('$OLDVERSION', '$NEWVERSION');"
-}
-
 ERRCODE=0
 
 # Main processing loop:
@@ -353,7 +327,7 @@ EOF
   # limetech - compare versions and lets not install
   # an older package unless reinstall given.
   if [ ! "$REINSTALL" = "true" ]; then
-    if [ $(version_compare "$OLD" "$NEW") -gt 0 ]; then
+    if ! printf '%s\n%s' "$OLD" "$NEW" | sort -V -C ; then
       if [ "$DRY_RUN" = "true" ]; then
         echo "$NEW would be skipped (newer version already installed)."
       else
