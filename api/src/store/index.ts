@@ -29,7 +29,7 @@ export const store = configureStore({
 			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
 			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient'],
 		},
-	}).prepend(listenerMiddleware.middleware),
+	}).concat(listenerMiddleware.middleware),
 });
 
 export type RootState = ReturnType<typeof store.getState>;
