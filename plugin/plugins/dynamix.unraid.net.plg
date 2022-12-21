@@ -75,11 +75,11 @@ source <(grep "DNS_SERVER1" /usr/local/emhttp/state/network.ini 2>/dev/null)
 DNSERR=no
 
 echo "Checking DNS..."
-dnscheck "${DLHOST}"
-dnscheck "${JSHOST}"
+#dnscheck "${DLHOST}"
+#dnscheck "${JSHOST}"
 dnscheck "mothership.unraid.net"
-dnscheck "wanip4.unraid.net"
-dnscheck "backup.unraid.net"
+#dnscheck "wanip4.unraid.net"
+#dnscheck "backup.unraid.net"
 
 [[ "${DNSERR}" == "yes" && "${DNS_SERVER1}" != "8.8.8.8" ]] && echo "  Recommend navigating to Settings -> Network Settings and changing your DNS server to 8.8.8.8"
 # Note: DNS checks will fail if the network is not available at boot. Cannot exit the install when DNS checks fail.
