@@ -53,9 +53,9 @@ if ($oldVersion) {
 
 $isRegistered = !empty($remote['username']);
 
-$myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
-$isConnected = ($myStatus['relay']=='connected')?true:false;
-$fbStatus = @parse_ini_file('/var/local/emhttp/flashbackup.ini');
+$myStatus = (file_exists('/var/local/emhttp/myservers.cfg')) ? @parse_ini_file('/var/local/emhttp/myservers.cfg') : [];
+$isConnected = (array_key_exists('minigraph', $myStatus) && ($myStatus['minigraph']==='CONNECTED'))?true:false;
+$fbStatus = (file_exists('/var/local/emhttp/flashbackup.ini')) ? @parse_ini_file('/var/local/emhttp/flashbackup.ini') : [];
 
 $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
