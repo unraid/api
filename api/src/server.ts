@@ -19,7 +19,6 @@ import { logger, config, pubsub, graphqlLogger } from '@app/core';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
 import { getEndpoints } from '@app/core/utils/misc/get-endpoints';
-import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { getters } from '@app/store';
 import { schema } from '@app/graphql/schema';
 import { execute, subscribe } from 'graphql';
@@ -29,6 +28,7 @@ import { apiKeyToUser } from '@app/graphql';
 import { randomUUID } from 'crypto';
 import { getServerAddress } from '@app/common/get-server-address';
 import { apolloConfig } from '@app/graphql/config';
+import { originMiddleware } from './originMiddleware';
 
 const configFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.cfg');
 const customImageFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.png');
@@ -48,53 +48,12 @@ watch(customImageFilePath).on('all', updatePubsub);
  */
 export const app = express();
 
-// Cors error
-const invalidOrigin = 'The CORS policy for this site does not allow access from the specified Origin.';
-
 // Ensure json bodies can be parsed
 app.use(json());
 
 // Cors
-app.use(cors({
-	origin(origin, callback) {
-		// Get currently allowed origins
-		if (process.env.NODE_ENV === 'development') {
-			logger.trace('Dev Mode Enabled, Bypassing Cors Check');
-			callback(null, true);
-			return;
-		}
-
-		const allowedOrigins = getAllowedOrigins();
-		logger.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
-
-		// Disallow requests with no origin
-		// (like mobile apps, curl requests or viewing /graphql directly)
-		if (!origin) {
-			// If in debug mode allow this
-			if (config.debug) {
-				logger.debug('Debug mode is enabled, bypassing CORS check.');
-				callback(null, true);
-				return;
-			}
-
-			logger.debug('No origin provided, denying CORS!');
-			callback(new Error(invalidOrigin), false);
-			return;
-		}
-
-		logger.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
-
-		// Only allow known origins
-		if (!allowedOrigins.includes(origin.toLowerCase())) {
-			logger.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
-			callback(new Error(invalidOrigin), false);
-			return;
-		}
-
-		logger.trace('✔️ Origin check passed, granting CORS!');
-		callback(null, true);
-	},
-}));
+// app.use(cors());
+app.use(originMiddleware);
 
 // Add Unraid API version header
 app.use(async (_req, res, next) => {
