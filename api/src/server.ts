@@ -52,7 +52,7 @@ export const app = express();
 app.use(json());
 
 // Cors
-// app.use(cors());
+app.use(cors());
 app.use(originMiddleware);
 
 // Add Unraid API version header
