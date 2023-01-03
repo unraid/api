@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { type Nginx } from '../../../../core/types/states/nginx';
-import { getFQDNBasedUrlForServer, getIpBasedUrlForServer, getPortAndDefaultUrl, getServerIps, type PortAndDefaultUrl } from '../../../../graphql/resolvers/subscription/network';
+import { getUrlForServer, getPortAndDefaultUrl, getServerIps } from '@app/graphql/resolvers/subscription/network';
 import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 
@@ -31,73 +31,84 @@ test.each([
 });
 
 test('getIpBasedUrlForServer - field exists, ssl disabled', () => {
-	const result = getIpBasedUrlForServer(
-		{ lanIp: '192.168.1.1', sslEnabled: false } as Nginx,
+	const result = getUrlForServer({ nginx: { lanIp: '192.168.1.1', sslEnabled: false } as const as Nginx,
+		ports:
 		{
 			port: ':123', portSsl: ':445', defaultUrl: 'hi',
 		},
-		'lanIp');
+		field: 'lanIp',
+		isFqdn: false },
+	);
 	expect(result).toMatchInlineSnapshot('"http://192.168.1.1:123/"');
 });
 
 test('getIpBasedUrlForServer - field exists, ssl yes', () => {
-	const result = getIpBasedUrlForServer(
-		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'yes' } as Nginx,
-		{
-			port: ':123', portSsl: ':445', defaultUrl: 'hi',
-		},
-		'lanIp');
+	const result = getUrlForServer({ nginx:
+		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'yes' } as const as Nginx,
+	ports: {
+		port: ':123', portSsl: ':445', defaultUrl: 'hi',
+	},
+	field: 'lanIp', isFqdn: false });
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1:445/"');
 });
 
 test('getIpBasedUrlForServer - field exists, ssl yes, port empty', () => {
-	const result = getIpBasedUrlForServer(
-		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'yes' } as Nginx,
-		{
-			port: '', portSsl: '', defaultUrl: 'hi',
-		},
-		'lanIp');
+	const result = getUrlForServer(
+		{ nginx: { lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'yes' } as const as Nginx,
+			ports: {
+				port: '', portSsl: '', defaultUrl: 'hi',
+			},
+			field: 'lanIp', isFqdn: false });
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1/"');
 });
 
 test('getIpBasedUrlForServer - field exists, ssl auto', () => {
-	const getResult = async () => getIpBasedUrlForServer(
-		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'auto' } as Nginx,
-		{
-			port: ':123', portSsl: ':445', defaultUrl: 'hi',
-		},
-		'lanIp');
+	const getResult = async () => getUrlForServer({ nginx:
+		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'auto' } as const as Nginx,
+	ports: {
+		port: ':123', portSsl: ':445', defaultUrl: 'hi',
+	},
+	field: 'lanIp', isFqdn: false });
 	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"Cannot get IP Based URL for field: \\"lanIp\\" SSL mode auto"');
 });
 
 test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
-	const getResult = async () => getIpBasedUrlForServer(
-		{ lanIp: '192.168.1.1', sslEnabled: false, sslMode: 'no' } as Nginx,
+	const getResult = async () => getUrlForServer(
 		{
-			port: ':123', portSsl: ':445', defaultUrl: 'hi',
-		},
-		// @ts-expect-error Field doesn't exist
-		'idontexist');
-	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\""');
+			nginx: { lanIp: '192.168.1.1', sslEnabled: false, sslMode: 'no' } as const as Nginx,
+			ports: {
+				port: ':123', portSsl: ':445', defaultUrl: 'hi',
+			},
+			// @ts-expect-error Field doesn't exist
+			field: 'idontexist', isFqdn: false });
+	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: false"');
 });
 
 test('getFqdnBasedUrlForServer - field exists, port non-empty', () => {
-	const result = getFQDNBasedUrlForServer({ lanFqdn: 'my-fqdn.unraid.net' } as Nginx, { portSsl: ':445', port: '', defaultUrl: 'my-default-url.unraid.net' }, 'lanFqdn');
+	const result = getUrlForServer({
+		nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
+		ports: { portSsl: ':445', port: '', defaultUrl: 'my-default-url.unraid.net' },
+		field: 'lanFqdn',
+		isFqdn: true });
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net:445/"');
 });
 
 test('getFqdnBasedUrlForServer - field exists, port empty', () => {
-	const result = getFQDNBasedUrlForServer({ lanFqdn: 'my-fqdn.unraid.net' } as Nginx, { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' }, 'lanFqdn');
+	const result = getUrlForServer({ nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
+		ports: { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
+		field: 'lanFqdn',
+		isFqdn: true,
+	});
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net/"');
 });
 
 test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
-	const getResult = async () => getFQDNBasedUrlForServer(
-		{ lanFqdn: 'my-fqdn.unraid.net' } as Nginx,
-		{ portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
-		// @ts-expect-error Field doesn't exist
-		'idontexist');
-	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"FQDN URL Resolver: Could not resolve any URL for field: \\"idontexist\\""');
+	const getResult = async () => getUrlForServer({ nginx:
+		{ lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
+	ports: { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
+	// @ts-expect-error Field doesn't exist
+	field: 'idontexist', isFqdn: true });
+	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: true"');
 });
 
 test('integration test, loading nginx ini and generating all URLs', async () => {
@@ -136,9 +147,9 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 	`);
 	expect(urls.errors).toMatchInlineSnapshot(`
 		[
-		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6"],
-		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanFqdn6"],
-		  [Error: IP URL Resolver: Could not resolve any access URL for field: "wanFqdn6"],
+		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6", is FQDN?: false],
+		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanFqdn6", is FQDN?: true],
+		  [Error: IP URL Resolver: Could not resolve any access URL for field: "wanFqdn6", is FQDN?: true],
 		]
 	`);
 });

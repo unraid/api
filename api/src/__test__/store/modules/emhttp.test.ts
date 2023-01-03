@@ -115,7 +115,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "sslEnabled": true,
 		  "sslMode": "yes",
 		  "wanAccessEnabled": false,
-		  "wanFqdn": "",
+		  "wanFqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "wanFqdn6": "",
 		  "wanIp": "",
 		}

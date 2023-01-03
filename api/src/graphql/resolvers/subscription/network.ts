@@ -25,8 +25,12 @@ export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
  * @returns a URL, created from the combination of inputs
  * @throws Error when the URL cannot be created or the URL is invalid
  */
-export const getIpBasedUrlForServer = (nginx: Nginx, ports: PortAndDefaultUrl, field: keyof Nginx): URL => {
+export const getUrlForServer = ({ nginx, ports, field, isFqdn }: { nginx: Nginx; ports: PortAndDefaultUrl; field: keyof Nginx; isFqdn: boolean }): URL => {
 	if (nginx[field]) {
+		if (isFqdn) {
+			return new URL(`https://${nginx[field]}${ports.portSsl}`);
+		}
+
 		if (!nginx.sslEnabled) {// Use SSL = no
 			return new URL(`http://${nginx[field]}${ports.port}`);
 		}
@@ -40,15 +44,7 @@ export const getIpBasedUrlForServer = (nginx: Nginx, ports: PortAndDefaultUrl, f
 		}
 	}
 
-	throw new Error(`IP URL Resolver: Could not resolve any access URL for field: "${field}"`);
-};
-
-export const getFQDNBasedUrlForServer = (nginx: Nginx, ports: PortAndDefaultUrl, field: keyof Nginx): URL => {
-	if (nginx[field]) {
-		return new URL(`https://${nginx[field]}${ports.portSsl}`);
-	}
-
-	throw new Error(`FQDN URL Resolver: Could not resolve any URL for field: "${field}"`);
+	throw new Error(`IP URL Resolver: Could not resolve any access URL for field: "${field}", is FQDN?: ${isFqdn}`);
 };
 
 export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
@@ -74,7 +70,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan IP URL
-		const lanIp4Url = getIpBasedUrlForServer(nginx, ports, 'lanIp');
+		const lanIp4Url = getUrlForServer({ nginx, ports, field: 'lanIp', isFqdn: false });
 		urls.push({
 			name: 'LAN IPv4',
 			type: URL_TYPE.LAN,
@@ -90,7 +86,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan IP6 URL
-		const lanIp6Url = getIpBasedUrlForServer(nginx, ports, 'lanIp6');
+		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanIp6', isFqdn: false });
 		urls.push({
 			name: 'LAN IPv6',
 			type: URL_TYPE.LAN,
@@ -106,7 +102,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan MDNS URL
-		const lanIp6Url = getIpBasedUrlForServer(nginx, ports, 'lanMdns');
+		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanMdns', isFqdn: false });
 		urls.push({
 			name: 'LAN MDNS',
 			type: URL_TYPE.MDNS,
@@ -122,7 +118,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan FQDN URL
-		const lanFqdn = getIpBasedUrlForServer(nginx, ports, 'lanFqdn');
+		const lanFqdn = getUrlForServer({ nginx, ports, field: 'lanFqdn', isFqdn: true });
 		urls.push({
 			name: 'LAN FQDN',
 			type: URL_TYPE.LAN,
@@ -138,7 +134,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan FQDN6 URL
-		const lanFqdn6 = getIpBasedUrlForServer(nginx, ports, 'lanFqdn6');
+		const lanFqdn6 = getUrlForServer({ nginx, ports, field: 'lanFqdn6', isFqdn: true });
 		urls.push({
 			name: 'LAN FQDNv6',
 			type: URL_TYPE.LAN,
@@ -154,7 +150,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// WAN FQDN URL
-		const wanFqdn = getIpBasedUrlForServer(nginx, ports, 'wanFqdn');
+		const wanFqdn = getUrlForServer({ nginx, ports, field: 'wanFqdn', isFqdn: true });
 		urls.push({
 			name: 'WAN FQDN',
 			type: URL_TYPE.WAN,
@@ -170,7 +166,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// WAN FQDN6 URL
-		const wanFqdn6 = getIpBasedUrlForServer(nginx, ports, 'wanFqdn6');
+		const wanFqdn6 = getUrlForServer({ nginx, ports, field: 'wanFqdn6', isFqdn: true });
 		urls.push({
 			name: 'WAN FQDNv6',
 			type: URL_TYPE.WAN,

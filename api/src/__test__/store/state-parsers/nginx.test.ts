@@ -28,7 +28,7 @@ test('Returns parsed state file', async () => {
 		  "sslEnabled": true,
 		  "sslMode": "yes",
 		  "wanAccessEnabled": false,
-		  "wanFqdn": "",
+		  "wanFqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "wanFqdn6": "",
 		  "wanIp": "",
 		}
