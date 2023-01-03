@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as types from './graphql.js';
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 /**
  * Map of all GraphQL operations in the project.
@@ -15,6 +15,7 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
 const documents = {
     "\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}": types.updateDashboardDocument,
     "\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}": types.sendNotificationDocument,
+    "\nmutation updateNetwork($data: NetworkInput!, $apiKey: String!) {\n\tupdateNetwork(data: $data) @auth(apiKey: $apiKey) {\n\t\taccessUrls {\n\t\t\tname\n\t\t\ttype\n\t\t\tipv4\n\t\t\tipv6\n\t\t}\n\t}\n}\n": types.updateNetworkDocument,
     "\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n": types.queryServersFromMothershipDocument,
     "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n": types.eventsDocument,
 };
@@ -27,6 +28,10 @@ export function graphql(source: "\nmutation updateDashboard($data: DashboardInpu
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}"): (typeof documents)["\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\nmutation updateNetwork($data: NetworkInput!, $apiKey: String!) {\n\tupdateNetwork(data: $data) @auth(apiKey: $apiKey) {\n\t\taccessUrls {\n\t\t\tname\n\t\t\ttype\n\t\t\tipv4\n\t\t\tipv6\n\t\t}\n\t}\n}\n"): (typeof documents)["\nmutation updateNetwork($data: NetworkInput!, $apiKey: String!) {\n\tupdateNetwork(data: $data) @auth(apiKey: $apiKey) {\n\t\taccessUrls {\n\t\t\tname\n\t\t\ttype\n\t\t\tipv4\n\t\t\tipv6\n\t\t}\n\t}\n}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

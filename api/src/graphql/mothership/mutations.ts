@@ -22,3 +22,16 @@ mutation sendNotification($notification:NotificationInput!, $apiKey: String!) {
 		status
 	}
 }`);
+
+export const SEND_NETWORK_MUTATION = graphql(/* GraphQL */ `
+mutation updateNetwork($data: NetworkInput!, $apiKey: String!) {
+	updateNetwork(data: $data) @auth(apiKey: $apiKey) {
+		accessUrls {
+			name
+			type
+			ipv4
+			ipv6
+		}
+	}
+}
+`);

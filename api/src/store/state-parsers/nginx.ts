@@ -8,6 +8,7 @@ export type NginxIni = {
 	nginxLanfqdn: string;
 	nginxLanfqdn6: string;
 	nginxLanip: string;
+	nginxLanip6: string;
 	nginxLanmdns: string;
 	nginxLanname: string;
 	nginxPort: string;
@@ -28,6 +29,7 @@ export const parse: StateFileToIniParserMap['nginx'] = state => ({
 	lanFqdn: state.nginxLanfqdn,
 	lanFqdn6: state.nginxLanfqdn6,
 	lanIp: state.nginxLanip,
+	lanIp6: state.nginxLanip6,
 	lanMdns: state.nginxLanmdns,
 	lanName: state.nginxLanname,
 	sslEnabled: state.nginxUsessl !== 'no',

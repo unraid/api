@@ -22,6 +22,7 @@ test('Returns parsed state file', async () => {
 		  "lanFqdn": "192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "lanFqdn6": "",
 		  "lanIp": "192.168.1.150",
+		  "lanIp6": "",
 		  "lanMdns": "Tower.local",
 		  "lanName": "Tower",
 		  "sslEnabled": true,

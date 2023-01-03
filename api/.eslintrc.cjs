@@ -4,6 +4,7 @@
 module.exports = {
 	root: true,
 	plugins: ['@typescript-eslint/eslint-plugin', 'unused-imports'],
+	ignorePatterns: ['src/graphql/generated/**/*.ts'],
 	extends: [
 		'@unraid/eslint-config/node',
 		'plugin:@typescript-eslint/recommended',
