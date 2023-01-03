@@ -6,6 +6,7 @@ import { dashboardLogger, logger } from '@app/core';
 import { isEqual } from 'lodash';
 import { SEND_NETWORK_MUTATION } from '@app/graphql/mothership/mutations';
 import { saveNetworkPacket } from '@app/store/modules/dashboard';
+import { ApolloError } from '@apollo/client';
 
 export interface PortAndDefaultUrl {
 	port: string;
@@ -187,27 +188,35 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 	return { urls, errors };
 };
 
-const publishNetwork = async () => {
-	const client = GraphQLClient.getInstance();
-	const datapacket = getServerIps();
+export const publishNetwork = async () => {
+	try {
+		const client = GraphQLClient.getInstance();
+		const datapacket = getServerIps();
 
-	const { lastNetworkPacket } = getters.dashboard();
-	const { apikey: apiKey } = getters.config().remote;
-	if (!isEqual(datapacket, lastNetworkPacket)) {
-		const input: NetworkInput = { accessUrls: datapacket.urls };
+		const { lastNetworkPacket } = getters.dashboard();
+		const { apikey: apiKey } = getters.config().remote;
+		if (!isEqual(datapacket, lastNetworkPacket)) {
+			const input: NetworkInput = { accessUrls: datapacket.urls };
 
-		dashboardLogger.addContext('data', datapacket);
-		dashboardLogger.info('Sending data packet for network');
-		dashboardLogger.removeContext('data');
-		const result = await client.mutate({
-			mutation: SEND_NETWORK_MUTATION,
-			variables: {
-				apiKey,
-				data: input,
-			},
-		});
-		dashboardLogger.debug('Result of send network mutation:\n%o', result);
+			dashboardLogger.addContext('data', datapacket);
+			dashboardLogger.info('Sending data packet for network');
+			dashboardLogger.removeContext('data');
+			const result = await client.mutate({
+				mutation: SEND_NETWORK_MUTATION,
+				variables: {
+					apiKey,
+					data: input,
+				},
+			});
+			dashboardLogger.debug('Result of send network mutation:\n%o', result);
 
-		store.dispatch(saveNetworkPacket({ lastNetworkPacket: input }));
+			store.dispatch(saveNetworkPacket({ lastNetworkPacket: input }));
+		}
+	} catch (error: unknown) {
+		if (error instanceof ApolloError) {
+			dashboardLogger.error('Failed publishing with GQL Errors: %s, \nClient Errors: %s', error.graphQLErrors.map(error => error.message).join(','), error.clientErrors.join(', '));
+		} else {
+			dashboardLogger.error(error);
+		}
 	}
 };
