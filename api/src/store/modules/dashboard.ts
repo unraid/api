@@ -57,4 +57,4 @@ export const dashboard = createSlice({
 	},
 });
 
-export const { startDashboardProducer, stopDashboardProducer, saveDataPacket } = dashboard.actions;
+export const { startDashboardProducer, stopDashboardProducer, saveDataPacket, saveNetworkPacket } = dashboard.actions;

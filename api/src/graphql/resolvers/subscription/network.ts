@@ -1,8 +1,11 @@
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { type Nginx } from '@app/core/types/states/nginx';
-import { getters } from '@app/store';
-import { URL_TYPE, type AccessUrlInput } from '@app/graphql/generated/client/graphql';
-import { logger } from '@app/core';
+import { getters, store } from '@app/store';
+import { type NetworkInput, URL_TYPE, type AccessUrlInput } from '@app/graphql/generated/client/graphql';
+import { dashboardLogger, logger } from '@app/core';
+import { isEqual } from 'lodash';
+import { SEND_NETWORK_MUTATION } from '@app/graphql/mothership/mutations';
+import { saveNetworkPacket } from '@app/store/modules/dashboard';
 
 export interface PortAndDefaultUrl {
 	port: string;
@@ -17,6 +20,7 @@ export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 	return { port, portSsl, defaultUrl };
 };
 
+const fieldIsFqdn = (field: keyof Nginx) => field.toLowerCase().includes('fqdn');
 /**
  *
  * @param nginx Nginx Config File
@@ -25,9 +29,9 @@ export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
  * @returns a URL, created from the combination of inputs
  * @throws Error when the URL cannot be created or the URL is invalid
  */
-export const getUrlForServer = ({ nginx, ports, field, isFqdn }: { nginx: Nginx; ports: PortAndDefaultUrl; field: keyof Nginx; isFqdn: boolean }): URL => {
+export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: PortAndDefaultUrl; field: keyof Nginx }): URL => {
 	if (nginx[field]) {
-		if (isFqdn) {
+		if (fieldIsFqdn(field)) {
 			return new URL(`https://${nginx[field]}${ports.portSsl}`);
 		}
 
@@ -44,7 +48,7 @@ export const getUrlForServer = ({ nginx, ports, field, isFqdn }: { nginx: Nginx;
 		}
 	}
 
-	throw new Error(`IP URL Resolver: Could not resolve any access URL for field: "${field}", is FQDN?: ${isFqdn}`);
+	throw new Error(`IP URL Resolver: Could not resolve any access URL for field: "${field}", is FQDN?: ${fieldIsFqdn(field)}`);
 };
 
 export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
@@ -70,7 +74,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan IP URL
-		const lanIp4Url = getUrlForServer({ nginx, ports, field: 'lanIp', isFqdn: false });
+		const lanIp4Url = getUrlForServer({ nginx, ports, field: 'lanIp' });
 		urls.push({
 			name: 'LAN IPv4',
 			type: URL_TYPE.LAN,
@@ -86,7 +90,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan IP6 URL
-		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanIp6', isFqdn: false });
+		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanIp6' });
 		urls.push({
 			name: 'LAN IPv6',
 			type: URL_TYPE.LAN,
@@ -102,7 +106,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan MDNS URL
-		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanMdns', isFqdn: false });
+		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanMdns' });
 		urls.push({
 			name: 'LAN MDNS',
 			type: URL_TYPE.MDNS,
@@ -118,7 +122,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan FQDN URL
-		const lanFqdn = getUrlForServer({ nginx, ports, field: 'lanFqdn', isFqdn: true });
+		const lanFqdn = getUrlForServer({ nginx, ports, field: 'lanFqdn' });
 		urls.push({
 			name: 'LAN FQDN',
 			type: URL_TYPE.LAN,
@@ -134,7 +138,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan FQDN6 URL
-		const lanFqdn6 = getUrlForServer({ nginx, ports, field: 'lanFqdn6', isFqdn: true });
+		const lanFqdn6 = getUrlForServer({ nginx, ports, field: 'lanFqdn6' });
 		urls.push({
 			name: 'LAN FQDNv6',
 			type: URL_TYPE.LAN,
@@ -150,7 +154,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// WAN FQDN URL
-		const wanFqdn = getUrlForServer({ nginx, ports, field: 'wanFqdn', isFqdn: true });
+		const wanFqdn = getUrlForServer({ nginx, ports, field: 'wanFqdn' });
 		urls.push({
 			name: 'WAN FQDN',
 			type: URL_TYPE.WAN,
@@ -166,7 +170,7 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// WAN FQDN6 URL
-		const wanFqdn6 = getUrlForServer({ nginx, ports, field: 'wanFqdn6', isFqdn: true });
+		const wanFqdn6 = getUrlForServer({ nginx, ports, field: 'wanFqdn6' });
 		urls.push({
 			name: 'WAN FQDNv6',
 			type: URL_TYPE.WAN,
@@ -183,6 +187,27 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 	return { urls, errors };
 };
 
-const publishNetwork = () => {
+const publishNetwork = async () => {
 	const client = GraphQLClient.getInstance();
+	const datapacket = getServerIps();
+
+	const { lastNetworkPacket } = getters.dashboard();
+	const { apikey: apiKey } = getters.config().remote;
+	if (!isEqual(datapacket, lastNetworkPacket)) {
+		const input: NetworkInput = { accessUrls: datapacket.urls };
+
+		dashboardLogger.addContext('data', datapacket);
+		dashboardLogger.info('Sending data packet for network');
+		dashboardLogger.removeContext('data');
+		const result = await client.mutate({
+			mutation: SEND_NETWORK_MUTATION,
+			variables: {
+				apiKey,
+				data: input,
+			},
+		});
+		dashboardLogger.debug('Result of send network mutation:\n%o', result);
+
+		store.dispatch(saveNetworkPacket({ lastNetworkPacket: input }));
+	}
 };

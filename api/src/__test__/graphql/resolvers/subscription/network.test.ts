@@ -37,8 +37,7 @@ test('getIpBasedUrlForServer - field exists, ssl disabled', () => {
 			port: ':123', portSsl: ':445', defaultUrl: 'hi',
 		},
 		field: 'lanIp',
-		isFqdn: false },
-	);
+	});
 	expect(result).toMatchInlineSnapshot('"http://192.168.1.1:123/"');
 });
 
@@ -48,7 +47,8 @@ test('getIpBasedUrlForServer - field exists, ssl yes', () => {
 	ports: {
 		port: ':123', portSsl: ':445', defaultUrl: 'hi',
 	},
-	field: 'lanIp', isFqdn: false });
+	field: 'lanIp',
+	});
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1:445/"');
 });
 
@@ -58,7 +58,8 @@ test('getIpBasedUrlForServer - field exists, ssl yes, port empty', () => {
 			ports: {
 				port: '', portSsl: '', defaultUrl: 'hi',
 			},
-			field: 'lanIp', isFqdn: false });
+			field: 'lanIp',
+		});
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1/"');
 });
 
@@ -68,7 +69,8 @@ test('getIpBasedUrlForServer - field exists, ssl auto', () => {
 	ports: {
 		port: ':123', portSsl: ':445', defaultUrl: 'hi',
 	},
-	field: 'lanIp', isFqdn: false });
+	field: 'lanIp',
+	});
 	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"Cannot get IP Based URL for field: \\"lanIp\\" SSL mode auto"');
 });
 
@@ -80,7 +82,8 @@ test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
 				port: ':123', portSsl: ':445', defaultUrl: 'hi',
 			},
 			// @ts-expect-error Field doesn't exist
-			field: 'idontexist', isFqdn: false });
+			field: 'idontexist',
+		});
 	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: false"');
 });
 
@@ -89,7 +92,7 @@ test('getFqdnBasedUrlForServer - field exists, port non-empty', () => {
 		nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
 		ports: { portSsl: ':445', port: '', defaultUrl: 'my-default-url.unraid.net' },
 		field: 'lanFqdn',
-		isFqdn: true });
+	});
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net:445/"');
 });
 
@@ -97,7 +100,6 @@ test('getFqdnBasedUrlForServer - field exists, port empty', () => {
 	const result = getUrlForServer({ nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
 		ports: { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
 		field: 'lanFqdn',
-		isFqdn: true,
 	});
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net/"');
 });
@@ -107,8 +109,8 @@ test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
 		{ lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
 	ports: { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
 	// @ts-expect-error Field doesn't exist
-	field: 'idontexist', isFqdn: true });
-	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: true"');
+	field: 'idontexist' });
+	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: false"');
 });
 
 test('integration test, loading nginx ini and generating all URLs', async () => {

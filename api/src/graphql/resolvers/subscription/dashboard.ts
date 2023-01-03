@@ -36,8 +36,8 @@ const canSendDataPacket = (dataPacket: DashboardInput | null) => {
 
 	const difference = getDiff(lastDataPacket, dataPacket);
 
-	const oldBytesFree = lastDataPacket.array.capacity.bytes?.free;
-	const newBytesFree = dataPacket.array.capacity.bytes?.free;
+	const oldBytesFree = lastDataPacket.array?.capacity.bytes?.free;
+	const newBytesFree = dataPacket.array?.capacity.bytes?.free;
 
 	if (oldBytesFree && newBytesFree && difference.added.length === 0 && difference.removed.length === 0 && difference.edited.length === 2) {
 		// If size has changed less than 100 MB (and nothing else has changed), don't send an update
