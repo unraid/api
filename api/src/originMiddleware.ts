@@ -17,7 +17,7 @@ const getOriginGraphqlError = () => ({
 export const originMiddleware = (req: Request, res: Response, next: NextFunction): void => {
 	// Dev Mode Bypass
 	if (process.env.NODE_ENV === 'development' || config.debug) {
-		logger.trace('Dev Mode or Debug Mode Enabled, Bypassing Cors Check');
+		logger.warn('BYPASSING_CORS_CHECK: Dev Mode or Debug Mode Enabled');
 
 		next();
 		return;
