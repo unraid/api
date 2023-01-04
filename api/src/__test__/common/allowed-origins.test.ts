@@ -16,17 +16,16 @@ test('Returns allowed origins', async () => {
 	// Get allowed origins
 	expect(getAllowedOrigins()).toMatchInlineSnapshot(`
 		[
-		  "http://localhost",
-		  "http://192.168.1.150",
-		  "https://192.168.1.150",
-		  "http://tower",
-		  "https://tower",
-		  "http://tower.local",
-		  "https://tower.local",
-		  "https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "/var/run/unraid-notifications.sock",
 		  "/var/run/unraid-php.sock",
 		  "/var/run/unraid-cli.sock",
+		  "http://localhost:8080/",
+		  "https://localhost:4443/",
+		  "https://tower.local:4443/",
+		  "https://192.168.1.150:4443/",
+		  "https://tower:4443/",
+		  "https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
+		  "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
 		]
 	`);
 });

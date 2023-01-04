@@ -1,6 +1,6 @@
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { type Nginx } from '@app/core/types/states/nginx';
-import { getters, store } from '@app/store';
+import { type RootState, store, getters } from '@app/store';
 import { type NetworkInput, URL_TYPE, type AccessUrlInput } from '@app/graphql/generated/client/graphql';
 import { dashboardLogger, logger } from '@app/core';
 import { isEqual } from 'lodash';
@@ -17,7 +17,6 @@ export interface PortAndDefaultUrl {
 export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 	const port = nginx.httpPort === 80 ? '' : `:${nginx.httpPort}`;
 	const portSsl = nginx.httpsPort === 443 ? '' : `:${nginx.httpsPort}`;
-
 	let defaultUrl: URL | null = null;
 	try {
 		defaultUrl = new URL(nginx.defaultUrl);
@@ -59,9 +58,9 @@ export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: 
 	throw new Error(`IP URL Resolver: Could not resolve any access URL for field: "${field}", is FQDN?: ${fieldIsFqdn(field)}`);
 };
 
-export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
-	const { nginx } = getters.emhttp();
-	if (!nginx) {
+export const getServerIps = (state: RootState = store.getState()): { urls: AccessUrlInput[]; errors: Error[] } => {
+	const { nginx } = state.emhttp;
+	if (!nginx || Object.keys(nginx).length === 0) {
 		return { urls: [], errors: [new Error('Nginx Not Loaded')] };
 	}
 
@@ -103,6 +102,22 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 			name: 'LAN IPv6',
 			type: URL_TYPE.LAN,
 			ipv4: lanIp6Url,
+		});
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			errors.push(error);
+		} else {
+			logger.warn('Uncaught error in network resolver', error);
+		}
+	}
+
+	try {
+		// Lan Name URL
+		const lanNameUrl = getUrlForServer({ nginx, ports, field: 'lanName' });
+		urls.push({
+			name: 'LAN Name',
+			type: URL_TYPE.MDNS,
+			ipv4: lanNameUrl,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -205,7 +220,9 @@ export const publishNetwork = async () => {
 
 		const { lastNetworkPacket } = getters.dashboard();
 		const { apikey: apiKey } = getters.config().remote;
-		if (!isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
+		if (isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
+			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
+		} else {
 			dashboardLogger.addContext('data', datapacket);
 			dashboardLogger.info('Sending data packet for network');
 			dashboardLogger.removeContext('data');
@@ -218,8 +235,6 @@ export const publishNetwork = async () => {
 			});
 			dashboardLogger.debug('Result of send network mutation:\n%o', result);
 			store.dispatch(saveNetworkPacket({ lastNetworkPacket: newNetworkPacket }));
-		} else {
-			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
 		}
 	} catch (error: unknown) {
 		dashboardLogger.trace('ERROR', error);

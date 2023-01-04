@@ -27,6 +27,7 @@ test('Before init returns default values for all fields', async () => {
 		  "remote": {
 		    "2Fa": "",
 		    "accesstoken": "",
+		    "allowedOrigins": "",
 		    "apikey": "",
 		    "avatar": "",
 		    "email": "",
@@ -75,6 +76,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "remote": {
 		    "2Fa": "",
 		    "accesstoken": "",
+		    "allowedOrigins": "",
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
 		    "avatar": "https://via.placeholder.com/200",
 		    "email": "test@example.com",
@@ -125,6 +127,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  "remote": {
 		    "2Fa": "",
 		    "accesstoken": "",
+		    "allowedOrigins": "",
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
 		    "avatar": "https://via.placeholder.com/500",
 		    "email": "test@example.com",

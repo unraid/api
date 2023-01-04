@@ -2,6 +2,7 @@ import { type SliceState as ConfigSliceState, initialState } from '@app/store/mo
 import { type RecursivePartial } from '@app/types';
 import type { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
 import { isEqual } from 'lodash';
+import { getAllowedOrigins } from '../../../common/allowed-origins';
 
 type ConfigType = 'flash' | 'memory';
 type ConfigObject<T> =
@@ -44,6 +45,9 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 			idtoken: remote.idtoken ?? initialState.remote.idtoken,
 			accesstoken: remote.accesstoken ?? initialState.remote.accesstoken,
 			refreshtoken: remote.refreshtoken ?? initialState.remote.refreshtoken,
+			...(mode === 'memory' ? {
+				allowedOrigins: remote.allowedOrigins ?? initialState.remote.allowedOrigins,
+			} : { }),
 		},
 		upc: {
 			apikey: upc.apikey ?? initialState.upc.apikey,

@@ -51,6 +51,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		  },
 		  "remote": {
 		    "accesstoken": "",
+		    "allowedOrigins": "",
 		    "apikey": "",
 		    "avatar": "",
 		    "email": "",
@@ -140,6 +141,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		  "remote": {
 		    "2Fa": "yes",
 		    "accesstoken": "",
+		    "allowedOrigins": "",
 		    "apikey": "",
 		    "avatar": "",
 		    "email": "",

@@ -23,8 +23,8 @@ const isStateOrConfigUpdate = isAnyOf(loadConfigFile.fulfilled, loadSingleStateF
 export const enableUpnpListener = () => startAppListening({
 	predicate(action, currentState, previousState) {
 		// @TODO: One of our actions is incorrectly configured. Sometimes the action is an anonymous function. We need to fix this.
-		if (( isStateOrConfigUpdate(action) || !action?.type) &&
-		(shouldUpnpBeEnabled(currentState) !== shouldUpnpBeEnabled(previousState))) {
+		if ((isStateOrConfigUpdate(action) || !action?.type)
+		&& (shouldUpnpBeEnabled(currentState) !== shouldUpnpBeEnabled(previousState))) {
 			return true;
 		}
 
