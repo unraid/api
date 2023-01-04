@@ -18,12 +18,13 @@ export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 	const port = nginx.httpPort === 80 ? '' : `:${nginx.httpPort}`;
 	const portSsl = nginx.httpsPort === 443 ? '' : `:${nginx.httpsPort}`;
 
-	let defaultUrl: URL | null = null
+	let defaultUrl: URL | null = null;
 	try {
-		defaultUrl = new URL(nginx.defaultUrl)
-	} catch (error) {
-		dashboardLogger.warn("Could not parse NGINX_DEFAULTURL to a valid URL, your nginx.ini file may have a problem")
+		defaultUrl = new URL(nginx.defaultUrl);
+	} catch (error: unknown) {
+		dashboardLogger.warn('Could not parse NGINX_DEFAULTURL to a valid URL, your nginx.ini file may have a problem');
 	}
+
 	return { port, portSsl, defaultUrl };
 };
 
@@ -195,13 +196,13 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 };
 
 export const publishNetwork = async () => {
-	dashboardLogger.trace('Got here')
+	dashboardLogger.trace('Got here');
 	try {
 		const client = GraphQLClient.getInstance();
 
 		const datapacket = getServerIps();
 		const newNetworkPacket: NetworkInput = { accessUrls: datapacket.urls };
-		
+
 		const { lastNetworkPacket } = getters.dashboard();
 		const { apikey: apiKey } = getters.config().remote;
 		if (!isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
@@ -218,10 +219,10 @@ export const publishNetwork = async () => {
 			dashboardLogger.debug('Result of send network mutation:\n%o', result);
 			store.dispatch(saveNetworkPacket({ lastNetworkPacket: newNetworkPacket }));
 		} else {
-			dashboardLogger.trace('Skipping sending network update as it is the same as the last one')
+			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
 		}
 	} catch (error: unknown) {
-		dashboardLogger.trace('ERROR', error)
+		dashboardLogger.trace('ERROR', error);
 		if (error instanceof ApolloError) {
 			dashboardLogger.error('Failed publishing with GQL Errors: %s, \nClient Errors: %s', error.graphQLErrors.map(error => error.message).join(','), error.clientErrors.join(', '));
 		} else {

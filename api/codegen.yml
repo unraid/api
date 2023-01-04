@@ -14,7 +14,7 @@ config:
     JSON: string
     URL: URL
     Port: number
-    UUID: 
+    UUID: string
 
 generates:
   src/graphql/generated/client/:

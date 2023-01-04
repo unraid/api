@@ -17,7 +17,7 @@ export type Scalars = {
   DateTime: Date;
   JSON: string;
   Long: number;
-  UUID: any;
+  UUID: string;
 };
 
 export type ApiKey = {

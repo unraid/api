@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { type Nginx } from '../../../../core/types/states/nginx';
-import { getUrlForServer, getPortAndDefaultUrl, getServerIps } from '@app/graphql/resolvers/subscription/network';
+import { getUrlForServer, getPortAndDefaultUrl, getServerIps, type PortAndDefaultUrl } from '@app/graphql/resolvers/subscription/network';
 import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 
@@ -110,6 +110,16 @@ test('getUrlForServer - FQDN - field exists, port empty', () => {
 		field: 'lanFqdn',
 	});
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net/"');
+});
+
+test.each([
+	[{ nginx: { lanFqdn: 'my-fqdn.unraid.net', sslEnabled: false, sslMode: 'no' } as const as Nginx, ports: { port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.com') } as const as PortAndDefaultUrl, field: 'lanFqdn' as keyof Nginx }],
+	[{ nginx: { wanFqdn: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'yes' } as const as Nginx, ports: { port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.com') } as const as PortAndDefaultUrl, field: 'wanFqdn' as keyof Nginx }],
+	[{ nginx: { wanFqdn6: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'auto' } as const as Nginx, ports: { port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.com') } as const as PortAndDefaultUrl, field: 'wanFqdn6' as keyof Nginx }],
+
+])('getUrlForServer - FQDN', ({ nginx, ports, field }) => {
+	const result = getUrlForServer({ nginx, ports, field });
+	expect(result.toString()).toBe('https://my-fqdn.unraid.net/');
 });
 
 test('getUrlForServer - field does not exist, ssl disabled', () => {
