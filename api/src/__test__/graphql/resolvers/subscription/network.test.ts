@@ -11,7 +11,6 @@ test.each([
 	[{ httpPort: 212, httpsPort: 3_233, defaultUrl: 'https://my-default-url.com' }],
 	[{ httpPort: 80, httpsPort: 443, defaultUrl: 'BROKEN_URL' }],
 
-
 ])('portAndDefaultUrl', ({ httpPort, httpsPort, defaultUrl }) => {
 	const response = getPortAndDefaultUrl({
 		httpPort, httpsPort, defaultUrl,
@@ -29,7 +28,14 @@ test.each([
 		expect(response.portSsl).toBe(`:${httpsPort}`);
 	}
 
-	expect(response.defaultUrl).toBe(defaultUrl);
+	let parsedUrl: URL | null = null;
+	try {
+		parsedUrl = new URL(defaultUrl);
+	} catch (err: unknown) {
+		// No catch block, catches broken url issue
+	}
+
+	expect(response.defaultUrl?.toString()).toBe(parsedUrl?.toString());
 });
 
 test('getUrlForServer - field exists, ssl disabled', () => {
@@ -122,8 +128,8 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 	expect(urls.urls).toMatchInlineSnapshot(`
 		[
 		  {
-		    "ipv4": "https://Tower.local:4443",
-		    "ipv6": "https://Tower.local:4443",
+		    "ipv4": "https://tower.local:4443/",
+		    "ipv6": "https://tower.local:4443/",
 		    "name": "Default",
 		    "type": "DEFAULT",
 		  },
