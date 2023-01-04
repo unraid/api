@@ -3,6 +3,19 @@ emitLegacyCommonJSImports: false
 verbose: true
 require: 
   - ts-node/register
+config:
+  namingConvention: 
+    typeNames: './fix-array-type.cjs'
+    enumValues: 'change-case#upperCase'
+    useTypeImports: true
+  scalars:
+    DateTime: Date
+    Long: number
+    JSON: string
+    URL: URL
+    Port: number
+    UUID: string
+
 generates:
   src/graphql/generated/client/:
     documents: './src/graphql/mothership/*.ts'
@@ -13,6 +26,9 @@ generates:
     preset: client
     presetConfig:
       gqlTagName: graphql
+    config: 
+      useTypeImports: true
+      withObjectType: true
     plugins:
       - add: { content: '/* eslint-disable */' }
 # Generate Types for the API Server
@@ -40,9 +56,3 @@ generates:
       - typescript-operations
       - typed-document-node
       - add: { content: '/* eslint-disable */' }
-
-config:
-  namingConvention: 
-    typeNames: './fix-array-type.cjs'
-    enumValues: 'change-case#upperCase'
-    useTypeImports: true

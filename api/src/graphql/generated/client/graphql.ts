@@ -1,5 +1,5 @@
 /* eslint-disable */
-import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
+import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
@@ -13,11 +13,34 @@ export type Scalars = {
   Int: number;
   Float: number;
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
-  DateTime: any;
+  DateTime: Date;
+  /** A field whose value is a IPv4 address: https://en.wikipedia.org/wiki/IPv4. */
+  IPv4: any;
+  /** A field whose value is a IPv6 address: https://en.wikipedia.org/wiki/IPv6. */
+  IPv6: any;
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: any;
+  JSON: string;
   /** The `Long` scalar type represents 52-bit integers */
-  Long: any;
+  Long: number;
+  /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
+  Port: number;
+  /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
+  URL: URL;
+};
+
+export type AccessUrl = {
+  __typename?: 'AccessUrl';
+  ipv4?: Maybe<Scalars['URL']>;
+  ipv6?: Maybe<Scalars['URL']>;
+  name?: Maybe<Scalars['String']>;
+  type: URL_TYPE;
+};
+
+export type AccessUrlInput = {
+  ipv4?: InputMaybe<Scalars['URL']>;
+  ipv6?: InputMaybe<Scalars['URL']>;
+  name?: InputMaybe<Scalars['String']>;
+  type: URL_TYPE;
 };
 
 export type ArrayType = {
@@ -91,6 +114,7 @@ export type Dashboard = {
   array?: Maybe<DashboardArray>;
   config?: Maybe<DashboardConfig>;
   display?: Maybe<DashboardDisplay>;
+  network?: Maybe<Network>;
   os?: Maybe<DashboardOs>;
   services?: Maybe<Array<Maybe<DashboardService>>>;
   twoFactor?: Maybe<DashboardTwoFactor>;
@@ -162,7 +186,7 @@ export type DashboardDisplayInput = {
 
 export type DashboardInput = {
   apps?: InputMaybe<DashboardAppsInput>;
-  array: DashboardArrayInput;
+  array?: InputMaybe<DashboardArrayInput>;
   config?: InputMaybe<DashboardConfigInput>;
   display?: InputMaybe<DashboardDisplayInput>;
   os?: InputMaybe<DashboardOsInput>;
@@ -299,6 +323,7 @@ export type FullServerDetails = {
   domains?: Maybe<Array<VmDomain>>;
   info?: Maybe<Info>;
   me?: Maybe<Me>;
+  network?: Maybe<Network>;
   online?: Maybe<Scalars['Boolean']>;
   services?: Maybe<Array<ServiceObject>>;
   status?: Maybe<ServerStatus>;
@@ -370,6 +395,7 @@ export type Mutation = {
   __typename?: 'Mutation';
   sendNotification?: Maybe<Notification>;
   updateDashboard: Dashboard;
+  updateNetwork: Network;
 };
 
 
@@ -380,6 +406,20 @@ export type MutationsendNotificationArgs = {
 
 export type MutationupdateDashboardArgs = {
   data: DashboardInput;
+};
+
+
+export type MutationupdateNetworkArgs = {
+  data: NetworkInput;
+};
+
+export type Network = {
+  __typename?: 'Network';
+  accessUrls?: Maybe<Array<AccessUrl>>;
+};
+
+export type NetworkInput = {
+  accessUrls: Array<AccessUrlInput>;
 };
 
 export type Notification = {
@@ -561,6 +601,14 @@ export type TwoFactorWithoutToken = {
   remote?: Maybe<TwoFactorRemote>;
 };
 
+export enum URL_TYPE {
+  DEFAULT = 'DEFAULT',
+  LAN = 'LAN',
+  MDNS = 'MDNS',
+  WAN = 'WAN',
+  WIREGUARD = 'WIREGUARD'
+}
+
 export type Uptime = {
   __typename?: 'Uptime';
   timestamp?: Maybe<Scalars['String']>;
@@ -623,6 +671,14 @@ export type sendNotificationMutationVariables = Exact<{
 
 export type sendNotificationMutation = { __typename?: 'Mutation', sendNotification?: { __typename?: 'Notification', title?: string | null, subject?: string | null, description?: string | null, importance?: Importance | null, link?: string | null, status: NotificationStatus } | null };
 
+export type updateNetworkMutationVariables = Exact<{
+  data: NetworkInput;
+  apiKey: Scalars['String'];
+}>;
+
+
+export type updateNetworkMutation = { __typename?: 'Mutation', updateNetwork: { __typename?: 'Network', accessUrls?: Array<{ __typename?: 'AccessUrl', name?: string | null, type: URL_TYPE, ipv4?: URL | null, ipv6?: URL | null }> | null } };
+
 export type queryServersFromMothershipQueryVariables = Exact<{
   apiKey: Scalars['String'];
 }>;
@@ -640,5 +696,6 @@ export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{
 
 export const updateDashboardDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateDashboard"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DashboardInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDashboard"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installed"}}]}}]}}]}}]} as unknown as DocumentNode<updateDashboardMutation, updateDashboardMutationVariables>;
 export const sendNotificationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"sendNotification"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"notification"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"sendNotification"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"notification"},"value":{"kind":"Variable","name":{"kind":"Name","value":"notification"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"status"}}]}}]}}]} as unknown as DocumentNode<sendNotificationMutation, sendNotificationMutationVariables>;
+export const updateNetworkDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateNetwork"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NetworkInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateNetwork"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"accessUrls"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"ipv4"}},{"kind":"Field","name":{"kind":"Name","value":"ipv6"}}]}}]}}]}}]} as unknown as DocumentNode<updateNetworkMutation, updateNetworkMutationVariables>;
 export const queryServersFromMothershipDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"queryServersFromMothership"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"servers"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"username"}},{"kind":"Field","name":{"kind":"Name","value":"url"}},{"kind":"Field","name":{"kind":"Name","value":"avatar"}}]}},{"kind":"Field","name":{"kind":"Name","value":"guid"}},{"kind":"Field","name":{"kind":"Name","value":"apikey"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"wanip"}},{"kind":"Field","name":{"kind":"Name","value":"lanip"}},{"kind":"Field","name":{"kind":"Name","value":"localurl"}},{"kind":"Field","name":{"kind":"Name","value":"remoteurl"}}]}}]}}]} as unknown as DocumentNode<queryServersFromMothershipQuery, queryServersFromMothershipQueryVariables>;
 export const eventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"events"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientConnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"connectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"connectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientDisconnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"disconnectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"disconnectedEvent"},"name":{"kind":"Name","value":"type"}}]}}]}}]}}]} as unknown as DocumentNode<eventsSubscription, eventsSubscriptionVariables>;

@@ -7,6 +7,7 @@ export interface Nginx {
 	lanFqdn: string;
 	lanFqdn6: string;
 	lanIp: string;
+	lanIp6: string;
 	lanMdns: string;
 	lanName: string;
 	sslEnabled: boolean;

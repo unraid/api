@@ -14,10 +14,10 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  DateTime: any;
-  JSON: any;
-  Long: any;
-  UUID: any;
+  DateTime: Date;
+  JSON: string;
+  Long: number;
+  UUID: string;
 };
 
 export type ApiKey = {

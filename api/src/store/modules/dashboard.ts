@@ -1,18 +1,21 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import { getPublishToDashboardJob } from '@app/graphql/resolvers/subscription/jobs/dashboard-jobs';
+import { getPublishToDashboardJob } from '@app/mothership/jobs/dashboard-jobs';
 import { dashboardLogger } from '@app/core/log';
-import { type Dashboard } from '@app/common/run-time/dashboard';
-import { type DashboardInput } from '../../graphql/generated/client/graphql';
+import { type NetworkInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
 	lastDataPacket: DashboardInput | null;
+	lastNetworkPacket: NetworkInput | null;
+	lastNetworkPacketTimestamp: number | null;
 	connectedToDashboard: number;
 }
 
 export const initialState: DashboardState = {
 	lastDataPacketTimestamp: null,
 	lastDataPacket: null,
+	lastNetworkPacket: null,
+	lastNetworkPacketTimestamp: null,
 	connectedToDashboard: 0,
 };
 
@@ -47,7 +50,11 @@ export const dashboard = createSlice({
 			state.lastDataPacket = action.payload.lastDataPacket;
 			state.lastDataPacketTimestamp = Date.now();
 		},
+		saveNetworkPacket(state, action: PayloadAction<{ lastNetworkPacket: NetworkInput | null }>) {
+			state.lastNetworkPacket = action.payload.lastNetworkPacket;
+			state.lastNetworkPacketTimestamp = Date.now();
+		},
 	},
 });
 
-export const { startDashboardProducer, stopDashboardProducer, saveDataPacket } = dashboard.actions;
+export const { startDashboardProducer, stopDashboardProducer, saveDataPacket, saveNetworkPacket } = dashboard.actions;
