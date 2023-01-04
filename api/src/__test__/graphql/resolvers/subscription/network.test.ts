@@ -5,10 +5,12 @@ import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 
 test.each([
-	[{ httpPort: 80, httpsPort: 443, defaultUrl: 'my-default-url' }],
-	[{ httpPort: 123, httpsPort: 443, defaultUrl: 'my-default-url2' }],
-	[{ httpPort: 80, httpsPort: 12_345, defaultUrl: 'my-default-url3' }],
-	[{ httpPort: 212, httpsPort: 3_233, defaultUrl: 'my-default-url4' }],
+	[{ httpPort: 80, httpsPort: 443, defaultUrl: new URL('https://my-default-url.com') }],
+	[{ httpPort: 123, httpsPort: 443, defaultUrl: 'https://my-default-url.com' }],
+	[{ httpPort: 80, httpsPort: 12_345, defaultUrl: 'https://my-default-url.com' }],
+	[{ httpPort: 212, httpsPort: 3_233, defaultUrl: 'https://my-default-url.com' }],
+	[{ httpPort: 80, httpsPort: 443, defaultUrl: 'BROKEN_URL' }],
+
 
 ])('portAndDefaultUrl', ({ httpPort, httpsPort, defaultUrl }) => {
 	const response = getPortAndDefaultUrl({
@@ -30,56 +32,56 @@ test.each([
 	expect(response.defaultUrl).toBe(defaultUrl);
 });
 
-test('getIpBasedUrlForServer - field exists, ssl disabled', () => {
+test('getUrlForServer - field exists, ssl disabled', () => {
 	const result = getUrlForServer({ nginx: { lanIp: '192.168.1.1', sslEnabled: false } as const as Nginx,
 		ports:
 		{
-			port: ':123', portSsl: ':445', defaultUrl: 'hi',
+			port: ':123', portSsl: ':445', defaultUrl: new URL('https://my-default-url.unraid.net'),
 		},
 		field: 'lanIp',
 	});
 	expect(result).toMatchInlineSnapshot('"http://192.168.1.1:123/"');
 });
 
-test('getIpBasedUrlForServer - field exists, ssl yes', () => {
+test('getUrlForServer - field exists, ssl yes', () => {
 	const result = getUrlForServer({ nginx:
 		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'yes' } as const as Nginx,
 	ports: {
-		port: ':123', portSsl: ':445', defaultUrl: 'hi',
+		port: ':123', portSsl: ':445', defaultUrl: new URL('https://my-default-url.unraid.net'),
 	},
 	field: 'lanIp',
 	});
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1:445/"');
 });
 
-test('getIpBasedUrlForServer - field exists, ssl yes, port empty', () => {
+test('getUrlForServer - field exists, ssl yes, port empty', () => {
 	const result = getUrlForServer(
 		{ nginx: { lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'yes' } as const as Nginx,
 			ports: {
-				port: '', portSsl: '', defaultUrl: 'hi',
+				port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.unraid.net'),
 			},
 			field: 'lanIp',
 		});
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1/"');
 });
 
-test('getIpBasedUrlForServer - field exists, ssl auto', () => {
+test('getUrlForServer - field exists, ssl auto', () => {
 	const getResult = async () => getUrlForServer({ nginx:
 		{ lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'auto' } as const as Nginx,
 	ports: {
-		port: ':123', portSsl: ':445', defaultUrl: 'hi',
+		port: ':123', portSsl: ':445', defaultUrl: new URL('https://my-default-url.unraid.net'),
 	},
 	field: 'lanIp',
 	});
 	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"Cannot get IP Based URL for field: \\"lanIp\\" SSL mode auto"');
 });
 
-test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
+test('getUrlForServer - field does not exist, ssl disabled', () => {
 	const getResult = async () => getUrlForServer(
 		{
 			nginx: { lanIp: '192.168.1.1', sslEnabled: false, sslMode: 'no' } as const as Nginx,
 			ports: {
-				port: ':123', portSsl: ':445', defaultUrl: 'hi',
+				port: ':123', portSsl: ':445', defaultUrl: new URL('https://my-default-url.unraid.net'),
 			},
 			// @ts-expect-error Field doesn't exist
 			field: 'idontexist',
@@ -87,27 +89,27 @@ test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
 	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: false"');
 });
 
-test('getFqdnBasedUrlForServer - field exists, port non-empty', () => {
+test('getUrlForServer - FQDN - field exists, port non-empty', () => {
 	const result = getUrlForServer({
 		nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
-		ports: { portSsl: ':445', port: '', defaultUrl: 'my-default-url.unraid.net' },
+		ports: { portSsl: ':445', port: '', defaultUrl: new URL('https://my-default-url.unraid.net') },
 		field: 'lanFqdn',
 	});
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net:445/"');
 });
 
-test('getFqdnBasedUrlForServer - field exists, port empty', () => {
+test('getUrlForServer - FQDN - field exists, port empty', () => {
 	const result = getUrlForServer({ nginx: { lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
-		ports: { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
+		ports: { portSsl: '', port: '', defaultUrl: new URL('https://my-default-url.unraid.net') },
 		field: 'lanFqdn',
 	});
 	expect(result).toMatchInlineSnapshot('"https://my-fqdn.unraid.net/"');
 });
 
-test('getIpBasedUrlForServer - field does not exist, ssl disabled', () => {
+test('getUrlForServer - field does not exist, ssl disabled', () => {
 	const getResult = async () => getUrlForServer({ nginx:
 		{ lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
-	ports: { portSsl: '', port: '', defaultUrl: 'my-default-url.unraid.net' },
+	ports: { portSsl: '', port: '', defaultUrl: new URL('https://my-default-url.unraid.net') },
 	// @ts-expect-error Field doesn't exist
 	field: 'idontexist' });
 	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot('"IP URL Resolver: Could not resolve any access URL for field: \\"idontexist\\", is FQDN?: false"');

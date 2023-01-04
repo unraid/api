@@ -113,11 +113,11 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan MDNS URL
-		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanMdns' });
+		const lanMdnsUrl = getUrlForServer({ nginx, ports, field: 'lanMdns' });
 		urls.push({
 			name: 'LAN MDNS',
 			type: URL_TYPE.MDNS,
-			ipv4: lanIp6Url,
+			ipv4: lanMdnsUrl,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -129,11 +129,11 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan FQDN URL
-		const lanFqdn = getUrlForServer({ nginx, ports, field: 'lanFqdn' });
+		const lanFqdnUrl = getUrlForServer({ nginx, ports, field: 'lanFqdn' });
 		urls.push({
 			name: 'LAN FQDN',
 			type: URL_TYPE.LAN,
-			ipv4: lanFqdn,
+			ipv4: lanFqdnUrl,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -145,11 +145,11 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// Lan FQDN6 URL
-		const lanFqdn6 = getUrlForServer({ nginx, ports, field: 'lanFqdn6' });
+		const lanFqdn6Url = getUrlForServer({ nginx, ports, field: 'lanFqdn6' });
 		urls.push({
 			name: 'LAN FQDNv6',
 			type: URL_TYPE.LAN,
-			ipv6: lanFqdn6,
+			ipv6: lanFqdn6Url,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -161,11 +161,11 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// WAN FQDN URL
-		const wanFqdn = getUrlForServer({ nginx, ports, field: 'wanFqdn' });
+		const wanFqdnUrl = getUrlForServer({ nginx, ports, field: 'wanFqdn' });
 		urls.push({
 			name: 'WAN FQDN',
 			type: URL_TYPE.WAN,
-			ipv4: wanFqdn,
+			ipv4: wanFqdnUrl,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -177,11 +177,11 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 
 	try {
 		// WAN FQDN6 URL
-		const wanFqdn6 = getUrlForServer({ nginx, ports, field: 'wanFqdn6' });
+		const wanFqdn6Url = getUrlForServer({ nginx, ports, field: 'wanFqdn6' });
 		urls.push({
 			name: 'WAN FQDNv6',
 			type: URL_TYPE.WAN,
-			ipv6: wanFqdn6,
+			ipv6: wanFqdn6Url,
 		});
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -201,8 +201,7 @@ export const publishNetwork = async () => {
 
 		const datapacket = getServerIps();
 		const newNetworkPacket: NetworkInput = { accessUrls: datapacket.urls };
-
-
+		
 		const { lastNetworkPacket } = getters.dashboard();
 		const { apikey: apiKey } = getters.config().remote;
 		if (!isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
