@@ -11,13 +11,19 @@ import { ApolloError } from '@apollo/client';
 export interface PortAndDefaultUrl {
 	port: string;
 	portSsl: string;
-	defaultUrl: string;
+	defaultUrl: URL | null;
 }
 
 export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 	const port = nginx.httpPort === 80 ? '' : `:${nginx.httpPort}`;
 	const portSsl = nginx.httpsPort === 443 ? '' : `:${nginx.httpsPort}`;
-	const defaultUrl = nginx.defaultUrl ?? '';
+
+	let defaultUrl: URL | null = null
+	try {
+		defaultUrl = new URL(nginx.defaultUrl)
+	} catch (error) {
+		dashboardLogger.warn("Could not parse NGINX_DEFAULTURL to a valid URL, your nginx.ini file may have a problem")
+	}
 	return { port, portSsl, defaultUrl };
 };
 
@@ -189,15 +195,17 @@ export const getServerIps = (): { urls: AccessUrlInput[]; errors: Error[] } => {
 };
 
 export const publishNetwork = async () => {
+	dashboardLogger.trace('Got here')
 	try {
 		const client = GraphQLClient.getInstance();
+
 		const datapacket = getServerIps();
+		const newNetworkPacket: NetworkInput = { accessUrls: datapacket.urls };
+
 
 		const { lastNetworkPacket } = getters.dashboard();
 		const { apikey: apiKey } = getters.config().remote;
-		if (!isEqual(datapacket, lastNetworkPacket)) {
-			const input: NetworkInput = { accessUrls: datapacket.urls };
-
+		if (!isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
 			dashboardLogger.addContext('data', datapacket);
 			dashboardLogger.info('Sending data packet for network');
 			dashboardLogger.removeContext('data');
@@ -205,14 +213,16 @@ export const publishNetwork = async () => {
 				mutation: SEND_NETWORK_MUTATION,
 				variables: {
 					apiKey,
-					data: input,
+					data: newNetworkPacket,
 				},
 			});
 			dashboardLogger.debug('Result of send network mutation:\n%o', result);
-
-			store.dispatch(saveNetworkPacket({ lastNetworkPacket: input }));
+			store.dispatch(saveNetworkPacket({ lastNetworkPacket: newNetworkPacket }));
+		} else {
+			dashboardLogger.trace('Skipping sending network update as it is the same as the last one')
 		}
 	} catch (error: unknown) {
+		dashboardLogger.trace('ERROR', error)
 		if (error instanceof ApolloError) {
 			dashboardLogger.error('Failed publishing with GQL Errors: %s, \nClient Errors: %s', error.graphQLErrors.map(error => error.message).join(','), error.clientErrors.join(', '));
 		} else {

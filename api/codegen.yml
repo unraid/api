@@ -8,7 +8,13 @@ config:
     typeNames: './fix-array-type.cjs'
     enumValues: 'change-case#upperCase'
     useTypeImports: true
-
+  scalars:
+    DateTime: Date
+    Long: number
+    JSON: string
+    URL: URL
+    Port: number
+    UUID: 
 
 generates:
   src/graphql/generated/client/:

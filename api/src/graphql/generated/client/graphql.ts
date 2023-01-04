@@ -12,20 +12,20 @@ export type Scalars = {
   Boolean: boolean;
   Int: number;
   Float: number;
-  /** The `BigInt` scalar type represents non-fractional signed whole numeric values. */
-  BigInt: any;
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
-  DateTime: any;
+  DateTime: Date;
   /** A field whose value is a IPv4 address: https://en.wikipedia.org/wiki/IPv4. */
   IPv4: any;
   /** A field whose value is a IPv6 address: https://en.wikipedia.org/wiki/IPv6. */
   IPv6: any;
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: any;
+  JSON: string;
+  /** The `Long` scalar type represents 52-bit integers */
+  Long: number;
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
-  Port: any;
+  Port: number;
   /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
-  URL: any;
+  URL: URL;
 };
 
 export type AccessUrl = {
@@ -56,15 +56,15 @@ export type ArrayCapacity = {
 
 export type ArrayCapacityBytes = {
   __typename?: 'ArrayCapacityBytes';
-  free?: Maybe<Scalars['BigInt']>;
-  total?: Maybe<Scalars['BigInt']>;
-  used?: Maybe<Scalars['BigInt']>;
+  free?: Maybe<Scalars['Long']>;
+  total?: Maybe<Scalars['Long']>;
+  used?: Maybe<Scalars['Long']>;
 };
 
 export type ArrayCapacityBytesInput = {
-  free?: InputMaybe<Scalars['BigInt']>;
-  total?: InputMaybe<Scalars['BigInt']>;
-  used?: InputMaybe<Scalars['BigInt']>;
+  free?: InputMaybe<Scalars['Long']>;
+  total?: InputMaybe<Scalars['Long']>;
+  used?: InputMaybe<Scalars['Long']>;
 };
 
 export type ArrayCapacityInput = {
@@ -614,13 +614,6 @@ export type Uptime = {
   timestamp?: Maybe<Scalars['String']>;
 };
 
-export enum UseSsl {
-  AUTO = 'AUTO',
-  NO = 'NO',
-  STRICT = 'STRICT',
-  YES = 'YES'
-}
-
 export type UserProfileModelWithServers = {
   __typename?: 'UserProfileModelWithServers';
   profile: ProfileModel;
@@ -684,7 +677,7 @@ export type updateNetworkMutationVariables = Exact<{
 }>;
 
 
-export type updateNetworkMutation = { __typename?: 'Mutation', updateNetwork: { __typename?: 'Network', accessUrls?: Array<{ __typename?: 'AccessUrl', name?: string | null, type: URL_TYPE, ipv4?: any | null, ipv6?: any | null }> | null } };
+export type updateNetworkMutation = { __typename?: 'Mutation', updateNetwork: { __typename?: 'Network', accessUrls?: Array<{ __typename?: 'AccessUrl', name?: string | null, type: URL_TYPE, ipv4?: URL | null, ipv6?: URL | null }> | null } };
 
 export type queryServersFromMothershipQueryVariables = Exact<{
   apiKey: Scalars['String'];
