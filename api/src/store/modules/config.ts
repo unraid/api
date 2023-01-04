@@ -1,6 +1,6 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { type MyServersConfig, type MyServersConfigMemory } from '@app/types/my-servers-config';
-import { createAsyncThunk, createSlice, Slice, type PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
@@ -9,10 +9,9 @@ import { clearAllServers } from '@app/store/modules/servers';
 import { type RecursivePartial } from '@app/types';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { type RootState } from '@app/store';
-import { areConfigsEquivalent } from '@app/core/utils/files/config-file-normalizer';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
-import { setGraphqlConnectionStatus } from '../actions/set-minigraph-status';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -35,6 +34,7 @@ export const initialState: SliceState = {
 		accesstoken: '',
 		idtoken: '',
 		refreshtoken: '',
+		allowedOrigins: '',
 	},
 	local: {
 		showT2Fa: '',
@@ -81,35 +81,34 @@ export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('co
  *
  * Note: If the file doesn't exist this will fallback to default values.
  */
-export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file', 
+export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file',
 	async (filePath, { getState }) => {
-	const { paths, config } = getState();
-	
-	const path = filePath ?? paths['myservers-config'];
-	
-	const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
-	const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
-		filePath: path,
-		type: 'ini',
-	}) : {};
+		const { paths, config } = getState();
 
-	const newConfigFile = merge(file,
-		{
-			api: {
-				version: config.api.version,
-			},
-			upc: {
-				apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
-			},
-			notifier: {
-				apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
-			},
-		},
-	) as MyServersConfig;
+		const path = filePath ?? paths['myservers-config'];
 
-	return newConfigFile;
+		const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
+		const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
+			filePath: path,
+			type: 'ini',
+		}) : {};
 
-});
+		const newConfigFile = merge(file,
+			{
+				api: {
+					version: config.api.version,
+				},
+				upc: {
+					apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
+				},
+				notifier: {
+					apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
+				},
+			},
+		) as MyServersConfig;
+
+		return newConfigFile;
+	});
 
 export const config = createSlice({
 	name: 'config',
@@ -120,6 +119,9 @@ export const config = createSlice({
 		},
 		updateAccessTokens(state, action: PayloadAction<Partial<Pick<Pick<MyServersConfig, 'remote'>['remote'], 'accesstoken' | 'refreshtoken' | 'idtoken'>>>) {
 			return merge(state, { remote: action.payload });
+		},
+		updateAllowedOrigins(state, action: PayloadAction<string[]>) {
+			state.remote.allowedOrigins = action.payload.join(', ');
 		},
 		setUpnpState(state, action: PayloadAction<{ enabled?: 'no' | 'yes'; status?: string | null }>) {
 			if (action.payload.enabled) {
@@ -166,13 +168,13 @@ export const config = createSlice({
 			});
 		});
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
-			logger.debug('Setting graphql connection status', action.payload)
+			logger.debug('Setting graphql connection status', action.payload);
 			state.connectionStatus.minigraph = action.payload.status;
 		});
 	},
 });
 const { actions, reducer } = config;
 
-export const { updateUserConfig, updateAccessTokens, setUpnpState, setWanPortToValue } = actions;
+export const { updateUserConfig, updateAccessTokens, updateAllowedOrigins, setUpnpState, setWanPortToValue } = actions;
 
 export const configReducer = reducer;

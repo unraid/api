@@ -1,6 +1,8 @@
-import { getters } from '@app/store';
+import { getters, type RootState, store } from '@app/store';
+import { uniq } from 'lodash';
+import { getPortAndDefaultUrl, getServerIps } from '../graphql/resolvers/subscription/network';
 
-const allowedSocks = [
+const getAllowedSocks = (): string[] => [
 	// Notifier bridge
 	'/var/run/unraid-notifications.sock',
 
@@ -11,82 +13,52 @@ const allowedSocks = [
 	'/var/run/unraid-cli.sock',
 ];
 
-const createWanHashOrigins = ({ wanAccessEnabled, wanHTTPSPort }: { wanAccessEnabled: boolean; wanHTTPSPort: string }) => [
-	// WAN hash IPV4
-	...(getters.emhttp().nginx.wanFqdn && wanAccessEnabled ? [`https://${getters.emhttp().nginx.wanFqdn ?? ''}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
+const getLocalAccessUrlsForServer = (state: RootState = store.getState()): string[] => {
+	const { nginx } = state.emhttp;
+	if (!nginx || Object.keys(nginx).length === 0) {
+		// We haven't loaded nginx yet
+		return [];
+	}
 
-	// WAN hash IPV6
-	...(getters.emhttp().nginx.wanFqdn6 && wanAccessEnabled ? [`https://${getters.emhttp().nginx.wanFqdn6 ?? ''}${wanHTTPSPort ? `:${wanHTTPSPort}` : ''}`] : []),
-];
-
-const createLanHashOrigins = ({ webuiHTTPSPort }: { webuiHTTPSPort: number | string }) => [
-	// LAN hash IPV4
-	...(getters.emhttp().nginx.lanFqdn ? [`https://${getters.emhttp().nginx.lanFqdn ?? ''}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-
-	// LAN hash IPV6
-	...(getters.emhttp().nginx.lanFqdn6 ? [`https://${getters.emhttp().nginx.lanFqdn6 ?? ''}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`] : []),
-];
-
-export const getAllowedOrigins = (): string[] => {
-	const config = getters.config();
-	const emhttp = getters.emhttp();
-
-	// Get local ip from first ethernet adapter in the "network" state
-	const localIp = emhttp.networks[0].ipaddr[0];
-
-	// Get local tld (in lowercase)
-	const localTld = emhttp.var.localTld.toLowerCase();
-
-	// Get server's hostname (in lowercase)
-	const serverName = emhttp.var.name.toLowerCase();
-
-	// Get webui http port (default to 80)
-	const webuiHTTPPort = (emhttp.var.port ?? 80) === 80 ? '' : emhttp.var.port;
-
-	// Get webui https port (default to 443)
-	const webuiHTTPSPort = (emhttp.var.portssl ?? 443) === 443 ? '' : emhttp.var.portssl;
-
-	// Get wan https port (default to 443)
-	const wanHTTPSPort = parseInt(config.remote.wanport ?? '', 10) === 443 ? '' : (config.remote.wanport ?? '');
-
-	// Check if wan access is enabled
-	const wanAccessEnabled = getters.config().remote.wanaccess === 'yes';
-
-	// Get IP address origins
-	const ipOrigins = [
-		`http://${localIp}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${localIp}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
+	const ports = getPortAndDefaultUrl(nginx);
+	return [
+		new URL(`http://localhost${ports.port}`).toString(),
+		new URL(`https://localhost${ports.portSsl}`).toString(),
 	];
-
-	// Get local TLD address origins
-	const tldOrigins = [
-		// Raw local TLD
-		`http://${serverName}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${serverName}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
-
-		// Local TLD
-		`http://${serverName}.${localTld}${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		`https://${serverName}.${localTld}${webuiHTTPSPort ? `:${webuiHTTPSPort}` : ''}`,
-	];
-
-	// Get origins for LAN access with hash cert
-	const lanHashOrigins = createLanHashOrigins({ webuiHTTPSPort });
-
-	// Get origins for WAN access with hash cert
-	const wanHashOrigins = createWanHashOrigins({ wanAccessEnabled, wanHTTPSPort });
-
-	// Only append the port if it's not HTTP/80 or HTTPS/443
-	// We use a "Set" + "array spread" to deduplicate the origins
-	const extraOrigins = (getters.config().api.extraOrigins ?? '').split(', ').filter(origin => origin.startsWith('http://') || origin.startsWith('https://'));
-
-	return [...new Set([
-		// Localhost - Used for GUI mode
-		`http://localhost${webuiHTTPPort ? `:${webuiHTTPPort}` : ''}`,
-		...ipOrigins,
-		...tldOrigins,
-		...lanHashOrigins,
-		...wanHashOrigins,
-		...allowedSocks,
-		...extraOrigins,
-	]).values()].filter(Boolean);
 };
+
+const getRemoteAccessUrlsForAllowedOrigins = (state: RootState = store.getState()): string[] => {
+	const { urls } = getServerIps(state);
+
+	if (urls) {
+		return urls.reduce<string[]>((acc, curr) => {
+			if (curr.ipv4 && curr.ipv6) {
+				acc.push(curr.ipv4.toString());
+			} else if (curr.ipv4) {
+				acc.push(curr.ipv4.toString());
+			} else if (curr.ipv6) {
+				acc.push(curr.ipv6.toString());
+			}
+
+			return acc;
+		}, []);
+	}
+
+	return [];
+};
+
+const getExtraOrigins = (): string[] => {
+	const { extraOrigins } = getters.config().api;
+	if (extraOrigins) {
+		return extraOrigins.split(', ').filter(origin => origin.startsWith('http://') || origin.startsWith('https://'));
+	}
+
+	return [];
+};
+
+export const getAllowedOrigins = (state: RootState = store.getState()): string[] => uniq([
+	...getAllowedSocks(),
+	...getLocalAccessUrlsForServer(),
+	...getRemoteAccessUrlsForAllowedOrigins(state),
+	...getExtraOrigins(),
+]);

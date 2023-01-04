@@ -25,6 +25,7 @@ interface MyServersConfig {
 		accesstoken: string;
 		idtoken: string;
 		refreshtoken: string;
+		allowedOrigins?: string;
 	};
 	upc: {
 		apikey: string;
@@ -35,11 +36,11 @@ export interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfi
 	api: {
 		extraOrigins: string;
 	};
-	local: {
+	local: MyServersConfig['local'] & {
 		'2Fa': string;
 		'showT2Fa': string;
 	};
-	remote: {
+	remote: MyServersConfig['remote'] & {
 		'2Fa': string;
 		upnpEnabled: string;
 	};
@@ -49,6 +50,9 @@ export interface MyServersConfigMemory extends MyServersConfig {
 	connectionStatus: {
 		minigraph: MinigraphStatus;
 		upnpStatus?: null | string;
+	};
+	remote: MyServersConfig['remote'] & {
+		allowedOrigins: string;
 	};
 }
 

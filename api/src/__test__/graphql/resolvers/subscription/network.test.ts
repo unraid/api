@@ -149,6 +149,11 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 		    "type": "LAN",
 		  },
 		  {
+		    "ipv4": "https://tower:4443/",
+		    "name": "LAN Name",
+		    "type": "MDNS",
+		  },
+		  {
 		    "ipv4": "https://tower.local:4443/",
 		    "name": "LAN MDNS",
 		    "type": "MDNS",
