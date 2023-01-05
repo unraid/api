@@ -383,7 +383,7 @@ const isCommaSeparatedURLs = input =>
  */
 $host = $_SERVER['HTTP_HOST'] ?? "unknown";
 $allowedOrigins = $myStatus['allowedOrigins'] ?? "";
-$allowedOriginsArr = stripos($allowedOrigins, "/".$host."/") === false ? explode(", ", $allowedOrigins) : "";
+$allowedOriginsArr = stripos($allowedOrigins.",", "/".$host.",") === false ? explode(", ", $allowedOrigins) : "";
 ?>
 <? if ($allowedOriginsArr): ?>
 <dl>
