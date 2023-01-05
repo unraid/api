@@ -375,6 +375,26 @@ const isCommaSeparatedURLs = input =>
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
+
+<?
+// allowed origins warning
+$host=$_SERVER['HTTP_HOST']??"unknown";
+$allowedOrigins = $myStatus['allowedOrigins']??"";
+if (stripos($allowedOrigins, "/".$host."/") === false) {
+  $allowedOriginsArr = explode(", ", $allowedOrigins); 
+  echo "<div><span class='warning'> <i class='fa fa-warning fa-fw'></i> Warning</span> your current url <span style='color:orange'>$host</span> is not in the list of allowed origins for this server. ";
+  echo "For best results, use one of these urls: ";
+  $output = "";
+  foreach($allowedOriginsArr as $origin) {
+    if ( (strpos($origin, "http") !== false) && (strpos($origin, "localhost") === false) ) {
+      $output .= "<a href='$origin'>$origin</a>, ";
+    }
+  }
+  $output = substr($output, 0, -2); // remove trailing ", "
+  echo "$output<br><br></div>";
+}
+?>
+
 _(Account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
