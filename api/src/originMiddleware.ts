@@ -16,16 +16,15 @@ const getOriginGraphqlError = () => ({
  */
 export const originMiddleware = (req: Request, res: Response, next: NextFunction): void => {
 	// Dev Mode Bypass
-	if (process.env.NODE_ENV === 'development' || config.debug) {
-		logger.warn('BYPASSING_CORS_CHECK: Dev Mode or Debug Mode Enabled');
-
+	if (process.env.BYPASS_CORS_CHECKS === 'true') {
+		logger.warn('BYPASSING_CORS_CHECK: BYPASS_CORS_CHECKS enabled', getAllowedOrigins());
 		next();
 		return;
 	}
 
 	const origin = req.get('Origin');
 	const allowedOrigins = getAllowedOrigins();
-	logger.trace(`Allowed origins: ${allowedOrigins.join(', ')}`);
+	logger.trace(`Allowed origins: ${allowedOrigins.join(', ')}, Current Origin: ${origin ?? 'undefined'}`);
 
 	// Disallow requests with no origin
 	// (like mobile apps, curl requests or viewing /graphql directly)
@@ -36,9 +35,16 @@ export const originMiddleware = (req: Request, res: Response, next: NextFunction
 	}
 
 	logger.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
+	let originAsUrl: URL | null = null;
+	try {
+		originAsUrl = new URL(origin);
+	} catch (error: unknown) {
+		res.status(403).send(getOriginGraphqlError());
+		return;
+	}
 
 	// Only allow known origins
-	if (!allowedOrigins.includes(origin.toLowerCase())) {
+	if (!allowedOrigins.includes(originAsUrl.toString())) {
 		logger.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
 		res.status(403).send(getOriginGraphqlError());
 		return;
