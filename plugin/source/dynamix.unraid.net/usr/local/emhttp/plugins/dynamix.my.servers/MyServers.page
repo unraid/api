@@ -388,15 +388,15 @@ $allowedOriginsArr = stripos($allowedOrigins, "/".$host."/") === false ? explode
 <? if ($allowedOriginsArr): ?>
 <dl>
   <div style="margin-bottom: 2rem;">
-    <span class="warning"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host); ?>.
+    <span class="warning"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host) ?>.
     <br/>_(For best results, use one of these urls)_:
     <dd>
       <ul>
         <? foreach($allowedOriginsArr as $origin): ?>
-          <? if ( (strpos($origin, "http") !== false) && (strpos($origin, "localhost") === false) ) { ?>
+          <? if ( (strpos($origin, "http") !== false) && (strpos($origin, "localhost") === false) ): ?>
             <li><a href="<?= $origin ?>"><?= $origin ?></a></li>
-          <? } ?>
-        <? endforeach; ?>
+          <? endif ?>
+        <? endforeach ?>
       </ul>
     <dd>
   </div>
