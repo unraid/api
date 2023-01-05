@@ -168,6 +168,31 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 		    "name": "WAN FQDN",
 		    "type": "WAN",
 		  },
+		  {
+		    "ipv4": "https://10-252-0-1.hash.myunraid.net:4443/",
+		    "name": "WG FQDN 0",
+		    "type": "WIREGUARD",
+		  },
+		  {
+		    "ipv4": "https://10-252-1-1.hash.myunraid.net:4443/",
+		    "name": "WG FQDN 1",
+		    "type": "WIREGUARD",
+		  },
+		  {
+		    "ipv4": "https://10-253-3-1.hash.myunraid.net:4443/",
+		    "name": "WG FQDN 3",
+		    "type": "WIREGUARD",
+		  },
+		  {
+		    "ipv4": "https://10-253-4-1.hash.myunraid.net:4443/",
+		    "name": "WG FQDN 4",
+		    "type": "WIREGUARD",
+		  },
+		  {
+		    "ipv4": "https://10-253-5-1.hash.myunraid.net:4443/",
+		    "name": "WG FQDN 55",
+		    "type": "WIREGUARD",
+		  },
 		]
 	`);
 	expect(urls.errors).toMatchInlineSnapshot(`
