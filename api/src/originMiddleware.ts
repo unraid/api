@@ -35,16 +35,9 @@ export const originMiddleware = (req: Request, res: Response, next: NextFunction
 	}
 
 	logger.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
-	let originAsUrl: URL | null = null;
-	try {
-		originAsUrl = new URL(origin);
-	} catch (error: unknown) {
-		res.status(403).send(getOriginGraphqlError());
-		return;
-	}
 
 	// Only allow known origins
-	if (!allowedOrigins.includes(originAsUrl.toString())) {
+	if (!allowedOrigins.includes(origin.toLowerCase())) {
 		logger.error('❌ %s is not in the allowed origins list, denying CORS!', origin.toLowerCase());
 		res.status(403).send(getOriginGraphqlError());
 		return;
