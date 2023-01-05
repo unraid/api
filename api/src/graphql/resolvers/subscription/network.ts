@@ -1,5 +1,5 @@
 import { GraphQLClient } from '@app/mothership/graphql-client';
-import { type Nginx } from '@app/core/types/states/nginx';
+import { type WireguardFqdn, type Nginx } from '@app/core/types/states/nginx';
 import { type RootState, store, getters } from '@app/store';
 import { type NetworkInput, URL_TYPE, type AccessUrlInput } from '@app/graphql/generated/client/graphql';
 import { dashboardLogger, logger } from '@app/core';
@@ -28,6 +28,10 @@ export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 };
 
 const fieldIsFqdn = (field: keyof Nginx) => field.toLowerCase().includes('fqdn');
+
+export const getUrlForWgFqdn = ({ wgFqdn, ports }: { wgFqdn: WireguardFqdn; ports }) =>
+	new URL(`https://${wgFqdn.fqdn}${ports.portSsl}`);
+
 /**
  *
  * @param nginx Nginx Config File
@@ -58,6 +62,7 @@ export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: 
 	throw new Error(`IP URL Resolver: Could not resolve any access URL for field: "${field}", is FQDN?: ${fieldIsFqdn(field)}`);
 };
 
+// eslint-disable-next-line complexity
 export const getServerIps = (state: RootState = store.getState()): { urls: AccessUrlInput[]; errors: Error[] } => {
 	const { nginx } = state.emhttp;
 	if (!nginx || Object.keys(nginx).length === 0) {
@@ -204,6 +209,24 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 			errors.push(error);
 		} else {
 			logger.warn('Uncaught error in network resolver', error);
+		}
+	}
+
+	for (const wgFqdn of nginx.wgFqdns) {
+		try {
+			// WG FQDN URL
+			const wgFqdnUrl = getUrlForWgFqdn({ wgFqdn, ports });
+			urls.push({
+				name: `WG FQDN ${wgFqdn.id}`,
+				type: URL_TYPE.WIREGUARD,
+				ipv4: wgFqdnUrl,
+			});
+		} catch (error: unknown) {
+			if (error instanceof Error) {
+				errors.push(error);
+			} else {
+				logger.warn('Uncaught error in network resolver', error);
+			}
 		}
 	}
 

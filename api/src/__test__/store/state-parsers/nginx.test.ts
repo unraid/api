@@ -12,6 +12,7 @@ test('Returns parsed state file', async () => {
 		filePath,
 		type: 'ini',
 	});
+
 	expect(parse(stateFile)).toMatchInlineSnapshot(`
 		{
 		  "certificateName": "*.thisisfourtyrandomcharacters012345678900.myunraid.net",
@@ -31,6 +32,28 @@ test('Returns parsed state file', async () => {
 		  "wanFqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "wanFqdn6": "",
 		  "wanIp": "",
+		  "wgFqdns": [
+		    {
+		      "fqdn": "10-252-0-1.hash.myunraid.net",
+		      "id": 0,
+		    },
+		    {
+		      "fqdn": "10-252-1-1.hash.myunraid.net",
+		      "id": 1,
+		    },
+		    {
+		      "fqdn": "10-253-3-1.hash.myunraid.net",
+		      "id": 3,
+		    },
+		    {
+		      "fqdn": "10-253-4-1.hash.myunraid.net",
+		      "id": 4,
+		    },
+		    {
+		      "fqdn": "10-253-5-1.hash.myunraid.net",
+		      "id": 55,
+		    },
+		  ],
 		}
 	`);
 });

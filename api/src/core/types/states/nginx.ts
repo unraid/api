@@ -1,3 +1,8 @@
+export interface WireguardFqdn {
+	id: number;
+	fqdn: string;
+}
+
 export interface Nginx {
 	certificateName: string;
 	certificatePath: string;
@@ -16,4 +21,5 @@ export interface Nginx {
 	wanFqdn: string;
 	wanFqdn6: string;
 	wanIp: string;
+	wgFqdns: WireguardFqdn[];
 }
