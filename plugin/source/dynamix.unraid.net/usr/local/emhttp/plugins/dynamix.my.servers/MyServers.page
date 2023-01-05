@@ -377,23 +377,31 @@ const isCommaSeparatedURLs = input =>
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
 
 <?
-// allowed origins warning
-$host=$_SERVER['HTTP_HOST']??"unknown";
-$allowedOrigins = $myStatus['allowedOrigins']??"";
-if (stripos($allowedOrigins, "/".$host."/") === false) {
-  $allowedOriginsArr = explode(", ", $allowedOrigins); 
-  echo "<div><span class='warning'> <i class='fa fa-warning fa-fw'></i> Warning</span> your current url <span style='color:orange'>$host</span> is not in the list of allowed origins for this server. ";
-  echo "For best results, use one of these urls: ";
-  $output = "";
-  foreach($allowedOriginsArr as $origin) {
-    if ( (strpos($origin, "http") !== false) && (strpos($origin, "localhost") === false) ) {
-      $output .= "<a href='$origin'>$origin</a>, ";
-    }
-  }
-  $output = substr($output, 0, -2); // remove trailing ", "
-  echo "$output<br><br></div>";
-}
+/**
+ * Allowed origins warning displayed when the current webGUI URL is NOT included in the known lists of allowed origins.
+ * Only displays HTTP(S) URLs that do not include localhost.
+ */
+$host = $_SERVER['HTTP_HOST'] ?? "unknown";
+$allowedOrigins = $myStatus['allowedOrigins'] ?? "";
+$allowedOriginsArr = stripos($allowedOrigins, "/".$host."/") === false ? explode(", ", $allowedOrigins) : "";
 ?>
+<? if ($allowedOriginsArr): ?>
+<dl>
+  <div style="margin-bottom: 2rem;">
+    <span class="warning"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host); ?>.
+    <br/>_(For best results, use one of these urls)_:
+    <dd>
+      <ul>
+        <? foreach($allowedOriginsArr as $origin): ?>
+          <? if ( (strpos($origin, "http") !== false) && (strpos($origin, "localhost") === false) ) { ?>
+            <li><a href="<?= $origin ?>"><?= $origin ?></a></li>
+          <? } ?>
+        <? endforeach; ?>
+      </ul>
+    <dd>
+  </div>
+</dl>
+<? endif ?>
 
 _(Account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
