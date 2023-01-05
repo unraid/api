@@ -388,7 +388,7 @@ $allowedOriginsArr = stripos($allowedOrigins.",", "/".$host.",") === false ? exp
 <? if ($allowedOriginsArr): ?>
 <dl>
   <div style="margin-bottom: 2rem;">
-    <span class="warning"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host) ?>.
+    <span class="orange-text"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host) ?>.
     <br/>_(For best results, use one of these urls)_:
     <dd>
       <ul>
