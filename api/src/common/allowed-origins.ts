@@ -61,4 +61,4 @@ export const getAllowedOrigins = (state: RootState = store.getState()): string[]
 	...getLocalAccessUrlsForServer(),
 	...getRemoteAccessUrlsForAllowedOrigins(state),
 	...getExtraOrigins(),
-]);
+]).map(url => url.endsWith('/') ? url.slice(0, -1) : url);
