@@ -19,13 +19,13 @@ test('Returns allowed origins', async () => {
 		  "/var/run/unraid-notifications.sock",
 		  "/var/run/unraid-php.sock",
 		  "/var/run/unraid-cli.sock",
-		  "http://localhost:8080/",
-		  "https://localhost:4443/",
-		  "https://tower.local:4443/",
-		  "https://192.168.1.150:4443/",
-		  "https://tower:4443/",
-		  "https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
-		  "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
+		  "http://localhost:8080",
+		  "https://localhost:4443",
+		  "https://tower.local:4443",
+		  "https://192.168.1.150:4443",
+		  "https://tower:4443",
+		  "https://192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net:4443",
+		  "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:4443",
 		]
 	`);
 });
