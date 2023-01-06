@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
 import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
-import { RootState, store } from '@app/store';
+import { type RootState } from '@app/store';
 import { upnpLogger } from '@app/core';
 import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
 
@@ -124,7 +124,7 @@ export const disableUpnp = createAsyncThunk<{ renewalJobRunning: boolean }, void
 	if (localPortForUpnp && wanPortForUpnp) {
 		try {
 			await removeUpnpLease({ localPortForUpnp, wanPortForUpnp });
-			dispatch(setUpnpState({ enabled: 'no', status: 'UPNP Disabled'}))
+			dispatch(setUpnpState({ enabled: 'no', status: 'UPNP Disabled' }));
 		} catch (error: unknown) {
 			upnpLogger.warn(`Failed to remove UPNP Binding with Error [${error instanceof Error ? error.message : 'N/A'}]`);
 		}
@@ -166,4 +166,4 @@ export const upnp = createSlice({
 const { actions, reducer } = upnp;
 
 export const { updateMappings } = actions;
-export const upnpReducer = reducer
+export const upnpReducer = reducer;

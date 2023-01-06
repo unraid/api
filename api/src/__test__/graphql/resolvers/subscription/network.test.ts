@@ -3,6 +3,7 @@ import { type Nginx } from '../../../../core/types/states/nginx';
 import { getUrlForServer, getPortAndDefaultUrl, getServerIps, type PortAndDefaultUrl } from '@app/graphql/resolvers/subscription/network';
 import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
+import { loadConfigFile } from '@app/store/modules/config';
 
 test.each([
 	[{ httpPort: 80, httpsPort: 443, defaultUrl: new URL('https://my-default-url.com') }],
@@ -133,6 +134,7 @@ test('getUrlForServer - field does not exist, ssl disabled', () => {
 
 test('integration test, loading nginx ini and generating all URLs', async () => {
 	await store.dispatch(loadStateFiles());
+	await store.dispatch(loadConfigFile());
 
 	const urls = getServerIps();
 	expect(urls.urls).toMatchInlineSnapshot(`
@@ -164,7 +166,7 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 		    "type": "LAN",
 		  },
 		  {
-		    "ipv4": "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:4443/",
+		    "ipv4": "https://85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net:8443/",
 		    "name": "WAN FQDN",
 		    "type": "WAN",
 		  },
@@ -199,7 +201,7 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 		[
 		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6", is FQDN?: false],
 		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanFqdn6", is FQDN?: true],
-		  [Error: IP URL Resolver: Could not resolve any access URL for field: "wanFqdn6", is FQDN?: true],
+		  [Error: Failed to parse URL: https://:8443],
 		]
 	`);
 });

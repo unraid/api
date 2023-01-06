@@ -14,6 +14,15 @@ export interface PortAndDefaultUrl {
 	defaultUrl: URL | null;
 }
 
+const getUrlForField = ({ secure, url, port }: { secure: boolean; url: string; port: string }) => {
+	const urlString = `${secure ? 'https://' : 'http://'}${url}${port}`;
+	try {
+		return new URL(urlString);
+	} catch (error: unknown) {
+		throw new Error(`Failed to parse URL: ${urlString}`);
+	}
+};
+
 export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 	const port = nginx.httpPort === 80 ? '' : `:${nginx.httpPort}`;
 	const portSsl = nginx.httpsPort === 443 ? '' : `:${nginx.httpsPort}`;
@@ -29,8 +38,7 @@ export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
 
 const fieldIsFqdn = (field: keyof Nginx) => field.toLowerCase().includes('fqdn');
 
-export const getUrlForWgFqdn = ({ wgFqdn, ports }: { wgFqdn: WireguardFqdn; ports }) =>
-	new URL(`https://${wgFqdn.fqdn}${ports.portSsl}`);
+type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns' | 'lanFqdn' | 'lanFqdn6' | 'wanFqdn' | 'wanFqdn6'>;
 
 /**
  *
@@ -40,18 +48,18 @@ export const getUrlForWgFqdn = ({ wgFqdn, ports }: { wgFqdn: WireguardFqdn; port
  * @returns a URL, created from the combination of inputs
  * @throws Error when the URL cannot be created or the URL is invalid
  */
-export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: PortAndDefaultUrl; field: keyof Nginx }): URL => {
+export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: PortAndDefaultUrl; field: NginxUrlFields }): URL => {
 	if (nginx[field]) {
 		if (fieldIsFqdn(field)) {
-			return new URL(`https://${nginx[field]}${ports.portSsl}`);
+			return getUrlForField({ secure: true, url: nginx[field], port: ports.portSsl });
 		}
 
 		if (!nginx.sslEnabled) {// Use SSL = no
-			return new URL(`http://${nginx[field]}${ports.port}`);
+			return getUrlForField({ secure: false, url: nginx[field], port: ports.port });
 		}
 
 		if (nginx.sslMode === 'yes') {
-			return new URL(`https://${nginx[field]}${ports.portSsl}`);
+			return getUrlForField({ secure: true, url: nginx[field], port: ports.portSsl });
 		}
 
 		if (nginx.sslMode === 'auto') {
@@ -65,6 +73,7 @@ export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: 
 // eslint-disable-next-line complexity
 export const getServerIps = (state: RootState = store.getState()): { urls: AccessUrlInput[]; errors: Error[] } => {
 	const { nginx } = state.emhttp;
+	const { remote: { wanport } } = state.config;
 	if (!nginx || Object.keys(nginx).length === 0) {
 		return { urls: [], errors: [new Error('Nginx Not Loaded')] };
 	}
@@ -182,7 +191,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// WAN FQDN URL
-		const wanFqdnUrl = getUrlForServer({ nginx, ports, field: 'wanFqdn' });
+		const wanFqdnUrl = getUrlForField({ secure: true, url: nginx.wanFqdn, port: `:${wanport}` });
 		urls.push({
 			name: 'WAN FQDN',
 			type: URL_TYPE.WAN,
@@ -198,7 +207,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// WAN FQDN6 URL
-		const wanFqdn6Url = getUrlForServer({ nginx, ports, field: 'wanFqdn6' });
+		const wanFqdn6Url = getUrlForField({ secure: true, url: nginx.wanFqdn6, port: `:${wanport}` });
 		urls.push({
 			name: 'WAN FQDNv6',
 			type: URL_TYPE.WAN,
@@ -215,7 +224,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 	for (const wgFqdn of nginx.wgFqdns) {
 		try {
 			// WG FQDN URL
-			const wgFqdnUrl = getUrlForWgFqdn({ wgFqdn, ports });
+			const wgFqdnUrl = getUrlForField({ secure: true, url: wgFqdn.fqdn, port: ports.portSsl });
 			urls.push({
 				name: `WG FQDN ${wgFqdn.id}`,
 				type: URL_TYPE.WIREGUARD,

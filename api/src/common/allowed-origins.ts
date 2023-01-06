@@ -1,6 +1,7 @@
 import { getters, type RootState, store } from '@app/store';
 import { uniq } from 'lodash';
 import { getPortAndDefaultUrl, getServerIps } from '../graphql/resolvers/subscription/network';
+import { FileLoadStatus } from '../store/types';
 
 const getAllowedSocks = (): string[] => [
 	// Notifier bridge
@@ -14,12 +15,12 @@ const getAllowedSocks = (): string[] => [
 ];
 
 const getLocalAccessUrlsForServer = (state: RootState = store.getState()): string[] => {
-	const { nginx } = state.emhttp;
-	if (!nginx || Object.keys(nginx).length === 0) {
-		// We haven't loaded nginx yet
+	const { emhttp } = state;
+	if (emhttp.status !== FileLoadStatus.LOADED) {
 		return [];
 	}
 
+	const { nginx } = emhttp;
 	const ports = getPortAndDefaultUrl(nginx);
 	return [
 		new URL(`http://localhost${ports.port}`).toString(),
