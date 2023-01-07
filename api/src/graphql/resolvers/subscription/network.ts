@@ -14,8 +14,34 @@ export interface PortAndDefaultUrl {
 	defaultUrl: URL | null;
 }
 
-const getUrlForField = ({ secure, url, port }: { secure: boolean; url: string; port: string }) => {
-	const urlString = `${secure ? 'https://' : 'http://'}${url}${port}`;
+interface UrlForFieldInput {
+	url: string;
+	port?: number;
+	portSsl?: number;
+}
+
+interface UrlForFieldInputSecure extends UrlForFieldInput {
+	url: string;
+	portSsl: number;
+}
+interface UrlForFieldInputInsecure extends UrlForFieldInput {
+	url: string;
+	port: number;
+}
+
+export const getUrlForField = ({ url, port, portSsl }: UrlForFieldInputInsecure | UrlForFieldInputSecure) => {
+	let portToUse = '';
+	let httpMode = 'https://';
+	if (port) {
+		portToUse = port === 80 ? '' : `:${port}`;
+		httpMode = 'http://';
+	} else if (portSsl) {
+		portToUse = portSsl === 443 ? '' : `:${portSsl}`;
+		httpMode = 'https://';
+	}
+
+	const urlString = `${httpMode}${url}${portToUse}`;
+
 	try {
 		return new URL(urlString);
 	} catch (error: unknown) {
@@ -23,22 +49,9 @@ const getUrlForField = ({ secure, url, port }: { secure: boolean; url: string; p
 	}
 };
 
-export const getPortAndDefaultUrl = (nginx: Nginx): PortAndDefaultUrl => {
-	const port = nginx.httpPort === 80 ? '' : `:${nginx.httpPort}`;
-	const portSsl = nginx.httpsPort === 443 ? '' : `:${nginx.httpsPort}`;
-	let defaultUrl: URL | null = null;
-	try {
-		defaultUrl = new URL(nginx.defaultUrl);
-	} catch (error: unknown) {
-		dashboardLogger.warn('Could not parse NGINX_DEFAULTURL to a valid URL, your nginx.ini file may have a problem');
-	}
-
-	return { port, portSsl, defaultUrl };
-};
-
 const fieldIsFqdn = (field: keyof Nginx) => field.toLowerCase().includes('fqdn');
 
-type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns' | 'lanFqdn' | 'lanFqdn6' | 'wanFqdn' | 'wanFqdn6'>;
+export type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns' | 'lanFqdn' | 'lanFqdn6' | 'wanFqdn' | 'wanFqdn6'>;
 
 /**
  *
@@ -48,18 +61,18 @@ type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lan
  * @returns a URL, created from the combination of inputs
  * @throws Error when the URL cannot be created or the URL is invalid
  */
-export const getUrlForServer = ({ nginx, ports, field }: { nginx: Nginx; ports: PortAndDefaultUrl; field: NginxUrlFields }): URL => {
+export const getUrlForServer = ({ nginx, field }: { nginx: Nginx; field: NginxUrlFields }): URL => {
 	if (nginx[field]) {
 		if (fieldIsFqdn(field)) {
-			return getUrlForField({ secure: true, url: nginx[field], port: ports.portSsl });
+			return getUrlForField({ url: nginx[field], portSsl: nginx.httpsPort });
 		}
 
 		if (!nginx.sslEnabled) {// Use SSL = no
-			return getUrlForField({ secure: false, url: nginx[field], port: ports.port });
+			return getUrlForField({ url: nginx[field], port: nginx.httpPort });
 		}
 
 		if (nginx.sslMode === 'yes') {
-			return getUrlForField({ secure: true, url: nginx[field], port: ports.portSsl });
+			return getUrlForField({ url: nginx[field], portSsl: nginx.httpsPort });
 		}
 
 		if (nginx.sslMode === 'auto') {
@@ -78,24 +91,29 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 		return { urls: [], errors: [new Error('Nginx Not Loaded')] };
 	}
 
-	const ports = getPortAndDefaultUrl(nginx);
-
 	const errors: Error[] = [];
 	const urls: AccessUrlInput[] = [];
 
-	if (ports.defaultUrl) {
-		const defaultUrlInput: AccessUrlInput = {
+	try {
+		// Default URL
+		const defaultUrl = new URL(nginx.defaultUrl);
+		urls.push({
 			name: 'Default',
 			type: URL_TYPE.DEFAULT,
-			ipv4: ports.defaultUrl,
-			ipv6: ports.defaultUrl,
-		};
-		urls.push(defaultUrlInput);
+			ipv4: defaultUrl,
+			ipv6: defaultUrl,
+		});
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			errors.push(error);
+		} else {
+			logger.warn('Uncaught error in network resolver', error);
+		}
 	}
 
 	try {
 		// Lan IP URL
-		const lanIp4Url = getUrlForServer({ nginx, ports, field: 'lanIp' });
+		const lanIp4Url = getUrlForServer({ nginx, field: 'lanIp' });
 		urls.push({
 			name: 'LAN IPv4',
 			type: URL_TYPE.LAN,
@@ -111,7 +129,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// Lan IP6 URL
-		const lanIp6Url = getUrlForServer({ nginx, ports, field: 'lanIp6' });
+		const lanIp6Url = getUrlForServer({ nginx, field: 'lanIp6' });
 		urls.push({
 			name: 'LAN IPv6',
 			type: URL_TYPE.LAN,
@@ -127,7 +145,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// Lan Name URL
-		const lanNameUrl = getUrlForServer({ nginx, ports, field: 'lanName' });
+		const lanNameUrl = getUrlForServer({ nginx, field: 'lanName' });
 		urls.push({
 			name: 'LAN Name',
 			type: URL_TYPE.MDNS,
@@ -143,7 +161,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// Lan MDNS URL
-		const lanMdnsUrl = getUrlForServer({ nginx, ports, field: 'lanMdns' });
+		const lanMdnsUrl = getUrlForServer({ nginx, field: 'lanMdns' });
 		urls.push({
 			name: 'LAN MDNS',
 			type: URL_TYPE.MDNS,
@@ -159,7 +177,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// Lan FQDN URL
-		const lanFqdnUrl = getUrlForServer({ nginx, ports, field: 'lanFqdn' });
+		const lanFqdnUrl = getUrlForServer({ nginx, field: 'lanFqdn' });
 		urls.push({
 			name: 'LAN FQDN',
 			type: URL_TYPE.LAN,
@@ -175,7 +193,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// Lan FQDN6 URL
-		const lanFqdn6Url = getUrlForServer({ nginx, ports, field: 'lanFqdn6' });
+		const lanFqdn6Url = getUrlForServer({ nginx, field: 'lanFqdn6' });
 		urls.push({
 			name: 'LAN FQDNv6',
 			type: URL_TYPE.LAN,
@@ -191,7 +209,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// WAN FQDN URL
-		const wanFqdnUrl = getUrlForField({ secure: true, url: nginx.wanFqdn, port: `:${wanport}` });
+		const wanFqdnUrl = getUrlForField({ url: nginx.wanFqdn, portSsl: Number(wanport || 443) });
 		urls.push({
 			name: 'WAN FQDN',
 			type: URL_TYPE.WAN,
@@ -207,7 +225,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 
 	try {
 		// WAN FQDN6 URL
-		const wanFqdn6Url = getUrlForField({ secure: true, url: nginx.wanFqdn6, port: `:${wanport}` });
+		const wanFqdn6Url = getUrlForField({ url: nginx.wanFqdn6, portSsl: Number(wanport) });
 		urls.push({
 			name: 'WAN FQDNv6',
 			type: URL_TYPE.WAN,
@@ -224,7 +242,7 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 	for (const wgFqdn of nginx.wgFqdns) {
 		try {
 			// WG FQDN URL
-			const wgFqdnUrl = getUrlForField({ secure: true, url: wgFqdn.fqdn, port: ports.portSsl });
+			const wgFqdnUrl = getUrlForField({ url: wgFqdn.fqdn, portSsl: nginx.httpsPort });
 			urls.push({
 				name: `WG FQDN ${wgFqdn.id}`,
 				type: URL_TYPE.WIREGUARD,
