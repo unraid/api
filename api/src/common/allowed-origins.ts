@@ -1,6 +1,8 @@
 import { getters, type RootState, store } from '@app/store';
 import { uniq } from 'lodash';
-import { getPortAndDefaultUrl, getServerIps } from '../graphql/resolvers/subscription/network';
+import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network';
+import { FileLoadStatus } from '@app/store/types';
+import { logger } from '../core';
 
 const getAllowedSocks = (): string[] => [
 	// Notifier bridge
@@ -14,17 +16,21 @@ const getAllowedSocks = (): string[] => [
 ];
 
 const getLocalAccessUrlsForServer = (state: RootState = store.getState()): string[] => {
-	const { nginx } = state.emhttp;
-	if (!nginx || Object.keys(nginx).length === 0) {
-		// We haven't loaded nginx yet
+	const { emhttp } = state;
+	if (emhttp.status !== FileLoadStatus.LOADED) {
 		return [];
 	}
 
-	const ports = getPortAndDefaultUrl(nginx);
-	return [
-		new URL(`http://localhost${ports.port}`).toString(),
-		new URL(`https://localhost${ports.portSsl}`).toString(),
-	];
+	const { nginx } = emhttp;
+	try {
+		return [
+			getUrlForField({ url: 'localhost', port: nginx.httpPort }).toString(),
+			getUrlForField({ url: 'localhost', portSsl: nginx.httpsPort }).toString(),
+		];
+	} catch (error: unknown) {
+		logger.debug('Caught error in getLocalAccessUrlsForServer: \n%o', error);
+		return [];
+	}
 };
 
 const getRemoteAccessUrlsForAllowedOrigins = (state: RootState = store.getState()): string[] => {
