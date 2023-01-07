@@ -8,12 +8,6 @@ import { SEND_NETWORK_MUTATION } from '@app/graphql/mothership/mutations';
 import { saveNetworkPacket } from '@app/store/modules/dashboard';
 import { ApolloError } from '@apollo/client';
 
-export interface PortAndDefaultUrl {
-	port: string;
-	portSsl: string;
-	defaultUrl: URL | null;
-}
-
 interface UrlForFieldInput {
 	url: string;
 	port?: number;
@@ -56,7 +50,6 @@ export type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName'
 /**
  *
  * @param nginx Nginx Config File
- * @param ports Ports discovered using getPortAndDefaultUrl
  * @param field The field to build the URL from
  * @returns a URL, created from the combination of inputs
  * @throws Error when the URL cannot be created or the URL is invalid

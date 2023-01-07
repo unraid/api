@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { type Nginx } from '../../../../core/types/states/nginx';
-import { getUrlForField, getUrlForServer, getServerIps, type PortAndDefaultUrl, type NginxUrlFields } from '@app/graphql/resolvers/subscription/network';
+import { getUrlForField, getUrlForServer, getServerIps, type NginxUrlFields } from '@app/graphql/resolvers/subscription/network';
 import { store } from '@app/store';
 import { loadStateFiles } from '@app/store/modules/emhttp';
 import { loadConfigFile } from '@app/store/modules/config';
@@ -95,12 +95,12 @@ test('getUrlForServer - FQDN - field exists, port empty', () => {
 });
 
 test.each([
-	[{ nginx: { lanFqdn: 'my-fqdn.unraid.net', sslEnabled: false, sslMode: 'no' } as const as Nginx, ports: { port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.com') } as const as PortAndDefaultUrl, field: 'lanFqdn' as NginxUrlFields }],
-	[{ nginx: { wanFqdn: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'yes' } as const as Nginx, ports: { port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.com') } as const as PortAndDefaultUrl, field: 'wanFqdn' as NginxUrlFields }],
-	[{ nginx: { wanFqdn6: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'auto' } as const as Nginx, ports: { port: '', portSsl: '', defaultUrl: new URL('https://my-default-url.com') } as const as PortAndDefaultUrl, field: 'wanFqdn6' as NginxUrlFields }],
+	[{ nginx: { lanFqdn: 'my-fqdn.unraid.net', sslEnabled: false, sslMode: 'no' } as const as Nginx, field: 'lanFqdn' as NginxUrlFields }],
+	[{ nginx: { wanFqdn: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'yes' } as const as Nginx, field: 'wanFqdn' as NginxUrlFields }],
+	[{ nginx: { wanFqdn6: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'auto' } as const as Nginx, field: 'wanFqdn6' as NginxUrlFields }],
 
-])('getUrlForServer - FQDN', ({ nginx, ports, field }) => {
-	const result = getUrlForServer({ nginx, ports, field });
+])('getUrlForServer - FQDN', ({ nginx, field }) => {
+	const result = getUrlForServer({ nginx, field });
 	expect(result.toString()).toBe('https://my-fqdn.unraid.net/');
 });
 
