@@ -79,12 +79,12 @@ export const createGraphqlClient = () => {
 	client.on('error', error => {
 		const normalError = (error instanceof Error) ? error : new Error('Unknown Minigraph Client Error');
 		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
-		minigraphLogger.error('Error in MinigraphClient', error);
+		minigraphLogger.error('Error in MinigraphClient', error instanceof Error ? error.message : error);
 	});
 	client.on('closed', event => {
 		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
 		minigraphLogger.addContext('closeEvent', event);
-		minigraphLogger.debug('MinigraphClient closed connection', event);
+		minigraphLogger.debug('MinigraphClient closed connection');
 		minigraphLogger.removeContext('closeEvent');
 	});
 	return apolloClient;

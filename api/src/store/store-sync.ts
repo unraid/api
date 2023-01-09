@@ -1,6 +1,5 @@
 import type { RootState } from '@app/store';
 import { store } from '@app/store';
-import { syncConfigToDisk } from '@app/store/sync/config-disk-sync';
 import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
 import { FileLoadStatus } from './types';
@@ -18,9 +17,6 @@ export const startStoreSync = async () => {
 		const state = store.getState();
 		// Config dependent options, wait until config loads to execute
 		if (state.config.status === FileLoadStatus.LOADED) {
-			// Write changes to disk
-			await syncConfigToDisk(lastState);
-
 			// Update API key
 			await syncApiKeyChanges(lastState);
 

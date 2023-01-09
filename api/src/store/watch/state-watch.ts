@@ -37,7 +37,7 @@ export class StateManager {
 			if (!excludedWatches.includes(key)) {
 				const pathToWatch = join(states, `${key}.ini`);
 				emhttpLogger.debug('Setting up watch for path: %s', pathToWatch);
-				const stateWatch = watch(pathToWatch);
+				const stateWatch = watch(pathToWatch, { usePolling: process.env.CHOKIDAR_USEPOLLING === 'true' });
 				stateWatch.on('change', async path => {
 					const stateFile = this.getStateFileKeyFromPath(path);
 					if (stateFile) {

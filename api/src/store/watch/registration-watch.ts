@@ -7,6 +7,7 @@ export const setupRegistrationKeyWatch = () => {
 		persistent: true,
 		ignoreInitial: true,
 		ignored: (path: string) => !path.endsWith('.key'),
+		usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
 	}).on('all', async () => {
 		// Load updated key into store
 		await store.dispatch(loadRegistrationKey());

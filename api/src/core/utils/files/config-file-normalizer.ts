@@ -2,9 +2,8 @@ import { type SliceState as ConfigSliceState, initialState } from '@app/store/mo
 import { type RecursivePartial } from '@app/types';
 import type { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
 import { isEqual } from 'lodash';
-import { getAllowedOrigins } from '../../../common/allowed-origins';
 
-type ConfigType = 'flash' | 'memory';
+export type ConfigType = 'flash' | 'memory';
 type ConfigObject<T> =
 	T extends 'flash' ? MyServersConfig :
 		T extends 'memory' ? MyServersConfigMemory :
