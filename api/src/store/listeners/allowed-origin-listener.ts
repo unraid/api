@@ -6,7 +6,7 @@ import { logger } from '@app/core';
 
 export const enableAllowedOriginListener = () => startAppListening({
 	predicate(_, currentState, previousState) {
-		if (isEqual(currentState.emhttp.nginx, previousState?.emhttp?.nginx) || isEqual(currentState.config, previousState.config)) {
+		if (isEqual(currentState.emhttp.nginx, previousState?.emhttp?.nginx) && isEqual(currentState.config.remote.wanport, previousState.config.remote.wanport)) {
 			return false;
 		}
 
