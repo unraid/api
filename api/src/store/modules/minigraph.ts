@@ -36,6 +36,12 @@ export const mothership = createSlice({
 		removeSubscription(state, action: PayloadAction<SubscriptionKey>) {
 			state.subscriptions[action.payload] = false;
 		},
+		resetState(state, _: PayloadAction) {
+			state.subscriptions.EVENTS = false;
+			state.subscriptions.SERVERS = false;
+			state.error = null;
+			state.status = MinigraphStatus.DISCONNECTED;
+		},
 	},
 	extraReducers(builder) {
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
@@ -45,4 +51,4 @@ export const mothership = createSlice({
 	},
 });
 
-export const { addSubscription, removeSubscription } = mothership.actions;
+export const { addSubscription, removeSubscription, resetState } = mothership.actions;
