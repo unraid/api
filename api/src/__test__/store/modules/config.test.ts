@@ -1,8 +1,5 @@
-import { resolve as resolvePath } from 'path';
 import { test, expect } from 'vitest';
 import { store } from '@app/store';
-
-const devConfigPath = resolvePath(__dirname, '../../../../dev/Unraid.net/myservers.cfg');
 
 test('Before init returns default values for all fields', async () => {
 	const state = store.getState().config;
@@ -51,7 +48,7 @@ test('After init returns values from cfg file for all fields', async () => {
 	const { loadConfigFile } = await import('@app/store/modules/config');
 
 	// Load cfg into store
-	await store.dispatch(loadConfigFile(devConfigPath));
+	await store.dispatch(loadConfigFile());
 
 	// Check if store has cfg contents loaded
 	const state = store.getState().config;
@@ -76,7 +73,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "remote": {
 		    "2Fa": "",
 		    "accesstoken": "",
-		    "allowedOrigins": "",
+		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock",
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
 		    "avatar": "https://via.placeholder.com/200",
 		    "email": "test@example.com",
@@ -100,7 +97,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 	const { loadConfigFile, updateUserConfig } = await import('@app/store/modules/config');
 
 	// Load cfg into store
-	await store.dispatch(loadConfigFile(devConfigPath));
+	await store.dispatch(loadConfigFile());
 
 	// Update store
 	store.dispatch(updateUserConfig({ remote: { avatar: 'https://via.placeholder.com/500' } }));
@@ -127,7 +124,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		  "remote": {
 		    "2Fa": "",
 		    "accesstoken": "",
-		    "allowedOrigins": "",
+		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock",
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
 		    "avatar": "https://via.placeholder.com/500",
 		    "email": "test@example.com",
