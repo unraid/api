@@ -82,7 +82,7 @@ export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('co
  * Note: If the file doesn't exist this will fallback to default values.
  */
 export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file',
-	async (filePath, { getState }) => {
+	async (filePath, { getState, dispatch }) => {
 		const { paths, config } = getState();
 
 		const path = filePath ?? paths['myservers-config'];
@@ -107,6 +107,10 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 			},
 		) as MyServersConfig;
 
+		if (newConfigFile.remote.username === '' && config.remote.username !== '') {
+			await dispatch(logoutUser());
+		}
+
 		return newConfigFile;
 	});
 
@@ -125,6 +129,7 @@ export const config = createSlice({
 			if (newAllowedOrigins === state.remote.allowedOrigins) {
 				return;
 			}
+
 			state.remote.allowedOrigins = newAllowedOrigins;
 		},
 		setUpnpState(state, action: PayloadAction<{ enabled?: 'no' | 'yes'; status?: string | null }>) {
@@ -161,13 +166,10 @@ export const config = createSlice({
 		builder.addCase(logoutUser.pending, state => {
 			merge(state, { remote:
 				{
-					'2Fa': '',
 					apikey: '',
 					avatar: '',
 					email: '',
 					username: '',
-					wanaccess: '',
-					wanport: '',
 				},
 			});
 		});
