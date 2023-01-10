@@ -7,7 +7,7 @@ test('Before init returns default values for all fields', async () => {
 		{
 		  "api": {
 		    "extraOrigins": "",
-		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "version": "",
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
@@ -100,7 +100,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 	await store.dispatch(loadConfigFile());
 
 	// Update store
-	store.dispatch(updateUserConfig({ remote: { avatar: 'https://via.placeholder.com/500' } }));
+	store.dispatch(updateUserConfig({ remote: { avatar: 'https://via.placeholder.com/200' } }));
 
 	const state = store.getState().config;
 	expect(state).toMatchInlineSnapshot(`
@@ -126,7 +126,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		    "accesstoken": "",
 		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock",
 		    "apikey": "_______________________BIG_API_KEY_HERE_________________________",
-		    "avatar": "https://via.placeholder.com/500",
+		    "avatar": "https://via.placeholder.com/200",
 		    "email": "test@example.com",
 		    "idtoken": "",
 		    "refreshtoken": "",

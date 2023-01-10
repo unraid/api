@@ -9,7 +9,7 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
 	expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
-		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "version": "",
 		  },
 		  "local": {},
 		  "notifier": {
@@ -40,7 +40,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 	expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
-		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "version": "",
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",
@@ -82,7 +82,7 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 		{
 		  "api": {
 		    "extraOrigins": "myextra.origins",
-		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "version": "",
 		  },
 		  "local": {
 		    "2Fa": "yes",
@@ -125,7 +125,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		{
 		  "api": {
 		    "extraOrigins": "myextra.origins",
-		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
+		    "version": "",
 		  },
 		  "connectionStatus": {
 		    "minigraph": "DISCONNECTED",

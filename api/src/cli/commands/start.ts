@@ -4,7 +4,8 @@ import { cliLogger } from '@app/core/log';
 import { mainOptions } from '@app/cli/options';
 import { logToSyslog } from '@app/cli/log-to-syslog';
 import { getters } from '@app/store';
-import { getAllUnraidApiPids } from '../get-unraid-api-pid';
+import { getAllUnraidApiPids } from '@app/cli/get-unraid-api-pid';
+import { API_VERSION } from '@app/environment';
 
 /**
  * Start a new API process.
@@ -20,7 +21,7 @@ export const start = async () => {
 	}
 
 	// Start API
-	cliLogger.info('Starting unraid-api@v%s', getters.config().api.version);
+	cliLogger.info('Starting unraid-api@v%s', API_VERSION);
 
 	// If we're in debug mode or we're NOT
 	// in debug but ARE in the child process

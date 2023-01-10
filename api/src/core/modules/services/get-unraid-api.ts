@@ -5,7 +5,7 @@
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { getters } from '@app/store';
+import { API_VERSION } from '@app/environment';
 
 interface Result extends CoreResult {
 	json: {
@@ -43,7 +43,7 @@ export const getUnraidApiService = async (context: CoreContext): Promise<Result>
 			timestamp: uptimeTimestamp,
 			seconds: uptimeSeconds,
 		},
-		version: getters.config().api.version,
+		version: API_VERSION,
 	};
 
 	return {

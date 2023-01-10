@@ -1,4 +1,4 @@
-import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
+import { FileLoadStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import { store } from '@app/store';
 import { logger } from '@app/core/log';
 import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
@@ -9,8 +9,8 @@ const isApiKeyEmpty = (apiKey: string) => apiKey === undefined || (typeof apiKey
 
 export const syncApiKeyChanges: StoreSubscriptionHandler = async lastState => {
 	// Skip checking if the the API key hasn't changed
-	const { config } = store.getState();
-	if (config.status !== FileLoadStatus.LOADED) return;
+	const { config, emhttp } = store.getState();
+	if (config.status !== FileLoadStatus.LOADED || emhttp.status !== FileLoadStatus.LOADED) return;
 	const apiKey = config?.remote?.apikey;
 	if (lastState?.config?.remote?.apikey === apiKey) {
 		logger.trace('Remote API key is the same');

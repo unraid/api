@@ -10,7 +10,8 @@ import { type Dashboard, Dashboard as DashboardType } from '@app/common/run-time
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
 import { getters } from '@app/store';
-import { type DashboardInput } from '../../graphql/generated/client/graphql';
+import { type DashboardInput } from '@app/graphql/generated/client/graphql';
+import { API_VERSION } from '@app/environment';
 
 const getVmSummary = async (): Promise<Dashboard['vms']> => {
 	try {
@@ -57,7 +58,7 @@ const services = (): DashboardInput['services'] => {
 		uptime: {
 			timestamp: uptimeTimestamp,
 		},
-		version: getters.config().api.version,
+		version: API_VERSION,
 	}];
 };
 
