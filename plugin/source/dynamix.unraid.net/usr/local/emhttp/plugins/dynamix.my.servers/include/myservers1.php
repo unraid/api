@@ -26,8 +26,12 @@ unraid-promo {
 }
 </style>
 <?
-if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) { // context needed for the UPC ENV local check for signed out users
-  @extract(parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true));
+$myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
+$myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+if (file_exists($myservers_memory_cfg_path)) { 
+  @extract(parse_ini_file($myservers_memory_cfg_path,true));
+} else if (file_exists($myservers_flash_cfg_path)) {
+  @extract(parse_ini_file($myservers_flash_cfg_path,true));
 }
 $ALLOWED_UPC_ENV_VALS = [
   'production',
