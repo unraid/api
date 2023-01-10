@@ -4,9 +4,9 @@ import { isEqual } from 'lodash';
 import { logger } from '@app/core/log';
 import { type ConfigType, getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { loadConfigFile } from '@app/store/modules/config';
-import { writeFile } from 'fs/promises';
-import { FileLoadStatus } from '../types';
-import { safelySerializeObjectToIni } from '../../core/utils/files/safe-ini-serializer';
+import { writeFileSync } from 'fs';
+import { FileLoadStatus } from '@app/store/types';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 
 export const enableConfigFileListener = (mode: ConfigType) => () => startAppListening({
 	predicate(action, currentState, previousState) {
@@ -23,12 +23,12 @@ export const enableConfigFileListener = (mode: ConfigType) => () => startAppList
 		}
 
 		return false;
-	}, async effect(_, { getState }) {
+	}, effect(_, { getState }) {
 		const pathToWrite = mode === 'flash' ? getState().paths['myservers-config'] : getState().paths['myservers-config-states'];
 		const writeableConfig = getWriteableConfig(getState().config, mode);
 		const serializedConfig = safelySerializeObjectToIni(writeableConfig);
 		logger.debug('Writing updated config to', pathToWrite);
-		await writeFile(pathToWrite, serializedConfig);
+		writeFileSync(pathToWrite, serializedConfig);
 	},
 });
 
