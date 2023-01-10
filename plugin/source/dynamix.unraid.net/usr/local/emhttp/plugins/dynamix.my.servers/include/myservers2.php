@@ -19,9 +19,7 @@
         }
       }
     }
-    if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) {
-      @extract(parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true));
-    }
+    // note: myservers.cfg was parsed in myservers1.php
     // upc translations
     $upc_translations = [
       ($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US' => [

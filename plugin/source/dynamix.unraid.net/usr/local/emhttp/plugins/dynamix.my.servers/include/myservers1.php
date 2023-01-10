@@ -26,7 +26,9 @@ unraid-promo {
 }
 </style>
 <?
-if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) { // context needed for the UPC ENV local check for signed out users
+if (file_exists('/var/local/emhttp/myservers.cfg')) { 
+  @extract(parse_ini_file('/var/local/emhttp/myservers.cfg',true));
+} else if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) {
   @extract(parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true));
 }
 $ALLOWED_UPC_ENV_VALS = [
