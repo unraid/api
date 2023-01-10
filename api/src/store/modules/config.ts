@@ -42,7 +42,7 @@ export const initialState: SliceState = {
 	},
 	api: {
 		extraOrigins: '',
-		version: API_VERSION,
+		version: '',
 	},
 	upc: {
 		apikey: '',
@@ -56,7 +56,7 @@ export const initialState: SliceState = {
 	},
 };
 
-export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async (_, { dispatch }) => {
+export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async () => {
 	logger.info('Logging out user');
 	const { pubsub } = await import ('@app/core/pubsub');
 
@@ -94,9 +94,6 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 
 		const newConfigFile = merge(file,
 			{
-				api: {
-					version: API_VERSION,
-				},
 				upc: {
 					apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
 				},

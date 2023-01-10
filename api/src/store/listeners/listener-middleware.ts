@@ -3,6 +3,7 @@ import { type AppDispatch, type RootState } from '@app/store';
 import { enableUpnpListener } from '@app/store/listeners/upnp-listener';
 import { enableAllowedOriginListener } from '@app/store/listeners/allowed-origin-listener';
 import { enableConfigFileListener } from '@app/store/listeners/config-listener';
+import { enableVersionListener } from '@app/store/listeners/version-listener';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -23,3 +24,4 @@ enableConfigFileListener('flash')();
 enableConfigFileListener('memory')();
 enableUpnpListener();
 enableAllowedOriginListener();
+enableVersionListener();
