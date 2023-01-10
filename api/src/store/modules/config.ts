@@ -12,6 +12,9 @@ import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { writeConfigSync } from '@app/store/sync/config-disk-sync';
+import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
+import { writeFileSync } from 'fs';
+import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -54,7 +57,7 @@ export const initialState: SliceState = {
 		minigraph: MinigraphStatus.DISCONNECTED,
 		upnpStatus: '',
 	},
-};
+} as const;
 
 export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async () => {
 	logger.info('Logging out user');
@@ -111,7 +114,9 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 			return newConfigFile;
 		} catch (error: unknown) {
 			logger.warn('Config file is corrupted, recreating config', error);
-			writeConfigSync('flash');
+			const config = getWriteableConfig(initialState, 'flash');
+			const serializedConfig = safelySerializeObjectToIni(config);
+			writeFileSync(getState().paths['myservers-config'], serializedConfig);
 			throw error;
 		}
 	});
