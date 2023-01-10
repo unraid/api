@@ -5,7 +5,6 @@ import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { F_OK } from 'constants';
-import { clearAllServers } from '@app/store/modules/servers';
 import { type RecursivePartial } from '@app/types';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { type RootState } from '@app/store';
@@ -57,9 +56,8 @@ export const initialState: SliceState = {
 };
 
 export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async (_, { dispatch }) => {
+	logger.info('Logging out user');
 	const { pubsub } = await import ('@app/core/pubsub');
-	// Clear servers cache
-	dispatch(clearAllServers());
 
 	// Publish to servers endpoint
 	await pubsub.publish('servers', {
@@ -82,7 +80,7 @@ export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('co
  * Note: If the file doesn't exist this will fallback to default values.
  */
 export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file',
-	async (filePath, { getState }) => {
+	async (filePath, { getState, dispatch }) => {
 		const { paths, config } = getState();
 
 		const path = filePath ?? paths['myservers-config'];
@@ -107,6 +105,10 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 			},
 		) as MyServersConfig;
 
+		if (newConfigFile.remote.username === '' && config.remote.username !== '') {
+			await dispatch(logoutUser());
+		}
+
 		return newConfigFile;
 	});
 
@@ -125,6 +127,7 @@ export const config = createSlice({
 			if (newAllowedOrigins === state.remote.allowedOrigins) {
 				return;
 			}
+
 			state.remote.allowedOrigins = newAllowedOrigins;
 		},
 		setUpnpState(state, action: PayloadAction<{ enabled?: 'no' | 'yes'; status?: string | null }>) {
@@ -161,13 +164,10 @@ export const config = createSlice({
 		builder.addCase(logoutUser.pending, state => {
 			merge(state, { remote:
 				{
-					'2Fa': '',
 					apikey: '',
 					avatar: '',
 					email: '',
 					username: '',
-					wanaccess: '',
-					wanport: '',
 				},
 			});
 		});

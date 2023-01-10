@@ -59,8 +59,8 @@ export const createGraphqlClient = () => {
 			watchQuery: {
 				fetchPolicy: 'no-cache',
 				errorPolicy: 'ignore',
-			  },
-			  query: {
+			},
+			query: {
 				fetchPolicy: 'no-cache',
 				errorPolicy: 'all',
 			},
@@ -82,7 +82,6 @@ export const createGraphqlClient = () => {
 	});
 	client.on('closed', event => {
 		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
-		// Store.dispatch(clearAllServers());
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection', event);
 		minigraphLogger.removeContext('closeEvent');
@@ -106,4 +105,8 @@ export class GraphQLClient {
 
 		return GraphQLClient.instance;
 	}
+
+	public static clearInstance = () => {
+		GraphQLClient.instance = null;
+	};
 }

@@ -1,7 +1,8 @@
 import { MemoryCacheStatus } from '@app/store/types';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
-import { type Server } from '../../graphql/generated/client/graphql';
+import { type Server } from '@app/graphql/generated/client/graphql';
+import { logoutUser } from '@app/store/modules/config';
 
 type SliceState = {
 	status: MemoryCacheStatus;
@@ -26,6 +27,11 @@ export const servers = createSlice({
 		updateServersState(state, action: PayloadAction<Partial<typeof initialState>>) {
 			return merge(state, action.payload);
 		},
+	},
+	extraReducers(builder) {
+		builder.addCase(logoutUser.pending, state => {
+			state.servers = [];
+		});
 	},
 });
 
