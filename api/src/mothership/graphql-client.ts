@@ -8,7 +8,6 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { resetState } from '@app/store/modules/minigraph';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -60,8 +59,8 @@ export const createGraphqlClient = () => {
 			watchQuery: {
 				fetchPolicy: 'no-cache',
 				errorPolicy: 'ignore',
-			  },
-			  query: {
+			},
+			query: {
 				fetchPolicy: 'no-cache',
 				errorPolicy: 'all',
 			},
@@ -83,7 +82,6 @@ export const createGraphqlClient = () => {
 	});
 	client.on('closed', event => {
 		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
-		// Store.dispatch(clearAllServers());
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection', event);
 		minigraphLogger.removeContext('closeEvent');
@@ -110,6 +108,5 @@ export class GraphQLClient {
 
 	public static clearInstance = () => {
 		GraphQLClient.instance = null;
-		store.dispatch(resetState());
 	};
 }

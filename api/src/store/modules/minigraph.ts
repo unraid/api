@@ -1,6 +1,8 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { logoutUser } from '@app/store/modules/config';
+import { GraphQLClient } from '@app/mothership/graphql-client';
 
 export enum SubscriptionKey {
 	SERVERS = 'SERVERS',
@@ -36,19 +38,20 @@ export const mothership = createSlice({
 		removeSubscription(state, action: PayloadAction<SubscriptionKey>) {
 			state.subscriptions[action.payload] = false;
 		},
-		resetState(state, _: PayloadAction) {
-			state.subscriptions.EVENTS = false;
-			state.subscriptions.SERVERS = false;
-			state.error = null;
-			state.status = MinigraphStatus.DISCONNECTED;
-		},
 	},
 	extraReducers(builder) {
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
 			state.status = action.payload.status;
 			state.error = action.payload.error;
 		});
+		builder.addCase(logoutUser.pending, state => {
+			state.subscriptions.EVENTS = false;
+			state.subscriptions.SERVERS = false;
+			state.error = null;
+			state.status = MinigraphStatus.DISCONNECTED;
+			GraphQLClient.clearInstance();
+		});
 	},
 });
 
-export const { addSubscription, removeSubscription, resetState } = mothership.actions;
+export const { addSubscription, removeSubscription } = mothership.actions;

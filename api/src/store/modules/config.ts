@@ -5,14 +5,12 @@ import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { F_OK } from 'constants';
-import { clearAllServers } from '@app/store/modules/servers';
 import { type RecursivePartial } from '@app/types';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { GraphQLClient } from '@app/mothership/graphql-client';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -60,10 +58,6 @@ export const initialState: SliceState = {
 export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async (_, { dispatch }) => {
 	logger.info('Logging out user');
 	const { pubsub } = await import ('@app/core/pubsub');
-	// Clear servers cache
-	dispatch(clearAllServers());
-
-	GraphQLClient.clearInstance();
 
 	// Publish to servers endpoint
 	await pubsub.publish('servers', {
