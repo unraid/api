@@ -26,12 +26,19 @@ interface UrlForFieldInputInsecure extends UrlForFieldInput {
 export const getUrlForField = ({ url, port, portSsl }: UrlForFieldInputInsecure | UrlForFieldInputSecure) => {
 	let portToUse = '';
 	let httpMode = 'https://';
+
+	if (!url || url === '') {
+		throw new Error('No URL Provided');
+	}
+
 	if (port) {
 		portToUse = port === 80 ? '' : `:${port}`;
 		httpMode = 'http://';
 	} else if (portSsl) {
 		portToUse = portSsl === 443 ? '' : `:${portSsl}`;
 		httpMode = 'https://';
+	} else {
+		throw new Error(`No ports specified for URL: ${url}`);
 	}
 
 	const urlString = `${httpMode}${url}${portToUse}`;
