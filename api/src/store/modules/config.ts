@@ -11,7 +11,7 @@ import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { API_VERSION } from '@app/environment';
+import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -82,32 +82,38 @@ export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('co
  */
 export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file',
 	async (filePath, { getState, dispatch }) => {
-		const { paths, config } = getState();
+		try {
+			const { paths, config } = getState();
 
-		const path = filePath ?? paths['myservers-config'];
+			const path = filePath ?? paths['myservers-config'];
 
-		const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
-		const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
-			filePath: path,
-			type: 'ini',
-		}) : {};
+			const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
+			const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
+				filePath: path,
+				type: 'ini',
+			}) : {};
 
-		const newConfigFile = merge(file,
-			{
-				upc: {
-					apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
+			const newConfigFile = merge(file,
+				{
+					upc: {
+						apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),
+					},
+					notifier: {
+						apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
+					},
 				},
-				notifier: {
-					apikey: file.notifier?.apikey?.trim().length === 64 ? file.notifier?.apikey : `unnotify_${randomBytes(58).toString('hex')}`.substring(0, 64),
-				},
-			},
-		) as MyServersConfig;
+			) as MyServersConfig;
 
-		if (newConfigFile.remote.username === '' && config.remote.username !== '') {
-			await dispatch(logoutUser());
+			if (newConfigFile.remote.username === '' && config.remote.username !== '') {
+				await dispatch(logoutUser());
+			}
+
+			return newConfigFile;
+		} catch (error: unknown) {
+			logger.warn('Config file is corrupted, recreating config', error);
+			writeConfigSync('flash');
+			throw error;
 		}
-
-		return newConfigFile;
 	});
 
 export const config = createSlice({

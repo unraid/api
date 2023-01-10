@@ -1,7 +1,7 @@
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { getDiff } from 'json-difference';
 import { isEqual } from 'lodash';
-import { logger } from '../../core';
+import { logger } from '@app/core/log';
 import { type ConfigType, getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { loadConfigFile } from '@app/store/modules/config';
 import { writeFile } from 'fs/promises';
