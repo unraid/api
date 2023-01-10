@@ -8,6 +8,7 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { API_VERSION } from '@app/environment';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -18,14 +19,14 @@ class WebsocketWithMothershipHeaders extends WebSocket {
 }
 
 /**
- * Checks that config.api.version, config.remote.apiKey, emhttp.var.flashGuid, and emhttp.var.version
+ * Checks that API_VERSION, config.remote.apiKey, emhttp.var.flashGuid, and emhttp.var.version
  * are all set before returning true
  * @returns boolean, are variables set
  */
 export const isAPIStateDataFullyLoaded = () => {
 	const config = getters.config();
 	const emhttp = getters.emhttp();
-	return Boolean(config.api.version) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
+	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
 };
 
 export const createGraphqlClient = () => {
@@ -36,7 +37,7 @@ export const createGraphqlClient = () => {
 		webSocketImpl: WebsocketWithMothershipHeaders,
 		connectionParams: () => ({
 			clientType: 'API',
-			apiVersion: config.api.version,
+			apiVersion: API_VERSION,
 			apiKey: config.remote.apikey,
 			flashGuid: emhttp.var.flashGuid,
 			unraidVersion: emhttp.var.version,

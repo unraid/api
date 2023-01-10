@@ -11,6 +11,7 @@ import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { API_VERSION } from '@app/environment';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -41,7 +42,7 @@ export const initialState: SliceState = {
 	},
 	api: {
 		extraOrigins: '',
-		version: process.env.VERSION ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT', // This will be baked in at build time
+		version: API_VERSION,
 	},
 	upc: {
 		apikey: '',
@@ -94,7 +95,7 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 		const newConfigFile = merge(file,
 			{
 				api: {
-					version: config.api.version,
+					version: API_VERSION,
 				},
 				upc: {
 					apikey: file.upc?.apikey?.trim()?.length === 64 ? file.upc?.apikey : `unupc_${randomBytes(58).toString('hex')}`.substring(0, 64),

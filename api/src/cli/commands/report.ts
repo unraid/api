@@ -5,7 +5,7 @@ import { validateApiKey } from '@app/core/utils/misc/validate-api-key';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { existsSync, readFileSync } from 'fs';
-import { cliLogger, logger } from '@app/core/log';
+import { cliLogger } from '@app/core/log';
 import { resolve } from 'path';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
@@ -14,6 +14,7 @@ import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
 import { getCloudDocument, getServersDocument, type getServersQuery, type getCloudQuery } from '../../graphql/generated/api/operations';
 import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client/core';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { API_VERSION } from '@app/environment';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
@@ -148,7 +149,7 @@ const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): stri
 
 const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
 	const statusLine = `STATUS: [${reportObject.minigraph.status}]`;
-	const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null
+	const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null;
 	return `
 	${statusLine}${errorLine ? `\n${errorLine}` : ''}`;
 };
@@ -274,7 +275,7 @@ export const report = async (...argv: string[]) => {
 				version: await getUnraidVersion(paths),
 			},
 			api: {
-				version: getters.config().api.version,
+				version: API_VERSION,
 				status: unraidApiPid ? 'running' : 'stopped',
 				environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
 				nodeVersion: process.version,
@@ -287,7 +288,7 @@ export const report = async (...argv: string[]) => {
 			},
 			minigraph: {
 				status: cloud?.minigraphql.status ?? MinigraphStatus.DISCONNECTED,
-				error: cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected': null,
+				error: cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected' : null,
 			},
 			cloud: {
 				status: cloud?.cloud.status ?? 'error',

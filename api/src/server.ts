@@ -28,7 +28,8 @@ import { apiKeyToUser } from '@app/graphql';
 import { randomUUID } from 'crypto';
 import { getServerAddress } from '@app/common/get-server-address';
 import { apolloConfig } from '@app/graphql/config';
-import { originMiddleware } from './originMiddleware';
+import { originMiddleware } from '@app/originMiddleware';
+import { API_VERSION } from '@app/environment';
 
 const configFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.cfg');
 const customImageFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.png');
@@ -60,7 +61,7 @@ app.use(async (_req, res, next) => {
 	// Only get the machine ID on first request
 	// We do this to avoid using async in the main server function
 	if (!app.get('x-unraid-api-version')) {
-		app.set('x-unraid-api-version', getters.config().api.version);
+		app.set('x-unraid-api-version', API_VERSION);
 	}
 
 	// Update header with unraid API version

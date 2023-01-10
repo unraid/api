@@ -12,6 +12,7 @@ import { getCloudCache, getDnsCache } from '@app/store/getters';
 import { setCloudCheck, setDNSCheck } from '@app/store/modules/cache';
 import { got } from 'got';
 import { type CloudResponse, MinigraphStatus } from '@app/graphql/generated/api/types';
+import { API_VERSION } from '@app/environment';
 
 const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 
@@ -43,11 +44,12 @@ const fastCloudCheck = async (): Promise<CloudResponse> => {
 	const result = { status: 'ok', error: null, ip: 'FAST_CHECK_NO_IP_FOUND' };
 
 	const cloudIp = getDnsCache()?.cloudIp ?? null;
-
-	if (!cloudIp) {
+	if (cloudIp) {
+		result.ip = cloudIp;
+	} else {
 		try {
 			result.ip = (await checkDNS()).cloudIp;
-			logger.debug('DNS_CHECK_RESULT', await checkDNS())
+			logger.debug('DNS_CHECK_RESULT', await checkDNS());
 			store.dispatch(setDNSCheck({ cloudIp: result.ip, ttl: FIVE_DAYS_SECS, error: null }));
 		} catch (error: unknown) {
 			logger.warn('Failed to fetch DNS, but Minigraph is connected - continuing');
@@ -55,8 +57,6 @@ const fastCloudCheck = async (): Promise<CloudResponse> => {
 			// Don't set an error since we're actually connected to the cloud
 			store.dispatch(setDNSCheck({ cloudIp: result.ip, ttl: ONE_DAY_SECS, error: null }));
 		}
-	} else {
-		result.ip = cloudIp;
 	}
 
 	return result;
@@ -67,7 +67,7 @@ export const checkCloud = async (): Promise<CloudResponse> => {
 
 	try {
 		const config = getters.config();
-		const apiVersion = config.api.version;
+		const apiVersion = API_VERSION;
 		const apiKey = config.remote.apikey;
 		const graphqlStatus = getters.minigraph().status;
 		const result = { status: 'ok', error: null, ip: 'NO_IP_FOUND' };

@@ -5,9 +5,9 @@
 
 import { generateData } from '@app/common/dashboard/generate-data';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { Context } from '@app/graphql/schema/utils';
+import { type Resolvers } from '@app/graphql/generated/api/types';
 
-export default async (_: unknown, __: unknown, context: Context) => {
+const dashboardResolver: NonNullable<Resolvers['Query']>['dashboard'] = async (_, __, context) => {
 	ensurePermission(context.user, {
 		resource: 'dashboard',
 		action: 'read',
@@ -17,3 +17,5 @@ export default async (_: unknown, __: unknown, context: Context) => {
 	const dashboard = await generateData();
 	return dashboard;
 };
+
+export default dashboardResolver;

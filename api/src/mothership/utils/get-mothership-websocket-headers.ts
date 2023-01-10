@@ -1,3 +1,4 @@
+import { API_VERSION } from '@app/environment';
 import { getters } from '@app/store';
 
 export const getMothershipWebsocketHeaders = () => {
@@ -11,7 +12,7 @@ export const getMothershipWebsocketHeaders = () => {
 		'x-api-key': apiKey,
 		'x-flash-guid': emhttp.var.flashGuid,
 		'x-server-name': serverName,
-		'x-unraid-api-version': config.api.version,
+		'x-unraid-api-version': API_VERSION,
 		'x-unraid-server-version': serverVersion,
 	};
 };
