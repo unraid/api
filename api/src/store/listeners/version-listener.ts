@@ -7,7 +7,7 @@ import { FileLoadStatus } from '@app/store/types';
 export const enableVersionListener = () => startAppListening({
 	predicate(_, currentState) {
 		if (currentState.config.status === FileLoadStatus.LOADED && (currentState.config.api.version === '' || currentState.config.api.version !== API_VERSION)) {
-			logger.trace('Config Loaded, setting API Version in myservers.cfg * forces write to disk *');
+			logger.trace('Config Loaded, setting API Version in myservers.cfg');
 			return true;
 		}
 
