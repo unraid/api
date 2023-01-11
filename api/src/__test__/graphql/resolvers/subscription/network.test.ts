@@ -95,9 +95,9 @@ test('getUrlForServer - FQDN - field exists, port empty', () => {
 });
 
 test.each([
-	[{ nginx: { lanFqdn: 'my-fqdn.unraid.net', sslEnabled: false, sslMode: 'no' } as const as Nginx, field: 'lanFqdn' as NginxUrlFields }],
-	[{ nginx: { wanFqdn: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'yes' } as const as Nginx, field: 'wanFqdn' as NginxUrlFields }],
-	[{ nginx: { wanFqdn6: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'auto' } as const as Nginx, field: 'wanFqdn6' as NginxUrlFields }],
+	[{ nginx: { lanFqdn: 'my-fqdn.unraid.net', sslEnabled: false, sslMode: 'no', httpPort: 80, httpsPort: 443 } as const as Nginx, field: 'lanFqdn' as NginxUrlFields }],
+	[{ nginx: { wanFqdn: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'yes', httpPort: 80, httpsPort: 443 } as const as Nginx, field: 'wanFqdn' as NginxUrlFields }],
+	[{ nginx: { wanFqdn6: 'my-fqdn.unraid.net', sslEnabled: true, sslMode: 'auto', httpPort: 80, httpsPort: 443 } as const as Nginx, field: 'wanFqdn6' as NginxUrlFields }],
 
 ])('getUrlForServer - FQDN', ({ nginx, field }) => {
 	const result = getUrlForServer({ nginx, field });
@@ -182,7 +182,7 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 		[
 		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanIp6", is FQDN?: false],
 		  [Error: IP URL Resolver: Could not resolve any access URL for field: "lanFqdn6", is FQDN?: true],
-		  [Error: Failed to parse URL: https://:8443],
+		  [Error: No URL Provided],
 		]
 	`);
 });
