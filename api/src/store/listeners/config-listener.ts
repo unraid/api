@@ -24,8 +24,9 @@ export const enableConfigFileListener = (mode: ConfigType) => () => startAppList
 
 		return false;
 	}, effect(_, { getState }) {
-		const pathToWrite = mode === 'flash' ? getState().paths['myservers-config'] : getState().paths['myservers-config-states'];
-		const writeableConfig = getWriteableConfig(getState().config, mode);
+		const { paths, config } = getState();
+		const pathToWrite = mode === 'flash' ? paths['myservers-config'] : paths['myservers-config-states'];
+		const writeableConfig = getWriteableConfig(config, mode);
 		const serializedConfig = safelySerializeObjectToIni(writeableConfig);
 		logger.debug('Writing updated config to', pathToWrite);
 		writeFileSync(pathToWrite, serializedConfig);
