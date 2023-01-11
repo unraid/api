@@ -10,9 +10,11 @@ import { dashboard } from '@app/store/modules/dashboard';
 import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
+import { apiKeyReducer } from '@app/store/modules/apikey';
 
 export const store = configureStore({
 	reducer: {
+		apiKey: apiKeyReducer,
 		config: configReducer,
 		minigraph: mothership.reducer,
 		paths: paths.reducer,
@@ -36,6 +38,7 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 export const getters = {
+	apiKey: () => store.getState().apiKey,
 	config: () => store.getState().config,
 	minigraph: () => store.getState().minigraph,
 	paths: () => store.getState().paths,

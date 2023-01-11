@@ -3,7 +3,7 @@
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
-import { subscribeToMothership } from '../subscribe-to-mothership';
+import { subscribeToMothership } from '@app/mothership/subscribe-to-mothership';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.Start()

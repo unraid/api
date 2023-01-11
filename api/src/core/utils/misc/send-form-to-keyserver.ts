@@ -1,8 +1,8 @@
 import { AppError } from '@app/core/errors/app-error';
 import { logger } from '@app/core/log';
-import { got } from 'got';
+import { type CancelableRequest, got, type Response } from 'got';
 
-export const sendFormToKeyServer = async (url: string, data: Record<string, unknown>) => {
+export const sendFormToKeyServer = async (url: string, data: Record<string, unknown>): Promise<CancelableRequest<Response<string>>> => {
 	if (!data) {
 		throw new AppError('Missing data field.');
 	}

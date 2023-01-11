@@ -11,7 +11,6 @@ import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';

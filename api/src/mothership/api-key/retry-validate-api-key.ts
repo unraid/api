@@ -1,0 +1,25 @@
+import { THIRTY_MINUTES_MS } from '@app/consts';
+import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
+import { apiKeyCheckJob } from '@app/mothership/jobs/api-key-check-jobs';
+import { type AppDispatch, type RootState } from '@app/store/index';
+import { setApiKeyState } from '@app/store/modules/apikey';
+import pRetry from 'p-retry';
+
+export const retryValidateApiKey = async (getState: () => RootState, dispatch: AppDispatch): Promise<boolean> => {
+	if (getState().apiKey.status === API_KEY_STATUS.PENDING_VALIDATION) {
+		// Don't start a new job
+
+		return false;
+	}
+
+	// Start job here
+	dispatch(setApiKeyState(API_KEY_STATUS.PENDING_VALIDATION));
+	return pRetry(async () => apiKeyCheckJob(getState, dispatch), {
+		retries: 20_000,
+		minTimeout: 2_000,
+		maxTimeout: THIRTY_MINUTES_MS,
+		randomize: true,
+		factor: 2,
+	});
+	// Run recursive set timeout job
+};

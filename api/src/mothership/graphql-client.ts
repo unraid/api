@@ -9,6 +9,7 @@ import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
+import { isApiKeyCorrectLength } from '@app/mothership/api-key/is-api-key-correct-length';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -23,10 +24,9 @@ class WebsocketWithMothershipHeaders extends WebSocket {
  * are all set before returning true
  * @returns boolean, are variables set
  */
-export const isAPIStateDataFullyLoaded = () => {
-	const config = getters.config();
-	const emhttp = getters.emhttp();
-	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
+export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
+	const { config, emhttp } = state;
+	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && isApiKeyCorrectLength(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
 };
 
 export const createGraphqlClient = () => {
