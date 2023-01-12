@@ -567,7 +567,7 @@
       "hasRemoteApikey" => !empty($remote['apikey']),
       "internalip" => ipaddr(),
       "internalport" => $_SERVER['SERVER_PORT'],
-      "keyfile" => str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
+      "keyfile" => empty($var['regFILE'])? "" : str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
       "osVersion" => $var['version'],
       "plgVersion" => $plgversion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
         ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
