@@ -58,8 +58,8 @@ export const initialState: SliceState = {
 	},
 } as const;
 
-export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async () => {
-	logger.info('Logging out user');
+export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: RootState }>('config/logout-user', async ({ reason }) => {
+	logger.info('Logging out user: %s', reason ?? 'No reason provided');
 	const { pubsub } = await import ('@app/core/pubsub');
 
 	// Publish to servers endpoint
@@ -107,7 +107,7 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 			) as MyServersConfig;
 
 			if (newConfigFile.remote.username === '' && config.remote.username !== '') {
-				await dispatch(logoutUser());
+				await dispatch(logoutUser({ reason: 'Logged out manually' }));
 			}
 
 			return newConfigFile;

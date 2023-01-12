@@ -11,10 +11,10 @@ class DashboardPublisher extends Initializer<typeof DashboardPublisher> {
 	@Cron(Expression.EVERY_5_SECONDS)
 	async publishToDashboardJob() {
 		// No need to try catch since publishToDashboard has that handled
-		dashboardLogger.trace('Dashboard Publisher is Running')
+		dashboardLogger.trace('Dashboard Publisher is Running');
 		const result = await Promise.allSettled([publishNetwork(), publishToDashboard()]);
 		if (result.find(res => res.status === 'rejected')) {
-			dashboardLogger.error('Error publishing to dashboard %o', result)
+			dashboardLogger.error('Error publishing to dashboard %o', result);
 		}
 	}
 }

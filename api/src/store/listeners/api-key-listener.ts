@@ -10,7 +10,6 @@ export const enableApiKeyListener = () => startAppListening({
 			(currentState.config.remote.apikey !== previousState.config.remote.apikey
 				|| currentState.emhttp.var.flashGuid !== previousState.emhttp.var.flashGuid)
 			&& isAPIStateDataFullyLoaded(currentState)
-			&& !isApiKeyValid(currentState)
 			&& !isApiKeyLoading(currentState)
 		) {
 			// API Key is not marked as Valid and the State Data is fully loaded

@@ -18,7 +18,8 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron(Expression.EVERY_10_SECONDS)
 	async checkCloudConnection() {
 		// @TODO: Convert this to a listener instead of a recurring job.
-		if (isAPIStateDataFullyLoaded() && isApiKeyValid()) {
+		// Only need to check API key validity here since the API key validation ensures that state is fully loaded
+		if (isApiKeyValid()) {
 			try {
 				await subscribeToMothership();
 			} catch (error: unknown) {

@@ -26,7 +26,7 @@ class WebsocketWithMothershipHeaders extends WebSocket {
  */
 export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
 	const { config, emhttp } = state;
-	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && isApiKeyCorrectLength(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
+	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
 };
 
 export const createGraphqlClient = () => {
