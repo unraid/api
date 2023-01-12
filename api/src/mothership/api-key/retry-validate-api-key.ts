@@ -14,12 +14,13 @@ export const retryValidateApiKey = async (getState: () => RootState, dispatch: A
 
 	// Start job here
 	dispatch(setApiKeyState(API_KEY_STATUS.PENDING_VALIDATION));
-	return pRetry(async () => apiKeyCheckJob(getState, dispatch), {
+	const retryResult = await pRetry(async () => apiKeyCheckJob(getState, dispatch), {
 		retries: 20_000,
 		minTimeout: 2_000,
 		maxTimeout: THIRTY_MINUTES_MS,
 		randomize: true,
 		factor: 2,
 	});
+	return retryResult;
 	// Run recursive set timeout job
 };
