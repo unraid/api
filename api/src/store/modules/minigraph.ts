@@ -43,6 +43,10 @@ export const mothership = createSlice({
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
 			state.status = action.payload.status;
 			state.error = action.payload.error;
+			if ([MinigraphStatus.DISCONNECTED].includes(action.payload.status)) {
+				state.subscriptions.EVENTS = false;
+				state.subscriptions.SERVERS = false;
+			}
 		});
 		builder.addCase(logoutUser.pending, state => {
 			state.subscriptions.EVENTS = false;
