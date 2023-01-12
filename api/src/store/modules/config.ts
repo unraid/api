@@ -6,7 +6,7 @@ import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { F_OK } from 'constants';
 import { type RecursivePartial } from '@app/types';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { MinigraphStatus, type Owner } from '@app/graphql/generated/api/types';
 import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
@@ -14,6 +14,7 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
+import { pubsub } from '@app/core/pubsub';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -58,6 +59,16 @@ export const initialState: SliceState = {
 	},
 } as const;
 
+export const loginUser = createAsyncThunk<Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username'>, Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username'>, { state: RootState }>('config/login-user', async userInfo => {
+	logger.info('Logging in user: %s', userInfo.username);
+	const owner: Owner = {
+		username: userInfo.username,
+		avatar: userInfo.avatar,
+	};
+	await pubsub.publish('owner', { owner });
+	return userInfo;
+});
+
 export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: RootState }>('config/logout-user', async ({ reason }) => {
 	logger.info('Logging out user: %s', reason ?? 'No reason provided');
 	const { pubsub } = await import ('@app/core/pubsub');
@@ -67,14 +78,13 @@ export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: R
 		servers: [],
 	});
 
+	const owner: Owner = {
+		username: 'root',
+		url: '',
+		avatar: '',
+	};
 	// Publish to owner endpoint
-	await pubsub.publish('owner', {
-		owner: {
-			username: 'root',
-			url: '',
-			avatar: '',
-		},
-	});
+	await pubsub.publish('owner', { owner });
 });
 
 /**
@@ -83,9 +93,9 @@ export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: R
  * Note: If the file doesn't exist this will fallback to default values.
  */
 export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefined, { state: RootState }>('config/load-config-file',
-	async (filePath, { getState, dispatch }) => {
+	async (filePath, { getState }) => {
 		try {
-			const { paths, config } = getState();
+			const { paths } = getState();
 
 			const path = filePath ?? paths['myservers-config'];
 
@@ -105,10 +115,6 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 					},
 				},
 			) as MyServersConfig;
-
-			if (newConfigFile.remote.username === '' && config.remote.username !== '') {
-				await dispatch(logoutUser({ reason: 'Logged out manually' }));
-			}
 
 			return newConfigFile;
 		} catch (error: unknown) {
@@ -174,6 +180,7 @@ export const config = createSlice({
 				},
 			});
 		});
+
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
 			logger.debug('Setting graphql connection status', action.payload);
 			state.connectionStatus.minigraph = action.payload.status;
