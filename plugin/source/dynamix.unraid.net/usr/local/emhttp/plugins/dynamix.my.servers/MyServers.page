@@ -379,11 +379,22 @@ const isCommaSeparatedURLs = input =>
 <?
 /**
  * Allowed origins warning displayed when the current webGUI URL is NOT included in the known lists of allowed origins.
- * Only displays HTTP(S) URLs that do not include localhost.
+ * Include localhost in the test, but only display HTTP(S) URLs that do not include localhost.
  */
 $host = $_SERVER['HTTP_HOST'] ?? "unknown";
 $allowedOrigins = $myStatus['allowedOrigins'] ?? "";
-$allowedOriginsArr = stripos($allowedOrigins.",", "/".$host.",") === false ? explode(", ", $allowedOrigins) : "";
+$allowedOriginsArr = [];
+if (stripos($allowedOrigins.",", "/".$host.",") === false) {
+  $allowedOriginsArr = explode(", ", $allowedOrigins);
+  if ($allowedOriginsArr) {
+    foreach($allowedOriginsArr as $key => $origin) {
+      if ( (strpos($origin, "http") === false) || (strpos($origin, "localhost") !== false) ) {
+        // clean up $allowedOriginsArr, only display warning if origins still remain to display
+        unset($allowedOriginsArr[$key]);
+      }
+    }
+  }
+}
 ?>
 <? if ($allowedOriginsArr): ?>
 <dl>
@@ -393,9 +404,7 @@ $allowedOriginsArr = stripos($allowedOrigins.",", "/".$host.",") === false ? exp
     <dd>
       <ul>
         <? foreach($allowedOriginsArr as $origin): ?>
-          <? if ( (strpos($origin, "http") !== false) && (strpos($origin, "localhost") === false) ): ?>
-            <li><a href="<?= $origin ?>"><?= $origin ?></a></li>
-          <? endif ?>
+          <li><a href="<?= $origin ?>"><?= $origin ?></a></li>
         <? endforeach ?>
       </ul>
     <dd>
