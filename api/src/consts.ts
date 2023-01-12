@@ -16,6 +16,11 @@ export const ONE_SECOND = 1_000;
 export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;
 
+export const ONE_SECOND_MS = 1_000;
+export const ONE_MINUTE_MS = 60 * ONE_SECOND;
+export const THIRTY_MINUTES_MS = 30 * ONE_MINUTE;
+export const ONE_HOUR_MS = 60 * ONE_MINUTE;
+
 // Seconds
 export const ONE_HOUR_SECS = 60 * 60;
 export const ONE_DAY_SECS = ONE_HOUR_SECS * 24;
@@ -37,3 +42,4 @@ export const OAUTH_CLIENT_ID = '6j48osc811hgbn4nqkhge3su5q';
 export const OAUTH_OPENID_CONFIGURATION_URL = OAUTH_BASE_URL + '/.well-known/openid-configuration';
 export const JWKS_REMOTE_LINK = OAUTH_BASE_URL + '/.well-known/jwks.json';
 export const RCD_SCRIPT = 'rc.unraid-api';
+export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/validate/apikey';

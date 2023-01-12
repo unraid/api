@@ -3,7 +3,8 @@
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
-import { subscribeToMothership } from '../subscribe-to-mothership';
+import { subscribeToMothership } from '@app/mothership/subscribe-to-mothership';
+import { isApiKeyValid } from '@app/store/getters/index';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.Start()
@@ -17,7 +18,8 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron(Expression.EVERY_10_SECONDS)
 	async checkCloudConnection() {
 		// @TODO: Convert this to a listener instead of a recurring job.
-		if (isAPIStateDataFullyLoaded()) {
+		// Only need to check API key validity here since the API key validation ensures that state is fully loaded
+		if (isApiKeyValid()) {
 			try {
 				await subscribeToMothership();
 			} catch (error: unknown) {

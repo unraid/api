@@ -266,8 +266,7 @@ export const report = async (...argv: string[]) => {
 		const servers = await getServersData({ client, v });
 
 		// Check if the API key is valid
-		// If the API is offline check directly with key-server
-		const isApiKeyValid = cloud?.apiKey.valid ?? await validateApiKey(config.remote?.apikey ?? '', false);
+		const isApiKeyValid = cloud?.apiKey.valid ?? false;
 
 		const reportObject: ReportObject = {
 			os: {
@@ -280,7 +279,7 @@ export const report = async (...argv: string[]) => {
 				environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
 				nodeVersion: process.version,
 			},
-			apiKey: (cloud?.apiKey.valid ?? isApiKeyValid) ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
+			apiKey: isApiKeyValid ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
 			...(servers ? { servers } : {}),
 			myServers: {
 				status: config?.remote?.username ? 'authenticated' : 'signed out',

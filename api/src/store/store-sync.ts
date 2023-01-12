@@ -1,6 +1,5 @@
 import type { RootState } from '@app/store';
 import { store } from '@app/store';
-import { syncApiKeyChanges } from '@app/store/sync/api-key-sync';
 import { sync2FA } from '@app/store/sync/2fa-sync';
 import { FileLoadStatus } from './types';
 import { syncRegistration } from '@app/store/sync/registration-sync';
@@ -17,11 +16,8 @@ export const startStoreSync = async () => {
 		const state = store.getState();
 		// Config dependent options, wait until config loads to execute
 		if (state.config.status === FileLoadStatus.LOADED) {
-			// Update API key
-			await syncApiKeyChanges(lastState);
-
 			// Update 2FA
-			await sync2FA();
+			// await sync2FA();
 
 			// Update registration
 			await syncRegistration(lastState);

@@ -4,6 +4,7 @@ import { enableUpnpListener } from '@app/store/listeners/upnp-listener';
 import { enableAllowedOriginListener } from '@app/store/listeners/allowed-origin-listener';
 import { enableConfigFileListener } from '@app/store/listeners/config-listener';
 import { enableVersionListener } from '@app/store/listeners/version-listener';
+import { enableApiKeyListener } from '@app/store/listeners/api-key-listener';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -22,6 +23,7 @@ AppDispatch
 // Begin listening for events
 enableConfigFileListener('flash')();
 enableConfigFileListener('memory')();
+enableApiKeyListener();
 enableUpnpListener();
 enableAllowedOriginListener();
 enableVersionListener();

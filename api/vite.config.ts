@@ -16,6 +16,9 @@ export default defineConfig(() => {
 				reporter: ['text', 'json', 'html'],
 			},
 			clearMocks: true,
+			setupFiles: [
+				'src/__test__/setup/keyserver-mock.ts'
+			]
 		},
 	};
 });

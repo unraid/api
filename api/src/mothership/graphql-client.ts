@@ -23,9 +23,8 @@ class WebsocketWithMothershipHeaders extends WebSocket {
  * are all set before returning true
  * @returns boolean, are variables set
  */
-export const isAPIStateDataFullyLoaded = () => {
-	const config = getters.config();
-	const emhttp = getters.emhttp();
+export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
+	const { config, emhttp } = state;
 	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
 };
 

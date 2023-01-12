@@ -11,7 +11,6 @@ import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
@@ -59,8 +58,8 @@ export const initialState: SliceState = {
 	},
 } as const;
 
-export const logoutUser = createAsyncThunk<void, void, { state: RootState }>('config/logout-user', async () => {
-	logger.info('Logging out user');
+export const logoutUser = createAsyncThunk<void, { reason?: string }, { state: RootState }>('config/logout-user', async ({ reason }) => {
+	logger.info('Logging out user: %s', reason ?? 'No reason provided');
 	const { pubsub } = await import ('@app/core/pubsub');
 
 	// Publish to servers endpoint
@@ -108,7 +107,7 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 			) as MyServersConfig;
 
 			if (newConfigFile.remote.username === '' && config.remote.username !== '') {
-				await dispatch(logoutUser());
+				await dispatch(logoutUser({ reason: 'Logged out manually' }));
 			}
 
 			return newConfigFile;
