@@ -9,7 +9,6 @@ import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
-import { isApiKeyCorrectLength } from '@app/mothership/api-key/is-api-key-correct-length';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
