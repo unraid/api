@@ -17,3 +17,8 @@ export const isApiKeyValid = (state = store.getState()): boolean => {
 	const { status } = state.apiKey;
 	return status === API_KEY_STATUS.API_KEY_VALID;
 };
+
+export const isApiKeyLoading = (state = store.getState()): boolean => {
+	const { status } = state.apiKey;
+	return status === API_KEY_STATUS.PENDING_VALIDATION;
+};

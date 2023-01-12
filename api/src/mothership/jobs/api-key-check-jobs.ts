@@ -38,6 +38,7 @@ export const apiKeyCheckJob = async (getState: () => RootState, dispatch: AppDis
 		}
 	} else {
 		keyServerLogger.warn('State Data Has Not Fully Loaded, this should not be possible');
+		dispatch(setApiKeyState(API_KEY_STATUS.NO_API_KEY));
 		return false;
 	}
 };
