@@ -8,7 +8,8 @@ import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
 import { logoutUser } from '@app/store/modules/config';
 import { isApiKeyValid } from '@app/store/getters/index';
 
-export const apiKeyCheckJob = async (getState: () => RootState, dispatch: AppDispatch): Promise<boolean> => {
+export const apiKeyCheckJob = async (getState: () => RootState, dispatch: AppDispatch, count?: number): Promise<boolean> => {
+	keyServerLogger.debug('Running keyserver validation number: %s', count);
 	const state = getState();
 	if (state.apiKey.status === API_KEY_STATUS.NO_API_KEY) {
 		// Stop Job
