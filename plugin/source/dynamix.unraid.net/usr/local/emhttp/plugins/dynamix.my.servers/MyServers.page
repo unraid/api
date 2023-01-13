@@ -23,23 +23,23 @@ Tag="globe"
 // now can remotely access using url that matches their cert. This is probably a bug here, but we might
 // want to rework this somewhat to explicitly enable this 'feature' (remote access using user-provided cert).
 
-$keyfile = @file_get_contents($var['regFILE']);
-if ($keyfile !== false)
+$keyfile = empty($var['regFILE']) ? null : @file_get_contents($var['regFILE']);
+if ($keyfile !== false) {
   $keyfile = @base64_encode($keyfile);
-
-if (empty($remote)) {
-    $remote = [
-        "apikey" => "",
-        "wanaccess" => "no",
-        "upnpEnabled" => "no",
-        "wanport" => "443"
-    ];
 }
-if (empty($remote['wanport'])) {
-    $remote['wanport'] = 443;
+// note: $myservers variable defined in myservers1.php, by parsing myservers.cfg
+// ensure some vars are defined here so we don't have to test them later
+if (empty($myservers['remote']['apikey'])) {
+  $myservers['remote']['apikey'] = "";
 }
-if (empty($remote['upnpEnabled'])) {
-  $remote['upnpEnabled'] = "no";
+if (empty($myservers['remote']['wanaccess'])) {
+  $myservers['remote']['wanaccess'] = "no";
+}
+if (empty($myservers['remote']['wanport'])) {
+  $myservers['remote']['wanport'] = 443;
+}
+if (empty($myservers['remote']['upnpEnabled'])) {
+  $myservers['remote']['upnpEnabled'] = "no";
 }
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
@@ -51,10 +51,11 @@ if ($oldVersion) {
     $hasCert = $hasCert && $var['USE_SSL']!='no';
 }
 
-$isRegistered = !empty($remote['username']);
+$isRegistered = !empty($myservers['remote']['username']);
 
-$myStatus = (file_exists('/var/local/emhttp/myservers.cfg')) ? @parse_ini_file('/var/local/emhttp/myservers.cfg') : [];
-$isConnected = (array_key_exists('minigraph', $myStatus) && ($myStatus['minigraph']==='CONNECTED'))?true:false;
+$myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
+$mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
+$isConnected = (($mystatus['minigraph']??'')==='CONNECTED') ? true : false;
 $fbStatus = (file_exists('/var/local/emhttp/flashbackup.ini')) ? @parse_ini_file('/var/local/emhttp/flashbackup.ini') : [];
 
 $passwd_result = exec('/usr/bin/passwd --status root');
@@ -64,7 +65,7 @@ $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd
  * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
  * by disabling html attrs and vars before the post sends to set the field
  */
-$enableRemoteT2fa = !$oldVersion && $remote['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
+$enableRemoteT2fa = !$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
 $enableLocalT2fa = !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
 ?>
 <script>
@@ -173,7 +174,7 @@ function dnsCheckServer(button) {
         } else {
             swal({
               title: "Oops",
-              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $remote['wanport']??'', htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
+              text: "<?=sprintf(_("The Unraid server is unreachable from outside your network. Be sure you have configured your router to forward port") . " <strong style='font-weight: bold'>%u/TCP</strong> " . _("to the Unraid server at") . " <strong style='font-weight: bold'>%s</strong> " . _("port") . " <strong style='font-weight: bold'>%u</strong>", $myservers['remote']['wanport'], htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?>",
               type: "error",
               html: true,
               confirmButtonText: "_(Ok)_"
@@ -382,7 +383,7 @@ const isCommaSeparatedURLs = input =>
  * Include localhost in the test, but only display HTTP(S) URLs that do not include localhost.
  */
 $host = $_SERVER['HTTP_HOST'] ?? "unknown";
-$allowedOrigins = $myStatus['allowedOrigins'] ?? "";
+$allowedOrigins = $mystatus['allowedOrigins'] ?? "";
 $allowedOriginsArr = [];
 if (stripos($allowedOrigins.",", "/".$host.",") === false) {
   $allowedOriginsArr = explode(", ", $allowedOrigins);
@@ -427,7 +428,7 @@ _(Connected to My Servers Cloud)_:
 _(Allow Remote Access)_:
 <?if(!$isRegistered):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
-<?elseif(!$isConnected && $remote['wanaccess']!="yes"):?>
+<?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
 <?elseif(!$hasCert):?>
 <?if($oldVersion):?>
@@ -442,22 +443,22 @@ _(Allow Remote Access)_:
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?else: // begin show remote access form ?>
-: <select id="wanaccess" size="1" data-orig="<?=$remote['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
-  <?=mk_option($remote['wanaccess']??'', "no", _("No"))?>
-  <?=mk_option($remote['wanaccess']??'', "yes", _("Yes"))?>
+: <select id="wanaccess" size="1" data-orig="<?=$myservers['remote']['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
+  <?=mk_option($myservers['remote']['wanaccess'], "no", _("No"))?>
+  <?=mk_option($myservers['remote']['wanaccess'], "yes", _("Yes"))?>
   </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>" />
 
-<div markdown="1" id="wanpanel" style="display:<?=($remote['wanaccess']=='yes'?'block':'none')?>">
+<div markdown="1" id="wanpanel" style="display:<?=($myservers['remote']['wanaccess']=='yes'?'block':'none')?>">
 
 <? /** for the time being only display UPnP field when enabled manually by Unraid developers */ ?>
-<?if($local['showT2Fa'] === 'yes' || $remote['upnpEnabled'] === 'yes'):?>
+<?if($myservers['local']['showT2Fa']??'' === 'yes' || $myservers['remote']['upnpEnabled'] === 'yes'):?>
 
 _(Use UPnP)_:
 <?if($var['USE_UPNP'] === 'yes'):?>
-: <select id="upnpEnabled" size="1" data-orig="<?=$remote['upnpEnabled']?>" onchange="changeUpnp()" style="vertical-align: top;">
-<?=mk_option($remote['upnpEnabled']??'', "no", _("No"))?>
-<?=mk_option($remote['upnpEnabled']??'', "yes", _("Yes"))?>
-</select> <?=$myStatus['upnpError']??''?>
+: <select id="upnpEnabled" size="1" data-orig="<?=$myservers['remote']['upnpEnabled']?>" onchange="changeUpnp()" style="vertical-align: top;">
+<?=mk_option($myservers['remote']['upnpEnabled'], "no", _("No"))?>
+<?=mk_option($myservers['remote']['upnpEnabled'], "yes", _("Yes"))?>
+</select> <?=$mystatus['upnpError']??''?>
 <?else:?>
 : <i class="fa fa-warning icon warning" aria-hidden="true"></i> _(UPnP must be enabled on Settings -> Management Access)_
 <?endif ?>
@@ -465,14 +466,14 @@ _(Use UPnP)_:
 <?endif // end check for showT2Fa ?>
 
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$remote['wanport']??''?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($remote['wanport']??'')?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
- <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $remote['wanport']??'', htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?></span>
+: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+ <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $myservers['remote']['wanport'], htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?></span>
 
 :unraidnet_wanpanel_help:
 
 </div>
 <? /** for the time being only display remote T2FA field when enabled manually by Unraid developers */ ?>
-<?if($local['showT2Fa'] === 'yes'):?>
+<?if($myservers['local']['showT2Fa']??'' === 'yes'):?>
 <?
 $remoteT2faRemarks = [
   'all' => _('Remote T2FA requires Remote Access to be enabled, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
@@ -486,17 +487,17 @@ $remoteT2faRemarks = [
 
 if ($enableRemoteT2fa)
   $remoteT2faRemark = '';
-elseif ($oldVersion && $remote['wanaccess'] === 'yes' && $hasMyUnraidNetCert)
+elseif ($oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['need610'];
-elseif (!$oldVersion && $remote['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
+elseif (!$oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemote'];
-elseif ($oldVersion && $remote['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
+elseif ($oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemoteAnd610'];
-elseif (!$oldVersion && $remote['wanaccess'] !== 'yes' && !$hasMyUnraidNetCert)
+elseif (!$oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemoteAndCert'];
-elseif ($oldVersion && $remote['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
+elseif ($oldVersion && $myservers['remote']['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['need610AndCert'];
-elseif (!$oldVersion && $remote['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
+elseif (!$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needCert'];
 else
   $remoteT2faRemark = $remoteT2faRemarks['all'];
@@ -531,22 +532,22 @@ else
 
 _(Enable Transparent 2FA for Remote Access)_:
 : <select id="remote2fa" size="1" <?=($enableRemoteT2fa ? '' : 'disabled')?>>
-  <?=mk_option($remote['2Fa']??'', "no", _("No"))?>
-  <?=mk_option($remote['2Fa']??'', "yes", _("Yes"))?>
+  <?=mk_option($myservers['remote']['2Fa']??'', "no", _("No"))?>
+  <?=mk_option($myservers['remote']['2Fa']??'', "yes", _("Yes"))?>
   </select> <span id="remote2fa_remark" style="display:<?=($enableRemoteT2fa ? 'none' : 'inline')?>;"><?=$remoteT2faRemark??''?></span>
 
 :myservers_remote_t2fa_help:
 
 _(Enable Transparent 2FA for Local Access)_:
 : <select id="local2fa" size="1" <?=($enableLocalT2fa ? '' : 'disabled')?>>
-  <?=mk_option($local['2Fa']??'', "no", _("No"))?>
-  <?=mk_option($local['2Fa']??'', "yes", _("Yes"))?>
+  <?=mk_option($myservers['local']['2Fa']??'', "no", _("No"))?>
+  <?=mk_option($myservers['local']['2Fa']??'', "yes", _("Yes"))?>
   </select> <span id="local2fa_remark" style="display:<?=($enableLocalT2fa ? 'none' : 'inline')?>;"><?=$localT2faRemark??''?></span>
 
 :myservers_local_t2fa_help:
 
 _(Unraid API extra origins)_:
-: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$api['extraOrigins']??''?>">
+: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$myservers['api']['extraOrigins']??''?>">
 
 :unraidnet_extraorigins_help:
 <?endif // end show remote access form ?>
@@ -608,7 +609,7 @@ _(Flash backup)_:
 &nbsp;
 : <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
 
-<?if (($_COOKIE['UPC_ENV'] === 'development' || $_COOKIE['UPC_ENV'] === 'staging') && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
+<?if (in_array($_COOKIE['UPC_ENV']??'', ['development','staging']) && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
 &nbsp;
 : <button type="button" onclick="openBox('/plugins/dynamix.my.servers/scripts/gitflash_log', 'Flash Backup Error Log', 800, 800);">_(View Flash Backup Error Log)_</button>  <span><em>_(Transient errors in this log can be ignored unless you are having issues)_</em></span>
 <?endif?>
