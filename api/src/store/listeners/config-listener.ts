@@ -4,11 +4,11 @@ import { isEqual } from 'lodash';
 import { logger } from '@app/core/log';
 import { type ConfigType, getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { loadConfigFile, loginUser, logoutUser } from '@app/store/modules/config';
-import { writeFile } from 'fs/promises';
 import { FileLoadStatus } from '@app/store/types';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { isFulfilled } from '@reduxjs/toolkit';
 import { environment } from '@app/environment';
+import { writeFileSync } from 'fs';
 
 const actionIsLoginOrLogout = isFulfilled(logoutUser, loginUser);
 
@@ -43,7 +43,7 @@ export const enableConfigFileListener = (mode: ConfigType) => () => startAppList
 		const writeableConfig = getWriteableConfig(config, mode);
 		const serializedConfig = safelySerializeObjectToIni(writeableConfig);
 		logger.debug('Writing updated config to', pathToWrite);
-		await writeFile(pathToWrite, serializedConfig);
+		writeFileSync(pathToWrite, serializedConfig);
 	},
 });
 
