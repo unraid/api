@@ -19,7 +19,7 @@
         }
       }
     }
-    // note: myservers.cfg was parsed in myservers1.php
+    // note: $myservers variable defined in myservers1.php, by parsing myservers.cfg
     // upc translations
     $upc_translations = [
       ($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US' => [
@@ -550,7 +550,7 @@
     $flashBackup = @parse_ini_file('/usr/local/emhttp/state/flashbackup.ini');
 
     $serverstate = [ // feeds server vars to Vuex store in a slightly different array than state.php
-      "avatar" => (!empty($remote['avatar']) && $plgInstalled) ? $remote['avatar'] : '',
+      "avatar" => (!empty($myservers['remote']['avatar']) && $plgInstalled) ? $myservers['remote']['avatar'] : '',
       "config" => [
         'valid' => $var['configValid'] === 'yes',
         'error' => $var['configValid'] !== 'yes'
@@ -558,13 +558,13 @@
           : null,
       ],
       "deviceCount" => $var['deviceCount'],
-      "email" => $remote['email'] ?? '',
-      "extraOrigins" => explode(',', $api['extraOrigins']??''),
+      "email" => $myservers['remote']['email'] ?? '',
+      "extraOrigins" => explode(',', $myservers['api']['extraOrigins']??''),
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
       "flashBackupActivated" => isset($flashBackup['activated']) ? 'true' : '',
       "guid" => $var['flashGUID'],
-      "hasRemoteApikey" => !empty($remote['apikey']),
+      "hasRemoteApikey" => !empty($myservers['remote']['apikey']),
       "internalip" => ipaddr(),
       "internalport" => $_SERVER['SERVER_PORT'],
       "keyfile" => empty($var['regFILE'])? "" : str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
@@ -578,12 +578,12 @@
       "protocol" => $_SERVER['REQUEST_SCHEME'],
       "reggen" => (int)$var['regGen'],
       "regGuid" => $var['regGUID'],
-      "registered" => (!empty($remote['username']) && $plgInstalled),
+      "registered" => (!empty($myservers['remote']['username']) && $plgInstalled),
       "servername" => $var['NAME'],
       "site" => $_SERVER['REQUEST_SCHEME']."://".$_SERVER['HTTP_HOST'],
       "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
       "ts" => time(),
-      "username" => (!empty($remote['username']) && $plgInstalled) ? $remote['username'] : '',
+      "username" => (!empty($myservers['remote']['username']) && $plgInstalled) ? $myservers['remote']['username'] : '',
       "wanFQDN" => $nginx['NGINX_WANFQDN'] ?? '',
     ];
     /** @TODO - prop refactor needed. The issue is because the prop names share the same name as the vuex store variables
@@ -604,8 +604,8 @@
     */
     ?>
     <unraid-user-profile
-      apikey="<?=$upc['apikey'] ?? ''?>"
-      api-version="<?=$api['version'] ?? ''?>"
+      apikey="<?=$myservers['upc']['apikey'] ?? ''?>"
+      api-version="<?=$myservers['api']['version'] ?? ''?>"
       banner="<?=$display['banner'] ?? ''?>"
       bgcolor="<?=($backgnd) ? '#'.$backgnd : ''?>"
       csrf="<?=$var['csrf_token']?>"
@@ -616,7 +616,7 @@
       locale-messages="<?=rawurlencode(json_encode($upc_translations, JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE))?>"
       metacolor="<?=($display['headermetacolor']??'') ? '#'.$display['headermetacolor'] : ''?>"
       plg-path="dynamix.my.servers"
-      reg-wiz-time="<?=$remote['regWizTime'] ?? ''?>"
+      reg-wiz-time="<?=$myservers['remote']['regWizTime'] ?? ''?>"
       serverdesc="<?=$var['COMMENT']?>"
       servermodel="<?=$var['SYS_MODEL']?>"
       serverstate="<?=rawurlencode(json_encode($serverstate, JSON_UNESCAPED_SLASHES))?>"
