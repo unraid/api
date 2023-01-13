@@ -25,9 +25,11 @@ import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { environment } from '@app/environment';
 
 // Boot app
 void am(async () => {
+	environment.IS_MAIN_PROCESS = true;
 	const cacheable = new CacheableLookup();
 
 	// Ensure all DNS lookups are cached for their TTL
