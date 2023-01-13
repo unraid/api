@@ -32,11 +32,16 @@ const logLayout = {
 				return '';
 			}
 
-			const contextEntries = Object.entries(context)
-				.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
-				.filter(([key]) => key !== 'pid');
-			const cleanContext = Object.fromEntries(contextEntries);
-			return `\n${Object.entries(cleanContext).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')}`;
+			try {
+				const contextEntries = Object.entries(context)
+					.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
+					.filter(([key]) => key !== 'pid');
+				const cleanContext = Object.fromEntries(contextEntries);
+				return `\n${Object.entries(cleanContext).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')}`;
+			} catch (error: unknown) {
+				const errorInfo = error instanceof Error ? `${error.message}: ${error.stack ?? 'no stack'}` : 'Error not instance of error';
+				return `Error generating context: ${errorInfo}`;
+			}
 		},
 	},
 };
