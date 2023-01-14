@@ -547,7 +547,8 @@
     }
 
     // read flashbackup ini file
-    $flashBackup = @parse_ini_file('/usr/local/emhttp/state/flashbackup.ini');
+    $flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
+    $flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
 
     $serverstate = [ // feeds server vars to Vuex store in a slightly different array than state.php
       "avatar" => (!empty($myservers['remote']['avatar']) && $plgInstalled) ? $myservers['remote']['avatar'] : '',
@@ -562,7 +563,7 @@
       "extraOrigins" => explode(',', $myservers['api']['extraOrigins']??''),
       "flashproduct" => $var['flashProduct'],
       "flashvendor" => $var['flashVendor'],
-      "flashBackupActivated" => isset($flashBackup['activated']) ? 'true' : '',
+      "flashBackupActivated" => empty($flashbackup_status['activated']) ? '' : 'true',
       "guid" => $var['flashGUID'],
       "hasRemoteApikey" => !empty($myservers['remote']['apikey']),
       "internalip" => ipaddr(),

@@ -4,8 +4,8 @@ Icon="icon-u-globe"
 Tag="globe"
 ---
 <?PHP
-/* Copyright 2005-2018, Lime Technology
- * Copyright 2012-2018, Bergware International.
+/* Copyright 2005-2023, Lime Technology
+ * Copyright 2012-2023, Bergware International.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -56,7 +56,8 @@ $isRegistered = !empty($myservers['remote']['username']);
 $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
 $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
 $isConnected = (($mystatus['minigraph']??'')==='CONNECTED') ? true : false;
-$fbStatus = (file_exists('/var/local/emhttp/flashbackup.ini')) ? @parse_ini_file('/var/local/emhttp/flashbackup.ini') : [];
+$flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
+$flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
 
 $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
@@ -560,7 +561,7 @@ _(Unraid API extra origins)_:
 _(Flash backup)_:
 <?if(!$isRegistered):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
-<?elseif(!$isConnected && !$fbStatus['activated']):?>
+<?elseif(!$isConnected && empty($flashbackup_status['activated'])):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
 <?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>

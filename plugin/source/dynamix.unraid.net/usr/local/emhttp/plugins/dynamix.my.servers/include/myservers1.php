@@ -27,7 +27,7 @@ unraid-promo {
 </style>
 <?
 $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
-$myservers = file_exists($myservers_flash_cfg_path) ? parse_ini_file($myservers_flash_cfg_path,true) : [];
+$myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 $ALLOWED_UPC_ENV_VALS = [
   'production',
   'staging',

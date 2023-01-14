@@ -1,6 +1,6 @@
 <?PHP
-/* Copyright 2005-2021, Lime Technology
- * Copyright 2012-2021, Bergware International.
+/* Copyright 2005-2023, Lime Technology
+ * Copyright 2012-2023, Bergware International.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -19,18 +19,15 @@ $cli = php_sapi_name()=='cli';
 
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) {
-  @extract(parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true));
-}
-if (empty($remote)) {
-  $remote = [
-    "apikey" => "",
-    "username" => "",
-    "avatar" => "",
-    "wanaccess" => "no",
-    "wanport" => "443"
-  ];
-}
+$myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+$myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
+$isRegistered = !empty($myservers['remote']['username']);
+
+$myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
+$mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
+$isConnected = (($mystatus['minigraph']??'')==='CONNECTED') ? true : false;
+
+$flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
 
 /**
  * @name response_complete
@@ -59,7 +56,7 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 }
 
 function save_flash_backup_state($loading='') {
-  global $arrState;
+  global $arrState,$flashbackup_ini;
 
   $arrState['loading'] = $loading;
 
@@ -69,13 +66,13 @@ function save_flash_backup_state($loading='') {
     if ($value === true || $value === 'true') $value = 'yes';
     $text .= "$key=" . $value . "\n";
   }
-  file_put_contents('/var/local/emhttp/flashbackup.new', $text);
-  rename('/var/local/emhttp/flashbackup.new', '/var/local/emhttp/flashbackup.ini');
+  $flashbackup_tmp = '/var/local/emhttp/flashbackup.new';
+  file_put_contents($flashbackup_tmp, $text);
+  rename($flashbackup_tmp, $flashbackup_ini);
 }
 
 function load_flash_backup_state() {
-  global $remote;
-  global $arrState;
+  global $arrState,$flashbackup_ini,$isRegistered;
 
   $arrState = [
     'activated' => 'no',
@@ -83,17 +80,14 @@ function load_flash_backup_state() {
     'loading' => ''
   ];
 
-  $arrNewState = false;
-  if (file_exists('/var/local/emhttp/flashbackup.ini')) {
-    $arrNewState = parse_ini_file('/var/local/emhttp/flashbackup.ini');
-  }
-  if ($arrNewState !== false) {
+  $arrNewState = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
+  if ($arrNewState) {
     $arrState = array_merge($arrState, $arrNewState);
     $arrState['activated'] = ($arrState['activated'] === true || $arrState['activated'] === 'true') ? 'yes' : 'no';
     $arrState['uptodate'] = ($arrState['uptodate'] === true || $arrState['uptodate'] === 'true') ? 'yes' : 'no';
   }
 
-  $arrState['registered'] = !empty($remote['username']) ? 'yes' : 'no';
+  $arrState['registered'] = ($isRegistered) ? 'yes' : 'no';
 }
 
 function write_log($msg) {
@@ -218,6 +212,7 @@ $validCommands = [
   'deactivate'
 ];
 
+$command = 'init';
 if ($cli) {
   if ($argc > 1) $command = $argv[1];
   if ($argc > 2) $commitmsg = $argv[2];
@@ -280,7 +275,7 @@ if ($pgrep_output[0] != "0") {
 }
 
 // check if signed-in
-if (empty($remote['username'])) {
+if (!$isRegistered) {
   response_complete(406,  array('error' => 'Must be signed in to My Servers to use Flash Backup'));
 }
 
@@ -289,7 +284,7 @@ if (!file_exists('/var/local/emhttp/var.ini')) {
   response_complete(406, array('error' => 'Machine still booting'));
 }
 $var = parse_ini_file("/var/local/emhttp/var.ini");
-$keyfile = @file_get_contents($var['regFILE']);
+$keyfile = empty($var['regFILE']) ? false : @file_get_contents($var['regFILE']);
 if ($keyfile === false) {
   response_complete(406, array('error' => 'Registration key required'));
 }
@@ -514,8 +509,6 @@ if (empty($SSH_PORT)) {
   } else {
     $arrState['loading'] = '';
     if (stripos(implode($ssh_output),'permission denied') !== false) {
-      $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
-      $isConnected = ($myStatus['relay']=='connected')?true:false;
       $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
     } else {
       $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
@@ -620,8 +613,6 @@ if ($command == 'update' || $command == 'activate') {
     if ($return_var != 0) {
       // check for permission denied
       if (stripos(implode($push_output),'permission denied') !== false) {
-        $myStatus = @parse_ini_file('/var/local/emhttp/myservers.cfg');
-        $isConnected = ($myStatus['relay']=='connected')?true:false;
         $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
       } elseif (stripos(implode($push_output),'fatal: loose object') !== false && stripos(implode($push_output),'is corrupt') !== false) {
         // detect corruption #2

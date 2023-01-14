@@ -1,6 +1,6 @@
 <?PHP
-/* Copyright 2005-2022, Lime Technology
- * Copyright 2012-2022, Bergware International.
+/* Copyright 2005-2023, Lime Technology
+ * Copyright 2012-2023, Bergware International.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -39,10 +39,13 @@ function response_complete($httpcode, $result, $cli_success_msg='') {
 
 $validCommands = [
   'start',
+  'restart',
   'stop',
   'report'
 ];
 
+$command = 'none';
+$param1 = '';
 if ($cli) {
   if ($argc > 1) $command = $argv[1];
   if ($argc > 2) $param1 = $argv[2];
@@ -62,6 +65,11 @@ switch ($command) {
     $output = implode(PHP_EOL, $output);
     response_complete(200, array('result' => $output), $output);
     break;
+  case 'restart':
+    exec('unraid-api restart 2>/dev/null', $output, $retval);
+    $output = implode(PHP_EOL, $output);
+    response_complete(200, array('result' => $output), $output);
+    break;
   case 'stop':
     exec('unraid-api stop 2>/dev/null', $output, $retval);
     $output = implode(PHP_EOL, $output);
@@ -71,7 +79,7 @@ switch ($command) {
     $flag = ($param1 && ($param1=='-v' || $param1=='-vv'))
       ? ($param1=='-vv' ? '-vv' : '-v')
       : '';
-    exec("unraid-api report ${flag} —-raw 2>/dev/null", $output, $retval);
+    exec("unraid-api report {$flag} —-raw 2>/dev/null", $output, $retval);
     $output = implode(PHP_EOL, $output);
     response_complete(200, array('result' => $output), $output);
     break;
