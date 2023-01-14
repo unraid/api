@@ -17,26 +17,6 @@ $_SERVER['REQUEST_URI'] = 'settings';
 require_once "$docroot/webGui/include/Translations.php";
 require_once "$docroot/webGui/include/Helpers.php";
 
-// add 'ipaddr' function for 6.9 backwards compatibility
-if (!function_exists('ipaddr')) {
-  function ipaddr($ethX='eth0', $prot=4) {
-    global $$ethX;
-    switch ($$ethX['PROTOCOL:0']) {
-    case 'ipv4':
-      return $$ethX['IPADDR:0'];
-    case 'ipv6':
-      return $$ethX['IPADDR6:0'];
-    case 'ipv4+ipv6':
-      switch ($prot) {
-      case 4: return $$ethX['IPADDR:0'];
-      case 6: return $$ethX['IPADDR6:0'];
-      default:return [$$ethX['IPADDR:0'],$$ethX['IPADDR6:0']];}
-    default:
-      return $$ethX['IPADDR:0'];
-    }
-  }
-}
-
 function host_lookup_ip($host) {
   $result = @dns_get_record($host, DNS_A);
   $ip = ($result) ? $result[0]['ip']??'' : '';
@@ -200,7 +180,6 @@ if ($cli && ($argc > 1) && $argv[1] == "-vv") {
   $verbose = true;
 }
 $var = parse_ini_file('/var/local/emhttp/var.ini');
-extract(parse_ini_file('/var/local/emhttp/network.ini',true));
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 $is69 = version_compare($var['version'],"6.9.9","<");
 $reloadNginx = false;
@@ -265,6 +244,7 @@ $externalprotocol = 'https';
 $externalhostname = $nginx['NGINX_CERTNAME'];
 $isLegacyCert = preg_match('/.*\.unraid\.net$/', $nginx['NGINX_CERTNAME']);
 $isWildcardCert = preg_match('/.*\.myunraid\.net$/', $nginx['NGINX_CERTNAME']);
+$internalip = $nginx['NGINX_LANIP'];
 
 if ($nginx['NGINX_USESSL']=='yes') {
   // When NGINX_USESSL is 'yes' in 6.9, it could be using either Server_unraid_bundle.pem or certificate_bundle.pem
@@ -301,10 +281,6 @@ if ($keyfile === false) {
   response_complete(406, array('error' => _('Registration key required')));
 }
 $keyfile = @base64_encode($keyfile);
-
-// internalip
-$ethX       = 'eth0';
-$internalip = ipaddr($ethX);
 
 // build post array
 $post = [
