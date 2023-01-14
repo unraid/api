@@ -83,14 +83,14 @@ function generate_external_host($host, $ip) {
   return $host;
 }
 function verbose_output($httpcode, $result) {
-  global $cli, $verbose, $anon, $plgversion, $post, $var, $isRegistered, $remote, $reloadNginx, $nginx, $isLegacyCert;
+  global $cli, $verbose, $anon, $plgversion, $post, $var, $isRegistered, $myservers, $reloadNginx, $nginx, $isLegacyCert;
   global $remoteaccess;
   global $icon_warn, $icon_ok;
   if (!$cli || !$verbose) return;
 
   if ($anon) echo "(Output is anonymized, use '-vv' to see full details)".PHP_EOL;
   echo "Unraid OS {$var['version']}".((strpos($plgversion, "base-") === false) ? " with My Servers plugin version {$plgversion}" : '').PHP_EOL;
-  echo ($isRegistered) ? "{$icon_ok}Signed in to Unraid.net as {$remote['username']}".PHP_EOL : "{$icon_warn}Not signed in to Unraid.net".PHP_EOL ;
+  echo ($isRegistered) ? "{$icon_ok}Signed in to Unraid.net as {$myservers['remote']['username']}".PHP_EOL : "{$icon_warn}Not signed in to Unraid.net".PHP_EOL ;
   echo "Use SSL is {$nginx['NGINX_USESSL']}".PHP_EOL;
   echo (rebindDisabled()) ? "{$icon_ok}Rebind protection is disabled" : "{$icon_warn}Rebind protection is enabled";
   echo " for ".($isLegacyCert ? "unraid.net" : "myunraid.net").PHP_EOL;
@@ -108,27 +108,27 @@ function verbose_output($httpcode, $result) {
       $internalhostip = host_lookup_ip(generate_internal_host($post['internalhostname'], $post['internalip']));
       $internalhosterr = ($internalhostip != $post['internalip']);
     }
-    if ($post['externalhostname']) {
+    if (!empty($post['externalhostname'])) {
       // $post['externalhostname'] is $nginx['NGINX_CERTNAME'] (certificate_bundle.pem)
       $externalhostip = host_lookup_ip(generate_external_host($post['externalhostname'], $wanip));
       $externalhosterr = ($externalhostip != $wanip);
     }
     // anonymize data. no caclulations can be done with this data beyond this point.
     if ($anon) {
-      if ($certhostip) $certhostip = anonymize_ip($certhostip);
-      if ($certhostname) $certhostname = anonymize_host($certhostname);
-      if ($internalhostip) $internalhostip = anonymize_ip($internalhostip);
-      if ($externalhostip) $externalhostip = anonymize_ip($externalhostip);
-      if ($wanip) $wanip = anonymize_ip($wanip);
-      if ($post['internalip']) $post['internalip'] = anonymize_ip($post['internalip']);
-      if ($post['internalhostname']) $post['internalhostname'] = anonymize_host($post['internalhostname']);
-      if ($post['externalhostname']) $post['externalhostname'] = anonymize_host($post['externalhostname']);
-      if ($post['externalport']) $post['externalport'] = "[redacted]";
+      if (!empty($certhostip)) $certhostip = anonymize_ip($certhostip);
+      if (!empty($certhostname)) $certhostname = anonymize_host($certhostname);
+      if (!empty($internalhostip)) $internalhostip = anonymize_ip($internalhostip);
+      if (!empty($externalhostip)) $externalhostip = anonymize_ip($externalhostip);
+      if (!empty($wanip)) $wanip = anonymize_ip($wanip);
+      if (!empty($post['internalip'])) $post['internalip'] = anonymize_ip($post['internalip']);
+      if (!empty($post['internalhostname'])) $post['internalhostname'] = anonymize_host($post['internalhostname']);
+      if (!empty($post['externalhostname'])) $post['externalhostname'] = anonymize_host($post['externalhostname']);
+      if (!empty($post['externalport'])) $post['externalport'] = "[redacted]";
     }
     // always anonymize the keyfile
-    if ($post['keyfile']) $post['keyfile'] = "[redacted]";
+    if (!empty($post['keyfile'])) $post['keyfile'] = "[redacted]";
     // output notes
-    if ($post['internalprotocol'] && $post['internalhostname'] && $post['internalport']) {
+    if (!empty($post['internalprotocol']) && !empty($post['internalhostname']) && !empty($post['internalport'])) {
       $localurl = $post['internalprotocol']."://".generate_internal_host($post['internalhostname'], $post['internalip']).format_port($post['internalport']);
       echo 'Local Access url: '.$localurl.PHP_EOL;
       if ($internalhostip) {
@@ -145,7 +145,7 @@ function verbose_output($httpcode, $result) {
         echo ($certhosterr) ? ", it should resolve to {$post['internalip']}" : "";
         echo PHP_EOL;
       }
-      if ($remoteaccess == 'yes' && $post['externalprotocol'] && $post['externalhostname'] && $post['externalport']) {
+      if ($remoteaccess == 'yes' && !empty($post['externalprotocol']) && !empty($post['externalhostname']) && !empty($post['externalport'])) {
         $remoteurl = $post['externalprotocol']."://".generate_external_host($post['externalhostname'], $wanip).format_port($post['externalport']);
         echo 'Remote Access url: '.$remoteurl.PHP_EOL;
         echo ($externalhosterr) ? $icon_warn : $icon_ok;
@@ -208,27 +208,25 @@ $dnserr = false;
 $icon_warn = "⚠️  ";
 $icon_ok = "✅  ";
 
-// parse myservers.cfg
-if (file_exists('/boot/config/plugins/dynamix.my.servers/myservers.cfg')) {
-  @extract(parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true));
+$myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+$myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
+// ensure some vars are defined here so we don't have to test them later
+if (empty($myservers['remote']['apikey'])) {
+  $myservers['remote']['apikey'] = "";
 }
-if (empty($remote)) {
-  $remote = [
-    "apikey" => "",
-    "wanaccess" => "no",
-    "wanport" => "443"
-  ];
+if (empty($myservers['remote']['wanaccess'])) {
+  $myservers['remote']['wanaccess'] = "no";
 }
-if (empty($remote['wanport'])) {
-  $remote['wanport'] = 443;
+if (empty($myservers['remote']['wanport'])) {
+  $myservers['remote']['wanport'] = 443;
 }
 // remoteaccess, externalport
 if ($cli) {
   $remoteaccess = (empty($nginx['NGINX_WANFQDN'])) ? 'no' : 'yes';
-  $externalport = $remote['wanport'];
+  $externalport = $myservers['remote']['wanport'];
 } else {
-  $remoteaccess = $_POST['remoteaccess'];
-  $externalport = intval($_POST['externalport']);
+  $remoteaccess = $_POST['remoteaccess']??'no';
+  $externalport = intval($_POST['externalport']??443);
 
   if ($remoteaccess != 'yes') {
     $remoteaccess = 'no';
@@ -238,11 +236,11 @@ if ($cli) {
     $externalport = 443;
   }
 
-  if ($remote['wanaccess'] != $remoteaccess) {
+  if ($myservers['remote']['wanaccess'] != $remoteaccess) {
     // update the wanaccess ini value
-    $orig = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg',true);
-    if ($orig === false) {
-      $orig = ['remote' => $remote];
+    $orig = file_exists($myservers_flash_cfg_path) ? parse_ini_file($myservers_flash_cfg_path,true) : [];
+    if (!$orig) {
+      $orig = ['remote' => $myservers['remote']];
     }
     $orig['remote']['wanaccess'] = $remoteaccess;
     $text = '';
@@ -251,12 +249,12 @@ if ($cli) {
       foreach ($block as $key => $value) if (strlen($value)) $pairs .= "$key=\"$value\"\n";
       if ($pairs) $text .= "[$section]\n".$pairs;
     }
-    if ($text) file_put_contents('/boot/config/plugins/dynamix.my.servers/myservers.cfg', $text);
+    if ($text) file_put_contents($myservers_flash_cfg_path, $text);
     // need nginx reload
     $reloadNginx = true;
   }
 }
-$isRegistered = !empty($remote) && !empty($remote['username']);
+$isRegistered = !empty($myservers['remote']['username']);
 
 // protocols, hostnames, ports
 $internalprotocol = 'http';
@@ -298,7 +296,7 @@ if (!$isRegistered && !$isLegacyCert) {
 }
 
 // keyfile
-$keyfile = @file_get_contents($var['regFILE']);
+$keyfile = empty($var['regFILE']) ? false : @file_get_contents($var['regFILE']);
 if ($keyfile === false) {
   response_complete(406, array('error' => _('Registration key required')));
 }
@@ -370,11 +368,11 @@ if (file_exists('/usr/local/sbin/unraid-api')) {
   $unraidreport['minigraph']['status'] = "disconnected";
   if ($isRegistered) {
     $unraidreport['myServers']['status'] = "authenticated";
-    $unraidreport['myServers']['myServersUsername'] = $remote['username'];
+    $unraidreport['myServers']['myServersUsername'] = $myservers['remote']['username'];
   } else {
     $unraidreport['myServers']['status'] = "signed out";
   }
-  $unraidreport['apiKey'] = (empty($remote['apikey'])) ? "invalid" : "exists";
+  $unraidreport['apiKey'] = (empty($myservers['remote']['apikey'])) ? "invalid" : "exists";
 }
 
 if (!empty($unraidreport)) {
@@ -398,17 +396,16 @@ if (!empty($unraidreport)) {
   }
     
   // add flash backup status
-  if (file_exists('/usr/local/emhttp/state/flashbackup.ini')) {
-    @extract(parse_ini_file('/usr/local/emhttp/state/flashbackup.ini',true));
+  $flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
+  $flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
+  if (empty($flashbackup_status['activated'])) {
+    $flashbackup_status['activated'] = "";
   }
-  if (empty($flashbackup)) {
-    $flashbackup = [
-      "activated" => "",
-      "error" => ""
-    ];
+  if (empty($flashbackup_status['error'])) {
+    $flashbackup_status['error'] = "";
   }
-  $unraidreport['flashbackup']['activated'] = ($flashbackup['activated']) ? "yes" : "no";
-  $unraidreport['flashbackup']['error'] = ($flashbackup['error']) ? $flashbackup['error'] : "no";
+  $unraidreport['flashbackup']['activated'] = ($flashbackup_status['activated']) ? "yes" : "no";
+  $unraidreport['flashbackup']['error'] =  ($flashbackup_status['error']) ? $flashbackup_status['error'] : "no";
 
   // add unraidreport to payload
   $post['unraidreport'] = json_encode($unraidreport);
