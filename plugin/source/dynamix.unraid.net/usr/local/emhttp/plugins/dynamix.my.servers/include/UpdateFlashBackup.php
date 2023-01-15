@@ -379,7 +379,17 @@ if (!file_exists($pubkey_file) || ($json['ssh_pubkey'] != file_get_contents($pub
 
 // add configuration to use our keys
 $sshconfig_file='/root/.ssh/config';
-if (!file_exists($sshconfig_file) || strpos(file_get_contents($sshconfig_file),'Host backup.unraid.net') === false) {
+$sshconfig_fix=false;
+if (!file_exists($sshconfig_file)) {
+  $sshconfig_fix=true;
+} else {
+  // detect uncommented 'Host backup.unraid.net'
+  preg_match_all('/^\w*[^#]?\w*Host backup.unraid.net/m', file_get_contents($sshconfig_file), $matches, PREG_SET_ORDER, 0);
+  if (empty($matches)) {
+    $sshconfig_fix=true;
+  }
+}
+if ($sshconfig_fix) {
   file_put_contents($sshconfig_file, 'Host backup.unraid.net
 IdentityFile ~/.ssh/unraidbackup_id_ed25519
 IdentitiesOnly yes
