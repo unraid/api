@@ -384,7 +384,7 @@ if (!file_exists($sshconfig_file)) {
   $sshconfig_fix=true;
 } else {
   // detect uncommented 'Host backup.unraid.net'
-  preg_match_all('/^\w*[^#]?\w*Host backup.unraid.net/m', file_get_contents($sshconfig_file), $matches, PREG_SET_ORDER, 0);
+  preg_match_all('/^\s*[^#]?\s*Host backup.unraid.net/m', file_get_contents($sshconfig_file), $matches, PREG_SET_ORDER, 0);
   if (empty($matches)) {
     $sshconfig_fix=true;
   }
