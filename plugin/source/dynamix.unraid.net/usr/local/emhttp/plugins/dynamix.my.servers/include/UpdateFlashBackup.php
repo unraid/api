@@ -378,12 +378,13 @@ if (!file_exists($pubkey_file) || ($json['ssh_pubkey'] != file_get_contents($pub
 }
 
 // add configuration to use our keys
-if (!file_exists('/root/.ssh/config') || strpos(file_get_contents('/root/.ssh/config'),'Host backup.unraid.net') === false) {
-  file_put_contents('/root/.ssh/config', 'Host backup.unraid.net
+$sshconfig_file='/root/.ssh/config';
+if (!file_exists($sshconfig_file) || strpos(file_get_contents($sshconfig_file),'Host backup.unraid.net') === false) {
+  file_put_contents($sshconfig_file, 'Host backup.unraid.net
 IdentityFile ~/.ssh/unraidbackup_id_ed25519
 IdentitiesOnly yes
 ', FILE_APPEND);
-  chmod('/root/.ssh/config', 0644);
+  chmod($sshconfig_file, 0644);
 }
 
 // add all of our server keys as known hosts
@@ -392,9 +393,10 @@ $arrKnownHosts = [
   'backup.unraid.net ecdsa-sha2-nistp256 AAAAE2VjZHNhLXNoYTItbmlzdHAyNTYAAAAIbmlzdHAyNTYAAABBBKrKXKQwPZTY25MoveIw7fZ3IoZvvffnItrx6q7nkNriDMr2WAsoxu0DrU2QrSLH5zFF1ibv4tChS1hOpiYObiI=',
   'backup.unraid.net ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINw447tJ+nQ/dGz05Gn9VtzGZdXI7o+srED3Gi9kImY5'
 ];
+$knownhosts_file='/root/.ssh/known_hosts';
 foreach ($arrKnownHosts as $strKnownHost) {
-  if (!file_exists('/root/.ssh/known_hosts') || strpos(file_get_contents('/root/.ssh/known_hosts'),$strKnownHost) === false) {
-    file_put_contents('/root/.ssh/known_hosts', $strKnownHost."\n", FILE_APPEND);
+  if (!file_exists($knownhosts_file) || strpos(file_get_contents($knownhosts_file),$strKnownHost) === false) {
+    file_put_contents($knownhosts_file, $strKnownHost."\n", FILE_APPEND);
   }
 }
 
@@ -409,16 +411,18 @@ if (!file_exists('/boot/.git/info/exclude')) {
 }
 
 // setup a nice git description
-if (!file_exists('/boot/.git/description') || strpos(file_get_contents('/boot/.git/description'),$var['NAME']) === false) {
-  file_put_contents('/boot/.git/description', 'Unraid flash drive for '.$var['NAME']."\n");
+$gitdesc_file='/boot/.git/description';
+if (!file_exists($gitdesc_file) || strpos(file_get_contents($gitdesc_file),$var['NAME']) === false) {
+  file_put_contents($gitdesc_file, 'Unraid flash drive for '.$var['NAME']."\n");
 }
 
 // configure git to use the noprivatekeys filter
 set_git_config('filter.noprivatekeys.clean', '/usr/local/emhttp/plugins/dynamix.my.servers/scripts/git-noprivatekeys-clean');
 
 // configure git to apply the noprivatekeys filter to wireguard config files
-if (!file_exists('/boot/.gitattributes') || strpos(file_get_contents('/boot/.gitattributes'),'noprivatekeys') === false) {
-  file_put_contents('/boot/.gitattributes', '# file managed by Unraid, do not modify
+$gitattributes_file='/boot/.gitattributes';
+if (!file_exists($gitattributes_file) || strpos(file_get_contents($gitattributes_file),'noprivatekeys') === false) {
+  file_put_contents($gitattributes_file, '# file managed by Unraid, do not modify
 config/wireguard/*.cfg filter=noprivatekeys
 config/wireguard/*.conf filter=noprivatekeys
 config/wireguard/peers/*.conf filter=noprivatekeys
@@ -426,8 +430,9 @@ config/wireguard/peers/*.conf filter=noprivatekeys
 }
 
 // setup git ignore for files we dont need in the flash backup
-if (!file_exists('/boot/.git/info/exclude') || strpos(file_get_contents('/boot/.git/info/exclude'),'# version 1.0') === false) {
-  file_put_contents('/boot/.git/info/exclude', '# file managed by Unraid, do not modify
+$gitexclude_file='/boot/.git/info/exclude';
+if (!file_exists($gitexclude_file) || strpos(file_get_contents($gitexclude_file),'# version 1.0') === false) {
+  file_put_contents($gitexclude_file, '# file managed by Unraid, do not modify
 # version 1.0
 
 # Blacklist everything
