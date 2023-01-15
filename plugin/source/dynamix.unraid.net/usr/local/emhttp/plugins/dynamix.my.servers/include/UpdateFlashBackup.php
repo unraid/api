@@ -352,7 +352,7 @@ if ($result === false) {
 }
 
 $json = json_decode($result, true);
-if (empty($json) || empty($json['ssh_privkey'])) {
+if (empty($json) || empty($json['ssh_privkey']) || empty($json['ssh_pubkey'])) {
   response_complete(406, $result);
 }
 
@@ -366,11 +366,15 @@ if (!file_exists('/root/.ssh')) {
   mkdir('/root/.ssh', 0700);
 }
 
-if ($json['ssh_privkey'] != file_get_contents('/root/.ssh/unraidbackup_id_ed25519')) {
-  file_put_contents('/root/.ssh/unraidbackup_id_ed25519', $json['ssh_privkey']);
-  chmod('/root/.ssh/unraidbackup_id_ed25519', 0600);
-  file_put_contents('/root/.ssh/unraidbackup_id_ed25519.pub', $json['ssh_pubkey']);
-  chmod('/root/.ssh/unraidbackup_id_ed25519.pub', 0644);
+$privkey_file='/root/.ssh/unraidbackup_id_ed25519';
+$pubkey_file='/root/.ssh/unraidbackup_id_ed25519.pub';
+if (!file_exists($privkey_file) || ($json['ssh_privkey'] != file_get_contents($privkey_file))) {
+  file_put_contents($privkey_file, $json['ssh_privkey']);
+  chmod($privkey_file, 0600);
+}
+if (!file_exists($pubkey_file) || ($json['ssh_pubkey'] != file_get_contents($pubkey_file))) {
+  file_put_contents($pubkey_file, $json['ssh_pubkey']);
+  chmod($pubkey_file, 0644);
 }
 
 // add configuration to use our keys
