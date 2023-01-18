@@ -2,6 +2,44 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.55.0](https://github.com/unraid/api/compare/v2.54.0...v2.55.0) (2023-01-18)
+
+
+### Features
+
+* api key validation rewrite ([#489](https://github.com/unraid/api/issues/489)) ([166db09](https://github.com/unraid/api/commit/166db09c387a5e4db3af41071c6192026275ffb5))
+* improve allowed origin check tremendously ([#471](https://github.com/unraid/api/issues/471)) ([aea5c76](https://github.com/unraid/api/commit/aea5c76b0505ab091b196952dcddc997abde0ad2))
+* listener for config file changes ([#478](https://github.com/unraid/api/issues/478)) ([fe5d8c9](https://github.com/unraid/api/commit/fe5d8c9ae32d52b11bda626592101092d8e4248d))
+* network url mutation ([#467](https://github.com/unraid/api/issues/467)) ([db40aef](https://github.com/unraid/api/commit/db40aefa1a3fa1feb2e2b16b958f96e96f1b237d))
+* optimize config reads in myserversX.php ([#483](https://github.com/unraid/api/issues/483)) ([30e67e5](https://github.com/unraid/api/commit/30e67e52796158cb8235ab5e12257cea0b44255f))
+* remove all disabled nchan code completely ([#448](https://github.com/unraid/api/issues/448)) ([aa64ba0](https://github.com/unraid/api/commit/aa64ba027681e95b8d7f8c0e657def956e0a5c76))
+* swap relay for graphql ([#446](https://github.com/unraid/api/issues/446)) ([69714e2](https://github.com/unraid/api/commit/69714e2b07132b62136566feee6ce926c8381aba))
+* wireguard urls in nginx / allowed origins ([#475](https://github.com/unraid/api/issues/475)) ([7c4920d](https://github.com/unraid/api/commit/7c4920ddc8188caec2124acea629a92613095b78))
+
+
+### Bug Fixes
+
+* add better stop logic and unit tests ([#494](https://github.com/unraid/api/issues/494)) ([044b030](https://github.com/unraid/api/commit/044b030e62065aed0456bc95eddedd66e0937bcc))
+* add wanport from config to remote urls ([#476](https://github.com/unraid/api/issues/476)) ([16f3df9](https://github.com/unraid/api/commit/16f3df900a08eb4e9ff7753672f7689750989b89))
+* allow reconnection when internet is down ([#487](https://github.com/unraid/api/issues/487)) ([626db80](https://github.com/unraid/api/commit/626db808ae5251111c4ae92f71e8f8792161bcb9))
+* allowed origins only updated when configs actually load ([#486](https://github.com/unraid/api/issues/486)) ([30f62aa](https://github.com/unraid/api/commit/30f62aa6d731fcab1b161e2d827ae4686750665e))
+* attempt to fix allowed origins state file ([#484](https://github.com/unraid/api/issues/484)) ([7d98075](https://github.com/unraid/api/commit/7d9807583d1726e27f3629d9e1c49c3a86b2d907))
+* attempt to fix wan port allowed origin listener ([#477](https://github.com/unraid/api/issues/477)) ([1d327e0](https://github.com/unraid/api/commit/1d327e0e8208a97de0b5c649ece7712fb856f755))
+* better error detection of public/private keys for flash backup ([#498](https://github.com/unraid/api/issues/498)) ([3f46192](https://github.com/unraid/api/commit/3f46192bf29921a2be0aaacaddd57481bea45e2f))
+* change how we determine connection status ([#463](https://github.com/unraid/api/issues/463)) ([bb7697f](https://github.com/unraid/api/commit/bb7697f842d2f31643e9db4c8228dd35a3f3ba7e))
+* check main process before writing to disk ([#495](https://github.com/unraid/api/issues/495)) ([48d4c70](https://github.com/unraid/api/commit/48d4c70c609ddbebbcba7cefc9a9541a589db465))
+* don't extract myservers.cfg in myserver1.php ([#496](https://github.com/unraid/api/issues/496)) ([84b44f2](https://github.com/unraid/api/commit/84b44f24b3c6bd22315cba7dee217c897fd29baa))
+* fewer dns checks during install ([#464](https://github.com/unraid/api/issues/464)) ([f002135](https://github.com/unraid/api/commit/f002135fbd9ac596e1116c44305cae69f3807b06))
+* login / logout listener ([#492](https://github.com/unraid/api/issues/492)) ([3f301ac](https://github.com/unraid/api/commit/3f301ac08b5aa850c1b8443fb3e455a97ac93ff5))
+* logout user when their config is cleared ([#480](https://github.com/unraid/api/issues/480)) ([c041030](https://github.com/unraid/api/commit/c0410309eb1ed99bff40124553fab8919903b400))
+* no longer return empty response for server ([#479](https://github.com/unraid/api/issues/479)) ([f35357e](https://github.com/unraid/api/commit/f35357e9c350a936bd847419d9784bc839ec98a4))
+* origin check now parses to a URL ([#473](https://github.com/unraid/api/issues/473)) ([b9ce7d3](https://github.com/unraid/api/commit/b9ce7d3a837776e2bb4d558737f39a4f0ce270bb))
+* origin checks now throw 403s instead of timing out ([#468](https://github.com/unraid/api/issues/468)) ([abd753f](https://github.com/unraid/api/commit/abd753fa53d1c11d4d9114870b902e80354ea2b1))
+* PHP8 issue with empty var ([#491](https://github.com/unraid/api/issues/491)) ([4135c2f](https://github.com/unraid/api/commit/4135c2f0701cfc645fe5224c5966a1c8c917d883))
+* stop duplicate data packets being sent for repeat subscriptions ([#434](https://github.com/unraid/api/issues/434)) ([3b5dcfc](https://github.com/unraid/api/commit/3b5dcfcdcb024125edd168afc39229c278923bbd))
+* suppress origin warning if no origins to display ([#490](https://github.com/unraid/api/issues/490)) ([bf2409e](https://github.com/unraid/api/commit/bf2409ebdbaf4ac63a5d7a15a3e5f18a73af9c9b))
+* wan port in URL undefined ([#485](https://github.com/unraid/api/issues/485)) ([6b37a8b](https://github.com/unraid/api/commit/6b37a8bf7b4267efe7b04cd47e0312076f11b22e))
+
 ## [2.54.0](https://github.com/unraid/api/compare/v2.53.0...v2.54.0) (2022-11-29)
 
 
