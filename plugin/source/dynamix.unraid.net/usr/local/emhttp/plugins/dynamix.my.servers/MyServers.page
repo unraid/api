@@ -454,7 +454,7 @@ _(Allow Remote Access)_:
 <? /** for the time being only display UPnP field when enabled manually by Unraid developers */ ?>
 <?if($myservers['local']['showT2Fa']??'' === 'yes' || $myservers['remote']['upnpEnabled'] === 'yes'):?>
 
-_(Use UPnP)_:
+_(Use UPnP)_<!-- do not index -->:
 <?if($var['USE_UPNP'] === 'yes'):?>
 : <select id="upnpEnabled" size="1" data-orig="<?=$myservers['remote']['upnpEnabled']?>" onchange="changeUpnp()" style="vertical-align: top;">
 <?=mk_option($myservers['remote']['upnpEnabled'], "no", _("No"))?>
@@ -531,7 +531,7 @@ else
   $localT2faRemark = $localT2faRemarks['all'];
 ?>
 
-_(Enable Transparent 2FA for Remote Access)_:
+_(Enable Transparent 2FA for Remote Access)_<!-- do not index -->:
 : <select id="remote2fa" size="1" <?=($enableRemoteT2fa ? '' : 'disabled')?>>
   <?=mk_option($myservers['remote']['2Fa']??'', "no", _("No"))?>
   <?=mk_option($myservers['remote']['2Fa']??'', "yes", _("Yes"))?>
@@ -539,7 +539,7 @@ _(Enable Transparent 2FA for Remote Access)_:
 
 :myservers_remote_t2fa_help:
 
-_(Enable Transparent 2FA for Local Access)_:
+_(Enable Transparent 2FA for Local Access)_<!-- do not index -->:
 : <select id="local2fa" size="1" <?=($enableLocalT2fa ? '' : 'disabled')?>>
   <?=mk_option($myservers['local']['2Fa']??'', "no", _("No"))?>
   <?=mk_option($myservers['local']['2Fa']??'', "yes", _("Yes"))?>
@@ -547,11 +547,11 @@ _(Enable Transparent 2FA for Local Access)_:
 
 :myservers_local_t2fa_help:
 
-_(Unraid API extra origins)_:
+_(Unraid API extra origins)_<!-- do not index -->:
 : <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$myservers['api']['extraOrigins']??''?>">
 
 :unraidnet_extraorigins_help:
-<?endif // end show remote access form ?>
+<?endif // end check for showT2Fa ?>
 
 &nbsp;
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button>
