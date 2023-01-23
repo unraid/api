@@ -2,6 +2,7 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { getPublishToDashboardJob } from '@app/mothership/jobs/dashboard-jobs';
 import { dashboardLogger } from '@app/core/log';
 import { type NetworkInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
+import { logoutUser } from '@app/store/modules/config';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
@@ -54,6 +55,14 @@ export const dashboard = createSlice({
 			state.lastNetworkPacket = action.payload.lastNetworkPacket;
 			state.lastNetworkPacketTimestamp = Date.now();
 		},
+	},
+	extraReducers(builder) {
+		builder.addCase(logoutUser.pending, state => {
+			getPublishToDashboardJob().stop();
+			state.connectedToDashboard = 0;
+			state.lastDataPacket = null;
+			state.lastNetworkPacket = null;
+		});
 	},
 });
 
