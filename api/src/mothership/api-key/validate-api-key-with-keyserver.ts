@@ -29,9 +29,7 @@ export const validateApiKeyWithKeyServer = async ({ flashGuid, apiKey }: { flash
 		return API_KEY_STATUS.NETWORK_ERROR;
 	}
 
-	ksLog.addContext('response', response);
 	ksLog.trace('Got response back from key-server while validating API key');
-	ksLog.removeContext('response');
 
 	if (response.statusCode !== 200) {
 		ksLog.warn('Error while validating API key with key-server', response);

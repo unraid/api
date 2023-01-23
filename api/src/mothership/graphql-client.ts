@@ -107,6 +107,10 @@ export class GraphQLClient {
 	}
 
 	public static clearInstance = () => {
+		if (this.instance) {
+			this.instance?.stop();
+		}
+
 		GraphQLClient.instance = null;
 	};
 }

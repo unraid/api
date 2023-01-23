@@ -273,7 +273,7 @@ export const publishNetwork = async () => {
 		if (isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
 			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
 		} else {
-			dashboardLogger.addContext('data', datapacket);
+			dashboardLogger.addContext('data', newNetworkPacket);
 			dashboardLogger.info('Sending data packet for network');
 			dashboardLogger.removeContext('data');
 			const result = await client.mutate({

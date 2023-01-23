@@ -46,14 +46,16 @@ export const mothership = createSlice({
 			if ([MinigraphStatus.DISCONNECTED].includes(action.payload.status)) {
 				state.subscriptions.EVENTS = false;
 				state.subscriptions.SERVERS = false;
+			} else if ([MinigraphStatus.CONNECTED, MinigraphStatus.CONNECTING].includes(action.payload.status)) {
+				state.error = null;
 			}
 		});
 		builder.addCase(logoutUser.pending, state => {
+			GraphQLClient.clearInstance();
 			state.subscriptions.EVENTS = false;
 			state.subscriptions.SERVERS = false;
 			state.error = null;
 			state.status = MinigraphStatus.DISCONNECTED;
-			GraphQLClient.clearInstance();
 		});
 	},
 });
