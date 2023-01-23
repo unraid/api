@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [2.55.1](https://github.com/unraid/api/compare/v2.55.0...v2.55.1) (2023-01-23)
+
+
+### Bug Fixes
+
+* properly set minigraph state on sign out ([#502](https://github.com/unraid/api/issues/502)) ([b90c5af](https://github.com/unraid/api/commit/b90c5af4639e5d92ee4cec35ace41ed317a550cf))
+
 ## [2.55.0](https://github.com/unraid/api/compare/v2.54.0...v2.55.0) (2023-01-18)
 
 
