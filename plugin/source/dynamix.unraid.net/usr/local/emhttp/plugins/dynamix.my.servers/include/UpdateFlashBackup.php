@@ -77,7 +77,9 @@ function load_flash_backup_state() {
   $arrState = [
     'activated' => 'no',
     'uptodate' => 'no',
-    'loading' => ''
+    'loading' => '',
+    'error' => '',
+    'remoteerror' => ''
   ];
 
   $arrNewState = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
