@@ -8,6 +8,7 @@ query getCloud {
         }
         minigraphql {
             status
+            timeout
             error
         }
         cloud {

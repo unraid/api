@@ -46,6 +46,7 @@ type ReportObject = {
 	};
 	minigraph: {
 		status: MinigraphStatus;
+		timeout: number | null;
 		error: string | null;
 	};
 	cloud: {
@@ -150,8 +151,10 @@ const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): stri
 const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
 	const statusLine = `STATUS: [${reportObject.minigraph.status}]`;
 	const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null;
+	const timeoutLine = reportObject.minigraph.timeout ? `	TIMEOUT: [${reportObject.minigraph.timeout}]` : null;
+
 	return `
-	${statusLine}${errorLine ? `\n${errorLine}` : ''}`;
+	${statusLine}${errorLine ? `\n${errorLine}` : ''}${timeoutLine ? `\n${timeoutLine}` : ''}`;
 };
 
 // Convert server to string output
@@ -287,6 +290,7 @@ export const report = async (...argv: string[]) => {
 			},
 			minigraph: {
 				status: cloud?.minigraphql.status ?? MinigraphStatus.DISCONNECTED,
+				timeout: cloud?.minigraphql.timeout ?? null,
 				error: cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected' : null,
 			},
 			cloud: {

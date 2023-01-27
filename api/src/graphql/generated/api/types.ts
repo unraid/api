@@ -623,6 +623,7 @@ export type MinigraphqlResponse = {
   __typename?: 'MinigraphqlResponse';
   error?: Maybe<Scalars['String']>;
   status: MinigraphStatus;
+  timeout?: Maybe<Scalars['Int']>;
 };
 
 export type Mount = {
@@ -2425,6 +2426,7 @@ export type MemoryLayoutResolvers<ContextType = Context, ParentType extends Reso
 export type MinigraphqlResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['MinigraphqlResponse'] = ResolversParentTypes['MinigraphqlResponse']> = ResolversObject<{
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['MinigraphStatus'], ParentType, ContextType>;
+  timeout?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

@@ -13,6 +13,7 @@ enum MinigraphStatus {
 
 type MinigraphqlResponse {
     status: MinigraphStatus!
+    timeout: Int
     error: String
 }
 
