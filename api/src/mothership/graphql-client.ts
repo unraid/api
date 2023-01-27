@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { FIVE_MINUTES_MS, MAX_RETRIES_FOR_LINEAR_BACKOFF, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
@@ -9,6 +9,7 @@ import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
+import { sleep } from '@app/core/utils/misc/sleep';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -45,6 +46,12 @@ export const createGraphqlClient = () => {
 			return true;
 		},
 		lazy: false,
+		async retryWait(retries) {
+			const retryTime = retries > MAX_RETRIES_FOR_LINEAR_BACKOFF ? FIVE_MINUTES_MS : 2000 * retries + 10000;
+			
+			minigraphLogger.info(`Retry wait is currently : ${retryTime}`);
+			await (sleep(retryTime));
+		},
 		retryAttempts: Infinity,
 		async onNonLazyError(error) {
 			minigraphLogger.error('Non-Lazy Error %o', error);
