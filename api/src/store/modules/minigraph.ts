@@ -17,6 +17,7 @@ export type MinigraphClientState = {
 	status: MinigraphStatus;
 	error: string | null;
 	timeout: number | null;
+	timeoutStart: number | null;
 	subscriptions: Record<SubscriptionKey, boolean>;
 };
 
@@ -42,6 +43,7 @@ export const mothership = createSlice({
 		},
 		setMothershipTimeout(state, action: PayloadAction<number>) {
 			state.timeout = action.payload;
+			state.timeoutStart = Date.now();
 		}
 	},
 	extraReducers(builder) {

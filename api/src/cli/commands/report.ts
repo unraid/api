@@ -151,7 +151,7 @@ const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): stri
 const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
 	const statusLine = `STATUS: [${reportObject.minigraph.status}]`;
 	const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null;
-	const timeoutLine = reportObject.minigraph.timeout ? `	TIMEOUT: [${reportObject.minigraph.timeout}]` : null;
+	const timeoutLine = reportObject.minigraph.timeout ? `	TIMEOUT: [${(reportObject.minigraph.timeout || 1) / 1000}s]` : null; // 1 in case of divide by zero
 
 	return `
 	${statusLine}${errorLine ? `\n${errorLine}` : ''}${timeoutLine ? `\n${timeoutLine}` : ''}`;
