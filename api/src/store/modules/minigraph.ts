@@ -16,12 +16,14 @@ export type GraphqlClientSubscription = {
 export type MinigraphClientState = {
 	status: MinigraphStatus;
 	error: string | null;
+	timeout: number | null;
 	subscriptions: Record<SubscriptionKey, boolean>;
 };
 
 const initialState: MinigraphClientState = {
 	status: MinigraphStatus.DISCONNECTED,
 	error: null,
+	timeout: null,
 	subscriptions: {
 		[SubscriptionKey.EVENTS]: false,
 		[SubscriptionKey.SERVERS]: false,
@@ -38,6 +40,9 @@ export const mothership = createSlice({
 		removeSubscription(state, action: PayloadAction<SubscriptionKey>) {
 			state.subscriptions[action.payload] = false;
 		},
+		setMothershipTimeout(state, action: PayloadAction<number>) {
+			state.timeout = action.payload;
+		}
 	},
 	extraReducers(builder) {
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
@@ -48,6 +53,7 @@ export const mothership = createSlice({
 				state.subscriptions.SERVERS = false;
 			} else if ([MinigraphStatus.CONNECTED, MinigraphStatus.CONNECTING].includes(action.payload.status)) {
 				state.error = null;
+				state.timeout = null;
 			}
 		});
 		builder.addCase(logoutUser.pending, state => {
@@ -55,9 +61,10 @@ export const mothership = createSlice({
 			state.subscriptions.EVENTS = false;
 			state.subscriptions.SERVERS = false;
 			state.error = null;
+			state.timeout = null;
 			state.status = MinigraphStatus.DISCONNECTED;
 		});
 	},
 });
 
-export const { addSubscription, removeSubscription } = mothership.actions;
+export const { addSubscription, removeSubscription, setMothershipTimeout } = mothership.actions;

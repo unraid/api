@@ -10,6 +10,7 @@ import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import { sleep } from '@app/core/utils/misc/sleep';
+import { setMothershipTimeout } from '@app/store/modules/minigraph';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -48,7 +49,7 @@ export const createGraphqlClient = () => {
 		lazy: false,
 		async retryWait(retries) {
 			const retryTime = retries > MAX_RETRIES_FOR_LINEAR_BACKOFF ? FIVE_MINUTES_MS : 2000 * retries + 10000;
-			
+			store.dispatch(setMothershipTimeout(retryTime));
 			minigraphLogger.info(`Retry wait is currently : ${retryTime}`);
 			await (sleep(retryTime));
 		},
