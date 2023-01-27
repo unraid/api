@@ -18,6 +18,7 @@ export const ONE_HOUR = 60 * ONE_MINUTE;
 
 export const ONE_SECOND_MS = 1_000;
 export const ONE_MINUTE_MS = 60 * ONE_SECOND;
+export const FIVE_MINUTES_MS = 5 * ONE_MINUTE;
 export const THIRTY_MINUTES_MS = 30 * ONE_MINUTE;
 export const ONE_HOUR_MS = 60 * ONE_MINUTE;
 
@@ -43,3 +44,6 @@ export const OAUTH_OPENID_CONFIGURATION_URL = OAUTH_BASE_URL + '/.well-known/ope
 export const JWKS_REMOTE_LINK = OAUTH_BASE_URL + '/.well-known/jwks.json';
 export const RCD_SCRIPT = 'rc.unraid-api';
 export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/validate/apikey';
+
+/** Set the max retries for the GraphQL Client */
+export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
