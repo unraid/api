@@ -56,6 +56,9 @@ export const createGraphqlClient = () => {
 		retryAttempts: Infinity,
 		async onNonLazyError(error) {
 			minigraphLogger.error('Non-Lazy Error %o', error);
+			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: error instanceof Error ? error.message : error?.toString() ?? 'N/A' }))
+			minigraphLogger.error('Error in MinigraphClient', error instanceof Error ? error.message : error);
+
 		},
 	});
 	const wsLink = new GraphQLWsLink(client);
