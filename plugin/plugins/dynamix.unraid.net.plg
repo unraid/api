@@ -1,20 +1,20 @@
 <?xml version='1.0' standalone='yes'?>
 
 <!DOCTYPE PLUGIN [
-<!ENTITY name                   "dynamix.unraid.net">
+<!ENTITY name                   "">
 <!ENTITY launch                 "MyServers">
 <!ENTITY author                 "limetech">
-<!ENTITY env                    "production">
-<!ENTITY version                "2022.07.26.1609">
-<!ENTITY pluginURL              "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/unraid-api/&name;.plg">
+<!ENTITY env                    "">
+<!ENTITY version                "">
+<!ENTITY pluginURL              "">
 <!ENTITY source                 "/boot/config/plugins/dynamix.my.servers/&name;">
-<!ENTITY MD5                    "f5085efe663a2f055ec5d27d5b80c9ac">
-<!ENTITY SHA256                 "1cbe4a31cb9fe40e83316b09c75653461d83243ca0b04628562f7ecf55b4266d">
-<!ENTITY API_version            "2.50.0">
-<!ENTITY API_MD5                "ffee242081d5585e30eeb66ec880a54d">
-<!ENTITY API_SHA256             "d4c67669f05c49fc130513af0c29c9b26cb4362a1b9f491bc39b8d9e3131e8f1">
-<!ENTITY downloadserver         "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com">
-<!ENTITY js_dl_server           "https://registration.unraid.net">
+<!ENTITY MD5                    "">
+<!ENTITY SHA256                 "">
+<!ENTITY API_version            "">
+<!ENTITY API_MD5                "">
+<!ENTITY API_SHA256             "">
+<!ENTITY downloadserver         "">
+<!ENTITY js_dl_server           "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
