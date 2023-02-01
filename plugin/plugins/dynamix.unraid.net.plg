@@ -297,11 +297,15 @@ if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
   echo
 fi
 if [ -e /etc/rc.d/rc.unraid-api ]; then
-  # Stop all services
+  # stop flash backup
   /etc/rc.d/rc.flash_backup stop &>/dev/null
+  # stop the api gracefully
+  /etc/rc.d/rc.unraid-api stop
+  # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
-  /etc/rc.d/rc.unraid-api uninstall
-  # Uninstall the main source package
+  # uninstall the api
+  /etc/rc.d/rc.unraid-api uninstall &>/dev/null
+  # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
