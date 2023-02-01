@@ -45,11 +45,11 @@ sudo rm -rf "${tmpdir}"
 cd "${DIR}" || exit 1
 
 # define vars for plg
-pluginURL="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/unraid-api/&name;.plg"
+pluginURL="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/unraid-api/\&name;.plg"
 downloadserver="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com"
 js_dl_server="https://registration.unraid.net"
 if [[ "${env}" == "staging" ]]; then
-  pluginURL="https://unraid-dl.sfo2.digitaloceanspaces.com/unraid-api/&name;.plg"
+  pluginURL="https://unraid-dl.sfo2.digitaloceanspaces.com/unraid-api/\&name;.plg"
   downloadserver="https://unraid-dl.sfo2.digitaloceanspaces.com"
   js_dl_server="https://registration-dev.unraid.net"
 fi
@@ -73,7 +73,7 @@ sed -i -E "s#(ENTITY API_SHA256\s*)\".*\"#\1\"${API_SHA256}\"#g" "${plgfile}"
 # sed -i "/<CHANGES>/a ###${version}\n" ${plgfile}
 
 echo
-grep -E "ENTITY (name|env|version|MD5|SHA256|node_api_version)" "${plgfile}"
+grep -E "ENTITY (name|pluginURL|env|version|MD5|SHA256|node_api_version)" "${plgfile}"
 echo
 echo "${env} plugin: ${plgfile}"
 echo "${env} txz:    ${txzfile}"
