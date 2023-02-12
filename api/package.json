@@ -181,7 +181,7 @@
     "eslint-plugin-unused-imports": "^2.0.0",
     "execa": "^6.1.0",
     "filter-obj": "^5.1.0",
-    "got": "^12.4.1",
+    "got": "^12.5.3",
     "graphql-codegen-typescript-validation-schema": "^0.7.0",
     "ip-regex": "^5.0.0",
     "json-difference": "^1.8.2",
