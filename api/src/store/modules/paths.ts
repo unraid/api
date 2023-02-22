@@ -4,7 +4,7 @@ import { join, resolve as resolvePath } from 'path';
 const initialState = {
 	core: __dirname,
 	'unraid-api-base': '/usr/local/bin/unraid-api/' as const,
-	'unraid-version': '/etc/unraid-version' as const,
+	'unraid-version': resolvePath(process.env.PATHS_UNRAID_VERSION ?? '/etc/unraid-version' as const),
 	'unraid-data': resolvePath(process.env.PATHS_UNRAID_DATA ?? '/boot/config/plugins/dynamix.my.servers/data/' as const),
 	'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
 	'docker-socket': '/var/run/docker.sock' as const,

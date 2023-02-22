@@ -28,8 +28,9 @@ export const store = configureStore({
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: {
+
 			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
-			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient'],
+			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient', 'dashboard/saveNetworkPacket'],
 		},
 	}).prepend(listenerMiddleware.middleware),
 });

@@ -1,11 +1,14 @@
 import type { RootState } from '@app/store';
 import { store } from '@app/store';
-import { sync2FA } from '@app/store/sync/2fa-sync';
 import { FileLoadStatus } from './types';
 import { syncRegistration } from '@app/store/sync/registration-sync';
 import { syncArray } from '@app/store/sync/array-sync';
 import { syncInfoApps } from '@app/store/sync/info-apps-sync';
 import { setupConfigPathWatch } from '@app/store/watch/config-watch';
+import { NODE_ENV } from '@app/environment';
+import { writeFileSync } from 'fs';
+import { isEqual } from 'lodash';
+import { join } from 'path';
 
 export const startStoreSync = async () => {
 	// The last state is stored so we don't end up in a loop of writing -> reading -> writing
@@ -27,6 +30,11 @@ export const startStoreSync = async () => {
 
 			// Update docker app counts
 			await syncInfoApps(lastState);
+		}
+
+		if (NODE_ENV === 'development' && !isEqual(state, lastState) && state.paths['myservers-config-states']) {
+			writeFileSync(join(state.paths.states, 'config.log'), JSON.stringify(state.config, null, 2));
+			writeFileSync(join(state.paths.states, 'servers.log'), JSON.stringify(state.servers, null, 2));
 		}
 
 		lastState = state;
