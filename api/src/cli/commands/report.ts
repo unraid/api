@@ -133,7 +133,7 @@ const getAllowedOrigins = (cloud: CloudQueryResult | null, v: Verbosity): string
 	}
 };
 
-const getUnraidVersion = async (paths: ReturnType<typeof getters.paths>): Promise<string> => {
+const getUnraidVersionFromDisk = async (paths: ReturnType<typeof getters.paths>): Promise<string> => {
 	// Get unraid OS version
 	const unraidVersion = existsSync(paths['unraid-version']) ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1] : 'unknown';
 	cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
@@ -274,7 +274,7 @@ export const report = async (...argv: string[]) => {
 		const reportObject: ReportObject = {
 			os: {
 				serverName: await getServerName(paths),
-				version: await getUnraidVersion(paths),
+				version: await getUnraidVersionFromDisk(paths),
 			},
 			api: {
 				version: API_VERSION,

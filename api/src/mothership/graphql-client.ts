@@ -11,6 +11,7 @@ import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import { sleep } from '@app/core/utils/misc/sleep';
 import { setMothershipTimeout } from '@app/store/modules/minigraph';
+import { logoutUser } from '@app/store/modules/config';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -55,9 +56,8 @@ export const createGraphqlClient = () => {
 		},
 		retryAttempts: Infinity,
 		async onNonLazyError(error) {
-			minigraphLogger.error('Non-Lazy Error %o', error);
 			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: error instanceof Error ? error.message : error?.toString() ?? 'N/A' }));
-			minigraphLogger.error('Error in MinigraphClient', error instanceof Error ? error.message : error);
+			minigraphLogger.error('NonLazy Error in MinigraphClient', error instanceof Error ? error.message : error);
 		},
 	});
 	const wsLink = new GraphQLWsLink(client);
@@ -85,10 +85,14 @@ export const createGraphqlClient = () => {
 		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.CONNECTED, error: null }));
 		minigraphLogger.info('Connected to %s', MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'));
 	});
-	client.on('error', error => {
+	client.on('error', async error => {
 		const normalError = (error instanceof Error) ? error : new Error('Unknown Minigraph Client Error');
-		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
-		minigraphLogger.error('Error in MinigraphClient', error instanceof Error ? error.message : error);
+		if (error instanceof Error && error.message.includes('API Key Invalid')) {
+			await store.dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }));
+		} else {
+			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
+			minigraphLogger.error('Error in MinigraphClient', error);
+		}
 	});
 	client.on('closed', event => {
 		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Client Closed Connection' }));
