@@ -1,9 +1,9 @@
 import WebSocket from 'ws';
-import { FIVE_MINUTES_MS, MAX_RETRIES_FOR_LINEAR_BACKOFF, MOTHERSHIP_GRAPHQL_LINK, ONE_MINUTE_MS } from '@app/consts';
+import { FIVE_MINUTES_MS, KEEP_ALIVE_INTERVAL_MS, MAX_RETRIES_FOR_LINEAR_BACKOFF, MOTHERSHIP_GRAPHQL_LINK, ONE_MINUTE_MS } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
-import { createClient } from 'graphql-ws';
+import { Client, createClient } from 'graphql-ws';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
@@ -34,11 +34,12 @@ export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
 };
 
 let pingAlarmTimeout: NodeJS.Timeout | null = null;
+let client: Client | null;
 
 export const createGraphqlClient = () => {
 	const config = getters.config();
 	const emhttp = getters.emhttp();
-	const client = createClient({
+	client = createClient({
 		url: MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws'),
 		webSocketImpl: WebsocketWithMothershipHeaders,
 		connectionParams: () => ({
@@ -51,9 +52,9 @@ export const createGraphqlClient = () => {
 		shouldRetry() {
 			return true;
 		},
-		lazy: false,
+		lazy: true,
 		async retryWait(retries) {
-			const retryTime = retries > MAX_RETRIES_FOR_LINEAR_BACKOFF ? FIVE_MINUTES_MS : (2_000 * retries) + 10_000;
+			const retryTime = retries > MAX_RETRIES_FOR_LINEAR_BACKOFF ? FIVE_MINUTES_MS : (5_000 * retries) + 10_000;
 			store.dispatch(setMothershipTimeout(retryTime));
 			minigraphLogger.info(`Retry wait is currently : ${retryTime}`);
 			await (sleep(retryTime));
@@ -96,6 +97,7 @@ export const createGraphqlClient = () => {
 		} else {
 			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
 			minigraphLogger.error(`Error in MinigraphClient ${JSON.stringify(serializeError(error))}`);
+
 		}
 	});
 	client.on('closed', event => {
@@ -114,9 +116,11 @@ export const createGraphqlClient = () => {
 
 		minigraphLogger.trace('Received a ping from mothership, websocket is still connected');
 		pingAlarmTimeout = setTimeout(() => {
-			minigraphLogger.error('NO PINGS RECEIVED IN ONE MINUTE, SOCKET MUST BE RECONNECTED');
-			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Ping Receive Exceeded Timeout' }));
-		}, ONE_MINUTE_MS);
+			if (getters.minigraph().status === MinigraphStatus.CONNECTED) {
+				minigraphLogger.error(`NO PINGS RECEIVED IN ${KEEP_ALIVE_INTERVAL_MS / 1000}, SOCKET MUST BE RECONNECTED`);
+				store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Ping Receive Exceeded Timeout' }));
+			}
+		}, KEEP_ALIVE_INTERVAL_MS);
 	});
 	return apolloClient;
 };
@@ -149,6 +153,9 @@ export class GraphQLClient {
 	}
 
 	public static clearInstance = () => {
+		if (client) {
+			client.dispose();
+		}
 		if (this.instance) {
 			this.instance?.stop();
 		}

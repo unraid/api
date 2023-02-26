@@ -1,4 +1,4 @@
-import { mothershipLogger } from '@app/core/log';
+import { minigraphLogger, mothershipLogger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
 import { GraphQLClient } from './graphql-client';
 import { setSubscribedToEvents } from '@app/store/modules/minigraph';
@@ -47,13 +47,14 @@ export const queryServers = async (apiKey: string) => {
 };
 
 export const subscribeToEvents = async (apiKey: string) => {
+	minigraphLogger.info('Subscribing to Events')
 	const client = GraphQLClient.getInstance();
 	if (!client) {
 		throw new Error('Unable to use client - state must not be loaded');
 	}
 
-	store.dispatch(setSubscribedToEvents(true));
 	const eventsSub = client.subscribe({ query: EVENTS_SUBSCRIPTION, variables: { apiKey } });
+	store.dispatch(setSubscribedToEvents(true));
 	eventsSub.subscribe(async ({ data, errors }) => {
 		if (errors) {
 			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
