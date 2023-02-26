@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { FIVE_MINUTES_MS, MAX_RETRIES_FOR_LINEAR_BACKOFF, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { FIVE_MINUTES_MS, MAX_RETRIES_FOR_LINEAR_BACKOFF, MOTHERSHIP_GRAPHQL_LINK, ONE_MINUTE_MS } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
@@ -12,6 +12,8 @@ import { API_VERSION } from '@app/environment';
 import { sleep } from '@app/core/utils/misc/sleep';
 import { setMothershipTimeout } from '@app/store/modules/minigraph';
 import { logoutUser } from '@app/store/modules/config';
+import { serializeError } from 'serialize-error';
+import { isApiKeyValid } from '@app/store/getters/index';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {
@@ -22,14 +24,16 @@ class WebsocketWithMothershipHeaders extends WebSocket {
 }
 
 /**
- * Checks that API_VERSION, config.remote.apiKey, emhttp.var.flashGuid, and emhttp.var.version
- * are all set before returning true
+ * Checks that API_VERSION, config.remote.apiKey, emhttp.var.flashGuid, and emhttp.var.version are all set before returning true\
+ * Also checks that the API Key has passed Validation from Keyserver
  * @returns boolean, are variables set
  */
 export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
 	const { config, emhttp } = state;
 	return Boolean(API_VERSION) && Boolean(config.remote.apikey) && Boolean(emhttp.var.flashGuid) && Boolean(emhttp.var.version);
 };
+
+let pingAlarmTimeout: NodeJS.Timeout | null = null;
 
 export const createGraphqlClient = () => {
 	const config = getters.config();
@@ -68,7 +72,7 @@ export const createGraphqlClient = () => {
 		defaultOptions: {
 			watchQuery: {
 				fetchPolicy: 'no-cache',
-				errorPolicy: 'ignore',
+				errorPolicy: 'all',
 			},
 			query: {
 				fetchPolicy: 'no-cache',
@@ -91,7 +95,7 @@ export const createGraphqlClient = () => {
 			await store.dispatch(logoutUser({ reason: 'Invalid API Key on Mothership' }));
 		} else {
 			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR, error: normalError?.message ?? 'Unknown Minigraph Client Error' }));
-			minigraphLogger.error('Error in MinigraphClient', error);
+			minigraphLogger.error(`Error in MinigraphClient ${JSON.stringify(serializeError(error))}`);
 		}
 	});
 	client.on('closed', event => {
@@ -99,6 +103,20 @@ export const createGraphqlClient = () => {
 		minigraphLogger.addContext('closeEvent', event);
 		minigraphLogger.debug('MinigraphClient closed connection');
 		minigraphLogger.removeContext('closeEvent');
+	});
+
+	client.on('ping', () => {
+		// Received ping from mothership
+		if (pingAlarmTimeout) {
+			clearTimeout(pingAlarmTimeout);
+			pingAlarmTimeout = null;
+		}
+
+		minigraphLogger.trace('Received a ping from mothership, websocket is still connected');
+		pingAlarmTimeout = setTimeout(() => {
+			minigraphLogger.error('NO PINGS RECEIVED IN ONE MINUTE, SOCKET MUST BE RECONNECTED');
+			store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: 'Ping Receive Exceeded Timeout' }));
+		}, ONE_MINUTE_MS);
 	});
 	return apolloClient;
 };
@@ -111,8 +129,18 @@ export class GraphQLClient {
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private constructor() {}
 
-	public static getInstance(): ApolloClient<NormalizedCacheObject> {
-		// @TODO: Should this check to make sure it's able to get a valid instance before it returns Apollo?
+	/**
+	 * Get a singleton GraphQL instance (if possible given loaded state)
+	 * @returns ApolloClient instance or null, if state is not valid
+	 */
+	public static getInstance(): ApolloClient<NormalizedCacheObject> | null {
+		const isStateValid = isAPIStateDataFullyLoaded() && isApiKeyValid();
+		if (!isStateValid) {
+			minigraphLogger.error('GraphQL Client is not valid. Returning null for instance and clearing existing instance');
+			this.clearInstance();
+			return null;
+		}
+
 		if (!GraphQLClient.instance) {
 			GraphQLClient.instance = createGraphqlClient();
 		}

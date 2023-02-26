@@ -130,8 +130,8 @@ export type DashboardApps = {
 };
 
 export type DashboardAppsInput = {
-  installed?: InputMaybe<Scalars['Int']>;
-  started?: InputMaybe<Scalars['Int']>;
+  installed: Scalars['Int'];
+  started: Scalars['Int'];
 };
 
 export type DashboardArray = {
@@ -158,10 +158,10 @@ export type DashboardCase = {
 };
 
 export type DashboardCaseInput = {
-  base64?: InputMaybe<Scalars['String']>;
+  base64: Scalars['String'];
   error?: InputMaybe<Scalars['String']>;
-  icon?: InputMaybe<Scalars['String']>;
-  url?: InputMaybe<Scalars['String']>;
+  icon: Scalars['String'];
+  url: Scalars['String'];
 };
 
 export type DashboardConfig = {
@@ -172,7 +172,7 @@ export type DashboardConfig = {
 
 export type DashboardConfigInput = {
   error?: InputMaybe<Scalars['String']>;
-  valid?: InputMaybe<Scalars['Boolean']>;
+  valid: Scalars['Boolean'];
 };
 
 export type DashboardDisplay = {
@@ -181,20 +181,20 @@ export type DashboardDisplay = {
 };
 
 export type DashboardDisplayInput = {
-  case?: InputMaybe<DashboardCaseInput>;
+  case: DashboardCaseInput;
 };
 
 export type DashboardInput = {
-  apps?: InputMaybe<DashboardAppsInput>;
-  array?: InputMaybe<DashboardArrayInput>;
-  config?: InputMaybe<DashboardConfigInput>;
-  display?: InputMaybe<DashboardDisplayInput>;
-  os?: InputMaybe<DashboardOsInput>;
-  services?: InputMaybe<Array<InputMaybe<DashboardServiceInput>>>;
+  apps: DashboardAppsInput;
+  array: DashboardArrayInput;
+  config: DashboardConfigInput;
+  display: DashboardDisplayInput;
+  os: DashboardOsInput;
+  services: Array<DashboardServiceInput>;
   twoFactor?: InputMaybe<DashboardTwoFactorInput>;
-  vars?: InputMaybe<DashboardVarsInput>;
-  versions?: InputMaybe<DashboardVersionsInput>;
-  vms?: InputMaybe<DashboardVmsInput>;
+  vars: DashboardVarsInput;
+  versions: DashboardVersionsInput;
+  vms: DashboardVmsInput;
 };
 
 export type DashboardOs = {
@@ -204,8 +204,8 @@ export type DashboardOs = {
 };
 
 export type DashboardOsInput = {
-  hostname?: InputMaybe<Scalars['String']>;
-  uptime?: InputMaybe<Scalars['DateTime']>;
+  hostname: Scalars['String'];
+  uptime: Scalars['DateTime'];
 };
 
 export type DashboardService = {
@@ -217,10 +217,10 @@ export type DashboardService = {
 };
 
 export type DashboardServiceInput = {
-  name?: InputMaybe<Scalars['String']>;
-  online?: InputMaybe<Scalars['Boolean']>;
-  uptime?: InputMaybe<DashboardServiceUptimeInput>;
-  version?: InputMaybe<Scalars['String']>;
+  name: Scalars['String'];
+  online: Scalars['Boolean'];
+  uptime: DashboardServiceUptimeInput;
+  version: Scalars['String'];
 };
 
 export type DashboardServiceUptime = {
@@ -229,7 +229,7 @@ export type DashboardServiceUptime = {
 };
 
 export type DashboardServiceUptimeInput = {
-  timestamp?: InputMaybe<Scalars['DateTime']>;
+  timestamp: Scalars['DateTime'];
 };
 
 export type DashboardTwoFactor = {
@@ -239,8 +239,8 @@ export type DashboardTwoFactor = {
 };
 
 export type DashboardTwoFactorInput = {
-  local?: InputMaybe<DashboardTwoFactorLocalInput>;
-  remote?: InputMaybe<DashboardTwoFactorRemoteInput>;
+  local: DashboardTwoFactorLocalInput;
+  remote: DashboardTwoFactorRemoteInput;
 };
 
 export type DashboardTwoFactorLocal = {
@@ -249,7 +249,7 @@ export type DashboardTwoFactorLocal = {
 };
 
 export type DashboardTwoFactorLocalInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
+  enabled: Scalars['Boolean'];
 };
 
 export type DashboardTwoFactorRemote = {
@@ -258,7 +258,7 @@ export type DashboardTwoFactorRemote = {
 };
 
 export type DashboardTwoFactorRemoteInput = {
-  enabled?: InputMaybe<Scalars['Boolean']>;
+  enabled: Scalars['Boolean'];
 };
 
 export type DashboardVars = {
@@ -269,9 +269,9 @@ export type DashboardVars = {
 };
 
 export type DashboardVarsInput = {
-  flashGuid?: InputMaybe<Scalars['String']>;
-  regState?: InputMaybe<Scalars['String']>;
-  regTy?: InputMaybe<Scalars['String']>;
+  flashGuid: Scalars['String'];
+  regState: Scalars['String'];
+  regTy: Scalars['String'];
 };
 
 export type DashboardVersions = {
@@ -280,7 +280,7 @@ export type DashboardVersions = {
 };
 
 export type DashboardVersionsInput = {
-  unraid?: InputMaybe<Scalars['String']>;
+  unraid: Scalars['String'];
 };
 
 export type DashboardVms = {
@@ -290,8 +290,8 @@ export type DashboardVms = {
 };
 
 export type DashboardVmsInput = {
-  installed?: InputMaybe<Scalars['Int']>;
-  started?: InputMaybe<Scalars['Int']>;
+  installed: Scalars['Int'];
+  started: Scalars['Int'];
 };
 
 export type Display = {
@@ -374,6 +374,33 @@ export type InfoVms = {
   started?: Maybe<Scalars['Int']>;
 };
 
+export enum KeyType {
+  BASIC = 'BASIC',
+  PLUS = 'PLUS',
+  PRO = 'PRO',
+  TRIAL = 'TRIAL'
+}
+
+export type KsServerDetails = {
+  __typename?: 'KsServerDetails';
+  accessLabel: Scalars['String'];
+  accessUrl: Scalars['String'];
+  apiKey?: Maybe<Scalars['String']>;
+  description: Scalars['String'];
+  dnsHash: Scalars['String'];
+  flashBackupDate?: Maybe<Scalars['Int']>;
+  flashBackupUrl: Scalars['String'];
+  flashProduct: Scalars['String'];
+  flashVendor: Scalars['String'];
+  guid: Scalars['String'];
+  ipsId: Scalars['String'];
+  keyType: KeyType;
+  licenseKey: Scalars['String'];
+  name: Scalars['String'];
+  plgVersion?: Maybe<Scalars['String']>;
+  signedIn: Scalars['Boolean'];
+};
+
 export type LegacyService = {
   __typename?: 'LegacyService';
   name?: Maybe<Scalars['String']>;
@@ -451,6 +478,7 @@ export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']>;
   url?: Maybe<Scalars['String']>;
+  userId?: Maybe<Scalars['ID']>;
   username?: Maybe<Scalars['String']>;
 };
 
@@ -462,6 +490,7 @@ export type Query = {
   dashboard?: Maybe<Dashboard>;
   display?: Maybe<Display>;
   info?: Maybe<Info>;
+  ksServers: Array<KsServerDetails>;
   me?: Maybe<Me>;
   online?: Maybe<Scalars['Boolean']>;
   servers: Array<Maybe<Server>>;
@@ -521,7 +550,7 @@ export type Server = {
   lanip?: Maybe<Scalars['String']>;
   localurl?: Maybe<Scalars['String']>;
   name?: Maybe<Scalars['String']>;
-  owner?: Maybe<ServerOwner>;
+  owner?: Maybe<ProfileModel>;
   remoteurl?: Maybe<Scalars['String']>;
   status?: Maybe<ServerStatus>;
   wanip?: Maybe<Scalars['String']>;
@@ -684,7 +713,7 @@ export type queryServersFromMothershipQueryVariables = Exact<{
 }>;
 
 
-export type queryServersFromMothershipQuery = { __typename?: 'Query', servers: Array<{ __typename?: 'Server', guid?: string | null, apikey?: string | null, name?: string | null, status?: ServerStatus | null, wanip?: string | null, lanip?: string | null, localurl?: string | null, remoteurl?: string | null, owner?: { __typename?: 'ServerOwner', username?: string | null, url?: string | null, avatar?: string | null } | null } | null> };
+export type queryServersFromMothershipQuery = { __typename?: 'Query', servers: Array<{ __typename?: 'Server', guid?: string | null, apikey?: string | null, name?: string | null, status?: ServerStatus | null, wanip?: string | null, lanip?: string | null, localurl?: string | null, remoteurl?: string | null, owner?: { __typename?: 'ProfileModel', username?: string | null, url?: string | null, avatar?: string | null } | null } | null> };
 
 export type eventsSubscriptionVariables = Exact<{
   apiKey: Scalars['String'];

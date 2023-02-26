@@ -8,7 +8,6 @@ import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
 import exitHook from 'async-exit-hook';
-import { MothershipJobs } from './mothership/jobs/cloud-connection-check-jobs';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
@@ -39,9 +38,6 @@ void am(async () => {
 	// Start file <-> store sync
 	// Must occur before config is loaded to ensure that the handler can fix broken configs
 	await startStoreSync();
-
-	// Init mothership jobs - they are started by decorators on the class
-	MothershipJobs.init();
 
 	// Load my servers config file into store
 	await store.dispatch(loadConfigFile());

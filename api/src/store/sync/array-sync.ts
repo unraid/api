@@ -1,9 +1,9 @@
 import { logger } from '@app/core/log';
 import { pubsub } from '@app/core/pubsub';
-import { Slot } from '@app/core/types/states/slots';
+import { type Slot } from '@app/core/types/states/slots';
 import { addTogether } from '@app/core/utils/misc/add-together';
 import { store } from '@app/store';
-import { FileLoadStatus, StoreSubscriptionHandler } from '@app/store/types';
+import { FileLoadStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import isEqual from 'lodash/isEqual';
 
 export type ArrayEvent = {
@@ -79,7 +79,7 @@ export const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0])
 		},
 	};
 
-// @TODO: Simplify array events to only happen when the size changes in megabytes (it looks like this is easy)
+	// @TODO: Simplify array events to only happen when the size changes in megabytes (it looks like this is easy)
 
 	return event;
 };
