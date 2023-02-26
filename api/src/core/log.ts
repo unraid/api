@@ -1,40 +1,32 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
+import { getNoOpLogger } from '@app/core/log/no-op';
 import chalk from 'chalk';
-import { configure, getLogger as getRealLogger, type Logger } from 'log4js';
+import { configure, getLogger as getRealLogger, Layout } from 'log4js';
 import { serializeError } from 'serialize-error';
-
+import { LOGGER_OPTIONS } from '@app/consts';
 export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
 
-const contextEnabled = Boolean(process.env.LOG_CONTEXT);
-const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
-const tracingEnabled = Boolean(process.env.LOG_TRACING);
-const enabledCategories = (process.env.LOG_CATEGORY ?? '*')?.split(',');
-const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
-const minimumLoggingPattern = '%m';
-const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out', 'errors'];
-const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
-const logLayout = {
+
+const FULL_LOGGING_PATTERN = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${LOGGER_OPTIONS.IS_TRACING_ENABLED ? ' %[%f:%l%]' : ''}`;
+const MINIMUM_LOGGING_PATTERN = '%m';
+
+const logLayout: Layout = {
 	type: 'pattern',
 	// Depending on what this env is set to we'll either get raw or pretty logs
 	// The reason we do this is to allow the app to change this value
 	// This way pretty logs can be turned off programmatically
-	pattern: process.env.LOG_TYPE === 'pretty' ? fullLoggingPattern : minimumLoggingPattern,
+	pattern: LOGGER_OPTIONS.PRETTY_LOG ? FULL_LOGGING_PATTERN : MINIMUM_LOGGING_PATTERN,
 	tokens: {
 		id() {
 			return chalk`{gray [${process.pid}]}`;
 		},
 		context({ context }: { context?: any }) {
-			if (!contextEnabled || !context) {
+			if (!LOGGER_OPTIONS.CONTEXT_ENABLED || !context) {
 				return '';
 			}
 
 			try {
 				const contextEntries = Object.entries(context)
-					.map(([key, value]) => [key, value instanceof Error ? (stackEnabled ? serializeError(value) : value) : value])
+					.map(([key, value]) => [key, value instanceof Error ? (LOGGER_OPTIONS.LOG_STACKTRACE ? serializeError(value) : value) : value])
 					.filter(([key]) => key !== 'pid');
 				const cleanContext = Object.fromEntries(contextEntries);
 				return `\n${Object.entries(cleanContext).map(([key, value]) => `${key}=${JSON.stringify(value, null, 2)}`).join(' ')}`;
@@ -54,20 +46,16 @@ if (process.env.NODE_ENV !== 'test') {
 			file: {
 				type: 'file',
 				filename: '/var/log/unraid-api/stdout.log',
-				layout: {
-					...logLayout,
-					// File logs should always be pretty
-					pattern: fullLoggingPattern,
-				},
+				maxLogSize: '1M',
+				backups: 0,
+				layout: {...logLayout, pattern: FULL_LOGGING_PATTERN}
 			},
 			errorFile: {
 				type: 'file',
 				filename: '/var/log/unraid-api/stderr.log',
-				layout: {
-					...logLayout,
-					// File logs should always be pretty
-					pattern: fullLoggingPattern,
-				},
+				maxLogSize: '1M',
+				backups: 0,
+				layout: {...logLayout, pattern: FULL_LOGGING_PATTERN }
 			},
 			out: {
 				type: 'stdout',
@@ -77,50 +65,36 @@ if (process.env.NODE_ENV !== 'test') {
 		},
 		categories: {
 			default: {
-				appenders,
-				level,
-				enableCallStack: tracingEnabled,
+				appenders: LOGGER_OPTIONS.ENABLED_TRANSPORTS,
+				level: LOGGER_OPTIONS.LOG_LEVEL,
+				enableCallStack: LOGGER_OPTIONS.IS_TRACING_ENABLED,
 			},
 		},
 	});
+} else {
+	configure({
+		appenders: {
+			out: {
+				type: 'stdout',
+				layout: { logLayout, pattern: FULL_LOGGING_PATTERN },
+			}
+		},
+		categories: {
+			default: {
+				appenders: ['out'],
+				level: 'TRACE',
+				enableCallStack: true
+			}
+		}
+		
+	})
 }
-
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noOp = () => {};
-
-const getNoOpLogger = (name: string): Logger => {
-	const logger = getRealLogger(name);
-	return {
-		category: name,
-		level: logger.level,
-		log: noOp,
-		_log: noOp,
-		isLevelEnabled: logger.isLevelEnabled,
-		isTraceEnabled: logger.isTraceEnabled,
-		isDebugEnabled: logger.isDebugEnabled,
-		isInfoEnabled: logger.isInfoEnabled,
-		isWarnEnabled: logger.isWarnEnabled,
-		isErrorEnabled: logger.isErrorEnabled,
-		isFatalEnabled: logger.isFatalEnabled,
-		addContext: noOp,
-		removeContext: noOp,
-		clearContext: noOp,
-		setParseCallStackFunction: noOp,
-		trace: noOp,
-		debug: noOp,
-		info: noOp,
-		warn: noOp,
-		error: noOp,
-		fatal: noOp,
-		mark: noOp,
-	} as unknown as Logger;
-};
 
 const getLogger = (name: string) => {
 	// Check if all are enabled
-	if (enabledCategories?.includes('*')) return getRealLogger(name);
+	if (LOGGER_OPTIONS.ENABLED_CATEGORIES?.includes('*')) return getRealLogger(name);
 	// Check if this specific one is enabled
-	if (enabledCategories?.includes(name)) return getRealLogger(name);
+	if (LOGGER_OPTIONS.ENABLED_CATEGORIES?.includes(name)) return getRealLogger(name);
 	return getNoOpLogger(name);
 };
 
@@ -155,17 +129,17 @@ export const loggers = [
 // Send SIGUSR1 to increase log level
 process.on('SIGUSR1', () => {
 	const level = typeof logger.level === 'string' ? logger.level : logger.level.levelStr;
-	const nextLevel = levels[levels.findIndex(_level => _level === level) + 1] ?? levels[0];
+	const nextLevel = "ALL";
 	loggers.forEach(logger => {
 		logger.level = nextLevel;
 	});
 	internalLogger.mark('Log level changed from %s to %s', level, nextLevel);
 });
 
-// Send SIGUSR1 to decrease log level
+// Send SIGUSR1 to turn logging to warn
 process.on('SIGUSR2', () => {
 	const level = typeof logger.level === 'string' ? logger.level : logger.level.levelStr;
-	const nextLevel = levels[levels.findIndex(_level => _level === level) - 1] ?? levels[levels.length - 1];
+	const nextLevel = "WARN"
 	loggers.forEach(logger => {
 		logger.level = nextLevel;
 	});

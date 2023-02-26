@@ -47,3 +47,16 @@ export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/v
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
+
+// Logger Consts
+export const LOG_LEVELS = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
+export const DEFAULT_LOG_TRANSPORTS = ['file', 'out', 'errors'];
+export const LOGGER_OPTIONS = {
+	PRETTY_LOG: process.env.PRETTY_LOG,
+	CONTEXT_ENABLED: Boolean(process.env.LOG_CONTEXT) ?? false,
+	LOG_STACKTRACE: Boolean(process.env.LOG_STACKTRACE) ?? false,
+	IS_TRACING_ENABLED: Boolean(process.env.LOG_TRACING) ?? false,
+	ENABLED_CATEGORIES: (process.env.LOG_CATEGORY ?? '*')?.split(','),
+	ENABLED_TRANSPORTS: process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? DEFAULT_LOG_TRANSPORTS,
+	LOG_LEVEL: LOG_LEVELS[LOG_LEVELS.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof LOG_LEVELS[number])] ?? 'INFO'
+} as const;

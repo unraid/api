@@ -25,6 +25,7 @@ const initialState: MinigraphClientState = {
 	status: MinigraphStatus.DISCONNECTED,
 	error: null,
 	timeout: null,
+	timeoutStart: null,
 	subscriptions: {
 		[SubscriptionKey.EVENTS]: false,
 		[SubscriptionKey.SERVERS]: false,

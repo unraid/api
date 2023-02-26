@@ -1,5 +1,5 @@
 import { parse, type ArgsParseOptions, type ArgumentConfig } from 'ts-command-line-args';
-import { levels } from '@app/core/log';
+import { LOG_LEVELS } from '@app/consts';
 
 export type Flags = {
 	command?: string;
@@ -16,7 +16,7 @@ export const args: ArgumentConfig<Flags> = {
 	debug: { type: Boolean, optional: true, alias: 'd', description: 'Enabled debug mode.' },
 	port: { type: String, optional: true, alias: 'p', description: 'Set the graphql port.' },
 	environment: { type: String, typeLabel: '{underline production/staging/development}', optional: true, description: 'Set the working environment.' },
-	'log-level': { type: (level?: string) => levels.includes(level as any) ? level : undefined, typeLabel: `{underline ${levels.join('/')}}`, optional: true, description: 'Set the log level.' },
+	'log-level': { type: (level?: string) => LOG_LEVELS.includes(level as any) ? level : undefined, typeLabel: `{underline ${levels.join('/')}}`, optional: true, description: 'Set the log level.' },
 };
 
 export const options: ArgsParseOptions<Flags> = {
