@@ -3,6 +3,7 @@ import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { logoutUser } from '@app/store/modules/config';
 import { GraphQLClient } from '@app/mothership/graphql-client';
+import { minigraphLogger } from '@app/core/log';
 
 export type MinigraphClientState = {
 	status: MinigraphStatus;
@@ -34,6 +35,7 @@ export const mothership = createSlice({
 	},
 	extraReducers(builder) {
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
+			minigraphLogger.debug('GraphQL Connection Status: ', action.payload);
 			state.status = action.payload.status;
 			state.error = action.payload.error;
 			if ([MinigraphStatus.DISCONNECTED].includes(action.payload.status)) {

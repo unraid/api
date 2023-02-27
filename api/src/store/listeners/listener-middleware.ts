@@ -6,7 +6,7 @@ import { enableConfigFileListener } from '@app/store/listeners/config-listener';
 import { enableVersionListener } from '@app/store/listeners/version-listener';
 import { enableApiKeyListener } from '@app/store/listeners/api-key-listener';
 import { enableLoginListener, enableLogoutListener } from '@app/store/listeners/login-logout-listener';
-import { enableMothershipJobsListener } from '@app/store/listeners/mothership-jobs-listener';
+import { enableMothershipJobsListener, enableMothershipSubscriptionListener } from '@app/store/listeners/mothership-jobs-listener';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -32,3 +32,4 @@ enableUpnpListener();
 enableAllowedOriginListener();
 enableVersionListener();
 enableMothershipJobsListener();
+enableMothershipSubscriptionListener();

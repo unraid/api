@@ -1,53 +1,42 @@
+/* eslint-disable max-depth */
 import { minigraphLogger, mothershipLogger } from '@app/core/log';
-import { pubsub } from '@app/core/pubsub';
 import { GraphQLClient } from './graphql-client';
 import { setSubscribedToEvents } from '@app/store/modules/minigraph';
 import { store } from '@app/store';
-import { cacheServers } from '@app/store/modules/servers';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { GET_SERVERS_FROM_MOTHERSHIP } from '../graphql/mothership/queries';
 import { EVENTS_SUBSCRIPTION } from '../graphql/mothership/subscriptions';
 import { ClientType } from '@app/graphql/generated/client/graphql';
+import { notNull } from '@app/utils';
+import { queryServers } from '@app/store/actions/query-servers';
+import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
+import type { Subscription } from 'zen-observable-ts';
 
-function notNull<T>(value: T): value is NonNullable<T> {
-	return value !== null;
-}
+let timeoutForOnlineEventReceive: NodeJS.Timeout | null = null;
 
-export const queryServers = async (apiKey: string) => {
-	const client = GraphQLClient.getInstance();
-	if (!client) {
-		throw new Error('Unable to use client - state must not be loaded');
+const setEventsUnsubscribed = (activeSubscription: Subscription) => {
+	activeSubscription.unsubscribe();
+	store.dispatch(setSubscribedToEvents(false));
+};
+
+const setupTimeoutForSelfDisconnectedEvent = (activeSubscription: Subscription) => {
+// We have somehow received a disconnected event for ourselves. This can sometimes happen when the event bus unsubscribes us after a long running loop
+	timeoutForOnlineEventReceive = setTimeout(() => {
+		mothershipLogger.warn(`Received disconnect event for own server, waiting for ${KEEP_ALIVE_INTERVAL_MS / 1_000} seconds before setting disconnected`);
+		setEventsUnsubscribed(activeSubscription);
+	}, KEEP_ALIVE_INTERVAL_MS);
+};
+
+const clearTimeoutForSelfDisconnectedEvent = () => {
+	if (timeoutForOnlineEventReceive) {
+		mothershipLogger.trace('Cleared timeout for online event receive');
+		clearTimeout(timeoutForOnlineEventReceive);
 	}
 
-	mothershipLogger.trace('Querying Servers');
-	const queryResult = await client.query({ query: GET_SERVERS_FROM_MOTHERSHIP, variables: { apiKey }, fetchPolicy: 'network-only' });
-	if (queryResult.data.servers) {
-		const serversToSet = queryResult.data.servers.filter(notNull);
-		mothershipLogger.addContext('result', serversToSet);
-		mothershipLogger.trace('Got %s servers for user', serversToSet.length);
-		mothershipLogger.removeContext('result');
-
-		store.dispatch(cacheServers(serversToSet));
-		if (serversToSet.length > 0) {
-			// Publish owner event
-			await pubsub.publish('owner', {
-				owner: serversToSet[0].owner,
-			});
-
-			// Publish servers event
-			await pubsub.publish('servers', {
-				servers: serversToSet,
-			});
-		}
-	}
-
-	if (queryResult.errors) {
-		mothershipLogger.error('Error querying servers: %s', queryResult.errors.join(','));
-	}
+	timeoutForOnlineEventReceive = null;
 };
 
 export const subscribeToEvents = async (apiKey: string) => {
-	minigraphLogger.info('Subscribing to Events')
+	minigraphLogger.info('Subscribing to Events');
 	const client = GraphQLClient.getInstance();
 	if (!client) {
 		throw new Error('Unable to use client - state must not be loaded');
@@ -55,7 +44,7 @@ export const subscribeToEvents = async (apiKey: string) => {
 
 	const eventsSub = client.subscribe({ query: EVENTS_SUBSCRIPTION, variables: { apiKey } });
 	store.dispatch(setSubscribedToEvents(true));
-	eventsSub.subscribe(async ({ data, errors }) => {
+	const activeSubscription = eventsSub.subscribe(async ({ data, errors }) => {
 		if (errors) {
 			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
 		} else if (data) {
@@ -66,8 +55,12 @@ export const subscribeToEvents = async (apiKey: string) => {
 						const { connectedData: { type, apiKey: eventApiKey } } = event;
 						// Another server connected to Mothership
 						if (type === ClientType.API) {
-							// eslint-disable-next-line no-await-in-loop
-							await queryServers(apiKey);
+							void store.dispatch(queryServers());
+
+							if (eventApiKey === apiKey) {
+								// We are online, clear timeout waiting if it's set
+								clearTimeoutForSelfDisconnectedEvent();
+							}
 						}
 
 						// Dashboard Connected to Mothership
@@ -83,8 +76,11 @@ export const subscribeToEvents = async (apiKey: string) => {
 
 						// Server Disconnected From Mothership
 						if (type === ClientType.API) {
-							// eslint-disable-next-line no-await-in-loop
-							await queryServers(apiKey);
+							void store.dispatch(queryServers());
+
+							if (eventApiKey === apiKey) {
+								setupTimeoutForSelfDisconnectedEvent(activeSubscription);
+							}
 						}
 
 						// The dashboard was closed or went idle
@@ -102,7 +98,9 @@ export const subscribeToEvents = async (apiKey: string) => {
 		}
 	}, err => {
 		mothershipLogger.error('Error in events subscription %o', err);
+		setEventsUnsubscribed(activeSubscription);
 	}, () => {
-		store.dispatch(setSubscribedToEvents(false));
+		mothershipLogger.info('OnComplete fired for events subscription, setting subscribed to events to false');
+		setEventsUnsubscribed(activeSubscription);
 	});
 };

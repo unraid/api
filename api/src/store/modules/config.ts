@@ -182,7 +182,6 @@ export const config = createSlice({
 		});
 
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
-			logger.debug('Setting graphql connection status', action.payload);
 			state.connectionStatus.minigraph = action.payload.status;
 		});
 	},
