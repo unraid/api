@@ -88,12 +88,7 @@ const isFileOptions = (options: OptionsWithLoadedFile | OptionsWithPath): option
 
 export const loadFileFromPathSync = (filePath: string): string => {
 	if (!fileExistsSync(filePath)) throw new Error(`Failed to load file at path: ${filePath}`);
-	const file = readFileSync(filePath, 'utf-8').toString();
-	if (file === '') {
-		throw new AppError('File contents are empty, this is an invalid read operation');
-	}
-
-	return file;
+	return readFileSync(filePath, 'utf-8').toString();
 };
 
 /**
