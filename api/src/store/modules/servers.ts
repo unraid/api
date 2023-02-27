@@ -4,6 +4,7 @@ import merge from 'lodash/merge';
 import { type Server } from '@app/graphql/generated/client/graphql';
 import { logoutUser } from '@app/store/modules/config';
 import { queryServers } from '@app/store/actions/query-servers';
+import { logger } from '@app/core/log';
 
 type SliceState = {
 	status: MemoryCacheStatus;
@@ -30,7 +31,11 @@ export const servers = createSlice({
 		builder.addCase(logoutUser.pending, state => {
 			state.servers = [];
 		});
-		builder.addCase(queryServers.fulfilled, (state, action) => merge(state, action.payload));
+		builder.addCase(queryServers.fulfilled, (state, action) => {
+			logger.debug('Got servers for user:', action.payload.map(server => server.name).join(','));
+			state.servers = action.payload;
+			state.status = MemoryCacheStatus.CACHED;
+		});
 	},
 });
 
