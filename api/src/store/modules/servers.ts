@@ -3,6 +3,8 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { type Server } from '@app/graphql/generated/client/graphql';
 import { logoutUser } from '@app/store/modules/config';
+import { queryServers } from '@app/store/actions/query-servers';
+import { logger } from '@app/core/log';
 
 type SliceState = {
 	status: MemoryCacheStatus;
@@ -24,15 +26,17 @@ export const servers = createSlice({
 		clearAllServers(state) {
 			state.servers = [];
 		},
-		updateServersState(state, action: PayloadAction<Partial<typeof initialState>>) {
-			return merge(state, action.payload);
-		},
 	},
 	extraReducers(builder) {
 		builder.addCase(logoutUser.pending, state => {
 			state.servers = [];
 		});
+		builder.addCase(queryServers.fulfilled, (state, action) => {
+			logger.debug('Got servers for user:', action.payload.map(server => server.name).join(','));
+			state.servers = action.payload;
+			state.status = MemoryCacheStatus.CACHED;
+		});
 	},
 });
 
-export const { cacheServers, clearAllServers, updateServersState } = servers.actions;
+export const { cacheServers, clearAllServers } = servers.actions;

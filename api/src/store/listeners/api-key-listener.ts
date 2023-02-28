@@ -1,7 +1,7 @@
 import { keyServerLogger } from '@app/core/log';
 import { retryValidateApiKey } from '@app/mothership/api-key/retry-validate-api-key';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
-import { isApiKeyValid, isApiKeyLoading } from '@app/store/getters/index';
+import { isApiKeyLoading } from '@app/store/getters/index';
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 
 export const enableApiKeyListener = () => startAppListening({

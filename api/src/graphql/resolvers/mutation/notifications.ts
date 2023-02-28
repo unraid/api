@@ -6,9 +6,9 @@
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { graphqlLogger } from '@app/core';
 import { GraphQLClient } from '@app/mothership/graphql-client';
-import { SEND_NOTIFICATION_MUTATION } from '../../mothership/mutations';
-import { getters } from '../../../store';
-import { type Resolvers } from '../../generated/api/types';
+import { SEND_NOTIFICATION_MUTATION } from '@app/graphql/mothership/mutations';
+import { getters } from '@app/store';
+import { type Resolvers } from '@app/graphql/generated/api/types';
 
 export const sendNotification: NonNullable<Resolvers['Mutation']>['sendNotification'] = async (_, args: { notification }, context) => {
 	const { user } = context;
@@ -20,16 +20,19 @@ export const sendNotification: NonNullable<Resolvers['Mutation']>['sendNotificat
 		possession: 'own',
 	});
 
+	const client = GraphQLClient.getInstance();
 	// If there's no mothership connection then bail
-	if (!GraphQLClient.getInstance()) {
+	if (!client) {
 		graphqlLogger.error('Mothership is not working');
 		throw new Error('Mothership is down');
 	}
-
-	const result = await GraphQLClient.getInstance().query({ query: SEND_NOTIFICATION_MUTATION, variables: {
-		notification: args.notification,
-		apiKey: getters.config().remote.apikey,
-	} });
+	const result = await client.query({ 
+		query: SEND_NOTIFICATION_MUTATION, 
+		variables: {
+			notification: args.notification,
+			apiKey: getters.config().remote.apikey,
+		}
+	});
 	graphqlLogger.debug('Query Result from Notifications.ts', result);
 	return args.notification;
 };

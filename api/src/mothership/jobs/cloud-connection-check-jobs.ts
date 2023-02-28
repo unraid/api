@@ -2,9 +2,10 @@
 
 import { mothershipLogger } from '@app/core';
 import { Cron, Expression, Initializer } from '@reflet/cron';
-import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
-import { subscribeToMothership } from '@app/mothership/subscribe-to-mothership';
+import { GraphQLClient } from '@app/mothership/graphql-client';
 import { isApiKeyValid } from '@app/store/getters/index';
+import { store } from '@app/store/index';
+import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
 
 export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	@Cron.Start()
@@ -14,18 +15,19 @@ export class MothershipJobs extends Initializer<typeof MothershipJobs> {
 	}
 
 	@Cron.Start()
-	@Cron.PreventOverlap
-	@Cron(Expression.EVERY_10_SECONDS)
+	@Cron.RunOnInit()
+	@Cron.PreventOverlap()
+	@Cron(Expression.EVERY_30_SECONDS)
 	async checkCloudConnection() {
 		// @TODO: Convert this to a listener instead of a recurring job.
 		// Only need to check API key validity here since the API key validation ensures that state is fully loaded
-		if (isApiKeyValid()) {
-			try {
-				await subscribeToMothership();
-			} catch (error: unknown) {
-				mothershipLogger.error('Failed checking connection with error %s.', error);
+		const state = store.getState();
+		if (isApiKeyValid(state) && state.apiKey.status === API_KEY_STATUS.API_KEY_VALID) {
+			const client = GraphQLClient.createSingletonInstance();
+
+			if (!client) {
+				mothershipLogger.error('Fatal Error, Client Could Not Be Instantiated');
 			}
 		}
 	}
 }
-

@@ -27,6 +27,8 @@ export const ONE_HOUR_SECS = 60 * 60;
 export const ONE_DAY_SECS = ONE_HOUR_SECS * 24;
 export const FIVE_DAYS_SECS = ONE_DAY_SECS * 5;
 
+export const KEEP_ALIVE_INTERVAL_MS = ONE_MINUTE; // This is set to 45 seconds on mothership, servers will use a 1 minute margin to ensure it has some wiggle room
+
 /**
  * Graphql link.
  */
