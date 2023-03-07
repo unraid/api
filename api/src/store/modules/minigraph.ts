@@ -1,7 +1,7 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { logoutUser } from '@app/store/modules/config';
+import { loginUser, logoutUser } from '@app/store/modules/config';
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { minigraphLogger } from '@app/core/log';
 
@@ -46,6 +46,12 @@ export const mothership = createSlice({
 				state.timeout = null;
 				state.timeoutStart = null;
 			}
+		});
+		builder.addCase(loginUser.pending, state => {
+			state.timeout = null;
+			state.timeoutStart = null;
+			state.status = MinigraphStatus.DISCONNECTED;
+			state.error = 'Connecting - refresh the page for an updated status.';
 		});
 		builder.addCase(logoutUser.pending, state => {
 			GraphQLClient.clearInstance();
