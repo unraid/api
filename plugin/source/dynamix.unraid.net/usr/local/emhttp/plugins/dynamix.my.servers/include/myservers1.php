@@ -72,14 +72,15 @@ if (upcEnvCookie) console.debug('[UPC_ENV] ✨', upcEnvCookie);
 
 // If the UPC isn't defined after 3secs inject UPC via
 setTimeout(() => {
-  if (!window.customElements.get('unraid-user-profile')) {
-    console.log('[UPC] Fallback to filesystem src 😖');
-    const el = document.createElement('script');
-    el.type = 'text/javascript';
-    el.src = '<?=$upcLocalSrc?>';
-    document.head.appendChild(el);
-    return upcEnv('local', false, true); // set session cookie to prevent delayed loads of UPC
-  }
+  // UPC exists do nothing
+  if (window.customElements.get('unraid-user-profile')) return;
+
+  console.log('[UPC] Fallback to filesystem src 😖');
+  const el = document.createElement('script');
+  el.type = 'text/javascript';
+  el.src = '<?=$upcLocalSrc?>';
+  document.head.appendChild(el);
+  return upcEnv('local', false, true); // set session cookie to prevent delayed loads of UPC
 }, 3000);
 
 function upcEnv(str, reload = true, session = false) { // overwrite upc src
