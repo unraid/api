@@ -513,11 +513,11 @@ if (!$ignoreRateLimit && $commitCount >= $maxCommitCount) {
 
 // test which ssh port allows a connection (standard ssh port 22 or alternative port 443)
 $SSH_PORT = '';
-exec('timeout 7 ssh -o ConnectTimeout=5 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
+exec('timeout 17 ssh -o ConnectTimeout=15 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
 if ($return_var == 128) {
   $SSH_PORT = '22';
 } else {
-  exec('timeout 7 ssh -o ConnectTimeout=5 -p 443 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
+  exec('timeout 17 ssh -o ConnectTimeout=15 -p 443 -T git@backup.unraid.net 2>&1', $ssh_output, $return_var);
   if ($return_var == 128) {
     $SSH_PORT = '443';
   }
