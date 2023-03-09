@@ -30,7 +30,7 @@ const cloudResolver: QueryResolvers['cloud'] = async (parent, args, context: Con
 		minigraphql,
 		cloud,
 		allowedOrigins: getAllowedOrigins(),
-		error: `${apiKey.error ? `API KEY: ${apiKey.error}` : ''}${cloud.error ? `CLOUD: ${cloud.error}` : ''}${minigraphql.error ? `MOTHERSHIP: ${minigraphql.error}` : ''}` || null,
+		error: `${apiKey.error ? `API KEY: ${apiKey.error}` : ''}${cloud.error ? `NETWORK: ${cloud.error}` : ''}${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` || null,
 	};
 };
 
