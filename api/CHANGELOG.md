@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.57.0](https://github.com/unraid/api/compare/v2.56.0...v2.57.0) (2023-03-09)
+
+
+### Features
+
+* better text when logging in a user ([#526](https://github.com/unraid/api/issues/526)) ([ecd888c](https://github.com/unraid/api/commit/ecd888ceb45bcf986e3f9d335522269446cdc1ec))
+
 ## [2.56.0](https://github.com/unraid/api/compare/v2.55.1...v2.56.0) (2023-03-09)
 
 
