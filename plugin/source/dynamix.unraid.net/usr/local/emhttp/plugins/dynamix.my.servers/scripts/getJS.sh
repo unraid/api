@@ -16,15 +16,15 @@ if [[ -f "/tmp/${JS_FILE}.tmp1" && -s "/tmp/${JS_FILE}.tmp1" ]]; then
   if grep -q "sourceMappingURL=unraid.min.js.map" "/tmp/${JS_FILE}.tmp1"; then
     # remove source mapping from js
     head -n -1 "/tmp/${JS_FILE}.tmp1" >"/tmp/${JS_FILE}.tmp2"
-    rm "/tmp/${JS_FILE}.tmp1"
   fi
+  rm -f "/tmp/${JS_FILE}.tmp1"
 fi
 
 # bail if file wasn't downloaded
 [[ ! -f "/tmp/${JS_FILE}.tmp2" ]] && exit 0
 
 # bail if downloaded file and existing file are the same
-if cmp -s "/tmp/${JS_FILE}.tmp2" "${JS_FINAL_DEST}${JS_FILE}"; then
+if test -f "${JS_FINAL_DEST}${JS_FILE}" && cmp -s "/tmp/${JS_FILE}.tmp2" "${JS_FINAL_DEST}${JS_FILE}"; then
   rm -f "/tmp/${JS_FILE}.tmp2"
   exit 0
 fi
