@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# download the JavaScript web components
+# download the JavaScript web components e.g. the user profile component
 JS_DL_SERVER=https://registration.unraid.net
 JS_FLASH_DEST=/boot/config/plugins/dynamix.my.servers/webComps/
 JS_FINAL_DEST=/usr/local/emhttp/plugins/dynamix.my.servers/webComps/
