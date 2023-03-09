@@ -2,6 +2,29 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.56.0](https://github.com/unraid/api/compare/v2.55.1...v2.56.0) (2023-03-09)
+
+
+### Features
+
+* add timeout to report for mothership ([#508](https://github.com/unraid/api/issues/508)) ([9f09500](https://github.com/unraid/api/commit/9f095003f63066e07f3ae2728316bffcbb0a43e7))
+* better reconnection logic ([#522](https://github.com/unraid/api/issues/522)) ([6cc8de6](https://github.com/unraid/api/commit/6cc8de6ef0650d5647002ec9fae4b7706211272c))
+* better way to stop the api before uninstalling it ([#515](https://github.com/unraid/api/issues/515)) ([c6b5e3d](https://github.com/unraid/api/commit/c6b5e3dcf047931eaaf85434080ccef663cce714))
+* build staging and production plugins from one file ([#513](https://github.com/unraid/api/issues/513)) ([724e929](https://github.com/unraid/api/commit/724e929479f12089205b2876817593fe1fac442e))
+* cron to download JS daily ([#529](https://github.com/unraid/api/issues/529)) ([c5db666](https://github.com/unraid/api/commit/c5db66610b712138533b3052b5881a63fe4bfcb6))
+* more detailed error location for cloud error check ([e657f31](https://github.com/unraid/api/commit/e657f314e4e4f0f5c95b825af7eb81584739e4ab))
+* non-lazy error handling ([#511](https://github.com/unraid/api/issues/511)) ([2d2993e](https://github.com/unraid/api/commit/2d2993e2a8958a6f9d75ea5b00a2846a4c0ac8b6))
+* non-lazy error handling ([#521](https://github.com/unraid/api/issues/521)) ([99b0199](https://github.com/unraid/api/commit/99b01994d81d57979ce5c8328244d355ed819741))
+* timeout in report ([#509](https://github.com/unraid/api/issues/509)) ([605111d](https://github.com/unraid/api/commit/605111da8279417e66f2e4ca16f7c65e9e12a12d))
+
+
+### Bug Fixes
+
+* gql client better timeout ([#506](https://github.com/unraid/api/issues/506)) ([3ee9846](https://github.com/unraid/api/commit/3ee984607dd61e9bb9354f78dc4e9845b76fe091))
+* increase flash backup timeout ([#527](https://github.com/unraid/api/issues/527)) ([c221076](https://github.com/unraid/api/commit/c22107646ac4430b2f4588e9388fdfa297b2ab86))
+* PHP warning in UpdateFlashBackup.php ([#504](https://github.com/unraid/api/issues/504)) ([2737880](https://github.com/unraid/api/commit/27378809a835fb5c7d48c3d4afcf793e1081d5cd))
+* remove staging from frame ancestors ([#512](https://github.com/unraid/api/issues/512)) ([5153dbc](https://github.com/unraid/api/commit/5153dbccd4cef1ea502866ae74177b133c40c99c))
+
 ### [2.55.1](https://github.com/unraid/api/compare/v2.55.0...v2.55.1) (2023-01-23)
 
 
