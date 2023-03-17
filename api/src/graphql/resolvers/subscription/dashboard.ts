@@ -72,8 +72,13 @@ export const publishToDashboard = async () => {
 			dashboard: dataPacket,
 		});
 		if (dataPacket) {
+			const client = GraphQLClient.getInstance();
+			if (!client) {
+				throw new Error('Invalid Client');
+			}
+
 			// Update mothership
-			await GraphQLClient.getInstance().mutate({ mutation: SEND_DASHBOARD_PAYLOAD_MUTATION, variables: { apiKey: getters.config().remote.apikey, data: dataPacket } });
+			await client.mutate({ mutation: SEND_DASHBOARD_PAYLOAD_MUTATION, variables: { apiKey: getters.config().remote.apikey, data: dataPacket } });
 		} else {
 			dashboardLogger.error('DataPacket Was Empty');
 		}

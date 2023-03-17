@@ -16,8 +16,10 @@ const documents = {
     "\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}": types.updateDashboardDocument,
     "\nmutation sendNotification($notification:NotificationInput!, $apiKey: String!) {\n\tsendNotification(notification: $notification) @auth(apiKey: $apiKey)\n\t{\n\t\ttitle \n\t\tsubject \n\t\tdescription\n\t\timportance\n\t\tlink\n\t\tstatus\n\t}\n}": types.sendNotificationDocument,
     "\nmutation updateNetwork($data: NetworkInput!, $apiKey: String!) {\n\tupdateNetwork(data: $data) @auth(apiKey: $apiKey) {\n\t\taccessUrls {\n\t\t\tname\n\t\t\ttype\n\t\t\tipv4\n\t\t\tipv6\n\t\t}\n\t}\n}\n": types.updateNetworkDocument,
+    "\nmutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {\n\tremoteSession(remoteAccess: $remoteAccess)\n}\n": types.sendRemoteAccessMutationDocument,
     "\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n": types.queryServersFromMothershipDocument,
-    "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n": types.eventsDocument,
+    "\n  fragment RemoteAccessEventFragment on RemoteAccessEvent {\n      type\n      data {\n        type\n        url {\n          type\n          name\n          ipv4\n          ipv6\n        }\n        apiKey\n      }\n    }\n": types.RemoteAccessEventFragmentFragmentDoc,
+    "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    __typename\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n    ...RemoteAccessEventFragment\n  }\n}\n": types.eventsDocument,
 };
 
 /**
@@ -35,11 +37,19 @@ export function graphql(source: "\nmutation updateNetwork($data: NetworkInput!, 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\nmutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {\n\tremoteSession(remoteAccess: $remoteAccess)\n}\n"): (typeof documents)["\nmutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {\n\tremoteSession(remoteAccess: $remoteAccess)\n}\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n"): (typeof documents)["\nquery queryServersFromMothership($apiKey: String!) {\n\tservers @auth(apiKey: $apiKey) {\n\t\towner {\n\t\t\tusername\n\t\t\turl\n\t\t\tavatar\n\t\t}\n\t\tguid\n\t\tapikey\n\t\tname\n\t\tstatus\n\t\twanip\n\t\tlanip\n\t\tlocalurl\n\t\tremoteurl\n\t}\n}\n\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"): (typeof documents)["\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n  }\n}\n"];
+export function graphql(source: "\n  fragment RemoteAccessEventFragment on RemoteAccessEvent {\n      type\n      data {\n        type\n        url {\n          type\n          name\n          ipv4\n          ipv6\n        }\n        apiKey\n      }\n    }\n"): (typeof documents)["\n  fragment RemoteAccessEventFragment on RemoteAccessEvent {\n      type\n      data {\n        type\n        url {\n          type\n          name\n          ipv4\n          ipv6\n        }\n        apiKey\n      }\n    }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    __typename\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n    ...RemoteAccessEventFragment\n  }\n}\n"): (typeof documents)["\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    __typename\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n    ...RemoteAccessEventFragment\n  }\n}\n"];
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.

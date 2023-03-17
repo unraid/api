@@ -137,6 +137,7 @@
     "@babel/runtime": "^7.20.6",
     "@graphql-codegen/add": "^3.2.1",
     "@graphql-codegen/cli": "2.15.0",
+    "@graphql-codegen/fragment-matcher": "^4.0.1",
     "@graphql-codegen/import-types-preset": "^2.2.6",
     "@graphql-codegen/typed-document-node": "^2.3.10",
     "@graphql-codegen/typescript": "2.8.3",

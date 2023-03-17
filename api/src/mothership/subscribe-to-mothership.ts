@@ -1,15 +1,17 @@
 /* eslint-disable max-depth */
-import { minigraphLogger, mothershipLogger } from '@app/core/log';
+import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
 import { GraphQLClient } from './graphql-client';
 import { setSubscribedToEvents } from '@app/store/modules/minigraph';
 import { store } from '@app/store';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { EVENTS_SUBSCRIPTION } from '../graphql/mothership/subscriptions';
+import { EVENTS_SUBSCRIPTION, RemoteAccess_Fragment } from '../graphql/mothership/subscriptions';
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
 import { queryServers } from '@app/store/actions/query-servers';
 import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
 import type { Subscription } from 'zen-observable-ts';
+import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access-event';
+import { useFragment } from '@app/graphql/generated/client/fragment-masking';
 
 let timeoutForOnlineEventReceive: NodeJS.Timeout | null = null;
 
@@ -73,7 +75,6 @@ export const subscribeToEvents = async (apiKey: string) => {
 
 					case 'ClientDisconnectedEvent': {
 						const { disconnectedData: { type, apiKey: eventApiKey } } = event;
-
 						// Server Disconnected From Mothership
 						if (type === ClientType.API) {
 							void store.dispatch(queryServers());
@@ -86,6 +87,16 @@ export const subscribeToEvents = async (apiKey: string) => {
 						// The dashboard was closed or went idle
 						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
 							store.dispatch(stopDashboardProducer());
+						}
+
+						break;
+					}
+
+					case 'RemoteAccessEvent': {
+						const eventAsRemoteAccessEvent = useFragment(RemoteAccess_Fragment, event);
+
+						if (eventAsRemoteAccessEvent.data.apiKey === apiKey) {
+							void store.dispatch(handleRemoteAccessEvent(eventAsRemoteAccessEvent));
 						}
 
 						break;

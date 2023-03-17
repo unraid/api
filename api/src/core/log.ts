@@ -137,6 +137,7 @@ export const minigraphLogger = getLogger('minigraph');
 export const cloudConnectorLogger = getLogger('cloud-connector');
 export const upnpLogger = getLogger('upnp');
 export const keyServerLogger = getLogger('key-server');
+export const remoteAccessLogger = getLogger('remote-access');
 export const loggers = [
 	logger,
 	mothershipLogger,
@@ -150,6 +151,7 @@ export const loggers = [
 	cloudConnectorLogger,
 	upnpLogger,
 	keyServerLogger,
+	remoteAccessLogger,
 ];
 
 // Send SIGUSR1 to increase log level

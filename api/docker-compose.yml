@@ -27,6 +27,7 @@ services:
 
   dev:
     image: unraid-api-node-18
+    network_mode: host
     ports:
       - "4000:4000"
     build: 
@@ -40,6 +41,8 @@ services:
     stdin_open: true
     tty: true
     entrypoint: /bin/bash
+    environment: 
+      - IS_DOCKER=true
     profiles:
       - builder
 

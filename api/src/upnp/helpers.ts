@@ -1,10 +1,16 @@
+import { THIRTY_SECONDS_MS } from '@app/consts';
 import { logger, upnpLogger } from '@app/core/log';
+import { IS_DOCKER } from '@app/environment';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
 import { getters } from '@app/store';
 import { type LeaseRenewalArgs } from '@app/store/modules/upnp';
+import { MockUpnpClient } from '@app/upnp/mock-upnp-client';
 import { Client, type Mapping } from '@runonflux/nat-upnp';
 
-const upnpClient = new Client();
+// If we're in docker mode, load the mock client
+const upnpClient = IS_DOCKER ? new MockUpnpClient({ timeout: THIRTY_SECONDS_MS }) : new Client({
+	timeout: THIRTY_SECONDS_MS,
+});
 
 const SIX_HOURS = 60 * 60 * 6;
 const PORT_RANGE_MIN = 35_000;

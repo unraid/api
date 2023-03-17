@@ -17,8 +17,10 @@ export const ONE_MINUTE = 60 * ONE_SECOND;
 export const ONE_HOUR = 60 * ONE_MINUTE;
 
 export const ONE_SECOND_MS = 1_000;
+export const THIRTY_SECONDS_MS = ONE_SECOND_MS * 30;
 export const ONE_MINUTE_MS = 60 * ONE_SECOND;
 export const FIVE_MINUTES_MS = 5 * ONE_MINUTE;
+export const TEN_MINUTES_MS = 10 * ONE_MINUTE;
 export const THIRTY_MINUTES_MS = 30 * ONE_MINUTE;
 export const ONE_HOUR_MS = 60 * ONE_MINUTE;
 
