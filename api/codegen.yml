@@ -20,7 +20,7 @@ generates:
   src/graphql/generated/client/:
     documents: './src/graphql/mothership/*.ts'
     schema: 
-      'http://localhost:3000/graphql': 
+      'https://staging.mothership.unraid.net/ws': 
         headers:
           origin: 'https://forums.unraid.net'
     preset: client
