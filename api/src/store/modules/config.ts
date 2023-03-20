@@ -157,6 +157,9 @@ export const config = createSlice({
 		setWanPortToValue(state, action: PayloadAction<number>) {
 			state.remote.wanport = String(action.payload);
 		},
+		setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
+			state.remote.wanaccess = action.payload;
+		},
 	},
 	extraReducers(builder) {
 		builder.addCase(loadConfigFile.pending, (state, _action) => {
@@ -194,6 +197,6 @@ export const config = createSlice({
 });
 const { actions, reducer } = config;
 
-export const { updateUserConfig, updateAccessTokens, updateAllowedOrigins, setUpnpState, setWanPortToValue } = actions;
+export const { updateUserConfig, updateAccessTokens, updateAllowedOrigins, setUpnpState, setWanPortToValue, setWanAccess } = actions;
 
 export const configReducer = reducer;

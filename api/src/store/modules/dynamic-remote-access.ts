@@ -4,14 +4,14 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface DynamicRemoteAccessState {
 	runningType: DynamicRemoteAccessType; // Is Dynamic Remote Access actively running - shows type of access currently running
+	error: string | null;
 	allowedUrls: AccessUrl[]; // Not used yet, will be used to facilitate allowlisting clients
-	accessUrl: AccessUrl | null;
 }
 
 const initialState: DynamicRemoteAccessState = {
 	runningType: DynamicRemoteAccessType.DISABLED,
+	error: null,
 	allowedUrls: [],
-	accessUrl: null,
 };
 
 const dynamicRemoteAccess = createSlice({
@@ -19,7 +19,11 @@ const dynamicRemoteAccess = createSlice({
 	initialState,
 	reducers: {
 		setRemoteAccessRunningType(state, action: PayloadAction<DynamicRemoteAccessType>) {
+			state.error = null;
 			state.runningType = action.payload;
+		},
+		setDynamicRemoteAccessError(state, action: PayloadAction<string>) {
+			state.error = action.payload;
 		},
 		setAllowedRemoteAccessUrls(state, action: PayloadAction<AccessUrl | null>) {
 			if (action.payload) {
@@ -37,5 +41,5 @@ const dynamicRemoteAccess = createSlice({
 
 const { actions, reducer } = dynamicRemoteAccess;
 
-export const { setAllowedRemoteAccessUrls, setRemoteAccessRunningType } = actions;
+export const { setAllowedRemoteAccessUrls, setRemoteAccessRunningType, setDynamicRemoteAccessError } = actions;
 export const dynamicRemoteAccessReducer = reducer;

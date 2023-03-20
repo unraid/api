@@ -16,15 +16,13 @@ import { loadStateFiles } from '@app/store/modules/emhttp';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
-import { writeMemoryConfigSync } from './store/sync/config-disk-sync';
 import { app, httpServer, server } from '@app/server';
 import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { environment } from '@app/environment';
+import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 
 // Boot app
 void am(async () => {
@@ -75,23 +73,20 @@ void am(async () => {
 	// Start webserver
 	httpServer.listen(config.port);
 
-	// On process exit stop HTTP server
+	// On process exit stop HTTP server - this says it supports async but it doesnt seem to
 	exitHook(() => {
 		// If port is unix socket, delete socket before exiting
 		if (isNaN(parseInt(config.port, 10))) {
 			if (fileExistsSync(config.port)) unlinkSync(config.port);
 		}
 
-		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
-		writeMemoryConfigSync();
+		shutdownApiEvent();
+		process.exit(0);
 	});
 }, async (error: NodeJS.ErrnoException) => {
 	// Log error to syslog
-	logger.error(error);
-
-	// Write the new memory config with disconnected status
-	store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
-	writeMemoryConfigSync();
+	logger.error('API-GLOBAL-ERROR', error);
+	shutdownApiEvent();
 
 	// Stop server
 	logger.debug('Stopping HTTP server');

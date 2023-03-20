@@ -1,4 +1,4 @@
-import { THIRTY_SECONDS_MS } from '@app/consts';
+import { ONE_HOUR_SECS, THIRTY_SECONDS_MS } from '@app/consts';
 import { logger, upnpLogger } from '@app/core/log';
 import { IS_DOCKER } from '@app/environment';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
@@ -12,7 +12,6 @@ const upnpClient = IS_DOCKER ? new MockUpnpClient({ timeout: THIRTY_SECONDS_MS }
 	timeout: THIRTY_SECONDS_MS,
 });
 
-const SIX_HOURS = 60 * 60 * 6;
 const PORT_RANGE_MIN = 35_000;
 const PORT_RANGE_MAX = 65_000;
 
@@ -49,7 +48,7 @@ export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp, serverN
 		public: wanPortForUpnp,
 		private: localPortForUpnp,
 		description: `Unraid Remote Access - ${serverName ?? 'No Server Name Found'}`,
-		ttl: SIX_HOURS,
+		ttl: ONE_HOUR_SECS,
 	});
 	upnpLogger.trace('Opening Port Result %o', result);
 };

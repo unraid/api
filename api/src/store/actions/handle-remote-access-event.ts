@@ -1,12 +1,12 @@
 import { remoteAccessLogger } from '@app/core/log';
 import { RemoteAccessEventActionType, type RemoteAccessEventFragmentFragment } from '@app/graphql/generated/client/graphql';
-import { RemoteAccessJobManager } from '@app/remoteAccess/jobs';
+import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
-import { type RootState } from '@app/store/index';
+import { type AppDispatch, type RootState } from '@app/store/index';
 import { setAllowedRemoteAccessUrls } from '@app/store/modules/dynamic-remote-access';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
-export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventFragmentFragment, { state: RootState }>('dynamicRemoteAccess/handleRemoteAccessEvent', async (event, { getState, dispatch }) => {
+export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventFragmentFragment, { state: RootState; dispatch: AppDispatch }>('dynamicRemoteAccess/handleRemoteAccessEvent', async (event, { getState, dispatch }) => {
 	const state = getState();
 	const pluginApiKey = state.config.remote.apikey;
 	if (pluginApiKey !== event.data.apiKey) {
@@ -22,14 +22,14 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 
 	switch (event.data.type) {
 		case RemoteAccessEventActionType.INIT:
-			remoteAccessLogger.debug('RECEIVED INIT EVENT FOR REMOTE ACCESS');
+			remoteAccessLogger.debug('Init Event', RemoteAccessController.instance);
 			// Init - Begin listening, transmit an ACK event back from the client.
 			if (event.data.url) {
 				// @todo use this URL to set the only allowed access url
 				dispatch(setAllowedRemoteAccessUrls(event.data.url));
 			}
 
-			await RemoteAccessJobManager.getInstance().beginRemoteAccess({ getState, dispatch });
+			await RemoteAccessController.instance.beginRemoteAccess({ getState, dispatch });
 			// @TODO Move this logic into the remote access manager class
 
 			break;
@@ -38,11 +38,11 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 			break;
 		case RemoteAccessEventActionType.PING:
 			// Ping - would continue remote access if necessary;
-			RemoteAccessJobManager.getInstance().extendRemoteAccess({ getState, dispatch });
+			RemoteAccessController.instance.extendRemoteAccess({ getState, dispatch });
 			break;
 		case RemoteAccessEventActionType.END:
 			// End
-			await RemoteAccessJobManager.getInstance().stopRemoteAccess({ getState, dispatch });
+			await RemoteAccessController.instance.stopRemoteAccess({ getState, dispatch });
 			break;
 		default:
 			break;

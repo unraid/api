@@ -5,9 +5,9 @@ import { loadConfigFile } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
-import { RemoteAccessJobManager } from '@app/remoteAccess/jobs';
+import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
 
-const shouldDyanamicRemoteAccessBeEnabled = (state: RootState | null): boolean => {
+const shouldDynamicRemoteAccessBeEnabled = (state: RootState | null): boolean => {
 	if (state?.config.status !== FileLoadStatus.LOADED || state?.emhttp.status !== FileLoadStatus.LOADED) {
 		return false;
 	}
@@ -23,9 +23,8 @@ const isStateOrConfigUpdate = isAnyOf(loadConfigFile.fulfilled);
 
 export const enableDynamicRemoteAccessListener = () => startAppListening({
 	predicate(action, currentState, previousState) {
-		// @TODO: One of our actions is incorrectly configured. Sometimes the action is an anonymous function. We need to fix this.
 		if ((isStateOrConfigUpdate(action) || !action?.type)
-		&& (shouldDyanamicRemoteAccessBeEnabled(currentState) !== shouldDyanamicRemoteAccessBeEnabled(previousState))) {
+		&& (shouldDynamicRemoteAccessBeEnabled(currentState) !== shouldDynamicRemoteAccessBeEnabled(previousState))) {
 			return true;
 		}
 
@@ -39,7 +38,7 @@ export const enableDynamicRemoteAccessListener = () => startAppListening({
 
 		if (remoteAccessType === DynamicRemoteAccessType.DISABLED) {
 			remoteAccessLogger.info('[Listener] Disabling Dynamic Remote Access Feature');
-			await RemoteAccessJobManager.getInstance().stopRemoteAccess({ getState, dispatch });
+			await RemoteAccessController.instance.stopRemoteAccess({ getState, dispatch });
 			// @TODO disable running DRA here
 		} else {
 			remoteAccessLogger.info('[Listener] Enabling Remote Access Feature');
