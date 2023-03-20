@@ -96,6 +96,14 @@ test('Returns generated data', async () => {
 		      },
 		      "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    },
+		    {
+		      "name": "dynamic-remote-access",
+		      "online": false,
+		      "uptime": {
+		        "timestamp": "2022-06-10T04:35:58.276Z",
+		      },
+		      "version": "DISABLED",
+		    },
 		  ],
 		  "twoFactor": {
 		    "local": {
