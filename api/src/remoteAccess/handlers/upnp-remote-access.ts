@@ -11,6 +11,7 @@ export class UpnpRemoteAccess implements GenericRemoteAccess {
 	async stopRemoteAccess({ dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
 		// Stop
 		await dispatch(disableUpnp());
+		dispatch(setWanAccess('no'));
 	}
 
 	private getRemoteAccessUrlFromUpnp(state: RootState, upnpEnableResult: UpnpEnableReturnValue) {
