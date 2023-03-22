@@ -39,10 +39,6 @@ export const enableDynamicRemoteAccessListener = () => startAppListening({
 		if (remoteAccessType === DynamicRemoteAccessType.DISABLED) {
 			remoteAccessLogger.info('[Listener] Disabling Dynamic Remote Access Feature');
 			await RemoteAccessController.instance.stopRemoteAccess({ getState, dispatch });
-			// @TODO disable running DRA here
-		} else {
-			remoteAccessLogger.info('[Listener] Enabling Remote Access Feature');
-			// @TODO don't need to do anything here
 		}
 	},
 });

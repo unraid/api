@@ -219,7 +219,7 @@ export type DashboardService = {
 export type DashboardServiceInput = {
   name: Scalars['String'];
   online: Scalars['Boolean'];
-  uptime: DashboardServiceUptimeInput;
+  uptime?: InputMaybe<DashboardServiceUptimeInput>;
   version: Scalars['String'];
 };
 
@@ -307,12 +307,13 @@ export type DisplayCase = {
   url: Scalars['String'];
 };
 
-export type Event = ClientConnectedEvent | ClientDisconnectedEvent | RemoteAccessEvent;
+export type Event = ClientConnectedEvent | ClientDisconnectedEvent | RemoteAccessEvent | UpdateEvent;
 
 export enum EventType {
   CLIENT_CONNECTED_EVENT = 'CLIENT_CONNECTED_EVENT',
   CLIENT_DISCONNECTED_EVENT = 'CLIENT_DISCONNECTED_EVENT',
-  REMOTE_ACCESS_EVENT = 'REMOTE_ACCESS_EVENT'
+  REMOTE_ACCESS_EVENT = 'REMOTE_ACCESS_EVENT',
+  UPDATE_EVENT = 'UPDATE_EVENT'
 }
 
 export type FullServerDetails = {
@@ -677,6 +678,23 @@ export enum URL_TYPE {
   WIREGUARD = 'WIREGUARD'
 }
 
+export type UpdateEvent = {
+  __typename?: 'UpdateEvent';
+  data: UpdateEventData;
+  type: EventType;
+};
+
+export type UpdateEventData = {
+  __typename?: 'UpdateEventData';
+  apiKey: Scalars['String'];
+  type: UpdateType;
+};
+
+export enum UpdateType {
+  DASHBOARD = 'DASHBOARD',
+  NETWORK = 'NETWORK'
+}
+
 export type Uptime = {
   __typename?: 'Uptime';
   timestamp?: Maybe<Scalars['String']>;
@@ -771,7 +789,7 @@ export type eventsSubscriptionVariables = Exact<{
 export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | (
     { __typename: 'RemoteAccessEvent' }
     & { ' $fragmentRefs'?: { 'RemoteAccessEventFragmentFragment': RemoteAccessEventFragmentFragment } }
-  ) | null> | null };
+  ) | { __typename: 'UpdateEvent' } | null> | null };
 
 export const RemoteAccessEventFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteAccessEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteAccessEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"url"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"ipv4"}},{"kind":"Field","name":{"kind":"Name","value":"ipv6"}}]}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}}]}}]} as unknown as DocumentNode<RemoteAccessEventFragmentFragment, unknown>;
 export const updateDashboardDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"updateDashboard"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"data"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"DashboardInput"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"updateDashboard"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"data"},"value":{"kind":"Variable","name":{"kind":"Name","value":"data"}}}],"directives":[{"kind":"Directive","name":{"kind":"Name","value":"auth"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"apiKey"},"value":{"kind":"Variable","name":{"kind":"Name","value":"apiKey"}}}]}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"apps"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"installed"}}]}}]}}]}}]} as unknown as DocumentNode<updateDashboardMutation, updateDashboardMutationVariables>;

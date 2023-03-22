@@ -5,7 +5,7 @@
 
 import { execa } from 'execa';
 import { ensurePermission } from '@app/core/utils';
-import { CoreContext, CoreResult } from '@app/core/types';
+import { type CoreContext, type CoreResult } from '@app/core/types';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
 
 interface Result extends CoreResult {

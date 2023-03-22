@@ -182,7 +182,7 @@
     "eslint-plugin-import": "^2.26.0",
     "eslint-plugin-unicorn": "^45.0.2",
     "eslint-plugin-unused-imports": "^2.0.0",
-    "execa": "^6.1.0",
+    "execa": "^7.1.1",
     "filter-obj": "^5.1.0",
     "got": "^12.4.1",
     "graphql-codegen-typescript-validation-schema": "^0.7.0",

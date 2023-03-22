@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { Notifier, NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
+import { Notifier, type NotifierOptions, type NotifierSendOptions } from '@app/core/notifiers/notifier';
 import { logger } from '@app/core/log';
 
 /**

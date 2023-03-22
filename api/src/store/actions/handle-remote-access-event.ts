@@ -1,4 +1,5 @@
 import { remoteAccessLogger } from '@app/core/log';
+import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
 import { RemoteAccessEventActionType, type RemoteAccessEventFragmentFragment } from '@app/graphql/generated/client/graphql';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
@@ -20,15 +21,20 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 		return;
 	}
 
+	const notifier = new UnraidLocalNotifier({
+		level: 'info',
+	});
+
 	switch (event.data.type) {
 		case RemoteAccessEventActionType.INIT:
-			remoteAccessLogger.debug('Init Event', RemoteAccessController.instance);
+			remoteAccessLogger.debug('Init Event');
 			// Init - Begin listening, transmit an ACK event back from the client.
 			if (event.data.url) {
 				// @todo use this URL to set the only allowed access url
 				dispatch(setAllowedRemoteAccessUrls(event.data.url));
 			}
 
+			await notifier.send({ title: 'Remote Access Started', data: { message: 'Remote access has been started', ...(event.data.url ? { ip: event.data.url } : {}) } });
 			await RemoteAccessController.instance.beginRemoteAccess({ getState, dispatch });
 			// @TODO Move this logic into the remote access manager class
 

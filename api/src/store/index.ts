@@ -29,10 +29,7 @@ export const store = configureStore({
 		upnp: upnp.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
-		serializableCheck: {
-			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
-			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient', 'dashboard/saveNetworkPacket'],
-		},
+		serializableCheck: false,
 	}).prepend(listenerMiddleware.middleware),
 });
 

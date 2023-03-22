@@ -1,5 +1,5 @@
 import { GraphQLClient } from '@app/mothership/graphql-client';
-import { type WireguardFqdn, type Nginx } from '@app/core/types/states/nginx';
+import { type Nginx } from '@app/core/types/states/nginx';
 import { type RootState, store, getters } from '@app/store';
 import { type NetworkInput, URL_TYPE, type AccessUrlInput } from '@app/graphql/generated/client/graphql';
 import { dashboardLogger, logger } from '@app/core';
@@ -272,7 +272,7 @@ export const publishNetwork = async () => {
 		const { apikey: apiKey } = getters.config().remote;
 		if (isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
 			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
-		} else {
+		} else if (client) {
 			dashboardLogger.addContext('data', newNetworkPacket);
 			dashboardLogger.info('Sending data packet for network');
 			dashboardLogger.removeContext('data');
@@ -283,7 +283,9 @@ export const publishNetwork = async () => {
 					data: newNetworkPacket,
 				},
 			});
-			dashboardLogger.debug('Result of send network mutation:\n%o', result);
+			dashboardLogger.addContext('sendNetworkResult', result);
+			dashboardLogger.debug('Sent network mutation');
+			dashboardLogger.removeContext('sendNetworkResult');
 			store.dispatch(saveNetworkPacket({ lastNetworkPacket: newNetworkPacket }));
 		}
 	} catch (error: unknown) {

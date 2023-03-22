@@ -4,9 +4,9 @@
  */
 
 import Mustache from 'mustache';
-import { LooseObject } from '@app/core/types';
+import { type LooseObject } from '@app/core/types';
 
-export type NotifierLevel = 'info' | 'error' | 'debug';
+export type NotifierLevel = 'info' | 'warn' | 'error';
 
 export type NotifierOptions = Partial<{
 	level: NotifierLevel;
@@ -16,13 +16,13 @@ export type NotifierOptions = Partial<{
 
 export interface NotifierSendOptions {
 	/** Which type of notification. */
-	type: string;
+	type?: string;
 	/** The notification's title. */
 	title: string;
 	/** Static data passed for rendering. */
 	data: LooseObject;
 	/** Functions to generate dynamic data for rendering. */
-	computed: LooseObject;
+	computed?: LooseObject;
 }
 
 /**

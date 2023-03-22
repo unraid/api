@@ -19,6 +19,7 @@ export const ONE_HOUR = 60 * ONE_MINUTE;
 export const ONE_SECOND_MS = 1_000;
 export const THIRTY_SECONDS_MS = ONE_SECOND_MS * 30;
 export const ONE_MINUTE_MS = 60 * ONE_SECOND;
+export const TWO_MINUTES_MS = 2 * ONE_MINUTE_MS;
 export const FIVE_MINUTES_MS = 5 * ONE_MINUTE;
 export const TEN_MINUTES_MS = 10 * ONE_MINUTE;
 export const THIRTY_MINUTES_MS = 30 * ONE_MINUTE;
@@ -29,7 +30,7 @@ export const ONE_HOUR_SECS = 60 * 60;
 export const ONE_DAY_SECS = ONE_HOUR_SECS * 24;
 export const FIVE_DAYS_SECS = ONE_DAY_SECS * 5;
 
-export const KEEP_ALIVE_INTERVAL_MS = ONE_MINUTE; // This is set to 45 seconds on mothership, servers will use a 1 minute margin to ensure it has some wiggle room
+export const KEEP_ALIVE_INTERVAL_MS = TWO_MINUTES_MS; // This is set to 45 seconds on mothership, servers will use a 1 minute margin to ensure it has some wiggle room
 
 /**
  * Graphql link.
