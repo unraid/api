@@ -86,7 +86,7 @@ export class RemoteAccessController implements IRemoteAccessController {
 		// Essentially a super call to the active type
 		try {
 			const result = await this.activeRemoteAccess?.beginRemoteAccess({ getState, dispatch });
-			await this.nginxManager.restartNginx();
+			await this.nginxManager.reloadNginx();
 			await this.sendRemoteAccessEvent({ apiKey: apikey, type: RemoteAccessEventActionType.ACK, url: result });
 			dispatch(setRemoteAccessRunningType(dynamicRemoteAccessType));
 			this.extendRemoteAccess({ getState, dispatch });
@@ -112,7 +112,7 @@ export class RemoteAccessController implements IRemoteAccessController {
 		remoteAccessLogger.debug('Stopping remote access');
 		const { config: { remote: { apikey } } } = getState();
 		await this.activeRemoteAccess?.stopRemoteAccess({ getState, dispatch });
-		await this.nginxManager.restartNginx();
+		await this.nginxManager.reloadNginx();
 
 		dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
 		if (apikey) {
