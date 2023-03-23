@@ -43,7 +43,7 @@ export class UpnpRemoteAccess implements GenericRemoteAccess {
 		// Stop Close Event
 		const state = getState();
 		const { dynamicRemoteAccessType } = state.config.remote;
-		if (dynamicRemoteAccessType === DynamicRemoteAccessType.UPNP && !state.upnp.renewalJobRunning) {
+		if (dynamicRemoteAccessType === DynamicRemoteAccessType.UPNP && !state.upnp.upnpEnabled) {
 			const { portssl } = state.emhttp.var;
 			try {
 				const upnpEnableResult = await dispatch(enableUpnp({ portssl })).unwrap();
@@ -59,7 +59,7 @@ export class UpnpRemoteAccess implements GenericRemoteAccess {
 				return this.getRemoteAccessUrlFromUpnp(state, upnpEnableResult);
 			} catch (error: unknown) {
 				remoteAccessLogger.warn('Caught error, disabling UPNP and re-throwing');
-				await dispatch(disableUpnp());
+				await this.stopRemoteAccess({ dispatch, getState });
 				throw new Error(`UPNP Dynamic Remote Access Error: ${error instanceof Error ? error.message : 'Unknown Error'}`);
 			}
 		}
