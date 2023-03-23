@@ -32,7 +32,7 @@ export class UnraidLocalNotifier extends Notifier {
 
 		const template = this.render({ ...data }, helpers);
 		try {
-			await execa(`/usr/local/emhttp/webGui/scripts/notify -i '${level}' -s 'Unraid API' -d '${template}' -e '${title}'`);
+			await execa('/usr/local/emhttp/webGui/scripts/notify', ['-i', `${level}`, '-s', 'Unraid API', '-d', `${template}`, '-e', `${title}`]);
 		} catch (error: unknown) {
 			logger.warn(`Error sending unraid notification: ${error instanceof Error ? error.message : 'No Error Information'}`);
 		}
