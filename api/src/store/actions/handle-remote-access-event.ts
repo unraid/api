@@ -1,5 +1,4 @@
 import { remoteAccessLogger } from '@app/core/log';
-import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
 import { RemoteAccessEventActionType, type RemoteAccessEventFragmentFragment } from '@app/graphql/generated/client/graphql';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
@@ -21,9 +20,6 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 		return;
 	}
 
-	const notifier = new UnraidLocalNotifier({
-		level: 'info',
-	});
 
 	switch (event.data.type) {
 		case RemoteAccessEventActionType.INIT:
@@ -34,7 +30,6 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 				dispatch(setAllowedRemoteAccessUrls(event.data.url));
 			}
 
-			await notifier.send({ title: 'Remote Access Started', data: { message: 'Remote access has been started', ...(event.data.url ? { ip: event.data.url } : {}) } });
 			await RemoteAccessController.instance.beginRemoteAccess({ getState, dispatch });
 			// @TODO Move this logic into the remote access manager class
 

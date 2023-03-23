@@ -7,7 +7,7 @@ export class NginxManager {
 			await execa('/etc/rc.d/rc.nginx', ['reload']);
 			return true;
 		} catch (err: unknown) {
-			logger.warn('Failed to restart Nginx with error', err);
+			logger.warn('Failed to restart Nginx with error: ', err);
 			return false;
 		}
 	};

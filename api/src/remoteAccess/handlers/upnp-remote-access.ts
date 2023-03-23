@@ -1,42 +1,31 @@
 import { remoteAccessLogger } from '@app/core/log';
 import { type AccessUrlInput, URL_TYPE, type AccessUrl } from '@app/graphql/generated/client/graphql';
-import { getUrlForField } from '@app/graphql/resolvers/subscription/network';
+import { getServerIps } from '@app/graphql/resolvers/subscription/network';
+
 import { type GenericRemoteAccess } from '@app/remoteAccess/handlers/remote-access-interface';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
+import { setWanAccessAndReloadNginx } from '@app/store/actions/set-wan-access-with-reload';
 import { type AppDispatch, type RootState } from '@app/store/index';
-import { setWanAccess } from '@app/store/modules/config';
-import { disableUpnp, enableUpnp, type UpnpEnableReturnValue } from '@app/store/modules/upnp';
+import { disableUpnp, enableUpnp } from '@app/store/modules/upnp';
 
 export class UpnpRemoteAccess implements GenericRemoteAccess {
 	async stopRemoteAccess({ dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
 		// Stop
 		await dispatch(disableUpnp());
-		dispatch(setWanAccess('no'));
+		await dispatch(setWanAccessAndReloadNginx('no'));
 	}
 
-	private getRemoteAccessUrlFromUpnp(state: RootState, upnpEnableResult: UpnpEnableReturnValue) {
+	private getRemoteAccessUrlFromUpnp(state: RootState) {
 		const accessUrl: AccessUrlInput = {
 			ipv4: null,
 			ipv6: null,
 			type: URL_TYPE.WAN,
 		};
-		if (!upnpEnableResult.wanPortForUpnp) {
-			return accessUrl;
-		}
 
-		try {
-			accessUrl.ipv4 = getUrlForField({ url: state.emhttp.nginx.wanFqdn, portSsl: upnpEnableResult.wanPortForUpnp });
-		} catch (error: unknown) {
-			remoteAccessLogger.debug('Unable to create ipv4 access url', error);
-		}
+		const urlsForServer = getServerIps(state);
+		const url = urlsForServer.urls.find(url => url.type === URL_TYPE.WAN);
 
-		try {
-			accessUrl.ipv6 = getUrlForField({ url: state.emhttp.nginx.wanFqdn6, portSsl: upnpEnableResult.wanPortForUpnp });
-		} catch (error: unknown) {
-			remoteAccessLogger.debug('Unable to create ipv6 access url', error);
-		}
-
-		return accessUrl;
+		return url ?? accessUrl;
 	}
 
 	async beginRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }): Promise<AccessUrl | null> {
@@ -47,8 +36,7 @@ export class UpnpRemoteAccess implements GenericRemoteAccess {
 			const { portssl } = state.emhttp.var;
 			try {
 				const upnpEnableResult = await dispatch(enableUpnp({ portssl })).unwrap();
-
-				dispatch(setWanAccess('yes'));
+				await dispatch(setWanAccessAndReloadNginx('yes'));
 
 				remoteAccessLogger.debug('UPNP Enable Result', upnpEnableResult);
 
@@ -56,7 +44,7 @@ export class UpnpRemoteAccess implements GenericRemoteAccess {
 					throw new Error('Failed to get a WAN Port from UPNP');
 				}
 
-				return this.getRemoteAccessUrlFromUpnp(state, upnpEnableResult);
+				return this.getRemoteAccessUrlFromUpnp(state);
 			} catch (error: unknown) {
 				remoteAccessLogger.warn('Caught error, disabling UPNP and re-throwing');
 				await this.stopRemoteAccess({ dispatch, getState });

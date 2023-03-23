@@ -17,5 +17,5 @@ vi.mock('@app/core/log', () => ({
 test('Creates an email notifier', () => {
 	const notifier = new EmailNotifier({ to: 'admin@example.com' });
 	expect(notifier.level).toBe('info');
-	expect(notifier.template).toBe('{{{ data }}}');
+	expect(notifier.template).toBe('{{ data }}');
 });

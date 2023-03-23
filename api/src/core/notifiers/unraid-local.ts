@@ -22,15 +22,14 @@ export class UnraidLocalNotifier extends Notifier {
 		super(options);
 
 		this.level = this.convertNotifierLevel(options.level ?? 'info');
-		this.helpers = options.helpers ?? {};
-		this.template = options.template ?? '{{ data }}';
+		this.template = options.template ?? '{{ message }}';
 	}
 
 	async send(options: NotifierSendOptions) {
 		const { title, data } = options;
-		const { level, helpers } = this;
+		const { level } = this;
 
-		const template = this.render({ ...data }, helpers);
+		const template = this.render(data);
 		try {
 			await execa('/usr/local/emhttp/webGui/scripts/notify', ['-i', `${level}`, '-s', 'Unraid API', '-d', `${template}`, '-e', `${title}`]);
 		} catch (error: unknown) {

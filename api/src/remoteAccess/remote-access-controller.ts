@@ -1,6 +1,7 @@
 import { TEN_MINUTES_MS } from '@app/consts';
 import { remoteAccessLogger } from '@app/core/log';
 import { NginxManager } from '@app/core/modules/services/nginx';
+import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
 import { RemoteAccessEventActionType, type RemoteAccessInput } from '@app/graphql/generated/client/graphql';
 import { SEND_DYNAMIC_REMOTE_ACCESS_MUTATION } from '@app/graphql/mothership/mutations';
 import { GraphQLClient } from '@app/mothership/graphql-client';
@@ -13,8 +14,8 @@ import { setDynamicRemoteAccessError, setRemoteAccessRunningType } from '@app/st
 export class RemoteAccessController implements IRemoteAccessController {
 	static _instance: RemoteAccessController | null = null;
 	activeRemoteAccess: UpnpRemoteAccess | StaticRemoteAccess | null = null;
+	notifier: UnraidLocalNotifier = new UnraidLocalNotifier({ level: 'info' });
 	timeout: NodeJS.Timeout | null = null;
-	nginxManager: NginxManager = new NginxManager();
 
 	// eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
 	constructor() {}
@@ -86,10 +87,10 @@ export class RemoteAccessController implements IRemoteAccessController {
 		// Essentially a super call to the active type
 		try {
 			const result = await this.activeRemoteAccess?.beginRemoteAccess({ getState, dispatch });
-			await this.nginxManager.reloadNginx();
 			await this.sendRemoteAccessEvent({ apiKey: apikey, type: RemoteAccessEventActionType.ACK, url: result });
 			dispatch(setRemoteAccessRunningType(dynamicRemoteAccessType));
 			this.extendRemoteAccess({ getState, dispatch });
+			await this.notifier.send({ title: 'Remote Access Started', data: { message: 'Remote access has been started' } });
 		} catch (error: unknown) {
 			dispatch(setDynamicRemoteAccessError(error instanceof Error ? error.message : 'Unknown Error'));
 		}
@@ -112,9 +113,10 @@ export class RemoteAccessController implements IRemoteAccessController {
 		remoteAccessLogger.debug('Stopping remote access');
 		const { config: { remote: { apikey } } } = getState();
 		await this.activeRemoteAccess?.stopRemoteAccess({ getState, dispatch });
-		await this.nginxManager.reloadNginx();
 
 		dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
+		await this.notifier.send({ title: 'Remote Access Stopped', data: { message: 'Remote access has been stopped' } });
+
 		if (apikey) {
 			remoteAccessLogger.debug('Sending end event');
 
