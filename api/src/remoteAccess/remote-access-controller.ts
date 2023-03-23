@@ -98,11 +98,15 @@ export class RemoteAccessController implements IRemoteAccessController {
 		return null;
 	}
 
-	public extendRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
+	private readonly clearRemoteAccessTimeout = () => {
 		if (this.timeout) {
 			clearTimeout(this.timeout);
 			this.timeout = null;
 		}
+	};
+
+	public extendRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
+		this.clearRemoteAccessTimeout();
 
 		this.timeout = setTimeout(async () => {
 			await this.stopRemoteAccess({ getState, dispatch });
@@ -112,11 +116,11 @@ export class RemoteAccessController implements IRemoteAccessController {
 	async stopRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
 		remoteAccessLogger.debug('Stopping remote access');
 		const { config: { remote: { apikey } } } = getState();
+		this.clearRemoteAccessTimeout();
 		await this.activeRemoteAccess?.stopRemoteAccess({ getState, dispatch });
 
 		dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
 		await this.notifier.send({ title: 'Remote Access Stopped', data: { message: 'Remote access has been stopped' } });
-
 		if (apikey) {
 			remoteAccessLogger.debug('Sending end event');
 
