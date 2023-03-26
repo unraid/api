@@ -15,6 +15,7 @@ import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { pubsub } from '@app/core/pubsub';
+import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 
 export type SliceState = {
 	status: FileLoadStatus;
@@ -38,6 +39,7 @@ export const initialState: SliceState = {
 		idtoken: '',
 		refreshtoken: '',
 		allowedOrigins: '',
+		dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
 	},
 	local: {
 		showT2Fa: '',
@@ -100,6 +102,10 @@ export const loadConfigFile = createAsyncThunk<MyServersConfig, string | undefin
 			const path = filePath ?? paths['myservers-config'];
 
 			const fileExists = await access(path, F_OK).then(() => true).catch(() => false);
+			if (!fileExists) {
+				throw new Error('Config File Missing');
+			}
+
 			const file = fileExists ? parseConfig<RecursivePartial<MyServersConfig>>({
 				filePath: path,
 				type: 'ini',
@@ -139,7 +145,7 @@ export const config = createSlice({
 		updateAllowedOrigins(state, action: PayloadAction<string[]>) {
 			state.remote.allowedOrigins = action.payload.join(', ');
 		},
-		setUpnpState(state, action: PayloadAction<{ enabled?: 'no' | 'yes'; status?: string | null }>) {
+		setUpnpState(state, action: PayloadAction<{ enabled?: 'no' | 'yes' | 'auto'; status?: string | null }>) {
 			if (action.payload.enabled) {
 				state.remote.upnpEnabled = action.payload.enabled;
 			}
@@ -150,6 +156,9 @@ export const config = createSlice({
 		},
 		setWanPortToValue(state, action: PayloadAction<number>) {
 			state.remote.wanport = String(action.payload);
+		},
+		setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
+			state.remote.wanaccess = action.payload;
 		},
 	},
 	extraReducers(builder) {
@@ -188,6 +197,6 @@ export const config = createSlice({
 });
 const { actions, reducer } = config;
 
-export const { updateUserConfig, updateAccessTokens, updateAllowedOrigins, setUpnpState, setWanPortToValue } = actions;
+export const { updateUserConfig, updateAccessTokens, updateAllowedOrigins, setUpnpState, setWanPortToValue, setWanAccess } = actions;
 
 export const configReducer = reducer;

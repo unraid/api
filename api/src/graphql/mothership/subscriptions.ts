@@ -1,8 +1,25 @@
 import { graphql } from '@app/graphql/generated/client/gql';
 
+export const RemoteAccess_Fragment = graphql(/* GraphQL */`
+  fragment RemoteAccessEventFragment on RemoteAccessEvent {
+      type
+      data {
+        type
+        url {
+          type
+          name
+          ipv4
+          ipv6
+        }
+        apiKey
+      }
+    }
+`);
+
 export const EVENTS_SUBSCRIPTION = graphql(/* GraphQL */ `
 subscription events($apiKey: String!) {
   events @auth(apiKey: $apiKey) {
+    __typename
     ... on ClientConnectedEvent {
       connectedData: data {
         type
@@ -19,6 +36,7 @@ subscription events($apiKey: String!) {
       }
       disconnectedEvent: type
     }
+    ...RemoteAccessEventFragment
   }
 }
 `);

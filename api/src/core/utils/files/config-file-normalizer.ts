@@ -1,3 +1,4 @@
+import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { type SliceState as ConfigSliceState, initialState } from '@app/store/modules/config';
 import { type RecursivePartial } from '@app/types';
 import type { MyServersConfig, MyServersConfigMemory } from '@app/types/my-servers-config';
@@ -47,6 +48,7 @@ export const getWriteableConfig = <T extends ConfigType>(config: ConfigSliceStat
 			...(mode === 'memory' ? {
 				allowedOrigins: remote.allowedOrigins ?? initialState.remote.allowedOrigins,
 			} : { }),
+			...(remote.dynamicRemoteAccessType === DynamicRemoteAccessType.DISABLED ? {} : { dynamicRemoteAccessType: remote.dynamicRemoteAccessType }),
 		},
 		upc: {
 			apikey: upc.apikey ?? initialState.upc.apikey,

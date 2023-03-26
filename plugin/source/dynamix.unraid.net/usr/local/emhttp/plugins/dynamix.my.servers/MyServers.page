@@ -68,6 +68,24 @@ $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd
  */
 $enableRemoteT2fa = !$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
 $enableLocalT2fa = !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
+
+// Helper to determine the current value for the remote access input
+$dynamicRemoteAccessType = $myservers['remote']['dynamicRemoteAccessType'];
+$upnpEnabled = $myservers['remote']['upnpEnabled'] === 'yes';
+$wanaccessEnabled = $myservers['remote']['wanaccess'] === 'yes';
+
+if ($dynamicRemoteAccessType === 'STATIC') {
+  $currentRemoveAccesValue = 'DYNAMIC_MANUAL';
+} elseif ($dynamicRemoteAccessType === 'UPNP') {
+  $currentRemoveAccesValue = 'DYNAMIC_UPNP';
+} elseif ($dynamicRemoteAccessType === 'DISABLED' && $upnpEnabled && $wanaccessEnabled) {
+  $currentRemoveAccesValue = 'ALWAYS_UPNP';
+} elseif ($dynamicRemoteAccessType === 'DISABLED' && !$upnpEnabled && $wanaccessEnabled) {
+  $currentRemoveAccesValue = 'ALWAYS_MANUAL';
+} elseif ($dynamicRemoteAccessType === 'DISABLED' && !$upnpEnabled && !$wanaccessEnabled) {
+  $currentRemoveAccesValue = 'OFF';
+}
+
 ?>
 <script>
 const oldVersion = <?=($oldVersion ? 'true' : 'false')?>;
@@ -104,11 +122,58 @@ function registerServer(button) {
         const wanAccessEnabled = $('#wanaccess').val() === 'yes';
         const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
 
+        const $remoteAccessInput = $('#remoteAccess');
+        const $remoteAccessManualPort = $('#wanport');
+
+        let computedRemoteAccessConfig = null;
+        switch ($remoteAccessInput.val()) {
+          case 'ALWAYS_MANUAL':
+            computedRemoteAccessConfig = {
+              remote_wanaccess: 'yes',
+              remote_wanport: $remoteAccessManualPort.val(),
+              remote_upnpEnabled: 'no',
+              remote_dynamicRemoteAccessType: 'DISABLED',
+            };
+            break;
+          case 'ALWAYS_UPNP':
+            computedRemoteAccessConfig = {
+              remote_wanaccess: 'yes',
+              remote_wanport: '',
+              remote_upnpEnabled: 'yes',
+              remote_dynamicRemoteAccessType: 'DISABLED',
+            };
+            break;
+          case 'DYNAMIC_UPNP':
+            computedRemoteAccessConfig = {
+              remote_wanaccess: 'no',
+              remote_wanport: '',
+              remote_upnpEnabled: 'no',
+              remote_dynamicRemoteAccessType: 'UPNP',
+            };
+            break;
+          case 'DYNAMIC_MANUAL':
+            computedRemoteAccessConfig = {
+              remote_wanaccess: 'no',
+              remote_wanport: $remoteAccessManualPort.val(),
+              remote_upnpEnabled: 'no',
+              remote_dynamicRemoteAccessType: 'STATIC',
+            };
+            break;
+          default:
+            computedRemoteAccessConfig = {
+              remote_wanaccess: 'no',
+              remote_wanport: '',
+              remote_upnpEnabled: 'no',
+              remote_dynamicRemoteAccessType: 'DISABLED',
+            };
+            break;
+        }
+
+        console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
+
         var postobj = {
             "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
-            "remote_wanaccess": $('#wanaccess').val(),
-            "remote_wanport": $('#wanport').val(),
-            "remote_upnpEnabled": $('#upnpEnabled').val(),
+            ...(computedRemoteAccessConfig ? computedRemoteAccessConfig : {}),
              // only allow 'yes' value when fields are enabled
             "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
             "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
@@ -191,7 +256,9 @@ function changeRemoteAccess(dropdown) {
     let $wanPanel = $("#wanpanel");
     let $remote2faSelect = $('#remote2fa');
     let $remote2faRemark = $('#remote2fa_remark');
-    if ($(dropdown).val() == 'yes') {
+    const dropdownValue = $(dropdown).val();
+
+    if (dropdownValue == 'ALWAYS_MANUAL' || dropdownValue == 'DYNAMIC_MANUAL') {
         $wanPanel.slideDown('fast');
         if (!oldVersion) {
           $remote2faSelect.prop('disabled', false);
@@ -444,27 +511,21 @@ _(Allow Remote Access)_:
 <input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?else: // begin show remote access form ?>
-: <select id="wanaccess" size="1" data-orig="<?=$myservers['remote']['wanaccess']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
-  <?=mk_option($myservers['remote']['wanaccess'], "no", _("No"))?>
-  <?=mk_option($myservers['remote']['wanaccess'], "yes", _("Yes"))?>
-  </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>" />
+: <select id="remoteAccess" name="remoteAccess" data-orig="<?=$myservers['remote']['access']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
+    <?=mk_option($currentRemoveAccesValue, "OFF", _("Off"))?>
+    <?=mk_option($currentRemoveAccesValue, "ALWAYS_MANUAL", _("Always - Manual Port Forward"))?>
+    <?=mk_option($currentRemoveAccesValue, "ALWAYS_UPNP", _("Always - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
+    <?=mk_option($currentRemoveAccesValue, "DYNAMIC_UPNP", _("Dynamic - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
+    <?=mk_option($currentRemoveAccesValue, "DYNAMIC_MANUAL", _("Dynamic - Manual Port Forward"))?>
+  </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>. <?=($var['USE_UPNP'] === 'no' ? 'To use the UPnP options please set "Use UPnP" to "Yes" in Management Access.' : '')?>
 
-<div markdown="1" id="wanpanel" style="display:<?=($myservers['remote']['wanaccess']=='yes'?'block':'none')?>">
+&nbsp;
+: <p>_(Dynamic Remote Access allows you to do stuff that someone else can explain.)_</p>
 
-<? /** for the time being only display UPnP field when enabled manually by Unraid developers */ ?>
-<?if($myservers['local']['showT2Fa']??'' === 'yes' || $myservers['remote']['upnpEnabled'] === 'yes'):?>
-
-_(Use UPnP)_<!-- do not index -->:
-<?if($var['USE_UPNP'] === 'yes'):?>
-: <select id="upnpEnabled" size="1" data-orig="<?=$myservers['remote']['upnpEnabled']?>" onchange="changeUpnp()" style="vertical-align: top;">
-<?=mk_option($myservers['remote']['upnpEnabled'], "no", _("No"))?>
-<?=mk_option($myservers['remote']['upnpEnabled'], "yes", _("Yes"))?>
-</select> <?=$mystatus['upnpError']??''?>
-<?else:?>
-: <i class="fa fa-warning icon warning" aria-hidden="true"></i> _(UPnP must be enabled on Settings -> Management Access)_
-<?endif ?>
-
-<?endif // end check for showT2Fa ?>
+<?
+$showWanPortOnLoad = ($currentRemoveAccesValue === 'ALWAYS_MANUAL' || $currentRemoveAccesValue === 'DYNAMIC_MANUAL');
+?>
+<div markdown="1" id="wanpanel" style="display:<?=($showWanPortOnLoad?'block':'none')?>">
 
 _(WAN Port)_:
 : <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>

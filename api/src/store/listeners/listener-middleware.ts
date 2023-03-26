@@ -7,6 +7,8 @@ import { enableVersionListener } from '@app/store/listeners/version-listener';
 import { enableApiKeyListener } from '@app/store/listeners/api-key-listener';
 import { enableLoginListener, enableLogoutListener } from '@app/store/listeners/login-logout-listener';
 import { enableMothershipJobsListener, enableMothershipSubscriptionListener } from '@app/store/listeners/mothership-jobs-listener';
+import { enableDynamicRemoteAccessListener } from '@app/store/listeners/dynamic-remote-access-listener';
+import 'reflect-metadata';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -33,3 +35,4 @@ enableAllowedOriginListener();
 enableVersionListener();
 enableMothershipJobsListener();
 enableMothershipSubscriptionListener();
+enableDynamicRemoteAccessListener();

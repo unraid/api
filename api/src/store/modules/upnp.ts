@@ -33,7 +33,7 @@ export const initialState: UpnpState = {
 };
 
 export type LeaseRenewalArgs = { localPortForUpnp: number; wanPortForUpnp: number };
-type UpnpEnableReturnValue = Pick<UpnpState, 'renewalJobRunning' | 'wanPortForUpnp' | 'localPortForUpnp'>;
+export type UpnpEnableReturnValue = Pick<UpnpState, 'renewalJobRunning' | 'wanPortForUpnp' | 'localPortForUpnp'>;
 type EnableUpnpThunkArgs = { portssl: number; wanport?: string } | void;
 
 /**

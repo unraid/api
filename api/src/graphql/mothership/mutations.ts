@@ -35,3 +35,10 @@ mutation updateNetwork($data: NetworkInput!, $apiKey: String!) {
 	}
 }
 `);
+
+// This doesn't need auth directive, new mothership can handle clients with no auth directives
+export const SEND_DYNAMIC_REMOTE_ACCESS_MUTATION = graphql(/* GraphQL */ `
+mutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {
+	remoteSession(remoteAccess: $remoteAccess)
+}
+`);

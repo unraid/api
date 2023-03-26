@@ -11,11 +11,13 @@ import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
 import { apiKeyReducer } from '@app/store/modules/apikey';
+import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access';
 
 export const store = configureStore({
 	reducer: {
 		apiKey: apiKeyReducer,
 		config: configReducer,
+		dynamicRemoteAccess: dynamicRemoteAccessReducer,
 		minigraph: mothership.reducer,
 		paths: paths.reducer,
 		servers: servers.reducer,
@@ -27,11 +29,7 @@ export const store = configureStore({
 		upnp: upnp.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
-		serializableCheck: {
-
-			ignoredPaths: ['minigraph.client', 'minigraph.subscriptions', 'cache.nodeCache'],
-			ignoredActions: ['minigraph/addSubscription', 'minigraph/createNewClient/fulfilled', 'minigraph/setClient', 'dashboard/saveNetworkPacket'],
-		},
+		serializableCheck: false,
 	}).prepend(listenerMiddleware.middleware),
 });
 

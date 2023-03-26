@@ -3,6 +3,8 @@ import { getPublishToDashboardJob } from '@app/mothership/jobs/dashboard-jobs';
 import { dashboardLogger } from '@app/core/log';
 import { type NetworkInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
 import { logoutUser } from '@app/store/modules/config';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
@@ -25,7 +27,7 @@ export const dashboard = createSlice({
 	initialState,
 	reducers: {
 		startDashboardProducer(state) {
-			dashboardLogger.trace('Starting Publisher - clients connected before: %s', state.connectedToDashboard);
+			dashboardLogger.trace('Starting Publisher - clients connected: %s -> %s', state.connectedToDashboard, state.connectedToDashboard + 1);
 			state.connectedToDashboard += 1;
 
 			// It's already been started
@@ -37,7 +39,7 @@ export const dashboard = createSlice({
 		},
 
 		stopDashboardProducer(state) {
-			dashboardLogger.trace('Stopping Publisher - clients connected before: %s', state.connectedToDashboard);
+			dashboardLogger.trace('Stopping Publisher - clients connected: %s -> %s', state.connectedToDashboard, state.connectedToDashboard - 1);
 			state.connectedToDashboard -= 1;
 			// Make sure we don't go negative
 			if (state.connectedToDashboard < 0) state.connectedToDashboard = 0;
@@ -57,6 +59,18 @@ export const dashboard = createSlice({
 		},
 	},
 	extraReducers(builder) {
+		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
+			if ([
+				MinigraphStatus.DISCONNECTED,
+				MinigraphStatus.ERROR,
+				MinigraphStatus.RETRY_WAITING,
+			].includes(action.payload.status)) {
+				getPublishToDashboardJob().stop();
+				state.connectedToDashboard = 0;
+				state.lastDataPacket = null;
+				state.lastNetworkPacket = null;
+			}
+		});
 		builder.addCase(logoutUser.pending, state => {
 			getPublishToDashboardJob().stop();
 			state.connectedToDashboard = 0;

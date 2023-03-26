@@ -1,4 +1,5 @@
 import { type MinigraphStatus } from '@app/graphql/generated/api/types';
+import { type DynamicRemoteAccessType } from '@app/remoteAccess/types';
 
 interface MyServersConfig {
 	api: {
@@ -26,6 +27,7 @@ interface MyServersConfig {
 		idtoken: string;
 		refreshtoken: string;
 		allowedOrigins?: string;
+		dynamicRemoteAccessType?: DynamicRemoteAccessType;
 	};
 	upc: {
 		apikey: string;
@@ -43,6 +45,7 @@ export interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfi
 	remote: MyServersConfig['remote'] & {
 		'2Fa': string;
 		upnpEnabled: string;
+		dynamicRemoteAccessType: DynamicRemoteAccessType;
 	};
 }
 

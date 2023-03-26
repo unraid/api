@@ -11,7 +11,7 @@ export class UPNPJobManager extends Initializer<typeof UPNPJobManager> {
 	@Cron(Expression.EVERY_30_MINUTES)
 	async renewUpnpLeaseJob() {
 		upnpLogger.trace('Running UPNP Renewal Job');
-		void store.dispatch(enableUpnp());
+		await store.dispatch(enableUpnp());
 	}
 }
 

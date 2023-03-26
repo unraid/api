@@ -3,9 +3,15 @@ import { FileLoadStatus } from '@app/store/types';
 import { type ConfigType, getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { store } from '@app/store';
 import { writeFileSync } from 'fs';
+import { logger } from '@app/core/log';
 
 export const writeConfigSync = (mode: ConfigType) => {
 	const { config, paths } = store.getState();
+
+	if (config.status !== FileLoadStatus.LOADED) {
+		logger.warn('Configs not loaded, unable to write sync');
+		return;
+	}
 
 	const writeableConfig = getWriteableConfig(config, mode);
 	const path = mode === 'flash' ? paths['myservers-config'] : paths['myservers-config-states'];
@@ -13,12 +19,3 @@ export const writeConfigSync = (mode: ConfigType) => {
 	writeFileSync(path, serializedConfig);
 };
 
-/**
- * Write the memory config synchronously, used on process exit
- * @returns void
- */
-export const writeMemoryConfigSync = (): void => {
-	const { config } = store.getState();
-	if (config.status !== FileLoadStatus.LOADED) return;
-	writeConfigSync('memory');
-};

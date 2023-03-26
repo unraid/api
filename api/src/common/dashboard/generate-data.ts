@@ -9,9 +9,10 @@ import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 import { type Dashboard, Dashboard as DashboardType } from '@app/common/run-time/dashboard';
 import { validateRunType } from '@app/common/validate-run-type';
 import { logger } from '@app/core/log';
-import { getters } from '@app/store';
-import { type DashboardInput } from '@app/graphql/generated/client/graphql';
+import { getters, store } from '@app/store';
+import { type DashboardServiceInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
 import { API_VERSION } from '@app/environment';
+import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 
 const getVmSummary = async (): Promise<Dashboard['vms']> => {
 	try {
@@ -49,9 +50,25 @@ const twoFactor = (): Dashboard['twoFactor'] => {
 	};
 };
 
-const services = (): DashboardInput['services'] => {
+const getDynamicRemoteAccessService = (): DashboardServiceInput | null => {
 	const uptimeTimestamp = bootTimestamp.toISOString();
 
+	const { config, dynamicRemoteAccess } = store.getState();
+	const enabledStatus = config.remote.dynamicRemoteAccessType;
+
+	return {
+		name: 'dynamic-remote-access',
+		online: enabledStatus !== DynamicRemoteAccessType.DISABLED,
+		version: dynamicRemoteAccess.runningType,
+		uptime: {
+			timestamp: uptimeTimestamp,
+		},
+	};
+};
+
+const services = (): DashboardInput['services'] => {
+	const uptimeTimestamp = bootTimestamp.toISOString();
+	const dynamicRemoteAccess = getDynamicRemoteAccessService();
 	return [{
 		name: 'unraid-api',
 		online: true,
@@ -59,7 +76,8 @@ const services = (): DashboardInput['services'] => {
 			timestamp: uptimeTimestamp,
 		},
 		version: API_VERSION,
-	}];
+	},
+	...(dynamicRemoteAccess ? [dynamicRemoteAccess] : [])];
 };
 
 const getData = async (): Promise<DashboardInput> => {

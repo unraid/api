@@ -1,12 +1,17 @@
+import { ONE_HOUR_SECS, THIRTY_SECONDS_MS } from '@app/consts';
 import { logger, upnpLogger } from '@app/core/log';
+import { IS_DOCKER } from '@app/environment';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
 import { getters } from '@app/store';
 import { type LeaseRenewalArgs } from '@app/store/modules/upnp';
+import { MockUpnpClient } from '@app/upnp/mock-upnp-client';
 import { Client, type Mapping } from '@runonflux/nat-upnp';
 
-const upnpClient = new Client();
+// If we're in docker mode, load the mock client
+const upnpClient = IS_DOCKER ? new MockUpnpClient({ timeout: THIRTY_SECONDS_MS }) : new Client({
+	timeout: THIRTY_SECONDS_MS,
+});
 
-const SIX_HOURS = 60 * 60 * 6;
 const PORT_RANGE_MIN = 35_000;
 const PORT_RANGE_MAX = 65_000;
 
@@ -43,7 +48,7 @@ export const renewUpnpLease = async ({ localPortForUpnp, wanPortForUpnp, serverN
 		public: wanPortForUpnp,
 		private: localPortForUpnp,
 		description: `Unraid Remote Access - ${serverName ?? 'No Server Name Found'}`,
-		ttl: SIX_HOURS,
+		ttl: ONE_HOUR_SECS,
 	});
 	upnpLogger.trace('Opening Port Result %o', result);
 };

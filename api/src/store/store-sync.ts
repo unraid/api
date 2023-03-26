@@ -34,6 +34,7 @@ export const startStoreSync = async () => {
 
 		if (NODE_ENV === 'development' && !isEqual(state, lastState) && state.paths['myservers-config-states']) {
 			writeFileSync(join(state.paths.states, 'config.log'), JSON.stringify(state.config, null, 2));
+			writeFileSync(join(state.paths.states, 'dynamicRemoteAccess.log'), JSON.stringify(state.dynamicRemoteAccess, null, 2));
 			writeFileSync(join(state.paths.states, 'servers.log'), JSON.stringify(state.servers, null, 2));
 		}
 

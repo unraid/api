@@ -6,6 +6,7 @@ import { getters, store } from '@app/store';
 import { StateFileKey } from '@app/store/types';
 import { parse, join } from 'path';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
+import { CHOKIDAR_USEPOLLING } from '@app/environment';
 
 // Configure any excluded nchan channels that we support here
 const excludedWatches: StateFileKey[] = [StateFileKey.devs];
@@ -37,7 +38,7 @@ export class StateManager {
 			if (!excludedWatches.includes(key)) {
 				const pathToWatch = join(states, `${key}.ini`);
 				emhttpLogger.debug('Setting up watch for path: %s', pathToWatch);
-				const stateWatch = watch(pathToWatch, { usePolling: process.env.CHOKIDAR_USEPOLLING === 'true' });
+				const stateWatch = watch(pathToWatch, { usePolling: CHOKIDAR_USEPOLLING });
 				stateWatch.on('change', async path => {
 					const stateFile = this.getStateFileKeyFromPath(path);
 					if (stateFile) {
