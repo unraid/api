@@ -33,6 +33,9 @@ test('Returns allowed origins', async () => {
 		  "https://10-253-3-1.hash.myunraid.net:4443",
 		  "https://10-253-4-1.hash.myunraid.net:4443",
 		  "https://10-253-5-1.hash.myunraid.net:4443",
+		  "https://connect.myunraid.net",
+		  "https://staging.connect.myunraid.net",
+		  "https://dev-my.myunraid.net:4000",
 		]
 	`);
 });
