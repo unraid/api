@@ -1,5 +1,5 @@
 import { type NextFunction, type Request, type Response } from 'express';
-import { logger, config } from '@app/core';
+import { logger } from '@app/core';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
 
 const getOriginGraphqlError = () => ({

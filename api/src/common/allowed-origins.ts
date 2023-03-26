@@ -62,9 +62,23 @@ const getExtraOrigins = (): string[] => {
 	return [];
 };
 
+const getConnectOrigins = () : string[] => {
+	const connectMain = 'https://connect.myunraid.net';
+	const connectStaging = 'https://staging.connect.myunraid.net';
+	const connectDev = 'https://dev-my.myunraid.net:4000';
+
+	return [
+		connectMain,
+		connectStaging,
+		connectDev
+	]
+}
+
 export const getAllowedOrigins = (state: RootState = store.getState()): string[] => uniq([
 	...getAllowedSocks(),
 	...getLocalAccessUrlsForServer(),
 	...getRemoteAccessUrlsForAllowedOrigins(state),
 	...getExtraOrigins(),
+	...getConnectOrigins()
+	
 ]).map(url => url.endsWith('/') ? url.slice(0, -1) : url);

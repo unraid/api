@@ -114,7 +114,10 @@ export type Dashboard = {
   array?: Maybe<DashboardArray>;
   config?: Maybe<DashboardConfig>;
   display?: Maybe<DashboardDisplay>;
+  id: Scalars['ID'];
+  lastPublish?: Maybe<Scalars['DateTime']>;
   network?: Maybe<Network>;
+  online?: Maybe<Scalars['Boolean']>;
   os?: Maybe<DashboardOs>;
   services?: Maybe<Array<Maybe<DashboardService>>>;
   twoFactor?: Maybe<DashboardTwoFactor>;
@@ -324,6 +327,7 @@ export type FullServerDetails = {
   display?: Maybe<Display>;
   domains?: Maybe<Array<VmDomain>>;
   info?: Maybe<Info>;
+  lastPublish?: Maybe<Scalars['String']>;
   me?: Maybe<Me>;
   network?: Maybe<Network>;
   online?: Maybe<Scalars['Boolean']>;
@@ -507,6 +511,11 @@ export type Query = {
   twoFactor?: Maybe<TwoFactorWithToken>;
   vars?: Maybe<Vars>;
   vms?: Maybe<Vms>;
+};
+
+
+export type QuerydashboardArgs = {
+  id: Scalars['String'];
 };
 
 export enum RegistrationState {

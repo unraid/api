@@ -6,7 +6,7 @@
 import path from 'path';
 import cors from 'cors';
 import { watch } from 'chokidar';
-import express, { json, type Response } from 'express';
+import express, { json, type Request, type Response } from 'express';
 import http from 'http';
 import type WebSocket from 'ws';
 import {
@@ -30,6 +30,7 @@ import { getServerAddress } from '@app/common/get-server-address';
 import { apolloConfig } from '@app/graphql/config';
 import { originMiddleware } from '@app/originMiddleware';
 import { API_VERSION } from '@app/environment';
+import { getBannerPathIfPresent, getCasePathIfPresent } from '@app/core/utils/images/image-file-helpers';
 
 const configFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.cfg');
 const customImageFilePath = path.join(getters.paths()['dynamix-base'], 'case-model.png');
@@ -69,22 +70,6 @@ app.use(async (_req, res, next) => {
 
 	next();
 });
-
-// In all environments apart from production add the env to the headers
-if (process.env.ENVIRONMENT !== 'production') {
-	app.use(async (_req, res, next) => {
-		// Only get the machine ID on first request
-		// We do this to avoid using async in the main server function
-		if (!app.get('x-environment')) {
-			app.set('x-environment', process.env.ENVIRONMENT);
-		}
-
-		// Update header with current environment
-		res.set('x-environment', app.get('x-environment'));
-
-		next();
-	});
-}
 
 export const httpServer = http.createServer(app);
 
@@ -217,6 +202,30 @@ app.post('/verify', async (req, res) => {
 		res.status(401);
 		res.send((error as Error).message);
 	}
+});
+
+app.get('/graphql/api/customizations/:type', async (req: Request, res: Response) => {
+	// @TODO - Clean up this function
+	const apiKey = req.headers['x-api-key'];
+	if (apiKey && typeof apiKey === 'string' && (await apiKeyToUser(apiKey)).role !== 'guest') {
+		if (req.params.type === 'banner') {
+			const path = await getBannerPathIfPresent();
+			if (path) {
+				res.sendFile(path);
+				return;
+			}
+		} else if (req.params.type === 'case') {
+			const path = await getCasePathIfPresent();
+			if (path) {
+				res.sendFile(path);
+				return;
+			}
+		}
+
+		return res.status(404).send('no customization of this type found');
+	}
+
+	return res.status(403).send('unauthorized');
 });
 
 // Handle errors by logging them and returning a 500.
