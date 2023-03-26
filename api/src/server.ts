@@ -204,7 +204,7 @@ app.post('/verify', async (req, res) => {
 	}
 });
 
-app.get('/api/customizations/:type', async (req: Request, res: Response) => {
+app.get('/graphql/api/customizations/:type', async (req: Request, res: Response) => {
 	// @TODO - Clean up this function
 	const apiKey = req.headers['x-api-key'];
 	if (apiKey && typeof apiKey === 'string' && (await apiKeyToUser(apiKey)).role !== 'guest') {
