@@ -2,6 +2,7 @@ import { API_VERSION } from '@app/environment';
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { store } from '@app/store';
+import { isApiKeyValid } from '@app/store/getters/index';
 
 import { type OutgoingHttpHeaders } from 'node:http2';
 
@@ -15,7 +16,7 @@ interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
 export const getMothershipWebsocketHeaders = (state = store.getState()): MothershipWebsocketHeaders | OutgoingHttpHeaders => {
 	const { config, emhttp } = state;
 
-	if (isAPIStateDataFullyLoaded(state)) {
+	if (isAPIStateDataFullyLoaded(state) && isApiKeyValid(state)) {
 		const headers: MothershipWebsocketHeaders = {
 			'x-api-key': config.remote.apikey,
 			'x-flash-guid': emhttp.var.flashGuid,
@@ -38,7 +39,7 @@ interface MothershipConnectionParams extends Record<string, unknown> {
 
 export const getMothershipConnectionParams = (state = store.getState()): MothershipConnectionParams | Record<string, unknown> => {
 	const { config, emhttp } = state;
-	if (isAPIStateDataFullyLoaded(state)) {
+	if (isAPIStateDataFullyLoaded(state) && isApiKeyValid(state)) {
 		return {
 			clientType: ClientType.API,
 			apiKey: config.remote.apikey,
