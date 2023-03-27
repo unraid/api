@@ -1,6 +1,6 @@
 import { JWKS_LOCAL_PAYLOAD, JWKS_REMOTE_LINK } from '@app/consts';
 import { cliLogger } from '@app/core';
-import { createLocalJWKSet, createRemoteJWKSet, decodeJwt, JWTPayload, jwtVerify } from 'jose';
+import { createLocalJWKSet, createRemoteJWKSet, decodeJwt, type JWTPayload, jwtVerify } from 'jose';
 import { setEnv } from '@app/cli/set-env';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';

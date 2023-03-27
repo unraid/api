@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import { String, Record, Static } from 'runtypes';
+import { String, Record, type Static } from 'runtypes';
 
 export const Display = Record({
 	case: Record({

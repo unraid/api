@@ -1,4 +1,4 @@
-import { User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user';
 
 /**
  * Example: 1, 2, 3 or 1,2,3

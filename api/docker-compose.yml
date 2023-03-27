@@ -23,11 +23,15 @@ x-volumes: &volumes
   - ./codegen.yml:/app/codegen.yml
   - ./fix-array-type.cjs:/app/fix-array-type.cjs
 
+networks:
+  mothership_default:
+    external: true
 services:
 
   dev:
+    networks:
+      - mothership_default
     image: unraid-api-node-18
-    network_mode: host
     ports:
       - "4000:4000"
     build: 

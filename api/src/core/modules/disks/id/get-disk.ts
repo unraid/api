@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '@app/core/types';
+import { type CoreContext, type CoreResult } from '@app/core/types';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 

@@ -4,7 +4,7 @@
  */
 
 /* eslint-disable new-cap */
-import { Boolean, Static, Array, Partial, Null, ValidationError } from 'runtypes';
+import { Boolean, type Static, Array, Partial, Null, type ValidationError } from 'runtypes';
 import { logger } from '@app/core/log';
 import { Info } from '@app/common/run-time/info';
 import { Service } from '@app/common/run-time/service';

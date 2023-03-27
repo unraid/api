@@ -1,7 +1,7 @@
 import { expect, test, vi } from 'vitest';
 import { stop } from '@app/cli/commands/stop';
 import { spawn } from 'node:child_process';
-import { cliLogger, loggers } from '@app/core/log';
+import { cliLogger } from '@app/core/log';
 import { sleep } from '@app/core/utils/misc/sleep';
 
 import { getAllUnraidApiPids } from '@app/cli/get-unraid-api-pid';

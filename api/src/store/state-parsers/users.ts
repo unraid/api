@@ -1,4 +1,4 @@
-import { User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
 type BooleanString = 'yes' | 'no';

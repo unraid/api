@@ -5,7 +5,7 @@
 
 import request from 'request-promise-native';
 import { logger } from '@app/core/log';
-import { LooseObject } from '@app/core/types';
+import { type LooseObject } from '@app/core/types';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
 import { getters } from '@app/store';
 

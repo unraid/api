@@ -16,7 +16,7 @@ export type ConfigErrorState =
  * Global vars
  */
 export type Var = {
-	bindMgt: boolean | undefined;
+	bindMgt: boolean | null;
 	cacheNumDevices: number;
 	cacheSbNumDisks: number;
 	/** Description of your server (displayed in the "webGui"). */
@@ -192,7 +192,7 @@ export type Var = {
 	/** Should SSH be enabled. */
 	useSsh: boolean;
 	/** If HTTPS should be be enabled in the webui. */
-	useSsl: boolean | undefined;
+	useSsl: boolean | null;
 	/** Should telnet be enabled. */
 	useTelnet: boolean;
 	/** The current Unraid version. */

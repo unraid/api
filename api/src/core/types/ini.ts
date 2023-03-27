@@ -75,7 +75,7 @@ interface Remote {
 	apikey: string;
 }
 
-export interface DynamixConfig {
+export interface DynamixConfig extends Record<string, unknown> {
 	display: Display;
 	notify: Notify;
 	ssmtp: Ssmtp;

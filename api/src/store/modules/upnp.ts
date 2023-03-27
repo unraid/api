@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/tool
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
 import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
-import { type RootState } from '@app/store';
+import { type AppDispatch, type RootState } from '@app/store';
 import { upnpLogger } from '@app/core';
 import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
 
@@ -57,7 +57,7 @@ const getWanPortToUse = async ({
 	leaseRenewalArgs: EnableUpnpThunkArgs;
 	wanPortArgAsNumber: number | null;
 	wanPortForUpnp: null | number;
-	dispatch: any;
+	dispatch: AppDispatch;
 }): Promise<number | null> => {
 	if (leaseRenewalArgs) {
 		if (wanPortArgAsNumber) {
@@ -77,7 +77,7 @@ const getWanPortToUse = async ({
 	return wanPortForUpnp;
 };
 
-export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThunkArgs, { state: RootState }>('upnp/enable', async (leaseRenewalArgs, { getState, dispatch }) => {
+export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThunkArgs, { state: RootState, dispatch: AppDispatch }>('upnp/enable', async (leaseRenewalArgs, { getState, dispatch }) => {
 	const { upnp, emhttp } = getState();
 
 	const wanPortArgAsNumber = leaseRenewalArgs?.wanport ? parseStringToNumberOrNull(leaseRenewalArgs?.wanport) : null;

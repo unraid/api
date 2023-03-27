@@ -5,7 +5,7 @@
 
 import sendmail from 'sendmail';
 import { logger } from '@app/core/log';
-import { Notifier, NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
+import { Notifier, type NotifierOptions, type NotifierSendOptions } from '@app/core/notifiers/notifier';
 
 interface Options extends NotifierOptions {
 	to: string;
@@ -13,7 +13,7 @@ interface Options extends NotifierOptions {
 	replyTo?: string;
 }
 
-interface SendOptions extends NotifierSendOptions {}
+type SendOptions = NotifierSendOptions
 
 /**
  * Email notifer

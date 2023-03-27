@@ -4,7 +4,7 @@
  */
 
 import { promises as fs } from 'fs';
-import { CoreResult, CoreContext } from '@app/core/types';
+import { type CoreResult, type CoreContext } from '@app/core/types';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import Table from 'cli-table';

@@ -6,7 +6,9 @@ import { version } from './package.json';
 const runCommand = (command: string) => {
     try {
         return execSync(command, { stdio : 'pipe' }).toString().trim();
-    } catch {}
+    } catch {
+        return;
+    }
 };
 
 export default defineConfig({
@@ -23,7 +25,7 @@ export default defineConfig({
     external: [
         '@vmngr/libvirt'
     ],
-    esbuildOptions(options, _context) {
+    esbuildOptions(options) {
         if (!options.define) options.define = {};
         const gitShortSHA = runCommand('git rev-parse --short HEAD');
         const isCommitTagged = runCommand('git describe --tags --abbrev=0 --exact-match') !== undefined;

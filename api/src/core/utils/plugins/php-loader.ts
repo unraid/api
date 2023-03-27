@@ -6,7 +6,7 @@
 import path from 'path';
 import { execa } from 'execa';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
-import { LooseObject, LooseStringObject } from '@app/core/types';
+import { type LooseObject, type LooseStringObject } from '@app/core/types';
 import { PhpError } from '@app/core/errors/php-error';
 
 /**

@@ -13,7 +13,7 @@ import { ApolloError } from '@apollo/client';
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
 
-const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace' | 'error', logLine: string, ...logParams: any[]): T => {
+const logAndReturn = <T>(returnValue: T, logLevel: 'info' | 'debug' | 'trace' | 'error', logLine: string, ...logParams: unknown[]): T => {
 	dashboardLogger[logLevel](logLine, ...logParams);
 	return returnValue;
 };

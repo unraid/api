@@ -1,4 +1,4 @@
-import { GraphQLScalarType, Kind, ValueNode } from 'graphql';
+import { GraphQLScalarType, Kind, type ValueNode } from 'graphql';
 
 const MAX_LONG = Number.MAX_SAFE_INTEGER;
 

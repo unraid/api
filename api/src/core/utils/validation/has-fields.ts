@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { LooseObject } from '@app/core/types';
+import { type LooseObject } from '@app/core/types';
 
 /**
 * Check if object has fields.

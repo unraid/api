@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { HttpNotifier, Options as HttpNotifierOptions } from '@app/core/notifiers/http';
-import { NotifierSendOptions } from '@app/core/notifiers/notifier';
+import { HttpNotifier, type Options as HttpNotifierOptions } from '@app/core/notifiers/http';
+import { type NotifierSendOptions } from '@app/core/notifiers/notifier';
 
 type Transport = 'email' | 'push' | 'ios' | 'android';
 

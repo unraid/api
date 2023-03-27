@@ -124,9 +124,7 @@ subscriptionServer = SubscriptionServer.create({
 	// `context` function in `ApolloServer`. Please [see the docs](https://github.com/apollographql/subscriptions-transport-ws#constructoroptions-socketoptions--socketserver)
 	// for more information on this hook.
 	async onConnect(
-		connectionParams: Object,
-		_webSocket: WebSocket,
-		_context: ConnectionContext,
+		connectionParams: {'x-api-key': string },
 	) {
 		const apiKey = connectionParams['x-api-key'];
 		const user = await apiKeyToUser(apiKey);
@@ -229,6 +227,7 @@ app.get('/graphql/api/customizations/:type', async (req: Request, res: Response)
 });
 
 // Handle errors by logging them and returning a 500.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 app.use((error: Error & { stackTrace?: string; status?: number }, _, res: Response, __) => {
 	// Don't log CORS errors
 	if (error.message.includes('CORS')) return;

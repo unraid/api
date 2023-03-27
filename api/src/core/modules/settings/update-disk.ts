@@ -3,11 +3,11 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '@app/core/types';
+import { type CoreContext, type CoreResult } from '@app/core/types';
 import { EmCmdError } from '@app/core/errors/em-cmd-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { emcmd } from '@app/core/utils/clients/emcmd';
-import { Var } from '@app/core/types/states/var';
+import { type Var } from '@app/core/types/states/var';
 import { getters } from '@app/store';
 
 interface Context extends CoreContext {
