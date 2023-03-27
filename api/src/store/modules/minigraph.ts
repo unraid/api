@@ -2,7 +2,6 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { loginUser, logoutUser } from '@app/store/modules/config';
-import { GraphQLClient } from '@app/mothership/graphql-client';
 import { minigraphLogger } from '@app/core/log';
 
 export type MinigraphClientState = {
@@ -10,24 +9,19 @@ export type MinigraphClientState = {
 	error: string | null;
 	timeout: number | null;
 	timeoutStart: number | null;
-	isSubscribedToEvents: boolean;
 };
 
 const initialState: MinigraphClientState = {
-	status: MinigraphStatus.DISCONNECTED,
+	status: MinigraphStatus.PRE_INIT,
 	error: null,
 	timeout: null,
 	timeoutStart: null,
-	isSubscribedToEvents: false,
 };
 
 export const mothership = createSlice({
 	name: 'mothership',
 	initialState,
 	reducers: {
-		setSubscribedToEvents(state, action: PayloadAction<boolean>) {
-			state.isSubscribedToEvents = action.payload;
-		},
 		setMothershipTimeout(state, action: PayloadAction<number>) {
 			state.timeout = action.payload;
 			state.timeoutStart = Date.now();
@@ -38,10 +32,7 @@ export const mothership = createSlice({
 			minigraphLogger.debug('GraphQL Connection Status: ', action.payload);
 			state.status = action.payload.status;
 			state.error = action.payload.error;
-			if ([MinigraphStatus.DISCONNECTED].includes(action.payload.status)) {
-				state.isSubscribedToEvents = false;
-				GraphQLClient.clearInstance();
-			} else if ([MinigraphStatus.CONNECTED, MinigraphStatus.CONNECTING].includes(action.payload.status)) {
+			if ([MinigraphStatus.CONNECTED, MinigraphStatus.CONNECTING].includes(action.payload.status)) {
 				state.error = null;
 				state.timeout = null;
 				state.timeoutStart = null;
@@ -50,18 +41,17 @@ export const mothership = createSlice({
 		builder.addCase(loginUser.pending, state => {
 			state.timeout = null;
 			state.timeoutStart = null;
-			state.status = MinigraphStatus.DISCONNECTED;
+			state.status = MinigraphStatus.PRE_INIT;
 			state.error = 'Connecting - refresh the page for an updated status.';
 		});
 		builder.addCase(logoutUser.pending, state => {
-			GraphQLClient.clearInstance();
-			state.isSubscribedToEvents = false;
+			// GraphQLClient.clearInstance();
 			state.error = null;
 			state.timeout = null;
 			state.timeoutStart = null;
-			state.status = MinigraphStatus.DISCONNECTED;
+			state.status = MinigraphStatus.PRE_INIT;
 		});
 	},
 });
 
-export const { setSubscribedToEvents, setMothershipTimeout } = mothership.actions;
+export const { setMothershipTimeout } = mothership.actions;

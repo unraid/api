@@ -614,9 +614,9 @@ export enum MemoryType {
 export enum MinigraphStatus {
   CONNECTED = 'CONNECTED',
   CONNECTING = 'CONNECTING',
-  DISCONNECTED = 'DISCONNECTED',
-  ERROR = 'ERROR',
-  RETRY_WAITING = 'RETRY_WAITING'
+  ERROR_RETRYING = 'ERROR_RETRYING',
+  PING_FAILURE = 'PING_FAILURE',
+  PRE_INIT = 'PRE_INIT'
 }
 
 export type MinigraphqlResponse = {

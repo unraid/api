@@ -1,7 +1,6 @@
 /* eslint-disable max-depth */
-import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
+import { minigraphLogger, mothershipLogger } from '@app/core/log';
 import { GraphQLClient } from './graphql-client';
-import { setSubscribedToEvents } from '@app/store/modules/minigraph';
 import { store } from '@app/store';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
 import { EVENTS_SUBSCRIPTION, RemoteAccess_Fragment } from '../graphql/mothership/subscriptions';
@@ -9,22 +8,18 @@ import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
 import { queryServers } from '@app/store/actions/query-servers';
 import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
-import type { Subscription } from 'zen-observable-ts';
 import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access-event';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
 
 let timeoutForOnlineEventReceive: NodeJS.Timeout | null = null;
 
-const setEventsUnsubscribed = (activeSubscription: Subscription) => {
-	activeSubscription.unsubscribe();
-	store.dispatch(setSubscribedToEvents(false));
-};
-
-const setupTimeoutForSelfDisconnectedEvent = (activeSubscription: Subscription) => {
-// We have somehow received a disconnected event for ourselves. This can sometimes happen when the event bus unsubscribes us after a long running loop
+const setupTimeoutForSelfDisconnectedEvent = () => {
+	minigraphLogger.error(`Received disconnect event for own server, waiting for ${KEEP_ALIVE_INTERVAL_MS / 1_000} seconds before setting disconnected`);
+	// We have somehow received a disconnected event for ourselves. This can sometimes happen when the event bus unsubscribes us after a long running loop
 	timeoutForOnlineEventReceive = setTimeout(() => {
-		mothershipLogger.warn(`Received disconnect event for own server, waiting for ${KEEP_ALIVE_INTERVAL_MS / 1_000} seconds before setting disconnected`);
-		setEventsUnsubscribed(activeSubscription);
+		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PING_FAILURE, error: 'Received disconnect event for own server' }));
 	}, KEEP_ALIVE_INTERVAL_MS);
 };
 
@@ -44,9 +39,8 @@ export const subscribeToEvents = async (apiKey: string) => {
 		throw new Error('Unable to use client - state must not be loaded');
 	}
 
-	const eventsSub = client.subscribe({ query: EVENTS_SUBSCRIPTION, variables: { apiKey } });
-	store.dispatch(setSubscribedToEvents(true));
-	const activeSubscription = eventsSub.subscribe(async ({ data, errors }) => {
+	const eventsSub = client.subscribe({ query: EVENTS_SUBSCRIPTION, variables: { apiKey }, fetchPolicy: 'no-cache' });
+	eventsSub.subscribe(async ({ data, errors }) => {
 		if (errors) {
 			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
 		} else if (data) {
@@ -80,7 +74,7 @@ export const subscribeToEvents = async (apiKey: string) => {
 							void store.dispatch(queryServers());
 
 							if (eventApiKey === apiKey) {
-								setupTimeoutForSelfDisconnectedEvent(activeSubscription);
+								setupTimeoutForSelfDisconnectedEvent();
 							}
 						}
 
@@ -107,11 +101,5 @@ export const subscribeToEvents = async (apiKey: string) => {
 				}
 			}
 		}
-	}, err => {
-		mothershipLogger.error('Error in events subscription %o', err);
-		setEventsUnsubscribed(activeSubscription);
-	}, () => {
-		mothershipLogger.info('OnComplete fired for events subscription, setting subscribed to events to false');
-		setEventsUnsubscribed(activeSubscription);
 	});
 };

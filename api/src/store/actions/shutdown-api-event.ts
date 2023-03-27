@@ -10,7 +10,7 @@ import { writeConfigSync } from '@app/store/sync/config-disk-sync';
 export const shutdownApiEvent = () => {
 	logger.debug('Running shutdown');
 	stopListeners();
-	store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: null }));
+	store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PRE_INIT, error: null }));
 	if (store.getState().config.remote.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED) {
 		store.dispatch(setWanAccess('no'));
 	}

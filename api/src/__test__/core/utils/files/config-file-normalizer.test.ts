@@ -43,7 +43,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		    "version": "",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "DISCONNECTED",
+		    "minigraph": "PRE_INIT",
 		  },
 		  "local": {},
 		  "notifier": {
@@ -128,7 +128,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		    "version": "",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "DISCONNECTED",
+		    "minigraph": "PRE_INIT",
 		    "upnpStatus": "Turned On",
 		  },
 		  "local": {

@@ -10,7 +10,7 @@ test('Before init returns default values for all fields', async () => {
 		    "version": "",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "DISCONNECTED",
+		    "minigraph": "PRE_INIT",
 		    "upnpStatus": "",
 		  },
 		  "local": {
@@ -60,7 +60,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "DISCONNECTED",
+		    "minigraph": "PRE_INIT",
 		    "upnpStatus": "",
 		  },
 		  "local": {
@@ -112,7 +112,7 @@ test('updateUserConfig merges in changes to current state', async () => {
 		    "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		  },
 		  "connectionStatus": {
-		    "minigraph": "DISCONNECTED",
+		    "minigraph": "PRE_INIT",
 		    "upnpStatus": "",
 		  },
 		  "local": {
