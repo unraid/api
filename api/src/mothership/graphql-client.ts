@@ -115,7 +115,7 @@ export class GraphQLClient {
 				minigraphLogger.info('GQL Error Encountered %o', handler.graphQLErrors);
 			} else if (handler.networkError) {
 				minigraphLogger.error('Network Error Encountered %o', handler.networkError);
-				store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.DISCONNECTED, error: handler.networkError.message }));
+				store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR_RETRYING, error: handler.networkError.message }));
 			}
 		});
 		const apolloClient = new ApolloClient({

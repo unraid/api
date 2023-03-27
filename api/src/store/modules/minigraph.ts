@@ -12,7 +12,7 @@ export type MinigraphClientState = {
 };
 
 const initialState: MinigraphClientState = {
-	status: MinigraphStatus.DISCONNECTED,
+	status: MinigraphStatus.PRE_INIT,
 	error: null,
 	timeout: null,
 	timeoutStart: null,
@@ -41,7 +41,7 @@ export const mothership = createSlice({
 		builder.addCase(loginUser.pending, state => {
 			state.timeout = null;
 			state.timeoutStart = null;
-			state.status = MinigraphStatus.DISCONNECTED;
+			state.status = MinigraphStatus.PRE_INIT;
 			state.error = 'Connecting - refresh the page for an updated status.';
 		});
 		builder.addCase(logoutUser.pending, state => {
@@ -49,7 +49,7 @@ export const mothership = createSlice({
 			state.error = null;
 			state.timeout = null;
 			state.timeoutStart = null;
-			state.status = MinigraphStatus.DISCONNECTED;
+			state.status = MinigraphStatus.PRE_INIT;
 		});
 	},
 });

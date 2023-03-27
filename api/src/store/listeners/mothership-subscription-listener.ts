@@ -12,8 +12,8 @@ export const enableMothershipJobsListener = () => startAppListening({
 			return true;
 		}
 
-		if (currentState.minigraph.status === MinigraphStatus.PING_FAILURE && previousState.minigraph.status === MinigraphStatus.CONNECTED) {
-			// Failed a health check, rebuild the client
+		if ([MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(currentState.minigraph.status) && previousState.minigraph.status === MinigraphStatus.CONNECTED) {
+			// Failed a fatal health check, rebuild the client
 			return true;
 		}
 

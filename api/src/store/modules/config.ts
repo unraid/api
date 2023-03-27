@@ -56,7 +56,7 @@ export const initialState: SliceState = {
 		apikey: '',
 	},
 	connectionStatus: {
-		minigraph: MinigraphStatus.DISCONNECTED,
+		minigraph: MinigraphStatus.PRE_INIT,
 		upnpStatus: '',
 	},
 } as const;

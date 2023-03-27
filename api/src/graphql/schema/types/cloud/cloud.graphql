@@ -4,11 +4,11 @@ type ApiKeyResponse {
 }
 
 enum MinigraphStatus {
+	PRE_INIT
     CONNECTING
 	CONNECTED
     PING_FAILURE
-	DISCONNECTED
-	RETRY_WAITING
+    ERROR_RETRYING
 }
 
 type MinigraphqlResponse {

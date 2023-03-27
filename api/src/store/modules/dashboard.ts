@@ -61,9 +61,8 @@ export const dashboard = createSlice({
 	extraReducers(builder) {
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
 			if ([
-				MinigraphStatus.DISCONNECTED,
-				MinigraphStatus.ERROR,
-				MinigraphStatus.RETRY_WAITING,
+				MinigraphStatus.PRE_INIT,
+				MinigraphStatus.PING_FAILURE,
 			].includes(action.payload.status)) {
 				getPublishToDashboardJob().stop();
 				state.connectedToDashboard = 0;
