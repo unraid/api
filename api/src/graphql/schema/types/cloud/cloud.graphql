@@ -6,7 +6,7 @@ type ApiKeyResponse {
 enum MinigraphStatus {
     CONNECTING
 	CONNECTED
-	ERROR
+    PING_FAILURE
 	DISCONNECTED
 	RETRY_WAITING
 }
