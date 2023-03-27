@@ -6,7 +6,7 @@
 import { processShare } from '@app/core/utils/shares/process-share';
 import { AppError } from '@app/core/errors/app-error';
 import { getters } from '@app/store';
-import { DiskShare, UserShare } from '@app/core/types/states/share';
+import { type DiskShare, type UserShare } from '@app/core/types/states/share';
 
 interface Filter {
 	name: string;

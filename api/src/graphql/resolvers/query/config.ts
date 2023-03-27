@@ -4,7 +4,7 @@
  */
 
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { Context } from '@app/graphql/schema/utils';
+import { type Context } from '@app/graphql/schema/utils';
 import { getters } from '@app/store';
 
 export default async (_: unknown, __: unknown, context: Context) => {

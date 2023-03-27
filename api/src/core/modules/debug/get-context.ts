@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { CoreContext, CoreResult } from '@app/core/types';
+import { type CoreContext, type CoreResult } from '@app/core/types';
 
 /**
  * Get internal context object.

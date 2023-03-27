@@ -1,4 +1,4 @@
-import { IniEnabled } from '@app/core/types/ini';
+import { type IniEnabled } from '@app/core/types/ini';
 
 export interface SecIni {
 	export: IniEnabled;

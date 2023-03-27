@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import { Number, String, Boolean, Record, Null, Static } from 'runtypes';
+import { Number, String, Boolean, Record, Null, type Static } from 'runtypes';
 
 const uptime = Record({
 	timestamp: String.Or(Null),

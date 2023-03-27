@@ -7,7 +7,7 @@ import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { AppError } from '@app/core/errors/app-error';
 import { getters } from '@app/store';
-import { User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user';
 
 interface Context extends CoreContext {
 	query: {

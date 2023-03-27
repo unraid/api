@@ -4,7 +4,7 @@
  */
 
 import { execa } from 'execa';
-import { Systeminformation, blockDevices, diskLayout } from 'systeminformation';
+import { type Systeminformation, blockDevices, diskLayout } from 'systeminformation';
 import { map as asyncMap } from 'p-iteration';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

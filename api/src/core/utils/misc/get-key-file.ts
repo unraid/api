@@ -1,4 +1,4 @@
-import { RootState, store } from '@app/store';
+import { type RootState, store } from '@app/store';
 import btoa from 'btoa';
 import { basename, join } from 'path';
 import { readFile } from 'fs/promises';

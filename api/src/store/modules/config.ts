@@ -162,7 +162,7 @@ export const config = createSlice({
 		},
 	},
 	extraReducers(builder) {
-		builder.addCase(loadConfigFile.pending, (state, _action) => {
+		builder.addCase(loadConfigFile.pending, (state) => {
 			state.status = FileLoadStatus.LOADING;
 		});
 

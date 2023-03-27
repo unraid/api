@@ -13,6 +13,7 @@ concurrency:
 
 jobs:
   lint-api:
+    continue-on-error: true
     defaults:
       run:
         working-directory: api

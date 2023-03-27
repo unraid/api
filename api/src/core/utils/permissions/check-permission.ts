@@ -5,7 +5,7 @@
 
 import { ParameterMissingError } from '@app/core/errors/param-missing-error';
 import { ac } from '@app/core/permissions';
-import { User } from '@app/core/types/states/user';
+import { type User } from '@app/core/types/states/user';
 
 export interface AccessControlOptions {
 	/** Which resource to verify the user's role against. e.g. 'apikeys' */

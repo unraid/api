@@ -4,9 +4,9 @@
  */
 
 import { got } from 'got';
-import { Notifier, NotifierOptions } from '@app/core/notifiers/notifier';
+import { Notifier, type NotifierOptions } from '@app/core/notifiers/notifier';
 
-export interface Options extends NotifierOptions {}
+export type Options = NotifierOptions
 
 /**
  * HTTP notifier.

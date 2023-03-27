@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import { String, Boolean, Partial, Null, Static } from 'runtypes';
+import { String, Boolean, Partial, Null, type Static } from 'runtypes';
 
 export const TwoFactor = Partial({
 	token: String.Or(Null),

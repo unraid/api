@@ -10,8 +10,8 @@ export type SharesIni = Array<{
 	useCache: string;
 }>;
 
-export const parse: StateFileToIniParserMap['shares'] = state => Object.entries(state)
-	.map(([_, item]) => {
+export const parse: StateFileToIniParserMap['shares'] = state => Object.values(state)
+	.map((item) => {
 		const { free, size, include, exclude, useCache, ...rest } = item;
 		const share: Share = {
 			free: parseInt(free, 10),

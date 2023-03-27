@@ -1,7 +1,7 @@
 import { logger } from '@app/core/log';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
 import { FileLoadStatus } from '@app/store/types';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { format } from 'util';
 import type { RootState } from '@app/store';

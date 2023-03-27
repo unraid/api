@@ -1,5 +1,5 @@
 /* eslint-disable new-cap */
-import { String, Record, Union, Static, Literal } from 'runtypes';
+import { String, Record, Union, type Static, Literal } from 'runtypes';
 
 const ValidConfig = Record({
 	valid: Literal(true),

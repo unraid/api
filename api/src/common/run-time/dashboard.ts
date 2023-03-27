@@ -1,6 +1,6 @@
 import { valid } from 'semver';
 /* eslint-disable new-cap */
-import { String, Record, Array, Static } from 'runtypes';
+import { String, Record, Array, type Static } from 'runtypes';
 import { bytesAboveZero } from '@app/common/run-time/bytes-above-zero';
 import { Service } from '@app/common/run-time/service';
 import { Display } from '@app/common/run-time/display';

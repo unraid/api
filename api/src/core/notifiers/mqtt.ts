@@ -3,8 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import mqtt, { MqttClient } from 'mqtt';
-import { Notifier, NotifierOptions, NotifierSendOptions } from '@app/core/notifiers/notifier';
+import mqtt, { type MqttClient } from 'mqtt';
+import { Notifier, type NotifierOptions, type NotifierSendOptions } from '@app/core/notifiers/notifier';
 
 interface Options extends NotifierOptions {
 	connectionUri: string;

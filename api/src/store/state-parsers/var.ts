@@ -1,5 +1,5 @@
-import { IniStringBoolean, IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { FsType, RegistrationTypeAllCaps } from '@app/core/types/states/var';
+import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
+import { type FsType, type RegistrationTypeAllCaps } from '@app/core/types/states/var';
 import { toNumber } from '@app/core/utils';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
@@ -191,7 +191,7 @@ export type VarIni = {
 	useUpnp: IniStringBoolean;
 };
 
-const iniBooleanToJsBoolean = (value: string, defaultValue?: any) => {
+const iniBooleanToJsBoolean = (value: string, defaultValue?: boolean) => {
 	if (value === 'no' || value === 'false') {
 		return false;
 	}

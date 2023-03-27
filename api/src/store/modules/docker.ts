@@ -1,4 +1,4 @@
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import type { ContainerInfo } from 'dockerode';
 import { DaemonConnectionStatus } from '@app/store/types';

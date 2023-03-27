@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { Express } from 'express';
+import { type Express } from 'express';
 import expressListEndpoints from 'express-list-endpoints';
 import flatten from 'flatten';
 import { removeDuplicatesFromArray } from '@app/core/utils/misc/remove-duplicates-from-array';

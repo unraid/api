@@ -2,7 +2,7 @@ import { Serializer } from 'multi-ini';
 
 const serializer = new Serializer({ keep_quotes: false });
 
-const replacer = (_, value: any) => {
+const replacer = (_, value: unknown) => {
 	if (typeof value === 'boolean') {
 		return value ? 'true' : 'false';
 	}
@@ -15,7 +15,7 @@ const replacer = (_, value: any) => {
  * @param object Any object to serialize
  * @returns String converted to ini with multi-ini, with any booleans string escaped to prevent a crash
  */
-export const safelySerializeObjectToIni = (object: Record<string, any>): string => {
+export const safelySerializeObjectToIni = (object: Record<string, unknown>): string => {
 	const safeObject = JSON.parse(JSON.stringify(object, replacer));
 	return serializer.serialize(safeObject);
 };

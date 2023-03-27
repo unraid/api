@@ -1,4 +1,4 @@
-import { IniEnabled, IniNumberBoolean } from '@app/core/types/ini';
+import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini';
 import { toNumber, toBoolean } from '@app/core/utils';
 import type { StateFileToIniParserMap } from '@app/store/types';
 

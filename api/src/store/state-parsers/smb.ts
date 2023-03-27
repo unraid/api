@@ -1,5 +1,5 @@
-import { SecIni } from '@app/core/types/states/sec';
-import { SmbSecurity, SmbShares } from '@app/core/types/states/smb';
+import { type SecIni } from '@app/core/types/states/sec';
+import { type SmbSecurity, type SmbShares } from '@app/core/types/states/smb';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
 export interface IniSmbShare extends SecIni {
