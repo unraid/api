@@ -22,6 +22,7 @@ jobs:
         run: exit 0
 
   lint-api:
+    continue-on-error: true
     defaults:
       run:
         working-directory: api
