@@ -4,7 +4,7 @@
  */
 
 import chalk from 'chalk';
-import { configure, getLogger as getRealLogger, type Logger } from 'log4js';
+import { configure, getLogger } from 'log4js';
 import { serializeError } from 'serialize-error';
 
 export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL', 'MARK', 'OFF'] as const;
@@ -12,10 +12,9 @@ export const levels = ['ALL', 'TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR', 'FATAL'
 const contextEnabled = Boolean(process.env.LOG_CONTEXT);
 const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
 const tracingEnabled = Boolean(process.env.LOG_TRACING);
-const enabledCategories = (process.env.LOG_CATEGORY ?? '*')?.split(',');
 const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${tracingEnabled ? ' %[%f:%l%]' : ''}`;
 const minimumLoggingPattern = '%m';
-const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out', 'errors'];
+const appenders = process.env.LOG_TRANSPORT?.split(',').map(transport => transport.trim()) ?? ['out'];
 const level = levels[levels.indexOf(process.env.LOG_LEVEL?.toUpperCase() as typeof levels[number])] ?? 'INFO';
 const logLayout = {
 	type: 'pattern',
@@ -54,6 +53,8 @@ if (process.env.NODE_ENV !== 'test') {
 			file: {
 				type: 'file',
 				filename: '/var/log/unraid-api/stdout.log',
+				maxLogSize: 10_000_000,
+				backups: 0,
 				layout: {
 					...logLayout,
 					// File logs should always be pretty
@@ -63,6 +64,8 @@ if (process.env.NODE_ENV !== 'test') {
 			errorFile: {
 				type: 'file',
 				filename: '/var/log/unraid-api/stderr.log',
+				maxLogSize: 10_000_000,
+				backups: 0,
 				layout: {
 					...logLayout,
 					// File logs should always be pretty
@@ -85,44 +88,6 @@ if (process.env.NODE_ENV !== 'test') {
 	});
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-function
-const noOp = () => {};
-
-const getNoOpLogger = (name: string): Logger => {
-	const logger = getRealLogger(name);
-	return {
-		category: name,
-		level: logger.level,
-		log: noOp,
-		_log: noOp,
-		isLevelEnabled: logger.isLevelEnabled,
-		isTraceEnabled: logger.isTraceEnabled,
-		isDebugEnabled: logger.isDebugEnabled,
-		isInfoEnabled: logger.isInfoEnabled,
-		isWarnEnabled: logger.isWarnEnabled,
-		isErrorEnabled: logger.isErrorEnabled,
-		isFatalEnabled: logger.isFatalEnabled,
-		addContext: noOp,
-		removeContext: noOp,
-		clearContext: noOp,
-		setParseCallStackFunction: noOp,
-		trace: noOp,
-		debug: noOp,
-		info: noOp,
-		warn: noOp,
-		error: noOp,
-		fatal: noOp,
-		mark: noOp,
-	} as unknown as Logger;
-};
-
-const getLogger = (name: string) => {
-	// Check if all are enabled
-	if (enabledCategories?.includes('*')) return getRealLogger(name);
-	// Check if this specific one is enabled
-	if (enabledCategories?.includes(name)) return getRealLogger(name);
-	return getNoOpLogger(name);
-};
 
 export const internalLogger = getLogger('internal');
 export const logger = getLogger('app');
