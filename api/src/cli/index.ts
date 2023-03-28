@@ -14,7 +14,7 @@ export const main = async (...argv: string[]) => {
 	cliLogger.removeContext('envs');
 
 	// Set envs
-	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' ? 'pretty' : 'raw'));
+	setEnv('LOG_TYPE', process.env.LOG_TYPE ?? (command === 'start' || mainOptions.debug ? 'pretty' : 'raw'));
 	cliLogger.addContext('paths', getters.paths());
 	cliLogger.debug('Starting CLI');
 	cliLogger.removeContext('paths');
@@ -23,7 +23,15 @@ export const main = async (...argv: string[]) => {
 	setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
 	setEnv('PORT', process.env.PORT ?? mainOptions.port ?? '9000');
 	setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'INFO');
-	setEnv('LOG_TRANSPORT', process.env.LOG_TRANSPORT ?? 'out');
+	if (!process.env.LOG_TRANSPORT) {
+		if (process.env.ENVIRONMENT === 'production' && !mainOptions.debug) {
+			setEnv('LOG_TRANSPORT', 'errors');
+		} else if (!mainOptions.debug) {
+			setEnv('LOG_TRANSPORT', 'file,errors');
+		} else  {
+			cliLogger.debug('In Debug Mode - Log Level Defaulting to: stdout');
+		}
+	}
 
 	if (!command) {
 		// Run help command
