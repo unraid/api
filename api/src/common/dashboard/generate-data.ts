@@ -11,6 +11,7 @@ import { type DashboardServiceInput, type DashboardInput } from '@app/graphql/ge
 import { API_VERSION } from '@app/environment';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { DashboardInputSchema } from '@app/graphql/generate/validators';
+import { ZodError } from 'zod';
 
 const getVmSummary = async (): Promise<DashboardInput['vms']> => {
 	try {
@@ -127,7 +128,11 @@ export const generateData = async (): Promise<DashboardInput | null> => {
 
 	} catch (error: unknown) {
 		// Log error for user
-		dashboardLogger.error('Failed validating dashboard object: ', error, data);
+		if (error instanceof ZodError) {
+			dashboardLogger.error('Failed validation with issues: ' , error.issues.map(issue => ({ message: issue.message, path: issue.path.join(',') })))
+		} else {
+			dashboardLogger.error('Failed validating dashboard object: ', error, data);
+		}
 	}
 
 	return null;

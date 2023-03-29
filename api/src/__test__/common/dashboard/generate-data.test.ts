@@ -19,6 +19,14 @@ vi.mock('@app/core/log', () => ({
 		addContext: vi.fn(),
 		removeContext: vi.fn(),
 	},
+	dashboardLogger: {
+		info: vi.fn(),
+		error: vi.fn((...input) => console.log(input)),
+		debug: vi.fn(),
+		trace: vi.fn(),
+		addContext: vi.fn(),
+		removeContext: vi.fn(),
+	},
 	emhttpLogger: {
 		info: vi.fn(),
 		error: vi.fn(),
@@ -29,30 +37,11 @@ vi.mock('@app/core/log', () => ({
 	},
 }));
 
-vi.mock('@app/common/dashboard/get-array', () => ({
-	getArray: vi.fn(),
-}));
-
 vi.mock('@app/common/two-factor', () => ({
 	checkTwoFactorEnabled: vi.fn(() => ({
 		isRemoteEnabled: false,
 		isLocalEnabled: false,
 	})),
-}));
-
-vi.mock('@app/common/dashboard/get-unraid-version', () => ({
-	getUnraidVersion: vi.fn(() => '6.0.0'),
-}));
-
-vi.mock('@app/graphql/resolvers/query/display', () => ({
-	default: vi.fn().mockResolvedValue({
-		case: {
-			url: '',
-			icon: 'custom',
-			error: 'could-not-read-image',
-			base64: '',
-		},
-	}),
 }));
 
 vi.mock('@app/common/dashboard/boot-timestamp', () => ({
@@ -71,28 +60,37 @@ test('Returns generated data', async () => {
 		    "installed": 0,
 		    "started": 0,
 		  },
-		  "array": undefined,
+		  "array": {
+		    "capacity": {
+		      "bytes": {
+		        "free": 0,
+		        "total": 0,
+		        "used": 0,
+		      },
+		    },
+		    "state": "stopped",
+		  },
 		  "config": {
 		    "valid": true,
 		  },
 		  "display": {
 		    "case": {
 		      "base64": "",
-		      "error": "could-not-read-image",
-		      "icon": "custom",
+		      "error": "",
+		      "icon": "case-model.png",
 		      "url": "",
 		    },
 		  },
 		  "os": {
 		    "hostname": "Tower",
-		    "uptime": "2022-06-10T04:35:58.276Z",
+		    "uptime": 2022-06-10T04:35:58.276Z,
 		  },
 		  "services": [
 		    {
 		      "name": "unraid-api",
 		      "online": true,
 		      "uptime": {
-		        "timestamp": "2022-06-10T04:35:58.276Z",
+		        "timestamp": 2022-06-10T04:35:58.276Z,
 		      },
 		      "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    },
@@ -100,26 +98,18 @@ test('Returns generated data', async () => {
 		      "name": "dynamic-remote-access",
 		      "online": false,
 		      "uptime": {
-		        "timestamp": "2022-06-10T04:35:58.276Z",
+		        "timestamp": 2022-06-10T04:35:58.276Z,
 		      },
 		      "version": "DISABLED",
 		    },
 		  ],
-		  "twoFactor": {
-		    "local": {
-		      "enabled": false,
-		    },
-		    "remote": {
-		      "enabled": false,
-		    },
-		  },
 		  "vars": {
 		    "flashGuid": "0000-0000-0000-000000000000",
 		    "regState": "PRO",
 		    "regTy": "PRO",
 		  },
 		  "versions": {
-		    "unraid": "6.0.0",
+		    "unraid": "6.11.2",
 		  },
 		  "vms": {
 		    "installed": 0,
