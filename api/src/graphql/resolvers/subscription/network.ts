@@ -302,7 +302,7 @@ export const publishNetwork = async () => {
 				},
 			});
 			dashboardLogger.addContext('sendNetworkResult', result);
-			dashboardLogger.debug('Sent network mutation');
+			dashboardLogger.debug('Sent network mutation with %s urls', datapacket.urls.length);
 			dashboardLogger.removeContext('sendNetworkResult');
 			store.dispatch(saveNetworkPacket({ lastNetworkPacket: validatedNetwork }));
 		}
