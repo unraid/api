@@ -151,7 +151,8 @@ jobs:
 
       - name: View release notes
         run: |
-          echo ${{steps.changelog.outputs.latestBody}}
+          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${{steps.changelog.outputs.latestBody}}")
+          echo "escapedNotes"
   build-plugin:
     defaults:
       run:
