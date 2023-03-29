@@ -10,7 +10,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * 2. It is not minifiable, so the string of a GraphQL query will be multiple times inside the bundle.
  * 3. It does not support dead code elimination, so it will add unused operations.
  *
- * Therefore it is highly recommended to use the babel-plugin for production.
+ * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
     "\nmutation updateDashboard($data: DashboardInput!, $apiKey: String!) {\n\tupdateDashboard(data: $data) @auth(apiKey: $apiKey) {\n\t\tapps {\n\t\t\tinstalled\n\t\t}\n\t}\n}": types.updateDashboardDocument,
@@ -21,6 +21,20 @@ const documents = {
     "\n  fragment RemoteAccessEventFragment on RemoteAccessEvent {\n      type\n      data {\n        type\n        url {\n          type\n          name\n          ipv4\n          ipv6\n        }\n        apiKey\n      }\n    }\n": types.RemoteAccessEventFragmentFragmentDoc,
     "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    __typename\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n    ...RemoteAccessEventFragment\n  }\n}\n": types.eventsDocument,
 };
+
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ *
+ *
+ * @example
+ * ```ts
+ * const query = graphql(`query GetUser($id: ID!) { user(id: $id) { name } }`);
+ * ```
+ *
+ * The query argument is unknown!
+ * Please regenerate the types.
+ */
+export function graphql(source: string): unknown;
 
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -50,20 +64,6 @@ export function graphql(source: "\n  fragment RemoteAccessEventFragment on Remot
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    __typename\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n    ...RemoteAccessEventFragment\n  }\n}\n"): (typeof documents)["\nsubscription events($apiKey: String!) {\n  events @auth(apiKey: $apiKey) {\n    __typename\n    ... on ClientConnectedEvent {\n      connectedData: data {\n        type\n        version\n        apiKey\n      }\n      connectedEvent: type\n    }\n    ... on ClientDisconnectedEvent {\n      disconnectedData: data {\n        type\n        version\n        apiKey\n      }\n      disconnectedEvent: type\n    }\n    ...RemoteAccessEventFragment\n  }\n}\n"];
-
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- *
- *
- * @example
- * ```ts
- * const query = gql(`query GetUser($id: ID!) { user(id: $id) { name } }`);
- * ```
- *
- * The query argument is unknown!
- * Please regenerate the types.
-**/
-export function graphql(source: string): unknown;
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

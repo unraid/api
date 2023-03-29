@@ -6,7 +6,6 @@
 import { statSync, existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
-import { logger } from '@app/core/log';
 import { getters } from '@app/store';
 
 // Consts

@@ -7,6 +7,8 @@ import { isEqual } from 'lodash';
 import { SEND_NETWORK_MUTATION } from '@app/graphql/mothership/mutations';
 import { saveNetworkPacket } from '@app/store/modules/dashboard';
 import { ApolloError } from '@apollo/client';
+import { AccessUrlInputSchema, NetworkInputSchema } from '@app/graphql/generate/validators';
+import { ZodError } from 'zod';
 
 interface UrlForFieldInput {
 	url: string;
@@ -257,36 +259,52 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 		}
 	}
 
-	return { urls, errors };
+	const safeUrls = urls.map((url) => AccessUrlInputSchema().safeParse(url)).reduce<AccessUrlInput[]>((acc, curr) => {
+		if (curr.success) {
+			acc.push(curr.data)
+		} else {
+			errors.push(curr.error)
+		}
+		return acc;
+	}, []);
+	
+
+	return { urls: safeUrls, errors };
 };
 
 export const publishNetwork = async () => {
-	dashboardLogger.trace('Got here');
 	try {
 		const client = GraphQLClient.getInstance();
 
 		const datapacket = getServerIps();
-		const newNetworkPacket: NetworkInput = { accessUrls: datapacket.urls };
-
+		if (datapacket.errors ) {
+			const zodErrors = datapacket.errors.filter(error => error instanceof ZodError)
+			if (zodErrors.length) {
+				dashboardLogger.warn('Validation Errors Encountered with Network Payload: %s', zodErrors.map(error => error.message).join(','))
+			}
+		}
+		const networkPacket: NetworkInput = { accessUrls: datapacket.urls }
+		const validatedNetwork = NetworkInputSchema().parse(networkPacket);
+		
 		const { lastNetworkPacket } = getters.dashboard();
 		const { apikey: apiKey } = getters.config().remote;
-		if (isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(newNetworkPacket))) {
+		if (isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(validatedNetwork))) {
 			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
 		} else if (client) {
-			dashboardLogger.addContext('data', newNetworkPacket);
+			dashboardLogger.addContext('data', validatedNetwork);
 			dashboardLogger.info('Sending data packet for network');
 			dashboardLogger.removeContext('data');
 			const result = await client.mutate({
 				mutation: SEND_NETWORK_MUTATION,
 				variables: {
 					apiKey,
-					data: newNetworkPacket,
+					data: validatedNetwork,
 				},
 			});
 			dashboardLogger.addContext('sendNetworkResult', result);
 			dashboardLogger.debug('Sent network mutation');
 			dashboardLogger.removeContext('sendNetworkResult');
-			store.dispatch(saveNetworkPacket({ lastNetworkPacket: newNetworkPacket }));
+			store.dispatch(saveNetworkPacket({ lastNetworkPacket: validatedNetwork }));
 		}
 	} catch (error: unknown) {
 		dashboardLogger.trace('ERROR', error);

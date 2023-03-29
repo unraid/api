@@ -31,6 +31,18 @@ generates:
       withObjectType: true
     plugins:
       - add: { content: '/* eslint-disable */' }
+  src/graphql/generate/validators.ts:
+    schema: 
+      'https://staging.mothership.unraid.net/ws': 
+        headers:
+          origin: 'https://forums.unraid.net'
+    plugins:
+      - typescript-validation-schema
+      - add: { content: '/* eslint-disable */'}
+    config:
+      importFrom: '@app/graphql/generated/client/graphql'
+      strictScalars: false
+      schema: 'zod'
 # Generate Types for the API Server
   src/graphql/generated/api/types.ts:
     schema: 
