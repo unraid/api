@@ -8,7 +8,6 @@ import cors from 'cors';
 import { watch } from 'chokidar';
 import express, { json, type Request, type Response } from 'express';
 import http from 'http';
-import type WebSocket from 'ws';
 import {
 	ApolloServerPluginLandingPageGraphQLPlayground,
 	ApolloServerPluginDrainHttpServer,
@@ -18,11 +17,10 @@ import { ApolloServer } from 'apollo-server-express';
 import { logger, config, pubsub, graphqlLogger } from '@app/core';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
-import { getEndpoints } from '@app/core/utils/misc/get-endpoints';
 import { getters } from '@app/store';
 import { schema } from '@app/graphql/schema';
 import { execute, subscribe } from 'graphql';
-import { type ConnectionContext, SubscriptionServer } from 'subscriptions-transport-ws';
+import { SubscriptionServer } from 'subscriptions-transport-ws';
 import { wsHasConnected, wsHasDisconnected } from '@app/ws';
 import { apiKeyToUser } from '@app/graphql';
 import { randomUUID } from 'crypto';
@@ -178,7 +176,7 @@ subscriptionServer = SubscriptionServer.create({
 });
 
 // List all endpoints at start of server
-app.get('/', (_, res) => res.send(getEndpoints(app)));
+app.get('/', (_, res: Response) => res.status(200).send('OK'));
 
 app.post('/verify', async (req, res) => {
 	try {
