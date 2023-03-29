@@ -1,20 +1,19 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
-import { checkTwoFactorEnabled } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
 import { docker } from '@app/core/utils/clients/docker';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { getArray } from '@app/common/dashboard/get-array';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
-import { type Dashboard, Dashboard as DashboardType } from '@app/common/run-time/dashboard';
-import { validateRunType } from '@app/common/validate-run-type';
-import { logger } from '@app/core/log';
+import { dashboardLogger } from '@app/core/log';
 import { getters, store } from '@app/store';
 import { type DashboardServiceInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
 import { API_VERSION } from '@app/environment';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
+import { DashboardInputSchema } from '@app/graphql/generate/validators';
+import { ZodError } from 'zod';
 
-const getVmSummary = async (): Promise<Dashboard['vms']> => {
+const getVmSummary = async (): Promise<DashboardInput['vms']> => {
 	try {
 		const hypervisor = await getHypervisor();
 		if (!hypervisor) {
@@ -38,6 +37,7 @@ const getVmSummary = async (): Promise<Dashboard['vms']> => {
 	}
 };
 
+/*
 const twoFactor = (): Dashboard['twoFactor'] => {
 	const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
 	return {
@@ -48,7 +48,7 @@ const twoFactor = (): Dashboard['twoFactor'] => {
 			enabled: isLocalEnabled,
 		},
 	};
-};
+}; */
 
 const getDynamicRemoteAccessService = (): DashboardServiceInput | null => {
 	const uptimeTimestamp = bootTimestamp.toISOString();
@@ -61,7 +61,7 @@ const getDynamicRemoteAccessService = (): DashboardServiceInput | null => {
 		online: enabledStatus !== DynamicRemoteAccessType.DISABLED,
 		version: dynamicRemoteAccess.runningType,
 		uptime: {
-			timestamp: uptimeTimestamp,
+			timestamp: new Date(uptimeTimestamp),
 		},
 	};
 };
@@ -73,7 +73,7 @@ const services = (): DashboardInput['services'] => {
 		name: 'unraid-api',
 		online: true,
 		uptime: {
-			timestamp: uptimeTimestamp,
+			timestamp: new Date(uptimeTimestamp),
 		},
 		version: API_VERSION,
 	},
@@ -98,7 +98,7 @@ const getData = async (): Promise<DashboardInput> => {
 		},
 		os: {
 			hostname: emhttp.var.name,
-			uptime: bootTimestamp.toISOString(),
+			uptime: new Date(bootTimestamp.toISOString()),
 		},
 		vms: await getVmSummary(),
 		array: getArray(),
@@ -113,7 +113,6 @@ const getData = async (): Promise<DashboardInput> => {
 				withdrawn: 'WITHDRAWN',
 			}[emhttp.var.configState] ?? 'UNKNOWN_ERROR',
 		},
-		twoFactor: twoFactor(),
 	};
 };
 
@@ -123,11 +122,17 @@ export const generateData = async (): Promise<DashboardInput | null> => {
 	try {
 		// Validate generated data
 		// @TODO: Fix this runtype to use generated types from the Zod validators (as seen in mothership Codegen)
-		return validateRunType(DashboardType.asPartial(), data);
+		const result = DashboardInputSchema().parse(data)
+
+		return result
+
 	} catch (error: unknown) {
 		// Log error for user
-		logger.error('Failed validating dashboard object', error);
-		logger.error('Invalidated dashboard object', data);
+		if (error instanceof ZodError) {
+			dashboardLogger.error('Failed validation with issues: ' , error.issues.map(issue => ({ message: issue.message, path: issue.path.join(',') })))
+		} else {
+			dashboardLogger.error('Failed validating dashboard object: ', error, data);
+		}
 	}
 
 	return null;

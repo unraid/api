@@ -1,6 +1,5 @@
 import { TEN_MINUTES_MS } from '@app/consts';
 import { remoteAccessLogger } from '@app/core/log';
-import { NginxManager } from '@app/core/modules/services/nginx';
 import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
 import { RemoteAccessEventActionType, type RemoteAccessInput } from '@app/graphql/generated/client/graphql';
 import { SEND_DYNAMIC_REMOTE_ACCESS_MUTATION } from '@app/graphql/mothership/mutations';

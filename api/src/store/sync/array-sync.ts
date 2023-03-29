@@ -35,7 +35,7 @@ export const createArrayEvent = (state: Parameters<StoreSubscriptionHandler>[0])
 	const { emhttp } = state;
 
 	// Array state
-	const mdState = emhttp.var.mdState.toLowerCase();
+	const mdState = emhttp.var.mdState?.toLowerCase() ?? 'error';
 	const arrayState = mdState.startsWith('error') ? mdState.split(':')[1] : mdState;
 
 	// All known disks

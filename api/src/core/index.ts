@@ -2,7 +2,6 @@ export * as modules from '@app/core/modules';
 export * as notifiers from '@app/core/notifiers';
 export * as utils from '@app/core/utils';
 export * from '@app/core/bus';
-export * from '@app/core/cache-manager';
 export * from '@app/core/config';
 export * from '@app/core/envs';
 export * from '@app/core/log';

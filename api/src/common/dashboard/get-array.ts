@@ -1,6 +1,6 @@
 import { addTogether } from '@app/core/utils/misc/add-together';
 import { getters } from '@app/store';
-import { type DashboardArrayInput } from '../../graphql/generated/client/graphql';
+import { type DashboardArrayInput } from '@app/graphql/generated/client/graphql';
 
 export const getArray = (): DashboardArrayInput => {
 	const emhttp = getters.emhttp();
@@ -31,9 +31,9 @@ export const getArray = (): DashboardArrayInput => {
 		state,
 		capacity: {
 			bytes: {
-				free: `${disksFreeBytes}`,
-				used: `${disksTotalBytes - disksFreeBytes}`,
-				total: `${disksTotalBytes}`,
+				free: disksFreeBytes,
+				used: disksTotalBytes - disksFreeBytes,
+				total: disksTotalBytes,
 			},
 		},
 	};

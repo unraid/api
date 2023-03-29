@@ -141,6 +141,18 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/release/*.tgz
+
+      - name: Parse Changelog
+        id: changelog
+        uses: ocavue/changelog-parser-action@v1
+        with:
+          removeMarkdown: false
+          filePath: "./api/CHANGELOG.md"
+
+      - name: View release notes
+        run: |
+          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${{steps.changelog.outputs.latestBody}}")
+          echo "${escapedNotes}"
   build-plugin:
     defaults:
       run:
