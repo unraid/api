@@ -8,20 +8,21 @@ import { enableApiKeyListener } from '@app/store/listeners/api-key-listener';
 import { enableLoginListener, enableLogoutListener } from '@app/store/listeners/login-logout-listener';
 import { enableMothershipJobsListener } from '@app/store/listeners/mothership-subscription-listener';
 import { enableDynamicRemoteAccessListener } from '@app/store/listeners/dynamic-remote-access-listener';
+import { enableArrayEventListener } from '@app/store/listeners/array-event-listener';
 import 'reflect-metadata';
 
 export const listenerMiddleware = createListenerMiddleware();
 
 export type AppStartListening = TypedStartListening<RootState, AppDispatch>;
 
-export const startAppListening
-  = listenerMiddleware.startListening as AppStartListening;
+export const startAppListening =
+    listenerMiddleware.startListening as AppStartListening;
 
 export type AppStartListeningParams = Parameters<typeof startAppListening>[0];
 
 export const addAppListener = addListener as TypedAddListener<
-RootState,
-AppDispatch
+    RootState,
+    AppDispatch
 >;
 
 // Begin listening for events
@@ -35,3 +36,4 @@ enableAllowedOriginListener();
 enableVersionListener();
 enableMothershipJobsListener();
 enableDynamicRemoteAccessListener();
+enableArrayEventListener();

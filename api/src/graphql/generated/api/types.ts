@@ -38,15 +38,15 @@ export type ApiKeyResponse = {
 export type ArrayType = {
   __typename?: 'Array';
   /** Current boot disk */
-  boot?: Maybe<ArrayDataDisk>;
+  boot?: Maybe<ArrayDisk>;
   /** Caches in the current array */
-  caches?: Maybe<Array<Maybe<ArrayDataDisk>>>;
+  caches?: Maybe<Array<Maybe<ArrayDisk>>>;
   /** Current array capacity */
   capacity: ArrayCapacity;
   /** Data disks in the current array */
-  disks?: Maybe<Array<Maybe<ArrayDataDisk>>>;
+  disks?: Maybe<Array<Maybe<ArrayDisk>>>;
   /** Parity disks in the current array */
-  parities?: Maybe<Array<Maybe<ArrayDataDisk>>>;
+  parities?: Maybe<Array<Maybe<ArrayDisk>>>;
   /** Array state after this query/mutation */
   pendingState?: Maybe<ArrayPendingState>;
   /** Array state before this query/mutation */
@@ -57,44 +57,39 @@ export type ArrayType = {
 
 export type ArrayCapacity = {
   __typename?: 'ArrayCapacity';
-  bytes?: Maybe<Capacity>;
-  disks?: Maybe<Capacity>;
+  disks: Capacity;
+  kilobytes: Capacity;
 };
 
-export type ArrayDataDisk = {
-  __typename?: 'ArrayDataDisk';
-  color: Scalars['String'];
-  comment?: Maybe<Scalars['String']>;
-  device: Scalars['String'];
-  deviceSb?: Maybe<Scalars['String']>;
-  /** Indicates if the disk should be exported as a network share. */
-  exportable: Scalars['Boolean'];
-  format: Scalars['String'];
-  fsColor?: Maybe<ArrayDiskFsColor>;
-  fsFree?: Maybe<Scalars['Long']>;
-  fsSize?: Maybe<Scalars['Long']>;
-  fsStatus?: Maybe<Scalars['String']>;
-  /** Indicates the file system detected in partition 1 of the device. */
-  fsType?: Maybe<DiskFsType>;
+export type ArrayDisk = {
+  __typename?: 'ArrayDisk';
+  device?: Maybe<Scalars['String']>;
+  exportable?: Maybe<Scalars['Boolean']>;
+  /**  (KB) Free Size on the FS (Not present on Parity type drive) */
+  fsFree: Scalars['Long'];
+  /**  (KB) Total Size of the FS (Not present on Parity type drive)  */
+  fsSize: Scalars['Long'];
+  /**  (KB) Used Size on the FS (Not present on Parity type drive) */
+  fsUsed: Scalars['Long'];
+  /**  Disk indentifier, only set for present disks on the system  */
   id: Scalars['ID'];
-  idSb?: Maybe<Scalars['String']>;
-  luksState?: Maybe<Scalars['String']>;
-  name: Scalars['String'];
+  /**  Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.  */
+  idx: Scalars['Int'];
+  name?: Maybe<Scalars['String']>;
   /** Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk. */
-  numErrors: Scalars['Int'];
+  numErrors: Scalars['Long'];
   /** Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numReads: Scalars['Int'];
+  numReads: Scalars['Long'];
   /** Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numWrites: Scalars['Int'];
-  rotational: Scalars['Boolean'];
+  numWrites: Scalars['Long'];
+  /**  Is the disk a HDD or SSD.  */
+  rotational?: Maybe<Scalars['Boolean']>;
+  /**  (KB) Disk Size total  */
   size: Scalars['Long'];
-  sizeSb?: Maybe<Scalars['Long']>;
-  /** Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. */
-  slot: Scalars['Long'];
-  spindownDelay?: Maybe<Scalars['String']>;
-  spinupGroup?: Maybe<Scalars['String']>;
-  status: ArrayDiskStatus;
-  temp: Scalars['Int'];
+  status?: Maybe<ArrayDiskStatus>;
+  /**  Disk temp - will be NaN if array is not started or DISK_NP  */
+  temp?: Maybe<Scalars['Int']>;
+  /**  Type of Disk - used to differentiate Cache / Flash / Array / Parity  */
   type: ArrayDiskType;
 };
 
@@ -110,7 +105,24 @@ export enum ArrayDiskFsColor {
 }
 
 export enum ArrayDiskStatus {
-  DISK_OK = 'DISK_OK'
+  /**  disabled, old disk still present  */
+  DISK_DSBL = 'DISK_DSBL',
+  /**  disabled, new disk present  */
+  DISK_DSBL_NEW = 'DISK_DSBL_NEW',
+  /**  enabled, disk present, but not valid  */
+  DISK_INVALID = 'DISK_INVALID',
+  /**  new disk  */
+  DISK_NEW = 'DISK_NEW',
+  /**  no disk present, no disk configured  */
+  DISK_NP = 'DISK_NP',
+  /**  disabled, no disk present  */
+  DISK_NP_DSBL = 'DISK_NP_DSBL',
+  /**  enabled, but missing  */
+  DISK_NP_MISSING = 'DISK_NP_MISSING',
+  /**  enabled, disk present, correct, valid  */
+  DISK_OK = 'DISK_OK',
+  /**  enablled, disk present, but not correct disk  */
+  DISK_WRONG = 'DISK_WRONG'
 }
 
 export enum ArrayDiskType {
@@ -137,27 +149,27 @@ export enum ArrayPendingState {
 
 export enum ArrayState {
   /** A disk is disabled in the array */
-  DISABLE_DISK = 'disable_disk',
+  DISABLE_DISK = 'DISABLE_DISK',
   /** Too many changes to array at the same time */
-  INVALID_EXPANSION = 'invalid_expansion',
+  INVALID_EXPANSION = 'INVALID_EXPANSION',
   /** Array has new disks */
-  NEW_ARRAY = 'new_array',
+  NEW_ARRAY = 'NEW_ARRAY',
   /** Array has new disks they're too small */
-  NEW_DISK_TOO_SMALL = 'new_disk_too_small',
+  NEW_DISK_TOO_SMALL = 'NEW_DISK_TOO_SMALL',
   /** Array has no data disks */
-  NO_DATA_DISKS = 'no_data_disks',
+  NO_DATA_DISKS = 'NO_DATA_DISKS',
   /** Parity isn't the biggest, can't start array */
-  PARITY_NOT_BIGGEST = 'parity_not_biggest',
+  PARITY_NOT_BIGGEST = 'PARITY_NOT_BIGGEST',
   /** A disk is being reconstructed */
-  RECON_DISK = 'recon_disk',
+  RECON_DISK = 'RECON_DISK',
   /** Array is running */
-  STARTED = 'started',
+  STARTED = 'STARTED',
   /** Array has stopped */
-  STOPPED = 'stopped',
+  STOPPED = 'STOPPED',
   /** Array is disabled */
-  SWAP_DSBL = 'swap_dsbl',
+  SWAP_DSBL = 'SWAP_DSBL',
   /** Array has too many missing data disks */
-  TOO_MANY_MISSING_DISKS = 'too_many_missing_disks'
+  TOO_MANY_MISSING_DISKS = 'TOO_MANY_MISSING_DISKS'
 }
 
 export type Baseboard = {
@@ -171,9 +183,9 @@ export type Baseboard = {
 
 export type Capacity = {
   __typename?: 'Capacity';
-  free?: Maybe<Scalars['String']>;
-  total?: Maybe<Scalars['String']>;
-  used?: Maybe<Scalars['String']>;
+  free: Scalars['String'];
+  total: Scalars['String'];
+  used: Scalars['String'];
 };
 
 export type Case = {
@@ -1724,7 +1736,7 @@ export type ResolversTypes = ResolversObject<{
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
   Array: ResolverTypeWrapper<ArrayType>;
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
-  ArrayDataDisk: ResolverTypeWrapper<ArrayDataDisk>;
+  ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
   ArrayDiskFsColor: ArrayDiskFsColor;
   ArrayDiskStatus: ArrayDiskStatus;
   ArrayDiskType: ArrayDiskType;
@@ -1852,7 +1864,7 @@ export type ResolversParentTypes = ResolversObject<{
   ApiKeyResponse: ApiKeyResponse;
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
-  ArrayDataDisk: ArrayDataDisk;
+  ArrayDisk: ArrayDisk;
   Baseboard: Baseboard;
   Boolean: Scalars['Boolean'];
   Capacity: Capacity;
@@ -1974,11 +1986,11 @@ export type ApiKeyResponseResolvers<ContextType = Context, ParentType extends Re
 }>;
 
 export type ArrayResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Array'] = ResolversParentTypes['Array']> = ResolversObject<{
-  boot?: Resolver<Maybe<ResolversTypes['ArrayDataDisk']>, ParentType, ContextType>;
-  caches?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDataDisk']>>>, ParentType, ContextType>;
+  boot?: Resolver<Maybe<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
+  caches?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDisk']>>>, ParentType, ContextType>;
   capacity?: Resolver<ResolversTypes['ArrayCapacity'], ParentType, ContextType>;
-  disks?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDataDisk']>>>, ParentType, ContextType>;
-  parities?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDataDisk']>>>, ParentType, ContextType>;
+  disks?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDisk']>>>, ParentType, ContextType>;
+  parities?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDisk']>>>, ParentType, ContextType>;
   pendingState?: Resolver<Maybe<ResolversTypes['ArrayPendingState']>, ParentType, ContextType>;
   previousState?: Resolver<Maybe<ResolversTypes['ArrayState']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['ArrayState'], ParentType, ContextType>;
@@ -1986,38 +1998,27 @@ export type ArrayResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type ArrayCapacityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayCapacity'] = ResolversParentTypes['ArrayCapacity']> = ResolversObject<{
-  bytes?: Resolver<Maybe<ResolversTypes['Capacity']>, ParentType, ContextType>;
-  disks?: Resolver<Maybe<ResolversTypes['Capacity']>, ParentType, ContextType>;
+  disks?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
+  kilobytes?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type ArrayDataDiskResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayDataDisk'] = ResolversParentTypes['ArrayDataDisk']> = ResolversObject<{
-  color?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  comment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  device?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  deviceSb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  exportable?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  format?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  fsColor?: Resolver<Maybe<ResolversTypes['ArrayDiskFsColor']>, ParentType, ContextType>;
-  fsFree?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
-  fsSize?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
-  fsStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  fsType?: Resolver<Maybe<ResolversTypes['DiskFsType']>, ParentType, ContextType>;
+export type ArrayDiskResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayDisk'] = ResolversParentTypes['ArrayDisk']> = ResolversObject<{
+  device?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  exportable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  fsFree?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  fsSize?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  fsUsed?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  idSb?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  luksState?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  numErrors?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  numReads?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  numWrites?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
-  rotational?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  idx?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  numErrors?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  numReads?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  numWrites?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  rotational?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   size?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
-  sizeSb?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
-  slot?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
-  spindownDelay?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  spinupGroup?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  status?: Resolver<ResolversTypes['ArrayDiskStatus'], ParentType, ContextType>;
-  temp?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  status?: Resolver<Maybe<ResolversTypes['ArrayDiskStatus']>, ParentType, ContextType>;
+  temp?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['ArrayDiskType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2032,9 +2033,9 @@ export type BaseboardResolvers<ContextType = Context, ParentType extends Resolve
 }>;
 
 export type CapacityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Capacity'] = ResolversParentTypes['Capacity']> = ResolversObject<{
-  free?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  total?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  used?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  free?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  used?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -3065,7 +3066,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ApiKeyResponse?: ApiKeyResponseResolvers<ContextType>;
   Array?: ArrayResolvers<ContextType>;
   ArrayCapacity?: ArrayCapacityResolvers<ContextType>;
-  ArrayDataDisk?: ArrayDataDiskResolvers<ContextType>;
+  ArrayDisk?: ArrayDiskResolvers<ContextType>;
   Baseboard?: BaseboardResolvers<ContextType>;
   Capacity?: CapacityResolvers<ContextType>;
   Case?: CaseResolvers<ContextType>;

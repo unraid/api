@@ -1,8 +1,5 @@
 import { test, expect, vi } from 'vitest';
 
-// Preloading imports for faster tests
-import '@app/store/sync/array-sync';
-
 vi.mock('@app/core/pubsub', () => ({
 	pubsub: { publish: vi.fn() },
 }));
