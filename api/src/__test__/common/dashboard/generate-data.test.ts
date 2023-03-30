@@ -63,12 +63,12 @@ test('Returns generated data', async () => {
 		  "array": {
 		    "capacity": {
 		      "bytes": {
-		        "free": 0,
-		        "total": 0,
-		        "used": 0,
+		        "free": 19038892160000,
+		        "total": 41010494044000,
+		        "used": 21971601884000,
 		      },
 		    },
-		    "state": "stopped",
+		    "state": "STOPPED",
 		  },
 		  "config": {
 		    "valid": true,

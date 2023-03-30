@@ -1,6 +1,7 @@
 import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
 import { type FsType, type RegistrationTypeAllCaps } from '@app/core/types/states/var';
 import { toNumber } from '@app/core/utils';
+import { ArrayState } from '@app/graphql/generated/api/types';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
 /**
@@ -222,13 +223,13 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto) => {
 };
 
 export const parse: StateFileToIniParserMap['var'] = iniFile => {
-	const configValid = iniBooleanToJsBoolean(iniFile.configValid, false);
 	return {
 		...iniFile,
+		mdState: ArrayState[iniFile.mdState.startsWith('error') ? iniFile.mdState.split(':')[1] : iniFile.mdState],
 		bindMgt: iniBooleanOrAutoToJsBoolean(iniFile.bindMgt),
 		cacheNumDevices: toNumber(iniFile.cacheNumDevices),
 		cacheSbNumDisks: toNumber(iniFile.cacheSbNumDisks),
-		configValid,
+		configValid: iniBooleanToJsBoolean(iniFile.configValid, false),
 		configState: iniFile.configValid,
 		deviceCount: toNumber(iniFile.deviceCount),
 		fsCopyPrcnt: toNumber(iniFile.fsCopyPrcnt),

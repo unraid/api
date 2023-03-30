@@ -3,6 +3,8 @@
  * Written by: Alexis Tyler
  */
 
+import { type ArrayState } from "@app/graphql/generated/api/types";
+
 export type FsType = 'xfs';
 export type RegistrationTypeAllCaps = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO';
 
@@ -81,7 +83,7 @@ export type Var = {
 	mdResyncDt: string;
 	mdResyncPos: number;
 	mdResyncSize: number;
-	mdState: string;
+	mdState: ArrayState;
 	mdSyncThresh: number;
 	mdSyncThreshDefault: number;
 	mdSyncThreshStatus: string;

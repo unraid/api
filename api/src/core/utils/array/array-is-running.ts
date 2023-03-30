@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import { ArrayState } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
 /**
@@ -10,5 +11,5 @@ import { getters } from '@app/store';
  */
 export const arrayIsRunning = () => {
 	const emhttp = getters.emhttp();
-	return emhttp.var.mdState.toLowerCase() === 'started';
+	return emhttp.var.mdState === ArrayState.STARTED;
 };

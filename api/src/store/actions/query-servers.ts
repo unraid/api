@@ -16,7 +16,11 @@ export const queryServers = createAsyncThunk<Server[], void, { state: RootState 
 	}
 
 	mothershipLogger.trace('Querying Servers');
-	const queryResult = await client.query({ query: GET_SERVERS_FROM_MOTHERSHIP, variables: { apiKey }, fetchPolicy: 'network-only' });
+	const queryResult = await client.query({
+        query: GET_SERVERS_FROM_MOTHERSHIP,
+        variables: { apiKey },
+        fetchPolicy: 'no-cache',
+    });
 	if (queryResult.data.servers) {
 		const serversToSet = queryResult.data.servers.filter(notNull);
 		mothershipLogger.addContext('result', serversToSet);

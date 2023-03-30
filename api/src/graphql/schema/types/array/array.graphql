@@ -41,39 +41,60 @@ type Array {
     """Current array capacity"""
     capacity: ArrayCapacity!
     """Current boot disk"""
-    boot: ArrayDataDisk
+    boot: ArrayDisk
     """Parity disks in the current array"""
-    parities: [ArrayDataDisk]
+    parities: [ArrayDisk]
     """Data disks in the current array"""
-    disks: [ArrayDataDisk]
+    disks: [ArrayDisk]
     """Caches in the current array"""
-    caches: [ArrayDataDisk]
+    caches: [ArrayDisk]
 }
 
 # /usr/src/linux-5.9.13-Unraid/drivers/md/md_unraid.c
 enum ArrayState {
     """Array is running"""
-    started
+    STARTED
     """Array has stopped"""
-    stopped
+    STOPPED
     """Array has new disks"""
-    new_array
+    NEW_ARRAY
     """A disk is being reconstructed"""
-    recon_disk
+    RECON_DISK
     """A disk is disabled in the array"""
-    disable_disk
+    DISABLE_DISK
     """Array is disabled"""
-    swap_dsbl
+    SWAP_DSBL
     """Too many changes to array at the same time"""
-    invalid_expansion
+    INVALID_EXPANSION
     """Parity isn't the biggest, can't start array"""
-    parity_not_biggest
+    PARITY_NOT_BIGGEST
     """Array has too many missing data disks"""
-    too_many_missing_disks
+    TOO_MANY_MISSING_DISKS
     """Array has new disks they're too small"""
-    new_disk_too_small
+    NEW_DISK_TOO_SMALL
     """Array has no data disks"""
-    no_data_disks
+    NO_DATA_DISKS
+}
+
+enum ArrayDiskStatus {
+     """ no disk present, no disk configured """
+    DISK_NP               
+    """ enabled, disk present, correct, valid """
+    DISK_OK
+    """ enabled, but missing """
+    DISK_NP_MISSING
+    """ enabled, disk present, but not valid """
+    DISK_INVALID
+    """ enablled, disk present, but not correct disk """
+    DISK_WRONG
+    """ disabled, old disk still present """
+    DISK_DSBL
+    """ disabled, no disk present """
+    DISK_NP_DSBL
+    """ disabled, new disk present """
+    DISK_DSBL_NEW          
+    """ new disk """
+    DISK_NEW               
 }
 
 enum ArrayPendingState {
@@ -88,58 +109,49 @@ enum ArrayPendingState {
 }
 
 type ArrayCapacity {
-    bytes: Capacity
-    disks: Capacity
+    kilobytes: Capacity!
+    disks: Capacity!
 }
 
 type Capacity {
-    free: String
-    used: String
-    total: String
+    free: String!
+    used: String!
+    total: String!
 }
 
-type ArrayDataDisk {
-    """Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54."""
-    slot: Long!
-    name: String!
-    device: String!
+type ArrayDisk {
+    """ Disk indentifier, only set for present disks on the system """
     id: ID!
+    """ Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. """
+    idx: Int!
+    name: String
+    device: String
+    """ (KB) Disk Size total """
     size: Long!
-    status: ArrayDiskStatus!
-    rotational: Boolean!
-    format: String!
-    temp: Int!
+    status: ArrayDiskStatus
+	""" Is the disk a HDD or SSD. """
+    rotational: Boolean
+    """ Disk temp - will be NaN if array is not started or DISK_NP """
+    temp: Int
     """Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time."""
-    numReads: Int!
+    numReads: Long!
     """Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time."""
-    numWrites: Int!
+    numWrites: Long!
     """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
-    numErrors: Int!
+    numErrors: Long!
+    """ (KB) Total Size of the FS (Not present on Parity type drive) """
+    fsSize: Long!
+    """ (KB) Free Size on the FS (Not present on Parity type drive)"""
+    fsFree: Long!
+    """ (KB) Used Size on the FS (Not present on Parity type drive)"""
+    fsUsed: Long!
+    exportable: Boolean
+    """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """
     type: ArrayDiskType!
-    color: String!
-    fsStatus: String
-    luksState: String
-    comment: String
-    """Indicates if the disk should be exported as a network share."""
-    exportable: Boolean!
-    """Indicates the file system detected in partition 1 of the device."""
-    fsType: DiskFsType
-    fsColor: ArrayDiskFsColor
-    fsSize: Long
-    fsFree: Long
-    spindownDelay: String
-    spinupGroup: String
-    deviceSb: String
-    idSb: String
-    sizeSb: Long
 }
 
 # type ArrayParityDisk {}
 # type ArrayCacheDisk {}
-
-enum ArrayDiskStatus {
-    DISK_OK
-}
 
 enum ArrayDiskType {
     """Data disk"""
