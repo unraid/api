@@ -5,17 +5,25 @@ import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
 import { StateFileKey } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
+import { isEqual } from 'lodash';
 
 export const enableArrayEventListener = () =>
     startAppListening({
         matcher: isAnyOf(loadSingleStateFile.fulfilled),
-        effect(action, { getState }) {
+        effect(action, { getState, getOriginalState }) {
             if (
                 loadSingleStateFile.fulfilled.match(action) &&
                 action.meta.arg === StateFileKey.disks
             ) {
+                const oldArrayData = getArrayData(getOriginalState);
                 const array = getArrayData(getState);
-                logger.debug('Array was updated, publishing event %o', array);
+                if (isEqual(oldArrayData, array)) {
+                    // Field updated that didn't require a publish
+                    return;
+                }
+                logger.addContext('event', array);
+                logger.debug('Array was updated, publishing event');
+                logger.removeContext('event');
 
                 pubsub.publish('array', { event: { array } });
             }

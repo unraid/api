@@ -31,9 +31,7 @@ export const getArrayData = (getState = store.getState): ArrayType | null => {
         (disk) => disk.type === ArrayDiskType.PARITY
     );
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
-    const caches = allDisks.filter(
-        (disk) => disk.type === ArrayDiskType.PARITY
-    );
+    const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
 
     // Disk sizes
     const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
