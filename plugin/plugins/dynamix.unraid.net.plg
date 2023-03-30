@@ -359,6 +359,14 @@ exit 0
 PLGTYPE="&env;"
 MAINTXZ="&source;.txz"
 <![CDATA[
+appendTextIfMissing() {
+  FILE="$1"
+  TEXT="$2"
+  if test -f "${FILE}" && ! grep -q "${TEXT}" "${FILE}" &>/dev/null; then
+    echo "${TEXT}" >>"${FILE}"
+  fi
+}
+
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -384,6 +392,19 @@ FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
 CFG_OLD=/boot/config/plugins/Unraid.net
 CFG_NEW=/boot/config/plugins/dynamix.my.servers
 [[ -d "$CFG_OLD" ]] && [[ ! -d "$CFG_NEW" ]] && mv "$CFG_OLD" "$CFG_NEW"
+
+# relax restrictions on built-in Firefox so it can sign in to My Servers
+# brings older versions of Unraid in sync with 6.12.0
+# no need to restore original file on uninstall
+# note: if file is modified while Firefox is open it will have no effect, reboot to change the file before Firefox is loaded
+# note: prior to 6.12, file will only exist if system is booted in GUI Mode
+FILE=/usr/share/mozilla/firefox/9n35r0i1.default/user.js
+if [[ -f "$FILE" ]]; then
+  cp -f "$FILE" "$FILE-"
+  appendTextIfMissing "${FILE}" 'user_pref("privacy.firstparty.isolate", false);'
+  appendTextIfMissing "${FILE}" 'user_pref("javascript.options.asmjs", true);'
+  appendTextIfMissing "${FILE}" 'user_pref("javascript.options.wasm", true);'
+fi
 
 # install the main txz
 upgradepkg --install-new --reinstall "${MAINTXZ}"
