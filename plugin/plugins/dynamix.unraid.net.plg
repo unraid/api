@@ -506,10 +506,13 @@ if [[ "${version:0:3}" != "6.9" ]]; then
     sed -i "/${FIND}/a ${ADD}" "${FILE}"
   fi
   if [[ "${CHANGED}" == "yes" ]]; then
-    # reload nginx for iframe changes
-    echo ""
-    echo "⚠️ Reloading Web Server. If this window stops updating please close it."
-    /etc/rc.d/rc.nginx reload &>/dev/null
+    if /etc/rc.d/rc.nginx status &>/dev/null; then
+      # if nginx is running, reload it to enable the changes above
+      # note: if this is being installed at boot, nginx will not yet be running
+      echo ""
+      echo "⚠️ Reloading Web Server. If this window stops updating please close it."
+      /etc/rc.d/rc.nginx reload &>/dev/null
+    fi
   fi
 fi
 
