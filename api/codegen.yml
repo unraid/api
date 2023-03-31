@@ -20,7 +20,7 @@ generates:
   src/graphql/generated/client/:
     documents: './src/graphql/mothership/*.ts'
     schema: 
-      'https://staging.mothership.unraid.net/ws': 
+      '${MOTHERSHIP_GRAPHQL_LINK}':
         headers:
           origin: 'https://forums.unraid.net'
     preset: client
@@ -33,7 +33,7 @@ generates:
       - add: { content: '/* eslint-disable */' }
   src/graphql/generate/validators.ts:
     schema: 
-      'https://staging.mothership.unraid.net/ws': 
+      '${MOTHERSHIP_GRAPHQL_LINK}':
         headers:
           origin: 'https://forums.unraid.net'
     plugins:

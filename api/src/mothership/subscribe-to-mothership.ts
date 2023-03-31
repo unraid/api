@@ -3,7 +3,12 @@ import { minigraphLogger, mothershipLogger } from '@app/core/log';
 import { GraphQLClient } from './graphql-client';
 import { store } from '@app/store';
 import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { EVENTS_SUBSCRIPTION, RemoteAccess_Fragment } from '../graphql/mothership/subscriptions';
+import {
+    EVENTS_SUBSCRIPTION,
+    RemoteAccess_Fragment,
+    RemoteGraphQL_Fragment,
+} from '@app/graphql/mothership/subscriptions';
+
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
 import { queryServers } from '@app/store/actions/query-servers';
@@ -12,6 +17,8 @@ import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
+
 
 let timeoutForOnlineEventReceive: NodeJS.Timeout | null = null;
 
@@ -44,7 +51,10 @@ export const subscribeToEvents = async (apiKey: string) => {
 		if (errors) {
 			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
 		} else if (data) {
-			mothershipLogger.trace('Got events from mothership %o', data.events);
+mothershipLogger.addContext('events', data.events);
+mothershipLogger.trace('Got events from mothership');
+mothershipLogger.removeContext('events');
+
 			for (const event of data.events?.filter(notNull) ?? []) {
 				switch (event.__typename) {
 					case 'ClientConnectedEvent': {
@@ -87,12 +97,26 @@ export const subscribeToEvents = async (apiKey: string) => {
 					}
 
 					case 'RemoteAccessEvent': {
-						const eventAsRemoteAccessEvent = useFragment(RemoteAccess_Fragment, event);
+const eventAsRemoteAccessEvent = useFragment(RemoteAccess_Fragment, event);
+
+
 
 						if (eventAsRemoteAccessEvent.data.apiKey === apiKey) {
 							void store.dispatch(handleRemoteAccessEvent(eventAsRemoteAccessEvent));
 						}
 
+						break;
+					}
+
+					case 'RemoteGraphQLEvent': {
+						const eventAsRemoteGraphQLEvent = useFragment(RemoteGraphQL_Fragment, event);
+						if (eventAsRemoteGraphQLEvent.remoteGraphQLEventData.apiKey === apiKey) {
+							void store.dispatch(handleRemoteGraphQLEvent(eventAsRemoteGraphQLEvent))
+						}
+						break;
+					}
+
+					case 'UpdateEvent': {
 						break;
 					}
 

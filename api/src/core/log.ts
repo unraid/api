@@ -103,6 +103,8 @@ export const cloudConnectorLogger = getLogger('cloud-connector');
 export const upnpLogger = getLogger('upnp');
 export const keyServerLogger = getLogger('key-server');
 export const remoteAccessLogger = getLogger('remote-access');
+export const remoteQueryLogger = getLogger('remote-query');
+
 export const loggers = [
 	logger,
 	mothershipLogger,
@@ -117,6 +119,7 @@ export const loggers = [
 	upnpLogger,
 	keyServerLogger,
 	remoteAccessLogger,
+	remoteQueryLogger,
 ];
 
 // Send SIGUSR1 to increase log level

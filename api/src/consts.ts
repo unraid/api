@@ -4,11 +4,14 @@ import { type JSONWebKeySet } from 'jose';
 
 const internalWsAddress = () => {
 	const port = config.port as number | string;
-	return isNaN(port as any)
-		// Unix Socket
-		? `ws+unix:${port}`
-		// Numbered port
-		: `ws://localhost:${port}`;
+if (port.toString().includes('.sock')) {
+    console.log(port);
+    // Prod mode
+    return 'http://localhost/graphql';
+}
+
+return `http://localhost:${port}/graphql`;
+
 };
 
 // Milliseconds
