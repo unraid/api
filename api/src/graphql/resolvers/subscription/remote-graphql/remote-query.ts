@@ -7,16 +7,18 @@ import {
 import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations';
 import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers';
 import { GraphQLClient } from '@app/mothership/graphql-client';
+import { getters } from '@app/store/index';
 
 export const executeRemoteGraphQLQuery = async (
-    event: RemoteGraphQLEventFragmentFragment
+    data: RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData']
 ) => {
     const client = GraphQLClient.getInstance();
-    const originalBody = event.remoteGraphQLEventData.body;
+    const apiKey = getters.config().remote.apikey;
+    const originalBody = data.body;
     try {
         const parsedQuery = parseGraphQLQuery(originalBody);
         const localClient = getApiApolloClient({
-            upcApiKey: event.remoteGraphQLEventData.apiKey,
+            upcApiKey: apiKey
         });
         const localResult = await localClient.query({
             query: parsedQuery.query,
@@ -29,7 +31,7 @@ export const executeRemoteGraphQLQuery = async (
                 mutation: SEND_REMOTE_QUERY_RESPONSE,
                 variables: {
                     input: {
-                        sha256: event.remoteGraphQLEventData.sha256,
+                        sha256: data.sha256,
                         body: JSON.stringify({ data: localResult.data }),
                         type: RemoteGraphQLEventType.REMOTE_QUERY_EVENT,
                     },
@@ -37,12 +39,13 @@ export const executeRemoteGraphQLQuery = async (
                 errorPolicy: 'none',
             });
         } else {
+            // @TODO fix this not sending an error
             await client?.mutate({
                 mutation: SEND_REMOTE_QUERY_RESPONSE,
                 variables: {
                     input: {
-                        sha256: event.remoteGraphQLEventData.sha256,
-                        body: JSON.stringify({ errors: localResult.errors }),
+                        sha256: data.sha256,
+                        body: JSON.stringify({ errors: localResult.error }),
                         type: RemoteGraphQLEventType.REMOTE_QUERY_EVENT,
                     },
                 },
@@ -54,7 +57,7 @@ export const executeRemoteGraphQLQuery = async (
                 mutation: SEND_REMOTE_QUERY_RESPONSE,
                 variables: {
                     input: {
-                        sha256: event.remoteGraphQLEventData.sha256,
+                        sha256: data.sha256,
                         body: JSON.stringify({ errors: err }),
                         type: RemoteGraphQLEventType.REMOTE_QUERY_EVENT,
                     },

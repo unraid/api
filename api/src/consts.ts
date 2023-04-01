@@ -1,17 +1,16 @@
-
 import { config } from '@app/core/config';
 import { type JSONWebKeySet } from 'jose';
 
-const internalWsAddress = () => {
-	const port = config.port as number | string;
-if (port.toString().includes('.sock')) {
-    console.log(port);
-    // Prod mode
-    return 'http://localhost/graphql';
-}
+const internalWsAddress = (isHttp = true) => {
+    const port = config.port as number | string;
+    const protocol = isHttp ? 'http' : 'ws';
+    if (port.toString().includes('.sock')) {
+        console.log(port);
+        // Prod mode
+        return `${protocol}://localhost/graphql`;
+    }
 
-return `http://localhost:${port}/graphql`;
-
+    return `${protocol}://localhost:${port}/graphql`;
 };
 
 // Milliseconds
@@ -38,20 +37,47 @@ export const KEEP_ALIVE_INTERVAL_MS = TWO_MINUTES_MS; // This is set to 45 secon
 /**
  * Graphql link.
  */
-export const MOTHERSHIP_GRAPHQL_LINK = process.env.MOTHERSHIP_GRAPHQL_LINK ?? (process.env.ENVIRONMENT === 'staging' ? 'https://staging.mothership.unraid.net/ws' : 'https://mothership.unraid.net/ws');
+export const MOTHERSHIP_GRAPHQL_LINK =
+    process.env.MOTHERSHIP_GRAPHQL_LINK ??
+    (process.env.ENVIRONMENT === 'staging'
+        ? 'https://staging.mothership.unraid.net/ws'
+        : 'https://mothership.unraid.net/ws');
 
 /**
  * Internal ws link.
  */
-export const INTERNAL_WS_LINK = process.env.INTERNAL_WS_LINK ?? internalWsAddress();
+export const INTERNAL_WS_LINK = internalWsAddress(false);
+export const INTERNAL_HTTP_LINK = internalWsAddress(true);
 
-export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = { keys: [{ alg: 'RS256', e: 'AQAB', kid: '14KUZS5NIWJLeyiqG++DMroQ/jt8nikSYjxEkfpkYXc=', kty: 'RSA', n: 'wioXjPPBb69jssYgb4CjgM1VahwNfSBFFwfSjh8e--EU3z_EAqBXDcbkfiwa-UZZEgcSGRlKMGi4R08e-TjXkHtGbdl1ecn6tTAp4d5RLfM5jOKHogMA7_VM_nOZIvZPNAjPDIbWDzNqCLz5-7jB9iDKc0BRiu6f8yfaxnwIIBBJ51DCj0FlBA5jM41rfZx65BAWEVDw_cqMPZvnuA99D_HwGQR8PllEHA35DH9Val-MxQg0XNIniJbfaL_lTTRnhaPuopIVm18ZfRcxYgJ-kfqNevOT0v6ADvxAUxyr8yEPdaB9nwVqjXTc007oyHwlwVKmleuhUm0UWSd1zNX1mw', use: 'sig' }, { alg: 'RS256', e: 'AQAB', kid: 'oeN5CSZ3yy6IlWP9kg6lTmo47gOn+XdOjw1qOpT3dBY=', kty: 'RSA', n: 'vsS6dMbg5hjz1_bLq0ChWQnPAAmm5TPg81L8eYgeFHK0jNstp0Bx8EQpYthiYx9PxK426uYCzWhJPC--XggQjFiGOVqdaF0diz76oso7QLvk965P92Y869YmkO3RYxl8mVWfloaYyQqznS8D6ILkFfgPCiqK5Rk7vov57HY6ir6n2T4F2-FUmasLQx5-EHcnUU2AYH5RttmHRrdkeiDyVOZOKG-3EPkHx7eXlGoOHYOccqlT1T_5LOJmVx_mqa2z_j1ZlTS_dSlE9LGz84qd45BMDMbvuiqehq-wSOnvE1ZAVI6bA_tuIfVPGws9A1ISwL1hlDesxNNkCGfNHZyZdQ', use: 'sig' }] };
-export const OAUTH_BASE_URL = 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_wNWfJnDr8';
-export const OAUTH_CLIENT_ID = '6j48osc811hgbn4nqkhge3su5q';
-export const OAUTH_OPENID_CONFIGURATION_URL = OAUTH_BASE_URL + '/.well-known/openid-configuration';
+export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = {
+    keys: [
+        {
+            alg: 'RS256',
+            e: 'AQAB',
+            kid: 'gaIMLlq2G8uduhiG/UCQMF/e8NfEarZTVBXJNhtTc8w=',
+            kty: 'RSA',
+            n: 'lJLfJsKBVCDSfMXp45tVYDFkjEEwSJabSsnMokmk3Hb6SPMz4i-n7Y1Iu_30AGQekQSUTcYT6Ps8V0hnFsqKb45YAWVu4E40OEgBrOZ4F8l8-M-1QbkyLFPWWyHtqhrsbXoocyfTGL82GSjXfg2ro7oeOC9hzx9kTqxPNHjW6-BEwILGYm8kja9FAP3-5Kel4TJjcq5yKzGqnTiepOMc-t9sqhxU8Xn8fxAkF7uLGtJIG_q5THm1uaweBFev4A0uoxz1o4x0s9ziuNqLh7ZjNwdLFlN4NjwS_UExKzzsu_ETzyED3Epz7IMm28-B8QQKW3AnD10EeecHUqCEgOWkdQ',
+            use: 'sig',
+        },
+        {
+            alg: 'RS256',
+            e: 'AQAB',
+            kid: '7P5khdMzsRk5umjmK5EinnrerHumYEIb/zxjgP1Psuk=',
+            kty: 'RSA',
+            n: '5XwHdLwj5TxpDdbQ2gNRIqWw-lSLw4KDdLZcjlVe4CB6BOSwraWXrdSvGO0YftSARF-msHP-Hbjx67nd_O1pfO2ReBpbKCJVXZPaDXVNrQfu4ROXrDCo6VauGzkbPIEmXhN6gNN_0qx30mWgopq-xLnZI_wbY2Al1pW1AFNxr4KiNo0DHiFfCSEr7omj8lyl-zQ3VVBBhyFjdu-trUbbmoEn3BqsvCBMpx11dpmoBWwmEjbumOSwstP2ltSxDErdOsA8RUn6CSyDsK1E396lG7rz8cAmQepgYkEkwvhmHXEz22iqnNWgXLuMDhE_UCGWYU0lvsrEifSkFfaIPoEGsQ',
+            use: 'sig',
+        },
+    ],
+};
+export const OAUTH_BASE_URL =
+    'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_btSkhlsEk';
+export const OAUTH_CLIENT_ID = '53ci4o48gac8vq5jepubkjmo36';
+export const OAUTH_OPENID_CONFIGURATION_URL =
+    OAUTH_BASE_URL + '/.well-known/openid-configuration';
 export const JWKS_REMOTE_LINK = OAUTH_BASE_URL + '/.well-known/jwks.json';
 export const RCD_SCRIPT = 'rc.unraid-api';
-export const KEYSERVER_VALIDATION_ENDPOINT = 'https://keys.lime-technology.com/validate/apikey';
+export const KEYSERVER_VALIDATION_ENDPOINT =
+    'https://keys.lime-technology.com/validate/apikey';
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;

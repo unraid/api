@@ -33,7 +33,7 @@ services:
       - mothership_default
     image: unraid-api-node-18
     ports:
-      - "4000:4000"
+      - "3001:3001"
     build: 
       context: .
       dockerfile: Dockerfile

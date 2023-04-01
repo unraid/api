@@ -6,7 +6,6 @@ import { type QueryResolvers } from '@app/graphql/generated/api/types';
 import cloud from '@app/graphql/resolvers/query/cloud';
 import config from '@app/graphql/resolvers/query/config';
 import crashReportingEnabled from '@app/graphql/resolvers/query/crash-reporting-enabled';
-import dashboard from '@app/graphql/resolvers/query/dashboard';
 import disks from '@app/graphql/resolvers/query/disks';
 import display from '@app/graphql/resolvers/query/display';
 import flash from '@app/graphql/resolvers/query/flash';
@@ -22,7 +21,6 @@ export const Query: QueryResolvers = {
 	cloud,
 	config,
 	crashReportingEnabled,
-	dashboard,
 	disks,
 	display,
 	flash,

@@ -8,18 +8,26 @@ type Subscription {
     servers: [Server!]
 }
 
-enum Status {
-  online
-  offline
-  never_connected
+enum ServerStatus {
+    online
+    offline
+    never_connected
+}
+
+
+type ProfileModel {
+    userId: ID
+    username: String
+    url: String
+    avatar: String
 }
 
 type Server {
-    owner: Owner!
+    owner: ProfileModel!
     guid: String!
     apikey: String!
     name: String!
-    status: Status!
+    status: ServerStatus!
     wanip: String!
     lanip: String!
     localurl: String!

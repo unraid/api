@@ -42,7 +42,7 @@ export const registration = createSlice({
 		},
 	},
 	extraReducers(builder) {
-		builder.addCase(loadRegistrationKey.pending, (state, _action) => {
+		builder.addCase(loadRegistrationKey.pending, (state) => {
 			state.status = FileLoadStatus.LOADING;
 		});
 

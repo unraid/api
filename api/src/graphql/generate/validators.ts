@@ -1,6 +1,6 @@
 /* eslint-disable */
 import { z } from 'zod'
-import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, KeyType, NetworkInput, NotificationInput, NotificationStatus, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQLClientInput, RemoteGraphQLEventType, RemoteGraphQLServerInput, ServerStatus, URL_TYPE, UpdateType, VmState } from '@app/graphql/generated/client/graphql'
+import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, KeyType, NetworkInput, NotificationInput, NotificationStatus, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQLClientInput, RemoteGraphQLEventType, RemoteGraphQLServerInput, ServerStatus, URL_TYPE, UpdateType } from '@app/graphql/generated/client/graphql'
 
 type Properties<T> = Required<{
   [K in keyof T]: z.ZodType<T[K], any, T[K]>;
@@ -210,5 +210,3 @@ export const ServerStatusSchema = z.nativeEnum(ServerStatus);
 export const URL_TYPESchema = z.nativeEnum(URL_TYPE);
 
 export const UpdateTypeSchema = z.nativeEnum(UpdateType);
-
-export const VmStateSchema = z.nativeEnum(VmState);

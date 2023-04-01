@@ -7,7 +7,7 @@ import { FileLoadStatus, StateFileKey, type StateFileToIniParserMap } from '@app
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
 import { join } from 'path';
-import { emhttpLogger, logger } from '@app/core/log';
+import { emhttpLogger } from '@app/core/log';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { type Devices } from '@app/core/types/states/devices';
 import { type Networks } from '@app/core/types/states/network';
@@ -175,7 +175,7 @@ export const emhttp = createSlice({
 		},
 	},
 	extraReducers(builder) {
-		builder.addCase(loadStateFiles.pending, (state, _action) => {
+		builder.addCase(loadStateFiles.pending, (state) => {
 			state.status = FileLoadStatus.LOADING;
 		});
 

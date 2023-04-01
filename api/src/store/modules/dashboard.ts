@@ -63,6 +63,7 @@ export const dashboard = createSlice({
 			if ([
 				MinigraphStatus.PRE_INIT,
 				MinigraphStatus.PING_FAILURE,
+				MinigraphStatus.ERROR_RETRYING,
 			].includes(action.payload.status)) {
 				getPublishToDashboardJob().stop();
 				state.connectedToDashboard = 0;

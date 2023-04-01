@@ -25,7 +25,7 @@ export const enableArrayEventListener = () =>
                 logger.debug('Array was updated, publishing event');
                 logger.removeContext('event');
 
-                pubsub.publish('array', { event: { array } });
+                pubsub.publish('array', { array });
             }
         },
     });

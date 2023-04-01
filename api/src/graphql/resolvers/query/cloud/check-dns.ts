@@ -55,7 +55,7 @@ export const checkDNS = async (hostname = msHostname): Promise<{ cloudIp: string
 	}
 
 	if (typeof local === 'string' || typeof network === 'string') {
-		const validIp: string = local ?? network!;
+		const validIp: string = local ?? network ?? '';
 		store.dispatch(setDNSCheck({ cloudIp: validIp, error: null }));
 
 		return { cloudIp: validIp };
