@@ -1,4 +1,3 @@
-import { logger } from '@app/core/log';
 import {
     ArrayDiskType,
     type ArrayCapacity,
@@ -32,7 +31,6 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     );
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
-    logger.debug('caches %o', caches)
     // Disk sizes
     const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
     const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree));

@@ -140,11 +140,11 @@ type ArrayDisk {
     """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
     numErrors: Long!
     """ (KB) Total Size of the FS (Not present on Parity type drive) """
-    fsSize: Long!
+    fsSize: Long
     """ (KB) Free Size on the FS (Not present on Parity type drive)"""
-    fsFree: Long!
+    fsFree: Long
     """ (KB) Used Size on the FS (Not present on Parity type drive)"""
-    fsUsed: Long!
+    fsUsed: Long
     exportable: Boolean
     """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """
     type: ArrayDiskType!

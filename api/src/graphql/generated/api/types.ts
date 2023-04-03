@@ -66,11 +66,11 @@ export type ArrayDisk = {
   device?: Maybe<Scalars['String']>;
   exportable?: Maybe<Scalars['Boolean']>;
   /**  (KB) Free Size on the FS (Not present on Parity type drive) */
-  fsFree: Scalars['Long'];
+  fsFree?: Maybe<Scalars['Long']>;
   /**  (KB) Total Size of the FS (Not present on Parity type drive)  */
-  fsSize: Scalars['Long'];
+  fsSize?: Maybe<Scalars['Long']>;
   /**  (KB) Used Size on the FS (Not present on Parity type drive) */
-  fsUsed: Scalars['Long'];
+  fsUsed?: Maybe<Scalars['Long']>;
   /**  Disk indentifier, only set for present disks on the system  */
   id: Scalars['ID'];
   /**  Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.  */
@@ -245,7 +245,7 @@ export type ContainerMount = {
 
 export type ContainerPort = {
   __typename?: 'ContainerPort';
-  ip: Scalars['String'];
+  ip?: Maybe<Scalars['String']>;
   privatePort?: Maybe<Scalars['Int']>;
   publicPort?: Maybe<Scalars['Int']>;
   type?: Maybe<ContainerPortType>;
@@ -363,10 +363,10 @@ export type DockerContainer = {
   mounts?: Maybe<Array<Maybe<Scalars['JSON']>>>;
   names?: Maybe<Array<Scalars['String']>>;
   networkSettings?: Maybe<Scalars['JSON']>;
-  ports?: Maybe<Array<Maybe<ContainerPort>>>;
+  ports: Array<ContainerPort>;
   /**  (B) Total size of all the files in the container  */
   sizeRootFs?: Maybe<Scalars['Long']>;
-  state?: Maybe<ContainerState>;
+  state: ContainerState;
   status: Scalars['String'];
 };
 
@@ -845,7 +845,7 @@ export type Query = {
   disks: Array<Maybe<Disk>>;
   display?: Maybe<Display>;
   /** All Docker containers */
-  dockerContainers: Array<Maybe<DockerContainer>>;
+  dockerContainers: Array<DockerContainer>;
   /** Docker network */
   dockerNetwork: DockerNetwork;
   /** All Docker networks */
@@ -1869,9 +1869,9 @@ export type ArrayCapacityResolvers<ContextType = Context, ParentType extends Res
 export type ArrayDiskResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayDisk'] = ResolversParentTypes['ArrayDisk']> = ResolversObject<{
   device?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   exportable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  fsFree?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
-  fsSize?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
-  fsUsed?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
+  fsFree?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
+  fsSize?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
+  fsUsed?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   idx?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -1951,7 +1951,7 @@ export type ContainerMountResolvers<ContextType = Context, ParentType extends Re
 }>;
 
 export type ContainerPortResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ContainerPort'] = ResolversParentTypes['ContainerPort']> = ResolversObject<{
-  ip?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  ip?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   privatePort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   publicPort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['ContainerPortType']>, ParentType, ContextType>;
@@ -2044,9 +2044,9 @@ export type DockerContainerResolvers<ContextType = Context, ParentType extends R
   mounts?: Resolver<Maybe<Array<Maybe<ResolversTypes['JSON']>>>, ParentType, ContextType>;
   names?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   networkSettings?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  ports?: Resolver<Maybe<Array<Maybe<ResolversTypes['ContainerPort']>>>, ParentType, ContextType>;
+  ports?: Resolver<Array<ResolversTypes['ContainerPort']>, ParentType, ContextType>;
   sizeRootFs?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
-  state?: Resolver<Maybe<ResolversTypes['ContainerState']>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['ContainerState'], ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2387,7 +2387,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
-  dockerContainers?: Resolver<Array<Maybe<ResolversTypes['DockerContainer']>>, ParentType, ContextType, Partial<QuerydockerContainersArgs>>;
+  dockerContainers?: Resolver<Array<ResolversTypes['DockerContainer']>, ParentType, ContextType, Partial<QuerydockerContainersArgs>>;
   dockerNetwork?: Resolver<ResolversTypes['DockerNetwork'], ParentType, ContextType, RequireFields<QuerydockerNetworkArgs, 'id'>>;
   dockerNetworks?: Resolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, ParentType, ContextType, Partial<QuerydockerNetworksArgs>>;
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;

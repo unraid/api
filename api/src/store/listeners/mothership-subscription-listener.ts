@@ -5,15 +5,19 @@ import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothers
 import isEqual from 'lodash/isEqual';
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
+import { minigraphLogger } from '@app/core/log';
 
 export const enableMothershipJobsListener = () => startAppListening({
-	predicate(_, currentState, previousState) {
+	predicate(action, currentState, previousState) {
+		// This event happens on first app load, or if a user signs out and signs back in, etc
 		if (!isEqual(getMothershipConnectionParams(currentState), getMothershipConnectionParams(previousState))) {
+			minigraphLogger.info('Connecting / Reconnecting Mothership Due to Changed Config File or First Load')
 			return true;
 		}
 
-		if ([MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(currentState.minigraph.status) && previousState.minigraph.status === MinigraphStatus.CONNECTED) {
-			// Failed a fatal health check, rebuild the client
+		if (setGraphqlConnectionStatus.match(action) && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(action.payload.status)) {
+			minigraphLogger.info('Reconnecting Mothership - PING_FAILURE / PRE_INIT - SetGraphQLConnectionStatus Event')
 			return true;
 		}
 
@@ -24,9 +28,9 @@ export const enableMothershipJobsListener = () => startAppListening({
 			const client = GraphQLClient.createSingletonInstance();
 			if (client) {
 				await subscribeToEvents(getState().config.remote.apikey);
+				await dispatch(queryServers());
 			}
 
-			await dispatch(queryServers());
 		}
 	},
 });

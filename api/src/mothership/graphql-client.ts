@@ -40,7 +40,7 @@ export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
 export class GraphQLClient {
 	public static instance: ApolloClient<NormalizedCacheObject> | null = null;
 	public static client: Client | null = null;
-	public static pingAlarmTimeout: NodeJS.Timeout | null = null;
+	public static pingAlarmTimeout: NodeJS.Timeout | undefined = undefined;
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private constructor() {}
 
@@ -74,6 +74,8 @@ export class GraphQLClient {
 	};
 
 	public static clearInstance = async () => {
+		clearTimeout(GraphQLClient.pingAlarmTimeout)
+
 		if (this.instance) {
 			this.instance?.stop();
 		}
@@ -83,9 +85,9 @@ export class GraphQLClient {
 			GraphQLClient.client = null;
 		}
 
+
 		GraphQLClient.instance = null;
 		GraphQLClient.client = null;
-		GraphQLClient.pingAlarmTimeout = null;
 	};
 
 	static createGraphqlClient() {
@@ -114,8 +116,10 @@ export class GraphQLClient {
 				// GQL Error Occurred, we should log and move on
 				minigraphLogger.info('GQL Error Encountered %o', handler.graphQLErrors);
 			} else if (handler.networkError) {
-				minigraphLogger.error('Network Error Encountered %o', handler.networkError);
-				store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR_RETRYING, error: handler.networkError.message }));
+				minigraphLogger.error('Network Error Encountered %s', handler.networkError.message);
+				if (getters.minigraph().status !== MinigraphStatus.ERROR_RETRYING) {
+					store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR_RETRYING, error: handler.networkError.message }));
+				}
 			}
 		});
 		const apolloClient = new ApolloClient({
@@ -144,15 +148,12 @@ export class GraphQLClient {
 
 		GraphQLClient.client.on('ping', () => {
 			// Received ping from mothership
-			if (GraphQLClient.pingAlarmTimeout) {
-				clearTimeout(GraphQLClient.pingAlarmTimeout);
-				GraphQLClient.pingAlarmTimeout = null;
-			}
+			clearTimeout(GraphQLClient.pingAlarmTimeout);
 
 			minigraphLogger.trace('ping');
 			GraphQLClient.pingAlarmTimeout = setTimeout(() => {
 				if (getters.minigraph().status === MinigraphStatus.CONNECTED) {
-					minigraphLogger.error(`NO PINGS RECEIVED IN ${KEEP_ALIVE_INTERVAL_MS / 1_000}, SOCKET MUST BE RECONNECTED`);
+					minigraphLogger.error(`NO PINGS RECEIVED IN ${KEEP_ALIVE_INTERVAL_MS / 1_000} SECONDS, SOCKET MUST BE RECONNECTED`);
 					store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PING_FAILURE, error: 'Ping Receive Exceeded Timeout' }));
 				}
 			}, KEEP_ALIVE_INTERVAL_MS);

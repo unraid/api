@@ -1,10 +1,11 @@
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { stopUpnpJobs, initUpnpJobs } from '@app/upnp/jobs';
 import type { Mapping } from '@runonflux/nat-upnp';
-import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings, parseStringToNumberOrNull } from '@app/upnp/helpers';
+import { renewUpnpLease, removeUpnpLease, getWanPortForUpnp, getUpnpMappings } from '@app/upnp/helpers';
 import { type AppDispatch, type RootState } from '@app/store';
 import { upnpLogger } from '@app/core';
 import { setUpnpState, setWanPortToValue } from '@app/store/modules/config';
+import { toNumberOrNull } from '@app/core/utils/casting';
 
 interface UpnpState {
 	upnpEnabled: boolean;
@@ -80,7 +81,7 @@ const getWanPortToUse = async ({
 export const enableUpnp = createAsyncThunk<UpnpEnableReturnValue, EnableUpnpThunkArgs, { state: RootState, dispatch: AppDispatch }>('upnp/enable', async (leaseRenewalArgs, { getState, dispatch }) => {
 	const { upnp, emhttp } = getState();
 
-	const wanPortArgAsNumber = leaseRenewalArgs?.wanport ? parseStringToNumberOrNull(leaseRenewalArgs?.wanport) : null;
+	const wanPortArgAsNumber = leaseRenewalArgs?.wanport ? toNumberOrNull(leaseRenewalArgs?.wanport) : null;
 
 	// If the wan port changes we try to negotiate this by removing the old lease first
 	if (leaseRenewalArgs

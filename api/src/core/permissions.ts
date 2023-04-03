@@ -14,20 +14,9 @@ const permissions = Object.entries(roles).flatMap(([roleName, role]) => [
 	})),
 ]);
 
-const extraPermissions = [
-	// @NOTE: Uncomment this to enable creation of api keys.
-	//        See the README.md for more information.
-	// @WARNING: This is currently unsupported, please be careful.
-	// { role: 'admin', resource: 'apikey', action: 'create:any', attributes: '*' }
-];
-
-const allPermissions = [
-	...permissions,
-	...extraPermissions,
-];
 
 // Grant permissions
-const ac = new AccessControl(allPermissions);
+const ac = new AccessControl(permissions);
 
 // Extend roles
 Object.entries(getPermissions()).forEach(([roleName, role]) => {
@@ -36,7 +25,7 @@ Object.entries(getPermissions()).forEach(([roleName, role]) => {
 	}
 });
 
-logger.addContext('permissions', allPermissions);
+logger.addContext('permissions', permissions);
 logger.trace('Loaded permissions');
 logger.removeContext('permissions');
 

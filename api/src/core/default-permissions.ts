@@ -1,4 +1,10 @@
-export const admin = {
+export interface Permission { resource: string, action: string, attributes: string }
+export interface Role {
+	permissions: Array<Permission>
+	extends?: string;
+}
+
+export const admin: Role = {
 	extends: 'user',
 	permissions: [
 		// @NOTE: Uncomment the first line to enable creation of api keys.
@@ -44,7 +50,7 @@ export const admin = {
 	],
 };
 
-export const user = {
+export const user: Role = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'apikey', action: 'read:own', attributes: '*' },
@@ -52,7 +58,7 @@ export const user = {
 	],
 };
 
-export const upc = {
+export const upc: Role = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'apikey', action: 'read:own', attributes: '*' },
@@ -71,30 +77,33 @@ export const upc = {
 	],
 };
 
-export const my_servers = {
+export const my_servers: Role = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'dashboard', action: 'read:any', attributes: '*' },
 		{ resource: 'two-factor', action: 'read:own', attributes: '*' },
 		{ resource: 'unraid-version', action: 'read:any', attributes: '*' },
+		{ resource: 'array', action: 'read:any', attributes: '*' },
+		{ resource: 'docker/container', action: 'read:any', attributes: '*' },
+		{ resource: 'docker/network', action: 'read:any', attributes: '*' },
 	],
 };
 
-export const notifier = {
+export const notifier: Role = {
 	extends: 'guest',
 	permissions: [
 		{ resource: 'notifications', action: 'create:own', attributes: '*' },
 	],
 };
 
-export const guest = {
+export const guest: Role = {
 	permissions: [
 		{ resource: 'me', action: 'read:any', attributes: '*' },
 		{ resource: 'welcome', action: 'read:any', attributes: '*' },
 	],
 };
 
-export const permissions = {
+export const permissions: Record<string, Role> = {
 	guest,
 	user,
 	admin,

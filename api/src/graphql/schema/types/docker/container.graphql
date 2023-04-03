@@ -1,6 +1,6 @@
 type Query {
     """All Docker containers"""
-    dockerContainers(all: Boolean): [DockerContainer]!
+    dockerContainers(all: Boolean): [DockerContainer!]!
 }
 
 type Subscription {
@@ -14,7 +14,7 @@ enum ContainerPortType {
 }
 
 type ContainerPort {
-    ip: String!
+    ip: String
     privatePort: Int
     publicPort: Int
     type: ContainerPortType
@@ -47,11 +47,11 @@ type DockerContainer {
     imageId: String!
     command: String!
     created: Int!
-    ports: [ContainerPort]
+    ports: [ContainerPort!]!
     """ (B) Total size of all the files in the container """ 
     sizeRootFs: Long
     labels: JSON
-    state: ContainerState
+    state: ContainerState!
     status: String!
     hostConfig: ContainerHostConfig
     networkSettings: JSON

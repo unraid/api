@@ -22,6 +22,7 @@ x-volumes: &volumes
   - ./.pkg-cache:/app/.pkg-cache
   - ./codegen.yml:/app/codegen.yml
   - ./fix-array-type.cjs:/app/fix-array-type.cjs
+  - /var/run/docker.sock:/var/run/docker.sock
 
 networks:
   mothership_default:

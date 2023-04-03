@@ -27,7 +27,9 @@ export const main = async (...argv: string[]) => {
 		if (process.env.ENVIRONMENT === 'production' && !mainOptions.debug) {
 			setEnv('LOG_TRANSPORT', 'errors');
 		} else if (!mainOptions.debug) {
+			// Staging Environment, backgrounded plugin
 			setEnv('LOG_TRANSPORT', 'file,errors');
+			setEnv('LOG_LEVEL', 'TRACE')
 		} else  {
 			cliLogger.debug('In Debug Mode - Log Level Defaulting to: stdout');
 		}

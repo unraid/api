@@ -23,7 +23,11 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
 
-let timeoutForOnlineEventReceive: NodeJS.Timeout | null = null;
+let timeoutForOnlineEventReceive: NodeJS.Timeout | undefined = undefined;
+
+const clearTimeoutForSelfDisconnectedEvent = () => {
+    clearTimeout(timeoutForOnlineEventReceive);
+};
 
 const setupTimeoutForSelfDisconnectedEvent = () => {
     minigraphLogger.error(
@@ -31,6 +35,7 @@ const setupTimeoutForSelfDisconnectedEvent = () => {
             KEEP_ALIVE_INTERVAL_MS / 1_000
         } seconds before setting disconnected`
     );
+    clearTimeoutForSelfDisconnectedEvent()
     // We have somehow received a disconnected event for ourselves. This can sometimes happen when the event bus unsubscribes us after a long running loop
     timeoutForOnlineEventReceive = setTimeout(() => {
         store.dispatch(
@@ -42,14 +47,6 @@ const setupTimeoutForSelfDisconnectedEvent = () => {
     }, KEEP_ALIVE_INTERVAL_MS);
 };
 
-const clearTimeoutForSelfDisconnectedEvent = () => {
-    if (timeoutForOnlineEventReceive) {
-        mothershipLogger.trace('Cleared timeout for online event receive');
-        clearTimeout(timeoutForOnlineEventReceive);
-    }
-
-    timeoutForOnlineEventReceive = null;
-};
 
 export const subscribeToEvents = async (apiKey: string) => {
     minigraphLogger.info('Subscribing to Events');

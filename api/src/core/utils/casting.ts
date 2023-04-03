@@ -4,11 +4,21 @@ export const toNumber = (value: string): number => {
 	
 	const parsed = parseInt(value, 10);
 	if (isNaN(parsed)) {
-		return 0;
+		return NaN;
 	}
 	return parsed;
 }
 type BooleanString = 'true' | 'false';
+
+
+export const toNumberOrNull = (myString: string): number | null  => {
+	if (myString && !isNaN(Number(myString))) {
+		return Number(myString);
+	}
+
+	return null;
+};
+
 
 export const boolToString = (bool: boolean): BooleanString => {
 	if (typeof bool === 'boolean') {
