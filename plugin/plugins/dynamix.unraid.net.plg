@@ -311,7 +311,6 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/etc/nginx/nginx.conf && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -424,35 +423,6 @@ if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.ser
   echo "env=\"${PLGTYPE}\"" >/boot/config/plugins/dynamix.my.servers/env
 fi
 
-### begin staging only
-# allow webgui to be iframed only on Connect dashboard, only applies to 6.10+
-if [[ "${PLGTYPE}" = "staging" && "${version:0:3}" != "6.9" ]]; then
-  CHANGED=no
-  FILE=/etc/nginx/nginx.conf
-  if grep -q "SAMEORIGIN" "${FILE}"; then
-    CHANGED=yes
-    cp "$FILE" "$FILE-"
-    OLD="add_header X-Frame-Options 'SAMEORIGIN';"
-    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
-    sed -i "s#${OLD}#${NEW}#" "${FILE}"
-  fi
-  FILE=/etc/rc.d/rc.nginx
-  if ! grep -q "#robots.txt any origin" "${FILE}"; then
-    CHANGED=yes
-    cp "$FILE" "$FILE-"
-    FIND="location = \/robots.txt {"
-    # escape tabs and spaces
-    ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
-    sed -i "/${FIND}/a ${ADD}" "${FILE}"
-  fi
-  if [[ "${CHANGED}" = "yes" ]]; then
-    # reload nginx for iframe changes
-    echo "Reloading Web Server. If this window stops updating please close it."
-    /etc/rc.d/rc.nginx reload &>/dev/null
-  fi
-fi
-### end staging only
-
 if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
   echo
   echo "⚠️ Do not close this window yet"
@@ -512,6 +482,39 @@ ln -s /usr/local/bin/unraid-api/unraid-api /usr/local/sbin/unraid-api
 [[ ! -d /etc/rc.d/rc6.d ]] && mkdir /etc/rc.d/rc6.d
 [[ ! -h /etc/rc.d/rc0.d ]] && ln -s /etc/rc.d/rc6.d /etc/rc.d/rc0.d
 [[ ! -h /etc/rc.d/rc6.d/K10_flash_backup  ]] && ln -s /etc/rc.d/rc.flash_backup /etc/rc.d/rc6.d/K10_flash_backup
+
+# allow webgui to be iframed only on Connect dashboard, only applies to 6.10+
+# if needed, restart nginx before installing the unraid-api
+if [[ "${version:0:3}" != "6.9" ]]; then
+  CHANGED=no
+  FILE=/etc/nginx/nginx.conf
+  if grep -q "SAMEORIGIN" "${FILE}"; then
+    CHANGED=yes
+    cp "$FILE" "$FILE-"
+    OLD="add_header X-Frame-Options 'SAMEORIGIN';"
+    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ \";"
+    [[ "${PLGTYPE}" = "staging" ]] && NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
+    sed -i "s#${OLD}#${NEW}#" "${FILE}"
+  fi
+  FILE=/etc/rc.d/rc.nginx
+  if ! grep -q "#robots.txt any origin" "${FILE}"; then
+    CHANGED=yes
+    cp "$FILE" "$FILE-"
+    FIND="location = \/robots.txt {"
+    # escape tabs and spaces
+    ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
+    sed -i "/${FIND}/a ${ADD}" "${FILE}"
+  fi
+  if [[ "${CHANGED}" == "yes" ]]; then
+    if /etc/rc.d/rc.nginx status &>/dev/null; then
+      # if nginx is running, reload it to enable the changes above
+      # note: if this is being installed at boot, nginx will not yet be running
+      echo ""
+      echo "⚠️ Reloading Web Server. If this window stops updating please close it."
+      /etc/rc.d/rc.nginx reload &>/dev/null
+    fi
+  fi
+fi
 
 # start background process to install/start the api and flash backup
 echo
