@@ -6,7 +6,7 @@ import { type Shares } from '@app/core/types/states/share';
 import { type SmbShares } from '@app/core/types/states/smb';
 import { type Users } from '@app/core/types/states/user';
 import { type Var } from '@app/core/types/states/var';
-import { type ArrayDisk } from '@app/graphql/generated/api/types';
+import { MinigraphStatus, type ArrayDisk } from '@app/graphql/generated/api/types';
 import type { RootState } from '@app/store';
 import { type DevicesIni } from './state-parsers/devices';
 import { type NetworkIni } from './state-parsers/network';
@@ -17,6 +17,8 @@ import { type SlotsIni } from './state-parsers/slots';
 import { type SmbIni } from './state-parsers/smb';
 import { type UsersIni } from './state-parsers/users';
 import { type VarIni } from './state-parsers/var';
+import { type Subscription } from 'zen-observable-ts';
+
 
 export enum FileLoadStatus {
 	UNLOADED = 'UNLOADED',
@@ -71,3 +73,15 @@ export type DNSCheck = {
 	error: null;
 	ttl?: number;
 } | { error: Error; cloudIp: null };
+
+export const MOTHERSHIP_CRITICAL_STATUSES: Array<MinigraphStatus> = [
+	MinigraphStatus.ERROR_RETRYING,
+	MinigraphStatus.PING_FAILURE, 
+	MinigraphStatus.PRE_INIT
+]
+
+export interface SubscriptionWithTimeout {
+    sha256: string;
+    subscription: Subscription;
+    timeout: NodeJS.Timeout;
+}

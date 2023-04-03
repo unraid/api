@@ -19,7 +19,7 @@ export type Scalars = {
   /** A field whose value is a IPv6 address: https://en.wikipedia.org/wiki/IPv6. */
   IPv6: any;
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: string;
+  JSON: { [key: string]: any };
   /** The `Long` scalar type represents 52-bit integers */
   Long: number;
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
@@ -425,6 +425,12 @@ export enum NotificationStatus {
   SENT = 'SENT'
 }
 
+export type PingEvent = {
+  __typename?: 'PingEvent';
+  data?: Maybe<Scalars['String']>;
+  type: EventType;
+};
+
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']>;
@@ -597,7 +603,7 @@ export type Service = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  events: Array<Event>;
+  events?: Maybe<Array<Event>>;
   remoteSubscription: Scalars['String'];
   servers: Array<Server>;
 };
@@ -727,13 +733,13 @@ export type RemoteAccessEventFragmentFragment = { __typename?: 'RemoteAccessEven
 export type eventsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type eventsSubscription = { __typename?: 'Subscription', events: Array<{ __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | (
+export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | (
     { __typename: 'RemoteAccessEvent' }
     & { ' $fragmentRefs'?: { 'RemoteAccessEventFragmentFragment': RemoteAccessEventFragmentFragment } }
   ) | (
     { __typename: 'RemoteGraphQLEvent' }
     & { ' $fragmentRefs'?: { 'RemoteGraphQLEventFragmentFragment': RemoteGraphQLEventFragmentFragment } }
-  ) | { __typename: 'UpdateEvent' }> };
+  ) | { __typename: 'UpdateEvent' }> | null };
 
 export const RemoteGraphQLEventFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteGraphQLEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteGraphQLEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"remoteGraphQLEventData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"sha256"}}]}}]}}]} as unknown as DocumentNode<RemoteGraphQLEventFragmentFragment, unknown>;
 export const RemoteAccessEventFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteAccessEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteAccessEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"url"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"ipv4"}},{"kind":"Field","name":{"kind":"Name","value":"ipv6"}}]}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}}]}}]} as unknown as DocumentNode<RemoteAccessEventFragmentFragment, unknown>;

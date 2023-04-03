@@ -2,11 +2,13 @@
  * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
  * Written by: Alexis Tyler
  */
+import { getArray } from '@app/core/modules/get-array';
+import { getDisks, getDockerContainers } from '@app/core/modules/index';
 import { type QueryResolvers } from '@app/graphql/generated/api/types';
 import cloud from '@app/graphql/resolvers/query/cloud';
 import config from '@app/graphql/resolvers/query/config';
 import crashReportingEnabled from '@app/graphql/resolvers/query/crash-reporting-enabled';
-import disks from '@app/graphql/resolvers/query/disks';
+import disks, { disksResolver } from '@app/graphql/resolvers/query/disks';
 import display from '@app/graphql/resolvers/query/display';
 import flash from '@app/graphql/resolvers/query/flash';
 import online from '@app/graphql/resolvers/query/online';
@@ -18,10 +20,12 @@ import twoFactor from '@app/graphql/resolvers/query/two-factor';
 import vms from '@app/graphql/resolvers/query/vms';
 
 export const Query: QueryResolvers = {
+	array: getArray,
 	cloud,
 	config,
 	crashReportingEnabled,
-	disks,
+	disks: disksResolver,
+	dockerContainers: getDockerContainers,
 	display,
 	flash,
 	online,

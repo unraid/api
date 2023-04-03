@@ -1,4 +1,4 @@
-import { remoteQueryLogger } from '@app/core/log';
+import { logger, remoteQueryLogger } from '@app/core/log';
 import { getApiApolloClient } from '@app/graphql/client/api/get-api-client';
 import {
     RemoteGraphQLEventType,
@@ -12,6 +12,9 @@ import { getters } from '@app/store/index';
 export const executeRemoteGraphQLQuery = async (
     data: RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData']
 ) => {
+    remoteQueryLogger.addContext('data', data);
+    remoteQueryLogger.debug('Executing remote query');
+    remoteQueryLogger.removeContext('data');
     const client = GraphQLClient.getInstance();
     const apiKey = getters.config().remote.apikey;
     const originalBody = data.body;
@@ -20,12 +23,13 @@ export const executeRemoteGraphQLQuery = async (
         const localClient = getApiApolloClient({
             upcApiKey: apiKey
         });
+
         const localResult = await localClient.query({
             query: parsedQuery.query,
             variables: parsedQuery.variables,
         });
         if (localResult.data) {
-            remoteQueryLogger.debug(localResult.data);
+            remoteQueryLogger.debug('Data from request:  %o', localResult.data);
 
             await client?.mutate({
                 mutation: SEND_REMOTE_QUERY_RESPONSE,

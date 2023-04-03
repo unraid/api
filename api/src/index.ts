@@ -81,7 +81,7 @@ void am(async () => {
 		}
 
 		shutdownApiEvent();
-		process.exit(0);
+		process.exitCode = 0;
 	});
 }, async (error: NodeJS.ErrnoException) => {
 	// Log error to syslog

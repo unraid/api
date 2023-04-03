@@ -7,7 +7,8 @@ import { type AppDispatch, type RootState } from '@app/store/index';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { remoteQueryLogger } from '@app/core/log';
 import { executeRemoteGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-query';
-import { createRemoteSubscription, renewSubscription } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription';
+import { createRemoteSubscription, getRemoteSubscriptionTimeout } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription';
+import { renewRemoteSubscription } from '@app/store/modules/remote-graphql';
 
 export const handleRemoteGraphQLEvent = createAsyncThunk<
     void,
@@ -15,19 +16,23 @@ export const handleRemoteGraphQLEvent = createAsyncThunk<
     { state: RootState; dispatch: AppDispatch }
 >(
     'dynamicRemoteAccess/handleRemoteAccessEvent',
-    async (event) => {
+    async (event, { dispatch }) => {
         const data = event.remoteGraphQLEventData;
         switch (data.type) {
             case RemoteGraphQLEventType.REMOTE_MUTATION_EVENT:
                 break;
             case RemoteGraphQLEventType.REMOTE_QUERY_EVENT:
                 remoteQueryLogger.debug('Responding to remote query event');
-                return await executeRemoteGraphQLQuery(event.remoteGraphQLEventData);
+                return await executeRemoteGraphQLQuery(
+                    event.remoteGraphQLEventData
+                );
             case RemoteGraphQLEventType.REMOTE_SUBSCRIPTION_EVENT:
-                remoteQueryLogger.debug('Responding to remote subscription event');
+                remoteQueryLogger.debug(
+                    'Responding to remote subscription event'
+                );
                 return await createRemoteSubscription(data);
             case RemoteGraphQLEventType.REMOTE_SUBSCRIPTION_EVENT_PING:
-                renewSubscription(data.sha256);
+                await dispatch(renewRemoteSubscription({ sha256: data.sha256, timeout: getRemoteSubscriptionTimeout(data.sha256, dispatch) }));
                 break;
         }
     }

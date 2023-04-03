@@ -1,5 +1,5 @@
 /* eslint-disable max-depth */
-import { minigraphLogger, mothershipLogger, remoteQueryLogger } from '@app/core/log';
+import { minigraphLogger, mothershipLogger } from '@app/core/log';
 import { GraphQLClient } from './graphql-client';
 import { store } from '@app/store';
 import {

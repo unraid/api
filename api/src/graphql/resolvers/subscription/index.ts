@@ -3,6 +3,7 @@
  * Written by: Alexis Tyler
  */
 
+import { type Resolvers } from '@app/graphql/generated/api/types';
 import { createSubscription } from '@app/graphql/schema/utils';
 
 export function withCancel<T>(
@@ -22,7 +23,7 @@ export function withCancel<T>(
 	return asyncIterator;
 }
 
-export const Subscription = {
+export const Subscription: Resolvers['Subscription'] = {
 	display: {
 		...createSubscription('display'),
 	},

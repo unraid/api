@@ -15,7 +15,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   DateTime: Date;
-  JSON: string;
+  JSON: { [key: string]: any };
   Long: number;
   UUID: string;
 };
@@ -40,13 +40,13 @@ export type ArrayType = {
   /** Current boot disk */
   boot?: Maybe<ArrayDisk>;
   /** Caches in the current array */
-  caches?: Maybe<Array<Maybe<ArrayDisk>>>;
+  caches: Array<ArrayDisk>;
   /** Current array capacity */
   capacity: ArrayCapacity;
   /** Data disks in the current array */
-  disks?: Maybe<Array<Maybe<ArrayDisk>>>;
+  disks: Array<ArrayDisk>;
   /** Parity disks in the current array */
-  parities?: Maybe<Array<Maybe<ArrayDisk>>>;
+  parities: Array<ArrayDisk>;
   /** Array state after this query/mutation */
   pendingState?: Maybe<ArrayPendingState>;
   /** Array state before this query/mutation */
@@ -252,13 +252,13 @@ export type ContainerPort = {
 };
 
 export enum ContainerPortType {
-  TCP = 'tcp',
-  UDP = 'udp'
+  TCP = 'TCP',
+  UDP = 'UDP'
 }
 
 export enum ContainerState {
-  EXITED = 'exited',
-  RUNNING = 'running'
+  EXITED = 'EXITED',
+  RUNNING = 'RUNNING'
 }
 
 export type Device = {
@@ -322,8 +322,8 @@ export type DiskPartition = {
 };
 
 export enum DiskSmartStatus {
-  OK = 'Ok',
-  UNKNOWN = 'Unknown'
+  OK = 'OK',
+  UNKNOWN = 'UNKNOWN'
 }
 
 export type Display = {
@@ -364,7 +364,8 @@ export type DockerContainer = {
   names?: Maybe<Array<Scalars['String']>>;
   networkSettings?: Maybe<Scalars['JSON']>;
   ports?: Maybe<Array<Maybe<ContainerPort>>>;
-  sizeRootFs: Scalars['Int'];
+  /**  (B) Total size of all the files in the container  */
+  sizeRootFs?: Maybe<Scalars['Long']>;
   state?: Maybe<ContainerState>;
   status: Scalars['String'];
 };
@@ -832,7 +833,7 @@ export type Query = {
   /** Get all API keys */
   apiKeys?: Maybe<Array<Maybe<ApiKey>>>;
   /** An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks. */
-  array?: Maybe<ArrayType>;
+  array: ArrayType;
   cloud?: Maybe<Cloud>;
   config: Config;
   crashReportingEnabled?: Maybe<Scalars['Boolean']>;
@@ -843,8 +844,6 @@ export type Query = {
   /** Mulitiple disks */
   disks: Array<Maybe<Disk>>;
   display?: Maybe<Display>;
-  /** Docker container */
-  dockerContainer: DockerContainer;
   /** All Docker containers */
   dockerContainers: Array<Maybe<DockerContainer>>;
   /** Docker network */
@@ -886,11 +885,6 @@ export type QuerydeviceArgs = {
 
 
 export type QuerydiskArgs = {
-  id: Scalars['ID'];
-};
-
-
-export type QuerydockerContainerArgs = {
   id: Scalars['ID'];
 };
 
@@ -1041,16 +1035,16 @@ export type Share = {
   /** Disks that're excluded from this share */
   exclude?: Maybe<Array<Maybe<Scalars['String']>>>;
   floor?: Maybe<Scalars['String']>;
-  /** Free space in bytes */
-  free?: Maybe<Scalars['Int']>;
+  /** (KB) Free space in bytes */
+  free?: Maybe<Scalars['Long']>;
   /** Disks that're included in this share */
   include?: Maybe<Array<Maybe<Scalars['String']>>>;
   luksStatus?: Maybe<Scalars['String']>;
   /** Display name */
   name?: Maybe<Scalars['String']>;
   nameOrig?: Maybe<Scalars['String']>;
-  /** Total size in bytes */
-  size?: Maybe<Scalars['Int']>;
+  /** (KB) Total size */
+  size?: Maybe<Scalars['Long']>;
   splitLevel?: Maybe<Scalars['String']>;
 };
 
@@ -1856,10 +1850,10 @@ export type ApiKeyResponseResolvers<ContextType = Context, ParentType extends Re
 
 export type ArrayResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Array'] = ResolversParentTypes['Array']> = ResolversObject<{
   boot?: Resolver<Maybe<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
-  caches?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDisk']>>>, ParentType, ContextType>;
+  caches?: Resolver<Array<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
   capacity?: Resolver<ResolversTypes['ArrayCapacity'], ParentType, ContextType>;
-  disks?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDisk']>>>, ParentType, ContextType>;
-  parities?: Resolver<Maybe<Array<Maybe<ResolversTypes['ArrayDisk']>>>, ParentType, ContextType>;
+  disks?: Resolver<Array<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
+  parities?: Resolver<Array<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
   pendingState?: Resolver<Maybe<ResolversTypes['ArrayPendingState']>, ParentType, ContextType>;
   previousState?: Resolver<Maybe<ResolversTypes['ArrayState']>, ParentType, ContextType>;
   state?: Resolver<ResolversTypes['ArrayState'], ParentType, ContextType>;
@@ -2051,7 +2045,7 @@ export type DockerContainerResolvers<ContextType = Context, ParentType extends R
   names?: Resolver<Maybe<Array<ResolversTypes['String']>>, ParentType, ContextType>;
   networkSettings?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   ports?: Resolver<Maybe<Array<Maybe<ResolversTypes['ContainerPort']>>>, ParentType, ContextType>;
-  sizeRootFs?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  sizeRootFs?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   state?: Resolver<Maybe<ResolversTypes['ContainerState']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2384,7 +2378,7 @@ export type ProfileModelResolvers<ContextType = Context, ParentType extends Reso
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
   apiKeys?: Resolver<Maybe<Array<Maybe<ResolversTypes['ApiKey']>>>, ParentType, ContextType>;
-  array?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
+  array?: Resolver<ResolversTypes['Array'], ParentType, ContextType>;
   cloud?: Resolver<Maybe<ResolversTypes['Cloud']>, ParentType, ContextType>;
   config?: Resolver<ResolversTypes['Config'], ParentType, ContextType>;
   crashReportingEnabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
@@ -2393,7 +2387,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
-  dockerContainer?: Resolver<ResolversTypes['DockerContainer'], ParentType, ContextType, RequireFields<QuerydockerContainerArgs, 'id'>>;
   dockerContainers?: Resolver<Array<Maybe<ResolversTypes['DockerContainer']>>, ParentType, ContextType, Partial<QuerydockerContainersArgs>>;
   dockerNetwork?: Resolver<ResolversTypes['DockerNetwork'], ParentType, ContextType, RequireFields<QuerydockerNetworkArgs, 'id'>>;
   dockerNetworks?: Resolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, ParentType, ContextType, Partial<QuerydockerNetworksArgs>>;
@@ -2470,12 +2463,12 @@ export type ShareResolvers<ContextType = Context, ParentType extends ResolversPa
   cow?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   exclude?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   floor?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  free?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  free?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   include?: Resolver<Maybe<Array<Maybe<ResolversTypes['String']>>>, ParentType, ContextType>;
   luksStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   nameOrig?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  size?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  size?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   splitLevel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

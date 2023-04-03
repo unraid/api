@@ -22,3 +22,7 @@ export const isApiKeyLoading = (state = store.getState()): boolean => {
 	const { status } = state.apiKey;
 	return status === API_KEY_STATUS.PENDING_VALIDATION;
 };
+
+export const hasRemoteSubscription = (sha256: string, state = store.getState()): boolean => {
+	return state.remoteGraphQL.subscriptions.some(sub => sub.sha256 === sha256);
+}

@@ -12,6 +12,7 @@ import { upnp } from '@app/store/modules/upnp';
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
 import { apiKeyReducer } from '@app/store/modules/apikey';
 import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access';
+import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql';
 
 export const store = configureStore({
 	reducer: {
@@ -23,6 +24,7 @@ export const store = configureStore({
 		servers: servers.reducer,
 		emhttp: emhttp.reducer,
 		registration: registration.reducer,
+		remoteGraphQL: remoteGraphQLReducer,
 		cache: cache.reducer,
 		dashboard: dashboard.reducer,
 		docker: docker.reducer,
@@ -44,6 +46,7 @@ export const getters = {
 	servers: () => store.getState().servers,
 	emhttp: () => store.getState().emhttp,
 	registration: () => store.getState().registration,
+	remoteGraphQL: () => store.getState().remoteGraphQL,
 	cache: () => store.getState().cache,
 	dashboard: () => store.getState().dashboard,
 	docker: () => store.getState().docker,

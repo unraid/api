@@ -11,7 +11,7 @@ config:
   scalars:
     DateTime: Date
     Long: number
-    JSON: string
+    JSON: "{ [key: string]: any }"
     URL: URL
     Port: number
     UUID: string

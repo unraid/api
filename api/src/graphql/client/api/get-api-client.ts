@@ -19,8 +19,6 @@ class WebsocketWithOriginHeader extends WebSocket {
 
 
 export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
-
-	
 	const httpLink = new HttpLink({
 		uri: INTERNAL_HTTP_LINK,
 		fetch,

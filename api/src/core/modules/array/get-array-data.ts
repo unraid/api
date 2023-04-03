@@ -6,9 +6,10 @@ import {
 } from '@app/graphql/generated/api/types';
 import { store } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
+import { GraphQLError } from 'graphql';
 import sum from 'lodash/sum';
 
-export const getArrayData = (getState = store.getState): ArrayType | null => {
+export const getArrayData = (getState = store.getState): ArrayType => {
     // Var state isn't loaded
     const state = getState();
     if (
@@ -16,8 +17,7 @@ export const getArrayData = (getState = store.getState): ArrayType | null => {
         state.emhttp.status !== FileLoadStatus.LOADED ||
         Object.keys(state.emhttp.var).length === 0
     ) {
-        logger.error('Attempt to get Array Data, but state was not loaded');
-        return null;
+        throw new GraphQLError('Attempt to get Array Data, but state was not loaded')
     }
 
     const { emhttp } = state;
@@ -32,7 +32,7 @@ export const getArrayData = (getState = store.getState): ArrayType | null => {
     );
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
-
+    logger.debug('caches %o', caches)
     // Disk sizes
     const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
     const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree));

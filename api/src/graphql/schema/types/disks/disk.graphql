@@ -60,6 +60,6 @@ enum DiskInterfaceType {
 }
 
 enum DiskSmartStatus {
-    Ok
-    Unknown
+    OK
+    UNKNOWN
 }
