@@ -30,7 +30,7 @@
     "build": "npm run compile && npm run bundle",
     "build:docker": "docker-compose run --rm builder",
     "build-pkg": "./scripts/build.mjs",
-    "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/graphql' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
+    "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
     "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen-esm --config codegen.yml --watch -r dotenv/config",
     "codegen:local": "MOTHERSHIP_GRAPHQL_LINK='http://localhost:3000/graphql' graphql-codegen-esm --config codegen.yml --watch",
     "tsc": "tsc --noEmit",
