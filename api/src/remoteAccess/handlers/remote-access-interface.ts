@@ -7,6 +7,5 @@ export interface GenericRemoteAccess {
 }
 
 export interface IRemoteAccessController extends GenericRemoteAccess {
-	timeout: NodeJS.Timeout | null;
 	extendRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }): void;
 }

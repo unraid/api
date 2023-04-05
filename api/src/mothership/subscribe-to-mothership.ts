@@ -16,37 +16,13 @@ import {
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
 import { queryServers } from '@app/store/actions/query-servers';
-import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
 import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access-event';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
-
-let timeoutForOnlineEventReceive: NodeJS.Timeout | undefined = undefined;
-
-const clearTimeoutForSelfDisconnectedEvent = () => {
-    clearTimeout(timeoutForOnlineEventReceive);
-};
-
-const setupTimeoutForSelfDisconnectedEvent = () => {
-    minigraphLogger.error(
-        `Received disconnect event for own server, waiting for ${
-            KEEP_ALIVE_INTERVAL_MS / 1_000
-        } seconds before setting disconnected`
-    );
-    clearTimeoutForSelfDisconnectedEvent()
-    // We have somehow received a disconnected event for ourselves. This can sometimes happen when the event bus unsubscribes us after a long running loop
-    timeoutForOnlineEventReceive = setTimeout(() => {
-        store.dispatch(
-            setGraphqlConnectionStatus({
-                status: MinigraphStatus.PING_FAILURE,
-                error: 'Received disconnect event for own server',
-            })
-        );
-    }, KEEP_ALIVE_INTERVAL_MS);
-};
-
+import {
+    setSelfDisconnected,
+    setSelfReconnected,
+} from '@app/store/modules/minigraph';
 
 export const subscribeToEvents = async (apiKey: string) => {
     minigraphLogger.info('Subscribing to Events');
@@ -67,11 +43,7 @@ export const subscribeToEvents = async (apiKey: string) => {
             );
         } else if (data) {
             mothershipLogger.addContext('events', data.events);
-            mothershipLogger.trace(
-                'Got events from mothership %o',
-                data.events
-            );
-
+            mothershipLogger.trace('Got events from mothership');
             mothershipLogger.removeContext('events');
 
             for (const event of data.events?.filter(notNull) ?? []) {
@@ -86,7 +58,7 @@ export const subscribeToEvents = async (apiKey: string) => {
 
                             if (eventApiKey === apiKey) {
                                 // We are online, clear timeout waiting if it's set
-                                clearTimeoutForSelfDisconnectedEvent();
+                                store.dispatch(setSelfReconnected());
                             }
                         }
 
@@ -111,7 +83,7 @@ export const subscribeToEvents = async (apiKey: string) => {
                             void store.dispatch(queryServers());
 
                             if (eventApiKey === apiKey) {
-                                setupTimeoutForSelfDisconnectedEvent();
+                                store.dispatch(setSelfDisconnected());
                             }
                         }
 
@@ -149,7 +121,7 @@ export const subscribeToEvents = async (apiKey: string) => {
                             RemoteGraphQL_Fragment,
                             event
                         );
-						// No need to check API key here anymore
+                        // No need to check API key here anymore
 
                         void store.dispatch(
                             handleRemoteGraphQLEvent(eventAsRemoteGraphQLEvent)

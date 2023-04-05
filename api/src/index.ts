@@ -23,6 +23,7 @@ import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
 import { environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
+import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 
 // Boot app
 void am(async () => {
@@ -72,6 +73,8 @@ void am(async () => {
 
 	// Start webserver
 	httpServer.listen(config.port);
+
+	PingTimeoutJobs.init();
 
 	// On process exit stop HTTP server - this says it supports async but it doesnt seem to
 	exitHook(() => {

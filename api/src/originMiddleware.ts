@@ -35,11 +35,13 @@ export const originMiddleware = (
         next();
         return;
     } else {
+        logger.addContext('origins', allowedOrigins.join(', '))
         logger.trace(
-            `Allowed origins: ${allowedOrigins.join(', ')}, Current Origin: ${
+            `Current Origin: ${
                 origin ?? 'undefined'
             }`
         );
+        logger.removeContext('origins')
     }
 
     // Disallow requests with no origin

@@ -80,8 +80,10 @@ export const MOTHERSHIP_CRITICAL_STATUSES: Array<MinigraphStatus> = [
 	MinigraphStatus.PRE_INIT
 ]
 
-export interface SubscriptionWithTimeout {
-    sha256: string;
+export interface SubscriptionWithSha256 {
+	sha256: string;
     subscription: Subscription;
-    timeout: NodeJS.Timeout;
+}
+export interface SubscriptionWithLastPing extends SubscriptionWithSha256 {
+    lastPing: number;
 }

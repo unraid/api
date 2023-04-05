@@ -7,7 +7,7 @@ import { type AppDispatch, type RootState } from '@app/store/index';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { remoteQueryLogger } from '@app/core/log';
 import { executeRemoteGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-query';
-import { createRemoteSubscription, getRemoteSubscriptionTimeout } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription';
+import { createRemoteSubscription } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription';
 import { renewRemoteSubscription } from '@app/store/modules/remote-graphql';
 
 export const handleRemoteGraphQLEvent = createAsyncThunk<
@@ -32,7 +32,7 @@ export const handleRemoteGraphQLEvent = createAsyncThunk<
                 );
                 return await createRemoteSubscription(data);
             case RemoteGraphQLEventType.REMOTE_SUBSCRIPTION_EVENT_PING:
-                await dispatch(renewRemoteSubscription({ sha256: data.sha256, timeout: getRemoteSubscriptionTimeout(data.sha256, dispatch) }));
+                await dispatch(renewRemoteSubscription({ sha256: data.sha256 }));
                 break;
         }
     }

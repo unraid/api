@@ -30,7 +30,7 @@ export const executeRemoteGraphQLQuery = async (
         });
         if (localResult.data) {
             remoteQueryLogger.addContext('data', localResult.data);
-            remoteQueryLogger.trace('Got data from remoteQuery request');
+            remoteQueryLogger.trace('Got data from remoteQuery request', data.sha256);
             remoteQueryLogger.removeContext('data')
 
             await client?.mutate({

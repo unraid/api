@@ -1,10 +1,12 @@
 import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client/core';
+import { onError } from '@apollo/client/link/error';
 import { INTERNAL_HTTP_LINK, INTERNAL_WS_LINK } from '@app/consts';
 import { WebSocketLink } from '@apollo/client/link/ws';
 import { SubscriptionClient } from 'subscriptions-transport-ws';
 import WebSocket from 'ws';
 import { fetch } from 'cross-fetch';
 import { getMainDefinition } from '@apollo/client/utilities';
+import { graphqlLogger } from '@app/core/log';
 
 class WebsocketWithOriginHeader extends WebSocket {
     constructor(address, protocols) {
@@ -32,7 +34,8 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
 		reconnect: true,
 		connectionParams: {
 			'x-api-key': upcApiKey
-		}
+		},
+		
 	}, WebsocketWithOriginHeader))
 
 	const splitLink = split(
@@ -47,6 +50,12 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
 		httpLink
 	);
 
+	const errorLink = onError(({ networkError }) => {
+		if (networkError) {
+			graphqlLogger.warn('[GRAPHQL-CLIENT] NETWORK ERROR ENCOUNTERED %o', networkError);
+		}
+	})
+
 	return new ApolloClient({
 	defaultOptions: {
 		query: {
@@ -57,6 +66,6 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
 		}
 	},
 	cache: new InMemoryCache(),
-	link: splitLink
+	link: errorLink.concat(splitLink)
 	});
 }

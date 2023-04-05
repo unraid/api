@@ -9,17 +9,16 @@ import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-gr
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { hasRemoteSubscription } from '@app/store/getters/index';
 import { type AppDispatch, type RootState } from '@app/store/index';
-import { type SubscriptionWithTimeout } from '@app/store/types';
+import { type SubscriptionWithSha256 } from '@app/store/types';
 import { createAsyncThunk } from '@reduxjs/toolkit';
-import { getRemoteSubscriptionTimeout } from '@app/graphql/resolvers/subscription/remote-graphql/remote-subscription';
 
 export const addRemoteSubscription = createAsyncThunk<
-    SubscriptionWithTimeout,
+    SubscriptionWithSha256,
     RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData'],
     { state: RootState; dispatch: AppDispatch }
 >(
     'remoteGraphQL/addRemoteSubscription',
-    async (data, { getState, dispatch }) => {
+    async (data, { getState }) => {
         if (hasRemoteSubscription(data.sha256, getState())) {
             throw new Error(
                 `Subscription Already Exists for SHA256: ${data.sha256}`
@@ -78,7 +77,6 @@ export const addRemoteSubscription = createAsyncThunk<
         return {
             sha256: data.sha256,
             subscription,
-            timeout: getRemoteSubscriptionTimeout(data.sha256, dispatch),
         };
     }
 );
