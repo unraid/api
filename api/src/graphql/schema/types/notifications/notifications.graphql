@@ -11,12 +11,9 @@ type Mutation {
 }
 
 enum Importance {
-    # Logs
-    info
-    # Warnings
-    warning
-    # Errors
-    alert
+    ALERT
+    INFO
+    WARNING
 }
 
 type Notification {

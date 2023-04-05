@@ -1,6 +1,5 @@
 import { MemoryCacheStatus } from '@app/store/types';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
 import { type Server } from '@app/graphql/generated/client/graphql';
 import { logoutUser } from '@app/store/modules/config';
 import { queryServers } from '@app/store/actions/query-servers';

@@ -1,6 +1,6 @@
 type Query {
     """An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks."""
-    array: Array @func(module: "getArray")
+    array: Array!
 }
 
 type Mutation {
@@ -43,11 +43,11 @@ type Array {
     """Current boot disk"""
     boot: ArrayDisk
     """Parity disks in the current array"""
-    parities: [ArrayDisk]
+    parities: [ArrayDisk!]!
     """Data disks in the current array"""
-    disks: [ArrayDisk]
+    disks: [ArrayDisk!]!
     """Caches in the current array"""
-    caches: [ArrayDisk]
+    caches: [ArrayDisk!]!
 }
 
 # /usr/src/linux-5.9.13-Unraid/drivers/md/md_unraid.c
@@ -140,11 +140,11 @@ type ArrayDisk {
     """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
     numErrors: Long!
     """ (KB) Total Size of the FS (Not present on Parity type drive) """
-    fsSize: Long!
+    fsSize: Long
     """ (KB) Free Size on the FS (Not present on Parity type drive)"""
-    fsFree: Long!
+    fsFree: Long
     """ (KB) Used Size on the FS (Not present on Parity type drive)"""
-    fsUsed: Long!
+    fsUsed: Long
     exportable: Boolean
     """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """
     type: ArrayDiskType!

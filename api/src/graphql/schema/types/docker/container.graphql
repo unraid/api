@@ -1,8 +1,6 @@
 type Query {
-    """Docker container"""
-    dockerContainer(id: ID!): DockerContainer! @func(module: "getDockerContainer")
     """All Docker containers"""
-    dockerContainers(all: Boolean): [DockerContainer]! @func(module: "getDockerContainers")
+    dockerContainers(all: Boolean): [DockerContainer!]!
 }
 
 type Subscription {
@@ -11,20 +9,20 @@ type Subscription {
 }
 
 enum ContainerPortType {
-    tcp
-    udp
+    TCP
+    UDP
 }
 
 type ContainerPort {
-    ip: String!
+    ip: String
     privatePort: Int
     publicPort: Int
     type: ContainerPortType
 }
 
 enum ContainerState {
-    running
-    exited
+    RUNNING
+    EXITED
 }
 
 type ContainerHostConfig {
@@ -49,10 +47,11 @@ type DockerContainer {
     imageId: String!
     command: String!
     created: Int!
-    ports: [ContainerPort]
-    sizeRootFs: Int!
+    ports: [ContainerPort!]!
+    """ (B) Total size of all the files in the container """ 
+    sizeRootFs: Long
     labels: JSON
-    state: ContainerState
+    state: ContainerState!
     status: String!
     hostConfig: ContainerHostConfig
     networkSettings: JSON

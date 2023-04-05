@@ -4,7 +4,7 @@ import { dashboardLogger } from '@app/core/log';
 import { type NetworkInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
 import { logoutUser } from '@app/store/modules/config';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { MOTHERSHIP_CRITICAL_STATUSES } from '@app/store/types';
 
 interface DashboardState {
 	lastDataPacketTimestamp: number | null;
@@ -60,10 +60,7 @@ export const dashboard = createSlice({
 	},
 	extraReducers(builder) {
 		builder.addCase(setGraphqlConnectionStatus, (state, action) => {
-			if ([
-				MinigraphStatus.PRE_INIT,
-				MinigraphStatus.PING_FAILURE,
-			].includes(action.payload.status)) {
+			if (MOTHERSHIP_CRITICAL_STATUSES.includes(action.payload.status)) {
 				getPublishToDashboardJob().stop();
 				state.connectedToDashboard = 0;
 				state.lastDataPacket = null;

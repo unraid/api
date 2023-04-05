@@ -1,29 +1,7 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
-import { statSync, existsSync } from 'fs';
+import { existsSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { join } from 'path';
 import { getters } from '@app/store';
-
-// Consts
-const ONE_BYTE = 1;
-const ONE_KILOBYTE = ONE_BYTE * 1_000;
-const ONE_MEGABYTE = ONE_KILOBYTE * 1_000;
-const FIVE_MEGABYTE = ONE_MEGABYTE * 5;
-
-const isOverFileSizeLimit = (filePath: string, limit = FIVE_MEGABYTE) => {
-	try {
-		const stats = statSync(filePath);
-		const fileSizeInBytes = stats.size;
-		return fileSizeInBytes > limit;
-	} catch {
-		// File likely doesn't exist or there was another error
-		return true;
-	}
-};
 
 const states = {
 	// Success

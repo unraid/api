@@ -28,15 +28,6 @@ export const getWanPortForUpnp = (mappings: Mapping[] | null, minPort = PORT_RAN
 	return null;
 };
 
-export const parseStringToNumberOrNull = (myString: string): number | null => {
-	if (myString && !isNaN(Number(myString))) {
-		return Number(myString);
-	}
-
-	logger.error('Failed to parse "%s" to a number!', myString);
-	return null;
-};
-
 /**
  * @param param0 { localPortForUpnp, wanPortForUpnp }
  * @returns void

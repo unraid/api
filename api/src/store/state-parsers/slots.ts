@@ -1,5 +1,5 @@
 import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini';
-import { toNumber, toBoolean } from '@app/core/utils';
+import { toNumber, toBoolean, toNumberOrNull } from '@app/core/utils';
 import {
     ArrayDiskStatus,
     ArrayDiskType,
@@ -51,9 +51,9 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 id: slot.id,
                 device: slot.device,
                 exportable: toBoolean(slot.exportable),
-                fsFree: toNumber(slot.fsFree),
-                fsUsed: toNumber(slot.fsUsed),
-                fsSize: toNumber(slot.fsSize),
+                fsFree: toNumberOrNull(slot.fsFree),
+                fsUsed: toNumberOrNull(slot.fsUsed),
+                fsSize: toNumberOrNull(slot.fsSize),
                 idx: toNumber(slot.idx),
                 name: slot.name,
                 numErrors: toNumber(slot.numErrors),
@@ -62,7 +62,7 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 rotational: toBoolean(slot.rotational),
                 size: toNumber(slot.size),
                 status: ArrayDiskStatus[slot.status],
-                temp: toNumber(slot.temp),
+                temp: toNumberOrNull(slot.temp),
                 type: slot.type
                     ? ArrayDiskType[slot.type.toUpperCase()]
                     : undefined,

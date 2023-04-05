@@ -1,5 +1,5 @@
 import WebSocket from 'ws';
-import { FIVE_MINUTES_MS, KEEP_ALIVE_INTERVAL_MS, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { FIVE_MINUTES_MS, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getMothershipConnectionParams, getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
 import { getters, store } from '@app/store';
@@ -9,7 +9,7 @@ import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
-import { setMothershipTimeout } from '@app/store/modules/minigraph';
+import { receivedMothershipPing, setMothershipTimeout } from '@app/store/modules/minigraph';
 import { logoutUser } from '@app/store/modules/config';
 import { RetryLink } from '@apollo/client/link/retry';
 import { ErrorLink } from '@apollo/client/link/error';
@@ -40,7 +40,6 @@ export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
 export class GraphQLClient {
 	public static instance: ApolloClient<NormalizedCacheObject> | null = null;
 	public static client: Client | null = null;
-	public static pingAlarmTimeout: NodeJS.Timeout | null = null;
 	// eslint-disable-next-line @typescript-eslint/no-empty-function
 	private constructor() {}
 
@@ -83,9 +82,9 @@ export class GraphQLClient {
 			GraphQLClient.client = null;
 		}
 
+
 		GraphQLClient.instance = null;
 		GraphQLClient.client = null;
-		GraphQLClient.pingAlarmTimeout = null;
 	};
 
 	static createGraphqlClient() {
@@ -114,8 +113,10 @@ export class GraphQLClient {
 				// GQL Error Occurred, we should log and move on
 				minigraphLogger.info('GQL Error Encountered %o', handler.graphQLErrors);
 			} else if (handler.networkError) {
-				minigraphLogger.error('Network Error Encountered %o', handler.networkError);
-				store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR_RETRYING, error: handler.networkError.message }));
+				minigraphLogger.error('Network Error Encountered %s', handler.networkError.message);
+				if (getters.minigraph().status !== MinigraphStatus.ERROR_RETRYING) {
+					store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.ERROR_RETRYING, error: handler.networkError.message }));
+				}
 			}
 		});
 		const apolloClient = new ApolloClient({
@@ -144,18 +145,9 @@ export class GraphQLClient {
 
 		GraphQLClient.client.on('ping', () => {
 			// Received ping from mothership
-			if (GraphQLClient.pingAlarmTimeout) {
-				clearTimeout(GraphQLClient.pingAlarmTimeout);
-				GraphQLClient.pingAlarmTimeout = null;
-			}
-
-			minigraphLogger.trace('ping');
-			GraphQLClient.pingAlarmTimeout = setTimeout(() => {
-				if (getters.minigraph().status === MinigraphStatus.CONNECTED) {
-					minigraphLogger.error(`NO PINGS RECEIVED IN ${KEEP_ALIVE_INTERVAL_MS / 1_000}, SOCKET MUST BE RECONNECTED`);
-					store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PING_FAILURE, error: 'Ping Receive Exceeded Timeout' }));
-				}
-			}, KEEP_ALIVE_INTERVAL_MS);
+			minigraphLogger.trace('ping')
+			store.dispatch(receivedMothershipPing())
+			
 		});
 		return apolloClient;
 	}

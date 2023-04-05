@@ -289,7 +289,7 @@ export const publishNetwork = async () => {
 		const { lastNetworkPacket } = getters.dashboard();
 		const { apikey: apiKey } = getters.config().remote;
 		if (isEqual(JSON.stringify(lastNetworkPacket), JSON.stringify(validatedNetwork))) {
-			dashboardLogger.trace('Skipping sending network update as it is the same as the last one');
+			dashboardLogger.trace('[DASHBOARD] Skipping Update');
 		} else if (client) {
 			dashboardLogger.addContext('data', validatedNetwork);
 			dashboardLogger.info('Sending data packet for network');

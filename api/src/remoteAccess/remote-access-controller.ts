@@ -1,4 +1,3 @@
-import { TEN_MINUTES_MS } from '@app/consts';
 import { remoteAccessLogger } from '@app/core/log';
 import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
 import { RemoteAccessEventActionType, type RemoteAccessInput } from '@app/graphql/generated/client/graphql';
@@ -9,12 +8,11 @@ import { StaticRemoteAccess } from '@app/remoteAccess/handlers/static-remote-acc
 import { UpnpRemoteAccess } from '@app/remoteAccess/handlers/upnp-remote-access';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { type AppDispatch, type RootState } from '@app/store/index';
-import { setDynamicRemoteAccessError, setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access';
+import { clearPing, receivedPing, setDynamicRemoteAccessError, setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access';
 export class RemoteAccessController implements IRemoteAccessController {
 	static _instance: RemoteAccessController | null = null;
 	activeRemoteAccess: UpnpRemoteAccess | StaticRemoteAccess | null = null;
 	notifier: UnraidLocalNotifier = new UnraidLocalNotifier({ level: 'info' });
-	timeout: NodeJS.Timeout | null = null;
 
 	// eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
 	constructor() {}
@@ -88,7 +86,7 @@ export class RemoteAccessController implements IRemoteAccessController {
 			const result = await this.activeRemoteAccess?.beginRemoteAccess({ getState, dispatch });
 			await this.sendRemoteAccessEvent({ apiKey: apikey, type: RemoteAccessEventActionType.ACK, url: result });
 			dispatch(setRemoteAccessRunningType(dynamicRemoteAccessType));
-			this.extendRemoteAccess({ getState, dispatch });
+			this.extendRemoteAccess({ dispatch });
 			await this.notifier.send({ title: 'Remote Access Started', data: { message: 'Remote access has been started' } });
 		} catch (error: unknown) {
 			dispatch(setDynamicRemoteAccessError(error instanceof Error ? error.message : 'Unknown Error'));
@@ -97,25 +95,14 @@ export class RemoteAccessController implements IRemoteAccessController {
 		return null;
 	}
 
-	private readonly clearRemoteAccessTimeout = () => {
-		if (this.timeout) {
-			clearTimeout(this.timeout);
-			this.timeout = null;
-		}
-	};
-
-	public extendRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
-		this.clearRemoteAccessTimeout();
-
-		this.timeout = setTimeout(async () => {
-			await this.stopRemoteAccess({ getState, dispatch });
-		}, TEN_MINUTES_MS);
+	public extendRemoteAccess({ dispatch }: { dispatch: AppDispatch }) {
+		dispatch(receivedPing());
 	}
 
 	async stopRemoteAccess({ getState, dispatch }: { getState: () => RootState; dispatch: AppDispatch }) {
 		remoteAccessLogger.debug('Stopping remote access');
 		const { config: { remote: { apikey } } } = getState();
-		this.clearRemoteAccessTimeout();
+		dispatch(clearPing())
 		await this.activeRemoteAccess?.stopRemoteAccess({ getState, dispatch });
 
 		dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));

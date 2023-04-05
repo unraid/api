@@ -119,9 +119,9 @@ type Vars {
     regCheck: String
     regFile: String
     regGuid: String
-    """Registration type"""
-    regTy: registrationType
-    regState: registrationState
+    """Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now """
+    regTy: String 
+    regState: RegistrationState
     """Registration owner"""
     regTo: String
     regTm: String
@@ -194,44 +194,76 @@ enum registrationType {
     TRIAL
 }
 
-enum registrationState {
-    """Trial"""
+enum RegistrationState {
+    """
+    Trial
+    """
     TRIAL
-    """Basic"""
-	BASIC
-    """Plus"""
-	PLUS
-    """Pro"""
-	PRO
-    """Trial Expired"""
-	EEXPIRED
-    """GUID Error"""
-	EGUID
-    """Multiple License Keys Present"""
-	EGUID1
-    """Invalid installation"""
-	ETRIAL
-    """No Keyfile"""
+    """
+    Basic
+    """
+    BASIC
+    """
+    Plus
+    """
+    PLUS
+    """
+    Pro
+    """
+    PRO
+    """
+    Trial Expired
+    """
+    EEXPIRED
+    """
+    GUID Error
+    """
+    EGUID
+    """
+    Multiple License Keys Present
+    """
+    EGUID1
+    """
+    Invalid installation
+    """
+    ETRIAL
+    """
+    No Keyfile
+    """
     ENOKEYFILE
-    """No Keyfile"""
+    """
+    No Keyfile
+    """
     ENOKEYFILE1
-    """Missing key file"""
-	ENOKEYFILE2
-    """No Flash"""
-	ENOFLASH
-	ENOFLASH1
-	ENOFLASH2
-	ENOFLASH3
-	ENOFLASH4
-	ENOFLASH5
-	ENOFLASH6
-	ENOFLASH7
-    """BLACKLISTED"""
-	EBLACKLISTED
-    """BLACKLISTED"""
-	EBLACKLISTED1
-    """BLACKLISTED"""
-	EBLACKLISTED2
-    """Trial Requires Internet Connection"""
-	ENOCONN
+    """
+    Missing key file
+    """
+    ENOKEYFILE2
+    """
+    No Flash
+    """
+    ENOFLASH
+    ENOFLASH1
+    ENOFLASH2
+    ENOFLASH3
+    ENOFLASH4
+    ENOFLASH5
+    ENOFLASH6
+    ENOFLASH7
+    """
+    BLACKLISTED
+    """
+    EBLACKLISTED
+    """
+    BLACKLISTED
+    """
+    EBLACKLISTED1
+    """
+    BLACKLISTED
+    """
+    EBLACKLISTED2
+    """
+    Trial Requires Internet Connection
+    """
+    ENOCONN
 }

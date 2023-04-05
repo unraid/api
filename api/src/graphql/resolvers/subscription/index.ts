@@ -3,14 +3,8 @@
  * Written by: Alexis Tyler
  */
 
-import { type GraphQLResolveInfo } from 'graphql';
-import { AppError } from '@app/core/errors/app-error';
-import { pubsub } from '@app/core/pubsub';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { hasSubscribedToChannel } from '@app/ws';
+import { type Resolvers } from '@app/graphql/generated/api/types';
 import { createSubscription } from '@app/graphql/schema/utils';
-import { store } from '@app/store';
-import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
 
 export function withCancel<T>(
 	asyncIterator: AsyncIterator<T | undefined>,
@@ -29,7 +23,7 @@ export function withCancel<T>(
 	return asyncIterator;
 }
 
-export const Subscription = {
+export const Subscription: Resolvers['Subscription'] = {
 	display: {
 		...createSubscription('display'),
 	},
@@ -51,9 +45,6 @@ export const Subscription = {
 	},
 	info: {
 		...createSubscription('info'),
-	},
-	services: {
-		...createSubscription('services'),
 	},
 	servers: {
 		...createSubscription('servers'),
@@ -81,32 +72,5 @@ export const Subscription = {
 	},
 	owner: {
 		...createSubscription('owner'),
-	},
-	dashboard: {
-		async subscribe(rootValue, args, context, _: GraphQLResolveInfo) {
-			if (!context.user) {
-				throw new AppError('<ws> No user found in context.', 500);
-			}
-
-			// Check the user has permission to subscribe to this endpoint
-			ensurePermission(context.user, {
-				resource: 'dashboard',
-				action: 'read',
-				possession: 'any',
-			});
-
-			// Mark channel as subscribed
-			hasSubscribedToChannel(context.websocketId, 'dashboard');
-
-			// Start producer
-			store.dispatch(startDashboardProducer());
-
-			// Return iterator with a cancel method that'll stop the producer
-			const iterator = pubsub.asyncIterator('dashboard');
-			return withCancel(iterator, async () => {
-				// Stop producer
-				store.dispatch(stopDashboardProducer());
-			});
-		},
 	},
 };

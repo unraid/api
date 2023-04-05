@@ -219,6 +219,21 @@ exports[`Returns default permissions 1`] = `
         "attributes": "*",
         "resource": "unraid-version",
       },
+      {
+        "action": "read:any",
+        "attributes": "*",
+        "resource": "array",
+      },
+      {
+        "action": "read:any",
+        "attributes": "*",
+        "resource": "docker/container",
+      },
+      {
+        "action": "read:any",
+        "attributes": "*",
+        "resource": "docker/network",
+      },
     ],
   },
   "notifier": {

@@ -42,3 +42,9 @@ mutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {
 	remoteSession(remoteAccess: $remoteAccess)
 }
 `);
+
+export const SEND_REMOTE_QUERY_RESPONSE = graphql(/* GraphQL */ `
+    mutation sendRemoteGraphQLResponse($input: RemoteGraphQLServerInput!) {
+        remoteGraphQLResponse(input: $input)
+    }
+`);

@@ -39,6 +39,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
 	},
 });
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const getLocalServer = (): [Server] => {
 	const emhttp = getters.emhttp();
 	const guid = emhttp.var.regGuid;

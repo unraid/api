@@ -2,104 +2,141 @@
 import { minigraphLogger, mothershipLogger } from '@app/core/log';
 import { GraphQLClient } from './graphql-client';
 import { store } from '@app/store';
-import { startDashboardProducer, stopDashboardProducer } from '@app/store/modules/dashboard';
-import { EVENTS_SUBSCRIPTION, RemoteAccess_Fragment } from '../graphql/mothership/subscriptions';
+import {
+    startDashboardProducer,
+    stopDashboardProducer,
+} from '@app/store/modules/dashboard';
+
+import {
+    EVENTS_SUBSCRIPTION,
+    RemoteAccess_Fragment,
+    RemoteGraphQL_Fragment,
+} from '@app/graphql/mothership/subscriptions';
+
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
 import { queryServers } from '@app/store/actions/query-servers';
-import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
 import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access-event';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
-import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
-
-let timeoutForOnlineEventReceive: NodeJS.Timeout | null = null;
-
-const setupTimeoutForSelfDisconnectedEvent = () => {
-	minigraphLogger.error(`Received disconnect event for own server, waiting for ${KEEP_ALIVE_INTERVAL_MS / 1_000} seconds before setting disconnected`);
-	// We have somehow received a disconnected event for ourselves. This can sometimes happen when the event bus unsubscribes us after a long running loop
-	timeoutForOnlineEventReceive = setTimeout(() => {
-		store.dispatch(setGraphqlConnectionStatus({ status: MinigraphStatus.PING_FAILURE, error: 'Received disconnect event for own server' }));
-	}, KEEP_ALIVE_INTERVAL_MS);
-};
-
-const clearTimeoutForSelfDisconnectedEvent = () => {
-	if (timeoutForOnlineEventReceive) {
-		mothershipLogger.trace('Cleared timeout for online event receive');
-		clearTimeout(timeoutForOnlineEventReceive);
-	}
-
-	timeoutForOnlineEventReceive = null;
-};
+import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
+import {
+    setSelfDisconnected,
+    setSelfReconnected,
+} from '@app/store/modules/minigraph';
 
 export const subscribeToEvents = async (apiKey: string) => {
-	minigraphLogger.info('Subscribing to Events');
-	const client = GraphQLClient.getInstance();
-	if (!client) {
-		throw new Error('Unable to use client - state must not be loaded');
-	}
+    minigraphLogger.info('Subscribing to Events');
+    const client = GraphQLClient.getInstance();
+    if (!client) {
+        throw new Error('Unable to use client - state must not be loaded');
+    }
 
-	const eventsSub = client.subscribe({ query: EVENTS_SUBSCRIPTION, variables: { apiKey }, fetchPolicy: 'no-cache' });
-	eventsSub.subscribe(async ({ data, errors }) => {
-		if (errors) {
-			mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
-		} else if (data) {
-			mothershipLogger.trace('Got events from mothership %o', data.events);
-			for (const event of data.events?.filter(notNull) ?? []) {
-				switch (event.__typename) {
-					case 'ClientConnectedEvent': {
-						const { connectedData: { type, apiKey: eventApiKey } } = event;
-						// Another server connected to Mothership
-						if (type === ClientType.API) {
-							void store.dispatch(queryServers());
+    const eventsSub = client.subscribe({
+        query: EVENTS_SUBSCRIPTION,
+        fetchPolicy: 'no-cache',
+    });
+    eventsSub.subscribe(async ({ data, errors }) => {
+        if (errors) {
+            mothershipLogger.error(
+                'GraphQL Error with events subscription: %s',
+                errors.join(',')
+            );
+        } else if (data) {
+            mothershipLogger.addContext('events', data.events);
+            mothershipLogger.trace('Got events from mothership');
+            mothershipLogger.removeContext('events');
 
-							if (eventApiKey === apiKey) {
-								// We are online, clear timeout waiting if it's set
-								clearTimeoutForSelfDisconnectedEvent();
-							}
-						}
+            for (const event of data.events?.filter(notNull) ?? []) {
+                switch (event.__typename) {
+                    case 'ClientConnectedEvent': {
+                        const {
+                            connectedData: { type, apiKey: eventApiKey },
+                        } = event;
+                        // Another server connected to Mothership
+                        if (type === ClientType.API) {
+                            void store.dispatch(queryServers());
 
-						// Dashboard Connected to Mothership
-						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
-							store.dispatch(startDashboardProducer());
-						}
+                            if (eventApiKey === apiKey) {
+                                // We are online, clear timeout waiting if it's set
+                                store.dispatch(setSelfReconnected());
+                            }
+                        }
 
-						break;
-					}
+                        // Dashboard Connected to Mothership
 
-					case 'ClientDisconnectedEvent': {
-						const { disconnectedData: { type, apiKey: eventApiKey } } = event;
-						// Server Disconnected From Mothership
-						if (type === ClientType.API) {
-							void store.dispatch(queryServers());
+                        if (
+                            type === ClientType.DASHBOARD &&
+                            apiKey === eventApiKey
+                        ) {
+                            store.dispatch(startDashboardProducer());
+                        }
 
-							if (eventApiKey === apiKey) {
-								setupTimeoutForSelfDisconnectedEvent();
-							}
-						}
+                        break;
+                    }
 
-						// The dashboard was closed or went idle
-						if (type === ClientType.DASHBOARD && apiKey === eventApiKey) {
-							store.dispatch(stopDashboardProducer());
-						}
+                    case 'ClientDisconnectedEvent': {
+                        const {
+                            disconnectedData: { type, apiKey: eventApiKey },
+                        } = event;
+                        // Server Disconnected From Mothership
+                        if (type === ClientType.API) {
+                            void store.dispatch(queryServers());
 
-						break;
-					}
+                            if (eventApiKey === apiKey) {
+                                store.dispatch(setSelfDisconnected());
+                            }
+                        }
 
-					case 'RemoteAccessEvent': {
-						const eventAsRemoteAccessEvent = useFragment(RemoteAccess_Fragment, event);
+                        // The dashboard was closed or went idle
 
-						if (eventAsRemoteAccessEvent.data.apiKey === apiKey) {
-							void store.dispatch(handleRemoteAccessEvent(eventAsRemoteAccessEvent));
-						}
+                        if (
+                            type === ClientType.DASHBOARD &&
+                            apiKey === eventApiKey
+                        ) {
+                            store.dispatch(stopDashboardProducer());
+                        }
 
-						break;
-					}
+                        break;
+                    }
 
-					default:
-						break;
-				}
-			}
-		}
-	});
+                    case 'RemoteAccessEvent': {
+                        const eventAsRemoteAccessEvent = useFragment(
+                            RemoteAccess_Fragment,
+                            event
+                        );
+
+                        if (eventAsRemoteAccessEvent.data.apiKey === apiKey) {
+                            void store.dispatch(
+                                handleRemoteAccessEvent(
+                                    eventAsRemoteAccessEvent
+                                )
+                            );
+                        }
+
+                        break;
+                    }
+
+                    case 'RemoteGraphQLEvent': {
+                        const eventAsRemoteGraphQLEvent = useFragment(
+                            RemoteGraphQL_Fragment,
+                            event
+                        );
+                        // No need to check API key here anymore
+
+                        void store.dispatch(
+                            handleRemoteGraphQLEvent(eventAsRemoteGraphQLEvent)
+                        );
+                        break;
+                    }
+
+                    case 'UpdateEvent': {
+                        break;
+                    }
+
+                    default:
+                        break;
+                }
+            }
+        }
+    });
 };

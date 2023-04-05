@@ -12,10 +12,10 @@ type Subscription {
 type Share {
     """Display name"""
     name: String
-    """Free space in bytes"""
-    free: Int
-    """Total size in bytes"""
-    size: Int
+    """(KB) Free space in bytes"""
+    free: Long
+    """(KB) Total size"""
+    size: Long
     """Disks that're included in this share"""
     include: [String]
     """Disks that're excluded from this share"""

@@ -45,6 +45,10 @@ export const startStoreSync = async () => {
                 join(state.paths.states, 'servers.log'),
                 JSON.stringify(state.servers, null, 2)
             );
+            writeFileSync(
+                join(state.paths.states, 'graphql.log'),
+                JSON.stringify(state.minigraph, null, 2)
+            );
         }
 
         lastState = state;
@@ -52,4 +56,3 @@ export const startStoreSync = async () => {
 
     setupConfigPathWatch();
 };
-
