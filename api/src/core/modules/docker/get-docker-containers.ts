@@ -52,7 +52,7 @@ export const getDockerContainers: QueryResolvers['dockerContainers'] = async (_,
 				// @ts-expect-error sizeRootFs is not on the dockerode type, but is fetched when size: true is set
 				sizeRootFs: container.sizeRootFs ?? undefined,
 				imageId: container.imageID,
-				state: typeof container.state === 'string' ? ContainerState[container.state.toUpperCase()] : ContainerState.EXITED,
+				state: typeof container?.state === 'string' ? ContainerState[container.state.toUpperCase()] ?? ContainerState.EXITED : ContainerState.EXITED,
 				autoStart: autoStarts.includes(names.split('/')[1]),
 				ports: container.ports.map<ContainerPort>(port => ({
 					...port,
