@@ -10,22 +10,27 @@ import { isEqual } from 'lodash';
 export const enableArrayEventListener = () =>
     startAppListening({
         matcher: isAnyOf(loadSingleStateFile.fulfilled),
-        effect(action, { getState, getOriginalState }) {
+        async effect(
+            action,
+            { getState, getOriginalState, delay, unsubscribe, subscribe }
+        ) {
             if (
                 loadSingleStateFile.fulfilled.match(action) &&
                 action.meta.arg === StateFileKey.disks
             ) {
+                unsubscribe();
+                // getOriginalState must be called BEFORE the awaited delay in this function
                 const oldArrayData = getArrayData(getOriginalState);
+                await delay(5_000);
                 const array = getArrayData(getState);
-                if (isEqual(oldArrayData, array)) {
-                    // Field updated that didn't require a publish
-                    return;
+                if (!isEqual(oldArrayData, array)) {
+                    pubsub.publish('array', { array });
+                    logger.addContext('event', array);
+                    logger.debug('Array was updated, publishing event');
+                    logger.removeContext('event');
                 }
-                logger.addContext('event', array);
-                logger.debug('Array was updated, publishing event');
-                logger.removeContext('event');
 
-                pubsub.publish('array', { array });
+                subscribe();
             }
         },
     });
