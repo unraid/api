@@ -1,8 +1,9 @@
-import { KEEP_ALIVE_INTERVAL_MS, TEN_MINUTES_MS } from '@app/consts';
+import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS, TEN_MINUTES_MS, THREE_MINUTES_MS } from '@app/consts';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
+import { sendMothershipPing } from '@app/store/actions/ping-mothership';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { store } from '@app/store/index';
 import { setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access';
@@ -84,5 +85,28 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
             store.dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
             
         }
+
+        // Send ping to mothership if we last sent one more than 3 minutes ago
+        if (state.minigraph.status === MinigraphStatus.CONNECTED && (state.minigraph.lastSelfPingSend && Date.now() - state.minigraph.lastSelfPingSend > TEN_MINUTES_MS || state.minigraph.lastSelfPingSend === null)) {
+            await store.dispatch(sendMothershipPing())
+        }
+
+        // @TODO - swap to exclusively this method once we see how the load is when manually pinging
+        if (state.minigraph.status === MinigraphStatus.CONNECTED) {
+            const lastSentPing = state.minigraph.lastSelfPingSend;
+            const lastReceivedPing = state.minigraph.lastSelfPingReceive;
+            if (lastSentPing) {
+                const pingWasSentOverThreeMinutesAgo = Date.now() - lastSentPing >= THREE_MINUTES_MS
+                const noReceivedPingOrPingbackReceivedOverOneMinuteAgo = !lastReceivedPing || Math.abs(lastReceivedPing - lastSentPing) > ONE_MINUTE_MS;
+                // Didn't receive pingback within 2 minutes
+                if (pingWasSentOverThreeMinutesAgo && noReceivedPingOrPingbackReceivedOverOneMinuteAgo) {
+                    store.dispatch(setGraphqlConnectionStatus({
+                        status: MinigraphStatus.PING_FAILURE,
+                        error: 'Did not receive a pingback from status within 1 minutes'
+                    }))
+                }
+            }
+        }
     }
+
 }

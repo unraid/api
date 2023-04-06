@@ -20,6 +20,7 @@ import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
 import {
+    selfPingReceive,
     setSelfDisconnected,
     setSelfReconnected,
 } from '@app/store/modules/minigraph';
@@ -129,7 +130,8 @@ export const subscribeToEvents = async (apiKey: string) => {
                         break;
                     }
 
-                    case 'UpdateEvent': {
+                    case 'ClientPingEvent': {
+                        store.dispatch(selfPingReceive())
                         break;
                     }
 

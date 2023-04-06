@@ -4,11 +4,14 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { loginUser, logoutUser } from '@app/store/modules/config';
 import { minigraphLogger } from '@app/core/log';
 import { KEEP_ALIVE_INTERVAL_MS } from '@app/consts';
+import { sendMothershipPing } from '@app/store/actions/ping-mothership';
 
 export type MinigraphClientState = {
     status: MinigraphStatus;
     error: string | null;
     lastPing: number | null;
+    lastSelfPingSend: number | null;
+    lastSelfPingReceive: number | null;
     selfDisconnectedSince: number | null;
     timeout: number | null;
     timeoutStart: number | null;
@@ -18,6 +21,8 @@ const initialState: MinigraphClientState = {
     status: MinigraphStatus.PRE_INIT,
     error: null,
     lastPing: null,
+    lastSelfPingSend: null,
+    lastSelfPingReceive: null,
     selfDisconnectedSince: null,
     timeout: null,
     timeoutStart: null,
@@ -48,6 +53,9 @@ export const mothership = createSlice({
             );
             state.selfDisconnectedSince = null;
         },
+        selfPingReceive(state) {
+            state.lastSelfPingReceive = Date.now();
+        }
     },
     extraReducers(builder) {
         builder.addCase(setGraphqlConnectionStatus, (state, action) => {
@@ -66,6 +74,8 @@ export const mothership = createSlice({
                 state.error = null;
                 state.timeout = null;
                 state.lastPing = null;
+                state.lastSelfPingSend = null;
+                state.lastSelfPingReceive = null;
                 state.selfDisconnectedSince = null;
                 state.timeoutStart = null;
             }
@@ -74,6 +84,8 @@ export const mothership = createSlice({
             state.timeout = null;
             state.timeoutStart = null;
             state.lastPing = null;
+            state.lastSelfPingSend = null;
+            state.lastSelfPingReceive = null;
             state.selfDisconnectedSince = null;
             state.status = MinigraphStatus.PRE_INIT;
             state.error =
@@ -84,9 +96,16 @@ export const mothership = createSlice({
             state.error = null;
             state.timeout = null;
             state.lastPing = null;
+
+            state.lastSelfPingSend = null;
+            state.lastSelfPingReceive = null;
             state.selfDisconnectedSince = null;
             state.timeoutStart = null;
             state.status = MinigraphStatus.PRE_INIT;
+        });
+
+        builder.addCase(sendMothershipPing.pending, (state) => {
+            state.lastSelfPingSend = Date.now();
         });
     },
 });
@@ -96,4 +115,5 @@ export const {
     receivedMothershipPing,
     setSelfDisconnected,
     setSelfReconnected,
+    selfPingReceive,
 } = mothership.actions;

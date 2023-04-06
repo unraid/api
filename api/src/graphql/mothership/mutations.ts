@@ -48,3 +48,9 @@ export const SEND_REMOTE_QUERY_RESPONSE = graphql(/* GraphQL */ `
         remoteGraphQLResponse(input: $input)
     }
 `);
+
+export const SEND_PING_MUTATION = graphql(/* GraphQL */`
+	mutation sendPingToMothership {
+		sendPing
+	}
+`)

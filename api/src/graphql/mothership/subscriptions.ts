@@ -27,6 +27,12 @@ export const RemoteAccess_Fragment = graphql(/* GraphQL */ `
     }
 `);
 
+export const PingEvent_Fragment = graphql(/* GraphQL */`
+    fragment PingEventFragment on ClientPingEvent {
+        type
+    }
+`)
+
 export const EVENTS_SUBSCRIPTION = graphql(/* GraphQL */ `
     subscription events {
         events {
@@ -49,6 +55,7 @@ export const EVENTS_SUBSCRIPTION = graphql(/* GraphQL */ `
             }
             ...RemoteAccessEventFragment
             ...RemoteGraphQLEventFragment
+            ...PingEventFragment
         }
     }
 `);
