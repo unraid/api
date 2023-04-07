@@ -1,19 +1,16 @@
 import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { loginUser, logoutUser } from '@app/store/modules/config';
+import { loadConfigFile, loginUser, logoutUser } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
+import { isAnyOf } from '@reduxjs/toolkit';
+
+const configLoadMatcher = isAnyOf(loadConfigFile.fulfilled);
 
 export const enableLoginListener = () => startAppListening({
-	predicate(_, currentState, previousState) {
-		if (currentState.config.status === FileLoadStatus.LOADED) {
-			if (currentState.config.remote.username === '' && previousState.config.remote.username !== '') {
-				return true;
-			}
+	matcher: configLoadMatcher,
+	async effect(action, { getState, dispatch }) {
+		if (getState().config.status === FileLoadStatus.LOADED && loadConfigFile.fulfilled.match(action) && !action.payload.remote.apikey) {
+			await dispatch(logoutUser({ reason: 'Logged out manually' }));
 		}
-
-		return false;
-	},
-	async effect(_, { dispatch }) {
-		await dispatch(logoutUser({ reason: 'Logged out manually' }));
 	},
 });
 
