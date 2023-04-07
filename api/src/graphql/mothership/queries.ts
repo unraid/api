@@ -8,8 +8,6 @@ query queryServersFromMothership($apiKey: String!) {
 			url
 			avatar
 		}
-		guid
-		apikey
 		name
 		status
 		wanip
@@ -18,5 +16,4 @@ query queryServersFromMothership($apiKey: String!) {
 		remoteurl
 	}
 }
-
 `);

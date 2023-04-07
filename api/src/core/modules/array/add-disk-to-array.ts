@@ -10,7 +10,7 @@ import { hasFields } from '@app/core/utils/validation/has-fields';
 import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
 import { emcmd } from '@app/core/utils/clients/emcmd';
 import { ArrayRunningError } from '@app/core/errors/array-running-error';
-import { getArray } from '@app/core/modules/get-array';
+import { getArrayData } from '@app/core/modules/array/get-array-data';
 
 /**
  * Add a disk to the array.
@@ -44,11 +44,11 @@ export const addDiskToArray = async function (context: CoreContext): Promise<Cor
 		[`slotId.${slot}`]: diskId,
 	});
 
-	const array = getArray(context);
+	const array = getArrayData()
 
 	// Disk added successfully
 	return {
 		text: `Disk was added to the array in slot ${slot}.`,
-		json: array.json,
+		json: array,
 	};
 };

@@ -22,7 +22,7 @@ export const enableConfigFileListener = (mode: ConfigType) => () => startAppList
 			const oldFlashConfig = previousState?.config ? getWriteableConfig(previousState.config, mode) : null;
 			const newFlashConfig = getWriteableConfig(currentState.config, mode);
 
-			if (!isEqual(oldFlashConfig, newFlashConfig) && action.type !== loadConfigFile.fulfilled.type) {
+			if (!isEqual(oldFlashConfig, newFlashConfig) && action.type !== loadConfigFile.fulfilled.type && action.type !== loadConfigFile.rejected.type) {
 				logger.addContext('configDiff', getDiff(oldFlashConfig ?? {}, newFlashConfig));
 				logger.trace(`${mode} Config Changed!`, 'Action:', action.type);
 				logger.removeContext('configDiff');

@@ -5,7 +5,6 @@
 
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char';
-import { getArray } from '@app/core/modules/get-array';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { hasFields } from '@app/core/utils/validation/has-fields';
 import { arrayIsRunning } from '@app/core/utils/array/array-is-running';
@@ -13,6 +12,7 @@ import { emcmd } from '@app/core/utils/clients/emcmd';
 import { FieldMissingError } from '@app/core/errors/field-missing-error';
 import { ParamInvalidError } from '@app/core/errors/param-invalid-error';
 import { AppError } from '@app/core/errors/app-error';
+import { getArrayData } from '@app/core/modules/array/get-array-data';
 
 // @TODO: Fix this not working across node apps
 //        each app has it's own lock since the var is scoped
@@ -68,7 +68,7 @@ export const updateArray = async (context: CoreContext): Promise<CoreResult> => 
 	});
 
 	// Get new array JSON
-	const array = getArray(context);
+	const array = getArrayData()
 
 	/**
      * Update array details
