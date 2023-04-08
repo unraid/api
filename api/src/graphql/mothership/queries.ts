@@ -8,6 +8,7 @@ query queryServersFromMothership($apiKey: String!) {
 			url
 			avatar
 		}
+		guid
 		name
 		status
 		wanip
