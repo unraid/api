@@ -6,8 +6,6 @@ import {
 } from '@apollo/client/core';
 import { onError } from '@apollo/client/link/error';
 import { INTERNAL_HTTP_LINK, INTERNAL_WS_LINK } from '@app/consts';
-import { WebSocketLink } from '@apollo/client/link/ws';
-import { SubscriptionClient } from 'subscriptions-transport-ws';
 import WebSocket from 'ws';
 import { fetch } from 'cross-fetch';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -36,7 +34,6 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
             'Content-Type': 'application/json',
         },
     });
-
 
     // Create the subscription websocket link
     const wsLink = new GraphQLWsLink(

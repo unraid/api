@@ -16,7 +16,7 @@ import { loadStateFiles } from '@app/store/modules/emhttp';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
-import { app, httpServer, server } from '@app/server';
+import { createApolloExpressServer } from '@app/server';
 import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
@@ -24,77 +24,80 @@ import { setupDockerWatch } from '@app/store/watch/docker-watch';
 import { environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
+import { type BaseContext, type ApolloServer } from '@apollo/server';
 
+let server: ApolloServer<BaseContext>;
 // Boot app
-void am(async () => {
-	environment.IS_MAIN_PROCESS = true;
-	const cacheable = new CacheableLookup();
+void am(
+    async () => {
+        environment.IS_MAIN_PROCESS = true;
+        const cacheable = new CacheableLookup();
 
-	// Ensure all DNS lookups are cached for their TTL
-	cacheable.install(http.globalAgent);
-	cacheable.install(https.globalAgent);
+        // Ensure all DNS lookups are cached for their TTL
+        cacheable.install(http.globalAgent);
+        cacheable.install(https.globalAgent);
 
-	// Start file <-> store sync
-	// Must occur before config is loaded to ensure that the handler can fix broken configs
-	await startStoreSync();
+        // Start file <-> store sync
+        // Must occur before config is loaded to ensure that the handler can fix broken configs
+        await startStoreSync();
 
-	// Load my servers config file into store
-	await store.dispatch(loadConfigFile());
+        // Load my servers config file into store
+        await store.dispatch(loadConfigFile());
 
-	// Load emhttp state into store
-	await store.dispatch(loadStateFiles());
+        // Load emhttp state into store
+        await store.dispatch(loadStateFiles());
 
-	// Load initial registration key into store
-	await store.dispatch(loadRegistrationKey());
+        // Load initial registration key into store
+        await store.dispatch(loadRegistrationKey());
 
-	// Start listening to file updates
-	StateManager.getInstance();
+        // Start listening to file updates
+        StateManager.getInstance();
 
-	// Start listening to key file changes
-	setupRegistrationKeyWatch();
+        // Start listening to key file changes
+        setupRegistrationKeyWatch();
 
-	// Start listening to docker events
-	setupDockerWatch();
+        // Start listening to docker events
+        setupDockerWatch();
 
-	// Try and load the HTTP server
-	logger.debug('Starting HTTP server');
+        // Try and load the HTTP server
+        logger.debug('Starting HTTP server');
 
-	// Disabled until we need the access token to work
-	// TokenRefresh.init();
+        // Disabled until we need the access token to work
+        // TokenRefresh.init();
 
-	// If port is unix socket, delete old socket before starting http server
-	if (isNaN(parseInt(config.port, 10))) {
-		if (fileExistsSync(config.port)) unlinkSync(config.port);
-	}
+        // If port is unix socket, delete old socket before starting http server
+        if (isNaN(parseInt(config.port, 10))) {
+            if (fileExistsSync(config.port)) unlinkSync(config.port);
+        }
 
-	// Start apollo
-	await server.start();
-	server.applyMiddleware({ app });
+        // Start webserver
+        server = await createApolloExpressServer(config.port);
 
-	// Start webserver
-	httpServer.listen(config.port);
+        PingTimeoutJobs.init();
 
-	PingTimeoutJobs.init();
+        // On process exit stop HTTP server - this says it supports async but it doesnt seem to
+        exitHook(() => {
+            // If port is unix socket, delete socket before exiting
+            if (isNaN(parseInt(config.port, 10))) {
+                if (fileExistsSync(config.port)) unlinkSync(config.port);
+            }
 
-	// On process exit stop HTTP server - this says it supports async but it doesnt seem to
-	exitHook(() => {
-		// If port is unix socket, delete socket before exiting
-		if (isNaN(parseInt(config.port, 10))) {
-			if (fileExistsSync(config.port)) unlinkSync(config.port);
-		}
+            shutdownApiEvent();
+            process.exitCode = 0;
+        });
+    },
+    async (error: NodeJS.ErrnoException) => {
+        // Log error to syslog
+        logger.error('API-GLOBAL-ERROR', error);
+        shutdownApiEvent();
 
-		shutdownApiEvent();
-		process.exitCode = 0;
-	});
-}, async (error: NodeJS.ErrnoException) => {
-	// Log error to syslog
-	logger.error('API-GLOBAL-ERROR', error);
-	shutdownApiEvent();
+        // Stop server
+        logger.debug('Stopping HTTP server');
+        if (server) {
+            await server.stop();
+        }
 
-	// Stop server
-	logger.debug('Stopping HTTP server');
-	await server.stop();
-
-	// Kill application
-	process.exitCode = 1;
-});
+        // Kill application
+        process.exitCode = 1;
+    }
+);
