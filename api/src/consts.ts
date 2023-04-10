@@ -5,7 +5,6 @@ const internalWsAddress = (isHttp = true) => {
     const port = config.port as number | string;
     const protocol = isHttp ? 'http' : 'ws';
     if (port.toString().includes('.sock')) {
-        console.log(port);
         // Prod mode
         return `${protocol}://localhost/graphql`;
     }
