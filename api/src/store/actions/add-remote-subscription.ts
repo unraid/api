@@ -70,7 +70,7 @@ export const addRemoteSubscription = createAsyncThunk<
                 } catch (error) {
                     remoteQueryLogger.info('Failed to mutate error result to endpoint')
                 }
-                remoteQueryLogger.error(errorValue);
+                remoteQueryLogger.error('Error executing remote subscription: %o', errorValue);
             },
         });
 

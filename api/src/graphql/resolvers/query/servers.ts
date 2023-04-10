@@ -17,8 +17,8 @@ export const servers: NonNullable<Resolvers['Query']>['servers'] = async (_, __,
 	// All servers
 	const servers = getServers().map(server => ({
 		...server,
-		apikey: '',
-		guid: '',
+		apikey: server.apikey ?? '',
+		guid: server.guid ?? '',
 		lanip: server.lanip ?? '',
 		localurl: server.localurl ?? '',
 		wanip: server.wanip ?? '',
