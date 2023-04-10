@@ -38,6 +38,7 @@
     "lint:fix": "DEBUG=eslint:cli-engine eslint . --fix --config .eslintrc.cjs",
     "test:watch": "vitest --segfault-retry=3 --no-threads",
     "test": "vitest run --segfault-retry=3 --no-threads",
+    "coverage": "vitest run --coverage",
     "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.cjs",
     "release": "standard-version",
     "update-bundle-dependencies": "bundle-dependencies update",
