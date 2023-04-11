@@ -497,15 +497,26 @@ ln -s /usr/local/bin/unraid-api/unraid-api /usr/local/sbin/unraid-api
 if [[ "${version:0:3}" != "6.9" ]]; then
   CHANGED=no
   FILE=/etc/nginx/nginx.conf
+  # brings older versions of Unraid in sync with 6.12.0
   if grep -q "SAMEORIGIN" "${FILE}"; then
     CHANGED=yes
     cp "$FILE" "$FILE-"
     OLD="add_header X-Frame-Options 'SAMEORIGIN';"
-    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ \";"
-    [[ "${PLGTYPE}" = "staging" ]] && NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
+    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
     sed -i "s#${OLD}#${NEW}#" "${FILE}"
   fi
+  if  [ "${PLGTYPE}" = "staging" ]; then
+    # staging plugin allows an additional origin
+    if ! grep -q "dev-my.myunraid.net:4000" "${FILE}"; then
+      CHANGED=yes
+      [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-"
+      OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
+      NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
+      sed -i "s#${OLD}#${NEW}#" "${FILE}"
+    fi
+  fi
   FILE=/etc/rc.d/rc.nginx
+  # brings older versions of Unraid in sync with 6.12.0
   if ! grep -q "#robots.txt any origin" "${FILE}"; then
     CHANGED=yes
     cp "$FILE" "$FILE-"
