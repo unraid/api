@@ -11,6 +11,7 @@ interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
 	'x-flash-guid': string;
 	'x-unraid-api-version': string;
 	'x-unraid-server-version': string;
+	'User-Agent': string;
 }
 
 export const getMothershipWebsocketHeaders = (state = store.getState()): MothershipWebsocketHeaders | OutgoingHttpHeaders => {
@@ -22,6 +23,7 @@ export const getMothershipWebsocketHeaders = (state = store.getState()): Mothers
 			'x-flash-guid': emhttp.var.flashGuid,
 			'x-unraid-api-version': API_VERSION,
 			'x-unraid-server-version': emhttp.var.version,
+			'User-Agent': `unraid-api/${API_VERSION}`
 		};
 		return headers;
 	}
