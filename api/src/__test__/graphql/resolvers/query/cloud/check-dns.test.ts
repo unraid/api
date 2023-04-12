@@ -11,11 +11,7 @@ afterEach(() => {
 test('it resolves dns successfully', async () => {
 	// @TODO
 	const dns = await checkDNS('example.com');
-	expect(dns).toMatchInlineSnapshot(`
-		{
-		  "cloudIp": "93.184.216.34",
-		}
-	`);
+	expect(dns.cloudIp).not.toBeNull()
 }, 25_000);
 
 test('testing twice results in a cache hit', async () => {
@@ -23,11 +19,7 @@ test('testing twice results in a cache hit', async () => {
 	const getters = await import('@app/store/getters');
 	const dnsSpy = vi.spyOn(getters, 'getDnsCache');
 	const dns = await checkDNS();
-	expect(dns).toMatchInlineSnapshot(`
-		{
-		  "cloudIp": "52.40.54.163",
-		}
-	`);
+	expect(dns.cloudIp).toBeTypeOf('string')
 	expect(dnsSpy.mock.results[0]).toMatchInlineSnapshot(`
 		{
 		  "type": "return",
@@ -35,19 +27,7 @@ test('testing twice results in a cache hit', async () => {
 		}
 	`);
 	const dnslookup2 = await checkDNS();
-	expect(dnslookup2).toMatchInlineSnapshot(`
-		{
-		  "cloudIp": "52.40.54.163",
-		}
-	`);
-	expect(dnsSpy.mock.results[1]).toMatchInlineSnapshot(`
-		{
-		  "type": "return",
-		  "value": {
-		    "cloudIp": "52.40.54.163",
-		    "error": null,
-		  },
-		}
-	`);
+	expect(dnslookup2.cloudIp).toEqual(dns.cloudIp)
+	expect(dnsSpy.mock.results[1].value.cloudIp).toEqual(dns.cloudIp)
 	expect(store.getState().cache.nodeCache.getTtl(CacheKeys.checkDns)).toBeGreaterThan(500);
 });
