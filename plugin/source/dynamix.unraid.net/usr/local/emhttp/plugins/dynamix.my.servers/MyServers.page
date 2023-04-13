@@ -95,6 +95,7 @@ if ($dynamicRemoteAccessType === 'STATIC') {
 <script>
 const oldVersion = <?=($oldVersion ? 'true' : 'false')?>;
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
+const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
 let wanAccessEnabled = $('#wanaccess').val() === 'yes'; // changes when changeRemoteAccess() is fired
 let enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
 // we don't set `enableRemoteT2fa` here b/c we need to read the value of `wanAccessEnabled` directly before submission
@@ -158,22 +159,6 @@ function registerServer(button) {
 
     console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
 
-    var oldlabel = $.trim($(button).text());
-    var failure = function(data) {
-        var status = data.status;
-        var obj = data.responseJSON;
-        var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
-        $(button).prop("disabled", false).html(oldlabel);
-        swal({
-          title: "Oops",
-          text: msg,
-          type: "error",
-          html: true,
-          confirmButtonText: "_(Ok)_"
-        });
-    };
-
-    var success = function(data) {
         const wanAccessEnabled = computedRemoteAccessConfig.remote_wanaccess === 'yes';
         const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
 
@@ -187,12 +172,7 @@ function registerServer(button) {
         };
 
         console.debug(JSON.stringify(postobj,null,2))
-
-        if (data && data.apikey) {
-            postobj["remote_apikey"] = data.apikey;
-        }
-
-        $(button).prop("disabled", false).html(oldlabel);
+        $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
         $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
 <?if(!$isRegistered):?>
             swal({
@@ -206,16 +186,14 @@ function registerServer(button) {
               button.form.submit();
             });
 <?else:?>
-            button.form.submit();
+      const delay = (wanAccessOrg === computedRemoteAccessConfig.remote_wanaccess) ? 10 : 4000;
+      setTimeout(function() {
+        console.debug("waited "+delay+"ms");
+        button.form.submit();
+      }, delay);
 <?endif?>
         });
-    };
 
-    $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-    $.post("/webGui/include/UpdateDNS.php",{
-      externalport: computedRemoteAccessConfig.remote_wanport,
-      remoteaccess: computedRemoteAccessConfig.remote_wanaccess
-    }, success).fail(failure);
 }
 
 function dnsCheckServer(button) {
