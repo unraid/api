@@ -1,4 +1,3 @@
-import WebSocket from 'ws';
 import { FIVE_MINUTES_MS, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import { getMothershipConnectionParams, getMothershipWebsocketHeaders } from '@app/mothership/utils/get-mothership-websocket-headers';
@@ -15,6 +14,7 @@ import { RetryLink } from '@apollo/client/link/retry';
 import { ErrorLink } from '@apollo/client/link/error';
 import { isApiKeyValid } from '@app/store/getters/index';
 import { buildDelayFunction } from '@app/mothership/utils/delay-function';
+import { WebSocket } from 'ws';
 
 class WebsocketWithMothershipHeaders extends WebSocket {
 	constructor(address, protocols) {

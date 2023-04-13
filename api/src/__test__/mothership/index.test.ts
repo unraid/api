@@ -17,10 +17,6 @@ vi.mock('@graphql-tools/schema', () => ({
 	makeExecutableSchema: vi.fn(),
 }));
 
-vi.mock('rotating-file-stream', () => ({
-	createStream: vi.fn().mockImplementation(() => ({ write: vi.fn() })),
-}));
-
 vi.mock('@app/core/log', () => ({
 	default: { relayLogger: { trace: vi.fn() } },
 	relayLogger: { trace: vi.fn(), addContext: vi.fn(), removeContext: vi.fn() },

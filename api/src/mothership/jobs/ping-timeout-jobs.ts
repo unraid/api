@@ -21,7 +21,6 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
             );
             return;
         }
-        mothershipLogger.debug('Checking for ping timeouts');
 
         // Check for ping timeouts in remote graphql events
         const subscriptionsToClear = state.remoteGraphQL.subscriptions.filter(
