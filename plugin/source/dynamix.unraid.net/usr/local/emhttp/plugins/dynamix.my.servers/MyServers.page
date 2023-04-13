@@ -103,111 +103,114 @@ $('body').on('change keyup', '#UnraidNetSettings', function(data) {
 });
 
 function registerServer(button) {
-    var oldlabel = $.trim($(button).text());
-    var failure = function(data) {
-        var status = data.status;
-        var obj = data.responseJSON;
-        var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
-        $(button).prop("disabled", false).html(oldlabel);
-        swal({
-          title: "Oops",
-          text: msg,
-          type: "error",
-          html: true,
-          confirmButtonText: "_(Ok)_"
-        });
+
+const $remoteAccessInput = $('#remoteAccess');
+const $remoteAccessManualPort = $('#wanport');
+
+let computedRemoteAccessConfig = null;
+switch ($remoteAccessInput.val()) {
+  case 'ALWAYS_MANUAL':
+    computedRemoteAccessConfig = {
+      remote_wanaccess: 'yes',
+      remote_wanport: $remoteAccessManualPort.val(),
+      remote_upnpEnabled: 'no',
+      remote_dynamicRemoteAccessType: 'DISABLED',
+    };
+    break;
+  case 'ALWAYS_UPNP':
+    computedRemoteAccessConfig = {
+      remote_wanaccess: 'yes',
+      remote_wanport: '',
+      remote_upnpEnabled: 'yes',
+      remote_dynamicRemoteAccessType: 'DISABLED',
+    };
+    break;
+  case 'DYNAMIC_UPNP':
+    computedRemoteAccessConfig = {
+      remote_wanaccess: 'no',
+      remote_wanport: '',
+      remote_upnpEnabled: 'no',
+      remote_dynamicRemoteAccessType: 'UPNP',
+    };
+    break;
+  case 'DYNAMIC_MANUAL':
+    computedRemoteAccessConfig = {
+      remote_wanaccess: 'no',
+      remote_wanport: $remoteAccessManualPort.val(),
+      remote_upnpEnabled: 'no',
+      remote_dynamicRemoteAccessType: 'STATIC',
+    };
+    break;
+  default:
+    computedRemoteAccessConfig = {
+      remote_wanaccess: 'no',
+      remote_wanport: '',
+      remote_upnpEnabled: 'no',
+      remote_dynamicRemoteAccessType: 'DISABLED',
+    };
+    break;
+}
+
+console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
+
+var oldlabel = $.trim($(button).text());
+var failure = function(data) {
+    var status = data.status;
+    var obj = data.responseJSON;
+    var msg = "_(Sorry, an error occurred)_<br>_(The error is)_: " + obj.error + ".";
+    $(button).prop("disabled", false).html(oldlabel);
+    swal({
+      title: "Oops",
+      text: msg,
+      type: "error",
+      html: true,
+      confirmButtonText: "_(Ok)_"
+    });
+};
+
+var success = function(data) {
+    const wanAccessEnabled = computedRemoteAccessConfig.remote_wanaccess === 'yes';
+    const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
+
+    var postobj = {
+        "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
+        ...(computedRemoteAccessConfig ? computedRemoteAccessConfig : {}),
+         // only allow 'yes' value when fields are enabled
+        "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
+        "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
+        "api_extraOrigins": validateExtraOrigins(),
     };
 
-    var success = function(data) {
-        const wanAccessEnabled = $('#wanaccess').val() === 'yes';
-        const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
+    console.debug(JSON.stringify(postobj,null,2))
 
-        const $remoteAccessInput = $('#remoteAccess');
-        const $remoteAccessManualPort = $('#wanport');
+    if (data && data.apikey) {
+        postobj["remote_apikey"] = data.apikey;
+    }
 
-        let computedRemoteAccessConfig = null;
-        switch ($remoteAccessInput.val()) {
-          case 'ALWAYS_MANUAL':
-            computedRemoteAccessConfig = {
-              remote_wanaccess: 'yes',
-              remote_wanport: $remoteAccessManualPort.val(),
-              remote_upnpEnabled: 'no',
-              remote_dynamicRemoteAccessType: 'DISABLED',
-            };
-            break;
-          case 'ALWAYS_UPNP':
-            computedRemoteAccessConfig = {
-              remote_wanaccess: 'yes',
-              remote_wanport: '',
-              remote_upnpEnabled: 'yes',
-              remote_dynamicRemoteAccessType: 'DISABLED',
-            };
-            break;
-          case 'DYNAMIC_UPNP':
-            computedRemoteAccessConfig = {
-              remote_wanaccess: 'no',
-              remote_wanport: '',
-              remote_upnpEnabled: 'no',
-              remote_dynamicRemoteAccessType: 'UPNP',
-            };
-            break;
-          case 'DYNAMIC_MANUAL':
-            computedRemoteAccessConfig = {
-              remote_wanaccess: 'no',
-              remote_wanport: $remoteAccessManualPort.val(),
-              remote_upnpEnabled: 'no',
-              remote_dynamicRemoteAccessType: 'STATIC',
-            };
-            break;
-          default:
-            computedRemoteAccessConfig = {
-              remote_wanaccess: 'no',
-              remote_wanport: '',
-              remote_upnpEnabled: 'no',
-              remote_dynamicRemoteAccessType: 'DISABLED',
-            };
-            break;
-        }
-
-        console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
-
-        var postobj = {
-            "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
-            ...(computedRemoteAccessConfig ? computedRemoteAccessConfig : {}),
-             // only allow 'yes' value when fields are enabled
-            "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
-            "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
-            "api_extraOrigins": validateExtraOrigins(),
-        };
-
-        if (data && data.apikey) {
-            postobj["remote_apikey"] = data.apikey;
-        }
-
-        $(button).prop("disabled", false).html(oldlabel);
-        $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
+    $(button).prop("disabled", false).html(oldlabel);
+    $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
 <?if(!$isRegistered):?>
-            swal({
-              title: "",
-              text: "_(Your server has been registered)_",
-              type: "success",
-              html: true,
-              allowEscapeKey: false,
-              confirmButtonText: "_(Ok)_"
-            }, function() {
-              button.form.submit();
-            });
-<?else:?>
-            button.form.submit();
-<?endif?>
+        swal({
+          title: "",
+          text: "_(Your server has been registered)_",
+          type: "success",
+          html: true,
+          allowEscapeKey: false,
+          confirmButtonText: "_(Ok)_"
+        }, function() {
+          button.form.submit();
         });
-    };
+<?else:?>
+        button.form.submit();
+<?endif?>
+    });
+};
 
-    $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-    $.post("/webGui/include/UpdateDNS.php",{
-      externalport: $('#wanport').val(),
-      remoteaccess: $('#wanaccess').val()
-    }, success).fail(failure);
+$(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+$.post("/webGui/include/UpdateDNS.php",{
+  externalport: computedRemoteAccessConfig.remote_wanport,
+  remoteaccess: computedRemoteAccessConfig.remote_wanaccess
+}, success).fail(failure);
 }
 
 function dnsCheckServer(button) {
