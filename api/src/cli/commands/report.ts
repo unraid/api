@@ -11,7 +11,7 @@ import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
 import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
 import { getCloudDocument, getServersDocument, type getServersQuery, type getCloudQuery } from '../../graphql/generated/api/operations';
-import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client/core';
+import { type ApolloQueryResult, type ApolloClient, type NormalizedCacheObject } from '@apollo/client/core/core.cjs';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 

@@ -3,7 +3,7 @@ import {
     HttpLink,
     InMemoryCache,
     split,
-} from '@apollo/client/core';
+} from '@apollo/client/core/core.cjs';
 import { onError } from '@apollo/client/link/error';
 import { INTERNAL_HTTP_LINK, INTERNAL_WS_LINK } from '@app/consts';
 import WebSocket from 'ws';

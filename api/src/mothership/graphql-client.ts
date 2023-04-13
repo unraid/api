@@ -4,7 +4,7 @@ import { getMothershipConnectionParams, getMothershipWebsocketHeaders } from '@a
 import { getters, store } from '@app/store';
 import { type Client, createClient } from 'graphql-ws';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
-import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core';
+import { ApolloClient, InMemoryCache, type NormalizedCacheObject } from '@apollo/client/core/core.cjs';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';

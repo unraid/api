@@ -10,7 +10,11 @@ test('MultiIni breaks when serializing an object with a boolean inside', async (
 		},
 	};
 	const serializer = new Serializer({ keep_quotes: false });
-	expect(() => serializer.serialize(objectToSerialize)).toThrowErrorMatchingInlineSnapshot('"value.match is not a function"');
+	expect(serializer.serialize(objectToSerialize)).toMatchInlineSnapshot(`
+		"[root]
+		anonMode=false
+		"
+	`)
 });
 
 test('MultiIni can safely serialize an object with a boolean inside', async () => {

@@ -24,7 +24,6 @@
     "outputPath": "dist"
   },
   "scripts": {
-    "postinstall": "patch-package",
     "compile": "tsup --config ./tsup.config.ts",
     "bundle": "pkg . --public",
     "build": "npm run compile && npm run bundle",
@@ -180,7 +179,6 @@
     "log4js": "^6.9.1",
     "map-obj": "^5.0.2",
     "p-props": "^5.0.0",
-    "patch-package": "^6.5.1",
     "path-exists": "^5.0.0",
     "path-type": "^5.0.0",
     "pkg": "^5.8.1",
