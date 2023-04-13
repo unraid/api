@@ -1,5 +1,5 @@
 Menu="ManagementAccess:100"
-Title="My Servers"
+Title="Unraid Connect"
 Icon="icon-u-globe"
 Tag="globe"
 ---
@@ -18,7 +18,7 @@ Tag="globe"
 <?
 // more:
 // - if someone deletes the myservers.cfg or directly edits [remote] section therein, it may be possible
-// that server will appear 'unregistered' in webgui but not on My Servers.
+// that server will appear 'unregistered' in webgui but not on Unraid Connect.
 // - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
 // now can remotely access using url that matches their cert. This is probably a bug here, but we might
 // want to rework this somewhat to explicitly enable this 'feature' (remote access using user-provided cert).
@@ -498,7 +498,7 @@ _(Account status)_:
 : <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
 
 <?if($isRegistered):?>
-_(Connected to My Servers Cloud)_: 
+_(Connected to Unraid Connect Cloud)_: 
 <?if($isConnected):?>
 : _(Yes)_
 <?else:?>
@@ -510,7 +510,7 @@ _(Allow Remote Access)_:
 <?if(!$isRegistered):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
 <?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span>
 <?elseif(!$hasCert):?>
 <?if($oldVersion):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
@@ -642,7 +642,7 @@ _(Flash backup)_:
 <?if(!$isRegistered):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
 <?elseif(!$isConnected && empty($flashbackup_status['activated'])):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to My Servers Cloud)_</span>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span>
 <?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
 
@@ -709,7 +709,7 @@ flashbackupsub.on('message', function(data) {
 $(function() {
   flashbackupsub.start();
   if ( typeof caPluginUpdateCheck === "function" ) {
-    caPluginUpdateCheck("dynamix.unraid.net.plg",{name:"My Servers"});
+    caPluginUpdateCheck("dynamix.unraid.net.plg",{name:"Unraid Connect"});
   }
 });
 </script>

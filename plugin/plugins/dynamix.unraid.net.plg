@@ -2,7 +2,7 @@
 
 <!DOCTYPE PLUGIN [
 <!ENTITY name                   "">
-<!ENTITY launch                 "MyServers">
+<!ENTITY launch                 "Connect">
 <!ENTITY author                 "limetech">
 <!ENTITY env                    "">
 <!ENTITY version                "">
