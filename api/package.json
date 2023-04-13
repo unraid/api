@@ -193,11 +193,10 @@
     "typesync": "^0.10.0",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.30.1",
-    "websocket-as-promised": "github:omgimalexis/websocket-as-promised",
     "zx": "^7.2.1"
   },
   "optionalDependencies": {
-    "@vmngr/libvirt": "github:omgimalexis/libvirt"
+    "@vmngr/libvirt": "github:unraid/libvirt"
   },
   "config": {
     "commitizen": {
