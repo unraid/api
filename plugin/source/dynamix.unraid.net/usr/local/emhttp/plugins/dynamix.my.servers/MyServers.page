@@ -41,6 +41,12 @@ if (empty($myservers['remote']['wanport'])) {
 if (empty($myservers['remote']['upnpEnabled'])) {
   $myservers['remote']['upnpEnabled'] = "no";
 }
+if (empty($myservers['remote']['dynamicRemoteAccessType'])) {
+  $myservers['remote']['dynamicRemoteAccessType'] = "DISABLED";
+}
+if (empty($myservers['local']['showT2Fa'])) {
+  $myservers['local']['showT2Fa'] = 'no';
+}
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 $hasCert = preg_match('/.*\.(my)?unraid\.net$/', $nginx['NGINX_CERTNAME']);
@@ -538,7 +544,7 @@ _(WAN Port)_:
 
 </div>
 <? /** for the time being only display remote T2FA field when enabled manually by Unraid developers */ ?>
-<?if($myservers['local']['showT2Fa']??'' === 'yes'):?>
+<?if($myservers['local']['showT2Fa'] === 'yes'):?>
 <?
 $remoteT2faRemarks = [
   'all' => _('Remote T2FA requires Remote Access to be enabled, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
