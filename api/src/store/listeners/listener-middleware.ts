@@ -9,6 +9,8 @@ import { enableLoginListener, enableLogoutListener } from '@app/store/listeners/
 import { enableMothershipJobsListener } from '@app/store/listeners/mothership-subscription-listener';
 import { enableDynamicRemoteAccessListener } from '@app/store/listeners/dynamic-remote-access-listener';
 import { enableArrayEventListener } from '@app/store/listeners/array-event-listener';
+import { enableWanAccessChangeListener } from '@app/store/listeners/wan-access-change-listener';
+
 import 'reflect-metadata';
 
 export const listenerMiddleware = createListenerMiddleware();
@@ -37,3 +39,4 @@ enableVersionListener();
 enableMothershipJobsListener();
 enableDynamicRemoteAccessListener();
 enableArrayEventListener();
+enableWanAccessChangeListener();
