@@ -9,7 +9,7 @@ import { GraphQLClient } from '@app/mothership/graphql-client';
 import { SEND_DASHBOARD_PAYLOAD_MUTATION } from '../../mothership/mutations';
 import { type DashboardInput } from '../../generated/client/graphql';
 import { getDiff } from 'json-difference';
-import { ApolloError } from '@apollo/client';
+import { ApolloError } from '@apollo/client/core';
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
 
