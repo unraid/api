@@ -75,15 +75,15 @@ $upnpEnabled = $myservers['remote']['upnpEnabled'] === 'yes';
 $wanaccessEnabled = $myservers['remote']['wanaccess'] === 'yes';
 
 if ($dynamicRemoteAccessType === 'STATIC') {
-  $currentRemoveAccesValue = 'DYNAMIC_MANUAL';
+  $currentRemoteAccessValue = 'DYNAMIC_MANUAL';
 } elseif ($dynamicRemoteAccessType === 'UPNP') {
-  $currentRemoveAccesValue = 'DYNAMIC_UPNP';
+  $currentRemoteAccessValue = 'DYNAMIC_UPNP';
 } elseif ($dynamicRemoteAccessType === 'DISABLED' && $upnpEnabled && $wanaccessEnabled) {
-  $currentRemoveAccesValue = 'ALWAYS_UPNP';
+  $currentRemoteAccessValue = 'ALWAYS_UPNP';
 } elseif ($dynamicRemoteAccessType === 'DISABLED' && !$upnpEnabled && $wanaccessEnabled) {
-  $currentRemoveAccesValue = 'ALWAYS_MANUAL';
+  $currentRemoteAccessValue = 'ALWAYS_MANUAL';
 } elseif ($dynamicRemoteAccessType === 'DISABLED' && !$upnpEnabled && !$wanaccessEnabled) {
-  $currentRemoveAccesValue = 'OFF';
+  $currentRemoteAccessValue = 'OFF';
 }
 
 ?>
@@ -512,18 +512,18 @@ _(Allow Remote Access)_:
 <input type="hidden" id="wanport" value="0">
 <?else: // begin show remote access form ?>
 : <select id="remoteAccess" name="remoteAccess" data-orig="<?=$myservers['remote']['access']?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
-    <?=mk_option($currentRemoveAccesValue, "OFF", _("Off"))?>
-    <?=mk_option($currentRemoveAccesValue, "ALWAYS_MANUAL", _("Always - Manual Port Forward"))?>
-    <?=mk_option($currentRemoveAccesValue, "ALWAYS_UPNP", _("Always - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
-    <?=mk_option($currentRemoveAccesValue, "DYNAMIC_UPNP", _("Dynamic - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
-    <?=mk_option($currentRemoveAccesValue, "DYNAMIC_MANUAL", _("Dynamic - Manual Port Forward"))?>
+    <?=mk_option($currentRemoteAccessValue, "OFF", _("Off"))?>
+    <?=mk_option($currentRemoteAccessValue, "ALWAYS_MANUAL", _("Always - Manual Port Forward"))?>
+    <?=mk_option($currentRemoteAccessValue, "ALWAYS_UPNP", _("Always - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
+    <?=mk_option($currentRemoteAccessValue, "DYNAMIC_UPNP", _("Dynamic - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
+    <?=mk_option($currentRemoteAccessValue, "DYNAMIC_MANUAL", _("Dynamic - Manual Port Forward"))?>
   </select> <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>. <?=($var['USE_UPNP'] === 'no' ? 'To use the UPnP options please set "Use UPnP" to "Yes" in Management Access.' : '')?>
 
 &nbsp;
 : <p>_(Dynamic Remote Access allows you to do stuff that someone else can explain.)_</p>
 
 <?
-$showWanPortOnLoad = ($currentRemoveAccesValue === 'ALWAYS_MANUAL' || $currentRemoveAccesValue === 'DYNAMIC_MANUAL');
+$showWanPortOnLoad = ($currentRemoteAccessValue === 'ALWAYS_MANUAL' || $currentRemoteAccessValue === 'DYNAMIC_MANUAL');
 ?>
 <div markdown="1" id="wanpanel" style="display:<?=($showWanPortOnLoad?'block':'none')?>">
 
