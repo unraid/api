@@ -34,11 +34,11 @@ PLGTYPE="&env;"
 <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [ "${PLGTYPE}" = "production" ] && [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
-  echo "⚠️ Please uninstall the My Servers staging plugin before installing the production version"
+  echo "⚠️ Please uninstall the Unraid Connect staging plugin before installing the production version"
   exit 1
 fi
 if [ "${PLGTYPE}" = "staging" ] && [ -f /boot/config/plugins/dynamix.unraid.net.plg ]; then
-  echo "⚠️ Please uninstall the My Servers production plugin before installing the staging version"
+  echo "⚠️ Please uninstall the Unraid Connect production plugin before installing the staging version"
   exit 1
 fi
 exit 0
@@ -251,7 +251,7 @@ if (file_exists("/boot/.git")) {
   passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
 }
 
-# set "Allow Remote Access" to "No" and sign out from My Servers
+# set "Allow Remote Access" to "No" and sign out from Unraid Connect
 if ($msini !== false) {
   # stop unraid-api
   echo "\nStopping unraid-api. Please wait…";
@@ -261,7 +261,7 @@ if ($msini !== false) {
     $var = parse_ini_file("/var/local/emhttp/var.ini");
     $keyfile = @file_get_contents($var['regFILE']);
     if ($keyfile !== false) {
-      echo "\nSigning out of My Servers\n";
+      echo "\nSigning out of Unraid Connect\n";
       $ch = curl_init('https://keys.lime-technology.com/account/server/unregister');
       curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
       curl_setopt($ch, CURLOPT_POST, 1);
@@ -392,7 +392,7 @@ CFG_OLD=/boot/config/plugins/Unraid.net
 CFG_NEW=/boot/config/plugins/dynamix.my.servers
 [[ -d "$CFG_OLD" ]] && [[ ! -d "$CFG_NEW" ]] && mv "$CFG_OLD" "$CFG_NEW"
 
-# relax restrictions on built-in Firefox so it can sign in to My Servers
+# relax restrictions on built-in Firefox so it can sign in to Unraid Connect
 # brings older versions of Unraid in sync with 6.12.0
 # no need to restore original file on uninstall
 # note: if file is modified while Firefox is open it will have no effect, reboot to change the file before Firefox is loaded
@@ -481,7 +481,7 @@ if ([[ -n "${email}" && (-z "${apikey}" || "${#apikey}" -ne "64") ]]); then
 fi
 # if there wasn't an email or the CFG was cleaned
 if [[ -z "${email}" ]] || [[ CFG_CLEANED -eq 1 ]]; then
-  echo "✨ Sign In to Unraid.net to get connected to My Servers ✨"
+  echo "✨ Sign In to Unraid.net to use Unraid Connect ✨"
 fi
 
 # make the unraid-api work globally for easy cli access
