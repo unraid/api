@@ -111,8 +111,8 @@ export const logoutUser = createAsyncThunk<
  * Note: If the file doesn't exist this will fallback to default values.
  */
 enum CONFIG_LOAD_ERROR {
-    CONFIG_EQUAL,
-    CONFIG_CORRUPTED,
+    CONFIG_EQUAL = 'CONFIG_EQUAL',
+    CONFIG_CORRUPTED = 'CONFIG_CORRUPTED',
 }
 
 type LoadFailureWithConfig = {
@@ -181,7 +181,7 @@ export const loadConfigFile = createAsyncThunk<
                 logger.warn(
                     'Not loading config because it is the same as before'
                 );
-                throw rejectWithValue({
+                return rejectWithValue({
                     type: CONFIG_LOAD_ERROR.CONFIG_EQUAL,
                 });
             }
@@ -194,7 +194,7 @@ export const loadConfigFile = createAsyncThunk<
                 getState().paths['myservers-config'],
                 serializedConfig
             );
-            throw rejectWithValue({
+            return rejectWithValue({
                 type: CONFIG_LOAD_ERROR.CONFIG_CORRUPTED,
                 error:
                     error instanceof Error ? error : new Error('Unknown Error'),
@@ -246,6 +246,7 @@ export const config = createSlice({
             }
         },
         setWanPortToValue(state, action: PayloadAction<number>) {
+            logger.debug('Wan port set to %s', action.payload)
             state.remote.wanport = String(action.payload);
         },
         setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
@@ -269,6 +270,7 @@ export const config = createSlice({
             switch (action.payload?.type) {
                 case CONFIG_LOAD_ERROR.CONFIG_EQUAL:
                     logger.debug('Configs equivalent');
+                    state.status = FileLoadStatus.LOADED;
                     break;
                 case CONFIG_LOAD_ERROR.CONFIG_CORRUPTED:
                     logger.debug(
@@ -276,6 +278,7 @@ export const config = createSlice({
                         action.payload.error
                     );
                     merge(state, action.payload.config);
+                    state.status = FileLoadStatus.LOADED;
                     break;
                 default:
                     logger.error('Config File Load Failed', action.error);
