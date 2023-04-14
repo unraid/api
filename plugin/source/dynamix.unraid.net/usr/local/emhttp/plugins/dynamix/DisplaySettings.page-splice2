@@ -1,5 +1,0 @@
-_(Show banner background color fade)_:
-: <select name="showBannerGradient">
-  <?=mk_option($display['showBannerGradient'], "no",_('No'))?>
-  <?=mk_option($display['showBannerGradient'], "yes",_('Yes'))?>
-  </select>
