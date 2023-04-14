@@ -149,7 +149,12 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+# skip this install block on isUnsupportedVersion
+if [[ "${version:0:3}" == "6.9" || "${version:0:7}" == "6.10.0-" ]]; then
+  exit 0
+fi
+
+if [[ "${version:0:4}" == "6.10" ]]; then
   echo
   echo "⚠️ Do not close this window yet"
   echo
@@ -194,7 +199,7 @@ fi
 [[ ! -f "${JS_FINAL_DEST}${JS_FILE}" ]] && echo "⚠️ Install failed - ${JS_FILE} missing" && exit 1
 echo "✅ Finished installing web components"
 
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+if [[ "${version:0:4}" == "6.10" ]]; then
   echo
   echo "⚠️ Do not close this window yet"
   echo
@@ -242,13 +247,81 @@ echo "🧹 CLEANING UP - may take a minute\n";
 echo "**********************************\n";
 
 if (file_exists("/boot/.git")) {
-  # stop flash backup service
-  echo "\nStopping flash backup service. Please wait…";
-  exec("/etc/rc.d/rc.flash_backup stop &>/dev/null");
+  if (file_exists("/etc/rc.d/rc.flash_backup")) {
+    # stop flash backup service
+    echo "\nStopping flash backup service. Please wait…";
+    exec("/etc/rc.d/rc.flash_backup stop &>/dev/null");
+  }
+  if (file_exists("/usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php")) {
+    # deactivate and delete local flash backup
+    echo "\nDeactivating flash backup. Please wait…";
+    passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
+  }
+}
 
-  # deactivate and delete local flash backup
-  echo "\nDeactivating flash backup. Please wait…";
-  passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
+# set "Allow Remote Access" to "No" and sign out from Unraid Connect
+if ($msini !== false) {
+  # stop unraid-api
+  echo "\nStopping unraid-api. Please wait…";
+  exec("/etc/rc.d/rc.unraid-api stop &>/dev/null");
+
+  if (!empty($msini['remote']['username'])) {
+    $var = parse_ini_file("/var/local/emhttp/var.ini");
+    $keyfile = @file_get_contents($var['regFILE']);
+    if ($keyfile !== false) {
+      echo "\nSigning out of Unraid Connect\n";
+      $ch = curl_init('https://keys.lime-technology.com/account/server/unregister');
+      curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+      curl_setopt($ch, CURLOPT_POST, 1);
+      curl_setopt($ch, CURLOPT_POSTFIELDS, ['keyfile' => @base64_encode($keyfile)]);
+      curl_exec($ch);
+      curl_close($ch);
+    }
+  }
+
+  # remove myservers.cfg
+  unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
+
+  # reload nginx to disable Remote Access
+  echo "\nReloading Web Server\n";
+  exec("/etc/rc.d/rc.nginx reload &>/dev/null");
+}
+exit(0);
+]]>
+</INLINE>
+</FILE>
+
+<!-- disable features when upgrading on unsupported OS versions -->
+<!-- duplicated from above because the script can't distinguish between install and remove -->
+<!-- NOTE: this script is PHP not bash -->
+<FILE Run="/usr/bin/php --" Method="install">
+<INLINE>
+<![CDATA[
+<?
+$ver = @parse_ini_file('/etc/unraid-version', true)['version'];
+$msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
+
+// exit this install block if NOT isUnsupportedVersion
+if (!( (substr($ver,0,3)=="6.9") || (substr($ver,0,7)=="6.10.0-") )) {
+  exit(0);
+}
+
+echo "\n";
+echo "**********************************\n";
+echo "🧹 CLEANING UP - may take a minute\n";
+echo "**********************************\n";
+
+if (file_exists("/boot/.git")) {
+  if (file_exists("/etc/rc.d/rc.flash_backup")) {
+    # stop flash backup service
+    echo "\nStopping flash backup service. Please wait…";
+    exec("/etc/rc.d/rc.flash_backup stop &>/dev/null");
+  }
+  if (file_exists("/usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php")) {
+    # deactivate and delete local flash backup
+    echo "\nDeactivating flash backup. Please wait…";
+    passthru("/usr/bin/php /usr/local/emhttp/plugins/dynamix.my.servers/include/UpdateFlashBackup.php deactivate");
+  }
 }
 
 # set "Allow Remote Access" to "No" and sign out from Unraid Connect
@@ -369,7 +442,27 @@ appendTextIfMissing() {
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+# exit this install block on isUnsupportedVersion
+if [[ "${version:0:3}" == "6.9" || "${version:0:7}" == "6.10.0-" ]]; then
+  echo
+  echo "⚠️ Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect"
+  echo
+  echo "✅ It is safe to close this window"
+  echo
+  PLGNAME=dynamix.unraid.net
+  [ "${PLGTYPE}" = "staging" ] && PLGNAME=dynamix.unraid.net.staging
+  
+  DIR="/usr/local/emhttp/plugins/${PLGNAME}" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
+cat << EOF > "$DIR/README.md"
+**Unraid Connect**
+
+Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect
+EOF
+  # exit 0 or else the original plugin will be reinstalled at boot
+  exit 0
+fi
+
+if [[ "${version:0:4}" == "6.10" ]]; then
   echo
   echo "⚠️ Do not close this window yet"
   echo
@@ -421,7 +514,7 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cfgMigration ]] && echo "⚠️ files missing from main txz" && exit 1
 
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+if [[ "${version:0:4}" == "6.10" ]]; then
   echo
   echo "⚠️ Do not close this window yet"
   echo
@@ -432,32 +525,11 @@ if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.ser
   echo "env=\"${PLGTYPE}\"" >/boot/config/plugins/dynamix.my.servers/env
 fi
 
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+if [[ "${version:0:4}" == "6.10" ]]; then
   echo
   echo "⚠️ Do not close this window yet"
   echo
 fi
-
-# Extra steps for Unraid 6.9.x, skip in 6.10.x
-if [[ "${version:0:3}" == "6.9" ]]; then
-  # Update DefaultPageLayout.php, preserve in case plugin is removed
-  FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
-  cp -f "$FILE" "$FILE-"
-  sed -i 's/<\/head>/<? include "\/usr\/local\/emhttp\/plugins\/dynamix.my.servers\/include\/myservers1.php" ?>\n<\/head>/' "$FILE"
-  sed -i 's/<div class="block">/<? include "\/usr\/local\/emhttp\/plugins\/dynamix.my.servers\/include\/myservers2.php" ?>\n<div class="block">/' "$FILE"
-  sed -i '/<div class="block">/,/<\/div>/d' "$FILE"
-
-  # Update DisplaySettings.php, preserve in case plugin is removed
-  FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page
-  cp -f "$FILE" "$FILE-"
-  echo -e "\n\n" >>/usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
-  echo -e "\n\n" >>/usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice2
-  sed -i $'/_(Header custom text color)_/{e cat /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1\n}' "$FILE"
-  sed -i $'/_(Custom banner)_/{e cat /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice2\n}' "$FILE"
-fi
-# delete this file regardless of Unraid version
-rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice1
-rm /usr/local/emhttp/plugins/dynamix/DisplaySettings.page-splice2
 
 # run dynamix.cfg to myservers.cfg migration
 CFG_MIG=/usr/local/emhttp/plugins/dynamix.my.servers/scripts/cfgMigration
@@ -494,45 +566,43 @@ ln -s /usr/local/bin/unraid-api/unraid-api /usr/local/sbin/unraid-api
 
 # allow webgui to be iframed only on Connect dashboard, only applies to 6.10+
 # if needed, restart nginx before installing the unraid-api
-if [[ "${version:0:3}" != "6.9" ]]; then
-  CHANGED=no
-  FILE=/etc/nginx/nginx.conf
-  # brings older versions of Unraid in sync with 6.12.0
-  if grep -q "SAMEORIGIN" "${FILE}"; then
+CHANGED=no
+FILE=/etc/nginx/nginx.conf
+# brings older versions of Unraid in sync with 6.12.0
+if grep -q "SAMEORIGIN" "${FILE}"; then
+  CHANGED=yes
+  cp "$FILE" "$FILE-"
+  OLD="add_header X-Frame-Options 'SAMEORIGIN';"
+  NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
+  sed -i "s#${OLD}#${NEW}#" "${FILE}"
+fi
+if  [ "${PLGTYPE}" = "staging" ]; then
+  # staging plugin allows an additional origin
+  if ! grep -q "dev-my.myunraid.net:4000" "${FILE}"; then
     CHANGED=yes
-    cp "$FILE" "$FILE-"
-    OLD="add_header X-Frame-Options 'SAMEORIGIN';"
-    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
+    [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-"
+    OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
+    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
     sed -i "s#${OLD}#${NEW}#" "${FILE}"
   fi
-  if  [ "${PLGTYPE}" = "staging" ]; then
-    # staging plugin allows an additional origin
-    if ! grep -q "dev-my.myunraid.net:4000" "${FILE}"; then
-      CHANGED=yes
-      [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-"
-      OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
-      NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
-      sed -i "s#${OLD}#${NEW}#" "${FILE}"
-    fi
-  fi
-  FILE=/etc/rc.d/rc.nginx
-  # brings older versions of Unraid in sync with 6.12.0
-  if ! grep -q "#robots.txt any origin" "${FILE}"; then
-    CHANGED=yes
-    cp "$FILE" "$FILE-"
-    FIND="location = \/robots.txt {"
-    # escape tabs and spaces
-    ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
-    sed -i "/${FIND}/a ${ADD}" "${FILE}"
-  fi
-  if [[ "${CHANGED}" == "yes" ]]; then
-    if /etc/rc.d/rc.nginx status &>/dev/null; then
-      # if nginx is running, reload it to enable the changes above
-      # note: if this is being installed at boot, nginx will not yet be running
-      echo ""
-      echo "⚠️ Reloading Web Server. If this window stops updating please close it."
-      /etc/rc.d/rc.nginx reload &>/dev/null
-    fi
+fi
+FILE=/etc/rc.d/rc.nginx
+# brings older versions of Unraid in sync with 6.12.0
+if ! grep -q "#robots.txt any origin" "${FILE}"; then
+  CHANGED=yes
+  cp "$FILE" "$FILE-"
+  FIND="location = \/robots.txt {"
+  # escape tabs and spaces
+  ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
+  sed -i "/${FIND}/a ${ADD}" "${FILE}"
+fi
+if [[ "${CHANGED}" == "yes" ]]; then
+  if /etc/rc.d/rc.nginx status &>/dev/null; then
+    # if nginx is running, reload it to enable the changes above
+    # note: if this is being installed at boot, nginx will not yet be running
+    echo ""
+    echo "⚠️ Reloading Web Server. If this window stops updating please close it."
+    /etc/rc.d/rc.nginx reload &>/dev/null
   fi
 fi
 
@@ -543,31 +613,12 @@ if [ -f /var/local/emhttp/var.ini ]; then
   echo "Installing and starting the Unraid API"
   echo "Starting flash backup (if enabled)"
   echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
-elif grep -q 6.9.0-beta35 /etc/unraid-version; then
-  # this really old version of Unraid does not automatically install/start the api, so we need to do it (after a delay)
-  echo "Installing and starting the Unraid API"
-  echo "Starting flash backup (if enabled)"
-  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now + 1 minute &>/dev/null
 # else
   # the system is booting, emhttpd will install the api and start rc.flash_backup. rc.nginx will start the api.
   # nothing to do here
 fi
 
-# modify older rc.nginx versions to run this makestate when it builds the nginx config files
-if ! grep -q 'scripts/makestate\|/var/local/nginx/state.ini\|/var/local/emhttp/nginx.ini' /etc/rc.d/rc.nginx; then
-  placeafter="define_servers"
-  if grep -q 'define_locations' /etc/rc.d/rc.nginx; then
-    placeafter="define_locations"
-  fi
-
-  # splice makestate command in rc.nginx
-  CMD_MAKESTATE="inotifywait --timeout 10 -qq -e moved_to /var/local/emhttp/var.ini; /usr/bin/php -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/makestate &>/dev/null"
-  sed -i "/^  ${placeafter}/a  echo '${CMD_MAKESTATE}' | at -M now &>/dev/null" /etc/rc.d/rc.nginx
-
-  # run makestate now to go ahead and generate /var/local/emhttp/nginx.ini
-  /usr/bin/php -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/makestate &>/dev/null
-fi
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
+if [[ "${version:0:4}" == "6.10" ]]; then
   echo
   echo "✅ Installation is complete, it is safe to close this window"
   echo
