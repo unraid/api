@@ -227,7 +227,7 @@ exit 0
 
 <!-- disable features on uninstall -->
 <!-- NOTE: this script is PHP not bash -->
-<FILE Run="/usr/bin/php --" Method="remove">
+<FILE Run="/usr/bin/php" Method="remove">
 <INLINE>
 <![CDATA[
 <?
@@ -294,7 +294,7 @@ exit(0);
 <!-- disable features when upgrading on unsupported OS versions -->
 <!-- duplicated from above because the script can't distinguish between install and remove -->
 <!-- NOTE: this script is PHP not bash -->
-<FILE Run="/usr/bin/php --" Method="install">
+<FILE Run="/usr/bin/php" Method="install">
 <INLINE>
 <![CDATA[
 <?
