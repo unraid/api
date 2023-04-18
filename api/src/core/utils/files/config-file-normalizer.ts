@@ -28,79 +28,68 @@ export const getWriteableConfig = <T extends ConfigType>(
     config: ConfigSliceState,
     mode: T
 ): ConfigObject<T> => {
-    try {
-        // Get current state
-        const { api, local, notifier, remote, upc, connectionStatus } = config;
+    // Get current state
+    const { api, local, notifier, remote, upc, connectionStatus } = config;
 
-        // Create new state
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        const newState: ConfigObject<T> = {
-            api: {
-                version: api.version ?? initialState.api.version,
-                ...(api.extraOrigins ? { extraOrigins: api.extraOrigins } : {}),
-            },
-            local: {
-                ...(local['2Fa'] === 'yes' ? { '2Fa': local['2Fa'] } : {}),
-                ...(local.showT2Fa === 'yes'
-                    ? { showT2Fa: local.showT2Fa }
-                    : {}),
-            },
-            notifier: {
-                apikey: notifier.apikey ?? initialState.notifier.apikey,
-            },
-            remote: {
-                ...(remote['2Fa'] === 'yes' ? { '2Fa': remote['2Fa'] } : {}),
-                wanaccess: remote.wanaccess ?? initialState.remote.wanaccess,
-                wanport: remote.wanport ?? initialState.remote.wanport,
-                ...(remote.upnpEnabled
-                    ? { upnpEnabled: remote.upnpEnabled }
-                    : {}),
-                apikey: remote.apikey ?? initialState.remote.apikey,
-                email: remote.email ?? initialState.remote.email,
-                username: remote.username ?? initialState.remote.username,
-                avatar: remote.avatar ?? initialState.remote.avatar,
-                regWizTime: remote.regWizTime ?? initialState.remote.regWizTime,
-                idtoken: remote.idtoken ?? initialState.remote.idtoken,
-                accesstoken:
-                    remote.accesstoken ?? initialState.remote.accesstoken,
-                refreshtoken:
-                    remote.refreshtoken ?? initialState.remote.refreshtoken,
-                ...(mode === 'memory'
-                    ? {
-                          allowedOrigins:
-                              remote.allowedOrigins ??
-                              initialState.remote.allowedOrigins,
-                      }
-                    : {}),
-                ...(remote.dynamicRemoteAccessType ===
-                DynamicRemoteAccessType.DISABLED
-                    ? {}
-                    : {
-                          dynamicRemoteAccessType:
-                              remote.dynamicRemoteAccessType,
-                      }),
-            },
-            upc: {
-                apikey: upc.apikey ?? initialState.upc.apikey,
-            },
+    // Create new state
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    const newState: ConfigObject<T> = {
+        api: {
+            version: api.version ?? initialState.api.version,
+            ...(api.extraOrigins ? { extraOrigins: api.extraOrigins } : {}),
+        },
+        local: {
+            ...(local['2Fa'] === 'yes' ? { '2Fa': local['2Fa'] } : {}),
+            ...(local.showT2Fa === 'yes' ? { showT2Fa: local.showT2Fa } : {}),
+        },
+        notifier: {
+            apikey: notifier.apikey ?? initialState.notifier.apikey,
+        },
+        remote: {
+            ...(remote['2Fa'] === 'yes' ? { '2Fa': remote['2Fa'] } : {}),
+            wanaccess: remote.wanaccess ?? initialState.remote.wanaccess,
+            wanport: remote.wanport ?? initialState.remote.wanport,
+            ...(remote.upnpEnabled ? { upnpEnabled: remote.upnpEnabled } : {}),
+            apikey: remote.apikey ?? initialState.remote.apikey,
+            email: remote.email ?? initialState.remote.email,
+            username: remote.username ?? initialState.remote.username,
+            avatar: remote.avatar ?? initialState.remote.avatar,
+            regWizTime: remote.regWizTime ?? initialState.remote.regWizTime,
+            idtoken: remote.idtoken ?? initialState.remote.idtoken,
+            accesstoken: remote.accesstoken ?? initialState.remote.accesstoken,
+            refreshtoken:
+                remote.refreshtoken ?? initialState.remote.refreshtoken,
             ...(mode === 'memory'
                 ? {
-                      connectionStatus: {
-                          minigraph:
-                              connectionStatus.minigraph ??
-                              initialState.connectionStatus.minigraph,
-                          ...(connectionStatus.upnpStatus
-                              ? { upnpStatus: connectionStatus.upnpStatus }
-                              : {}),
-                      },
+                      allowedOrigins:
+                          remote.allowedOrigins ??
+                          initialState.remote.allowedOrigins,
                   }
                 : {}),
-        } as ConfigObject<T>;
-        return newState;
-    } catch (error) {
-        logger.error('Failed to create writeable config with error %o', error);
-        return getWriteableConfig(initialState, mode);
-    }
+            ...(remote.dynamicRemoteAccessType ===
+            DynamicRemoteAccessType.DISABLED
+                ? {}
+                : {
+                      dynamicRemoteAccessType: remote.dynamicRemoteAccessType,
+                  }),
+        },
+        upc: {
+            apikey: upc.apikey ?? initialState.upc.apikey,
+        },
+        ...(mode === 'memory'
+            ? {
+                  connectionStatus: {
+                      minigraph:
+                          connectionStatus.minigraph ??
+                          initialState.connectionStatus.minigraph,
+                      ...(connectionStatus.upnpStatus
+                          ? { upnpStatus: connectionStatus.upnpStatus }
+                          : {}),
+                  },
+              }
+            : {}),
+    } as ConfigObject<T>;
+    return newState;
 };
 
 /**
