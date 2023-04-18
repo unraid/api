@@ -21,9 +21,9 @@ export const enableMothershipJobsListener = () => startAppListening({
 		}
 
 		return false;
-	}, async effect(action, { getState }) {
+	}, async effect(_, { getState }) {
 		await GraphQLClient.clearInstance();
-		if (getMothershipConnectionParams(getState()).apiKey) {
+		if (getMothershipConnectionParams(getState())?.apiKey) {
 			const client = GraphQLClient.createSingletonInstance();
 			if (client) {
 				await subscribeToEvents(getState().config.remote.apikey);

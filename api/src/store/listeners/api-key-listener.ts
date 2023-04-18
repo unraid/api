@@ -7,7 +7,7 @@ import { startAppListening } from '@app/store/listeners/listener-middleware';
 export const enableApiKeyListener = () => startAppListening({
 	predicate(_, currentState, previousState) {
 		if (
-			(currentState.config.remote.apikey !== previousState.config.remote.apikey
+			(currentState.config.remote?.apikey !== previousState.config.remote?.apikey
 				|| currentState.emhttp.var.flashGuid !== previousState.emhttp.var.flashGuid)
 			&& isAPIStateDataFullyLoaded(currentState)
 			&& !isApiKeyLoading(currentState)

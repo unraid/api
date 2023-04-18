@@ -8,7 +8,7 @@ const configLoadMatcher = isAnyOf(loadConfigFile.fulfilled);
 export const enableLoginListener = () => startAppListening({
 	matcher: configLoadMatcher,
 	async effect(action, { getState, dispatch }) {
-		if (getState().config.status === FileLoadStatus.LOADED && loadConfigFile.fulfilled.match(action) && !action.payload.remote.apikey) {
+		if (getState().config.status === FileLoadStatus.LOADED && loadConfigFile.fulfilled.match(action) && !action.payload.remote?.apikey) {
 			await dispatch(logoutUser({ reason: 'Logged out manually' }));
 		}
 	},

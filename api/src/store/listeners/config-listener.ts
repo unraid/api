@@ -19,7 +19,7 @@ export const enableConfigFileListener = (mode: ConfigType) => () => startAppList
 		}
 
 		if (currentState.config.status === FileLoadStatus.LOADED) {
-			const oldFlashConfig = previousState?.config ? getWriteableConfig(previousState.config, mode) : null;
+			const oldFlashConfig = previousState?.config.api.version ? getWriteableConfig(previousState.config, mode) : null;
 			const newFlashConfig = getWriteableConfig(currentState.config, mode);
 
 			if (!isEqual(oldFlashConfig, newFlashConfig) && action.type !== loadConfigFile.fulfilled.type && action.type !== loadConfigFile.rejected.type) {

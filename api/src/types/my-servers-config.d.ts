@@ -59,10 +59,11 @@ export interface MyServersConfigMemory extends MyServersConfig {
 	};
 }
 
-export interface MyServersConfigMemoryWithMandatoryHiddenFields extends MyServersConfigMemoryWithMandatoryHiddenFields {
-	connectionStatus: {
-		minigraph: MinigraphStatus;
-		upnpStatus?: null | string;
-	};
+export interface MyServersConfigMemoryWithMandatoryHiddenFields
+    extends MyServersConfigMemory {
+    connectionStatus: {
+        minigraph: MinigraphStatus;
+        upnpStatus?: null | string;
+    };
 }
 
