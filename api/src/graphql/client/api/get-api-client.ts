@@ -13,15 +13,17 @@ import { graphqlLogger } from '@app/core/log';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
 
-class WebsocketWithOriginHeader extends WebSocket {
-    constructor(address, protocols) {
-        super(address, protocols, {
-            headers: {
-                Origin: '/var/run/unraid-cli.sock',
-                'Content-Type': 'application/json',
-            },
-        });
-    }
+const getWebsocketWithHeaders = () => {
+    return class WebsocketWithOriginHeader extends WebSocket {
+        constructor(address, protocols) {
+            super(address, protocols, {
+                headers: {
+                    Origin: '/var/run/unraid-cli.sock',
+                    'Content-Type': 'application/json',
+                },
+            });
+        }
+    };
 }
 
 export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
@@ -38,7 +40,7 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
     // Create the subscription websocket link
     const wsLink = new GraphQLWsLink(
         createClient({
-            webSocketImpl: WebsocketWithOriginHeader,
+            webSocketImpl: getWebsocketWithHeaders(),
             url: INTERNAL_WS_LINK,
             connectionParams: () => {
                 return { 'x-api-key': upcApiKey };
