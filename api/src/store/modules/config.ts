@@ -125,6 +125,32 @@ type LoadFailureConfigEqual = {
 };
 type ConfigRejectedValues = LoadFailureConfigEqual | LoadFailureWithConfig;
 
+const generateApiKeysIfNotExistent = (
+    file: RecursivePartial<MyServersConfig>
+): MyServersConfig => {
+    const newConfigFile = merge(file, {
+        upc: {
+            apikey:
+                file.upc?.apikey?.trim()?.length === 64
+                    ? file.upc?.apikey
+                    : `unupc_${randomBytes(58).toString('hex')}`.substring(
+                          0,
+                          64
+                      ),
+        },
+        notifier: {
+            apikey:
+                file.notifier?.apikey?.trim().length === 64
+                    ? file.notifier?.apikey
+                    : `unnotify_${randomBytes(58).toString('hex')}`.substring(
+                          0,
+                          64
+                      ),
+        },
+    }) as MyServersConfig;
+    return newConfigFile
+};
+
 export const loadConfigFile = createAsyncThunk<
     MyServersConfig,
     string | undefined,
@@ -154,24 +180,7 @@ export const loadConfigFile = createAsyncThunk<
                   })
                 : {};
 
-            const newConfigFile = merge(file, {
-                upc: {
-                    apikey:
-                        file.upc?.apikey?.trim()?.length === 64
-                            ? file.upc?.apikey
-                            : `unupc_${randomBytes(58).toString(
-                                  'hex'
-                              )}`.substring(0, 64),
-                },
-                notifier: {
-                    apikey:
-                        file.notifier?.apikey?.trim().length === 64
-                            ? file.notifier?.apikey
-                            : `unnotify_${randomBytes(58).toString(
-                                  'hex'
-                              )}`.substring(0, 64),
-                },
-            }) as MyServersConfig;
+            const newConfigFile = generateApiKeysIfNotExistent(file);
 
             const isNewlyLoadedConfigEqual = isEqual(
                 getWriteableConfig(newConfigFile as SliceState, 'flash'),
@@ -189,7 +198,8 @@ export const loadConfigFile = createAsyncThunk<
         } catch (error: unknown) {
             logger.warn('Config file is corrupted, recreating config', error);
             const config = getWriteableConfig(initialState, 'flash');
-            const serializedConfig = safelySerializeObjectToIni(config);
+            const newConfig = generateApiKeysIfNotExistent(config);
+            const serializedConfig = safelySerializeObjectToIni(newConfig);
             writeFileSync(
                 getState().paths['myservers-config'],
                 serializedConfig
@@ -198,7 +208,7 @@ export const loadConfigFile = createAsyncThunk<
                 type: CONFIG_LOAD_ERROR.CONFIG_CORRUPTED,
                 error:
                     error instanceof Error ? error : new Error('Unknown Error'),
-                config,
+                config: newConfig,
             });
         }
     }
@@ -246,7 +256,7 @@ export const config = createSlice({
             }
         },
         setWanPortToValue(state, action: PayloadAction<number>) {
-            logger.debug('Wan port set to %s', action.payload)
+            logger.debug('Wan port set to %s', action.payload);
             state.remote.wanport = String(action.payload);
         },
         setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
