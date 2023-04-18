@@ -29,12 +29,14 @@ export class StateManager {
 
     private readonly setupChokidarWatchForState = () => {
         const { states } = getters.paths();
-        const pathWatch = watch(join(states, '*.ini'), {});
+
+        const pathWatch = watch(join(states, '*.ini'), {
+            usePolling: process.env.CHOKIDAR_USEPOLLING === 'true',
+        });
         pathWatch.on('all', async (_, path) => {
             const stateFile = this.getStateFileKeyFromPath(path);
             if (stateFile) {
                 try {
-                    emhttpLogger.debug('Loading state file for %s', stateFile);
                     await store.dispatch(loadSingleStateFile(stateFile));
                 } catch (error: unknown) {
                     emhttpLogger.error(
@@ -43,11 +45,6 @@ export class StateManager {
                         error
                     );
                 }
-            } else {
-                emhttpLogger.trace(
-                    'Failed to resolve a stateFileKey from path: %s',
-                    path
-                );
             }
         });
         this.fileWatchers.push(pathWatch);
