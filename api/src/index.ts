@@ -33,6 +33,7 @@ void am(
         environment.IS_MAIN_PROCESS = true;
         const cacheable = new CacheableLookup();
 
+        Object.assign(global, { WebSocket: require('ws') });
         // Ensure all DNS lookups are cached for their TTL
         cacheable.install(http.globalAgent);
         cacheable.install(https.globalAgent);
