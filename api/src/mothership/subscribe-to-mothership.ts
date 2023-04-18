@@ -15,7 +15,6 @@ import {
 
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
-import { queryServers } from '@app/store/actions/query-servers';
 import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access-event';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
@@ -54,8 +53,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                         } = event;
                         // Another server connected to Mothership
                         if (type === ClientType.API) {
-                            void store.dispatch(queryServers());
-
                             if (eventApiKey === apiKey) {
                                 // We are online, clear timeout waiting if it's set
                                 store.dispatch(setSelfReconnected());
@@ -80,8 +77,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                         } = event;
                         // Server Disconnected From Mothership
                         if (type === ClientType.API) {
-                            void store.dispatch(queryServers());
-
                             if (eventApiKey === apiKey) {
                                 store.dispatch(setSelfDisconnected());
                             }

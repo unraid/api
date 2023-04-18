@@ -2,7 +2,6 @@ import { configureStore } from '@reduxjs/toolkit';
 import { paths } from '@app/store/modules/paths';
 import { mothership } from '@app/store/modules/minigraph';
 import { configReducer } from '@app/store/modules/config';
-import { servers } from '@app/store/modules/servers';
 import { emhttp } from '@app/store/modules/emhttp';
 import { registration } from '@app/store/modules/registration';
 import { cache } from '@app/store/modules/cache';
@@ -21,7 +20,6 @@ export const store = configureStore({
 		dynamicRemoteAccess: dynamicRemoteAccessReducer,
 		minigraph: mothership.reducer,
 		paths: paths.reducer,
-		servers: servers.reducer,
 		emhttp: emhttp.reducer,
 		registration: registration.reducer,
 		remoteGraphQL: remoteGraphQLReducer,
@@ -43,7 +41,6 @@ export const getters = {
 	config: () => store.getState().config,
 	minigraph: () => store.getState().minigraph,
 	paths: () => store.getState().paths,
-	servers: () => store.getState().servers,
 	emhttp: () => store.getState().emhttp,
 	registration: () => store.getState().registration,
 	remoteGraphQL: () => store.getState().remoteGraphQL,

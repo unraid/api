@@ -1,6 +1,5 @@
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { subscribeToEvents } from '@app/mothership/subscribe-to-mothership';
-import { queryServers } from '@app/store/actions/query-servers';
 import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothership-websocket-headers';
 import isEqual from 'lodash/isEqual';
 import { GraphQLClient } from '@app/mothership/graphql-client';
@@ -22,13 +21,12 @@ export const enableMothershipJobsListener = () => startAppListening({
 		}
 
 		return false;
-	}, async effect(action, { getState, dispatch }) {
+	}, async effect(action, { getState }) {
 		await GraphQLClient.clearInstance();
 		if (getMothershipConnectionParams(getState()).apiKey) {
 			const client = GraphQLClient.createSingletonInstance();
 			if (client) {
 				await subscribeToEvents(getState().config.remote.apikey);
-				await dispatch(queryServers());
 			}
 
 		}
