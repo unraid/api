@@ -5,7 +5,6 @@ import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
 import { StateFileKey } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
-import { getDiff } from 'json-difference';
 import { isEqual } from 'lodash';
 
 export const enableArrayEventListener = () =>
@@ -24,7 +23,7 @@ export const enableArrayEventListener = () =>
                 const oldArrayData = getArrayData(getOriginalState);
                 await delay(5_000);
                 const array = getArrayData(getState);
-                if (!isEqual(oldArrayData, array) && getDiff(array,oldArrayData)) {
+                if (!isEqual(oldArrayData, array)) {
                     pubsub.publish('array', { array });
                     logger.addContext('event', array);
                     logger.debug('Array was updated, publishing event');
