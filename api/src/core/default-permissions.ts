@@ -86,6 +86,7 @@ export const my_servers: Role = {
 		{ resource: 'array', action: 'read:any', attributes: '*' },
 		{ resource: 'docker/container', action: 'read:any', attributes: '*' },
 		{ resource: 'docker/network', action: 'read:any', attributes: '*' },
+		{ resource: 'vms/domain', action: 'read:any', attributes: '*' }
 	],
 };
 
