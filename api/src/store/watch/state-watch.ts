@@ -1,6 +1,6 @@
 import { emhttpLogger } from '@app/core/log';
 
-import { watch, type FSWatcher } from 'chokidar';
+import { watch, type FSWatcher, WatchOptions } from 'chokidar';
 import { getters, store } from '@app/store';
 import { StateFileKey } from '@app/store/types';
 import { parse, join } from 'path';
@@ -9,6 +9,16 @@ import { CHOKIDAR_USEPOLLING } from '@app/environment';
 
 // Configure any excluded nchan channels that we support here
 const excludedWatches: StateFileKey[] = [StateFileKey.devs];
+
+const chokidarOptionsForStateKey = (key: StateFileKey): WatchOptions => {
+    if (key === StateFileKey.disks) {
+        return {
+            usePolling: true,
+            interval: 10000,
+        }
+    }
+    return { usePolling: CHOKIDAR_USEPOLLING }
+}
 
 export class StateManager {
     public static instance: StateManager | null = null;
@@ -40,9 +50,7 @@ export class StateManager {
                     'Setting up watch for path: %s',
                     pathToWatch
                 );
-                const stateWatch = watch(pathToWatch, {
-                    usePolling: CHOKIDAR_USEPOLLING,
-                });
+                const stateWatch = watch(pathToWatch, chokidarOptionsForStateKey(key));
                 stateWatch.on('change', async (path) => {
                     const stateFile = this.getStateFileKeyFromPath(path);
                     if (stateFile) {
