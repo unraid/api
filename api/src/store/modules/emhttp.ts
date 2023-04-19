@@ -189,6 +189,8 @@ export const emhttp = createSlice({
 
 		builder.addCase(loadSingleStateFile.fulfilled, (state, action) => {
 			if (action.payload) {
+                // const changedKey = Object.keys(action.payload)[0]
+                // emhttpLogger.debug('Key', changedKey, 'Difference in changes', getDiff(action.payload, { [changedKey]: state[changedKey] } ))
 				merge(state, action.payload);
 			} else {
 				emhttpLogger.warn('Invalid payload returned from loadSingleStateFile()');
