@@ -7,6 +7,7 @@ import { UserAccount } from '@app/graphql/resolvers/user-account';
 import { type Resolvers } from '../generated/api/types';
 import { infoSubResolvers } from './query/info';
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
+import { domainResolver } from '@app/core/modules/index';
 
 export const resolvers: Resolvers = {
     JSON: JSONResolver,
@@ -19,5 +20,8 @@ export const resolvers: Resolvers = {
     UserAccount,
     Info: {
         ...infoSubResolvers,
+    },
+    Vms: {
+        domain: domainResolver,
     },
 };

@@ -4,7 +4,7 @@ type Query {
 }
 
 type Vms {
-    domain: [VmDomain!] @func(module: "getDomains")
+    domain: [VmDomain!]
 }
 
 type Subscription {
@@ -29,5 +29,5 @@ type VmDomain {
     """A friendly name for the vm"""
     name: String
     """Current domain vm state"""
-    state: VmState
+    state: VmState!
 }

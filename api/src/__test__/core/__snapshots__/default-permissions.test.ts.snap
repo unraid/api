@@ -234,6 +234,11 @@ exports[`Returns default permissions 1`] = `
         "attributes": "*",
         "resource": "docker/network",
       },
+      {
+        "action": "read:any",
+        "attributes": "*",
+        "resource": "vms/domain",
+      },
     ],
   },
   "notifier": {
