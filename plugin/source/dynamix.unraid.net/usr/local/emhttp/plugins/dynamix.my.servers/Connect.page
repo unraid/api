@@ -184,9 +184,9 @@ function registerServer(button) {
               button.form.submit();
             });
 <?else:?>
-      const delay = (wanAccessOrg === computedRemoteAccessConfig.remote_wanaccess) ? 10 : 4000;
+      // give the unraid-api time to call rc.nginx and UpdateDNS before refreshing the page
+      const delay = 4000;
       setTimeout(function() {
-        console.debug("waited "+delay+"ms");
         button.form.submit();
       }, delay);
 <?endif?>
