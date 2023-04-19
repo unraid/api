@@ -1437,7 +1437,7 @@ export type VmDomain = {
   /** A friendly name for the vm */
   name?: Maybe<Scalars['String']>;
   /** Current domain vm state */
-  state?: Maybe<VmState>;
+  state: VmState;
   uuid: Scalars['ID'];
 };
 
@@ -2790,7 +2790,7 @@ export type VersionsResolvers<ContextType = Context, ParentType extends Resolver
 
 export type VmDomainResolvers<ContextType = Context, ParentType extends ResolversParentTypes['VmDomain'] = ResolversParentTypes['VmDomain']> = ResolversObject<{
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  state?: Resolver<Maybe<ResolversTypes['VmState']>, ParentType, ContextType>;
+  state?: Resolver<ResolversTypes['VmState'], ParentType, ContextType>;
   uuid?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;

@@ -78,7 +78,7 @@ export const domainResolver: VmsResolvers['domain'] = async (
                 return {
                     name,
                     uuid: await hypervisor.domainGetUUIDString(domain),
-                    state: VmState[states[info.state]],
+                    state: VmState[states[info.state]] ?? VmState.NOSTATE,
                     autoStart: autoStartDomainNames.includes(name),
                     features,
                 };
