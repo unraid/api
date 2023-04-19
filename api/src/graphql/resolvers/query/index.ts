@@ -3,7 +3,7 @@
  * Written by: Alexis Tyler
  */
 import { getArray } from '@app/core/modules/get-array';
-import { domainResolver, getDockerContainers } from '@app/core/modules/index';
+import { getDockerContainers } from '@app/core/modules/index';
 import { type QueryResolvers } from '@app/graphql/generated/api/types';
 import cloud from '@app/graphql/resolvers/query/cloud';
 import config from '@app/graphql/resolvers/query/config';
@@ -17,27 +17,26 @@ import registration from '@app/graphql/resolvers/query/registration';
 import server from '@app/graphql/resolvers/query/server';
 import { servers } from '@app/graphql/resolvers/query/servers';
 import twoFactor from '@app/graphql/resolvers/query/two-factor';
-import vms from '@app/graphql/resolvers/query/vms';
+import { vmsResolver } from '@app/graphql/resolvers/query/vms';
 
 export const Query: QueryResolvers = {
-	array: getArray,
-	cloud,
-	config,
-	crashReportingEnabled,
-	disks: disksResolver,
-	dockerContainers: getDockerContainers,
-	domains: domainResolver,
-	display,
-	flash,
-	online,
-	owner,
-	registration,
-	server,
-	servers,
-	twoFactor,
-	vms,
-	info() {
-		// Returns an empty object because the subfield resolvers live at the root (allows for partial fetching)
-		return {};
-	},
+    array: getArray,
+    cloud,
+    config,
+    crashReportingEnabled,
+    disks: disksResolver,
+    dockerContainers: getDockerContainers,
+    display,
+    flash,
+    online,
+    owner,
+    registration,
+    server,
+    servers,
+    twoFactor,
+    vms: vmsResolver,
+    info() {
+        // Returns an empty object because the subfield resolvers live at the root (allows for partial fetching)
+        return {};
+    },
 };

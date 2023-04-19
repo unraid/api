@@ -3,4 +3,4 @@
  * Written by: Alexis Tyler
  */
 
-export default () => ({});
+export const vmsResolver = () => ({});

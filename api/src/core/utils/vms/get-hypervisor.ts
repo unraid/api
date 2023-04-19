@@ -49,7 +49,7 @@ libvirtDirWatcher.on('all', async (event, fileName) => {
 	}
 });
 
-export const getHypervisor = async (useCache = true) => {
+export const getHypervisor = async (useCache = true): Promise<Hypervisor | null> => {
 	// Return hypervisor if it's already connected
 	if (useCache && hypervisor) {
 		return hypervisor;
@@ -105,7 +105,7 @@ const watchLibvirt = async (useCache = true) => {
 		// Get all domains
 		const domains = await hypervisor.connectListAllDomains() as unknown[];
 		const resolvedDomains = await Promise.all(domains.map(async (domain: unknown): Promise<CachedDomain> => {
-			const info = await hypervisor.domainGetInfo(domain as Domain) as { state: string };
+			const info = await hypervisor.domainGetInfo(domain as Domain)
 			const name = await hypervisor.domainGetName(domain as Domain);
 			const uuid = await hypervisor.domainGetUUIDString(domain as Domain);
 			const features = {};

@@ -6,8 +6,7 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
-import { type VmDomain, type VmDomainResolvers } from '@app/graphql/generated/api/types';
-import { type Resolvers } from '@app/graphql/generated/api/types';
+import { VmState, type VmDomain, type VmsResolvers } from '@app/graphql/generated/api/types';
 
 const states = {
     0: 'NOSTATE',
@@ -23,7 +22,7 @@ const states = {
 /**
  * Get vm domains.
  */
-export const domainResolver: Resolvers['VmDomain'] = async (
+export const domainResolver: VmsResolvers['domain'] = async (
     _,
     __,
     context
@@ -39,9 +38,13 @@ export const domainResolver: Resolvers['VmDomain'] = async (
 
     try {
         const hypervisor = await getHypervisor();
+        if (!hypervisor) {
+            return null;
+        }
         const activeDomains = await hypervisor.connectListAllDomains(
             ConnectListAllDomainsFlags.ACTIVE
         );
+
         const inactiveDomains = await hypervisor.connectListAllDomains(
             ConnectListAllDomainsFlags.INACTIVE
         );
@@ -67,7 +70,7 @@ export const domainResolver: Resolvers['VmDomain'] = async (
         // Get all domains
         const domains = await hypervisor.connectListAllDomains();
 
-        const resolvedDomains: Promise<VmDomain> = await Promise.all(
+        const resolvedDomains: Array<VmDomain> = await Promise.all(
             domains.map(async (domain) => {
                 const info = await hypervisor.domainGetInfo(domain);
                 const name = await hypervisor.domainGetName(domain);
@@ -75,7 +78,7 @@ export const domainResolver: Resolvers['VmDomain'] = async (
                 return {
                     name,
                     uuid: await hypervisor.domainGetUUIDString(domain),
-                    state: states[info.state],
+                    state: VmState[states[info.state]],
                     autoStart: autoStartDomainNames.includes(name),
                     features,
                 };
