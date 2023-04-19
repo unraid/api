@@ -36,7 +36,7 @@ if (empty($myservers['remote']['wanaccess'])) {
   $myservers['remote']['wanaccess'] = "no";
 }
 if (empty($myservers['remote']['wanport'])) {
-  $myservers['remote']['wanport'] = 443;
+  $myservers['remote']['wanport'] = 33443;
 }
 if (empty($myservers['remote']['upnpEnabled'])) {
   $myservers['remote']['upnpEnabled'] = "no";
