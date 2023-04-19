@@ -3,12 +3,12 @@
  * Written by: Alexis Tyler
  */
 import { getArray } from '@app/core/modules/get-array';
-import { getDisks, getDockerContainers } from '@app/core/modules/index';
+import { domainResolver, getDockerContainers } from '@app/core/modules/index';
 import { type QueryResolvers } from '@app/graphql/generated/api/types';
 import cloud from '@app/graphql/resolvers/query/cloud';
 import config from '@app/graphql/resolvers/query/config';
 import crashReportingEnabled from '@app/graphql/resolvers/query/crash-reporting-enabled';
-import disks, { disksResolver } from '@app/graphql/resolvers/query/disks';
+import { disksResolver } from '@app/graphql/resolvers/query/disks';
 import display from '@app/graphql/resolvers/query/display';
 import flash from '@app/graphql/resolvers/query/flash';
 import online from '@app/graphql/resolvers/query/online';
@@ -26,6 +26,7 @@ export const Query: QueryResolvers = {
 	crashReportingEnabled,
 	disks: disksResolver,
 	dockerContainers: getDockerContainers,
+	domains: domainResolver,
 	display,
 	flash,
 	online,

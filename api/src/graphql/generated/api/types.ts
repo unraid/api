@@ -427,8 +427,6 @@ export type Info = {
   os?: Maybe<Os>;
   system?: Maybe<System>;
   versions?: Maybe<Versions>;
-  /** Count of VMs */
-  vms?: Maybe<InfoVMs>;
 };
 
 export type InfoApps = {
@@ -473,14 +471,6 @@ export type InfoMemory = {
   swapused: Scalars['Long'];
   total: Scalars['Long'];
   used: Scalars['Long'];
-};
-
-export type InfoVMs = {
-  __typename?: 'InfoVMs';
-  /** How many VMs are installed */
-  installed?: Maybe<Scalars['Int']>;
-  /** How many VMs are running */
-  started?: Maybe<Scalars['Int']>;
 };
 
 export type KeyFile = {
@@ -1668,7 +1658,6 @@ export type ResolversTypes = ResolversObject<{
   InfoApps: ResolverTypeWrapper<InfoApps>;
   InfoCpu: ResolverTypeWrapper<InfoCpu>;
   InfoMemory: ResolverTypeWrapper<InfoMemory>;
-  InfoVMs: ResolverTypeWrapper<InfoVMs>;
   Int: ResolverTypeWrapper<Scalars['Int']>;
   JSON: ResolverTypeWrapper<Scalars['JSON']>;
   KeyFile: ResolverTypeWrapper<KeyFile>;
@@ -1770,7 +1759,6 @@ export type ResolversParentTypes = ResolversObject<{
   InfoApps: InfoApps;
   InfoCpu: InfoCpu;
   InfoMemory: InfoMemory;
-  InfoVMs: InfoVMs;
   Int: Scalars['Int'];
   JSON: Scalars['JSON'];
   KeyFile: KeyFile;
@@ -2101,7 +2089,6 @@ export type InfoResolvers<ContextType = Context, ParentType extends ResolversPar
   os?: Resolver<Maybe<ResolversTypes['Os']>, ParentType, ContextType>;
   system?: Resolver<Maybe<ResolversTypes['System']>, ParentType, ContextType>;
   versions?: Resolver<Maybe<ResolversTypes['Versions']>, ParentType, ContextType>;
-  vms?: Resolver<Maybe<ResolversTypes['InfoVMs']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2144,12 +2131,6 @@ export type InfoMemoryResolvers<ContextType = Context, ParentType extends Resolv
   swapused?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   total?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   used?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type InfoVMsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['InfoVMs'] = ResolversParentTypes['InfoVMs']> = ResolversObject<{
-  installed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  started?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2858,7 +2839,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   InfoApps?: InfoAppsResolvers<ContextType>;
   InfoCpu?: InfoCpuResolvers<ContextType>;
   InfoMemory?: InfoMemoryResolvers<ContextType>;
-  InfoVMs?: InfoVMsResolvers<ContextType>;
   JSON?: GraphQLScalarType;
   KeyFile?: KeyFileResolvers<ContextType>;
   Long?: GraphQLScalarType;
