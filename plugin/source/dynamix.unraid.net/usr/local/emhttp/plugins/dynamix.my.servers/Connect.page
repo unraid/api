@@ -16,13 +16,6 @@ Tag="globe"
  */
 ?>
 <?
-// more:
-// - if someone deletes the myservers.cfg or directly edits [remote] section therein, it may be possible
-// that server will appear 'unregistered' in webgui but not on Unraid Connect.
-// - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
-// now can remotely access using url that matches their cert. This is probably a bug here, but we might
-// want to rework this somewhat to explicitly enable this 'feature' (remote access using user-provided cert).
-
 $keyfile = empty($var['regFILE']) ? null : @file_get_contents($var['regFILE']);
 if ($keyfile !== false) {
   $keyfile = @base64_encode($keyfile);
@@ -280,19 +273,6 @@ function changeRemoteAccess(dropdown) {
     $('#remoteAccessMsg').html($remoteAccessMsgTxt);
     $('#useConnectMsg').html($useConnectMsgTxt);
 
-}
-
-function changeUpnp() {
-    $enabled = ($("#upnpEnabled").val() == "yes");
-    if ($enabled) {
-      // can't disable this until we can submit the form with an empty value
-      // $("#wanport").prop("disabled", true);
-      $("#wanportmsg").hide();
-    } else {
-      // $("#wanport").prop("disabled", false);
-      $("#wanportmsg").show();
-    }
-    enableDisableCheckButton();
 }
 
 function enableDisableCheckButton() {
@@ -697,7 +677,6 @@ _(Flash backup)_:
 </form>
 <script>
 changeRemoteAccess($('#remoteAccess'));
-changeUpnp();
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
 flashbackupsub.on('message', function(data) {
   var ini = parseINI(data);
