@@ -44,9 +44,7 @@ if (empty($myservers['remote']['upnpEnabled'])) {
 if (empty($myservers['remote']['dynamicRemoteAccessType'])) {
   $myservers['remote']['dynamicRemoteAccessType'] = "DISABLED";
 }
-if (empty($myservers['local']['showT2Fa'])) {
-  $myservers['local']['showT2Fa'] = 'no';
-}
+$showT2Fa = (file_exists('/boot/config/plugins/dynamix.my.servers/showT2Fa'));
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 $hasCert = preg_match('/.*\.(my)?unraid\.net$/', $nginx['NGINX_CERTNAME']);
@@ -72,8 +70,8 @@ $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd
  * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
  * by disabling html attrs and vars before the post sends to set the field
  */
-$enableRemoteT2fa = $myservers['local']['showT2Fa'] === 'yes' && !$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
-$enableLocalT2fa = $myservers['local']['showT2Fa'] === 'yes' && !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
+$enableRemoteT2fa = $showT2Fa && !$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
+$enableLocalT2fa = $showT2Fa && !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
 
 // Helper to determine the current value for the remote access input
 $dynamicRemoteAccessType = $myservers['remote']['dynamicRemoteAccessType'];
@@ -553,7 +551,7 @@ _(WAN Port)_:
 
 </div>
 <? /** for the time being only display remote T2FA field when enabled manually by Unraid developers */ ?>
-<?if($myservers['local']['showT2Fa'] === 'yes'):?>
+<?if($showT2Fa):?>
 <?
 $remoteT2faRemarks = [
   'all' => _('Remote T2FA requires Remote Access to be enabled, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
