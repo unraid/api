@@ -44,15 +44,15 @@ export const createSubscription = (channel: string, resource?: string) => ({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getLocalServer = (getState = store.getState): [Server] => {
+const getLocalServer = (getState = store.getState): Array<Server> => {
     const { emhttp, config, minigraph } = getState();
     const guid = emhttp.var.regGuid;
     const { name } = emhttp.var;
-    const wanip = null;
+    const wanip = '';
     const lanip: string = emhttp.networks[0].ipaddr[0];
     const port = emhttp.var?.port;
     const localurl = `http://${lanip}:${port}`;
-    const remoteurl = null;
+    const remoteurl = '';
 
     return [
         {
@@ -64,7 +64,10 @@ const getLocalServer = (getState = store.getState): [Server] => {
             guid,
             apikey: config.remote.apikey ?? '',
             name,
-            status: minigraph.status === MinigraphStatus.CONNECTED ? ServerStatus.ONLINE : ServerStatus.OFFLINE,
+            status:
+                minigraph.status === MinigraphStatus.CONNECTED
+                    ? ServerStatus.ONLINE
+                    : ServerStatus.OFFLINE,
             wanip,
             lanip,
             localurl,
