@@ -264,11 +264,11 @@ function changeRemoteAccess(dropdown) {
       case 'OFF':
         $useConnectMsgTxt = '';
         break;
-      case 'DYNAMIC_MANUAL':
-        $remoteAccessMsgTxt = "Enable Remote Access on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
+        case 'DYNAMIC_MANUAL':
+        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
         break;
       case 'DYNAMIC_UPNP':
-        $remoteAccessMsgTxt = "Enable Remote Access on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>, a random WAN port will be assigned by UPnP.";
+        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>, a random WAN port will be assigned by UPnP.";
         break;
       case 'ALWAYS_MANUAL':
         $remoteAccessMsgTxt = "Remote Access is always on.";
@@ -489,7 +489,7 @@ if (stripos($allowedOrigins.",", "/".$host.",") === false) {
 <? endif ?>
 
 &nbsp;
-: <span>_(Questions? See <a href="https://wiki.unraid.net/My_Servers" target="_blank">the documentation</a>.)_</span>
+: <span>_(Questions? See <a href="https://wiki.unraid.net/Connect" target="_blank">the documentation</a>.)_</span>
 
 
 _(Account status)_:
@@ -659,7 +659,7 @@ _(Flash backup)_:
 <div markdown="1" id="inactivespanel" style="display:none">
 &nbsp;
 <?if(disk_free_space('/boot') > 1024*1000*1000):?>
-: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/Connect" target="_blank">_(More information.)_</a></span>
 <?else:?>
 : <button type="button" disabled>_(Activate)_</button> <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
 <?endif?>
@@ -686,7 +686,7 @@ _(Flash backup)_:
 </div>
 <div markdown="1" id="activepanel" style="display:none">
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/Connect" target="_blank">_(More information.)_</a></span>
 
 <?if (in_array($_COOKIE['UPC_ENV']??'', ['development','staging']) && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
 &nbsp;
