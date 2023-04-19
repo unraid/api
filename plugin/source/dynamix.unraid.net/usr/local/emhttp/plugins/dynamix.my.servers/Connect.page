@@ -248,7 +248,7 @@ function changeRemoteAccess(dropdown) {
           $remote2faSelect.prop('disabled', false);
           $remote2faRemark.fadeOut();
         }
-        changeWanPortAccess();
+        enableDisableCheckButton();
     } else {
         $wanPanel.slideUp('fast');
         $remote2faRemark.fadeIn();
@@ -292,10 +292,10 @@ function changeUpnp() {
       // $("#wanport").prop("disabled", false);
       $("#wanportmsg").show();
     }
-    changeWanPortAccess();
+    enableDisableCheckButton();
 }
 
-function changeWanPortAccess() {
+function enableDisableCheckButton() {
     $enabled = ($("#wanaccess").val() == $("#wanaccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig') && $("#upnpEnabled").val() == $("#upnpEnabled").data('orig'));
     $("#wancheck").prop("disabled", !$enabled);
 }
@@ -544,7 +544,7 @@ $showWanPortOnLoad = ($currentRemoteAccessValue === 'ALWAYS_MANUAL' || $currentR
 <div markdown="1" id="wanpanel" style="display:<?=($showWanPortOnLoad?'block':'none')?>">
 
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+: <input type="number" id="wanport" onchange="enableDisableCheckButton()" onkeyup="enableDisableCheckButton()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
  <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $myservers['remote']['wanport'], htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?></span>
 
 :unraidnet_wanpanel_help:
