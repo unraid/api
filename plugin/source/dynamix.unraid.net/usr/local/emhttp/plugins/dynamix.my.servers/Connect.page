@@ -87,7 +87,6 @@ if ($dynamicRemoteAccessType === 'STATIC') {
 const oldVersion = <?=($oldVersion ? 'true' : 'false')?>;
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
-let wanAccessEnabled = $('#wanaccess').val() === 'yes'; // changes when changeRemoteAccess() is fired
 let enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
 // we don't set `enableRemoteT2fa` here b/c we need to read the value of `wanAccessEnabled` directly before submission
 
@@ -108,33 +107,33 @@ function registerServer(button) {
     switch ($remoteAccessInput.val()) {
       case 'ALWAYS_MANUAL':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'yes',
-          remote_wanport: $remoteAccessManualPort.val(),
-          remote_upnpEnabled: 'no',
+          remote_wanaccess: 'yes',   // always on
+          remote_wanport: $remoteAccessManualPort.val(), // value provided by user or from cfg file
+          remote_upnpEnabled: 'no',  // always off
           remote_dynamicRemoteAccessType: 'DISABLED',
         };
         break;
       case 'ALWAYS_UPNP':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'yes',
-          remote_wanport: '',
-          remote_upnpEnabled: 'yes',
+          remote_wanaccess: 'yes',   // always on
+          remote_wanport: '',        // existing value ignored, will be set by unraid-api after starting UPnP
+          remote_upnpEnabled: 'yes', // always on
           remote_dynamicRemoteAccessType: 'DISABLED',
         };
         break;
       case 'DYNAMIC_UPNP':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'no',
-          remote_wanport: '',
-          remote_upnpEnabled: 'no',
+          remote_wanaccess: 'no',    // will be set to "yes" by Connect when requested by user
+          remote_wanport: '',        // existing value ignored, will be set by unraid-api after starting UPnP
+          remote_upnpEnabled: 'no',  // will be set to "yes" by Connect when requested by user
           remote_dynamicRemoteAccessType: 'UPNP',
         };
         break;
       case 'DYNAMIC_MANUAL':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'no',
-          remote_wanport: $remoteAccessManualPort.val(),
-          remote_upnpEnabled: 'no',
+          remote_wanaccess: 'no',    // will be set to "yes" by Connect when requested by user
+          remote_wanport: $remoteAccessManualPort.val(), // value provided by user or from cfg file
+          remote_upnpEnabled: 'no',  // always off
           remote_dynamicRemoteAccessType: 'STATIC',
         };
         break;
@@ -188,8 +187,20 @@ function registerServer(button) {
 }
 
 function dnsCheckServer(button) {
-    var oldlabel = $.trim($(button).text());
+    // can't check DYNAMIC_MANUAL unless enabled on the Connect side too
+    // tell user to switch to ALWAYS_MANUAL to check their port forward
+    if ($('#remoteAccess').val() == "DYNAMIC_MANUAL") {
+      swal({
+            title: "Oops",
+            text: "To test your manual port forward, temporarily configure 'Allow Remote Access' as 'Always On - Manual Port Forward'",
+            type: "error",
+            html: true,
+            confirmButtonText: "_(Ok)_"
+          });
+      return;
+    }
 
+    var oldlabel = $.trim($(button).text());
     var failure = function(data) {
         var status = data.status;
         var obj = data.responseJSON;
@@ -235,14 +246,35 @@ function changeRemoteAccess(dropdown) {
     let $remote2faRemark = $('#remote2fa_remark');
     const dropdownValue = $(dropdown).val();
 
-    if (dropdownValue == 'ALWAYS_MANUAL' || dropdownValue == 'DYNAMIC_MANUAL') {
+    if (dropdownValue == 'DYNAMIC_MANUAL' || dropdownValue == 'ALWAYS_UPNP' || dropdownValue == 'ALWAYS_MANUAL') {
         $wanPanel.slideDown('fast');
+        if (dropdownValue == 'ALWAYS_UPNP') {
+          // don't let the user edit the UPnP port
+          $("#wanport").hide();
+          // show the UPnP port read-only if neither port nor dropdown has changed since page loaded
+          if ($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig')) {
+            $("#wanportdisplay").show();
+          } else {
+            $("#wanportdisplay").hide();
+          }
+        } else {
+          // let the user edit the port
+          $("#wanport").show();
+          $("#wanportdisplay").hide();
+        }
+        if (dropdownValue == 'DYNAMIC_MANUAL' || dropdownValue == 'ALWAYS_MANUAL') {
+          // show message about manually setting a port forward
+          $("#wanportmsg").show();
+        } else if (dropdownValue == 'ALWAYS_UPNP') {
+          $("#wanportmsg").hide();
+        }
         if (!oldVersion) {
           $remote2faSelect.prop('disabled', false);
           $remote2faRemark.fadeOut();
         }
         enableDisableCheckButton();
     } else {
+        // dropdown value is 'DYNAMIC_UPNP' or 'OFF'
         $wanPanel.slideUp('fast');
         $remote2faRemark.fadeIn();
         $remote2faSelect.prop('disabled', true);
@@ -251,13 +283,14 @@ function changeRemoteAccess(dropdown) {
         // $remote2faSelect.val('no'); // set value to 'no' since it's not allowed to be yes when remote access is NOT enabled
     }
 
+    // display helpful messages based on the dropdownValue
     let $remoteAccessMsgTxt = '';
     let $useConnectMsgTxt = "Visit the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a> to use Remote Access.";
     switch (dropdownValue) {
       case 'OFF':
         $useConnectMsgTxt = '';
         break;
-        case 'DYNAMIC_MANUAL':
+      case 'DYNAMIC_MANUAL':
         $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
         break;
       case 'DYNAMIC_UPNP':
@@ -276,7 +309,7 @@ function changeRemoteAccess(dropdown) {
 }
 
 function enableDisableCheckButton() {
-    $enabled = ($("#wanaccess").val() == $("#wanaccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig') && $("#upnpEnabled").val() == $("#upnpEnabled").data('orig'));
+    $enabled = ($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig'));
     $("#wancheck").prop("disabled", !$enabled);
 }
 
@@ -495,11 +528,9 @@ _(Allow Remote Access)_:
 <?else:?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
 <?endif // end check for ($oldVersion) ?>
-<input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?elseif(!$boolWebUIAuth):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
-<input type="hidden" id="wanaccess" value="no">
 <input type="hidden" id="wanport" value="0">
 <?else: // begin show remote access form ?>
 : <select id="remoteAccess" name="remoteAccess" data-orig="<?=$currentRemoteAccessValue?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
@@ -518,13 +549,10 @@ _(Allow Remote Access)_:
 &nbsp;
 : <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
 
-<?
-$showWanPortOnLoad = ($currentRemoteAccessValue === 'ALWAYS_MANUAL' || $currentRemoteAccessValue === 'DYNAMIC_MANUAL');
-?>
-<div markdown="1" id="wanpanel" style="display:<?=($showWanPortOnLoad?'block':'none')?>">
+<div markdown="1" id="wanpanel" style="display:'none'">
 
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="enableDisableCheckButton()" onkeyup="enableDisableCheckButton()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+: <input type="number" id="wanport" onchange="enableDisableCheckButton()" onkeyup="enableDisableCheckButton()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <span id="wanportdisplay" style="display:'none'"><?=$myservers['remote']['wanport']?>&nbsp;&nbsp;&nbsp;</span> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
  <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $myservers['remote']['wanport'], htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?></span>
 
 :unraidnet_wanpanel_help:
