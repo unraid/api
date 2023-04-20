@@ -16,13 +16,6 @@ Tag="globe"
  */
 ?>
 <?
-// more:
-// - if someone deletes the myservers.cfg or directly edits [remote] section therein, it may be possible
-// that server will appear 'unregistered' in webgui but not on Unraid Connect.
-// - appears someone could register, enable remote access, then unregister, replace the ssl cert, and
-// now can remotely access using url that matches their cert. This is probably a bug here, but we might
-// want to rework this somewhat to explicitly enable this 'feature' (remote access using user-provided cert).
-
 $keyfile = empty($var['regFILE']) ? null : @file_get_contents($var['regFILE']);
 if ($keyfile !== false) {
   $keyfile = @base64_encode($keyfile);
@@ -36,7 +29,7 @@ if (empty($myservers['remote']['wanaccess'])) {
   $myservers['remote']['wanaccess'] = "no";
 }
 if (empty($myservers['remote']['wanport'])) {
-  $myservers['remote']['wanport'] = 443;
+  $myservers['remote']['wanport'] = 33443;
 }
 if (empty($myservers['remote']['upnpEnabled'])) {
   $myservers['remote']['upnpEnabled'] = "no";
@@ -44,18 +37,10 @@ if (empty($myservers['remote']['upnpEnabled'])) {
 if (empty($myservers['remote']['dynamicRemoteAccessType'])) {
   $myservers['remote']['dynamicRemoteAccessType'] = "DISABLED";
 }
-if (empty($myservers['local']['showT2Fa'])) {
-  $myservers['local']['showT2Fa'] = 'no';
-}
+$showT2Fa = (file_exists('/boot/config/plugins/dynamix.my.servers/showT2Fa'));
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
-$hasCert = preg_match('/.*\.(my)?unraid\.net$/', $nginx['NGINX_CERTNAME']);
 $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $nginx['NGINX_CERTNAME']);
-
-$oldVersion = version_compare('6.9.9', $var['version'], '>');
-if ($oldVersion) {
-    $hasCert = $hasCert && $var['USE_SSL']!='no';
-}
 
 $isRegistered = !empty($myservers['remote']['username']);
 
@@ -67,13 +52,6 @@ $flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashba
 
 $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
-
-/**
- * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
- * by disabling html attrs and vars before the post sends to set the field
- */
-$enableRemoteT2fa = $myservers['local']['showT2Fa'] === 'yes' && !$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
-$enableLocalT2fa = $myservers['local']['showT2Fa'] === 'yes' && !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
 
 // Helper to determine the current value for the remote access input
 $dynamicRemoteAccessType = $myservers['remote']['dynamicRemoteAccessType'];
@@ -91,14 +69,17 @@ if ($dynamicRemoteAccessType === 'STATIC') {
   $currentRemoteAccessValue = 'ALWAYS_MANUAL';
 }
 
+/**
+ * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
+ * by disabling html attrs and vars before the post sends to set the field
+ */
+$enableRemoteT2fa = $showT2Fa && $currentRemoteAccessValue !== 'OFF' && $hasMyUnraidNetCert;
+$enableLocalT2fa = $showT2Fa && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
+
 ?>
 <script>
-const oldVersion = <?=($oldVersion ? 'true' : 'false')?>;
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
-let wanAccessEnabled = $('#wanaccess').val() === 'yes'; // changes when changeRemoteAccess() is fired
-let enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
-// we don't set `enableRemoteT2fa` here b/c we need to read the value of `wanAccessEnabled` directly before submission
 
 $('body').on('change keyup', '#UnraidNetSettings', function(data) {
   validateExtraOrigins();
@@ -117,33 +98,33 @@ function registerServer(button) {
     switch ($remoteAccessInput.val()) {
       case 'ALWAYS_MANUAL':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'yes',
-          remote_wanport: $remoteAccessManualPort.val(),
-          remote_upnpEnabled: 'no',
+          remote_wanaccess: 'yes',   // always on
+          remote_wanport: $remoteAccessManualPort.val(), // value provided by user or from cfg file
+          remote_upnpEnabled: 'no',  // always off
           remote_dynamicRemoteAccessType: 'DISABLED',
         };
         break;
       case 'ALWAYS_UPNP':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'yes',
-          remote_wanport: '',
-          remote_upnpEnabled: 'yes',
+          remote_wanaccess: 'yes',   // always on
+          remote_wanport: '',        // existing value ignored, will be set by unraid-api after starting UPnP
+          remote_upnpEnabled: 'yes', // always on
           remote_dynamicRemoteAccessType: 'DISABLED',
         };
         break;
       case 'DYNAMIC_UPNP':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'no',
-          remote_wanport: '',
-          remote_upnpEnabled: 'no',
+          remote_wanaccess: 'no',    // will be set to "yes" by Connect when requested by user
+          remote_wanport: '',        // existing value ignored, will be set by unraid-api after starting UPnP
+          remote_upnpEnabled: 'no',  // will be set to "yes" by Connect when requested by user
           remote_dynamicRemoteAccessType: 'UPNP',
         };
         break;
       case 'DYNAMIC_MANUAL':
         computedRemoteAccessConfig = {
-          remote_wanaccess: 'no',
-          remote_wanport: $remoteAccessManualPort.val(),
-          remote_upnpEnabled: 'no',
+          remote_wanaccess: 'no',    // will be set to "yes" by Connect when requested by user
+          remote_wanport: $remoteAccessManualPort.val(), // value provided by user or from cfg file
+          remote_upnpEnabled: 'no',  // always off
           remote_dynamicRemoteAccessType: 'STATIC',
         };
         break;
@@ -157,10 +138,8 @@ function registerServer(button) {
         break;
     }
 
-    console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
-
-        const wanAccessEnabled = computedRemoteAccessConfig.remote_wanaccess === 'yes';
-        const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
+        const enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
+        const enableRemoteT2fa = $remoteAccessInput.val() !== 'OFF' && hasMyUnraidNetCert;
 
         var postobj = {
             "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
@@ -171,7 +150,7 @@ function registerServer(button) {
             "api_extraOrigins": validateExtraOrigins(),
         };
 
-        console.debug(JSON.stringify(postobj,null,2))
+        // console.debug(JSON.stringify(postobj,null,2))
         $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
         $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
 <?if(!$isRegistered):?>
@@ -186,9 +165,9 @@ function registerServer(button) {
               button.form.submit();
             });
 <?else:?>
-      const delay = (wanAccessOrg === computedRemoteAccessConfig.remote_wanaccess) ? 10 : 4000;
+      // give the unraid-api time to call rc.nginx and UpdateDNS before refreshing the page
+      const delay = 4000;
       setTimeout(function() {
-        console.debug("waited "+delay+"ms");
         button.form.submit();
       }, delay);
 <?endif?>
@@ -197,8 +176,20 @@ function registerServer(button) {
 }
 
 function dnsCheckServer(button) {
-    var oldlabel = $.trim($(button).text());
+    // can't check DYNAMIC_MANUAL unless enabled on the Connect side too
+    // tell user to switch to ALWAYS_MANUAL to check their port forward
+    if ($('#remoteAccess').val() == "DYNAMIC_MANUAL") {
+      swal({
+            title: "Oops",
+            text: "_(To test your manual port forward, temporarily configure 'Allow Remote Access' as 'Always On - Manual Port Forward')_",
+            type: "error",
+            html: true,
+            confirmButtonText: "_(Ok)_"
+          });
+      return;
+    }
 
+    var oldlabel = $.trim($(button).text());
     var failure = function(data) {
         var status = data.status;
         var obj = data.responseJSON;
@@ -244,14 +235,33 @@ function changeRemoteAccess(dropdown) {
     let $remote2faRemark = $('#remote2fa_remark');
     const dropdownValue = $(dropdown).val();
 
-    if (dropdownValue == 'ALWAYS_MANUAL' || dropdownValue == 'DYNAMIC_MANUAL') {
+    if (dropdownValue == 'DYNAMIC_MANUAL' || dropdownValue == 'ALWAYS_UPNP' || dropdownValue == 'ALWAYS_MANUAL') {
         $wanPanel.slideDown('fast');
-        if (!oldVersion) {
-          $remote2faSelect.prop('disabled', false);
-          $remote2faRemark.fadeOut();
+        if (dropdownValue == 'ALWAYS_UPNP') {
+          // don't let the user edit the UPnP port
+          $("#wanport").hide();
+          // show the UPnP port read-only if neither port nor dropdown has changed since page loaded
+          if ($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig')) {
+            $("#wanportdisplay").show();
+          } else {
+            $("#wanportdisplay").hide();
+          }
+        } else {
+          // let the user edit the port
+          $("#wanport").show();
+          $("#wanportdisplay").hide();
         }
-        changeWanPortAccess();
+        if (dropdownValue == 'DYNAMIC_MANUAL' || dropdownValue == 'ALWAYS_MANUAL') {
+          // show message about manually setting a port forward
+          $("#wanportmsg").show();
+        } else if (dropdownValue == 'ALWAYS_UPNP') {
+          $("#wanportmsg").hide();
+        }
+        $remote2faSelect.prop('disabled', false);
+        $remote2faRemark.fadeOut();
+        enableDisableCheckButton();
     } else {
+        // dropdown value is 'DYNAMIC_UPNP' or 'OFF'
         $wanPanel.slideUp('fast');
         $remote2faRemark.fadeIn();
         $remote2faSelect.prop('disabled', true);
@@ -260,6 +270,7 @@ function changeRemoteAccess(dropdown) {
         // $remote2faSelect.val('no'); // set value to 'no' since it's not allowed to be yes when remote access is NOT enabled
     }
 
+    // display helpful messages based on the dropdownValue
     let $remoteAccessMsgTxt = '';
     let $useConnectMsgTxt = "Visit the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a> to use Remote Access.";
     switch (dropdownValue) {
@@ -267,10 +278,10 @@ function changeRemoteAccess(dropdown) {
         $useConnectMsgTxt = '';
         break;
       case 'DYNAMIC_MANUAL':
-        $remoteAccessMsgTxt = "Enable Remote Access on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
+        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
         break;
       case 'DYNAMIC_UPNP':
-        $remoteAccessMsgTxt = "Enable Remote Access on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>, a random WAN port will be assigned by UPnP.";
+        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>, a random WAN port will be assigned by UPnP.";
         break;
       case 'ALWAYS_MANUAL':
         $remoteAccessMsgTxt = "Remote Access is always on.";
@@ -284,21 +295,8 @@ function changeRemoteAccess(dropdown) {
 
 }
 
-function changeUpnp() {
-    $enabled = ($("#upnpEnabled").val() == "yes");
-    if ($enabled) {
-      // can't disable this until we can submit the form with an empty value
-      // $("#wanport").prop("disabled", true);
-      $("#wanportmsg").hide();
-    } else {
-      // $("#wanport").prop("disabled", false);
-      $("#wanportmsg").show();
-    }
-    changeWanPortAccess();
-}
-
-function changeWanPortAccess() {
-    $enabled = ($("#wanaccess").val() == $("#wanaccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig') && $("#upnpEnabled").val() == $("#upnpEnabled").data('orig'));
+function enableDisableCheckButton() {
+    $enabled = ($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig'));
     $("#wancheck").prop("disabled", !$enabled);
 }
 
@@ -491,7 +489,7 @@ if (stripos($allowedOrigins.",", "/".$host.",") === false) {
 <? endif ?>
 
 &nbsp;
-: <span>_(Questions? See <a href="https://wiki.unraid.net/My_Servers" target="_blank">the documentation</a>.)_</span>
+: <span>_(Questions? See <a href="https://wiki.unraid.net/Connect" target="_blank">the documentation</a>.)_</span>
 
 
 _(Account status)_:
@@ -507,22 +505,14 @@ _(Connected to Unraid Connect Cloud)_:
 <?endif // end check for ($isRegistered) ?>
 
 _(Allow Remote Access)_:
-<?if(!$isRegistered):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
-<?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span>
-<?elseif(!$hasCert):?>
-<?if($oldVersion):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
-<?else:?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
-<?endif // end check for ($oldVersion) ?>
-<input type="hidden" id="wanaccess" value="no">
-<input type="hidden" id="wanport" value="0">
-<?elseif(!$boolWebUIAuth):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
-<input type="hidden" id="wanaccess" value="no">
-<input type="hidden" id="wanport" value="0">
+<?if(!$isRegistered): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span></dd></dl>
+<?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span></dd></dl>
+<?elseif(!$hasMyUnraidNetCert): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span><input type="hidden" id="wanport" value="0"></dd></dl>
+<?elseif(!$boolWebUIAuth): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span><input type="hidden" id="wanport" value="0"></dd></dl>
 <?else: // begin show remote access form ?>
 : <select id="remoteAccess" name="remoteAccess" data-orig="<?=$currentRemoteAccessValue?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
     <?=mk_option($currentRemoteAccessValue, "OFF", _("Off"))?>
@@ -540,71 +530,50 @@ _(Allow Remote Access)_:
 &nbsp;
 : <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
 
-<?
-$showWanPortOnLoad = ($currentRemoteAccessValue === 'ALWAYS_MANUAL' || $currentRemoteAccessValue === 'DYNAMIC_MANUAL');
-?>
-<div markdown="1" id="wanpanel" style="display:<?=($showWanPortOnLoad?'block':'none')?>">
+<div markdown="1" id="wanpanel" style="display:'none'">
 
 _(WAN Port)_:
-: <input type="number" id="wanport" onchange="changeWanPortAccess()" onkeyup="changeWanPortAccess()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
+: <input type="number" id="wanport" onchange="enableDisableCheckButton()" onkeyup="enableDisableCheckButton()" data-orig="<?=$myservers['remote']['wanport']?>" class="trim" min="0" max="65535" value="<?=htmlspecialchars($myservers['remote']['wanport'])?>"> <span id="wanportdisplay" style="display:'none'"><?=$myservers['remote']['wanport']?>&nbsp;&nbsp;&nbsp;</span> <button type="button" id="wancheck" onclick="dnsCheckServer(this)" style="margin-top: 0">_(Check)_</button>
  <span id="wanportmsg"><?=sprintf(_("Remark: configure your router with port forwarding of port") . " <strong>%u/TCP</strong> " . _("to") . " <strong>%s:%u</strong>", $myservers['remote']['wanport'], htmlspecialchars($eth0['IPADDR:0']??''), $var['PORTSSL']??443)?></span>
 
 :unraidnet_wanpanel_help:
 
 </div>
 <? /** for the time being only display remote T2FA field when enabled manually by Unraid developers */ ?>
-<?if($myservers['local']['showT2Fa'] === 'yes'):?>
+<?if($showT2Fa):?>
 <?
 $remoteT2faRemarks = [
-  'all' => _('Remote T2FA requires Remote Access to be enabled, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
-  'need610' => _('Remote T2FA requires Unraid 6.10 or higher'),
+  'all' => _('Remote T2FA requires Remote Access to be enabled and a *.myunraid.net certificate'),
   'needRemote' => _('Remote T2FA requires Remote Access to be enabled'),
-  'needRemoteAnd610' => _('Remote T2FA requires Remote Access to be enabled and Unraid 6.10 or higher'),
   'needRemoteAndCert' => _('Remote T2FA requires Remote Access to be enabled and a *.myunraid.net certificate'),
-  'need610AndCert' => _('Remote T2FA requires Unraid 6.10 or higher and a *.myunraid.net certificate'),
   'needCert' => _('Remote T2FA requires a *.myunraid.net certificate'),
 ];
 
 if ($enableRemoteT2fa)
   $remoteT2faRemark = '';
-elseif ($oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert)
-  $remoteT2faRemark = $remoteT2faRemarks['need610'];
-elseif (!$oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue === 'OFF' && $hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemote'];
-elseif ($oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
-  $remoteT2faRemark = $remoteT2faRemarks['needRemoteAnd610'];
-elseif (!$oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && !$hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue === 'OFF' && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemoteAndCert'];
-elseif ($oldVersion && $myservers['remote']['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
-  $remoteT2faRemark = $remoteT2faRemarks['need610AndCert'];
-elseif (!$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue !== 'OFF'  && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needCert'];
 else
   $remoteT2faRemark = $remoteT2faRemarks['all'];
 
 $localT2faRemarks = [
-  'all' => _('Local T2FA requires Use SSL/TLS to be Strict, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
+  'all' => _('Local T2FA requires Use SSL/TLS to be Strict and a *.myunraid.net certificate'),
   'needSSLAuto' => _('Local T2FA requires Use SSL/TLS to be Strict'),
-  'needSSLAutoAnd610' => _('Local T2FA requires Use SSL/TLS to be Strict and Unraid 6.10 or higher'),
   'needSSLAutoAndCert' => _('Local T2FA requires Use SSL/TLS to be Strict and a *.myunraid.net certificate'),
-  'need610' => _('Local T2FA requires Unraid 6.10 or higher'),
-  'need610AndCert' => _('Local T2FA requires Unraid 6.10 or higher and a *.myunraid.net certificate'),
   'needCert' => _('Local T2FA requires a *.myunraid.net certificate'),
 ];
 
 if($enableLocalT2fa)
   $localT2faRemark = '';
-elseif ($oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert)
-  $localT2faRemark = $localT2faRemarks['need610'];
-elseif (!$oldVersion && $var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
+elseif ($var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
   $localT2faRemark = $localT2faRemarks['needSSLAuto'];
-elseif ($oldVersion && $var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
-  $localT2faRemark = $localT2faRemarks['needSSLAutoAnd610'];
-elseif (!$oldVersion && $var['USE_SSL'] !== 'auto' && !$hasMyUnraidNetCert)
+elseif ($var['USE_SSL'] !== 'auto' && !$hasMyUnraidNetCert)
   $localT2faRemark = $localT2faRemarks['needSSLAutoAndCert'];
-elseif ($oldVersion && $var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
-  $localT2faRemark = $localT2faRemarks['need610AndCert'];
-elseif (!$oldVersion && $var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
+elseif ($var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
   $localT2faRemark = $localT2faRemarks['needCert'];
 else
   $localT2faRemark = $localT2faRemarks['all'];
@@ -635,7 +604,8 @@ _(Unraid API extra origins)_<!-- do not index -->:
 &nbsp;
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button> <span id="useConnectMsg"></span>
 
-<?endif // end check for (!$hasCert) ?>
+<?endif // end check for (!$boolWebUIAuth) ?>
+
 </form>
 
 _(Flash backup)_:
@@ -661,7 +631,7 @@ _(Flash backup)_:
 <div markdown="1" id="inactivespanel" style="display:none">
 &nbsp;
 <?if(disk_free_space('/boot') > 1024*1000*1000):?>
-: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+: <button type="button" onclick="enableFlashBackup(this)">_(Activate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/Connect" target="_blank">_(More information.)_</a></span>
 <?else:?>
 : <button type="button" disabled>_(Activate)_</button> <span><i class="fa fa-warning icon warning"></i> _(In order to activate Flash Backup there must be at least 1GB of free space on your flash drive.)_</span>
 <?endif?>
@@ -688,7 +658,7 @@ _(Flash backup)_:
 </div>
 <div markdown="1" id="activepanel" style="display:none">
 &nbsp;
-: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/My_Servers" target="_blank">_(More information.)_</a></span>
+: <button type="button" onclick="enableFlashBackup(this)">_(Deactivate)_</button> <span>_(Please note that the flash backup is not encrypted at this time.)_ <a href="https://wiki.unraid.net/Connect" target="_blank">_(More information.)_</a></span>
 
 <?if (in_array($_COOKIE['UPC_ENV']??'', ['development','staging']) && file_exists("/var/log/gitflash") && filesize("/var/log/gitflash")):?>
 &nbsp;
@@ -699,7 +669,6 @@ _(Flash backup)_:
 </form>
 <script>
 changeRemoteAccess($('#remoteAccess'));
-changeUpnp();
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
 flashbackupsub.on('message', function(data) {
   var ini = parseINI(data);
