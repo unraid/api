@@ -19,7 +19,7 @@ export const getArray = (): DashboardArrayInput => {
     }
 
     return {
-        state: array.state,
+        state: array.state ?? ArrayState.STOPPED,
         capacity: {
             bytes: {
                 free: KBToB(array.capacity.kilobytes.free),
