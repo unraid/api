@@ -199,6 +199,7 @@ export const loadConfigFile = createAsyncThunk<
             logger.warn('Config file is corrupted, recreating config', error);
             const config = getWriteableConfig(initialState, 'flash');
             const newConfig = generateApiKeysIfNotExistent(config);
+            newConfig.remote.wanaccess = 'no';
             const serializedConfig = safelySerializeObjectToIni(newConfig);
             writeFileSync(
                 getState().paths['myservers-config'],
