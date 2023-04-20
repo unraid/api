@@ -40,13 +40,7 @@ if (empty($myservers['remote']['dynamicRemoteAccessType'])) {
 $showT2Fa = (file_exists('/boot/config/plugins/dynamix.my.servers/showT2Fa'));
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
-$hasCert = preg_match('/.*\.(my)?unraid\.net$/', $nginx['NGINX_CERTNAME']);
 $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $nginx['NGINX_CERTNAME']);
-
-$oldVersion = version_compare('6.9.9', $var['version'], '>');
-if ($oldVersion) {
-    $hasCert = $hasCert && $var['USE_SSL']!='no';
-}
 
 $isRegistered = !empty($myservers['remote']['username']);
 
@@ -63,8 +57,8 @@ $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd
  * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
  * by disabling html attrs and vars before the post sends to set the field
  */
-$enableRemoteT2fa = $showT2Fa && !$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
-$enableLocalT2fa = $showT2Fa && !$oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
+$enableRemoteT2fa = $showT2Fa && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
+$enableLocalT2fa = $showT2Fa && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
 
 // Helper to determine the current value for the remote access input
 $dynamicRemoteAccessType = $myservers['remote']['dynamicRemoteAccessType'];
@@ -84,7 +78,6 @@ if ($dynamicRemoteAccessType === 'STATIC') {
 
 ?>
 <script>
-const oldVersion = <?=($oldVersion ? 'true' : 'false')?>;
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
 let enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
@@ -150,7 +143,7 @@ function registerServer(button) {
     console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
 
         const wanAccessEnabled = computedRemoteAccessConfig.remote_wanaccess === 'yes';
-        const enableRemoteT2fa = !oldVersion && wanAccessEnabled && hasMyUnraidNetCert;
+        const enableRemoteT2fa = wanAccessEnabled && hasMyUnraidNetCert;
 
         var postobj = {
             "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
@@ -192,7 +185,7 @@ function dnsCheckServer(button) {
     if ($('#remoteAccess').val() == "DYNAMIC_MANUAL") {
       swal({
             title: "Oops",
-            text: "To test your manual port forward, temporarily configure 'Allow Remote Access' as 'Always On - Manual Port Forward'",
+            text: "_(To test your manual port forward, temporarily configure 'Allow Remote Access' as 'Always On - Manual Port Forward')_",
             type: "error",
             html: true,
             confirmButtonText: "_(Ok)_"
@@ -268,10 +261,8 @@ function changeRemoteAccess(dropdown) {
         } else if (dropdownValue == 'ALWAYS_UPNP') {
           $("#wanportmsg").hide();
         }
-        if (!oldVersion) {
-          $remote2faSelect.prop('disabled', false);
-          $remote2faRemark.fadeOut();
-        }
+        $remote2faSelect.prop('disabled', false);
+        $remote2faRemark.fadeOut();
         enableDisableCheckButton();
     } else {
         // dropdown value is 'DYNAMIC_UPNP' or 'OFF'
@@ -522,12 +513,8 @@ _(Allow Remote Access)_:
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
 <?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span>
-<?elseif(!$hasCert):?>
-<?if($oldVersion):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision an unraid.net SSL Cert and set SSL-TLS to Auto)_</span>
-<?else:?>
+<?elseif(!$hasMyUnraidNetCert):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
-<?endif // end check for ($oldVersion) ?>
 <input type="hidden" id="wanport" value="0">
 <?elseif(!$boolWebUIAuth):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
@@ -562,55 +549,37 @@ _(WAN Port)_:
 <?if($showT2Fa):?>
 <?
 $remoteT2faRemarks = [
-  'all' => _('Remote T2FA requires Remote Access to be enabled, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
-  'need610' => _('Remote T2FA requires Unraid 6.10 or higher'),
+  'all' => _('Remote T2FA requires Remote Access to be enabled and a *.myunraid.net certificate'),
   'needRemote' => _('Remote T2FA requires Remote Access to be enabled'),
-  'needRemoteAnd610' => _('Remote T2FA requires Remote Access to be enabled and Unraid 6.10 or higher'),
   'needRemoteAndCert' => _('Remote T2FA requires Remote Access to be enabled and a *.myunraid.net certificate'),
-  'need610AndCert' => _('Remote T2FA requires Unraid 6.10 or higher and a *.myunraid.net certificate'),
   'needCert' => _('Remote T2FA requires a *.myunraid.net certificate'),
 ];
 
 if ($enableRemoteT2fa)
   $remoteT2faRemark = '';
-elseif ($oldVersion && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert)
-  $remoteT2faRemark = $remoteT2faRemarks['need610'];
-elseif (!$oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue == 'OFF' && $hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemote'];
-elseif ($oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && $hasMyUnraidNetCert)
-  $remoteT2faRemark = $remoteT2faRemarks['needRemoteAnd610'];
-elseif (!$oldVersion && $myservers['remote']['wanaccess'] !== 'yes' && !$hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue == 'OFF' && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemoteAndCert'];
-elseif ($oldVersion && $myservers['remote']['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
-  $remoteT2faRemark = $remoteT2faRemarks['need610AndCert'];
-elseif (!$oldVersion && $myservers['remote']['wanaccess'] === 'yes' && !$hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue != 'OFF'  && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needCert'];
 else
   $remoteT2faRemark = $remoteT2faRemarks['all'];
 
 $localT2faRemarks = [
-  'all' => _('Local T2FA requires Use SSL/TLS to be Strict, Unraid 6.10 or higher, and a *.myunraid.net certificate'),
+  'all' => _('Local T2FA requires Use SSL/TLS to be Strict and a *.myunraid.net certificate'),
   'needSSLAuto' => _('Local T2FA requires Use SSL/TLS to be Strict'),
-  'needSSLAutoAnd610' => _('Local T2FA requires Use SSL/TLS to be Strict and Unraid 6.10 or higher'),
   'needSSLAutoAndCert' => _('Local T2FA requires Use SSL/TLS to be Strict and a *.myunraid.net certificate'),
-  'need610' => _('Local T2FA requires Unraid 6.10 or higher'),
-  'need610AndCert' => _('Local T2FA requires Unraid 6.10 or higher and a *.myunraid.net certificate'),
   'needCert' => _('Local T2FA requires a *.myunraid.net certificate'),
 ];
 
 if($enableLocalT2fa)
   $localT2faRemark = '';
-elseif ($oldVersion && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert)
-  $localT2faRemark = $localT2faRemarks['need610'];
-elseif (!$oldVersion && $var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
+elseif ($var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
   $localT2faRemark = $localT2faRemarks['needSSLAuto'];
-elseif ($oldVersion && $var['USE_SSL'] !== 'auto' && $hasMyUnraidNetCert)
-  $localT2faRemark = $localT2faRemarks['needSSLAutoAnd610'];
-elseif (!$oldVersion && $var['USE_SSL'] !== 'auto' && !$hasMyUnraidNetCert)
+elseif ($var['USE_SSL'] !== 'auto' && !$hasMyUnraidNetCert)
   $localT2faRemark = $localT2faRemarks['needSSLAutoAndCert'];
-elseif ($oldVersion && $var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
-  $localT2faRemark = $localT2faRemarks['need610AndCert'];
-elseif (!$oldVersion && $var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
+elseif ($var['USE_SSL'] === 'auto' && !$hasMyUnraidNetCert)
   $localT2faRemark = $localT2faRemarks['needCert'];
 else
   $localT2faRemark = $localT2faRemarks['all'];
@@ -641,7 +610,7 @@ _(Unraid API extra origins)_<!-- do not index -->:
 &nbsp;
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button> <span id="useConnectMsg"></span>
 
-<?endif // end check for (!$hasCert) ?>
+<?endif // end check for (!$boolWebUIAuth) ?>
 </form>
 
 _(Flash backup)_:
