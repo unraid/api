@@ -53,13 +53,6 @@ $flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashba
 $passwd_result = exec('/usr/bin/passwd --status root');
 $boolWebUIAuth = $isRegistered && (($passwd_result !== false) && (substr($passwd_result, 0, 6) == 'root P'));
 
-/**
- * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
- * by disabling html attrs and vars before the post sends to set the field
- */
-$enableRemoteT2fa = $showT2Fa && $myservers['remote']['wanaccess'] === 'yes' && $hasMyUnraidNetCert;
-$enableLocalT2fa = $showT2Fa && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
-
 // Helper to determine the current value for the remote access input
 $dynamicRemoteAccessType = $myservers['remote']['dynamicRemoteAccessType'];
 $upnpEnabled = $myservers['remote']['upnpEnabled'] === 'yes';
@@ -76,12 +69,17 @@ if ($dynamicRemoteAccessType === 'STATIC') {
   $currentRemoteAccessValue = 'ALWAYS_MANUAL';
 }
 
+/**
+ * mimicking PHP vars below in javascript to ensure people can't trick the js postobj
+ * by disabling html attrs and vars before the post sends to set the field
+ */
+$enableRemoteT2fa = $showT2Fa && $currentRemoteAccessValue !== 'OFF' && $hasMyUnraidNetCert;
+$enableLocalT2fa = $showT2Fa && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
+
 ?>
 <script>
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
-let enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
-// we don't set `enableRemoteT2fa` here b/c we need to read the value of `wanAccessEnabled` directly before submission
 
 $('body').on('change keyup', '#UnraidNetSettings', function(data) {
   validateExtraOrigins();
@@ -142,8 +140,8 @@ function registerServer(button) {
 
     console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
 
-        const wanAccessEnabled = computedRemoteAccessConfig.remote_wanaccess === 'yes';
-        const enableRemoteT2fa = wanAccessEnabled && hasMyUnraidNetCert;
+        const enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
+        const enableRemoteT2fa = $remoteAccessInput.val() !== 'OFF' && hasMyUnraidNetCert;
 
         var postobj = {
             "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
@@ -557,11 +555,11 @@ $remoteT2faRemarks = [
 
 if ($enableRemoteT2fa)
   $remoteT2faRemark = '';
-elseif ($currentRemoteAccessValue == 'OFF' && $hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue === 'OFF' && $hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemote'];
-elseif ($currentRemoteAccessValue == 'OFF' && !$hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue === 'OFF' && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needRemoteAndCert'];
-elseif ($currentRemoteAccessValue != 'OFF'  && !$hasMyUnraidNetCert)
+elseif ($currentRemoteAccessValue !== 'OFF'  && !$hasMyUnraidNetCert)
   $remoteT2faRemark = $remoteT2faRemarks['needCert'];
 else
   $remoteT2faRemark = $remoteT2faRemarks['all'];
