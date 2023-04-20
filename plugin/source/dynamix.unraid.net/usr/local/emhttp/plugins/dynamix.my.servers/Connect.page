@@ -507,16 +507,14 @@ _(Connected to Unraid Connect Cloud)_:
 <?endif // end check for ($isRegistered) ?>
 
 _(Allow Remote Access)_:
-<?if(!$isRegistered):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
-<?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span>
-<?elseif(!$hasMyUnraidNetCert):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span>
-<input type="hidden" id="wanport" value="0">
-<?elseif(!$boolWebUIAuth):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span>
-<input type="hidden" id="wanport" value="0">
+<?if(!$isRegistered): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span></dd></dl>
+<?elseif(!$isConnected && $myservers['remote']['wanaccess']!="yes"): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span></dd></dl>
+<?elseif(!$hasMyUnraidNetCert): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span><input type="hidden" id="wanport" value="0"></dd></dl>
+<?elseif(!$boolWebUIAuth): // NOTE: manually added close tags so the next section would not be indented ?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until your root user account is password-protected)_</span><input type="hidden" id="wanport" value="0"></dd></dl>
 <?else: // begin show remote access form ?>
 : <select id="remoteAccess" name="remoteAccess" data-orig="<?=$currentRemoteAccessValue?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
     <?=mk_option($currentRemoteAccessValue, "OFF", _("Off"))?>
@@ -609,6 +607,7 @@ _(Unraid API extra origins)_<!-- do not index -->:
 : <button class="applyBtn" type="button" onclick="registerServer(this)" disabled="disabled">_(Apply)_</button> <span id="useConnectMsg"></span>
 
 <?endif // end check for (!$boolWebUIAuth) ?>
+
 </form>
 
 _(Flash backup)_:
