@@ -472,21 +472,33 @@
               'subheading' => _('Expand your servers capabilities'),
               'copy' => _('With an Unraid.net account you can start using Connect (beta) which gives you access to the following features:'),
               'features' => [
-                'secureRemoteAccess' => [
-                  'heading' => _('Secure remote access'),
-                  'copy' => _("Whether you need to add a share container or virtual machine do it all from the webGui from anytime and anywhere using HTTPS").'. '._("Best of all all SSL certificates are verified by Let's Encrypt so no browser security warnings").'.',
+                "dynamicRemoteAccess" => [
+                  'heading' => _('Dynamic Remote Access'),
+                  'copy' => _('Toggle on/off server accessibility with dynamic remote access').'. '._('Automatically turn on UPnP and open a random WAN port on your router at the click of a button and close off access in seconds').'.',
                 ],
-                'realTimeMonitoring' => [
+                "manageWithinConnect" => [
+                  'heading' => _('Manage Your Server Within Connect'),
+                  'copy' => _('Servers equipped with a myunraid.net certificate can be managed directly from within the Connect web UI').'. '._('Manage multiple servers from your phone, tablet, laptop, or PC in the same browser window').'.',
+                ],
+                "deepLinking" => [
+                  'heading' => _('Deep Linking'),
+                  'copy' => _('The Connect dashboard links to relevant sections of the webgui, allowing quick access to those settings and server sections').'.',
+                ],
+                "onlineFlashBackup" => [
+                  'heading' => _('Online Flash Backup'),
+                  'copy' => _('Never ever be left without a backup of your config').'. '._('If you need to change flash drives, generate a backup from Connect and be up and running in minutes').'.',
+                ],
+                "realTimeMonitoring" => [
                   'heading' => _('Real-time Monitoring'),
-                  'copy' => _('Get quick real-time info on the status of your servers such as storage, container, and VM usage').'. '._('And not just for one server but all the servers in your Unraid fleet'),
+                  'copy' => _("Get an overview of your server's state, storage space, apps and VMs status, and more").'.',
                 ],
-                'usbFlashBackup' => [
-                  'heading' => _('USB Flash Backup'),
-                  'copy' => _('Click a button and your flash is automatically backed up to Unraid.net enabling easy recovery in the event of a device failure').'. '._('Never self-manage/host your flash backups again'),
+                "customizableDashboardTitles" => [
+                  'heading' => _('Customizable Dashboard Tiles'),
+                  'copy' => _("Set custom server tiles how you like and automatically display your server's banner image on your Connect Dashboard").'.',
                 ],
-                'regKeyManagement' => [
-                  'heading' => _('Registration key management'),
-                  'copy' => _('Download any registration key linked to your account').'. '._('Upgrade keys to higher editions').'.',
+                "licenseManagement" => [
+                  'heading' => _('License Management'),
+                  'copy' => _('Manage your license keys at any time via the My Keys section').'.',
                 ],
                 'plusMore' => [
                   'heading' => _('Plus more on the way'),
