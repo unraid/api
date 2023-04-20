@@ -502,7 +502,7 @@
                 ],
                 'plusMore' => [
                   'heading' => _('Plus more on the way'),
-                  'copy' => _('All you need is an active internet connection, an Unraid.net account, and the <span>Connect</span> plugin').'. '._('Get started by installing the plugin') . '.',
+                  'copy' => _('All you need is an active internet connection, an Unraid.net account, and the Connect plugin').'. '._('Get started by installing the plugin') . '.',
                 ],
               ],
             ],
