@@ -7,6 +7,7 @@ import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
 import { VmState, type VmDomain, type VmsResolvers } from '@app/graphql/generated/api/types';
+import { GraphQLError } from 'graphql';
 
 const states = {
     0: 'NOSTATE',
@@ -41,26 +42,11 @@ export const domainResolver: VmsResolvers['domain'] = async (
         if (!hypervisor) {
             return null;
         }
-        const activeDomains = await hypervisor.connectListAllDomains(
-            ConnectListAllDomainsFlags.ACTIVE
-        );
 
-        const inactiveDomains = await hypervisor.connectListAllDomains(
-            ConnectListAllDomainsFlags.INACTIVE
-        );
         const autoStartDomains = await hypervisor.connectListAllDomains(
             ConnectListAllDomainsFlags.AUTOSTART
         );
-        const activeDomainNames = await Promise.all(
-            activeDomains.map(async (domain) =>
-                hypervisor.domainGetName(domain)
-            )
-        );
-        const inactiveDomainNames = await Promise.all(
-            inactiveDomains.map(async (domain) =>
-                hypervisor.domainGetName(domain)
-            )
-        );
+
         const autoStartDomainNames = await Promise.all(
             autoStartDomains.map(async (domain) =>
                 hypervisor.domainGetName(domain)
@@ -88,6 +74,6 @@ export const domainResolver: VmsResolvers['domain'] = async (
         return  resolvedDomains;
     } catch (error: unknown) {
         // If we hit an error expect libvirt to be offline
-        return null;
+        throw new GraphQLError(`Failed to fetch domains with error: ${error instanceof Error ? error.message : 'Unknown Error'}`);
     }
 };
