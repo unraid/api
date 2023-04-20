@@ -138,8 +138,6 @@ function registerServer(button) {
         break;
     }
 
-    console.debug('[computedRemoteAccessConfig]', computedRemoteAccessConfig);
-
         const enableLocalT2fa = <?=($enableLocalT2fa ? 'true' : 'false')?>;
         const enableRemoteT2fa = $remoteAccessInput.val() !== 'OFF' && hasMyUnraidNetCert;
 
@@ -152,7 +150,7 @@ function registerServer(button) {
             "api_extraOrigins": validateExtraOrigins(),
         };
 
-        console.debug(JSON.stringify(postobj,null,2))
+        // console.debug(JSON.stringify(postobj,null,2))
         $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
         $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
 <?if(!$isRegistered):?>
