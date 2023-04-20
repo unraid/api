@@ -40,7 +40,7 @@ export const domainResolver: VmsResolvers['domain'] = async (
     try {
         const hypervisor = await getHypervisor();
         if (!hypervisor) {
-            return null;
+            throw new GraphQLError('VMs Disabled');
         }
 
         const autoStartDomains = await hypervisor.connectListAllDomains(
