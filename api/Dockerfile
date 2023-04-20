@@ -1,7 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-ARG NODE_IMAGE=node:18
+ARG NODE_IMAGE=node:19
 FROM $NODE_IMAGE As development
 
 # Install build tools
