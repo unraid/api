@@ -222,16 +222,28 @@ const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto) => {
 	throw new Error(`Value "${value as string}" is not auto/no/yes.`);
 };
 
+const safeParseMdState = (mdState: string | undefined): ArrayState => {
+	if (!mdState || typeof mdState !== 'string') {
+		return ArrayState.STOPPED;
+	}
+	const stateUpper = mdState.toUpperCase()
+	const attemptedParse =
+        ArrayState[
+            stateUpper.startsWith('ERROR')
+                ? stateUpper.split(':')[1]
+                : stateUpper
+        ];
+
+	if (!attemptedParse) {
+		return ArrayState.STOPPED
+	}
+	return attemptedParse;
+}
+
 export const parse: StateFileToIniParserMap['var'] = iniFile => {
 	return {
         ...iniFile,
-        mdState: iniFile?.mdState
-            ? ArrayState[
-                  iniFile.mdState.startsWith('error')
-                      ? iniFile.mdState.split(':')[1].toUpperCase()
-                      : iniFile.mdState.toUpperCase()
-              ]
-            : ArrayState.STOPPED,
+        mdState: safeParseMdState(iniFile.mdState),
         bindMgt: iniBooleanOrAutoToJsBoolean(iniFile.bindMgt),
         cacheNumDevices: toNumber(iniFile.cacheNumDevices),
         cacheSbNumDisks: toNumber(iniFile.cacheSbNumDisks),
