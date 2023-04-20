@@ -75,8 +75,14 @@ if ($dynamicRemoteAccessType === 'STATIC') {
  */
 $enableRemoteT2fa = $showT2Fa && $currentRemoteAccessValue !== 'OFF' && $hasMyUnraidNetCert;
 $enableLocalT2fa = $showT2Fa && $var['USE_SSL'] === 'auto' && $hasMyUnraidNetCert;
-
+$shade="shade-".($display['theme']??'unk');
 ?>
+<style>
+div.shade-white{background-color:#ededed;margin-top:10px;padding:8px 0 3px 0}
+div.shade-black{background-color:#212121;margin-top:10px;padding:8px 0 3px 0}
+div.shade-azure{background-color:#edeaef;margin-top:10px;padding:8px 0 3px 0}
+div.shade-gray{background-color:#121510;margin-top:10px;padding:8px 0 3px 0}
+</style>
 <script>
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
@@ -451,6 +457,7 @@ const isCommaSeparatedURLs = input =>
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
+<div markdown="1" class="<?=$shade?>"><!-- begin Account section -->
 
 <?
 /**
@@ -503,6 +510,10 @@ _(Connected to Unraid Connect Cloud)_:
 : <i class="fa fa-warning icon warning"></i> _(No)_
 <?endif // end check for ($isConnected) ?>
 <?endif // end check for ($isRegistered) ?>
+
+</div><!-- end Account section -->
+
+<div markdown="1" class="<?=$shade?>"><!-- begin Remote Access section -->
 
 _(Allow Remote Access)_:
 <?if(!$isRegistered): // NOTE: manually added close tags so the next section would not be indented ?>
@@ -606,8 +617,10 @@ _(Unraid API extra origins)_<!-- do not index -->:
 
 <?endif // end check for (!$boolWebUIAuth) ?>
 
+</div><!-- end Remote Access section -->
 </form>
 
+<div markdown="1" class="<?=$shade?>"><!-- begin Flash Backup section -->
 _(Flash backup)_:
 <?if(!$isRegistered):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
@@ -667,6 +680,7 @@ _(Flash backup)_:
 
 </div>
 </form>
+</div><!-- end Flash Backup section -->
 <script>
 changeRemoteAccess($('#remoteAccess'));
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
