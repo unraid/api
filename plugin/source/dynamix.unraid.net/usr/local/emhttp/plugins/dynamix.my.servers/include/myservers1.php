@@ -35,9 +35,25 @@ $ALLOWED_UPC_ENV_VALS = [
   'stagingLogs',
   'development',
   'local',
+  'preview',
 ];
-$UPC_ENV_CK = in_array($_COOKIE['UPC_ENV']??'', $ALLOWED_UPC_ENV_VALS)
-  ? $_COOKIE['UPC_ENV']
+$ALLOWED_UPC_ENV_PREVIEW_CNAME = '.d1eohvtyc6gnee.amplifyapp.com/';
+
+// defaults
+$computedCookieValue = $_COOKIE['UPC_ENV'] ?? '';
+$previewUrl = '';
+// extract preview src url
+if (str_contains($computedCookieValue, 'preview::')) {
+  list($computedCookieValue, $previewUrl) = explode('::', $computedCookieValue);
+  // prevent unauthoraized URLs for previews
+  if (!str_contains($previewUrl, $ALLOWED_UPC_ENV_PREVIEW_CNAME)) {
+    $computedCookieValue = '';
+    $previewUrl = '';
+  }
+}
+// finalize cookie value
+$UPC_ENV_CK = in_array($computedCookieValue, $ALLOWED_UPC_ENV_VALS)
+  ? $computedCookieValue
   : null;
 // Determine what source we should use for web components
 if (!file_exists('/usr/local/sbin/unraid-api')) { // When NOT using the plugin we should load the UPC from the file system unless $UPC_ENV_CK exists.
@@ -58,6 +74,9 @@ switch ($UPC_ENV) {
     break;
   case 'development':
     $upcSrc = 'https://launchpad.unraid.test:6969/webComps/unraid.js?t=' . time();
+    break;
+  case 'preview':
+    $upcSrc = $previewUrl . 'webComps/unraid.min.js';
     break;
   default: // load from webGUI filesystem.
     $upcSrc = $upcLocalSrc;

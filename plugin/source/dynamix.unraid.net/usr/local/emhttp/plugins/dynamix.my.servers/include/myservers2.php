@@ -33,10 +33,10 @@
         'closeLaunchpad' => _('Close Launchpad and continue to webGUI'),
         'installPlugin' => _('Install Plugin'),
         'noThanks' => _('No thanks'),
-        'closePromo' => _('Close My Servers details and continue to webGUI'),
-        'promoHeading' => _('Enhance your Unraid experience with these<br> My Servers (BETA) features'),
+        'closePromo' => _('Close Connect details and continue to webGUI'),
+        'promoHeading' => _('Enhance your Unraid experience with these<br> Connect (BETA) features'),
         'learnMore' => _('Learn more'),
-        'checkoutTheMyServersDocs' => _('Checkout the My Servers docs'),
+        'checkoutTheMyServersDocs' => _('Checkout the Connect docs'),
         'popUp' => _('Pop-up'),
         'close' => _('Close'),
         'backToPopUp' => sprintf(_('Back to %s'), _('Pop-up')),
@@ -60,9 +60,9 @@
         'seconds' => _('seconds'),
         'ago' => _('ago'),
         'basicPlusPro' => [
-          'heading' => _('Thank you for choosing Unraid OS and My Servers').'!',
+          'heading' => _('Thank you for choosing Unraid OS and Connect').'!',
           'message' => [
-            'registered' => _('Connect to My Servers by signing in to Unraid.net'),
+            'registered' => _('Register for Connect by signing in to Unraid.net'),
             'upgradeEligible' => _('To support more storage devices as your server grows click Upgrade Key'),
           ],
         ],
@@ -85,17 +85,17 @@
           'pleaseConfirmClosureYouHaveOpenPopUp' => _('Please confirm closure').'. '._('You have an open pop-up').'.',
           'trialHasExpiredSeeOptions' => _('Trial has expired see options below'),
           'errorCertRequiresSignIn' => _('Sign In before your Unraid.net SSL certificate expires'),
-          'removeMyServersPlugin' => _('Remove My Servers plugin'),
-          'continueUsingMyServers' => _('Continue using My Servers'),
-          'confirmMyServersPluginRemoval' => _('Confirm My Servers plugin removal'),
-          'removingMyServersPlugin' => _('Removing My Servers plugin…'),
-          'enhanceYourExperienceWithMyServers' => _('Enhance your experience with My Servers'),
+          'removeMyServersPlugin' => _('Remove Connect plugin'),
+          'continueUsingMyServers' => _('Continue using Connect'),
+          'confirmMyServersPluginRemoval' => _('Confirm Connect plugin removal'),
+          'removingMyServersPlugin' => _('Removing Connect plugin…'),
+          'enhanceYourExperienceWithMyServers' => _('Enhance your experience with Connect'),
           'lanIpCopied' => _('LAN IP Copied'),
-          'installingMyServers' => _('Installing My Servers (beta)'),
-          'thankYouForInstallingMyServers' => _('Thank you installing My Servers') . '!',
+          'installingMyServers' => _('Installing Connect (beta)'),
+          'thankYouForInstallingMyServers' => _('Thank you installing Connect') . '!',
           'connectYourUnraidnetAccountToGetStarted' => _('Connect your Unraid.net account to get started'),
           'noRemoteApikeyRegisteredWithPlg' => [
-            'heading' => _('My Servers Error'),
+            'heading' => _('Connect Error'),
             'msg' => _('Unraid.net re-authentication required'),
           ],
           'errorTooManyDisks' => [
@@ -108,7 +108,7 @@
           ],
           'extraLinks' => [
             'newTab' => sprintf(_('Opens %s in new tab'), '{0}'),
-            'myServers' => _('My Servers Dashboard'),
+            'myServers' => _('Go to Connect'),
             'forums' => _('Unraid Forums'),
             'settings' => [
               'text' => _('Settings'),
@@ -132,7 +132,7 @@
             ],
           ],
           'myServers' => [
-            'heading' => _('My Servers'),
+            'heading' => _('Connect'),
             'beta' => _('beta'),
             'restarting' => _('Restarting…'),
             'errors' => [
@@ -141,12 +141,12 @@
                 'message' => _('Failed to connect to Unraid API'),
               ],
               'myServers' => [
-                'heading' => _('My Servers Error'),
+                'heading' => _('Connect Error'),
                 'message' => _('Please wait a moment and reload the page'),
               ],
             ],
             'closeDetails' => _('Close Details'),
-            'loading' => _('Loading My Servers data'),
+            'loading' => _('Loading Connect data'),
             'displayingLastKnown' => _('Displaying last known server data'),
             'mothership' => [
               'connected' => _('Connected to Mothership'),
@@ -224,7 +224,7 @@
             'humanReadable' => _('Missing key file'),
             'error' => [
               'heading' => '@:stateData.ENOKEYFILE2.humanReadable',
-              'message' => _('It appears that your license key file is corrupted or missing').'. '._('The key file should be located in the */config* directory on your USB Flash boot device').'. '._('If you do not have a backup copy of your license key file you may install the My Servers (beta) plugin to attempt to recover your key').'. '._('If this was an expired Trial installation, you may purchase a license key').'.',
+              'message' => _('It appears that your license key file is corrupted or missing').'. '._('The key file should be located in the */config* directory on your USB Flash boot device').'. '._('If you do not have a backup copy of your license key file you may install the Connect (beta) plugin to attempt to recover your key').'. '._('If this was an expired Trial installation, you may purchase a license key').'.',
             ],
           ],
           'ETRIAL' => [
@@ -305,7 +305,7 @@
           'shutDown' => _('Shut Down'),
           'haveAccountSignIn' => _('Already have an account').'? '._('Sign In'),
           'noAccountSignUp' => _('Do not have an account').'? '._('Sign Up'),
-          'willConnectYourServerToMyServers' => _('This will connect your server to My Servers <sup>BETA</sup>'),
+          'willConnectYourServerToMyServers' => _('This will register your server with Connect <sup>BETA</sup>'),
           'serverInfo' => [
             'flash' => _('Flash'),
             'product' => _('Product'),
@@ -381,7 +381,7 @@
                 'remoteAccessDisabled' => _('Remote access will be disabled'),
                 'remoteAccessInaccessible' => sprintf(_('You will no longer have access to this server using <abbr title="%s" class="italic">this url</abbr>'), '{0}'),
                 'disablingFlashBackup' => _('Automated flash backups will be disabled until you sign in again'),
-                'downloadFlashBackup' => _('Download latest backup from My Servers Dashboard before signing out'),
+                'downloadFlashBackup' => _('Download latest backup from Connect Dashboard before signing out'),
               ],
             ],
             'success' => [
@@ -470,27 +470,39 @@
             'whatIsMyServers' => [
               'heading' => _('What is Unraid.net?'),
               'subheading' => _('Expand your servers capabilities'),
-              'copy' => _('With an Unraid.net account you can start using My Servers (beta) which gives you access to the following features:'),
+              'copy' => _('With an Unraid.net account you can start using Connect (beta) which gives you access to the following features:'),
               'features' => [
-                'secureRemoteAccess' => [
-                  'heading' => _('Secure remote access'),
-                  'copy' => _("Whether you need to add a share container or virtual machine do it all from the webGui from anytime and anywhere using HTTPS").'. '._("Best of all all SSL certificates are verified by Let's Encrypt so no browser security warnings").'.',
+                "dynamicRemoteAccess" => [
+                  'heading' => _('Dynamic Remote Access'),
+                  'copy' => _('Toggle on/off server accessibility with dynamic remote access').'. '._('Automatically turn on UPnP and open a random WAN port on your router at the click of a button and close off access in seconds').'.',
                 ],
-                'realTimeMonitoring' => [
+                "manageWithinConnect" => [
+                  'heading' => _('Manage Your Server Within Connect'),
+                  'copy' => _('Servers equipped with a myunraid.net certificate can be managed directly from within the Connect web UI').'. '._('Manage multiple servers from your phone, tablet, laptop, or PC in the same browser window').'.',
+                ],
+                "deepLinking" => [
+                  'heading' => _('Deep Linking'),
+                  'copy' => _('The Connect dashboard links to relevant sections of the webgui, allowing quick access to those settings and server sections').'.',
+                ],
+                "onlineFlashBackup" => [
+                  'heading' => _('Online Flash Backup'),
+                  'copy' => _('Never ever be left without a backup of your config').'. '._('If you need to change flash drives, generate a backup from Connect and be up and running in minutes').'.',
+                ],
+                "realTimeMonitoring" => [
                   'heading' => _('Real-time Monitoring'),
-                  'copy' => _('Get quick real-time info on the status of your servers such as storage, container, and VM usage').'. '._('And not just for one server but all the servers in your Unraid fleet'),
+                  'copy' => _("Get an overview of your server's state, storage space, apps and VMs status, and more").'.',
                 ],
-                'usbFlashBackup' => [
-                  'heading' => _('USB Flash Backup'),
-                  'copy' => _('Click a button and your flash is automatically backed up to Unraid.net enabling easy recovery in the event of a device failure').'. '._('Never self-manage/host your flash backups again'),
+                "customizableDashboardTitles" => [
+                  'heading' => _('Customizable Dashboard Tiles'),
+                  'copy' => _("Set custom server tiles how you like and automatically display your server's banner image on your Connect Dashboard").'.',
                 ],
-                'regKeyManagement' => [
-                  'heading' => _('Registration key management'),
-                  'copy' => _('Download any registration key linked to your account').'. '._('Upgrade keys to higher editions').'.',
+                "licenseManagement" => [
+                  'heading' => _('License Management'),
+                  'copy' => _('Manage your license keys at any time via the My Keys section').'.',
                 ],
                 'plusMore' => [
                   'heading' => _('Plus more on the way'),
-                  'copy' => _('All you need is an active internet connection, an Unraid.net account, and the <span>My Servers</span> plugin').'. '._('Get started by installing the plugin') . '.',
+                  'copy' => _('All you need is an active internet connection, an Unraid.net account, and the Connect plugin').'. '._('Get started by installing the plugin') . '.',
                 ],
               ],
             ],
@@ -522,8 +534,8 @@
         'yargYePirate' => _('Oh no! Are you pirating Unraid OS?<br>Are you ready to buy a real license?'),
         'keyFileNotValid' => _('Key file not valid'),
         'installFailed' => [
-          'heading' => _('My Servers plugin install failed'),
-          'message' => _('The My Servers plugin install is incomplete').'. '._('Please uninstall and reinstall the My Servers plugin').'. '._('Be sure to let the install complete before you close the window').'.',
+          'heading' => _('Connect plugin install failed'),
+          'message' => _('The Connect plugin install is incomplete').'. '._('Please uninstall and reinstall the Connect plugin').'. '._('Be sure to let the install complete before you close the window').'.',
         ],
       ],
     ];
@@ -537,7 +549,7 @@
 
     $plgInstalled = '';
     if (!file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net') && !file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) {
-      $plgInstalled = ''; // base OS only, My Servers plugin not installed • show ad for My Servers
+      $plgInstalled = ''; // base OS only, plugin not installed • show ad for plugin
     } else {
       // plugin is installed but if the unraid-api file doesn't fully install it's a failed install
       if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $plgInstalled = 'dynamix.unraid.net.plg';
