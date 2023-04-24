@@ -84,11 +84,9 @@ dnscheck "mothership.unraid.net"
 [[ "${DNSERR}" == "yes" && "${DNS_SERVER1}" != "8.8.8.8" ]] && echo "  Recommend navigating to Settings -> Network Settings and changing your DNS server to 8.8.8.8"
 # Note: DNS checks will fail if the network is not available at boot. Cannot exit the install when DNS checks fail.
 
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+echo
+echo "⚠️ Do not close this window yet"
+echo
 
 # compare expected SHA256 to actual SHA256, if not equal delete file
 # this is needed prior to Unraid 6.11.0
@@ -154,11 +152,9 @@ if [[ "${version:0:3}" == "6.9" || "${version:0:7}" == "6.10.0-" ]]; then
   exit 0
 fi
 
-if [[ "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+echo
+echo "⚠️ Do not close this window yet"
+echo
 
 # manually download the JavaScript web components
 JS_FLASH_DEST=/boot/config/plugins/dynamix.my.servers/webComps/
@@ -199,11 +195,10 @@ fi
 [[ ! -f "${JS_FINAL_DEST}${JS_FILE}" ]] && echo "⚠️ Install failed - ${JS_FILE} missing" && exit 1
 echo "✅ Finished installing web components"
 
-if [[ "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+echo
+echo "⚠️ Do not close this window yet"
+echo
+
 exit 0
 ]]>
 </INLINE>
@@ -215,11 +210,11 @@ exit 0
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+
+echo
+echo "⚠️ Do not close this window yet"
+echo
+
 exit 0
 ]]>
 </INLINE>
@@ -283,7 +278,7 @@ if ($msini !== false) {
   unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
   # reload nginx to disable Remote Access
-  echo "\nReloading Web Server\n";
+  echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n";
   exec("/etc/rc.d/rc.nginx reload &>/dev/null");
 }
 exit(0);
@@ -348,7 +343,7 @@ if ($msini !== false) {
   unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
   # reload nginx to disable Remote Access
-  echo "\nReloading Web Server\n";
+  echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n";
   exec("/etc/rc.d/rc.nginx reload &>/dev/null");
 }
 exit(0);
@@ -364,11 +359,11 @@ MAINNAME="&name;"
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+
+echo
+echo "⚠️ Do not close this window yet"
+echo
+
 if [ -e /etc/rc.d/rc.unraid-api ]; then
   # stop flash backup
   /etc/rc.d/rc.flash_backup stop &>/dev/null
@@ -462,11 +457,9 @@ EOF
   exit 0
 fi
 
-if [[ "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+echo
+echo "⚠️ Do not close this window yet"
+echo
 
 # NOTE: any 'exit 1' after this point will result in a broken install
 
@@ -514,22 +507,18 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 # WARNING: failure here results in broken install
 [[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cfgMigration ]] && echo "⚠️ files missing from main txz" && exit 1
 
-if [[ "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+echo
+echo "⚠️ Do not close this window yet"
+echo
 
 # setup env
 if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.servers/env ]; then
   echo "env=\"${PLGTYPE}\"" >/boot/config/plugins/dynamix.my.servers/env
 fi
 
-if [[ "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "⚠️ Do not close this window yet"
-  echo
-fi
+echo
+echo "⚠️ Do not close this window yet"
+echo
 
 # run dynamix.cfg to myservers.cfg migration
 CFG_MIG=/usr/local/emhttp/plugins/dynamix.my.servers/scripts/cfgMigration
@@ -601,7 +590,7 @@ if [[ "${CHANGED}" == "yes" ]]; then
     # if nginx is running, reload it to enable the changes above
     # note: if this is being installed at boot, nginx will not yet be running
     echo ""
-    echo "⚠️ Reloading Web Server. If this window stops updating please close it."
+    echo "⚠️ Reloading Web Server. If this window stops updating for two minutes please close it."
     /etc/rc.d/rc.nginx reload &>/dev/null
   fi
 fi
@@ -618,15 +607,10 @@ if [ -f /var/local/emhttp/var.ini ]; then
   # nothing to do here
 fi
 
-if [[ "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "✅ Installation is complete, it is safe to close this window"
-  echo
-else
-  echo
-  echo "✅ Installation is complete"
-  echo
-fi
+echo
+echo "✅ Installation is complete, it is safe to close this window"
+echo
+
 exit 0
 ]]>
 </INLINE>
@@ -638,15 +622,11 @@ exit 0
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" ]]; then
-  echo
-  echo "✅ Uninstall is complete, it is safe to close this window"
-  echo
-else
-  echo
-  echo "✅ Uninstall is complete"
-  echo
-fi
+
+echo
+echo "✅ Uninstall is complete, it is safe to close this window"
+echo
+
 exit 0
 ]]>
 </INLINE>
