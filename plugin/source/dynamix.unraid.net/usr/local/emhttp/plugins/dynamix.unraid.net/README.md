@@ -1,3 +1,3 @@
 **Unraid Connect**
 
-Unraid Connect is designed to extend the value of your investment in Unraid by enabling you to more easily connect, monitor, and access your Unraid server. Download and sign-in with your Unraid.net account to unlock the benefits!
+Unraid Connect is your one-stop shop for server management, monitoring, and maintenance. Enjoy the convenience and connectivity of the cloud and take your Unraid experience to the next level with Connect.
