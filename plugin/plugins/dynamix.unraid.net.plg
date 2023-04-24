@@ -389,6 +389,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/upcTranslations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   # delete plugin files from flash drive and OS
@@ -477,6 +478,7 @@ FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
+FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/upcTranslations.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
 
