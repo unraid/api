@@ -24,8 +24,8 @@ cd "${tmpdir}" || exit 1
 if [[ "${env}" == "staging" ]]; then
   # create README.md for staging plugin
   mv "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging"
-  sed -i "s@\*\*My Servers\*\*@\*\*My Servers \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
-  sed -i "s@dynamix.unraid.net.plg@dynamix.unraid.net.staging.plg@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
+  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
+  sed -i "s@dynamix.unraid.net.plg@dynamix.unraid.net.staging.plg@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
 fi
 chmod 0755 -R .
 sudo chown root:root -R .
