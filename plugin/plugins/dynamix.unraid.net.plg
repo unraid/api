@@ -278,7 +278,7 @@ if ($msini !== false) {
   unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
   # reload nginx to disable Remote Access
-  echo "\nReloading Web Server\n";
+  echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n";
   exec("/etc/rc.d/rc.nginx reload &>/dev/null");
 }
 exit(0);
@@ -343,7 +343,7 @@ if ($msini !== false) {
   unlink('/boot/config/plugins/dynamix.my.servers/myservers.cfg');
 
   # reload nginx to disable Remote Access
-  echo "\nReloading Web Server\n";
+  echo "\n⚠️ Reloading Web Server. If this window stops updating for two minutes please close it.\n";
   exec("/etc/rc.d/rc.nginx reload &>/dev/null");
 }
 exit(0);
@@ -590,7 +590,7 @@ if [[ "${CHANGED}" == "yes" ]]; then
     # if nginx is running, reload it to enable the changes above
     # note: if this is being installed at boot, nginx will not yet be running
     echo ""
-    echo "⚠️ Reloading Web Server. If this window stops updating please close it."
+    echo "⚠️ Reloading Web Server. If this window stops updating for two minutes please close it."
     /etc/rc.d/rc.nginx reload &>/dev/null
   fi
 fi
