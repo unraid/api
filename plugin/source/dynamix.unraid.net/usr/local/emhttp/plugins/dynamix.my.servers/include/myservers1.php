@@ -42,11 +42,13 @@ $ALLOWED_UPC_ENV_PREVIEW_CNAME = '.d1eohvtyc6gnee.amplifyapp.com/';
 // defaults
 $computedCookieValue = $_COOKIE['UPC_ENV'] ?? '';
 $previewUrl = '';
+$isPreview = strpos($computedCookieValue, 'preview::');
 // extract preview src url
-if (str_contains($computedCookieValue, 'preview::')) {
+if ($isPreview !== false) {
   list($computedCookieValue, $previewUrl) = explode('::', $computedCookieValue);
   // prevent unauthoraized URLs for previews
-  if (!str_contains($previewUrl, $ALLOWED_UPC_ENV_PREVIEW_CNAME)) {
+  $isPreviewAllowed = strpos($previewUrl, $ALLOWED_UPC_ENV_PREVIEW_CNAME);
+  if (!$isPreviewAllowed) {
     $computedCookieValue = '';
     $previewUrl = '';
   }
