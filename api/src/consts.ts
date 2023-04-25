@@ -1,15 +1,23 @@
 import { config } from '@app/core/config';
 import { type JSONWebKeySet } from 'jose';
 
-const internalWsAddress = (isHttp = true) => {
-    const port = config.port as number | string;
+export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
+    const envPort = config.port as number | string;
     const protocol = isHttp ? 'http' : 'ws';
-    if (port.toString().includes('.sock')) {
-        // Prod mode
-        return `${protocol}://localhost/graphql`;
+
+    if (!envPort.toString().includes('.sock')) {
+        // Dev Mode (Probably)
+        return `${protocol}://127.0.0.1:${envPort}/graphql`;
     }
 
-    return `${protocol}://localhost:${port}/graphql`;
+    if (nginxPort && nginxPort !== 80) {
+        // User changed webgui port
+        return `${protocol}://127.0.0.1:${nginxPort}/graphql`;
+    }
+
+    // Prod mode (user didn't change webgui port)
+    return `${protocol}://127.0.0.1/graphql`;
+
 };
 
 // Milliseconds
@@ -42,12 +50,6 @@ export const MOTHERSHIP_GRAPHQL_LINK =
     (process.env.ENVIRONMENT === 'staging'
         ? 'https://staging.mothership.unraid.net/ws'
         : 'https://mothership.unraid.net/ws');
-
-/**
- * Internal ws link.
- */
-export const INTERNAL_WS_LINK = internalWsAddress(false);
-export const INTERNAL_HTTP_LINK = internalWsAddress(true);
 
 export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = {
     keys: [
