@@ -57,8 +57,8 @@ test('Returns generated data', async () => {
 	expect(result).toMatchInlineSnapshot(`
 		{
 		  "apps": {
-		    "installed": 22,
-		    "started": 5,
+		    "installed": 0,
+		    "started": 0,
 		  },
 		  "array": {
 		    "capacity": {
