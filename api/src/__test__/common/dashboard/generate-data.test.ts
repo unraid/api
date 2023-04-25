@@ -57,15 +57,15 @@ test('Returns generated data', async () => {
 	expect(result).toMatchInlineSnapshot(`
 		{
 		  "apps": {
-		    "installed": 0,
-		    "started": 0,
+		    "installed": 22,
+		    "started": 5,
 		  },
 		  "array": {
 		    "capacity": {
 		      "bytes": {
-		        "free": 19038892160000,
-		        "total": 41010494044000,
-		        "used": 21971601884000,
+		        "free": 19495825571840,
+		        "total": 41994745901056,
+		        "used": 22498920329216,
 		      },
 		    },
 		    "state": "STOPPED",

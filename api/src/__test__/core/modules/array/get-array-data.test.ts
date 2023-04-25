@@ -80,9 +80,9 @@ test('Creates an array event', async () => {
             "used": "3",
           },
           "kilobytes": {
-            "free": "19038892160",
-            "total": "41010494044",
-            "used": "21971601884",
+            "free": "19495825571.84",
+            "total": "41994745901.056",
+            "used": "22498920329.216",
           },
         },
         "disks": [
