@@ -1,6 +1,6 @@
 {
   "name": "@unraid/api",
-  "version": "2.58.0",
+  "version": "3.0.0",
   "main": "dist/index.js",
   "bin": "dist/unraid-api.cjs",
   "type": "module",

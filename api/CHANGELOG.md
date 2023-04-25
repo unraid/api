@@ -2,6 +2,8 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.0.0](https://github.com/unraid/api/compare/v2.58.0...v3.0.0) (2023-04-25)
+
 ## [2.58.0](https://github.com/unraid/api/compare/v2.57.0...v2.58.0) (2023-04-25)
 
 
