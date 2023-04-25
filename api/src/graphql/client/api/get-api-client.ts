@@ -33,7 +33,7 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
     const nginxPort = getters?.emhttp()?.nginx?.httpPort ?? 80;
     graphqlLogger.debug('Internal GraphQL URL: %s', getInternalApiAddress(true, nginxPort));
     const httpLink = new HttpLink({
-        uri: getInternalApiAddress(false, nginxPort),
+        uri: getInternalApiAddress(true, nginxPort),
         fetch,
         headers: {
             Origin: '/var/run/unraid-cli.sock',
