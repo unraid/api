@@ -26,6 +26,7 @@ $upc_translations = [
     'signIn' => _('Sign In'),
     'signUp' => _('Sign Up'),
     'signInUp' => _('Sign In / Up'),
+    'signInUnraidNetAccount' => _('Sign In with Unraid.net Account'),
     'signOut' => _('Sign Out'),
     'error' => _('Error'),
     'fixError' => _('Fix Error'),
