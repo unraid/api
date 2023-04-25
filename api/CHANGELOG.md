@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.0.1](https://github.com/unraid/api/compare/v3.0.0...v3.0.1) (2023-04-25)
+
+
+### Bug Fixes
+
+* add missing signInUnraidNetAccount translation key ([#614](https://github.com/unraid/api/issues/614)) ([bee6203](https://github.com/unraid/api/commit/bee62030f24f0d60cf0d9d4b4d0e1c8c4db5f8f2))
+* remote client non-http ([#617](https://github.com/unraid/api/issues/617)) ([e80cfe3](https://github.com/unraid/api/commit/e80cfe3d67a903afa3389cfb762cfce3fc368593))
+* webgui listening on different port ([#615](https://github.com/unraid/api/issues/615)) ([59c3c9d](https://github.com/unraid/api/commit/59c3c9d6694a2cc83b734b4ac8d42621df90f596))
+
 ## [3.0.0](https://github.com/unraid/api/compare/v2.58.0...v3.0.0) (2023-04-25)
 
 ## [2.58.0](https://github.com/unraid/api/compare/v2.57.0...v2.58.0) (2023-04-25)
