@@ -2,6 +2,59 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [2.58.0](https://github.com/unraid/api/compare/v2.57.0...v2.58.0) (2023-04-25)
+
+
+### Features
+
+* add user agent to mothership socket ([b88dcdf](https://github.com/unraid/api/commit/b88dcdf76bd290034f3a7d5df9d2f6bcd4c7087d))
+* allow hot swap between graphql-ws and graphql-subscriptions ([#563](https://github.com/unraid/api/issues/563)) ([c71c321](https://github.com/unraid/api/commit/c71c321e8211d656f093df4c627ec4b0c13ca56c))
+* banner / case image api ([#535](https://github.com/unraid/api/issues/535)) ([48d745d](https://github.com/unraid/api/commit/48d745d287fb725a71152768c4771a1c070c3195))
+* drop support for 6.9.x and 6.10.0-rc ([#591](https://github.com/unraid/api/issues/591)) ([1386ea5](https://github.com/unraid/api/commit/1386ea564385cfe0f5fc818b3c487a54e127f125))
+* dynamic remote access ([#533](https://github.com/unraid/api/issues/533)) ([1b72002](https://github.com/unraid/api/commit/1b72002cca94c9da518a662f8cc0b6e033e94a69))
+* fix docker state problem ([#561](https://github.com/unraid/api/issues/561)) ([38049b2](https://github.com/unraid/api/commit/38049b2f2e0012041a0a43538b592cfc66ac4e3a))
+* group settings into sections ([#602](https://github.com/unraid/api/issues/602)) ([987603f](https://github.com/unraid/api/commit/987603f0b896de9f0a4a82a2136d2d8cc9939540))
+* improve config change events, login logout events ([#562](https://github.com/unraid/api/issues/562)) ([2673e51](https://github.com/unraid/api/commit/2673e51feb0685ae8739936b5c54607018d05d1f))
+* improve logging support ([#550](https://github.com/unraid/api/issues/550)) ([50343aa](https://github.com/unraid/api/commit/50343aa60b86756865439b98b7112bbea8433502))
+* initial commit - add validators ([#552](https://github.com/unraid/api/issues/552)) ([271ca27](https://github.com/unraid/api/commit/271ca2792cff58e83a75710944ecf2cef7921f43))
+* Make update.htm work in an iframe ([#566](https://github.com/unraid/api/issues/566)) ([4869238](https://github.com/unraid/api/commit/48692383f4cbf3ea6c1096836431c92ddd13841b))
+* relax firefox restrictions ([#556](https://github.com/unraid/api/issues/556)) ([50eac9f](https://github.com/unraid/api/commit/50eac9ff46c49ef963cf61f8fbeff8027471ce48))
+* reload nginx / dns when wan changes ([#587](https://github.com/unraid/api/issues/587)) ([ab2e5fe](https://github.com/unraid/api/commit/ab2e5fe71765168016761363fa1cd75eb7397e67))
+* remove servers query and change websocket load ([#595](https://github.com/unraid/api/issues/595)) ([17e5e9e](https://github.com/unraid/api/commit/17e5e9e171ee3df2d093fcea0db967b567581135))
+* set frame-ancestors in prod plugin too ([#558](https://github.com/unraid/api/issues/558)) ([892f99e](https://github.com/unraid/api/commit/892f99ea2ba480d57a3b82c458df789fc931b881))
+* update frame-ancestors ([#567](https://github.com/unraid/api/issues/567)) ([6e10a56](https://github.com/unraid/api/commit/6e10a560eb51cce21a4c2ea3c1ea1a56b2aec983))
+* upgrade almost all NPM deps ([#569](https://github.com/unraid/api/issues/569)) ([5deb58e](https://github.com/unraid/api/commit/5deb58e5448357dc277f2eb58bd03d105114e683))
+* use codegen + new ini files to handle array ([#555](https://github.com/unraid/api/issues/555)) ([194d660](https://github.com/unraid/api/commit/194d66045f0cf6dd7a5c24b67e598b3cea0468f3))
+* use disks polling for disks file and skip readwrites ([#599](https://github.com/unraid/api/issues/599)) ([144b537](https://github.com/unraid/api/commit/144b53766ce91073afc04940f19115414680ae30))
+
+
+### Bug Fixes
+
+* allow sending banner images with apollo server 4 ([5a8bcd5](https://github.com/unraid/api/commit/5a8bcd5014c8b62dde87500eb07029d971e2e31e))
+* attempt to fix issue validating payload when offline ([c21a13e](https://github.com/unraid/api/commit/c21a13e609171ccd8594833b0a4b54c4f56ed569))
+* attempt to fix UPNP by fixing null remote URL ([1ca6513](https://github.com/unraid/api/commit/1ca651334d1cb33b6a8799ebb6ab719b64572520))
+* attempt to fix watcher change ([#598](https://github.com/unraid/api/issues/598)) ([ad0059a](https://github.com/unraid/api/commit/ad0059a2ee582604874d7d9ea4a070df6dc7f6f9))
+* check-dns tests no longer use static ips ([45c101f](https://github.com/unraid/api/commit/45c101f52f18ab739ba7ac88d4536be949f40c1e))
+* create config if not exists in chokidar watch ([2c8a6ee](https://github.com/unraid/api/commit/2c8a6ee19ee82ff4d363bcf2d73ee251b0bd6e89))
+* **deps:** update dependency convert to v4.12.0 ([#594](https://github.com/unraid/api/issues/594)) ([3a63c2f](https://github.com/unraid/api/commit/3a63c2faebf5862c31cadf6556317d969f47fe86))
+* **deps:** update dependency semver to v7.5.0 ([#543](https://github.com/unraid/api/issues/543)) ([3e758d2](https://github.com/unraid/api/commit/3e758d2aefcd01e2e5b60c9052ba5a19dffcf0d0))
+* even better reconnection logic ([#548](https://github.com/unraid/api/issues/548)) ([5a22f5f](https://github.com/unraid/api/commit/5a22f5f9115d077300e71e8db4041a71e94946f4))
+* improve installer ([#613](https://github.com/unraid/api/issues/613)) ([135fa58](https://github.com/unraid/api/commit/135fa587ee38f68e6c77ea3ebc944f3aa65e66df))
+* mdstate parser ([0b1dd9a](https://github.com/unraid/api/commit/0b1dd9a0002bd7da796bdfc97282241c41df4958))
+* mothership test timing out ([#565](https://github.com/unraid/api/issues/565)) ([fde9ac3](https://github.com/unraid/api/commit/fde9ac34f87ffeab9a52bfc1803e048c8d676141))
+* recover from config load errors ([4967608](https://github.com/unraid/api/commit/49676084755be3f20972d9b86c4fa5d718b6063a))
+* recreate config when wiped or invalid ([3ff2341](https://github.com/unraid/api/commit/3ff2341dfbb72bb5da86e2cad2a0aa35325768c8))
+* remove call to UpdateDNS, API will handle ([#588](https://github.com/unraid/api/issues/588)) ([0c676a7](https://github.com/unraid/api/commit/0c676a77ba2790563aa3d1384124aa61b5cc8fce))
+* remove patch package ([#583](https://github.com/unraid/api/issues/583)) ([0d5ae4f](https://github.com/unraid/api/commit/0d5ae4fd056df47424046de0f55aba47128e3193))
+* resolve hang at boot ([#593](https://github.com/unraid/api/issues/593)) ([1b95e64](https://github.com/unraid/api/commit/1b95e649673ea2379e54db3116a731ef42e5b9e3))
+* restart watcher when config is deleted ([feb5cff](https://github.com/unraid/api/commit/feb5cffe4652fef8b889d8eba33fa19bd9fb6c7a))
+* send error when domains not available ([0cd5f88](https://github.com/unraid/api/commit/0cd5f88029b3f6d918e6ec9495ba6bcd4b84e4bf))
+* set wanaccess to no by default when no config exists ([2e123f0](https://github.com/unraid/api/commit/2e123f0d3a0d88637e37087565618a33539cdd79))
+* some listener issues ([#557](https://github.com/unraid/api/issues/557)) ([0f3594b](https://github.com/unraid/api/commit/0f3594bf3a1d71b17166532e101d2191a9ae70b4))
+* update plugin description and build process ([#612](https://github.com/unraid/api/issues/612)) ([c59a008](https://github.com/unraid/api/commit/c59a008b85bc7f2b64cff73c25237cf82a3c11f2))
+* write config file when error with api key ([#596](https://github.com/unraid/api/issues/596)) ([09b9f4f](https://github.com/unraid/api/commit/09b9f4f8d96ecf5a6a2fb193a6ad5d5d68e26214))
+* ws added to global scope in order to fix apollo ([743397a](https://github.com/unraid/api/commit/743397a38d8d98497017ade00e126bb55b329dd8))
+
 ## [2.57.0](https://github.com/unraid/api/compare/v2.56.0...v2.57.0) (2023-03-09)
 
 
