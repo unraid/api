@@ -5,13 +5,16 @@ import {
     split,
 } from '@apollo/client/core/core.cjs';
 import { onError } from '@apollo/client/link/error';
-import { INTERNAL_HTTP_LINK, INTERNAL_WS_LINK } from '@app/consts';
+import {
+    getInternalApiAddress,
+} from '@app/consts';
 import WebSocket from 'ws';
 import { fetch } from 'cross-fetch';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { graphqlLogger } from '@app/core/log';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { createClient } from 'graphql-ws';
+import { getters } from '@app/store/index';
 
 const getWebsocketWithHeaders = () => {
     return class WebsocketWithOriginHeader extends WebSocket {
@@ -27,8 +30,10 @@ const getWebsocketWithHeaders = () => {
 }
 
 export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
+    const nginxPort = getters?.emhttp()?.nginx?.httpPort ?? 80;
+    graphqlLogger.debug('Internal GraphQL URL: %s', getInternalApiAddress(true, nginxPort));
     const httpLink = new HttpLink({
-        uri: INTERNAL_HTTP_LINK,
+        uri: getInternalApiAddress(false, nginxPort),
         fetch,
         headers: {
             Origin: '/var/run/unraid-cli.sock',
@@ -41,7 +46,7 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
     const wsLink = new GraphQLWsLink(
         createClient({
             webSocketImpl: getWebsocketWithHeaders(),
-            url: INTERNAL_WS_LINK,
+            url: getInternalApiAddress(false, nginxPort),
             connectionParams: () => {
                 return { 'x-api-key': upcApiKey };
             },
