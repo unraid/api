@@ -284,10 +284,10 @@ function changeRemoteAccess(dropdown) {
         $useConnectMsgTxt = '';
         break;
       case 'DYNAMIC_MANUAL':
-        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
+        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Dynamic_Remote_Access' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>.";
         break;
       case 'DYNAMIC_UPNP':
-        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Configuring_Remote_Access_.28optional.29' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>, a random WAN port will be assigned by UPnP.";
+        $remoteAccessMsgTxt = "<a href='https://wiki.unraid.net/Connect#Dynamic_Remote_Access' target='_blank'>Enable Remote Access</a> on the <a href='https://connect.myunraid.net/' target='_blank'>Connect Dashboard</a>, a random WAN port will be assigned by UPnP.";
         break;
       case 'ALWAYS_MANUAL':
         $remoteAccessMsgTxt = "Remote Access is always on.";
