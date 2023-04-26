@@ -20,6 +20,7 @@ const initialState = {
 	'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const,
 	'keyfile-base': resolvePath(process.env.PATHS_KEYFILE_BASE ?? '/boot/config' as const),
 	'machine-id': resolvePath(process.env.PATHS_MACHINE_ID ?? '/var/lib/dbus/machine-id' as const),
+	'log-base': resolvePath('/var/log/unraid-api/' as const)
 };
 
 export const paths = createSlice({

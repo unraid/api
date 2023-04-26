@@ -8,7 +8,8 @@ FROM $NODE_IMAGE As development
 RUN apt-get update -y && apt-get install  -y \
     python \
     libvirt-dev \
-    jq
+    jq \
+    zstd
 
 
 ARG NODE_ENV=development

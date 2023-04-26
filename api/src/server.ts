@@ -31,6 +31,7 @@ import {
 import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
+import { getLogs } from '@app/graphql/express/get-logs';
 
 
 const configFilePath = path.join(
@@ -52,7 +53,7 @@ const updatePubsub = async () => {
 watch(configFilePath).on('all', updatePubsub);
 watch(customImageFilePath).on('all', updatePubsub);
 
-export const createApolloExpressServer = async (port: string) => {
+export const createApolloExpressServer = async () => {
     const app = express();
     const httpServer = http.createServer(app);
 
@@ -216,6 +217,8 @@ export const createApolloExpressServer = async (port: string) => {
     });
 
     await apolloServer.start()
+
+    app.get('/graphql/api/logs', getLogs);
 
     app.get(
         '/graphql/api/customizations/:type',
