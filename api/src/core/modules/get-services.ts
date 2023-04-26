@@ -5,9 +5,9 @@
 
 import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
 import { logger } from '@app/core/log';
-import { envs } from '@app/core/envs';
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { getUnraidApiService } from '@app/core/modules/services/get-unraid-api';
+import { NODE_ENV } from '@app/environment';
 
 const devNames = [
 	'emhttpd',
@@ -56,7 +56,7 @@ export const getServices = async (context: CoreContext): Promise<Result> => {
 		return [];
 	};
 
-	const devServices: ServiceResult[] = envs.NODE_ENV === 'development' ? await Promise.all([
+	const devServices: ServiceResult[] = NODE_ENV === 'development' ? await Promise.all([
 		getEmhttpdService(context),
 	]).catch(logErrorAndReturnEmptyArray) as ServiceResult[] : [];
 

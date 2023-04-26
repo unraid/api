@@ -1,6 +1,6 @@
 import { emhttpLogger } from '@app/core/log';
 
-import { watch, type FSWatcher, WatchOptions } from 'chokidar';
+import { watch, type FSWatcher, type WatchOptions } from 'chokidar';
 import { getters, store } from '@app/store';
 import { StateFileKey } from '@app/store/types';
 import { parse, join } from 'path';
@@ -11,10 +11,10 @@ import { CHOKIDAR_USEPOLLING } from '@app/environment';
 const excludedWatches: StateFileKey[] = [StateFileKey.devs];
 
 const chokidarOptionsForStateKey = (key: StateFileKey): WatchOptions => {
-    if (key === StateFileKey.disks) {
+    if ([StateFileKey.disks, StateFileKey.shares].includes(key)) {
         return {
             usePolling: true,
-            interval: 10000,
+            interval: 10_000,
         }
     }
     return { usePolling: CHOKIDAR_USEPOLLING }

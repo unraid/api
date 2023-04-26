@@ -18,7 +18,7 @@ const funcDirectiveResolver: (directiveArgs: FuncDirective) => GraphQLFieldResol
 	data,
 	query,
 	extractFromResponse,
-}) => async (_, args, context, _info) => {
+}) => async (_, args, context) => {
 	const func = getCoreModule(coreModule);
 
 	const functionContext = {

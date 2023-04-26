@@ -13,7 +13,7 @@ import display from '@app/graphql/resolvers/query/display';
 import flash from '@app/graphql/resolvers/query/flash';
 import online from '@app/graphql/resolvers/query/online';
 import owner from '@app/graphql/resolvers/query/owner';
-import registration from '@app/graphql/resolvers/query/registration';
+import { registration } from '@app/graphql/resolvers/query/registration';
 import server from '@app/graphql/resolvers/query/server';
 import { servers } from '@app/graphql/resolvers/query/servers';
 import twoFactor from '@app/graphql/resolvers/query/two-factor';

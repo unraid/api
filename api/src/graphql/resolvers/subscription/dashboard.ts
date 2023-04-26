@@ -1,5 +1,4 @@
 import { dashboardLogger } from '@app/core/log';
-import { config } from '@app/core/config';
 import { generateData } from '@app/common/dashboard/generate-data';
 import { pubsub } from '@app/core/pubsub';
 import { getters, store } from '@app/store';
@@ -9,7 +8,8 @@ import { GraphQLClient } from '@app/mothership/graphql-client';
 import { SEND_DASHBOARD_PAYLOAD_MUTATION } from '../../mothership/mutations';
 import { type DashboardInput } from '../../generated/client/graphql';
 import { getDiff } from 'json-difference';
-import { ApolloError } from '@apollo/client/core/core.cjs';
+import { DEBUG } from '@app/environment';
+import { isApolloError } from '@apollo/client/core';
 
 const isNumberBetween = (min: number, max: number) => (num: number) => num > min && num < max;
 
@@ -83,11 +83,11 @@ export const publishToDashboard = async () => {
 			dashboardLogger.error('DataPacket Was Empty');
 		}
 	} catch (error: unknown) {
-		if (error instanceof ApolloError) {
+		if (error instanceof Error && isApolloError(error)) {
 			dashboardLogger.error('Failed publishing with GQL Errors: %s, \nClient Errors: %s', error.graphQLErrors.map(error => error.message).join(','), error.clientErrors.join(', '));
 		}
 
-		if (config.debug) dashboardLogger.error(error);
+		if (DEBUG) dashboardLogger.error(error);
 	}
 };
 

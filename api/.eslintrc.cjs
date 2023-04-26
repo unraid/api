@@ -40,7 +40,8 @@ module.exports = {
             },
             rules: {
                 '@typescript-eslint/no-explicit-any': 'off',
-            }
+            },
+            ignorePatterns: ['tsup.config.ts', 'vite.config.ts']
         },
     ],
 };

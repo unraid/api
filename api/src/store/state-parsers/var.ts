@@ -1,7 +1,7 @@
 import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { type FsType, type RegistrationTypeAllCaps } from '@app/core/types/states/var';
+import { type FsType } from '@app/core/types/states/var';
 import { toNumber } from '@app/core/utils';
-import { ArrayState } from '@app/graphql/generated/api/types';
+import { ArrayState, RegistrationState, type registrationType } from '@app/graphql/generated/api/types';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
 /**
@@ -283,9 +283,9 @@ export const parse: StateFileToIniParserMap['var'] = iniFile => {
         regTy: (['Basic', 'Plus', 'Pro', 'Trial'].includes(iniFile.regTy)
             ? iniFile.regTy
             : 'Invalid'
-        ).toUpperCase() as RegistrationTypeAllCaps,
+        ).toUpperCase() as registrationType,
         // Make sure to use a || not a ?? as regCheck can be an empty string
-        regState: (iniFile.regCheck || iniFile.regTy).toUpperCase(),
+        regState: (iniFile.regCheck || iniFile.regTy || '').toUpperCase() ?? RegistrationState.EGUID,
         safeMode: iniBooleanToJsBoolean(iniFile.safeMode),
         sbClean: iniBooleanToJsBoolean(iniFile.sbClean),
         sbEvents: toNumber(iniFile.sbEvents),

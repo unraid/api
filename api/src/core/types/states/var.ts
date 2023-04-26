@@ -3,16 +3,7 @@
  * Written by: Alexis Tyler
  */
 
-import { type ArrayState } from "@app/graphql/generated/api/types";
-
-export type FsType = 'xfs';
-export type RegistrationTypeAllCaps = 'INVALID' | 'TRIAL' | 'BASIC' | 'PLUS' | 'PRO';
-
-export type ConfigErrorState =
-	'UNKNOWN_ERROR' |
-	'INVALID' |
-	'NO_KEY_SERVER' |
-	'WITHDRAWN';
+import { type registrationType, type ArrayState, type RegistrationState } from "@app/graphql/generated/api/types";
 
 /**
  * Global vars
@@ -122,7 +113,7 @@ export type Var = {
 	porttelnet: number;
 	queueDepth: string;
 	regCheck: string;
-	regState: string;
+	regState: RegistrationState;
 	/** Where the registration key is stored. (e.g. "/boot/config/Pro.key") */
 	regFile: string;
 	regGen: string;
@@ -132,7 +123,7 @@ export type Var = {
 	/** Who the current Unraid key is registered to. */
 	regTo: string;
 	/** Which type of key this is. */
-	regTy: RegistrationTypeAllCaps;
+	regTy: registrationType;
 	/** Is the server currently in safe mode. */
 	safeMode: boolean;
 	sbClean: boolean;

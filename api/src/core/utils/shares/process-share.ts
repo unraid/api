@@ -1,9 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
-import type { Slot } from '@app/core/types/states/slots';
 import { getters } from '@app/store';
 import type { DiskShare, Share, UserShare } from '@app/core/types/states/share';
 

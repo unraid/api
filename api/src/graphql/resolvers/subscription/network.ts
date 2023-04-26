@@ -52,7 +52,7 @@ export const getUrlForField = ({ url, port, portSsl }: UrlForFieldInputInsecure 
 	}
 };
 
-const fieldIsFqdn = (field: keyof Nginx) => field.toLowerCase().includes('fqdn');
+const fieldIsFqdn = (field: keyof Nginx) => field?.toLowerCase().includes('fqdn');
 
 export type NginxUrlFields = Extract<keyof Nginx, 'lanIp' | 'lanIp6' | 'lanName' | 'lanMdns' | 'lanFqdn' | 'lanFqdn6' | 'wanFqdn' | 'wanFqdn6'>;
 

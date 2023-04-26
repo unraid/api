@@ -1,8 +1,8 @@
-import { config } from '@app/core/config';
+import { PORT } from '@app/environment';
 import { type JSONWebKeySet } from 'jose';
 
 export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
-    const envPort = config.port as number | string;
+    const envPort = PORT;
     const protocol = isHttp ? 'http' : 'ws';
 
     if (!envPort.toString().includes('.sock')) {
