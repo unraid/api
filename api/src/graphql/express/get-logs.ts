@@ -8,27 +8,22 @@ import path from "path";
 export const getLogs = async (req: Request, res: Response) => {
     // @TODO - Clean up this function
     const apiKey = req.headers['x-api-key'];
-    const logPath = getters.paths()["log-base"]
-    const logToUse = path.join(logPath, 'stdout.log');
-    const zipToWrite = path.join(logPath, 'stdout.log.gzip');
+    const logPath = getters.paths()["log-base"];
+    const zipToWrite = path.join(logPath, '../unraid-api.tar.gz');
     if (
         apiKey &&
         typeof apiKey === 'string' &&
         (await apiKeyToUser(apiKey)).role !== 'guest'
     ) {
-        const exists = Boolean(await stat(logToUse).catch(() => null));
+        const exists = Boolean(await stat(logPath).catch(() => null));
         if (exists) {
             try {
-                await rm(zipToWrite).catch(() => null)
-                await execa('zstd', [
-                    '-z',
-                    logToUse,
-                    '-o',
+                await execa('tar', [
+                    '-czf',
                     zipToWrite,
-                    '-T0',
-                    '--format=gzip',
+                    logPath
                 ]);
-                return res.status(200).setHeader('Content-Type', 'application/gzip').sendFile(zipToWrite);
+                return res.status(200).sendFile(zipToWrite);
             } catch (error) {
                 return res.status(503).send(`Failed: ${error}`);
             }
