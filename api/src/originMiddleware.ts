@@ -25,7 +25,7 @@ export const originMiddleware = (
     next: NextFunction
 ): void => {
     // Dev Mode Bypass
-    const origin = req.get('Origin');
+    const origin = req.get('Origin')?.toLowerCase() ?? '';
     const allowedOrigins = getAllowedOrigins();
 
     if (process.env.BYPASS_CORS_CHECKS === 'true') {
@@ -52,13 +52,13 @@ export const originMiddleware = (
         return;
     }
 
-    logger.trace(`📒 Checking "${origin.toLowerCase()}" for CORS access.`);
+    logger.trace(`📒 Checking "${origin}" for CORS access.`);
 
     // Only allow known origins
-    if (!allowedOrigins.includes(origin.toLowerCase())) {
+    if (!allowedOrigins.includes(origin)) {
         logger.error(
             '❌ %s is not in the allowed origins list, denying CORS!',
-            origin.toLowerCase()
+            origin
         );
         res.status(403).send(getOriginGraphqlError());
         return;

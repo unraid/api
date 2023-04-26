@@ -7,6 +7,7 @@ import { logger } from '@app/core/log';
 import { type LooseObject } from '@app/core/types';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
 import { getters } from '@app/store';
+import { DRY_RUN } from '@app/environment';
 
 /**
  * Run a command with emcmd.
@@ -14,7 +15,6 @@ import { getters } from '@app/store';
 export const emcmd = async (commands: LooseObject) => {
 	const socketPath = getters.paths()['emhttpd-socket'];
 	const { csrfToken } = getters.emhttp().var;
-	const dryRun = process.env.DRY_RUN;
 
 	const url = `http://unix:${socketPath}:/update.htm`;
 	const options = {
@@ -24,7 +24,7 @@ export const emcmd = async (commands: LooseObject) => {
 		},
 	};
 
-	if (dryRun) {
+	if (DRY_RUN) {
 		logger.debug(url, options);
 
 		// Ensure we only log on dry-run

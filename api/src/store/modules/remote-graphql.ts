@@ -5,9 +5,8 @@ import {
     MOTHERSHIP_CRITICAL_STATUSES,
     type SubscriptionWithLastPing,
 } from '@app/store/types';
-import { graphqlLogger, remoteAccessLogger } from '@app/core/log';
+import { remoteAccessLogger } from '@app/core/log';
 import { addRemoteSubscription } from '@app/store/actions/add-remote-subscription';
-import { FIVE_MINUTES_MS } from '@app/consts';
 
 interface RemoteGraphQLStore {
     subscriptions: Array<SubscriptionWithLastPing>;

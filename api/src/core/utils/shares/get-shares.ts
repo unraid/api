@@ -34,14 +34,14 @@ export const getShares: Overload = (type?: string, filter?: Filter) => {
 		},
 		users: () => emhttp.shares.map(share => processShare('user', share)),
 		disk(name: string) {
-			const diskShares = emhttp.disks.filter(slot => slot.exportable && slot.name.startsWith('disk'));
+			const diskShares = emhttp.disks.filter(slot => slot.exportable && slot.name?.startsWith('disk'));
 
 			// If a name was provided find a matching share otherwise return the first share
 			const share = name ? diskShares.find(slot => slot.name === name) : diskShares[0];
 			if (!share) return null;
 			return processShare('disk', share);
 		},
-		disks: () => emhttp.disks.filter(slot => slot.exportable && slot.name.startsWith('disk')).map(disk => processShare('disk', disk)),
+		disks: () => emhttp.disks.filter(slot => slot.exportable && slot.name?.startsWith('disk')).map(disk => processShare('disk', disk)),
 	};
 
 	// Return a type of share

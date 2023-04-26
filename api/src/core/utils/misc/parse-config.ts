@@ -48,7 +48,7 @@ const fixObjectArrays = (object: Record<string, any>) => {
 	// An object without any array items
 	const filteredObject = includeKeys(object, (key, value) => {
 		// eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-		const [_, name, index] = [...((key).match(/(.*):(\d+$)/) ?? [])];
+		const [, name, index] = [...((key).match(/(.*):(\d+$)/) ?? [])];
 		if (!name || !index) {
 			return true;
 		}

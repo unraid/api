@@ -17,16 +17,21 @@ import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
 import { createApolloExpressServer } from '@app/server';
-import { config } from '@app/core/config';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
-import { environment } from '@app/environment';
+import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 import { type BaseContext, type ApolloServer } from '@apollo/server';
 
 let server: ApolloServer<BaseContext>;
+
+const unlinkUnixPort = () => {
+    if (isNaN(parseInt(PORT, 10))) {
+        if (fileExistsSync(PORT)) unlinkSync(PORT);
+    }
+};
 // Boot app
 void am(
     async () => {
@@ -67,21 +72,17 @@ void am(
         // TokenRefresh.init();
 
         // If port is unix socket, delete old socket before starting http server
-        if (isNaN(parseInt(config.port, 10))) {
-            if (fileExistsSync(config.port)) unlinkSync(config.port);
-        }
+        unlinkUnixPort();
 
         // Start webserver
-        server = await createApolloExpressServer(config.port);
+        server = await createApolloExpressServer();
 
         PingTimeoutJobs.init();
 
         // On process exit stop HTTP server - this says it supports async but it doesnt seem to
         exitHook(() => {
             // If port is unix socket, delete socket before exiting
-            if (isNaN(parseInt(config.port, 10))) {
-                if (fileExistsSync(config.port)) unlinkSync(config.port);
-            }
+            unlinkUnixPort();
 
             shutdownApiEvent();
             process.exitCode = 0;

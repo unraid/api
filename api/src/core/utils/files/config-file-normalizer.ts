@@ -1,4 +1,3 @@
-import { logger } from '@app/core/log';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import {
     type SliceState as ConfigSliceState,

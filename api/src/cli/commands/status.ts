@@ -15,5 +15,5 @@ export const status = async () => {
 	}
 
 	const stats = await pidUsage(unraidApiPid);
-	cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${process.env.ENVIRONMENT!}" mode!`);
+	cliLogger.info(`API has been running for ${prettyMs(stats.elapsed)} and is in "${process.env.ENVIRONMENT ?? 'ERR: Unknown Environment'}" mode!`);
 };

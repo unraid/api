@@ -1,5 +1,5 @@
 import { ONE_HOUR_SECS, THIRTY_SECONDS_MS } from '@app/consts';
-import { logger, upnpLogger } from '@app/core/log';
+import { upnpLogger } from '@app/core/log';
 import { IS_DOCKER } from '@app/environment';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
 import { getters } from '@app/store';
