@@ -681,10 +681,6 @@ _(Flash backup)_:
 </div>
 </form>
 </div><!-- end Flash Backup section -->
-<div markdown="1" class="<?=$shade?>"><!-- start unraid-api section -->
-_(Download unraid-api Logs)_:
-: <unraid-api-logs></unraid-api-logs>
-</div><!-- end unraid-api section -->
 <script>
 changeRemoteAccess($('#remoteAccess'));
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
@@ -701,3 +697,22 @@ $(function() {
 });
 </script>
 <?endif // end show flash backup form ?>
+
+<?
+$unraidApiVersion = $myservers['api']['version'] ?? '';
+?>
+<?if (version_compare($unraidApiVersion, '3.0.1', '>=')):?>
+  <!-- start unraid-api section -->
+<div markdown="1" class="js-unraidApiLogs <?=$shade?>" style="display: none;">
+_(Download unraid-api Logs)_:
+: <unraid-api-logs></unraid-api-logs>
+</div>
+<!-- end unraid-api section -->
+<script>
+// show download logs group if we have the web component
+setTimeout(() => {
+  if (!window.customElements.get('unraid-api-logs')) return;
+  $('.js-unraidApiLogs').show();
+}, 3000);
+</script>
+<?endif ?>
