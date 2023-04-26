@@ -161,7 +161,7 @@ jobs:
     needs: [build-api]
     steps:
       - name: Set Timezone
-        uses: szenius/set-timezone@v1.0
+        uses: szenius/set-timezone@v1.2
         with:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
