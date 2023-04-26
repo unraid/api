@@ -11,7 +11,7 @@ import http from 'http';
 import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
-import { logger, config, pubsub, graphqlLogger } from '@app/core';
+import { logger, pubsub, graphqlLogger } from '@app/core';
 import { verifyTwoFactorToken } from '@app/common/two-factor';
 import display from '@app/graphql/resolvers/query/display';
 import { getters } from '@app/store';
@@ -23,7 +23,7 @@ import { apiKeyToUser } from '@app/graphql';
 import { randomUUID } from 'crypto';
 import { getServerAddress } from '@app/common/get-server-address';
 import { originMiddleware } from '@app/originMiddleware';
-import { API_VERSION, GRAPHQL_INTROSPECTION } from '@app/environment';
+import { API_VERSION, GRAPHQL_INTROSPECTION, PORT } from '@app/environment';
 import {
     getBannerPathIfPresent,
     getCasePathIfPresent,
@@ -354,6 +354,6 @@ export const createApolloExpressServer = async () => {
         }
     );
     
-	httpServer.listen(config.port);
+	httpServer.listen(PORT);
     return apolloServer;
 };

@@ -2,7 +2,7 @@ import { apiKeyToUser } from "@app/graphql/index";
 import { getters } from "@app/store/index";
 import { execa } from "execa";
 import { type Response, type Request} from 'express';
-import { stat, rm } from "fs/promises";
+import { stat } from "fs/promises";
 import path from "path";
 
 export const getLogs = async (req: Request, res: Response) => {
