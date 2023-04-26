@@ -681,6 +681,10 @@ _(Flash backup)_:
 </div>
 </form>
 </div><!-- end Flash Backup section -->
+<div markdown="1" class="<?=$shade?>"><!-- start unraid-api section -->
+_(Download unraid-api Logs)_:
+: <unraid-api-logs></unraid-api-logs>
+</div><!-- end unraid-api section -->
 <script>
 changeRemoteAccess($('#remoteAccess'));
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
