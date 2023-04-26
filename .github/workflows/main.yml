@@ -1,0 +1,278 @@
+name: CI - Main (API)
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  start:
+    # This prevents a tag running twice as it'll have a "tag" and a "commit" event
+    # We only want the tag to run the action as it'll be able to create the release notes
+    if: (startsWith(github.event.ref, 'refs/heads/') && !startsWith(github.event.head_commit.message, 'chore(release)')) || (startsWith(github.event.ref, 'refs/tags/') && startsWith(github.event.head_commit.message, 'chore(release)'))
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch and tag
+        run: exit 0
+
+  lint-api:
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: api
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+      - name: Reconfigure git to use HTTP authenti:cation
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "api/.nvmrc"
+
+      # - name: Get npm cache directory
+      #   id: npm-cache
+      #   run: echo "::set-output name=dir::$(npm config get cache)"
+
+      # - name: Load npm cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.npm-cache.outputs.dir }}
+      #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Lint files
+        run: npm run lint
+
+  test-api:
+    defaults:
+      run:
+        working-directory: api
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: false
+
+      - name: Reconfigure git to use HTTP authentication
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "api/.nvmrc"
+
+      # - name: Get npm cache directory
+      #   id: npm-cache
+      #   run: echo "::set-output name=dir::$(npm config get cache)"
+
+      # - name: Load npm cache
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ${{ steps.npm-cache.outputs.dir }}
+      #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Run unit tests with code coverage
+        run: npm run coverage
+
+  build-api:
+    defaults:
+      run:
+        working-directory: api
+    runs-on: ubuntu-latest
+    needs: [lint-api, test-api]
+
+    outputs:
+      API_VERSION: ${{ steps.build-pack-binary.outputs.API_VERSION }}
+      API_MD5: ${{ steps.set-hashes.outputs.API_MD5 }}
+      API_SHA256: ${{ steps.set-hashes.outputs.API_SHA256 }}
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Add SSH deploy key
+        uses: shimataro/ssh-key-action@v2
+        with:
+          key: ${{ secrets.UNRAID_BOT_SSH_KEY }}
+          known_hosts: ${{ secrets.KNOWN_HOSTS }}
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "api/.nvmrc"
+
+      - name: Install libvirt-dev
+        run: sudo apt-get update && sudo apt-get install libvirt-dev
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Install pkg and node-prune
+        run: npm i -g pkg && curl -sf https://gobinaries.com/tj/node-prune | sh
+
+      # See https://github.com/apollographql/subscriptions-transport-ws/issues/433
+      - name: Patch subscriptions-transport-ws
+        run: npm run patch:subscriptions-transport-ws
+
+
+      - name: Build and Pack
+        id: build-pack-binary
+        run: WORKDIR=${{ github.workspace }} && npm run build-pkg
+
+      - name: Set Hashes
+        id: set-hashes
+        run: |
+          API_MD5=$(md5sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')
+          API_SHA256=$(sha256sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')
+          echo "::set-output name=API_MD5::${API_MD5}"
+          echo "::set-output name=API_SHA256::${API_SHA256}"
+
+      - name: Upload tgz to Github artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: unraid-api
+          path: ${{ github.workspace }}/api/deploy/release/*.tgz
+
+  build-plugin:
+    defaults:
+      run:
+        working-directory: plugin
+    runs-on: ubuntu-latest
+    needs: [build-api]
+    steps:
+      - name: Set Timezone
+        uses: szenius/set-timezone@v1.2
+        with:
+          timezoneLinux: "America/Los_Angeles"
+      - name: Checkout repo
+        uses: actions/checkout@v3
+      - name: Build Plugin
+        run: |
+          cd source/dynamix.unraid.net
+          export API_VERSION=${{needs.build-api.outputs.API_VERSION}}
+          export API_MD5=${{needs.build-api.outputs.API_MD5}}
+          export API_SHA256=${{needs.build-api.outputs.API_SHA256}}
+          bash ./pkg_build.sh s
+          bash ./pkg_build.sh p
+      - name: Upload binary txz and plg to Github artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: connect-files
+          path: |
+            ${{ github.workspace }}/plugin/archive/*.txz
+            ${{ github.workspace }}/plugin/plugins/*.plg
+          retention-days: 5
+          if-no-files-found: error
+
+  release-staging:
+    # Only release if this is a push to the main branch
+    if: startsWith(github.ref, 'refs/heads/main')
+    runs-on: ubuntu-latest
+    needs: [build-plugin]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Make Staging Release Folder
+        run: mkdir staging-release/
+
+      - name: Download unraid-api binary tgz
+        uses: actions/download-artifact@v3
+        with:
+          name: unraid-api
+          path: staging-release
+
+      - name: Download plugin binary tgz
+        uses: actions/download-artifact@v3
+        with:
+          name: connect-files
+
+      - name: Parse Changelog
+        id: changelog
+        uses: ocavue/changelog-parser-action@v1
+        with:
+          removeMarkdown: false
+          filePath: "./api/CHANGELOG.md"
+
+      - name: Create release notes
+        run: |
+          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${{steps.changelog.outputs.latestBody}}")
+          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
+
+      - name: Run LS in unraid-api folder
+        run: |
+          cp archive/dynamix.unraid.net.staging-*.txz staging-release/
+          cp plugins/dynamix.unraid.net.staging.plg staging-release/
+          ls -al staging-release
+
+      - name: Upload Staging Plugin to DO Spaces
+        uses: BetaHuhn/do-spaces-action@v2
+        with:
+          access_key: ${{ secrets.DO_ACCESS_KEY }}
+          secret_key: ${{ secrets.DO_SECRET_KEY }}
+          space_name: ${{ secrets.DO_SPACE_NAME }}
+          space_region: ${{ secrets.DO_SPACE_REGION }}
+          source: staging-release
+          out_dir: unraid-api
+
+  create-draft-release:
+    # Only create new draft if this is a version tag
+    if: |
+      startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    needs: [build-plugin]
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Download unraid-api binary tgz
+        uses: actions/download-artifact@v3
+        with:
+          name: unraid-api
+
+      - name: Download plugin binary tgz
+        uses: actions/download-artifact@v3
+        with:
+          name: connect-files
+
+      - name: Create Github release
+        uses: softprops/action-gh-release@v1
+        with:
+          draft: true
+          prerelease: false
+          files: |
+            unraid-api-*.tgz
+            plugins/dynamix.unraid.net*
+            archive/dynamix.unraid.net*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
