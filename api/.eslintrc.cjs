@@ -6,7 +6,7 @@ module.exports = {
         'unused-imports',
         'eslint-plugin-unicorn',
     ],
-    ignorePatterns: ['src/graphql/generated/**/*.ts', '*.test.ts'],
+    ignorePatterns: ['src/graphql/generated/**/*.ts', '*.test.ts', 'tsup.config.ts', 'vite.config.ts'],
     parser: '@typescript-eslint/parser',
     rules: {
         '@typescript-eslint/no-redundant-type-constituents': 'off',
@@ -41,7 +41,6 @@ module.exports = {
             rules: {
                 '@typescript-eslint/no-explicit-any': 'off',
             },
-            ignorePatterns: ['tsup.config.ts', 'vite.config.ts']
         },
     ],
 };

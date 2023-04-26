@@ -7,8 +7,6 @@ import { store } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
 import { GraphQLError } from 'graphql';
 import sum from 'lodash/sum';
-import { convert } from 'convert';
-
 
 export const getArrayData = (getState = store.getState): ArrayType => {
     // Var state isn't loaded
@@ -18,7 +16,9 @@ export const getArrayData = (getState = store.getState): ArrayType => {
         state.emhttp.status !== FileLoadStatus.LOADED ||
         Object.keys(state.emhttp.var).length === 0
     ) {
-        throw new GraphQLError('Attempt to get Array Data, but state was not loaded')
+        throw new GraphQLError(
+            'Attempt to get Array Data, but state was not loaded'
+        );
     }
 
     const { emhttp } = state;
@@ -34,9 +34,9 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
     // Disk sizes
-    const disksTotalKiBytes = sum(disks.map((disk) => disk.fsSize));
-    const disksFreeKiBytes = sum(disks.map((disk) => disk.fsFree));
-    const disksUsedKiBytes = sum(disks.map((disk) => disk.fsUsed));
+    const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
+    const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree));
+    const disksUsedKBytes = sum(disks.map((disk) => disk.fsUsed));
 
     // Max
     const maxDisks = emhttp.var.maxArraysz ?? disks.length;
@@ -44,9 +44,9 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     // Array capacity
     const capacity: ArrayCapacity = {
         kilobytes: {
-            free: convert(disksFreeKiBytes, 'KiB').to('KB').toString(),
-            used: convert(disksUsedKiBytes, 'KiB').to('KB').toString(),
-            total: convert(disksTotalKiBytes, 'KiB').to('KB').toString(),
+            free: disksFreeKBytes.toString(),
+            used: disksUsedKBytes.toString(),
+            total: disksTotalKBytes.toString(),
         },
         disks: {
             free: String(maxDisks - disks.length),

@@ -1,13 +1,13 @@
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { store } from '@app/store';
-import { type ArrayResolvers } from '@app/graphql/generated/api/types';
+import { type QueryResolvers } from '@app/graphql/generated/api/types';
 import { getArrayData } from '@app/core/modules/array/get-array-data';
 
 /**
  * Get array info.
  * @returns Array state and array/disk capacity.
  */
-export const getArray: ArrayResolvers = (
+export const getArray: QueryResolvers['array'] = (
     _,
     __,
     context
