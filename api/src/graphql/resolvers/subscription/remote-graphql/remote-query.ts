@@ -1,4 +1,5 @@
 import { remoteQueryLogger } from '@app/core/log';
+import { ENVIRONMENT } from '@app/environment';
 import { getApiApolloClient } from '@app/graphql/client/api/get-api-client';
 import {
     RemoteGraphQLEventType,
@@ -23,7 +24,9 @@ export const executeRemoteGraphQLQuery = async (
         const localClient = getApiApolloClient({
             upcApiKey: apiKey
         });
-
+        if (ENVIRONMENT === 'development') {
+            remoteQueryLogger.debug('Running query', parsedQuery.query);
+        }
         const localResult = await localClient.query({
             query: parsedQuery.query,
             variables: parsedQuery.variables,
@@ -57,7 +60,7 @@ export const executeRemoteGraphQLQuery = async (
                 },
             });
         }
-    } catch (err) {
+    } catch (err: unknown) {
         try {
             await client?.mutate({
                 mutation: SEND_REMOTE_QUERY_RESPONSE,
@@ -72,6 +75,8 @@ export const executeRemoteGraphQLQuery = async (
         } catch (error) {
             remoteQueryLogger.warn('Could not respond %o', error);
         }
-        remoteQueryLogger.error('Error executing remote query %o', err);
+        remoteQueryLogger.addContext('error', err);
+        remoteQueryLogger.error('Error executing remote query %s', err instanceof Error ? err.message: 'Unknown Error');
+        remoteQueryLogger.removeContext('error');
     }
 };

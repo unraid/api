@@ -1,5 +1,10 @@
 import { type IniEnabled, type IniNumberBoolean } from '@app/core/types/ini';
-import { toNumber, toBoolean, toNumberOrNull } from '@app/core/utils';
+import {
+    toNumber,
+    toBoolean,
+    toNumberOrNull,
+    toNumberOrNullConvert,
+} from '@app/core/utils';
 import {
     ArrayDiskStatus,
     ArrayDiskType,
@@ -35,10 +40,13 @@ export type IniSlot = {
     rotational: IniNumberBoolean;
     size: string;
     sizeSb: string;
-    slot: string;
+    slots: string;
     status: SlotStatus;
     temp: string;
     type: SlotType;
+    warning: string;
+    critical: string;
+    transport: string;
 };
 
 export type SlotsIni = IniSlot[];
@@ -50,10 +58,20 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
             const result: ArrayDisk = {
                 id: slot.id,
                 device: slot.device,
+                comment: slot.comment ?? null,
                 exportable: toBoolean(slot.exportable),
-                fsFree: toNumberOrNull(slot.fsFree),
-                fsUsed: toNumberOrNull(slot.fsUsed),
-                fsSize: toNumberOrNull(slot.fsSize),
+                fsFree: toNumberOrNullConvert(slot.fsFree, {
+                    startingUnit: 'KiB',
+                    endUnit: 'KB',
+                }),
+                fsUsed: toNumberOrNullConvert(slot.fsUsed, {
+                    startingUnit: 'KiB',
+                    endUnit: 'KB',
+                }),
+                fsSize: toNumberOrNullConvert(slot.fsSize, {
+                    startingUnit: 'KiB',
+                    endUnit: 'KB',
+                }),
                 idx: toNumber(slot.idx),
                 name: slot.name,
                 numErrors: toNumber(slot.numErrors),
@@ -66,6 +84,11 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 type: slot.type
                     ? ArrayDiskType[slot.type.toUpperCase()]
                     : undefined,
+                warning: toNumberOrNull(slot.warning),
+                critical: toNumberOrNull(slot.critical),
+                fsType: slot.fsType ?? null,
+                format: slot.format === '-' ? null: slot.format,
+                transport: slot.transport ?? null
             };
             // @TODO Zod Parse This
             return result;

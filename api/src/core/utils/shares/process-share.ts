@@ -1,5 +1,6 @@
 import { getters } from '@app/store';
 import type { DiskShare, Share, UserShare } from '@app/core/types/states/share';
+import { type ArrayDisk } from '@app/graphql/generated/api/types';
 
 const processors = {
 	user(share: Share) {
@@ -18,7 +19,7 @@ const processors = {
 			...rest,
 		};
 	},
-	disk(share: Slot) {
+	disk(share: ArrayDisk) {
 		const { smbShares, nfsShares, disks } = getters.emhttp();
 		const { name } = share;
 		const { name: __, ...smb } = smbShares.find(share => share.name === name) ?? { name };
@@ -37,14 +38,14 @@ const processors = {
 };
 
 type Overload = {
-	(type: 'disk', share: Slot): DiskShare;
+	(type: 'disk', share: ArrayDisk): DiskShare;
 	(type: 'user', share: Share): UserShare;
 };
 
 /**
  * Process share.
  */
-export const processShare: Overload = (type: string, share: Share | Slot) => {
+export const processShare: Overload = (type: string, share: Share | ArrayDisk) => {
 	const processor = processors[type];
 	return processor(share);
 };

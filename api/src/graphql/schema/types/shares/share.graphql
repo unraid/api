@@ -12,8 +12,10 @@ type Subscription {
 type Share {
     """Display name"""
     name: String
-    """(KB) Free space in bytes"""
+    """(KB) Free space"""
     free: Long
+    """(KB) Used Size"""
+    used: Long
     """(KB) Total size"""
     size: Long
     """Disks that're included in this share"""

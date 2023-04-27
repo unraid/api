@@ -63,9 +63,9 @@ test('Returns generated data', async () => {
 		  "array": {
 		    "capacity": {
 		      "bytes": {
-		        "free": 19038892160000,
-		        "total": 41010494044000,
-		        "used": 21971601884000,
+		        "free": 19495825571000,
+		        "total": 41994745901000,
+		        "used": 22498920330000,
 		      },
 		    },
 		    "state": "STOPPED",

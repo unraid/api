@@ -63,12 +63,20 @@ export type ArrayCapacity = {
 
 export type ArrayDisk = {
   __typename?: 'ArrayDisk';
+  /**  User comment on disk  */
+  comment?: Maybe<Scalars['String']>;
+  /**  (%) Disk space left for critical  */
+  critical?: Maybe<Scalars['Int']>;
   device?: Maybe<Scalars['String']>;
   exportable?: Maybe<Scalars['Boolean']>;
+  /**  File format (ex MBR: 4KiB-aligned)  */
+  format?: Maybe<Scalars['String']>;
   /**  (KB) Free Size on the FS (Not present on Parity type drive) */
   fsFree?: Maybe<Scalars['Long']>;
   /**  (KB) Total Size of the FS (Not present on Parity type drive)  */
   fsSize?: Maybe<Scalars['Long']>;
+  /**  File system type for the disk  */
+  fsType?: Maybe<Scalars['String']>;
   /**  (KB) Used Size on the FS (Not present on Parity type drive) */
   fsUsed?: Maybe<Scalars['Long']>;
   /**  Disk indentifier, only set for present disks on the system  */
@@ -89,8 +97,12 @@ export type ArrayDisk = {
   status?: Maybe<ArrayDiskStatus>;
   /**  Disk temp - will be NaN if array is not started or DISK_NP  */
   temp?: Maybe<Scalars['Int']>;
+  /**  ata | nvme | usb | (others) */
+  transport?: Maybe<Scalars['String']>;
   /**  Type of Disk - used to differentiate Cache / Flash / Array / Parity  */
   type: ArrayDiskType;
+  /**  (%) Disk space left to warn  */
+  warning?: Maybe<Scalars['Int']>;
 };
 
 export enum ArrayDiskFsColor {
@@ -1025,7 +1037,7 @@ export type Share = {
   /** Disks that're excluded from this share */
   exclude?: Maybe<Array<Maybe<Scalars['String']>>>;
   floor?: Maybe<Scalars['String']>;
-  /** (KB) Free space in bytes */
+  /** (KB) Free space */
   free?: Maybe<Scalars['Long']>;
   /** Disks that're included in this share */
   include?: Maybe<Array<Maybe<Scalars['String']>>>;
@@ -1036,6 +1048,8 @@ export type Share = {
   /** (KB) Total size */
   size?: Maybe<Scalars['Long']>;
   splitLevel?: Maybe<Scalars['String']>;
+  /** (KB) Used Size */
+  used?: Maybe<Scalars['Long']>;
 };
 
 export type Subscription = {
@@ -1857,10 +1871,14 @@ export type ArrayCapacityResolvers<ContextType = Context, ParentType extends Res
 }>;
 
 export type ArrayDiskResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayDisk'] = ResolversParentTypes['ArrayDisk']> = ResolversObject<{
+  comment?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  critical?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   device?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   exportable?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  format?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fsFree?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   fsSize?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
+  fsType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fsUsed?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   idx?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
@@ -1872,7 +1890,9 @@ export type ArrayDiskResolvers<ContextType = Context, ParentType extends Resolve
   size?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
   status?: Resolver<Maybe<ResolversTypes['ArrayDiskStatus']>, ParentType, ContextType>;
   temp?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  transport?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<ResolversTypes['ArrayDiskType'], ParentType, ContextType>;
+  warning?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2453,6 +2473,7 @@ export type ShareResolvers<ContextType = Context, ParentType extends ResolversPa
   nameOrig?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   size?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   splitLevel?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  used?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

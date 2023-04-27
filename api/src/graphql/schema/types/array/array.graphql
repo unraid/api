@@ -148,6 +148,18 @@ type ArrayDisk {
     exportable: Boolean
     """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """
     type: ArrayDiskType!
+    """ (%) Disk space left to warn """
+    warning: Int
+    """ (%) Disk space left for critical """
+    critical: Int
+    """ File system type for the disk """
+    fsType: String
+    """ User comment on disk """ 
+    comment: String
+    """ File format (ex MBR: 4KiB-aligned) """
+    format: String
+    """ ata | nvme | usb | (others)"""
+    transport: String
 }
 
 # type ArrayParityDisk {}

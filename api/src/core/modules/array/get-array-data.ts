@@ -16,7 +16,9 @@ export const getArrayData = (getState = store.getState): ArrayType => {
         state.emhttp.status !== FileLoadStatus.LOADED ||
         Object.keys(state.emhttp.var).length === 0
     ) {
-        throw new GraphQLError('Attempt to get Array Data, but state was not loaded')
+        throw new GraphQLError(
+            'Attempt to get Array Data, but state was not loaded'
+        );
     }
 
     const { emhttp } = state;
@@ -34,7 +36,7 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     // Disk sizes
     const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
     const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree));
-    const disksUsedKByes = sum(disks.map((disk) => disk.fsUsed));
+    const disksUsedKBytes = sum(disks.map((disk) => disk.fsUsed));
 
     // Max
     const maxDisks = emhttp.var.maxArraysz ?? disks.length;
@@ -43,7 +45,7 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     const capacity: ArrayCapacity = {
         kilobytes: {
             free: disksFreeKBytes.toString(),
-            used: disksUsedKByes.toString(),
+            used: disksUsedKBytes.toString(),
             total: disksTotalKBytes.toString(),
         },
         disks: {
