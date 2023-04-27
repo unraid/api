@@ -62,7 +62,7 @@ export const start = async () => {
 			cliLogger.debug('Daemonizing process.');
 
 			// Spawn child
-			const child = spawn(process.execPath, process.argv.slice(1), {
+			const child = spawn(process.execPath, ['start', ...process.argv.slice(2)], {
 				// In the parent set the tracking environment variable
 				env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 				// The process MUST have it's cwd set to the
