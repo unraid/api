@@ -12,6 +12,7 @@ import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
 import { apiKeyReducer } from '@app/store/modules/apikey';
 import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access';
 import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql';
+import { dynamix } from '@app/store/modules/dynamix';
 
 export const store = configureStore({
 	reducer: {
@@ -27,6 +28,7 @@ export const store = configureStore({
 		dashboard: dashboard.reducer,
 		docker: docker.reducer,
 		upnp: upnp.reducer,
+		dynamix: dynamix.reducer,
 	},
 	middleware: getDefaultMiddleware => getDefaultMiddleware({
 		serializableCheck: false,
@@ -48,4 +50,5 @@ export const getters = {
 	dashboard: () => store.getState().dashboard,
 	docker: () => store.getState().docker,
 	upnp: () => store.getState().upnp,
+	dynamix: () => store.getState().dynamix,
 };
