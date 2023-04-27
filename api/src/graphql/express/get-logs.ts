@@ -22,7 +22,7 @@ const saveApiReport = async (pathToReport: string) => {
 };
 
 export const getLogs = async (req: Request, res: Response) => {
-    const apiKey = req.headers['x-api-key'];
+    const apiKey = req.headers['x-api-key'] || req.query.apiKey;
     const logPath = getters.paths()['log-base'];
     try {
         await saveApiReport(join(logPath, 'report.json'));

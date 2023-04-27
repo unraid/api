@@ -24,6 +24,10 @@ export const originMiddleware = (
     res: Response,
     next: NextFunction
 ): void => {
+    if (req.method === 'GET' && req.query.apiKey && !req.headers.origin) {
+        // Bypass GET request headers on requests to the log endpoint
+        return next();
+    }
     // Dev Mode Bypass
     const origin = req.get('Origin')?.toLowerCase() ?? '';
     const allowedOrigins = getAllowedOrigins();
