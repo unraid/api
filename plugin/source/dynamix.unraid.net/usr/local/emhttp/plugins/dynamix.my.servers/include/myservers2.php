@@ -539,7 +539,9 @@ $upc_translations = [
       'heading' => _('Connect plugin install failed'),
       'message' => _('The Connect plugin install is incomplete').'. '._('Please uninstall and reinstall the Connect plugin').'. '._('Be sure to let the install complete before you close the window').'.',
     ],
-    "downloadUnraidApiLogs" => "Download unraid-api Logs",
+    "downloadUnraidApiLogs" => _('Download unraid-api Logs'),
+    "download" => _('Download'),
+    "pleaseWait" => _('Please wait…')
   ],
 ];
 // note: $myservers variable defined in myservers1.php, by parsing myservers.cfg
