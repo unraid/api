@@ -152,6 +152,7 @@ export const upnp = createSlice({
 			state.renewalJobRunning = action.payload.renewalJobRunning;
 		});
 		builder.addCase(enableUpnp.rejected, (state, action) => {
+			upnpLogger.warn('Failed to renew UPNP Lease with Error %o', action.error);
 			state.errors.renewal = action.error.message ?? 'Undefined Error When Renewing UPNP Lease';
 		});
 

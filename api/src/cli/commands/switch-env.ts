@@ -1,75 +1,80 @@
-import { exec } from 'child_process';
-import { readFile, writeFile } from 'fs/promises';
+import { copyFile, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { cliLogger } from '@app/core/log';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { setEnv } from '@app/cli/set-env';
-import { restart } from '@app/cli/commands/restart';
 import { getters } from '@app/store';
+import { start } from '@app/cli/commands/start';
+import { stop } from '@app/cli/commands/stop';
 
 export const switchEnv = async () => {
-	setEnv('LOG_TYPE', 'raw');
+    setEnv('LOG_TYPE', 'raw');
 
-	const paths = getters.paths();
-	const basePath = paths['unraid-api-base'];
-	const envFlashFilePath = paths['myservers-env'];
-	const envFile = await readFile(envFlashFilePath, 'utf-8').catch(() => '');
+    const paths = getters.paths();
+    const basePath = paths['unraid-api-base'];
+    const envFlashFilePath = paths['myservers-env'];
+    const envFile = await readFile(envFlashFilePath, 'utf-8').catch(() => '');
 
-	cliLogger.debug('Checking %s for current ENV, found %s', envFlashFilePath, envFile);
+	let shouldStartAfterRunning = false;
+	if (await getUnraidApiPid()) {
+        cliLogger.info('unraid-api is running, stopping...');
+        // Stop Running Process
+        await stop();
+		shouldStartAfterRunning = true;
+    }
 
-	// Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
-	const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
-	// Get item from index 2 of the regex match or return undefined
-	const [,,currentEnvInFile] = matchArray && matchArray.length === 3 ? matchArray : [];
+    cliLogger.debug(
+        'Checking %s for current ENV, found %s',
+        envFlashFilePath,
+        envFile
+    );
 
-	let newEnv = 'production';
+    // Match the env file env="production" which would be [0] = env="production", [1] = env and [2] = production
+    const matchArray = /([a-zA-Z]+)=["]*([a-zA-Z]+)["]*/.exec(envFile);
+    // Get item from index 2 of the regex match or return undefined
+    const [, , currentEnvInFile] =
+        matchArray && matchArray.length === 3 ? matchArray : [];
 
-	// Switch from staging to production
-	if (currentEnvInFile === 'staging') {
-		newEnv = 'production';
-	}
+    let newEnv = 'production';
 
-	// Switch from production to staging
-	if (currentEnvInFile === 'production') {
-		newEnv = 'staging';
-	}
+    // Switch from staging to production
+    if (currentEnvInFile === 'staging') {
+        newEnv = 'production';
+    }
 
-	if (currentEnvInFile) {
-		cliLogger.debug('Switching from "%s" to "%s"...', currentEnvInFile, newEnv);
-	} else {
-		cliLogger.debug('No ENV found, setting env to "production"...');
-	}
+    // Switch from production to staging
+    if (currentEnvInFile === 'production') {
+        newEnv = 'staging';
+    }
 
-	// Write new env to flash
-	const newEnvLine = `env="${newEnv}"`;
-	await writeFile(envFlashFilePath, newEnvLine);
-	cliLogger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
+    if (currentEnvInFile) {
+        cliLogger.debug(
+            'Switching from "%s" to "%s"...',
+            currentEnvInFile,
+            newEnv
+        );
+    } else {
+        cliLogger.debug('No ENV found, setting env to "production"...');
+    }
 
-	// Copy the new env over to live location before restarting
-	const source = join(basePath, `.env.${newEnv}`);
-	const destination = join(basePath, '.env');
-	cliLogger.debug('Copying %s to %s', source, destination);
-	await new Promise<void>((resolve, reject) => {
-		// Use the native cp command to ensure we're outside the virtual file system
-		exec(`cp "${source}" "${destination}"`, error => {
-			if (error) {
-				reject(error);
-				return;
-			}
+    // Write new env to flash
+    const newEnvLine = `env="${newEnv}"`;
+    await writeFile(envFlashFilePath, newEnvLine);
+    cliLogger.debug('Writing %s to %s', newEnvLine, envFlashFilePath);
 
-			resolve();
-		});
-	});
+    // Copy the new env over to live location before restarting
+    const source = join(basePath, `.env.${newEnv}`);
+    const destination = join(basePath, '.env');
 
-	// If there's a process running restart it
-	const unraidApiPid = await getUnraidApiPid();
-	if (unraidApiPid) {
-		cliLogger.debug('unraid-api is running, restarting...');
+    cliLogger.debug('Copying %s to %s', source, destination);
+    await copyFile(source, destination);
 
-		// Restart the process
-		return restart();
-	}
-
-	cliLogger.info('Now using %s', newEnv);
-	cliLogger.info('Run "unraid-api start" to start the API.');
+    if (shouldStartAfterRunning) {
+        cliLogger.debug('Restarting unraid-api');
+        // Start Process
+        await start();
+    } else {
+        cliLogger.info('Now using %s', newEnv);
+        cliLogger.info('Run "unraid-api start" to start the API.');
+    }
 };
