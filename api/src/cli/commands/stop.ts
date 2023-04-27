@@ -12,7 +12,7 @@ export const stop = async () => {
 	setEnv('LOG_TYPE', 'raw');
 
 	try {
-		await pRetry(async () => {
+		await pRetry(async (attempts) => {
 			const runningApis = await getAllUnraidApiPids();
 
 			if (runningApis.length > 0) {
@@ -24,9 +24,8 @@ export const stop = async () => {
 				if (newPids.length > 0) {
 					throw new Error('Not all processes have exited yet');
 				}
-			} else {
+			} else if (attempts < 1) {
 				cliLogger.info('Found no running processes.');
-				return true;
 			}
 
 			return true;

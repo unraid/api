@@ -59,10 +59,13 @@ export const start = async () => {
 			// In the child, clean up the tracking environment variable
 			delete process.env._DAEMONIZE_PROCESS;
 		} else {
-			cliLogger.debug('Daemonizing process.');
+			cliLogger.debug('Daemonizing process. %s %o', process.execPath, process.argv);
 
 			// Spawn child
-			const child = spawn(process.execPath, ['start', ...process.argv.slice(2)], {
+			// First arg is path (inside PKG), second arg is restart, stop, etc, rest is args to main argument
+			const [path, _, ...rest] = process.argv.slice(1);
+			const replacedCommand = [path, 'start', ...rest];
+			const child = spawn(process.execPath, replacedCommand, {
 				// In the parent set the tracking environment variable
 				env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 				// The process MUST have it's cwd set to the
