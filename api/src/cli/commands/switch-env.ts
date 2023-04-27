@@ -69,12 +69,12 @@ export const switchEnv = async () => {
     cliLogger.debug('Copying %s to %s', source, destination);
     await copyFile(source, destination);
 
+    cliLogger.info('Now using %s', newEnv);
     if (shouldStartAfterRunning) {
         cliLogger.debug('Restarting unraid-api');
         // Start Process
         await start();
     } else {
-        cliLogger.info('Now using %s', newEnv);
         cliLogger.info('Run "unraid-api start" to start the API.');
     }
 };
