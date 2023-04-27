@@ -218,7 +218,7 @@ export const createApolloExpressServer = async () => {
 
     await apolloServer.start()
 
-    app.get('/graphql/api/logs', getLogs);
+    app.post('/graphql/api/logs', getLogs);
 
     app.get(
         '/graphql/api/customizations/:type',
