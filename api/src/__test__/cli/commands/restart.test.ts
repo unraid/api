@@ -25,6 +25,7 @@ test('calls stop and then start', async () => {
 	expect(vi.mocked(start).mock.calls.length).toBe(1);
 
 	// Check stop was called first
-	expect(vi.mocked(stop).mock.invocationCallOrder).toStrictEqual([1]);
-	expect(vi.mocked(start).mock.invocationCallOrder).toStrictEqual([2]);
+	expect(vi.mocked(stop).mock.invocationCallOrder[0]).toBeLessThan(
+        vi.mocked(start).mock.invocationCallOrder[0]
+    );
 });

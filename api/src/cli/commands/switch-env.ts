@@ -4,7 +4,7 @@ import { cliLogger } from '@app/core/log';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { setEnv } from '@app/cli/set-env';
 import { getters } from '@app/store';
-import { restart } from '@app/cli/commands/restart';
+import { start } from '@app/cli/commands/start';
 
 export const switchEnv = async () => {
     setEnv('LOG_TYPE', 'raw');
@@ -13,6 +13,14 @@ export const switchEnv = async () => {
     const basePath = paths['unraid-api-base'];
     const envFlashFilePath = paths['myservers-env'];
     const envFile = await readFile(envFlashFilePath, 'utf-8').catch(() => '');
+
+	let shouldStartAfterRunning = false;
+	if (await getUnraidApiPid()) {
+        cliLogger.info('unraid-api is running, stopping...');
+        // Stop Running Process
+        await stop();
+		shouldStartAfterRunning = true;
+    }
 
     cliLogger.debug(
         'Checking %s for current ENV, found %s',
@@ -59,12 +67,11 @@ export const switchEnv = async () => {
 
     cliLogger.debug('Copying %s to %s', source, destination);
     await copyFile(source, destination);
-    // If there's a process running restart it
-    const unraidApiPid = await getUnraidApiPid();
-    if (unraidApiPid) {
-        cliLogger.debug('unraid-api is running, restarting...');
-        // Restart Running Process
-        await restart();
+
+    if (shouldStartAfterRunning) {
+        cliLogger.debug('Restarting unraid-api');
+        // Start Process
+        await start();
     } else {
         cliLogger.info('Now using %s', newEnv);
         cliLogger.info('Run "unraid-api start" to start the API.');
