@@ -38,7 +38,11 @@ export const stop = async () => {
 	} catch (error: unknown) {
 		cliLogger.info('Process did not exit cleanly, forcing shutdown', error);
 		const processes = await getAllUnraidApiPids();
-		processes.forEach(pid => process.kill(pid, 'SIGKILL'));
-		await sleep(500);
+		for (const pid of processes) {
+			process.kill(pid, 'SIGKILL');
+			await sleep(100);
+		}
 	}
+
+	await sleep(500);
 };
