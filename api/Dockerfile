@@ -11,6 +11,8 @@ RUN apt-get update -y && apt-get install  -y \
     jq \
     zstd
 
+RUN mkdir /var/log/unraid-api/
+
 
 ARG NODE_ENV=development
 ARG NPM_I_CMD=npm i
