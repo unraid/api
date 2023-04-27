@@ -1,0 +1,188 @@
+type Query {
+    """An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks."""
+    array: Array!
+}
+
+type Mutation {
+    """Start array"""
+    startArray: Array @func(module: "updateArray", data: { state: "start" })
+    """Stop array"""
+    stopArray: Array @func(module: "updateArray", data: { state: "stop" })
+
+    """Add new disk to array"""
+    addDiskToArray(input: arrayDiskInput): Array @func(module: "addDiskToArray")
+    """Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error."""
+    removeDiskFromArray(input: arrayDiskInput): Array @func(module: "removeDiskFromArray")
+
+    mountArrayDisk(id: ID!): Disk
+    unmountArrayDisk(id: ID!): Disk
+
+    clearArrayDiskStatistics(id: ID!): JSON
+}
+
+type Subscription {
+    array: Array!
+}
+
+input arrayDiskInput {
+    """Disk ID"""
+    id: ID!
+    """The slot for the disk"""
+    slot: Int
+}
+
+type Array {
+    """Array state before this query/mutation"""
+    previousState: ArrayState
+    """Array state after this query/mutation"""
+    pendingState: ArrayPendingState
+    """Current array state"""
+    state: ArrayState!
+    """Current array capacity"""
+    capacity: ArrayCapacity!
+    """Current boot disk"""
+    boot: ArrayDisk
+    """Parity disks in the current array"""
+    parities: [ArrayDisk!]!
+    """Data disks in the current array"""
+    disks: [ArrayDisk!]!
+    """Caches in the current array"""
+    caches: [ArrayDisk!]!
+}
+
+# /usr/src/linux-5.9.13-Unraid/drivers/md/md_unraid.c
+enum ArrayState {
+    """Array is running"""
+    STARTED
+    """Array has stopped"""
+    STOPPED
+    """Array has new disks"""
+    NEW_ARRAY
+    """A disk is being reconstructed"""
+    RECON_DISK
+    """A disk is disabled in the array"""
+    DISABLE_DISK
+    """Array is disabled"""
+    SWAP_DSBL
+    """Too many changes to array at the same time"""
+    INVALID_EXPANSION
+    """Parity isn't the biggest, can't start array"""
+    PARITY_NOT_BIGGEST
+    """Array has too many missing data disks"""
+    TOO_MANY_MISSING_DISKS
+    """Array has new disks they're too small"""
+    NEW_DISK_TOO_SMALL
+    """Array has no data disks"""
+    NO_DATA_DISKS
+}
+
+enum ArrayDiskStatus {
+     """ no disk present, no disk configured """
+    DISK_NP               
+    """ enabled, disk present, correct, valid """
+    DISK_OK
+    """ enabled, but missing """
+    DISK_NP_MISSING
+    """ enabled, disk present, but not valid """
+    DISK_INVALID
+    """ enablled, disk present, but not correct disk """
+    DISK_WRONG
+    """ disabled, old disk still present """
+    DISK_DSBL
+    """ disabled, no disk present """
+    DISK_NP_DSBL
+    """ disabled, new disk present """
+    DISK_DSBL_NEW          
+    """ new disk """
+    DISK_NEW               
+}
+
+enum ArrayPendingState {
+    """Array is starting"""
+    starting
+    """Array is stopping"""
+    stopping
+    """Array has no data disks"""
+    no_data_disks
+    """Array has too many missing data disks"""
+    too_many_missing_disks
+}
+
+type ArrayCapacity {
+    kilobytes: Capacity!
+    disks: Capacity!
+}
+
+type Capacity {
+    free: String!
+    used: String!
+    total: String!
+}
+
+type ArrayDisk {
+    """ Disk indentifier, only set for present disks on the system """
+    id: ID!
+    """ Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54. """
+    idx: Int!
+    name: String
+    device: String
+    """ (KB) Disk Size total """
+    size: Long!
+    status: ArrayDiskStatus
+	""" Is the disk a HDD or SSD. """
+    rotational: Boolean
+    """ Disk temp - will be NaN if array is not started or DISK_NP """
+    temp: Int
+    """Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time."""
+    numReads: Long!
+    """Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time."""
+    numWrites: Long!
+    """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
+    numErrors: Long!
+    """ (KB) Total Size of the FS (Not present on Parity type drive) """
+    fsSize: Long
+    """ (KB) Free Size on the FS (Not present on Parity type drive)"""
+    fsFree: Long
+    """ (KB) Used Size on the FS (Not present on Parity type drive)"""
+    fsUsed: Long
+    exportable: Boolean
+    """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """
+    type: ArrayDiskType!
+    """ (%) Disk space left to warn """
+    warning: Int
+    """ (%) Disk space left for critical """
+    critical: Int
+    """ File system type for the disk """
+    fsType: String
+    """ User comment on disk """ 
+    comment: String
+    """ File format (ex MBR: 4KiB-aligned) """
+    format: String
+    """ ata | nvme | usb | (others)"""
+    transport: String
+}
+
+# type ArrayParityDisk {}
+# type ArrayCacheDisk {}
+
+enum ArrayDiskType {
+    """Data disk"""
+    Data
+    """Parity disk"""
+    Parity
+    """Flash disk"""
+    Flash
+    """Cache disk"""
+    Cache
+}
+
+enum ArrayDiskFsColor {
+    """Disk is OK and running"""
+    green_on
+    """Disk is OK and not running"""
+    green_off
+    yellow_on
+    yellow_off
+    red_on
+    red_off
+}

@@ -1,9 +1,4 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
-import { type registrationType, type ArrayState, type RegistrationState } from "@app/graphql/generated/api/types";
+import { type registrationType, type ArrayState, type RegistrationState, type DiskFsType } from "@app/graphql/generated/api/types";
 
 /**
  * Global vars
@@ -22,7 +17,7 @@ export type Var = {
 	csrfToken: string;
 	defaultFormat: string;
 	/** Default file system for data disks. */
-	defaultFsType: FsType;
+	defaultFsType: DiskFsType.XFS;
 	/** Amount of connected drives (license device count). */
 	deviceCount: number;
 	domain: string;

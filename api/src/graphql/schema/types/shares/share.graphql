@@ -1,0 +1,35 @@
+type Query {
+    """Network Shares"""
+    shares: [Share] @func(module: "getAllShares")
+}
+
+type Subscription {
+    share(id: ID!): Share!
+    shares: [Share!]
+}
+
+"""Network Share"""
+type Share {
+    """Display name"""
+    name: String
+    """(KB) Free space"""
+    free: Long
+    """(KB) Used Size"""
+    used: Long
+    """(KB) Total size"""
+    size: Long
+    """Disks that're included in this share"""
+    include: [String]
+    """Disks that're excluded from this share"""
+    exclude: [String]
+    cache: Boolean
+    nameOrig: String
+    """User comment"""
+    comment: String
+    allocator: String
+    splitLevel: String
+    floor: String
+    cow: String
+    color: String
+    luksStatus: String
+}
