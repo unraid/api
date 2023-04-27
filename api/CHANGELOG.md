@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.1.0](https://github.com/unraid/api/compare/v3.0.1...v3.1.0) (2023-04-27)
+
+
+### Features
+
+* add dynamix.cfg to store ([#429](https://github.com/unraid/api/issues/429)) ([a556bf7](https://github.com/unraid/api/commit/a556bf710dc19cd8e829c56c11ac34dfec5b27e5))
+* add new translations for updating ([#626](https://github.com/unraid/api/issues/626)) ([ed4b049](https://github.com/unraid/api/commit/ed4b0496291d7c35c7dc7274758c803d2f0ce614))
+* add report to zip file ([#628](https://github.com/unraid/api/issues/628)) ([f253a82](https://github.com/unraid/api/commit/f253a828a81f975da6d8a8f3b46e6ad14bb250bd))
+* add web component to settings for api logs download ([#627](https://github.com/unraid/api/issues/627)) ([63ce94d](https://github.com/unraid/api/commit/63ce94df120a8d6301e4ae8862acfa4611f24bed))
+* add zipped logs and more outputs ([#619](https://github.com/unraid/api/issues/619)) ([2bb39df](https://github.com/unraid/api/commit/2bb39df0ffbc827d012be7135863ec5ecfb4e43e))
+* bypass cors middleware on get requests ([f295393](https://github.com/unraid/api/commit/f295393861e271c7df9881290b79d28dc2dcde2a))
+
+
+### Bug Fixes
+
+* change log request to a post ([1970635](https://github.com/unraid/api/commit/1970635f44f8f08a7b716428f509a6e88bf8d5a9))
+* change to get request ([b3720f4](https://github.com/unraid/api/commit/b3720f418579e57fe725324dc4de21efc3415354))
+* disable dependabot ([07604c1](https://github.com/unraid/api/commit/07604c1004924f0c6971664b953aa540b6adc88f))
+* dynamic remote access docs url ([#623](https://github.com/unraid/api/issues/623)) ([a3050b5](https://github.com/unraid/api/commit/a3050b5bbc636e3b8af3da0b3db4efc8405dc33d))
+* env not logged when switching ([5dfb397](https://github.com/unraid/api/commit/5dfb397788c2b64360a60abeef78f9fe6da8df59))
+* switch-env actually works every time now ([#629](https://github.com/unraid/api/issues/629)) ([2023049](https://github.com/unraid/api/commit/20230496c26c1617be3066c9c7342d2c74d386f8))
+* tolowercase calls and upgrade deps ([#622](https://github.com/unraid/api/issues/622)) ([1397258](https://github.com/unraid/api/commit/13972586b132cd72908543a038e35405214488c9))
+* unit conversions ([#616](https://github.com/unraid/api/issues/616)) ([b26ff38](https://github.com/unraid/api/commit/b26ff388db0cf73c5e5df8b79e99afad84da24b7))
+
 ### [3.0.1](https://github.com/unraid/api/compare/v3.0.0...v3.0.1) (2023-04-25)
 
 
