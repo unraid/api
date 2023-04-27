@@ -1,10 +1,9 @@
-import { exec } from 'child_process';
-import { readFile, writeFile } from 'fs/promises';
+import { copyFile, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { cliLogger } from '@app/core/log';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { setEnv } from '@app/cli/set-env';
-import { restart } from '@app/cli/commands/restart';
+import { stop } from '@app/cli/commands/stop';
 import { getters } from '@app/store';
 
 export const switchEnv = async () => {
@@ -48,26 +47,15 @@ export const switchEnv = async () => {
 	// Copy the new env over to live location before restarting
 	const source = join(basePath, `.env.${newEnv}`);
 	const destination = join(basePath, '.env');
+
 	cliLogger.debug('Copying %s to %s', source, destination);
-	await new Promise<void>((resolve, reject) => {
-		// Use the native cp command to ensure we're outside the virtual file system
-		exec(`cp "${source}" "${destination}"`, error => {
-			if (error) {
-				reject(error);
-				return;
-			}
-
-			resolve();
-		});
-	});
-
+	await copyFile(source, destination);
 	// If there's a process running restart it
 	const unraidApiPid = await getUnraidApiPid();
 	if (unraidApiPid) {
-		cliLogger.debug('unraid-api is running, restarting...');
-
-		// Restart the process
-		return restart();
+		cliLogger.debug('unraid-api is running, stopping...');
+		// Stop running process
+		await stop();
 	}
 
 	cliLogger.info('Now using %s', newEnv);
