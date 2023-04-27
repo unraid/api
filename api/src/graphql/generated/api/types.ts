@@ -58,7 +58,7 @@ export type ArrayType = {
 export type ArrayCapacity = {
   __typename?: 'ArrayCapacity';
   disks: Capacity;
-  kilobytes: Capacity;
+  kibibytes: Capacity;
 };
 
 export type ArrayDisk = {
@@ -71,13 +71,13 @@ export type ArrayDisk = {
   exportable?: Maybe<Scalars['Boolean']>;
   /**  File format (ex MBR: 4KiB-aligned)  */
   format?: Maybe<Scalars['String']>;
-  /**  (KB) Free Size on the FS (Not present on Parity type drive) */
+  /**  (KiB) Free Size on the FS (Not present on Parity type drive) */
   fsFree?: Maybe<Scalars['Long']>;
-  /**  (KB) Total Size of the FS (Not present on Parity type drive)  */
+  /**  (KiB) Total Size of the FS (Not present on Parity type drive)  */
   fsSize?: Maybe<Scalars['Long']>;
   /**  File system type for the disk  */
   fsType?: Maybe<Scalars['String']>;
-  /**  (KB) Used Size on the FS (Not present on Parity type drive) */
+  /**  (KiB) Used Size on the FS (Not present on Parity type drive) */
   fsUsed?: Maybe<Scalars['Long']>;
   /**  Disk indentifier, only set for present disks on the system  */
   id: Scalars['ID'];
@@ -92,7 +92,7 @@ export type ArrayDisk = {
   numWrites: Scalars['Long'];
   /**  Is the disk a HDD or SSD.  */
   rotational?: Maybe<Scalars['Boolean']>;
-  /**  (KB) Disk Size total  */
+  /**  (KiB) Disk Size total  */
   size: Scalars['Long'];
   status?: Maybe<ArrayDiskStatus>;
   /**  Disk temp - will be NaN if array is not started or DISK_NP  */
@@ -1037,7 +1037,7 @@ export type Share = {
   /** Disks that're excluded from this share */
   exclude?: Maybe<Array<Maybe<Scalars['String']>>>;
   floor?: Maybe<Scalars['String']>;
-  /** (KB) Free space */
+  /** (KiB) Free space */
   free?: Maybe<Scalars['Long']>;
   /** Disks that're included in this share */
   include?: Maybe<Array<Maybe<Scalars['String']>>>;
@@ -1045,10 +1045,10 @@ export type Share = {
   /** Display name */
   name?: Maybe<Scalars['String']>;
   nameOrig?: Maybe<Scalars['String']>;
-  /** (KB) Total size */
+  /** (KiB) Total size */
   size?: Maybe<Scalars['Long']>;
   splitLevel?: Maybe<Scalars['String']>;
-  /** (KB) Used Size */
+  /** (KiB) Used Size */
   used?: Maybe<Scalars['Long']>;
 };
 
@@ -1866,7 +1866,7 @@ export type ArrayResolvers<ContextType = Context, ParentType extends ResolversPa
 
 export type ArrayCapacityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayCapacity'] = ResolversParentTypes['ArrayCapacity']> = ResolversObject<{
   disks?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
-  kilobytes?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
+  kibibytes?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

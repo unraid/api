@@ -1,5 +1,3 @@
-import { convert, type Data } from 'convert';
-
 // If it's "true", "yes" or "1" then it's true otherwise it's false
 export const toBoolean = (value: string): boolean =>
     ['true', 'yes', '1'].includes(value?.toLowerCase().trim());
@@ -15,18 +13,6 @@ type BooleanString = 'true' | 'false';
 export const toNumberOrNull = (myString: string): number | null => {
     if (myString && !isNaN(Number(myString))) {
         return Number(myString);
-    }
-
-    return null;
-};
-
-export const toNumberOrNullConvert = (
-    myString: string,
-    { startingUnit = 'KiB', endUnit = 'KB' }: { startingUnit: Data; endUnit: Data }
-): number | null => {
-    const stringParsed = toNumberOrNull(myString);
-    if (stringParsed !== null) {
-        return Math.round(convert(stringParsed, startingUnit).to(endUnit));
     }
 
     return null;

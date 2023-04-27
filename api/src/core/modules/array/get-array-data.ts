@@ -34,19 +34,19 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
     // Disk sizes
-    const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
-    const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree));
-    const disksUsedKBytes = sum(disks.map((disk) => disk.fsUsed));
+    const disksTotalKiBytes = sum(disks.map((disk) => disk.fsSize));
+    const disksFreeKiBytes = sum(disks.map((disk) => disk.fsFree));
+    const disksUsedKiBytes = sum(disks.map((disk) => disk.fsUsed));
 
     // Max
     const maxDisks = emhttp.var.maxArraysz ?? disks.length;
 
     // Array capacity
     const capacity: ArrayCapacity = {
-        kilobytes: {
-            free: disksFreeKBytes.toString(),
-            used: disksUsedKBytes.toString(),
-            total: disksTotalKBytes.toString(),
+        kibibytes: {
+            free: disksFreeKiBytes.toString(),
+            used: disksUsedKiBytes.toString(),
+            total: disksTotalKiBytes.toString(),
         },
         disks: {
             free: String(maxDisks - disks.length),

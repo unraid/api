@@ -109,7 +109,7 @@ enum ArrayPendingState {
 }
 
 type ArrayCapacity {
-    kilobytes: Capacity!
+    kibibytes: Capacity!
     disks: Capacity!
 }
 
@@ -126,7 +126,7 @@ type ArrayDisk {
     idx: Int!
     name: String
     device: String
-    """ (KB) Disk Size total """
+    """ (KiB) Disk Size total """
     size: Long!
     status: ArrayDiskStatus
 	""" Is the disk a HDD or SSD. """
@@ -139,11 +139,11 @@ type ArrayDisk {
     numWrites: Long!
     """Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk."""
     numErrors: Long!
-    """ (KB) Total Size of the FS (Not present on Parity type drive) """
+    """ (KiB) Total Size of the FS (Not present on Parity type drive) """
     fsSize: Long
-    """ (KB) Free Size on the FS (Not present on Parity type drive)"""
+    """ (KiB) Free Size on the FS (Not present on Parity type drive)"""
     fsFree: Long
-    """ (KB) Used Size on the FS (Not present on Parity type drive)"""
+    """ (KiB) Used Size on the FS (Not present on Parity type drive)"""
     fsUsed: Long
     exportable: Boolean
     """ Type of Disk - used to differentiate Cache / Flash / Array / Parity """

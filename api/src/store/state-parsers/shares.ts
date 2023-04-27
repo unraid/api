@@ -1,5 +1,5 @@
 
-import { toNumberOrNullConvert } from '@app/core/utils/casting';
+import { toNumberOrNull } from '@app/core/utils/casting';
 import { type Share } from '@app/graphql/generated/api/types';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
@@ -18,18 +18,9 @@ export const parse: StateFileToIniParserMap['shares'] = state => Object.values(s
 		const { name, free, used, size, include, exclude, useCache, ...rest } = item;
 		const share: Share = {
 			name: name ?? '',
-            free: toNumberOrNullConvert(free, {
-                startingUnit: 'KiB',
-                endUnit: 'KB',
-            }) ?? 0,
-			used: toNumberOrNullConvert(used, {
-                startingUnit: 'KiB',
-                endUnit: 'KB',
-            }) ?? 0,
-            size: toNumberOrNullConvert(size, {
-                startingUnit: 'KiB',
-                endUnit: 'KB',
-            }) ?? 0,
+            free: toNumberOrNull(free),
+			used: toNumberOrNull(used),
+            size: toNumberOrNull(size),
             include: include.split(',').filter((_) => _),
             exclude: exclude.split(',').filter((_) => _),
             cache: useCache === 'yes',

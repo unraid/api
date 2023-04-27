@@ -3,7 +3,6 @@ import {
     toNumber,
     toBoolean,
     toNumberOrNull,
-    toNumberOrNullConvert,
 } from '@app/core/utils';
 import {
     ArrayDiskStatus,
@@ -60,18 +59,9 @@ export const parse: StateFileToIniParserMap['disks'] = (disksIni) =>
                 device: slot.device,
                 comment: slot.comment ?? null,
                 exportable: toBoolean(slot.exportable),
-                fsFree: toNumberOrNullConvert(slot.fsFree, {
-                    startingUnit: 'KiB',
-                    endUnit: 'KB',
-                }),
-                fsUsed: toNumberOrNullConvert(slot.fsUsed, {
-                    startingUnit: 'KiB',
-                    endUnit: 'KB',
-                }),
-                fsSize: toNumberOrNullConvert(slot.fsSize, {
-                    startingUnit: 'KiB',
-                    endUnit: 'KB',
-                }),
+                fsFree: toNumberOrNull(slot.fsFree),
+                fsUsed: toNumberOrNull(slot.fsUsed),
+                fsSize: toNumberOrNull(slot.fsSize),
                 idx: toNumber(slot.idx),
                 name: slot.name,
                 numErrors: toNumber(slot.numErrors),
