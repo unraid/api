@@ -5,6 +5,7 @@ import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { setEnv } from '@app/cli/set-env';
 import { getters } from '@app/store';
 import { start } from '@app/cli/commands/start';
+import { stop } from '@app/cli/commands/stop';
 
 export const switchEnv = async () => {
     setEnv('LOG_TYPE', 'raw');
