@@ -24,6 +24,8 @@ import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 import { type BaseContext, type ApolloServer } from '@apollo/server';
+import { loadDynamixConfigFile } from '@app/store/modules/dynamix';
+import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 
 let server: ApolloServer<BaseContext>;
 
@@ -56,6 +58,9 @@ void am(
         // Load initial registration key into store
         await store.dispatch(loadRegistrationKey());
 
+        // Load my dynamix config file into store
+        await store.dispatch(loadDynamixConfigFile());
+
         // Start listening to file updates
         StateManager.getInstance();
 
@@ -64,6 +69,9 @@ void am(
 
         // Start listening to docker events
         setupDockerWatch();
+
+        // Start listening to dynamix config file changes
+        setupDynamixConfigWatch();
 
         // Try and load the HTTP server
         logger.debug('Starting HTTP server');
