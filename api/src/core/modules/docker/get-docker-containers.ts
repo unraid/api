@@ -6,8 +6,9 @@
 import fs from 'fs';
 import camelCaseKeys from 'camelcase-keys';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
-import { docker } from '@app/core/utils/clients/docker';
-import { getters } from '@app/store';
+import { getters, store } from '@app/store';
+import { updateDockerState } from '@app/store/modules/docker'
+
 import {
     type ContainerPort,
     ContainerPortType,
@@ -15,8 +16,8 @@ import {
     ContainerState,
 } from '@app/graphql/generated/api/types';
 import { dockerLogger } from '@app/core/log';
+import { docker } from '@app/core/utils/clients/docker';
 
-let containerCache: Array<DockerContainer> | null = null;
 /**
  * Get all Docker containers.
  * @returns All the in/active Docker containers on the system.
@@ -25,9 +26,10 @@ let containerCache: Array<DockerContainer> | null = null;
 export const getDockerContainers = async (
     { useCache } = { useCache: true }
 ): Promise<Array<DockerContainer>> => {
-    if (useCache && containerCache) {
+    const dockerState = getters.docker()
+    if (useCache && dockerState.containers) {
         dockerLogger.trace('Using docker container cache');
-        return containerCache;
+        return dockerState.containers;
     }
 
     dockerLogger.trace('Skipping docker container cache');
@@ -43,7 +45,7 @@ export const getDockerContainers = async (
         .then((file) => file.toString())
         .catch(() => '');
     const autoStarts = autoStartFile.split('\n');
-    const containers = await docker
+    const rawContainers = await docker
         .listContainers({
             all: true,
             size: true,
@@ -55,7 +57,7 @@ export const getDockerContainers = async (
         .catch(catchHandlers.docker);
 
     // Cleanup container object
-    const result: Array<DockerContainer> = containers.map<DockerContainer>(
+    const containers: Array<DockerContainer> = rawContainers.map<DockerContainer>(
         (container) => {
             const names = container.names[0];
             const containerData: DockerContainer = {
@@ -79,6 +81,12 @@ export const getDockerContainers = async (
         }
     );
 
-    containerCache = result;
-    return result;
+    // Get all of the current containers
+    const installed = containers.length;
+    const running = containers.filter(
+        (container) => container.state === ContainerState.RUNNING
+    ).length;
+
+    store.dispatch(updateDockerState({ containers, installed, running }))
+    return containers;
 };

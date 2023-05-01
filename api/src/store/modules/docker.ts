@@ -22,7 +22,10 @@ export const docker = createSlice({
 	initialState,
 	reducers: {
 		updateDockerState(state, action: PayloadAction<Partial<typeof initialState>>) {
-			return merge(state, action.payload);
+			state.status = action.payload.status ?? initialState.status;
+			state.installed = action.payload.installed ?? initialState.installed;
+			state.running = action.payload.running ?? initialState.running;
+			state.containers = action.payload.containers ?? initialState.containers;
 		},
 	},
 });

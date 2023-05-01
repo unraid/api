@@ -8,16 +8,12 @@ import DockerEE from 'docker-event-emitter';
 import { debounce } from 'lodash';
 
 const updateContainerCache = async () => {
-    const containers = await getDockerContainers({ useCache: false });
-
-    // Get all of the current containers
-    const installed = containers.length;
-    const running = containers.filter(
-        (container) => container.state === ContainerState.RUNNING
-    ).length;
-
-    // Update state
-    store.dispatch(updateDockerState({ containers, installed, running }));
+	try {
+    	await getDockerContainers({ useCache: false });
+	} catch (err) {
+		dockerLogger.warn('Caught error getting containers %o', err)
+        store.dispatch(updateDockerState({ installed: null, running: null, containers: [] }))
+	}
 };
 
 const debouncedContainerCacheUpdate = debounce(updateContainerCache, 500);
@@ -57,7 +53,8 @@ export const setupDockerWatch = async (): Promise<DockerEE> => {
 			await debouncedContainerCacheUpdate()
         }
     );
-
+   // Get docker container count on first start
+    await debouncedContainerCacheUpdate();
     await dee.start();
     dockerLogger.debug('Binding to docker events');
 	return dee;

@@ -1,8 +1,9 @@
 import { dockerLogger } from '@app/core/log';
-import { getters } from '@app/store/index';
+import { getters, store } from '@app/store/index';
 import { setupDockerWatch } from '@app/store/watch/docker-watch';
 import { watch } from 'chokidar';
 import type DockerEE from 'docker-event-emitter';
+import { updateDockerState } from '@app/store/modules/docker'
 
 export const setupVarRunWatch = () => {
     const paths = getters.paths()
@@ -16,6 +17,8 @@ export const setupVarRunWatch = () => {
         if (path === paths['docker-socket'] && dockerWatcher) {
             dockerLogger.debug('Stopping docker watch')
             dockerWatcher?.stop?.()
+
+            store.dispatch(updateDockerState({ installed: null, running: null, containers: [] }))
         }
     })
 
