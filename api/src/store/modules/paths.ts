@@ -7,7 +7,6 @@ const initialState = {
 	'unraid-version': resolvePath(process.env.PATHS_UNRAID_VERSION ?? '/etc/unraid-version' as const),
 	'unraid-data': resolvePath(process.env.PATHS_UNRAID_DATA ?? '/boot/config/plugins/dynamix.my.servers/data/' as const),
 	'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
-	'var-run': '/var/run' as const,
 	'docker-socket': '/var/run/docker.sock' as const,
 	'parity-checks': '/boot/config/parity-checks.log' as const,
 	htpasswd: '/etc/nginx/htpasswd' as const,
@@ -21,7 +20,8 @@ const initialState = {
 	'myservers-env': '/boot/config/plugins/dynamix.my.servers/env' as const,
 	'keyfile-base': resolvePath(process.env.PATHS_KEYFILE_BASE ?? '/boot/config' as const),
 	'machine-id': resolvePath(process.env.PATHS_MACHINE_ID ?? '/var/lib/dbus/machine-id' as const),
-	'log-base': resolvePath('/var/log/unraid-api/' as const)
+	'log-base': resolvePath('/var/log/unraid-api/' as const),
+	'var-run': '/var/run' as const,
 };
 
 export const paths = createSlice({

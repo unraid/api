@@ -24,6 +24,7 @@ test('Returns paths', async () => {
 		  "keyfile-base",
 		  "machine-id",
 		  "log-base",
+		  "var-run"
 		]
 	`);
 });
