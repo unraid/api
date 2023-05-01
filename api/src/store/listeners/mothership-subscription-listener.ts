@@ -10,7 +10,7 @@ import { minigraphLogger } from '@app/core/log';
 export const enableMothershipJobsListener = () => startAppListening({
 	predicate(action, currentState, previousState) {
 		// This event happens on first app load, or if a user signs out and signs back in, etc
-		if (!isEqual(getMothershipConnectionParams(currentState), getMothershipConnectionParams(previousState))) {
+		if (!isEqual(getMothershipConnectionParams(currentState), getMothershipConnectionParams(previousState)) && getMothershipConnectionParams(currentState)?.apiKey) {
 			minigraphLogger.info('Connecting / Reconnecting Mothership Due to Changed Config File or First Load')
 			return true;
 		}
