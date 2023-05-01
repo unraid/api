@@ -1,13 +1,13 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';
-import type { ContainerInfo } from 'dockerode';
 import { DaemonConnectionStatus } from '@app/store/types';
+import { type DockerContainer } from '@app/graphql/generated/api/types';
 
 type DockerState = {
 	status: DaemonConnectionStatus;
 	installed: number | null;
 	running: number | null;
-	containers: ContainerInfo[];
+	containers: DockerContainer[];
 };
 
 const initialState: DockerState = {

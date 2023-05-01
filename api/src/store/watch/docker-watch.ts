@@ -1,10 +1,10 @@
 import { store } from '@app/store';
-import { DockerEventEmitter } from '@gridplus/docker-events';
 import { dockerLogger } from '@app/core/log';
-import { docker } from '@app/core/utils/clients/docker';
 import { updateDockerState } from '@app/store/modules/docker';
-
-type ContainerState = 'created' | 'running' | 'exited';
+import { getDockerContainers } from '@app/core/modules/index';
+import { ContainerState } from '@app/graphql/generated/api/types';
+import { docker } from '@app/core/utils/index';
+import DockerEE from 'docker-event-emitter';
 
 export const setupDockerWatch = () => {
 	// Only watch container events equal to start/stop
@@ -24,29 +24,26 @@ export const setupDockerWatch = () => {
 	dockerLogger.debug('Creating docker event emitter instance');
 	dockerLogger.removeContext('events');
 
-	const dee = new DockerEventEmitter(watchedEvents);
+	const dee = new DockerEE(docker);
 
 	// On Docker event update info with { apps: { installed, started } }
-	dee.on('*', async (data: { Type: 'container'; Action: 'start' | 'stop'; from: string }) => {
+	dee.on('container', async (data: { Type: 'container'; Action: 'start' | 'stop'; from: string }) => {
 		// Only listen to container events
-		if (data.Type !== 'container') {
-			dockerLogger.debug(`[${data.Type as string}] ${data.from} ${data.Action}`);
-			return;
-		}
+		dockerLogger.debug('EVENT FROM DOCKER %o', data)
 
 		dockerLogger.addContext('data', data);
 		dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
 		dockerLogger.removeContext('data');
 
+		const containers = await getDockerContainers({ useCache: false });
+
 		// Get all of the current containers
-		const containers = await docker.listContainers({ all: true });
 		const installed = containers.length;
-		const running = containers.filter(container => container.State as ContainerState === 'running').length;
+		const running = containers.filter(container => container.state === ContainerState.RUNNING).length;
 
 		// Update state
 		store.dispatch(updateDockerState({ containers, installed, running }));
 	});
 
 	dockerLogger.debug('Binding to docker events');
-	dee.listen();
 };
