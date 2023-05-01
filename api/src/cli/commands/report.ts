@@ -23,6 +23,7 @@ import {
 } from '@apollo/client/core/core.cjs';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
+import { loadStateFiles } from '@app/store/modules/emhttp';
 
 type CloudQueryResult = NonNullable<
     ApolloQueryResult<getCloudQuery>['data']['cloud']
@@ -343,6 +344,7 @@ export const report = async (...argv: string[]) => {
 
         // Load my servers config file into store
         await store.dispatch(loadConfigFile());
+        await store.dispatch(loadStateFiles());
 
         const { config } = store.getState();
         if (!config.upc.apikey) throw new Error('Missing UPC API key');
