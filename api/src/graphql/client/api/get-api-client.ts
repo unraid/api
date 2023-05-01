@@ -5,9 +5,7 @@ import {
     split,
 } from '@apollo/client/core/core.cjs';
 import { onError } from '@apollo/client/link/error';
-import {
-    getInternalApiAddress,
-} from '@app/consts';
+import { getInternalApiAddress } from '@app/consts';
 import WebSocket from 'ws';
 import { fetch } from 'cross-fetch';
 import { getMainDefinition } from '@apollo/client/utilities';
@@ -27,11 +25,14 @@ const getWebsocketWithHeaders = () => {
             });
         }
     };
-}
+};
 
 export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
     const nginxPort = getters?.emhttp()?.nginx?.httpPort ?? 80;
-    graphqlLogger.debug('Internal GraphQL URL: %s', getInternalApiAddress(true, nginxPort));
+    graphqlLogger.debug(
+        'Internal GraphQL URL: %s',
+        getInternalApiAddress(true, nginxPort)
+    );
     const httpLink = new HttpLink({
         uri: getInternalApiAddress(true, nginxPort),
         fetch,
