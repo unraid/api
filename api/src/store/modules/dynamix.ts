@@ -1,9 +1,5 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import {
-    createAsyncThunk,
-    createSlice,
-    type PayloadAction,
-} from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';

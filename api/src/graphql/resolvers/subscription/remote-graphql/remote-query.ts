@@ -25,7 +25,9 @@ export const executeRemoteGraphQLQuery = async (
             upcApiKey: apiKey
         });
         if (ENVIRONMENT === 'development') {
-            remoteQueryLogger.debug('Running query', parsedQuery.query);
+            remoteQueryLogger.addContext('query', parsedQuery.query);
+            remoteQueryLogger.debug('[DEVONLY] Running query');
+            remoteQueryLogger.removeContext('query');
         }
         const localResult = await localClient.query({
             query: parsedQuery.query,

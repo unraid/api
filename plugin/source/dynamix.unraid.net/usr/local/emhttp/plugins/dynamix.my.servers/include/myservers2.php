@@ -151,8 +151,8 @@ $upc_translations = [
         'loading' => _('Loading Connect data'),
         'displayingLastKnown' => _('Displaying last known server data'),
         'mothership' => [
-          'connected' => _('Connected to Mothership'),
-          'notConnected' => _('Not Connected to Mothership'),
+          'connected' => _('Connected'),
+          'notConnected' => _('Disconnected'),
         ],
         'accessLabels' => [
           'current' => _('Current server'),

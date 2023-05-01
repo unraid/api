@@ -82,6 +82,7 @@ const services = (): DashboardInput['services'] => {
 
 const getData = async (): Promise<DashboardInput> => {
 	const emhttp = getters.emhttp();
+	const docker = getters.docker();
 
 	return {
 		vars: {
@@ -90,8 +91,8 @@ const getData = async (): Promise<DashboardInput> => {
 			flashGuid: emhttp.var.flashGuid,
 		},
 		apps: {
-			installed: await docker.listContainers({ all: true }).catch(() => []).then(containers => containers.length),
-			started: await docker.listContainers().catch(() => []).then(containers => containers.length),
+			installed: docker.installed ?? 0,
+			started: docker.running ?? 0
 		},
 		versions: {
 			unraid: await getUnraidVersion(),
