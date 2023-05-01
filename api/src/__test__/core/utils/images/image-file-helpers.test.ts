@@ -5,7 +5,7 @@ import { loadDynamixConfigFile } from "@app/store/modules/dynamix";
 import { expect, test } from "vitest";
 
 test('get case path returns expected result', () => {
-    expect(getCasePathIfPresent()).resolves.toContain('"/dev/dynamix/case-model.png"')
+    expect(getCasePathIfPresent()).resolves.toContain('/dev/dynamix/case-model.png')
 })
 
 test('get banner path returns null (state unloaded)', () => {
@@ -14,7 +14,7 @@ test('get banner path returns null (state unloaded)', () => {
 
 test('get banner path returns the banner (state loaded)', async() => {
 	await store.dispatch(loadDynamixConfigFile()).unwrap();
-    expect(getBannerPathIfPresent()).resolves.toContain('"/dev/dynamix/banner.png"');
+    expect(getBannerPathIfPresent()).resolves.toContain('/dev/dynamix/banner.png');
 })
 
 test('get banner path returns null when no banner (state loaded)', async () => {
