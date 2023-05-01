@@ -528,15 +528,20 @@ _(Allow Remote Access)_:
 : <select id="remoteAccess" name="remoteAccess" data-orig="<?=$currentRemoteAccessValue?>" onchange="changeRemoteAccess(this)" style="vertical-align: top;">
     <?=mk_option($currentRemoteAccessValue, "OFF", _("Off"))?>
     <?=mk_option($currentRemoteAccessValue, "DYNAMIC_UPNP", _("Dynamic - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
-    <?=mk_option($currentRemoteAccessValue, "DYNAMIC_MANUAL", _("Dynamic - Manual Port Forward"))?>
+    <?=mk_option($currentRemoteAccessValue, "DYNAMIC_MANUAL", _("Dynamic - Manual Port Forward"), $var['USE_SSL'] !== 'auto' ? 'disabled' : '')?>
     <?=mk_option($currentRemoteAccessValue, "ALWAYS_UPNP", _("Always On - UPnP"), $var['USE_UPNP'] === 'no' ? 'disabled' : '')?>
     <?=mk_option($currentRemoteAccessValue, "ALWAYS_MANUAL", _("Always On - Manual Port Forward"))?>
   </select> <span id="remoteAccessMsg"></span>
-  
+
 <?if($var['USE_UPNP'] === 'no'):?>
 &nbsp;
 : _(Remark: to use the UPnP options please set "Use UPnP" to "Yes" in Management Access.)_
 <?endif // end check for ($var['USE_UPNP']) ?>
+
+<?if($var['USE_SSL'] !== 'auto'):?>
+&nbsp;
+: _(Remark: to use the "Dynamic - Manual Port Forward" option for Remote Access please set "Use SSL/TLS" to "Strict" in Management Access.)_
+<?endif?>
 
 &nbsp;
 : <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
@@ -704,3 +709,4 @@ _(Download unraid-api Logs)_:
 : <unraid-api-logs></unraid-api-logs>
 </div>
 <!-- end unraid-api section -->
+
