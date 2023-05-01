@@ -68,7 +68,7 @@ void am(
         setupRegistrationKeyWatch();
 
         // Start listening to docker events
-        setupDockerWatch();
+        await setupDockerWatch();
 
         // Start listening to dynamix config file changes
         setupDynamixConfigWatch();

@@ -6,7 +6,7 @@ import { ContainerState } from '@app/graphql/generated/api/types';
 import { docker } from '@app/core/utils/index';
 import DockerEE from 'docker-event-emitter';
 
-export const setupDockerWatch = () => {
+export const setupDockerWatch = async () => {
 	// Only watch container events equal to start/stop
 	const watchedEvents = [
 		'die',
@@ -25,7 +25,6 @@ export const setupDockerWatch = () => {
 	dockerLogger.removeContext('events');
 
 	const dee = new DockerEE(docker);
-
 	// On Docker event update info with { apps: { installed, started } }
 	dee.on('container', async (data: { Type: 'container'; Action: 'start' | 'stop'; from: string }) => {
 		// Only listen to container events
@@ -45,5 +44,6 @@ export const setupDockerWatch = () => {
 		store.dispatch(updateDockerState({ containers, installed, running }));
 	});
 
+	await dee.start()
 	dockerLogger.debug('Binding to docker events');
 };
