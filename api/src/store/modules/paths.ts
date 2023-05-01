@@ -7,6 +7,7 @@ const initialState = {
 	'unraid-version': resolvePath(process.env.PATHS_UNRAID_VERSION ?? '/etc/unraid-version' as const),
 	'unraid-data': resolvePath(process.env.PATHS_UNRAID_DATA ?? '/boot/config/plugins/dynamix.my.servers/data/' as const),
 	'docker-autostart': '/var/lib/docker/unraid-autostart' as const,
+	'var-run': '/var/run' as const,
 	'docker-socket': '/var/run/docker.sock' as const,
 	'parity-checks': '/boot/config/parity-checks.log' as const,
 	htpasswd: '/etc/nginx/htpasswd' as const,
