@@ -40,7 +40,7 @@ export const getBannerPathIfPresent = async (
     if (getters.dynamix().status === FileLoadStatus.LOADED && getters.dynamix().display?.banner) {
         const dynamixBasePath = getters.paths()['dynamix-base'];
         const customBannerPath = join(dynamixBasePath, filename);
-		const defaultBannerPath = '/webGui/images/banner.png';
+		const defaultBannerPath = '/usr/local/emhttp/plugins/dynamix/images/banner.png';
         if (await isImageFile(customBannerPath)) {
             return customBannerPath;
         }
