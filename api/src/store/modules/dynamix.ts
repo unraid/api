@@ -1,12 +1,12 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { F_OK } from 'constants';
-import { RecursivePartial, RecursiveNullable } from '@app/types';
+import { type RecursivePartial, type RecursiveNullable } from '@app/types';
 import { toBoolean } from '@app/core/utils/casting';
-import { DynamixConfig } from '@app/core/types/ini';
+import { type DynamixConfig } from '@app/core/types/ini';
 
 export type SliceState = {
 	status: FileLoadStatus;

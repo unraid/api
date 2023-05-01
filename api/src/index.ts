@@ -19,13 +19,13 @@ import { loadRegistrationKey } from '@app/store/modules/registration';
 import { createApolloExpressServer } from '@app/server';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
-import { setupDockerWatch } from '@app/store/watch/docker-watch';
 import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 import { type BaseContext, type ApolloServer } from '@apollo/server';
 import { loadDynamixConfigFile } from '@app/store/modules/dynamix';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
+import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 
 let server: ApolloServer<BaseContext>;
 
@@ -68,7 +68,7 @@ void am(
         setupRegistrationKeyWatch();
 
         // Start listening to docker events
-        setupDockerWatch();
+        await setupVarRunWatch();
 
         // Start listening to dynamix config file changes
         setupDynamixConfigWatch();
