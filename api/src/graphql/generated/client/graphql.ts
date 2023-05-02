@@ -13,7 +13,7 @@ export type Scalars = {
   Int: number;
   Float: number;
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
-  DateTime: Date;
+  DateTime: string;
   /** A field whose value is a IPv4 address: https://en.wikipedia.org/wiki/IPv4. */
   IPv4: any;
   /** A field whose value is a IPv6 address: https://en.wikipedia.org/wiki/IPv6. */

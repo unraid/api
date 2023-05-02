@@ -1,5 +1,4 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
 import { DaemonConnectionStatus } from '@app/store/types';
 import { type DockerContainer } from '@app/graphql/generated/api/types';
 

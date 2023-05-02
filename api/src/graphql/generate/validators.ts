@@ -93,7 +93,7 @@ export function DashboardInputSchema(): z.ZodObject<Properties<DashboardInput>> 
 export function DashboardOsInputSchema(): z.ZodObject<Properties<DashboardOsInput>> {
   return z.object<Properties<DashboardOsInput>>({
     hostname: z.string(),
-    uptime: definedNonNullAnySchema
+    uptime: z.string()
   })
 }
 
@@ -108,7 +108,7 @@ export function DashboardServiceInputSchema(): z.ZodObject<Properties<DashboardS
 
 export function DashboardServiceUptimeInputSchema(): z.ZodObject<Properties<DashboardServiceUptimeInput>> {
   return z.object<Properties<DashboardServiceUptimeInput>>({
-    timestamp: definedNonNullAnySchema
+    timestamp: z.string()
   })
 }
 

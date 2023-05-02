@@ -9,7 +9,7 @@ config:
     enumValues: 'change-case#upperCase'
     useTypeImports: true
   scalars:
-    DateTime: Date
+    DateTime: string
     Long: number
     JSON: "{ [key: string]: any }"
     URL: URL
