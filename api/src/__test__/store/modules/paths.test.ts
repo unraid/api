@@ -7,7 +7,6 @@ test('Returns paths', async () => {
 		[
 		  "core",
 		  "unraid-api-base",
-		  "unraid-version",
 		  "unraid-data",
 		  "docker-autostart",
 		  "docker-socket",

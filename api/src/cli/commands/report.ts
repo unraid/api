@@ -182,17 +182,6 @@ const getAllowedOrigins = (
     }
 };
 
-const getUnraidVersionFromDisk = async (
-    paths: ReturnType<typeof getters.paths>
-): Promise<string> => {
-    // Get unraid OS version
-    const unraidVersion = existsSync(paths['unraid-version'])
-        ? readFileSync(paths['unraid-version'], 'utf8').split('"')[1]
-        : 'unknown';
-    cliLogger.trace('Got unraid OS version "%s"', unraidVersion);
-    return unraidVersion;
-};
-
 const getReadableCloudDetails = (
     reportObject: ReportObject,
     v: Verbosity
@@ -272,28 +261,6 @@ ALLOWED_ORIGINS: ${cloud.allowedOrigins.join(', ').trim()}`;
     return '';
 };
 
-const getServerName = async (
-    paths: ReturnType<typeof getters.paths>
-): Promise<string> => {
-    // Load the var.ini file
-    let serverName = 'Tower';
-    try {
-        const varIni = parseConfig<{ name: string }>({
-            filePath: resolve(paths.states, 'var.ini'),
-            type: 'ini',
-        });
-        if (varIni?.name) {
-            serverName = varIni.name;
-        }
-    } catch (error: unknown) {
-        cliLogger.error(
-            'Error loading states ini for report, defaulting server name to Tower'
-        );
-    }
-
-    return serverName;
-};
-
 const getVerbosity = (argv: string[]): Verbosity => {
     if (argv.includes('-v')) {
         return '-v';
@@ -340,13 +307,11 @@ export const report = async (...argv: string[]) => {
         // Find all processes called "unraid-api" which aren't this process
         const unraidApiPid = await getUnraidApiPid();
 
-        const paths = getters.paths();
-
         // Load my servers config file into store
         await store.dispatch(loadConfigFile());
         await store.dispatch(loadStateFiles());
 
-        const { config } = store.getState();
+        const { config, emhttp } = store.getState();
         if (!config.upc.apikey) throw new Error('Missing UPC API key');
 
         const client = getApiApolloClient({ upcApiKey: config.upc.apikey });
@@ -365,8 +330,8 @@ export const report = async (...argv: string[]) => {
 
         const reportObject: ReportObject = {
             os: {
-                serverName: await getServerName(paths),
-                version: await getUnraidVersionFromDisk(paths),
+                serverName: emhttp.var.name,
+                version: emhttp.var.version
             },
             api: {
                 version: API_VERSION,
