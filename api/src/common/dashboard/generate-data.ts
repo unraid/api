@@ -1,7 +1,6 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
 import display from '@app/graphql/resolvers/query/display';
-import { docker } from '@app/core/utils/clients/docker';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { getArray } from '@app/common/dashboard/get-array';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
@@ -37,22 +36,7 @@ const getVmSummary = async (): Promise<DashboardInput['vms']> => {
 	}
 };
 
-/*
-const twoFactor = (): Dashboard['twoFactor'] => {
-	const { isRemoteEnabled, isLocalEnabled } = checkTwoFactorEnabled();
-	return {
-		remote: {
-			enabled: isRemoteEnabled,
-		},
-		local: {
-			enabled: isLocalEnabled,
-		},
-	};
-}; */
-
 const getDynamicRemoteAccessService = (): DashboardServiceInput | null => {
-	const uptimeTimestamp = bootTimestamp.toISOString();
-
 	const { config, dynamicRemoteAccess } = store.getState();
 	const enabledStatus = config.remote.dynamicRemoteAccessType;
 
@@ -61,23 +45,24 @@ const getDynamicRemoteAccessService = (): DashboardServiceInput | null => {
 		online: enabledStatus !== DynamicRemoteAccessType.DISABLED,
 		version: dynamicRemoteAccess.runningType,
 		uptime: {
-			timestamp: new Date(uptimeTimestamp),
+			timestamp: bootTimestamp.toISOString(),
 		},
 	};
 };
 
 const services = (): DashboardInput['services'] => {
-	const uptimeTimestamp = bootTimestamp.toISOString();
 	const dynamicRemoteAccess = getDynamicRemoteAccessService();
-	return [{
-		name: 'unraid-api',
-		online: true,
-		uptime: {
-			timestamp: new Date(uptimeTimestamp),
-		},
-		version: API_VERSION,
-	},
-	...(dynamicRemoteAccess ? [dynamicRemoteAccess] : [])];
+	return [
+        {
+            name: 'unraid-api',
+            online: true,
+            uptime: {
+                timestamp: bootTimestamp.toISOString(),
+            },
+            version: API_VERSION,
+        },
+        ...(dynamicRemoteAccess ? [dynamicRemoteAccess] : []),
+    ];
 };
 
 const getData = async (): Promise<DashboardInput> => {
@@ -99,7 +84,7 @@ const getData = async (): Promise<DashboardInput> => {
 		},
 		os: {
 			hostname: emhttp.var.name,
-			uptime: new Date(bootTimestamp.toISOString()),
+			uptime: bootTimestamp.toISOString()
 		},
 		vms: await getVmSummary(),
 		array: getArray(),

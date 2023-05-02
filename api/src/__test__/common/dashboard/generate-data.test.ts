@@ -83,14 +83,14 @@ test('Returns generated data', async () => {
 		  },
 		  "os": {
 		    "hostname": "Tower",
-		    "uptime": 2022-06-10T04:35:58.276Z,
+		    "uptime": "2022-06-10T04:35:58.276Z",
 		  },
 		  "services": [
 		    {
 		      "name": "unraid-api",
 		      "online": true,
 		      "uptime": {
-		        "timestamp": 2022-06-10T04:35:58.276Z,
+		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
 		      "version": "THIS_WILL_BE_REPLACED_WHEN_BUILT",
 		    },
@@ -98,7 +98,7 @@ test('Returns generated data', async () => {
 		      "name": "dynamic-remote-access",
 		      "online": false,
 		      "uptime": {
-		        "timestamp": 2022-06-10T04:35:58.276Z,
+		        "timestamp": "2022-06-10T04:35:58.276Z",
 		      },
 		      "version": "DISABLED",
 		    },
