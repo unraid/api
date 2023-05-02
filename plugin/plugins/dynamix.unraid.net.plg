@@ -500,6 +500,15 @@ if test -f "${FILE}" && grep -q "top.document" "${FILE}" &>/dev/null; then
   sed -i 's/top.document/parent.document/gm' "${FILE}"
 fi
 
+# fix logging.htm (openBox) to work in an iframe
+# brings older versions of Unraid in sync with 6.12.0
+# no need to restore original file on uninstall
+FILE=/usr/local/emhttp/logging.htm
+if test -f "${FILE}" && grep -q "top.Shadowbox" "${FILE}" &>/dev/null; then
+  cp -f "$FILE" "$FILE-"
+  sed -i 's/top.Shadowbox/parent.Shadowbox/gm' "${FILE}"
+fi
+
 # install the main txz
 upgradepkg --install-new --reinstall "${MAINTXZ}"
 
