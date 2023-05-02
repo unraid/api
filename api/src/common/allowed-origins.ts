@@ -3,6 +3,7 @@ import { uniq } from 'lodash';
 import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network';
 import { FileLoadStatus } from '@app/store/types';
 import { logger } from '../core';
+import { ENVIRONMENT, INTROSPECTION } from '@app/environment';
 
 const getAllowedSocks = (): string[] => [
 	// Notifier bridge
@@ -74,11 +75,19 @@ const getConnectOrigins = () : string[] => {
 	]
 }
 
+const getApolloSandbox = (): string[] => {
+	if (INTROSPECTION || ENVIRONMENT === 'development') {
+		return ['https://studio.apollographql.com'];
+	}
+	return [];
+}
+
 export const getAllowedOrigins = (state: RootState = store.getState()): string[] => uniq([
 	...getAllowedSocks(),
 	...getLocalAccessUrlsForServer(),
 	...getRemoteAccessUrlsForAllowedOrigins(state),
 	...getExtraOrigins(),
-	...getConnectOrigins()
+	...getConnectOrigins(),
+	...getApolloSandbox()
 	
 ]).map(url => url.endsWith('/') ? url.slice(0, -1) : url);

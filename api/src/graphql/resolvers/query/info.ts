@@ -1,9 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
-import { uptime } from 'os';
 import {
     baseboard,
     cpu,
@@ -29,6 +23,7 @@ import {
     type System,
     type Devices,
     type InfoResolvers,
+    type Gpu,
 } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { loadState } from '@app/core/utils/misc/load-state';
@@ -49,6 +44,7 @@ import { getPciDevices } from '@app/core/utils/vms/get-pci-devices';
 import { filterDevices } from '@app/core/utils/vms/filter-devices';
 import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
 import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
+import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -61,9 +57,6 @@ export const generateApps = async (): Promise<InfoApps> => {
         .then((containers) => containers.length);
     return { installed, started };
 };
-
-// Get uptime on boot and convert to date
-const bootTimestamp = new Date(new Date().getTime() - uptime() * 1_000);
 
 const generateOs = async (): Promise<InfoOs> => {
     const os = await osInfo();
@@ -93,7 +86,10 @@ const generateCpu = async (): Promise<InfoCpu> => {
 
 const generateDisplay = async (): Promise<Display> => {
     const filePath = getters.paths()['dynamix-config'];
-    const state = loadState<DynamixConfig>(filePath)!;
+    const state = loadState<DynamixConfig>(filePath);
+    if (!state) {
+        return {};
+    }
     const { theme, unit, ...display } = state.display;
     return {
         ...display,
@@ -147,20 +143,30 @@ const generateMemory = async (): Promise<InfoMemory> => {
         const lines = memoryInfo.split('\n');
         const header = lines.find((line) =>
             line.startsWith('Physical Memory Array')
-        )!;
-        const start = lines.indexOf(header);
-        const nextHeaders = lines
-            .slice(start, -1)
-            .find((line) => line.startsWith('Handle '))!;
-        const end = lines.indexOf(nextHeaders);
-        const fields = lines.slice(start, end);
-        max = toBytes(
-            fields
-                .find((line) => line.trim().startsWith('Maximum Capacity'))!
-                .trim()
-                .split(': ')[1]
         );
-    } catch {}
+        if (header) {
+            const start = lines.indexOf(header);
+            const nextHeaders = lines
+                .slice(start, -1)
+                .find((line) => line.startsWith('Handle '));
+
+            if (nextHeaders) {
+                const end = lines.indexOf(nextHeaders);
+                const fields = lines.slice(start, end);
+
+                max = toBytes(
+                    fields
+                        ?.find((line) =>
+                            line.trim().startsWith('Maximum Capacity')
+                        )
+                        ?.trim()
+                        ?.split(': ')[1] ?? '0'
+                );
+            }
+        }
+    } catch {
+        // Ignore errors here
+    }
 
     return {
         layout,
@@ -271,20 +277,24 @@ const generateDevices = async (): Promise<Devices> => {
      * @ignore
      * @private
      */
-    const systemGPUDevices = systemPciDevices().then((devices) =>
-        devices.filter((device) => device.class === 'vga' && !device.allowed)
-    );
-
-    /**
-     * System Audio Devices
-     *
-     * @name systemAudioDevices
-     * @ignore
-     * @private
-     */
-    const systemAudioDevices = systemPciDevices().then((devices) =>
-        devices.filter((device) => device.class === 'audio' && !device.allowed)
-    );
+    const systemGPUDevices: Promise<Gpu[]> = systemPciDevices().then(
+        (devices) => {
+            return devices.filter(
+                (device) => device.class === 'vga' && !device.allowed
+            ).map(entry => {
+                const gpu: Gpu = {
+                    blacklisted: entry.allowed,
+                    class: entry.class,
+                    id: entry.id,
+                    productid: entry.product,
+                    typeid: entry.typeid,
+                    type: entry.manufacturer,
+                    vendorname: entry.vendorname
+                }
+                return gpu;
+            });
+        }
+    ).catch(() => []);
 
     /**
      * System usb devices.
@@ -300,7 +310,7 @@ const generateDevices = async (): Promise<Devices> => {
                 .then(({ stdout }) =>
                     stdout.split('\n').map((line) => {
                         // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
-                        const [, id] = line.match(/usb:v(\w{9})/)!;
+                        const [, id] = line.match(/usb:v(\w{9})/) ?? [];
                         return id.replace('p', ':');
                     })
                 )
@@ -408,8 +418,8 @@ const generateDevices = async (): Promise<Devices> => {
                 stdout.split('\n').map((line) => {
                     const regex = new RegExp(/^.+: ID (?<id>\S+)(?<name>.*)$/);
                     const result = regex.exec(line);
-                    return result!.groups as unknown as PciDevice;
-                }) || [];
+                    return result?.groups as unknown as PciDevice;
+                }) ?? [];
 
             // Get all usb devices
             const usbDevices = await execa('lsusb').then(async ({ stdout }) =>
@@ -429,7 +439,6 @@ const generateDevices = async (): Promise<Devices> => {
     return {
         // Scsi: await scsiDevices,
         gpu: await systemGPUDevices,
-        audio: await systemAudioDevices,
         // Move this to interfaces
         // network: await si.networkInterfaces(),
         pci: await systemPciDevices(),

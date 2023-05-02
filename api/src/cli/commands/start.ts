@@ -63,7 +63,7 @@ export const start = async () => {
 
 			// Spawn child
 			// First arg is path (inside PKG), second arg is restart, stop, etc, rest is args to main argument
-			const [path, _, ...rest] = process.argv.slice(1);
+			const [path, , ...rest] = process.argv.slice(1);
 			const replacedCommand = [path, 'start', ...rest];
 			const child = spawn(process.execPath, replacedCommand, {
 				// In the parent set the tracking environment variable
