@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1](https://github.com/unraid/api/compare/v3.1.0...v3.1.1) (2023-05-03)
+
+
+### Bug Fixes
+
+* always get unraid version from var ([#638](https://github.com/unraid/api/issues/638)) ([f117331](https://github.com/unraid/api/commit/f1173319747d26d6a0c297e0844f0746b8e8de3c))
+* app can be linted ([#639](https://github.com/unraid/api/issues/639)) ([c159232](https://github.com/unraid/api/commit/c1592320b623f8e69128c7fcf184dc3ef336de99))
+* disable dynamic manual port unless USE_SSL = strict ([#636](https://github.com/unraid/api/issues/636)) ([0baf138](https://github.com/unraid/api/commit/0baf1385ebc86f63dd645e4da584bd4c94b92a07))
+* ensure api key before allowing connection ([#635](https://github.com/unraid/api/issues/635)) ([ffe9d2c](https://github.com/unraid/api/commit/ffe9d2cff65a08e964ca585319333d522a2429bd))
+
 ## [3.1.0](https://github.com/unraid/api/compare/v3.0.1...v3.1.0) (2023-04-27)
 
 
