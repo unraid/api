@@ -696,18 +696,33 @@ export type Notification = {
   __typename?: 'Notification';
   description: Scalars['String'];
   importance: Importance;
-  link: Scalars['String'];
+  link?: Maybe<Scalars['String']>;
   subject: Scalars['String'];
+  /**  ISO Timestamp for when the notification occurred  */
+  timestamp?: Maybe<Scalars['String']>;
   title: Scalars['String'];
+  type: NotificationType;
+};
+
+export type NotificationFilter = {
+  importance?: InputMaybe<Importance>;
 };
 
 export type NotificationInput = {
   description?: InputMaybe<Scalars['String']>;
   importance: Importance;
   link?: InputMaybe<Scalars['String']>;
-  subject?: InputMaybe<Scalars['String']>;
-  title?: InputMaybe<Scalars['String']>;
+  subject: Scalars['String'];
+  timestamp: Scalars['String'];
+  title: Scalars['String'];
+  type: NotificationType;
 };
+
+export enum NotificationType {
+  ARCHIVED = 'ARCHIVED',
+  RESTORED = 'RESTORED',
+  UNREAD = 'UNREAD'
+}
 
 export type Os = {
   __typename?: 'Os';
@@ -856,6 +871,7 @@ export type Query = {
   info?: Maybe<Info>;
   /** Current user account */
   me?: Maybe<Me>;
+  notifications: Array<Notification>;
   online?: Maybe<Scalars['Boolean']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
@@ -903,6 +919,11 @@ export type QuerydockerNetworkArgs = {
 
 export type QuerydockerNetworksArgs = {
   all?: InputMaybe<Scalars['Boolean']>;
+};
+
+
+export type QuerynotificationsArgs = {
+  filter?: InputMaybe<NotificationFilter>;
 };
 
 
@@ -1686,7 +1707,9 @@ export type ResolversTypes = ResolversObject<{
   Mutation: ResolverTypeWrapper<{}>;
   Network: ResolverTypeWrapper<Network>;
   Notification: ResolverTypeWrapper<Notification>;
+  NotificationFilter: NotificationFilter;
   NotificationInput: NotificationInput;
+  NotificationType: NotificationType;
   Os: ResolverTypeWrapper<Os>;
   Owner: ResolverTypeWrapper<Owner>;
   ParityCheck: ResolverTypeWrapper<ParityCheck>;
@@ -1784,6 +1807,7 @@ export type ResolversParentTypes = ResolversObject<{
   Mutation: {};
   Network: Network;
   Notification: Notification;
+  NotificationFilter: NotificationFilter;
   NotificationInput: NotificationInput;
   Os: Os;
   Owner: Owner;
@@ -2252,9 +2276,11 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 export type NotificationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   importance?: Resolver<ResolversTypes['Importance'], ParentType, ContextType>;
-  link?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   subject?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  timestamp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  type?: Resolver<ResolversTypes['NotificationType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2396,6 +2422,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;
   info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
+  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, Partial<QuerynotificationsArgs>>;
   online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;

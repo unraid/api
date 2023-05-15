@@ -1,13 +1,29 @@
+enum NotificationType {
+    UNREAD
+    ARCHIVED
+    RESTORED
+}
+
 input NotificationInput {
-    title: String
-    subject: String
+    title: String!
+    subject: String!
     description: String
     importance: Importance!
     link: String
+    type: NotificationType!
+    timestamp: String!
+}
+
+input NotificationFilter {
+    importance: Importance
 }
 
 type Mutation {
     sendNotification(notification: NotificationInput!): Notification
+}
+
+type Query {
+    notifications(filter: NotificationFilter): [Notification!]!
 }
 
 enum Importance {
@@ -21,5 +37,8 @@ type Notification {
     subject: String!
     description: String!
     importance: Importance!
-    link: String!
+    link: String
+    type: NotificationType!
+    """ ISO Timestamp for when the notification occurred """
+    timestamp: String
 }

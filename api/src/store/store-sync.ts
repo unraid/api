@@ -45,6 +45,9 @@ export const startStoreSync = async () => {
                 join(state.paths.states, 'graphql.log'),
                 JSON.stringify(state.minigraph, null, 2)
             );
+            writeFileSync(
+                join(state.paths.states, 'notifications.log'), JSON.stringify(state.notifications, null, 2)
+            )
         }
 
         lastState = state;

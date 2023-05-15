@@ -1,0 +1,5 @@
+timestamp=1683951054
+event=Docker - mariadb [45af..47d4]
+subject=Notice [UNRAID] - Version update 45af..47d4
+description=A new version of mariadb is available
+importance=normal

@@ -7,7 +7,7 @@ import { isEqual } from 'lodash';
 import { SEND_NETWORK_MUTATION } from '@app/graphql/mothership/mutations';
 import { saveNetworkPacket } from '@app/store/modules/dashboard';
 import { ApolloError } from '@apollo/client/core/core.cjs';
-import { AccessUrlInputSchema, NetworkInputSchema } from '@app/graphql/generate/validators';
+import { AccessUrlInputSchema, NetworkInputSchema } from '@app/graphql/generated/validators';
 import { ZodError } from 'zod';
 
 interface UrlForFieldInput {

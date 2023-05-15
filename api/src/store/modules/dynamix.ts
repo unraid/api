@@ -1,11 +1,14 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
+import {
+    createAsyncThunk,
+    createSlice,
+    type PayloadAction,
+} from '@reduxjs/toolkit';
 import { access } from 'fs/promises';
 import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { F_OK } from 'constants';
 import { type RecursivePartial, type RecursiveNullable } from '@app/types';
-import { toBoolean } from '@app/core/utils/casting';
 import { type DynamixConfig } from '@app/core/types/ini';
 
 export type SliceState = {
@@ -31,31 +34,14 @@ export const loadDynamixConfigFile = createAsyncThunk<
     const fileExists = await access(path, F_OK)
         .then(() => true)
         .catch(() => false);
-    const file = fileExists
+    const file: RecursivePartial<DynamixConfig> = fileExists
         ? parseConfig<RecursivePartial<DynamixConfig>>({
               filePath: path,
               type: 'ini',
           })
         : {};
-    const { display } = file;
-    return merge(file, {
-        ...(display?.scale ? { scale: toBoolean(display?.scale) } : {}),
-        ...(display?.tabs ? { tabs: toBoolean(display?.tabs) } : {}),
-        ...(display?.resize ? { resize: toBoolean(display?.resize) } : {}),
-        ...(display?.wwn ? { wwn: toBoolean(display?.wwn) } : {}),
-        ...(display?.total ? { total: toBoolean(display?.total) } : {}),
-        ...(display?.usage ? { usage: toBoolean(display?.usage) } : {}),
-        ...(display?.text ? { text: toBoolean(display?.text) } : {}),
-        ...(display?.warning
-            ? { warning: Number.parseInt(display?.warning, 10) }
-            : {}),
-        ...(display?.critical
-            ? { critical: Number.parseInt(display?.critical, 10) }
-            : {}),
-        ...(display?.hot ? { hot: Number.parseInt(display?.hot, 10) } : {}),
-        ...(display?.max ? { max: Number.parseInt(display?.max, 10) } : {}),
-        locale: display?.locale ?? 'en_US',
-    }) as RecursivePartial<DynamixConfig>;
+
+    return file;
 });
 
 export const dynamix = createSlice({

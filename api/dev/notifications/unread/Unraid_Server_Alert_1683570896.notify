@@ -1,0 +1,5 @@
+timestamp=1683570896
+event=Unraid Server Alert
+subject=UPS Alert
+description=Power failure on UPS Unraid. Running on batteries.
+importance=alert

@@ -26,6 +26,7 @@ import { type BaseContext, type ApolloServer } from '@apollo/server';
 import { loadDynamixConfigFile } from '@app/store/modules/dynamix';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
+import { setupNotificationWatch } from '@app/core/modules/notifications/setup-notification-watch';
 
 let server: ApolloServer<BaseContext>;
 
@@ -72,6 +73,9 @@ void am(
 
         // Start listening to dynamix config file changes
         setupDynamixConfigWatch();
+
+        // Start listening for Notifications
+        setupNotificationWatch()
 
         // Try and load the HTTP server
         logger.debug('Starting HTTP server');

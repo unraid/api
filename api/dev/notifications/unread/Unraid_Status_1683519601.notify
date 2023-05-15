@@ -1,0 +1,6 @@
+timestamp=1683519601
+event=Unraid Status
+subject=Notice [UNRAID] - array health report [PASS]
+description=Array has 9 disks (including parity & pools)
+importance=normal
+message=Parity - ST18000NM000J-2TV103_ZR585CPY (sdg) - active 27 C [OK]<br>Disk 1 - ST18000NM000J-2TV103_ZR5B1W9X (sdf) - active 30 C [OK]<br>Disk 2 - WDC_WD120EDAZ-11F3RA0_5PJRD45C (sdi) - active 32 C [OK]<br>Disk 3 - WDC_WD120EMAZ-11BLFA0_5PH8BTYD (sde) - active 33 C [OK]<br>Cache - Samsung_SSD_850_EVO_250GB_S2R5NX0H643734Z (sdh) - active 24 C [OK]<br>Cache 2 - KINGSTON_SA2000M8250G_50026B7282669D9E (nvme3n1) - active 32 C [OK]<br>Zpool - CT2000P5PSSD8_22513DA16E6C (nvme0n1) - active 33 C [OK]<br>Zpool 2 - CT2000P5PSSD8_22513DA1657C (nvme1n1) - active 39 C [OK]<br>Zpool 3 - CT2000P5PSSD8_22513DA13F82 (nvme2n1) - active 43 C [OK]<br><br>Last check incomplete on Thu 4 May 2023 11:00:08 AM EDT (4 days ago), finding 0 errors.<br>Error code: -4
