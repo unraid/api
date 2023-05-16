@@ -64,7 +64,7 @@ if (process.env.NODE_ENV !== 'test') {
 			errorFile: {
 				type: 'file',
 				filename: '/var/log/unraid-api/stderr.log',
-				maxLogSize: 10_000_000,
+				maxLogSize: 2_500_000,
 				backups: 0,
 				layout: {
 					...logLayout,
