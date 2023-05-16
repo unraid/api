@@ -1092,6 +1092,7 @@ export type Subscription = {
   flash: Flash;
   info: Info;
   me?: Maybe<Me>;
+  notificationAdded: Notification;
   online: Scalars['Boolean'];
   owner: Owner;
   parityHistory: ParityCheck;
@@ -2523,6 +2524,7 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   flash?: SubscriptionResolver<ResolversTypes['Flash'], "flash", ParentType, ContextType>;
   info?: SubscriptionResolver<ResolversTypes['Info'], "info", ParentType, ContextType>;
   me?: SubscriptionResolver<Maybe<ResolversTypes['Me']>, "me", ParentType, ContextType>;
+  notificationAdded?: SubscriptionResolver<ResolversTypes['Notification'], "notificationAdded", ParentType, ContextType>;
   online?: SubscriptionResolver<ResolversTypes['Boolean'], "online", ParentType, ContextType>;
   owner?: SubscriptionResolver<ResolversTypes['Owner'], "owner", ParentType, ContextType>;
   parityHistory?: SubscriptionResolver<ResolversTypes['ParityCheck'], "parityHistory", ParentType, ContextType>;

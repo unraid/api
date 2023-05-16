@@ -28,6 +28,10 @@ type Query {
     notifications(filter: NotificationFilter): [Notification!]!
 }
 
+type Subscription {
+    notificationAdded: Notification!
+}
+
 enum Importance {
     ALERT
     INFO

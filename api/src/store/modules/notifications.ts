@@ -6,7 +6,7 @@ import {
     type Notification,
     type NotificationInput,
 } from '@app/graphql/generated/api/types';
-import { NotificationInputSchema, NotificationSchema } from '@app/graphql/generated/api/operations';
+import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { type RootState, type AppDispatch } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
 import {
@@ -14,6 +14,7 @@ import {
     createAsyncThunk,
     createSlice,
 } from '@reduxjs/toolkit';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 
 interface NotificationState {
     notifications: Record<string, Notification>;
@@ -79,6 +80,7 @@ export const loadNotification = createAsyncThunk<
     const convertedNotification = NotificationSchema().parse(notification);
 
     if (convertedNotification) {
+        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION, { notificationAdded: convertedNotification })
         return { id: path, notification: convertedNotification };
     }
     throw new Error('Failed to parse notification');
