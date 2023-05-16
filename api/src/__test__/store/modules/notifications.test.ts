@@ -5,7 +5,7 @@ import { store } from '@app/store/index';
 import { expect, test } from 'vitest';
 
 test('loads notifications properly', async () => {
-    await store.dispatch(loadDynamixConfigFile());
+    await store.dispatch(loadDynamixConfigFile()).unwrap();
     const watch = await setupNotificationWatch();
     expect(watch).not.toBeNull();
     await sleep(400);
