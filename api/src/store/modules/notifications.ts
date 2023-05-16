@@ -8,7 +8,6 @@ import {
 } from '@app/graphql/generated/api/types';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { type RootState, type AppDispatch } from '@app/store/index';
-import { FileLoadStatus } from '@app/store/types';
 import {
     type PayloadAction,
     createAsyncThunk,
@@ -18,12 +17,10 @@ import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 
 interface NotificationState {
     notifications: Record<string, Notification>;
-    status: FileLoadStatus;
 }
 
 const notificationInitialState: NotificationState = {
     notifications: {},
-    status: FileLoadStatus.UNLOADED,
 };
 
 interface NotificationIni {
@@ -95,6 +92,9 @@ export const notificationsStore = createSlice({
                 delete state.notifications[action.payload.path];
             }
         },
+        clearAllNotifications: (state) => {
+            state.notifications = {};
+        }
     },
     extraReducers: (builder) => {
         builder.addCase(loadNotification.fulfilled, (state, { payload }) => {
@@ -110,4 +110,4 @@ export const notificationsStore = createSlice({
 });
 
 export const notificationReducer = notificationsStore.reducer;
-export const { clearNotification } = notificationsStore.actions;
+export const { clearNotification, clearAllNotifications } = notificationsStore.actions;

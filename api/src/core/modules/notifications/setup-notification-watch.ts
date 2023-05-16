@@ -12,10 +12,15 @@ const handleNotificationRemove = (path: string) => {
     store.dispatch(clearNotification({ path }));
 };
 
-export const setupNotificationWatch = (): FSWatcher | null => {
+let watcher: FSWatcher | null = null;
+
+export const setupNotificationWatch = async (): Promise<FSWatcher | null> => {
     const { notify, status } = getters.dynamix();
     if (status === FileLoadStatus.LOADED && notify?.path) {
-        const watcher = watch(join(notify.path, 'unread'), {})
+        if (watcher) {
+            await watcher.close()
+        }
+        watcher = watch(join(notify.path, 'unread'), {})
             .on('add', (path) => {
                 handleNotificationAdd(path);
             })
