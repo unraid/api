@@ -695,6 +695,7 @@ export type Network = {
 export type Notification = {
   __typename?: 'Notification';
   description: Scalars['String'];
+  id: Scalars['ID'];
   importance: Importance;
   link?: Maybe<Scalars['String']>;
   subject: Scalars['String'];
@@ -706,14 +707,16 @@ export type Notification = {
 
 export type NotificationFilter = {
   importance?: InputMaybe<Importance>;
+  type?: InputMaybe<NotificationType>;
 };
 
 export type NotificationInput = {
   description?: InputMaybe<Scalars['String']>;
+  id: Scalars['ID'];
   importance: Importance;
   link?: InputMaybe<Scalars['String']>;
   subject: Scalars['String'];
-  timestamp: Scalars['String'];
+  timestamp?: InputMaybe<Scalars['String']>;
   title: Scalars['String'];
   type: NotificationType;
 };
@@ -2275,6 +2278,7 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 
 export type NotificationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   importance?: Resolver<ResolversTypes['Importance'], ParentType, ContextType>;
   link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   subject?: Resolver<ResolversTypes['String'], ParentType, ContextType>;

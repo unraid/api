@@ -43,15 +43,16 @@ export type AppDispatch = typeof store.dispatch;
 
 export const getters = {
     apiKey: () => store.getState().apiKey,
-    config: () => store.getState().config,
-    minigraph: () => store.getState().minigraph,
-    paths: () => store.getState().paths,
-    emhttp: () => store.getState().emhttp,
-    registration: () => store.getState().registration,
-    remoteGraphQL: () => store.getState().remoteGraphQL,
     cache: () => store.getState().cache,
+    config: () => store.getState().config,
     dashboard: () => store.getState().dashboard,
     docker: () => store.getState().docker,
-    upnp: () => store.getState().upnp,
     dynamix: () => store.getState().dynamix,
+    emhttp: () => store.getState().emhttp,
+    minigraph: () => store.getState().minigraph,
+	notifications: () => store.getState().notifications,
+    paths: () => store.getState().paths,
+    registration: () => store.getState().registration,
+    remoteGraphQL: () => store.getState().remoteGraphQL,
+    upnp: () => store.getState().upnp,
 };

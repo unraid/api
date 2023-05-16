@@ -73,6 +73,11 @@
         "attributes": "*"
       },
       {
+        "resource": "notifications",
+        "action": "read:any",
+        "attributes": "*"
+      },
+      {
         "resource": "online",
         "action": "read:any",
         "attributes": "*"

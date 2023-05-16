@@ -62,6 +62,7 @@ generates:
       importFrom: '@app/graphql/generated/api/types'
       strictScalars: false
       schema: 'zod'
+      withObjectType: true
   src/graphql/generated/client/validators.ts:
     schema: 
       '${MOTHERSHIP_GRAPHQL_LINK}':

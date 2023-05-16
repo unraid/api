@@ -9,7 +9,7 @@ import { getters, store } from '@app/store';
 import { type DashboardServiceInput, type DashboardInput } from '@app/graphql/generated/client/graphql';
 import { API_VERSION } from '@app/environment';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
-import { DashboardInputSchema } from '@app/graphql/generated/validators';
+import { DashboardInputSchema } from '@app/graphql/generated/client/validators';
 import { ZodError } from 'zod';
 
 const getVmSummary = async (): Promise<DashboardInput['vms']> => {
