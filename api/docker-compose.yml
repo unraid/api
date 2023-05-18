@@ -1,0 +1,68 @@
+version: '3.8'
+
+x-volumes: &volumes
+  volumes:
+  - ./dev:/app/dev
+  - ./src:/app/src
+  - ./patches:/app/patches
+  - ./package.json:/app/package.json
+  - ./package-lock.json:/app/package-lock.json
+  - ./tsconfig.json:/app/tsconfig.json
+  - ./tsup.config.ts:/app/tsup.config.ts
+  - ./vite.config.ts:/app/vite.config.ts
+  - ./dist/:/app/dist/
+  - ./deploy/:/app/deploy/
+  - ./README.md:/app/README.md
+  - ./scripts/:/app/scripts/
+  - ../.git/:/app/.git/
+  - ./.env.production:/app/.env.production
+  - ./.env.staging:/app/.env.staging
+  - ./.env.test:/app/.env.test
+  - ./.env.development:/app/.env.development
+  - ./.pkg-cache:/app/.pkg-cache
+  - ./codegen.yml:/app/codegen.yml
+  - ./fix-array-type.cjs:/app/fix-array-type.cjs
+  - /var/run/docker.sock:/var/run/docker.sock
+
+
+networks:
+  mothership_default:
+    external: true
+services:
+
+  dev:
+    networks:
+      - mothership_default
+    image: unraid-api-node-18
+    ports:
+      - "3001:3001"
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:18.5
+        NODE_ENV: development
+        NPM_I_CMD: npm i
+    <<: *volumes
+    stdin_open: true
+    tty: true
+    entrypoint: /bin/bash
+    environment: 
+      - IS_DOCKER=true
+    profiles:
+      - builder
+
+
+  builder:
+    image: unraid-api-node-18
+    build: 
+      context: .
+      dockerfile: Dockerfile
+      args: 
+        NODE_IMAGE: node:18.5
+        NODE_ENV: development
+        NPM_I_CMD: npm i
+    <<: *volumes
+    platform: linux/amd64
+    profiles:
+      - builder

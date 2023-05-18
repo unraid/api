@@ -7,6 +7,7 @@ import { disksResolver } from '@app/graphql/resolvers/query/disks';
 import display from '@app/graphql/resolvers/query/display';
 import { dockerContainersResolver } from '@app/graphql/resolvers/query/docker';
 import flash from '@app/graphql/resolvers/query/flash';
+import { notificationsResolver } from '@app/graphql/resolvers/query/notifications';
 import online from '@app/graphql/resolvers/query/online';
 import owner from '@app/graphql/resolvers/query/owner';
 import { registration } from '@app/graphql/resolvers/query/registration';
@@ -24,6 +25,7 @@ export const Query: QueryResolvers = {
     dockerContainers: dockerContainersResolver,
     display,
     flash,
+    notifications: notificationsResolver,
     online,
     owner,
     registration,

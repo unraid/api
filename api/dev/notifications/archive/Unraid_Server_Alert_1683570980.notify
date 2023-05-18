@@ -1,0 +1,5 @@
+timestamp=1683570980
+event=Unraid Server Alert
+subject=UPS Alert
+description=Communications restored with UPS Unraid
+importance=normal

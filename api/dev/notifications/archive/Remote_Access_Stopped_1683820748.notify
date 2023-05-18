@@ -1,0 +1,5 @@
+timestamp=1683820748
+event=Remote Access Stopped
+subject=Unraid API
+description=Remote access has been stopped
+importance=normal

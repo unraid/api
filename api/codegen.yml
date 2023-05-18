@@ -31,18 +31,7 @@ generates:
       withObjectType: true
     plugins:
       - add: { content: '/* eslint-disable */' }
-  src/graphql/generate/validators.ts:
-    schema: 
-      '${MOTHERSHIP_GRAPHQL_LINK}':
-        headers:
-          origin: 'https://forums.unraid.net'
-    plugins:
-      - typescript-validation-schema
-      - add: { content: '/* eslint-disable */'}
-    config:
-      importFrom: '@app/graphql/generated/client/graphql'
-      strictScalars: false
-      schema: 'zod'
+  
 # Generate Types for the API Server
   src/graphql/generated/api/types.ts:
     schema: 
@@ -65,6 +54,24 @@ generates:
     presetConfig:
       typesPath: '@app/graphql/generated/api/types'
     plugins:
+      - typescript-validation-schema
       - typescript-operations
       - typed-document-node
       - add: { content: '/* eslint-disable */' }
+    config:
+      importFrom: '@app/graphql/generated/api/types'
+      strictScalars: false
+      schema: 'zod'
+      withObjectType: true
+  src/graphql/generated/client/validators.ts:
+    schema: 
+      '${MOTHERSHIP_GRAPHQL_LINK}':
+        headers:
+          origin: 'https://forums.unraid.net'
+    plugins:
+      - typescript-validation-schema
+      - add: { content: '/* eslint-disable */'}
+    config:
+      importFrom: '@app/graphql/generated/client/graphql'
+      strictScalars: false
+      schema: 'zod'

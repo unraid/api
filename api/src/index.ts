@@ -23,9 +23,9 @@ import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 import { type BaseContext, type ApolloServer } from '@apollo/server';
-import { loadDynamixConfigFile } from '@app/store/modules/dynamix';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
+import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 
 let server: ApolloServer<BaseContext>;
 

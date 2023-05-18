@@ -1,0 +1,5 @@
+timestamp=1683951054
+event=Docker - caddy-custom [fcc0..f692]
+subject=Notice [UNRAID] - Version update fcc0..f692
+description=A new version of caddy-custom is available
+importance=normal

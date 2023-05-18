@@ -1,0 +1,51 @@
+enum NotificationType {
+    UNREAD
+    ARCHIVED
+    RESTORED
+}
+
+input NotificationInput {
+    id: ID!
+    title: String!
+    subject: String!
+    description: String
+    importance: Importance!
+    link: String
+    type: NotificationType!
+    timestamp: String
+}
+
+input NotificationFilter {
+    importance: Importance
+    type: NotificationType
+}
+
+type Mutation {
+    sendNotification(notification: NotificationInput!): Notification
+}
+
+type Query {
+    notifications(filter: NotificationFilter): [Notification!]!
+}
+
+type Subscription {
+    notificationAdded: Notification!
+}
+
+enum Importance {
+    ALERT
+    INFO
+    WARNING
+}
+
+type Notification {
+    id: ID!
+    title: String!
+    subject: String!
+    description: String!
+    importance: Importance!
+    link: String
+    type: NotificationType!
+    """ ISO Timestamp for when the notification occurred """
+    timestamp: String
+}

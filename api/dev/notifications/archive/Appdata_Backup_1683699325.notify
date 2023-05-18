@@ -1,0 +1,6 @@
+timestamp=1683699325
+event=Appdata Backup
+subject=Warning
+description=Please check the backup log tab!
+importance=warning
+message=Container did not started! - Code: Server error

@@ -1,0 +1,5 @@
+timestamp=1683519032
+event=Docker - rtorrent-rutorrent [b722..38c5]
+subject=Notice [UNRAID] - Version update b722..38c5
+description=A new version of rtorrent-rutorrent is available
+importance=normal

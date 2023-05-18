@@ -1,6 +1,6 @@
 import { getBannerPathIfPresent, getCasePathIfPresent } from "@app/core/utils/images/image-file-helpers";
+import { loadDynamixConfigFile } from "@app/store/actions/load-dynamix-config-file";
 import { store } from "@app/store/index";
-import { loadDynamixConfigFile } from "@app/store/modules/dynamix";
 
 import { expect, test } from "vitest";
 

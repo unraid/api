@@ -78,29 +78,13 @@ jobs:
           git config --global url."https://github.com/".insteadOf
           ssh://git@github.com/
 
-      - name: Install node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: "api/.nvmrc"
+      - name: Build Docker Compose
+        run: |
+          docker network create mothership_default
+          docker-compose build builder
 
-      # - name: Get npm cache directory
-      #   id: npm-cache
-      #   run: echo "::set-output name=dir::$(npm config get cache)"
-
-      # - name: Load npm cache
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ${{ steps.npm-cache.outputs.dir }}
-      #     key: ${{ runner.os }}-npm-cache-${{ hashFiles('**/package-lock.json') }}
-
-      - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev
-
-      - name: Installing node deps
-        run: npm install
-
-      - name: Run unit tests with code coverage
-        run: npm run coverage
+      - name: Run Docker Compose
+        run: docker-compose run builder npm run coverage
 
   build-api:
     defaults:
