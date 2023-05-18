@@ -67,7 +67,7 @@ jobs:
           ssh://git@github.com/
 
       - name: Build Docker Compose
-        run: >
+        run: |
           docker network create mothership_default
           docker-compose build builder
       - name: Run Docker Compose
