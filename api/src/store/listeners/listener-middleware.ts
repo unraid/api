@@ -21,6 +21,7 @@ import { enableServerStateListener } from '@app/store/listeners/server-state-lis
 import { enableWanAccessChangeListener } from '@app/store/listeners/wan-access-change-listener';
 
 import 'reflect-metadata';
+import { enableNotificationPathListener } from '@app/store/listeners/notification-path-listener';
 
 export const listenerMiddleware = createListenerMiddleware();
 
@@ -50,3 +51,4 @@ enableDynamicRemoteAccessListener();
 enableArrayEventListener();
 enableWanAccessChangeListener();
 enableServerStateListener();
+enableNotificationPathListener();

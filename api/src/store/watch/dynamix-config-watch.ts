@@ -1,6 +1,6 @@
 import { getters, store } from '@app/store';
+import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { watch } from 'chokidar';
-import { loadDynamixConfigFile } from '@app/store/modules/dynamix';
 
 export const setupDynamixConfigWatch = () => {
 	const configPath = getters.paths()?.['dynamix-config'];

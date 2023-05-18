@@ -24,6 +24,7 @@ x-volumes: &volumes
   - ./fix-array-type.cjs:/app/fix-array-type.cjs
   - /var/run/docker.sock:/var/run/docker.sock
 
+
 networks:
   mothership_default:
     external: true

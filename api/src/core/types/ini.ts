@@ -30,21 +30,22 @@ interface Display {
 }
 
 interface Notify {
-	entity: string;
-	normal: string;
-	warning: string;
-	alert: string;
-	plugin: string;
-	docker_notify: string;
-	report: string;
-	date: string;
-	time: string;
-	position: string;
-	path: string;
-	display: string;
-	system: string;
-	version: string;
-	docker_update: string;
+    entity: string;
+    normal: string;
+    warning: string;
+    alert: string;
+    plugin: string;
+    docker_notify: string;
+    report: string;
+    date: string;
+    time: string;
+    position: string;
+    /** path for notifications (defaults to '/tmp/notifications') */
+    path: string;
+    display: string;
+    system: string;
+    version: string;
+    docker_update: string;
 }
 
 interface Ssmtp {

@@ -1,0 +1,5 @@
+timestamp=1684123859
+event=Docker - caddy-custom [9f05..b531]
+subject=Notice [UNRAID] - Version update 9f05..b531
+description=A new version of caddy-custom is available
+importance=normal

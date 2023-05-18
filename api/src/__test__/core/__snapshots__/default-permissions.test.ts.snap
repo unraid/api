@@ -88,6 +88,11 @@ exports[`Returns default permissions 1`] = `
       {
         "action": "read:any",
         "attributes": "*",
+        "resource": "notifications",
+      },
+      {
+        "action": "read:any",
+        "attributes": "*",
         "resource": "online",
       },
       {
@@ -217,11 +222,6 @@ exports[`Returns default permissions 1`] = `
       {
         "action": "read:any",
         "attributes": "*",
-        "resource": "unraid-version",
-      },
-      {
-        "action": "read:any",
-        "attributes": "*",
         "resource": "array",
       },
       {
@@ -237,7 +237,17 @@ exports[`Returns default permissions 1`] = `
       {
         "action": "read:any",
         "attributes": "*",
+        "resource": "notifications",
+      },
+      {
+        "action": "read:any",
+        "attributes": "*",
         "resource": "vms/domain",
+      },
+      {
+        "action": "read:any",
+        "attributes": "*",
+        "resource": "unraid-version",
       },
     ],
   },

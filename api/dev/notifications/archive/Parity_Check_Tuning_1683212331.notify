@@ -1,0 +1,5 @@
+timestamp=1683212331
+event=Parity Check Tuning
+subject=[UNRAID] Array operation will not be restarted
+description=Unclean shutdown detected
+importance=alert
