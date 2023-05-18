@@ -12,6 +12,7 @@ test('Returns parsed state file', async () => {
 		filePath,
 		type: 'ini',
 	});
+	expect(false).toBe(true)
 	expect(parse(stateFile)).toMatchInlineSnapshot(`
 		{
 		  "bindMgt": false,
