@@ -1,0 +1,28 @@
+{
+  "name": "connect-web-components",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "serve": "serve dist/nuxt-custom-elements/connect-components"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^6.7.0",
+    "@types/crypto-js": "^4.1.1",
+    "@types/node": "^18",
+    "@vueuse/core": "^10.1.2",
+    "@vueuse/nuxt": "^10.1.2",
+    "nuxt": "^3.5.1",
+    "nuxt-custom-elements": "^2.0.0-beta.12"
+  },
+  "dependencies": {
+    "@pinia/nuxt": "^0.4.11",
+    "crypto-js": "^4.1.1"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}
