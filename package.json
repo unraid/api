@@ -1,5 +1,5 @@
 {
-  "name": "connect-web-components",
+  "name": "connect-components",
   "private": true,
   "scripts": {
     "build": "nuxt build",
