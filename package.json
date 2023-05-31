@@ -19,7 +19,9 @@
     "nuxt-custom-elements": "^2.0.0-beta.12"
   },
   "dependencies": {
+    "@heroicons/vue": "^2.0.18",
     "@pinia/nuxt": "^0.4.11",
+    "@vueuse/components": "^10.1.2",
     "crypto-js": "^4.1.1",
     "dayjs": "^1.11.7"
   },
