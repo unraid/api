@@ -16,7 +16,6 @@ export enum ServerState {
   EBLACKLISTED2 = 'EBLACKLISTED2',
   ENOCONN = 'ENOCONN',
 }
-
 export interface Server {
   // state?: ServerState;
   state?: string;
@@ -30,9 +29,26 @@ export interface Server {
   site?: string;
   wanFQDN?: string;
   regGen?: number;
-  expireTime?: number;
   license?: string;
   keyfile?: string;
-  keyTypeForPurchase?: string;
   locale?: string;
+  uptime?: number;
+  expireTime?: number;
+}
+
+export type ServerStateDataActions = 'redeem'|'purchase'|'upgrade'|'signOut'|'signIn'|'trialExtend'|'trialStart'|'replace'|'recover';
+
+export interface ServerStateDataError {
+  heading: string;
+  message: string;
+  reAuthFix: boolean; // @todo potentially remove
+}
+
+export interface ServerStateData {
+  actions: ServerStateDataActions[];
+  humanReadable: string; // @todo create interface of ENUM to string mapping
+  heading: string;
+  message: string;
+  error?: ServerStateDataError;
+  withKey?: boolean; // @todo potentially remove
 }
