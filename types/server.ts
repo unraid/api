@@ -40,7 +40,7 @@ export interface Server {
 }
 
 // @todo convert to object with text and click payload
-export type ServerStateDataActionType = 'redeem'|'purchase'|'upgrade'|'signOut'|'signIn'|'trialExtend'|'trialStart'|'replace'|'recover';
+export type ServerStateDataActionType = 'signIn'|'signOut'|'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
 
 export interface ServerStateDataAction {
   click: any; // @todo be more specific
@@ -56,7 +56,7 @@ export interface ServerStateDataError {
 }
 
 export interface ServerStateData {
-  actions: ServerStateDataAction[];
+  actions?: ServerStateDataAction[] | undefined;
   humanReadable: string; // @todo create interface of ENUM to string mapping
   heading: string;
   message: string;
