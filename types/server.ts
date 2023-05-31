@@ -20,24 +20,26 @@ export enum ServerState {
   ENOCONN = 'ENOCONN',
 }
 export interface Server {
-  // state?: ServerState;
-  state?: string;
-  name?: string;
   description?: string;
   deviceCount?: number;
+  expireTime?: number;
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
+  keyfile?: string;
+  lanIp?: string;
+  license?: string;
+  locale?: string;
+  name?: string;
+  pluginInstalled?: boolean;
+  registered?: boolean;
+  regGen?: number;
   regGuid?: string;
   site?: string;
-  wanFQDN?: string;
-  regGen?: number;
-  license?: string;
-  keyfile?: string;
-  locale?: string;
+  // state?: ServerState;
+  state: string;
   uptime?: number;
-  expireTime?: number;
-  lanIp?: string;
+  wanFQDN?: string;
 }
 
 // @todo convert to object with text and click payload
