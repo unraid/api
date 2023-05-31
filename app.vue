@@ -1,18 +1,7 @@
 <script lang="ts" setup>
-import type { Server } from '~/types/server';
+import serverState from './_data/serverState';
+
 const nuxtApp = useNuxtApp();
-
-const server = ref<Server>({
-  name: 'DevServer9000',
-  description: 'Fully automated media server and lab rig',
-  guid: '9292-1111-BITE-1111-444444444444',
-  deviceCount: 8,
-  site: 'http://localhost:4321',
-  state: 'TRIAL',
-  keyTypeForPurchase: 'Trial',
-  locale: 'en',
-});
-
 onBeforeMount(() => {
   nuxtApp.$customElements.registerEntry('ConnectComponents');
 });
@@ -23,7 +12,7 @@ onBeforeMount(() => {
     <client-only>
       <div class="flex flex-col gap-6 p-6">
         <h2>Vue Components</h2>
-        <UserProfileCe :server="server" />
+        <UserProfileCe :server="serverState" />
         <AuthCe />
         <KeyActionsCe />
         <LaunchpadCe />
@@ -33,7 +22,7 @@ onBeforeMount(() => {
       </div>
       <div class="flex flex-col gap-6 p-6">
         <h2>Web Components</h2>
-        <connect-user-profile :server="JSON.stringify(server)"></connect-user-profile>
+        <connect-user-profile :server="JSON.stringify(serverState)"></connect-user-profile>
         <connect-auth></connect-auth>
         <connect-key-actions></connect-key-actions>
         <connect-launchpad></connect-launchpad>
