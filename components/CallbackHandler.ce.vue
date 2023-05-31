@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useCallbackStore } from '~/store/callback';
-import 'tailwindcss/tailwind.css';
+import '~/assets/main.css';
 import { storeToRefs } from 'pinia';
 
 const callbackStore = useCallbackStore();
@@ -18,9 +18,3 @@ onBeforeMount(() => {
     <pre>{{ JSON.stringify(decryptedData, null, 2) }}</pre>
   </div>
 </template>
-
-<style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-</style>
