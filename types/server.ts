@@ -1,4 +1,5 @@
 import { KeyIcon } from '@heroicons/vue/24/solid';
+import { UserProfileLink } from '~/types/userProfile';
 
 export enum ServerState {
   BASIC = 'BASIC',
@@ -42,11 +43,8 @@ export interface Server {
 // @todo convert to object with text and click payload
 export type ServerStateDataActionType = 'signIn'|'signOut'|'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
 
-export interface ServerStateDataAction {
-  click: any; // @todo be more specific
-  icon?: typeof KeyIcon
+export interface ServerStateDataAction extends UserProfileLink {
   name: ServerStateDataActionType;
-  text: string;
 }
 
 export interface ServerStateDataError {
