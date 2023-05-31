@@ -1,4 +1,6 @@
 import { defineStore, createPinia, setActivePinia } from "pinia";
+import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue/24/solid';
+
 import type { Server, ServerState, ServerStateData } from '~/types/server';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -10,15 +12,16 @@ export const useServerStore = defineStore('server', () => {
   /**
    * State
    */
-  const description = ref<string | undefined>();
-  const deviceCount = ref<number | undefined>();
-  const guid = ref<string | undefined>();
-  const locale = ref<string | undefined>();
-  const name = ref<string | undefined>();
-  const site = ref<string | undefined>();
-  const state = ref<string | undefined>(); // @todo implement ServerState ENUM
-  const uptime = ref<number | undefined>();
-  const expireTime = ref<number | undefined>();
+  const description = ref<string>();
+  const deviceCount = ref<number>();
+  const guid = ref<string>();
+  const locale = ref<string>();
+  const lanIp = ref<string>();
+  const name = ref<string>();
+  const site = ref<string>();
+  const state = ref<string>(); // @todo implement ServerState ENUM
+  const uptime = ref<number>();
+  const expireTime = ref<number>();
 
   /**
    * Getters
@@ -34,11 +37,31 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       uptime: uptime.value,
       expireTime: expireTime.value,
+      lanIp: lanIp.value,
     }
   });
 
   const stateDataDefault: ServerStateData = {
-    actions: ['purchase', 'signIn', 'signOut'],
+    actions: [
+      {
+        click: () => { console.debug('signIn') },
+        icon: GlobeAltIcon,
+        name: 'signIn',
+        text: 'Sign In with Unraid.net Account',
+      },
+      {
+        click: () => { console.debug('purchase') },
+        icon: KeyIcon,
+        name: 'purchase',
+        text: 'Purchase Key',
+      },
+      // {
+      //   click: () => { console.debug('signOut') },
+      //   icon: ArrowRightOnRectangleIcon,
+      //   name: 'signOut',
+      //   text: 'signOut',
+      // },
+    ],
     humanReadable: 'Trial',
     heading: 'Thank you for choosing Unraid OS!',
     message: '[Temp] Your Trial Key includes all the features of a Pro Key',
@@ -154,6 +177,7 @@ export const useServerStore = defineStore('server', () => {
     state.value = data?.state;
     uptime.value = data?.uptime;
     expireTime.value = data?.expireTime;
+    lanIp.value = data?.lanIp;
   };
 
   return {
@@ -162,6 +186,7 @@ export const useServerStore = defineStore('server', () => {
     description,
     guid,
     locale,
+    lanIp,
     deviceCount,
     site,
     uptime,

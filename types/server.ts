@@ -1,3 +1,5 @@
+import { KeyIcon } from '@heroicons/vue/24/solid';
+
 export enum ServerState {
   BASIC = 'BASIC',
   PLUS = 'PLUS',
@@ -34,9 +36,18 @@ export interface Server {
   locale?: string;
   uptime?: number;
   expireTime?: number;
+  lanIp?: string;
 }
 
-export type ServerStateDataActions = 'redeem'|'purchase'|'upgrade'|'signOut'|'signIn'|'trialExtend'|'trialStart'|'replace'|'recover';
+// @todo convert to object with text and click payload
+export type ServerStateDataActionType = 'redeem'|'purchase'|'upgrade'|'signOut'|'signIn'|'trialExtend'|'trialStart'|'replace'|'recover';
+
+export interface ServerStateDataAction {
+  click: any; // @todo be more specific
+  icon?: typeof KeyIcon
+  name: ServerStateDataActionType;
+  text: string;
+}
 
 export interface ServerStateDataError {
   heading: string;
@@ -45,7 +56,7 @@ export interface ServerStateDataError {
 }
 
 export interface ServerStateData {
-  actions: ServerStateDataActions[];
+  actions: ServerStateDataAction[];
   humanReadable: string; // @todo create interface of ENUM to string mapping
   heading: string;
   message: string;
