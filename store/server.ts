@@ -1,7 +1,9 @@
 import { defineStore, createPinia, setActivePinia } from "pinia";
 import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue/24/solid';
-
-import type { Server, ServerState, ServerStateData } from '~/types/server';
+import type {
+  Server,
+  ServerStateData,
+} from '~/types/server';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085

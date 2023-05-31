@@ -4,31 +4,23 @@ import { ArrowRightOnRectangleIcon, ArrowTopRightOnSquareIcon, CogIcon } from '@
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
-
-export interface Props {
-  show?: boolean;
-}
-
-withDefaults(defineProps<Props>(), {
-  show: false,
-});
+import type { ServerStateDataAction } from '~/types/server';
+import type { UserProfileLink } from '~/types/userProfile';
 
 const myServersEnv = ref<string>('Staging');
-const devEnv = ref<boolean>(true);
+const devEnv = ref<string>('development');
 
 const serverStore = useServerStore();
 const { stateData } = storeToRefs(serverStore);
 
-interface Link {
-  emphasize?: boolean;
-  external?: boolean;
-  href: string;
-  icon?: typeof CogIcon;
-  text: string;
-  title?: string;
-}
+// Intended to hide sign in and sign out from actions v-for in UPC dropdown so we can display them separately
+const stateDataKeyActions = computed((): ServerStateDataAction[] | undefined => {
+  const notAllowed = ['signIn', 'signOut'];
+  if (!stateData.value.actions) return;
+  return stateData.value.actions.filter(action => !notAllowed.includes(action.name));
+});
 
-const links = computed(():Link[] => {
+const links = computed(():UserProfileLink[] => {
   return [
     {
       emphasize: true,
@@ -56,22 +48,19 @@ const links = computed(():Link[] => {
 </script>
 
 <template>
-  <nav v-show="show" class="Dropdown absolute z-30 right-0 flex flex-col gap-y-8px p-8px bg-alpha border rounded-lg min-w-310px max-w-350px">
+  <upc-dropdown-wrapper class="Dropdown min-w-300px max-w-350px">
     <header class="flex flex-row items-start justify-between mt-8px mx-8px">
       <h3 class="text-18px leading-none inline-flex flex-row gap-x-8px items-center">
         <span class="font-semibold">Connect</span>
         <upc-beta />
         <span v-if="myServersEnv" :title="`API • ${myServersEnv}`">⚙️</span>
-        <span v-if="devEnv" :title="devEnv">⚠️</span>
+        <span v-if="devEnv" :title="`UPC • ${devEnv}`">⚠️</span>
       </h3>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
-      <template v-if="stateData.actions">
-        <li v-for="action in stateData.actions" :key="action.name">
-          <button @click="action.click" class="Dropdown_link">
-            <component :is="action.icon" class="Dropdown_linkIcon" aria-hidden="true" />
-            {{ action.text }}
-          </button>
+      <template v-if="stateDataKeyActions">
+        <li v-for="action in stateDataKeyActions" :key="action.name">
+          <upc-dropdown-item :item="action" />
         </li>
       </template>
 
@@ -81,7 +70,8 @@ const links = computed(():Link[] => {
 
       <template v-if="links">
         <li v-for="(link, index) in links" :key="`link_${index}`">
-          <a
+          <upc-dropdown-item :item="link" />
+          <!-- <a
             :href="link.href"
             :title="link.title"
             :target="link.external ? '_blank' : ''"
@@ -93,11 +83,11 @@ const links = computed(():Link[] => {
           >
             <component :is="link.icon" class="Dropdown_linkIcon" aria-hidden="true" />
             {{ link.text }}
-          </a>
+          </a> -->
         </li>
       </template>
     </ul>
-  </nav>
+  </upc-dropdown-wrapper>
 </template>
 
 <style lang="postcss" scoped>
@@ -119,33 +109,5 @@ const links = computed(():Link[] => {
     border-bottom: 11px solid var(--color-alpha);
     border-left: 11px solid transparent;
   }
-}
-
-.Dropdown_link {
-  @apply text-left text-14px text-beta;
-  @apply w-full flex flex-row items-center;
-  @apply gap-x-8px px-16px py-8px;
-  @apply bg-transparent;
-  @apply cursor-pointer rounded-md;
-
-  &:hover,
-  &:focus {
-    @apply text-white;
-    @apply bg-gradient-to-r from-red to-orange;
-    @apply outline-none;
-  }
-
-  &--emphasize {
-    @apply text-white bg-gradient-to-r from-red to-orange;
-
-    &:hover,
-    &:focus {
-      @apply from-red/60 to-orange/60;
-    }
-  }
-}
-
-.Dropdown_linkIcon {
-  @apply flex-shrink-0 fill-current w-16px h-16px;
 }
 </style>
