@@ -46,6 +46,7 @@ const serverState = {
   locale: 'en',
   expireTime,
   uptime,
+  lanIp: '192.168.0.1',
 };
 
 export default serverState;
