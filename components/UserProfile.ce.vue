@@ -85,7 +85,6 @@ onBeforeMount(() => {
           <span>{{ description }}</span>
           <span class="text-grey-mid px-8px">&bull;</span>
         </template>
-        <!-- @todo click to copy ip -->
         <button @click="copyLanIp()" :title="`LAN IP ${lanIp}`">{{ name }}</button>
         <span v-if="copied" class="text-12px absolute right-0 bg-gradient-to-r from-red to-orange text-center block w-100px rounded">{{ 'LAN IP Copied' }}</span>
         <span v-if="showCopyNotSupported" class="text-12px font-semibold px-4px absolute right-0 bg-gradient-to-r from-red to-orange text-center block rounded">

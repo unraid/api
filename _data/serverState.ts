@@ -41,12 +41,13 @@ const serverState = {
   description: 'Fully automated media server and lab rig',
   guid: '9292-1111-BITE-444444444444',
   deviceCount: 8,
+  expireTime,
+  lanIp: '192.168.0.1',
+  locale: 'en',
+  registered: false,
   site: 'http://localhost:4321',
   state,
-  locale: 'en',
-  expireTime,
   uptime,
-  lanIp: '192.168.0.1',
 };
 
 export default serverState;
