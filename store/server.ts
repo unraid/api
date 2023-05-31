@@ -16,14 +16,23 @@ export const useServerStore = defineStore('server', () => {
    */
   const description = ref<string>();
   const deviceCount = ref<number>();
+  const expireTime = ref<number>();
+  const flashProduct = ref<string>();
+  const flashVendor = ref<string>();
   const guid = ref<string>();
-  const locale = ref<string>();
+  const keyfile = ref<string>();
   const lanIp = ref<string>();
+  const license = ref<string>();
+  const locale = ref<string>();
   const name = ref<string>();
+  const pluginInstalled = ref<boolean>();
+  const registered = ref<boolean>();
+  const regGen = ref<number>();
+  const regGuid = ref<string>();
   const site = ref<string>();
   const state = ref<string>(); // @todo implement ServerState ENUM
   const uptime = ref<number>();
-  const expireTime = ref<number>();
+  const wanFQDN = ref<string>();
 
   /**
    * Getters
@@ -32,14 +41,23 @@ export const useServerStore = defineStore('server', () => {
     return {
       description: description.value,
       deviceCount: deviceCount.value,
+      expireTime: expireTime.value,
+      flashProduct: flashProduct.value,
+      flashVendor: flashVendor.value,
       guid: guid.value,
+      keyfile: keyfile.value,
+      lanIp: lanIp.value,
+      license: license.value,
       locale: locale.value,
       name: name.value,
+      pluginInstalled: pluginInstalled.value,
+      registered: registered.value,
+      regGen: regGen.value,
+      regGuid: regGuid.value,
       site: site.value,
       state: state.value,
       uptime: uptime.value,
-      expireTime: expireTime.value,
-      lanIp: lanIp.value,
+      wanFQDN: wanFQDN.value,
     }
   });
 
@@ -172,28 +190,41 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[setServer]', data);
     description.value = data?.description;
     deviceCount.value = data?.deviceCount;
+    expireTime.value = data?.expireTime;
+    flashProduct.value = data?.flashProduct;
+    flashVendor.value = data?.flashVendor;
     guid.value = data?.guid;
+    keyfile.value = data?.keyfile;
+    lanIp.value = data?.lanIp;
+    license.value = data?.license;
     locale.value = data?.locale;
     name.value = data?.name;
+    pluginInstalled.value = data?.pluginInstalled;
+    registered.value = data?.registered;
+    regGen.value = data?.regGen;
+    regGuid.value = data?.regGuid;
     site.value = data?.site;
     state.value = data?.state;
     uptime.value = data?.uptime;
-    expireTime.value = data?.expireTime;
-    lanIp.value = data?.lanIp;
+    wanFQDN.value = data?.wanFQDN;
   };
 
   return {
     // state
-    name,
     description,
+    deviceCount,
+    expireTime,
     guid,
     locale,
     lanIp,
-    deviceCount,
+    name,
+    pluginInstalled,
+    registered,
+    regGen,
+    regGuid,
     site,
-    uptime,
-    expireTime,
     state,
+    uptime,
     // getters
     server,
     stateData,
