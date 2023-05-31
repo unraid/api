@@ -11,7 +11,7 @@ const myServersEnv = ref<string>('Staging');
 const devEnv = ref<string>('development');
 
 const serverStore = useServerStore();
-const { stateData } = storeToRefs(serverStore);
+const { registered, stateData } = storeToRefs(serverStore);
 
 // Intended to hide sign in and sign out from actions v-for in UPC dropdown so we can display them separately
 const stateDataKeyActions = computed((): ServerStateDataAction[] | undefined => {
@@ -19,6 +19,8 @@ const stateDataKeyActions = computed((): ServerStateDataAction[] | undefined => 
   if (!stateData.value.actions) return;
   return stateData.value.actions.filter(action => !notAllowed.includes(action.name));
 });
+
+console.log('[registered]', registered.value);
 
 const links = computed(():UserProfileLink[] => {
   return [
@@ -43,6 +45,15 @@ const links = computed(():UserProfileLink[] => {
       text: 'Settings',
       title: 'Go to Connect plugin settings',
     },
+    ...(registered.value
+      ? [{
+        click: () => { console.debug('signOut') },
+        icon: ArrowRightOnRectangleIcon,
+        text: 'Sign Out',
+        title: 'Sign Out to Unregister your server with Connect',
+      }]
+      : []
+    ),
   ];
 })
 </script>
@@ -64,7 +75,7 @@ const links = computed(():UserProfileLink[] => {
         </li>
       </template>
 
-      <li class="my-8px mx-12px">
+      <li class="m-8px">
         <upc-keyline />
       </li>
 
