@@ -10,6 +10,10 @@ export default defineNuxtConfig({
     '@nuxtjs/tailwindcss',
     'nuxt-custom-elements',
   ],
+  components: [
+    { path: '~/components/UserProfile', prefix: 'Upc' },
+    '~/components',
+  ],
   runtimeConfig: {
     public: { // will be exposed to the client-side
       callbackKey: '', // set in .env – https://nuxt.com/docs/guide/going-further/runtime-config#environment-variables
