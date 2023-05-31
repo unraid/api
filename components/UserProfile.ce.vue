@@ -14,7 +14,13 @@ const props = defineProps<Props>();
 const callbackStore = useCallbackStore();
 const serverStore = useServerStore();
 
-const { name, description, guid } = storeToRefs(serverStore);
+const { name, description, guid, uptime, expireTime, state } = storeToRefs(serverStore);
+
+const uptimeOrExpiredTime = computed(() => {
+  return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value && expireTime.value > 0
+    ? expireTime.value
+    : uptime.value;
+});
 
 onBeforeMount(() => {
   console.debug('[onBeforeMount]', { props }, typeof props.server);
@@ -34,11 +40,12 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div class="text-white bg-blue-700 flex flex-col gap-y-2 p-4 rounded-lg">
-    <h3 class="italic">{{ name }}</h3>
-    <h4 class="text-gray-300">{{ description }}</h4>
-    <h5>{{ guid }}</h5>
-    <button class="p-2 text-blue-700 hover:text-white bg-white border border-white hover:bg-transparent rounded-sm" @click="callbackStore.send()" type="button">Test Purchase Callback</button>
+  <div>
+    <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end pr-16px pt-4px">
+      <UptimeExpire :time="uptimeOrExpiredTime" :state="state" />
+      <span class="px-12px">&bull;</span>
+      <ServerState />
+    </div>
   </div>
 </template>
 
