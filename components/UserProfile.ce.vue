@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia';
 import { useCallbackStore } from '~/store/callback';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
-import 'tailwindcss/tailwind.css';
+import '~/assets/main.css';
 
 export interface Props {
   server?: Server;
@@ -48,9 +48,3 @@ onBeforeMount(() => {
     </div>
   </div>
 </template>
-
-<style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-</style>

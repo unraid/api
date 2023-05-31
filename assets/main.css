@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  --color-alpha: #1c1b1b;
+  --color-beta: #f2f2f2;
+  --color-gamma: #999999;
+  --color-customgradient-start: rgba(242, 242, 242, .0);
+  --color-customgradient-end: rgba(242, 242, 242, .85);
+}
