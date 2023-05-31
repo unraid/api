@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { useClipboard, useToggle, onClickOutside } from '@vueuse/core';
-// import { vOnClickOutside } from '@vueuse/components';
-// import { useCallbackStore } from '~/store/callback';
+
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
@@ -24,7 +23,6 @@ const dropdownOpen = ref(false);
 const toggleDropdown = useToggle(dropdownOpen);
 onClickOutside(dropdown, (_event) => dropdownOpen.value = false);
 
-// const callbackStore = useCallbackStore();
 const serverStore = useServerStore();
 const { name, description, guid, lanIp, uptime, expireTime, state } = storeToRefs(serverStore);
 
@@ -98,8 +96,8 @@ onBeforeMount(() => {
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
       <div ref="dropdown" class="relative flex items-center justify-end h-full">
-        <upc-dropdown-button @click="toggleDropdown" />
-        <upc-dropdown :show="dropdownOpen" />
+        <upc-dropdown-trigger @click="toggleDropdown" />
+        <upc-dropdown v-show="dropdownOpen" />
       </div>
     </div>
   </div>
