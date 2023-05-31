@@ -71,19 +71,6 @@ const links = computed(():UserProfileLink[] => {
       <template v-if="links">
         <li v-for="(link, index) in links" :key="`link_${index}`">
           <upc-dropdown-item :item="link" />
-          <!-- <a
-            :href="link.href"
-            :title="link.title"
-            :target="link.external ? '_blank' : ''"
-            :rel="link.external ? 'noopener noreferrer' : ''"
-            class="Dropdown_link"
-            :class="{
-              'Dropdown_link--emphasize': link.emphasize
-            }"
-          >
-            <component :is="link.icon" class="Dropdown_linkIcon" aria-hidden="true" />
-            {{ link.text }}
-          </a> -->
         </li>
       </template>
     </ul>
