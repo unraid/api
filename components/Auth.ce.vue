@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 </script>
 
@@ -7,3 +8,9 @@ import '~/assets/main.css';
     Auth.ce
   </div>
 </template>
+
+<style lang="postcss">
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+</style>
