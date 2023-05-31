@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowRightOnRectangleIcon, ArrowTopRightOnSquareIcon, CogIcon } from '@heroicons/vue/24/solid';
+import { ArrowRightOnRectangleIcon, ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon, UserIcon } from '@heroicons/vue/24/solid';
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
@@ -11,7 +11,7 @@ const myServersEnv = ref<string>('Staging');
 const devEnv = ref<string>('development');
 
 const serverStore = useServerStore();
-const { registered, stateData } = storeToRefs(serverStore);
+const { pluginInstalled, registered, stateData } = storeToRefs(serverStore);
 
 // Intended to hide sign in and sign out from actions v-for in UPC dropdown so we can display them separately
 const stateDataKeyActions = computed((): ServerStateDataAction[] | undefined => {
@@ -24,34 +24,60 @@ console.log('[registered]', registered.value);
 
 const links = computed(():UserProfileLink[] => {
   return [
-    {
-      emphasize: true,
-      external: true,
-      href: CONNECT_DASHBOARD,
-      icon: ArrowTopRightOnSquareIcon,
-      text: 'Go to Connect',
-      title: 'Opens Connect in new tab',
-    },
-    {
-      external: true,
-      href: ACCOUNT,
-      icon: ArrowTopRightOnSquareIcon,
-      text: 'Manage Unraid.net Account',
-      title: 'Manage Unraid.net Account in new tab',
-    },
-    {
-      href: PLUGIN_SETTINGS,
-      icon: CogIcon,
-      text: 'Settings',
-      title: 'Go to Connect plugin settings',
-    },
-    ...(registered.value
-      ? [{
-        click: () => { console.debug('signOut') },
-        icon: ArrowRightOnRectangleIcon,
-        text: 'Sign Out',
-        title: 'Sign Out to Unregister your server with Connect',
-      }]
+    ...(registered.value && pluginInstalled.value
+      ? [
+        {
+          emphasize: true,
+          external: true,
+          href: CONNECT_DASHBOARD,
+          icon: ArrowTopRightOnSquareIcon,
+          text: 'Go to Connect',
+          title: 'Opens Connect in new tab',
+        },
+        {
+          external: true,
+          href: ACCOUNT,
+          icon: ArrowTopRightOnSquareIcon,
+          text: 'Manage Unraid.net Account',
+          title: 'Manage Unraid.net Account in new tab',
+        },
+        {
+          href: PLUGIN_SETTINGS,
+          icon: CogIcon,
+          text: 'Settings',
+          title: 'Go to Connect plugin settings',
+        },
+        {
+          click: () => { console.debug('signOut') },
+          external: true,
+          icon: ArrowRightOnRectangleIcon,
+          text: 'Sign Out',
+          title: 'Sign Out to Unregister your server with Connect',
+        },
+      ]
+      : []
+    ),
+    ...(!registered.value && pluginInstalled.value
+      ? [
+        {
+          click: () => { console.debug('signIn') },
+          external: true,
+          icon: UserIcon,
+          text: 'Sign In with Unraid.net Account',
+          title: 'Sign In with Unraid.net Account',
+        },
+      ]
+      : []
+    ),
+    ...(!pluginInstalled.value
+      ? [
+        {
+          click: () => { console.debug('promo') },
+          icon: InformationCircleIcon,
+          text: 'Enhance your Unraid experience with Connect',
+          title: 'Enhance your Unraid experience with Connect',
+        },
+      ]
       : []
     ),
   ];
