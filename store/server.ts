@@ -65,18 +65,21 @@ export const useServerStore = defineStore('server', () => {
     actions: [
       {
         click: () => { console.debug('signIn') },
+        external: true,
         icon: GlobeAltIcon,
         name: 'signIn',
         text: 'Sign In with Unraid.net Account',
       },
       {
         click: () => { console.debug('purchase') },
+        external: true,
         icon: KeyIcon,
         name: 'purchase',
         text: 'Purchase Key',
       },
       // {
       //   click: () => { console.debug('signOut') },
+      //   external: true,
       //   icon: ArrowRightOnRectangleIcon,
       //   name: 'signOut',
       //   text: 'signOut',

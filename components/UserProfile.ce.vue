@@ -24,7 +24,7 @@ const toggleDropdown = useToggle(dropdownOpen);
 onClickOutside(dropdown, (_event) => dropdownOpen.value = false);
 
 const serverStore = useServerStore();
-const { name, description, guid, lanIp, uptime, expireTime, state } = storeToRefs(serverStore);
+const { name, description, lanIp, uptime, expireTime, state } = storeToRefs(serverStore);
 
 const uptimeOrExpiredTime = computed(() => {
   return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value && expireTime.value > 0
@@ -72,10 +72,10 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div id="UserProfile" class="UserProfile text-alpha relative z-20 flex flex-col h-full pl-80px rounded">
-    <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end">
+  <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full pl-80px rounded">
+    <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
       <upc-uptime-expire :time="uptimeOrExpiredTime" :state="state" />
-      <span class="px-12px">&bull;</span>
+      <span>&bull;</span>
       <upc-server-state />
     </div>
 
@@ -85,10 +85,13 @@ onBeforeMount(() => {
           <span>{{ description }}</span>
           <span class="text-grey-mid px-8px">&bull;</span>
         </template>
-        <button @click="copyLanIp()" :title="`LAN IP ${lanIp}`">{{ name }}</button>
-        <span v-if="copied" class="text-12px absolute right-0 bg-gradient-to-r from-red to-orange text-center block w-100px rounded">{{ 'LAN IP Copied' }}</span>
-        <span v-if="showCopyNotSupported" class="text-12px font-semibold px-4px absolute right-0 bg-gradient-to-r from-red to-orange text-center block rounded">
-          LAN IP: <span class="select-all">{{ lanIp }}</span>
+        <button @click="copyLanIp()" :title="`Click to Copy LAN IP ${lanIp}`">{{ name }}</button>
+        <span
+          v-show="copied || showCopyNotSupported"
+          class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-red to-orange text-center block rounded"
+        >
+          <template v-if="copied">{{ 'LAN IP Copied' }}</template>
+          <template v-else>LAN IP: <span class="select-all">{{ lanIp }}</span></template>
         </span>
       </h1>
 
