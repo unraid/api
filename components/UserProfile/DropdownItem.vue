@@ -9,13 +9,13 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const showExternalIconOnHover = computed(() => props.item?.click || (props.item?.external && props.item.icon !== ArrowTopRightOnSquareIcon));
+const showExternalIconOnHover = computed(() => props.item?.external && props.item.icon !== ArrowTopRightOnSquareIcon);
 </script>
 
 <template>
   <component
     :is="item?.click ? 'button' : 'a'"
-    @click="item?.click ?? null"
+    @click="item?.click() ?? null"
     :href="item?.href ?? null"
     :title="item?.title ?? null"
     :target="item?.external ? '_blank' : null"
@@ -26,13 +26,13 @@ const showExternalIconOnHover = computed(() => props.item?.click || (props.item?
       'group': showExternalIconOnHover,
     }"
   >
-    <span class="inline-flex flex-row items-center gap-x-8px">
+    <span class="leading-snug inline-flex flex-row items-center gap-x-8px">
       <component :is="item?.icon" class="flex-shrink-0 fill-current w-16px h-16px" aria-hidden="true" />
       {{ item?.text }}
     </span>
     <ArrowTopRightOnSquareIcon
       v-if="showExternalIconOnHover"
-      class="text-white fill-current w-16px h-16px ml-8px opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"
+      class="text-white fill-current flex-shrink-0 w-16px h-16px ml-8px opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-in-out"
     />
   </component>
 </template>
