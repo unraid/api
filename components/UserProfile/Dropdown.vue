@@ -113,22 +113,3 @@ const links = computed(():UserProfileLink[] => {
     </ul>
   </UpcDropdownWrapper>
 </template>
-
-<style lang="postcss" scoped>
-/* .Dropdown {
-  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-beta);
-
-  &::before {
-    @apply absolute z-20 block;
-
-    content: '';
-    width: 0;
-    height: 0;
-    top: -10px;
-    right: 32px;
-    border-right: 11px solid transparent;
-    border-bottom: 11px solid var(--color-alpha);
-    border-left: 11px solid transparent;
-  }
-} */
-</style>

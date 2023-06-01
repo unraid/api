@@ -20,9 +20,10 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
     :title="item?.title ?? null"
     :target="item?.external ? '_blank' : null"
     :rel="item?.external ? 'noopener noreferrer' : null"
-    class="DropdownItem"
+    class="text-left text-14px w-full flex flex-row items-center justify-between gap-x-8px px-8px py-8px cursor-pointer rounded-md"
     :class="{
-      'DropdownItem--emphasize': item?.emphasize,
+      'text-beta bg-transparent hover:text-white hover:bg-gradient-to-r hover:from-red hover:to-orange focus:text-white focus:bg-gradient-to-r focus:from-red focus:to-orange focus:outline-none': !item?.emphasize,
+      'text-white bg-gradient-to-r from-red to-orange hover:from-red/60 hover:to-orange/60 focus:from-red/60 focus:to-orange/60': item?.emphasize,
       'group': showExternalIconOnHover,
     }"
   >
@@ -36,29 +37,3 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
     />
   </component>
 </template>
-
-<style lang="postcss" scoped>
-.DropdownItem {
-  @apply text-left text-14px text-beta;
-  @apply w-full flex flex-row items-center justify-between;
-  @apply gap-x-8px px-8px py-8px;
-  @apply bg-transparent;
-  @apply cursor-pointer rounded-md;
-
-  &:hover,
-  &:focus {
-    @apply text-white;
-    @apply bg-gradient-to-r from-red to-orange;
-    @apply outline-none;
-  }
-
-  &--emphasize {
-    @apply text-white bg-gradient-to-r from-red to-orange;
-
-    &:hover,
-    &:focus {
-      @apply from-red/60 to-orange/60;
-    }
-  }
-}
-</style>

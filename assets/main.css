@@ -12,3 +12,20 @@ body {
   --ring-offset-shadow: 0 0 --var(--color-beta);
   --ring-shadow: 0 0 --var(--color-beta);
 }
+
+.DropdownWrapper_blip {
+  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-beta);
+
+  &::before {
+    @apply absolute z-20 block;
+
+    content: '';
+    width: 0;
+    height: 0;
+    top: -10px;
+    right: 38px;
+    border-right: 11px solid transparent;
+    border-bottom: 11px solid var(--color-alpha);
+    border-left: 11px solid transparent;
+  }
+}
