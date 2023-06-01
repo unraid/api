@@ -37,17 +37,21 @@ if (state === 'TRIAL') expireTime = Date.now() + 60 * 60 * 1000; // in 1 hour
 if (state === 'EEXPIRED') expireTime = uptime; // 1 hour ago
 
 const serverState = {
+  // avatar: '',
+  avatar: 'https://source.unsplash.com/300x300/?portrait',
   name: 'DevServer9000',
-  description: 'Fully automated media server and lab rig',
+  description: 'Fully automated media server',
   guid: '9292-1111-BITE-444444444444',
   deviceCount: 8,
   expireTime,
   lanIp: '192.168.0.1',
   locale: 'en',
-  registered: false,
+  pluginInstalled: true,
+  registered: true,
   site: 'http://localhost:4321',
   state,
   uptime,
+  username: 'zspearmint'
 };
 
 export default serverState;
