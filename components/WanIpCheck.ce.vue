@@ -8,45 +8,51 @@ export interface Props {
   phpWanIp?: string;
 }
 
-withDefaults(defineProps<Props>(), {
-  phpWanIp: '0.0.0.0',
-});
+const props = defineProps<Props>();
 
-const serverStore = useServerStore();
 const { isRemoteAccess } = storeToRefs(useServerStore());
 
-const wanIp = ref<string | null>(sessionStorage.getItem('unraidConnect_wanIp'));
+const wanIp = ref<string | null>();
+const fetchError = ref<any>();
+const loading = ref(false);
 
-if (wanIp.value) {
-  const error = ref<null>(null);
-  // @fix [Vue warn]: Property "pending" was accessed during render but is not defined on instance. 
-  const pending = ref<boolean>(false);
-} else {
-  const { data, pending, error, refresh } = await useFetch('https://wanip4.unraid.net/', {
-    onRequestError({ request, options, error }) { // Handle the request errors
-      console.debug('[onRequestError]', { request, options, error });
-    },
-    onResponse({ request, response, options }) { // Process the response data
-      wanIp.value = response._data as string; // response returns text nothing to traverse
+const computedError = computed(() => {
+  if (!props.phpWanIp) return 'DNS issue, unable to resolve wanip4.unraid.net';
+  if (fetchError.value) return fetchError.value;
+  return;
+});
+
+onBeforeMount(() => {
+  wanIp.value = sessionStorage.getItem('unraidConnect_wanIp');
+});
+
+watch(wanIp, async () => {
+  console.debug('[watch] wanIp');
+  // if we don't have a client WAN IP AND we have the server WAN IP then we fetch
+  if (!wanIp.value && props.phpWanIp) {
+    loading.value = true;
+    const { data, error } = await useFetch('https://wanip4.unraid.net/');
+    if (data.value) {
+      loading.value = false;
+      wanIp.value = data.value as string; // response returns text nothing to traverse
       // save in sessionStorage so we only make this request once per webGUI session
       sessionStorage.setItem('unraidConnect_wanIp', wanIp.value);
-    },
-    onResponseError({ request, response, options }) { // Handle the response errors
-      console.debug('[onResponseError]', { request, response, options });
+    } else if (error.value) {
+      loading.value = false;
+      fetchError.value = error.value;
     }
-  });
-}
-
+  }
+});
 </script>
 
 <template>
-  <span v-if="pending">{{ `Checking WAN IPs…` }}</span>
+  <span v-if="loading" class="italic">{{ 'Checking WAN IPs…' }}</span>
   <template v-else>
-    <span v-if="!phpWanIp" class="error">{{ error }}</span>
+    <span v-if="computedError" class="text-red font-semibold">{{ computedError }}</span>
     <template v-else>
-      <span v-if="isRemoteAccess">{{ `wanIpCheck.match ${wanIp}` }}</span>
-      <span v-else-if="phpWanIp === wanIp && !isRemoteAccess">{{ `wanIpCheck.match ${wanIp}` }}</span>
-      <span v-else class="mismatch">{{ `wanIpCheck.mismatch ${phpWanIp} !== ${wanIp}` }}</span>
+      <span v-if="isRemoteAccess">{{ `Remark: your WAN IPv4 is ${wanIp}` }}</span>
+      <span v-else-if="phpWanIp === wanIp && !isRemoteAccess">{{ `Remark: your WAN IPv4 is ${wanIp}` }}</span>
+      <span v-else class="inline-block w-1/2 whitespace-normal">Remark: Unraid's WAN IPv4 <strong>{{ phpWanIp }}</strong> does not match your client's WAN IPv4 <strong>{{ wanIp }}</strong>. This may indicate a complex network that will not work with this Remote Access solution. Ignore this message if you are currently connected via Remote Access or VPN.</span>
     </template>
   </template>
 </template>
