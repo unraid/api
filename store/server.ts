@@ -36,10 +36,13 @@ export const useServerStore = defineStore('server', () => {
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
-  const wanIp = ref<string>('');
 
   /**
    * Getters
+   */
+  const isRemoteAccess = computed(() => wanFQDN.value || (site.value && site.value.includes('www.') && site.value.includes('unraid.net')));
+  /**
+   * @todo configure
    */
   const pluginOutdated = computed(():boolean => {
     return false;
@@ -68,7 +71,6 @@ export const useServerStore = defineStore('server', () => {
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
-      wanIp: wanIp.value,
     }
   });
 
@@ -202,28 +204,27 @@ export const useServerStore = defineStore('server', () => {
    */
   const setServer = (data: Server) => {
     console.debug('[setServer]', data);
-    avatar.value = data?.avatar;
-    description.value = data?.description;
-    deviceCount.value = data?.deviceCount;
-    expireTime.value = data?.expireTime;
-    flashProduct.value = data?.flashProduct;
-    flashVendor.value = data?.flashVendor;
-    guid.value = data?.guid;
-    keyfile.value = data?.keyfile;
-    lanIp.value = data?.lanIp;
-    license.value = data?.license;
-    locale.value = data?.locale;
-    name.value = data?.name;
-    pluginInstalled.value = data?.pluginInstalled;
-    registered.value = data?.registered;
-    regGen.value = data?.regGen;
-    regGuid.value = data?.regGuid;
-    site.value = data?.site;
-    state.value = data?.state;
-    uptime.value = data?.uptime;
-    username.value = data?.username;
-    wanFQDN.value = data?.wanFQDN;
-    wanIp.value = data?.wanIp;
+    if (data?.avatar) avatar.value = data.avatar;
+    if (data?.description) description.value = data.description;
+    if (data?.deviceCount) deviceCount.value = data.deviceCount;
+    if (data?.expireTime) expireTime.value = data.expireTime;
+    if (data?.flashProduct) flashProduct.value = data.flashProduct;
+    if (data?.flashVendor) flashVendor.value = data.flashVendor;
+    if (data?.guid) guid.value = data.guid;
+    if (data?.keyfile) keyfile.value = data.keyfile;
+    if (data?.lanIp) lanIp.value = data.lanIp;
+    if (data?.license) license.value = data.license;
+    if (data?.locale) locale.value = data.locale;
+    if (data?.name) name.value = data.name;
+    if (data?.pluginInstalled) pluginInstalled.value = data.pluginInstalled;
+    if (data?.registered) registered.value = data.registered;
+    if (data?.regGen) regGen.value = data.regGen;
+    if (data?.regGuid) regGuid.value = data.regGuid;
+    if (data?.site) site.value = data.site;
+    if (data?.state) state.value = data.state;
+    if (data?.uptime) uptime.value = data.uptime;
+    if (data?.username) username.value = data.username;
+    if (data?.wanFQDN) wanFQDN.value = data.wanFQDN;
   };
 
   return {
@@ -245,6 +246,7 @@ export const useServerStore = defineStore('server', () => {
     uptime,
     username,
     // getters
+    isRemoteAccess,
     pluginOutdated,
     server,
     stateData,
