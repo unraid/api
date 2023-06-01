@@ -42,6 +42,7 @@ export interface Server {
   uptime?: number;
   username?: string;
   wanFQDN?: string;
+  wanIp?: string;
 }
 
 // @todo convert to object with text and click payload
