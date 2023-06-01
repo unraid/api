@@ -85,11 +85,11 @@ const links = computed(():UserProfileLink[] => {
 </script>
 
 <template>
-  <upc-dropdown-wrapper class="Dropdown min-w-300px max-w-350px">
+  <UpcDropdownWrapper class="min-w-300px max-w-350px">
     <header class="flex flex-row items-start justify-between mt-8px mx-8px">
       <h3 class="text-18px leading-none inline-flex flex-row gap-x-8px items-center">
         <span class="font-semibold">Connect</span>
-        <upc-beta />
+        <UpcBeta />
         <span v-if="myServersEnv" :title="`API • ${myServersEnv}`">⚙️</span>
         <span v-if="devEnv" :title="`UPC • ${devEnv}`">⚠️</span>
       </h3>
@@ -97,28 +97,25 @@ const links = computed(():UserProfileLink[] => {
     <ul class="list-reset flex flex-col gap-y-4px p-0">
       <template v-if="stateDataKeyActions">
         <li v-for="action in stateDataKeyActions" :key="action.name">
-          <upc-dropdown-item :item="action" />
+          <UpcDropdownItem :item="action" />
         </li>
       </template>
 
       <li class="m-8px">
-        <upc-keyline />
+        <UpcKeyline />
       </li>
 
       <template v-if="links">
         <li v-for="(link, index) in links" :key="`link_${index}`">
-          <upc-dropdown-item :item="link" />
+          <UpcDropdownItem :item="link" />
         </li>
       </template>
     </ul>
-  </upc-dropdown-wrapper>
+  </UpcDropdownWrapper>
 </template>
 
 <style lang="postcss" scoped>
-.Dropdown {
-  @apply text-beta;
-
-  top: 95%;
+/* .Dropdown {
   box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-beta);
 
   &::before {
@@ -133,5 +130,5 @@ const links = computed(():UserProfileLink[] => {
     border-bottom: 11px solid var(--color-alpha);
     border-left: 11px solid transparent;
   }
-}
+} */
 </style>

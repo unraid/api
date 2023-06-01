@@ -2,6 +2,7 @@ import { defineStore, createPinia, setActivePinia } from "pinia";
 import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue/24/solid';
 import type {
   Server,
+  ServerState,
   ServerStateData,
 } from '~/types/server';
 /**
@@ -14,6 +15,7 @@ export const useServerStore = defineStore('server', () => {
   /**
    * State
    */
+  const avatar = ref<string>(); // @todo potentially move to a user store
   const description = ref<string>();
   const deviceCount = ref<number>();
   const expireTime = ref<number>();
@@ -32,13 +34,19 @@ export const useServerStore = defineStore('server', () => {
   const site = ref<string>();
   const state = ref<string>(); // @todo implement ServerState ENUM
   const uptime = ref<number>();
+  const username = ref<string>(); // @todo potentially move to a user store
   const wanFQDN = ref<string>();
 
   /**
    * Getters
    */
+  const pluginOutdated = computed(():boolean => {
+    return false;
+  });
+
   const server = computed<Server>(():Server => {
     return {
+      avatar: avatar.value,
       description: description.value,
       deviceCount: deviceCount.value,
       expireTime: expireTime.value,
@@ -57,6 +65,7 @@ export const useServerStore = defineStore('server', () => {
       site: site.value,
       state: state.value,
       uptime: uptime.value,
+      username: username.value,
       wanFQDN: wanFQDN.value,
     }
   });
@@ -191,6 +200,7 @@ export const useServerStore = defineStore('server', () => {
    */
   const setServer = (data: Server) => {
     console.debug('[setServer]', data);
+    avatar.value = data?.avatar;
     description.value = data?.description;
     deviceCount.value = data?.deviceCount;
     expireTime.value = data?.expireTime;
@@ -209,11 +219,13 @@ export const useServerStore = defineStore('server', () => {
     site.value = data?.site;
     state.value = data?.state;
     uptime.value = data?.uptime;
+    username.value = data?.username;
     wanFQDN.value = data?.wanFQDN;
   };
 
   return {
     // state
+    avatar,
     description,
     deviceCount,
     expireTime,
@@ -228,7 +240,9 @@ export const useServerStore = defineStore('server', () => {
     site,
     state,
     uptime,
+    username,
     // getters
+    pluginOutdated,
     server,
     stateData,
     // actions
