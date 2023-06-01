@@ -15,27 +15,28 @@ export const useServerStore = defineStore('server', () => {
   /**
    * State
    */
-  const avatar = ref<string>(); // @todo potentially move to a user store
-  const description = ref<string>();
-  const deviceCount = ref<number>();
-  const expireTime = ref<number>();
-  const flashProduct = ref<string>();
-  const flashVendor = ref<string>();
-  const guid = ref<string>();
-  const keyfile = ref<string>();
-  const lanIp = ref<string>();
-  const license = ref<string>();
-  const locale = ref<string>();
-  const name = ref<string>();
-  const pluginInstalled = ref<boolean>();
-  const registered = ref<boolean>();
-  const regGen = ref<number>();
-  const regGuid = ref<string>();
-  const site = ref<string>();
-  const state = ref<string>(); // @todo implement ServerState ENUM
-  const uptime = ref<number>();
-  const username = ref<string>(); // @todo potentially move to a user store
-  const wanFQDN = ref<string>();
+  const avatar = ref<string>(''); // @todo potentially move to a user store
+  const description = ref<string>('');
+  const deviceCount = ref<number>(0);
+  const expireTime = ref<number>(0);
+  const flashProduct = ref<string>('');
+  const flashVendor = ref<string>('');
+  const guid = ref<string>('');
+  const keyfile = ref<string>('');
+  const lanIp = ref<string>('');
+  const license = ref<string>('');
+  const locale = ref<string>('');
+  const name = ref<string>('');
+  const pluginInstalled = ref<boolean>(false);
+  const registered = ref<boolean>(false);
+  const regGen = ref<number>(0);
+  const regGuid = ref<string>('');
+  const site = ref<string>('');
+  const state = ref<string>(''); // @todo implement ServerState ENUM
+  const uptime = ref<number>(0);
+  const username = ref<string>(''); // @todo potentially move to a user store
+  const wanFQDN = ref<string>('');
+  const wanIp = ref<string>('');
 
   /**
    * Getters
@@ -67,6 +68,7 @@ export const useServerStore = defineStore('server', () => {
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
+      wanIp: wanIp.value,
     }
   });
 
@@ -221,6 +223,7 @@ export const useServerStore = defineStore('server', () => {
     uptime.value = data?.uptime;
     username.value = data?.username;
     wanFQDN.value = data?.wanFQDN;
+    wanIp.value = data?.wanIp;
   };
 
   return {
