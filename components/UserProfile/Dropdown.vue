@@ -85,7 +85,7 @@ const links = computed(():UserProfileLink[] => {
 </script>
 
 <template>
-  <UpcDropdownWrapper class="min-w-300px max-w-350px">
+  <UpcDropdownWrapper class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 min-w-300px max-w-350px">
     <header class="flex flex-row items-start justify-between mt-8px mx-8px">
       <h3 class="text-18px leading-none inline-flex flex-row gap-x-8px items-center">
         <span class="font-semibold">Connect</span>
