@@ -20,6 +20,7 @@ export enum ServerState {
   ENOCONN = 'ENOCONN',
 }
 export interface Server {
+  apiKey?: string;
   avatar?: string;
   description?: string;
   deviceCount?: number;
