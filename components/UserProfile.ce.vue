@@ -74,9 +74,9 @@ onBeforeMount(() => {
 <template>
   <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full pl-80px rounded">
     <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
-      <upc-uptime-expire :time="uptimeOrExpiredTime" :state="state" />
+      <UpcUptimeExpire :time="uptimeOrExpiredTime" :state="state" />
       <span>&bull;</span>
-      <upc-server-state />
+      <UpcServerState />
     </div>
 
     <div class="relative z-0 flex flex-row items-center justify-end gap-x-16px h-full">
@@ -98,8 +98,8 @@ onBeforeMount(() => {
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
       <div ref="dropdown" class="relative flex items-center justify-end h-full">
-        <upc-dropdown-trigger @click="toggleDropdown" />
-        <upc-dropdown v-show="dropdownOpen" />
+        <UpcDropdownTrigger @click="toggleDropdown" :open="dropdownOpen" />
+        <UpcDropdown v-show="dropdownOpen" />
       </div>
     </div>
   </div>

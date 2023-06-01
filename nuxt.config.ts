@@ -11,6 +11,7 @@ export default defineNuxtConfig({
     'nuxt-custom-elements',
   ],
   components: [
+    { path: '~/components/Brand', prefix: 'Brand' },
     { path: '~/components/UserProfile', prefix: 'Upc' },
     '~/components',
   ],

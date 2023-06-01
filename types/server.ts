@@ -20,6 +20,7 @@ export enum ServerState {
   ENOCONN = 'ENOCONN',
 }
 export interface Server {
+  avatar?: string;
   description?: string;
   deviceCount?: number;
   expireTime?: number;
@@ -39,6 +40,7 @@ export interface Server {
   // state?: ServerState;
   state: string;
   uptime?: number;
+  username?: string;
   wanFQDN?: string;
 }
 

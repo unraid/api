@@ -8,7 +8,7 @@ body {
   --color-gamma: #999999;
   --color-customgradient-start: rgba(242, 242, 242, .0);
   --color-customgradient-end: rgba(242, 242, 242, .85);
-  /* --shadow-beta: 0 25px 50px -12px ${hexToRgba(beta, 0.15)};
-  --ring-offset-shadow: 0 0 ${beta};
-  --ring-shadow: 0 0 ${beta}; */
+  --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, .15);
+  --ring-offset-shadow: 0 0 --var(--color-beta);
+  --ring-shadow: 0 0 --var(--color-beta);
 }
