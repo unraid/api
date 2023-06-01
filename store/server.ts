@@ -16,6 +16,7 @@ export const useServerStore = defineStore('server', () => {
    * State
    */
   const avatar = ref<string>(''); // @todo potentially move to a user store
+  const apiKey = ref<string>(''); // @todo potentially move to a user store
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
   const expireTime = ref<number>(0);
@@ -50,6 +51,7 @@ export const useServerStore = defineStore('server', () => {
 
   const server = computed<Server>(():Server => {
     return {
+      apiKey: apiKey.value,
       avatar: avatar.value,
       description: description.value,
       deviceCount: deviceCount.value,
@@ -204,6 +206,7 @@ export const useServerStore = defineStore('server', () => {
    */
   const setServer = (data: Server) => {
     console.debug('[setServer]', data);
+    if (data?.apiKey) apiKey.value = data.apiKey;
     if (data?.avatar) avatar.value = data.avatar;
     if (data?.description) description.value = data.description;
     if (data?.deviceCount) deviceCount.value = data.deviceCount;
@@ -229,6 +232,7 @@ export const useServerStore = defineStore('server', () => {
 
   return {
     // state
+    apiKey,
     avatar,
     description,
     deviceCount,
