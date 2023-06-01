@@ -10,3 +10,9 @@ export interface UserProfileLink {
   text: string;
   title?: string;
 }
+
+export interface UserProfilePromoFeature {
+  copy: string;
+  icon?: typeof ArrowTopRightOnSquareIcon;
+  title: string;
+}
