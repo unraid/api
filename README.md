@@ -37,3 +37,7 @@ Check out the [deployment documentation](https://nuxt.com/docs/getting-started/d
 
 ## Build for Unraid webgui [@TODO]
 Instructions to come
+
+## Interfacing with `unraid-api`
+
+@todo https://v4.apollo.vuejs.org/guide-composable/fragments.html#colocating-fragments
