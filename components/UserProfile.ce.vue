@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { useClipboard, useToggle, onClickOutside } from '@vueuse/core';
 
+import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
@@ -18,10 +19,15 @@ const props = withDefaults(defineProps<Props>(), {
 /**
  * Dropdown handling
  */
+const promoStore = usePromoStore();
+const { visible } = storeToRefs(promoStore);
 const dropdown = ref(null);
 const dropdownOpen = ref(false);
 const toggleDropdown = useToggle(dropdownOpen);
-onClickOutside(dropdown, (_event) => dropdownOpen.value = false);
+onClickOutside(dropdown, (_event) => {
+  dropdownOpen.value = false;
+  if (visible.value) promoStore.hide();
+});
 
 const serverStore = useServerStore();
 const { name, description, lanIp } = storeToRefs(serverStore);
