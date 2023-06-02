@@ -4,8 +4,6 @@ import { InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/2
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 
-defineEmits(['click']);
-
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const {
@@ -17,9 +15,7 @@ const {
   username,
 } = storeToRefs(useServerStore());
 
-const registeredAndPluginInstalled = computed(() => {
-  return pluginInstalled.value && registered.value;
-});
+const registeredAndPluginInstalled = computed(() => pluginInstalled.value && registered.value);
 
 const text = computed((): string | undefined => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') return 'Fix Error';
@@ -42,7 +38,7 @@ const title = computed((): string => {
 <template>
   <div class="relative flex items-center justify-end h-full">
     <button
-      @click="dropdownStore.dropdownToggle()"
+      @click.stop="dropdownStore.dropdownToggle()"
       class="group text-18px hover:text-alpha focus:text-alpha border border-transparent flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
       :title="title"
     >
