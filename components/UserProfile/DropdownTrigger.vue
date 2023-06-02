@@ -1,18 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ChevronDownIcon, InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import { InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
-
-export interface Props {
-  open?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  open: false,
-});
 
 defineEmits(['click']);
 
+const dropdownStore = useDropdownStore();
+const { dropdownVisible } = storeToRefs(dropdownStore);
 const {
   pluginInstalled,
   pluginOutdated,
@@ -40,14 +35,14 @@ const title = computed((): string => {
   // if (myServersError.value && registeredAndPluginInstalled.value return 'Unraid API Error';
   // if (errorTooManyDisks.value) return 'Too many devices';
   // if (isLaunchpadOpen.value) return 'Close and continue to webGUI';
-  return props.open ? 'Close Dropdown' : 'Open Dropdown';
+  return dropdownVisible.value ? 'Close Dropdown' : 'Open Dropdown';
 });
 </script>
 
 <template>
   <div class="relative flex items-center justify-end h-full">
     <button
-      @click="$emit('click')"
+      @click="dropdownStore.dropdownToggle()"
       class="group text-18px hover:text-alpha focus:text-alpha border border-transparent flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
       :title="title"
     >
@@ -56,7 +51,7 @@ const title = computed((): string => {
 
       <span class="flex flex-row items-center gap-x-8px">
         <span class="leading-none">{{ text }}</span>
-        <UpcTriangleDown :open="open" />
+        <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
       </span>
 
       <BrandAvatar />

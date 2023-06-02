@@ -1,7 +1,10 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { useClipboard, useToggle, onClickOutside } from '@vueuse/core';
+import { useClipboard } from '@vueuse/core';
+import { vOnClickOutside } from '@vueuse/components'
+import { OnClickOutside } from '@vueuse/components';
 
+import { useDropdownStore } from '~/store/dropdown';
 import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
@@ -19,15 +22,23 @@ const props = withDefaults(defineProps<Props>(), {
 /**
  * Dropdown handling
  */
+const dropdownStore = useDropdownStore();
 const promoStore = usePromoStore();
-const { visible } = storeToRefs(promoStore);
-const dropdown = ref(null);
-const dropdownOpen = ref(false);
-const toggleDropdown = useToggle(dropdownOpen);
-onClickOutside(dropdown, (_event) => {
-  dropdownOpen.value = false;
-  if (visible.value) promoStore.hide();
-});
+const { dropdownVisible } = storeToRefs(dropdownStore);
+const { promoVisible } = storeToRefs(promoStore);
+const dropdownIgnoreClickOutside = ref();
+/**
+ * @todo fix click of open promo closing this dropdown
+ */
+const onClickOutsideHandler = [
+  () => {
+    console.debug('[onClickOutside]', dropdownVisible.value, promoVisible.value);
+    // if (dropdownVisible.value) dropdownStore.dropdownHide();
+    // if (promoVisible.value) promoStore.promoHide();
+  },
+  { ignore: [dropdownIgnoreClickOutside] }
+];
+
 
 const serverStore = useServerStore();
 const { name, description, lanIp } = storeToRefs(serverStore);
@@ -97,10 +108,12 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
-      <div ref="dropdown" class="flex items-center justify-end h-full">
-        <UpcDropdownTrigger @click="toggleDropdown" :open="dropdownOpen" />
-        <UpcDropdown v-show="dropdownOpen" />
-      </div>
+      <OnClickOutside @trigger="onClickOutsideHandler">
+        <div class="flex items-center justify-end h-full">
+          <UpcDropdownTrigger />
+          <UpcDropdown ref="dropdownIgnoreClickOutside" />
+        </div>
+      </OnClickOutside>
     </div>
   </div>
 </template>
