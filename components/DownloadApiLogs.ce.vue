@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import { ArrowDownTrayIcon } from '@heroicons/vue/24/solid';
 import { DEV_GRAPH_URL } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
@@ -11,7 +12,7 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
 </script>
 
 <template>
-  <div class="whitespace-normal flex flex-col gap-y-6">
+  <div class="whitespace-normal flex flex-col gap-y-16px">
     <span class="leading-8 max-w-3xl">
       The primary method of support for Unraid Connect is through <a href="https://forums.unraid.net/forum/94-connect-plugin-support/" target="_blank" rel="noopener noreferrer">our forums</a> and <a href="https://discord.gg/unraid" target="_blank" rel="noopener noreferrer">Discord</a>. If you are asked to supply logs, please open a support request on our <a href="https://unraid.net/contact" target="_blank" rel="noopener noreferrer">Contact Page</a> and reply to the email message you receive with your logs attached. The logs may contain sensitive information so do not post them publicly.
     </span>
@@ -23,6 +24,7 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
         target="_blank"
         download
       >
+        <ArrowDownTrayIcon class="flex-shrink-0 w-14px" />
         {{ 'Download' }}
       </a>
     </span>
