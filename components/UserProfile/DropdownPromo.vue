@@ -1,7 +1,11 @@
 <script lang="ts" setup>
+import { usePromoStore } from '~/store/promo';
+
 import type { UserProfilePromoFeature } from '~/types/userProfile';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
+
+const promoStore = usePromoStore();
 
 const features = ref<UserProfilePromoFeature[]>([
   {
@@ -47,7 +51,7 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
 
 <template>
   <div class="text-center relative z-10 w-full max-w-800px p-24px sm:p-32px lg:px-40px">
-    <h2 class="text-24px font-semibold my-0">
+    <h2 class="text-24px font-semibold my-0 mx-auto max-w-[550px]">
       Enhance your Unraid experience with these <span class="inline-flex flex-row items-end gap-x-4px"><br class="hidden sm:block"/>Connect <span><UpcBeta /></span></span> features
     </h2>
 
@@ -73,7 +77,7 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
           :title="'Checkout the Connect Documentation'"
         >{{ 'Learn More' }}</a>
         <button
-          @click="console.debug('Close Promo')"
+          @click="promoStore.hide();"
           class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
           :title="'Close Promo'"
         >
