@@ -24,13 +24,7 @@ const toggleDropdown = useToggle(dropdownOpen);
 onClickOutside(dropdown, (_event) => dropdownOpen.value = false);
 
 const serverStore = useServerStore();
-const { name, description, lanIp, uptime, expireTime, state } = storeToRefs(serverStore);
-
-const uptimeOrExpiredTime = computed(() => {
-  return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value && expireTime.value > 0
-    ? expireTime.value
-    : uptime.value;
-});
+const { name, description, lanIp } = storeToRefs(serverStore);
 
 /**
  * Copy LAN IP on server name click
@@ -72,9 +66,9 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full pl-80px rounded">
+  <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pl-40px rounded">
     <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
-      <UpcUptimeExpire :time="uptimeOrExpiredTime" :state="state" />
+      <UpcUptimeExpire />
       <span>&bull;</span>
       <UpcServerState />
     </div>

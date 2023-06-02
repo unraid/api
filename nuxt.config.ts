@@ -50,6 +50,10 @@ export default defineNuxtConfig({
             path: '@/components/PluginPromo.ce',
           },
           {
+            name: 'ConnectUserProfile',
+            path: '@/components/UserProfile.ce',
+          },
+          {
             name: 'ConnectWanIpCheck',
             path: '@/components/WanIpCheck.ce',
           },

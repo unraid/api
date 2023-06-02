@@ -46,7 +46,7 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
 </script>
 
 <template>
-  <div class="text-beta bg-alpha border-grey-darkest text-center relative z-10 w-full max-w-800px mr-8px p-24px sm:p-32px lg:px-40px shadow-md rounded-lg">
+  <div class="text-center relative z-10 w-full max-w-800px p-24px sm:p-32px lg:px-40px">
     <h2 class="text-24px font-semibold my-0">
       Enhance your Unraid experience with these <span class="inline-flex flex-row items-end gap-x-4px"><br class="hidden sm:block"/>Connect <span><UpcBeta /></span></span> features
     </h2>

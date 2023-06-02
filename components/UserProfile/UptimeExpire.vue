@@ -1,31 +1,35 @@
 <script setup lang="ts">
+import { storeToRefs } from 'pinia';
 import dateDiff from '~/helpers/time/dateDiff';
 import dateFormat from '~/helpers/time/dateFormat';
 import buildStringFromValues from '~/helpers/time/buildTimeString';
+import { useServerStore } from '~/store/server';
 
-export interface Props {
-  time: string;
-  state: string;
-}
+const serverStore = useServerStore();
+const { uptime, expireTime, state } = storeToRefs(serverStore);
 
-const props = defineProps<Props>();
+const uptimeOrExpiredTime = computed(() => {
+  return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value && expireTime.value > 0
+    ? expireTime.value
+    : uptime.value;
+});
 
 const parsedTime = ref<string>('');
 const formattedTime = computed<string>(() => {
-  return dateFormat(props.time);
+  return dateFormat((uptimeOrExpiredTime.value).toString());
 });
 
 const countUp = computed<boolean>(() => {
-  return props.state !== 'TRIAL' && props.state === 'EEXPIRED';
+  return state.value !== 'TRIAL' && state.value === 'EEXPIRED';
 })
 
 const output = computed(() => {
   if (!countUp.value) {
     return {
-      title: props.state === 'EEXPIRED'
+      title: state.value === 'EEXPIRED'
         ? `Trial Key Expired at ${formattedTime.value}`
         : `Trial Key Expires at ${formattedTime.value}`,
-      text: props.state === 'EEXPIRED'
+      text: state.value === 'EEXPIRED'
         ? `Trial Key Expired ${parsedTime.value}`
         : `Trial Key Expires in ${parsedTime.value}`,
     };
@@ -36,7 +40,7 @@ const output = computed(() => {
   };
 });
 
-const runDiff = () => parsedTime.value = buildStringFromValues(dateDiff(props.time, countUp.value));
+const runDiff = () => parsedTime.value = buildStringFromValues(dateDiff((uptimeOrExpiredTime.value).toString(), countUp.value));
 
 let interval: string | number | NodeJS.Timeout | undefined = undefined;
 onBeforeMount(() => {

@@ -51,18 +51,15 @@ const title = computed((): string => {
       class="group text-18px hover:text-alpha focus:text-alpha border border-transparent flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
       :title="title"
     >
-      <!-- show info icon for non-error of myServersOutOfDate b/c it still allows the API to connect -->
       <InformationCircleIcon v-if="pluginOutdated" class="text-red fill-current relative w-24px h-24px" />
-      <!--  v-else-if="showWarning" -->
       <ExclamationTriangleIcon class="text-red fill-current relative w-24px h-24px" />
 
       <span class="flex flex-row items-center gap-x-8px">
-        {{ text }}
-        <UpcTriangleDown v-if="registeredAndPluginInstalled" :open="open" />
+        <span class="leading-none">{{ text }}</span>
+        <UpcTriangleDown :open="open" />
       </span>
 
       <BrandAvatar />
-      <UpcTriangleDown v-if="!registeredAndPluginInstalled" :open="open" />
     </button>
   </div>
 </template>
