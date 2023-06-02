@@ -15,11 +15,11 @@ export default defineNuxtConfig({
     { path: '~/components/UserProfile', prefix: 'Upc' },
     '~/components',
   ],
-  runtimeConfig: {
-    public: { // will be exposed to the client-side
-      callbackKey: '', // set in .env – https://nuxt.com/docs/guide/going-further/runtime-config#environment-variables
-    }
-  },
+  // runtimeConfig: {
+  //   public: { // will be exposed to the client-side
+  //     callbackKey: '', // set in .env – https://nuxt.com/docs/guide/going-further/runtime-config#environment-variables
+  //   }
+  // },
   customElements: {
     entries: [
       {
@@ -40,10 +40,6 @@ export default defineNuxtConfig({
           {
             name: 'ConnectKeyActions',
             path: '@/components/KeyActions.ce',
-          },
-          {
-            name: 'ConnectPluginPromo',
-            path: '@/components/PluginPromo.ce',
           },
           {
             name: 'ConnectUserProfile',
