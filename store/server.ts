@@ -234,6 +234,17 @@ export const useServerStore = defineStore('server', () => {
         };
     }
   });
+  const authActionsNames = ['signIn', 'signOut'];
+  // Extract sign in / out from actions so we can display seperately as needed
+  const authActions = computed((): ServerStateDataAction | undefined => {
+    if (!stateData.value.actions) return;
+    return stateData.value.actions.find(action => authActionsNames.includes(action.name));
+  });
+  // Remove sign in / out from actions so we can display them separately
+  const keyActions = computed((): ServerStateDataAction[] | undefined => {
+    if (!stateData.value.actions) return;
+    return stateData.value.actions.filter(action => !authActionsNames.includes(action.name));
+  });
 
   /**
    * Actions
@@ -284,7 +295,9 @@ export const useServerStore = defineStore('server', () => {
     uptime,
     username,
     // getters
+    authActions,
     isRemoteAccess,
+    keyActions,
     pluginOutdated,
     server,
     stateData,
