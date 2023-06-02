@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+darkTheme
+alpha: '#1c1b1b',
+beta: '#f2f2f2',
+gamma: '#999999',
+
+lightTheme
+alpha: '#f2f2f2',
+beta: '#1c1b1b',
+gamma: '#999999',
+*/
+
 body {
   --color-alpha: #1c1b1b;
   --color-beta: #f2f2f2;
@@ -23,7 +35,7 @@ body {
     width: 0;
     height: 0;
     top: -10px;
-    right: 37px;
+    right: 40px;
     border-right: 11px solid transparent;
     border-bottom: 11px solid var(--color-alpha);
     border-left: 11px solid transparent;
