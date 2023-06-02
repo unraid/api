@@ -42,10 +42,6 @@ export default defineNuxtConfig({
             path: '@/components/KeyActions.ce',
           },
           {
-            name: 'ConnectLaunchpad',
-            path: '@/components/Launchpad.ce',
-          },
-          {
             name: 'ConnectPluginPromo',
             path: '@/components/PluginPromo.ce',
           },
