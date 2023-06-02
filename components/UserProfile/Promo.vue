@@ -60,11 +60,17 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
     max-width="max-w-800px"
   >
     <div class="text-center relative w-full p-24px">
-      <h2 class="text-24px font-semibold my-0 mx-auto max-w-[550px]">
-        Enhance your Unraid experience with these <span class="inline-flex flex-row items-end gap-x-4px"><br class="hidden sm:block"/>Connect <span><UpcBeta /></span></span> features
-      </h2>
+      <header>
+        <h1 class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">
+          Introducing Unraid Connect
+          <span><UpcBeta class="relative -top-1" /></span>
+        </h1>
+        <h2 class="text-20px">
+          Enhance your Unraid experience with these features
+        </h2>
+      </header>
 
-      <div class="text-12px flex flex-wrap justify-center my-16px md:my-24px">
+      <div class="flex flex-wrap justify-center my-16px md:my-24px">
         <UpcPromoFeature
           v-for="(feature, index) in features"
           :key="index"

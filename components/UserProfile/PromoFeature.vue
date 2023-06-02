@@ -21,13 +21,13 @@ defineProps<Props>();
       <slot></slot>
     </span>
     <div class="inline-flex flex-col pl-4 mr-4" :class="{ 'text-center': center }">
-      <h3 class="font-semibold" :class="{ 'mt-0 mb-4px': copy, 'my-0': !copy, 'flex flex-row justify-center items-center': center }">
+      <h3 class="text-14px font-semibold" :class="{ 'mt-0 mb-4px': copy, 'my-0': !copy, 'flex flex-row justify-center items-center': center }">
         <span v-if="center" class="flex-shrink-0 mr-8px">
           <slot></slot>
         </span>
         {{ title }}
       </h3>
-      <p v-if="copy" v-html="copy" class="opacity-90 py-0" :class="{'px-8px': center}"></p>
+      <p v-if="copy" v-html="copy" class="text-12px opacity-90 py-0" :class="{'px-8px': center}"></p>
     </div>
   </div>
 </template>
