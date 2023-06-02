@@ -46,7 +46,7 @@ const serverState = {
   expireTime,
   lanIp: '192.168.0.1',
   locale: 'en',
-  pluginInstalled: true,
+  pluginInstalled: false,
   registered: true,
   site: 'http://localhost:4321',
   state,
