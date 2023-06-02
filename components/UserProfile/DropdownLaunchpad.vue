@@ -12,7 +12,7 @@ const showExpireTime = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[550px] max-w-4xl mr-8px p-16px md:py-24px md:px-32px lg:px-40px shadow-md rounded-lg">
+  <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-4xl mr-8px p-16px md:py-24px md:px-32px lg:px-40px shadow-md rounded-lg">
     <header class="text-center">
       <h2 class="text-24px font-semibold">Thank you for installing Connect!</h2>
       <h3>Sign In to your Unraid.net account to register your server</h3>
