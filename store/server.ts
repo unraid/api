@@ -4,6 +4,7 @@ import type {
   Server,
   ServerState,
   ServerStateData,
+  ServerStateDataAction,
 } from '~/types/server';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -29,7 +30,7 @@ export const useServerStore = defineStore('server', () => {
   const locale = ref<string>('');
   const name = ref<string>('');
   const pluginInstalled = ref<boolean>(false);
-  const registered = ref<boolean>(false);
+  const registered = ref<boolean>();
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
   const site = ref<string>('');
@@ -76,15 +77,24 @@ export const useServerStore = defineStore('server', () => {
     }
   });
 
+  const signInAction: ServerStateDataAction = {
+    click: () => { console.debug('signIn') },
+    external: true,
+    icon: GlobeAltIcon,
+    name: 'signIn',
+    text: 'Sign In with Unraid.net Account',
+  };
+  const signOutAction: ServerStateDataAction = {
+    click: () => { console.debug('signOut') },
+    external: true,
+    icon: ArrowRightOnRectangleIcon,
+    name: 'signOut',
+    text: 'Sign Out of Unraid.net',
+  };
   const stateDataDefault: ServerStateData = {
     actions: [
-      {
-        click: () => { console.debug('signIn') },
-        external: true,
-        icon: GlobeAltIcon,
-        name: 'signIn',
-        text: 'Sign In with Unraid.net Account',
-      },
+      // sign in
+      ...(registered.value ? [] : [signInAction]),
       {
         click: () => { console.debug('purchase') },
         external: true,
@@ -92,13 +102,8 @@ export const useServerStore = defineStore('server', () => {
         name: 'purchase',
         text: 'Purchase Key',
       },
-      // {
-      //   click: () => { console.debug('signOut') },
-      //   external: true,
-      //   icon: ArrowRightOnRectangleIcon,
-      //   name: 'signOut',
-      //   text: 'signOut',
-      // },
+      // sign out,
+      ...(registered.value ? [signOutAction] : []),
     ],
     humanReadable: 'Trial',
     heading: 'Thank you for choosing Unraid OS!',
@@ -129,70 +134,99 @@ export const useServerStore = defineStore('server', () => {
       case 'EGUID':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'EGUID1':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'ENOKEYFILE2':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'ETRIAL':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'ENOKEYFILE1':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'ENOFLASH':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH1':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH2':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH3':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH4':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH5':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH6':
-        return {
-          ...stateDataDefault,
-        };
       case 'ENOFLASH7':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'EBLACKLISTED':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'EBLACKLISTED1':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'EBLACKLISTED2':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       case 'ENOCONN':
         return {
           ...stateDataDefault,
+          error: {
+            heading: `${state.value} temp heading`,
+            message: `${state.value} temp message – this is an error message`,
+            reAuthFix: false,
+          },
         };
       default:
         return {

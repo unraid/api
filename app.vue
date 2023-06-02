@@ -13,7 +13,7 @@ onBeforeMount(() => {
       <div class="flex flex-col gap-6 p-6">
         <h2>Vue Components</h2>
         <UserProfileCe :server="serverState" />
-        <ApiLogsCe />
+        <DownloadApiLogsCe />
         <AuthCe />
         <KeyActionsCe />
         <LaunchpadCe />
@@ -24,7 +24,7 @@ onBeforeMount(() => {
       <div class="flex flex-col gap-6 p-6">
         <h2>Web Components</h2>
         <connect-user-profile :server="JSON.stringify(serverState)"></connect-user-profile>
-        <connect-api-logs></connect-api-logs>
+        <connect-download-api-logs></connect-download-api-logs>
         <connect-auth></connect-auth>
         <connect-key-actions></connect-key-actions>
         <connect-launchpad></connect-launchpad>
