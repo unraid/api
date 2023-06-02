@@ -1,4 +1,7 @@
 <script setup lang="ts">
+/**
+ * @fix Modal closes when clicking inside the modal
+ */
 import { Dialog, DialogPanel, DialogTitle, DialogDescription, TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { CheckIcon, XMarkIcon } from '@heroicons/vue/24/outline';
 
@@ -21,7 +24,7 @@ withDefaults(defineProps<Props>(), {
   <TransitionRoot as="template" :show="open">
     <Dialog as="div" class="relative z-[99999]">
       <TransitionChild as="template" enter="ease-out duration-300" enter-from="opacity-0" enter-to="opacity-100" leave="ease-in duration-200" leave-from="opacity-100" leave-to="opacity-0">
-        <div class="fixed inset-0 bg-black bg-opacity-50 transition-opacity" />
+        <div class="fixed inset-0 z-0 bg-black bg-opacity-50 transition-opacity" />
       </TransitionChild>
 
       <div class="fixed inset-0 z-10 overflow-y-auto">
