@@ -24,9 +24,6 @@ onBeforeMount(() => {
         <h3>KeyActionsCe</h3>
         <KeyActionsCe />
         <hr />
-        <h3>PluginPromoCe</h3>
-        <PluginPromoCe />
-        <hr />
         <h3>WanIpCheckCe</h3>
         <WanIpCheckCe />
         <hr />
@@ -46,9 +43,6 @@ onBeforeMount(() => {
         <hr />
         <h3>KeyActionsCe</h3>
         <connect-key-actions></connect-key-actions>
-        <hr />
-        <h3>PluginPromoCe</h3>
-        <connect-plugin-promo></connect-plugin-promo>
         <hr />
         <h3>WanIpCheckCe</h3>
         <connect-wan-ip-check></connect-wan-ip-check>

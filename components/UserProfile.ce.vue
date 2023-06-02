@@ -1,11 +1,8 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { useClipboard } from '@vueuse/core';
-import { vOnClickOutside } from '@vueuse/components'
-import { OnClickOutside } from '@vueuse/components';
 
 import { useDropdownStore } from '~/store/dropdown';
-import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
@@ -19,29 +16,17 @@ const props = withDefaults(defineProps<Props>(), {
   showDescription: true,
 });
 
-/**
- * Dropdown handling
- */
-const dropdownStore = useDropdownStore();
-const promoStore = usePromoStore();
-const { dropdownVisible } = storeToRefs(dropdownStore);
-const { promoVisible } = storeToRefs(promoStore);
-const dropdownIgnoreClickOutside = ref();
-/**
- * @todo fix click of open promo closing this dropdown
- */
-const onClickOutsideHandler = [
-  () => {
-    console.debug('[onClickOutside]', dropdownVisible.value, promoVisible.value);
-    // if (dropdownVisible.value) dropdownStore.dropdownHide();
-    // if (promoVisible.value) promoStore.promoHide();
-  },
-  { ignore: [dropdownIgnoreClickOutside] }
-];
-
-
+const dropdownStore = useDropdownStore()
 const serverStore = useServerStore();
+
+const { dropdownVisible } = storeToRefs(dropdownStore);
 const { name, description, lanIp } = storeToRefs(serverStore);
+
+/**
+ * Close dropdown when clicking outside
+ */
+const dropdownParent = ref(null);
+onClickOutside(dropdownParent, (_e) => dropdownVisible.value && dropdownStore.dropdownHide());
 
 /**
  * Copy LAN IP on server name click
@@ -83,6 +68,8 @@ onBeforeMount(() => {
 </script>
 
 <template>
+  <UpcPromo />
+
   <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pl-40px rounded">
     <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
       <UpcUptimeExpire />
@@ -108,12 +95,10 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
-      <OnClickOutside @trigger="onClickOutsideHandler">
-        <div class="flex items-center justify-end h-full">
-          <UpcDropdownTrigger />
-          <UpcDropdown ref="dropdownIgnoreClickOutside" />
-        </div>
-      </OnClickOutside>
+      <div ref="dropdownParent" class="flex items-center justify-end h-full">
+        <UpcDropdownTrigger />
+        <UpcDropdown ref="dropdownIgnoreClickOutside" />
+      </div>
     </div>
   </div>
 </template>
