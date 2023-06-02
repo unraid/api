@@ -91,7 +91,7 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
-      <div ref="dropdown" class="relative flex items-center justify-end h-full">
+      <div ref="dropdown" class="flex items-center justify-end h-full">
         <UpcDropdownTrigger @click="toggleDropdown" :open="dropdownOpen" />
         <UpcDropdown v-show="dropdownOpen" />
       </div>
