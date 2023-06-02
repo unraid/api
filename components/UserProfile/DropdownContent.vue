@@ -63,7 +63,7 @@ const links = computed(():UserProfileLink[] => {
     ...(!pluginInstalled.value
       ? [
         {
-          click: () => { promoStore.show() },
+          click: () => { promoStore.promoShow() },
           icon: InformationCircleIcon,
           text: 'Enhance your Unraid experience with Connect',
           title: 'Enhance your Unraid experience with Connect',
