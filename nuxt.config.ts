@@ -26,12 +26,16 @@ export default defineNuxtConfig({
         name: 'ConnectComponents',
         tags: [
           {
-            name: 'ConnectUserProfile',
-            path: '@/components/UserProfile.ce',
-          },
-          {
             name: 'ConnectAuth',
             path: '@/components/Auth.ce',
+          },
+          {
+            name: 'ConnectCallbackHandler',
+            path: '@/components/CallbackHandler.ce',
+          },
+          {
+            name: 'ConnectDownloadApiLogs',
+            path: '@/components/DownloadApiLogs.ce',
           },
           {
             name: 'ConnectKeyActions',
@@ -48,10 +52,6 @@ export default defineNuxtConfig({
           {
             name: 'ConnectWanIpCheck',
             path: '@/components/WanIpCheck.ce',
-          },
-          {
-            name: 'ConnectCallbackHandler',
-            path: '@/components/CallbackHandler.ce',
           },
         ],
       },
