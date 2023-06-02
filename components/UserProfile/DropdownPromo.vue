@@ -77,7 +77,7 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
           :title="'Checkout the Connect Documentation'"
         >{{ 'Learn More' }}</a>
         <button
-          @click="promoStore.hide();"
+          @click="promoStore.promoHide();"
           class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
           :title="'Close Promo'"
         >
