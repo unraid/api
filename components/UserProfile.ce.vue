@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { useClipboard } from '@vueuse/core';
+import { OnClickOutside } from '@vueuse/components'
 
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
@@ -24,9 +24,13 @@ const { name, description, lanIp } = storeToRefs(serverStore);
 
 /**
  * Close dropdown when clicking outside
+ * @fix ignore not working
  */
-const dropdownParent = ref(null);
-onClickOutside(dropdownParent, (_e) => dropdownVisible.value && dropdownStore.dropdownHide());
+const clickOutsideTarget = ref();
+const clickOutsideIgnoreTarget = ref();
+const outsideDropdown = () => {
+  if (dropdownVisible.value) return dropdownStore.dropdownToggle();
+};
 
 /**
  * Copy LAN IP on server name click
@@ -95,9 +99,11 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
-      <div ref="dropdownParent" class="flex items-center justify-end h-full">
-        <UpcDropdownTrigger />
-        <UpcDropdown ref="dropdownIgnoreClickOutside" />
+      <div class="flex items-center justify-end h-full">
+        <OnClickOutside @trigger="outsideDropdown" :options="{ ignore: [clickOutsideIgnoreTarget] }">
+          <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" />
+          <UpcDropdown ref="clickOutsideTarget" />
+        </OnClickOutside>
       </div>
     </div>
   </div>

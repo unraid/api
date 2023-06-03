@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core';
+import { TransitionRoot } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 
 import { useDropdownStore } from '~/store/dropdown';
@@ -17,8 +17,19 @@ const showLaunchpad = computed(() => pluginInstalled.value && !registered.value)
 </script>
 
 <template>
-  <UpcDropdownWrapper v-if="dropdownVisible" class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 transition-all">
-    <UpcDropdownContent v-if="showDefaultContent" />
-    <UpcDropdownLaunchpad v-else />
-  </UpcDropdownWrapper>
+  <TransitionRoot
+    as="template"
+    :show="dropdownVisible"
+    enter="transition-all duration-200"
+    enter-from="opacity-0 translate-y-[16px]"
+    enter-to="opacity-100"
+    leave="transition-all duration-150"
+    leave-from="opacity-100"
+    leave-to="opacity-0 translate-y-[16px]"
+  >
+    <UpcDropdownWrapper class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 transition-all">
+      <UpcDropdownContent v-if="showDefaultContent" />
+      <UpcDropdownLaunchpad v-else />
+    </UpcDropdownWrapper>
+  </TransitionRoot>
 </template>
