@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+/**
+ * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
+ */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 import { usePromoStore } from '~/store/promo';
