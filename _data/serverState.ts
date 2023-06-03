@@ -47,7 +47,7 @@ const serverState = {
   lanIp: '192.168.0.1',
   locale: 'en',
   pluginInstalled: false,
-  registered: false,
+  registered: true,
   site: 'http://localhost:4321',
   state,
   uptime,

@@ -91,49 +91,59 @@ export const useServerStore = defineStore('server', () => {
     name: 'signOut',
     text: 'Sign Out of Unraid.net',
   };
-  const stateDataDefault: ServerStateData = {
-    actions: [
-      // sign in
-      ...(registered.value ? [] : [signInAction]),
-      {
-        click: () => { console.debug('purchase') },
-        external: true,
-        icon: KeyIcon,
-        name: 'purchase',
-        text: 'Purchase Key',
-      },
-      // sign out,
-      ...(registered.value ? [signOutAction] : []),
-    ],
-    humanReadable: 'Trial',
-    heading: 'Thank you for choosing Unraid OS!',
-    message: '[Temp] Your Trial Key includes all the features of a Pro Key',
-  };
+
+  const stateDataDefault = computed((): ServerStateData => {
+    return {
+      actions: [
+        // sign in
+        ...(registered.value ? [] : [signInAction]),
+        {
+          click: () => { console.debug('purchase') },
+          external: true,
+          icon: KeyIcon,
+          name: 'purchase',
+          text: 'Purchase Key',
+        },
+        {
+          click: () => { console.debug('redeem') },
+          external: true,
+          icon: KeyIcon,
+          name: 'redeem',
+          text: 'Redeem Activation Code',
+        },
+        // sign out,
+        ...(registered.value ? [signOutAction] : []),
+      ],
+      humanReadable: 'Trial',
+      heading: 'Thank you for choosing Unraid OS!',
+      message: '[Temp] Your Trial Key includes all the features of a Pro Key',
+    };
+  });
   const stateData = computed(():ServerStateData => {
     switch (state.value) {
       case 'TRIAL':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
         };
       case 'EEXPIRED':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
         };
       case 'BASIC':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
         };
       case 'PLUS':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
         };
       case 'PRO':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
         };
       case 'EGUID':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -142,7 +152,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'EGUID1':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -151,7 +161,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'ENOKEYFILE2':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -160,7 +170,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'ETRIAL':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -169,7 +179,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'ENOKEYFILE1':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -185,7 +195,7 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOFLASH6':
       case 'ENOFLASH7':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -194,7 +204,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'EBLACKLISTED':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -203,7 +213,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'EBLACKLISTED1':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -212,7 +222,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'EBLACKLISTED2':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -221,7 +231,7 @@ export const useServerStore = defineStore('server', () => {
         };
       case 'ENOCONN':
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
           error: {
             heading: `${state.value} temp heading`,
             message: `${state.value} temp message – this is an error message`,
@@ -230,13 +240,13 @@ export const useServerStore = defineStore('server', () => {
         };
       default:
         return {
-          ...stateDataDefault,
+          ...stateDataDefault.value,
         };
     }
   });
   const authActionsNames = ['signIn', 'signOut'];
   // Extract sign in / out from actions so we can display seperately as needed
-  const authActions = computed((): ServerStateDataAction | undefined => {
+  const authAction = computed((): ServerStateDataAction | undefined => {
     if (!stateData.value.actions) return;
     return stateData.value.actions.find(action => authActionsNames.includes(action.name));
   });
@@ -295,7 +305,7 @@ export const useServerStore = defineStore('server', () => {
     uptime,
     username,
     // getters
-    authActions,
+    authAction,
     isRemoteAccess,
     keyActions,
     pluginOutdated,
