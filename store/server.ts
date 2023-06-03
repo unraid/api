@@ -24,6 +24,9 @@ export const useServerStore = defineStore('server', () => {
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
+  const guidBlacklisted = ref<boolean>();
+  const guidRegistered = ref<boolean>();
+  const guidReplaceable = ref<boolean | undefined>();
   const keyfile = ref<string>('');
   const lanIp = ref<string>('');
   const license = ref<string>('');
@@ -77,6 +80,41 @@ export const useServerStore = defineStore('server', () => {
     }
   });
 
+  const purchaseAction: ServerStateDataAction = {
+    click: () => { console.debug('purchase') },
+    external: true,
+    icon: KeyIcon,
+    name: 'purchase',
+    text: 'Purchase Key',
+  };
+  const upgradeAction: ServerStateDataAction = {
+    click: () => { console.debug('upgrade') },
+    external: true,
+    icon: KeyIcon,
+    name: 'upgrade',
+    text: 'Upgrade Key',
+  };
+  const recoverAction: ServerStateDataAction = {
+    click: () => { console.debug('recover') },
+    external: true,
+    icon: KeyIcon,
+    name: 'recover',
+    text: 'Recover Key',
+  };
+  const redeemAction: ServerStateDataAction = {
+    click: () => { console.debug('redeem') },
+    external: true,
+    icon: KeyIcon,
+    name: 'redeem',
+    text: 'Redeem Activation Code',
+  };
+  const replaceAction: ServerStateDataAction = {
+    click: () => { console.debug('replace') },
+    external: true,
+    icon: KeyIcon,
+    name: 'replace',
+    text: 'Replace Key',
+  };
   const signInAction: ServerStateDataAction = {
     click: () => { console.debug('signIn') },
     external: true,
@@ -91,100 +129,161 @@ export const useServerStore = defineStore('server', () => {
     name: 'signOut',
     text: 'Sign Out of Unraid.net',
   };
+  const trialExtendAction: ServerStateDataAction = {
+    click: () => { console.debug('trialExtend') },
+    external: true,
+    icon: ArrowRightOnRectangleIcon,
+    name: 'trialExtend',
+    text: 'Extend Trial',
+  };
+  const trialStartAction: ServerStateDataAction = {
+    click: () => { console.debug('trialStart') },
+    external: true,
+    icon: ArrowRightOnRectangleIcon,
+    name: 'trialStart',
+    text: 'Start Free 30 Day Trial',
+  };
 
-  const stateDataDefault = computed((): ServerStateData => {
-    return {
-      actions: [
-        // sign in
-        ...(registered.value ? [] : [signInAction]),
-        {
-          click: () => { console.debug('purchase') },
-          external: true,
-          icon: KeyIcon,
-          name: 'purchase',
-          text: 'Purchase Key',
-        },
-        {
-          click: () => { console.debug('redeem') },
-          external: true,
-          icon: KeyIcon,
-          name: 'redeem',
-          text: 'Redeem Activation Code',
-        },
-        // sign out,
-        ...(registered.value ? [signOutAction] : []),
-      ],
-      humanReadable: 'Trial',
-      heading: 'Thank you for choosing Unraid OS!',
-      message: '[Temp] Your Trial Key includes all the features of a Pro Key',
-    };
-  });
+  let messageEGUID = '';
   const stateData = computed(():ServerStateData => {
     switch (state.value) {
+      case 'ENOKEYFILE':
+        return {
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'No Keyfile',
+          heading: `Let's Unleash your Hardware!`,
+          message: `<p>Your server will not be usable until you purchase a Registration key or install a free 30-day <em>Trial</em> key. A <em>Trial</em> key provides all the functionality of a Pro Registration key.</p><p>Registration keys are bound to your USB Flash boot device serial number (GUID). Please use a high quality name brand device at least 1GB in size.</p><p>Note: USB memory card readers are generally not supported because most do not present unique serial numbers.</p><p><strong>Important:</strong></p><ul class='list-disc pl-16px'><li>Please make sure your server time is accurate to within 5 minutes</li><li>Please make sure there is a DNS server specified</li></ul>`,
+        };
       case 'TRIAL':
         return {
-          ...stateDataDefault.value,
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Trial',
+          heading: 'Thank you for choosing Unraid OS!',
+          message: `<p>Your <em>Trial</em> key includes all the functionality and device support of a <em>Pro</em> key.</p><p>After your <em>Trial</em> has reached expiration, your server <strong>still functions normally</strong> until the next time you Stop the array or reboot your server.</p><p>At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>`,
         };
       case 'EEXPIRED':
         return {
-          ...stateDataDefault.value,
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...(trialExtensionEligible.value ? [trialExtendAction] : []),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Trial Expired',
+          heading: 'Your Trial has expired',
+          message: trialExtensionEligible.value
+            ? 'To continue using Unraid OS you may purchase a license key. Alternately, you may request a Trial extension.'
+            : 'You have used all your Trial extensions. To continue using Unraid OS you may purchase a license key.',
         };
       case 'BASIC':
         return {
-          ...stateDataDefault.value,
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([upgradeAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Basic',
+          heading: 'Thank you for choosing Unraid OS!',
+          message: registered.value
+            ? 'Register for Connect by signing in to your Unraid.net account'
+            : guidRegistered.value
+              ? 'To support more storage devices as your server grows, click Upgrade Key.'
+              : '',
         };
       case 'PLUS':
         return {
-          ...stateDataDefault.value,
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([upgradeAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Plus',
+          heading: 'Thank you for choosing Unraid OS!',
+          message: registered.value
+            ? 'Register for Connect by signing in to your Unraid.net account'
+            : guidRegistered.value
+              ? 'To support more storage devices as your server grows, click Upgrade Key.'
+              : '',
         };
       case 'PRO':
         return {
-          ...stateDataDefault.value,
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([upgradeAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Pro',
+          heading: 'Thank you for choosing Unraid OS!',
+          message: registered.value
+          ? 'Register for Connect by signing in to your Unraid.net account'
+          : '',
         };
       case 'EGUID':
+        if (guidReplaceable.value) messageEGUID = 'Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.';
+        else if (guidReplaceable.value === false && guidBlacklisted.value) messageEGUID = `The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key. <br class="mb-2">Your Unraid registration key is ineligible for replacement as it is blacklisted.`;
+        else if (guidReplaceable.value === false && !guidBlacklisted.value) messageEGUID = `The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key. <br class="mb-2">Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.`;
+        else messageEGUID = 'The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key or Replace Key.'; // basically guidReplaceable.value === null
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction, replaceAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Flash GUID Error',
+          heading: 'Registration key / USB Flash GUID mismatch',
+          message: messageEGUID,
         };
       case 'EGUID1':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...(registered.value ? [purchaseAction, redeemAction] : []),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Multiple License Keys Present',
+          heading: 'Multiple License Keys Present',
+          message: 'There are multiple license key files present on your USB flash device and none of them correspond to the USB Flash boot device. Please remove all key files, except the one you want to replace, from the /config directory on your USB Flash boot device. Alternately you may purchase a license key for this USB flash device. If you want to replace one of your license keys with a new key bound to this USB Flash device, please first remove all other key files first.',
+          // signInToFix: true, // @todo
         };
       case 'ENOKEYFILE2':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction]),
+            ...(registered.value ? [recoverAction, signOutAction] : []),
+          ],
+          humanReadable: 'Missing key file',
+          heading: 'Missing key file',
+          message: 'It appears that your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device. If you do not have a backup copy of your license key file you may install the Connect (beta) plugin to attempt to recover your key. If this was an expired Trial installation, you may purchase a license key.',
         };
       case 'ETRIAL':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'Invalid installation',
+          heading: 'Invalid installation',
+          message: 'It is not possible to use a Trial key with an existing Unraid OS installation. You may purchase a license key corresponding to this USB Flash device to continue using this installation.',
         };
       case 'ENOKEYFILE1':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          actions: [
+            ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction]),
+            ...(registered.value ? [signOutAction] : []),
+          ],
+          humanReadable: 'No Keyfile',
+          heading: 'No USB flash configuration data',
+          message: 'There is a problem with your USB Flash device',
         };
       case 'ENOFLASH':
       case 'ENOFLASH1':
@@ -195,52 +294,39 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOFLASH6':
       case 'ENOFLASH7':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          humanReadable: 'No Flash',
+          heading: 'Cannot access your USB Flash boot device',
+          message: 'There is a physical problem accessing your USB Flash boot device',
         };
       case 'EBLACKLISTED':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          humanReadable: 'BLACKLISTED',
+          heading: 'Blacklisted USB Flash GUID',
+          message: 'This USB Flash boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement USB Flash device, and you are currently booted from your old USB Flash device. A USB Flash device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.',
         };
       case 'EBLACKLISTED1':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          humanReadable: 'BLACKLISTED',
+          heading: 'USB Flash device error',
+          message: 'This USB Flash device has an invalid GUID. Please try a different USB Flash device',
         };
       case 'EBLACKLISTED2':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          humanReadable: 'BLACKLISTED',
+          heading: 'USB Flash has no serial number',
+          message: 'This USB Flash boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement USB Flash device, and you are currently booted from your old USB Flash device. A USB Flash device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.',
         };
       case 'ENOCONN':
         return {
-          ...stateDataDefault.value,
-          error: {
-            heading: `${state.value} temp heading`,
-            message: `${state.value} temp message – this is an error message`,
-            reAuthFix: false,
-          },
+          humanReadable: 'Trial Requires Internet Connection',
+          heading: 'Cannot validate Unraid Trial key',
+          message: 'Your Trial key requires an internet connection. Please check Settings > Network',
         };
       default:
         return {
-          ...stateDataDefault.value,
+          humanReadable: 'Stale',
+          heading: 'Stale Server',
+          message: 'Please refresh the page to ensure you load your latest configuration',
         };
     }
   });
@@ -255,6 +341,7 @@ export const useServerStore = defineStore('server', () => {
     if (!stateData.value.actions) return;
     return stateData.value.actions.filter(action => !authActionsNames.includes(action.name));
   });
+  const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
   /**
    * Actions
