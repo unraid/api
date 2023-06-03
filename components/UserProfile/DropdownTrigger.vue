@@ -16,6 +16,7 @@ const {
 } = storeToRefs(useServerStore());
 
 const registeredAndPluginInstalled = computed(() => pluginInstalled.value && registered.value);
+const showErrorIcon = computed(() => stateData.value.error);
 
 const text = computed((): string | undefined => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') return 'Fix Error';
@@ -42,7 +43,7 @@ const title = computed((): string => {
     :title="title"
   >
     <InformationCircleIcon v-if="pluginOutdated" class="text-red fill-current relative w-24px h-24px" />
-    <ExclamationTriangleIcon class="text-red fill-current relative w-24px h-24px" />
+    <ExclamationTriangleIcon v-else-if="showErrorIcon" class="text-red fill-current relative w-24px h-24px" />
 
     <span class="flex flex-row items-center gap-x-8px">
       <span class="leading-none">{{ text }}</span>
