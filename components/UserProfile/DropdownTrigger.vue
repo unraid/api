@@ -36,21 +36,19 @@ const title = computed((): string => {
 </script>
 
 <template>
-  <div class="relative flex items-center justify-end h-full">
-    <button
-      @click.stop="dropdownStore.dropdownToggle()"
-      class="group text-18px hover:text-alpha focus:text-alpha border border-transparent flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
-      :title="title"
-    >
-      <InformationCircleIcon v-if="pluginOutdated" class="text-red fill-current relative w-24px h-24px" />
-      <ExclamationTriangleIcon class="text-red fill-current relative w-24px h-24px" />
+  <button
+    @click="dropdownStore.dropdownToggle()"
+    class="group text-18px hover:text-alpha focus:text-alpha border border-transparent relative flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
+    :title="title"
+  >
+    <InformationCircleIcon v-if="pluginOutdated" class="text-red fill-current relative w-24px h-24px" />
+    <ExclamationTriangleIcon class="text-red fill-current relative w-24px h-24px" />
 
-      <span class="flex flex-row items-center gap-x-8px">
-        <span class="leading-none">{{ text }}</span>
-        <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
-      </span>
+    <span class="flex flex-row items-center gap-x-8px">
+      <span class="leading-none">{{ text }}</span>
+      <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
+    </span>
 
-      <BrandAvatar />
-    </button>
-  </div>
+    <BrandAvatar />
+  </button>
 </template>
