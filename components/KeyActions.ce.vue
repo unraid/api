@@ -8,7 +8,7 @@ const { keyActions } = storeToRefs(useServerStore());
 </script>
 
 <template>
-  <template v-if="keyActions">
+  <div v-if="keyActions" class="flex flex-col gap-y-8px">
     <component
       v-for="action in keyActions" :key="action.name"
       :is="action.click ? 'button' : 'a'"
@@ -21,7 +21,7 @@ const { keyActions } = storeToRefs(useServerStore());
       <component v-if="action.icon" :is="action.icon" class="flex-shrink-0 w-14px" />
       {{ action.text }}
     </component>
-  </template>
+  </div>
 </template>
 
 <style lang="postcss">
