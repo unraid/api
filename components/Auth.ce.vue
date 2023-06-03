@@ -2,30 +2,12 @@
 import { storeToRefs } from 'pinia';
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { useServerStore } from '~/store/server';
-import type { ServerStateDataAction } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-export interface Props {
-  phpRegistered?: boolean;
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  phpRegistered: false,
-});
-
 const serverStore = useServerStore();
-const { registered, stateData } = storeToRefs(serverStore);
+const { authAction, stateData } = storeToRefs(serverStore);
 
-// rely on prop before the pinia state kicks in
-const computedRegistered = computed(() => registered.value === undefined ? !!props.phpRegistered : registered.value);
-
-// Intended to retrieve sign in and sign out from actions
-const accountAction = computed((): ServerStateDataAction | undefined => {
-  const allowed = ['signIn', 'signOut'];
-  if (!stateData.value.actions) return;
-  return stateData.value.actions.find(action => allowed.includes(action.name));
-});
 // @todo use callback url
 const stateDataErrorAction = computed(() => {
   return {
@@ -39,7 +21,7 @@ const stateDataErrorAction = computed(() => {
 
 const button = computed(() => {
   if (stateData.value.error) return stateDataErrorAction.value;
-  return accountAction.value;
+  return authAction.value;
 });
 </script>
 
