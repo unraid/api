@@ -35,7 +35,7 @@ body {
     width: 0;
     height: 0;
     top: -10px;
-    right: 40px;
+    right: 42px;
     border-right: 11px solid transparent;
     border-bottom: 11px solid var(--color-alpha);
     border-left: 11px solid transparent;
