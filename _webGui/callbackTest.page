@@ -60,6 +60,4 @@ echo "<connect-user-profile server='" . json_encode($serverData) . "'></connect-
 <connect-callback-handler></connect-callback-handler>
 <connect-auth></connect-auth>
 <connect-key-actions></connect-key-actions>
-<connect-launchpad></connect-launchpad>
-<connect-plugin-promo></connect-plugin-promo>
-<connect-wan-ip-check></connect-wan-ip-check>
+<connect-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></connect-wan-ip-check>
