@@ -3,11 +3,14 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
+    "postbuild": "npm run rebuildManifest",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
+    "postgenerate": "npm run rebuildManifest",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
-    "serve": "serve dist/nuxt-custom-elements/connect-components"
+    "serve": "serve dist/nuxt-custom-elements/connect-components",
+    "rebuildManifest": "node postBuild.ts"
   },
   "devDependencies": {
     "@nuxtjs/tailwindcss": "^6.7.0",
