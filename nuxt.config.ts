@@ -30,10 +30,6 @@ export default defineNuxtConfig({
             path: '@/components/Auth.ce',
           },
           {
-            name: 'ConnectCallbackHandler',
-            path: '@/components/CallbackHandler.ce',
-          },
-          {
             name: 'ConnectDownloadApiLogs',
             path: '@/components/DownloadApiLogs.ce',
           },
