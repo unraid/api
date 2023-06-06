@@ -1,7 +1,13 @@
 import { defineStore, createPinia, setActivePinia } from "pinia";
 import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue/24/solid';
+
+import { useAccountStore } from './account';
+import { usePurchaseStore } from "./purchase";
+import { useTrialStore } from './trial';
 import type {
   Server,
+  ServerAccountCallbackSendPayload,
+  ServerPurchaseCallbackSendPayload,
   ServerState,
   ServerStateData,
   ServerStateDataAction,
@@ -13,6 +19,9 @@ import type {
 setActivePinia(createPinia());
 
 export const useServerStore = defineStore('server', () => {
+  const accountStore = useAccountStore();
+  const purchaseStore = usePurchaseStore();
+  const trialStore = useTrialStore();
   /**
    * State
    */
@@ -80,64 +89,85 @@ export const useServerStore = defineStore('server', () => {
     }
   });
 
+  const serverPurchasePayload = computed((): ServerPurchaseCallbackSendPayload => {
+    return {
+      deviceCount: deviceCount.value,
+      guid: guid.value,
+    }
+  });
+
+  const serverAccountPayload = computed((): ServerAccountCallbackSendPayload => {
+    return {
+      description: description.value,
+      expireTime: expireTime.value,
+      flashProduct: flashProduct.value,
+      flashVendor: flashVendor.value,
+      guid: guid.value,
+      keyfile: keyfile.value,
+      name: name.value,
+      state: state.value,
+      wanFQDN: wanFQDN.value,
+    }
+  });
+
   const purchaseAction: ServerStateDataAction = {
-    click: () => { console.debug('purchase') },
+    click: () => { purchaseStore.purchase() },
     external: true,
     icon: KeyIcon,
     name: 'purchase',
     text: 'Purchase Key',
   };
   const upgradeAction: ServerStateDataAction = {
-    click: () => { console.debug('upgrade') },
+    click: () => { purchaseStore.upgrade() },
     external: true,
     icon: KeyIcon,
     name: 'upgrade',
     text: 'Upgrade Key',
   };
   const recoverAction: ServerStateDataAction = {
-    click: () => { console.debug('recover') },
+    click: () => { accountStore.recover() },
     external: true,
     icon: KeyIcon,
     name: 'recover',
     text: 'Recover Key',
   };
   const redeemAction: ServerStateDataAction = {
-    click: () => { console.debug('redeem') },
+    click: () => { purchaseStore.redeem() },
     external: true,
     icon: KeyIcon,
     name: 'redeem',
     text: 'Redeem Activation Code',
   };
   const replaceAction: ServerStateDataAction = {
-    click: () => { console.debug('replace') },
+    click: () => { accountStore.replace() },
     external: true,
     icon: KeyIcon,
     name: 'replace',
     text: 'Replace Key',
   };
   const signInAction: ServerStateDataAction = {
-    click: () => { console.debug('signIn') },
+    click: () => { accountStore.signIn() },
     external: true,
     icon: GlobeAltIcon,
     name: 'signIn',
     text: 'Sign In with Unraid.net Account',
   };
   const signOutAction: ServerStateDataAction = {
-    click: () => { console.debug('signOut') },
+    click: () => { accountStore.signOut() },
     external: true,
     icon: ArrowRightOnRectangleIcon,
     name: 'signOut',
     text: 'Sign Out of Unraid.net',
   };
   const trialExtendAction: ServerStateDataAction = {
-    click: () => { console.debug('trialExtend') },
+    click: () => { trialStore.extend() },
     external: true,
     icon: ArrowRightOnRectangleIcon,
     name: 'trialExtend',
     text: 'Extend Trial',
   };
   const trialStartAction: ServerStateDataAction = {
-    click: () => { console.debug('trialStart') },
+    click: () => { trialStore.start() },
     external: true,
     icon: ArrowRightOnRectangleIcon,
     name: 'trialStart',
@@ -176,6 +206,7 @@ export const useServerStore = defineStore('server', () => {
             ...(trialExtensionEligible.value ? [trialExtendAction] : []),
             ...(registered.value ? [signOutAction] : []),
           ],
+          error: true,
           humanReadable: 'Trial Expired',
           heading: 'Your Trial has expired',
           message: trialExtensionEligible.value
@@ -236,6 +267,7 @@ export const useServerStore = defineStore('server', () => {
             ...([purchaseAction, redeemAction, replaceAction]),
             ...(registered.value ? [signOutAction] : []),
           ],
+          error: true,
           humanReadable: 'Flash GUID Error',
           heading: 'Registration key / USB Flash GUID mismatch',
           message: messageEGUID,
@@ -247,10 +279,11 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value ? [purchaseAction, redeemAction] : []),
             ...(registered.value ? [signOutAction] : []),
           ],
+          error: true,
           humanReadable: 'Multiple License Keys Present',
           heading: 'Multiple License Keys Present',
           message: 'There are multiple license key files present on your USB flash device and none of them correspond to the USB Flash boot device. Please remove all key files, except the one you want to replace, from the /config directory on your USB Flash boot device. Alternately you may purchase a license key for this USB flash device. If you want to replace one of your license keys with a new key bound to this USB Flash device, please first remove all other key files first.',
-          // signInToFix: true, // @todo
+          // signInToFix: true, // @todo is this needed?
         };
       case 'ENOKEYFILE2':
         return {
@@ -259,6 +292,7 @@ export const useServerStore = defineStore('server', () => {
             ...([purchaseAction, redeemAction]),
             ...(registered.value ? [recoverAction, signOutAction] : []),
           ],
+          error: true,
           humanReadable: 'Missing key file',
           heading: 'Missing key file',
           message: 'It appears that your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device. If you do not have a backup copy of your license key file you may install the Connect (beta) plugin to attempt to recover your key. If this was an expired Trial installation, you may purchase a license key.',
@@ -270,6 +304,7 @@ export const useServerStore = defineStore('server', () => {
             ...([purchaseAction, redeemAction]),
             ...(registered.value ? [signOutAction] : []),
           ],
+          error: true,
           humanReadable: 'Invalid installation',
           heading: 'Invalid installation',
           message: 'It is not possible to use a Trial key with an existing Unraid OS installation. You may purchase a license key corresponding to this USB Flash device to continue using this installation.',
@@ -281,6 +316,7 @@ export const useServerStore = defineStore('server', () => {
             ...([purchaseAction, redeemAction]),
             ...(registered.value ? [signOutAction] : []),
           ],
+          error: true,
           humanReadable: 'No Keyfile',
           heading: 'No USB flash configuration data',
           message: 'There is a problem with your USB Flash device',
@@ -294,36 +330,42 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOFLASH6':
       case 'ENOFLASH7':
         return {
+          error: true,
           humanReadable: 'No Flash',
           heading: 'Cannot access your USB Flash boot device',
           message: 'There is a physical problem accessing your USB Flash boot device',
         };
       case 'EBLACKLISTED':
         return {
+          error: true,
           humanReadable: 'BLACKLISTED',
           heading: 'Blacklisted USB Flash GUID',
           message: 'This USB Flash boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement USB Flash device, and you are currently booted from your old USB Flash device. A USB Flash device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.',
         };
       case 'EBLACKLISTED1':
         return {
+          error: true,
           humanReadable: 'BLACKLISTED',
           heading: 'USB Flash device error',
           message: 'This USB Flash device has an invalid GUID. Please try a different USB Flash device',
         };
       case 'EBLACKLISTED2':
         return {
+          error: true,
           humanReadable: 'BLACKLISTED',
           heading: 'USB Flash has no serial number',
           message: 'This USB Flash boot device has been blacklisted. This can occur as a result of transferring your license key to a replacement USB Flash device, and you are currently booted from your old USB Flash device. A USB Flash device may also be blacklisted if we discover the serial number is not unique – this is common with USB card readers.',
         };
       case 'ENOCONN':
         return {
+          error: true,
           humanReadable: 'Trial Requires Internet Connection',
           heading: 'Cannot validate Unraid Trial key',
           message: 'Your Trial key requires an internet connection. Please check Settings > Network',
         };
       default:
         return {
+          error: true,
           humanReadable: 'Stale',
           heading: 'Stale Server',
           message: 'Please refresh the page to ensure you load your latest configuration',
@@ -347,29 +389,30 @@ export const useServerStore = defineStore('server', () => {
    * Actions
    */
   const setServer = (data: Server) => {
-    console.debug('[setServer]', data);
-    if (data?.apiKey) apiKey.value = data.apiKey;
-    if (data?.avatar) avatar.value = data.avatar;
-    if (data?.description) description.value = data.description;
-    if (data?.deviceCount) deviceCount.value = data.deviceCount;
-    if (data?.expireTime) expireTime.value = data.expireTime;
-    if (data?.flashProduct) flashProduct.value = data.flashProduct;
-    if (data?.flashVendor) flashVendor.value = data.flashVendor;
-    if (data?.guid) guid.value = data.guid;
-    if (data?.keyfile) keyfile.value = data.keyfile;
-    if (data?.lanIp) lanIp.value = data.lanIp;
-    if (data?.license) license.value = data.license;
-    if (data?.locale) locale.value = data.locale;
-    if (data?.name) name.value = data.name;
-    if (data?.pluginInstalled) pluginInstalled.value = data.pluginInstalled;
-    if (data?.registered) registered.value = data.registered;
-    if (data?.regGen) regGen.value = data.regGen;
-    if (data?.regGuid) regGuid.value = data.regGuid;
-    if (data?.site) site.value = data.site;
-    if (data?.state) state.value = data.state;
-    if (data?.uptime) uptime.value = data.uptime;
-    if (data?.username) username.value = data.username;
-    if (data?.wanFQDN) wanFQDN.value = data.wanFQDN;
+    console.debug('[setServer] data', data);
+    if (typeof data?.apiKey !== 'undefined') apiKey.value = data.apiKey;
+    if (typeof data?.avatar !== 'undefined') avatar.value = data.avatar;
+    if (typeof data?.description !== 'undefined') description.value = data.description;
+    if (typeof data?.deviceCount !== 'undefined') deviceCount.value = data.deviceCount;
+    if (typeof data?.expireTime !== 'undefined') expireTime.value = data.expireTime;
+    if (typeof data?.flashProduct !== 'undefined') flashProduct.value = data.flashProduct;
+    if (typeof data?.flashVendor !== 'undefined') flashVendor.value = data.flashVendor;
+    if (typeof data?.guid !== 'undefined') guid.value = data.guid;
+    if (typeof data?.keyfile !== 'undefined') keyfile.value = data.keyfile;
+    if (typeof data?.lanIp !== 'undefined') lanIp.value = data.lanIp;
+    if (typeof data?.license !== 'undefined') license.value = data.license;
+    if (typeof data?.locale !== 'undefined') locale.value = data.locale;
+    if (typeof data?.name !== 'undefined') name.value = data.name;
+    if (typeof data?.pluginInstalled !== 'undefined') pluginInstalled.value = data.pluginInstalled;
+    if (typeof data?.registered !== 'undefined') registered.value = data.registered;
+    if (typeof data?.regGen !== 'undefined') regGen.value = data.regGen;
+    if (typeof data?.regGuid !== 'undefined') regGuid.value = data.regGuid;
+    if (typeof data?.site !== 'undefined') site.value = data.site;
+    if (typeof data?.state !== 'undefined') state.value = data.state;
+    if (typeof data?.uptime !== 'undefined') uptime.value = data.uptime;
+    if (typeof data?.username !== 'undefined') username.value = data.username;
+    if (typeof data?.wanFQDN !== 'undefined') wanFQDN.value = data.wanFQDN;
+    console.debug('[setServer] server.value', server.value);
   };
 
   return {
@@ -397,6 +440,8 @@ export const useServerStore = defineStore('server', () => {
     keyActions,
     pluginOutdated,
     server,
+    serverAccountPayload,
+    serverPurchasePayload,
     stateData,
     // actions
     setServer,

@@ -46,7 +46,27 @@ export interface Server {
   wanIp?: string;
 }
 
-// @todo convert to object with text and click payload
+export interface ServerAccountCallbackSendPayload {
+  description?: string;
+  deviceCount?: number;
+  expireTime?: number;
+  flashProduct?: string;
+  flashVendor?: string;
+  guid?: string;
+  keyfile?: string;
+  locale?: string;
+  name?: string;
+  regGen?: number;
+  regGuid?: string;
+  state: string;
+  wanFQDN?: string;
+}
+
+export interface ServerPurchaseCallbackSendPayload {
+  deviceCount?: number;
+  guid?: string;
+}
+
 export type ServerStateDataActionType = 'signIn'|'signOut'|'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
 
 export interface ServerStateDataAction extends UserProfileLink {
@@ -64,6 +84,6 @@ export interface ServerStateData {
   humanReadable: string; // @todo create interface of ENUM to string mapping
   heading?: string;
   message?: string;
-  error?: ServerStateDataError;
+  error?: ServerStateDataError | boolean;
   withKey?: boolean; // @todo potentially remove
 }

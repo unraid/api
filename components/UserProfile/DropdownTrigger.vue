@@ -44,12 +44,8 @@ const title = computed((): string => {
   >
     <InformationCircleIcon v-if="pluginOutdated" class="text-red fill-current relative w-24px h-24px" />
     <ExclamationTriangleIcon v-else-if="showErrorIcon" class="text-red fill-current relative w-24px h-24px" />
-
-    <span class="flex flex-row items-center gap-x-8px">
-      <span class="leading-none">{{ text }}</span>
-      <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
-    </span>
-
+    <span v-if="text" class="leading-none">{{ text }}</span>
+    <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
     <BrandAvatar />
   </button>
 </template>
