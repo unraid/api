@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { OnClickOutside } from '@vueuse/components'
 
+import { useCallbackStore } from '~/store/callback';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
@@ -16,6 +17,7 @@ const props = withDefaults(defineProps<Props>(), {
   showDescription: true,
 });
 
+const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore()
 const serverStore = useServerStore();
 
@@ -57,10 +59,12 @@ watch(showCopyNotSupported, async (newVal, oldVal) => {
 onBeforeMount(() => {
   console.debug('[onBeforeMount]', { props }, typeof props.server);
   if (!props.server) return console.error('Server data not present');
-  // set props from web component in store so the data is available throughout other components
-  if (typeof props.server === 'object') { // handle the testing dev Vue component
+  /**
+   * Set props from web component in store so the data is available throughout other components
+   */
+  if (typeof props.server === 'object') { // Handles the testing dev Vue component
     serverStore.setServer(props.server);
-  } else if (typeof props.server === 'string') { // handle web component
+  } else if (typeof props.server === 'string') { // Handle web component
     try {
       const parsedServerProp = JSON.parse(props.server);
       serverStore.setServer(parsedServerProp);
@@ -68,10 +72,16 @@ onBeforeMount(() => {
       console.error(e);
     }
   }
+  /**
+   * Listen for callbacks, if we receive one that needs to be acted upon the store will display
+   * the feedback modal to show the user something is happening behind the scenes.
+   */
+  callbackStore.watcher();
 });
 </script>
 
 <template>
+  <UpcCallbackFeedback />
   <UpcPromo />
 
   <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pl-40px rounded">
@@ -82,7 +92,7 @@ onBeforeMount(() => {
     </div>
 
     <div class="relative z-0 flex flex-row items-center justify-end gap-x-16px h-full">
-      <h1 class="relative text-18px border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
+      <h1 class="text-alpha relative text-18px border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
         <template v-if="showDescription">
           <span>{{ description }}</span>
           <span class="text-grey-mid px-8px">&bull;</span>
@@ -99,12 +109,10 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-grey-mid"></div>
 
-      <div class="flex items-center justify-end h-full">
-        <OnClickOutside @trigger="outsideDropdown" :options="{ ignore: [clickOutsideIgnoreTarget] }">
-          <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" />
-          <UpcDropdown ref="clickOutsideTarget" />
-        </OnClickOutside>
-      </div>
+      <OnClickOutside class="flex items-center justify-end h-full" @trigger="outsideDropdown" :options="{ ignore: [clickOutsideIgnoreTarget] }">
+        <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" />
+        <UpcDropdown ref="clickOutsideTarget" />
+      </OnClickOutside>
     </div>
   </div>
 </template>

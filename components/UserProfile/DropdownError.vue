@@ -22,10 +22,10 @@ const links = ref<UserProfileLink[]>([
 </script>
 
 <template>
-  <ul v-if="stateData.error" class="list-reset flex flex-col gap-y-4px p-12px -mx-4px bg-red/20">
-    <h3>{{ stateData.error.heading }}</h3>
-    <p>{{ stateData.error.message }}</p>
-    <li v-for="(link, index) in links" :key="`link_${index}`" class="-mx-8px">
+  <ul v-if="stateData.error" class="list-reset flex flex-col gap-y-4px -mx-8px p-12px bg-red/40 rounded">
+    <h3 class="text-18px">{{ stateData.heading }}</h3>
+    <p class="text-14px opacity-85">{{ stateData.message }}</p>
+    <li v-for="(link, index) in links" :key="`link_${index}`" class="-mx-">
       <UpcDropdownItem :item="link" />
     </li>
   </ul>

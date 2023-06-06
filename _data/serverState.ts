@@ -8,9 +8,9 @@ function makeid(length: number) {
   return result;
 }
 
-const registeredGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
+const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
 const newGuid = `1234-1234-${makeid(4)}-123412341234`; // this is a new USB, not registered
-const regWizTime = `1616711990500_${registeredGuid}`;
+const regWizTime = `1616711990500_${randomGuid}`;
 const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 
 // ENOKEYFILE
@@ -41,12 +41,12 @@ const serverState = {
   avatar: 'https://source.unsplash.com/300x300/?portrait',
   name: 'DevServer9000',
   description: 'Fully automated media server',
-  guid: '9292-1111-BITE-444444444444',
+  guid: randomGuid,
   deviceCount: 8,
   expireTime,
   lanIp: '192.168.0.1',
   locale: 'en',
-  pluginInstalled: false,
+  pluginInstalled: true,
   registered: true,
   site: 'http://localhost:4321',
   state,

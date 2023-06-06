@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { useCallbackStore } from '~/store/callback';
+import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
-import { storeToRefs } from 'pinia';
+
+import { useCallbackStore } from '~/store/callback';
 
 const callbackStore = useCallbackStore();
 

@@ -26,9 +26,6 @@ onBeforeMount(() => {
         <hr />
         <h3>WanIpCheckCe</h3>
         <WanIpCheckCe />
-        <hr />
-        <h3>CallbackHandlerCe</h3>
-        <CallbackHandlerCe />
       </div>
       <div class="flex flex-col gap-6 p-6">
         <h2>Web Components</h2>
@@ -46,9 +43,6 @@ onBeforeMount(() => {
         <hr />
         <h3>WanIpCheckCe</h3>
         <connect-wan-ip-check></connect-wan-ip-check>
-        <hr />
-        <h3>CallbackHandlerCe</h3>
-        <connect-callback-handler></connect-callback-handler>
       </div>
     </client-only>
   </div>
