@@ -28,7 +28,8 @@
     "@vueuse/components": "^10.1.2",
     "crypto-js": "^4.1.1",
     "dayjs": "^1.11.7",
-    "focus-trap": "^7.4.3"
+    "focus-trap": "^7.4.3",
+    "hex-to-rgba": "^2.0.1"
   },
   "overrides": {
     "vue": "latest"

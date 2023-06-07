@@ -29,18 +29,17 @@ export const useCallbackStore = defineStore('callback', () => {
       ...payload,
       sender: window.location.href,
     });
-    // @todo don't save to store
     encryptedMessage.value = AES.encrypt(stringifiedData, encryptKey).toString();
     // build and go to url
     const destinationUrl = new URL(url);
     console.debug('[send]', encryptedMessage.value, url);
     destinationUrl.searchParams.set('data', encryptedMessage.value);
-    window.location.href = destinationUrl;
+    window.location.href = destinationUrl.toString();
   };
 
   const watcher = () => {
     console.debug('[watcher]');
-    const currentUrl = new URL(window.location);
+    const currentUrl = new URL(window.location.toString());
     const callbackValue = currentUrl.searchParams.get('data');
     console.debug('[watcher]', { callbackValue });
     if (!callbackValue) {
