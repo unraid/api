@@ -14,8 +14,8 @@ const { promoVisible } = storeToRefs(promoStore);
 
 <template>
   <div class="relative z-[99999]">
-    <UpcCallbackFeedback v-if="callbackFeedbackVisible" :open="callbackFeedbackVisible" />
-    <UpcPromo v-if="promoVisible" :open="promoVisible" />
+    <UpcCallbackFeedback :open="callbackFeedbackVisible" />
+    <UpcPromo :open="promoVisible" />
   </div>
 </template>
 
