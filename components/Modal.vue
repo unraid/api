@@ -10,38 +10,33 @@ export interface Props {
   showCloseX?: boolean;
   title?: string;
 }
-
 const props = withDefaults(defineProps<Props>(), {
   maxWidth: 'sm:max-w-lg',
   open: false,
   showCloseX: false,
 });
+watchEffect(() => {
+  // toggle body scrollability
+  return props.open
+    ? document.body.style.setProperty('overflow', 'hidden')
+    : document.body.style.removeProperty('overflow');
+});
 
 const emit = defineEmits(['close']);
 const closeModal = () => {
-  console.debug('[closeModal]');
   emit('close');
 };
 
 const { trapRef } = useFocusTrap();
 
 const ariaLablledById = computed((): string|undefined => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
-
-onMounted(() => {
-  console.debug('[onMounted]');
-  document.body.style.setProperty('overflow', 'hidden');
-});
-
-onBeforeUnmount(() => {
-  document.removeEventListener('keyup', () => {});
-  document.body.style.removeProperty('overflow');
-});
 </script>
 
 <template>
   <TransitionRoot appear :show="open" as="template">
     <div @keyup.esc="closeModal" ref="trapRef" class="fixed inset-0 z-10 overflow-y-auto" role="dialog" aria-dialog="true" :aria-labelledby="ariaLablledById" tabindex="-1">
       <TransitionChild
+        appear
         as="template"
         enter="duration-300 ease-out"
         enter-from="opacity-0"
@@ -58,6 +53,7 @@ onBeforeUnmount(() => {
       </TransitionChild>
       <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
         <TransitionChild
+          appear
           as="template"
           enter="duration-300 ease-out"
           enter-from="opacity-0 scale-95"
