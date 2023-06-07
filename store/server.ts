@@ -4,6 +4,7 @@ import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue
 import { useAccountStore } from './account';
 import { usePurchaseStore } from "./purchase";
 import { useTrialStore } from './trial';
+import { useThemeStore } from './theme';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -12,6 +13,7 @@ import type {
   ServerStateData,
   ServerStateDataAction,
 } from '~/types/server';
+import type { Theme } from '~/types/theme';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -21,6 +23,7 @@ setActivePinia(createPinia());
 export const useServerStore = defineStore('server', () => {
   const accountStore = useAccountStore();
   const purchaseStore = usePurchaseStore();
+  const themeStore = useThemeStore();
   const trialStore = useTrialStore();
   /**
    * State
@@ -47,6 +50,7 @@ export const useServerStore = defineStore('server', () => {
   const regGuid = ref<string>('');
   const site = ref<string>('');
   const state = ref<string>(''); // @todo implement ServerState ENUM
+  const theme = ref<Theme>();
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
@@ -83,6 +87,7 @@ export const useServerStore = defineStore('server', () => {
       regGuid: regGuid.value,
       site: site.value,
       state: state.value,
+      theme: theme.value,
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
@@ -409,11 +414,16 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.regGuid !== 'undefined') regGuid.value = data.regGuid;
     if (typeof data?.site !== 'undefined') site.value = data.site;
     if (typeof data?.state !== 'undefined') state.value = data.state;
+    if (typeof data?.theme !== 'undefined') theme.value = data.theme;
     if (typeof data?.uptime !== 'undefined') uptime.value = data.uptime;
     if (typeof data?.username !== 'undefined') username.value = data.username;
     if (typeof data?.wanFQDN !== 'undefined') wanFQDN.value = data.wanFQDN;
     console.debug('[setServer] server.value', server.value);
   };
+
+  watch(theme, () => {
+    if (theme.value) themeStore.setTheme(theme.value);
+  });
 
   return {
     // state
