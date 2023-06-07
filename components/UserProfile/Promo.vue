@@ -3,15 +3,20 @@
  * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
-import { storeToRefs } from 'pinia';
 import { usePromoStore } from '~/store/promo';
-
 import type { UserProfilePromoFeature } from '~/types/userProfile';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+export interface Props {
+  open?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  open: false,
+});
+
 const promoStore = usePromoStore();
-const { promoVisible } = storeToRefs(promoStore);
 
 const features = ref<UserProfilePromoFeature[]>([
   {
@@ -58,8 +63,9 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
 
 <template>
   <Modal
-    :open="promoVisible"
+    :open="open"
     @close="promoStore.promoHide()"
+    :show-close-x="true"
     max-width="max-w-800px"
   >
     <div class="text-center relative w-full p-24px">

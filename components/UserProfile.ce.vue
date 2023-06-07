@@ -81,9 +81,6 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <UpcCallbackFeedback />
-  <UpcPromo />
-
   <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pl-40px rounded">
     <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
       <UpcUptimeExpire />
