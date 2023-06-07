@@ -4,6 +4,9 @@ Icon="icon-u-globe"
 Tag="globe"
 ---
 <?php
+/**
+ * @todo create web component env switcher liker upcEnv(). If we utilize manifest.json then we'll be switching its path.
+ */
 $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 // print_r($mystatus);
@@ -138,3 +141,16 @@ if ($display['theme'] === 'black' || $display['theme'] === 'azure') {
 <div class="ComponentWrapper">
   <connect-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></connect-wan-ip-check>
 </div>
+
+<script>
+/**
+ * So we're not needing to modify DefaultLayout with an additional include,
+ * we'll add the Modals web component to the bottom of the body
+ */
+const modalsWebComponent = 'connect-modals';
+if (!document.getElementsByTagName(modalsWebComponent).length) {
+  const $body = document.getElementsByTagName('body')[0];
+  const $modals = document.createElement(modalsWebComponent);
+  $body.appendChild($modals);
+}
+</script>

@@ -81,7 +81,7 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pl-40px rounded">
+  <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px">
     <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
       <UpcUptimeExpire />
       <span>&bull;</span>
