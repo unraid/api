@@ -18,6 +18,7 @@ export const useCallbackStore = defineStore('callback', () => {
   // const encryptKey = config.public.callbackKey;
   const encryptKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
   // state
+  const currentUrl = ref();
   const callbackFeedbackVisible = ref<boolean>(false);
   const decryptedData = ref();
   const encryptedMessage = ref('');
@@ -40,8 +41,8 @@ export const useCallbackStore = defineStore('callback', () => {
   const watcher = () => {
     console.debug('[watcher]');
     const currentUrl = new URL(window.location);
-    console.debug('[watcher]', currentUrl);
     const callbackValue = currentUrl.searchParams.get('data');
+    console.debug('[watcher]', { callbackValue });
     if (!callbackValue) {
       return console.debug('[watcher] no callback to handle');
     }
@@ -66,15 +67,23 @@ export const useCallbackStore = defineStore('callback', () => {
     }
   };
 
-  const hide = () => callbackFeedbackVisible.value = false;
-  const show = () => callbackFeedbackVisible.value = true;
+  const hide = () => {
+    console.debug('[hide]');
+    callbackFeedbackVisible.value = false;
+  };
+  const show = () => {
+    console.debug('[show]');
+    callbackFeedbackVisible.value = true;
+  }
   const toggle = useToggle(callbackFeedbackVisible);
 
-  /**
-   * @todo consider removing query string once actions are done
-   */
   watch(callbackFeedbackVisible, (newVal, _oldVal) => {
-    console.debug('[callbackFeedbackVisible]', newVal, _oldVal);
+    console.debug('[callbackFeedbackVisible]', newVal);
+    // removing query string once actions are done so users can't refresh the page and go through the same actions
+    if (newVal === false) {
+      console.debug('[callbackFeedbackVisible] push history w/o query');
+      window.history.pushState(null, '', window.location.pathname);
+    }
   });
 
   return {

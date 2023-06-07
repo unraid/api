@@ -2,19 +2,23 @@
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
-
 import { useCallbackStore } from '~/store/callback';
 
-const callbackStore = useCallbackStore();
-const { callbackFeedbackVisible, decryptedData } = storeToRefs(callbackStore);
-onBeforeMount(() => {
-  callbackStore.watcher();
+export interface Props {
+  open?: boolean;
+}
+
+withDefaults(defineProps<Props>(), {
+  open: false,
 });
+
+const callbackStore = useCallbackStore();
+const { decryptedData } = storeToRefs(callbackStore);
 </script>
 
 <template>
   <Modal
-    :open="callbackFeedbackVisible"
+    :open="open"
     @close="callbackStore.hide()"
     max-width="max-w-800px"
   >

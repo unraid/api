@@ -10,11 +10,12 @@ $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers
 // extract web component JS file from manifest
 $jsonManifest = file_get_contents('/usr/local/emhttp/plugins/dynamix.my.servers/webComponents/manifest.json');
 $jsonManifestData = json_decode($jsonManifest, true);
-$webComponentFile = $jsonManifestData["connect-components.client.mjs"]["file"];
+$webComponentJsFile = $jsonManifestData["connect-components.client.mjs"]["file"];
 // web component
-$localSource = '/plugins/dynamix.my.servers/webComponents/' . $webComponentFile;
+$localSourceBasePath = '/plugins/dynamix.my.servers/webComponents/';
+$localSourceJs = $localSourceBasePath . $webComponentJsFile;
 // add the web component source to the DOM
-echo '<script id="unraid-webcomponents" defer src="' . $localSource . '"></script>';
+echo '<script id="unraid-webcomponents" defer src="' . $localSourceJs . '"></script>';
 
 /**
  * Build vars for user profile prop
