@@ -38,6 +38,10 @@ export default defineNuxtConfig({
             path: '@/components/KeyActions.ce',
           },
           {
+            name: 'ConnectModals',
+            path: '@/components/Modals.ce',
+          },
+          {
             name: 'ConnectUserProfile',
             path: '@/components/UserProfile.ce',
           },
