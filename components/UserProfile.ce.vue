@@ -11,22 +11,21 @@ import '~/assets/main.css';
 
 export interface Props {
   server?: Server;
-  showDescription?: boolean;
 }
-const props = withDefaults(defineProps<Props>(), {
-  showDescription: true,
-});
+const props = defineProps<Props>();
 
 const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore()
 const serverStore = useServerStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { name, description, lanIp } = storeToRefs(serverStore);
+const { name, description, lanIp, theme } = storeToRefs(serverStore);
 
 /**
  * Close dropdown when clicking outside
- * @fix ignore not working
+ * @note
+ * If in testing you have two variants of the component on a page
+ * the clickOutside will fire twice making it seem like it doesn't work
  */
 const clickOutsideTarget = ref();
 const clickOutsideIgnoreTarget = ref();
@@ -90,7 +89,7 @@ onBeforeMount(() => {
 
     <div class="relative z-0 flex flex-row items-center justify-end gap-x-16px h-full">
       <h1 class="text-alpha relative text-18px border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
-        <template v-if="showDescription">
+        <template v-if="description && theme?.descriptionShow">
           <span>{{ description }}</span>
           <span class="text-grey-mid px-8px">&bull;</span>
         </template>

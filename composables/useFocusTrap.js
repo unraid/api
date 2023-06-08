@@ -1,8 +1,8 @@
 /**
  * @see https://www.telerik.com/blogs/how-to-trap-focus-modal-vue-3
  */
-import { customRef } from "vue";
-import { createFocusTrap } from "focus-trap";
+import { customRef } from 'vue';
+import { createFocusTrap } from 'focus-trap';
 
 const useFocusTrap = focusTrapArgs => {
   const trapRef = customRef((track, trigger) => {

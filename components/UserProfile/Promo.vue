@@ -3,6 +3,7 @@
  * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import useInstallPlugin from '~/composables/installPlugin';
 import { usePromoStore } from '~/store/promo';
 import type { UserProfilePromoFeature } from '~/types/userProfile';
 import 'tailwindcss/tailwind.css';
@@ -53,10 +54,8 @@ const features = ref<UserProfilePromoFeature[]>([
   },
 ]);
 
-const installStaging = ref(false);
-const installPlugin = () => {
-  return console.debug(installStaging.value ? 'dynamix.unraid.net.staging.plg' : 'dynamix.unraid.net.plg');
-};
+const staging = ref(false);
+const { install } = useInstallPlugin();
 
 const installButtonClasses = 'text-white text-14px text-center w-full flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-red to-orange hover:from-red/60 hover:to-orange/60 focus:from-red/60 focus:to-orange/60';
 </script>
@@ -91,14 +90,14 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
       <div class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
         <!-- v-if="devEnv" -->
         <SwitchGroup as="div" class="flex items-center justify-center">
-          <Switch v-model="installStaging" :class="[installStaging ? 'bg-indigo-600' : 'bg-gray-200', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2']">
-            <span aria-hidden="true" :class="[installStaging ? 'translate-x-5' : 'translate-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out']" />
+          <Switch v-model="staging" :class="[staging ? 'bg-indigo-600' : 'bg-gray-200', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2']">
+            <span aria-hidden="true" :class="[staging ? 'translate-x-5' : 'translate-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out']" />
           </Switch>
           <SwitchLabel as="span" class="ml-3 text-12px">
             <span class="font-semibold">Install Staging</span>
           </SwitchLabel>
         </SwitchGroup>
-        <button @click="installPlugin()" :class="installButtonClasses">{{ 'Install Connect' }}</button>
+        <button @click="install({ staging, update: false })" :class="installButtonClasses">{{ staging ? 'Install Connect Staging' : 'Install Connect' }}</button>
         <div>
           <a
             href="https://docs.unraid.net/category/unraid-connect"
