@@ -1,4 +1,4 @@
-import { defineStore, createPinia, setActivePinia } from "pinia";
+import { defineStore, createPinia, setActivePinia } from 'pinia';
 import hexToRgba from 'hex-to-rgba';
 import type { Theme } from "~/types/theme";
 /**
