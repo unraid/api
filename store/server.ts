@@ -445,6 +445,7 @@ export const useServerStore = defineStore('server', () => {
     regGuid,
     site,
     state,
+    theme,
     uptime,
     username,
     // getters

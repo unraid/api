@@ -26,11 +26,11 @@ const button = computed(() => {
 </script>
 
 <template>
-  <div class="whitespace-normal flex flex-col gap-y-16px">
-    <span v-if="stateData.error" class="text-red font-semibold leading-8 max-w-3xl">
-      {{ stateData.error.heading }}
+  <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
+    <span v-if="stateData.error" class="text-red font-semibold leading-8">
+      {{ stateData.heading }}
       <br />
-      {{ stateData.error.message }}
+      {{ stateData.message }}
     </span>
     <span>
       <component

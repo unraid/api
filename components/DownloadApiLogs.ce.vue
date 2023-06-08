@@ -12,8 +12,8 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
 </script>
 
 <template>
-  <div class="whitespace-normal flex flex-col gap-y-16px">
-    <span class="leading-8 max-w-3xl">
+  <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
+    <span class="leading-8">
       The primary method of support for Unraid Connect is through <a href="https://forums.unraid.net/forum/94-connect-plugin-support/" target="_blank" rel="noopener noreferrer">our forums</a> and <a href="https://discord.gg/unraid" target="_blank" rel="noopener noreferrer">Discord</a>. If you are asked to supply logs, please open a support request on our <a href="https://unraid.net/contact" target="_blank" rel="noopener noreferrer">Contact Page</a> and reply to the email message you receive with your logs attached. The logs may contain sensitive information so do not post them publicly.
     </span>
     <span>
