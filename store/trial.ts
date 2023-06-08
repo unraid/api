@@ -1,5 +1,4 @@
-import { useToggle } from '@vueuse/core';
-import { defineStore, createPinia, setActivePinia } from "pinia";
+import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { useCallbackStore } from './callback';
 import { useServerStore } from './server';
 

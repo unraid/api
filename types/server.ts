@@ -23,6 +23,7 @@ export enum ServerState {
 export interface Server {
   apiKey?: string;
   avatar?: string;
+  csrf?: string;
   description?: string;
   deviceCount?: number;
   expireTime?: number;
