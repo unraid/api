@@ -77,9 +77,7 @@ export const useCallbackStore = defineStore('callback', () => {
       // all actions have run
       if (array.length === (index + 1)) {
         console.debug('[actions] DONE');
-        setTimeout(() => {
-          callbackLoading.value = false;
-        }, 5000);
+        callbackLoading.value = false;
       }
     });
   };
