@@ -1,8 +1,8 @@
-import { useToggle } from '@vueuse/core';
-import { defineStore, createPinia, setActivePinia } from "pinia";
+import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { useCallbackStore } from './callback';
 import { useServerStore } from './server';
-
+import { WebguiUpdate } from '~/composables/services/webgui';
+import type { CallbackAction } from '~/types/callback';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -13,7 +13,8 @@ export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
   // State
-  const accountVisible = ref<boolean>(false);
+  const updating = ref(false);
+  const updateSuccess = ref<boolean|undefined>(undefined);
   // Actions
   const recover = () => {
     console.debug('[recover]');
@@ -43,24 +44,63 @@ export const useAccountStore = defineStore('account', () => {
       type: 'signOut',
     });
   };
-  const accountHide = () => accountVisible.value = false;
-  const accountShow = () => accountVisible.value = true;
-  const accountToggle = useToggle(accountVisible);
-
-  watch(accountVisible, (newVal, _oldVal) => {
-    console.debug('[accountVisible]', newVal, _oldVal);
-  });
+  /**
+   * @description Update myservers.cfg for both Sign In & Sign Out
+   * @note unraid-api requires apikey & token realted keys to be lowercase
+   */
+  const updatePluginConfig = async (action: CallbackAction) => {
+    console.debug('[updatePluginConfig]', action);
+    updating.value = true;
+    const userPayload = {
+      ...(action.user
+        ? {
+            accesstoken: action.user.signInUserSession.accessToken.jwtToken,
+            apikey: serverStore.apiKey,
+            // avatar: action.user?.attributes.avatar,
+            email: action.user?.attributes.email,
+            idtoken: action.user.signInUserSession.idToken.jwtToken,
+            refreshtoken: action.user.signInUserSession.refreshToken.token,
+            regWizTime: `${Date.now()}_${serverStore.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
+            username: action.user?.attributes.preferred_username,
+          }
+        : {
+            accesstoken: '',
+            apikey: '',
+            avatar: '',
+            email: '',
+            idtoken: '',
+            refreshtoken: '',
+            username: '',
+          }),
+    };
+    try {
+      const response = await WebguiUpdate
+        .formUrl({
+          csrf_token: serverStore.csrf,
+          '#file': 'dynamix.my.servers/myservers.cfg',
+          '#section': 'remote',
+          ...userPayload,
+        })
+        .post();
+      console.debug('[updatePluginConfig] WebguiUpdate response', response);
+      updateSuccess.value = true;
+    } catch (error) {
+      console.debug('[updatePluginConfig] WebguiUpdate error', error);
+      updateSuccess.value = false;
+    } finally {
+      updating.value = false;
+    }
+  };
 
   return {
     // State
-    accountVisible,
-    accountHide,
-    accountShow,
+    updating,
+    updateSuccess,
     // Actions
     recover,
     replace,
     signIn,
     signOut,
-    accountToggle,
+    updatePluginConfig,
   };
 });

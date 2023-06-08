@@ -1,4 +1,4 @@
-import { defineStore, createPinia, setActivePinia } from "pinia";
+import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue/24/solid';
 
 import { useAccountStore } from './account';
@@ -30,6 +30,7 @@ export const useServerStore = defineStore('server', () => {
    */
   const avatar = ref<string>(''); // @todo potentially move to a user store
   const apiKey = ref<string>(''); // @todo potentially move to a user store
+  const csrf = ref<string>(''); // required to make requests to Unraid webgui
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
   const expireTime = ref<number>(0);
@@ -397,6 +398,7 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[setServer] data', data);
     if (typeof data?.apiKey !== 'undefined') apiKey.value = data.apiKey;
     if (typeof data?.avatar !== 'undefined') avatar.value = data.avatar;
+    if (typeof data?.csrf !== 'undefined') csrf.value = data.csrf;
     if (typeof data?.description !== 'undefined') description.value = data.description;
     if (typeof data?.deviceCount !== 'undefined') deviceCount.value = data.deviceCount;
     if (typeof data?.expireTime !== 'undefined') expireTime.value = data.expireTime;
@@ -429,6 +431,7 @@ export const useServerStore = defineStore('server', () => {
     // state
     apiKey,
     avatar,
+    csrf,
     description,
     deviceCount,
     expireTime,

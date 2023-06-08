@@ -68,14 +68,14 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
     :show-close-x="true"
     max-width="max-w-800px"
   >
-    <div class="text-center relative w-full p-24px">
+    <div class="text-center relative w-full md:p-24px">
       <header>
         <h1 class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">
           Introducing Unraid Connect
           <span><UpcBeta class="relative -top-1" /></span>
         </h1>
         <h2 class="text-20px">
-          Enhance your Unraid experience with these features
+          Enhance your Unraid experience
         </h2>
       </header>
 

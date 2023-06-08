@@ -1,7 +1,9 @@
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import { defineStore, createPinia, setActivePinia } from "pinia";
-import type { CallbackSendPayload } from '~/types/callback';
+import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { useAccountStore } from './account';
+import { useInstallKeyStore } from './installKey';
+import type { CallbackSendPayload, CallbackReceivePayload } from '~/types/callback';
 import type {
   ServerAccountCallbackSendPayload,
   ServerPurchaseCallbackSendPayload,
@@ -14,14 +16,16 @@ setActivePinia(createPinia());
 
 export const useCallbackStore = defineStore('callback', () => {
   // store helpers
+  const accountStore = useAccountStore();
+  const installKeyStore = useInstallKeyStore();
   // const config = useRuntimeConfig(); // results in a nuxt error after web components are built
   // const encryptKey = config.public.callbackKey;
   const encryptKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
   // state
-  const currentUrl = ref();
   const callbackFeedbackVisible = ref<boolean>(false);
-  const decryptedData = ref();
-  const encryptedMessage = ref('');
+  const callbackLoading = ref(false);
+  const decryptedData = ref<CallbackReceivePayload|null>(null);
+  const encryptedMessage = ref<string|null>(null);
   // actions
   const send = (url: string = 'https://unraid.ddev.site/init-purchase', payload: CallbackSendPayload) => {
     console.debug('[send]');
@@ -45,25 +49,39 @@ export const useCallbackStore = defineStore('callback', () => {
     if (!callbackValue) {
       return console.debug('[watcher] no callback to handle');
     }
+    callbackLoading.value = true;
     const decryptedMessage = AES.decrypt(callbackValue, encryptKey);
     decryptedData.value = JSON.parse(decryptedMessage.toString(Utf8));
     console.debug('[watcher]', decryptedMessage, decryptedData.value);
-    if (!decryptedData.value) return console.error('Callback Watcher: Data not present');
-    if (!decryptedData.value.action) return console.error('Callback Watcher: Required "action" not present');
+    if (!decryptedData.value) {
+      callbackLoading.value = false;
+      return console.error('Callback Watcher: Data not present');
+    }
+    if (!decryptedData.value.actions) {
+      callbackLoading.value = false;
+      return console.error('Callback Watcher: Required "action" not present');
+    }
     // Display the feedback modal
     show();
     // Parse the data and perform actions
-    switch (decryptedData.value.action) {
-      case 'install':
-        console.debug(`Installing key ${decryptedData.value.keyUrl}\n\nOEM: ${decryptedData.value.oem}\n\nSender: ${decryptedData.value.sender}`);
-        break;
-      case 'register':
-        console.debug('[Register action]');
-        break;
-      default:
-        console.error('Callback Watcher: Invalid "action"');
-        break;
-    }
+    decryptedData.value.actions.forEach(async (action, index, array) => {
+      console.debug('[action]', action);
+      if (action.keyUrl) {
+        const response = await installKeyStore.install(action);
+        console.debug('[action] installKeyStore.install response', response);
+      }
+      if (action.user) {
+        const response = await accountStore.updatePluginConfig(action);
+        console.debug('[action] accountStore.updatePluginConfig', response);
+      }
+      // all actions have run
+      if (array.length === (index + 1)) {
+        console.debug('[actions] DONE');
+        setTimeout(() => {
+          callbackLoading.value = false;
+        }, 5000);
+      }
+    });
   };
 
   const hide = () => {
@@ -87,8 +105,9 @@ export const useCallbackStore = defineStore('callback', () => {
 
   return {
     // state
-    decryptedData,
     callbackFeedbackVisible,
+    callbackLoading,
+    decryptedData,
     // actions
     send,
     watcher,

@@ -51,7 +51,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           title="Click to close modal"
         />
       </TransitionChild>
-      <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+      <div class="text-center flex min-h-full items-center justify-center p-4 md:p-0">
         <TransitionChild
           appear
           as="template"
