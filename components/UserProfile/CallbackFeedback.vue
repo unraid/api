@@ -2,6 +2,7 @@
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
+import { useAccountStore } from '~/store/account';
 import { useCallbackStore } from '~/store/callback';
 import { useInstallKeyStore } from '~/store/installKey';
 
@@ -13,8 +14,13 @@ withDefaults(defineProps<Props>(), {
   open: false,
 });
 
+const accountStore = useAccountStore();
 const callbackStore = useCallbackStore();
+const installKeyStore = useInstallKeyStore();
+
+const { updating, updateSuccess } = storeToRefs(accountStore);
 const { callbackLoading, decryptedData } = storeToRefs(callbackStore);
+const { installing, success } = storeToRefs(installKeyStore);
 
 const close = () => {
   if (callbackLoading.value) return console.debug('[close] not allowed');
@@ -36,6 +42,18 @@ const close = () => {
 
       <BrandLoading v-if="callbackLoading" class="w-90px mx-auto" />
       <pre class="text-left text-black p-8px w-full overflow-scroll bg-gray-400">{{ JSON.stringify(decryptedData, null, 2) }}</pre>
+
+      <p v-if="installing">Installing License Key</p>
+      <template v-if="(typeof success !== undefined)">
+        <p v-if="success">Installed License Key</p>
+        <p v-else>License Key Install Failed</p>
+      </template>
+
+      <p v-if="updating">Account Connect</p>
+      <template v-if="(typeof success !== undefined)">
+        <p v-if="success">Connect config updated with your account</p>
+        <p v-else>Connect config failed to update</p>
+      </template>
 
       <div v-if="!callbackLoading" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
         <button
