@@ -136,6 +136,9 @@ if ($display['theme'] === 'black' || $display['theme'] === 'azure') {
   <connect-auth></connect-auth>
 </div>
 <div class="ComponentWrapper">
+  <connect-download-api-logs></connect-download-api-logs>
+</div>
+<div class="ComponentWrapper">
   <connect-key-actions></connect-key-actions>
 </div>
 <div class="ComponentWrapper">

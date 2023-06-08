@@ -11,9 +11,6 @@ const { pluginInstalled, registered } = storeToRefs(useServerStore());
 
 const showDefaultContent = computed(() => !showLaunchpad.value);
 const showLaunchpad = computed(() => pluginInstalled.value && !registered.value);
-/**
- * @todo use gsap to animate width between the three dropdown variants
- */
 </script>
 
 <template>
