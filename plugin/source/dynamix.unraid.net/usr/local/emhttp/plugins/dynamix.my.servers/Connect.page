@@ -500,7 +500,7 @@ if (stripos($allowedOrigins.",", "/".$host.",") === false) {
 
 
 _(Account status)_:
-: <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
+: <connect-auth></connect-auth>
 
 <?if($isRegistered):?>
 _(Connected to Unraid Connect Cloud)_: 
@@ -544,7 +544,7 @@ _(Allow Remote Access)_:
 <?endif?>
 
 &nbsp;
-: <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
+: <connect-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></connect-wan-ip-check>
 
 <div markdown="1" id="wanpanel" style="display:'none'">
 
@@ -706,7 +706,7 @@ $(function() {
 <!-- start unraid-api section -->
 <div markdown="1" class="js-unraidApiLogs <?=$shade?>">
 _(Download unraid-api Logs)_:
-: <unraid-api-logs></unraid-api-logs>
+: <connect-download-api-logs></connect-download-api-logs>
 </div>
 <!-- end unraid-api section -->
 
