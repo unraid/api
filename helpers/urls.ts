@@ -1,7 +1,7 @@
 /**
  * @todo setup .env
  */
-const ACCOUNT = 'https://account.unraid.net';
+const ACCOUNT = 'https://localhost:8008/connect';
 const CONNECT_DOCS = 'https://docs.unraid.net/category/unraid-connect';
 const CONNECT_DASHBOARD = 'https://connect.myunraid.net';
 const DEV_GRAPH_URL = '';

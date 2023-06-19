@@ -1,9 +1,10 @@
 <script lang="ts" setup>
+import { useClipboard } from '@vueuse/core'
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 import { useAccountStore } from '~/store/account';
-import { useCallbackStore } from '~/store/callback';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 
 export interface Props {
@@ -15,17 +16,27 @@ withDefaults(defineProps<Props>(), {
 });
 
 const accountStore = useAccountStore();
-const callbackStore = useCallbackStore();
+const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 
 const { updating, updateSuccess } = storeToRefs(accountStore);
-const { callbackLoading, decryptedData } = storeToRefs(callbackStore);
-const { installing, success } = storeToRefs(installKeyStore);
+const { callbackLoading } = storeToRefs(callbackActionsStore);
+const { keyUrl, installing, success } = storeToRefs(installKeyStore);
+
+const heading = computed(() => {
+  callbackLoading.value ? 'Performing actions' : 'Finished performing actions';
+});
+
+const subheading = computed(() => {
+  callbackLoading.value ? 'Please keep this window open' : '';
+});
 
 const close = () => {
   if (callbackLoading.value) return console.debug('[close] not allowed');
-  callbackStore.hide();
+  callbackActionsStore.closeCallbackFeedback();
 };
+
+const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 </script>
 
 <template>
@@ -37,22 +48,31 @@ const close = () => {
   >
     <div class="text-center relative w-full flex flex-col gap-y-16px">
       <header>
-        <h1 class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">Callback Feedback</h1>
+        <h1 class="text-24px font-semibold">{{ heading }}</h1>
+        <p v-if="subheading" class="text-16px opacity-80">{{ subheading }}</p>
       </header>
 
       <BrandLoading v-if="callbackLoading" class="w-90px mx-auto" />
-      <pre class="text-left text-black p-8px w-full overflow-scroll bg-gray-400">{{ JSON.stringify(decryptedData, null, 2) }}</pre>
 
-      <p v-if="installing">Installing License Key</p>
-      <template v-if="(typeof success !== undefined)">
-        <p v-if="success">Installed License Key</p>
-        <p v-else>License Key Install Failed</p>
+      <template v-if="installing !== undefined">
+        <p v-if="installing">Installing License Key</p>
+        <template v-else>
+          <p v-if="success === true">Installed License Key</p>
+          <template v-else-if="success === false">
+            <p class="text-red italic">License Key Install Failed</p>
+            <button v-if="isSupported" @click="copy(keyUrl)">{{ copied ? 'Copied' : 'Copy Key URL' }}</button>
+            <p v-else>Copy your Key URL: {{ keyUrl }}</p>
+            <p>Then go to <a href="/Tools/Registration">Tools > Registration</a> to manually install it</p>
+          </template>
+        </template>
       </template>
 
-      <p v-if="updating">Account Connect</p>
-      <template v-if="(typeof success !== undefined)">
-        <p v-if="success">Connect config updated with your account</p>
-        <p v-else>Connect config failed to update</p>
+      <template v-if="updating !== undefined">
+        <p v-if="updating">Updating Connect account config</p>
+        <template v-else>
+          <p v-if="updateSuccess === true">Connect config updated with your account</p>
+          <p v-else-if="updateSuccess === false" class="text-red italic">Connect config failed to update</p>
+        </template>
       </template>
 
       <div v-if="!callbackLoading" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">

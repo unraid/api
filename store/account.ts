@@ -1,5 +1,5 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useCallbackStore } from './callback';
+import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
 import { WebguiUpdate } from '~/composables/services/webgui';
 import type { CallbackAction } from '~/types/callback';
@@ -12,56 +12,62 @@ setActivePinia(createPinia());
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
+
   // State
-  const updating = ref(false);
-  const updateSuccess = ref<boolean|undefined>(undefined);
+  const updating = ref<boolean | undefined>(undefined);
+  const updateSuccess = ref<boolean | undefined>(undefined);
+
   // Actions
   const recover = () => {
-    console.debug('[recover]');
-    callbackStore.send('https://account.unraid.net', {
-      ...serverStore.serverAccountPayload,
+    console.debug('[accountStore.recover]');
+    callbackStore.send('https://localhost:8008/connect', [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
       type: 'recover',
-    });
+    }]);
   };
   const replace = () => {
-    console.debug('[replace]');
-    callbackStore.send('https://account.unraid.net', {
-      ...serverStore.serverAccountPayload,
+    console.debug('[accountStore.replace]');
+    callbackStore.send('https://localhost:8008/connect', [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
       type: 'replace',
-    });
+    }]);
   };
   const signIn = () => {
-    console.debug('[signIn]');
-    callbackStore.send('https://account.unraid.net', {
-      ...serverStore.serverAccountPayload,
+    console.debug('[accountStore.signIn]');
+    callbackStore.send('https://localhost:8008/connect', [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
       type: 'signIn',
-    });
+    }]);
   };
   const signOut = () => {
-    console.debug('[signOut]');
-    callbackStore.send('https://account.unraid.net', {
-      ...serverStore.serverAccountPayload,
+    console.debug('[accountStore.accountStore.signOut]');
+    callbackStore.send('https://localhost:8008/connect', [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
       type: 'signOut',
-    });
+    }]);
   };
   /**
    * @description Update myservers.cfg for both Sign In & Sign Out
    * @note unraid-api requires apikey & token realted keys to be lowercase
    */
   const updatePluginConfig = async (action: CallbackAction) => {
-    console.debug('[updatePluginConfig]', action);
+    console.debug('[accountStore.updatePluginConfig]', action);
     updating.value = true;
     const userPayload = {
       ...(action.user
         ? {
-            accesstoken: action.user.signInUserSession.accessToken.jwtToken,
             apikey: serverStore.apiKey,
-            // avatar: action.user?.attributes.avatar,
-            email: action.user?.attributes.email,
-            idtoken: action.user.signInUserSession.idToken.jwtToken,
-            refreshtoken: action.user.signInUserSession.refreshToken.token,
+            email: action.user?.email,
             regWizTime: `${Date.now()}_${serverStore.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
-            username: action.user?.attributes.preferred_username,
+            username: action.user?.preferred_username,
           }
         : {
             accesstoken: '',
@@ -81,16 +87,24 @@ export const useAccountStore = defineStore('account', () => {
           '#section': 'remote',
           ...userPayload,
         })
-        .post();
-      console.debug('[updatePluginConfig] WebguiUpdate response', response);
-      updateSuccess.value = true;
-    } catch (error) {
-      console.debug('[updatePluginConfig] WebguiUpdate error', error);
-      updateSuccess.value = false;
+        .post()
+        .res(res => {
+          console.debug('[accountStore.updatePluginConfig] WebguiUpdate res', res);
+          updateSuccess.value = true;
+        })
+        .catch(err => {
+          console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
+          updateSuccess.value = false;
+        });
+      return response;
     } finally {
       updating.value = false;
     }
   };
+
+  watch(updating, (newV, oldV) => {
+    console.debug('[updating.watch]', newV, oldV);
+  });
 
   return {
     // State
