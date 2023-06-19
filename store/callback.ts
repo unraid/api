@@ -1,116 +1,153 @@
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
+import { ref } from 'vue';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useAccountStore } from './account';
-import { useInstallKeyStore } from './installKey';
-import type { CallbackSendPayload, CallbackReceivePayload } from '~/types/callback';
-import type {
-  ServerAccountCallbackSendPayload,
-  ServerPurchaseCallbackSendPayload,
-} from '~/types/server';
+
+export interface ServerAccountCallbackServerData {
+  description?: string;
+  deviceCount?: number;
+  expireTime?: number;
+  flashProduct?: string;
+  flashVendor?: string;
+  guid?: string;
+  keyfile?: string;
+  locale?: string;
+  name?: string;
+  registered: boolean;
+  regGen?: number;
+  regGuid?: string;
+  state: string;
+  wanFQDN?: string;
+}
+export type ServerStateDataActionType =
+  | 'signIn'
+  | 'signOut'
+  | 'purchase'
+  | 'redeem'
+  | 'upgrade'
+  | 'recover'
+  | 'replace'
+  | 'trialExtend'
+  | 'trialStart';
+
+export interface ServerPayload {
+  server: ServerAccountCallbackServerData;
+  type: ServerStateDataActionType;
+}
+
+export interface ExternalSignIn {
+  type: 'signIn';
+  apiKey: string;
+  user: UserInfo;
+}
+export interface ExternalSignOut {
+  type: 'signOut';
+}
+export interface ExternalKeyActions {
+  type: 'recover' | 'replace' | 'trialExtend' | 'trialStart';
+  keyUrl: string;
+}
+
+export interface ExternalPurchaseActions {
+  type: 'purchase' | 'redeem' | 'upgrade';
+}
+
+export type ExternalActions =
+  | ExternalSignIn
+  | ExternalSignOut
+  | ExternalKeyActions
+  | ExternalPurchaseActions;
+
+export type UpcActions = ServerPayload;
+
+export interface ExternalPayload {
+  actions: ExternalActions[];
+  sender: string;
+  type: 'forUpc';
+}
+export interface UpcPayload {
+  actions: UpcActions[];
+  sender: string;
+  type: 'fromUpc';
+}
+
+export type SendPayloads = ExternalActions[] | UpcActions[];
+
+export type QueryPayloads = ExternalPayload | UpcPayload;
+
+export interface UserInfo {
+  'custom:ips_id'?: string;
+  email?: string;
+  email_verifed?: 'true' | 'false';
+  preferred_username?: string;
+  sub?: string;
+  username?: string;
+}
+
+interface CallbackActionsStore {
+  redirectToCallbackType: (decryptedData: QueryPayloads) => void;
+  encryptionKey: string;
+  sendType: 'fromUpc' | 'forUpc';
+}
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
 
-export const useCallbackStore = defineStore('callback', () => {
-  // store helpers
-  const accountStore = useAccountStore();
-  const installKeyStore = useInstallKeyStore();
-  // const config = useRuntimeConfig(); // results in a nuxt error after web components are built
-  // const encryptKey = config.public.callbackKey;
-  const encryptKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
-  // state
-  const callbackFeedbackVisible = ref<boolean>(false);
-  const callbackLoading = ref(false);
-  const decryptedData = ref<CallbackReceivePayload|null>(null);
-  const encryptedMessage = ref<string|null>(null);
-  // actions
-  const send = (url: string = 'https://unraid.ddev.site/init-purchase', payload: CallbackSendPayload) => {
-    console.debug('[send]');
-    const stringifiedData = JSON.stringify({
-      ...payload,
-      sender: window.location.href,
-    });
-    encryptedMessage.value = AES.encrypt(stringifiedData, encryptKey).toString();
-    // build and go to url
-    const destinationUrl = new URL(url);
-    console.debug('[send]', encryptedMessage.value, url);
-    destinationUrl.searchParams.set('data', encryptedMessage.value);
-    window.location.href = destinationUrl.toString();
-  };
-
-  const watcher = () => {
-    console.debug('[watcher]');
-    const currentUrl = new URL(window.location.toString());
-    const callbackValue = currentUrl.searchParams.get('data');
-    console.debug('[watcher]', { callbackValue });
-    if (!callbackValue) {
-      return console.debug('[watcher] no callback to handle');
-    }
-    callbackLoading.value = true;
-    const decryptedMessage = AES.decrypt(callbackValue, encryptKey);
-    decryptedData.value = JSON.parse(decryptedMessage.toString(Utf8));
-    console.debug('[watcher]', decryptedMessage, decryptedData.value);
-    if (!decryptedData.value) {
-      callbackLoading.value = false;
-      return console.error('Callback Watcher: Data not present');
-    }
-    if (!decryptedData.value.actions) {
-      callbackLoading.value = false;
-      return console.error('Callback Watcher: Required "action" not present');
-    }
-    // Display the feedback modal
-    show();
-    // Parse the data and perform actions
-    decryptedData.value.actions.forEach(async (action, index, array) => {
-      console.debug('[action]', action);
-      if (action.keyUrl) {
-        const response = await installKeyStore.install(action);
-        console.debug('[action] installKeyStore.install response', response);
-      }
-      if (action.user) {
-        const response = await accountStore.updatePluginConfig(action);
-        console.debug('[action] accountStore.updatePluginConfig', response);
-      }
-      // all actions have run
-      if (array.length === (index + 1)) {
-        console.debug('[actions] DONE');
-        callbackLoading.value = false;
-      }
-    });
-  };
-
-  const hide = () => {
-    console.debug('[hide]');
-    callbackFeedbackVisible.value = false;
-  };
-  const show = () => {
-    console.debug('[show]');
-    callbackFeedbackVisible.value = true;
-  }
-  const toggle = useToggle(callbackFeedbackVisible);
-
-  watch(callbackFeedbackVisible, (newVal, _oldVal) => {
-    console.debug('[callbackFeedbackVisible]', newVal);
-    // removing query string once actions are done so users can't refresh the page and go through the same actions
-    if (newVal === false) {
-      console.debug('[callbackFeedbackVisible] push history w/o query');
-      window.history.pushState(null, '', window.location.pathname);
-    }
-  });
-
-  return {
+export const useCallbackStoreGeneric = (
+  useCallbackActions: () => CallbackActionsStore,
+) =>
+  defineStore('callback', () => {
+    const callbackActions = useCallbackActions();
+    const encryptionKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
+    const sendType = 'fromUpc';
     // state
-    callbackFeedbackVisible,
-    callbackLoading,
-    decryptedData,
+    const callbackLoading = ref(false);
+    const encryptedMessage = ref<string | null>(null);
+
     // actions
-    send,
-    watcher,
-    hide,
-    show,
-    toggle,
-  };
-});
+    const send = (url: string, payload: SendPayloads) => {
+      console.debug('[callback.send]');
+      const stringifiedData = JSON.stringify({
+        actions: [
+          ...payload,
+        ],
+        sender: window.location.href,
+        type: sendType,
+      });
+      encryptedMessage.value = AES.encrypt(stringifiedData, encryptionKey).toString();
+      // build and go to url
+      const destinationUrl = new URL(url);
+      destinationUrl.searchParams.set('data', encodeURI(encryptedMessage.value));
+      console.debug('[callback.send]', encryptedMessage.value, destinationUrl);
+      window.location.href = destinationUrl.toString();
+      return;
+    };
+
+    const watcher = () => {
+      console.debug('[callback.watcher]');
+      const currentUrl = new URL(window.location.toString());
+      const callbackValue = decodeURI(currentUrl.searchParams.get('data') ?? '');
+      console.debug('[callback.watcher]', { callbackValue });
+      if (!callbackValue) {
+        return console.debug('[callback.watcher] no callback to handle');
+      }
+
+      callbackLoading.value = true;
+      const decryptedMessage = AES.decrypt(callbackValue, encryptionKey);
+      const decryptedData: QueryPayloads = JSON.parse(decryptedMessage.toString(Utf8));
+      console.debug('[callback.watcher]', decryptedMessage, decryptedData);
+      // Parse the data and perform actions
+      callbackActions.redirectToCallbackType(decryptedData);
+    };
+
+    return {
+      // state
+      callbackLoading,
+      // actions
+      send,
+      watcher,
+    };
+  });

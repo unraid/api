@@ -1,5 +1,5 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useCallbackStore } from './callback';
+import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
 
 /**
@@ -14,15 +14,19 @@ export const useTrialStore = defineStore('trial', () => {
 
   const extend = () => {
     console.debug('[extend]');
-    callbackStore.send('https://account.unraid.net', {
-      ...serverStore.serverAccountPayload,
+    callbackStore.send('https://localhost:8008/connect', {
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
       type: 'trialExtend',
     });
   };
   const start = () => {
     console.debug('[start]');
-    callbackStore.send('https://account.unraid.net', {
-      ...serverStore.serverAccountPayload,
+    callbackStore.send('https://localhost:8008/connect', {
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
       type: 'trialStart',
     });
   };

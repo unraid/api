@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { OnClickOutside } from '@vueuse/components'
 
-import { useCallbackStore } from '~/store/callback';
+import { useCallbackStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import type { Server } from '~/types/server';
@@ -19,7 +19,7 @@ const dropdownStore = useDropdownStore()
 const serverStore = useServerStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { name, description, lanIp, theme } = storeToRefs(serverStore);
+const { name, description, lanIp, theme, stateData } = storeToRefs(serverStore);
 
 /**
  * Close dropdown when clicking outside

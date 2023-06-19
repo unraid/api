@@ -7,6 +7,7 @@ import { useDropdownStore } from '~/store/dropdown';
 import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
+import type { ServerStateDataAction } from '~/types/server';
 
 const myServersEnv = ref<string>('Staging');
 const devEnv = ref<string>('development');
@@ -14,6 +15,9 @@ const devEnv = ref<string>('development');
 const dropdownStore = useDropdownStore();
 const promoStore = usePromoStore();
 const { keyActions, pluginInstalled, registered, stateData } = storeToRefs(useServerStore());
+
+const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
+const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
 
 const links = computed(():UserProfileLink[] => {
   return [
@@ -40,25 +44,13 @@ const links = computed(():UserProfileLink[] => {
           text: 'Settings',
           title: 'Go to Connect plugin settings',
         },
-        {
-          click: () => { console.debug('signOut') },
-          external: true,
-          icon: ArrowRightOnRectangleIcon,
-          text: 'Sign Out',
-          title: 'Sign Out to Unregister your server with Connect',
-        },
+        ...(signOutAction.value),
       ]
       : []
     ),
     ...(!registered.value && pluginInstalled.value
       ? [
-        {
-          click: () => { console.debug('signIn') },
-          external: true,
-          icon: UserIcon,
-          text: 'Sign In with Unraid.net Account',
-          title: 'Sign In with Unraid.net Account',
-        },
+        ...(signInAction.value),
       ]
       : []
     ),
@@ -77,7 +69,7 @@ const links = computed(():UserProfileLink[] => {
       : []
     ),
   ];
-})
+});
 </script>
 
 <template>

@@ -16,32 +16,16 @@ export interface UserInfo {
   sub?: string;
   username?: string;
 }
-
-export interface AuthUser extends CognitoUser {
-  attributes: UserInfo;
-  username?: string;
-  preferredMFA: ChallengeName;
-  signInUserSession: {
-    accessToken: {
-      jwtToken: string;
-    };
-    idToken: {
-      jwtToken: string;
-    };
-    refreshToken: {
-      token: string;
-    };
-  };
-}
-
-export interface CallbackSendPayload extends ServerAccountCallbackSendPayload, ServerPurchaseCallbackSendPayload {
+export interface CallbackSendPayload {
+  server: ServerAccountCallbackSendPayload|ServerPurchaseCallbackSendPayload;
   type: ServerStateDataActionType;
 }
 
 export interface CallbackAction {
+  apiKey?: string;
   keyUrl?: string;
   type: ServerStateDataActionType;
-  user?: AuthUser;
+  user?: UserInfo;
 }
 
 export interface CallbackReceivePayload {
