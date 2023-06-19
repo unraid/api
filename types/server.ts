@@ -59,6 +59,7 @@ export interface ServerAccountCallbackSendPayload {
   keyfile?: string;
   locale?: string;
   name?: string;
+  registered: boolean;
   regGen?: number;
   regGuid?: string;
   state: string;

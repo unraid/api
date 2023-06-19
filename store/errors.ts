@@ -1,6 +1,6 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 // import { useAccountStore } from './account';
-// import { useCallbackStore } from './callback';
+// import { useCallbackStore } from './callbackActions';
 // import { useInstallKeyStore } from './installKey';
 // import { useServerStore } from './server';
 

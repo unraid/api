@@ -1,6 +1,6 @@
 import { useToggle } from '@vueuse/core';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useCallbackStore } from './callback';
+import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
 
 /**
@@ -18,21 +18,27 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const redeem = () => {
     console.debug('[redeem]');
     callbackStore.send('https://unraid.ddev.site/init-purchase', {
-      ...serverStore.serverPurchasePayload,
+      server: {
+        ...serverStore.serverPurchasePayload,
+      },
       type: 'redeem',
     });
   };
   const purchase = () => {
     console.debug('[purchase]');
     callbackStore.send('https://unraid.ddev.site/init-purchase', {
-      ...serverStore.serverPurchasePayload,
+      server: {
+        ...serverStore.serverPurchasePayload,
+      },
       type: 'purchase',
     });
   };
   const upgrade = () => {
     console.debug('[upgrade]');
     callbackStore.send('https://unraid.ddev.site/init-purchase', {
-      ...serverStore.serverPurchasePayload,
+      server: {
+        ...serverStore.serverPurchasePayload,
+      },
       type: 'upgrade',
     });
   };

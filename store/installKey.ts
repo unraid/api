@@ -12,12 +12,15 @@ setActivePinia(createPinia());
 export const useInstallKeyStore = defineStore('installKey', () => {
   const serverStore = useServerStore();
 
-  const installing = ref(false);
-  const success = ref<boolean|undefined>();
+  const keyUrl = ref<string>('');
+  const installing = ref<boolean | undefined>();
+  const success = ref<boolean | undefined>();
 
   const install = async (action: CallbackAction) => {
     console.debug('[install]');
     installing.value = true;
+    keyUrl.value = action.keyUrl ?? '';
+
     try {
       const response = await WebguiInstallKey
         .query({ url: action.keyUrl })
@@ -43,8 +46,13 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     }
   };
 
+  watch(installing, (newV, oldV) => {
+    console.debug('[installing.watch]', newV, oldV);
+  });
+
   return {
     // State
+    keyUrl,
     installing,
     success,
     // Actions

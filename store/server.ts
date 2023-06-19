@@ -111,6 +111,7 @@ export const useServerStore = defineStore('server', () => {
       guid: guid.value,
       keyfile: keyfile.value,
       name: name.value,
+      registered: registered.value ?? false,
       state: state.value,
       wanFQDN: wanFQDN.value,
     }
