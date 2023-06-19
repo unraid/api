@@ -3,13 +3,11 @@ import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import { useCallbackStore } from '~/store/callback';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { usePromoStore } from '~/store/promo';
 
-const callbackStore = useCallbackStore();
-const promoStore = usePromoStore();
-const { callbackFeedbackVisible } = storeToRefs(callbackStore);
-const { promoVisible } = storeToRefs(promoStore);
+const { callbackFeedbackVisible } = storeToRefs(useCallbackActionsStore());
+const { promoVisible } = storeToRefs(usePromoStore());
 </script>
 
 <template>
