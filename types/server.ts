@@ -67,8 +67,11 @@ export interface ServerAccountCallbackSendPayload {
 }
 
 export interface ServerPurchaseCallbackSendPayload {
-  deviceCount?: number;
-  guid?: string;
+  deviceCount: number;
+  guid: string;
+  registered: boolean;
+  // state?: ServerState;
+  state: string;
 }
 
 export type ServerStateDataActionType = 'signIn'|'signOut'|'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';

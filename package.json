@@ -13,6 +13,7 @@
     "rebuildManifest": "node postBuild.ts"
   },
   "devDependencies": {
+    "@nuxt/devtools": "^0.6.1",
     "@nuxtjs/tailwindcss": "^6.7.0",
     "@types/crypto-js": "^4.1.1",
     "@types/node": "^18",
