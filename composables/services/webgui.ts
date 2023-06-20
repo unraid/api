@@ -12,8 +12,9 @@ export const WebguiInstallKey = request.url('/webGui/include/InstallKey.php');
  * @param {string} csrf_token
  * @param {string} '#file' - ex:  getters.myServersCfgPath
  * @param {string} '#section' - ex:  'remote'
- * @param {string} apikey
+ * @param {string} apikey - from key server's response
  * @param {string} avatar
+ * @param {string} regWizTime - date_guid
  * @param {string} email
  * @param {string} username
  */
