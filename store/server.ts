@@ -99,6 +99,8 @@ export const useServerStore = defineStore('server', () => {
     return {
       deviceCount: deviceCount.value,
       guid: guid.value,
+      registered: registered.value ?? false,
+      state: state.value,
     }
   });
 

@@ -17,30 +17,30 @@ export const usePurchaseStore = defineStore('purchase', () => {
   // Actions
   const redeem = () => {
     console.debug('[redeem]');
-    callbackStore.send('https://unraid.ddev.site/init-purchase', {
+    callbackStore.send('https://unraid.ddev.site/init-purchase', [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
       type: 'redeem',
-    });
+    }]);
   };
   const purchase = () => {
     console.debug('[purchase]');
-    callbackStore.send('https://unraid.ddev.site/init-purchase', {
+    callbackStore.send('https://unraid.ddev.site/init-purchase', [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
       type: 'purchase',
-    });
+    }]);
   };
   const upgrade = () => {
     console.debug('[upgrade]');
-    callbackStore.send('https://unraid.ddev.site/init-purchase', {
+    callbackStore.send('https://unraid.ddev.site/init-purchase', [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
       type: 'upgrade',
-    });
+    }]);
   };
   const purchaseHide = () => purchaseVisible.value = false;
   const purchaseShow = () => purchaseVisible.value = true;
