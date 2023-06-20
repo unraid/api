@@ -2,6 +2,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
 import { WebguiUpdate } from '~/composables/services/webgui';
+import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 import type { CallbackAction } from '~/types/callback';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -64,7 +65,8 @@ export const useAccountStore = defineStore('account', () => {
     const userPayload = {
       ...(action.user
         ? {
-            apikey: serverStore.apiKey,
+            apikey: action.apiKey,
+            // avatar: '',
             email: action.user?.email,
             regWizTime: `${Date.now()}_${serverStore.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
             username: action.user?.preferred_username,
