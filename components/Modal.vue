@@ -62,7 +62,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
         >
-          <div :class="maxWidth" class="text-beta bg-alpha relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6">
+          <div :class="maxWidth" class="text-alpha bg-beta relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6">
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
               <button @click="closeModal" type="button" class="rounded-md bg-alpha text-gray-400 p-2 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 <span class="sr-only">Close</span>

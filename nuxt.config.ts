@@ -4,6 +4,9 @@ export default defineNuxtConfig({
   devServer: {
     port: 4321,
   },
+  devtools: {
+    enabled: true,
+  },
   modules: [
     '@vueuse/nuxt',
     '@pinia/nuxt',
