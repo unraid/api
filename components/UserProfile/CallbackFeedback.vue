@@ -23,18 +23,17 @@ const { updating, updateSuccess } = storeToRefs(accountStore);
 const { callbackLoading } = storeToRefs(callbackActionsStore);
 const { keyUrl, installing, success } = storeToRefs(installKeyStore);
 
-const heading = computed(() => {
-  callbackLoading.value ? 'Performing actions' : 'Finished performing actions';
-});
-
-const subheading = computed(() => {
-  callbackLoading.value ? 'Please keep this window open' : '';
-});
+const heading = computed(() => callbackLoading.value ? 'Performing actions' : 'Finished performing actions');
+const subheading = computed(() => callbackLoading.value ? 'Please keep this window open' : '');
 
 const close = () => {
   if (callbackLoading.value) return console.debug('[close] not allowed');
   callbackActionsStore.closeCallbackFeedback();
 };
+// @close="close"
+// :show-close-x="!callbackLoading"
+
+const reload = () => window.location.reload();
 
 const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 </script>
@@ -42,11 +41,9 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
 <template>
   <Modal
     :open="open"
-    @close="close"
     max-width="max-w-800px"
-    :show-close-x="!callbackLoading"
   >
-    <div class="text-center relative w-full flex flex-col gap-y-16px">
+    <div class="text-16px text-center relative w-full flex flex-col gap-y-16px">
       <header>
         <h1 class="text-24px font-semibold">{{ heading }}</h1>
         <p v-if="subheading" class="text-16px opacity-80">{{ subheading }}</p>
@@ -77,10 +74,10 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
 
       <div v-if="!callbackLoading" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
         <button
-          @click="close"
+          @click="reload"
           class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
         >
-          {{ 'Close' }}
+          {{ 'Reload Page to Finalize' }}
         </button>
       </div>
     </div>
