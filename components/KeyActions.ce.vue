@@ -9,6 +9,12 @@ const { keyActions } = storeToRefs(useServerStore());
 
 <template>
   <div v-if="keyActions" class="flex flex-col gap-y-8px">
+    <!-- <BrandButton
+        v-for="action in keyActions" :key="action.name"
+        :click="action.click()"
+        :icon="action.icon"
+        :text="action.text"
+      /> -->
     <component
       v-for="action in keyActions" :key="action.name"
       :is="action.click ? 'button' : 'a'"
