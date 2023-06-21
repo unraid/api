@@ -19,7 +19,7 @@ const formattedTime = computed<string>(() => {
   return dateFormat((uptimeOrExpiredTime.value).toString());
 });
 
-const countUp = computed<boolean>(() => state.value !== 'TRIAL');
+const countUp = computed<boolean>(() => state.value !== 'TRIAL' && state.value !== 'ENOCONN');
 
 const output = computed(() => {
   if (!countUp.value) {
