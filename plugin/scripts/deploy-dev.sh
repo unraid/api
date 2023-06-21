@@ -34,5 +34,21 @@ rsync_command="rsync -avz --progress --stats -m -e ssh \"$source_directory/\" \"
 echo "Executing the following command:"
 echo "$rsync_command"
 
-# Execute the rsync command
+# Execute the rsync command and capture the exit code
 eval "$rsync_command"
+exit_code=$?
+
+# Play built-in sound based on the operating system
+if [[ "$OSTYPE" == "darwin"* ]]; then
+  # macOS
+  afplay /System/Library/Sounds/Glass.aiff
+elif [[ "$OSTYPE" == "linux-gnu" ]]; then
+  # Linux
+  paplay /usr/share/sounds/freedesktop/stereo/complete.oga
+elif [[ "$OSTYPE" == "msys" || "$OSTYPE" == "win32" ]]; then
+  # Windows
+  powershell.exe -c "(New-Object Media.SoundPlayer 'C:\Windows\Media\Windows Default.wav').PlaySync()"
+fi
+
+# Exit with the rsync command's exit code
+exit $exit_code
