@@ -29,7 +29,7 @@ const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: string = 'TRIAL';
+const state: string = 'ENOKEYFILE2';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 let expireTime = 0;
