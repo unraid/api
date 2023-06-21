@@ -90,7 +90,7 @@ $serverData = [
   "flashBackupActivated" => empty($flashbackup_status['activated']) ? '' : 'true',
   "guid" => $var['flashGUID'],
   "hasRemoteApikey" => !empty($myservers['remote']['apikey']),
-  "internalIp" => ipaddr(),
+  "lanIp" => ipaddr(),
   "internalPort" => $_SERVER['SERVER_PORT'],
   "keyfile" => empty($var['regFILE'])? "" : str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
   "locale" => ($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
