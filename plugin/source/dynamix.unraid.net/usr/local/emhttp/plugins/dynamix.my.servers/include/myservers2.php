@@ -93,8 +93,8 @@ $serverData = [
     "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
     "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
     "theme" => [
-        "banner" => $display['banner'] ?? '',
-        "bannerGradient" => $display['showBannerGradient'] ?? 'yes',
+        "banner" => !empty($display['banner']),
+        "bannerGradient" => $display['showBannerGradient'] === 'yes' ?? false,
         "bgColor" => ($backgnd) ? '#' . $backgnd : '',
         "descriptionShow" => (!empty($display['headerdescription']) && $display['headerdescription'] !== 'no'),
         "metaColor" => ($display['headermetacolor'] ?? '') ? '#' . $display['headermetacolor'] : '',
