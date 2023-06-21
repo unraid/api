@@ -3,14 +3,13 @@
   "private": true,
   "scripts": {
     "build": "nuxt build",
-    "postbuild": "npm run rebuildManifest",
     "dev": "nuxt dev",
     "generate": "nuxt generate",
-    "postgenerate": "npm run rebuildManifest",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "serve": "serve dist/nuxt-custom-elements/connect-components",
-    "rebuildManifest": "node postBuild.ts"
+    "deploy:dev": "./scripts/deploy-dev.sh",
+    "build:dev": "nuxt build && npm run deploy:dev"
   },
   "devDependencies": {
     "@nuxt/devtools": "^0.6.1",
