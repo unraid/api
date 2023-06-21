@@ -5,6 +5,7 @@ import { OnClickOutside } from '@vueuse/components'
 import { useCallbackStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
+import { useThemeStore } from '~/store/theme';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -19,7 +20,8 @@ const dropdownStore = useDropdownStore()
 const serverStore = useServerStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { name, description, lanIp, theme, stateData } = storeToRefs(serverStore);
+const { name, description, lanIp } = storeToRefs(serverStore);
+const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 /**
  * Close dropdown when clicking outside
@@ -81,13 +83,15 @@ onBeforeMount(() => {
 
 <template>
   <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px">
-    <div class="text-gamma text-12px text-right font-semibold leading-normal flex flex-row items-baseline justify-end gap-x-12px">
+    <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
+    
+    <div class="text-gamma text-12px text-right font-semibold leading-normal relative z-10 flex flex-row items-baseline justify-end gap-x-12px">
       <UpcUptimeExpire />
       <span>&bull;</span>
       <UpcServerState />
     </div>
 
-    <div class="relative z-0 flex flex-row items-center justify-end gap-x-16px h-full">
+    <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
       <h1 class="text-alpha relative text-18px border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
         <template v-if="description && theme?.descriptionShow">
           <span>{{ description }}</span>
@@ -96,7 +100,7 @@ onBeforeMount(() => {
         <button @click="copyLanIp()" :title="`Click to Copy LAN IP ${lanIp}`">{{ name }}</button>
         <span
           v-show="copied || showCopyNotSupported"
-          class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-red to-orange text-center block rounded"
+          class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
           <template v-if="copied">{{ 'LAN IP Copied' }}</template>
           <template v-else>LAN IP: <span class="select-all">{{ lanIp }}</span></template>

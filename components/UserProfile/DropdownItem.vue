@@ -22,8 +22,8 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
     :rel="item?.external ? 'noopener noreferrer' : null"
     class="text-left text-14px w-full flex flex-row items-center justify-between gap-x-8px px-8px py-8px cursor-pointer rounded-md"
     :class="{
-      'text-beta bg-transparent hover:text-white hover:bg-gradient-to-r hover:from-red hover:to-orange focus:text-white focus:bg-gradient-to-r focus:from-red focus:to-orange focus:outline-none': !item?.emphasize,
-      'text-white bg-gradient-to-r from-red to-orange hover:from-red/60 hover:to-orange/60 focus:from-red/60 focus:to-orange/60': item?.emphasize,
+      'text-beta bg-transparent hover:text-white hover:bg-gradient-to-r hover:from-unraid-red hover:to-orange focus:text-white focus:bg-gradient-to-r focus:from-unraid-red focus:to-orange focus:outline-none': !item?.emphasize,
+      'text-white bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60': item?.emphasize,
       'group': showExternalIconOnHover,
     }"
   >

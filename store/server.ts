@@ -112,6 +112,7 @@ export const useServerStore = defineStore('server', () => {
       flashVendor: flashVendor.value,
       guid: guid.value,
       keyfile: keyfile.value,
+      lanIp: lanIp.value,
       name: name.value,
       registered: registered.value ?? false,
       state: state.value,

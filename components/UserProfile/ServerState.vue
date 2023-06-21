@@ -25,13 +25,13 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
       </UpcServerStateBuy>
     </template>
     <h5 v-else>
-      Unraid OS <em :class="{ 'text-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ stateData.humanReadable }}</strong></em>
+      Unraid OS <em :class="{ 'text-unraid-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ stateData.humanReadable }}</strong></em>
     </h5>
 
     <template v-if="purchaseAction">
       <UpcServerStateBuy
         @click="purchaseAction.click()"
-        class="text-orange-dark"
+        class="text-orange-dark relative top-[1px]"
         :title="'Purchase'"
       >{{ 'Purchase' }}</UpcServerStateBuy>
     </template>

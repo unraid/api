@@ -16,9 +16,9 @@ const props = withDefaults(defineProps<Props>(), {
 const classes = computed(() => {
   switch (props.style) {
     case 'fill':
-      return 'text-white bg-gradient-to-r from-red to-orange hover:from-red/60 hover:to-orange/60 focus:from-red/60 focus:to-orange/60';
+      return 'text-white bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60';
     case 'outline':
-      return 'text-orange-dark bg-gradient-to-r from-transparent to-transparent border border-solid border-orange-dark hover:text-white focus:text-white hover:from-red hover:to-orange focus:from-red focus:to-orange hover:border-transparent focus:border-transparent';
+      return 'text-orange-dark bg-gradient-to-r from-transparent to-transparent border border-solid border-orange-dark hover:text-white focus:text-white hover:from-unraid-red hover:to-orange focus:from-unraid-red focus:to-orange hover:border-transparent focus:border-transparent';
   }
 });
 </script>

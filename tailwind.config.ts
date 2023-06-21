@@ -21,11 +21,7 @@ export default <Partial<Config>>{
 
         'orange-dark': '#f15a2c',
         orange: '#ff8c2f',
-
-        red: '#E22828',
-        yellow: '#F6E05E',
-        green: '#009900',
-        blue: '#9089f7',
+        'unraid-red': '#E22828',
 
         alpha: 'var(--color-alpha)',
         beta: 'var(--color-beta)',
