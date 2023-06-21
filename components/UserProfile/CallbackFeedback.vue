@@ -27,10 +27,10 @@ const { keyUrl, installing, success } = storeToRefs(installKeyStore);
 const heading = computed(() => callbackLoading.value ? 'Performing actions' : 'Finished performing actions');
 const subheading = computed(() => callbackLoading.value ? 'Please keep this window open' : '');
 
-const close = () => {
-  if (callbackLoading.value) return console.debug('[close] not allowed');
-  callbackActionsStore.closeCallbackFeedback();
-};
+// const close = () => {
+//   if (callbackLoading.value) return console.debug('[close] not allowed');
+//   callbackActionsStore.closeCallbackFeedback();
+// };
 // @close="close"
 // :show-close-x="!callbackLoading"
 
@@ -43,8 +43,10 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
   <Modal
     :open="open"
     max-width="max-w-640px"
+    :error="success === false || updateSuccess === false"
+    :success="success === true || updateSuccess === true"
   >
-    <div class="text-16px text-center relative w-full flex flex-col gap-y-16px">
+    <div class="text-16px text-center relative w-full min-h-[20vh] flex flex-col justify-between gap-y-16px">
       <header>
         <h1 class="text-24px font-semibold">{{ heading }}</h1>
         <p v-if="subheading" class="text-16px opacity-80">{{ subheading }}</p>
@@ -56,13 +58,13 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <p v-if="installing || callbackLoading">Installing License Key…</p>
         <template v-else>
           <div v-if="success === true" class="flex items-center justify-center gap-x-8px">
-            <CheckCircleIcon class="fill-green w-24px" />
+            <CheckCircleIcon class="fill-green-400 w-24px" />
             <p>Installed License Key</p>
           </div>
           <template v-else-if="success === false">
             <div class="flex items-center justify-center gap-x-8px">
-              <XCircleIcon class="fill-red w-24px" />
-              <p class="text-red italic">License Key Install Failed</p>
+              <XCircleIcon class="fill-unraid-red w-24px" />
+              <p class="text-unraid-red italic">License Key Install Failed</p>
             </div>
             <button v-if="isSupported" @click="copy(keyUrl)">{{ copied ? 'Copied' : 'Copy Key URL' }}</button>
             <p v-else>Copy your Key URL: {{ keyUrl }}</p>
@@ -75,12 +77,12 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <p v-if="updating || callbackLoading">Updating Connect account config…</p>
         <template v-else>
           <div v-if="updateSuccess === true" class="flex items-center justify-center gap-x-8px">
-            <CheckCircleIcon class="fill-green w-24px" />
+            <CheckCircleIcon class="fill-green-400 w-24px" />
             <p>Connect config updated</p>
           </div>
           <div v-else-if="updateSuccess === false" class="flex items-center justify-center gap-x-8px">
-            <XCircleIcon class="fill-red w-24px" />
-            <p class="text-red italic">Connect config update failed</p>
+            <XCircleIcon class="fill-unraid-red w-24px" />
+            <p class="text-unraid-red italic">Connect config update failed</p>
           </div>
         </template>
       </template>

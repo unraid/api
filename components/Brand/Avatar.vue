@@ -17,13 +17,13 @@ const { avatar, pluginInstalled, registered, username } = storeToRefs(serverStor
 // :class="{
 //   'ml-8px': usernameButtonText,
 //   'bg-transparent': registered && !avatarFail,
-//   'bg-gradient-to-r from-red to-orange': !registered || avatarFail,
+//   'bg-gradient-to-r from-unraid-red to-orange': !registered || avatarFail,
 // }"
 // :title="usernameButtonTitle" 
 </script>
 
 <template>
-  <figure class="group relative z-0 flex items-center justify-center w-36px h-36px rounded-full bg-gradient-to-r from-red to-orange">
+  <figure class="group relative z-0 flex items-center justify-center w-36px h-36px rounded-full bg-gradient-to-r from-unraid-red to-orange">
     <img
       v-if="avatar && pluginInstalled && registered"
       :src="avatar"

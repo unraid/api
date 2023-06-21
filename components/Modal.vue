@@ -5,15 +5,19 @@ import useFocusTrap from '~/composables/useFocusTrap';
 
 export interface Props {
   description?: string;
+  error?: boolean;
   maxWidth?: string;
   open?: boolean;
   showCloseX?: boolean;
+  success?: boolean;
   title?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
+  error: false,
   maxWidth: 'sm:max-w-lg',
   open: false,
   showCloseX: false,
+  success: false,
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -62,9 +66,17 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           leave-from="opacity-100 scale-100"
           leave-to="opacity-0 scale-95"
         >
-          <div :class="maxWidth" class="text-alpha bg-beta relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6">
+          <div
+            :class="[
+              maxWidth,
+              error ? 'shadow-unraid-unraid-red/30' : '',
+              success ? 'shadow-green-400-400/30' : '',
+              !error && !success ? 'shadow-orange/10' : '',
+            ]"
+            class="text-alpha bg-beta relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6"
+          >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
-              <button @click="closeModal" type="button" class="rounded-md bg-alpha text-gray-400 p-2 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+              <button @click="closeModal" type="button" class="rounded-md text-alpha bg-beta p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 <span class="sr-only">Close</span>
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />
               </button>
