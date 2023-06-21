@@ -48,7 +48,7 @@ watch(wanIp, async () => {
 <template>
   <span v-if="loading" class="italic">{{ 'Checking WAN IPs…' }}</span>
   <template v-else>
-    <span v-if="computedError" class="text-red font-semibold">{{ computedError }}</span>
+    <span v-if="computedError" class="text-unraid-red font-semibold">{{ computedError }}</span>
     <template v-else>
       <span v-if="isRemoteAccess">{{ `Remark: your WAN IPv4 is ${wanIp}` }}</span>
       <span v-else-if="phpWanIp === wanIp && !isRemoteAccess">{{ `Remark: your WAN IPv4 is ${wanIp}` }}</span>

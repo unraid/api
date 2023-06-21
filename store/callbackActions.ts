@@ -41,17 +41,31 @@ export const useCallbackActionsStore = defineStore(
         console.debug('[actions] DONE');
         setTimeout(() => {
           callbackLoading.value = false;
-        }, 2500);
+        }, 1000);
       }
     });
   };
 
   const closeCallbackFeedback = () => callbackFeedbackVisible.value = false;
 
+  const preventClose = (e: { preventDefault: () => void; returnValue: string; }) => {
+    e.preventDefault();
+    // eslint-disable-next-line no-param-reassign
+    e.returnValue = '';
+    // eslint-disable-next-line no-alert
+    alert('Closing this pop-up window while actions are being preformed may lead to unintended errors.');
+  };
+
   watch(callbackLoading, (newVal, _oldVal) => {
     console.debug('[callbackLoading]', newVal);
+    if (newVal === true) {
+      console.debug('[callbackLoading] true', 'addEventListener');
+      window.addEventListener('beforeunload', preventClose);
+    }
     // removing query string once actions are done so users can't refresh the page and go through the same actions
     if (newVal === false) {
+      console.debug('[callbackLoading] false', 'removeEventListener');
+      window.removeEventListener('beforeunload', preventClose);
       console.debug('[callbackLoading] push history w/o query');
       window.history.pushState(null, '', window.location.pathname);
     }

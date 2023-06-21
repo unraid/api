@@ -37,21 +37,39 @@ if (state === 'TRIAL') expireTime = Date.now() + 60 * 60 * 1000; // in 1 hour
 if (state === 'EEXPIRED') expireTime = uptime; // 1 hour ago
 
 const serverState = {
-  // avatar: '',
-  avatar: 'https://source.unsplash.com/300x300/?portrait',
-  name: 'DevServer9000',
-  description: 'Fully automated media server',
-  guid: randomGuid,
-  deviceCount: 8,
+  "apiKey": "unupc_12312313123",
+  "avatar": "https://source.unsplash.com/300x300/?portrait",
+  "description": "DevServer9000",
+  "deviceCount": "3",
   expireTime,
-  lanIp: '192.168.0.1',
-  locale: 'en',
-  pluginInstalled: true,
-  registered: true,
-  site: 'http://localhost:4321',
-  state,
+  "flashProduct": "SanDisk_3.2Gen1",
+  "flashVendor": "USB",
+  "guid": "0781-5583-8355-81071A2B0211",
+  "keyfile": "DUMMY_KEYFILE",
+  "lanIp": "192.168.254.36",
+  "license": "",
+  "locale": "en_US",
+  "name": "fuji",
+  // "pluginInstalled": "dynamix.unraid.net.staging.plg",
+  "pluginInstalled": false,
+  "registered": true,
+  "regGen": 0,
+  "regGuid": "0781-5583-8355-81071A2B0211",
+  "site": "http://localhost:4321",
+  "state": state,
+  "theme": {
+    "banner": false,
+    "bannerGradient": false,
+    "bgColor": "",
+    "descriptionShow": true,
+    "metaColor": "",
+    "name": "black",
+    // "name": "white",
+    "textColor": ""
+  },
   uptime,
-  username: 'zspearmint'
+  "username": "zspearmint",
+  "wanFQDN": ""
 };
 
 export default serverState;

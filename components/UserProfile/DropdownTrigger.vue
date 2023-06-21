@@ -42,8 +42,8 @@ const title = computed((): string => {
     class="group text-18px hover:text-alpha focus:text-alpha border border-transparent relative flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
     :title="title"
   >
-    <InformationCircleIcon v-if="pluginOutdated" class="text-red fill-current relative w-24px h-24px" />
-    <ExclamationTriangleIcon v-else-if="showErrorIcon" class="text-red fill-current relative w-24px h-24px" />
+    <InformationCircleIcon v-if="pluginOutdated" class="text-unraid-red fill-current relative w-24px h-24px" />
+    <ExclamationTriangleIcon v-else-if="showErrorIcon" class="text-unraid-red fill-current relative w-24px h-24px" />
     <span v-if="text" class="leading-none">{{ text }}</span>
     <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
     <BrandAvatar />

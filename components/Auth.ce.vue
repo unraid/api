@@ -27,7 +27,7 @@ const button = computed(() => {
 
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
-    <span v-if="stateData.error" class="text-red font-semibold leading-8">
+    <span v-if="stateData.error" class="text-unraid-red font-semibold leading-8">
       {{ stateData.heading }}
       <br />
       {{ stateData.message }}
@@ -38,7 +38,7 @@ const button = computed(() => {
         :is="button.click ? 'button' : 'a'"
         @click="button.click()"
         rel="noopener noreferrer"
-        class="text-white text-14px text-center w-full flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-red to-orange hover:from-red/60 hover:to-orange/60 focus:from-red/60 focus:to-orange/60"
+        class="text-white text-14px text-center w-full flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60"
         target="_blank"
         download
       >
