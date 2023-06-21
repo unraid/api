@@ -88,6 +88,7 @@ export default <Partial<Config>>{
         '300px': '300px',
         '310px': '310px',
         '350px': '350px',
+        '640px': '640px',
         '800px': '800px',
       },
     }
