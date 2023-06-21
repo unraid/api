@@ -83,6 +83,6 @@ if ($fileValue !== null) {
     $prefixedPath = '/plugins/dynamix.my.servers/connect-components/';
     echo '<script src="' . $prefixedPath . $fileValue . '"></script>';
 } else {
-    echo '<script>console.error("%cNo matching key containing \'' . $searchText . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
+    echo '<script>console.error("%cUnraid Connect • No matching key containing \'' . $searchText . '\' found in manfiest.json.", "font-weight: bold; color: white; background-color: red");</script>';
 }
 ?>
