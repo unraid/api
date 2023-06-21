@@ -42,9 +42,9 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
 <template>
   <Modal
     :open="open"
-    max-width="max-w-800px"
+    max-width="max-w-640px"
   >
-    <div class="text-16px text-center relative w-full flex flex-col gap-y-16px py-16px">
+    <div class="text-16px text-center relative w-full flex flex-col gap-y-16px">
       <header>
         <h1 class="text-24px font-semibold">{{ heading }}</h1>
         <p v-if="subheading" class="text-16px opacity-80">{{ subheading }}</p>
