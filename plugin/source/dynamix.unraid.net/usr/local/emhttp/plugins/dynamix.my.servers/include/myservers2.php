@@ -41,22 +41,21 @@ $flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashba
 
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 
+// base OS only, plugin not installed • show ad for plugin
 $pluginInstalled = '';
-if (!file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net') && !file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) {
-    $pluginInstalled = ''; // base OS only, plugin not installed • show ad for plugin
-} else {
-    // plugin is installed but if the unraid-api file doesn't fully install it's a failed install
-    if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $pluginInstalled = 'dynamix.unraid.net.plg';
-    if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $pluginInstalled = 'dynamix.unraid.net.staging.plg';
-    // plugin install failed • append failure detected so we can show warning about failed install via UPC
-    if (!file_exists('/usr/local/sbin/unraid-api')) $pluginInstalled .= '_installFailed';
-}
+if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $pluginInstalled = 'dynamix.unraid.net.plg';
+if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $pluginInstalled = 'dynamix.unraid.net.staging.plg';
+// plugin install failed if the unraid-api file doesn't fully install • append failure detected so we can show warning about failed install via UPC
+if ($pluginInstalled && !file_exists('/usr/local/sbin/unraid-api')) $pluginInstalled .= '_installFailed';
 
 $plgversion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
     ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
     : (file_exists('/var/log/plugins/dynamix.unraid.net.staging.plg')
         ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
         : 'base-' . $var['version']);
+
+$myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+$myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 
 $serverData = [
     "apiKey" => $myservers['upc']['apikey'] ?? '',
@@ -77,9 +76,9 @@ $serverData = [
     "flashBackupActivated" => empty($flashbackup_status['activated']) ? '' : 'true',
     "guid" => $var['flashGUID'],
     "hasRemoteApikey" => !empty($myservers['remote']['apikey']),
-    "internalIp" => ipaddr(),
     "internalPort" => $_SERVER['SERVER_PORT'],
     "keyfile" => empty($var['regFILE']) ? '' : str_replace(['+', '/', '='], ['-', '_', ''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
+    "lanIp" => ipaddr(),
     "locale" => ($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
     "model" => $var['SYS_MODEL'],
     "name" => $var['NAME'],
