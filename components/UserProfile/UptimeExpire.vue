@@ -19,9 +19,7 @@ const formattedTime = computed<string>(() => {
   return dateFormat((uptimeOrExpiredTime.value).toString());
 });
 
-const countUp = computed<boolean>(() => {
-  return state.value !== 'TRIAL' && state.value === 'EEXPIRED';
-})
+const countUp = computed<boolean>(() => state.value !== 'TRIAL');
 
 const output = computed(() => {
   if (!countUp.value) {
@@ -44,6 +42,9 @@ const runDiff = () => parsedTime.value = buildStringFromValues(dateDiff((uptimeO
 
 let interval: string | number | NodeJS.Timeout | undefined = undefined;
 onBeforeMount(() => {
+  console.debug('[uptimeOrExpiredTime]', uptimeOrExpiredTime.value);
+  console.debug('[state]', state.value);
+  console.debug('[countUp]', countUp.value);
   runDiff();
   interval = setInterval(() => {
     runDiff();
