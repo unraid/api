@@ -57,6 +57,7 @@ export interface ServerAccountCallbackSendPayload {
   flashVendor?: string;
   guid?: string;
   keyfile?: string;
+  lanIp?: string;
   locale?: string;
   name?: string;
   registered: boolean;
