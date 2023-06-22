@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
-import { CheckCircleIcon, XCircleIcon } from '@heroicons/vue/24/solid';
+import { CheckCircleIcon, ClipboardIcon, XCircleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -22,11 +22,12 @@ const installKeyStore = useInstallKeyStore();
 
 const { updating, updateSuccess } = storeToRefs(accountStore);
 const { callbackLoading } = storeToRefs(callbackActionsStore);
-const { keyUrl, installing, success } = storeToRefs(installKeyStore);
+const { keyUrl, keyType, installing, installType, success } = storeToRefs(installKeyStore);
 
 const heading = computed(() => callbackLoading.value ? 'Performing actions' : 'Finished performing actions');
 const subheading = computed(() => callbackLoading.value ? 'Please keep this window open' : '');
 
+// @todo keep for now as we may us`e this rather than refreshing once GQL is hooked up
 // const close = () => {
 //   if (callbackLoading.value) return console.debug('[close] not allowed');
 //   callbackActionsStore.closeCallbackFeedback();
@@ -43,8 +44,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
   <Modal
     :open="open"
     max-width="max-w-640px"
-    :error="success === false || updateSuccess === false"
-    :success="success === true || updateSuccess === true"
+    :error="!callbackLoading && (success === false || updateSuccess === false)"
+    :success="!callbackLoading && (success === true || updateSuccess === true)"
   >
     <div class="text-16px text-center relative w-full min-h-[20vh] flex flex-col justify-between gap-y-16px">
       <header>
@@ -55,26 +56,31 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
       <BrandLoading v-if="callbackLoading" class="w-90px mx-auto" />
 
       <template v-if="installing !== undefined">
-        <p v-if="installing || callbackLoading">Installing License Key…</p>
+        <p v-if="success === undefined || callbackLoading">Installing {{ keyType }} License Key…</p>
         <template v-else>
           <div v-if="success === true" class="flex items-center justify-center gap-x-8px">
             <CheckCircleIcon class="fill-green-400 w-24px" />
-            <p>Installed License Key</p>
+            <p>Installed {{ keyType }} License Key</p>
           </div>
           <template v-else-if="success === false">
             <div class="flex items-center justify-center gap-x-8px">
               <XCircleIcon class="fill-unraid-red w-24px" />
-              <p class="text-unraid-red italic">License Key Install Failed</p>
+              <p class="text-unraid-red italic">{{ keyType }} License Key Install Failed</p>
             </div>
-            <button v-if="isSupported" @click="copy(keyUrl)">{{ copied ? 'Copied' : 'Copy Key URL' }}</button>
+            <div v-if="isSupported" class="flex justify-center">
+              <BrandButton
+                @click="copy(keyUrl)"
+                :icon="ClipboardIcon"
+                :text="copied ? 'Copied' : 'Copy Key URL'" />
+            </div>
             <p v-else>Copy your Key URL: {{ keyUrl }}</p>
-            <p>Then go to <a href="/Tools/Registration">Tools > Registration</a> to manually install it</p>
+            <p>Then go to <a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">Tools > Registration</a> to manually install it</p>
           </template>
         </template>
       </template>
 
       <template v-if="updating !== undefined">
-        <p v-if="updating || callbackLoading">Updating Connect account config…</p>
+        <p v-if="updateSuccess === undefined || callbackLoading">Updating Connect account config…</p>
         <template v-else>
           <div v-if="updateSuccess === true" class="flex items-center justify-center gap-x-8px">
             <CheckCircleIcon class="fill-green-400 w-24px" />
@@ -87,14 +93,16 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         </template>
       </template>
 
-      <div v-if="!callbackLoading" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
-        <button
-          @click="reload"
-          class="tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
-        >
-          {{ 'Reload Page to Finalize' }}
-        </button>
-      </div>
+      <footer>
+        <div v-if="!callbackLoading && (success === true || updateSuccess === true)" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
+          <button
+            @click="reload"
+            class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition"
+          >
+            {{ 'Reload Page to Finalize' }}
+          </button>
+        </div>
+      </footer>
     </div>
   </Modal>
 </template>
