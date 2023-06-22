@@ -25,7 +25,7 @@ onBeforeMount(() => {
         <KeyActionsCe />
         <hr />
         <h3>WanIpCheckCe</h3>
-        <WanIpCheckCe />
+        <WanIpCheckCe php-wan-ip="47.184.85.45" />
         <hr />
         <h3>ModalsCe</h3>
         <ModalsCe />
