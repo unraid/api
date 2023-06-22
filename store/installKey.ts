@@ -12,49 +12,59 @@ setActivePinia(createPinia());
 export const useInstallKeyStore = defineStore('installKey', () => {
   const serverStore = useServerStore();
 
+  //	"https://keys.lime-technology.com/unraid/c9785e151ae3b0f056238e403809fd28b82eb4ad/Plus.key"
   const keyUrl = ref<string>('');
   const installing = ref<boolean | undefined>();
+  const installType = ref<string>('');
   const success = ref<boolean | undefined>();
+
+  const keyType = computed((): string | undefined => {
+    if (!keyUrl.value) return undefined;
+    const parts = keyUrl.value.split('/');
+    return parts[parts.length - 1].replace('.key', '');
+  });
 
   const install = async (action: CallbackAction) => {
     console.debug('[install]');
     installing.value = true;
+    installType.value = action.type;
     keyUrl.value = action.keyUrl ?? '';
+
+    if (!keyUrl.value) return console.error('[install] no key to install');
 
     try {
       const response = await WebguiInstallKey
-        .query({ url: action.keyUrl })
+        .query({ url: keyUrl.value })
         .get();
       console.log('[install] WebguiInstallKey response', response);
       success.value = true;
       try {
         const response = await WebguiUpdateDns
           .middlewares([
-            delay(500)
+            delay(1500)
           ])
           .formUrl({ csrf_token: serverStore.csrf })
           .post();
         console.log('[install] WebguiUpdateDns response', response);
       } catch (error) {
-        console.log('[install] WebguiUpdateDns error', error);
+        console.error('[install] WebguiUpdateDns error', error);
       }
     } catch (error) {
-      console.log('[install] WebguiInstallKey error', error);
+      console.error('[install] WebguiInstallKey error', error);
       success.value = false;
     } finally {
       installing.value = false;
     }
   };
 
-  watch(installing, (newV, oldV) => {
-    console.debug('[installing.watch]', newV, oldV);
-  });
-
   return {
     // State
     keyUrl,
     installing,
+    installType,
     success,
+    // getters
+    keyType,
     // Actions
     install,
   };
