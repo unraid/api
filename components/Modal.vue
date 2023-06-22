@@ -69,11 +69,11 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           <div
             :class="[
               maxWidth,
-              error ? 'shadow-unraid-red/30' : '',
-              success ? 'shadow-green-400/30' : '',
-              !error && !success ? 'shadow-orange/10' : '',
+              error ? 'shadow-unraid-red/30 border-unraid-red/10' : '',
+              success ? 'shadow-green-600/30 border-green-600/10' : '',
+              !error && !success ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-alpha bg-beta relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6"
+            class="text-alpha bg-beta border-2 border-solid relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
               <button @click="closeModal" type="button" class="rounded-md text-alpha bg-beta p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
