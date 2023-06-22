@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { XCircleIcon } from '@heroicons/vue/24/solid';
 export interface Props {
-  click?: any; // @todo be more specific
   download?: boolean;
   external?: boolean;
   href?: string;
@@ -12,6 +11,8 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   style: 'fill',
 });
+
+defineEmits(['click']);
 
 const classes = computed(() => {
   switch (props.style) {
@@ -25,12 +26,12 @@ const classes = computed(() => {
 
 <template>
   <component
-    :is="click ? 'button' : 'a'"
-    @click="click() ?? null"
+    :is="href ? 'a' : 'button'"
+    @click="$emit('click')"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
-    class="text-14px text-center w-full flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md"
+    class="text-14px text-center flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md"
     :class="classes"
   >
     <component v-if="icon" :is="icon" class="flex-shrink-0 w-14px" />
