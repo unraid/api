@@ -25,7 +25,7 @@ onBeforeMount(() => {
         <connect-key-actions></connect-key-actions>
         <hr />
         <h3>WanIpCheckCe</h3>
-        <connect-wan-ip-check></connect-wan-ip-check>
+        <connect-wan-ip-check php-wan-ip="47.184.85.45"></connect-wan-ip-check>
         <hr />
         <h3>ModalsCe</h3>
         <connect-modals></connect-modals>
