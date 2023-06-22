@@ -115,6 +115,7 @@ export const useServerStore = defineStore('server', () => {
       lanIp: lanIp.value,
       name: name.value,
       registered: registered.value ?? false,
+      site: site.value,
       state: state.value,
       wanFQDN: wanFQDN.value,
     }
