@@ -59,7 +59,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <p v-if="success === undefined || callbackLoading">Installing {{ keyType }} License Key…</p>
         <template v-else>
           <div v-if="success === true" class="flex items-center justify-center gap-x-8px">
-            <CheckCircleIcon class="fill-green-400 w-24px" />
+            <CheckCircleIcon class="fill-green-600 w-24px" />
             <p>Installed {{ keyType }} License Key</p>
           </div>
           <template v-else-if="success === false">
@@ -83,7 +83,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <p v-if="updateSuccess === undefined || callbackLoading">Updating Connect account config…</p>
         <template v-else>
           <div v-if="updateSuccess === true" class="flex items-center justify-center gap-x-8px">
-            <CheckCircleIcon class="fill-green-400 w-24px" />
+            <CheckCircleIcon class="fill-green-600 w-24px" />
             <p>Connect config updated</p>
           </div>
           <div v-else-if="updateSuccess === false" class="flex items-center justify-center gap-x-8px">
