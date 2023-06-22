@@ -61,8 +61,9 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     // state
-    theme,
     bannerGradient,
+    darkMode,
+    theme,
     // actions
     setTheme,
   };
