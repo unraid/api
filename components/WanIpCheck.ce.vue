@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
+import { request } from '~/composables/services/request';
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -31,15 +32,19 @@ watch(wanIp, async () => {
   // if we don't have a client WAN IP AND we have the server WAN IP then we fetch
   if (!wanIp.value && props.phpWanIp) {
     loading.value = true;
-    const { data, error } = await useFetch('https://wanip4.unraid.net/');
-    if (data.value) {
+
+    const response = await request.url('https://wanip4.unraid.net/')
+      .get()
+      .text();
+
+    if (response) {
       loading.value = false;
-      wanIp.value = data.value as string; // response returns text nothing to traverse
+      wanIp.value = response as string; // response returns text nothing to traverse
       // save in sessionStorage so we only make this request once per webGUI session
       sessionStorage.setItem('unraidConnect_wanIp', wanIp.value);
-    } else if (error.value) {
+    } else {
       loading.value = false;
-      fetchError.value = error.value;
+      fetchError.value = 'Unable to fetch client WAN IPv4';
     }
   }
 });
