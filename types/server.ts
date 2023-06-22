@@ -63,6 +63,7 @@ export interface ServerAccountCallbackSendPayload {
   registered: boolean;
   regGen?: number;
   regGuid?: string;
+  site?: string;
   state: string;
   wanFQDN?: string;
 }
