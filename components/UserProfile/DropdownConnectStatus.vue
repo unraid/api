@@ -17,7 +17,7 @@ const apiLoading = ref(false);
     </template>
     <span v-else class="w-full flex flex-row justify-start items-center gap-x-8px">
       <ExclamationTriangleIcon v-if="onlineStatus !== 'online'" class="text-unraid-red w-16px h-16px" />
-      <span v-else class="block w-12px h-12px bg-green-400 rounded-full"></span>
+      <span v-else class="block w-12px h-12px bg-green-600 rounded-full"></span>
       <span>{{ onlineStatus !== 'online' ? 'Disconnected' : 'Connected' }}</span>
     </span>
   </li>
