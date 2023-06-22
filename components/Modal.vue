@@ -69,8 +69,8 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           <div
             :class="[
               maxWidth,
-              error ? 'shadow-unraid-unraid-red/30' : '',
-              success ? 'shadow-green-400-400/30' : '',
+              error ? 'shadow-unraid-red/30' : '',
+              success ? 'shadow-green-400/30' : '',
               !error && !success ? 'shadow-orange/10' : '',
             ]"
             class="text-alpha bg-beta relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6"
