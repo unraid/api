@@ -14,21 +14,21 @@ export const useTrialStore = defineStore('trial', () => {
 
   const extend = () => {
     console.debug('[extend]');
-    callbackStore.send('https://localhost:8008/connect', {
+    callbackStore.send('https://localhost:8008/connect', [{
       server: {
         ...serverStore.serverAccountPayload,
       },
       type: 'trialExtend',
-    });
+    }]);
   };
   const start = () => {
     console.debug('[start]');
-    callbackStore.send('https://localhost:8008/connect', {
+    callbackStore.send('https://localhost:8008/connect', [{
       server: {
         ...serverStore.serverAccountPayload,
       },
       type: 'trialStart',
-    });
+    }]);
   };
 
   return {
