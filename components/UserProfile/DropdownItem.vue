@@ -15,7 +15,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
 <template>
   <component
     :is="item?.click ? 'button' : 'a'"
-    @click.stop="item?.click() ?? null"
+    @click.stop="item?.click ? item?.click() : null"
     :href="item?.href ?? null"
     :title="item?.title ?? null"
     :target="item?.external ? '_blank' : null"
