@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowRightOnRectangleIcon, ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon, UserIcon } from '@heroicons/vue/24/solid';
+import { ArrowRightOnRectangleIcon, ArrowTopRightOnSquareIcon, BarsArrowDownIcon, CogIcon, InformationCircleIcon, UserIcon } from '@heroicons/vue/24/solid';
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useDropdownStore } from '~/store/dropdown';
@@ -76,10 +76,10 @@ const links = computed(():UserProfileLink[] => {
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
     <header class="flex flex-row items-start justify-between mt-8px mx-8px">
       <h2 class="text-18px leading-none inline-flex flex-row gap-x-8px items-center">
-        <span class="font-semibold">Connect</span>
+        <BrandLogoConnect class="w-[130px]" />
         <UpcBeta />
-        <span v-if="myServersEnv" :title="`API • ${myServersEnv}`">⚙️</span>
-        <span v-if="devEnv" :title="`UPC • ${devEnv}`">⚠️</span>
+        <span v-if="myServersEnv" class="text-10px" :title="`API • ${myServersEnv}`">⚙️</span>
+        <span v-if="devEnv" class="text-10px" :title="`UPC • ${devEnv}`">⚠️</span>
       </h2>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
