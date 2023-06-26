@@ -28,7 +28,8 @@ export type ServerStateDataActionType =
   | 'recover'
   | 'replace'
   | 'trialExtend'
-  | 'trialStart';
+  | 'trialStart'
+  | 'troubleshoot';
 
 export interface ServerPayload {
   server: ServerAccountCallbackServerData;
