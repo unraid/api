@@ -16,13 +16,13 @@ const uptimeOrExpiredTime = computed(() => {
 
 const parsedTime = ref<string>('');
 const formattedTime = computed<string>(() => {
-  return dateFormat((uptimeOrExpiredTime.value).toString());
+  return dateFormat(uptimeOrExpiredTime.value);
 });
 
 const countUp = computed<boolean>(() => state.value !== 'TRIAL' && state.value !== 'ENOCONN');
 
 const output = computed(() => {
-  if (!countUp.value) {
+  if (!countUp.value || state.value === 'EEXPIRED') {
     return {
       title: state.value === 'EEXPIRED'
         ? `Trial Key Expired at ${formattedTime.value}`
