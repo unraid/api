@@ -1,32 +1,37 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { InformationCircleIcon } from '@heroicons/vue/24/solid';
+import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
+import { CONNECT_FORUMS } from '~/helpers/urls';
 import type { UserProfileLink } from '~/types/userProfile';
 
+const accountStore = useAccountStore();
 const { stateData } = storeToRefs(useServerStore());
 const links = ref<UserProfileLink[]>([
   {
-    click: () => console.debug('Placeholder Button'),
+    click: () => accountStore.troubleshoot(),
     external: true,
     icon: InformationCircleIcon,
     text: 'Placeholder Button',
   },
   {
-    click: () => console.debug('Support Button'),
     external: true,
+    href: CONNECT_FORUMS,
     icon: InformationCircleIcon,
-    text: 'Support Button',
+    text: 'Connect Support Forum',
   },
 ]);
 </script>
 
 <template>
-  <ul v-if="stateData.error" class="list-reset flex flex-col gap-y-4px -mx-8px mb-4px py-12px px-16px bg-unraid-red/40 rounded">
+  <ul v-if="stateData.error" class="list-reset flex flex-col gap-y-4px -mx-8px mb-4px py-12px px-16px bg-unraid-red/60 rounded">
     <h3 class="text-18px">{{ stateData.heading }}</h3>
     <p class="text-14px opacity-85">{{ stateData.message }}</p>
-    <li v-for="(link, index) in links" :key="`link_${index}`" class="-mx-8px">
-      <UpcDropdownItem :item="link" />
-    </li>
+    <template v-if="links">
+      <li v-for="(link, index) in links" :key="`link_${index}`" class="-mx-8px">
+        <UpcDropdownItem :item="link" />
+      </li>
+    </template>
   </ul>
 </template>
