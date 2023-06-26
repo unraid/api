@@ -14,12 +14,6 @@ withDefaults(defineProps<Props>(), {
 
 const serverStore = useServerStore();
 const { avatar, pluginInstalled, registered, username } = storeToRefs(serverStore);
-// :class="{
-//   'ml-8px': usernameButtonText,
-//   'bg-transparent': registered && !avatarFail,
-//   'bg-gradient-to-r from-unraid-red to-orange': !registered || avatarFail,
-// }"
-// :title="usernameButtonTitle" 
 </script>
 
 <template>
@@ -30,8 +24,7 @@ const { avatar, pluginInstalled, registered, username } = storeToRefs(serverStor
       :alt="username"
       class="absolute z-10 inset-0 w-36px h-36px rounded-full overflow-hidden">
     <template v-else>
-      <BrandMark gradient-start="#fff" gradient-stop="#fff" class="opacity-100 group-hover:opacity-0 absolute z-10 w-36px px-4px" />
-      <BrandLoading gradient-start="#fff" gradient-stop="#fff" class="opacity-0 group-hover:opacity-100 absolute z-10 w-36px px-4px" :height="36" />
+      <BrandMark gradient-start="#fff" gradient-stop="#fff" class="opacity-100 absolute z-10 w-36px px-4px" />
     </template>
   </figure>
 </template>
