@@ -214,6 +214,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction]),
             ...(trialExtensionEligible.value ? [trialExtendAction] : []),
             ...(registered.value ? [signOutAction] : []),
           ],
@@ -287,7 +288,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value ? [signInAction] : []),
-            ...(registered.value ? [purchaseAction, redeemAction] : []),
+            ...([purchaseAction, redeemAction]),
             ...(registered.value ? [signOutAction] : []),
           ],
           error: true,
