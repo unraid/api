@@ -48,7 +48,7 @@ if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $plugi
 // plugin install failed if the unraid-api file doesn't fully install • append failure detected so we can show warning about failed install via UPC
 if ($pluginInstalled && !file_exists('/usr/local/sbin/unraid-api')) $pluginInstalled .= '_installFailed';
 
-$plgversion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
+$pluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
     ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
     : (file_exists('/var/log/plugins/dynamix.unraid.net.staging.plg')
         ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
