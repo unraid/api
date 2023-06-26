@@ -15,7 +15,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
   //	"https://keys.lime-technology.com/unraid/c9785e151ae3b0f056238e403809fd28b82eb4ad/Plus.key"
   const keyUrl = ref<string>('');
   const installing = ref<boolean | undefined>();
-  const installType = ref<string>('');
   const success = ref<boolean | undefined>();
 
   const keyType = computed((): string | undefined => {
@@ -27,7 +26,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
   const install = async (action: CallbackAction) => {
     console.debug('[install]');
     installing.value = true;
-    installType.value = action.type;
     keyUrl.value = action.keyUrl ?? '';
 
     if (!keyUrl.value) return console.error('[install] no key to install');
@@ -61,7 +59,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     // State
     keyUrl,
     installing,
-    installType,
     success,
     // getters
     keyType,

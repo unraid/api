@@ -2,6 +2,17 @@ import type { Config } from 'tailwindcss'
 import defaultTheme from 'tailwindcss/defaultTheme'
 
 export default <Partial<Config>>{
+  safelist: [
+    'DropdownWrapper_blip',
+    'BrandLoading_1',
+    'BrandLoading_2',
+    'BrandLoading_3',
+    'BrandLoading_4',
+    'BrandLoading_6',
+    'BrandLoading_7',
+    'BrandLoading_8',
+    'BrandLoading_9',
+  ],
   theme: {
     extend: {
       colors: {
