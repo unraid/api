@@ -173,14 +173,14 @@ export const useServerStore = defineStore('server', () => {
   const trialExtendAction: ServerStateDataAction = {
     click: () => { trialStore.extend() },
     external: true,
-    icon: ArrowRightOnRectangleIcon,
+    icon: KeyIcon,
     name: 'trialExtend',
     text: 'Extend Trial',
   };
   const trialStartAction: ServerStateDataAction = {
     click: () => { trialStore.start() },
     external: true,
-    icon: ArrowRightOnRectangleIcon,
+    icon: KeyIcon,
     name: 'trialStart',
     text: 'Start Free 30 Day Trial',
   };
