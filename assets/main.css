@@ -1,6 +1,5 @@
 @tailwind base;
 @tailwind components;
-@tailwind utilities;
 
 /*
 darkTheme
@@ -89,3 +88,6 @@ body {
     transform: translateY(0);
   }
 }
+
+/* Ensure this is always at the bottom – @see https://tailwindcss.com/docs/content-configuration#working-with-third-party-libraries */
+@tailwind utilities;
