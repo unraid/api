@@ -22,7 +22,7 @@ const installKeyStore = useInstallKeyStore();
 
 const { updating, updateSuccess } = storeToRefs(accountStore);
 const { callbackLoading } = storeToRefs(callbackActionsStore);
-const { keyUrl, keyType, installing, installType, success } = storeToRefs(installKeyStore);
+const { keyUrl, keyType, installing, success } = storeToRefs(installKeyStore);
 
 const heading = computed(() => callbackLoading.value ? 'Performing actions' : 'Finished performing actions');
 const subheading = computed(() => callbackLoading.value ? 'Please keep this window open' : '');
