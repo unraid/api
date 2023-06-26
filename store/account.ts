@@ -2,7 +2,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
 import { WebguiUpdate } from '~/composables/services/webgui';
-import { ACCOUNT_CALLBACK } from '~/helpers/urls';
+import { ACCOUNT } from '~/helpers/urls';
 import type { CallbackAction } from '~/types/callback';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -21,7 +21,7 @@ export const useAccountStore = defineStore('account', () => {
   // Actions
   const recover = () => {
     console.debug('[accountStore.recover]');
-    callbackStore.send('https://localhost:8008/connect', [{
+    callbackStore.send(`${ACCOUNT}/connect`, [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -30,7 +30,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const replace = () => {
     console.debug('[accountStore.replace]');
-    callbackStore.send('https://localhost:8008/connect', [{
+    callbackStore.send(`${ACCOUNT}/connect`, [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -39,7 +39,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const signIn = () => {
     console.debug('[accountStore.signIn]');
-    callbackStore.send('https://localhost:8008/connect', [{
+    callbackStore.send(`${ACCOUNT}/connect`, [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -48,11 +48,20 @@ export const useAccountStore = defineStore('account', () => {
   };
   const signOut = () => {
     console.debug('[accountStore.accountStore.signOut]');
-    callbackStore.send('https://localhost:8008/connect', [{
+    callbackStore.send(`${ACCOUNT}/connect`, [{
       server: {
         ...serverStore.serverAccountPayload,
       },
       type: 'signOut',
+    }]);
+  };
+  const troubleshoot = () => {
+    console.debug('[accountStore.accountStore.troubleshoot]');
+    callbackStore.send(`${ACCOUNT}/connect`, [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
+      type: 'troubleshoot',
     }]);
   };
   /**
@@ -117,6 +126,7 @@ export const useAccountStore = defineStore('account', () => {
     replace,
     signIn,
     signOut,
+    troubleshoot,
     updatePluginConfig,
   };
 });
