@@ -74,13 +74,15 @@ const links = computed(():UserProfileLink[] => {
 
 <template>
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
-    <header class="flex flex-row items-start justify-between mt-8px mx-8px">
-      <h2 class="text-18px leading-none inline-flex flex-row gap-x-8px items-center">
-        <BrandLogoConnect class="w-[130px]" />
+    <header class="flex flex-row items-center justify-between mt-8px mx-8px">
+      <h2 class="text-18px leading-none flex flex-row gap-x-8px items-center justify-between">
+        <BrandLogoConnect class="w-[120px]" />
         <UpcBeta />
+      </h2>
+      <span v-if="myServersEnv || devEnv" class="flex gap-x-4px cursor-default">
         <span v-if="myServersEnv" class="text-10px" :title="`API • ${myServersEnv}`">⚙️</span>
         <span v-if="devEnv" class="text-10px" :title="`UPC • ${devEnv}`">⚠️</span>
-      </h2>
+      </span>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
       <UpcDropdownError v-if="stateData.error" />
