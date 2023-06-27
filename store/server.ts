@@ -8,6 +8,7 @@ import { useThemeStore } from './theme';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
+  ServerKeyTypeForPurchase,
   ServerPurchaseCallbackSendPayload,
   ServerState,
   ServerStateData,
@@ -33,6 +34,7 @@ export const useServerStore = defineStore('server', () => {
   const csrf = ref<string>(''); // required to make requests to Unraid webgui
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
+  const email = ref<string>('');
   const expireTime = ref<number>(0);
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
@@ -73,6 +75,7 @@ export const useServerStore = defineStore('server', () => {
       avatar: avatar.value,
       description: description.value,
       deviceCount: deviceCount.value,
+      email: email.value,
       expireTime: expireTime.value,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
@@ -96,11 +99,21 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const serverPurchasePayload = computed((): ServerPurchaseCallbackSendPayload => {
+    let keyTypeForPurchase: ServerKeyTypeForPurchase = 'Trial';
+    switch (state.value) {
+      case 'BASIC': keyTypeForPurchase =  'Basic';
+      case 'PLUS': keyTypeForPurchase =  'Plus';
+      case 'PRO': keyTypeForPurchase =  'Pro';
+    }
     return {
       deviceCount: deviceCount.value,
+      email: email.value,
       guid: guid.value,
+      keyTypeForPurchase,
+      locale: locale.value,
       registered: registered.value ?? false,
       state: state.value,
+      site: site.value,
     }
   });
 
@@ -407,6 +420,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.csrf !== 'undefined') csrf.value = data.csrf;
     if (typeof data?.description !== 'undefined') description.value = data.description;
     if (typeof data?.deviceCount !== 'undefined') deviceCount.value = data.deviceCount;
+    if (typeof data?.email !== 'undefined') email.value = data.email;
     if (typeof data?.expireTime !== 'undefined') expireTime.value = data.expireTime;
     if (typeof data?.flashProduct !== 'undefined') flashProduct.value = data.flashProduct;
     if (typeof data?.flashVendor !== 'undefined') flashVendor.value = data.flashVendor;
