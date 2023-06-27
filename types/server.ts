@@ -26,6 +26,7 @@ export interface Server {
   csrf?: string;
   description?: string;
   deviceCount?: number;
+  email?: string;
   expireTime?: number;
   flashProduct?: string;
   flashVendor?: string;
@@ -68,12 +69,17 @@ export interface ServerAccountCallbackSendPayload {
   wanFQDN?: string;
 }
 
+export type ServerKeyTypeForPurchase = 'Basic'|'Plus'|'Pro'|'Trial';
+
 export interface ServerPurchaseCallbackSendPayload {
   deviceCount: number;
+  email: string;
   guid: string;
+  keyTypeForPurchase: ServerKeyTypeForPurchase;
+  locale: string;
   registered: boolean;
-  // state?: ServerState;
   state: string;
+  site: string;
 }
 
 export type ServerStateDataActionType = 'signIn'|'signOut'|'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
