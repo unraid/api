@@ -17,7 +17,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   // Actions
   const redeem = () => {
     console.debug('[redeem]');
-    callbackStore.send('https://unraid.ddev.site/init-purchase', [{
+    callbackStore.send('https://unraid.ddev.site/callback', [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
@@ -26,7 +26,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   };
   const purchase = () => {
     console.debug('[purchase]');
-    callbackStore.send('https://unraid.ddev.site/init-purchase', [{
+    callbackStore.send('https://unraid.ddev.site/callback', [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
@@ -35,7 +35,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   };
   const upgrade = () => {
     console.debug('[upgrade]');
-    callbackStore.send('https://unraid.ddev.site/init-purchase', [{
+    callbackStore.send('https://unraid.ddev.site/callback', [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
