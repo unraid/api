@@ -20,9 +20,9 @@ const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 
-const { updating, updateSuccess } = storeToRefs(accountStore);
+const { accountUpdating, accountSuccess } = storeToRefs(accountStore);
 const { callbackLoading } = storeToRefs(callbackActionsStore);
-const { keyUrl, keyType, installing, success } = storeToRefs(installKeyStore);
+const { keyUrl, keyType, keyInstalling, keySuccess } = storeToRefs(installKeyStore);
 
 const heading = computed(() => callbackLoading.value ? 'Performing actions' : 'Finished performing actions');
 const subheading = computed(() => callbackLoading.value ? 'Please keep this window open' : '');
@@ -44,8 +44,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
   <Modal
     :open="open"
     max-width="max-w-640px"
-    :error="!callbackLoading && (success === false || updateSuccess === false)"
-    :success="!callbackLoading && (success === true || updateSuccess === true)"
+    :error="!callbackLoading && (keySuccess === false || accountSuccess === false)"
+    :success="!callbackLoading && (keySuccess === true || accountSuccess === true)"
   >
     <div class="text-16px text-center relative w-full min-h-[20vh] flex flex-col justify-between gap-y-16px">
       <header>
@@ -55,14 +55,14 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
 
       <BrandLoading v-if="callbackLoading" class="w-90px mx-auto" />
 
-      <template v-if="installing !== undefined">
-        <p v-if="success === undefined || callbackLoading">Installing {{ keyType }} License Key…</p>
+      <template v-if="keyInstalling !== undefined">
+        <p v-if="keySuccess === undefined || callbackLoading">keyInstalling {{ keyType }} License Key…</p>
         <template v-else>
-          <div v-if="success === true" class="flex items-center justify-center gap-x-8px">
+          <div v-if="keySuccess === true" class="flex items-center justify-center gap-x-8px">
             <CheckCircleIcon class="fill-green-600 w-24px" />
             <p>Installed {{ keyType }} License Key</p>
           </div>
-          <template v-else-if="success === false">
+          <template v-else-if="keySuccess === false">
             <div class="flex items-center justify-center gap-x-8px">
               <XCircleIcon class="fill-unraid-red w-24px" />
               <p class="text-unraid-red italic">{{ keyType }} License Key Install Failed</p>
@@ -79,14 +79,14 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         </template>
       </template>
 
-      <template v-if="updating !== undefined">
-        <p v-if="updateSuccess === undefined || callbackLoading">Updating Connect account config…</p>
+      <template v-if="accountUpdating !== undefined">
+        <p v-if="accountSuccess === undefined || callbackLoading">Updating Connect account config…</p>
         <template v-else>
-          <div v-if="updateSuccess === true" class="flex items-center justify-center gap-x-8px">
+          <div v-if="accountSuccess === true" class="flex items-center justify-center gap-x-8px">
             <CheckCircleIcon class="fill-green-600 w-24px" />
             <p>Connect config updated</p>
           </div>
-          <div v-else-if="updateSuccess === false" class="flex items-center justify-center gap-x-8px">
+          <div v-else-if="accountSuccess === false" class="flex items-center justify-center gap-x-8px">
             <XCircleIcon class="fill-unraid-red w-24px" />
             <p class="text-unraid-red italic">Connect config update failed</p>
           </div>
@@ -94,7 +94,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
       </template>
 
       <footer>
-        <div v-if="!callbackLoading && (success === true || updateSuccess === true)" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
+        <div v-if="!callbackLoading && (keySuccess === true || accountSuccess === true)" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
           <button
             @click="reload"
             class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition"

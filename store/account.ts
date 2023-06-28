@@ -15,8 +15,8 @@ export const useAccountStore = defineStore('account', () => {
   const serverStore = useServerStore();
 
   // State
-  const updating = ref<boolean | undefined>(undefined);
-  const updateSuccess = ref<boolean | undefined>(undefined);
+  const accountUpdating = ref<boolean | undefined>(undefined);
+  const accountSuccess = ref<boolean | undefined>(undefined);
 
   // Actions
   const recover = () => {
@@ -70,7 +70,7 @@ export const useAccountStore = defineStore('account', () => {
    */
   const updatePluginConfig = async (action: CallbackAction) => {
     console.debug('[accountStore.updatePluginConfig]', action);
-    updating.value = true;
+    accountUpdating.value = true;
     const userPayload = {
       ...(action.user
         ? {
@@ -101,26 +101,26 @@ export const useAccountStore = defineStore('account', () => {
         .post()
         .res(res => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate res', res);
-          updateSuccess.value = true;
+          accountSuccess.value = true;
         })
         .catch(err => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
-          updateSuccess.value = false;
+          accountSuccess.value = false;
         });
       return response;
     } finally {
-      updating.value = false;
+      accountUpdating.value = false;
     }
   };
 
-  watch(updating, (newV, oldV) => {
-    console.debug('[updating.watch]', newV, oldV);
+  watch(accountUpdating, (newV, oldV) => {
+    console.debug('[accountUpdating.watch]', newV, oldV);
   });
 
   return {
     // State
-    updating,
-    updateSuccess,
+    accountUpdating,
+    accountSuccess,
     // Actions
     recover,
     replace,
