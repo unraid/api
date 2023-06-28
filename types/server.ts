@@ -82,7 +82,11 @@ export interface ServerPurchaseCallbackSendPayload {
   site: string;
 }
 
-export type ServerStateDataActionType = 'signIn'|'signOut'|'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
+export type ServerStateDataKeyActions = 'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
+
+export type ServerStateDataAccountActions = 'signIn'|'signOut'|'troubleshoot';
+
+export type ServerStateDataActionType = ServerStateDataKeyActions | ServerStateDataAccountActions;
 
 export interface ServerStateDataAction extends UserProfileLink {
   name: ServerStateDataActionType;

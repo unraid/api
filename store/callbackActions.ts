@@ -2,19 +2,22 @@ import { defineStore } from 'pinia';
 
 import { useAccountStore } from './account';
 import { useInstallKeyStore } from './installKey';
-import { useCallbackStoreGeneric, type UpcActions, type QueryPayloads } from './callback';
-import { useServerStore } from './server';
+import { useCallbackStoreGeneric, type ExternalPayload, type QueryPayloads } from './callback';
+// import { useServerStore } from './server';
 
 export const useCallbackActionsStore = defineStore(
   'callbackActions',
   () => {
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
-  const serverStore = useServerStore();
+  // const serverStore = useServerStore();
 
+  const callbackData = ref<ExternalPayload>();
   const callbackError = ref();
   const callbackLoading = ref(false);
   const callbackFeedbackVisible = ref<boolean>(false);
+
+  const callbackKeyAction = ref<CallbackAction>();
 
   const redirectToCallbackType = (decryptedData: QueryPayloads) => {
     console.debug('[redirectToCallbackType]', { decryptedData });
@@ -25,14 +28,16 @@ export const useCallbackActionsStore = defineStore(
     }
 
     // Display the feedback modal
+    callbackData.value = decryptedData;
     callbackFeedbackVisible.value = true;
     callbackLoading.value = true;
     // Parse the data and perform actions
-    decryptedData.actions.forEach(async (action, index, array) => {
+    callbackData.value.actions.forEach(async (action, index, array) => {
       console.debug('[action]', action);
       if (action?.keyUrl) {
         await installKeyStore.install(action);
       }
+      /** @todo add oemSignOut */
       if (action?.user || action.type === 'signOut') {
         await accountStore.updatePluginConfig(action);
       }
@@ -74,6 +79,7 @@ export const useCallbackActionsStore = defineStore(
 
   return {
     redirectToCallbackType,
+    callbackData,
     callbackFeedbackVisible,
     callbackLoading,
     closeCallbackFeedback,
