@@ -41,7 +41,7 @@ exit_code=$?
 # Play built-in sound based on the operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
   # macOS
-  afplay /System/Library/Sounds/Glass.aiff
+  afplay /System/Library/Sounds/Submarine.aiff
 elif [[ "$OSTYPE" == "linux-gnu" ]]; then
   # Linux
   paplay /usr/share/sounds/freedesktop/stereo/complete.oga
