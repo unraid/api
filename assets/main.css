@@ -41,18 +41,18 @@ body {
   }
 }
 
-.BrandLoading_2,
-.BrandLoading_4 {
+.unraid_mark_2,
+.unraid_mark_4 {
   animation: mark_2 1.5s ease infinite;
 }
-.BrandLoading_3 {
+.unraid_mark_3 {
   animation: mark_3 1.5s ease infinite;
 }
-.BrandLoading_6,
-.BrandLoading_8 {
+.unraid_mark_6,
+.unraid_mark_8 {
   animation: mark_6 1.5s ease infinite;
 }
-.BrandLoading_7 {
+.unraid_mark_7 {
   animation: mark_7 1.5s ease infinite;
 }
 

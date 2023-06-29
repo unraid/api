@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 
 import { useAccountStore } from './account';
 import { useInstallKeyStore } from './installKey';
-import { useCallbackStoreGeneric, type ExternalPayload, type QueryPayloads } from './callback';
+import { useCallbackStoreGeneric, type ExternalPayload, type ExternalActions, type ExternalKeyActions, type QueryPayloads } from './callback';
 // import { useServerStore } from './server';
 
 export const useCallbackActionsStore = defineStore(
@@ -11,31 +11,32 @@ export const useCallbackActionsStore = defineStore(
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
   // const serverStore = useServerStore();
+  type CallbackStatus = 'error' | 'loading' | 'ready' | 'done';
+  const callbackStatus = ref<CallbackStatus>('ready');
 
   const callbackData = ref<ExternalPayload>();
   const callbackError = ref();
-  const callbackLoading = ref(false);
   const callbackFeedbackVisible = ref<boolean>(false);
-
-  const callbackKeyAction = ref<CallbackAction>();
 
   const redirectToCallbackType = (decryptedData: QueryPayloads) => {
     console.debug('[redirectToCallbackType]', { decryptedData });
 
     if (!decryptedData.type || decryptedData.type === 'fromUpc' || !decryptedData.actions?.length) {
       callbackError.value = 'Callback redirect type not present or incorrect';
+      callbackStatus.value = 'ready'; // default status
       return console.error('[redirectToCallbackType]', callbackError.value);
     }
 
     // Display the feedback modal
     callbackData.value = decryptedData;
+    callbackStatus.value = 'loading';
     callbackFeedbackVisible.value = true;
-    callbackLoading.value = true;
+
     // Parse the data and perform actions
     callbackData.value.actions.forEach(async (action, index, array) => {
       console.debug('[action]', action);
       if (action?.keyUrl) {
-        await installKeyStore.install(action);
+        await installKeyStore.install(action as ExternalKeyActions);
       }
       /** @todo add oemSignOut */
       if (action?.user || action.type === 'signOut') {
@@ -43,16 +44,21 @@ export const useCallbackActionsStore = defineStore(
       }
       // all actions have run
       if (array.length === (index + 1)) {
-        console.debug('[actions] DONE');
-        callbackLoading.value = false;
-        // setTimeout(() => {
-        //   callbackLoading.value = false;
-        // }, 1000);
+        callbackStatus.value = 'done';
+        // if (array.length > 1) {
+        //   // if we have more than 1 action it means there was a key install and an account action so both need to be successful
+        //   const allSuccess = accountStore.accountActionStatus === 'success' && installKeyStore.keyInstallStatus === 'success';
+        //   callbackStatus.value = allSuccess ? 'success' : 'error';
+        // } else {
+        //   // only 1 action needs to be successful
+        //   const oneSuccess = accountStore.accountActionStatus === 'success' || installKeyStore.keyInstallStatus === 'success';
+        //   callbackStatus.value = oneSuccess ? 'success' : 'error';
+        // }
       }
     });
   };
 
-  const closeCallbackFeedback = () => callbackFeedbackVisible.value = false;
+  const setCallbackStatus = (status: CallbackStatus) => callbackStatus.value = status;
 
   const preventClose = (e: { preventDefault: () => void; returnValue: string; }) => {
     e.preventDefault();
@@ -62,18 +68,18 @@ export const useCallbackActionsStore = defineStore(
     alert('Closing this pop-up window while actions are being preformed may lead to unintended errors.');
   };
 
-  watch(callbackLoading, (newVal, _oldVal) => {
-    console.debug('[callbackLoading]', newVal);
-    if (newVal === true) {
-      console.debug('[callbackLoading] true', 'addEventListener');
+  watch(callbackStatus, (newVal, _oldVal) => {
+    console.debug('[callbackStatus]', newVal);
+    if (newVal === 'ready') {
+      console.debug('[callbackStatus]', newVal, 'addEventListener');
       window.addEventListener('beforeunload', preventClose);
     }
     // removing query string once actions are done so users can't refresh the page and go through the same actions
-    if (newVal === false) {
-      console.debug('[callbackLoading] false', 'removeEventListener');
+    if (newVal !== 'ready') {
+      console.debug('[callbackStatus]', newVal, 'removeEventListener');
       window.removeEventListener('beforeunload', preventClose);
-      console.debug('[callbackLoading] push history w/o query');
-      window.history.pushState(null, '', window.location.pathname);
+      console.debug('[callbackStatus] replace history w/o query');
+      window.history.replaceState(null, '', window.location.pathname);
     }
   });
 
@@ -81,8 +87,8 @@ export const useCallbackActionsStore = defineStore(
     redirectToCallbackType,
     callbackData,
     callbackFeedbackVisible,
-    callbackLoading,
-    closeCallbackFeedback,
+    callbackStatus,
+    setCallbackStatus,
   }
 });
 

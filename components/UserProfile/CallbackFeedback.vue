@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
-import { CheckCircleIcon, ClipboardIcon, XCircleIcon } from '@heroicons/vue/24/solid';
+import { ClipboardIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -20,20 +20,29 @@ const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 
-const { accountUpdating, accountSuccess } = storeToRefs(accountStore);
-const { callbackLoading } = storeToRefs(callbackActionsStore);
-const { keyUrl, keyType, keyInstalling, keySuccess } = storeToRefs(installKeyStore);
+const { accountActionStatus, accountActionStatusCopy } = storeToRefs(accountStore);
+const { callbackData, callbackStatus } = storeToRefs(callbackActionsStore);
+const { keyUrl, keyInstallStatus, keyInstallStatusCopy } = storeToRefs(installKeyStore);
 
-const heading = computed(() => callbackLoading.value ? 'Performing actions' : 'Finished performing actions');
-const subheading = computed(() => callbackLoading.value ? 'Please keep this window open' : '');
+const heading = computed(() => callbackStatus.value === 'loading' ? 'Performing actions' : 'Finished performing actions');
+const subheading = computed(() => callbackStatus.value === 'loading' ? 'Please keep this window open' : '');
+
+const modalError = computed(() => callbackStatus.value === 'done' && (keyInstallStatus.value === 'failed' || accountActionStatus.value === 'failed'));
+const modalSuccess = computed(() => {
+  if (!callbackData.value) return false;
+  // if we have multiple actions, we need both to be successful
+  return callbackData.value.actions.length > 1
+    ? callbackStatus.value === 'done' && (keyInstallStatus.value === 'success' && accountActionStatus.value === 'success')
+    : callbackStatus.value === 'done' && (keyInstallStatus.value === 'success' || accountActionStatus.value === 'success');
+});
 
 // @todo keep for now as we may us`e this rather than refreshing once GQL is hooked up
 // const close = () => {
-//   if (callbackLoading.value) return console.debug('[close] not allowed');
-//   callbackActionsStore.closeCallbackFeedback();
+//   if (callbackStatus.value === 'loading') return console.debug('[close] not allowed');
+//   callbackActionsStore.setCallbackStatus('ready');
 // };
 // @close="close"
-// :show-close-x="!callbackLoading"
+// :show-close-x="!callbackStatus === 'loading'"
 
 const reload = () => window.location.reload();
 
@@ -44,8 +53,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
   <Modal
     :open="open"
     max-width="max-w-640px"
-    :error="!callbackLoading && (keySuccess === false || accountSuccess === false)"
-    :success="!callbackLoading && (keySuccess === true || accountSuccess === true)"
+    :error="modalError"
+    :success="modalSuccess"
   >
     <div class="text-16px text-center relative w-full min-h-[20vh] flex flex-col justify-between gap-y-16px">
       <header>
@@ -53,48 +62,34 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <p v-if="subheading" class="text-16px opacity-80">{{ subheading }}</p>
       </header>
 
-      <BrandLoading v-if="callbackLoading" class="w-90px mx-auto" />
+      <!-- <BrandLoading v-if="callbackStatus === 'loading'" class="w-90px mx-auto" /> -->
 
-      <template v-if="keyInstalling !== undefined">
-        <p v-if="keySuccess === undefined || callbackLoading">keyInstalling {{ keyType }} License Key…</p>
-        <template v-else>
-          <div v-if="keySuccess === true" class="flex items-center justify-center gap-x-8px">
-            <CheckCircleIcon class="fill-green-600 w-24px" />
-            <p>Installed {{ keyType }} License Key</p>
+      <UpcCallbackFeedbackStatus
+        v-if="keyInstallStatus !== 'ready'"
+        :success="keyInstallStatus === 'success'"
+        :error="keyInstallStatus === 'failed'"
+        :text="keyInstallStatusCopy.text"
+      >
+        <template v-if="keyInstallStatus === 'failed'">
+          <div v-if="isSupported" class="flex justify-center">
+            <BrandButton
+              @click="copy(keyUrl)"
+              :icon="ClipboardIcon"
+              :text="copied ? 'Copied' : 'Copy Key URL'" />
           </div>
-          <template v-else-if="keySuccess === false">
-            <div class="flex items-center justify-center gap-x-8px">
-              <XCircleIcon class="fill-unraid-red w-24px" />
-              <p class="text-unraid-red italic">{{ keyType }} License Key Install Failed</p>
-            </div>
-            <div v-if="isSupported" class="flex justify-center">
-              <BrandButton
-                @click="copy(keyUrl)"
-                :icon="ClipboardIcon"
-                :text="copied ? 'Copied' : 'Copy Key URL'" />
-            </div>
-            <p v-else>Copy your Key URL: {{ keyUrl }}</p>
-            <p>Then go to <a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">Tools > Registration</a> to manually install it</p>
-          </template>
+          <p v-else>Copy your Key URL: {{ keyUrl }}</p>
+          <p><a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">Then go to Tools > Registration to manually install it</a></p>
         </template>
-      </template>
+      </UpcCallbackFeedbackStatus>
 
-      <template v-if="accountUpdating !== undefined">
-        <p v-if="accountSuccess === undefined || callbackLoading">Updating Connect account config…</p>
-        <template v-else>
-          <div v-if="accountSuccess === true" class="flex items-center justify-center gap-x-8px">
-            <CheckCircleIcon class="fill-green-600 w-24px" />
-            <p>Connect config updated</p>
-          </div>
-          <div v-else-if="accountSuccess === false" class="flex items-center justify-center gap-x-8px">
-            <XCircleIcon class="fill-unraid-red w-24px" />
-            <p class="text-unraid-red italic">Connect config update failed</p>
-          </div>
-        </template>
-      </template>
+      <UpcCallbackFeedbackStatus
+        v-if="accountActionStatus !== 'ready'"
+        :success="accountActionStatus === 'success'"
+        :error="accountActionStatus === 'failed'"
+        :text="accountActionStatusCopy.text" />
 
       <footer>
-        <div v-if="!callbackLoading && (keySuccess === true || accountSuccess === true)" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
+        <div v-if="modalSuccess" class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
           <button
             @click="reload"
             class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition"
@@ -102,7 +97,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
             {{ 'Reload Page to Finalize' }}
           </button>
         </div>
-      </footer>
+      </footer> 
     </div>
   </Modal>
 </template>
