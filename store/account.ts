@@ -3,7 +3,7 @@ import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
 import { WebguiUpdate } from '~/composables/services/webgui';
 import { ACCOUNT } from '~/helpers/urls';
-import type { CallbackAction } from '~/types/callback';
+import type { ExternalSignIn, ExternalSignOut } from '~/store/callback';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -15,8 +15,8 @@ export const useAccountStore = defineStore('account', () => {
   const serverStore = useServerStore();
 
   // State
-  const accountUpdating = ref<boolean | undefined>(undefined);
-  const accountSuccess = ref<boolean | undefined>(undefined);
+  const accountAction = ref<ExternalSignIn|ExternalSignOut>();
+  const accountActionStatus = ref<'failed' | 'ready' | 'success' | 'updating'>('ready');
 
   // Actions
   const recover = () => {
@@ -68,9 +68,11 @@ export const useAccountStore = defineStore('account', () => {
    * @description Update myservers.cfg for both Sign In & Sign Out
    * @note unraid-api requires apikey & token realted keys to be lowercase
    */
-  const updatePluginConfig = async (action: CallbackAction) => {
+  const updatePluginConfig = async (action: ExternalSignIn | ExternalSignOut) => {
     console.debug('[accountStore.updatePluginConfig]', action);
-    accountUpdating.value = true;
+    accountAction.value = action;
+    accountActionStatus.value = 'updating';
+
     const userPayload = {
       ...(action.user
         ? {
@@ -90,6 +92,7 @@ export const useAccountStore = defineStore('account', () => {
             username: '',
           }),
     };
+
     try {
       const response = await WebguiUpdate
         .formUrl({
@@ -101,26 +104,56 @@ export const useAccountStore = defineStore('account', () => {
         .post()
         .res(res => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate res', res);
-          accountSuccess.value = true;
+          accountActionStatus.value = 'success';
         })
         .catch(err => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
-          accountSuccess.value = false;
+          accountActionStatus.value = 'failed';
         });
       return response;
-    } finally {
-      accountUpdating.value = false;
+    } catch(err) {
+      console.debug('[accountStore.updatePluginConfig] WebguiUpdate catch err', err);
+      accountActionStatus.value = 'failed';
     }
   };
 
-  watch(accountUpdating, (newV, oldV) => {
-    console.debug('[accountUpdating.watch]', newV, oldV);
+  const accountActionStatusCopy = computed((): { text: string; } => {
+    switch (accountActionStatus.value) {
+      case 'ready':
+        return {
+          text: 'Ready to update Connect account configuration',
+        };
+      case 'updating':
+        return {
+          text: accountAction.value?.type === 'signIn'
+            ? 'Signing in...'
+            : 'Signing out...',
+        };
+      case 'success':
+        return {
+          text: accountAction.value?.type === 'signIn'
+            ? 'Signed in successfully'
+            : 'Signed out successfully',
+        };
+      case 'failed':
+        return {
+          text:  accountAction.value?.type === 'signIn'
+            ? 'Sign in failed'
+            : 'Sign out failed',
+        };
+    }
+  });
+
+  watch(accountActionStatus, (newV, oldV) => {
+    console.debug('[accountActionStatus.watch]', newV, oldV);
   });
 
   return {
     // State
-    accountUpdating,
-    accountSuccess,
+    accountAction,
+    accountActionStatus,
+    // Getters
+    accountActionStatusCopy,
     // Actions
     recover,
     replace,

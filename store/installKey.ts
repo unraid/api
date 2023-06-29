@@ -13,11 +13,11 @@ setActivePinia(createPinia());
 export const useInstallKeyStore = defineStore('installKey', () => {
   const serverStore = useServerStore();
 
-  const keyActionType = ref<ServerStateDataKeyActions>();
-  const keyInstalling = ref<boolean | undefined>();
-  const keyUrl = ref<string>('');
-  const keySuccess = ref<boolean | undefined>();
+  const keyInstallStatus = ref<'failed' | 'installing' | 'ready' | 'success'>('ready');
 
+  const keyAction = ref<ExternalKeyActions>();
+  const keyActionType = computed(() => keyAction.value?.type);
+  const keyUrl = computed(() => keyAction.value?.keyUrl);
   /**
    * Extracts key type from key url. Works for both .key and .unkey.
    */
@@ -29,9 +29,8 @@ export const useInstallKeyStore = defineStore('installKey', () => {
 
   const install = async (action: ExternalKeyActions) => {
     console.debug('[install]');
-    keyInstalling.value = true;
-    keyActionType.value = action.type;
-    keyUrl.value = action.keyUrl;
+    keyInstallStatus.value = 'installing';
+    keyAction.value = action;
 
     if (!keyUrl.value) return console.error('[install] no key to install');
 
@@ -41,7 +40,7 @@ export const useInstallKeyStore = defineStore('installKey', () => {
         .get();
       console.log('[install] WebguiInstallKey installResponse', installResponse);
 
-      keySuccess.value = true;
+      keyInstallStatus.value = 'success';
 
       try {
         const updateDnsResponse = await WebguiUpdateDns
@@ -56,20 +55,50 @@ export const useInstallKeyStore = defineStore('installKey', () => {
       }
     } catch (error) {
       console.error('[install] WebguiInstallKey error', error);
-      keySuccess.value = false;
-    } finally {
-      keyInstalling.value = false;
+      keyInstallStatus.value = 'failed';
     }
   };
 
+  const keyInstallStatusCopy = computed((): { text: string; } => {
+    switch (keyInstallStatus.value) {
+      case 'ready':
+        return {
+          text: 'Ready to Install Key',
+        };
+      case 'installing':
+        let txt1 = 'Installing';
+        if (keyActionType.value === 'replace') txt1 = 'Installing Replaced';
+        if (keyActionType.value === 'recover') txt1 = 'Installing Recovered';
+        return {
+          text: `${txt1} ${keyType.value} Key...`,
+        };
+      case 'success':
+      let txt2 = 'Installed';
+      if (keyActionType.value === 'replace') txt2 = 'Replaced';
+      if (keyActionType.value === 'recover') txt2 = 'Recovered';
+        return {
+          text: `${keyType.value} Key ${txt2} Successfully`,
+        };
+      case 'failed':
+        let txt3 = 'Install';
+        if (keyActionType.value === 'replace') txt3 = 'Install Replaced';
+        if (keyActionType.value === 'recover') txt3 = 'Install Recoverd';
+        return {
+          text: `Failed to ${txt3} ${keyType.value} Key`,
+        };
+    }
+  });
+
+  watch(keyInstallStatus, (newV, oldV) => {
+    console.debug('[keyInstallStatus]', newV, oldV);
+  });
+
   return {
     // State
-    keyActionType,
-    keyInstalling,
-    keySuccess,
-    keyUrl,
+    keyInstallStatus,
     // getters
-    keyType,
+    keyUrl,
+    keyInstallStatusCopy,
     // Actions
     install,
   };
