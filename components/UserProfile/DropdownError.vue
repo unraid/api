@@ -25,7 +25,7 @@ const links = ref<UserProfileLink[]>([
 </script>
 
 <template>
-  <ul v-if="stateData.error" class="font-semibold list-reset flex flex-col gap-y-4px -mx-8px mb-4px py-12px px-16px text-white bg-unraid-red/90 rounded">
+  <ul v-if="stateData.error" class="text-white bg-unraid-red/90 font-semibold list-reset flex flex-col gap-y-4px mb-4px py-12px px-16px rounded">
     <h3 class="text-18px">{{ stateData.heading }}</h3>
     <p class="text-14px">{{ stateData.message }}</p>
     <template v-if="links">

@@ -6,13 +6,13 @@ import '~/assets/main.css';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { usePromoStore } from '~/store/promo';
 
-const { callbackFeedbackVisible } = storeToRefs(useCallbackActionsStore());
+const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { promoVisible } = storeToRefs(usePromoStore());
 </script>
 
 <template>
   <div class="relative z-[99999]">
-    <UpcCallbackFeedback :open="callbackFeedbackVisible" />
+    <UpcCallbackFeedback :open="callbackStatus !== 'ready'" />
     <UpcPromo :open="promoVisible" />
   </div>
 </template>
