@@ -19,17 +19,23 @@ export interface ServerAccountCallbackServerData {
   state: string;
   wanFQDN?: string;
 }
-export type ServerStateDataActionType =
-  | 'signIn'
-  | 'signOut'
-  | 'purchase'
-  | 'redeem'
-  | 'upgrade'
-  | 'recover'
-  | 'replace'
-  | 'trialExtend'
-  | 'trialStart'
-  | 'troubleshoot';
+
+export type SignIn = 'signIn';
+export type SignOut = 'signOut';
+export type Troubleshoot = 'troubleshoot';
+export type Recover = 'recover';
+export type Replace = 'replace';
+export type TrialExtend = 'trialExtend';
+export type TrialStart = 'trialStart';
+export type Purchase = 'purchase';
+export type Redeem = 'redeem';
+export type Upgrade = 'upgrade';
+
+export type AccountAction = SignIn | SignOut | Troubleshoot;
+export type AccountKeyAction =  Recover | Replace | TrialExtend | TrialStart;
+export type PurchaseAction = Purchase | Redeem | Upgrade;
+
+export type ServerStateDataActionType = AccountAction | AccountKeyAction | PurchaseAction;
 
 export interface ServerPayload {
   server: ServerAccountCallbackServerData;
@@ -37,27 +43,22 @@ export interface ServerPayload {
 }
 
 export interface ExternalSignIn {
-  type: 'signIn';
+  type: SignIn;
   apiKey: string;
   user: UserInfo;
 }
 export interface ExternalSignOut {
-  type: 'signOut';
+  type: SignOut;
 }
 export interface ExternalKeyActions {
-  type: 'recover' | 'replace' | 'trialExtend' | 'trialStart';
+  type: PurchaseAction | AccountKeyAction;
   keyUrl: string;
-}
-
-export interface ExternalPurchaseActions {
-  type: 'purchase' | 'redeem' | 'upgrade';
 }
 
 export type ExternalActions =
   | ExternalSignIn
   | ExternalSignOut
-  | ExternalKeyActions
-  | ExternalPurchaseActions;
+  | ExternalKeyActions;
 
 export type UpcActions = ServerPayload;
 
@@ -105,7 +106,6 @@ export const useCallbackStoreGeneric = (
     const encryptionKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
     const sendType = 'fromUpc';
     // state
-    const callbackLoading = ref(false);
     const encryptedMessage = ref<string | null>(null);
 
     // actions
@@ -136,7 +136,6 @@ export const useCallbackStoreGeneric = (
         return console.debug('[callback.watcher] no callback to handle');
       }
 
-      callbackLoading.value = true;
       const decryptedMessage = AES.decrypt(callbackValue, encryptionKey);
       const decryptedData: QueryPayloads = JSON.parse(decryptedMessage.toString(Utf8));
       console.debug('[callback.watcher]', decryptedMessage, decryptedData);
@@ -145,8 +144,6 @@ export const useCallbackStoreGeneric = (
     };
 
     return {
-      // state
-      callbackLoading,
       // actions
       send,
       watcher,

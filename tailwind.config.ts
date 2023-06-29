@@ -4,14 +4,14 @@ import defaultTheme from 'tailwindcss/defaultTheme'
 export default <Partial<Config>>{
   safelist: [
     'DropdownWrapper_blip',
-    'BrandLoading_1',
-    'BrandLoading_2',
-    'BrandLoading_3',
-    'BrandLoading_4',
-    'BrandLoading_6',
-    'BrandLoading_7',
-    'BrandLoading_8',
-    'BrandLoading_9',
+    'unraid_mark_1',
+    'unraid_mark_2',
+    'unraid_mark_3',
+    'unraid_mark_4',
+    'unraid_mark_6',
+    'unraid_mark_7',
+    'unraid_mark_8',
+    'unraid_mark_9',
   ],
   theme: {
     extend: {
