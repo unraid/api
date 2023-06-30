@@ -22,7 +22,7 @@ const installKeyStore = useInstallKeyStore();
 
 const { accountActionStatus, accountActionStatusCopy } = storeToRefs(accountStore);
 const { callbackData, callbackStatus } = storeToRefs(callbackActionsStore);
-const { keyUrl, keyInstallStatus, keyInstallStatusCopy } = storeToRefs(installKeyStore);
+const { keyUrl, keyInstallStatus, keyInstallStatusCopy, keyType } = storeToRefs(installKeyStore);
 
 const heading = computed(() => callbackStatus.value === 'loading' ? 'Performing actions' : 'Finished performing actions');
 const subheading = computed(() => callbackStatus.value === 'loading' ? 'Please keep this window open' : '');
@@ -47,6 +47,12 @@ const modalSuccess = computed(() => {
 const reload = () => window.location.reload();
 
 const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
+
+watch(callbackStatus, (n, o) => console.debug('[callbackStatus]', n, o));
+watch(accountActionStatus, (n, o) => console.debug('[accountActionStatus]', n, o));
+watch(keyInstallStatus, (n, o) => console.debug('[keyInstallStatus]', n, o));
+watch(modalError, (n, o) => console.debug('[modalError]', n, o));
+watch(modalSuccess, (n, o) => console.debug('[modalSuccess]', n, o));
 </script>
 
 <template>
@@ -59,7 +65,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
     <div class="text-16px text-center relative w-full min-h-[20vh] flex flex-col justify-between gap-y-16px">
       <header>
         <h1 class="text-24px font-semibold">{{ heading }}</h1>
-        <p v-if="subheading" class="text-16px opacity-80">{{ subheading }}</p>
+        <p v-if="subheading" class="text-16px opacity-75">{{ subheading }}</p>
       </header>
 
       <!-- <BrandLoading v-if="callbackStatus === 'loading'" class="w-90px mx-auto" /> -->
@@ -70,6 +76,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         :error="keyInstallStatus === 'failed'"
         :text="keyInstallStatusCopy.text"
       >
+        <UpcUptimeExpire v-if="keyType === 'Trial'" :for-expire="true" class="opacity-75 italic mt-4px" />
+
         <template v-if="keyInstallStatus === 'failed'">
           <div v-if="isSupported" class="flex justify-center">
             <BrandButton
