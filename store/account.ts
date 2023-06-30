@@ -137,8 +137,8 @@ export const useAccountStore = defineStore('account', () => {
       case 'success':
         return {
           text: accountAction.value?.type === 'signIn'
-            ? `Signed ${accountAction.value.user?.preferred_username} In Successfully`
-            : `Signed Out ${username.value} Successfully`,
+            ? `${accountAction.value.user?.preferred_username} Signed In Successfully`
+            : `${username.value} Signed Out Successfully`,
         };
       case 'failed':
         return {
