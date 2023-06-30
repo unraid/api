@@ -5,10 +5,21 @@ import dateFormat from '~/helpers/time/dateFormat';
 import buildStringFromValues from '~/helpers/time/buildTimeString';
 import { useServerStore } from '~/store/server';
 
+export interface Props {
+  forExpire?: boolean;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  forExpire: false,
+});
+
 const serverStore = useServerStore();
 const { uptime, expireTime, state } = storeToRefs(serverStore);
 
-const uptimeOrExpiredTime = computed(() => {
+const time = computed(() => {
+  if (props.forExpire && expireTime.value) {
+    return expireTime.value;
+  }
   return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value && expireTime.value > 0
     ? expireTime.value
     : uptime.value;
@@ -16,10 +27,15 @@ const uptimeOrExpiredTime = computed(() => {
 
 const parsedTime = ref<string>('');
 const formattedTime = computed<string>(() => {
-  return dateFormat(uptimeOrExpiredTime.value);
+  return dateFormat(time.value);
 });
 
-const countUp = computed<boolean>(() => state.value !== 'TRIAL' && state.value !== 'ENOCONN');
+const countUp = computed<boolean>(() => {
+  if (props.forExpire && expireTime.value) {
+    return false;
+  }
+  return state.value !== 'TRIAL' && state.value !== 'ENOCONN';
+});
 
 const output = computed(() => {
   if (!countUp.value || state.value === 'EEXPIRED') {
@@ -38,11 +54,11 @@ const output = computed(() => {
   };
 });
 
-const runDiff = () => parsedTime.value = buildStringFromValues(dateDiff((uptimeOrExpiredTime.value).toString(), countUp.value));
+const runDiff = () => parsedTime.value = buildStringFromValues(dateDiff((time.value).toString(), countUp.value));
 
 let interval: string | number | NodeJS.Timeout | undefined = undefined;
 onBeforeMount(() => {
-  console.debug('[uptimeOrExpiredTime]', uptimeOrExpiredTime.value);
+  console.debug('[time]', time.value);
   console.debug('[state]', state.value);
   console.debug('[countUp]', countUp.value);
   runDiff();
