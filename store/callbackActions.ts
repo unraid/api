@@ -2,7 +2,7 @@ import { defineStore } from 'pinia';
 
 import { useAccountStore } from './account';
 import { useInstallKeyStore } from './installKey';
-import { useCallbackStoreGeneric, type ExternalPayload, type ExternalActions, type ExternalKeyActions, type QueryPayloads } from './callback';
+import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from './callback';
 // import { useServerStore } from './server';
 
 export const useCallbackActionsStore = defineStore(
@@ -11,7 +11,7 @@ export const useCallbackActionsStore = defineStore(
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
   // const serverStore = useServerStore();
-  type CallbackStatus = 'error' | 'loading' | 'ready' | 'done';
+  type CallbackStatus = 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
 
   const callbackData = ref<ExternalPayload>();
@@ -38,22 +38,21 @@ export const useCallbackActionsStore = defineStore(
       if (action?.keyUrl) {
         await installKeyStore.install(action as ExternalKeyActions);
       }
-      /** @todo add oemSignOut */
-      if (action?.user || action.type === 'signOut') {
+      if (action?.user || action.type === 'signOut' || action.type === 'oemSignOut') {
         await accountStore.updatePluginConfig(action);
       }
       // all actions have run
       if (array.length === (index + 1)) {
-        callbackStatus.value = 'done';
-        // if (array.length > 1) {
-        //   // if we have more than 1 action it means there was a key install and an account action so both need to be successful
-        //   const allSuccess = accountStore.accountActionStatus === 'success' && installKeyStore.keyInstallStatus === 'success';
-        //   callbackStatus.value = allSuccess ? 'success' : 'error';
-        // } else {
-        //   // only 1 action needs to be successful
-        //   const oneSuccess = accountStore.accountActionStatus === 'success' || installKeyStore.keyInstallStatus === 'success';
-        //   callbackStatus.value = oneSuccess ? 'success' : 'error';
-        // }
+        // callbackStatus.value = 'done';
+        if (array.length > 1) {
+          // if we have more than 1 action it means there was a key install and an account action so both need to be successful
+          const allSuccess = accountStore.accountActionStatus === 'success' && installKeyStore.keyInstallStatus === 'success';
+          callbackStatus.value = allSuccess ? 'success' : 'error';
+        } else {
+          // only 1 action needs to be successful
+          const oneSuccess = accountStore.accountActionStatus === 'success' || installKeyStore.keyInstallStatus === 'success';
+          callbackStatus.value = oneSuccess ? 'success' : 'error';
+        }
       }
     });
   };
@@ -81,6 +80,10 @@ export const useCallbackActionsStore = defineStore(
       console.debug('[callbackStatus] replace history w/o query');
       window.history.replaceState(null, '', window.location.pathname);
     }
+  });
+
+  watch(callbackData, () => {
+    console.debug('[callbackData] watch', callbackData.value);
   });
 
   return {

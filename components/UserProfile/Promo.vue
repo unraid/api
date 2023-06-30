@@ -62,32 +62,32 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
 
 <template>
   <Modal
+    title="Introducing Unraid Connect"
+    description="Enhance your Unraid experience"
     :open="open"
     @close="promoStore.promoHide()"
     :show-close-x="true"
     max-width="max-w-800px"
   >
-    <div class="text-center relative w-full md:p-24px">
-      <header>
-        <h1 class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">
-          Introducing Unraid Connect
-          <span><UpcBeta class="relative -top-1" /></span>
-        </h1>
-        <h2 class="text-20px">
-          Enhance your Unraid experience
-        </h2>
-      </header>
+    <template #headerTitle>
+      <span><UpcBeta class="relative -top-1" /></span>
+    </template>
 
-      <div class="flex flex-wrap justify-center my-16px md:my-24px">
-        <UpcPromoFeature
-          v-for="(feature, index) in features"
-          :key="index"
-          :title="feature.title"
-          :copy="feature.copy"
-        />
+    <template #main>
+      <div class="text-center relative w-full">
+        <div class="flex flex-wrap justify-center my-16px md:my-24px">
+          <UpcPromoFeature
+            v-for="(feature, index) in features"
+            :key="index"
+            :title="feature.title"
+            :copy="feature.copy"
+          />
+        </div>
       </div>
+    </template>
 
-      <div class="w-full max-w-xs flex flex-col gap-y-16px mx-auto">
+    <template #footer>
+      <div class="w-full max-w-xs flex flex-col items-center gap-y-16px mx-auto">
         <!-- v-if="devEnv" -->
         <SwitchGroup as="div" class="flex items-center justify-center">
           <Switch v-model="staging" :class="[staging ? 'bg-indigo-600' : 'bg-gray-200', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2']">
@@ -115,7 +115,7 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
           </button>
         </div>
       </div>
-    </div>
+    </template>
   </Modal>
 </template>
 
