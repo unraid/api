@@ -24,6 +24,10 @@ const { accountActionStatus, accountActionStatusCopy } = storeToRefs(accountStor
 const { callbackData, callbackStatus } = storeToRefs(callbackActionsStore);
 const { keyUrl, keyInstallStatus, keyInstallStatusCopy, keyType } = storeToRefs(installKeyStore);
 
+/** @todo if post purchase/upgrade thank user for their purchase and support */
+/** @todo if post purchase/upgrade and no Connect, show CTA to Connect promo */
+/** @todo if signing in show CTA to head to Connect settings to enable features */
+
 const heading = computed(() => callbackStatus.value === 'loading' ? 'Performing actions' : 'Finished performing actions');
 const subheading = computed(() => callbackStatus.value === 'loading' ? 'Please keep this window open' : '');
 
