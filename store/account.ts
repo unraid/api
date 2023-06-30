@@ -18,6 +18,8 @@ export const useAccountStore = defineStore('account', () => {
   const accountAction = ref<ExternalSignIn|ExternalSignOut>();
   const accountActionStatus = ref<'failed' | 'ready' | 'success' | 'updating'>('ready');
 
+  const username = ref<string>('');
+
   // Actions
   const recover = () => {
     console.debug('[accountStore.recover]');
@@ -70,17 +72,20 @@ export const useAccountStore = defineStore('account', () => {
    */
   const updatePluginConfig = async (action: ExternalSignIn | ExternalSignOut) => {
     console.debug('[accountStore.updatePluginConfig]', action);
+    // save any existing username before updating
+    if (serverStore.username) username.value = serverStore.username;
+
     accountAction.value = action;
     accountActionStatus.value = 'updating';
 
     const userPayload = {
-      ...(action.user
+      ...(accountAction.value.user
         ? {
-            apikey: action.apiKey,
+            apikey: accountAction.value.apiKey,
             // avatar: '',
-            email: action.user?.email,
+            email: accountAction.value.user?.email,
             regWizTime: `${Date.now()}_${serverStore.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
-            username: action.user?.preferred_username,
+            username: accountAction.value.user?.preferred_username,
           }
         : {
             accesstoken: '',
@@ -126,20 +131,20 @@ export const useAccountStore = defineStore('account', () => {
       case 'updating':
         return {
           text: accountAction.value?.type === 'signIn'
-            ? 'Signing in...'
-            : 'Signing out...',
+            ? `Signing in ${accountAction.value.user?.preferred_username}...`
+            : `Signing out ${username.value}...`,
         };
       case 'success':
         return {
           text: accountAction.value?.type === 'signIn'
-            ? 'Signed in successfully'
-            : 'Signed out successfully',
+            ? `Signed ${accountAction.value.user?.preferred_username} In Successfully`
+            : `Signed Out ${username.value} Successfully`,
         };
       case 'failed':
         return {
           text:  accountAction.value?.type === 'signIn'
-            ? 'Sign in failed'
-            : 'Sign out failed',
+            ? 'Sign In Failed'
+            : 'Sign Out Failed',
         };
     }
   });
