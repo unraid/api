@@ -51,7 +51,7 @@ const serverState = {
   "locale": "en_US",
   "name": "fuji",
   // "pluginInstalled": "dynamix.unraid.net.staging.plg",
-  "pluginInstalled": true,
+  "pluginInstalled": false,
   "registered": true,
   "regGen": 0,
   "regGuid": "0781-5583-8355-81071A2B0211",
