@@ -97,8 +97,9 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     // State
     keyInstallStatus,
     // getters
-    keyUrl,
     keyInstallStatusCopy,
+    keyType,
+    keyUrl,
     // Actions
     install,
   };
