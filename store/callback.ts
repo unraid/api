@@ -1,9 +1,32 @@
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import { ref } from 'vue';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
-export interface ServerAccountCallbackServerData {
+/**
+ * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
+ * @see https://github.com/vuejs/pinia/discussions/1085
+ */
+setActivePinia(createPinia());
+
+export type SignIn = 'signIn';
+export type SignOut = 'signOut';
+export type OemSignOut = 'oemSignOut';
+export type Troubleshoot = 'troubleshoot';
+export type Recover = 'recover';
+export type Replace = 'replace';
+export type TrialExtend = 'trialExtend';
+export type TrialStart = 'trialStart';
+export type Purchase = 'purchase';
+export type Redeem = 'redeem';
+export type Upgrade = 'upgrade';
+
+export type AccountAction = SignIn | SignOut | OemSignOut | Troubleshoot;
+export type AccountKeyAction =  Recover | Replace | TrialExtend | TrialStart;
+export type PurchaseAction = Purchase | Redeem | Upgrade;
+
+export type ServerAction = AccountAction | AccountKeyAction | PurchaseAction;
+
+export interface ServerData {
   description?: string;
   deviceCount?: number;
   expireTime?: number;
@@ -20,26 +43,9 @@ export interface ServerAccountCallbackServerData {
   wanFQDN?: string;
 }
 
-export type SignIn = 'signIn';
-export type SignOut = 'signOut';
-export type Troubleshoot = 'troubleshoot';
-export type Recover = 'recover';
-export type Replace = 'replace';
-export type TrialExtend = 'trialExtend';
-export type TrialStart = 'trialStart';
-export type Purchase = 'purchase';
-export type Redeem = 'redeem';
-export type Upgrade = 'upgrade';
-
-export type AccountAction = SignIn | SignOut | Troubleshoot;
-export type AccountKeyAction =  Recover | Replace | TrialExtend | TrialStart;
-export type PurchaseAction = Purchase | Redeem | Upgrade;
-
-export type ServerStateDataActionType = AccountAction | AccountKeyAction | PurchaseAction;
-
 export interface ServerPayload {
-  server: ServerAccountCallbackServerData;
-  type: ServerStateDataActionType;
+  server: ServerData;
+  type: ServerAction;
 }
 
 export interface ExternalSignIn {
@@ -48,7 +54,7 @@ export interface ExternalSignIn {
   user: UserInfo;
 }
 export interface ExternalSignOut {
-  type: SignOut;
+  type: SignOut | OemSignOut;
 }
 export interface ExternalKeyActions {
   type: PurchaseAction | AccountKeyAction;
@@ -92,12 +98,6 @@ interface CallbackActionsStore {
   sendType: 'fromUpc' | 'forUpc';
 }
 
-/**
- * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
- * @see https://github.com/vuejs/pinia/discussions/1085
- */
-setActivePinia(createPinia());
-
 export const useCallbackStoreGeneric = (
   useCallbackActions: () => CallbackActionsStore,
 ) =>
@@ -105,10 +105,7 @@ export const useCallbackStoreGeneric = (
     const callbackActions = useCallbackActions();
     const encryptionKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
     const sendType = 'fromUpc';
-    // state
-    const encryptedMessage = ref<string | null>(null);
 
-    // actions
     const send = (url: string, payload: SendPayloads) => {
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
@@ -118,11 +115,11 @@ export const useCallbackStoreGeneric = (
         sender: window.location.href,
         type: sendType,
       });
-      encryptedMessage.value = AES.encrypt(stringifiedData, encryptionKey).toString();
+      const encryptedMessage = AES.encrypt(stringifiedData, encryptionKey).toString();
       // build and go to url
       const destinationUrl = new URL(url);
-      destinationUrl.searchParams.set('data', encodeURI(encryptedMessage.value));
-      console.debug('[callback.send]', encryptedMessage.value, destinationUrl);
+      destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
+      console.debug('[callback.send]', encryptedMessage, destinationUrl);
       window.location.href = destinationUrl.toString();
       return;
     };
@@ -144,7 +141,6 @@ export const useCallbackStoreGeneric = (
     };
 
     return {
-      // actions
       send,
       watcher,
     };

@@ -51,7 +51,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
       >
         <div
           @click="closeModal"
-          class="fixed inset-0 z-0 bg-black bg-opacity-50 transition-opacity"
+          class="fixed inset-0 z-0 bg-black bg-opacity-80 transition-opacity"
           title="Click to close modal"
         />
       </TransitionChild>
@@ -73,18 +73,33 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               success ? 'shadow-green-600/30 border-green-600/10' : '',
               !error && !success ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-alpha bg-beta border-2 border-solid relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:p-6"
+            class="text-beta bg-alpha border-2 border-solid relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 sm:my-8 sm:p-6 text-left shadow-xl transition-all sm:w-full"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
-              <button @click="closeModal" type="button" class="rounded-md text-alpha bg-beta p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+              <button @click="closeModal" type="button" class="rounded-md text-beta bg-alpha p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                 <span class="sr-only">Close</span>
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
-            <h1 v-if="title" :id="ariaLablledById">{{ title }}</h1>
-            <h2 v-if="description">{{ description }}</h2>
-            <slot />
+            <header class="text-center">
+              <template v-if="!$slots['header']">
+                <h1 v-if="title" :id="ariaLablledById" class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">
+                  {{ title }}
+                  <slot name="headerTitle"></slot>
+                </h1>
+                <h2 v-if="description" class="text-16px opacity-75">{{ description }}</h2>
+              </template>
+              <slot name="header"></slot>
+            </header>
+            <slot name="main"></slot>
+
+            <footer class="text-14px relative -mx-4px -mb-4px sm:-mx-6 sm:-mb-6 p-4 sm:p-6">
+              <div class="absolute z-0 inset-0 opacity-10 bg-beta"></div>
+              <div class="relative z-10">
+                <slot name="footer"></slot>
+              </div>
+            </footer>
           </div>
         </TransitionChild>
       </div>
