@@ -70,20 +70,13 @@ export const useCallbackActionsStore = defineStore(
   watch(callbackStatus, (newVal, _oldVal) => {
     console.debug('[callbackStatus]', newVal);
     if (newVal === 'ready') {
-      console.debug('[callbackStatus]', newVal, 'addEventListener');
       window.addEventListener('beforeunload', preventClose);
     }
-    // removing query string once actions are done so users can't refresh the page and go through the same actions
     if (newVal !== 'ready') {
-      console.debug('[callbackStatus]', newVal, 'removeEventListener');
       window.removeEventListener('beforeunload', preventClose);
-      console.debug('[callbackStatus] replace history w/o query');
+      // removing query string once actions are done so users can't refresh the page and go through the same actions
       window.history.replaceState(null, '', window.location.pathname);
     }
-  });
-
-  watch(callbackData, () => {
-    console.debug('[callbackData] watch', callbackData.value);
   });
 
   return {

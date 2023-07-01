@@ -10,13 +10,7 @@ defineProps<Props>();
 </script>
 
 <template>
-  <div
-    class="text-left relative flex overflow-hidden p-8px"
-    :class="{
-      'w-full sm:w-1/2': !center,
-      'max-w-640px': center,
-    }"
-  >
+  <div class="text-left relative flex overflow-hidden">
     <span v-if="!center" class="flex-shrink-0">
       <slot></slot>
     </span>
