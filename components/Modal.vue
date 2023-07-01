@@ -73,7 +73,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               success ? 'shadow-green-600/30 border-green-600/10' : '',
               !error && !success ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-beta bg-alpha border-2 border-solid relative transform overflow-hidden rounded-lg px-4 pb-4 pt-5 sm:my-8 sm:p-6 text-left shadow-xl transition-all sm:w-full"
+            class="text-16px text-beta bg-alpha text-left relative flex flex-col justify-around p-16px my-24px sm:p-24px border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
               <button @click="closeModal" type="button" class="rounded-md text-beta bg-alpha p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
@@ -94,7 +94,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
             </header>
             <slot name="main"></slot>
 
-            <footer class="text-14px relative -mx-4px -mb-4px sm:-mx-6 sm:-mb-6 p-4 sm:p-6">
+            <footer class="text-14px relative -mx-16px -mb-16px sm:-mx-24px sm:-mb-24px p-4 sm:p-6">
               <div class="absolute z-0 inset-0 opacity-10 bg-beta"></div>
               <div class="relative z-10">
                 <slot name="footer"></slot>
