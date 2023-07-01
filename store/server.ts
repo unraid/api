@@ -101,11 +101,17 @@ export const useServerStore = defineStore('server', () => {
   const serverPurchasePayload = computed((): ServerPurchaseCallbackSendPayload => {
     let keyTypeForPurchase: ServerKeyTypeForPurchase = 'Trial';
     switch (state.value) {
-      case 'BASIC': keyTypeForPurchase =  'Basic';
-      case 'PLUS': keyTypeForPurchase =  'Plus';
-      case 'PRO': keyTypeForPurchase =  'Pro';
+      case 'BASIC':
+        keyTypeForPurchase =  'Basic';
+        break;
+      case 'PLUS':
+        keyTypeForPurchase =  'Plus';
+        break;
+      case 'PRO':
+        keyTypeForPurchase =  'Pro';
+        break;
     }
-    return {
+    const server = {
       deviceCount: deviceCount.value,
       email: email.value,
       guid: guid.value,
@@ -114,7 +120,9 @@ export const useServerStore = defineStore('server', () => {
       registered: registered.value ?? false,
       state: state.value,
       site: site.value,
-    }
+    };
+    console.debug('[serverPurchasePayload] server', server);
+    return server;
   });
 
   const serverAccountPayload = computed((): ServerAccountCallbackSendPayload => {
