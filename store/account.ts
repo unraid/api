@@ -16,9 +16,39 @@ export const useAccountStore = defineStore('account', () => {
 
   // State
   const accountAction = ref<ExternalSignIn|ExternalSignOut>();
+  const accountActionHide = ref<boolean>(false);
   const accountActionStatus = ref<'failed' | 'ready' | 'success' | 'updating'>('ready');
 
   const username = ref<string>('');
+
+  // Getters
+  const accountActionType = computed(() => accountAction.value?.type);
+  const accountActionStatusCopy = computed((): { text: string; } => {
+    switch (accountActionStatus.value) {
+      case 'ready':
+        return {
+          text: 'Ready to update Connect account configuration',
+        };
+      case 'updating':
+        return {
+          text: accountAction.value?.type === 'signIn'
+            ? `Signing in ${accountAction.value.user?.preferred_username}...`
+            : `Signing out ${username.value}...`,
+        };
+      case 'success':
+        return {
+          text: accountAction.value?.type === 'signIn'
+            ? `${accountAction.value.user?.preferred_username} Signed In Successfully`
+            : `${username.value} Signed Out Successfully`,
+        };
+      case 'failed':
+        return {
+          text:  accountAction.value?.type === 'signIn'
+            ? 'Sign In Failed'
+            : 'Sign Out Failed',
+        };
+    }
+  });
 
   // Actions
   const recover = () => {
@@ -98,6 +128,13 @@ export const useAccountStore = defineStore('account', () => {
           }),
     };
 
+    if (!serverStore.registered && !accountAction.value.user) {
+      console.debug('[accountStore.updatePluginConfig] Not registered skipping sign out');
+      accountActionHide.value = true;
+      accountActionStatus.value = 'success';
+      return;
+    }
+
     try {
       const response = await WebguiUpdate
         .formUrl({
@@ -122,43 +159,14 @@ export const useAccountStore = defineStore('account', () => {
     }
   };
 
-  const accountActionStatusCopy = computed((): { text: string; } => {
-    switch (accountActionStatus.value) {
-      case 'ready':
-        return {
-          text: 'Ready to update Connect account configuration',
-        };
-      case 'updating':
-        return {
-          text: accountAction.value?.type === 'signIn'
-            ? `Signing in ${accountAction.value.user?.preferred_username}...`
-            : `Signing out ${username.value}...`,
-        };
-      case 'success':
-        return {
-          text: accountAction.value?.type === 'signIn'
-            ? `${accountAction.value.user?.preferred_username} Signed In Successfully`
-            : `${username.value} Signed Out Successfully`,
-        };
-      case 'failed':
-        return {
-          text:  accountAction.value?.type === 'signIn'
-            ? 'Sign In Failed'
-            : 'Sign Out Failed',
-        };
-    }
-  });
-
-  watch(accountActionStatus, (newV, oldV) => {
-    console.debug('[accountActionStatus.watch]', newV, oldV);
-  });
-
   return {
     // State
     accountAction,
+    accountActionHide,
     accountActionStatus,
     // Getters
     accountActionStatusCopy,
+    accountActionType,
     // Actions
     recover,
     replace,

@@ -75,7 +75,7 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
 
     <template #main>
       <div class="text-center relative w-full">
-        <div class="flex flex-wrap justify-center my-16px md:my-24px">
+        <div class="grid grid-cols-1 sm:grid-cols-2 justify-center p-16px md:py-24px gap-16px">
           <UpcPromoFeature
             v-for="(feature, index) in features"
             :key="index"

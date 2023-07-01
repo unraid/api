@@ -14,8 +14,8 @@ const showExpireTime = computed(() => {
 <template>
   <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-4xl p-16px">
     <header class="text-center">
-      <h2 class="text-24px font-semibold">Thank you for installing Connect!</h2>
-      <h3>Sign In to your Unraid.net account to register your server</h3>
+      <h2 class="text-24px font-semibold">{{ 'Thank you for installing Connect!' }}</h2>
+      <h3>{{ 'Sign In to your Unraid.net account to get started' }}</h3>
       <UpcUptimeExpire v-if="showExpireTime" class="opacity-75 mt-12px" />
     </header>
     <ul class="list-reset flex flex-col gap-y-8px px-16px" v-if="stateData.actions">
