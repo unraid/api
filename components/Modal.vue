@@ -34,6 +34,10 @@ const closeModal = () => {
 const { trapRef } = useFocusTrap();
 
 const ariaLablledById = computed((): string|undefined => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
+
+/**
+ * @todo when providing custom colors for theme we should invert text-beta bg-alpha to text-alpha bg-beta
+ */
 </script>
 
 <template>
