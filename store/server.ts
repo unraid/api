@@ -99,6 +99,7 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const serverPurchasePayload = computed((): ServerPurchaseCallbackSendPayload => {
+    /** @todo refactor out. Just parse state on craft site to determine */
     let keyTypeForPurchase: ServerKeyTypeForPurchase = 'Trial';
     switch (state.value) {
       case 'BASIC':
