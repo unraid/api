@@ -92,7 +92,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
                   {{ title }}
                   <slot name="headerTitle"></slot>
                 </h1>
-                <h2 v-if="description" class="text-16px opacity-75">{{ description }}</h2>
+                <h2 v-if="description" class="text-20px opacity-75">{{ description }}</h2>
               </template>
               <slot name="header"></slot>
             </header>
