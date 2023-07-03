@@ -21,9 +21,15 @@ export const useDropdownStore = defineStore('dropdown', () => {
   });
 
   onMounted(() => {
+    // automatically open the launchpad dropdown on first page load when ENOKEYFILE aka a new server
+    const baseStorageName =`unraidConnect_${serverStore.guid}_`;
+    if (serverStore.state === 'ENOKEYFILE' && !sessionStorage.getItem(`${baseStorageName}ENOKEYFILE`)) {
+      sessionStorage.setItem(`${baseStorageName}ENOKEYFILE`, 'true');
+      dropdownShow();
+    }
     // automatically open the launchpad dropdown after plugin install on first page load
-    if (serverStore.pluginInstalled && !serverStore.registered && sessionStorage.getItem('clickedInstallPlugin')) {
-      sessionStorage.removeItem('clickedInstallPlugin');
+    if (serverStore.pluginInstalled && !serverStore.registered && sessionStorage.getItem(`${baseStorageName}clickedInstallPlugin`)) {
+      sessionStorage.removeItem(`${baseStorageName}clickedInstallPlugin`);
       dropdownShow();
     }
   });

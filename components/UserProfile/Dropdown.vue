@@ -7,10 +7,10 @@ import { useServerStore } from '~/store/server';
 
 const dropdownStore = useDropdownStore()
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { pluginInstalled, registered } = storeToRefs(useServerStore());
+const { pluginInstalled, registered, state } = storeToRefs(useServerStore());
 
 const showDefaultContent = computed(() => !showLaunchpad.value);
-const showLaunchpad = computed(() => pluginInstalled.value && !registered.value);
+const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || (pluginInstalled.value && !registered.value));
 </script>
 
 <template>
