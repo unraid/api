@@ -1,11 +1,21 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import hexToRgba from 'hex-to-rgba';
-import type { Theme } from "~/types/theme";
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
+
+export interface Theme {
+  banner: string;
+  bannerGradient: string;
+  bgColor: string;
+  descriptionShow: boolean;
+  metaColor: string;
+  name: string;
+  textColor: string;
+} 
 
 export const useThemeStore = defineStore('theme', () => {
   // State
