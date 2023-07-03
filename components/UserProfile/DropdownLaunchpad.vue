@@ -4,7 +4,17 @@ import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-const { expireTime, state, stateData } = storeToRefs(useServerStore());
+const { expireTime, pluginInstalled, state, stateData } = storeToRefs(useServerStore());
+
+const heading = computed(() => {
+  if (pluginInstalled.value) return 'Thank you for installing Connect!';
+  return stateData.value.heading;
+});
+
+const subheading = computed(() => {
+  if (pluginInstalled.value) return 'Sign In to your Unraid.net account to get started';
+  return stateData.value.message;
+});
 
 const showExpireTime = computed(() => {
   return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value > 0;
@@ -13,24 +23,19 @@ const showExpireTime = computed(() => {
 
 <template>
   <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-4xl p-16px">
-    <header class="text-center">
-      <h2 class="text-24px font-semibold">{{ 'Thank you for installing Connect!' }}</h2>
-      <h3>{{ 'Sign In to your Unraid.net account to get started' }}</h3>
+    <header :class="{ 'text-center': pluginInstalled }">
+      <h2 class="text-24px text-center font-semibold" v-html="heading" />
+      <div v-html="subheading" class="flex flex-col gap-y-8px" />
       <UpcUptimeExpire v-if="showExpireTime" class="opacity-75 mt-12px" />
     </header>
     <ul class="list-reset flex flex-col gap-y-8px px-16px" v-if="stateData.actions">
       <li v-for="action in stateData.actions" :key="action.name">
-        <component
-          :is="action.click ? 'button' : 'a'"
+        <BrandButton
+          class="w-full"
           @click="action.click()"
-          rel="noopener noreferrer"
-          class="text-white text-14px text-center w-full flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60"
-          target="_blank"
-          download
-        >
-          <component v-if="action.icon" :is="action.icon" class="flex-shrink-0 w-14px" />
-          {{ action.text }}
-        </component>
+          :icon="action.icon"
+          :text="action.text"
+        />
       </li>
     </ul>
   </div>
