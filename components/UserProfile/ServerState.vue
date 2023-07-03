@@ -31,7 +31,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
     <template v-if="purchaseAction">
       <UpcServerStateBuy
         @click="purchaseAction.click()"
-        class="text-orange-dark relative top-[1px]"
+        class="text-orange-dark relative top-[1px] hidden sm:block"
         :title="'Purchase'"
       >{{ 'Purchase' }}</UpcServerStateBuy>
     </template>
