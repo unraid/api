@@ -1,5 +1,5 @@
 import { KeyIcon } from '@heroicons/vue/24/solid';
-import { Theme } from '~/types/theme';
+import { Theme } from '~/store/theme';
 import { UserProfileLink } from '~/types/userProfile';
 
 export enum ServerState {
