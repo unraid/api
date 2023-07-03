@@ -4,7 +4,7 @@ import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue
 import { useAccountStore } from './account';
 import { usePurchaseStore } from "./purchase";
 import { useTrialStore } from './trial';
-import { useThemeStore } from './theme';
+import { useThemeStore, type Theme } from './theme';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -14,7 +14,6 @@ import type {
   ServerStateData,
   ServerStateDataAction,
 } from '~/types/server';
-import type { Theme } from '~/types/theme';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
