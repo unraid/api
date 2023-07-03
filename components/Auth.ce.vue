@@ -33,18 +33,11 @@ const button = computed(() => {
       {{ stateData.message }}
     </span>
     <span>
-      <component
+      <BrandButton
         v-if="button"
-        :is="button.click ? 'button' : 'a'"
         @click="button.click()"
-        rel="noopener noreferrer"
-        class="text-white text-14px text-center w-full flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60"
-        target="_blank"
-        download
-      >
-        <component v-if="button.icon" :is="button.icon" class="flex-shrink-0 w-14px" />
-        {{ button.text }}
-      </component>
+        :icon="button.icon"
+        :text="button.text" />
     </span>
   </div>
 </template>
