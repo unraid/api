@@ -98,6 +98,10 @@ export default <Partial<Config>>{
         '640px': '640px',
         '800px': '800px',
       },
+      screens: {
+        '2xs': '470px',
+        'xs': '530px',
+      },
     }
   }
 }
