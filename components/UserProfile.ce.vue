@@ -84,18 +84,18 @@ onBeforeMount(() => {
 <template>
   <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px">
     <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
-    
-    <div class="text-gamma text-12px text-right font-semibold leading-normal relative z-10 flex flex-row items-baseline justify-end gap-x-12px">
+
+    <div class="text-gamma text-10px xs:text-12px text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
       <UpcUptimeExpire />
-      <span>&bull;</span>
+      <span class="hidden xs:block">&bull;</span>
       <UpcServerState />
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
-      <h1 class="text-alpha relative text-18px border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
+      <h1 class="text-alpha text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
         <template v-if="description && theme?.descriptionShow">
-          <span>{{ description }}</span>
-          <span class="text-grey-mid px-8px">&bull;</span>
+          <span class="text-right hidden 2xs:block">{{ description }}</span>
+          <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
         <button @click="copyLanIp()" :title="`Click to Copy LAN IP ${lanIp}`">{{ name }}</button>
         <span
@@ -107,7 +107,7 @@ onBeforeMount(() => {
         </span>
       </h1>
 
-      <div class="block w-2px h-24px bg-grey-mid"></div>
+      <div class="block w-2px h-24px bg-gamma"></div>
 
       <OnClickOutside class="flex items-center justify-end h-full" @trigger="outsideDropdown" :options="{ ignore: [clickOutsideIgnoreTarget] }">
         <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" />
