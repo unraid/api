@@ -212,9 +212,9 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
-            ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...([purchaseAction, redeemAction, trialStartAction]),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'No Keyfile',
           heading: `Let's Unleash your Hardware!`,
@@ -223,9 +223,9 @@ export const useServerStore = defineStore('server', () => {
       case 'TRIAL':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Trial',
           heading: 'Thank you for choosing Unraid OS!',
@@ -234,10 +234,10 @@ export const useServerStore = defineStore('server', () => {
       case 'EEXPIRED':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
             ...(trialExtensionEligible.value ? [trialExtendAction] : []),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Trial Expired',
@@ -249,9 +249,9 @@ export const useServerStore = defineStore('server', () => {
       case 'BASIC':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Basic',
           heading: 'Thank you for choosing Unraid OS!',
@@ -264,9 +264,9 @@ export const useServerStore = defineStore('server', () => {
       case 'PLUS':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Plus',
           heading: 'Thank you for choosing Unraid OS!',
@@ -279,9 +279,9 @@ export const useServerStore = defineStore('server', () => {
       case 'PRO':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Pro',
           heading: 'Thank you for choosing Unraid OS!',
@@ -296,9 +296,9 @@ export const useServerStore = defineStore('server', () => {
         else messageEGUID = 'The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key or Replace Key.'; // basically guidReplaceable.value === null
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction, replaceAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Flash GUID Error',
@@ -308,9 +308,9 @@ export const useServerStore = defineStore('server', () => {
       case 'EGUID1':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Multiple License Keys Present',
@@ -321,7 +321,7 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE2':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
             ...(registered.value ? [recoverAction, signOutAction] : []),
           ],
@@ -333,9 +333,9 @@ export const useServerStore = defineStore('server', () => {
       case 'ETRIAL':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Invalid installation',
@@ -345,9 +345,9 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE1':
         return {
           actions: [
-            ...(!registered.value ? [signInAction] : []),
+            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'No Keyfile',
