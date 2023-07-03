@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowRightOnRectangleIcon, ArrowTopRightOnSquareIcon, BarsArrowDownIcon, CogIcon, InformationCircleIcon, UserIcon } from '@heroicons/vue/24/solid';
+import { ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon, } from '@heroicons/vue/24/solid';
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
-import type { ServerStateDataAction } from '~/types/server';
 
 const myServersEnv = ref<string>('Staging');
 const devEnv = ref<string>('development');
