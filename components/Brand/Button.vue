@@ -21,7 +21,7 @@ const classes = computed(() => {
     case 'fill':
       return 'text-white bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60';
     case 'outline':
-      return 'text-orange bg-gradient-to-r from-transparent to-transparent border border-solid border-orange hover:text-white focus:text-white hover:from-unraid-red hover:to-orange focus:from-unraid-red focus:to-orange hover:border-transparent focus:border-transparent';
+      return 'text-orange bg-gradient-to-r from-transparent to-transparent border-2 border-solid border-orange hover:text-white focus:text-white hover:from-unraid-red hover:to-orange focus:from-unraid-red focus:to-orange hover:border-transparent focus:border-transparent';
     case 'underline':
       return 'opacity-75 hover:opacity-100 focus:opacity-100 underline transition hover:text-alpha hover:bg-beta focus:text-alpha focus:bg-beta';
   }
