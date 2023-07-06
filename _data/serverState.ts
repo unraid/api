@@ -63,7 +63,7 @@ const serverState = {
     "bgColor": "",
     "descriptionShow": true,
     "metaColor": "",
-    "name": "black",
+    "name": "white",
     "textColor": ""
   },
   uptime,
