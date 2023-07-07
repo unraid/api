@@ -185,6 +185,9 @@ export const useServerStore = defineStore('server', () => {
     name: 'signIn',
     text: 'Sign In with Unraid.net Account',
   };
+  /**
+   * @todo implment conditional sign out to show that a keyfile is required
+   */
   const signOutAction: ServerStateDataAction = {
     click: () => { accountStore.signOut() },
     external: true,
@@ -200,7 +203,7 @@ export const useServerStore = defineStore('server', () => {
     text: 'Extend Trial',
   };
   const trialStartAction: ServerStateDataAction = {
-    click: () => { trialStore.start() },
+    click: () => { trialStore.setTrialStatus('requestNew') },
     external: true,
     icon: KeyIcon,
     name: 'trialStart',

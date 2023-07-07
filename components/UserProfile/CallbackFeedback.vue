@@ -83,6 +83,9 @@ const subheading = computed(() => {
   if (callbackStatus.value === 'success') {
     if (accountActionType.value === 'signIn') return `You're one step closer to enhancing your Unraid experience`;
     if (keyActionType.value === 'purchase') return `Thank you for purchasing an Unraid ${keyType.value} Key!`;
+    if (keyActionType.value === 'replace') return `Your ${keyType.value} Key has been replaced!`;
+    if (keyActionType.value === 'trialExtend') return `Your Trial key has been extended!`;
+    if (keyActionType.value === 'trialStart') return `Your free Trial key provides all the functionality of a Pro Registration key`;
     if (keyActionType.value === 'upgrade') return `Thank you for upgrading to an Unraid ${keyType.value} Key!`;
     return '';
   }
@@ -148,7 +151,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <UpcCallbackFeedbackStatus
           v-if="showPromoCta"
           :icon="InformationCircleIcon"
-          :text="'Enhance your Unraid experience with Unraid Connect'" />
+          :text="'Enhance your experience with Unraid Connect'" />
 
         <UpcCallbackFeedbackStatus
           v-if="showSignInCta"
