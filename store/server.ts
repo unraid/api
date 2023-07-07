@@ -288,7 +288,6 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
-            ...([upgradeAction]),
             ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Pro',
