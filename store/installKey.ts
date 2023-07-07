@@ -67,22 +67,25 @@ export const useInstallKeyStore = defineStore('installKey', () => {
         };
       case 'installing':
         let txt1 = 'Installing';
-        if (keyActionType.value === 'replace') txt1 = 'Installing Replaced';
+        if (keyActionType.value === 'trialExtend') txt1 = 'Installing Extended Trial';
         if (keyActionType.value === 'recover') txt1 = 'Installing Recovered';
+        if (keyActionType.value === 'replace') txt1 = 'Installing Replaced';
         return {
           text: `${txt1} ${keyType.value} Key...`,
         };
       case 'success':
       let txt2 = 'Installed';
-      if (keyActionType.value === 'replace') txt2 = 'Replaced';
+      if (keyActionType.value === 'trialExtend') txt2 = 'Extension Installed';
       if (keyActionType.value === 'recover') txt2 = 'Recovered';
+      if (keyActionType.value === 'replace') txt2 = 'Replaced';
         return {
           text: `${keyType.value} Key ${txt2} Successfully`,
         };
       case 'failed':
         let txt3 = 'Install';
+        if (keyActionType.value === 'trialExtend') txt3 = 'Install Extended';
+        if (keyActionType.value === 'recover') txt3 = 'Install Recovered';
         if (keyActionType.value === 'replace') txt3 = 'Install Replaced';
-        if (keyActionType.value === 'recover') txt3 = 'Install Recoverd';
         return {
           text: `Failed to ${txt3} ${keyType.value} Key`,
         };

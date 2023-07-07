@@ -15,20 +15,23 @@ const { trialStatus } = storeToRefs(trialStore);
 
 const heading = computed(() => {
   if (trialStatus.value === 'failed') return 'Failed to start your free 30 day trial';
-  if (trialStatus.value === 'requestNew') return 'Starting your free 30 day trial…';
+  if (trialStatus.value === 'trialExtend') return 'Extending your free trial by 15 days';
+  if (trialStatus.value === 'trialStart') return 'Starting your free 30 day trial…';
   if (trialStatus.value === 'success') return 'Free 30 Day Trial Created';
   return '';
 });
 const subheading = computed(() => {
   /** @todo show response error */
   if (trialStatus.value === 'failed') return 'Key server did not return a trial key. Please try again later.';
-  if (trialStatus.value === 'requestNew') return 'Please wait while and keep this window open';
+  if (trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart') return 'Please keep this window open';
   if (trialStatus.value === 'success') return 'Please wait while the page reloads to install your trial key';
   return '';
 });
 
+const loading = computed(() => trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart');
+
 const close = () => {
-  if (trialStatus.value === 'requestNew') return console.debug("[close] not allowed");
+  if (trialStatus.value === 'trialStart') return console.debug("[close] not allowed");
   trialStore.setTrialStatus('ready');
 };
 </script>
@@ -39,17 +42,14 @@ const close = () => {
     :open="open"
     :title="heading"
     :description="subheading"
-    :show-close-x="trialStatus !== 'requestNew'"
+    :show-close-x="!loading"
     max-width="max-w-640px"
   >
     <template #main>
-      <BrandLoading v-if="trialStatus === 'requestNew'" class="w-[150px] mx-auto my-24px" />
-      <div v-if="trialStatus === 'failed'" class="my-24px">
-        <p class="text-red"></p>
-      </div>
+      <BrandLoading v-if="loading" class="w-[150px] mx-auto my-24px" />
     </template>
 
-    <template v-if="trialStatus !== 'requestNew'" #footer>
+    <template v-if="!loading" #footer>
       <div class="w-full max-w-xs flex flex-col items-center gap-y-16px mx-auto">
         <div>
           <button

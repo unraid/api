@@ -9,14 +9,14 @@ import { useTrialStore } from '~/store/trial';
 
 const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { promoVisible } = storeToRefs(usePromoStore());
-const { trialStatus } = storeToRefs(useTrialStore());
+const { showModal } = storeToRefs(useTrialStore());
 </script>
 
 <template>
   <div class="relative z-[99999]">
     <UpcCallbackFeedback :open="callbackStatus !== 'ready'" />
     <UpcPromo :open="promoVisible" />
-    <UpcTrial :open="trialStatus === 'requestNew' || trialStatus === 'failed'" />
+    <UpcTrial :open="showModal" />
   </div>
 </template>
 

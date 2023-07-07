@@ -31,6 +31,7 @@ export interface Server {
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
+  inIframe: boolean;
   keyfile?: string;
   lanIp?: string;
   license?: string;
@@ -57,6 +58,7 @@ export interface ServerAccountCallbackSendPayload {
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
+  inIframe: boolean;
   keyfile?: string;
   lanIp?: string;
   locale?: string;
@@ -75,6 +77,7 @@ export interface ServerPurchaseCallbackSendPayload {
   deviceCount: number;
   email: string;
   guid: string;
+  inIframe: boolean;
   keyTypeForPurchase: ServerKeyTypeForPurchase;
   locale: string;
   registered: boolean;
