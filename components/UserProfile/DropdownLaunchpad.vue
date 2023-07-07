@@ -6,7 +6,7 @@ import '~/assets/main.css';
 
 const { expireTime, pluginInstalled, registered, state, stateData } = storeToRefs(useServerStore());
 
-const showConnectCopy = computed(() => (pluginInstalled.value && !registered.value));
+const showConnectCopy = computed(() => (pluginInstalled.value && !registered.value && !stateData.value?.error));
 
 const heading = computed(() => {
   if (showConnectCopy.value) return 'Thank you for installing Connect!';
