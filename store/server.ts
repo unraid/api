@@ -52,7 +52,7 @@ export const useServerStore = defineStore('server', () => {
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
   const site = ref<string>('');
-  const state = ref<string>(''); // @todo implement ServerState ENUM
+  const state = ref<ServerState>();
   const theme = ref<Theme>();
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
