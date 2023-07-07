@@ -41,6 +41,7 @@ export const useServerStore = defineStore('server', () => {
   const guidBlacklisted = ref<boolean>();
   const guidRegistered = ref<boolean>();
   const guidReplaceable = ref<boolean | undefined>();
+  const inIframe = ref<boolean>(window.self !== window.top);
   const keyfile = ref<string>('');
   const lanIp = ref<string>('');
   const license = ref<string>('');
@@ -79,6 +80,7 @@ export const useServerStore = defineStore('server', () => {
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
+      inIframe: inIframe.value,
       keyfile: keyfile.value,
       lanIp: lanIp.value,
       license: license.value,
@@ -115,6 +117,7 @@ export const useServerStore = defineStore('server', () => {
       deviceCount: deviceCount.value,
       email: email.value,
       guid: guid.value,
+      inIframe: inIframe.value,
       keyTypeForPurchase,
       locale: locale.value,
       registered: registered.value ?? false,
@@ -132,6 +135,7 @@ export const useServerStore = defineStore('server', () => {
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
+      inIframe: inIframe.value,
       keyfile: keyfile.value,
       lanIp: lanIp.value,
       name: name.value,
@@ -196,14 +200,14 @@ export const useServerStore = defineStore('server', () => {
     text: 'Sign Out of Unraid.net',
   };
   const trialExtendAction: ServerStateDataAction = {
-    click: () => { trialStore.extend() },
+    click: () => { trialStore.setTrialStatus('trialExtend') },
     external: true,
     icon: KeyIcon,
     name: 'trialExtend',
     text: 'Extend Trial',
   };
   const trialStartAction: ServerStateDataAction = {
-    click: () => { trialStore.setTrialStatus('requestNew') },
+    click: () => { trialStore.setTrialStatus('trialStart') },
     external: true,
     icon: KeyIcon,
     name: 'trialStart',

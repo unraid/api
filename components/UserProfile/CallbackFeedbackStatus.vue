@@ -16,7 +16,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <div class="mx-auto max-w-[45ch]">
-    <div class="flex items-start justify-start gap-x-8px">
+    <div class="flex items-start justify-center gap-x-8px">
       <CheckCircleIcon v-if="success" class="fill-green-600 w-28px shrink-0" />
       <XCircleIcon v-if="error" class="fill-unraid-red w-28px shrink-0" />
       <component v-if="icon" :is="icon" class="fill-current opacity-75 w-28px shrink-0" />
