@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia';
 
-import { useAccountStore } from './account';
-import { useInstallKeyStore } from './installKey';
-import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from './callback';
+import { addPreventClose, removePreventClose } from '~/composables/preventClose';
+import { useAccountStore } from '~/store/account';
+import { useInstallKeyStore } from '~/store/installKey';
+import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
+import { remove } from '@vue/shared';
 // import { useServerStore } from './server';
 
 export const useCallbackActionsStore = defineStore(
@@ -59,21 +61,13 @@ export const useCallbackActionsStore = defineStore(
 
   const setCallbackStatus = (status: CallbackStatus) => callbackStatus.value = status;
 
-  const preventClose = (e: { preventDefault: () => void; returnValue: string; }) => {
-    e.preventDefault();
-    // eslint-disable-next-line no-param-reassign
-    e.returnValue = '';
-    // eslint-disable-next-line no-alert
-    alert('Closing this pop-up window while actions are being preformed may lead to unintended errors.');
-  };
-
-  watch(callbackStatus, (newVal, _oldVal) => {
+  watch(callbackStatus, (newVal, oldVal) => {
     console.debug('[callbackStatus]', newVal);
-    if (newVal === 'ready') {
-      window.addEventListener('beforeunload', preventClose);
+    if (newVal === 'loading') {
+      addPreventClose();
     }
-    if (newVal !== 'ready') {
-      window.removeEventListener('beforeunload', preventClose);
+    if (oldVal === 'loading') {
+      removePreventClose();
       // removing query string once actions are done so users can't refresh the page and go through the same actions
       window.history.replaceState(null, '', window.location.pathname);
     }
