@@ -3,7 +3,6 @@ import { delay } from 'wretch/middlewares';
 import { WebguiInstallKey, WebguiUpdateDns } from '~/composables/services/webgui';
 import { useServerStore } from '~/store/server';
 import type { ExternalKeyActions } from '~/store/callback';
-import type { ServerStateDataKeyActions } from '~/types/server'
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
