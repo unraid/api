@@ -82,7 +82,7 @@ const links = computed(():UserProfileLink[] => {
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
       <UpcDropdownError v-if="stateData.error" />
-      <UpcDropdownConnectStatus v-else-if="!stateData.error && registered && pluginInstalled" />
+      <UpcDropdownConnectStatus v-else-if="!stateData.error && registered && pluginInstalled" class="mt-8px" />
 
       <li class="m-8px">
         <UpcKeyline />
