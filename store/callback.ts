@@ -104,16 +104,16 @@ export const useCallbackStoreGeneric = (
   defineStore('callback', () => {
     const callbackActions = useCallbackActions();
     const encryptionKey = 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB';
-    const sendType = 'fromUpc';
+    const defaultSendType = 'fromUpc';
 
-    const send = (url: string, payload: SendPayloads) => {
+    const send = (url: string, payload: SendPayloads, sendType?: 'fromUpc' | 'forUpc') => {
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [
           ...payload,
         ],
         sender: window.location.href,
-        type: sendType,
+        type: sendType ?? defaultSendType,
       });
       const encryptedMessage = AES.encrypt(stringifiedData, encryptionKey).toString();
       // build and go to url
