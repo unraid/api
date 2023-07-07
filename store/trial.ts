@@ -1,16 +1,27 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useCallbackStore } from './callbackActions';
-import { useServerStore } from './server';
+
+import { addPreventClose, removePreventClose } from '~/composables/preventClose';
+import { startTrial, type StartTrialResponse } from '~/composables/services/keyServer';
+
+import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
+import { useDropdownStore } from '~/store/dropdown';
+import { useServerStore } from '~/store/server';
+import type { ExternalPayload } from '~/store/callback';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
- */
+*/
 setActivePinia(createPinia());
 
 export const useTrialStore = defineStore('trial', () => {
   const callbackStore = useCallbackStore();
+  const callbackActionsStore = useCallbackActionsStore();
+  const dropdownStore = useDropdownStore();
   const serverStore = useServerStore();
+
+  type TrialStatus = 'failed' | 'ready' | 'requestNew' | 'success';
+  const trialStatus = ref<TrialStatus>('ready');
 
   const extend = () => {
     console.debug('[extend]');
@@ -21,20 +32,65 @@ export const useTrialStore = defineStore('trial', () => {
       type: 'trialExtend',
     }]);
   };
-  const start = () => {
-    console.debug('[start]');
-    callbackStore.send('https://localhost:8008/connect', [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'trialStart',
-    }]);
+
+  // @todo post to key server
+  const requestTrialNew = async () => {
+    console.debug('[requestTrialNew]');
+    try {
+      const payload = {
+        guid: serverStore.guid,
+        timestamp: Math.floor(Date.now() / 1000),
+      };
+      const response: StartTrialResponse = await startTrial(payload).json();
+      console.debug('[requestTrialNew]', response);
+      if (!response.license) {
+        trialStatus.value = 'failed';
+        return console.error('[requestTrialNew]', 'No license returned', response);
+      }
+      // manually create a payload to mimic a callback for key installs
+      const trialStartData: ExternalPayload = {
+        actions: [
+          {
+            keyUrl: response.license,
+            type: 'trialStart',
+          },
+        ],
+        sender: window.location.href,
+        type: 'forUpc',
+      };
+      console.debug('[requestTrialNew]', trialStartData);
+      trialStatus.value = 'success';
+      return callbackActionsStore.redirectToCallbackType(trialStartData);
+    } catch (error) {
+      trialStatus.value = 'failed';
+      console.error('[requestTrialNew]', error);
+    }
   };
+
+  const setTrialStatus = (status: TrialStatus) => trialStatus.value = status;
+
+  watch(trialStatus, (newVal, oldVal) => {
+    console.debug('[trialStatus]', newVal, oldVal);
+    // opening
+    if (newVal === 'requestNew') {
+      addPreventClose();
+      dropdownStore.dropdownHide(); // close the dropdown when the trial modal is opened
+      setTimeout(() => {
+        requestTrialNew();
+      }, 1500);
+    }
+    // allow closure
+    if (newVal === 'failed' || newVal === 'success') {
+      removePreventClose();
+    }
+  });
 
   return {
     // State
+    trialStatus,
     // Actions
     extend,
-    start,
+    requestTrialNew,
+    setTrialStatus,
   };
 });

@@ -29,7 +29,7 @@ const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: string = 'PLUS';
+const state: string = 'ENOKEYFILE';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 let expireTime = 0;
@@ -44,7 +44,8 @@ const serverState = {
   expireTime,
   "flashProduct": "SanDisk_3.2Gen1",
   "flashVendor": "USB",
-  "guid": "0781-5583-8355-81071A2B0211",
+  "guid": randomGuid,
+  // "guid": "0781-5583-8355-81071A2B0211",
   "keyfile": "DUMMY_KEYFILE",
   "lanIp": "192.168.254.36",
   "license": "",
@@ -54,7 +55,7 @@ const serverState = {
   "pluginInstalled": false,
   "registered": true,
   "regGen": 0,
-  "regGuid": "0781-5583-8355-81071A2B0211",
+  // "regGuid": "0781-5583-8355-81071A2B0211",
   "site": "http://localhost:4321",
   "state": state,
   "theme": {

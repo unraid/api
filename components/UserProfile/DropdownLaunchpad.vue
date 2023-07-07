@@ -4,15 +4,17 @@ import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-const { expireTime, pluginInstalled, state, stateData } = storeToRefs(useServerStore());
+const { expireTime, pluginInstalled, registered, state, stateData } = storeToRefs(useServerStore());
+
+const showConnectCopy = computed(() => (pluginInstalled.value && !registered.value));
 
 const heading = computed(() => {
-  if (pluginInstalled.value) return 'Thank you for installing Connect!';
+  if (showConnectCopy.value) return 'Thank you for installing Connect!';
   return stateData.value.heading;
 });
 
 const subheading = computed(() => {
-  if (pluginInstalled.value) return 'Sign In to your Unraid.net account to get started';
+  if (showConnectCopy.value) return 'Sign In to your Unraid.net account to get started';
   return stateData.value.message;
 });
 
@@ -23,7 +25,7 @@ const showExpireTime = computed(() => {
 
 <template>
   <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-4xl p-16px">
-    <header :class="{ 'text-center': pluginInstalled }">
+    <header :class="{ 'text-center': showConnectCopy }">
       <h2 class="text-24px text-center font-semibold" v-html="heading" />
       <div v-html="subheading" class="flex flex-col gap-y-8px" />
       <UpcUptimeExpire v-if="showExpireTime" class="opacity-75 mt-12px" />
