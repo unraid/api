@@ -30,7 +30,7 @@ const button = computed(() => {
     <span v-if="stateData.error" class="text-unraid-red font-semibold leading-8">
       {{ stateData.heading }}
       <br />
-      {{ stateData.message }}
+      <span v-html="stateData.message"></span>
     </span>
     <span>
       <BrandButton

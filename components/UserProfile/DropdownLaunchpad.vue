@@ -28,7 +28,7 @@ const showExpireTime = computed(() => {
     <header :class="{ 'text-center': showConnectCopy }">
       <h2 class="text-24px text-center font-semibold" v-html="heading" />
       <div v-html="subheading" class="flex flex-col gap-y-8px" />
-      <UpcUptimeExpire v-if="showExpireTime" class="opacity-75 mt-12px" />
+      <UpcUptimeExpire v-if="showExpireTime" class="text-center opacity-75 mt-12px" />
     </header>
     <ul class="list-reset flex flex-col gap-y-8px px-16px" v-if="stateData.actions">
       <li v-for="action in stateData.actions" :key="action.name">
