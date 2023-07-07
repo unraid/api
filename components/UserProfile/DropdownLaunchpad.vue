@@ -35,6 +35,8 @@ const showExpireTime = computed(() => {
         <BrandButton
           class="w-full"
           @click="action.click()"
+          :external="action?.external"
+          :href="action?.href"
           :icon="action.icon"
           :text="action.text"
         />
