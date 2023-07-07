@@ -331,7 +331,8 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [recoverAction, signOutAction] : []),
+            ...(pluginInstalled.value ? [recoverAction] : []),
+            ...(registered.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Missing key file',
