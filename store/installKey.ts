@@ -1,6 +1,7 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { delay } from 'wretch/middlewares';
 import { WebguiInstallKey, WebguiUpdateDns } from '~/composables/services/webgui';
+import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import type { ExternalKeyActions } from '~/store/callback';
 /**
@@ -10,6 +11,7 @@ import type { ExternalKeyActions } from '~/store/callback';
 setActivePinia(createPinia());
 
 export const useInstallKeyStore = defineStore('installKey', () => {
+  const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   const keyInstallStatus = ref<'failed' | 'installing' | 'ready' | 'success'>('ready');
@@ -55,6 +57,7 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     } catch (error) {
       console.error('[install] WebguiInstallKey error', error);
       keyInstallStatus.value = 'failed';
+      errorsStore.setError(error);
     }
   };
 
