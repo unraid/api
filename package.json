@@ -19,6 +19,7 @@
     "@vueuse/core": "^10.1.2",
     "@vueuse/nuxt": "^10.1.2",
     "amazon-cognito-identity-js": "^6.2.0",
+    "lodash-es": "^4.17.21",
     "nuxt": "^3.5.1",
     "nuxt-custom-elements": "^2.0.0-beta.12"
   },
@@ -31,7 +32,7 @@
     "dayjs": "^1.11.7",
     "focus-trap": "^7.4.3",
     "hex-to-rgba": "^2.0.1",
-    "wretch": "^2.5.2"
+    "wretch": "^2.6.0"
   },
   "overrides": {
     "vue": "latest"
