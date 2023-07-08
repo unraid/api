@@ -1,6 +1,7 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useCallbackStore } from './callbackActions';
-import { useServerStore } from './server';
+import { useCallbackStore } from '~/store/callbackActions';
+import { useErrorsStore } from '~/store/errors';
+import { useServerStore } from '~/store/server';
 import { WebguiUpdate } from '~/composables/services/webgui';
 import { ACCOUNT } from '~/helpers/urls';
 import type { ExternalSignIn, ExternalSignOut } from '~/store/callback';
@@ -12,6 +13,7 @@ setActivePinia(createPinia());
 
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackStore();
+  const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   // State
@@ -108,26 +110,6 @@ export const useAccountStore = defineStore('account', () => {
     accountAction.value = action;
     accountActionStatus.value = 'updating';
 
-    const userPayload = {
-      ...(accountAction.value.user
-        ? {
-            apikey: accountAction.value.apiKey,
-            // avatar: '',
-            email: accountAction.value.user?.email,
-            regWizTime: `${Date.now()}_${serverStore.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
-            username: accountAction.value.user?.preferred_username,
-          }
-        : {
-            accesstoken: '',
-            apikey: '',
-            avatar: '',
-            email: '',
-            idtoken: '',
-            refreshtoken: '',
-            username: '',
-          }),
-    };
-
     if (!serverStore.registered && !accountAction.value.user) {
       console.debug('[accountStore.updatePluginConfig] Not registered skipping sign out');
       accountActionHide.value = true;
@@ -136,6 +118,25 @@ export const useAccountStore = defineStore('account', () => {
     }
 
     try {
+      const userPayload = {
+        ...(accountAction.value.user
+          ? {
+              apikey: accountAction.value.apiKey,
+              // avatar: '',
+              email: accountAction.value.user?.email,
+              regWizTime: `${Date.now()}_${serverStore.guid}`, // set when signing in the first time and never unset for the sake of displaying Sign In/Up in the UPC without needing to validate guid every time
+              username: accountAction.value.user?.preferred_username,
+            }
+          : {
+              accesstoken: '',
+              apikey: '',
+              avatar: '',
+              email: '',
+              idtoken: '',
+              refreshtoken: '',
+              username: '',
+            }),
+      };
       const response = await WebguiUpdate
         .formUrl({
           csrf_token: serverStore.csrf,
@@ -151,11 +152,13 @@ export const useAccountStore = defineStore('account', () => {
         .catch(err => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
           accountActionStatus.value = 'failed';
+          errorsStore.setError(err);
         });
       return response;
     } catch(err) {
       console.debug('[accountStore.updatePluginConfig] WebguiUpdate catch err', err);
       accountActionStatus.value = 'failed';
+      errorsStore.setError(err);
     }
   };
 
