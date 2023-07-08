@@ -1,8 +1,8 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-// import { useAccountStore } from './account';
-// import { useCallbackStore } from './callbackActions';
-// import { useInstallKeyStore } from './installKey';
-// import { useServerStore } from './server';
+// import { useAccountStore } from '~/store/account';
+// import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
+// import { useInstallKeyStore } from '~/store/installKey';
+// import { useServerStore } from '~/store/server';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -13,11 +13,20 @@ setActivePinia(createPinia());
 export const useErrorsStore = defineStore('errors', () => {
   // const accountStore = useAccountStore();
   // const callbackStore = useCallbackStore();
+  // const callbackActionsStore = useCallbackActionsStore();
   // const installKeyStore = useInstallKeyStore();
   // const serverStore = useServerStore();
 
   /** @todo type the errors */
   const errors = ref<any[]>([]);
+
+  const removeError = (index: number) => {
+    errors.value = errors.value.filter((_error, i) => i !== index);
+  };
+
+  const resetErrors = () => {
+    errors.value = [];
+  };
 
   const setError = (error: any) => {
     errors.value.push(error);
@@ -25,6 +34,8 @@ export const useErrorsStore = defineStore('errors', () => {
 
   return {
     errors,
+    removeError,
+    resetErrors,
     setError,
   };
 });
