@@ -108,20 +108,25 @@ export const useCallbackStoreGeneric = (
 
     const send = (url: string, payload: SendPayloads, sendType?: 'fromUpc' | 'forUpc') => {
       console.debug('[callback.send]');
-      const stringifiedData = JSON.stringify({
-        actions: [
-          ...payload,
-        ],
-        sender: window.location.href,
-        type: sendType ?? defaultSendType,
-      });
-      const encryptedMessage = AES.encrypt(stringifiedData, encryptionKey).toString();
-      // build and go to url
-      const destinationUrl = new URL(url);
-      destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
-      console.debug('[callback.send]', encryptedMessage, destinationUrl);
-      window.location.href = destinationUrl.toString();
-      return;
+      try {
+        const stringifiedData = JSON.stringify({
+          actions: [
+            ...payload,
+          ],
+          sender: window.location.href,
+          type: sendType ?? defaultSendType,
+        });
+        const encryptedMessage = AES.encrypt(stringifiedData, encryptionKey).toString();
+        // build and go to url
+        const destinationUrl = new URL(url);
+        destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
+        console.debug('[callback.send]', encryptedMessage, destinationUrl);
+        window.location.href = destinationUrl.toString();
+        return;
+      } catch (error) {
+        console.error(error);
+        throw new Error("Unable to create callback event");
+      }
     };
 
     const watcher = () => {
@@ -133,11 +138,16 @@ export const useCallbackStoreGeneric = (
         return console.debug('[callback.watcher] no callback to handle');
       }
 
-      const decryptedMessage = AES.decrypt(callbackValue, encryptionKey);
-      const decryptedData: QueryPayloads = JSON.parse(decryptedMessage.toString(Utf8));
-      console.debug('[callback.watcher]', decryptedMessage, decryptedData);
-      // Parse the data and perform actions
-      callbackActions.redirectToCallbackType(decryptedData);
+      try {
+        const decryptedMessage = AES.decrypt(callbackValue, encryptionKey);
+        const decryptedData: QueryPayloads = JSON.parse(decryptedMessage.toString(Utf8));
+        console.debug('[callback.watcher]', decryptedMessage, decryptedData);
+        // Parse the data and perform actions
+        callbackActions.redirectToCallbackType(decryptedData);
+      } catch (error) {
+        console.error(error);
+        throw new Error("Couldn't decrypt callback data");
+      }
     };
 
     return {

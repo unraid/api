@@ -4,15 +4,13 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
-import { remove } from '@vue/shared';
-// import { useServerStore } from './server';
 
 export const useCallbackActionsStore = defineStore(
   'callbackActions',
   () => {
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
-  // const serverStore = useServerStore();
+
   type CallbackStatus = 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
 
