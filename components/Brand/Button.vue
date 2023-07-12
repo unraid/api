@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { XCircleIcon } from '@heroicons/vue/24/solid';
-export interface Props {
+export interface ButtonProps {
   btnStyle?: 'fill' | 'outline' | 'underline';
   btnType?: 'button' | 'submit' | 'reset';
   download?: boolean;
@@ -9,7 +9,7 @@ export interface Props {
   icon?: typeof XCircleIcon;
   text?: string;
 }
-const props = withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<ButtonProps>(), {
   btnStyle: 'fill',
   btnType: 'button',
 });
