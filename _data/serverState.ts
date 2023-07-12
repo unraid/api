@@ -39,6 +39,10 @@ if (state === 'EEXPIRED') expireTime = uptime; // 1 hour ago
 const serverState = {
   "apiKey": "XXXunupc_12312313123",
   "avatar": "https://source.unsplash.com/300x300/?portrait",
+  "config": {
+    // error: 'INVALID',
+    valid: true,
+  },
   "description": "DevServer9000",
   "deviceCount": "3",
   expireTime,
@@ -63,7 +67,7 @@ const serverState = {
     "bgColor": "",
     "descriptionShow": true,
     "metaColor": "",
-    "name": "white",
+    "name": "black",
     "textColor": ""
   },
   uptime,

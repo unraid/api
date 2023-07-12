@@ -57,7 +57,14 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     } catch (error) {
       console.error('[install] WebguiInstallKey error', error);
       keyInstallStatus.value = 'failed';
-      errorsStore.setError(error);
+      errorsStore.setError({
+        heading: 'Failed to install key',
+        message: error.message,
+        level: 'error',
+
+        ref: 'installKey',
+        type: 'installKey',
+      });
     }
   };
 
