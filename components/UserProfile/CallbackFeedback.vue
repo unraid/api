@@ -120,7 +120,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
     <template #main>
       <div
         v-if="keyInstallStatus !== 'ready' || accountActionStatus !== 'ready'"
-        class="text-center relative w-full min-h-[15vh] flex flex-col justify-center gap-y-16px py-16px"
+        class="text-center relative w-full flex flex-col justify-center gap-y-16px py-24px sm:py-32px"
       >
         <UpcCallbackFeedbackStatus
           v-if="keyInstallStatus !== 'ready'"
