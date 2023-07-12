@@ -37,7 +37,7 @@ if (state === 'TRIAL') expireTime = Date.now() + 60 * 60 * 1000; // in 1 hour
 if (state === 'EEXPIRED') expireTime = uptime; // 1 hour ago
 
 const serverState = {
-  "apiKey": "unupc_12312313123",
+  "apiKey": "XXXunupc_12312313123",
   "avatar": "https://source.unsplash.com/300x300/?portrait",
   "description": "DevServer9000",
   "deviceCount": "3",
@@ -51,9 +51,8 @@ const serverState = {
   "license": "",
   "locale": "en_US",
   "name": "fuji",
-  // "pluginInstalled": "dynamix.unraid.net.staging.plg",
-  "pluginInstalled": true,
-  "registered": true,
+  "pluginInstalled": "dynamix.unraid.net.staging.plg",
+  "registered": false,
   "regGen": 0,
   // "regGuid": "0781-5583-8355-81071A2B0211",
   "site": "http://localhost:4321",
