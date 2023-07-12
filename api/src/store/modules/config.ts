@@ -148,7 +148,7 @@ const generateApiKeysIfNotExistent = (
                       ),
         },
     }) as MyServersConfig;
-    return newConfigFile
+    return newConfigFile;
 };
 
 export const loadConfigFile = createAsyncThunk<
@@ -263,6 +263,27 @@ export const config = createSlice({
         setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
             state.remote.wanaccess = action.payload;
         },
+        signIn: (
+            state,
+            action: PayloadAction<
+                Pick<
+                    MyServersConfig['remote'],
+                    'apikey' 
+                > & Partial<Pick<MyServersConfig['remote'],
+                   'idtoken' | 'accesstoken' | 'refreshtoken' | 'username' | 'avatar' | 'email'>>
+            >
+        ) => {
+            state.remote.apikey = action.payload.apikey;
+            state.remote.idtoken = action.payload.idtoken ?? '';
+            state.remote.accesstoken = action.payload.accesstoken ?? ''
+            state.remote.refreshtoken = action.payload.refreshtoken ?? ''
+        },
+        signOut: (state) => {
+            state.remote.apikey = '';
+            state.remote.idtoken = '';
+            state.remote.accesstoken = '';
+            state.remote.refreshtoken = '';
+        }
     },
     extraReducers(builder) {
         builder.addCase(loadConfigFile.pending, (state) => {
@@ -321,6 +342,8 @@ export const {
     setUpnpState,
     setWanPortToValue,
     setWanAccess,
+    signIn,
+    signOut
 } = actions;
 
 export const configReducer = reducer;

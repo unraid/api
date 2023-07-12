@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types';
 
 import { z } from 'zod'
-import { ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Device, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, Permissions, ProfileModel, Registration, RegistrationState, RelayResponse, Scope, Server, ServerStatus, Service, Share, System, Temperature, Theme, TwoFactorLocal, TwoFactorRemote, TwoFactorWithToken, TwoFactorWithoutToken, UnassignedDevice, Uptime, Usb, User, Vars, Versions, VmDomain, VmNetwork, VmState, Vms, Welcome, addApiKeyInput, addScopeInput, addScopeToApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, testMutationInput, testQueryInput, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
+import { AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Device, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, Permissions, ProfileModel, Registration, RegistrationState, RelayResponse, Scope, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, TwoFactorLocal, TwoFactorRemote, TwoFactorWithToken, TwoFactorWithoutToken, UnassignedDevice, Uptime, Usb, User, Vars, Versions, VmDomain, VmNetwork, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addScopeInput, addScopeToApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -14,6 +14,12 @@ type definedNonNullAny = {};
 export const isDefinedNonNullAny = (v: any): v is definedNonNullAny => v !== undefined && v !== null;
 
 export const definedNonNullAnySchema = z.any().refine((v) => isDefinedNonNullAny(v));
+
+export function AllowedOriginInputSchema(): z.ZodObject<Properties<AllowedOriginInput>> {
+  return z.object<Properties<AllowedOriginInput>>({
+    origins: z.array(z.string())
+  })
+}
 
 export function ApiKeySchema(): z.ZodObject<Properties<ApiKey>> {
   return z.object<Properties<ApiKey>>({
@@ -154,6 +160,15 @@ export function ConfigSchema(): z.ZodObject<Properties<Config>> {
 }
 
 export const ConfigErrorStateSchema = z.nativeEnum(ConfigErrorState);
+
+export function ConnectSignInInputSchema(): z.ZodObject<Properties<ConnectSignInInput>> {
+  return z.object<Properties<ConnectSignInInput>>({
+    accessToken: z.string().nullish(),
+    apiKey: z.string(),
+    idToken: z.string(),
+    refreshToken: z.string().nullish()
+  })
+}
 
 export function ContainerHostConfigSchema(): z.ZodObject<Properties<ContainerHostConfig>> {
   return z.object<Properties<ContainerHostConfig>>({
@@ -715,6 +730,14 @@ export function ServiceSchema(): z.ZodObject<Properties<Service>> {
   })
 }
 
+export function SetupRemoteAccessInputSchema(): z.ZodObject<Properties<SetupRemoteAccessInput>> {
+  return z.object<Properties<SetupRemoteAccessInput>>({
+    accessType: WAN_ACCESS_TYPESchema,
+    forwardType: WAN_FORWARD_TYPESchema.nullish(),
+    port: z.number().nullish()
+  })
+}
+
 export function ShareSchema(): z.ZodObject<Properties<Share>> {
   return z.object<Properties<Share>>({
     __typename: z.literal('Share').optional(),
@@ -1072,6 +1095,10 @@ export function VmsSchema(): z.ZodObject<Properties<Vms>> {
   })
 }
 
+export const WAN_ACCESS_TYPESchema = z.nativeEnum(WAN_ACCESS_TYPE);
+
+export const WAN_FORWARD_TYPESchema = z.nativeEnum(WAN_FORWARD_TYPE);
+
 export function WelcomeSchema(): z.ZodObject<Properties<Welcome>> {
   return z.object<Properties<Welcome>>({
     __typename: z.literal('Welcome').optional(),
@@ -1131,19 +1158,6 @@ export function deleteUserInputSchema(): z.ZodObject<Properties<deleteUserInput>
 export const mdStateSchema = z.nativeEnum(mdState);
 
 export const registrationTypeSchema = z.nativeEnum(registrationType);
-
-export function testMutationInputSchema(): z.ZodObject<Properties<testMutationInput>> {
-  return z.object<Properties<testMutationInput>>({
-    state: z.string()
-  })
-}
-
-export function testQueryInputSchema(): z.ZodObject<Properties<testQueryInput>> {
-  return z.object<Properties<testQueryInput>>({
-    optional: z.boolean().nullish(),
-    state: z.string()
-  })
-}
 
 export function updateApikeyInputSchema(): z.ZodObject<Properties<updateApikeyInput>> {
   return z.object<Properties<updateApikeyInput>>({

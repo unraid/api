@@ -1,4 +1,4 @@
-import { DateTimeResolver, JSONResolver, UUIDResolver } from 'graphql-scalars';
+import { DateTimeResolver, JSONResolver, PortResolver, UUIDResolver } from 'graphql-scalars';
 
 import { Query } from '@app/graphql/resolvers/query';
 import { Mutation } from '@app/graphql/resolvers/mutation';
@@ -14,6 +14,7 @@ export const resolvers: Resolvers = {
     Long: GraphQLLong,
     UUID: UUIDResolver,
     DateTime: DateTimeResolver,
+    Port: PortResolver,
     Query,
     Mutation,
     Subscription,

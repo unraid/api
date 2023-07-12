@@ -8,6 +8,7 @@ export const baseTypes = [
         scalar Long
         scalar UUID
         scalar DateTime
+        scalar Port
 
         directive @subscription(channel: String!) on FIELD_DEFINITION
 
@@ -36,34 +37,6 @@ export const baseTypes = [
         }
     `,
 ];
-
-// Add test defs in dev mode
-if (process.env.NODE_ENV === 'development') {
-	const testDefs = gql`
-		# Test query
-		input testQueryInput {
-			state: String!
-			optional: Boolean
-		}
-		type Query {
-			testQuery(id: String!, input: testQueryInput): JSON @func(module: "getContext")
-		}
-
-		# Test mutation
-		input testMutationInput {
-			state: String!
-		}
-		type Mutation {
-			testMutation(id: String!, input: testMutationInput): JSON @func(module: "getContext")
-		}
-
-		# Test subscription
-		type Subscription {
-			testSubscription: String!
-		}
-	`;
-	baseTypes.push(testDefs);
-}
 
 export const types = mergeTypeDefs([
 	...baseTypes,
