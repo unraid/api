@@ -19,7 +19,7 @@ export interface Theme {
 
 export const useThemeStore = defineStore('theme', () => {
   // State
-  const theme = ref<Theme|undefined>();
+  const theme = ref<Theme | undefined>();
   // Getters
   const darkMode = computed(() => (theme.value?.name === 'black' || theme.value?.name === 'azure') ?? false);
   const bannerGradient = computed(() => {

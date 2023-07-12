@@ -84,7 +84,7 @@ const links = computed(():UserProfileLink[] => {
       <UpcDropdownError />
       <UpcDropdownConnectStatus v-if="!stateData.error && registered && pluginInstalled" class="mt-8px" />
 
-      <li class="m-8px">
+      <li v-if="keyActions || links.length" class="m-8px">
         <UpcKeyline />
       </li>
 
@@ -94,7 +94,7 @@ const links = computed(():UserProfileLink[] => {
         </li>
       </template>
 
-      <template v-if="links">
+      <template v-if="links.length">
         <li v-for="(link, index) in links" :key="`link_${index}`">
           <UpcDropdownItem :item="link" />
         </li>

@@ -24,7 +24,7 @@ const showExpireTime = computed(() => {
 </script>
 
 <template>
-  <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-4xl p-16px">
+  <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-xl p-16px">
     <header :class="{ 'text-center': showConnectCopy }">
       <h2 class="text-24px text-center font-semibold" v-html="heading" />
       <div v-html="subheading" class="flex flex-col gap-y-8px" />
