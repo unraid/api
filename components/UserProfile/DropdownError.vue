@@ -1,37 +1,44 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { InformationCircleIcon } from '@heroicons/vue/24/solid';
-import { useAccountStore } from '~/store/account';
-import { useServerStore } from '~/store/server';
-import { CONNECT_FORUMS } from '~/helpers/urls';
-import type { UserProfileLink } from '~/types/userProfile';
+// import {
+//   ExclamationCircleIcon,
+//   ExclamationTriangleIcon,
+//   ShieldExclamationIcon,
+// } from '@heroicons/vue/24/solid';
 
-const accountStore = useAccountStore();
+import { useErrorsStore, type Error } from '~/store/errors';
+import { useServerStore } from '~/store/server';
+
+const errorsStore = useErrorsStore();
+const { errors } = storeToRefs(errorsStore);
 const { stateData } = storeToRefs(useServerStore());
-const links = ref<UserProfileLink[]>([
-  // {
-  //   click: () => accountStore.troubleshoot(),
-  //   external: true,
-  //   icon: InformationCircleIcon,
-  //   text: 'Placeholder Button',
-  // },
-  // {
-  //   external: true,
-  //   href: CONNECT_FORUMS,
-  //   icon: InformationCircleIcon,
-  //   text: 'Connect Support Forum',
-  // },
-]);
+
+const computedErrors = computed(() => {
+  if (stateData.value?.error) {
+    return [
+      {
+        heading: stateData.value.heading,
+        level: 'error',
+        message: stateData.value.message,
+      },
+    ];
+  };
+  return errors.value;
+});
 </script>
 
 <template>
-  <ul v-if="stateData.error" class="text-white bg-unraid-red/90 font-semibold list-reset flex flex-col gap-y-4px mb-4px py-12px px-16px rounded">
-    <h3 class="text-18px">{{ stateData.heading }}</h3>
-    <p class="text-14px">{{ stateData.message }}</p>
-    <template v-if="links">
-      <li v-for="(link, index) in links" :key="`link_${index}`" class="-mx-8px">
-        <UpcDropdownItem :item="link" class="text-white" />
-      </li>
-    </template>
+  <ul v-if="computedErrors" class="text-white bg-unraid-red/90 font-semibold list-reset flex flex-col gap-y-8px mb-4px py-12px px-16px rounded">
+    <li v-for="(error, index) in computedErrors" :key="index" class="flex flex-col gap-8px">
+      <h3 class="text-18px">
+        <span>{{ error.heading }}</span>
+      </h3>
+      <div v-html="error.message" class="text-14px"></div>
+      <nav v-if="error.actions">
+        <li v-for="(link, index) in error.actions" :key="`link_${index}`" class="-mx-8px">
+          <UpcDropdownItem :item="link" class="text-white" />
+        </li>
+      </nav>
+    </li>
   </ul>
 </template>

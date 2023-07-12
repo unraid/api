@@ -1,18 +1,27 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { ArrowRightOnRectangleIcon, GlobeAltIcon, KeyIcon } from '@heroicons/vue/24/solid';
+import {
+  ArrowRightOnRectangleIcon,
+  CogIcon,
+  GlobeAltIcon,
+  KeyIcon,
+} from '@heroicons/vue/24/solid';
 
-import { useAccountStore } from './account';
-import { usePurchaseStore } from "./purchase";
-import { useTrialStore } from './trial';
-import { useThemeStore, type Theme } from './theme';
+import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
+import { useAccountStore } from '~/store/account';
+import { useErrorsStore, type Error } from '~/store/errors';
+import { usePurchaseStore } from "~/store/purchase";
+import { useTrialStore } from '~/store/trial';
+import { useThemeStore, type Theme } from '~/store/theme';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
   ServerKeyTypeForPurchase,
   ServerPurchaseCallbackSendPayload,
   ServerState,
+  ServerStateConfigStatus,
   ServerStateData,
   ServerStateDataAction,
+  ServerPluginInstalled,
 } from '~/types/server';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -22,6 +31,7 @@ setActivePinia(createPinia());
 
 export const useServerStore = defineStore('server', () => {
   const accountStore = useAccountStore();
+  const errorsStore = useErrorsStore();
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const trialStore = useTrialStore();
@@ -30,6 +40,7 @@ export const useServerStore = defineStore('server', () => {
    */
   const avatar = ref<string>(''); // @todo potentially move to a user store
   const apiKey = ref<string>(''); // @todo potentially move to a user store
+  const config = ref<ServerStateConfigStatus>();
   const csrf = ref<string>(''); // required to make requests to Unraid webgui
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
@@ -47,7 +58,7 @@ export const useServerStore = defineStore('server', () => {
   const license = ref<string>('');
   const locale = ref<string>('');
   const name = ref<string>('');
-  const pluginInstalled = ref<boolean>(false);
+  const pluginInstalled = ref<ServerPluginInstalled>('');
   const registered = ref<boolean>();
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
@@ -57,7 +68,6 @@ export const useServerStore = defineStore('server', () => {
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
-
   /**
    * Getters
    */
@@ -428,6 +438,81 @@ export const useServerStore = defineStore('server', () => {
   });
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
+  const invalidApiKey = computed((): Error | undefined => {
+    // must be registered with plugin installed
+    if (!registered.value) {
+      return undefined;
+    }
+
+    // Keeping separate from validApiKeyLength because we may want to add more checks. Cloud also help with debugging user error submissions.
+    if (apiKey.value.length !== 64) {
+      console.debug('[invalidApiKey] invalid length');
+      return {
+        heading: 'Invalid API Key',
+        level: 'error',
+        message: 'Please sign out then sign back in to refresh your API key.',
+        ref: 'invalidApiKeyLength',
+        type: 'server',
+      };
+    }
+    if (!apiKey.value.startsWith('unupc_')) {
+      console.debug('[invalidApiKey] invalid for upc');
+      return {
+        heading: 'Invalid API Key Format',
+        level: 'error',
+        message: 'Please sign out then sign back in to refresh your API key.',
+        ref: 'invalidApiKeyFormat',
+        type: 'server',
+      };
+    }
+    return undefined;
+  });
+
+  const tooManyDevices = computed((): Error | undefined => {
+    if (!config.value?.valid && config.value?.error === 'INVALID') {
+      return {
+        heading: 'Too Many Devices',
+        level: 'error',
+        message: 'You have exceeded the number of devices allowed for your license. Please remove a device before adding another.',
+        ref: 'tooManyDevices',
+        type: 'server',
+      };
+    }
+  });
+
+  const pluginInstallFailed = computed((): Error | undefined => {
+    if (pluginInstalled.value && pluginInstalled.value.includes('_installFailed')) {
+      return {
+        heading: 'Unraid Connect Install Failed',
+        level: 'error',
+        message: 'Rebooting will likely solve this.',
+        ref: 'pluginInstallFailed',
+        type: 'server',
+      };
+    }
+  });
+
+  /**
+   * Deprecation warning for [hash].unraid.net SSL certs. Deprecation started 2023-01-01
+   */
+  const deprecatedUnraidSSL = computed((): Error | undefined => {
+    if (window.location.hostname.includes('.unraid.net')) {
+      return {
+        actions: [
+          {
+            href: SETTINGS_MANAGMENT_ACCESS,
+            icon: CogIcon,
+            text: 'Go to Management Access Now',
+          },
+        ],
+        heading: 'Unraid.net SSL Certificate Deprecation',
+        level: 'warning',
+        message: 'Unraid.net SSL certificates will be deprecated on January 1st, 2023. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
+        ref: 'deprecatedUnraidSSL',
+        type: 'server',
+      };
+    }
+  });
   /**
    * Actions
    */
@@ -461,14 +546,45 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[setServer] server.value', server.value);
   };
 
-  watch(theme, () => {
-    if (theme.value) themeStore.setTheme(theme.value);
+  watch(theme, (newVal) => {
+    if (newVal) themeStore.setTheme(newVal);
+  });
+
+  watch(stateData, (newVal, oldVal) => {
+    if (oldVal.error) {
+      errorsStore.removeErrorByRef('serverState');
+    }
+    if (newVal.error && !oldVal.error) {
+      const stateDataError = {
+        heading: newVal.heading,
+        message: newVal.message,
+        type: 'serverState',
+      };
+      errorsStore.setError(stateDataError);
+    }
+  });
+  watch(invalidApiKey, (newVal, oldVal) => {
+    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
+    if (newVal) errorsStore.setError(newVal);
+  });
+  watch(tooManyDevices, (newVal, oldVal) => {
+    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
+    if (newVal) errorsStore.setError(newVal);
+  });
+  watch(pluginInstallFailed, (newVal, oldVal) => {
+    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
+    if (newVal) errorsStore.setError(newVal);
+  });
+  watch(deprecatedUnraidSSL, (newVal, oldVal) => {
+    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
+    if (newVal) errorsStore.setError(newVal);
   });
 
   return {
     // state
     apiKey,
     avatar,
+    config,
     csrf,
     description,
     deviceCount,

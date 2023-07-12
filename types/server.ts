@@ -2,6 +2,10 @@ import { KeyIcon } from '@heroicons/vue/24/solid';
 import { Theme } from '~/store/theme';
 import { UserProfileLink } from '~/types/userProfile';
 
+export interface ServerStateConfigStatus {
+  error: 'INVALID' | 'NO_KEY_SERVER' | 'UNKNOWN_ERROR' | 'WITHDRAWN';
+  valid: boolean;
+}
 export type ServerState = 'BASIC'
   | 'PLUS'
   | 'PRO'
@@ -29,6 +33,7 @@ export type ServerState = 'BASIC'
 export interface Server {
   apiKey?: string;
   avatar?: string;
+  config?: ServerStateConfigStatus | undefined;
   csrf?: string;
   description?: string;
   deviceCount?: number;
@@ -43,7 +48,7 @@ export interface Server {
   license?: string;
   locale?: string;
   name?: string;
-  pluginInstalled?: boolean;
+  pluginInstalled?: ServerPluginInstalled;
   registered?: boolean;
   regGen?: number;
   regGuid?: string;
@@ -114,3 +119,5 @@ export interface ServerStateData {
   error?: ServerStateDataError | boolean;
   withKey?: boolean; // @todo potentially remove
 }
+
+export type ServerPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';

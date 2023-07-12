@@ -6,8 +6,10 @@ const CONNECT_DOCS = 'https://docs.unraid.net/category/unraid-connect';
 const CONNECT_DASHBOARD = 'https://connect.myunraid.net';
 const CONNECT_FORUMS = 'https://forums.unraid.net/forum/94-connect-plugin-support/';
 const DEV_GRAPH_URL = '';
-const PURCHASE = 'https://unraid.net/preflight';
-const PLUGIN_SETTINGS = '/Settings/ManagementAccess#UnraidNetSettings';
+const PURCHASE = 'https://unraid.ddev.site/callback';
+
+const SETTINGS_MANAGMENT_ACCESS = '/Settings/ManagementAccess';
+const PLUGIN_SETTINGS = `${SETTINGS_MANAGMENT_ACCESS}#UnraidNetSettings`;
 
 export {
   ACCOUNT,
@@ -17,4 +19,5 @@ export {
   DEV_GRAPH_URL,
   PURCHASE,
   PLUGIN_SETTINGS,
+  SETTINGS_MANAGMENT_ACCESS,
 };

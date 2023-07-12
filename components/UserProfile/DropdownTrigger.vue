@@ -2,10 +2,12 @@
 import { storeToRefs } from 'pinia';
 import { InformationCircleIcon, ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { useDropdownStore } from '~/store/dropdown';
+import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
+const { errors } = storeToRefs(useErrorsStore());
 const {
   pluginInstalled,
   pluginOutdated,
@@ -16,7 +18,7 @@ const {
 } = storeToRefs(useServerStore());
 
 const registeredAndPluginInstalled = computed(() => pluginInstalled.value && registered.value);
-const showErrorIcon = computed(() => stateData.value.error);
+const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string | undefined => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') return 'Fix Error';
@@ -27,11 +29,7 @@ const text = computed((): string | undefined => {
 const title = computed((): string => {
   if (state.value === 'ENOKEYFILE') return 'Get Started';
   if (state.value === 'EEXPIRED') return 'Trial Expired, see options below';
-  if (stateData.value.error) return 'Learn More';
-  // if (cloud.value && cloud.value.error) return 'Unraid API Error';
-  // if (myServersError.value && registeredAndPluginInstalled.value return 'Unraid API Error';
-  // if (errorTooManyDisks.value) return 'Too many devices';
-  // if (isLaunchpadOpen.value) return 'Close and continue to webGUI';
+  if (showErrorIcon.value) return 'Learn more about the error';
   return dropdownVisible.value ? 'Close Dropdown' : 'Open Dropdown';
 });
 </script>
