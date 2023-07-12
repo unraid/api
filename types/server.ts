@@ -3,7 +3,7 @@ import { Theme } from '~/store/theme';
 import { UserProfileLink } from '~/types/userProfile';
 
 export interface ServerStateConfigStatus {
-  error: 'INVALID' | 'NO_KEY_SERVER' | 'UNKNOWN_ERROR' | 'WITHDRAWN';
+  error?: 'INVALID' | 'NO_KEY_SERVER' | 'UNKNOWN_ERROR' | 'WITHDRAWN';
   valid: boolean;
 }
 export type ServerState = 'BASIC'
@@ -54,7 +54,7 @@ export interface Server {
   regGuid?: string;
   site?: string;
   state?: ServerState;
-  theme: Theme;
+  theme: Theme | undefined;
   uptime?: number;
   username?: string;
   wanFQDN?: string;
