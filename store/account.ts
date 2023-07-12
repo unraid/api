@@ -152,13 +152,25 @@ export const useAccountStore = defineStore('account', () => {
         .catch(err => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
           accountActionStatus.value = 'failed';
-          errorsStore.setError(err);
+          errorsStore.setError({
+            heading: 'Failed to update Connect account configuration',
+            message: err.message,
+            level: 'error',
+            ref: 'updatePluginConfig',
+            type: 'account',
+          });
         });
       return response;
     } catch(err) {
       console.debug('[accountStore.updatePluginConfig] WebguiUpdate catch err', err);
       accountActionStatus.value = 'failed';
-      errorsStore.setError(err);
+      errorsStore.setError({
+        heading: 'Failed to update Connect account configuration',
+        message: err.message,
+        level: 'error',
+        ref: 'updatePluginConfig',
+        type: 'account',
+      });
     }
   };
 

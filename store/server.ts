@@ -425,6 +425,18 @@ export const useServerStore = defineStore('server', () => {
         };
     }
   });
+
+  const stateDataError = computed(() => {
+    if (!stateData.value?.error) return undefined;
+    return {
+      heading: stateData.value?.heading,
+      level: 'error',
+      message: stateData.value?.message,
+      ref: 'stateDataError',
+      type: 'serverState',
+    };
+  });
+
   const authActionsNames = ['signIn', 'signOut'];
   // Extract sign in / out from actions so we can display seperately as needed
   const authAction = computed((): ServerStateDataAction | undefined => {
@@ -478,6 +490,7 @@ export const useServerStore = defineStore('server', () => {
         type: 'server',
       };
     }
+    return undefined;
   });
 
   const pluginInstallFailed = computed((): Error | undefined => {
@@ -490,6 +503,7 @@ export const useServerStore = defineStore('server', () => {
         type: 'server',
       };
     }
+    return undefined;
   });
 
   /**
@@ -505,13 +519,24 @@ export const useServerStore = defineStore('server', () => {
             text: 'Go to Management Access Now',
           },
         ],
-        heading: 'Unraid.net SSL Certificate Deprecation',
-        level: 'warning',
-        message: 'Unraid.net SSL certificates will be deprecated on January 1st, 2023. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
+        heading: 'SSL certificates for unraid.net deprecated',
+        level: 'error',
+        message: 'On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
         ref: 'deprecatedUnraidSSL',
         type: 'server',
       };
     }
+    return undefined;
+  });
+
+  const serverErrors = computed(() => {
+    return [
+      stateDataError.value,
+      invalidApiKey.value,
+      tooManyDevices.value,
+      pluginInstallFailed.value,
+      deprecatedUnraidSSL.value,
+    ].filter(Boolean);
   });
   /**
    * Actions
@@ -520,6 +545,7 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[setServer] data', data);
     if (typeof data?.apiKey !== 'undefined') apiKey.value = data.apiKey;
     if (typeof data?.avatar !== 'undefined') avatar.value = data.avatar;
+    if (typeof data?.config !== 'undefined') config.value = data.config;
     if (typeof data?.csrf !== 'undefined') csrf.value = data.csrf;
     if (typeof data?.description !== 'undefined') description.value = data.description;
     if (typeof data?.deviceCount !== 'undefined') deviceCount.value = data.deviceCount;
@@ -550,18 +576,9 @@ export const useServerStore = defineStore('server', () => {
     if (newVal) themeStore.setTheme(newVal);
   });
 
-  watch(stateData, (newVal, oldVal) => {
-    if (oldVal.error) {
-      errorsStore.removeErrorByRef('serverState');
-    }
-    if (newVal.error && !oldVal.error) {
-      const stateDataError = {
-        heading: newVal.heading,
-        message: newVal.message,
-        type: 'serverState',
-      };
-      errorsStore.setError(stateDataError);
-    }
+  watch(stateDataError, (newVal, oldVal) => {
+    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
+    if (newVal) errorsStore.setError(newVal);
   });
   watch(invalidApiKey, (newVal, oldVal) => {
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
@@ -611,6 +628,8 @@ export const useServerStore = defineStore('server', () => {
     serverAccountPayload,
     serverPurchasePayload,
     stateData,
+    stateDataError,
+    serverErrors,
     // actions
     setServer,
   };

@@ -33,11 +33,13 @@ export const useErrorsStore = defineStore('errors', () => {
 
   const errors = ref<Error[]>([]);
 
+  const displayedErrors = computed(() => errors.value.filter(error => error.type === 'server' || error.type === 'serverState'));
+
   const removeErrorByIndex = (index: number) => {
     errors.value = errors.value.filter((_error, i) => i !== index);
   };
 
-  const removeErrorByRef = (ref: ErrorType) => {
+  const removeErrorByRef = (ref: string) => {
     errors.value = errors.value.filter(error => error?.ref !== ref);
   };
 
@@ -45,7 +47,7 @@ export const useErrorsStore = defineStore('errors', () => {
     errors.value = [];
   };
 
-  const setError = (error: any) => {
+  const setError = (error: Error) => {
     errors.value.push(error);
   };
 
