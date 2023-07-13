@@ -3,6 +3,7 @@ import { XCircleIcon } from '@heroicons/vue/24/solid';
 export interface ButtonProps {
   btnStyle?: 'fill' | 'outline' | 'underline';
   btnType?: 'button' | 'submit' | 'reset';
+  click?: () => void;
   download?: boolean;
   external?: boolean;
   href?: string;
@@ -31,7 +32,7 @@ const classes = computed(() => {
 <template>
   <component
     :is="href ? 'a' : 'button'"
-    @click="$emit('click')"
+    @click="click ?? $emit('click')"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
