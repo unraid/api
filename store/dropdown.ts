@@ -28,7 +28,7 @@ export const useDropdownStore = defineStore('dropdown', () => {
       dropdownShow();
     }
     // automatically open the launchpad dropdown after plugin install on first page load
-    if (serverStore.pluginInstalled && !serverStore.registered && sessionStorage.getItem(`${baseStorageName}clickedInstallPlugin`)) {
+    if (serverStore.connectPluginInstalled && !serverStore.registered && sessionStorage.getItem(`${baseStorageName}clickedInstallPlugin`)) {
       sessionStorage.removeItem(`${baseStorageName}clickedInstallPlugin`);
       dropdownShow();
     }

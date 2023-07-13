@@ -43,7 +43,7 @@ const {
   keyType,
 } = storeToRefs(installKeyStore);
 const {
-  pluginInstalled,
+  connectPluginInstalled,
   registered,
   authAction,
 } = storeToRefs(serverStore);
@@ -62,8 +62,8 @@ const {
  */
 const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/ManagementAccess');
 
-const showPromoCta = computed(() => callbackStatus.value === 'success' && !pluginInstalled.value);
-const showSignInCta = computed(() => pluginInstalled.value && !registered.value && authAction.value?.name === 'signIn' && accountActionType.value !== 'signIn');
+const showPromoCta = computed(() => callbackStatus.value === 'success' && !connectPluginInstalled.value);
+const showSignInCta = computed(() => connectPluginInstalled.value && !registered.value && authAction.value?.name === 'signIn' && accountActionType.value !== 'signIn');
 
 const heading = computed(() => {
   switch (callbackStatus.value) {
@@ -162,7 +162,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
 
     <template #footer>
       <div v-if="callbackStatus === 'success'" class="flex flex-row-reverse justify-center gap-16px">
-        <template v-if="pluginInstalled && accountActionType === 'signIn'">
+        <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
           <BrandButton
             v-if="isSettingsPage"
             @click="close"
@@ -192,7 +192,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <BrandButton
           @click="close"
           btn-style="underline"
-          :text="!pluginInstalled ? 'No Thanks' : 'Close'" />
+          :text="!connectPluginInstalled ? 'No Thanks' : 'Close'" />
       </div>
     </template>
   </Modal>
