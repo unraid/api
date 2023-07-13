@@ -42,11 +42,11 @@ $flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashba
 $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 
 // base OS only, plugin not installed • show ad for plugin
-$pluginInstalled = '';
-if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $pluginInstalled = 'dynamix.unraid.net.plg';
-if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $pluginInstalled = 'dynamix.unraid.net.staging.plg';
+$connectPluginInstalled = '';
+if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $connectPluginInstalled = 'dynamix.unraid.net.plg';
+if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
 // plugin install failed if the unraid-api file doesn't fully install • append failure detected so we can show warning about failed install via UPC
-if ($pluginInstalled && !file_exists('/usr/local/sbin/unraid-api')) $pluginInstalled .= '_installFailed';
+if ($connectPluginInstalled && !file_exists('/usr/local/sbin/unraid-api')) $connectPluginInstalled .= '_installFailed';
 
 $pluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
     ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
@@ -60,11 +60,12 @@ $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers
 $serverData = [
     "apiKey" => $myservers['upc']['apikey'] ?? '',
     "apiVersion" => $myservers['api']['version'] ?? '',
-    "avatar" => (!empty($myservers['remote']['avatar']) && $pluginInstalled) ? $myservers['remote']['avatar'] : '',
+    "avatar" => (!empty($myservers['remote']['avatar']) && $connectPluginInstalled) ? $myservers['remote']['avatar'] : '',
     "config" => [
         'valid' => ($var['configValid'] === 'yes'),
         'error' => isset($configErrorEnum[$var['configValid']]) ? $configErrorEnum[$var['configValid']] : 'UNKNOWN_ERROR',
     ],
+    "connectPluginInstalled" => $connectPluginInstalled,
     "csrf" => $var['csrf_token'],
     "description" => $var['COMMENT'] ?? '',
     "deviceCount" => $var['deviceCount'],
@@ -83,12 +84,11 @@ $serverData = [
     "model" => $var['SYS_MODEL'],
     "name" => $var['NAME'],
     "osVersion" => $var['version'],
-    "pluginInstalled" => $pluginInstalled,
     "pluginVersion" => $pluginVersion,
     "protocol" => $_SERVER['REQUEST_SCHEME'],
     "regGen" => (int)$var['regGen'],
     "regGuid" => $var['regGUID'],
-    "registered" => (!empty($myservers['remote']['username']) && $pluginInstalled),
+    "registered" => (!empty($myservers['remote']['username']) && $connectPluginInstalled),
     "registeredTime" => $myservers['remote']['regWizTime'] ?? '',
     "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
     "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
@@ -103,7 +103,7 @@ $serverData = [
     ],
     "ts" => time(),
     "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
-    "username" => (!empty($myservers['remote']['username']) && $pluginInstalled) ? $myservers['remote']['username'] : '',
+    "username" => (!empty($myservers['remote']['username']) && $connectPluginInstalled) ? $myservers['remote']['username'] : '',
     "wanFQDN" => $nginx['NGINX_WANFQDN'] ?? '',
 ];
 
