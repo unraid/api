@@ -24,6 +24,7 @@ export type ErrorType = 'account' | 'callback' | 'installKey' | 'server' | 'serv
 export interface Error {
   actions?: ButtonProps[];
   debugServer?: Server;
+  forumLink?: boolean;
   heading: string;
   level: 'error' | 'info' | 'warning';
   message: string;
@@ -56,6 +57,7 @@ export const useErrorsStore = defineStore('errors', () => {
   };
 
   const setError = (error: Error) => {
+    console.debug('[setError]', error);
     errors.value.push(error);
   };
 
