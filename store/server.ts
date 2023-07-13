@@ -1,9 +1,11 @@
+import { ServerStateData } from './../types/server';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import {
   ArrowRightOnRectangleIcon,
   CogIcon,
   GlobeAltIcon,
   KeyIcon,
+  QuestionMarkCircleIcon
 } from '@heroicons/vue/24/solid';
 
 import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
@@ -21,7 +23,7 @@ import type {
   ServerStateConfigStatus,
   ServerStateData,
   ServerStateDataAction,
-  ServerPluginInstalled,
+  ServerconnectPluginInstalled,
 } from '~/types/server';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -58,7 +60,7 @@ export const useServerStore = defineStore('server', () => {
   const license = ref<string>('');
   const locale = ref<string>('');
   const name = ref<string>('');
-  const pluginInstalled = ref<ServerPluginInstalled>('');
+  const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
   const registered = ref<boolean>();
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
@@ -79,7 +81,7 @@ export const useServerStore = defineStore('server', () => {
     return false;
   });
 
-  const server = computed<Server>(():Server => {
+  const server = computed(():Server => {
     return {
       apiKey: apiKey.value,
       avatar: avatar.value,
@@ -96,7 +98,7 @@ export const useServerStore = defineStore('server', () => {
       license: license.value,
       locale: locale.value,
       name: name.value,
-      pluginInstalled: pluginInstalled.value,
+      connectPluginInstalled: connectPluginInstalled.value,
       registered: registered.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
@@ -134,7 +136,6 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       site: site.value,
     };
-    console.debug('[serverPurchasePayload] server', server);
     return server;
   });
 
@@ -155,6 +156,35 @@ export const useServerStore = defineStore('server', () => {
       state: state.value,
       wanFQDN: wanFQDN.value,
     }
+  });
+
+  const serverDebugPayload = computed((): Server => {
+    const payload = {
+      apiKey: apiKey.value,
+      avatar: avatar.value,
+      description: description.value,
+      deviceCount: deviceCount.value,
+      email: email.value,
+      expireTime: expireTime.value,
+      flashProduct: flashProduct.value,
+      flashVendor: flashVendor.value,
+      guid: guid.value,
+      inIframe: inIframe.value,
+      lanIp: lanIp.value,
+      locale: locale.value,
+      name: name.value,
+      connectPluginInstalled: connectPluginInstalled.value,
+      registered: registered.value,
+      regGen: regGen.value,
+      regGuid: regGuid.value,
+      site: site.value,
+      state: state.value,
+      uptime: uptime.value,
+      username: username.value,
+      wanFQDN: wanFQDN.value,
+    };
+    // remove any empty values from object
+    return Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== null && v !== undefined && v !== ''));
   });
 
   const purchaseAction: ServerStateDataAction = {
@@ -230,9 +260,9 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction, trialStartAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'No Keyfile',
           heading: `Let's Unleash your Hardware!`,
@@ -241,9 +271,9 @@ export const useServerStore = defineStore('server', () => {
       case 'TRIAL':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Trial',
           heading: 'Thank you for choosing Unraid OS!',
@@ -252,10 +282,10 @@ export const useServerStore = defineStore('server', () => {
       case 'EEXPIRED':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
             ...(trialExtensionEligible.value ? [trialExtendAction] : []),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Trial Expired',
@@ -267,9 +297,9 @@ export const useServerStore = defineStore('server', () => {
       case 'BASIC':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Basic',
           heading: 'Thank you for choosing Unraid OS!',
@@ -282,9 +312,9 @@ export const useServerStore = defineStore('server', () => {
       case 'PLUS':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Plus',
           heading: 'Thank you for choosing Unraid OS!',
@@ -297,8 +327,8 @@ export const useServerStore = defineStore('server', () => {
       case 'PRO':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'Pro',
           heading: 'Thank you for choosing Unraid OS!',
@@ -310,12 +340,12 @@ export const useServerStore = defineStore('server', () => {
         if (guidReplaceable.value) messageEGUID = '<p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>';
         else if (guidReplaceable.value === false && guidBlacklisted.value) messageEGUID = `<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it is blacklisted.</p>`;
         else if (guidReplaceable.value === false && !guidBlacklisted.value) messageEGUID = `<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>`;
-        else messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device</p><p>You may also attempt to Purchase or Replace your key.</p>'; // basically guidReplaceable.value === null
+        else messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device.</p><p>You may also attempt to Purchase or Replace your key.</p>'; // basically guidReplaceable.value === null
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction, replaceAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Flash GUID Error',
@@ -325,9 +355,9 @@ export const useServerStore = defineStore('server', () => {
       case 'EGUID1':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Multiple License Keys Present',
@@ -338,24 +368,24 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE2':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(pluginInstalled.value ? [recoverAction] : []),
+            ...(connectPluginInstalled.value ? [recoverAction] : []),
             ...(registered.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Missing key file',
           heading: 'Missing key file',
-          message: pluginInstalled.value
+          message: connectPluginInstalled.value
             ? '<p>It appears that your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>With Unraid Connect (beta) installed you may attempt to recover your key with your Unraid.net account.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>'
             : '<p>It appears that your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>If you do not have a backup copy of your license key file you may install the Unraid Connect (beta) plugin to attempt to recover your key.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>',
         };
       case 'ETRIAL':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'Invalid installation',
@@ -365,9 +395,9 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE1':
         return {
           actions: [
-            ...(!registered.value && pluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && pluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
           humanReadable: 'No Keyfile',
@@ -429,10 +459,23 @@ export const useServerStore = defineStore('server', () => {
   const stateDataError = computed(() => {
     if (!stateData.value?.error) return undefined;
     return {
+      actions: [
+        {
+          click: () => {
+            errorsStore.openBugReport({ 
+              email: email.value,
+              includeUnraidApiLogs: !!connectPluginInstalled.value,
+            });
+          },
+          icon: QuestionMarkCircleIcon,
+          text: 'Contact Support',
+        },
+      ],
+      debugServer: serverDebugPayload.value,
       heading: stateData.value?.heading,
       level: 'error',
       message: stateData.value?.message,
-      ref: 'stateDataError',
+      ref: `stateDataError__${state.value}`,
       type: 'serverState',
     };
   });
@@ -494,7 +537,7 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const pluginInstallFailed = computed((): Error | undefined => {
-    if (pluginInstalled.value && pluginInstalled.value.includes('_installFailed')) {
+    if (connectPluginInstalled.value && connectPluginInstalled.value.includes('_installFailed')) {
       return {
         heading: 'Unraid Connect Install Failed',
         level: 'error',
@@ -559,7 +602,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.license !== 'undefined') license.value = data.license;
     if (typeof data?.locale !== 'undefined') locale.value = data.locale;
     if (typeof data?.name !== 'undefined') name.value = data.name;
-    if (typeof data?.pluginInstalled !== 'undefined') pluginInstalled.value = data.pluginInstalled;
+    if (typeof data?.connectPluginInstalled !== 'undefined') connectPluginInstalled.value = data.connectPluginInstalled;
     if (typeof data?.registered !== 'undefined') registered.value = data.registered;
     if (typeof data?.regGen !== 'undefined') regGen.value = data.regGen;
     if (typeof data?.regGuid !== 'undefined') regGuid.value = data.regGuid;
@@ -610,7 +653,7 @@ export const useServerStore = defineStore('server', () => {
     locale,
     lanIp,
     name,
-    pluginInstalled,
+    connectPluginInstalled,
     registered,
     regGen,
     regGuid,

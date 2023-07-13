@@ -48,7 +48,7 @@ export interface Server {
   license?: string;
   locale?: string;
   name?: string;
-  pluginInstalled?: ServerPluginInstalled;
+  connectPluginInstalled?: ServerconnectPluginInstalled;
   registered?: boolean;
   regGen?: number;
   regGuid?: string;
@@ -120,4 +120,4 @@ export interface ServerStateData {
   withKey?: boolean; // @todo potentially remove
 }
 
-export type ServerPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
+export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
