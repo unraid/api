@@ -61,13 +61,13 @@ export const useErrorsStore = defineStore('errors', () => {
     errors.value.push(error);
   };
 
-  interface BugReportPayload {
+  interface TroubleshootPayload {
     email: string; 
     includeUnraidApiLogs: boolean;
   }
 
-  const openBugReport = async (payload: BugReportPayload) => {
-    console.debug('[openBugReport]', payload);
+  const openTroubleshoot = async (payload: TroubleshootPayload) => {
+    console.debug('[openTroubleshoot]', payload);
     try {
       // eslint-disable-next-line no-undef
       // @ts-ignore – `FeedbackButton` will be included in 6.10.4+ DefaultPageLayout
@@ -75,20 +75,20 @@ export const useErrorsStore = defineStore('errors', () => {
       // once the modal is visible we need to select the radio to correctly show the bug report form
       let $modal = document.querySelector('.sweet-alert.visible');
       while (!$modal) {
-        console.debug('[openBugReport] getting $modal…');
+        console.debug('[openTroubleshoot] getting $modal…');
         await new Promise(resolve => setTimeout(resolve, 100));
         $modal = document.querySelector('.sweet-alert.visible');
       }
-      console.debug('[openBugReport] $modal', $modal);
+      console.debug('[openTroubleshoot] $modal', $modal);
       // autofill errors into the bug report form
       if (errors.value.length) {
-        let $textarea = $modal.querySelector('#bugreport_panel textarea');
+        let $textarea: HTMLInputElement | null = $modal.querySelector('#troubleshootDetails');
         while (!$textarea) {
-          console.debug('[openBugReport] getting $textarea…');
+          console.debug('[openTroubleshoot] getting $textarea…');
           await new Promise(resolve => setTimeout(resolve, 100));
-          $textarea = $modal.querySelector('#bugreport_panel textarea');
+          $textarea = $modal.querySelector('#troubleshootDetails');
         }
-        console.debug('[openBugReport] $textarea', $textarea);
+        console.debug('[openTroubleshoot] $textarea', $textarea);
         const errorMessages = errors.value.map((error, index) => {
           const index1 = index + 1;
           let message = `• Error ${index1}: ${error.heading}\n`;
@@ -96,7 +96,7 @@ export const useErrorsStore = defineStore('errors', () => {
           message += `• Error ${index1} Level: ${error.level}\n`;
           message += `• Error ${index1} Type: ${error.type}\n`;
           if (error.ref) message += `• Error ${index1} Ref: ${error.ref}\n`;
-          if (error.debugServer) message += `• Error ${index1} Debug Server: ${OBJ_TO_STR(error.debugServer)}\n`;
+          if (error.debugServer) message += `• Error ${index1} Debug Server:\n${OBJ_TO_STR(error.debugServer)}\n`;
           return message;
         }).join('\n***************\n');
         $textarea.value += `\n##########################\n`;
@@ -104,34 +104,24 @@ export const useErrorsStore = defineStore('errors', () => {
         $textarea.value += `##########################\n`;
         $textarea.value += errorMessages;
       }
+      // autofill emails
+      let $emailInput: HTMLInputElement | null = $modal.querySelector('#troubleshootEmail');
+      while (!$emailInput) {
+        console.debug('[openTroubleshoot] getting $emailInput…');
+        await new Promise(resolve => setTimeout(resolve, 100));
+        $emailInput = $modal.querySelector('#troubleshootEmail');
+      }
+      console.debug('[openTroubleshoot] $emailInput', $emailInput);
       if (payload.email) {
-        // autofill emails
-        let $emailInputs = $modal.querySelectorAll('[type="email"]');
-        while (!$emailInputs) {
-          console.debug('[openBugReport] getting $emailInputs…');
-          await new Promise(resolve => setTimeout(resolve, 100));
-          $emailInputs = $modal.querySelectorAll('[type="email"]');
-        }
-        console.debug('[openBugReport] $emailInputs', $emailInputs);
-        $emailInputs.forEach($input => {
-          $input.value = payload.email;
-        });
+        $emailInput.value = payload.email;
       } else {
-        // focus email input within bugreport_panel
-        let $emailInput = $modal.querySelector('#bugreport_panel [type="email"]');
-        while (!$emailInput) {
-          console.debug('[openBugReport] getting $emailInput…');
-          await new Promise(resolve => setTimeout(resolve, 100));
-          $emailInput = $modal.querySelector('#bugreport_panel [type="email"]');
-        }
-        console.debug('[openBugReport] $emailInput', $emailInput);
         $emailInput.focus();
       }
       // select the radio to correctly show the bug report form
-      let $myRadio: HTMLInputElement | null = $modal.querySelector('#optBugReport');
+      let $myRadio: HTMLInputElement | null = $modal.querySelector('#optTroubleshoot');
       while (!$myRadio) {
         await new Promise(resolve => setTimeout(resolve, 100));
-        $myRadio = $modal.querySelector('#optBugReport');
+        $myRadio = $modal.querySelector('#optTroubleshoot');
       }
       $myRadio.checked = true;
       // show the correct form in the modal
@@ -141,11 +131,11 @@ export const useErrorsStore = defineStore('errors', () => {
         $panels = $modal.querySelectorAll('.allpanels');
       }
       $panels.forEach($panel => {
-        if ($panel.id === 'bugreport_panel') $panel.style['display'] = 'block';
+        if ($panel.id === 'troubleshoot_panel') $panel.style['display'] = 'block';
         else $panel.style['display'] = 'none';
       });
     } catch (error) {
-      console.error('[openBugReport]', error);
+      console.error('[openTroubleshoot]', error);
     }
   }
 
@@ -155,6 +145,6 @@ export const useErrorsStore = defineStore('errors', () => {
     removeErrorByRef,
     resetErrors,
     setError,
-    openBugReport,
+    openTroubleshoot,
   };
 });

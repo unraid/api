@@ -481,7 +481,7 @@ export const useServerStore = defineStore('server', () => {
       actions: [
         {
           click: () => {
-            errorsStore.openBugReport({ 
+            errorsStore.openTroubleshoot({ 
               email: email.value,
               includeUnraidApiLogs: !!connectPluginInstalled.value,
             });
