@@ -1,12 +1,12 @@
 /**
- * @todo Check OS and Connect Plugin versions against latest via API every session
+ * @todo Check OS and Connect Plugin versions against latest via API every se
  */
-import { ServerStateData } from './../types/server';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import {
   ArrowRightOnRectangleIcon,
   CogIcon,
   GlobeAltIcon,
+  InformationCircleIcon,
   KeyIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/vue/24/solid';
@@ -558,6 +558,14 @@ export const useServerStore = defineStore('server', () => {
   const pluginInstallFailed = computed((): Error | undefined => {
     if (connectPluginInstalled.value && connectPluginInstalled.value.includes('_installFailed')) {
       return {
+        actions: [
+          {
+            external: true,
+            href: 'https://forums.unraid.net/topic/112073-my-servers-releases/#comment-1154449',
+            icon: InformationCircleIcon,
+            text: 'Learn More',
+          },
+        ],
         heading: 'Unraid Connect Install Failed',
         level: 'error',
         message: 'Rebooting will likely solve this.',
@@ -571,25 +579,30 @@ export const useServerStore = defineStore('server', () => {
   /**
    * Deprecation warning for [hash].unraid.net SSL certs. Deprecation started 2023-01-01
    */
-  const deprecatedUnraidSSL = computed((): Error | undefined => {
-    if (window.location.hostname.includes('.unraid.net')) {
-      return {
+  const deprecatedUnraidSSL = ref<Error | undefined>(
+    (window.location.hostname.includes('localhost')
+      ? {
         actions: [
           {
             href: SETTINGS_MANAGMENT_ACCESS,
             icon: CogIcon,
             text: 'Go to Management Access Now',
           },
+          {
+            external: true,
+            href: 'https://unraid.net/blog/ssl-certificate-update',
+            icon: InformationCircleIcon,
+            text: 'Learn More',
+          },
         ],
+        forumLink: true,
         heading: 'SSL certificates for unraid.net deprecated',
         level: 'error',
         message: 'On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
         ref: 'deprecatedUnraidSSL',
         type: 'server',
-      };
-    }
-    return undefined;
-  });
+      }
+      : undefined));
 
   const serverErrors = computed(() => {
     return [
@@ -642,22 +655,27 @@ export const useServerStore = defineStore('server', () => {
   });
 
   watch(stateDataError, (newVal, oldVal) => {
+    console.debug('[watch.stateDataError]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(invalidApiKey, (newVal, oldVal) => {
+    console.debug('[watch.invalidApiKey]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(tooManyDevices, (newVal, oldVal) => {
+    console.debug('[watch.tooManyDevices]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(pluginInstallFailed, (newVal, oldVal) => {
+    console.debug('[watch.pluginInstallFailed]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(deprecatedUnraidSSL, (newVal, oldVal) => {
+    console.debug('[watch.deprecatedUnraidSSL]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
@@ -686,8 +704,11 @@ export const useServerStore = defineStore('server', () => {
     username,
     // getters
     authAction,
+    deprecatedUnraidSSL,
+    invalidApiKey,
     isRemoteAccess,
     keyActions,
+    pluginInstallFailed,
     pluginOutdated,
     server,
     serverAccountPayload,
@@ -695,6 +716,7 @@ export const useServerStore = defineStore('server', () => {
     stateData,
     stateDataError,
     serverErrors,
+    tooManyDevices,
     // actions
     setServer,
   };
