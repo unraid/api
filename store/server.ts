@@ -1,3 +1,6 @@
+/**
+ * @todo Check OS and Connect Plugin versions against latest via API every session
+ */
 import { ServerStateData } from './../types/server';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import {
@@ -40,9 +43,11 @@ export const useServerStore = defineStore('server', () => {
   /**
    * State
    */
-  const avatar = ref<string>(''); // @todo potentially move to a user store
   const apiKey = ref<string>(''); // @todo potentially move to a user store
+  const apiVersion = ref<string>('');
+  const avatar = ref<string>(''); // @todo potentially move to a user store
   const config = ref<ServerStateConfigStatus>();
+  const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
   const csrf = ref<string>(''); // required to make requests to Unraid webgui
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
@@ -60,7 +65,8 @@ export const useServerStore = defineStore('server', () => {
   const license = ref<string>('');
   const locale = ref<string>('');
   const name = ref<string>('');
-  const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
+  const osVersion = ref<string>('');
+  const pluginVersion = ref<string>('');
   const registered = ref<boolean>();
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
@@ -70,6 +76,7 @@ export const useServerStore = defineStore('server', () => {
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
+
   /**
    * Getters
    */
@@ -84,7 +91,9 @@ export const useServerStore = defineStore('server', () => {
   const server = computed(():Server => {
     return {
       apiKey: apiKey.value,
+      apiVersion: apiVersion.value,
       avatar: avatar.value,
+      connectPluginInstalled: connectPluginInstalled.value,
       description: description.value,
       deviceCount: deviceCount.value,
       email: email.value,
@@ -98,7 +107,8 @@ export const useServerStore = defineStore('server', () => {
       license: license.value,
       locale: locale.value,
       name: name.value,
-      connectPluginInstalled: connectPluginInstalled.value,
+      osVersion: osVersion.value,
+      pluginVersion: pluginVersion.value,
       registered: registered.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
@@ -126,12 +136,15 @@ export const useServerStore = defineStore('server', () => {
         break;
     }
     const server = {
+      apiVersion: apiVersion.value,
       deviceCount: deviceCount.value,
       email: email.value,
       guid: guid.value,
       inIframe: inIframe.value,
       keyTypeForPurchase,
       locale: locale.value,
+      osVersion: osVersion.value,
+      pluginVersion: pluginVersion.value,
       registered: registered.value ?? false,
       state: state.value,
       site: site.value,
@@ -141,6 +154,7 @@ export const useServerStore = defineStore('server', () => {
 
   const serverAccountPayload = computed((): ServerAccountCallbackSendPayload => {
     return {
+      apiVersion: apiVersion.value,
       description: description.value,
       expireTime: expireTime.value,
       flashProduct: flashProduct.value,
@@ -150,6 +164,8 @@ export const useServerStore = defineStore('server', () => {
       keyfile: keyfile.value,
       lanIp: lanIp.value,
       name: name.value,
+      osVersion: osVersion.value,
+      pluginVersion: pluginVersion.value,
       registered: registered.value ?? false,
       regGuid: regGuid.value,
       site: site.value,
@@ -161,7 +177,9 @@ export const useServerStore = defineStore('server', () => {
   const serverDebugPayload = computed((): Server => {
     const payload = {
       apiKey: apiKey.value,
+      apiVersion: apiVersion.value,
       avatar: avatar.value,
+      connectPluginInstalled: connectPluginInstalled.value,
       description: description.value,
       deviceCount: deviceCount.value,
       email: email.value,
@@ -173,7 +191,8 @@ export const useServerStore = defineStore('server', () => {
       lanIp: lanIp.value,
       locale: locale.value,
       name: name.value,
-      connectPluginInstalled: connectPluginInstalled.value,
+      osVersion: osVersion.value,
+      pluginVersion: pluginVersion.value,
       registered: registered.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
@@ -587,8 +606,10 @@ export const useServerStore = defineStore('server', () => {
   const setServer = (data: Server) => {
     console.debug('[setServer] data', data);
     if (typeof data?.apiKey !== 'undefined') apiKey.value = data.apiKey;
+    if (typeof data?.apiVersion !== 'undefined') apiVersion.value = data.apiVersion;
     if (typeof data?.avatar !== 'undefined') avatar.value = data.avatar;
     if (typeof data?.config !== 'undefined') config.value = data.config;
+    if (typeof data?.connectPluginInstalled !== 'undefined') connectPluginInstalled.value = data.connectPluginInstalled;
     if (typeof data?.csrf !== 'undefined') csrf.value = data.csrf;
     if (typeof data?.description !== 'undefined') description.value = data.description;
     if (typeof data?.deviceCount !== 'undefined') deviceCount.value = data.deviceCount;
@@ -602,7 +623,8 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.license !== 'undefined') license.value = data.license;
     if (typeof data?.locale !== 'undefined') locale.value = data.locale;
     if (typeof data?.name !== 'undefined') name.value = data.name;
-    if (typeof data?.connectPluginInstalled !== 'undefined') connectPluginInstalled.value = data.connectPluginInstalled;
+    if (typeof data?.osVersion !== 'undefined') osVersion.value = data.osVersion;
+    if (typeof data?.pluginVersion !== 'undefined') pluginVersion.value = data.pluginVersion;
     if (typeof data?.registered !== 'undefined') registered.value = data.registered;
     if (typeof data?.regGen !== 'undefined') regGen.value = data.regGen;
     if (typeof data?.regGuid !== 'undefined') regGuid.value = data.regGuid;

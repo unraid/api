@@ -32,8 +32,10 @@ export type ServerState = 'BASIC'
   | undefined;
 export interface Server {
   apiKey?: string;
+  apiVersion?: string;
   avatar?: string;
   config?: ServerStateConfigStatus | undefined;
+  connectPluginInstalled?: ServerconnectPluginInstalled;
   csrf?: string;
   description?: string;
   deviceCount?: number;
@@ -48,7 +50,8 @@ export interface Server {
   license?: string;
   locale?: string;
   name?: string;
-  connectPluginInstalled?: ServerconnectPluginInstalled;
+  osVersion?: string;
+  pluginVersion?: string;
   registered?: boolean;
   regGen?: number;
   regGuid?: string;
@@ -62,6 +65,7 @@ export interface Server {
 }
 
 export interface ServerAccountCallbackSendPayload {
+  apiVersion?: string;
   description?: string;
   deviceCount?: number;
   expireTime?: number;
@@ -73,6 +77,8 @@ export interface ServerAccountCallbackSendPayload {
   lanIp?: string;
   locale?: string;
   name?: string;
+  osVersion?: string;
+  pluginVersion?: string;
   registered: boolean;
   regGen?: number;
   regGuid?: string;
@@ -84,12 +90,15 @@ export interface ServerAccountCallbackSendPayload {
 export type ServerKeyTypeForPurchase = 'Basic'|'Plus'|'Pro'|'Trial';
 
 export interface ServerPurchaseCallbackSendPayload {
+  apiVersion?: string;
   deviceCount: number;
   email: string;
   guid: string;
   inIframe: boolean;
   keyTypeForPurchase: ServerKeyTypeForPurchase;
   locale: string;
+  osVersion?: string;
+  pluginVersion?: string;
   registered: boolean;
   state: ServerState;
   site: string;
