@@ -89,15 +89,6 @@ export const useAccountStore = defineStore('account', () => {
       type: 'signOut',
     }]);
   };
-  const troubleshoot = () => {
-    console.debug('[accountStore.accountStore.troubleshoot]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'troubleshoot',
-    }]);
-  };
   /**
    * @description Update myservers.cfg for both Sign In & Sign Out
    * @note unraid-api requires apikey & token realted keys to be lowercase
@@ -187,7 +178,6 @@ export const useAccountStore = defineStore('account', () => {
     replace,
     signIn,
     signOut,
-    troubleshoot,
     updatePluginConfig,
   };
 });

@@ -9,19 +9,19 @@ const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
 const {
-  pluginInstalled,
+  connectPluginInstalled,
   registered,
   state,
   stateData,
   username,
 } = storeToRefs(useServerStore());
 
-const registeredAndPluginInstalled = computed(() => pluginInstalled.value && registered.value);
+const registeredAndconnectPluginInstalled = computed(() => connectPluginInstalled.value && registered.value);
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string | undefined => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') return 'Fix Error';
-  if (registeredAndPluginInstalled.value) return username.value;
+  if (registeredAndconnectPluginInstalled.value) return username.value;
   return;
 });
 

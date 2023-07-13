@@ -11,14 +11,14 @@ const myServersEnv = ref<string>('Staging');
 const devEnv = ref<string>('development');
 
 const promoStore = usePromoStore();
-const { keyActions, pluginInstalled, registered, stateData } = storeToRefs(useServerStore());
+const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
 
 const links = computed(():UserProfileLink[] => {
   return [
-    ...(registered.value && pluginInstalled.value
+    ...(registered.value && connectPluginInstalled.value
       ? [
         {
           emphasize: true,
@@ -45,13 +45,13 @@ const links = computed(():UserProfileLink[] => {
       ]
       : []
     ),
-    ...(!registered.value && pluginInstalled.value
+    ...(!registered.value && connectPluginInstalled.value
       ? [
         ...(signInAction.value),
       ]
       : []
     ),
-    ...(!pluginInstalled.value
+    ...(!connectPluginInstalled.value
       ? [
         {
           click: () => {
@@ -70,7 +70,7 @@ const links = computed(():UserProfileLink[] => {
 
 <template>
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
-    <header v-if="pluginInstalled" class="flex flex-row items-center justify-between mt-8px mx-8px">
+    <header v-if="connectPluginInstalled" class="flex flex-row items-center justify-between mt-8px mx-8px">
       <h2 class="text-18px leading-none flex flex-row gap-x-8px items-center justify-between">
         <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-beta w-[120px]" />
         <UpcBeta />
@@ -82,7 +82,7 @@ const links = computed(():UserProfileLink[] => {
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
       <UpcDropdownError />
-      <UpcDropdownConnectStatus v-if="!stateData.error && registered && pluginInstalled" class="mt-8px" />
+      <UpcDropdownConnectStatus v-if="!stateData.error && registered && connectPluginInstalled" class="mt-8px" />
 
       <li v-if="keyActions || links.length" class="m-8px">
         <UpcKeyline />
