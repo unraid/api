@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia';
 import { ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon, } from '@heroicons/vue/24/solid';
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
+import { useErrorsStore } from '~/store/errors';
 import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -10,8 +11,11 @@ import type { UserProfileLink } from '~/types/userProfile';
 const myServersEnv = ref<string>('Staging');
 const devEnv = ref<string>('development');
 
+const errorsStore = useErrorsStore();
 const promoStore = usePromoStore();
+
 const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
+const { errors } = storeToRefs(errorsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -66,6 +70,10 @@ const links = computed(():UserProfileLink[] => {
     ),
   ];
 });
+
+const showErrors = computed(() => errors.value.length);
+const showConnectStatus = computed(() => !stateData.value.error && registered.value && connectPluginInstalled.value);
+const showKeyline = computed(() => (showErrors.value || showConnectStatus.value) && keyActions.value?.length && links.value.length);
 </script>
 
 <template>
@@ -81,10 +89,10 @@ const links = computed(():UserProfileLink[] => {
       </span>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
-      <UpcDropdownError />
-      <UpcDropdownConnectStatus v-if="!stateData.error && registered && connectPluginInstalled" class="mt-8px" />
+      <UpcDropdownError v-if="showErrors" />
+      <UpcDropdownConnectStatus v-if="showConnectStatus" class="mt-8px" />
 
-      <li v-if="keyActions || links.length" class="m-8px">
+      <li v-if="showKeyline" class="m-8px">
         <UpcKeyline />
       </li>
 
