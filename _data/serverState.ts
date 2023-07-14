@@ -29,7 +29,7 @@ const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: string = 'EGUID';
+const state: string = 'BASIC';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 let expireTime = 0;
@@ -55,7 +55,8 @@ const serverState = {
   "license": "",
   "locale": "en_US",
   "name": "fuji",
-  "connectPluginInstalled": "dynamix.unraid.net.staging.plg",
+  // "connectPluginInstalled": "dynamix.unraid.net.staging.plg",
+  "connectPluginInstalled": "",
   "registered": false,
   "regGen": 0,
   // "regGuid": "0781-5583-8355-81071A2B0211",
