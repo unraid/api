@@ -17,6 +17,7 @@ import { useErrorsStore, type Error } from '~/store/errors';
 import { usePurchaseStore } from "~/store/purchase";
 import { useTrialStore } from '~/store/trial';
 import { useThemeStore, type Theme } from '~/store/theme';
+import { useUnraidApiStore } from '~/store/unraidApi';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -40,6 +41,7 @@ export const useServerStore = defineStore('server', () => {
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const trialStore = useTrialStore();
+  const unraidApiStore = useUnraidApiStore();
   /**
    * State
    */
@@ -650,6 +652,18 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[setServer] server.value', server.value);
   };
 
+  watch(apiKey, (newVal, oldVal) => {
+    console.debug('[useUnraidApiStore] apiKey', newVal, oldVal);
+    if (oldVal) {
+      // stop old client
+      console.debug('[useUnraidApiStore] no apiKey – stop old client');
+    }
+    if (newVal) {
+      // start new client
+      console.debug('[useUnraidApiStore] apiKey – start new client');
+      unraidApiStore.createApolloClient();
+    }
+  });
   watch(theme, (newVal) => {
     if (newVal) themeStore.setTheme(newVal);
   });
