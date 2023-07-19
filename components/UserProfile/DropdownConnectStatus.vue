@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/vue/24/solid';
-// import { storeToRefs } from 'pinia';
-// import { useServerStore } from '~/store/server';
-// const { stateData } = storeToRefs(useServerStore());
+import { useQuery } from '@vue/apollo-composable';
+
+import {
+  TEST_FRAGMENT,
+  TEST_QUERY,
+} from './DropdownConnectStatus.fragment';
+import { useFragment } from '@/composables/gql/fragment-masking';
+
+const { result: newResult } = useQuery(
+  TEST_QUERY,
+);
+const result = computed(() => useFragment(TEST_FRAGMENT, newResult.value?.cloud));
+
+watch(result, (newVal, oldVal) => {
+  console.log('result', newVal, oldVal);
+});
 
 type ApiOnlineStatus = 'online'|'offline';
 const onlineStatus = ref<ApiOnlineStatus>('online');

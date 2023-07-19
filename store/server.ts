@@ -661,7 +661,7 @@ export const useServerStore = defineStore('server', () => {
     if (newVal) {
       // start new client
       console.debug('[useUnraidApiStore] apiKey – start new client');
-      unraidApiStore.createApolloClient();
+      unraidApiStore.createApolloClient(newVal);
     }
   });
   watch(theme, (newVal) => {
