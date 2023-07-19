@@ -1,5 +1,5 @@
 import { DefaultApolloClient } from '@vue/apollo-composable';
-import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client/core';
+import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client/core/core.cjs';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { createClient } from 'graphql-ws';
@@ -10,7 +10,7 @@ export interface ApolloClientPayload {
   wsEndpoint: string;
 }
 
-const useApollo = (payload: ApolloClientPayload) => {
+export const useApollo = (payload: ApolloClientPayload) => {
   console.debug('[useApollo.create]', payload);
 
   const unraidApiClient = ref<ApolloClient<any>>();
@@ -54,7 +54,7 @@ const useApollo = (payload: ApolloClientPayload) => {
 
   // Create the apollo client with cache implementation.
   unraidApiClient.value = new ApolloClient({
-    // link,
+    link,
     cache: new InMemoryCache(),
   });
 
@@ -62,5 +62,3 @@ const useApollo = (payload: ApolloClientPayload) => {
     unraidApiClient,
   };
 };
-
-export default useApollo;
