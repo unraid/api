@@ -92,7 +92,7 @@ const showKeyline = computed(() => (showErrors.value || showConnectStatus.value)
       <UpcDropdownError v-if="showErrors" />
       <UpcDropdownConnectStatus v-if="showConnectStatus" class="mt-8px" />
 
-      <li v-if="showKeyline" class="m-8px">
+      <li v-if="showKeyline" class="my-8px">
         <UpcKeyline />
       </li>
 
