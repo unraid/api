@@ -9,9 +9,14 @@
     "postinstall": "nuxt prepare",
     "serve": "serve dist/nuxt-custom-elements/connect-components",
     "deploy:dev": "./scripts/deploy-dev.sh",
-    "build:dev": "nuxt build && npm run deploy:dev"
+    "build:dev": "nuxt build && npm run deploy:dev",
+    "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config"
   },
   "devDependencies": {
+    "@graphql-codegen/cli": "^4.0.1",
+    "@graphql-codegen/client-preset": "^4.0.1",
+    "@graphql-codegen/introspection": "^4.0.0",
     "@nuxt/devtools": "^0.6.1",
     "@nuxtjs/tailwindcss": "^6.7.0",
     "@types/crypto-js": "^4.1.1",
