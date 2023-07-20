@@ -3,6 +3,7 @@ import { defineStore } from 'pinia';
 import { addPreventClose, removePreventClose } from '~/composables/preventClose';
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
+import { useServerStore } from '~/store/server';
 import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
 
 export const useCallbackActionsStore = defineStore(
@@ -10,6 +11,7 @@ export const useCallbackActionsStore = defineStore(
   () => {
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
+  const serverStore = useServerStore();
 
   type CallbackStatus = 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
@@ -43,6 +45,8 @@ export const useCallbackActionsStore = defineStore(
       }
       // all actions have run
       if (array.length === (index + 1)) {
+        /** @todo refresh server state until we have new data */
+        await serverStore.refreshServerState();
         // callbackStatus.value = 'done';
         if (array.length > 1) {
           // if we have more than 1 action it means there was a key install and an account action so both need to be successful

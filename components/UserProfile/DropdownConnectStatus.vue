@@ -5,28 +5,28 @@ type ApiOnlineStatus = 'online'|'offline';
 const onlineStatus = ref<ApiOnlineStatus>('online');
 const apiLoading = ref(false);
 
-import { useQuery } from '@vue/apollo-composable';
+// import { useQuery } from '@vue/apollo-composable';
 
-import {
-  TEST_FRAGMENT,
-  TEST_QUERY,
-} from './DropdownConnectStatus.fragment';
-import { useFragment } from '@/composables/gql/fragment-masking';
+// import {
+//   TEST_FRAGMENT,
+//   TEST_QUERY,
+// } from './DropdownConnectStatus.fragment';
+// import { useFragment } from '@/composables/gql/fragment-masking';
 
-const { result: newResult } = useQuery(
-  TEST_QUERY,
-);
-const result = computed(() => useFragment(TEST_FRAGMENT, newResult.value?.cloud));
+// const { result: newResult } = useQuery(
+//   TEST_QUERY,
+// );
+// const result = computed(() => useFragment(TEST_FRAGMENT, newResult.value?.cloud));
 
-watch(result, (newVal, oldVal) => {
-  console.log('result', newVal, oldVal);
-});
+// watch(result, (newVal, oldVal) => {
+//   console.log('result', newVal, oldVal);
+// });
 </script>
 
 <template>
   <li class="px-8px flex flex-col items-center">
     <template v-if="apiLoading">
-      <BrandLoading class="w-36px mx-auto" :height="21" />
+      <BrandLoading class="w-36px mx-auto" />
       <span class="text-12px italic opacity-80">{{ 'Loading Connect status…' }}</span>
     </template>
     <span

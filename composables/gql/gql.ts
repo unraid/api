@@ -20,10 +20,6 @@ const documents = {
     "\n  fragment FragmentRegistration on Registration {\n    state\n    expiration\n    keyFile {\n      contents\n    }\n  }\n": types.FragmentRegistrationFragmentDoc,
     "\n  fragment FragmentVars on Vars {\n    regGen\n    regState\n    configError\n    configValid\n  }\n": types.FragmentVarsFragmentDoc,
     "\n  query serverState {\n    owner {\n      ...FragmentOwner\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    crashReportingEnabled\n    vars {\n      ...FragmentVars\n    }\n    config {\n      ...FragmentConfig\n    }\n    cloud {\n      error\n      apiKey {\n        valid\n        error\n      }\n      relay {\n        status\n        error\n      }\n      cloud {\n        status\n        error\n      }\n    }\n  }\n": types.serverStateDocument,
-    "\n  subscription Config {\n    config {\n      ...FragmentConfig\n    }\n  }\n": types.ConfigDocument,
-    "\n  subscription Owner {\n    owner {\n      ...FragmentOwner\n    }\n  }\n": types.OwnerDocument,
-    "\n  subscription Registration {\n    registration {\n      ...FragmentRegistration\n    }\n  }\n": types.RegistrationDocument,
-    "\n  subscription Vars {\n    vars {\n      ...FragmentVars\n    }\n  }\n": types.VarsDocument,
 };
 
 /**
@@ -68,22 +64,6 @@ export function graphql(source: "\n  fragment FragmentVars on Vars {\n    regGen
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  query serverState {\n    owner {\n      ...FragmentOwner\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    crashReportingEnabled\n    vars {\n      ...FragmentVars\n    }\n    config {\n      ...FragmentConfig\n    }\n    cloud {\n      error\n      apiKey {\n        valid\n        error\n      }\n      relay {\n        status\n        error\n      }\n      cloud {\n        status\n        error\n      }\n    }\n  }\n"): (typeof documents)["\n  query serverState {\n    owner {\n      ...FragmentOwner\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    crashReportingEnabled\n    vars {\n      ...FragmentVars\n    }\n    config {\n      ...FragmentConfig\n    }\n    cloud {\n      error\n      apiKey {\n        valid\n        error\n      }\n      relay {\n        status\n        error\n      }\n      cloud {\n        status\n        error\n      }\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  subscription Config {\n    config {\n      ...FragmentConfig\n    }\n  }\n"): (typeof documents)["\n  subscription Config {\n    config {\n      ...FragmentConfig\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  subscription Owner {\n    owner {\n      ...FragmentOwner\n    }\n  }\n"): (typeof documents)["\n  subscription Owner {\n    owner {\n      ...FragmentOwner\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  subscription Registration {\n    registration {\n      ...FragmentRegistration\n    }\n  }\n"): (typeof documents)["\n  subscription Registration {\n    registration {\n      ...FragmentRegistration\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  subscription Vars {\n    vars {\n      ...FragmentVars\n    }\n  }\n"): (typeof documents)["\n  subscription Vars {\n    vars {\n      ...FragmentVars\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

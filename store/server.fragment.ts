@@ -70,35 +70,3 @@ export const SERVER_STATE_QUERY = graphql(/* GraphQL */`
     }
   }
 `);
-
-export const SERVER_CONFIG_SUBSCRIPTION = graphql(/* GraphQL */`
-  subscription Config {
-    config {
-      ...FragmentConfig
-    }
-  }
-`);
-
-export const SERVER_OWNER_SUBSCRIPTION = graphql(/* GraphQL */`
-  subscription Owner {
-    owner {
-      ...FragmentOwner
-    }
-  }
-`);
-
-export const SERVER_REGISTRATION_SUBSCRIPTION = graphql(/* GraphQL */`
-  subscription Registration {
-    registration {
-      ...FragmentRegistration
-    }
-  }
-`);
-
-export const SERVER_VARS_SUBSCRIPTION = graphql(/* GraphQL */`
-  subscription Vars {
-    vars {
-      ...FragmentVars
-    }
-  }
-`);

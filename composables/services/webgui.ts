@@ -35,3 +35,9 @@ export const WebguiUpdateDns = request.url('/webGui/include/UpdateDNS.php');
  * @type POST
  */
 export const WebguiUnraidApiCommand = request.url('/plugins/dynamix.my.servers/include/unraid-api.php');
+/**
+ * @name WebguiState
+ * @description used to get current state of server via PHP rather than unraid-api
+ * @type GET
+ */
+export const WebguiState = request.url('/plugins/dynamix.my.servers/data/server-state.php');
