@@ -43,6 +43,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.14.0",
     "hex-to-rgba": "^2.0.1",
+    "lodash": "^4.17.21",
     "wretch": "^2.6.0"
   },
   "overrides": {

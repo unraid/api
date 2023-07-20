@@ -7,6 +7,7 @@ import { logErrorMessages } from '@vue/apollo-util'
 import { createClient } from 'graphql-ws';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
+import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 /**
@@ -28,18 +29,26 @@ console.debug('[useUnraidApiStore] wsEndpoint', wsEndpoint.toString());
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   console.debug('[useUnraidApiStore]');
+  const accountStore = useAccountStore();
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   const unraidApiClient = ref<ApolloClient<any>>();
 
+  const registeredWithValidApiKey = computed(() => {
+    const { registered, invalidApiKey } = serverStore;
+    return registered && !invalidApiKey;
+  });
+
   /**
    * Automatically called when an apiKey is set in the serverStore
    */
-  const createApolloClient = (apiKey: string) => {
-    console.debug('[useUnraidApiStore.createApolloClient]');
-
-    const headers = { 'x-api-key': apiKey };
+  const createApolloClient = () => {
+    console.debug('[useUnraidApiStore.createApolloClient]', serverStore.apiKey);
+    if (accountStore.accountActionType === 'signOut') {
+      return console.debug('[useUnraidApiStore.createApolloClient] sign out imminent, skipping createApolloClient');
+    }
+    const headers = { 'x-api-key': serverStore.apiKey };
 
     const httpLink = new createHttpLink({
       uri: httpEndpoint.toString(),
@@ -103,8 +112,32 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     console.debug('[useUnraidApiStore.createApolloClient] 🏁 CREATED');
   };
 
+  const closeUnraidApiClient = async () => {
+    console.debug('[useUnraidApiStore.closeUnraidApiClient] STARTED');
+    if (!unraidApiClient.value) return console.debug('[useUnraidApiStore.closeUnraidApiClient] unraidApiClient not set');
+    if (unraidApiClient.value) {
+      await unraidApiClient.value.clearStore();
+      unraidApiClient.value.stop();
+      // (wsLink.value as any).subscriptionClient.close(); // needed if we start using subscriptions
+    }
+    unraidApiClient.value = undefined;
+    console.debug('[useUnraidApiStore.closeUnraidApiClient] DONE');
+  };
+
+  watch(registeredWithValidApiKey, (newVal, oldVal) => {
+    console.debug('[watch:registeredWithValidApiKey]', newVal, oldVal);
+    if (oldVal) {
+      console.debug('[watch:registeredWithValidApiKey] no apiKey, stop unraid-api client');
+      closeUnraidApiClient();
+    }
+    if (newVal) {
+      console.debug('[watch:registeredWithValidApiKey] new apiKey, start unraid-api client');
+      createApolloClient();
+    }
+  });
+
   watch(unraidApiClient, (newVal, oldVal) => {
-    console.debug('[watch.unraidApiStore.unraidApiClient]', { newVal, oldVal });
+    console.debug('[watch:unraidApiStore.unraidApiClient]', { newVal, oldVal });
     if (newVal && !oldVal) { // first time
       serverStore.fetchServerFromApi();
     }
@@ -113,5 +146,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   return {
     unraidApiClient,
     createApolloClient,
+    closeUnraidApiClient,
   };
 });
