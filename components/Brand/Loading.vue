@@ -5,14 +5,12 @@ import '~/assets/main.css';
 export interface Props {
   gradientStart?: string;
   gradientStop?: string;
-  height?: number,
   title?: string,
 }
 
 withDefaults(defineProps<Props>(), {
   gradientStart: '#e32929',
   gradientStop: '#ff8d30',
-  height: 64,
   title: 'Loading',
 });
 </script>
@@ -22,7 +20,7 @@ withDefaults(defineProps<Props>(), {
     xmlns="http://www.w3.org/2000/svg"
     xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 133.52 76.97"
-    :class="`unraid_mark h-[${height}px]`"
+    :class="`unraid_mark`"
     role="img"
   >
     <title>{{ title }}</title>

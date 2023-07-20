@@ -2,6 +2,7 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { defineStore, createPinia, setActivePinia } from 'pinia';
+import isEqual from 'lodash/isEqual';
 import {
   ArrowRightOnRectangleIcon,
   CogIcon,
@@ -10,8 +11,10 @@ import {
   KeyIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/vue/24/solid';
-import { useQuery, useSubscription } from '@vue/apollo-composable';
+import { useQuery } from '@vue/apollo-composable';
+import { useTimeoutPoll } from '@vueuse/core';
 
+import { WebguiState } from '~/composables/services/webgui';
 import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore, type Error } from '~/store/errors';
@@ -31,18 +34,7 @@ import type {
   ServerconnectPluginInstalled,
 } from '~/types/server';
 
-import {
-  SERVER_STATE_QUERY,
-  SERVER_VARS_FRAGMENT,
-  SERVER_VARS_SUBSCRIPTION,
-  SERVER_OWNER_FRAGMENT,
-  SERVER_OWNER_SUBSCRIPTION,
-  SERVER_CONFIG_FRAGMENT,
-  SERVER_CONFIG_SUBSCRIPTION,
-  SERVER_REGISTRATION_FRAGMENT,
-  SERVER_REGISTRATION_SUBSCRIPTION,
-} from './server.fragment';
-import { useFragment } from '~/composables/gql/fragment-masking';
+import { SERVER_STATE_QUERY } from './server.fragment';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -93,6 +85,7 @@ export const useServerStore = defineStore('server', () => {
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
 
+  const apiServerStateRefresh = ref<any>(null);
   /**
    * Getters
    */
@@ -693,89 +686,98 @@ export const useServerStore = defineStore('server', () => {
   };
 
   const fetchServerFromApi = () => {
-    const { result: resultServerState } = useQuery(SERVER_STATE_QUERY);
+    const { result: resultServerState, refetch: refetchServerState } = useQuery(SERVER_STATE_QUERY, null, {
+      pollInterval: 2500,
+      fetchPolicy: 'no-cache',
+    });
     const serverState = computed(() => resultServerState.value ?? null);
+    apiServerStateRefresh.value = refetchServerState;
     watch(serverState, value => {
-      console.debug('[watch.serverState]', value);
+      console.debug('[watch:serverState]', value);
       if (value) {
         const mutatedServerStateResult = mutateServerStateFromApi(value);
         setServer(mutatedServerStateResult);
       }
     });
-
-    const { result: resultServerVars } = useSubscription(SERVER_VARS_SUBSCRIPTION);
-    const serverVars = computed(() => useFragment(SERVER_VARS_FRAGMENT, resultServerVars.value));
-    watch(serverVars, value => {
-      console.debug('[watch.serverVars]', value);
-      // if (value) {
-      // }
-    });
-
-    // const { result: resultServerOwner } = useSubscription(SERVER_OWNER_SUBSCRIPTION);
-    // const serverOwner = computed(() => resultServerOwner.value ?? null);
-    // watch(serverOwner, value => {
-    //   console.debug('[watch.resultServerOwner]', value);
-    //   // if (value) {
-    //   // }
-    // });
-
-    // const { result: resultServerConfig } = useSubscription(SERVER_CONFIG_SUBSCRIPTION);
-    // const serverConfig = computed(() => resultServerConfig.value ?? null);
-    // watch(serverConfig, value => {
-    //   console.debug('[watch.resultServerConfig]', value);
-    //   // if (value) {
-    //   // }
-    // });
-
-    // const { result: resultServerRegistration } = useSubscription(SERVER_REGISTRATION_SUBSCRIPTION);
-    // const serverRegistration = computed(() => resultServerRegistration.value ?? null);
-    // watch(serverRegistration, value => {
-    //   console.debug('[watch.resultServerRegistration]', value);
-    //   // if (value) {
-    //   // }
-    // });
   };
 
-  watch(apiKey, (newVal, oldVal) => {
-    console.debug('[watch.apiKey]', newVal, oldVal);
-    if (oldVal) {
-      // stop old client
-      console.debug('[watch.apiKey] no apiKey, stop old client');
+  const phpServerStateRefresh = async () => {
+    console.debug('[phpServerStateRefresh] start');
+    try {
+      const stateResponse: Server = await WebguiState
+        .get()
+        .json();
+      console.debug('[phpServerStateRefresh] stateResponse', stateResponse);
+      setServer(stateResponse);
+      return stateResponse;
+    } catch (error) {
+      console.error('[phpServerStateRefresh] error', error);
     }
-    /** @todo abstract validation checks */
-    if (newVal && newVal.length === 64 && newVal.startsWith('unupc_')) {
-      // start new client
-      console.debug('[watch.apiKey] start new client');
-      unraidApiStore.createApolloClient(newVal);
+  };
+
+  let refreshCount = 0;
+  const refreshLimit = 10;
+  const refreshedServerState = ref(false);
+  const refreshServerState = async () => {
+    refreshCount++;
+    console.debug('[refreshServerState] start', { refreshCount });
+    const registeredBeforeRefresh = registered.value;
+    const stateBeforeRefresh = state.value;
+
+    const responseNewState = apiServerStateRefresh.value
+      ? await apiServerStateRefresh.value()
+      : await phpServerStateRefresh();
+    console.debug(`[refreshServerState] responseNewState`, responseNewState);
+
+    const newState = apiServerStateRefresh.value && responseNewState?.data ? responseNewState.data : responseNewState;
+    console.debug(`[refreshServerState] newState`, newState);
+
+    const registrationStatusChanged = registeredBeforeRefresh !== newState.registered;
+    const stateChanged = stateBeforeRefresh !== newState.state;
+
+    if (registrationStatusChanged || stateChanged) {
+      console.debug('[refreshServerState] change detected, stop refreshing', { registrationStatusChanged, stateChanged });
+      refreshedServerState.value = true;
+      return true;
     }
-  });
+
+    if (refreshCount >= refreshLimit) {
+      console.debug('[refreshServerState] refresh limit reached, stop refreshing');
+      return false;
+    }
+
+    console.debug('[refreshServerState] no change, fetch again in 250ms…', { registrationStatusChanged, stateChanged });
+    setTimeout(() => {
+      return refreshServerState();
+    }, 250);
+  };
 
   watch(theme, (newVal) => {
     if (newVal) themeStore.setTheme(newVal);
   });
 
   watch(stateDataError, (newVal, oldVal) => {
-    console.debug('[watch.stateDataError]', newVal, oldVal);
+    console.debug('[watch:stateDataError]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(invalidApiKey, (newVal, oldVal) => {
-    console.debug('[watch.invalidApiKey]', newVal, oldVal);
+    console.debug('[watch:invalidApiKey]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(tooManyDevices, (newVal, oldVal) => {
-    console.debug('[watch.tooManyDevices]', newVal, oldVal);
+    console.debug('[watch:tooManyDevices]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(pluginInstallFailed, (newVal, oldVal) => {
-    console.debug('[watch.pluginInstallFailed]', newVal, oldVal);
+    console.debug('[watch:pluginInstallFailed]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
   watch(deprecatedUnraidSSL, (newVal, oldVal) => {
-    console.debug('[watch.deprecatedUnraidSSL]', newVal, oldVal);
+    console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
     if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
     if (newVal) errorsStore.setError(newVal);
   });
@@ -802,6 +804,7 @@ export const useServerStore = defineStore('server', () => {
     theme,
     uptime,
     username,
+    refreshedServerState,
     // getters
     authAction,
     deprecatedUnraidSSL,
@@ -820,5 +823,6 @@ export const useServerStore = defineStore('server', () => {
     // actions
     setServer,
     fetchServerFromApi,
+    refreshServerState,
   };
 });
