@@ -66,12 +66,8 @@ onBeforeMount(() => {
   if (typeof props.server === 'object') { // Handles the testing dev Vue component
     serverStore.setServer(props.server);
   } else if (typeof props.server === 'string') { // Handle web component
-    try {
-      const parsedServerProp = JSON.parse(props.server);
-      serverStore.setServer(parsedServerProp);
-    } catch (e) {
-      console.error(e);
-    }
+    const parsedServerProp = JSON.parse(props.server);
+    serverStore.setServer(parsedServerProp);
   }
   /**
    * Listen for callbacks, if we receive one that needs to be acted upon the store will display
