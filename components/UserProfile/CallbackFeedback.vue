@@ -26,7 +26,6 @@ const promoStore = usePromoStore();
 const serverStore = useServerStore();
 
 const {
-  accountAction,
   accountActionHide,
   accountActionStatus,
   accountActionStatusCopy,
@@ -46,11 +45,8 @@ const {
   connectPluginInstalled,
   registered,
   authAction,
+  refreshedServerState,
 } = storeToRefs(serverStore);
-
-/** @todo if post purchase/upgrade thank user for their purchase and support */
-/** @todo if post purchase/upgrade and no Connect, show CTA to Connect promo */
-/** @todo if signing in show CTA to head to Connect settings to enable features */
 
 /**
  * Post sign in success state:
@@ -92,10 +88,15 @@ const subheading = computed(() => {
   return '';
 });
 
+const closeText = computed(() => {
+  const txt = !connectPluginInstalled.value ? 'No Thanks' : 'Close'
+  return refreshedServerState.value ? txt : 'Reload';
+});
 const close = () => {
   if (callbackStatus.value === 'loading') return console.debug('[close] not allowed');
-  window.location.reload();
-  // callbackActionsStore.setCallbackStatus('ready');
+  return refreshedServerState.value
+    ? callbackActionsStore.setCallbackStatus('ready')
+    : window.location.reload();
 };
 
 const promoClick = () => {
@@ -122,6 +123,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         v-if="keyInstallStatus !== 'ready' || accountActionStatus !== 'ready'"
         class="text-center relative w-full flex flex-col justify-center gap-y-16px py-24px sm:py-32px"
       >
+        <BrandLoading v-if="callbackStatus === 'loading'" class="w-[110px] mx-auto" />
+
         <UpcCallbackFeedbackStatus
           v-if="keyInstallStatus !== 'ready'"
           :success="keyInstallStatus === 'success'"
@@ -192,7 +195,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <BrandButton
           @click="close"
           btn-style="underline"
-          :text="!connectPluginInstalled ? 'No Thanks' : 'Close'" />
+          :text="closeText" />
       </div>
     </template>
   </Modal>
