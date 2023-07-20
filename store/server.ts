@@ -1,5 +1,5 @@
 /**
- * @todo Check OS and Connect Plugin versions against latest via API every se
+ * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import {
@@ -10,6 +10,7 @@ import {
   KeyIcon,
   QuestionMarkCircleIcon
 } from '@heroicons/vue/24/solid';
+import { useQuery, useSubscription } from '@vue/apollo-composable';
 
 import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
@@ -29,6 +30,19 @@ import type {
   ServerStateDataAction,
   ServerconnectPluginInstalled,
 } from '~/types/server';
+
+import {
+  SERVER_STATE_QUERY,
+  SERVER_VARS_FRAGMENT,
+  SERVER_VARS_SUBSCRIPTION,
+  SERVER_OWNER_FRAGMENT,
+  SERVER_OWNER_SUBSCRIPTION,
+  SERVER_CONFIG_FRAGMENT,
+  SERVER_CONFIG_SUBSCRIPTION,
+  SERVER_REGISTRATION_FRAGMENT,
+  SERVER_REGISTRATION_SUBSCRIPTION,
+} from './server.fragment';
+import { useFragment } from '~/composables/gql/fragment-masking';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -649,21 +663,93 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.uptime !== 'undefined') uptime.value = data.uptime;
     if (typeof data?.username !== 'undefined') username.value = data.username;
     if (typeof data?.wanFQDN !== 'undefined') wanFQDN.value = data.wanFQDN;
-    console.debug('[setServer] server.value', server.value);
+    console.debug('[setServer] server', server.value);
+  };
+
+  const mutateServerStateFromApi = (data) => {
+    const mutatedData = {
+      // if we get an owners obj back and the username is root we don't want to overwrite the values
+      ...(data.owner && data.owner.username !== 'root' && {
+        avatar: data.owner.avatar,
+        username: data.owner.username,
+        registered: true,
+      }),
+      // if owners obj is empty we need to sign user out
+      // ...(context.state.signOutTriggered && { username: '', avatar: '', registered: false }),
+      name: (data.info && data.info.os) ? data.info.os.hostname : null,
+      keyfile: (data.registration && data.registration.keyFile) ? data.registration.keyFile.contents : null,
+      // sendCrashInfo: data.crashReportingEnabled,
+      regGen: data.vars ? data.vars.regGen : null,
+      state: data.vars ? data.vars.regState : null,
+      config: data.config ? data.config : {
+        error: data.vars ? data.vars.configError : null,
+        valid: data.vars ? data.vars.configValid : true,
+      },
+      expireTime: (data.registration && data.registration.expiration) ? data.registration.expiration : 0,
+      ...(data.cloud && { cloud: data.cloud }),
+    }
+    console.debug('[mutateServerStateFromApi] mutatedData', mutatedData);
+    return mutatedData;
+  };
+
+  const fetchServerFromApi = () => {
+    const { result: resultServerState } = useQuery(SERVER_STATE_QUERY);
+    const serverState = computed(() => resultServerState.value ?? null);
+    watch(serverState, value => {
+      console.debug('[watch.serverState]', value);
+      if (value) {
+        const mutatedServerStateResult = mutateServerStateFromApi(value);
+        setServer(mutatedServerStateResult);
+      }
+    });
+
+    const { result: resultServerVars } = useSubscription(SERVER_VARS_SUBSCRIPTION);
+    const serverVars = computed(() => useFragment(SERVER_VARS_FRAGMENT, resultServerVars.value));
+    watch(serverVars, value => {
+      console.debug('[watch.serverVars]', value);
+      // if (value) {
+      // }
+    });
+
+    // const { result: resultServerOwner } = useSubscription(SERVER_OWNER_SUBSCRIPTION);
+    // const serverOwner = computed(() => resultServerOwner.value ?? null);
+    // watch(serverOwner, value => {
+    //   console.debug('[watch.resultServerOwner]', value);
+    //   // if (value) {
+    //   // }
+    // });
+
+    // const { result: resultServerConfig } = useSubscription(SERVER_CONFIG_SUBSCRIPTION);
+    // const serverConfig = computed(() => resultServerConfig.value ?? null);
+    // watch(serverConfig, value => {
+    //   console.debug('[watch.resultServerConfig]', value);
+    //   // if (value) {
+    //   // }
+    // });
+
+    // const { result: resultServerRegistration } = useSubscription(SERVER_REGISTRATION_SUBSCRIPTION);
+    // const serverRegistration = computed(() => resultServerRegistration.value ?? null);
+    // watch(serverRegistration, value => {
+    //   console.debug('[watch.resultServerRegistration]', value);
+    //   // if (value) {
+    //   // }
+    // });
   };
 
   watch(apiKey, (newVal, oldVal) => {
-    console.debug('[useUnraidApiStore] apiKey', newVal, oldVal);
+    console.debug('[watch.apiKey]', newVal, oldVal);
     if (oldVal) {
       // stop old client
-      console.debug('[useUnraidApiStore] no apiKey – stop old client');
+      console.debug('[watch.apiKey] no apiKey, stop old client');
     }
-    if (newVal) {
+    /** @todo abstract validation checks */
+    if (newVal && newVal.length === 64 && newVal.startsWith('unupc_')) {
       // start new client
-      console.debug('[useUnraidApiStore] apiKey – start new client');
+      console.debug('[watch.apiKey] start new client');
       unraidApiStore.createApolloClient(newVal);
     }
   });
+
   watch(theme, (newVal) => {
     if (newVal) themeStore.setTheme(newVal);
   });
@@ -733,5 +819,6 @@ export const useServerStore = defineStore('server', () => {
     tooManyDevices,
     // actions
     setServer,
+    fetchServerFromApi,
   };
 });

@@ -1596,5 +1596,71 @@ export type cloudErrorQuery = { __typename?: 'Query', cloud?: (
     & { ' $fragmentRefs'?: { 'TestFragmentFragment': TestFragmentFragment } }
   ) | null };
 
+export type FragmentConfigFragment = { __typename?: 'Config', error?: ConfigErrorState | null, valid?: boolean | null } & { ' $fragmentName'?: 'FragmentConfigFragment' };
+
+export type FragmentOwnerFragment = { __typename?: 'Owner', avatar?: string | null, username?: string | null } & { ' $fragmentName'?: 'FragmentOwnerFragment' };
+
+export type FragmentRegistrationFragment = { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } & { ' $fragmentName'?: 'FragmentRegistrationFragment' };
+
+export type FragmentVarsFragment = { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } & { ' $fragmentName'?: 'FragmentVarsFragment' };
+
+export type serverStateQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type serverStateQuery = { __typename?: 'Query', crashReportingEnabled?: boolean | null, owner?: (
+    { __typename?: 'Owner' }
+    & { ' $fragmentRefs'?: { 'FragmentOwnerFragment': FragmentOwnerFragment } }
+  ) | null, info?: { __typename?: 'Info', os?: { __typename?: 'Os', hostname?: string | null } | null } | null, registration?: (
+    { __typename?: 'Registration' }
+    & { ' $fragmentRefs'?: { 'FragmentRegistrationFragment': FragmentRegistrationFragment } }
+  ) | null, vars?: (
+    { __typename?: 'Vars' }
+    & { ' $fragmentRefs'?: { 'FragmentVarsFragment': FragmentVarsFragment } }
+  ) | null, config: (
+    { __typename?: 'Config' }
+    & { ' $fragmentRefs'?: { 'FragmentConfigFragment': FragmentConfigFragment } }
+  ), cloud?: { __typename?: 'Cloud', error?: string | null, apiKey: { __typename?: 'ApiKeyResponse', valid: boolean, error?: string | null }, relay?: { __typename?: 'RelayResponse', status: string, error?: string | null } | null, cloud: { __typename?: 'CloudResponse', status: string, error?: string | null } } | null };
+
+export type ConfigSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ConfigSubscription = { __typename?: 'Subscription', config: (
+    { __typename?: 'Config' }
+    & { ' $fragmentRefs'?: { 'FragmentConfigFragment': FragmentConfigFragment } }
+  ) };
+
+export type OwnerSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type OwnerSubscription = { __typename?: 'Subscription', owner: (
+    { __typename?: 'Owner' }
+    & { ' $fragmentRefs'?: { 'FragmentOwnerFragment': FragmentOwnerFragment } }
+  ) };
+
+export type RegistrationSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type RegistrationSubscription = { __typename?: 'Subscription', registration: (
+    { __typename?: 'Registration' }
+    & { ' $fragmentRefs'?: { 'FragmentRegistrationFragment': FragmentRegistrationFragment } }
+  ) };
+
+export type VarsSubscriptionVariables = Exact<{ [key: string]: never; }>;
+
+
+export type VarsSubscription = { __typename?: 'Subscription', vars: (
+    { __typename?: 'Vars' }
+    & { ' $fragmentRefs'?: { 'FragmentVarsFragment': FragmentVarsFragment } }
+  ) };
+
 export const TestFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TestFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]} as unknown as DocumentNode<TestFragmentFragment, unknown>;
+export const FragmentConfigFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Config"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}}]} as unknown as DocumentNode<FragmentConfigFragment, unknown>;
+export const FragmentOwnerFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentOwner"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Owner"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]} as unknown as DocumentNode<FragmentOwnerFragment, unknown>;
+export const FragmentRegistrationFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentRegistration"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Registration"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}}]}}]} as unknown as DocumentNode<FragmentRegistrationFragment, unknown>;
+export const FragmentVarsFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentVars"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Vars"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]} as unknown as DocumentNode<FragmentVarsFragment, unknown>;
 export const cloudErrorDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"cloudError"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"TestFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"TestFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]} as unknown as DocumentNode<cloudErrorQuery, cloudErrorQueryVariables>;
+export const serverStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentOwner"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentRegistration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"crashReportingEnabled"}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentVars"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentConfig"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentOwner"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Owner"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentRegistration"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Registration"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentVars"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Vars"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Config"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}}]} as unknown as DocumentNode<serverStateQuery, serverStateQueryVariables>;
+export const ConfigDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"Config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentConfig"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentConfig"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Config"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}}]} as unknown as DocumentNode<ConfigSubscription, ConfigSubscriptionVariables>;
+export const OwnerDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"Owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentOwner"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentOwner"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Owner"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}}]} as unknown as DocumentNode<OwnerSubscription, OwnerSubscriptionVariables>;
+export const RegistrationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"Registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentRegistration"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentRegistration"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Registration"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}}]}}]} as unknown as DocumentNode<RegistrationSubscription, RegistrationSubscriptionVariables>;
+export const VarsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"Vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"FragmentVars"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"FragmentVars"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Vars"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]} as unknown as DocumentNode<VarsSubscription, VarsSubscriptionVariables>;

@@ -37,7 +37,7 @@ if (state === 'TRIAL') expireTime = Date.now() + 60 * 60 * 1000; // in 1 hour
 if (state === 'EEXPIRED') expireTime = uptime; // 1 hour ago
 
 const serverState = {
-  "apiKey": "XXXunupc_12312313123",
+  "apiKey": "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
   "avatar": "https://source.unsplash.com/300x300/?portrait",
   "config": {
     // error: 'INVALID',
