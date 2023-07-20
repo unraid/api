@@ -1,5 +1,10 @@
 <script setup lang="ts">
 import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/vue/24/solid';
+
+type ApiOnlineStatus = 'online'|'offline';
+const onlineStatus = ref<ApiOnlineStatus>('online');
+const apiLoading = ref(false);
+
 import { useQuery } from '@vue/apollo-composable';
 
 import {
@@ -16,10 +21,6 @@ const result = computed(() => useFragment(TEST_FRAGMENT, newResult.value?.cloud)
 watch(result, (newVal, oldVal) => {
   console.log('result', newVal, oldVal);
 });
-
-type ApiOnlineStatus = 'online'|'offline';
-const onlineStatus = ref<ApiOnlineStatus>('online');
-const apiLoading = ref(false);
 </script>
 
 <template>

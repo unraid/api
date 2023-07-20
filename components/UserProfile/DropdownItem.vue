@@ -1,3 +1,4 @@
+
 <script setup lang="ts">
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import type { ServerStateDataAction } from '~/types/server';
@@ -5,7 +6,7 @@ import type { UserProfileLink } from '~/types/userProfile';
 
 export interface Props {
   item: ServerStateDataAction | UserProfileLink;
-  rounded: boolean;
+  rounded?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {

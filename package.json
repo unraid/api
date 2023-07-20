@@ -21,6 +21,7 @@
     "@nuxtjs/tailwindcss": "^6.7.0",
     "@types/crypto-js": "^4.1.1",
     "@types/node": "^18",
+    "@vue/apollo-util": "^4.0.0-beta.6",
     "@vueuse/core": "^10.1.2",
     "@vueuse/nuxt": "^10.1.2",
     "amazon-cognito-identity-js": "^6.2.0",
