@@ -1,21 +1,21 @@
 import { from, ApolloClient, createHttpLink, InMemoryCache, split } from '@apollo/client/core/core.cjs';
-import { onError } from '@apollo/client/link/error'
+import { onError } from '@apollo/client/link/error';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { provideApolloClient } from '@vue/apollo-composable';
-import { logErrorMessages } from '@vue/apollo-util'
+import { logErrorMessages } from '@vue/apollo-util';
 import { createClient } from 'graphql-ws';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import { useAccountStore } from '~/store/account';
-import { useErrorsStore } from '~/store/errors';
+// import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
-let baseUrl = window.location.origin
+let baseUrl = window.location.origin;
 const localDevUrl = baseUrl.includes(':4321'); /** @todo use ENV */
 if (localDevUrl) {
   /** @temp local dev mode */
@@ -30,7 +30,7 @@ console.debug('[useUnraidApiStore] wsEndpoint', wsEndpoint.toString());
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   console.debug('[useUnraidApiStore]');
   const accountStore = useAccountStore();
-  const errorsStore = useErrorsStore();
+  // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   const unraidApiClient = ref<ApolloClient<any>>();
@@ -50,7 +50,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     }
     const headers = { 'x-api-key': serverStore.apiKey };
 
-    const httpLink = new createHttpLink({
+    const httpLink = createHttpLink({
       uri: httpEndpoint.toString(),
       headers,
     });
@@ -67,7 +67,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     /**
      * @todo integrate errorsStore errorsStore.setError(error);
      */
-    const errorLink = onError((errors) => { 
+    const errorLink = onError((errors) => {
       logErrorMessages(errors);
       // // { graphQLErrors, networkError }
       // if (graphQLErrors) {
@@ -86,8 +86,8 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       ({ query }) => {
         const definition = getMainDefinition(query);
         return (
-          definition.kind === "OperationDefinition" &&
-          definition.operation === "subscription"
+          definition.kind === 'OperationDefinition' &&
+          definition.operation === 'subscription'
         );
       },
       wsLink,
@@ -114,7 +114,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
   const closeUnraidApiClient = async () => {
     console.debug('[useUnraidApiStore.closeUnraidApiClient] STARTED');
-    if (!unraidApiClient.value) return console.debug('[useUnraidApiStore.closeUnraidApiClient] unraidApiClient not set');
+    if (!unraidApiClient.value) { return console.debug('[useUnraidApiStore.closeUnraidApiClient] unraidApiClient not set'); }
     if (unraidApiClient.value) {
       await unraidApiClient.value.clearStore();
       unraidApiClient.value.stop();

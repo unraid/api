@@ -7,4 +7,4 @@ export interface TimeStringsObject {
   seconds: number;
   firstDateWasLater: boolean;
   displaySeconds?: boolean;
-};
+}
