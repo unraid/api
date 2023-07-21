@@ -1,18 +1,9 @@
-import { XCircleIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-
-// import { useAccountStore } from '~/store/account';
-// import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
-// import { useInstallKeyStore } from '~/store/installKey';
-// import { useServerStore } from '~/store/server';
 import type { ButtonProps } from '~/components/Brand/Button.vue';
 
 import { OBJ_TO_STR } from '~/helpers/functions';
 
-import type {
-  Server,
-  ServerStateData,
-} from '~/types/server';
+import type { Server } from '~/types/server';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -34,15 +25,9 @@ export interface Error {
 }
 
 export const useErrorsStore = defineStore('errors', () => {
-  // const accountStore = useAccountStore();
-  // const callbackStore = useCallbackStore();
-  // const callbackActionsStore = useCallbackActionsStore();
-  // const installKeyStore = useInstallKeyStore();
-  // const serverStore = useServerStore();
-
   const errors = ref<Error[]>([]);
 
-  const displayedErrors = computed(() => errors.value.filter(error => error.type === 'server' || error.type === 'serverState'));
+  // const displayedErrors = computed(() => errors.value.filter(error => error.type === 'server' || error.type === 'serverState'));
 
   const removeErrorByIndex = (index: number) => {
     errors.value = errors.value.filter((_error, i) => i !== index);
@@ -62,14 +47,13 @@ export const useErrorsStore = defineStore('errors', () => {
   };
 
   interface TroubleshootPayload {
-    email: string; 
+    email: string;
     includeUnraidApiLogs: boolean;
   }
 
   const openTroubleshoot = async (payload: TroubleshootPayload) => {
     console.debug('[openTroubleshoot]', payload);
     try {
-      // eslint-disable-next-line no-undef
       // @ts-ignore – `FeedbackButton` will be included in 6.10.4+ DefaultPageLayout
       await FeedbackButton();
       // once the modal is visible we need to select the radio to correctly show the bug report form
@@ -95,13 +79,13 @@ export const useErrorsStore = defineStore('errors', () => {
           message += `• Error ${index1} Message: ${error.message}\n`;
           message += `• Error ${index1} Level: ${error.level}\n`;
           message += `• Error ${index1} Type: ${error.type}\n`;
-          if (error.ref) message += `• Error ${index1} Ref: ${error.ref}\n`;
-          if (error.debugServer) message += `• Error ${index1} Debug Server:\n${OBJ_TO_STR(error.debugServer)}\n`;
+          if (error.ref) { message += `• Error ${index1} Ref: ${error.ref}\n`; }
+          if (error.debugServer) { message += `• Error ${index1} Debug Server:\n${OBJ_TO_STR(error.debugServer)}\n`; }
           return message;
         }).join('\n***************\n');
-        $textarea.value += `\n##########################\n`;
+        $textarea.value += '\n##########################\n';
         $textarea.value += `# Debug Details – Component Errors ${errors.value.length} #\n`;
-        $textarea.value += `##########################\n`;
+        $textarea.value += '##########################\n';
         $textarea.value += errorMessages;
       }
       // autofill emails
@@ -130,14 +114,13 @@ export const useErrorsStore = defineStore('errors', () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         $panels = $modal.querySelectorAll('.allpanels');
       }
-      $panels.forEach($panel => {
-        if ($panel.id === 'troubleshoot_panel') $panel.style['display'] = 'block';
-        else $panel.style['display'] = 'none';
+      $panels.forEach(($panel) => {
+        if ($panel.id === 'troubleshoot_panel') { $panel.style.display = 'block'; } else { $panel.style.display = 'none'; }
       });
     } catch (error) {
       console.error('[openTroubleshoot]', error);
     }
-  }
+  };
 
   return {
     errors,

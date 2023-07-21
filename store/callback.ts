@@ -21,7 +21,7 @@ export type Redeem = 'redeem';
 export type Upgrade = 'upgrade';
 
 export type AccountAction = SignIn | SignOut | OemSignOut | Troubleshoot;
-export type AccountKeyAction =  Recover | Replace | TrialExtend | TrialStart;
+export type AccountKeyAction = Recover | Replace | TrialExtend | TrialStart;
 export type PurchaseAction = Purchase | Redeem | Upgrade;
 
 export type ServerAction = AccountAction | AccountKeyAction | PurchaseAction;
@@ -122,10 +122,9 @@ export const useCallbackStoreGeneric = (
         destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
         console.debug('[callback.send]', encryptedMessage, destinationUrl);
         window.location.href = destinationUrl.toString();
-        return;
       } catch (error) {
         console.error(error);
-        throw new Error("Unable to create callback event");
+        throw new Error('Unable to create callback event');
       }
     };
 
@@ -146,7 +145,7 @@ export const useCallbackStoreGeneric = (
         callbackActions.redirectToCallbackType(decryptedData);
       } catch (error) {
         console.error(error);
-        throw new Error("Couldn't decrypt callback data");
+        throw new Error('Couldn\'t decrypt callback data');
       }
     };
 

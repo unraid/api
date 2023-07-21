@@ -10,8 +10,8 @@ setActivePinia(createPinia());
 export const useModalStore = defineStore('modal', () => {
   const modalVisible = ref<boolean>(true);
 
-  const modalHide = () => modalVisible.value = false;
-  const modalShow = () => modalVisible.value = true;
+  const modalHide = () => { modalVisible.value = false; };
+  const modalShow = () => { modalVisible.value = true; };
   const modalToggle = useToggle(modalVisible);
 
   watch(modalVisible, (newVal, _oldVal) => {

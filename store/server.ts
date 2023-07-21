@@ -2,7 +2,6 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
  */
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import isEqual from 'lodash/isEqual';
 import {
   ArrowRightOnRectangleIcon,
   CogIcon,
@@ -12,16 +11,15 @@ import {
   QuestionMarkCircleIcon
 } from '@heroicons/vue/24/solid';
 import { useQuery } from '@vue/apollo-composable';
-import { useTimeoutPoll } from '@vueuse/core';
 
+import { SERVER_STATE_QUERY } from './server.fragment';
 import { WebguiState } from '~/composables/services/webgui';
 import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore, type Error } from '~/store/errors';
-import { usePurchaseStore } from "~/store/purchase";
+import { usePurchaseStore } from '~/store/purchase';
 import { useTrialStore } from '~/store/trial';
 import { useThemeStore, type Theme } from '~/store/theme';
-import { useUnraidApiStore } from '~/store/unraidApi';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -34,7 +32,6 @@ import type {
   ServerconnectPluginInstalled,
 } from '~/types/server';
 
-import { SERVER_STATE_QUERY } from './server.fragment';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -47,7 +44,6 @@ export const useServerStore = defineStore('server', () => {
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const trialStore = useTrialStore();
-  const unraidApiStore = useUnraidApiStore();
   /**
    * State
    */
@@ -127,7 +123,7 @@ export const useServerStore = defineStore('server', () => {
       uptime: uptime.value,
       username: username.value,
       wanFQDN: wanFQDN.value,
-    }
+    };
   });
 
   const serverPurchasePayload = computed((): ServerPurchaseCallbackSendPayload => {
@@ -135,13 +131,13 @@ export const useServerStore = defineStore('server', () => {
     let keyTypeForPurchase: ServerKeyTypeForPurchase = 'Trial';
     switch (state.value) {
       case 'BASIC':
-        keyTypeForPurchase =  'Basic';
+        keyTypeForPurchase = 'Basic';
         break;
       case 'PLUS':
-        keyTypeForPurchase =  'Plus';
+        keyTypeForPurchase = 'Plus';
         break;
       case 'PRO':
-        keyTypeForPurchase =  'Pro';
+        keyTypeForPurchase = 'Pro';
         break;
     }
     const server = {
@@ -180,7 +176,7 @@ export const useServerStore = defineStore('server', () => {
       site: site.value,
       state: state.value,
       wanFQDN: wanFQDN.value,
-    }
+    };
   });
 
   const serverDebugPayload = computed((): Server => {
@@ -216,42 +212,42 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const purchaseAction: ServerStateDataAction = {
-    click: () => { purchaseStore.purchase() },
+    click: () => { purchaseStore.purchase(); },
     external: true,
     icon: KeyIcon,
     name: 'purchase',
     text: 'Purchase Key',
   };
   const upgradeAction: ServerStateDataAction = {
-    click: () => { purchaseStore.upgrade() },
+    click: () => { purchaseStore.upgrade(); },
     external: true,
     icon: KeyIcon,
     name: 'upgrade',
     text: 'Upgrade Key',
   };
   const recoverAction: ServerStateDataAction = {
-    click: () => { accountStore.recover() },
+    click: () => { accountStore.recover(); },
     external: true,
     icon: KeyIcon,
     name: 'recover',
     text: 'Recover Key',
   };
   const redeemAction: ServerStateDataAction = {
-    click: () => { purchaseStore.redeem() },
+    click: () => { purchaseStore.redeem(); },
     external: true,
     icon: KeyIcon,
     name: 'redeem',
     text: 'Redeem Activation Code',
   };
   const replaceAction: ServerStateDataAction = {
-    click: () => { accountStore.replace() },
+    click: () => { accountStore.replace(); },
     external: true,
     icon: KeyIcon,
     name: 'replace',
     text: 'Replace Key',
   };
   const signInAction: ServerStateDataAction = {
-    click: () => { accountStore.signIn() },
+    click: () => { accountStore.signIn(); },
     external: true,
     icon: GlobeAltIcon,
     name: 'signIn',
@@ -261,21 +257,21 @@ export const useServerStore = defineStore('server', () => {
    * @todo implment conditional sign out to show that a keyfile is required
    */
   const signOutAction: ServerStateDataAction = {
-    click: () => { accountStore.signOut() },
+    click: () => { accountStore.signOut(); },
     external: true,
     icon: ArrowRightOnRectangleIcon,
     name: 'signOut',
     text: 'Sign Out of Unraid.net',
   };
   const trialExtendAction: ServerStateDataAction = {
-    click: () => { trialStore.setTrialStatus('trialExtend') },
+    click: () => { trialStore.setTrialStatus('trialExtend'); },
     external: true,
     icon: KeyIcon,
     name: 'trialExtend',
     text: 'Extend Trial',
   };
   const trialStartAction: ServerStateDataAction = {
-    click: () => { trialStore.setTrialStatus('trialStart') },
+    click: () => { trialStore.setTrialStatus('trialStart'); },
     external: true,
     icon: KeyIcon,
     name: 'trialStart',
@@ -293,8 +289,8 @@ export const useServerStore = defineStore('server', () => {
             ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           humanReadable: 'No Keyfile',
-          heading: `Let's Unleash your Hardware!`,
-          message: `<p>Your server will not be usable until you purchase a Registration key or install a free 30-day <em>Trial</em> key. A <em>Trial</em> key provides all the functionality of a Pro Registration key.</p><p>Registration keys are bound to your USB Flash boot device serial number (GUID). Please use a high quality name brand device at least 1GB in size.</p><p>Note: USB memory card readers are generally not supported because most do not present unique serial numbers.</p><p><strong>Important:</strong></p><ul class='list-disc pl-16px'><li>Please make sure your server time is accurate to within 5 minutes</li><li>Please make sure there is a DNS server specified</li></ul>`,
+          heading: 'Let\'s Unleash your Hardware!',
+          message: '<p>Your server will not be usable until you purchase a Registration key or install a free 30-day <em>Trial</em> key. A <em>Trial</em> key provides all the functionality of a Pro Registration key.</p><p>Registration keys are bound to your USB Flash boot device serial number (GUID). Please use a high quality name brand device at least 1GB in size.</p><p>Note: USB memory card readers are generally not supported because most do not present unique serial numbers.</p><p><strong>Important:</strong></p><ul class=\'list-disc pl-16px\'><li>Please make sure your server time is accurate to within 5 minutes</li><li>Please make sure there is a DNS server specified</li></ul>',
         };
       case 'TRIAL':
         return {
@@ -305,7 +301,7 @@ export const useServerStore = defineStore('server', () => {
           ],
           humanReadable: 'Trial',
           heading: 'Thank you for choosing Unraid OS!',
-          message: `<p>Your <em>Trial</em> key includes all the functionality and device support of a <em>Pro</em> key.</p><p>After your <em>Trial</em> has reached expiration, your server <strong>still functions normally</strong> until the next time you Stop the array or reboot your server.</p><p>At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>`,
+          message: '<p>Your <em>Trial</em> key includes all the functionality and device support of a <em>Pro</em> key.</p><p>After your <em>Trial</em> has reached expiration, your server <strong>still functions normally</strong> until the next time you Stop the array or reboot your server.</p><p>At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>',
         };
       case 'EEXPIRED':
         return {
@@ -361,14 +357,11 @@ export const useServerStore = defineStore('server', () => {
           humanReadable: 'Pro',
           heading: 'Thank you for choosing Unraid OS!',
           message: registered.value
-          ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
-          : '',
+            ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
+            : '',
         };
       case 'EGUID':
-        if (guidReplaceable.value) messageEGUID = '<p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>';
-        else if (guidReplaceable.value === false && guidBlacklisted.value) messageEGUID = `<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it is blacklisted.</p>`;
-        else if (guidReplaceable.value === false && !guidBlacklisted.value) messageEGUID = `<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>`;
-        else messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device.</p><p>You may also attempt to Purchase or Replace your key.</p>'; // basically guidReplaceable.value === null
+        if (guidReplaceable.value) { messageEGUID = '<p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>'; } else if (guidReplaceable.value === false && guidBlacklisted.value) { messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it is blacklisted.</p>'; } else if (guidReplaceable.value === false && !guidBlacklisted.value) { messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>'; } else { messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device.</p><p>You may also attempt to Purchase or Replace your key.</p>'; } // basically guidReplaceable.value === null
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
@@ -485,12 +478,12 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const stateDataError = computed(() => {
-    if (!stateData.value?.error) return undefined;
+    if (!stateData.value?.error) { return undefined; }
     return {
       actions: [
         {
           click: () => {
-            errorsStore.openTroubleshoot({ 
+            errorsStore.openTroubleshoot({
               email: email.value,
               includeUnraidApiLogs: !!connectPluginInstalled.value,
             });
@@ -511,12 +504,12 @@ export const useServerStore = defineStore('server', () => {
   const authActionsNames = ['signIn', 'signOut'];
   // Extract sign in / out from actions so we can display seperately as needed
   const authAction = computed((): ServerStateDataAction | undefined => {
-    if (!stateData.value.actions) return;
+    if (!stateData.value.actions) { return; }
     return stateData.value.actions.find(action => authActionsNames.includes(action.name));
   });
   // Remove sign in / out from actions so we can display them separately
   const keyActions = computed((): ServerStateDataAction[] | undefined => {
-    if (!stateData.value.actions) return;
+    if (!stateData.value.actions) { return; }
     return stateData.value.actions.filter(action => !authActionsNames.includes(action.name));
   });
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
@@ -591,26 +584,26 @@ export const useServerStore = defineStore('server', () => {
   const deprecatedUnraidSSL = ref<Error | undefined>(
     (window.location.hostname.includes('localhost')
       ? {
-        actions: [
-          {
-            href: SETTINGS_MANAGMENT_ACCESS,
-            icon: CogIcon,
-            text: 'Go to Management Access Now',
-          },
-          {
-            external: true,
-            href: 'https://unraid.net/blog/ssl-certificate-update',
-            icon: InformationCircleIcon,
-            text: 'Learn More',
-          },
-        ],
-        forumLink: true,
-        heading: 'SSL certificates for unraid.net deprecated',
-        level: 'error',
-        message: 'On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
-        ref: 'deprecatedUnraidSSL',
-        type: 'server',
-      }
+          actions: [
+            {
+              href: SETTINGS_MANAGMENT_ACCESS,
+              icon: CogIcon,
+              text: 'Go to Management Access Now',
+            },
+            {
+              external: true,
+              href: 'https://unraid.net/blog/ssl-certificate-update',
+              icon: InformationCircleIcon,
+              text: 'Learn More',
+            },
+          ],
+          forumLink: true,
+          heading: 'SSL certificates for unraid.net deprecated',
+          level: 'error',
+          message: 'On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.',
+          ref: 'deprecatedUnraidSSL',
+          type: 'server',
+        }
       : undefined));
 
   const serverErrors = computed(() => {
@@ -627,35 +620,35 @@ export const useServerStore = defineStore('server', () => {
    */
   const setServer = (data: Server) => {
     console.debug('[setServer] data', data);
-    if (typeof data?.apiKey !== 'undefined') apiKey.value = data.apiKey;
-    if (typeof data?.apiVersion !== 'undefined') apiVersion.value = data.apiVersion;
-    if (typeof data?.avatar !== 'undefined') avatar.value = data.avatar;
-    if (typeof data?.config !== 'undefined') config.value = data.config;
-    if (typeof data?.connectPluginInstalled !== 'undefined') connectPluginInstalled.value = data.connectPluginInstalled;
-    if (typeof data?.csrf !== 'undefined') csrf.value = data.csrf;
-    if (typeof data?.description !== 'undefined') description.value = data.description;
-    if (typeof data?.deviceCount !== 'undefined') deviceCount.value = data.deviceCount;
-    if (typeof data?.email !== 'undefined') email.value = data.email;
-    if (typeof data?.expireTime !== 'undefined') expireTime.value = data.expireTime;
-    if (typeof data?.flashProduct !== 'undefined') flashProduct.value = data.flashProduct;
-    if (typeof data?.flashVendor !== 'undefined') flashVendor.value = data.flashVendor;
-    if (typeof data?.guid !== 'undefined') guid.value = data.guid;
-    if (typeof data?.keyfile !== 'undefined') keyfile.value = data.keyfile;
-    if (typeof data?.lanIp !== 'undefined') lanIp.value = data.lanIp;
-    if (typeof data?.license !== 'undefined') license.value = data.license;
-    if (typeof data?.locale !== 'undefined') locale.value = data.locale;
-    if (typeof data?.name !== 'undefined') name.value = data.name;
-    if (typeof data?.osVersion !== 'undefined') osVersion.value = data.osVersion;
-    if (typeof data?.pluginVersion !== 'undefined') pluginVersion.value = data.pluginVersion;
-    if (typeof data?.registered !== 'undefined') registered.value = data.registered;
-    if (typeof data?.regGen !== 'undefined') regGen.value = data.regGen;
-    if (typeof data?.regGuid !== 'undefined') regGuid.value = data.regGuid;
-    if (typeof data?.site !== 'undefined') site.value = data.site;
-    if (typeof data?.state !== 'undefined') state.value = data.state;
-    if (typeof data?.theme !== 'undefined') theme.value = data.theme;
-    if (typeof data?.uptime !== 'undefined') uptime.value = data.uptime;
-    if (typeof data?.username !== 'undefined') username.value = data.username;
-    if (typeof data?.wanFQDN !== 'undefined') wanFQDN.value = data.wanFQDN;
+    if (typeof data?.apiKey !== 'undefined') { apiKey.value = data.apiKey; }
+    if (typeof data?.apiVersion !== 'undefined') { apiVersion.value = data.apiVersion; }
+    if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
+    if (typeof data?.config !== 'undefined') { config.value = data.config; }
+    if (typeof data?.connectPluginInstalled !== 'undefined') { connectPluginInstalled.value = data.connectPluginInstalled; }
+    if (typeof data?.csrf !== 'undefined') { csrf.value = data.csrf; }
+    if (typeof data?.description !== 'undefined') { description.value = data.description; }
+    if (typeof data?.deviceCount !== 'undefined') { deviceCount.value = data.deviceCount; }
+    if (typeof data?.email !== 'undefined') { email.value = data.email; }
+    if (typeof data?.expireTime !== 'undefined') { expireTime.value = data.expireTime; }
+    if (typeof data?.flashProduct !== 'undefined') { flashProduct.value = data.flashProduct; }
+    if (typeof data?.flashVendor !== 'undefined') { flashVendor.value = data.flashVendor; }
+    if (typeof data?.guid !== 'undefined') { guid.value = data.guid; }
+    if (typeof data?.keyfile !== 'undefined') { keyfile.value = data.keyfile; }
+    if (typeof data?.lanIp !== 'undefined') { lanIp.value = data.lanIp; }
+    if (typeof data?.license !== 'undefined') { license.value = data.license; }
+    if (typeof data?.locale !== 'undefined') { locale.value = data.locale; }
+    if (typeof data?.name !== 'undefined') { name.value = data.name; }
+    if (typeof data?.osVersion !== 'undefined') { osVersion.value = data.osVersion; }
+    if (typeof data?.pluginVersion !== 'undefined') { pluginVersion.value = data.pluginVersion; }
+    if (typeof data?.registered !== 'undefined') { registered.value = data.registered; }
+    if (typeof data?.regGen !== 'undefined') { regGen.value = data.regGen; }
+    if (typeof data?.regGuid !== 'undefined') { regGuid.value = data.regGuid; }
+    if (typeof data?.site !== 'undefined') { site.value = data.site; }
+    if (typeof data?.state !== 'undefined') { state.value = data.state; }
+    if (typeof data?.theme !== 'undefined') { theme.value = data.theme; }
+    if (typeof data?.uptime !== 'undefined') { uptime.value = data.uptime; }
+    if (typeof data?.username !== 'undefined') { username.value = data.username; }
+    if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
     console.debug('[setServer] server', server.value);
   };
 
@@ -674,13 +667,15 @@ export const useServerStore = defineStore('server', () => {
       // sendCrashInfo: data.crashReportingEnabled,
       regGen: data.vars ? data.vars.regGen : null,
       state: data.vars ? data.vars.regState : null,
-      config: data.config ? data.config : {
-        error: data.vars ? data.vars.configError : null,
-        valid: data.vars ? data.vars.configValid : true,
-      },
+      config: data.config
+        ? data.config
+        : {
+            error: data.vars ? data.vars.configError : null,
+            valid: data.vars ? data.vars.configValid : true,
+          },
       expireTime: (data.registration && data.registration.expiration) ? data.registration.expiration : 0,
       ...(data.cloud && { cloud: data.cloud }),
-    }
+    };
     console.debug('[mutateServerStateFromApi] mutatedData', mutatedData);
     return mutatedData;
   };
@@ -692,7 +687,7 @@ export const useServerStore = defineStore('server', () => {
     });
     const serverState = computed(() => resultServerState.value ?? null);
     apiServerStateRefresh.value = refetchServerState;
-    watch(serverState, value => {
+    watch(serverState, (value) => {
       console.debug('[watch:serverState]', value);
       if (value) {
         const mutatedServerStateResult = mutateServerStateFromApi(value);
@@ -727,10 +722,10 @@ export const useServerStore = defineStore('server', () => {
     const responseNewState = apiServerStateRefresh.value
       ? await apiServerStateRefresh.value()
       : await phpServerStateRefresh();
-    console.debug(`[refreshServerState] responseNewState`, responseNewState);
+    console.debug('[refreshServerState] responseNewState', responseNewState);
 
     const newState = apiServerStateRefresh.value && responseNewState?.data ? responseNewState.data : responseNewState;
-    console.debug(`[refreshServerState] newState`, newState);
+    console.debug('[refreshServerState] newState', newState);
 
     const registrationStatusChanged = registeredBeforeRefresh !== newState.registered;
     const stateChanged = stateBeforeRefresh !== newState.state;
@@ -753,33 +748,33 @@ export const useServerStore = defineStore('server', () => {
   };
 
   watch(theme, (newVal) => {
-    if (newVal) themeStore.setTheme(newVal);
+    if (newVal) { themeStore.setTheme(newVal); }
   });
 
   watch(stateDataError, (newVal, oldVal) => {
     console.debug('[watch:stateDataError]', newVal, oldVal);
-    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
-    if (newVal) errorsStore.setError(newVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
   watch(invalidApiKey, (newVal, oldVal) => {
     console.debug('[watch:invalidApiKey]', newVal, oldVal);
-    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
-    if (newVal) errorsStore.setError(newVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
   watch(tooManyDevices, (newVal, oldVal) => {
     console.debug('[watch:tooManyDevices]', newVal, oldVal);
-    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
-    if (newVal) errorsStore.setError(newVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
   watch(pluginInstallFailed, (newVal, oldVal) => {
     console.debug('[watch:pluginInstallFailed]', newVal, oldVal);
-    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
-    if (newVal) errorsStore.setError(newVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
   watch(deprecatedUnraidSSL, (newVal, oldVal) => {
     console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
-    if (oldVal && oldVal.ref) errorsStore.removeErrorByRef(oldVal.ref);
-    if (newVal) errorsStore.setError(newVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
 
   return {
