@@ -1,4 +1,4 @@
-import { graphql } from "~/composables/gql/gql";
+import { graphql } from '~/composables/gql/gql';
 
 export const SERVER_CONFIG_FRAGMENT = graphql(/* GraphQL */`
   fragment FragmentConfig on Config {

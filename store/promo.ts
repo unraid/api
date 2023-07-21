@@ -13,10 +13,10 @@ export const usePromoStore = defineStore('promo', () => {
   const dropdownStore = useDropdownStore();
 
   const promoVisible = ref<boolean>(false);
-  
+
   const openOnNextLoad = () => sessionStorage.setItem('unraidConnectPromo', 'show');
-  const promoHide = () => promoVisible.value = false;
-  const promoShow = () => promoVisible.value = true;
+  const promoHide = () => { promoVisible.value = false; };
+  const promoShow = () => { promoVisible.value = true; };
   const promoToggle = useToggle(promoVisible);
 
   watch(promoVisible, (newVal, _oldVal) => {
