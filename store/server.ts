@@ -371,7 +371,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
-            ...([purchaseAction, redeemAction, replaceAction]),
+            ...([replaceAction, purchaseAction, redeemAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
           ],
           error: true,
@@ -396,8 +396,8 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
-            ...([purchaseAction, redeemAction]),
             ...(connectPluginInstalled.value ? [recoverAction] : []),
+            ...([purchaseAction, redeemAction]),
             ...(registered.value ? [signOutAction] : []),
           ],
           error: true,
