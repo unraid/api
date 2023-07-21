@@ -1,4 +1,3 @@
-import { KeyIcon } from '@heroicons/vue/24/solid';
 import { Theme } from '~/store/theme';
 import { UserProfileLink } from '~/types/userProfile';
 
@@ -30,6 +29,8 @@ export type ServerState = 'BASIC'
   | 'EBLACKLISTED2'
   | 'ENOCONN'
   | undefined;
+
+export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
 export interface Server {
   apiKey?: string;
   apiVersion?: string;
@@ -128,5 +129,3 @@ export interface ServerStateData {
   error?: ServerStateDataError | boolean;
   withKey?: boolean; // @todo potentially remove
 }
-
-export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
