@@ -1,4 +1,4 @@
-import { graphql } from "~/composables/gql/gql";
+import { graphql } from '~/composables/gql/gql';
 
 export const TEST_FRAGMENT = graphql(/* GraphQL */`
   fragment TestFragment on Cloud {

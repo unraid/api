@@ -7,9 +7,9 @@ export interface StartTrialPayload {
   timestamp: number; // timestamp in seconds
 }
 export interface StartTrialResponse {
-  license?: string; 
+  license?: string;
   trial?: string
-};
+}
 export const startTrial = (payload: StartTrialPayload) => KeyServer
   .url('/account/trial')
   .formUrl(payload)
