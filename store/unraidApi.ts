@@ -7,9 +7,11 @@ import { logErrorMessages } from '@vue/apollo-util';
 import { createClient } from 'graphql-ws';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
+// import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
 // import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -34,10 +36,11 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   const serverStore = useServerStore();
 
   const unraidApiClient = ref<ApolloClient<any>>();
-
-  const registeredWithValidApiKey = computed(() => {
-    const { registered, invalidApiKey } = serverStore;
-    return registered && !invalidApiKey;
+  watch(unraidApiClient, (newVal, oldVal) => {
+    console.debug('[watch:unraidApiStore.unraidApiClient]', { newVal, oldVal });
+    if (newVal && !oldVal) { // first time
+      serverStore.fetchServerFromApi();
+    }
   });
 
   /**
@@ -66,10 +69,11 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
     /**
      * @todo integrate errorsStore errorsStore.setError(error);
+     * { graphQLErrors, networkError }
      */
     const errorLink = onError((errors) => {
       logErrorMessages(errors);
-      // // { graphQLErrors, networkError }
+      // clientErrors.value = errors;
       // if (graphQLErrors) {
       //   logErrorMessages(graphQLErrors);
       //   // graphQLErrors.map(({ message, locations, path }) => {
@@ -111,7 +115,9 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     provideApolloClient(unraidApiClient.value);
     console.debug('[useUnraidApiStore.createApolloClient] 🏁 CREATED');
   };
-
+  /**
+   * Automatically called when an apiKey is unset in the serverStore
+   */
   const closeUnraidApiClient = async () => {
     console.debug('[useUnraidApiStore.closeUnraidApiClient] STARTED');
     if (!unraidApiClient.value) { return console.debug('[useUnraidApiStore.closeUnraidApiClient] unraidApiClient not set'); }
@@ -124,24 +130,36 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     console.debug('[useUnraidApiStore.closeUnraidApiClient] DONE');
   };
 
-  watch(registeredWithValidApiKey, (newVal, oldVal) => {
-    console.debug('[watch:registeredWithValidApiKey]', newVal, oldVal);
-    if (oldVal) {
-      console.debug('[watch:registeredWithValidApiKey] no apiKey, stop unraid-api client');
-      closeUnraidApiClient();
-    }
-    if (newVal) {
-      console.debug('[watch:registeredWithValidApiKey] new apiKey, start unraid-api client');
-      createApolloClient();
-    }
-  });
-
-  watch(unraidApiClient, (newVal, oldVal) => {
-    console.debug('[watch:unraidApiStore.unraidApiClient]', { newVal, oldVal });
-    if (newVal && !oldVal) { // first time
-      serverStore.fetchServerFromApi();
-    }
-  });
+  // const clientErrors = ref<any>();
+  // const offlineTimer = ref(false);
+  // const enableRestartUnraidApiClient = computed(() => {
+  //   const { connectPluginInstalled, stateDataError } = serverStore;
+  //   return clientErrors.value && connectPluginInstalled && !stateDataError;
+  // });
+  // /**
+  //  * @name detectOfflineTimer
+  //  * @description if after 30secs the api isn't started we want to possibly enable apiEnableRestartButton
+  //  * @param {String} from
+  //  */
+  // const detectOfflineTimer = () => {
+  //   console.debug('[detectOfflineTimer]');
+  //   setTimeout(() => {
+  //     if (!unraidApiClient.value && serverStore.registered) {
+  //       offlineTimer.value = true;
+  //       sessionStorage.setItem('offlineTimer', Date.now());
+  //     }
+  //   }, 30000);
+  // };
+  // const restartUnraidApiClient = () => {
+  //   WebguiUnraidApiCommand({
+  //     csrf_token: serverStore.csrfToken,
+  //     command: 'start',
+  //   });
+  //   // reset so the detectOfflineTimer can be used again without a page refresh
+  //   offlineTimer.value = false;
+  //   this.restartTriggered = true;
+  //   sessionStorage.removeItem('offlineTimer');
+  // };
 
   return {
     unraidApiClient,
