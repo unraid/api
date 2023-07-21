@@ -13,8 +13,7 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\n  fragment TestFragment on Cloud {\n    error\n  }\n": types.TestFragmentFragmentDoc,
-    "\n  query cloudError {\n    cloud {\n      ...TestFragment\n    }\n  }\n": types.cloudErrorDocument,
+    "\n  query OnlineStatus {\n    online\n  }\n": types.OnlineStatusDocument,
     "\n  fragment FragmentConfig on Config {\n    error\n    valid\n  }\n": types.FragmentConfigFragmentDoc,
     "\n  fragment FragmentOwner on Owner {\n    avatar\n    username\n  }\n": types.FragmentOwnerFragmentDoc,
     "\n  fragment FragmentRegistration on Registration {\n    state\n    expiration\n    keyFile {\n      contents\n    }\n  }\n": types.FragmentRegistrationFragmentDoc,
@@ -39,11 +38,7 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  fragment TestFragment on Cloud {\n    error\n  }\n"): (typeof documents)["\n  fragment TestFragment on Cloud {\n    error\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\n  query cloudError {\n    cloud {\n      ...TestFragment\n    }\n  }\n"): (typeof documents)["\n  query cloudError {\n    cloud {\n      ...TestFragment\n    }\n  }\n"];
+export function graphql(source: "\n  query OnlineStatus {\n    online\n  }\n"): (typeof documents)["\n  query OnlineStatus {\n    online\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
