@@ -20,6 +20,8 @@ import { useErrorsStore, type Error } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
 import { useTrialStore } from '~/store/trial';
 import { useThemeStore, type Theme } from '~/store/theme';
+import { useUnraidApiStore } from '~/store/unraidApi';
+
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -44,6 +46,7 @@ export const useServerStore = defineStore('server', () => {
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
   const trialStore = useTrialStore();
+  const unraidApiStore = useUnraidApiStore();
   /**
    * State
    */
@@ -52,6 +55,7 @@ export const useServerStore = defineStore('server', () => {
   const avatar = ref<string>(''); // @todo potentially move to a user store
   const config = ref<ServerStateConfigStatus>();
   const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
+  const connectPluginVersion = ref<string>('');
   const csrf = ref<string>(''); // required to make requests to Unraid webgui
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
@@ -70,13 +74,15 @@ export const useServerStore = defineStore('server', () => {
   const locale = ref<string>('');
   const name = ref<string>('');
   const osVersion = ref<string>('');
-  const pluginVersion = ref<string>('');
   const registered = ref<boolean>();
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
   const site = ref<string>('');
   const state = ref<ServerState>();
   const theme = ref<Theme>();
+  watch(theme, (newVal) => {
+    if (newVal) { themeStore.setTheme(newVal); }
+  });
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
@@ -98,6 +104,7 @@ export const useServerStore = defineStore('server', () => {
       apiKey: apiKey.value,
       apiVersion: apiVersion.value,
       avatar: avatar.value,
+      connectPluginVersion: connectPluginVersion.value,
       connectPluginInstalled: connectPluginInstalled.value,
       description: description.value,
       deviceCount: deviceCount.value,
@@ -113,7 +120,6 @@ export const useServerStore = defineStore('server', () => {
       locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,
-      pluginVersion: pluginVersion.value,
       registered: registered.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
@@ -142,6 +148,7 @@ export const useServerStore = defineStore('server', () => {
     }
     const server = {
       apiVersion: apiVersion.value,
+      connectPluginVersion: connectPluginVersion.value,
       deviceCount: deviceCount.value,
       email: email.value,
       guid: guid.value,
@@ -149,7 +156,6 @@ export const useServerStore = defineStore('server', () => {
       keyTypeForPurchase,
       locale: locale.value,
       osVersion: osVersion.value,
-      pluginVersion: pluginVersion.value,
       registered: registered.value ?? false,
       state: state.value,
       site: site.value,
@@ -160,6 +166,7 @@ export const useServerStore = defineStore('server', () => {
   const serverAccountPayload = computed((): ServerAccountCallbackSendPayload => {
     return {
       apiVersion: apiVersion.value,
+      connectPluginVersion: connectPluginVersion.value,
       description: description.value,
       expireTime: expireTime.value,
       flashProduct: flashProduct.value,
@@ -170,7 +177,6 @@ export const useServerStore = defineStore('server', () => {
       lanIp: lanIp.value,
       name: name.value,
       osVersion: osVersion.value,
-      pluginVersion: pluginVersion.value,
       registered: registered.value ?? false,
       regGuid: regGuid.value,
       site: site.value,
@@ -185,6 +191,7 @@ export const useServerStore = defineStore('server', () => {
       apiVersion: apiVersion.value,
       avatar: avatar.value,
       connectPluginInstalled: connectPluginInstalled.value,
+      connectPluginVersion: connectPluginVersion.value,
       description: description.value,
       deviceCount: deviceCount.value,
       email: email.value,
@@ -197,7 +204,6 @@ export const useServerStore = defineStore('server', () => {
       locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,
-      pluginVersion: pluginVersion.value,
       registered: registered.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
@@ -500,6 +506,11 @@ export const useServerStore = defineStore('server', () => {
       type: 'serverState',
     };
   });
+  watch(stateDataError, (newVal, oldVal) => {
+    console.debug('[watch:stateDataError]', newVal, oldVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
+  });
 
   const authActionsNames = ['signIn', 'signOut'];
   // Extract sign in / out from actions so we can display seperately as needed
@@ -543,6 +554,11 @@ export const useServerStore = defineStore('server', () => {
     }
     return undefined;
   });
+  watch(invalidApiKey, (newVal, oldVal) => {
+    console.debug('[watch:invalidApiKey]', newVal, oldVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
+  });
 
   const tooManyDevices = computed((): Error | undefined => {
     if (!config.value?.valid && config.value?.error === 'INVALID') {
@@ -555,6 +571,11 @@ export const useServerStore = defineStore('server', () => {
       };
     }
     return undefined;
+  });
+  watch(tooManyDevices, (newVal, oldVal) => {
+    console.debug('[watch:tooManyDevices]', newVal, oldVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
 
   const pluginInstallFailed = computed((): Error | undefined => {
@@ -576,6 +597,11 @@ export const useServerStore = defineStore('server', () => {
       };
     }
     return undefined;
+  });
+  watch(pluginInstallFailed, (newVal, oldVal) => {
+    console.debug('[watch:pluginInstallFailed]', newVal, oldVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
   });
 
   /**
@@ -605,6 +631,11 @@ export const useServerStore = defineStore('server', () => {
           type: 'server',
         }
       : undefined));
+  watch(deprecatedUnraidSSL, (newVal, oldVal) => {
+    console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
+  });
 
   const serverErrors = computed(() => {
     return [
@@ -616,6 +647,21 @@ export const useServerStore = defineStore('server', () => {
     ].filter(Boolean);
   });
   /**
+   * Determines whether or not we start or stop the apollo client for unraid-api
+   */
+  const registeredWithValidApiKey = computed(() => registered.value && !invalidApiKey.value);
+  watch(registeredWithValidApiKey, (newVal, oldVal) => {
+    console.debug('[watch:registeredWithValidApiKey]', newVal, oldVal);
+    if (oldVal) {
+      console.debug('[watch:registeredWithValidApiKey] no apiKey, stop unraid-api client');
+      unraidApiStore.closeUnraidApiClient();
+    }
+    if (newVal) {
+      console.debug('[watch:registeredWithValidApiKey] new apiKey, start unraid-api client');
+      unraidApiStore.createApolloClient();
+    }
+  });
+  /**
    * Actions
    */
   const setServer = (data: Server) => {
@@ -625,6 +671,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
     if (typeof data?.config !== 'undefined') { config.value = data.config; }
     if (typeof data?.connectPluginInstalled !== 'undefined') { connectPluginInstalled.value = data.connectPluginInstalled; }
+    if (typeof data?.connectPluginVersion !== 'undefined') { connectPluginVersion.value = data.connectPluginVersion; }
     if (typeof data?.csrf !== 'undefined') { csrf.value = data.csrf; }
     if (typeof data?.description !== 'undefined') { description.value = data.description; }
     if (typeof data?.deviceCount !== 'undefined') { deviceCount.value = data.deviceCount; }
@@ -639,7 +686,6 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.locale !== 'undefined') { locale.value = data.locale; }
     if (typeof data?.name !== 'undefined') { name.value = data.name; }
     if (typeof data?.osVersion !== 'undefined') { osVersion.value = data.osVersion; }
-    if (typeof data?.pluginVersion !== 'undefined') { pluginVersion.value = data.pluginVersion; }
     if (typeof data?.registered !== 'undefined') { registered.value = data.registered; }
     if (typeof data?.regGen !== 'undefined') { regGen.value = data.regGen; }
     if (typeof data?.regGuid !== 'undefined') { regGuid.value = data.regGuid; }
@@ -747,41 +793,12 @@ export const useServerStore = defineStore('server', () => {
     }, 250);
   };
 
-  watch(theme, (newVal) => {
-    if (newVal) { themeStore.setTheme(newVal); }
-  });
-
-  watch(stateDataError, (newVal, oldVal) => {
-    console.debug('[watch:stateDataError]', newVal, oldVal);
-    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
-    if (newVal) { errorsStore.setError(newVal); }
-  });
-  watch(invalidApiKey, (newVal, oldVal) => {
-    console.debug('[watch:invalidApiKey]', newVal, oldVal);
-    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
-    if (newVal) { errorsStore.setError(newVal); }
-  });
-  watch(tooManyDevices, (newVal, oldVal) => {
-    console.debug('[watch:tooManyDevices]', newVal, oldVal);
-    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
-    if (newVal) { errorsStore.setError(newVal); }
-  });
-  watch(pluginInstallFailed, (newVal, oldVal) => {
-    console.debug('[watch:pluginInstallFailed]', newVal, oldVal);
-    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
-    if (newVal) { errorsStore.setError(newVal); }
-  });
-  watch(deprecatedUnraidSSL, (newVal, oldVal) => {
-    console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
-    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
-    if (newVal) { errorsStore.setError(newVal); }
-  });
-
   return {
     // state
     apiKey,
     avatar,
     config,
+    connectPluginInstalled,
     csrf,
     description,
     deviceCount,
@@ -790,7 +807,6 @@ export const useServerStore = defineStore('server', () => {
     locale,
     lanIp,
     name,
-    connectPluginInstalled,
     registered,
     regGen,
     regGuid,
@@ -808,6 +824,7 @@ export const useServerStore = defineStore('server', () => {
     keyActions,
     pluginInstallFailed,
     pluginOutdated,
+    registeredWithValidApiKey,
     server,
     serverAccountPayload,
     serverPurchasePayload,

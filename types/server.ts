@@ -37,6 +37,7 @@ export interface Server {
   avatar?: string;
   config?: ServerStateConfigStatus | undefined;
   connectPluginInstalled?: ServerconnectPluginInstalled;
+  connectPluginVersion?: string;
   csrf?: string;
   description?: string;
   deviceCount?: number;
@@ -52,7 +53,6 @@ export interface Server {
   locale?: string;
   name?: string;
   osVersion?: string;
-  pluginVersion?: string;
   registered?: boolean;
   regGen?: number;
   regGuid?: string;
@@ -67,6 +67,7 @@ export interface Server {
 
 export interface ServerAccountCallbackSendPayload {
   apiVersion?: string;
+  connectPluginVersion?: string;
   description?: string;
   deviceCount?: number;
   expireTime?: number;
@@ -79,7 +80,6 @@ export interface ServerAccountCallbackSendPayload {
   locale?: string;
   name?: string;
   osVersion?: string;
-  pluginVersion?: string;
   registered: boolean;
   regGen?: number;
   regGuid?: string;
@@ -92,6 +92,7 @@ export type ServerKeyTypeForPurchase = 'Basic'|'Plus'|'Pro'|'Trial';
 
 export interface ServerPurchaseCallbackSendPayload {
   apiVersion?: string;
+  connectPluginVersion?: string;
   deviceCount: number;
   email: string;
   guid: string;
@@ -99,7 +100,6 @@ export interface ServerPurchaseCallbackSendPayload {
   keyTypeForPurchase: ServerKeyTypeForPurchase;
   locale: string;
   osVersion?: string;
-  pluginVersion?: string;
   registered: boolean;
   state: ServerState;
   site: string;
