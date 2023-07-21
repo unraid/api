@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { OnClickOutside } from '@vueuse/components'
+import { OnClickOutside } from '@vueuse/components';
 
 import { useCallbackStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
@@ -16,7 +16,7 @@ export interface Props {
 const props = defineProps<Props>();
 
 const callbackStore = useCallbackStore();
-const dropdownStore = useDropdownStore()
+const dropdownStore = useDropdownStore();
 const serverStore = useServerStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
@@ -32,20 +32,20 @@ const { bannerGradient, theme } = storeToRefs(useThemeStore());
 const clickOutsideTarget = ref();
 const clickOutsideIgnoreTarget = ref();
 const outsideDropdown = () => {
-  if (dropdownVisible.value) return dropdownStore.dropdownToggle();
+  if (dropdownVisible.value) { return dropdownStore.dropdownToggle(); }
 };
 
 /**
  * Copy LAN IP on server name click
  */
-let copyIpInterval: string | number | NodeJS.Timeout | undefined = undefined;
-const { text, copy, copied, isSupported } = useClipboard({ source: lanIp.value ?? '' });
+let copyIpInterval: string | number | NodeJS.Timeout | undefined;
+const { copy, copied, isSupported } = useClipboard({ source: lanIp.value ?? '' });
 const showCopyNotSupported = ref<boolean>(false);
 const copyLanIp = () => {
-  if (!isSupported) showCopyNotSupported.value = true;
+  if (!isSupported) { showCopyNotSupported.value = true; }
   copy(lanIp.value ?? '');
 };
-watch(showCopyNotSupported, async (newVal, oldVal) => {
+watch(showCopyNotSupported, (newVal, oldVal) => {
   if (newVal && oldVal === false) {
     clearTimeout(copyIpInterval);
     copyIpInterval = setTimeout(() => {
@@ -58,8 +58,10 @@ watch(showCopyNotSupported, async (newVal, oldVal) => {
  *
  */
 onBeforeMount(() => {
-  console.debug('[onBeforeMount]', { props }, typeof props.server);
-  if (!props.server) return console.error('Server data not present');
+  // console.debug('[onBeforeMount]', { props }, typeof props.server);
+  if (!props.server) {
+    throw new Error('Server data not present');
+  }
   /**
    * Set props from web component in store so the data is available throughout other components
    */
@@ -93,7 +95,9 @@ onBeforeMount(() => {
           <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
-        <button @click="copyLanIp()" :title="`Click to Copy LAN IP ${lanIp}`">{{ name }}</button>
+        <button :title="`Click to Copy LAN IP ${lanIp}`" @click="copyLanIp()">
+          {{ name }}
+        </button>
         <span
           v-show="copied || showCopyNotSupported"
           class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
@@ -103,9 +107,9 @@ onBeforeMount(() => {
         </span>
       </h1>
 
-      <div class="block w-2px h-24px bg-gamma"></div>
+      <div class="block w-2px h-24px bg-gamma" />
 
-      <OnClickOutside class="flex items-center justify-end h-full" @trigger="outsideDropdown" :options="{ ignore: [clickOutsideIgnoreTarget] }">
+      <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
         <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" />
         <UpcDropdown ref="clickOutsideTarget" />
       </OnClickOutside>
