@@ -1,5 +1,4 @@
-import type { Config } from 'tailwindcss'
-import defaultTheme from 'tailwindcss/defaultTheme'
+import type { Config } from 'tailwindcss';
 
 export default <Partial<Config>>{
   safelist: [
@@ -100,8 +99,8 @@ export default <Partial<Config>>{
       },
       screens: {
         '2xs': '470px',
-        'xs': '530px',
+        xs: '530px',
       },
     }
   }
-}
+};

@@ -15,7 +15,7 @@ export interface Theme {
   metaColor: string;
   name: string;
   textColor: string;
-} 
+}
 
 export const useThemeStore = defineStore('theme', () => {
   // State
@@ -23,7 +23,7 @@ export const useThemeStore = defineStore('theme', () => {
   // Getters
   const darkMode = computed(() => (theme.value?.name === 'black' || theme.value?.name === 'azure') ?? false);
   const bannerGradient = computed(() => {
-    if (!theme.value?.banner || !theme.value?.bannerGradient) return undefined;
+    if (!theme.value?.banner || !theme.value?.bannerGradient) { return undefined; }
     const start = theme.value?.bgColor ? 'var(--color-customgradient-start)' : 'rgba(0, 0, 0, 0)';
     const end = theme.value?.bgColor ? 'var(--color-customgradient-end)' : 'var(--color-beta)';
     return `background-image: linear-gradient(90deg, ${start} 0, ${end} 30%);`;
@@ -49,13 +49,13 @@ export const useThemeStore = defineStore('theme', () => {
     };
     let { alpha, beta, gamma } = darkMode.value ? defaultColors.darkTheme : defaultColors.lightTheme;
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
-    if (theme.value?.textColor) alpha = theme.value?.textColor;
+    if (theme.value?.textColor) { alpha = theme.value?.textColor; }
     if (theme.value?.bgColor) {
       beta = theme.value?.bgColor;
       body.style.setProperty('--color-customgradient-start', hexToRgba(beta, 0));
       body.style.setProperty('--color-customgradient-end', hexToRgba(beta, 0.7));
     }
-    if (theme.value?.metaColor) gamma = theme.value?.metaColor;
+    if (theme.value?.metaColor) { gamma = theme.value?.metaColor; }
     body.style.setProperty('--color-alpha', alpha);
     body.style.setProperty('--color-beta', beta);
     body.style.setProperty('--color-gamma', gamma);
