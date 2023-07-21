@@ -9,6 +9,7 @@ for (const k in envConfig) {
 
 module.exports = {
   extends: ['@nuxtjs/eslint-config-typescript'],
+  ignorePatterns: ['composables/gql/'],
   rules: {
     'comma-dangle': ['warn', 'only-multiline'],
     semi: ['error', 'always'],
