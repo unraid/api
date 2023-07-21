@@ -26,6 +26,15 @@ export type PurchaseAction = Purchase | Redeem | Upgrade;
 
 export type ServerAction = AccountAction | AccountKeyAction | PurchaseAction;
 
+export interface UserInfo {
+  'custom:ips_id'?: string;
+  email?: string;
+  email_verifed?: 'true' | 'false';
+  preferred_username?: string;
+  sub?: string;
+  username?: string;
+}
+
 export interface ServerData {
   description?: string;
   deviceCount?: number;
@@ -82,15 +91,6 @@ export interface UpcPayload {
 export type SendPayloads = ExternalActions[] | UpcActions[];
 
 export type QueryPayloads = ExternalPayload | UpcPayload;
-
-export interface UserInfo {
-  'custom:ips_id'?: string;
-  email?: string;
-  email_verifed?: 'true' | 'false';
-  preferred_username?: string;
-  sub?: string;
-  username?: string;
-}
 
 interface CallbackActionsStore {
   redirectToCallbackType: (decryptedData: QueryPayloads) => void;
