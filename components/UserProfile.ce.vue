@@ -75,8 +75,6 @@ onBeforeMount(() => {
    */
   callbackStore.watcher();
 });
-
-watch(description, (value) => console.debug('[watch:description]', value));
 </script>
 
 <template>
