@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
 const { readFileSync } = require('fs');
-const dotenv = require('dotenv');
+const { parse } = require('dotenv');
 
-const envConfig = dotenv.parse(readFileSync('.env'));
+const envConfig = parse(readFileSync('.env'));
 for (const k in envConfig) {
   process.env[k] = envConfig[k];
 }

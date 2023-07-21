@@ -6,7 +6,7 @@
  * @param {string*} str
  * @return {string}
  */
-function FixArrayType(str) {
+function FixArrayType (str) {
   if (str === 'Array') {
     return 'ArrayType';
   }

@@ -10,11 +10,11 @@ const useInstallPlugin = () => {
         sessionStorage.setItem('clickedInstallPlugin', '1');
       }
       const modalTitle = payload.update ? 'Updating Connect (beta)' : 'Installing Connect (beta)';
-      // eslint-disable-next-line no-undef
+
       // @ts-ignore – `openPlugin` will be included in 6.10.4+ DefaultPageLayout
       if (typeof openPlugin === 'function') {
         console.debug('[useInstallPlugin.install] using openPlugin', file);
-        // eslint-disable-next-line no-undef
+
         // @ts-ignore
         openPlugin(
           `plugin ${payload.update ? 'update' : 'install'} ${file}`,
@@ -25,7 +25,7 @@ const useInstallPlugin = () => {
       } else {
         console.debug('[useInstallPlugin.install] using openBox', file);
         // `openBox()` is defined in the webgui's DefaultPageLayout.php and used when openPlugin is not available
-        // eslint-disable-next-line no-undef
+
         // @ts-ignore
         openBox(
           `/plugins/dynamix.plugin.manager/scripts/plugin&arg1=install&arg2=${file}`,
@@ -38,7 +38,7 @@ const useInstallPlugin = () => {
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   return {
     install,

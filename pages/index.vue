@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import serverState from '../_data/serverState';
+import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
 onBeforeMount(() => {
@@ -15,19 +15,19 @@ onBeforeMount(() => {
           <h2>Vue Components</h2>
           <h3>UserProfileCe</h3>
           <UserProfileCe :server="serverState" />
-          <hr />
+          <hr>
           <h3>DownloadApiLogsCe</h3>
           <DownloadApiLogsCe />
-          <hr />
+          <hr>
           <h3>AuthCe</h3>
           <AuthCe />
-          <hr />
+          <hr>
           <h3>KeyActionsCe</h3>
           <KeyActionsCe />
-          <hr />
+          <hr>
           <h3>WanIpCheckCe</h3>
           <WanIpCheckCe php-wan-ip="47.184.85.45" />
-          <hr />
+          <hr>
           <h3>ModalsCe</h3>
           <ModalsCe />
         </div>
