@@ -45,7 +45,7 @@ export const useAccountStore = defineStore('account', () => {
         };
       case 'failed':
         return {
-          text:  accountAction.value?.type === 'signIn'
+          text: accountAction.value?.type === 'signIn'
             ? 'Sign In Failed'
             : 'Sign Out Failed',
         };
@@ -96,7 +96,7 @@ export const useAccountStore = defineStore('account', () => {
   const updatePluginConfig = async (action: ExternalSignIn | ExternalSignOut) => {
     console.debug('[accountStore.updatePluginConfig]', action);
     // save any existing username before updating
-    if (serverStore.username) username.value = serverStore.username;
+    if (serverStore.username) { username.value = serverStore.username; }
 
     accountAction.value = action;
     accountActionStatus.value = 'updating';
@@ -136,11 +136,11 @@ export const useAccountStore = defineStore('account', () => {
           ...userPayload,
         })
         .post()
-        .res(res => {
+        .res((res) => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate res', res);
           accountActionStatus.value = 'success';
         })
-        .catch(err => {
+        .catch((err) => {
           console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
           accountActionStatus.value = 'failed';
           errorsStore.setError({
@@ -152,7 +152,7 @@ export const useAccountStore = defineStore('account', () => {
           });
         });
       return response;
-    } catch(err) {
+    } catch (err) {
       console.debug('[accountStore.updatePluginConfig] WebguiUpdate catch err', err);
       accountActionStatus.value = 'failed';
       errorsStore.setError({

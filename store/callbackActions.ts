@@ -6,9 +6,7 @@ import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
 
-export const useCallbackActionsStore = defineStore(
-  'callbackActions',
-  () => {
+export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
@@ -61,7 +59,7 @@ export const useCallbackActionsStore = defineStore(
     });
   };
 
-  const setCallbackStatus = (status: CallbackStatus) => callbackStatus.value = status;
+  const setCallbackStatus = (status: CallbackStatus) => { callbackStatus.value = status; };
 
   watch(callbackStatus, (newVal, oldVal) => {
     console.debug('[callbackStatus]', newVal);
@@ -81,7 +79,7 @@ export const useCallbackActionsStore = defineStore(
     callbackFeedbackVisible,
     callbackStatus,
     setCallbackStatus,
-  }
+  };
 });
 
 export const useCallbackStore = useCallbackStoreGeneric(useCallbackActionsStore);

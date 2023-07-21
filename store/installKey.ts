@@ -23,7 +23,7 @@ export const useInstallKeyStore = defineStore('installKey', () => {
    * Extracts key type from key url. Works for both .key and .unkey.
    */
   const keyType = computed((): string | undefined => {
-    if (!keyUrl.value) return undefined;
+    if (!keyUrl.value) { return undefined; }
     const parts = keyUrl.value.split('/');
     return parts[parts.length - 1].replace(/\.key|\.unkey/g, '');
   });
@@ -33,7 +33,7 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     keyInstallStatus.value = 'installing';
     keyAction.value = action;
 
-    if (!keyUrl.value) return console.error('[install] no key to install');
+    if (!keyUrl.value) { return console.error('[install] no key to install'); }
 
     try {
       const installResponse = await WebguiInstallKey
@@ -69,32 +69,32 @@ export const useInstallKeyStore = defineStore('installKey', () => {
   };
 
   const keyInstallStatusCopy = computed((): { text: string; } => {
+    let txt1 = 'Installing';
+    let txt2 = 'Installed';
+    let txt3 = 'Install';
     switch (keyInstallStatus.value) {
       case 'ready':
         return {
           text: 'Ready to Install Key',
         };
       case 'installing':
-        let txt1 = 'Installing';
-        if (keyActionType.value === 'trialExtend') txt1 = 'Installing Extended Trial';
-        if (keyActionType.value === 'recover') txt1 = 'Installing Recovered';
-        if (keyActionType.value === 'replace') txt1 = 'Installing Replaced';
+        if (keyActionType.value === 'trialExtend') { txt1 = 'Installing Extended Trial'; }
+        if (keyActionType.value === 'recover') { txt1 = 'Installing Recovered'; }
+        if (keyActionType.value === 'replace') { txt1 = 'Installing Replaced'; }
         return {
           text: `${txt1} ${keyType.value} Key...`,
         };
       case 'success':
-      let txt2 = 'Installed';
-      if (keyActionType.value === 'trialExtend') txt2 = 'Extension Installed';
-      if (keyActionType.value === 'recover') txt2 = 'Recovered';
-      if (keyActionType.value === 'replace') txt2 = 'Replaced';
+        if (keyActionType.value === 'trialExtend') { txt2 = 'Extension Installed'; }
+        if (keyActionType.value === 'recover') { txt2 = 'Recovered'; }
+        if (keyActionType.value === 'replace') { txt2 = 'Replaced'; }
         return {
           text: `${keyType.value} Key ${txt2} Successfully`,
         };
       case 'failed':
-        let txt3 = 'Install';
-        if (keyActionType.value === 'trialExtend') txt3 = 'Install Extended';
-        if (keyActionType.value === 'recover') txt3 = 'Install Recovered';
-        if (keyActionType.value === 'replace') txt3 = 'Install Replaced';
+        if (keyActionType.value === 'trialExtend') { txt3 = 'Install Extended'; }
+        if (keyActionType.value === 'recover') { txt3 = 'Install Recovered'; }
+        if (keyActionType.value === 'replace') { txt3 = 'Install Replaced'; }
         return {
           text: `Failed to ${txt3} ${keyType.value} Key`,
         };
