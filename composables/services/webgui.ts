@@ -30,14 +30,39 @@ export const WebguiUpdate = request.url('/update.php');
  */
 export const WebguiUpdateDns = request.url('/webGui/include/UpdateDNS.php');
 /**
- * @name WebguiUpdateDns
- * @description used after Sign In to ensure URLs will work correctly
- * @type POST
- */
-export const WebguiUnraidApiCommand = request.url('/plugins/dynamix.my.servers/include/unraid-api.php');
-/**
  * @name WebguiState
  * @description used to get current state of server via PHP rather than unraid-api
  * @type GET
- */
+*/
 export const WebguiState = request.url('/plugins/dynamix.my.servers/data/server-state.php');
+/**
+ * Run unraid-api command's via php requests
+ */
+export interface WebguiUnraidApiCommandPayload {
+  csrf_token: string;
+  command: 'report' | 'start';
+  param1?: '-v'|'-vv';
+}
+export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayload) => {
+  console.debug('[WebguiUnraidApiCommand]', payload);
+  // eslint-disable-next-line camelcase
+  const { csrf_token, command, param1 } = payload;
+  // // Trigger front-end interactivty based on command
+  // if (command === 'start') { commit('SET_MY_SERVERS_LOADING', true); }
+  const response = await request
+    .url('/plugins/dynamix.my.servers/include/unraid-api.php')
+    .formUrl({
+      // eslint-disable-next-line camelcase
+      csrf_token,
+      command,
+      param1,
+    })
+    .post()
+    .json((json) => {
+      log.debug('👼 [WebguiUnraidApiCommand] json %o', json);
+    })
+    .catch((error) => {
+      log.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${command} 😢 %o`, error);
+    });
+  return response;
+};
