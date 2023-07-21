@@ -3,7 +3,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { addPreventClose, removePreventClose } from '~/composables/preventClose';
 import { startTrial, type StartTrialResponse } from '~/composables/services/keyServer';
 
-import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
+import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import type { ExternalPayload, TrialExtend, TrialStart } from '~/store/callback';
@@ -15,7 +15,6 @@ import type { ExternalPayload, TrialExtend, TrialStart } from '~/store/callback'
 setActivePinia(createPinia());
 
 export const useTrialStore = defineStore('trial', () => {
-  const callbackStore = useCallbackStore();
   const callbackActionsStore = useCallbackActionsStore();
   const dropdownStore = useDropdownStore();
   const serverStore = useServerStore();
@@ -35,25 +34,25 @@ export const useTrialStore = defineStore('trial', () => {
         return {
           heading: 'Trial Key Creation Failed',
           subheading: 'Key server did not return a trial key. Please try again later.',
-        }
+        };
       case 'trialExtend':
         return {
           heading: 'Extending your free trial by 15 days',
           subheading: 'Please keep this window open',
-        }
+        };
       case 'trialStart':
         return {
           heading: 'Starting your free 30 day trial',
           subheading: 'Please keep this window open',
-        }
+        };
       case 'success':
         return {
           heading: 'Trial Key Created',
           subheading: 'Please wait while the page reloads to install your trial key',
-        }
+        };
       case 'ready':
         return null;
-    };
+    }
   });
 
   const requestTrial = async (type?: TrialExtend | TrialStart) => {
@@ -89,7 +88,9 @@ export const useTrialStore = defineStore('trial', () => {
     }
   };
 
-  const setTrialStatus = (status: TrialStatus) => trialStatus.value = status;
+  const setTrialStatus = (status: TrialStatus) => {
+    trialStatus.value = status;
+  };
 
   watch(trialStatus, (newVal, oldVal) => {
     console.debug('[trialStatus]', newVal, oldVal);
