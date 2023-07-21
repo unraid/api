@@ -12,7 +12,7 @@ if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $conne
 // plugin install failed if the unraid-api file doesn't fully install • append failure detected so we can show warning about failed install via UPC
 if ($connectPluginInstalled && !file_exists('/usr/local/sbin/unraid-api')) $connectPluginInstalled .= '_installFailed';
 
-$pluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
+$connectPluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
     ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
     : (file_exists('/var/log/plugins/dynamix.unraid.net.staging.plg')
         ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
@@ -28,13 +28,10 @@ $configErrorEnum = [
     "withdrawn" => 'WITHDRAWN',
 ];
 
+$registered = !empty($myservers['remote']['username']) && $connectPluginInstalled;
+
 $serverState = [
-    "__DEV__" => [
-        'HTTP_REFERER' => $_SERVER['HTTP_REFERER'],
-        'HTTP_X_REQUESTED_WITH' => $_SERVER['HTTP_X_REQUESTED_WITH'],
-        'REQUEST_URI' => $_SERVER['REQUEST_URI'],
-    ],
-    "apiKey" => $myservers['upc']['apikey'] ?? '',
+    "apiKey" => $registered ? $myservers['upc']['apikey'] ?? '' : '',
     "apiVersion" => $myservers['api']['version'] ?? '',
     "avatar" => (!empty($myservers['remote']['avatar']) && $connectPluginInstalled) ? $myservers['remote']['avatar'] : '',
     "config" => [
@@ -42,6 +39,7 @@ $serverState = [
         'error' => isset($configErrorEnum[$var['configValid']]) ? $configErrorEnum[$var['configValid']] : 'UNKNOWN_ERROR',
     ],
     "connectPluginInstalled" => $connectPluginInstalled,
+    "connectPluginVersion" => $connectPluginVersion,
     "csrf" => $var['csrf_token'],
     "description" => $var['COMMENT'] ?? '',
     "deviceCount" => $var['deviceCount'],
@@ -60,25 +58,24 @@ $serverState = [
     "model" => $var['SYS_MODEL'],
     "name" => $var['NAME'],
     "osVersion" => $var['version'],
-    "pluginVersion" => $pluginVersion,
     "protocol" => $_SERVER['REQUEST_SCHEME'],
     "regGen" => (int)$var['regGen'],
     "regGuid" => $var['regGUID'],
-    "registered" => (!empty($myservers['remote']['username']) && $connectPluginInstalled),
+    "registered" => $registered,
     "registeredTime" => $myservers['remote']['regWizTime'] ?? '',
     "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
     "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
     "theme" => [
         "banner" => !empty($display['banner']),
         "bannerGradient" => $display['showBannerGradient'] === 'yes' ?? false,
-        "bgColor" => ($backgnd) ? '#' . $backgnd : '',
+        "bgColor" => ($display['background']) ? '#' . $display['background'] : '',
         "descriptionShow" => (!empty($display['headerdescription']) && $display['headerdescription'] !== 'no'),
         "metaColor" => ($display['headermetacolor'] ?? '') ? '#' . $display['headermetacolor'] : '',
         "name" => $display['theme'],
-        "textColor" => ($header) ? '#' . $header : '',
+        "textColor" => ($display['header']) ? '#' . $display['header'] : '',
     ],
     "ts" => time(),
     "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
-    "username" => (!empty($myservers['remote']['username']) && $connectPluginInstalled) ? $myservers['remote']['username'] : '',
+    "username" => $registered ? $myservers['remote']['username'] : '',
     "wanFQDN" => $nginx['NGINX_WANFQDN'] ?? '',
 ];
