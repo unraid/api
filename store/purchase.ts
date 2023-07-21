@@ -42,8 +42,8 @@ export const usePurchaseStore = defineStore('purchase', () => {
       type: 'upgrade',
     }]);
   };
-  const purchaseHide = () => purchaseVisible.value = false;
-  const purchaseShow = () => purchaseVisible.value = true;
+  const purchaseHide = () => { purchaseVisible.value = false; };
+  const purchaseShow = () => { purchaseVisible.value = true; };
   const purchaseToggle = useToggle(purchaseVisible);
 
   watch(purchaseVisible, (newVal, _oldVal) => {
