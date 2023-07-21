@@ -54,13 +54,12 @@ const output = computed(() => {
   };
 });
 
-const runDiff = () => parsedTime.value = buildStringFromValues(dateDiff((time.value).toString(), countUp.value));
+const runDiff = () => {
+  parsedTime.value = buildStringFromValues(dateDiff((time.value).toString(), countUp.value));
+};
 
-let interval: string | number | NodeJS.Timeout | undefined = undefined;
+let interval: string | number | NodeJS.Timeout | undefined;
 onBeforeMount(() => {
-  console.debug('[time]', time.value);
-  console.debug('[state]', state.value);
-  console.debug('[countUp]', countUp.value);
   runDiff();
   interval = setInterval(() => {
     runDiff();
@@ -73,5 +72,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <p :title="output.title">{{ output.text }}</p>
+  <p :title="output.title">
+    {{ output.text }}
+  </p>
 </template>
