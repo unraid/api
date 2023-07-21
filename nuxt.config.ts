@@ -1,8 +1,8 @@
-import dotenv from 'dotenv';
 import { readFileSync } from 'fs';
-const envConfig = dotenv.parse(readFileSync('.env'))
+import { parse } from 'dotenv';
+const envConfig = parse(readFileSync('.env'));
 for (const k in envConfig) {
-  process.env[k] = envConfig[k]
+  process.env[k] = envConfig[k];
 }
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
@@ -61,6 +61,6 @@ export default defineNuxtConfig({
           },
         ],
       },
-   ],
- },
+    ],
+  },
 });

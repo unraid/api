@@ -1,8 +1,6 @@
 export const preventClose = (e: { preventDefault: () => void; returnValue: string; }) => {
   e.preventDefault();
-  // eslint-disable-next-line no-param-reassign
   e.returnValue = '';
-  // eslint-disable-next-line no-alert
   alert('Closing this pop-up window while actions are being preformed may lead to unintended errors.');
 };
 

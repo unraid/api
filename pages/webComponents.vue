@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import serverState from '../_data/serverState';
+import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
 onBeforeMount(() => {
@@ -14,22 +14,22 @@ onBeforeMount(() => {
         <div class="flex flex-col gap-6 p-6">
           <h2>Web Components</h2>
           <h3>UserProfileCe</h3>
-          <connect-user-profile :server="JSON.stringify(serverState)"></connect-user-profile>
-          <hr />
+          <connect-user-profile :server="JSON.stringify(serverState)" />
+          <hr>
           <h3>DownloadApiLogsCe</h3>
-          <connect-download-api-logs></connect-download-api-logs>
-          <hr />
+          <connect-download-api-logs />
+          <hr>
           <h3>AuthCe</h3>
-          <connect-auth></connect-auth>
-          <hr />
+          <connect-auth />
+          <hr>
           <h3>KeyActionsCe</h3>
-          <connect-key-actions></connect-key-actions>
-          <hr />
+          <connect-key-actions />
+          <hr>
           <h3>WanIpCheckCe</h3>
-          <connect-wan-ip-check php-wan-ip="47.184.85.45"></connect-wan-ip-check>
-          <hr />
+          <connect-wan-ip-check php-wan-ip="47.184.85.45" />
+          <hr>
           <h3>ModalsCe</h3>
-          <connect-modals></connect-modals>
+          <connect-modals />
         </div>
       </div>
     </div>

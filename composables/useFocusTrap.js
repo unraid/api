@@ -2,17 +2,18 @@
  * @see https://www.telerik.com/blogs/how-to-trap-focus-modal-vue-3
  */
 import { customRef } from 'vue';
+// eslint-disable-next-line import/named
 import { createFocusTrap } from 'focus-trap';
 
-const useFocusTrap = focusTrapArgs => {
+const useFocusTrap = (focusTrapArgs) => {
   const trapRef = customRef((track, trigger) => {
     let $trapEl = null;
     return {
-      get() {
+      get () {
         track();
         return $trapEl;
       },
-      set(value) {
+      set (value) {
         $trapEl = value;
         value ? initFocusTrap(focusTrapArgs) : clearFocusTrap();
         trigger();
@@ -21,8 +22,8 @@ const useFocusTrap = focusTrapArgs => {
   });
 
   let trap = null;
-  const initFocusTrap = focusTrapArgs => {
-    if (!trapRef.value) return;
+  const initFocusTrap = (focusTrapArgs) => {
+    if (!trapRef.value) { return; }
     trap = createFocusTrap(trapRef.value, focusTrapArgs);
     trap.activate();
   };
