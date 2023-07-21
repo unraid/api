@@ -29,14 +29,14 @@ const buildStringFromValues = ({
     return `${num} ${dateStrings[index]}`;
   };
 
-  if (years) result.push(pluralize(years, 'year'));
-  if (months) result.push(pluralize(months, 'month'));
-  if (days) result.push(pluralize(days, 'day'));
-  if (hours) result.push(pluralize(hours, 'hour'));
-  if (minutes) result.push(pluralize(minutes, 'minute'));
-  if (seconds && ((!years && !months && !days && !hours && !minutes) || displaySeconds)) result.push(pluralize(seconds, 'second'));
-  if (firstDateWasLater) result.push(dateStrings.firstDateWasLater);
+  if (years) { result.push(pluralize(years, 'year')); }
+  if (months) { result.push(pluralize(months, 'month')); }
+  if (days) { result.push(pluralize(days, 'day')); }
+  if (hours) { result.push(pluralize(hours, 'hour')); }
+  if (minutes) { result.push(pluralize(minutes, 'minute')); }
+  if (seconds && ((!years && !months && !days && !hours && !minutes) || displaySeconds)) { result.push(pluralize(seconds, 'second')); }
+  if (firstDateWasLater) { result.push(dateStrings.firstDateWasLater); }
   return result.join(dateStrings.delimiter);
-}
+};
 
 export default buildStringFromValues;

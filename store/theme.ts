@@ -8,8 +8,8 @@ import hexToRgba from 'hex-to-rgba';
 setActivePinia(createPinia());
 
 export interface Theme {
-  banner: string;
-  bannerGradient: string;
+  banner: boolean;
+  bannerGradient: boolean;
   bgColor: string;
   descriptionShow: boolean;
   metaColor: string;
