@@ -5,6 +5,10 @@ export interface ServerStateConfigStatus {
   error?: 'INVALID' | 'NO_KEY_SERVER' | 'UNKNOWN_ERROR' | 'WITHDRAWN';
   valid: boolean;
 }
+export interface ServerStateCloudStatus {
+  error: string | null;
+}
+
 export type ServerState = 'BASIC'
   | 'PLUS'
   | 'PRO'
@@ -35,6 +39,7 @@ export interface Server {
   apiKey?: string;
   apiVersion?: string;
   avatar?: string;
+  cloud?: ServerStateCloudStatus;
   config?: ServerStateConfigStatus | undefined;
   connectPluginInstalled?: ServerconnectPluginInstalled;
   connectPluginVersion?: string;

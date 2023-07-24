@@ -1,35 +1,35 @@
 <script setup lang="ts">
 import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/vue/24/solid';
-import { provideApolloClient, useQuery } from '@vue/apollo-composable';
+import { storeToRefs } from 'pinia';
 
-import { ONLINE_QUERY } from './DropdownConnectStatus.fragment';
-import { useUnraidApiStore } from '~/store/unraidApi';
+import { useServerStore } from '~/store/server';
 
-const unraidApiStore = useUnraidApiStore();
+const serverStore = useServerStore();
+const { cloud } = storeToRefs(serverStore);
 
-const { loading, result } = provideApolloClient(unraidApiStore.unraidApiClient)(() => useQuery(ONLINE_QUERY));
-const online = computed(() => result.value ?? null);
+onMounted(() => {
+  console.debug('[DropdownConnectStatus:mounted] cloud', cloud.value);
+});
 
-watch(online, (newVal, oldVal) => {
-  console.log('[watch:online]', newVal, oldVal);
+watch(cloud, (newVal, oldVal) => {
+  console.log('[watch:cloud]', newVal, oldVal);
 });
 </script>
 
 <template>
   <li class="px-8px flex flex-col items-center">
-    <template v-if="loading">
+    <template v-if="!cloud">
       <BrandLoading class="w-36px mx-auto" />
       <span class="text-12px italic opacity-80">{{ 'Loading Connect status…' }}</span>
     </template>
     <span
       v-else
       class="w-full flex flex-row justify-start items-center gap-x-8px"
-      :title="online ? 'Connect is connected to Unraid cloud services' : 'Connect is not connected to Unraid cloud services'"
+      :title="!cloud.error ? 'Connect is connected to Unraid cloud services' : cloud.error"
     >
-      <!-- <span class="block w-12px h-12px bg-green-600 rounded-full"></span> -->
-      <CheckCircleIcon v-if="online" class="text-green-500 w-16px h-16px" />
+      <CheckCircleIcon v-if="!cloud.error" class="text-green-500 w-16px h-16px" />
       <ExclamationTriangleIcon v-else class="text-red-500 w-16px h-16px" />
-      <span>{{ online ? 'Connected' : 'Disconnected' }}</span>
+      <span>{{ !cloud.error ? 'Connected' : 'Not connected' }}</span>
     </span>
   </li>
 </template>
