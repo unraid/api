@@ -11,12 +11,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
 
-  type CallbackStatus = 'error' | 'loading' | 'ready' | 'success';
+  type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
 
   const callbackData = ref<ExternalPayload>();
   const callbackError = ref();
-  const callbackFeedbackVisible = ref<boolean>(false);
 
   const redirectToCallbackType = (decryptedData: QueryPayloads) => {
     console.debug('[redirectToCallbackType]', { decryptedData });
@@ -30,7 +29,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     // Display the feedback modal
     callbackData.value = decryptedData;
     callbackStatus.value = 'loading';
-    callbackFeedbackVisible.value = true;
 
     // Parse the data and perform actions
     callbackData.value.actions.forEach(async (action, index, array) => {
@@ -76,7 +74,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   return {
     redirectToCallbackType,
     callbackData,
-    callbackFeedbackVisible,
     callbackStatus,
     setCallbackStatus,
   };
