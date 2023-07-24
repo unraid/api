@@ -23,7 +23,7 @@ fi
 echo "$server_name" > "$state_file"
 
 # Replace the value inside the rsync command with the user's input
-rsync_command="rsync -avz -e ssh .nuxt/nuxt-custom-elements/dist/connect-components root@${server_name}.local:/usr/local/emhttp/plugins/dynamix.my.servers"
+rsync_command="rsync -avz -e ssh .nuxt/nuxt-custom-elements/dist/unraid-components root@${server_name}.local:/usr/local/emhttp/plugins/dynamix.my.servers"
 
 echo "Executing the following command:"
 echo "$rsync_command"
