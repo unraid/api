@@ -6,14 +6,6 @@ import { useServerStore } from '~/store/server';
 
 const serverStore = useServerStore();
 const { cloud } = storeToRefs(serverStore);
-
-onMounted(() => {
-  console.debug('[DropdownConnectStatus:mounted] cloud', cloud.value);
-});
-
-watch(cloud, (newVal, oldVal) => {
-  console.log('[watch:cloud]', newVal, oldVal);
-});
 </script>
 
 <template>
