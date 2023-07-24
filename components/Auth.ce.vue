@@ -11,16 +11,16 @@ const { authAction, stateData } = storeToRefs(serverStore);
 // @todo use callback url
 const stateDataErrorAction = computed(() => {
   return {
-    click: () => { console.debug('accountServerPayload') },
+    click: () => { console.debug('accountServerPayload'); },
     external: true,
     icon: ExclamationTriangleIcon,
     name: 'accountServer',
     text: 'Fix Error',
-  }
+  };
 });
 
 const button = computed(() => {
-  if (stateData.value.error) return stateDataErrorAction.value;
+  if (stateData.value.error) { return stateDataErrorAction.value; }
   return authAction.value;
 });
 </script>
@@ -29,15 +29,16 @@ const button = computed(() => {
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
     <span v-if="stateData.error" class="text-unraid-red font-semibold leading-8">
       {{ stateData.heading }}
-      <br />
-      <span v-html="stateData.message"></span>
+      <br>
+      <span v-html="stateData.message" />
     </span>
     <span>
       <BrandButton
         v-if="button"
-        @click="button.click()"
         :icon="button.icon"
-        :text="button.text" />
+        :text="button.text"
+        @click="button.click()"
+      />
     </span>
   </div>
 </template>
