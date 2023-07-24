@@ -28,6 +28,7 @@ import type {
   ServerKeyTypeForPurchase,
   ServerPurchaseCallbackSendPayload,
   ServerState,
+  ServerStateCloudStatus,
   ServerStateConfigStatus,
   ServerStateData,
   ServerStateDataAction,
@@ -53,6 +54,7 @@ export const useServerStore = defineStore('server', () => {
   const apiKey = ref<string>(''); // @todo potentially move to a user store
   const apiVersion = ref<string>('');
   const avatar = ref<string>(''); // @todo potentially move to a user store
+  const cloud = ref<ServerStateCloudStatus>();
   const config = ref<ServerStateConfigStatus>();
   const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
   const connectPluginVersion = ref<string>('');
@@ -187,7 +189,7 @@ export const useServerStore = defineStore('server', () => {
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
-      apiKey: apiKey.value,
+      apiKey: apiKey.value ? `${apiKey.value.substring(0, 6)}__[REDACTED]` : '',
       apiVersion: apiVersion.value,
       avatar: avatar.value,
       connectPluginInstalled: connectPluginInstalled.value,
@@ -483,7 +485,7 @@ export const useServerStore = defineStore('server', () => {
     }
   });
 
-  const stateDataError = computed(() => {
+  const stateDataError = computed((): Error | undefined => {
     if (!stateData.value?.error) { return undefined; }
     return {
       actions: [
@@ -499,9 +501,9 @@ export const useServerStore = defineStore('server', () => {
         },
       ],
       debugServer: serverDebugPayload.value,
-      heading: stateData.value?.heading,
+      heading: stateData.value?.heading ?? '',
       level: 'error',
-      message: stateData.value?.message,
+      message: stateData.value?.message ?? '',
       ref: `stateDataError__${state.value}`,
       type: 'serverState',
     };
@@ -637,13 +639,43 @@ export const useServerStore = defineStore('server', () => {
     if (newVal) { errorsStore.setError(newVal); }
   });
 
+  const cloudError = computed((): Error | undefined => {
+    if (!cloud.value?.error) { return undefined; }
+    return {
+      actions: [
+        {
+          click: () => {
+            errorsStore.openTroubleshoot({
+              email: email.value,
+              includeUnraidApiLogs: !!connectPluginInstalled.value,
+            });
+          },
+          icon: QuestionMarkCircleIcon,
+          text: 'Contact Support',
+        },
+      ],
+      debugServer: serverDebugPayload.value,
+      heading: 'Unraid Connect Error',
+      level: 'error',
+      message: cloud.value.error,
+      ref: 'cloudError',
+      type: 'unraidApiState',
+    };
+  });
+  watch(cloudError, (newVal, oldVal) => {
+    console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
+    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
+    if (newVal) { errorsStore.setError(newVal); }
+  });
+
   const serverErrors = computed(() => {
     return [
       stateDataError.value,
-      invalidApiKey.value,
       tooManyDevices.value,
       pluginInstallFailed.value,
       deprecatedUnraidSSL.value,
+      invalidApiKey.value,
+      cloudError.value,
     ].filter(Boolean);
   });
   /**
@@ -669,6 +701,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.apiKey !== 'undefined') { apiKey.value = data.apiKey; }
     if (typeof data?.apiVersion !== 'undefined') { apiVersion.value = data.apiVersion; }
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
+    if (typeof data?.cloud !== 'undefined') { cloud.value = data.cloud; }
     if (typeof data?.config !== 'undefined') { config.value = data.config; }
     if (typeof data?.connectPluginInstalled !== 'undefined') { connectPluginInstalled.value = data.connectPluginInstalled; }
     if (typeof data?.connectPluginVersion !== 'undefined') { connectPluginVersion.value = data.connectPluginVersion; }
@@ -797,6 +830,7 @@ export const useServerStore = defineStore('server', () => {
     // state
     apiKey,
     avatar,
+    cloud,
     config,
     connectPluginInstalled,
     csrf,
