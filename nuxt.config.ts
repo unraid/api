@@ -33,30 +33,30 @@ export default defineNuxtConfig({
   customElements: {
     entries: [
       {
-        name: 'ConnectComponents',
+        name: 'UnraidComponents',
         tags: [
           {
-            name: 'ConnectAuth',
+            name: 'UnraidAuth',
             path: '@/components/Auth.ce',
           },
           {
-            name: 'ConnectDownloadApiLogs',
+            name: 'UnraidDownloadApiLogs',
             path: '@/components/DownloadApiLogs.ce',
           },
           {
-            name: 'ConnectKeyActions',
+            name: 'UnraidKeyActions',
             path: '@/components/KeyActions.ce',
           },
           {
-            name: 'ConnectModals',
+            name: 'UnraidModals',
             path: '@/components/Modals.ce',
           },
           {
-            name: 'ConnectUserProfile',
+            name: 'UnraidUserProfile',
             path: '@/components/UserProfile.ce',
           },
           {
-            name: 'ConnectWanIpCheck',
+            name: 'UnraidWanIpCheck',
             path: '@/components/WanIpCheck.ce',
           },
         ],
