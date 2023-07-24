@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon, } from '@heroicons/vue/24/solid';
+import { ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
@@ -24,56 +24,56 @@ const links = computed(():UserProfileLink[] => {
   return [
     ...(registered.value && connectPluginInstalled.value
       ? [
-        {
-          emphasize: true,
-          external: true,
-          href: CONNECT_DASHBOARD,
-          icon: ArrowTopRightOnSquareIcon,
-          text: 'Go to Connect',
-          title: 'Opens Connect in new tab',
-        },
-        {
-          external: true,
-          href: ACCOUNT,
-          icon: ArrowTopRightOnSquareIcon,
-          text: 'Manage Unraid.net Account',
-          title: 'Manage Unraid.net Account in new tab',
-        },
-        {
-          href: PLUGIN_SETTINGS,
-          icon: CogIcon,
-          text: 'Settings',
-          title: 'Go to Connect plugin settings',
-        },
-        ...(signOutAction.value),
-      ]
+          {
+            emphasize: true,
+            external: true,
+            href: CONNECT_DASHBOARD,
+            icon: ArrowTopRightOnSquareIcon,
+            text: 'Go to Connect',
+            title: 'Opens Connect in new tab',
+          },
+          {
+            external: true,
+            href: ACCOUNT,
+            icon: ArrowTopRightOnSquareIcon,
+            text: 'Manage Unraid.net Account',
+            title: 'Manage Unraid.net Account in new tab',
+          },
+          {
+            href: PLUGIN_SETTINGS,
+            icon: CogIcon,
+            text: 'Settings',
+            title: 'Go to Connect plugin settings',
+          },
+          ...(signOutAction.value),
+        ]
       : []
     ),
     ...(!registered.value && connectPluginInstalled.value
       ? [
-        ...(signInAction.value),
-      ]
+          ...(signInAction.value),
+        ]
       : []
     ),
     ...(!connectPluginInstalled.value
       ? [
-        {
-          click: () => {
-            promoStore.promoShow();
+          {
+            click: () => {
+              promoStore.promoShow();
+            },
+            icon: InformationCircleIcon,
+            text: 'Enhance your Unraid experience with Connect',
+            title: 'Enhance your Unraid experience with Connect',
           },
-          icon: InformationCircleIcon,
-          text: 'Enhance your Unraid experience with Connect',
-          title: 'Enhance your Unraid experience with Connect',
-        },
-      ]
+        ]
       : []
     ),
   ];
 });
 
 const showErrors = computed(() => errors.value.length);
-const showConnectStatus = computed(() => !stateData.value.error && registered.value && connectPluginInstalled.value);
 const showKeyline = computed(() => (showErrors.value || showConnectStatus.value) && keyActions.value?.length && links.value.length);
+const showConnectStatus = computed(() => !showErrors.value && !stateData.value.error && registered.value && connectPluginInstalled.value);
 </script>
 
 <template>
@@ -89,8 +89,8 @@ const showKeyline = computed(() => (showErrors.value || showConnectStatus.value)
       </span>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
-      <UpcDropdownError v-if="showErrors" />
       <UpcDropdownConnectStatus v-if="showConnectStatus" class="mt-8px" />
+      <UpcDropdownError v-if="showErrors" />
 
       <li v-if="showKeyline" class="my-8px">
         <UpcKeyline />
