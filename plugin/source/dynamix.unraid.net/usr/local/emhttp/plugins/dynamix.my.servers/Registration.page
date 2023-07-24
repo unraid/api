@@ -259,4 +259,4 @@ _(Replaceable)_:
 <?endif;?>
 
 &nbsp;
-: <connect-key-actions></connect-key-actions>
+: <unraid-key-actions></unraid-key-actions>
