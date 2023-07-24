@@ -41,7 +41,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       }
       // all actions have run
       if (array.length === (index + 1)) {
-        /** @todo refresh server state until we have new data */
         await serverStore.refreshServerState();
         // callbackStatus.value = 'done';
         if (array.length > 1) {

@@ -1,6 +1,6 @@
 /**
  * @todo Check OS and Connect Plugin versions against latest via API every session
- */
+*/
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import {
   ArrowRightOnRectangleIcon,
@@ -13,6 +13,7 @@ import {
 import { useQuery } from '@vue/apollo-composable';
 
 import { SERVER_STATE_QUERY } from './server.fragment';
+import type { serverStateQuery } from '~/composables/gql/graphql';
 import { WebguiState } from '~/composables/services/webgui';
 import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
@@ -189,7 +190,7 @@ export const useServerStore = defineStore('server', () => {
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
-      apiKey: apiKey.value ? `${apiKey.value.substring(0, 6)}__[REDACTED]` : '',
+      apiKey: apiKey.value ? `${apiKey.value.substring(0, 6)}__[REDACTED]` : '', // so we don't send full api key in email
       apiVersion: apiVersion.value,
       avatar: avatar.value,
       connectPluginInstalled: connectPluginInstalled.value,
@@ -731,7 +732,7 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[setServer] server', server.value);
   };
 
-  const mutateServerStateFromApi = (data) => {
+  const mutateServerStateFromApi = (data: serverStateQuery): Server => {
     const mutatedData = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values
       ...(data.owner && data.owner.username !== 'root' && {
@@ -761,7 +762,7 @@ export const useServerStore = defineStore('server', () => {
 
   const fetchServerFromApi = () => {
     const { result: resultServerState, refetch: refetchServerState } = useQuery(SERVER_STATE_QUERY, null, {
-      pollInterval: 2500,
+      // pollInterval: 2500,
       fetchPolicy: 'no-cache',
     });
     const serverState = computed(() => resultServerState.value ?? null);
@@ -790,40 +791,63 @@ export const useServerStore = defineStore('server', () => {
   };
 
   let refreshCount = 0;
-  const refreshLimit = 10;
-  const refreshedServerState = ref(false);
+  const refreshLimit = 20;
+  const refreshTimeout = 250;
+  const refreshServerStateStatus = ref<'done' | 'ready' | 'refreshing' | 'timeout'>('ready');
   const refreshServerState = async () => {
-    refreshCount++;
-    console.debug('[refreshServerState] start', { refreshCount });
-    const registeredBeforeRefresh = registered.value;
-    const stateBeforeRefresh = state.value;
-
-    const responseNewState = apiServerStateRefresh.value
-      ? await apiServerStateRefresh.value()
-      : await phpServerStateRefresh();
-    console.debug('[refreshServerState] responseNewState', responseNewState);
-
-    const newState = apiServerStateRefresh.value && responseNewState?.data ? responseNewState.data : responseNewState;
-    console.debug('[refreshServerState] newState', newState);
-
-    const registrationStatusChanged = registeredBeforeRefresh !== newState.registered;
-    const stateChanged = stateBeforeRefresh !== newState.state;
-
-    if (registrationStatusChanged || stateChanged) {
-      console.debug('[refreshServerState] change detected, stop refreshing', { registrationStatusChanged, stateChanged });
-      refreshedServerState.value = true;
-      return true;
-    }
-
+    // If we've reached the refresh limit, stop refreshing
     if (refreshCount >= refreshLimit) {
       console.debug('[refreshServerState] refresh limit reached, stop refreshing');
+      refreshServerStateStatus.value = 'timeout';
       return false;
     }
 
+    refreshCount++;
+    refreshServerStateStatus.value = 'refreshing';
+
+    const oldRegistered = registered.value;
+    const oldState = state.value;
+    const fromApi = !!apiServerStateRefresh.value;
+    console.debug('[refreshServerState] start', {
+      fromApi,
+      refreshCount,
+    });
+    // Fetch the server state from the API or PHP
+    const response = fromApi
+      ? await apiServerStateRefresh.value()
+      : await phpServerStateRefresh();
+    if (!response) {
+      console.debug('[refreshServerState] no response, fetch again in 250ms…');
+      return setTimeout(() => {
+        refreshServerState();
+      }, refreshTimeout);
+    }
+    console.debug('[refreshServerState] response', response);
+    // Extract the new values from the response
+    const newRegistered = fromApi && response?.data ? !!response.data.owner.username : response.registered;
+    const newState = fromApi && response?.data ? response.data.vars.regState : response.state;
+    // Compare the new values to the old values
+    const registrationStatusChanged = oldRegistered !== newRegistered;
+    const stateChanged = oldState !== newState;
+    console.debug('[refreshServerState] newState', {
+      oldRegistered,
+      newRegistered,
+      oldState,
+      newState,
+      registrationStatusChanged,
+      stateChanged,
+    });
+    // If the registration status or state changed, stop refreshing
+    if (registrationStatusChanged || stateChanged) {
+      console.debug('[refreshServerState] change detected, stop refreshing', { registrationStatusChanged, stateChanged });
+      refreshServerStateStatus.value = 'done';
+      return true;
+    }
+    // If we haven't reached the refresh limit, try again
     console.debug('[refreshServerState] no change, fetch again in 250ms…', { registrationStatusChanged, stateChanged });
     setTimeout(() => {
       return refreshServerState();
-    }, 250);
+    }, refreshTimeout);
   };
 
   return {
@@ -849,7 +873,7 @@ export const useServerStore = defineStore('server', () => {
     theme,
     uptime,
     username,
-    refreshedServerState,
+    refreshServerStateStatus,
     // getters
     authAction,
     deprecatedUnraidSSL,
