@@ -526,7 +526,7 @@ _(Allow Remote Access)_:
 <?endif?>
 
 &nbsp;
-: <connect-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></connect-wan-ip-check>
+: <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
 
 <div markdown="1" id="wanpanel" style="display:'none'">
 
@@ -691,7 +691,7 @@ $(function() {
 : <span>_(Questions? See <a href="https://docs.unraid.net/category/unraid-connect" target="_blank">the documentation</a>.)_</span>
 
 _(Account status)_:
-: <connect-auth></connect-auth>
+: <unraid-auth></unraid-auth>
 
 <?if($isRegistered):?>
 _(Connected to Unraid Connect Cloud)_: 
@@ -703,6 +703,6 @@ _(Connected to Unraid Connect Cloud)_:
 <?endif // end check for ($isRegistered) ?>
 
 _(Download unraid-api Logs)_:
-: <connect-download-api-logs></connect-download-api-logs>
+: <unraid-download-api-logs></unraid-download-api-logs>
 </div>
 <!-- end unraid-api section -->

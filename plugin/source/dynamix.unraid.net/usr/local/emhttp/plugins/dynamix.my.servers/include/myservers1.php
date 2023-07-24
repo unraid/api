@@ -11,7 +11,7 @@
     -ms-flex-align: center;
     align-items: center;
 }
-connect-user-profile {
+unraid-user-profile {
     font-size: 16px;
     margin-left: auto;
     height: 100%;
@@ -19,12 +19,12 @@ connect-user-profile {
 </style>
 <?php
 // Set the path for the local manifest file
-$localManifestFile = '/usr/local/emhttp/plugins/dynamix.my.servers/connect-components/manifest.json';
+$localManifestFile = '/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/manifest.json';
 
 // Load the local manifest
 $localManifest = json_decode(file_get_contents($localManifestFile), true);
 
-$searchText = 'connect-components.client.mjs';
+$searchText = 'unraid-components.client.mjs';
 $fileValue = null;
 
 foreach ($localManifest as $key => $value) {
@@ -35,7 +35,7 @@ foreach ($localManifest as $key => $value) {
 }
 
 if ($fileValue !== null) {
-    $prefixedPath = '/plugins/dynamix.my.servers/connect-components/';
+    $prefixedPath = '/plugins/dynamix.my.servers/unraid-components/';
     echo '<script src="' . $prefixedPath . $fileValue . '"></script>';
 } else {
     echo '<script>console.error("%cNo matching key containing \'' . $searchText . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
