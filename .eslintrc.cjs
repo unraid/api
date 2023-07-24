@@ -19,6 +19,7 @@ module.exports = {
     '@typescript-eslint/no-unused-vars': process.env.NODE_ENV === 'production' ? 'error' : 'warn',
     'max-len': 'off',
     'vue/multi-word-component-names': 'off',
-    'vue/v-on-event-hyphenation': 'off'
+    'vue/v-on-event-hyphenation': 'off',
+    'vue/no-v-html': 'off',
   }
 };
