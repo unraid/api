@@ -17,8 +17,10 @@ import { useServerStore } from '~/store/server';
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
+
 let baseUrl = window.location.origin;
-const localDevUrl = baseUrl.includes(':4321'); /** @todo use ENV */
+/** @todo use ENV */
+const localDevUrl = baseUrl.includes(':4321');
 if (localDevUrl) {
   /** @temp local dev mode */
   baseUrl = baseUrl.replace(':4321', ':3001');
