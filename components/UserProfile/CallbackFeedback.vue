@@ -45,7 +45,7 @@ const {
   connectPluginInstalled,
   registered,
   authAction,
-  refreshedServerState,
+  refreshServerStateStatus,
 } = storeToRefs(serverStore);
 
 /**
@@ -90,11 +90,11 @@ const subheading = computed(() => {
 
 const closeText = computed(() => {
   const txt = !connectPluginInstalled.value ? 'No Thanks' : 'Close';
-  return refreshedServerState.value ? txt : 'Reload';
+  return refreshServerStateStatus.value === 'done' ? txt : 'Reload';
 });
 const close = () => {
   if (callbackStatus.value === 'loading') { return console.debug('[close] not allowed'); }
-  return refreshedServerState.value
+  return refreshServerStateStatus.value === 'done'
     ? callbackActionsStore.setCallbackStatus('ready')
     : window.location.reload();
 };
