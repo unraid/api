@@ -14,22 +14,22 @@ onBeforeMount(() => {
         <div class="flex flex-col gap-6 p-6">
           <h2>Web Components</h2>
           <h3>UserProfileCe</h3>
-          <connect-user-profile :server="JSON.stringify(serverState)" />
+          <unraid-user-profile :server="JSON.stringify(serverState)" />
           <hr>
           <h3>DownloadApiLogsCe</h3>
-          <connect-download-api-logs />
+          <unraid-download-api-logs />
           <hr>
           <h3>AuthCe</h3>
-          <connect-auth />
+          <unraid-auth />
           <hr>
           <h3>KeyActionsCe</h3>
-          <connect-key-actions />
+          <unraid-key-actions />
           <hr>
           <h3>WanIpCheckCe</h3>
-          <connect-wan-ip-check php-wan-ip="47.184.85.45" />
+          <unraid-wan-ip-check php-wan-ip="47.184.85.45" />
           <hr>
           <h3>ModalsCe</h3>
-          <connect-modals />
+          <unraid-modals />
         </div>
       </div>
     </div>
