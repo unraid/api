@@ -1,5 +1,27 @@
 import { graphql } from '~/composables/gql/gql';
 
+export const SERVER_CLOUD_FRAGMENT = graphql(/* GraphQL */`
+  fragment FragmentCloud on Cloud {
+    error
+    apiKey {
+      valid
+      error
+    }
+    cloud {
+      status
+      error
+    }
+    minigraphql {
+      status
+      error
+    }
+    relay {
+      status
+      error
+    }
+  }
+`);
+
 export const SERVER_CONFIG_FRAGMENT = graphql(/* GraphQL */`
   fragment FragmentConfig on Config {
     error
@@ -35,38 +57,33 @@ export const SERVER_VARS_FRAGMENT = graphql(/* GraphQL */`
 
 export const SERVER_STATE_QUERY = graphql(/* GraphQL */`
   query serverState {
-    owner {
-      ...FragmentOwner
+    cloud {
+      ...FragmentCloud
+    }
+    config {
+      ...FragmentConfig
     }
     info {
       os {
         hostname
       }
     }
+    owner {
+      ...FragmentOwner
+    }
     registration {
       ...FragmentRegistration
     }
-    crashReportingEnabled
     vars {
       ...FragmentVars
     }
-    config {
-      ...FragmentConfig
-    }
+  }
+`);
+
+export const SERVER_CLOUD_QUERY = graphql(/* GraphQL */`
+  query CloudStatus {
     cloud {
-      error
-      apiKey {
-        valid
-        error
-      }
-      relay {
-        status
-        error
-      }
-      cloud {
-        status
-        error
-      }
+      ...FragmentCloud
     }
   }
 `);

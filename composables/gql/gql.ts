@@ -13,12 +13,13 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\n  query OnlineStatus {\n    online\n  }\n": types.OnlineStatusDocument,
+    "\n  query CloudStatus {\n    cloud {\n      ...FragmentCloud\n    }\n  }\n": types.CloudStatusDocument,
+    "\n  fragment FragmentCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n": types.FragmentCloudFragmentDoc,
     "\n  fragment FragmentConfig on Config {\n    error\n    valid\n  }\n": types.FragmentConfigFragmentDoc,
     "\n  fragment FragmentOwner on Owner {\n    avatar\n    username\n  }\n": types.FragmentOwnerFragmentDoc,
     "\n  fragment FragmentRegistration on Registration {\n    state\n    expiration\n    keyFile {\n      contents\n    }\n  }\n": types.FragmentRegistrationFragmentDoc,
     "\n  fragment FragmentVars on Vars {\n    regGen\n    regState\n    configError\n    configValid\n  }\n": types.FragmentVarsFragmentDoc,
-    "\n  query serverState {\n    owner {\n      ...FragmentOwner\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    crashReportingEnabled\n    vars {\n      ...FragmentVars\n    }\n    config {\n      ...FragmentConfig\n    }\n    cloud {\n      error\n      apiKey {\n        valid\n        error\n      }\n      relay {\n        status\n        error\n      }\n      cloud {\n        status\n        error\n      }\n    }\n  }\n": types.serverStateDocument,
+    "\n  query serverState {\n    cloud {\n      ...FragmentCloud\n    }\n    config {\n      ...FragmentConfig\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    owner {\n      ...FragmentOwner\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    vars {\n      ...FragmentVars\n    }\n  }\n": types.serverStateDocument,
 };
 
 /**
@@ -38,7 +39,11 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query OnlineStatus {\n    online\n  }\n"): (typeof documents)["\n  query OnlineStatus {\n    online\n  }\n"];
+export function graphql(source: "\n  query CloudStatus {\n    cloud {\n      ...FragmentCloud\n    }\n  }\n"): (typeof documents)["\n  query CloudStatus {\n    cloud {\n      ...FragmentCloud\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  fragment FragmentCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n"): (typeof documents)["\n  fragment FragmentCloud on Cloud {\n    error\n    apiKey {\n      valid\n      error\n    }\n    cloud {\n      status\n      error\n    }\n    minigraphql {\n      status\n      error\n    }\n    relay {\n      status\n      error\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
@@ -58,7 +63,7 @@ export function graphql(source: "\n  fragment FragmentVars on Vars {\n    regGen
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query serverState {\n    owner {\n      ...FragmentOwner\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    crashReportingEnabled\n    vars {\n      ...FragmentVars\n    }\n    config {\n      ...FragmentConfig\n    }\n    cloud {\n      error\n      apiKey {\n        valid\n        error\n      }\n      relay {\n        status\n        error\n      }\n      cloud {\n        status\n        error\n      }\n    }\n  }\n"): (typeof documents)["\n  query serverState {\n    owner {\n      ...FragmentOwner\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    crashReportingEnabled\n    vars {\n      ...FragmentVars\n    }\n    config {\n      ...FragmentConfig\n    }\n    cloud {\n      error\n      apiKey {\n        valid\n        error\n      }\n      relay {\n        status\n        error\n      }\n      cloud {\n        status\n        error\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query serverState {\n    cloud {\n      ...FragmentCloud\n    }\n    config {\n      ...FragmentConfig\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    owner {\n      ...FragmentOwner\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    vars {\n      ...FragmentVars\n    }\n  }\n"): (typeof documents)["\n  query serverState {\n    cloud {\n      ...FragmentCloud\n    }\n    config {\n      ...FragmentConfig\n    }\n    info {\n      os {\n        hostname\n      }\n    }\n    owner {\n      ...FragmentOwner\n    }\n    registration {\n      ...FragmentRegistration\n    }\n    vars {\n      ...FragmentVars\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};
