@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useClipboard } from '@vueuse/core'
+import { useClipboard } from '@vueuse/core';
 import { ClipboardIcon, CogIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
@@ -53,7 +53,7 @@ const {
  * If we're on the Connect settings page in the webGUI
  * the modal should close instead of redirecting to the
  * settings page.
- * 
+ *
  * @todo figure out the difference between document.location and window.location
  */
 const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/ManagementAccess');
@@ -75,25 +75,25 @@ const subheading = computed(() => {
   if (callbackStatus.value === 'error') {
     return 'Something went wrong'; /** @todo show actual error messages */
   }
-  if (callbackStatus.value === 'loading') return 'Please keep this window open while we perform some actions';
+  if (callbackStatus.value === 'loading') { return 'Please keep this window open while we perform some actions'; }
   if (callbackStatus.value === 'success') {
-    if (accountActionType.value === 'signIn') return `You're one step closer to enhancing your Unraid experience`;
-    if (keyActionType.value === 'purchase') return `Thank you for purchasing an Unraid ${keyType.value} Key!`;
-    if (keyActionType.value === 'replace') return `Your ${keyType.value} Key has been replaced!`;
-    if (keyActionType.value === 'trialExtend') return `Your Trial key has been extended!`;
-    if (keyActionType.value === 'trialStart') return `Your free Trial key provides all the functionality of a Pro Registration key`;
-    if (keyActionType.value === 'upgrade') return `Thank you for upgrading to an Unraid ${keyType.value} Key!`;
+    if (accountActionType.value === 'signIn') { return 'You\'re one step closer to enhancing your Unraid experience'; }
+    if (keyActionType.value === 'purchase') { return `Thank you for purchasing an Unraid ${keyType.value} Key!`; }
+    if (keyActionType.value === 'replace') { return `Your ${keyType.value} Key has been replaced!`; }
+    if (keyActionType.value === 'trialExtend') { return 'Your Trial key has been extended!'; }
+    if (keyActionType.value === 'trialStart') { return 'Your free Trial key provides all the functionality of a Pro Registration key'; }
+    if (keyActionType.value === 'upgrade') { return `Thank you for upgrading to an Unraid ${keyType.value} Key!`; }
     return '';
   }
   return '';
 });
 
 const closeText = computed(() => {
-  const txt = !connectPluginInstalled.value ? 'No Thanks' : 'Close'
+  const txt = !connectPluginInstalled.value ? 'No Thanks' : 'Close';
   return refreshedServerState.value ? txt : 'Reload';
 });
 const close = () => {
-  if (callbackStatus.value === 'loading') return console.debug('[close] not allowed');
+  if (callbackStatus.value === 'loading') { return console.debug('[close] not allowed'); }
   return refreshedServerState.value
     ? callbackActionsStore.setCallbackStatus('ready')
     : window.location.reload();
@@ -115,8 +115,8 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
     max-width="max-w-640px"
     :error="callbackStatus === 'error'"
     :success="callbackStatus === 'success'"
-    @close="close"
     :show-close-x="callbackStatus !== 'loading'"
+    @close="close"
   >
     <template #main>
       <div
@@ -136,11 +136,14 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
           <template v-if="keyInstallStatus === 'failed'">
             <div v-if="isSupported" class="flex justify-center">
               <BrandButton
-                @click="copy(keyUrl)"
                 :icon="ClipboardIcon"
-                :text="copied ? 'Copied' : 'Copy Key URL'" />
+                :text="copied ? 'Copied' : 'Copy Key URL'"
+                @click="copy(keyUrl)"
+              />
             </div>
-            <p v-else>{{ 'Copy your Key URL' }}: {{ keyUrl }}</p>
+            <p v-else>
+              {{ 'Copy your Key URL' }}: {{ keyUrl }}
+            </p>
             <p><a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">{{ 'Then go to Tools > Registration to manually install it' }}</a></p>
           </template>
         </UpcCallbackFeedbackStatus>
@@ -149,17 +152,20 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
           v-if="accountActionStatus !== 'ready' && !accountActionHide"
           :success="accountActionStatus === 'success'"
           :error="accountActionStatus === 'failed'"
-          :text="accountActionStatusCopy.text" />
+          :text="accountActionStatusCopy.text"
+        />
 
         <UpcCallbackFeedbackStatus
           v-if="showPromoCta"
           :icon="InformationCircleIcon"
-          :text="'Enhance your experience with Unraid Connect'" />
+          :text="'Enhance your experience with Unraid Connect'"
+        />
 
         <UpcCallbackFeedbackStatus
           v-if="showSignInCta"
           :icon="InformationCircleIcon"
-          :text="'Sign In to utilize Unraid Connect'" />
+          :text="'Sign In to utilize Unraid Connect'"
+        />
       </div>
     </template>
 
@@ -168,34 +174,39 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
           <BrandButton
             v-if="isSettingsPage"
-            @click="close"
             :icon="CogIcon"
             :text="'Configure Connect Features'"
-            class="grow-0" />
+            class="grow-0"
+            @click="close"
+          />
           <BrandButton
             v-else
             :href="PLUGIN_SETTINGS"
             :icon="CogIcon"
             :text="'Configure Connect Features'"
-            class="grow-0" />
+            class="grow-0"
+          />
         </template>
 
         <BrandButton
           v-if="showPromoCta"
+          :text="'Learn More'"
           @click="promoClick"
-          :text="'Learn More'" />
+        />
 
         <BrandButton
           v-if="showSignInCta"
-          @click="authAction?.click"
           :external="authAction?.external"
           :icon="authAction?.icon"
-          :text="authAction?.text" />
+          :text="authAction?.text"
+          @click="authAction?.click"
+        />
 
         <BrandButton
-          @click="close"
           btn-style="underline"
-          :text="closeText" />
+          :text="closeText"
+          @click="close"
+        />
       </div>
     </template>
   </Modal>
