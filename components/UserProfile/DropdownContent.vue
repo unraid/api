@@ -72,8 +72,8 @@ const links = computed(():UserProfileLink[] => {
 });
 
 const showErrors = computed(() => errors.value.length);
-const showKeyline = computed(() => (showErrors.value || showConnectStatus.value) && keyActions.value?.length && links.value.length);
 const showConnectStatus = computed(() => !showErrors.value && !stateData.value.error && registered.value && connectPluginInstalled.value);
+const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?.length || links.value.length));
 </script>
 
 <template>

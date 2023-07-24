@@ -6,7 +6,7 @@ export interface ServerStateConfigStatus {
   valid: boolean;
 }
 export interface ServerStateCloudStatus {
-  error: string | null;
+  error: string | undefined;
 }
 
 export type ServerState = 'BASIC'
