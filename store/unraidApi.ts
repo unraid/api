@@ -2,12 +2,14 @@ import { from, ApolloClient, createHttpLink, InMemoryCache, split } from '@apoll
 import { onError } from '@apollo/client/link/error';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
+import { ArrowPathIcon } from '@heroicons/vue/24/solid';
 import { provideApolloClient } from '@vue/apollo-composable';
-import { logErrorMessages } from '@vue/apollo-util';
+// import { logErrorMessages } from '@vue/apollo-util';
 import { createClient } from 'graphql-ws';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { UserProfileLink } from 'types/userProfile';
 
-// import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
+import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
 import { useAccountStore } from '~/store/account';
 // import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
@@ -41,8 +43,15 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   watch(unraidApiClient, (newVal, oldVal) => {
     console.debug('[watch:unraidApiStore.unraidApiClient]', { newVal, oldVal });
     if (newVal && !oldVal) { // first time
+      unraidApiStatus.value = 'online';
       serverStore.fetchServerFromApi();
     }
+  });
+
+  // const unraidApiErrors = ref<any[]>([]);
+  const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
+  watch(unraidApiStatus, (newVal, oldVal) => {
+    console.debug('[watch:unraidApiStore.unraidApiStatus]', { newVal, oldVal });
   });
 
   /**
@@ -53,6 +62,9 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     if (accountStore.accountActionType === 'signOut') {
       return console.debug('[useUnraidApiStore.createApolloClient] sign out imminent, skipping createApolloClient');
     }
+
+    unraidApiStatus.value = 'connecting';
+
     const headers = { 'x-api-key': serverStore.apiKey };
 
     const httpLink = createHttpLink({
@@ -71,21 +83,23 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
     /**
      * @todo integrate errorsStore errorsStore.setError(error);
-     * { graphQLErrors, networkError }
      */
-    const errorLink = onError((errors) => {
-      logErrorMessages(errors);
-      // clientErrors.value = errors;
-      // if (graphQLErrors) {
-      //   logErrorMessages(graphQLErrors);
-      //   // graphQLErrors.map(({ message, locations, path }) => {
-      //   //   // console.error(`[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`);
-      //   // })
-      // }
+    const errorLink = onError(({ graphQLErrors, networkError }) => {
+      if (graphQLErrors) {
+        console.debug('[GraphQL error]', graphQLErrors);
+        graphQLErrors.map((error) => {
+          console.error('[GraphQL error]', error, error.error.message);
+          if (error.error.message.includes('offline')) {
+            unraidApiStatus.value = 'offline';
+          }
+          return error.message;
+        });
+        console.debug('[GraphQL error]', graphQLErrors);
+      }
 
-      // if (networkError) {
-      //   logErrorMessages(networkError);
-      // }
+      if (networkError) {
+        console.error(`[Network error]: ${networkError}`);
+      }
     });
 
     const splitLinks = split(
@@ -129,43 +143,58 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       // (wsLink.value as any).subscriptionClient.close(); // needed if we start using subscriptions
     }
     unraidApiClient.value = undefined;
+    unraidApiStatus.value = 'offline';
     console.debug('[useUnraidApiStore.closeUnraidApiClient] DONE');
   };
 
   // const clientErrors = ref<any>();
-  // const offlineTimer = ref(false);
-  // const enableRestartUnraidApiClient = computed(() => {
-  //   const { connectPluginInstalled, stateDataError } = serverStore;
-  //   return clientErrors.value && connectPluginInstalled && !stateDataError;
-  // });
+
+  const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
+    const { connectPluginInstalled, stateDataError } = serverStore;
+    if (unraidApiStatus.value !== 'offline' || !connectPluginInstalled || stateDataError) {
+      return undefined;
+    }
+    return {
+      click: () => restartUnraidApiClient(),
+      emphasize: true,
+      icon: ArrowPathIcon,
+      name: 'Restart unraid-api',
+      text: 'Restart unraid-api',
+      title: 'Restart unraid-api',
+    };
+  });
   // /**
   //  * @name detectOfflineTimer
   //  * @description if after 30secs the api isn't started we want to possibly enable apiEnableRestartButton
-  //  * @param {String} from
   //  */
   // const detectOfflineTimer = () => {
   //   console.debug('[detectOfflineTimer]');
   //   setTimeout(() => {
   //     if (!unraidApiClient.value && serverStore.registered) {
-  //       offlineTimer.value = true;
+  //       // offlineTimer.value = true;
   //       sessionStorage.setItem('offlineTimer', Date.now());
   //     }
   //   }, 30000);
   // };
-  // const restartUnraidApiClient = () => {
-  //   WebguiUnraidApiCommand({
-  //     csrf_token: serverStore.csrfToken,
-  //     command: 'start',
-  //   });
-  //   // reset so the detectOfflineTimer can be used again without a page refresh
-  //   offlineTimer.value = false;
-  //   this.restartTriggered = true;
-  //   sessionStorage.removeItem('offlineTimer');
-  // };
+  const restartUnraidApiClient = async () => {
+    unraidApiStatus.value = 'restarting';
+    const response = await WebguiUnraidApiCommand({
+      csrf_token: serverStore.csrf,
+      command: 'start',
+    });
+    console.debug('[restartUnraidApiClient]', response);
+    // reset so the detectOfflineTimer can be used again without a page refresh
+    // offlineTimer.value = false;
+    // this.restartTriggered = true;
+    // sessionStorage.removeItem('offlineTimer');
+  };
 
   return {
     unraidApiClient,
+    unraidApiStatus,
+    unraidApiRestartAction,
     createApolloClient,
     closeUnraidApiClient,
+    restartUnraidApiClient,
   };
 });

@@ -51,7 +51,7 @@ export interface Server {
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
-  inIframe: boolean;
+  inIframe?: boolean;
   keyfile?: string;
   lanIp?: string;
   license?: string;
@@ -63,7 +63,7 @@ export interface Server {
   regGuid?: string;
   site?: string;
   state?: ServerState;
-  theme: Theme | undefined;
+  theme?: Theme | undefined;
   uptime?: number;
   username?: string;
   wanFQDN?: string;
