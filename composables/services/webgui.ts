@@ -45,17 +45,12 @@ export interface WebguiUnraidApiCommandPayload {
 }
 export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayload) => {
   console.debug('[WebguiUnraidApiCommand]', payload);
-  // eslint-disable-next-line camelcase
-  const { csrf_token, command, param1 } = payload;
+  if (!payload) { return console.error('[WebguiUnraidApiCommand] payload is required'); }
+
   try {
     return await request
       .url('/plugins/dynamix.my.servers/include/unraid-api.php')
-      .formUrl({
-        // eslint-disable-next-line camelcase
-        csrf_token,
-        command,
-        param1,
-      })
+      .formUrl(payload)
       .post()
       .json((json) => {
         console.debug('[WebguiUnraidApiCommand]', json);
