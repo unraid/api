@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowDownTrayIcon } from '@heroicons/vue/24/solid';
-import { DEV_GRAPH_URL } from '~/helpers/urls';
+import { ArrowDownTrayIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { DEV_GRAPH_URL, CONNECT_FORUMS, CONTACT, DISCORD } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -14,17 +14,34 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
     <span class="leading-8">
-      The primary method of support for Unraid Connect is through <a href="https://forums.unraid.net/forum/94-connect-plugin-support/" target="_blank" rel="noopener noreferrer">our forums</a> and <a href="https://discord.gg/unraid" target="_blank" rel="noopener noreferrer">Discord</a>. If you are asked to supply logs, please open a support request on our <a href="https://unraid.net/contact" target="_blank" rel="noopener noreferrer">Contact Page</a> and reply to the email message you receive with your logs attached. The logs may contain sensitive information so do not post them publicly.
+      The primary method of support for Unraid Connect is through our forums and Discord. If you are asked to supply logs, please open a support request on our Contact Page and reply to the email message you receive with your logs attached. The logs may contain sensitive information so do not post them publicly.
     </span>
-    <span class="flex">
-      <BrandButton
-        class="grow-0"
-        download
-        :external="true"
-        :href="downloadUrl.toString()"
-        :icon="ArrowDownTrayIcon"
-        :text="'Download unraid-api Logs'"
-      />
+    <span class="flex flex-col gap-y-16px">
+      <div class="flex">
+        <BrandButton
+          class="grow-0 shrink-0"
+          download
+          :external="true"
+          :href="downloadUrl.toString()"
+          :icon="ArrowDownTrayIcon"
+          :text="'Download unraid-api Logs'"
+        />
+      </div>
+
+      <div class="flex flex-row items-baseline gap-8px">
+        <a :href="CONNECT_FORUMS" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
+          Unraid Connect Forums
+          <ArrowTopRightOnSquareIcon class="w-16px" />
+        </a>
+        <a :href="DISCORD" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
+          Unraid Discord
+          <ArrowTopRightOnSquareIcon class="w-16px" />
+        </a>
+        <a :href="CONTACT" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
+          Unraid Contact Page
+          <ArrowTopRightOnSquareIcon class="w-16px" />
+        </a>
+      </div>
     </span>
   </div>
 </template>
