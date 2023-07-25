@@ -52,7 +52,7 @@ const status = computed((): StatusOutput | undefined => {
 <template>
   <li
     v-if="status"
-    class="flex flex-row justify-start items-center gap-8px px-8px"
+    class="flex flex-row justify-start items-center gap-8px mt-8px px-8px"
   >
     <component
       :is="status.icon"

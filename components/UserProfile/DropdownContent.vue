@@ -82,7 +82,7 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
       </h2>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
-      <UpcDropdownConnectStatus v-if="showConnectStatus" class="mt-8px" />
+      <UpcDropdownConnectStatus v-if="showConnectStatus" />
       <UpcDropdownError v-if="showErrors" />
 
       <li v-if="showKeyline" class="my-8px">
