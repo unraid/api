@@ -47,22 +47,24 @@ export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayl
   console.debug('[WebguiUnraidApiCommand]', payload);
   // eslint-disable-next-line camelcase
   const { csrf_token, command, param1 } = payload;
-  // // Trigger front-end interactivty based on command
-  // if (command === 'start') { commit('SET_MY_SERVERS_LOADING', true); }
-  const response = await request
-    .url('/plugins/dynamix.my.servers/include/unraid-api.php')
-    .formUrl({
-      // eslint-disable-next-line camelcase
-      csrf_token,
-      command,
-      param1,
-    })
-    .post()
-    .json((json) => {
-      console.debug('👼 [WebguiUnraidApiCommand]', json);
-    })
-    .catch((error) => {
-      console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${command} 😢`, error);
-    });
-  return response;
+  try {
+    return await request
+      .url('/plugins/dynamix.my.servers/include/unraid-api.php')
+      .formUrl({
+        // eslint-disable-next-line camelcase
+        csrf_token,
+        command,
+        param1,
+      })
+      .post()
+      .json((json) => {
+        console.debug('👼 [WebguiUnraidApiCommand]', json);
+        return json;
+      })
+      .catch((error) => {
+        console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${command} 😢`, error);
+      });
+  } catch (error) {
+    console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${command} 😢`, error);
+  }
 };
