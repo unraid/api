@@ -1,4 +1,3 @@
-
 <script setup lang="ts">
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import type { ServerStateDataAction } from '~/types/server';
@@ -19,7 +18,6 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
 <template>
   <component
     :is="item?.click ? 'button' : 'a'"
-    @click.stop="item?.click ? item?.click() : null"
     :href="item?.href ?? null"
     :title="item?.title ?? null"
     :target="item?.external ? '_blank' : null"
@@ -31,6 +29,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
       'group': showExternalIconOnHover,
       'rounded-md': rounded,
     }"
+    @click.stop="item?.click ? item?.click() : null"
   >
     <span class="leading-snug inline-flex flex-row items-center gap-x-8px">
       <component :is="item?.icon" class="flex-shrink-0 text-current w-16px h-16px" aria-hidden="true" />
