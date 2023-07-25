@@ -24,7 +24,7 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
         :href="downloadUrl.toString()"
         :icon="ArrowDownTrayIcon"
         :text="'Download unraid-api Logs'"
-        />
+      />
     </span>
   </div>
 </template>
