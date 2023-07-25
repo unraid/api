@@ -736,15 +736,12 @@ export const useServerStore = defineStore('server', () => {
     const mutatedData = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values
       ...(data.owner && data.owner.username !== 'root' && {
-        avatar: data.owner.avatar,
+        // avatar: data.owner.avatar,
         username: data.owner.username,
         registered: true,
       }),
-      // if owners obj is empty we need to sign user out
-      // ...(context.state.signOutTriggered && { username: '', avatar: '', registered: false }),
       name: (data.info && data.info.os) ? data.info.os.hostname : null,
       keyfile: (data.registration && data.registration.keyFile) ? data.registration.keyFile.contents : null,
-      // sendCrashInfo: data.crashReportingEnabled,
       regGen: data.vars ? data.vars.regGen : null,
       state: data.vars ? data.vars.regState : null,
       config: data.config
