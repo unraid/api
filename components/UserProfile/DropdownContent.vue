@@ -8,9 +8,6 @@ import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
-const myServersEnv = ref<string>('Staging');
-const devEnv = ref<string>('development');
-
 const errorsStore = useErrorsStore();
 const promoStore = usePromoStore();
 
@@ -83,10 +80,6 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
         <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-beta w-[120px]" />
         <UpcBeta />
       </h2>
-      <span v-if="myServersEnv || devEnv" class="flex gap-x-4px cursor-default">
-        <span v-if="myServersEnv" class="text-10px" :title="`API • ${myServersEnv}`">⚙️</span>
-        <span v-if="devEnv" class="text-10px" :title="`UPC • ${devEnv}`">⚠️</span>
-      </span>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
       <UpcDropdownConnectStatus v-if="showConnectStatus" class="mt-8px" />
