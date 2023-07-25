@@ -771,6 +771,7 @@ export const useServerStore = defineStore('server', () => {
         setServer(mutatedServerStateResult);
       }
     });
+    return resultServerState;
   };
 
   const phpServerStateRefresh = async () => {

@@ -42,9 +42,12 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   const unraidApiClient = ref<ApolloClient<any>>();
   watch(unraidApiClient, (newVal, oldVal) => {
     console.debug('[watch:unraidApiStore.unraidApiClient]', { newVal, oldVal });
-    if (newVal && !oldVal) { // first time
-      unraidApiStatus.value = 'online';
-      serverStore.fetchServerFromApi();
+    if (newVal) {
+      const apiResponse = serverStore.fetchServerFromApi();
+      if (apiResponse) {
+        // we have a response, so we're online
+        unraidApiStatus.value = 'online';
+      }
     }
   });
 
@@ -52,6 +55,19 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
   watch(unraidApiStatus, (newVal, oldVal) => {
     console.debug('[watch:unraidApiStore.unraidApiStatus]', { newVal, oldVal });
+  });
+
+  const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
+    const { connectPluginInstalled, stateDataError } = serverStore;
+    if (unraidApiStatus.value !== 'offline' || !connectPluginInstalled || stateDataError) {
+      return undefined;
+    }
+    return {
+      click: () => restartUnraidApiClient(),
+      emphasize: true,
+      icon: ArrowPathIcon,
+      text: 'Restart unraid-api',
+    };
   });
 
   /**
@@ -147,35 +163,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     console.debug('[useUnraidApiStore.closeUnraidApiClient] DONE');
   };
 
-  // const clientErrors = ref<any>();
-
-  const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
-    const { connectPluginInstalled, stateDataError } = serverStore;
-    if (unraidApiStatus.value !== 'offline' || !connectPluginInstalled || stateDataError) {
-      return undefined;
-    }
-    return {
-      click: () => restartUnraidApiClient(),
-      emphasize: true,
-      icon: ArrowPathIcon,
-      name: 'Restart unraid-api',
-      text: 'Restart unraid-api',
-      title: 'Restart unraid-api',
-    };
-  });
-  // /**
-  //  * @name detectOfflineTimer
-  //  * @description if after 30secs the api isn't started we want to possibly enable apiEnableRestartButton
-  //  */
-  // const detectOfflineTimer = () => {
-  //   console.debug('[detectOfflineTimer]');
-  //   setTimeout(() => {
-  //     if (!unraidApiClient.value && serverStore.registered) {
-  //       // offlineTimer.value = true;
-  //       sessionStorage.setItem('offlineTimer', Date.now());
-  //     }
-  //   }, 30000);
-  // };
   const restartUnraidApiClient = async () => {
     unraidApiStatus.value = 'restarting';
     const response = await WebguiUnraidApiCommand({
@@ -183,10 +170,11 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       command: 'start',
     });
     console.debug('[restartUnraidApiClient]', response);
-    // reset so the detectOfflineTimer can be used again without a page refresh
-    // offlineTimer.value = false;
-    // this.restartTriggered = true;
-    // sessionStorage.removeItem('offlineTimer');
+    return setTimeout(() => {
+      if (unraidApiClient.value) {
+        createApolloClient();
+      }
+    }, 5000);
   };
 
   return {
