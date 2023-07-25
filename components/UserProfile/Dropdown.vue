@@ -5,12 +5,12 @@ import { storeToRefs } from 'pinia';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 
-const dropdownStore = useDropdownStore()
+const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { connectPluginInstalled, registered, state, stateDataError, serverErrors } = storeToRefs(useServerStore());
+const { connectPluginInstalled, registered, state, stateDataError } = storeToRefs(useServerStore());
 
 const showDefaultContent = computed(() => !showLaunchpad.value);
-const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || (connectPluginInstalled.value && !registered.value) && !stateDataError.value);
+const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPluginInstalled.value && !registered.value) && !stateDataError.value));
 </script>
 
 <template>
