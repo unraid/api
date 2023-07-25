@@ -1,43 +1,26 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
+
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 const serverStore = useServerStore();
 const { authAction, stateData } = storeToRefs(serverStore);
-
-// @todo use callback url
-const stateDataErrorAction = computed(() => {
-  return {
-    click: () => { console.debug('accountServerPayload'); },
-    external: true,
-    icon: ExclamationTriangleIcon,
-    name: 'accountServer',
-    text: 'Fix Error',
-  };
-});
-
-const button = computed(() => {
-  if (stateData.value.error) { return stateDataErrorAction.value; }
-  return authAction.value;
-});
 </script>
 
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
     <span v-if="stateData.error" class="text-unraid-red font-semibold leading-8">
-      {{ stateData.heading }}
-      <br>
+      <h3 class="text-14px mb-8px">{{ stateData.heading }}</h3>
       <span v-html="stateData.message" />
     </span>
     <span>
       <BrandButton
-        v-if="button"
-        :icon="button.icon"
-        :text="button.text"
-        @click="button.click()"
+        v-if="authAction"
+        :icon="authAction.icon"
+        :text="authAction.text"
+        @click="authAction.click()"
       />
     </span>
   </div>
