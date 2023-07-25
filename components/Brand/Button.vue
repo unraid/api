@@ -32,15 +32,15 @@ const classes = computed(() => {
 <template>
   <component
     :is="href ? 'a' : 'button'"
-    @click="click ?? $emit('click')"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
     :type="!href ? btnType : ''"
     class="text-14px text-center font-semibold flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md"
     :class="classes"
+    @click="click ?? $emit('click')"
   >
-    <component v-if="icon" :is="icon" class="flex-shrink-0 w-14px" />
+    <component :is="icon" v-if="icon" class="flex-shrink-0 w-14px" />
     {{ text }}
   </component>
 </template>
