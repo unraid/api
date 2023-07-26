@@ -36,6 +36,10 @@ export default defineNuxtConfig({
         name: 'UnraidComponents',
         tags: [
           {
+            name: 'UnraidI18nHost',
+            path: '@/components/I18nHost.ce',
+          },
+          {
             name: 'UnraidAuth',
             path: '@/components/Auth.ce',
           },

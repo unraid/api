@@ -3,7 +3,7 @@ import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
 onBeforeMount(() => {
-  nuxtApp.$customElements.registerEntry('ConnectComponents');
+  nuxtApp.$customElements.registerEntry('UnraidComponents');
 });
 </script>
 
