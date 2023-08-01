@@ -37,7 +37,7 @@ const title = computed((): string => {
 
 <template>
   <button
-    class="group text-18px hover:text-alpha focus:text-alpha border border-transparent relative flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
+    class="group text-18px hover:text-alpha focus:text-alpha border-0 relative flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
     :title="title"
     @click="dropdownStore.dropdownToggle()"
   >

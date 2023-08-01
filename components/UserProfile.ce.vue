@@ -93,7 +93,7 @@ onBeforeMount(() => {
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
-      <h1 class="text-alpha text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
+      <h1 class="text-alpha text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0">
         <template v-if="description && theme?.descriptionShow">
           <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
