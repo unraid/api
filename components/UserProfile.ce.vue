@@ -11,6 +11,8 @@ import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+const { t } = useI18n();
+
 export interface Props {
   server?: Server | string;
 }
@@ -78,8 +80,6 @@ onBeforeMount(() => {
    */
   callbackStore.watcher();
 });
-
-const { t } = useI18n();
 </script>
 
 <template>
@@ -89,7 +89,7 @@ const { t } = useI18n();
     <div class="text-gamma text-10px xs:text-12px text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
       <UpcUptimeExpire />
       <span class="hidden xs:block">&bull;</span>
-      <UpcServerState />
+      <UpcServerState :t="t" />
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
@@ -113,8 +113,8 @@ const { t } = useI18n();
       <div class="block w-2px h-24px bg-gamma" />
 
       <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
-        <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" />
-        <UpcDropdown ref="clickOutsideTarget" />
+        <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
+        <UpcDropdown ref="clickOutsideTarget" :t="t" />
       </OnClickOutside>
     </div>
   </div>
