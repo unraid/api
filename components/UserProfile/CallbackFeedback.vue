@@ -13,9 +13,10 @@ import { useServerStore } from '~/store/server';
 
 export interface Props {
   open?: boolean;
+  t: any;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   open: false,
 });
 
@@ -64,33 +65,33 @@ const showSignInCta = computed(() => connectPluginInstalled.value && !registered
 const heading = computed(() => {
   switch (callbackStatus.value) {
     case 'error':
-      return 'Error';
+      return props.t('Error');
     case 'loading':
-      return 'Performing actions';
+      return props.t('Performing actions');
     case 'success':
-      return 'Success!';
+      return props.t('Success!');
   }
 });
 const subheading = computed(() => {
   if (callbackStatus.value === 'error') {
-    return 'Something went wrong'; /** @todo show actual error messages */
+    return props.t('Something went wrong'); /** @todo show actual error messages */
   }
-  if (callbackStatus.value === 'loading') { return 'Please keep this window open while we perform some actions'; }
+  if (callbackStatus.value === 'loading') { return props.t('Please keep this window open while we perform some actions'); }
   if (callbackStatus.value === 'success') {
-    if (accountActionType.value === 'signIn') { return 'You\'re one step closer to enhancing your Unraid experience'; }
-    if (keyActionType.value === 'purchase') { return `Thank you for purchasing an Unraid ${keyType.value} Key!`; }
-    if (keyActionType.value === 'replace') { return `Your ${keyType.value} Key has been replaced!`; }
-    if (keyActionType.value === 'trialExtend') { return 'Your Trial key has been extended!'; }
-    if (keyActionType.value === 'trialStart') { return 'Your free Trial key provides all the functionality of a Pro Registration key'; }
-    if (keyActionType.value === 'upgrade') { return `Thank you for upgrading to an Unraid ${keyType.value} Key!`; }
+    if (accountActionType.value === 'signIn') { return props.t('You\'re one step closer to enhancing your Unraid experience'); }
+    if (keyActionType.value === 'purchase') { return props.t('Thank you for purchasing an Unraid %{keyType} Key!', { keyType: keyType.value }); }
+    if (keyActionType.value === 'replace') { return props.t('Your %{keyType} Key has been replaced!', { keyType: keyType.value }); }
+    if (keyActionType.value === 'trialExtend') { return props.t('Your Trial key has been extended!'); }
+    if (keyActionType.value === 'trialStart') { return props.t('Your free Trial key provides all the functionality of a Pro Registration key'); }
+    if (keyActionType.value === 'upgrade') { return props.t('Thank you for upgrading to an Unraid %{keyType} Key!', { keyType: keyType.value }); }
     return '';
   }
   return '';
 });
 
 const closeText = computed(() => {
-  const txt = !connectPluginInstalled.value ? 'No Thanks' : 'Close';
-  return refreshServerStateStatus.value === 'done' ? txt : 'Reload';
+  const txt = !connectPluginInstalled.value ? props.t('No thanks') : props.t('Close');
+  return refreshServerStateStatus.value === 'done' ? txt : props.t('Reload');
 });
 const close = () => {
   if (callbackStatus.value === 'loading') { return console.debug('[close] not allowed'); }
@@ -104,11 +105,12 @@ const promoClick = () => {
   close();
 };
 
-const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
+const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 </script>
 
 <template>
   <Modal
+    :t="t"
     :title="heading"
     :description="subheading"
     :open="open"
@@ -137,14 +139,14 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
             <div v-if="isSupported" class="flex justify-center">
               <BrandButton
                 :icon="ClipboardIcon"
-                :text="copied ? 'Copied' : 'Copy Key URL'"
+                :text="copied ? t('Copied') : t('Copy Key URL')"
                 @click="copy(keyUrl)"
               />
             </div>
             <p v-else>
-              {{ 'Copy your Key URL' }}: {{ keyUrl }}
+              {{ t('Copy your Key URL: %{keyUrl}', { keyUrl }) }}
             </p>
-            <p><a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">{{ 'Then go to Tools > Registration to manually install it' }}</a></p>
+            <p><a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">{{ t('Then go to Tools > Registration to manually install it') }}</a></p>
           </template>
         </UpcCallbackFeedbackStatus>
 
@@ -158,13 +160,13 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
         <UpcCallbackFeedbackStatus
           v-if="showPromoCta"
           :icon="InformationCircleIcon"
-          :text="'Enhance your experience with Unraid Connect'"
+          :text="t('Enhance your experience with Unraid Connect')"
         />
 
         <UpcCallbackFeedbackStatus
           v-if="showSignInCta"
           :icon="InformationCircleIcon"
-          :text="'Sign In to utilize Unraid Connect'"
+          :text="t('Sign In to utilize Unraid Connect')"
         />
       </div>
     </template>
@@ -175,7 +177,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
           <BrandButton
             v-if="isSettingsPage"
             :icon="CogIcon"
-            :text="'Configure Connect Features'"
+            :text="t('Configure Connect Features')"
             class="grow-0"
             @click="close"
           />
@@ -183,14 +185,14 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
             v-else
             :href="PLUGIN_SETTINGS"
             :icon="CogIcon"
-            :text="'Configure Connect Features'"
+            :text="t('Configure Connect Features')"
             class="grow-0"
           />
         </template>
 
         <BrandButton
           v-if="showPromoCta"
-          :text="'Learn More'"
+          :text="t('Learn More')"
           @click="promoClick"
         />
 
@@ -198,7 +200,7 @@ const { text, copy, copied, isSupported } = useClipboard({ source: keyUrl.value 
           v-if="showSignInCta"
           :external="authAction?.external"
           :icon="authAction?.icon"
-          :text="authAction?.text"
+          :text="t(authAction?.text)"
           @click="authAction?.click"
         />
 

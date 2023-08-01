@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { ArrowDownTrayIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { useI18n } from 'vue-i18n';
+
 import { DEV_GRAPH_URL, CONNECT_FORUMS, CONTACT, DISCORD } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
+
+const { t } = useI18n();
 
 const { apiKey } = storeToRefs(useServerStore());
 
@@ -14,7 +18,9 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
     <span class="leading-8">
-      The primary method of support for Unraid Connect is through our forums and Discord. If you are asked to supply logs, please open a support request on our Contact Page and reply to the email message you receive with your logs attached. The logs may contain sensitive information so do not post them publicly.
+      {{ t('The primary method of support for Unraid Connect is through our forums and Discord.') }}
+      {{ t('If you are asked to supply logs, please open a support request on our Contact Page and reply to the email message you receive with your logs attached.') }}
+      {{ t('The logs may contain sensitive information so do not post them publicly.') }}
     </span>
     <span class="flex flex-col gap-y-16px">
       <div class="flex">
@@ -24,21 +30,21 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
           :external="true"
           :href="downloadUrl.toString()"
           :icon="ArrowDownTrayIcon"
-          :text="'Download unraid-api Logs'"
+          :text="t('Download unraid-api Logs')"
         />
       </div>
 
       <div class="flex flex-row items-baseline gap-8px">
         <a :href="CONNECT_FORUMS" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
-          Unraid Connect Forums
+          {{ t('Unraid Connect Forums') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
         <a :href="DISCORD" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
-          Unraid Discord
+          {{ t('Unraid Discord') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
         <a :href="CONTACT" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
-          Unraid Contact Page
+          {{ t('Unraid Contact Page') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
       </div>
