@@ -129,8 +129,8 @@ export interface ServerStateDataError {
 export interface ServerStateData {
   actions?: ServerStateDataAction[] | undefined;
   humanReadable: string; // @todo create interface of ENUM to string mapping
-  heading?: string;
-  message?: string;
+  heading: string;
+  message: string;
   error?: ServerStateDataError | boolean;
   withKey?: boolean; // @todo potentially remove
 }
