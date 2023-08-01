@@ -15,12 +15,11 @@ const { authAction, stateData } = storeToRefs(serverStore);
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
     <span v-if="stateData.error" class="text-unraid-red font-semibold leading-8">
-      <h3 class="text-14px mb-8px">{{ t(stateData.heading) }}</h3>
-      <span v-html="t(stateData.message)" />
+      <h3 class="text-16px mb-8px">{{ t(stateData.heading) }}</h3>
+      <span class="text-14px" v-html="t(stateData.message)" />
     </span>
-    <span>
+    <span v-if="authAction">
       <BrandButton
-        v-if="authAction"
         :icon="authAction.icon"
         :text="t(authAction.text)"
         @click="authAction.click()"

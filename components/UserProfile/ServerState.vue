@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+
 import { useServerStore } from '~/store/server';
 import type { ServerStateDataAction } from '~/types/server';
+
+defineProps<{ t: any; }>();
 
 const { state, stateData } = storeToRefs(useServerStore());
 
@@ -17,23 +20,23 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
   <span class="flex flex-row items-center gap-x-8px">
     <template v-if="upgradeAction">
       <UpcServerStateBuy
-        @click="upgradeAction.click()"
         class="text-gamma"
-        :title="'Upgrade'"
+        :title="t('Upgrade')"
+        @click="upgradeAction.click()"
       >
-        <h5>Unraid OS <em><strong>{{ stateData.humanReadable }}</strong></em></h5>
+        <h5>Unraid OS <em><strong>{{ t(stateData.humanReadable) }}</strong></em></h5>
       </UpcServerStateBuy>
     </template>
     <h5 v-else>
-      Unraid OS <em :class="{ 'text-unraid-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ stateData.humanReadable }}</strong></em>
+      Unraid OS <em :class="{ 'text-unraid-red': stateData.error || state === 'EEXPIRED' }"><strong>{{ t(stateData.humanReadable) }}</strong></em>
     </h5>
 
     <template v-if="purchaseAction">
       <UpcServerStateBuy
-        @click="purchaseAction.click()"
         class="text-orange-dark relative top-[1px] hidden sm:block"
-        :title="'Purchase'"
-      >{{ 'Purchase' }}</UpcServerStateBuy>
+        :title="t('Purchase')"
+        @click="purchaseAction.click()"
+      >{{ t('Purchase') }}</UpcServerStateBuy>
     </template>
   </span>
 </template>
