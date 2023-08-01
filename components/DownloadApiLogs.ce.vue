@@ -17,7 +17,7 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
 
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
-    <span class="leading-8">
+    <span>
       {{ t('The primary method of support for Unraid Connect is through our forums and Discord.') }}
       {{ t('If you are asked to supply logs, please open a support request on our Contact Page and reply to the email message you receive with your logs attached.') }}
       {{ t('The logs may contain sensitive information so do not post them publicly.') }}
