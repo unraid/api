@@ -6,6 +6,7 @@ import type { UserProfileLink } from '~/types/userProfile';
 export interface Props {
   item: ServerStateDataAction | UserProfileLink;
   rounded?: boolean;
+  t: any;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -33,7 +34,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
   >
     <span class="leading-snug inline-flex flex-row items-center gap-x-8px">
       <component :is="item?.icon" class="flex-shrink-0 text-current w-16px h-16px" aria-hidden="true" />
-      {{ item?.text }}
+      {{ t(item?.text) }}
     </span>
     <ArrowTopRightOnSquareIcon
       v-if="showExternalIconOnHover"

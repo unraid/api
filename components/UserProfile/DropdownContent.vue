@@ -8,6 +8,8 @@ import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
+const props = defineProps<{ t: any; }>();
+
 const errorsStore = useErrorsStore();
 const promoStore = usePromoStore();
 
@@ -26,21 +28,21 @@ const links = computed(():UserProfileLink[] => {
             external: true,
             href: CONNECT_DASHBOARD,
             icon: ArrowTopRightOnSquareIcon,
-            text: 'Go to Connect',
-            title: 'Opens Connect in new tab',
+            text: props.t('Go to Connect'),
+            title: props.t('Opens Connect in new tab'),
           },
           {
             external: true,
             href: ACCOUNT,
             icon: ArrowTopRightOnSquareIcon,
-            text: 'Manage Unraid.net Account',
-            title: 'Manage Unraid.net Account in new tab',
+            text: props.t('Manage Unraid.net Account'),
+            title: props.t('Manage Unraid.net Account in new tab'),
           },
           {
             href: PLUGIN_SETTINGS,
             icon: CogIcon,
-            text: 'Settings',
-            title: 'Go to Connect plugin settings',
+            text: props.t('Settings'),
+            title: props.t('Go to Connect plugin settings'),
           },
           ...(signOutAction.value),
         ]
@@ -59,8 +61,8 @@ const links = computed(():UserProfileLink[] => {
               promoStore.promoShow();
             },
             icon: InformationCircleIcon,
-            text: 'Enhance your Unraid experience with Connect',
-            title: 'Enhance your Unraid experience with Connect',
+            text: props.t('Enhance your Unraid experience with Connect'),
+            title: props.t('Enhance your Unraid experience with Connect'),
           },
         ]
       : []
@@ -82,8 +84,8 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
       </h2>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
-      <UpcDropdownConnectStatus v-if="showConnectStatus" />
-      <UpcDropdownError v-if="showErrors" />
+      <UpcDropdownConnectStatus v-if="showConnectStatus" :t="t" />
+      <UpcDropdownError v-if="showErrors" :t="t" />
 
       <li v-if="showKeyline" class="my-8px">
         <UpcKeyline />
@@ -91,13 +93,13 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
 
       <template v-if="keyActions">
         <li v-for="action in keyActions" :key="action.name">
-          <UpcDropdownItem :item="action" />
+          <UpcDropdownItem :item="action" :t="t" />
         </li>
       </template>
 
       <template v-if="links.length">
         <li v-for="(link, index) in links" :key="`link_${index}`">
-          <UpcDropdownItem :item="link" />
+          <UpcDropdownItem :item="link" :t="t" />
         </li>
       </template>
     </ul>

@@ -1,9 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import { InformationCircleIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
+
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
+
+const props = defineProps<{ t: any; }>();
 
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
@@ -20,15 +23,15 @@ const registeredAndconnectPluginInstalled = computed(() => connectPluginInstalle
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string | undefined => {
-  if ((stateData.value.error) && state.value !== 'EEXPIRED') { return 'Fix Error'; }
+  if ((stateData.value.error) && state.value !== 'EEXPIRED') { return props.t('Fix Error'); }
   if (registeredAndconnectPluginInstalled.value) { return username.value; }
 });
 
 const title = computed((): string => {
-  if (state.value === 'ENOKEYFILE') { return 'Get Started'; }
-  if (state.value === 'EEXPIRED') { return 'Trial Expired, see options below'; }
-  if (showErrorIcon.value) { return 'Learn more about the error'; }
-  return dropdownVisible.value ? 'Close Dropdown' : 'Open Dropdown';
+  if (state.value === 'ENOKEYFILE') { return props.t('Get Started'); }
+  if (state.value === 'EEXPIRED') { return props.t('Trial Expired, see options below'); }
+  if (showErrorIcon.value) { return props.t('Learn more about the error'); }
+  return dropdownVisible.value ? props.t('Close Dropdown') : props.t('Open Dropdown');
 });
 </script>
 
