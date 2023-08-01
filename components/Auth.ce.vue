@@ -14,7 +14,7 @@ const { authAction, stateData } = storeToRefs(serverStore);
 
 <template>
   <div class="whitespace-normal flex flex-col gap-y-16px max-w-3xl">
-    <span v-if="stateData.error" class="text-unraid-red font-semibold leading-8">
+    <span v-if="stateData.error" class="text-unraid-red font-semibold">
       <h3 class="text-16px mb-8px">{{ t(stateData.heading) }}</h3>
       <span class="text-14px" v-html="t(stateData.message)" />
     </span>
