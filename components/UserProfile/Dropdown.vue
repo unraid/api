@@ -5,6 +5,8 @@ import { storeToRefs } from 'pinia';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 
+defineProps<{ t: any; }>();
+
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { connectPluginInstalled, registered, state, stateDataError } = storeToRefs(useServerStore());
@@ -25,8 +27,8 @@ const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPl
     leave-to="opacity-0 translate-y-[16px]"
   >
     <UpcDropdownWrapper class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 transition-all">
-      <UpcDropdownContent v-if="showDefaultContent" />
-      <UpcDropdownLaunchpad v-else />
+      <UpcDropdownContent v-if="showDefaultContent" :t="t" />
+      <UpcDropdownLaunchpad v-else :t="t" />
     </UpcDropdownWrapper>
   </TransitionRoot>
 </template>

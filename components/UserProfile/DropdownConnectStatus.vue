@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
-import BrandLoading from '~/components/Brand/Loading.vue';
 
+import BrandLoading from '~/components/Brand/Loading.vue';
 import { useUnraidApiStore } from '~/store/unraidApi';
+
+const props = defineProps<{ t: any; }>();
 
 const unraidApiStore = useUnraidApiStore();
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(unraidApiStore);
@@ -19,7 +21,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: BrandLoading,
       iconClasses: 'w-16px',
-      text: 'Loading…',
+      text: props.t('Loading…'),
       textClasses: 'italic',
     };
   }
@@ -27,7 +29,7 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: BrandLoading,
       iconClasses: 'w-16px',
-      text: 'Restarting unraid-api…',
+      text: props.t('Restarting unraid-api…'),
       textClasses: 'italic',
     };
   }
@@ -35,14 +37,14 @@ const status = computed((): StatusOutput | undefined => {
     return {
       icon: ExclamationTriangleIcon,
       iconClasses: 'text-red-500 w-16px h-16px',
-      text: 'unraid-api is offline',
+      text: props.t('unraid-api is offline'),
     };
   }
   if (unraidApiStatus.value === 'online') {
     return {
       icon: CheckCircleIcon,
       iconClasses: 'text-red-500 w-16px h-16px',
-      text: 'Connected',
+      text: props.t('Connected'),
     };
   }
   return undefined;
@@ -64,6 +66,6 @@ const status = computed((): StatusOutput | undefined => {
     </span>
   </li>
   <li v-if="unraidApiRestartAction" class="w-full">
-    <UpcDropdownItem :item="unraidApiRestartAction" />
+    <UpcDropdownItem :item="unraidApiRestartAction" :t="t" />
   </li>
 </template>

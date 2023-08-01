@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Bars3Icon, XMarkIcon } from "@heroicons/vue/24/solid";
+import { Bars3Icon, XMarkIcon } from '@heroicons/vue/24/solid';
 
 export interface Props {
   open?: boolean;
