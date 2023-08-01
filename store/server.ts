@@ -370,7 +370,15 @@ export const useServerStore = defineStore('server', () => {
             : '',
         };
       case 'EGUID':
-        if (guidReplaceable.value) { messageEGUID = '<p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>'; } else if (guidReplaceable.value === false && guidBlacklisted.value) { messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it is blacklisted.</p>'; } else if (guidReplaceable.value === false && !guidBlacklisted.value) { messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>'; } else { messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device.</p><p>You may also attempt to Purchase or Replace your key.</p>'; } // basically guidReplaceable.value === null
+        if (guidReplaceable.value) {
+          messageEGUID = '<p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>';
+        } else if (guidReplaceable.value === false && guidBlacklisted.value) {
+          messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it is blacklisted.</p>';
+        } else if (guidReplaceable.value === false && !guidBlacklisted.value) {
+          messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device or choose Purchase Key.</p><p>Your Unraid registration key is ineligible for replacement as it has been replaced within the last 12 months.</p>';
+        } else { // basically guidReplaceable.value === null
+          messageEGUID = '<p>The license key file does not correspond to the USB Flash boot device. Please copy the correct key file to the /config directory on your USB Flash boot device.</p><p>You may also attempt to Purchase or Replace your key.</p>';
+        }
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
