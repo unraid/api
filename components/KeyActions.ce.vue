@@ -1,9 +1,12 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
+
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+const { t } = useI18n();
 const { keyActions } = storeToRefs(useServerStore());
 </script>
 
@@ -12,11 +15,11 @@ const { keyActions } = storeToRefs(useServerStore());
     <li v-for="action in keyActions" :key="action.name">
       <BrandButton
         class="w-full max-w-300px"
-        @click="action.click()"
         :external="action?.external"
         :href="action?.href"
         :icon="action.icon"
-        :text="action.text"
+        :text="t(action.text)"
+        @click="action.click()"
       />
     </li>
   </ul>

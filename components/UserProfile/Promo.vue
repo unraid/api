@@ -3,6 +3,8 @@
  * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+
 import useInstallPlugin from '~/composables/installPlugin';
 import { usePromoStore } from '~/store/promo';
 import type { UserProfilePromoFeature } from '~/types/userProfile';
@@ -11,6 +13,7 @@ import '~/assets/main.css';
 
 export interface Props {
   open?: boolean;
+  t: any;
 }
 
 withDefaults(defineProps<Props>(), {
@@ -56,18 +59,17 @@ const features = ref<UserProfilePromoFeature[]>([
 
 const staging = ref(false);
 const { install } = useInstallPlugin();
-
-const installButtonClasses = 'text-white text-14px text-center w-full flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60';
 </script>
 
 <template>
   <Modal
-    title="Introducing Unraid Connect"
-    description="Enhance your Unraid experience"
+    :t="t"
+    :title="t('Introducing Unraid Connect')"
+    :description="t('Enhance your Unraid experience')"
     :open="open"
-    @close="promoStore.promoHide()"
     :show-close-x="true"
     max-width="max-w-800px"
+    @close="promoStore.promoHide()"
   >
     <template #headerTitle>
       <span><UpcBeta class="relative -top-1" /></span>
@@ -79,8 +81,8 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
           <UpcPromoFeature
             v-for="(feature, index) in features"
             :key="index"
-            :title="feature.title"
-            :copy="feature.copy"
+            :title="t(feature.title)"
+            :copy="t(feature.copy)"
           />
         </div>
       </div>
@@ -91,27 +93,35 @@ const installButtonClasses = 'text-white text-14px text-center w-full flex flex-
         <!-- v-if="devEnv" -->
         <SwitchGroup as="div" class="flex items-center justify-center">
           <Switch v-model="staging" :class="[staging ? 'bg-indigo-600' : 'bg-gray-200', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2']">
-            <span aria-hidden="true" :class="[staging ? 'translate-x-5' : 'translate-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out']" />
+            <span aria-hidden="true" :class="[staging ? 't-x-5' : 't-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out']" />
           </Switch>
           <SwitchLabel as="span" class="ml-3 text-12px">
             <span class="font-semibold">Install Staging</span>
           </SwitchLabel>
         </SwitchGroup>
-        <button @click="install({ staging, update: false })" :class="installButtonClasses">{{ staging ? 'Install Connect Staging' : 'Install Connect' }}</button>
+        <button
+          class="text-white text-14px text-center w-full flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60"
+          @click="install({ staging, update: false })"
+        >
+          {{ staging ? 'Install Connect Staging' : t('Install Connect') }}
+        </button>
         <div>
           <a
             href="https://docs.unraid.net/category/unraid-connect"
-            class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
+            class="text-12px tracking-wide inline-flex flex-row items-center justify-start gap-8px mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
             target="_blank"
             rel="noopener noreferrer"
-            :title="'Checkout the Connect Documentation'"
-          >{{ 'Learn More' }}</a>
-          <button
-            @click="promoStore.promoHide()"
-            class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
-            :title="'Close Promo'"
+            :title="t('Checkout the Connect Documentation')"
           >
-            {{ 'No thanks' }}
+            {{ t('Learn More') }}
+            <ArrowTopRightOnSquareIcon class="w-16px" />
+          </a>
+          <button
+            class="text-12px tracking-wide inline-block mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
+            :title="t('Close')"
+            @click="promoStore.promoHide()"
+          >
+            {{ t('No thanks') }}
           </button>
         </div>
       </div>

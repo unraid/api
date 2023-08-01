@@ -12,7 +12,7 @@ import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 export interface Props {
-  server?: Server;
+  server?: Server | string;
 }
 const props = defineProps<Props>();
 
@@ -95,19 +95,18 @@ const { t } = useI18n();
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
       <h1 class="text-alpha text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-t-0 border-r-0 border-l-0 border-b-2 border-transparent">
         <template v-if="description && theme?.descriptionShow">
-          <!-- <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span> -->
-          <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ t('hello') }}</span>
+          <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
-        <button :title="`Click to Copy LAN IP ${lanIp}`" @click="copyLanIp()">
+        <button :title="t('Click to Copy LAN IP %{ip}', { ip: lanIp })" @click="copyLanIp()">
           {{ name }}
         </button>
         <span
           v-show="copied || showCopyNotSupported"
           class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
-          <template v-if="copied">{{ 'LAN IP Copied' }}</template>
-          <template v-else>LAN IP: <span class="select-all">{{ lanIp }}</span></template>
+          <template v-if="copied">{{ t('LAN IP Copied') }}</template>
+          <template v-else>{{ t('LAN IP %{ip}', { ip: lanIp }) }}</template>
         </span>
       </h1>
 

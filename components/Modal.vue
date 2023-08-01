@@ -10,14 +10,17 @@ export interface Props {
   open?: boolean;
   showCloseX?: boolean;
   success?: boolean;
+  t: any;
   title?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
+  description: '',
   error: false,
   maxWidth: 'sm:max-w-lg',
   open: false,
   showCloseX: false,
   success: false,
+  title: '',
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -63,7 +66,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
       >
         <div
           class="fixed inset-0 z-0 bg-black bg-opacity-80 transition-opacity"
-          title="Click to close modal"
+          :title="t('Click to close modal')"
           @click="closeModal"
         />
       </TransitionChild>
@@ -89,7 +92,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
               <button type="button" class="rounded-md text-beta bg-alpha p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" @click="closeModal">
-                <span class="sr-only">Close</span>
+                <span class="sr-only">{{ t('Close') }}</span>
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
