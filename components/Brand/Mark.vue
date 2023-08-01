@@ -16,7 +16,6 @@ withDefaults(defineProps<Props>(), {
     xmlns:xlink="http://www.w3.org/1999/xlink"
     viewBox="0 0 133.52 76.97"
   >
-    <title>unraid-mark</title>
     <defs>
       <linearGradient
         id="unraid-mark"
