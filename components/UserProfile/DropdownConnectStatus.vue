@@ -43,7 +43,7 @@ const status = computed((): StatusOutput | undefined => {
   if (unraidApiStatus.value === 'online') {
     return {
       icon: CheckCircleIcon,
-      iconClasses: 'text-red-500 w-16px h-16px',
+      iconClasses: 'text-red-600 w-16px h-16px',
       text: props.t('Connected'),
     };
   }
