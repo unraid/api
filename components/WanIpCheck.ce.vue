@@ -59,9 +59,9 @@ watchEffect(async () => {
   <template v-else>
     <span v-if="computedError" class="text-unraid-red font-semibold">{{ computedError }}</span>
     <template v-else>
-      <span v-if="isRemoteAccess || phpWanIp === wanIp && !isRemoteAccess">{{ t('Remark: your WAN IPv4 is %{ip}', { ip: wanIp }) }}</span>
+      <span v-if="isRemoteAccess || phpWanIp === wanIp && !isRemoteAccess">{{ t('Remark: your WAN IPv4 is {0}', [wanIp]) }}</span>
       <span v-else class="inline-block w-1/2 whitespace-normal">
-        {{ t("Remark: Unraid's WAN IPv4 %{phpWanIp} does not match your client's WAN IPv4 %{wanIp}.", { phpWanIp, wanIp }) }}
+        {{ t("Remark: Unraid's WAN IPv4 {0} does not match your client's WAN IPv4 {1}.", [phpWanIp, wanIp]) }}
         {{ t('This may indicate a complex network that will not work with this Remote Access solution.') }}
         {{ t('Ignore this message if you are currently connected via Remote Access or VPN.') }}
       </span>
