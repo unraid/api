@@ -11,12 +11,12 @@ import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-const { t } = useI18n();
-
 export interface Props {
   server?: Server | string;
 }
 const props = defineProps<Props>();
+
+const { t } = useI18n();
 
 const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore();
@@ -28,9 +28,7 @@ const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 /**
  * Close dropdown when clicking outside
- * @note
- * If in testing you have two variants of the component on a page
- * the clickOutside will fire twice making it seem like it doesn't work
+ * @note If in testing you have two variants of the component on a page the clickOutside will fire twice making it seem like it doesn't work
  */
 const clickOutsideTarget = ref();
 const clickOutsideIgnoreTarget = ref();
@@ -58,26 +56,20 @@ watch(showCopyNotSupported, (newVal, oldVal) => {
 });
 
 /**
- *
+ * Sets the server store and locale messages then listen for callbacks
  */
 onBeforeMount(() => {
-  // console.debug('[onBeforeMount]', { props }, typeof props.server);
   if (!props.server) {
     throw new Error('Server data not present');
   }
-  /**
-   * Set props from web component in store so the data is available throughout other components
-   */
+
   if (typeof props.server === 'object') { // Handles the testing dev Vue component
     serverStore.setServer(props.server);
   } else if (typeof props.server === 'string') { // Handle web component
     const parsedServerProp = JSON.parse(props.server);
     serverStore.setServer(parsedServerProp);
   }
-  /**
-   * Listen for callbacks, if we receive one that needs to be acted upon the store will display
-   * the feedback modal to show the user something is happening behind the scenes.
-   */
+
   callbackStore.watcher();
 });
 </script>
