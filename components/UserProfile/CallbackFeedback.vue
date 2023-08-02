@@ -79,11 +79,11 @@ const subheading = computed(() => {
   if (callbackStatus.value === 'loading') { return props.t('Please keep this window open while we perform some actions'); }
   if (callbackStatus.value === 'success') {
     if (accountActionType.value === 'signIn') { return props.t('You\'re one step closer to enhancing your Unraid experience'); }
-    if (keyActionType.value === 'purchase') { return props.t('Thank you for purchasing an Unraid %{keyType} Key!', { keyType: keyType.value }); }
-    if (keyActionType.value === 'replace') { return props.t('Your %{keyType} Key has been replaced!', { keyType: keyType.value }); }
+    if (keyActionType.value === 'purchase') { return props.t('Thank you for purchasing an Unraid {0} Key!', [keyType.value]); }
+    if (keyActionType.value === 'replace') { return props.t('Your {0} Key has been replaced!', [keyType.value]); }
     if (keyActionType.value === 'trialExtend') { return props.t('Your Trial key has been extended!'); }
     if (keyActionType.value === 'trialStart') { return props.t('Your free Trial key provides all the functionality of a Pro Registration key'); }
-    if (keyActionType.value === 'upgrade') { return props.t('Thank you for upgrading to an Unraid %{keyType} Key!', { keyType: keyType.value }); }
+    if (keyActionType.value === 'upgrade') { return props.t('Thank you for upgrading to an Unraid {0} Key!', [keyType.value]); }
     return '';
   }
   return '';
@@ -144,7 +144,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
               />
             </div>
             <p v-else>
-              {{ t('Copy your Key URL: %{keyUrl}', { keyUrl }) }}
+              {{ t('Copy your Key URL: {0}', [keyUrl]) }}
             </p>
             <p><a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">{{ t('Then go to Tools > Registration to manually install it') }}</a></p>
           </template>
