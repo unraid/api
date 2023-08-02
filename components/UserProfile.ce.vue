@@ -98,7 +98,7 @@ onBeforeMount(() => {
           <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
-        <button :title="t('Click to Copy LAN IP %{ip}', { ip: lanIp })" @click="copyLanIp()">
+        <button :title="t('Click to Copy LAN IP {0}', [lanIp])" @click="copyLanIp()">
           {{ name }}
         </button>
         <span
@@ -106,7 +106,7 @@ onBeforeMount(() => {
           class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
           <template v-if="copied">{{ t('LAN IP Copied') }}</template>
-          <template v-else>{{ t('LAN IP %{ip}', { ip: lanIp }) }}</template>
+          <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>
         </span>
       </h1>
 
