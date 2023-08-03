@@ -16,7 +16,7 @@ export interface Error {
   actions?: ButtonProps[];
   debugServer?: Server;
   forumLink?: boolean;
-  heading: string;
+  heading: string; // if adding new errors be sure to add translations key value pairs
   level: 'error' | 'info' | 'warning';
   message: string;
   ref?: string;
