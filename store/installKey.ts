@@ -68,39 +68,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     }
   };
 
-  const keyInstallStatusCopy = computed((): { text: string; } => {
-    let txt1 = 'Installing';
-    let txt2 = 'Installed';
-    let txt3 = 'Install';
-    switch (keyInstallStatus.value) {
-      case 'ready':
-        return {
-          text: 'Ready to Install Key',
-        };
-      case 'installing':
-        if (keyActionType.value === 'trialExtend') { txt1 = 'Installing Extended Trial'; }
-        if (keyActionType.value === 'recover') { txt1 = 'Installing Recovered'; }
-        if (keyActionType.value === 'replace') { txt1 = 'Installing Replaced'; }
-        return {
-          text: `${txt1} ${keyType.value} Key...`,
-        };
-      case 'success':
-        if (keyActionType.value === 'trialExtend') { txt2 = 'Extension Installed'; }
-        if (keyActionType.value === 'recover') { txt2 = 'Recovered'; }
-        if (keyActionType.value === 'replace') { txt2 = 'Replaced'; }
-        return {
-          text: `${keyType.value} Key ${txt2} Successfully`,
-        };
-      case 'failed':
-        if (keyActionType.value === 'trialExtend') { txt3 = 'Install Extended'; }
-        if (keyActionType.value === 'recover') { txt3 = 'Install Recovered'; }
-        if (keyActionType.value === 'replace') { txt3 = 'Install Replaced'; }
-        return {
-          text: `Failed to ${txt3} ${keyType.value} Key`,
-        };
-    }
-  });
-
   watch(keyInstallStatus, (newV, oldV) => {
     console.debug('[keyInstallStatus]', newV, oldV);
   });
@@ -110,7 +77,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
     keyInstallStatus,
     // getters
     keyActionType,
-    keyInstallStatusCopy,
     keyType,
     keyUrl,
     // Actions
