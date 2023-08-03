@@ -193,7 +193,12 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           :error="keyInstallStatus === 'failed'"
           :text="keyInstallStatusCopy.text"
         >
-          <UpcUptimeExpire v-if="keyType === 'Trial'" :for-expire="true" class="opacity-75 italic mt-4px" />
+          <UpcUptimeExpire
+            v-if="keyType === 'Trial'"
+            :for-expire="true"
+            class="opacity-75 italic mt-4px"
+            :t="t"
+          />
 
           <template v-if="keyInstallStatus === 'failed'">
             <div v-if="isSupported" class="flex justify-center">
@@ -281,5 +286,54 @@ const accountActionStatusCopy = computed((): { text: string; } => {
 <style lang="postcss">
 @tailwind base;
 @tailwind components;
+
+.unraid_mark_2,
+.unraid_mark_4 {
+  animation: mark_2 1.5s ease infinite;
+}
+.unraid_mark_3 {
+  animation: mark_3 1.5s ease infinite;
+}
+.unraid_mark_6,
+.unraid_mark_8 {
+  animation: mark_6 1.5s ease infinite;
+}
+.unraid_mark_7 {
+  animation: mark_7 1.5s ease infinite;
+}
+
+@keyframes mark_2 {
+  50% {
+    transform: translateY(-40px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes mark_3 {
+  50% {
+    transform: translateY(-62px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes mark_6 {
+  50% {
+    transform: translateY(40px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes mark_7 {
+  50% {
+    transform: translateY(62px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 @tailwind utilities;
 </style>
