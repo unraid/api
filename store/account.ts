@@ -25,32 +25,6 @@ export const useAccountStore = defineStore('account', () => {
 
   // Getters
   const accountActionType = computed(() => accountAction.value?.type);
-  const accountActionStatusCopy = computed((): { text: string; } => {
-    switch (accountActionStatus.value) {
-      case 'ready':
-        return {
-          text: 'Ready to update Connect account configuration',
-        };
-      case 'updating':
-        return {
-          text: accountAction.value?.type === 'signIn'
-            ? `Signing in ${accountAction.value.user?.preferred_username}...`
-            : `Signing out ${username.value}...`,
-        };
-      case 'success':
-        return {
-          text: accountAction.value?.type === 'signIn'
-            ? `${accountAction.value.user?.preferred_username} Signed In Successfully`
-            : `${username.value} Signed Out Successfully`,
-        };
-      case 'failed':
-        return {
-          text: accountAction.value?.type === 'signIn'
-            ? 'Sign In Failed'
-            : 'Sign Out Failed',
-        };
-    }
-  });
 
   // Actions
   const recover = () => {
@@ -171,7 +145,6 @@ export const useAccountStore = defineStore('account', () => {
     accountActionHide,
     accountActionStatus,
     // Getters
-    accountActionStatusCopy,
     accountActionType,
     // Actions
     recover,
