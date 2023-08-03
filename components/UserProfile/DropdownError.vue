@@ -16,7 +16,7 @@ const { errors } = storeToRefs(errorsStore);
       <h3 class="text-18px py-4px px-12px text-white bg-unraid-red/90 font-semibold">
         <span>{{ t(error.heading) }}</span>
       </h3>
-      <div class="text-14px px-12px" :class="{ 'pb-8px': !error.actions }" v-html="t(error.message)" />
+      <div class="text-14px px-12px flex flex-col gap-y-8px" :class="{ 'pb-8px': !error.actions }" v-html="t(error.message)" />
       <nav v-if="error.actions">
         <li v-for="(link, idx) in error.actions" :key="`link_${idx}`">
           <UpcDropdownItem :item="link" :rounded="false" :t="t" />
