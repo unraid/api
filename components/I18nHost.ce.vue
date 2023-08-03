@@ -36,13 +36,6 @@ const i18n = createI18n<false>({
 });
 
 provide(I18nInjectionKey, i18n);
-
-export interface Props {
-  locale?: string;
-}
-withDefaults(defineProps<Props>(), {
-  locale: defaultLocale,
-});
 </script>
 
 <template>
