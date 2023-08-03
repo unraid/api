@@ -13,6 +13,10 @@ export interface ButtonProps {
 const props = withDefaults(defineProps<ButtonProps>(), {
   btnStyle: 'fill',
   btnType: 'button',
+  click: undefined,
+  href: undefined,
+  icon: undefined,
+  text: undefined,
 });
 
 defineEmits(['click']);
