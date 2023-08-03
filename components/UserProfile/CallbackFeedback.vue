@@ -39,7 +39,6 @@ const {
   keyActionType,
   keyUrl,
   keyInstallStatus,
-  keyInstallStatusCopy,
   keyType,
 } = storeToRefs(installKeyStore);
 const {
@@ -56,7 +55,7 @@ const {
  * the modal should close instead of redirecting to the
  * settings page.
  *
- * @todo figure out the difference between document.location and window.location
+ * @todo figure out the difference between document.location and window.location in relation to the webGUI and webGUI being iframed
  */
 const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/ManagementAccess');
 
@@ -108,6 +107,39 @@ const promoClick = () => {
 
 const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 
+const keyInstallStatusCopy = computed((): { text: string; } => {
+  let txt1 = props.t('Installing');
+  let txt2 = props.t('Installed');
+  let txt3 = props.t('Install');
+  switch (keyInstallStatus.value) {
+    case 'ready':
+      return {
+        text: props.t('Ready to Install Key'),
+      };
+    case 'installing':
+      if (keyActionType.value === 'trialExtend') { txt1 = props.t('Installing Extended Trial'); }
+      if (keyActionType.value === 'recover') { txt1 = props.t('Installing Recovered'); }
+      if (keyActionType.value === 'replace') { txt1 = props.t('Installing Replaced'); }
+      return {
+        text: props.t('{0} {1} Key…', [txt1, keyType.value]),
+      };
+    case 'success':
+      if (keyActionType.value === 'trialExtend') { txt2 = props.t('Extension Installed'); }
+      if (keyActionType.value === 'recover') { txt2 = props.t('Recovered'); }
+      if (keyActionType.value === 'replace') { txt2 = props.t('Replaced'); }
+      return {
+        text: props.t('{1} Key {0} Successfully', [txt2, keyType.value]),
+      };
+    case 'failed':
+      if (keyActionType.value === 'trialExtend') { txt3 = props.t('Install Extended'); }
+      if (keyActionType.value === 'recover') { txt3 = props.t('Install Recovered'); }
+      if (keyActionType.value === 'replace') { txt3 = props.t('Install Replaced'); }
+      return {
+        text: props.t('Failed to {0} {1} Key', [txt3, keyType.value]),
+      };
+  }
+});
+
 const accountActionStatusCopy = computed((): { text: string; } => {
   switch (accountActionStatus.value) {
     case 'ready':
@@ -117,8 +149,8 @@ const accountActionStatusCopy = computed((): { text: string; } => {
     case 'updating':
       return {
         text: accountAction.value?.type === 'signIn'
-          ? props.t('Signing in {0}...', [accountAction.value.user?.preferred_username])
-          : props.t('Signing out {0}...', [username.value]),
+          ? props.t('Signing in {0}…', [accountAction.value.user?.preferred_username])
+          : props.t('Signing out {0}…', [username.value]),
       };
     case 'success':
       return {
@@ -174,7 +206,11 @@ const accountActionStatusCopy = computed((): { text: string; } => {
             <p v-else>
               {{ t('Copy your Key URL: {0}', [keyUrl]) }}
             </p>
-            <p><a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">{{ t('Then go to Tools > Registration to manually install it') }}</a></p>
+            <p>
+              <a href="/Tools/Registration" class="opacity-75 hover:opacity-100 focus:opacity-100 underline transition">
+                {{ t('Then go to Tools > Registration to manually install it') }}
+              </a>
+            </p>
           </template>
         </UpcCallbackFeedbackStatus>
 
