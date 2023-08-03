@@ -13,10 +13,11 @@ let nonDefaultLocale = false;
  * Unfortunately, this was the only way I could get the data from PHP to vue-i18n :(
  * I tried using i18n.setLocaleMessage() but it didn't work no matter what I tried.
  */
-if (window.LOCALE_DATA) {
+const windowLocaleData = (window as any).LOCALE_DATA || null;
+if (windowLocaleData) {
   console.debug('[I18nHost] parsing messages');
   try {
-    parsedMessages = JSON.parse(decodeURIComponent(window.LOCALE_DATA));
+    parsedMessages = JSON.parse(decodeURIComponent(windowLocaleData));
     parsedLocale = Object.keys(parsedMessages)[0];
     nonDefaultLocale = parsedLocale !== defaultLocale;
     console.debug('[I18nHost] messages parsed. Now setting up vue-i18n', nonDefaultLocale, parsedLocale, parsedMessages);
