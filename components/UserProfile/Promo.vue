@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 /**
+ * @todo devEnv should be a .env variable so we can gate staging installs
+ *
  * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
@@ -22,6 +24,9 @@ withDefaults(defineProps<Props>(), {
 
 const promoStore = usePromoStore();
 
+/**
+ * These are translated in the component below. So if you add a new feature, make sure to add it to the translation file.
+ */
 const features = ref<UserProfilePromoFeature[]>([
   {
     title: 'Dynamic Remote Access',
