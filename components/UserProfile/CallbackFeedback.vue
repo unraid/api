@@ -27,9 +27,9 @@ const promoStore = usePromoStore();
 const serverStore = useServerStore();
 
 const {
+  accountAction,
   accountActionHide,
   accountActionStatus,
-  accountActionStatusCopy,
   accountActionType,
 } = storeToRefs(accountStore);
 const {
@@ -47,6 +47,7 @@ const {
   registered,
   authAction,
   refreshServerStateStatus,
+  username,
 } = storeToRefs(serverStore);
 
 /**
@@ -106,6 +107,33 @@ const promoClick = () => {
 };
 
 const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
+
+const accountActionStatusCopy = computed((): { text: string; } => {
+  switch (accountActionStatus.value) {
+    case 'ready':
+      return {
+        text: props.t('Ready to update Connect account configuration'),
+      };
+    case 'updating':
+      return {
+        text: accountAction.value?.type === 'signIn'
+          ? props.t('Signing in {0}...', [accountAction.value.user?.preferred_username])
+          : props.t('Signing out {0}...', [username.value]),
+      };
+    case 'success':
+      return {
+        text: accountAction.value?.type === 'signIn'
+          ? props.t('{0} Signed In Successfully', [accountAction.value.user?.preferred_username])
+          : props.t('{0} Signed Out Successfully', [username.value]),
+      };
+    case 'failed':
+      return {
+        text: accountAction.value?.type === 'signIn'
+          ? props.t('Sign In Failed')
+          : props.t('Sign Out Failed'),
+      };
+  }
+});
 </script>
 
 <template>
