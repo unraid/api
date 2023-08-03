@@ -165,7 +165,7 @@
   "USB Flash has no serial number": "USB Flash has no serial number",
   "Trial Requires Internet Connection": "Trial Requires Internet Connection",
   "Cannot validate Unraid Trial key": "Cannot validate Unraid Trial key",
-  "<p>Your Trial key requires an internet connection.</p><p><a href='/Settings/NetworkSettings class='underline'•ª>Please check Settings > Network</a></p>": "<p>Your Trial key requires an internet connection.</p><p><a href='/Settings/NetworkSettings class='underline'>Please check Settings > Network</a></p>",
+  "<p>Your Trial key requires an internet connection.</p><p><a href='/Settings/NetworkSettings class='underline'>Please check Settings > Network</a></p>": "<p>Your Trial key requires an internet connection.</p><p><a href='/Settings/NetworkSettings class='underline'>Please check Settings > Network</a></p>",
   "Stale": "Stale",
   "Stale Server": "Stale Server",
   "<p>Please refresh the page to ensure you load your latest configuration</p>": "<p>Please refresh the page to ensure you load your latest configuration</p>",
