@@ -695,11 +695,19 @@ export const useServerStore = defineStore('server', () => {
     console.debug('[watch:registeredWithValidApiKey]', newVal, oldVal);
     if (oldVal) {
       console.debug('[watch:registeredWithValidApiKey] no apiKey, stop unraid-api client');
-      unraidApiStore.closeUnraidApiClient();
+      return unraidApiStore.closeUnraidApiClient();
     }
     if (newVal) {
-      console.debug('[watch:registeredWithValidApiKey] new apiKey, start unraid-api client');
-      unraidApiStore.createApolloClient();
+      // if this is just after sign in, let's delay the start by a few seconds to give unraid-api time to update
+      if (accountStore.accountActionType === 'signIn') {
+        console.debug('[watch:registeredWithValidApiKey] delay start unraid-api client');
+        return setTimeout(() => {
+          unraidApiStore.createApolloClient();
+        }, 2000);
+      } else {
+        console.debug('[watch:registeredWithValidApiKey] new apiKey, start unraid-api client');
+        return unraidApiStore.createApolloClient();
+      }
     }
   });
   /**
