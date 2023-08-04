@@ -20,7 +20,6 @@ export const usePromoStore = defineStore('promo', () => {
   const promoToggle = useToggle(promoVisible);
 
   watch(promoVisible, (newVal, _oldVal) => {
-    console.debug('[promoVisible]', newVal, _oldVal);
     if (newVal) { // close the dropdown when the promo is opened
       dropdownStore.dropdownHide();
     }
