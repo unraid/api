@@ -16,10 +16,6 @@ export const useDropdownStore = defineStore('dropdown', () => {
   const dropdownShow = () => { dropdownVisible.value = true; };
   const dropdownToggle = useToggle(dropdownVisible);
 
-  watch(dropdownVisible, (newVal, _oldVal) => {
-    console.debug('[dropdownVisible]', newVal, _oldVal);
-  });
-
   onMounted(() => {
     // automatically open the launchpad dropdown on first page load when ENOKEYFILE aka a new server
     const baseStorageName = `unraidConnect_${serverStore.guid}_`;

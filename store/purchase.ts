@@ -1,4 +1,3 @@
-import { useToggle } from '@vueuse/core';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { useCallbackStore } from './callbackActions';
 import { useServerStore } from './server';
@@ -12,9 +11,7 @@ setActivePinia(createPinia());
 export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
-  // State
-  const purchaseVisible = ref<boolean>(false);
-  // Actions
+
   const redeem = () => {
     console.debug('[redeem]');
     callbackStore.send('https://unraid.ddev.site/callback', [{
@@ -42,21 +39,8 @@ export const usePurchaseStore = defineStore('purchase', () => {
       type: 'upgrade',
     }]);
   };
-  const purchaseHide = () => { purchaseVisible.value = false; };
-  const purchaseShow = () => { purchaseVisible.value = true; };
-  const purchaseToggle = useToggle(purchaseVisible);
-
-  watch(purchaseVisible, (newVal, _oldVal) => {
-    console.debug('[purchaseVisible]', newVal, _oldVal);
-  });
 
   return {
-    // State
-    purchaseVisible,
-    purchaseHide,
-    purchaseShow,
-    // Actions
-    purchaseToggle,
     redeem,
     purchase,
     upgrade,
