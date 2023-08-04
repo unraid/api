@@ -259,4 +259,4 @@ _(Replaceable)_:
 <?endif;?>
 
 &nbsp;
-: <unraid-key-actions></unraid-key-actions>
+: <unraid-i18n-host><unraid-key-actions></unraid-key-actions></unraid-i18n-host>

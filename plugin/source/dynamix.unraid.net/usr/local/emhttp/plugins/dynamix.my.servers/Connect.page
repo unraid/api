@@ -526,7 +526,7 @@ _(Allow Remote Access)_:
 <?endif?>
 
 &nbsp;
-: <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
+: <unraid-i18n-host><unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check></unraid-i18n-host>
 
 <div markdown="1" id="wanpanel" style="display:'none'">
 
@@ -691,7 +691,7 @@ $(function() {
 : <span>_(Questions? See <a href="https://docs.unraid.net/category/unraid-connect" target="_blank">the documentation</a>.)_</span>
 
 _(Account status)_:
-: <unraid-auth></unraid-auth>
+: <unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>
 
 <?if($isRegistered):?>
 _(Connected to Unraid Connect Cloud)_: 
@@ -703,6 +703,10 @@ _(Connected to Unraid Connect Cloud)_:
 <?endif // end check for ($isRegistered) ?>
 
 _(Download unraid-api Logs)_:
-: <unraid-download-api-logs></unraid-download-api-logs>
+: <unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>
 </div>
 <!-- end unraid-api section -->
+
+<? require_once("$docroot/plugins/dynamix.my.servers/include/translations.php"); ?>
+$webComponentTranslations:
+: <pre><code><?= var_dump($webComponentTranslations); ?></code></pre>
