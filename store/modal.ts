@@ -14,10 +14,6 @@ export const useModalStore = defineStore('modal', () => {
   const modalShow = () => { modalVisible.value = true; };
   const modalToggle = useToggle(modalVisible);
 
-  watch(modalVisible, (newVal, _oldVal) => {
-    console.debug('[modalVisible]', newVal, _oldVal);
-  });
-
   return {
     modalVisible,
     modalHide,

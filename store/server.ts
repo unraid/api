@@ -518,7 +518,6 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   watch(stateDataError, (newVal, oldVal) => {
-    console.debug('[watch:stateDataError]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
