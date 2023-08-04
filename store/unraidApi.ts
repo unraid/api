@@ -1,5 +1,7 @@
+import { type } from 'os';
 import { from, ApolloClient, createHttpLink, InMemoryCache, split } from '@apollo/client/core/core.cjs';
 import { onError } from '@apollo/client/link/error';
+import { RetryLink } from '@apollo/client/link/retry';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
 import { ArrowPathIcon } from '@heroicons/vue/24/solid';
@@ -19,6 +21,9 @@ import { useServerStore } from '~/store/server';
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
+
+const ERROR_CORS_403 = 'The CORS policy for this site does not allow access from the specified Origin';
+let prioritizeCorsError = false; // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
 let baseUrl = window.location.origin;
 /** @todo use ENV */
@@ -108,14 +113,37 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
           if (error.error.message.includes('offline')) {
             unraidApiStatus.value = 'offline';
           }
+          if (error.error.message && error.error.message.includes(ERROR_CORS_403)) {
+            prioritizeCorsError = true;
+          }
           return error.message;
         });
         console.debug('[GraphQL error]', graphQLErrors);
       }
 
-      if (networkError) {
+      if (networkError && !prioritizeCorsError) {
         console.error(`[Network error]: ${networkError}`);
+        const msg = networkError.message ? networkError.message : networkError;
+        if (typeof msg === 'string' && msg.includes('Unexpected token < in JSON at position 0')) {
+          return 'Unraid API • CORS Error';
+        }
+        return msg;
       }
+    });
+
+    const retryLink = new RetryLink({
+      attempts: {
+        max: Infinity,
+        retryIf: (error, _operation) => {
+          console.debug('[retryLink.retryIf]', { error, _operation, prioritizeCorsError });
+          return !!error && !prioritizeCorsError; // don't retry when ERROR_CORS_403
+        },
+      },
+      delay: {
+        initial: prioritizeCorsError ? 3000 : 300,
+        max: 10,
+        jitter: true,
+      },
     });
 
     const splitLinks = split(
@@ -136,6 +164,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
      */
     const additiveLink = from([
       errorLink,
+      retryLink,
       splitLinks,
     ]);
 
