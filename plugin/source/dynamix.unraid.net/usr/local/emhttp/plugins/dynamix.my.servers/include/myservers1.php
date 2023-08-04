@@ -11,7 +11,7 @@
     -ms-flex-align: center;
     align-items: center;
 }
-unraid-user-profile {
+#header unraid-i18n-host {
     font-size: 16px;
     margin-left: auto;
     height: 100%;
