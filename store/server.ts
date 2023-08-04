@@ -672,7 +672,7 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   watch(cloudError, (newVal, oldVal) => {
-    console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
+    console.debug('[watch:cloudError]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
