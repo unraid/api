@@ -8,6 +8,8 @@ import '~/assets/main.css';
 
 const { t } = useI18n();
 const { keyActions } = storeToRefs(useServerStore());
+
+console.log('[keyActions]', keyActions.value);
 </script>
 
 <template>
@@ -15,6 +17,7 @@ const { keyActions } = storeToRefs(useServerStore());
     <li v-for="action in keyActions" :key="action.name">
       <BrandButton
         class="w-full max-w-300px"
+        :disabled="action?.disabled"
         :external="action?.external"
         :href="action?.href"
         :icon="action.icon"
