@@ -40,6 +40,7 @@ const showExpireTime = computed(() => {
       <li v-for="action in stateData.actions" :key="action.name">
         <BrandButton
           class="w-full"
+          :disabled="action?.disabled"
           :external="action?.external"
           :href="action?.href"
           :icon="action.icon"

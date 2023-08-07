@@ -19,8 +19,9 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
 <template>
   <component
     :is="item?.click ? 'button' : 'a'"
+    :disabled="item?.disabled"
     :href="item?.href ?? null"
-    :title="item?.title ?? null"
+    :title="item?.title ? t(item?.title) : null"
     :target="item?.external ? '_blank' : null"
     :rel="item?.external ? 'noopener noreferrer' : null"
     class="text-left text-14px w-full flex flex-row items-center justify-between gap-x-8px px-8px py-8px cursor-pointer"
@@ -29,6 +30,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
       'text-white bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60': item?.emphasize,
       'group': showExternalIconOnHover,
       'rounded-md': rounded,
+      'disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed': item?.disabled,
     }"
     @click.stop="item?.click ? item?.click() : null"
   >

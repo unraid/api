@@ -19,7 +19,6 @@ import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore, type Error } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
-import { useTrialStore } from '~/store/trial';
 import { useThemeStore, type Theme } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
@@ -47,7 +46,6 @@ export const useServerStore = defineStore('server', () => {
   const errorsStore = useErrorsStore();
   const purchaseStore = usePurchaseStore();
   const themeStore = useThemeStore();
-  const trialStore = useTrialStore();
   const unraidApiStore = useUnraidApiStore();
   /**
    * State
@@ -263,15 +261,19 @@ export const useServerStore = defineStore('server', () => {
     text: 'Sign In with Unraid.net Account',
   };
   /**
-   * @todo implment conditional sign out to show that a keyfile is required
+   * This action is a computed property because it depends on the state of the keyfile
    */
-  const signOutAction: ServerStateDataAction = {
-    click: () => { accountStore.signOut(); },
-    external: true,
-    icon: ArrowRightOnRectangleIcon,
-    name: 'signOut',
-    text: 'Sign Out of Unraid.net',
-  };
+  const signOutAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { accountStore.signOut(); },
+      disabled: !keyfile.value,
+      external: true,
+      icon: ArrowRightOnRectangleIcon,
+      name: 'signOut',
+      text: 'Sign Out of Unraid.net',
+      title: !keyfile.value ? 'Sign Out requires a keyfile' : '',
+    };
+  });
   const trialExtendAction: ServerStateDataAction = {
     click: () => { accountStore.trialExtend(); },
     external: true,
@@ -295,7 +297,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction, trialStartAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'No Keyfile',
           heading: 'Let\'s Unleash your Hardware!',
@@ -306,7 +308,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Trial',
           heading: 'Thank you for choosing Unraid OS!',
@@ -318,7 +320,7 @@ export const useServerStore = defineStore('server', () => {
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
             ...(trialExtensionEligible.value ? [trialExtendAction] : []),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
           humanReadable: 'Trial Expired',
@@ -332,7 +334,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Basic',
           heading: 'Thank you for choosing Unraid OS!',
@@ -347,7 +349,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([upgradeAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Plus',
           heading: 'Thank you for choosing Unraid OS!',
@@ -361,7 +363,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Pro',
           heading: 'Thank you for choosing Unraid OS!',
@@ -383,7 +385,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([replaceAction, purchaseAction, redeemAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
           humanReadable: 'Flash GUID Error',
@@ -395,7 +397,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
           humanReadable: 'Multiple License Keys Present',
@@ -409,7 +411,7 @@ export const useServerStore = defineStore('server', () => {
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...(connectPluginInstalled.value ? [recoverAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value ? [signOutAction] : []),
+            ...(registered.value ? [signOutAction.value] : []),
           ],
           error: true,
           humanReadable: 'Missing key file',
@@ -423,7 +425,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
           humanReadable: 'Invalid installation',
@@ -435,7 +437,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
             ...([purchaseAction, redeemAction]),
-            ...(registered.value && connectPluginInstalled.value ? [signOutAction] : []),
+            ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
           humanReadable: 'No Keyfile',
