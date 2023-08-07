@@ -273,18 +273,18 @@ export const useServerStore = defineStore('server', () => {
     text: 'Sign Out of Unraid.net',
   };
   const trialExtendAction: ServerStateDataAction = {
-    click: () => { trialStore.setTrialStatus('trialExtend'); },
+    click: () => { accountStore.trialExtend(); },
     external: true,
     icon: KeyIcon,
     name: 'trialExtend',
     text: 'Extend Trial',
   };
   const trialStartAction: ServerStateDataAction = {
-    click: () => { trialStore.setTrialStatus('trialStart'); },
+    click: () => { accountStore.trialStart(); },
     external: true,
     icon: KeyIcon,
     name: 'trialStart',
-    text: 'Start Free 30 Day Trial',
+    text: 'Start Free 30 day Trial',
   };
 
   let messageEGUID = '';
@@ -299,7 +299,7 @@ export const useServerStore = defineStore('server', () => {
           ],
           humanReadable: 'No Keyfile',
           heading: 'Let\'s Unleash your Hardware!',
-          message: '<p>Your server will not be usable until you purchase a Registration key or install a free 30-day <em>Trial</em> key. A <em>Trial</em> key provides all the functionality of a Pro Registration key.</p><p>Registration keys are bound to your USB Flash boot device serial number (GUID). Please use a high quality name brand device at least 1GB in size.</p><p>Note: USB memory card readers are generally not supported because most do not present unique serial numbers.</p><p><strong>Important:</strong></p><ul class=\'list-disc pl-16px\'><li>Please make sure your server time is accurate to within 5 minutes</li><li>Please make sure there is a DNS server specified</li></ul>',
+          message: '<p>Your server will not be usable until you purchase a Registration key or install a free 30 day <em>Trial</em> key. A <em>Trial</em> key provides all the functionality of a Pro Registration key.</p><p>Registration keys are bound to your USB Flash boot device serial number (GUID). Please use a high quality name brand device at least 1GB in size.</p><p>Note: USB memory card readers are generally not supported because most do not present unique serial numbers.</p><p><strong>Important:</strong></p><ul class=\'list-disc pl-16px\'><li>Please make sure your server time is accurate to within 5 minutes</li><li>Please make sure there is a DNS server specified</li></ul>',
         };
       case 'TRIAL':
         return {
