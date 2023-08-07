@@ -63,6 +63,24 @@ export const useAccountStore = defineStore('account', () => {
       type: 'signOut',
     }]);
   };
+  const trialExtend = () => {
+    console.debug('[accountStore.accountStore.trialExtend]');
+    callbackStore.send(`${ACCOUNT}/connect`, [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
+      type: 'trialExtend',
+    }]);
+  };
+  const trialStart = () => {
+    console.debug('[accountStore.accountStore.trialStart]');
+    callbackStore.send(`${ACCOUNT}/connect`, [{
+      server: {
+        ...serverStore.serverAccountPayload,
+      },
+      type: 'trialStart',
+    }]);
+  };
   /**
    * @description Update myservers.cfg for both Sign In & Sign Out
    * @note unraid-api requires apikey & token realted keys to be lowercase
@@ -151,6 +169,8 @@ export const useAccountStore = defineStore('account', () => {
     replace,
     signIn,
     signOut,
+    trialExtend,
+    trialStart,
     updatePluginConfig,
   };
 });

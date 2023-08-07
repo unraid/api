@@ -24,36 +24,6 @@ export const useTrialStore = defineStore('trial', () => {
 
   const trialModalLoading = computed(() => trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart');
   const trialModalVisible = computed(() => trialStatus.value === 'failed' || trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart');
-  interface TrialStatusCopy {
-    heading: string;
-    subheading?: string;
-  }
-  const trialStatusCopy = computed((): TrialStatusCopy | null => {
-    switch (trialStatus.value) {
-      case 'failed':
-        return {
-          heading: 'Trial Key Creation Failed',
-          subheading: 'Key server did not return a trial key. Please try again later.',
-        };
-      case 'trialExtend':
-        return {
-          heading: 'Extending your free trial by 15 days',
-          subheading: 'Please keep this window open',
-        };
-      case 'trialStart':
-        return {
-          heading: 'Starting your free 30 day trial',
-          subheading: 'Please keep this window open',
-        };
-      case 'success':
-        return {
-          heading: 'Trial Key Created',
-          subheading: 'Please wait while the page reloads to install your trial key',
-        };
-      case 'ready':
-        return null;
-    }
-  });
 
   const requestTrial = async (type?: TrialExtend | TrialStart) => {
     console.debug('[requestTrial]');
@@ -113,8 +83,6 @@ export const useTrialStore = defineStore('trial', () => {
     trialModalLoading,
     trialModalVisible,
     trialStatus,
-    // Getters
-    trialStatusCopy,
     // Actions
     requestTrial,
     setTrialStatus,
