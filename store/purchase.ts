@@ -1,6 +1,8 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { useCallbackStore } from './callbackActions';
-import { useServerStore } from './server';
+
+import { PURCHASE_CALLBACK } from '~/helpers/urls';
+import { useCallbackStore } from '~/store/callbackActions';
+import { useServerStore } from '~/store/server';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -14,7 +16,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
 
   const redeem = () => {
     console.debug('[redeem]');
-    callbackStore.send('https://unraid.ddev.site/callback', [{
+    callbackStore.send(PURCHASE_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
@@ -23,7 +25,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   };
   const purchase = () => {
     console.debug('[purchase]');
-    callbackStore.send('https://unraid.ddev.site/callback', [{
+    callbackStore.send(PURCHASE_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverPurchasePayload,
       },
@@ -32,7 +34,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   };
   const upgrade = () => {
     console.debug('[upgrade]');
-    callbackStore.send('https://unraid.ddev.site/callback', [{
+    callbackStore.send(PURCHASE_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverPurchasePayload,
       },

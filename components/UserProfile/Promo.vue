@@ -8,6 +8,7 @@ import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 
 import useInstallPlugin from '~/composables/installPlugin';
+import { CONNECT_DOCS } from '~/helpers/urls';
 import { usePromoStore } from '~/store/promo';
 import type { UserProfilePromoFeature } from '~/types/userProfile';
 import 'tailwindcss/tailwind.css';
@@ -112,7 +113,7 @@ const { install } = useInstallPlugin();
         </button>
         <div>
           <a
-            href="https://docs.unraid.net/category/unraid-connect"
+            :href="CONNECT_DOCS.toString()"
             class="text-12px tracking-wide inline-flex flex-row items-center justify-start gap-8px mx-8px opacity-60 hover:opacity-100 focus:opacity-100 underline transition"
             target="_blank"
             rel="noopener noreferrer"
