@@ -93,7 +93,7 @@ export interface ServerAccountCallbackSendPayload {
   wanFQDN?: string;
 }
 
-export type ServerKeyTypeForPurchase = 'Basic'|'Plus'|'Pro'|'Trial';
+export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Trial';
 
 export interface ServerPurchaseCallbackSendPayload {
   apiVersion?: string;
@@ -110,9 +110,9 @@ export interface ServerPurchaseCallbackSendPayload {
   site: string;
 }
 
-export type ServerStateDataKeyActions = 'purchase'|'redeem'|'upgrade'|'recover'|'replace'|'trialExtend'|'trialStart';
+export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'replace' | 'trialExtend' | 'trialStart';
 
-export type ServerStateDataAccountActions = 'signIn'|'signOut'|'troubleshoot';
+export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
 
 export type ServerStateDataActionType = ServerStateDataKeyActions | ServerStateDataAccountActions;
 
