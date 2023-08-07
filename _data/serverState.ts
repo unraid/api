@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'ENOKEYFILE1';
+const state: ServerState = 'ENOKEYFILE2';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 let expireTime = 0;
@@ -56,8 +56,8 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  // connectPluginInstalled: '',
+  // connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
+  connectPluginInstalled: '',
   registered: true,
   regGen: 0,
   // "regGuid": "0781-5583-8355-81071A2B0211",
