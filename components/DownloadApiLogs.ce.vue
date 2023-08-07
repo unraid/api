@@ -12,7 +12,7 @@ const { t } = useI18n();
 
 const { apiKey } = storeToRefs(useServerStore());
 
-const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.value}`, DEV_GRAPH_URL || window.location.origin));
+const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.value}`, DEV_GRAPH_URL.toString() || window.location.origin));
 </script>
 
 <template>
@@ -35,15 +35,15 @@ const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.va
       </div>
 
       <div class="flex flex-row items-baseline gap-8px">
-        <a :href="CONNECT_FORUMS" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
+        <a :href="CONNECT_FORUMS.toString()" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
           {{ t('Unraid Connect Forums') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
-        <a :href="DISCORD" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
+        <a :href="DISCORD.toString()" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
           {{ t('Unraid Discord') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
-        <a :href="CONTACT" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
+        <a :href="CONTACT.toString()" target="_blank" rel="noopener noreferrer" class="text-[#486dba] hover:text-[#3b5ea9] focus:text-[#3b5ea9] hover:underline focus:underline inline-flex flex-row items-center justify-start gap-8px">
           {{ t('Unraid Contact Page') }}
           <ArrowTopRightOnSquareIcon class="w-16px" />
         </a>
