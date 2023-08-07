@@ -4,6 +4,7 @@ export interface ButtonProps {
   btnStyle?: 'fill' | 'outline' | 'underline';
   btnType?: 'button' | 'submit' | 'reset';
   click?: () => void;
+  disabled?: boolean;
   download?: boolean;
   external?: boolean;
   href?: string;
@@ -36,11 +37,12 @@ const classes = computed(() => {
 <template>
   <component
     :is="href ? 'a' : 'button'"
+    :disabled="disabled ?? null"
     :href="href"
     :rel="external ? 'noopener noreferrer' : ''"
     :target="external ? '_blank' : ''"
     :type="!href ? btnType : ''"
-    class="text-14px text-center font-semibold flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md"
+    class="text-14px text-center font-semibold flex-none flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed"
     :class="classes"
     @click="click ?? $emit('click')"
   >

@@ -267,6 +267,7 @@ const accountActionStatusCopy = computed((): { text: string; } => {
 
         <BrandButton
           v-if="showSignInCta"
+          :disabled="authAction?.disabled"
           :external="authAction?.external"
           :icon="authAction?.icon"
           :text="t(authAction?.text)"
