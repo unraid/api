@@ -7,12 +7,43 @@ export interface Props {
   t: any;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   open: false,
 });
 
 const trialStore = useTrialStore();
-const { trialModalLoading, trialStatus, trialStatusCopy } = storeToRefs(trialStore);
+const { trialModalLoading, trialStatus } = storeToRefs(trialStore);
+
+interface TrialStatusCopy {
+  heading: string;
+  subheading?: string;
+}
+const trialStatusCopy = computed((): TrialStatusCopy | null => {
+  switch (trialStatus.value) {
+    case 'failed':
+      return {
+        heading: props.t('Trial Key Creation Failed'),
+        subheading: props.t('Error creatiing a trial key. Please try again later.'),
+      };
+    case 'trialExtend':
+      return {
+        heading: props.t('Extending your free trial by 15 days'),
+        subheading: props.t('Please keep this window open'),
+      };
+    case 'trialStart':
+      return {
+        heading: props.t('Starting your free 30 day trial'),
+        subheading: props.t('Please keep this window open'),
+      };
+    case 'success':
+      return {
+        heading: props.t('Trial Key Created'),
+        subheading: props.t('Please wait while the page reloads to install your trial key'),
+      };
+    case 'ready':
+      return null;
+  }
+});
 
 const close = () => {
   if (trialStatus.value === 'trialStart') { return console.debug('[close] not allowed'); }
