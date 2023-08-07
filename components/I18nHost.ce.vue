@@ -3,6 +3,7 @@ import { provide } from 'vue';
 import { createI18n, I18nInjectionKey } from 'vue-i18n';
 
 import en_US from '~/locales/en_US.json'; // eslint-disable-line camelcase
+// import ja from '~/locales/ja.json';
 
 const defaultLocale = 'en_US'; // ja, en_US
 let parsedLocale = '';
@@ -32,6 +33,7 @@ const i18n = createI18n<false>({
   fallbackLocale: defaultLocale,
   messages: {
     en_US, // eslint-disable-line camelcase
+    // ja,
     ...(nonDefaultLocale ? parsedMessages : {}),
   }
 });
