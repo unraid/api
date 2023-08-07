@@ -538,7 +538,7 @@ export const useServerStore = defineStore('server', () => {
 
   const invalidApiKey = computed((): Error | undefined => {
     // must be registered with plugin installed
-    if (!registered.value) {
+    if (!connectPluginInstalled.value || !registered.value) {
       return undefined;
     }
 
