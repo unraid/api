@@ -26,20 +26,20 @@ const links = computed(():UserProfileLink[] => {
           {
             emphasize: true,
             external: true,
-            href: CONNECT_DASHBOARD,
+            href: CONNECT_DASHBOARD.toString(),
             icon: ArrowTopRightOnSquareIcon,
             text: props.t('Go to Connect'),
             title: props.t('Opens Connect in new tab'),
           },
           {
             external: true,
-            href: ACCOUNT,
+            href: ACCOUNT.toString(),
             icon: ArrowTopRightOnSquareIcon,
             text: props.t('Manage Unraid.net Account'),
             title: props.t('Manage Unraid.net Account in new tab'),
           },
           {
-            href: PLUGIN_SETTINGS,
+            href: PLUGIN_SETTINGS.toString(),
             icon: CogIcon,
             text: props.t('Settings'),
             title: props.t('Go to Connect plugin settings'),

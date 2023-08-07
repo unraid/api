@@ -1,3 +1,11 @@
+/**
+ * This file is used to handle callbacks from the server.
+ * It is used in the following apps:
+ * - auth
+ * - craft-unraid
+ * - connect @todo
+ * - connect-components
+ */
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
 import { defineStore, createPinia, setActivePinia } from 'pinia';

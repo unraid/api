@@ -252,7 +252,7 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           />
           <BrandButton
             v-else
-            :href="PLUGIN_SETTINGS"
+            :href="PLUGIN_SETTINGS.toString()"
             :icon="CogIcon"
             :text="t('Configure Connect Features')"
             class="grow-0"

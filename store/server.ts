@@ -284,7 +284,7 @@ export const useServerStore = defineStore('server', () => {
     external: true,
     icon: KeyIcon,
     name: 'trialStart',
-    text: 'Start Free 30 day Trial',
+    text: 'Start Free 30 Day Trial',
   };
 
   let messageEGUID = '';
@@ -622,7 +622,7 @@ export const useServerStore = defineStore('server', () => {
       ? {
           actions: [
             {
-              href: SETTINGS_MANAGMENT_ACCESS,
+              href: SETTINGS_MANAGMENT_ACCESS.toString(),
               icon: CogIcon,
               text: 'Go to Management Access Now',
             },

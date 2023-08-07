@@ -1,9 +1,10 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
+
 import { useCallbackStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { WebguiUpdate } from '~/composables/services/webgui';
-import { ACCOUNT } from '~/helpers/urls';
+import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 import type { ExternalSignIn, ExternalSignOut } from '~/store/callback';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -29,7 +30,7 @@ export const useAccountStore = defineStore('account', () => {
   // Actions
   const recover = () => {
     console.debug('[accountStore.recover]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
+    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -38,7 +39,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const replace = () => {
     console.debug('[accountStore.replace]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
+    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -47,7 +48,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const signIn = () => {
     console.debug('[accountStore.signIn]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
+    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -56,7 +57,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const signOut = () => {
     console.debug('[accountStore.accountStore.signOut]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
+    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -65,7 +66,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const trialExtend = () => {
     console.debug('[accountStore.accountStore.trialExtend]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
+    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverAccountPayload,
       },
@@ -74,7 +75,7 @@ export const useAccountStore = defineStore('account', () => {
   };
   const trialStart = () => {
     console.debug('[accountStore.accountStore.trialStart]');
-    callbackStore.send(`${ACCOUNT}/connect`, [{
+    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
       server: {
         ...serverStore.serverAccountPayload,
       },
