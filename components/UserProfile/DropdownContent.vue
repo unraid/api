@@ -54,19 +54,19 @@ const links = computed(():UserProfileLink[] => {
         ]
       : []
     ),
-    ...(!connectPluginInstalled.value
-      ? [
-          {
-            click: () => {
-              promoStore.promoShow();
-            },
-            icon: InformationCircleIcon,
-            text: props.t('Enhance your Unraid experience with Connect'),
-            title: props.t('Enhance your Unraid experience with Connect'),
-          },
-        ]
-      : []
-    ),
+    // ...(!connectPluginInstalled.value
+    //   ? [
+    //       {
+    //         click: () => {
+    //           promoStore.promoShow();
+    //         },
+    //         icon: InformationCircleIcon,
+    //         text: props.t('Enhance your Unraid experience with Connect'),
+    //         title: props.t('Enhance your Unraid experience with Connect'),
+    //       },
+    //     ]
+    //   : []
+    // ),
   ];
 });
 
