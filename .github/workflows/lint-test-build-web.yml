@@ -1,0 +1,74 @@
+name: Lint, Test, and Build Web Components
+
+on:
+  workflow_dispatch:
+
+jobs:
+  lint-web:
+    defaults:
+      run:
+        working-directory: web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
+          cat .env
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
+          node-version-file: "web/.nvmrc"
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Lint files
+        run: npm run lint
+
+  build-web:
+    defaults:
+      run:
+        working-directory: web
+    runs-on: ubuntu-latest
+    needs: [lint-web]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
+          cat .env
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
+          node-version-file: "web/.nvmrc"
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build to Github artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: unraid-web
+          path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
