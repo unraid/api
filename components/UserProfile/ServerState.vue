@@ -21,7 +21,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
     <template v-if="upgradeAction">
       <UpcServerStateBuy
         class="text-gamma"
-        :title="t('Upgrade')"
+        :title="t('Upgrade Key')"
         @click="upgradeAction.click()"
       >
         <h5>Unraid OS <em><strong>{{ t(stateData.humanReadable) }}</strong></em></h5>
@@ -34,7 +34,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
     <template v-if="purchaseAction">
       <UpcServerStateBuy
         class="text-orange-dark relative top-[1px] hidden sm:block"
-        :title="t('Purchase')"
+        :title="t('Purchase Key')"
         @click="purchaseAction.click()"
       >{{ t('Purchase') }}</UpcServerStateBuy>
     </template>

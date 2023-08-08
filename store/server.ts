@@ -417,7 +417,7 @@ export const useServerStore = defineStore('server', () => {
           heading: 'Missing key file',
           message: connectPluginInstalled.value
             ? '<p>Your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>You may attempt to recover your key with your Unraid.net account.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>'
-            : '<p>Your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>If you do not have a backup copy of your license key file you may install the Unraid Connect (beta) plugin to attempt to recover your key.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>',
+            : '<p>Your license key file is corrupted or missing. The key file should be located in the /config directory on your USB Flash boot device.</p><p>If you do not have a backup copy of your license key file you may attempt to recover your key.</p><p>If this was an expired Trial installation, you may purchase a license key.</p>',
         };
       case 'ETRIAL':
         return {
