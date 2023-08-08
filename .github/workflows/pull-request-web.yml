@@ -19,6 +19,15 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Create env file
+        run: |
+          touch .env
+          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
+          cat .env
+
       - name: Install node
         uses: actions/setup-node@v3
         with:
@@ -41,6 +50,15 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
+
+      - name: Create env file
+        run: |
+          touch .env
+          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
+          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
+          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
+          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
+          cat .env
 
       - name: Install node
         uses: actions/setup-node@v3
