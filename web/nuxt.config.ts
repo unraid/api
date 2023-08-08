@@ -6,6 +6,7 @@ for (const k in envConfig) {
 }
 
 /**
+ * Used to avoid redeclaring variables in the webgui codebase.
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
  */
 function terserReservations(inputStr) {
