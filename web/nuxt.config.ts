@@ -30,6 +30,11 @@ export default defineNuxtConfig({
       callbackKey: 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB', // set in .env – https://nuxt.com/docs/guide/going-further/runtime-config#environment-variables
     }
   },
+  vite: {
+    build: {
+      minify: false,
+    },
+  },
   customElements: {
     entries: [
       {
