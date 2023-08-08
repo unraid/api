@@ -96,8 +96,7 @@ const { install } = useInstallPlugin();
 
     <template #footer>
       <div class="w-full max-w-xs flex flex-col items-center gap-y-16px mx-auto">
-        <!-- v-if="devEnv" -->
-        <SwitchGroup as="div" class="flex items-center justify-center">
+        <SwitchGroup v-if="import.meta.env.DEV" as="div" class="flex items-center justify-center">
           <Switch v-model="staging" :class="[staging ? 'bg-indigo-600' : 'bg-gray-200', 'relative inline-flex h-6 w-11 flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2']">
             <span aria-hidden="true" :class="[staging ? 't-x-5' : 't-x-0', 'pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out']" />
           </Switch>
