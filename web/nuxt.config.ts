@@ -25,14 +25,15 @@ export default defineNuxtConfig({
     { path: '~/components/UserProfile', prefix: 'Upc' },
     '~/components',
   ],
-  runtimeConfig: {
-    public: { // will be exposed to the client-side
-      callbackKey: 'Uyv2o8e*FiQe8VeLekTqyX6Z*8XonB', // set in .env – https://nuxt.com/docs/guide/going-further/runtime-config#environment-variables
-    }
-  },
   vite: {
-    esbuild: {
-      minifyIdentifiers: false,
+    build: {
+      minify: 'terser',
+      terserOptions: {
+        mangle: {
+          reserved: ['_', '$', 'i', 'my', 't', 'v', 'w', 'x', 'y', 'z'],
+          toplevel: true,
+        },
+      },
     },
   },
   customElements: {

@@ -31,7 +31,8 @@
     "eslint": "^8.45.0",
     "lodash-es": "^4.17.21",
     "nuxt": "^3.5.1",
-    "nuxt-custom-elements": "^2.0.0-beta.12"
+    "nuxt-custom-elements": "^2.0.0-beta.12",
+    "terser": "^5.19.2"
   },
   "dependencies": {
     "@apollo/client": "^3.7.17",
