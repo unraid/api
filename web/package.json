@@ -1,0 +1,56 @@
+{
+  "name": "connect-components",
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "build:dev": "nuxt build && npm run deploy:dev",
+    "deploy:dev": "./scripts/deploy-dev.sh",
+    "dev": "nuxt dev",
+    "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "postinstall": "nuxt prepare",
+    "serve": "serve dist/nuxt-custom-elements/unraid-components",
+    "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config"
+  },
+  "devDependencies": {
+    "@graphql-codegen/cli": "^4.0.1",
+    "@graphql-codegen/client-preset": "^4.0.1",
+    "@graphql-codegen/introspection": "^4.0.0",
+    "@nuxt/devtools": "^0.6.1",
+    "@nuxt/eslint-config": "^0.1.1",
+    "@nuxtjs/eslint-config-typescript": "^12.0.0",
+    "@nuxtjs/tailwindcss": "^6.7.0",
+    "@types/crypto-js": "^4.1.1",
+    "@types/node": "^18",
+    "@vue/apollo-util": "^4.0.0-beta.6",
+    "@vueuse/core": "^10.1.2",
+    "@vueuse/nuxt": "^10.1.2",
+    "amazon-cognito-identity-js": "^6.2.0",
+    "eslint": "^8.45.0",
+    "lodash-es": "^4.17.21",
+    "nuxt": "^3.5.1",
+    "nuxt-custom-elements": "^2.0.0-beta.12"
+  },
+  "dependencies": {
+    "@apollo/client": "^3.7.17",
+    "@headlessui/vue": "^1.7.14",
+    "@heroicons/vue": "^2.0.18",
+    "@pinia/nuxt": "^0.4.11",
+    "@vue/apollo-composable": "^4.0.0-beta.8",
+    "@vueuse/components": "^10.1.2",
+    "crypto-js": "^4.1.1",
+    "dayjs": "^1.11.7",
+    "focus-trap": "^7.4.3",
+    "graphql": "^16.7.1",
+    "graphql-tag": "^2.12.6",
+    "graphql-ws": "^5.14.0",
+    "hex-to-rgba": "^2.0.1",
+    "vue-i18n": "^9.2.2",
+    "wretch": "^2.6.0"
+  },
+  "overrides": {
+    "vue": "latest"
+  }
+}

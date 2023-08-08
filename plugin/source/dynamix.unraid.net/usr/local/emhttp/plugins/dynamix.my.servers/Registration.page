@@ -22,6 +22,9 @@ function my_time_any($time) {
 function my_time_now($time) {
   return $time ? _(my_time($time),0) : _('Unknown');
 }
+
+$regGen = (int)$var['regGen'] ?? 0;
+$trialExtensionEligible = $regGen === 0 || $regGen === 1;
 ?>
 <style>
 span.thanks{padding-left:12px;color:#6FA239;font-weight:bold;}
@@ -44,7 +47,7 @@ div.remark{padding:0 12px;text-align:justify;}
 
 <div markdown="1" class="remark">
 :registration_1_plug:
-Your server will not be usable until you purchase a Registration key or install a free 30-day *Trial* key. A *Trial*
+Your server will not be usable until you purchase a Registration key or install a free 30 day *Trial* key. A *Trial*
 key provides all the functionality of a *Pro* Registration key.
 
 Registration keys are bound to your USB Flash boot device serial number (GUID).  Please use a high quality name brand device
@@ -94,11 +97,16 @@ _(This release has been withdrawn for use with *Trial* keys)_.
 
 <div markdown="1" class="remark">
 <span class='red-text'>_(Your *Trial* key has expired)_.</span>
+
+<? if ($trialExtensionEligible): ?>
 :registration_4_plug:
 To continue using Unraid OS you may purchase a Registration key. Alternately, you may request a *Trial* extension key.
-
-Most *Trial* extension requests are processed immediately but please allow up to one business day to receive your *Trial* extension key.
 :end
+<? else: ?>
+:registration_trial_extension_ineligible_plug:
+You have used all your Trial extensions. To continue using Unraid OS you may purchase a Registration key.
+:end
+<? endif; ?>
 </div>
 
 <?endif;?>
@@ -250,4 +258,5 @@ _(Replaceable)_:
 
 <?endif;?>
 
-<unraid-upc-trigger></unraid-upc-trigger>
+&nbsp;
+: <unraid-i18n-host><unraid-key-actions></unraid-key-actions></unraid-i18n-host>

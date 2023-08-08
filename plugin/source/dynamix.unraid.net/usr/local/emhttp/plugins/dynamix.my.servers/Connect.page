@@ -457,8 +457,6 @@ const isCommaSeparatedURLs = input =>
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
-<div markdown="1" class="<?=$shade?>"><!-- begin Account section -->
-
 <?
 /**
  * Allowed origins warning displayed when the current webGUI URL is NOT included in the known lists of allowed origins.
@@ -480,6 +478,7 @@ if (stripos($allowedOrigins.",", "/".$host.",") === false) {
 }
 ?>
 <? if ($allowedOriginsArr): ?>
+<div markdown="1" class="<?=$shade?>"><!-- begin allowedOrigins warning -->
 <dl>
   <div style="margin-bottom: 2rem;">
     <span class="orange-text"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host) ?>.
@@ -493,25 +492,8 @@ if (stripos($allowedOrigins.",", "/".$host.",") === false) {
     <dd>
   </div>
 </dl>
-<? endif ?>
-
-&nbsp;
-: <span>_(Questions? See <a href="https://docs.unraid.net/category/unraid-connect" target="_blank">the documentation</a>.)_</span>
-
-
-_(Account status)_:
-: <unraid-authed prop-registered="<? echo $isRegistered ?>"></unraid-authed>
-
-<?if($isRegistered):?>
-_(Connected to Unraid Connect Cloud)_: 
-<?if($isConnected):?>
-: _(Yes)_
-<?else:?>
-: <i class="fa fa-warning icon warning"></i> _(No)_
-<?endif // end check for ($isConnected) ?>
-<?endif // end check for ($isRegistered) ?>
-
 </div><!-- end Account section -->
+<? endif ?>
 
 <div markdown="1" class="<?=$shade?>"><!-- begin Remote Access section -->
 
@@ -544,7 +526,7 @@ _(Allow Remote Access)_:
 <?endif?>
 
 &nbsp;
-: <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check>
+: <unraid-i18n-host><unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check></unraid-i18n-host>
 
 <div markdown="1" id="wanpanel" style="display:'none'">
 
@@ -705,8 +687,26 @@ $(function() {
 
 <!-- start unraid-api section -->
 <div markdown="1" class="js-unraidApiLogs <?=$shade?>">
+&nbsp;
+: <span>_(Questions? See <a href="https://docs.unraid.net/category/unraid-connect" target="_blank">the documentation</a>.)_</span>
+
+_(Account status)_:
+: <unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>
+
+<?if($isRegistered):?>
+_(Connected to Unraid Connect Cloud)_: 
+<?if($isConnected):?>
+: _(Yes)_
+<?else:?>
+: <i class="fa fa-warning icon warning"></i> _(No)_
+<?endif // end check for ($isConnected) ?>
+<?endif // end check for ($isRegistered) ?>
+
 _(Download unraid-api Logs)_:
-: <unraid-api-logs></unraid-api-logs>
+: <unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>
 </div>
 <!-- end unraid-api section -->
 
+<? require_once("$docroot/plugins/dynamix.my.servers/include/translations.php"); ?>
+$webComponentTranslations:
+: <pre><code><?= var_dump($webComponentTranslations); ?></code></pre>

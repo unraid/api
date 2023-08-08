@@ -1,74 +1,81 @@
-<?PHP
-/* Copyright 2005-2023, Lime Technology
- * Copyright 2012-2023, Bergware International.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License version 2,
- * as published by the Free Software Foundation.
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- */
-?>
-<?
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+<?php
+// read flashbackup ini file
+$flashbackup_ini = '/var/local/emhttp/flashbackup.ini';
+$flashbackup_status = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
 
-require_once "$docroot/webGui/include/Helpers.php";
-/* add translations */
-$_SERVER['REQUEST_URI'] = '';
-require_once "$docroot/webGui/include/Translations.php";
+$nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 
-$var = (array)parse_ini_file('state/var.ini');
-$license_state = strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']);
-$key_contents = empty($var['regFILE'])? "" : str_replace(['+','/','='], ['-','_',''], trim(base64_encode(@file_get_contents($var['regFILE']))));
+// base OS only, plugin not installed • show ad for plugin
+$connectPluginInstalled = '';
+if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $connectPluginInstalled = 'dynamix.unraid.net.plg';
+if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
+// plugin install failed if the unraid-api file doesn't fully install • append failure detected so we can show warning about failed install via UPC
+if ($connectPluginInstalled && !file_exists('/usr/local/sbin/unraid-api')) $connectPluginInstalled .= '_installFailed';
+
+$connectPluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
+    ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.plg 2>/dev/null'))
+    : (file_exists('/var/log/plugins/dynamix.unraid.net.staging.plg')
+        ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
+        : 'base-' . $var['version']);
+
 $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 
-$configErrorEnum = [ // used to map $var['configValid'] value to mimic unraid-api's `configError` ENUM
-  "error" => 'UNKNOWN_ERROR',
-  "invalid" => 'INVALID',
-  "nokeyserver" => 'NO_KEY_SERVER',
-  "withdrawn" => 'WITHDRAWN',
+$configErrorEnum = [
+    "error" => 'UNKNOWN_ERROR',
+    "invalid" => 'INVALID',
+    "nokeyserver" => 'NO_KEY_SERVER',
+    "withdrawn" => 'WITHDRAWN',
 ];
 
-$arr = [];
-if (empty($myservers['remote']['username'])) {
-  $arr['registered'] = 0;
-  $arr['username'] = '';
-  $arr['avatar'] = '';
-} else {
-  $arr['registered'] = 1;
-  $arr['username'] = $myservers['remote']['username'];
-  $arr['avatar'] = $myservers['remote']['avatar']??'';
-}
-$arr['event'] = 'STATE';
-$arr['ts'] = time();
-$arr['deviceCount'] = $var['deviceCount'];
-$arr['guid'] = $var['flashGUID'];
-$arr['regGuid'] = $var['regGUID'];
-$arr['state'] = $license_state;
-$arr['keyfile'] = $key_contents;
-$arr['reggen'] = $var['regGen'];
-$arr['flashproduct'] = $var['flashProduct'];
-$arr['flashvendor'] = $var['flashVendor'];
-$arr['servername'] = $var['NAME'];
-$arr['serverdesc'] = $var['COMMENT'];
-$arr['internalip'] = $_SERVER['SERVER_ADDR'];
-$arr['internalport'] = $_SERVER['SERVER_PORT'];
-$arr['apiVersion'] = $myservers['api']['version'] ?? '';
-$arr['plgVersion'] = trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net*.plg 2>/dev/null'));
-$arr['protocol'] = $_SERVER['REQUEST_SCHEME'];
-$arr['locale'] = $_SESSION['locale'] ?? 'en_US';
-$arr['expiretime']=1000*($var['regTy']=='Trial'||strstr($var['regTy'],'expired')?$var['regTm2']:0);
-$arr['uptime']=1000*(time() - round(strtok(exec("cat /proc/uptime"),' ')));
-$arr['hasRemoteApikey'] = empty($myservers['remote']['apikey']) ? 0 : 1;
-$arr['hideMyServers'] = (file_exists('/usr/local/sbin/unraid-api')) ? '' : 'yes';
-$arr['config'] = [
-  'valid' => $var['configValid'] === 'yes',
-  'error' => $var['configValid'] !== 'yes'
-    ? (array_key_exists($var['configValid'], $configErrorEnum) ? $configErrorEnum[$var['configValid']] : 'UNKNOWN_ERROR')
-    : null,
-];
+$registered = !empty($myservers['remote']['username']) && $connectPluginInstalled;
 
-echo json_encode($arr);
-?>
+$serverState = [
+    "apiKey" => $registered ? $myservers['upc']['apikey'] ?? '' : '',
+    "apiVersion" => $myservers['api']['version'] ?? '',
+    "avatar" => (!empty($myservers['remote']['avatar']) && $connectPluginInstalled) ? $myservers['remote']['avatar'] : '',
+    "config" => [
+        'valid' => ($var['configValid'] === 'yes'),
+        'error' => isset($configErrorEnum[$var['configValid']]) ? $configErrorEnum[$var['configValid']] : 'UNKNOWN_ERROR',
+    ],
+    "connectPluginInstalled" => $connectPluginInstalled,
+    "connectPluginVersion" => $connectPluginVersion,
+    "csrf" => $var['csrf_token'],
+    "description" => $var['COMMENT'] ?? '',
+    "deviceCount" => $var['deviceCount'],
+    "email" => $myservers['remote']['email'] ?? '',
+    "expireTime" => 1000 * (($var['regTy'] === 'Trial' || strstr($var['regTy'], 'expired')) ? $var['regTm2'] : 0),
+    "extraOrigins" => explode(',', $myservers['api']['extraOrigins'] ?? ''),
+    "flashProduct" => $var['flashProduct'],
+    "flashVendor" => $var['flashVendor'],
+    "flashBackupActivated" => empty($flashbackup_status['activated']) ? '' : 'true',
+    "guid" => $var['flashGUID'],
+    "hasRemoteApikey" => !empty($myservers['remote']['apikey']),
+    "internalPort" => $_SERVER['SERVER_PORT'],
+    "keyfile" => empty($var['regFILE']) ? '' : str_replace(['+', '/', '='], ['-', '_', ''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
+    "lanIp" => ipaddr(),
+    "locale" => ($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
+    "model" => $var['SYS_MODEL'],
+    "name" => $var['NAME'],
+    "osVersion" => $var['version'],
+    "protocol" => $_SERVER['REQUEST_SCHEME'],
+    "regGen" => (int)$var['regGen'],
+    "regGuid" => $var['regGUID'],
+    "registered" => $registered,
+    "registeredTime" => $myservers['remote']['regWizTime'] ?? '',
+    "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
+    "state" => strtoupper(empty($var['regCheck']) ? $var['regTy'] : $var['regCheck']),
+    "theme" => [
+        "banner" => !empty($display['banner']),
+        "bannerGradient" => $display['showBannerGradient'] === 'yes' ?? false,
+        "bgColor" => ($display['background']) ? '#' . $display['background'] : '',
+        "descriptionShow" => (!empty($display['headerdescription']) && $display['headerdescription'] !== 'no'),
+        "metaColor" => ($display['headermetacolor'] ?? '') ? '#' . $display['headermetacolor'] : '',
+        "name" => $display['theme'],
+        "textColor" => ($display['header']) ? '#' . $display['header'] : '',
+    ],
+    "ts" => time(),
+    "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
+    "username" => $registered ? $myservers['remote']['username'] : '',
+    "wanFQDN" => $nginx['NGINX_WANFQDN'] ?? '',
+];

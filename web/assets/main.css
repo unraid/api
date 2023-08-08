@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+
+/*
+darkTheme
+alpha: '#1c1b1b',
+beta: '#f2f2f2',
+gamma: '#999999',
+
+lightTheme
+alpha: '#f2f2f2',
+beta: '#1c1b1b',
+gamma: '#999999',
+*/
+
+body {
+  --color-alpha: #1c1b1b;
+  --color-beta: #f2f2f2;
+  --color-gamma: #999999;
+  --color-customgradient-start: rgba(242, 242, 242, .0);
+  --color-customgradient-end: rgba(242, 242, 242, .85);
+  --shadow-beta: 0 25px 50px -12px rgba(242, 242, 242, .15);
+  --ring-offset-shadow: 0 0 --var(--color-beta);
+  --ring-shadow: 0 0 --var(--color-beta);
+}
+
+/* Ensure this is always at the bottom – @see https://tailwindcss.com/docs/content-configuration#working-with-third-party-libraries */
+@tailwind utilities;

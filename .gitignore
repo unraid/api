@@ -77,3 +77,11 @@ deploy/*
 
 # pkg cache
 .pkg-cache
+
+*.log*
+.nuxt
+.nitro
+.cache
+.output
+.env*
+!.env.example
