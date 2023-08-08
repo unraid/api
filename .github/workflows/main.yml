@@ -214,7 +214,7 @@ jobs:
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
 
   build-plugin:
-    needs: [lint-api, test-api, build-api]
+    needs: [lint-api, lint-web, test-api, build-api, build-web]
     defaults:
       run:
         working-directory: plugin
