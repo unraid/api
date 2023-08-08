@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'ENOKEYFILE2';
+const state: ServerState = 'ENOCONN';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 let expireTime = 0;
@@ -37,7 +37,7 @@ if (state === 'TRIAL') { expireTime = Date.now() + 60 * 60 * 1000; } // in 1 hou
 if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 
 export const serverState: Server = {
-  // apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
+  apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
   avatar: 'https://source.unsplash.com/300x300/?portrait',
   config: {
     // error: 'INVALID',

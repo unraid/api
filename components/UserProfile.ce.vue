@@ -23,8 +23,10 @@ const dropdownStore = useDropdownStore();
 const serverStore = useServerStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { name, description, lanIp } = storeToRefs(serverStore);
+const { name, description, lanIp, state, connectPluginInstalled } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
+
+const hideDropdown = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 
 /**
  * Close dropdown when clicking outside
@@ -95,19 +97,21 @@ onBeforeMount(() => {
         </button>
         <span
           v-show="copied || showCopyNotSupported"
-          class="text-white text-12px leading-none py-4px px-8px absolute right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
+          class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
           <template v-if="copied">{{ t('LAN IP Copied') }}</template>
           <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>
         </span>
       </h1>
 
-      <div class="block w-2px h-24px bg-gamma" />
+      <template v-if="!hideDropdown">
+        <div class="block w-2px h-24px bg-gamma" />
 
-      <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
-        <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
-        <UpcDropdown ref="clickOutsideTarget" :t="t" />
-      </OnClickOutside>
+        <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
+          <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
+          <UpcDropdown ref="clickOutsideTarget" :t="t" />
+        </OnClickOutside>
+      </template>
     </div>
   </div>
 </template>
