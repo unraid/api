@@ -17,4 +17,4 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Lint, Test, and Build Web Components
-        uses: unraid/lint-test-build-web@${{ github.event.pull_request.head.ref }}
+        uses: unraid/lint-test-build-web@${{ github.ref_name }}
