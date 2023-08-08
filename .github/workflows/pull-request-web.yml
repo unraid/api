@@ -1,0 +1,60 @@
+name: Pull Request Web
+
+on:
+  pull_request:
+    paths:
+      - 'web/'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}-web
+  cancel-in-progress: true
+
+jobs:
+  lint-web:
+    defaults:
+      run:
+        working-directory: web
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+          node-version-file: "web/.nvmrc"
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Lint files
+        run: npm run lint
+
+  build-web:
+    defaults:
+      run:
+        working-directory: web
+    runs-on: ubuntu-latest
+    needs: [lint-web]
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Install node
+        uses: actions/setup-node@v3
+        with:
+          cache: "npm"
+          node-version-file: "web/.nvmrc"
+
+      - name: Installing node deps
+        run: npm install
+
+      - name: Build
+        run: npm run build
+
+      - name: Upload build to Github artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: unraid-web
+          path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
