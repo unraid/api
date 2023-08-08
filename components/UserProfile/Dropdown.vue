@@ -28,7 +28,7 @@ const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPl
   >
     <UpcDropdownWrapper class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 transition-all">
       <UpcDropdownContent v-if="showDefaultContent" :t="t" />
-      <UpcDropdownLaunchpad v-else :t="t" />
+      <UpcDropdownLaunchpad v-else-if="showLaunchpad" :t="t" />
     </UpcDropdownWrapper>
   </TransitionRoot>
 </template>

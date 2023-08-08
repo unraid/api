@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowTopRightOnSquareIcon, CogIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
+import { ArrowTopRightOnSquareIcon, CogIcon } from '@heroicons/vue/24/solid';
 
 import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
-import { usePromoStore } from '~/store/promo';
+// import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{ t: any; }>();
 
 const errorsStore = useErrorsStore();
-const promoStore = usePromoStore();
+// const promoStore = usePromoStore();
 
 const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
 const { errors } = storeToRefs(errorsStore);
