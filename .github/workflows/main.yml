@@ -180,6 +180,8 @@ jobs:
       run:
         working-directory: web
     runs-on: ubuntu-latest
+    environment:
+      name: production
     needs: [lint-web]
     steps:
       - name: Checkout repo
