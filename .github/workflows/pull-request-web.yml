@@ -11,16 +11,11 @@ concurrency:
 
 jobs:
   lint-web:
-    defaults:
-      run:
-        working-directory: web
     runs-on: ubuntu-latest
     steps:
       - name: Get branch name
         id: branch-name
         uses: tj-actions/branch-names@v6
 
-      - uses: jenseng/dynamic-uses@v1
-        name: Lint, Test, and Build Web Components
-        with:
-          uses: "unraid/lint-test-build-web@${{ steps.branch-name.outputs.current_branch }}"
+      - name: Lint, Test, and Build Web Components
+        uses: ./lint-test-build-web.yml
