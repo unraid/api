@@ -31,8 +31,8 @@ export default defineNuxtConfig({
     }
   },
   vite: {
-    build: {
-      minify: false,
+    esbuild: {
+      minifyIdentifiers: false,
     },
   },
   customElements: {
