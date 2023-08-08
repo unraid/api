@@ -13,9 +13,8 @@ jobs:
   lint-web:
     runs-on: ubuntu-latest
     steps:
-      - name: Get branch name
-        id: branch-name
-        uses: tj-actions/branch-names@v6
+      - name: Checkout repo
+        uses: actions/checkout@v3
 
       - name: Lint, Test, and Build Web Components
         uses: ./lint-test-build-web.yml
