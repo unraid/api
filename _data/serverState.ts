@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'ENOCONN';
+const state: ServerState = 'TRIAL';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 let expireTime = 0;
