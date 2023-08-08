@@ -23,6 +23,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
           node-version-file: "web/.nvmrc"
 
       - name: Installing node deps
@@ -45,6 +46,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           cache: "npm"
+          cache-dependency-path: "web/package-lock.json"
           node-version-file: "web/.nvmrc"
 
       - name: Installing node deps
