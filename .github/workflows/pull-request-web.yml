@@ -16,5 +16,9 @@ jobs:
         working-directory: web
     runs-on: ubuntu-latest
     steps:
+      - name: Get branch name
+        id: branch-name
+        uses: tj-actions/branch-names@v6
+
       - name: Lint, Test, and Build Web Components
-        uses: unraid/lint-test-build-web@${{ github.ref_name }}
+        uses: "unraid/lint-test-build-web@${{ steps.branch-name.outputs.current_branch }}"
