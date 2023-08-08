@@ -114,8 +114,6 @@ export const useCallbackStoreGeneric = (
     const encryptionKey = import.meta.env.VITE_CALLBACK_KEY;
     const defaultSendType = 'fromUpc';
 
-    console.debug('[callback]', import.meta.env);
-
     const send = (url: string, payload: SendPayloads, sendType?: 'fromUpc' | 'forUpc') => {
       console.debug('[callback.send]');
       try {
