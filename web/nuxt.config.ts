@@ -5,6 +5,29 @@ for (const k in envConfig) {
   process.env[k] = envConfig[k];
 }
 
+/**
+ * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
+ */
+function terserReservations(inputStr) {
+  const combinations = [];
+
+  // Add 1-character combinations
+  for(let i = 0; i < inputStr.length; i++) {
+      combinations.push(inputStr[i]);
+  }
+
+  // Add 2-character combinations
+  for(let i = 0; i < inputStr.length; i++) {
+      for(let j = 0; j < inputStr.length; j++) {
+          combinations.push(inputStr[i] + inputStr[j]);
+      }
+  }
+
+  return combinations;
+}
+
+const charsToReserve = "_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   ssr: false,
@@ -30,7 +53,7 @@ export default defineNuxtConfig({
       minify: 'terser',
       terserOptions: {
         mangle: {
-          reserved: ['_', '$', 'i', 'my', 't', 'v', 'w', 'x', 'y', 'z'],
+          reserved: terserReservations(charsToReserve),
           toplevel: true,
         },
       },
