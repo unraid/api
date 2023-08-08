@@ -84,3 +84,4 @@ deploy/*
 .cache
 .output
 .env*
+!.env.example
