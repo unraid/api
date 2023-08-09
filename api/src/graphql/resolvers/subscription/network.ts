@@ -267,7 +267,6 @@ export const getServerIps = (state: RootState = store.getState()): { urls: Acces
 		}
 		return acc;
 	}, []);
-	
 
 	return { urls: safeUrls, errors };
 };

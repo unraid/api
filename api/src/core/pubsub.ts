@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { PubSub } from 'graphql-subscriptions';
 import EventEmitter from 'events';
 

@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 /**
  * Sanitize vm product name.
  * @param productName The product name to sanitize.

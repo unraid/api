@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { FileLoadStatus, StateFileKey, type StateFileToIniParserMap } from '@app/store/types';
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
 import merge from 'lodash/merge';

@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { uppercaseFirstChar } from '@app/core/utils/misc/uppercase-first-char';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

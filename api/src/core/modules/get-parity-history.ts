@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { promises as fs } from 'fs';
 import { type CoreResult, type CoreContext } from '@app/core/types';
 import { FileMissingError } from '@app/core/errors/file-missing-error';

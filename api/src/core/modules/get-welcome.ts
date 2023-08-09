@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import type { CoreResult, CoreContext } from '@app/core/types';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

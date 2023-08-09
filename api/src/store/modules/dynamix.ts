@@ -16,8 +16,6 @@ export const initialState: Partial<SliceState> = {
     status: FileLoadStatus.UNLOADED,
 };
 
-
-
 export const dynamix = createSlice({
     name: 'dynamix',
     initialState,

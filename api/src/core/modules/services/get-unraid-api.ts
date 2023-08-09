@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import type { CoreContext, CoreResult } from '@app/core/types';
 import { API_VERSION } from '@app/environment';

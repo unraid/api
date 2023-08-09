@@ -10,7 +10,6 @@ export const RemoteGraphQL_Fragment = graphql(/* GraphQL */ `
     }
 `);
 
-
 export const RemoteAccess_Fragment = graphql(/* GraphQL */ `
     fragment RemoteAccessEventFragment on RemoteAccessEvent {
         type

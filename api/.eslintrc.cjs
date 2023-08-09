@@ -26,6 +26,7 @@ module.exports = {
         ],
         'import/no-cycle': 'off', // Change this to "error" to find circular imports
         '@typescript-eslint/no-use-before-define': ['error'],
+        'no-multiple-empty-lines': ['error', { max: 1, maxBOF: 0, maxEOF: 1 }],
     },
     overrides: [
         {

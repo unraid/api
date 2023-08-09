@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import pProps from 'p-props';
 import { type Domain } from '@app/core/types';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';

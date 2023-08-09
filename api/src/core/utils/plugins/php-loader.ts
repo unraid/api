@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import path from 'path';
 import { execa } from 'execa';
 import { FileMissingError } from '@app/core/errors/file-missing-error';

@@ -1,11 +1,8 @@
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { setEnv } from '@app/cli/set-env';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
-import { existsSync, readFileSync } from 'fs';
 import { cliLogger } from '@app/core/log';
-import { resolve } from 'path';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
 import { loadConfigFile } from '@app/store/modules/config';
