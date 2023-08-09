@@ -2,6 +2,9 @@
 import { provide } from 'vue';
 import { createI18n, I18nInjectionKey } from 'vue-i18n';
 
+import { disableProductionConsoleLogs } from '~/helpers/functions';
+disableProductionConsoleLogs();
+
 import en_US from '~/locales/en_US.json'; // eslint-disable-line camelcase
 // import ja from '~/locales/ja.json';
 
