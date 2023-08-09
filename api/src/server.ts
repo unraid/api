@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import path from 'path';
 import cors from 'cors';
 import { watch } from 'chokidar';
@@ -32,7 +27,6 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { getLogs } from '@app/graphql/express/get-logs';
-
 
 const configFilePath = path.join(
     getters.paths()['dynamix-base'],

@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import chalk from 'chalk';
 import { configure, getLogger } from 'log4js';
 import { serializeError } from 'serialize-error';
@@ -87,7 +82,6 @@ if (process.env.NODE_ENV !== 'test') {
 		},
 	});
 }
-
 
 export const internalLogger = getLogger('internal');
 export const logger = getLogger('app');

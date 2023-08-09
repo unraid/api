@@ -18,7 +18,6 @@ import { type UsersIni } from './state-parsers/users';
 import { type VarIni } from './state-parsers/var';
 import { type Subscription } from 'zen-observable-ts';
 
-
 export enum FileLoadStatus {
 	UNLOADED = 'UNLOADED',
 	LOADING = 'LOADING',
