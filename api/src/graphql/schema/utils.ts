@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { hasSubscribedToChannel } from '@app/ws';
 import { type User } from '@app/core/types/states/user';
 import { AppError } from '@app/core/errors/app-error';

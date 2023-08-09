@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import camelCaseKeys from 'camelcase-keys';
 import { logger } from '@app/core/log';
 import { parseConfig } from '@app/core/utils/misc/parse-config';

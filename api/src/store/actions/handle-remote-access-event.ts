@@ -20,7 +20,6 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 		return;
 	}
 
-
 	switch (event.data.type) {
 		case RemoteAccessEventActionType.INIT:
 			remoteAccessLogger.debug('Init Event');

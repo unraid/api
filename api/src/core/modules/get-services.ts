@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { getEmhttpdService } from '@app/core/modules/services/get-emhttpd';
 import { logger } from '@app/core/log';
 import type { CoreResult, CoreContext } from '@app/core/types';

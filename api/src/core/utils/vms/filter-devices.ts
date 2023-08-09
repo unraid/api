@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { execa } from 'execa';
 import { map as asyncMap } from 'p-iteration';
 import { sync as commandExistsSync } from 'command-exists';

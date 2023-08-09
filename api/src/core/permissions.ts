@@ -14,7 +14,6 @@ const permissions = Object.entries(roles).flatMap(([roleName, role]) => [
 	})),
 ]);
 
-
 // Grant permissions
 const ac = new AccessControl(permissions);
 

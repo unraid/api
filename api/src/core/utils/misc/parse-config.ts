@@ -1,7 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
 import { parse as parseIni } from 'ini';
 import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';

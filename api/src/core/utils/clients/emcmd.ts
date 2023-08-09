@@ -1,7 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
 import { got } from 'got'
 import { logger } from '@app/core/log';
 import { type LooseObject } from '@app/core/types';

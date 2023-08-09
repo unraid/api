@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { type Resolvers } from '@app/graphql/generated/api/types';

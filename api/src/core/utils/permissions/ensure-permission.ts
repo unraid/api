@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { PermissionError } from '@app/core/errors/permission-error';
 import { type User } from '@app/core/types/states/user';
 import { checkPermission, type AccessControlOptions } from '@app/core/utils/permissions/check-permission';

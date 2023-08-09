@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { ArrayState } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 

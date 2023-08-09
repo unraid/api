@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { getServers } from '@app/graphql/schema/utils';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { ServerStatus, type Resolvers } from '../../generated/api/types';

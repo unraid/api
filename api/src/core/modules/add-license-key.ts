@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 // import fs from 'fs';
 // import { log } from '../log';
 import type { CoreContext, CoreResult } from '@app/core/types';

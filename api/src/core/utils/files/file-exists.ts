@@ -1,4 +1,3 @@
-
 import { access } from 'fs/promises';
 import { accessSync } from 'fs';
 import { F_OK } from 'node:constants';

@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import fs from 'fs';
 import camelCaseKeys from 'camelcase-keys';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';

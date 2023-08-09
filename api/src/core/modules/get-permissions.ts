@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { ac } from '@app/core/permissions';
 import { getPermissions as getUserPermissions } from '@app/core/utils/permissions/get-permissions';
 import type { CoreContext, CoreResult } from '@app/core/types';

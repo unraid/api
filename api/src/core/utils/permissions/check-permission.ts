@@ -1,8 +1,3 @@
-/*!
- * Copyright 2019-2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { ParameterMissingError } from '@app/core/errors/param-missing-error';
 import { ac } from '@app/core/permissions';
 import { type User } from '@app/core/types/states/user';
