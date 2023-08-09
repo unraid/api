@@ -99,7 +99,7 @@
     "ini": "^4.1.0",
     "ip": "^1.1.8",
     "jose": "^4.14.2",
-    "launchdarkly-eventsource": "^1.4.4",
+    "launchdarkly-eventsource": "^2.0.0",
     "lodash": "^4.17.21",
     "multi-ini": "^2.2.0",
     "mustache": "^4.2.0",
