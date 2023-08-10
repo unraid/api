@@ -173,7 +173,7 @@
     "execa": "^7.1.1",
     "filter-obj": "^5.1.0",
     "got": "^12.6.0",
-    "graphql-codegen-typescript-validation-schema": "^0.7.1",
+    "graphql-codegen-typescript-validation-schema": "^0.11.0",
     "ip-regex": "^5.0.0",
     "json-difference": "^1.9.1",
     "log4js": "^6.9.1",
