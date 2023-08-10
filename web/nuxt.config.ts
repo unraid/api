@@ -9,25 +9,25 @@ for (const k in envConfig) {
  * Used to avoid redeclaring variables in the webgui codebase.
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
  */
-function terserReservations(inputStr) {
+function terserReservations (inputStr) {
   const combinations = [];
 
   // Add 1-character combinations
-  for(let i = 0; i < inputStr.length; i++) {
-      combinations.push(inputStr[i]);
+  for (let i = 0; i < inputStr.length; i++) {
+    combinations.push(inputStr[i]);
   }
 
   // Add 2-character combinations
-  for(let i = 0; i < inputStr.length; i++) {
-      for(let j = 0; j < inputStr.length; j++) {
-          combinations.push(inputStr[i] + inputStr[j]);
-      }
+  for (let i = 0; i < inputStr.length; i++) {
+    for (let j = 0; j < inputStr.length; j++) {
+      combinations.push(inputStr[i] + inputStr[j]);
+    }
   }
 
   return combinations;
 }
 
-const charsToReserve = "_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
