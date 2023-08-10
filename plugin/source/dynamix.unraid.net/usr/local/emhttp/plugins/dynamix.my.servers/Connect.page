@@ -706,7 +706,3 @@ _(Download unraid-api Logs)_:
 : <unraid-i18n-host><unraid-download-api-logs></unraid-download-api-logs></unraid-i18n-host>
 </div>
 <!-- end unraid-api section -->
-
-<? require_once("$docroot/plugins/dynamix.my.servers/include/translations.php"); ?>
-$webComponentTranslations:
-: <pre><code><?= var_dump($webComponentTranslations); ?></code></pre>
