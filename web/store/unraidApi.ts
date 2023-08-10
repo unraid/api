@@ -11,6 +11,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { UserProfileLink } from 'types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
+import { GRAPHQL } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 // import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
@@ -24,18 +25,11 @@ setActivePinia(createPinia());
 const ERROR_CORS_403 = 'The CORS policy for this site does not allow access from the specified Origin';
 let prioritizeCorsError = false; // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
-let baseUrl = window.location.origin;
-/** @todo use ENV */
-const localDevUrl = baseUrl.includes(':4321');
-if (localDevUrl) {
-  /** @temp local dev mode */
-  baseUrl = baseUrl.replace(':4321', ':3001');
-}
-const httpEndpoint = new URL('/graphql', baseUrl);
-const wsEndpoint = new URL('/graphql', baseUrl.replace('http', 'ws'));
+const httpEndpoint = GRAPHQL;
+const wsEndpoint = new URL(GRAPHQL.toString().replace('http', 'ws'));
 
-console.debug('[useUnraidApiStore] httpEndpoint', httpEndpoint.toString());
-console.debug('[useUnraidApiStore] wsEndpoint', wsEndpoint.toString());
+console.debug('[unraidApi.ts] httpEndpoint', httpEndpoint);
+console.debug('[unraidApi.ts] wsEndpoint', wsEndpoint);
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   console.debug('[useUnraidApiStore]');
