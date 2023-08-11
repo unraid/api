@@ -15,31 +15,43 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const serverStore = useServerStore();
 
   const redeem = () => {
-    console.debug('[redeem]');
-    callbackStore.send(PURCHASE_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverPurchasePayload,
-      },
-      type: 'redeem',
-    }]);
+    console.debug('[serverStore.redeem]');
+    callbackStore.send(
+      PURCHASE_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverPurchasePayload,
+        },
+        type: 'redeem',
+      }],
+      serverStore.inIframe,
+    );
   };
   const purchase = () => {
-    console.debug('[purchase]');
-    callbackStore.send(PURCHASE_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverPurchasePayload,
-      },
-      type: 'purchase',
-    }]);
+    console.debug('[serverStore.purchase]');
+    callbackStore.send(
+      PURCHASE_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverPurchasePayload,
+        },
+        type: 'purchase',
+      }],
+      serverStore.inIframe,
+    );
   };
   const upgrade = () => {
-    console.debug('[upgrade]');
-    callbackStore.send(PURCHASE_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverPurchasePayload,
-      },
-      type: 'upgrade',
-    }]);
+    console.debug('[serverStore.upgrade]');
+    callbackStore.send(
+      PURCHASE_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverPurchasePayload,
+        },
+        type: 'upgrade',
+      }],
+      serverStore.inIframe,
+    );
   };
 
   return {
