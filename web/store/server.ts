@@ -876,6 +876,7 @@ export const useServerStore = defineStore('server', () => {
     deviceCount,
     expireTime,
     guid,
+    inIframe,
     locale,
     lanIp,
     name,

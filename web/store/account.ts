@@ -30,57 +30,81 @@ export const useAccountStore = defineStore('account', () => {
   // Actions
   const recover = () => {
     console.debug('[accountStore.recover]');
-    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'recover',
-    }]);
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'recover',
+      }],
+      serverStore.inIframe,
+    );
   };
   const replace = () => {
     console.debug('[accountStore.replace]');
-    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'replace',
-    }]);
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'replace',
+      }],
+      serverStore.inIframe,
+    );
   };
   const signIn = () => {
     console.debug('[accountStore.signIn]');
-    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'signIn',
-    }]);
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'signIn',
+      }],
+      serverStore.inIframe,
+    );
   };
   const signOut = () => {
-    console.debug('[accountStore.accountStore.signOut]');
-    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'signOut',
-    }]);
+    console.debug('[accountStore.signOut]');
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'signOut',
+      }],
+      serverStore.inIframe,
+    );
   };
   const trialExtend = () => {
-    console.debug('[accountStore.accountStore.trialExtend]');
-    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'trialExtend',
-    }]);
+    console.debug('[accountStore.trialExtend]');
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'trialExtend',
+      }],
+      serverStore.inIframe,
+    );
   };
   const trialStart = () => {
-    console.debug('[accountStore.accountStore.trialStart]');
-    callbackStore.send(ACCOUNT_CALLBACK.toString(), [{
-      server: {
-        ...serverStore.serverAccountPayload,
-      },
-      type: 'trialStart',
-    }]);
+    console.debug('[accountStore.trialStart]');
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'trialStart',
+      }],
+      serverStore.inIframe,
+    );
   };
   /**
    * @description Update myservers.cfg for both Sign In & Sign Out
