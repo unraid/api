@@ -74,6 +74,7 @@ $webComponentTranslations = [
     'Please keep this window open while we perform some actions' => _('Please keep this window open while we perform some actions'),
     'You\'re one step closer to enhancing your Unraid experience' => _('You\'re one step closer to enhancing your Unraid experience'),
     'Thank you for purchasing an Unraid {0} Key!' => sprintf(_('Thank you for purchasing an Unraid %s Key!'), '{0}'),
+    'Thank you for upgrading to an Unraid {0} Key!' => sprintf(_('Thank you for upgrading to an Unraid %s Key!'), '{0}'),
     'Your {0} Key has been replaced!' => sprintf(_('Your %s Key has been replaced!'), '{0}'),
     'Your Trial key has been extended!' => _('Your Trial key has been extended!'),
     'Copied' => _('Copied'),

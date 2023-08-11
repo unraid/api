@@ -28,9 +28,6 @@ let prioritizeCorsError = false; // Ensures we don't overwrite this specific err
 const httpEndpoint = GRAPHQL;
 const wsEndpoint = new URL(GRAPHQL.toString().replace('http', 'ws'));
 
-console.debug('[unraidApi.ts] httpEndpoint', httpEndpoint);
-console.debug('[unraidApi.ts] wsEndpoint', wsEndpoint);
-
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   console.debug('[useUnraidApiStore]');
   const accountStore = useAccountStore();
