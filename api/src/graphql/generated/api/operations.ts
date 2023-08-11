@@ -502,6 +502,8 @@ export function NotificationSchema(): z.ZodObject<Properties<Notification>> {
 export function NotificationFilterSchema(): z.ZodObject<Properties<NotificationFilter>> {
   return z.object<Properties<NotificationFilter>>({
     importance: ImportanceSchema.nullish(),
+    limit: z.number(),
+    offset: z.number(),
     type: NotificationTypeSchema.nullish()
   })
 }

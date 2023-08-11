@@ -4,7 +4,7 @@ import { getters } from '@app/store/index';
 
 export const notificationsResolver: QueryResolvers['notifications'] = async (
     _,
-    args,
+    { filter: { offset, limit, importance, type } },
     context
 ) => {
     ensurePermission(context.user, {
@@ -13,27 +13,30 @@ export const notificationsResolver: QueryResolvers['notifications'] = async (
         action: 'read',
     });
 
+    if (limit > 50) {
+        throw new Error('Limit must be less than 50');
+    }
     return Object.values(getters.notifications().notifications)
         .filter((notification) => {
-            if (args.filter) {
-                if (
-                    args.filter.importance &&
-                    args.filter.importance !== notification.importance
-                ) {
-                    return false;
-                }
-                if (
-                    args.filter.type &&
-                    args.filter.type !== notification.type
-                ) {
-                    return false;
-                }
+            if (
+                importance &&
+                importance !== notification.importance
+            ) {
+                return false;
             }
+            if (type && type !== notification.type) {
+                return false;
+            }
+
             return true;
         })
         .sort(
             (a, b) =>
                 new Date(b.timestamp ?? 0).getTime() -
                 new Date(a.timestamp ?? 0).getTime()
+        )
+        .slice(
+            offset,
+            limit + offset
         );
 };

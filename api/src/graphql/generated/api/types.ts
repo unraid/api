@@ -707,6 +707,8 @@ export type Notification = {
 
 export type NotificationFilter = {
   importance?: InputMaybe<Importance>;
+  limit: Scalars['Int'];
+  offset: Scalars['Int'];
   type?: InputMaybe<NotificationType>;
 };
 
@@ -926,7 +928,7 @@ export type QuerydockerNetworksArgs = {
 
 
 export type QuerynotificationsArgs = {
-  filter?: InputMaybe<NotificationFilter>;
+  filter: NotificationFilter;
 };
 
 
@@ -2427,7 +2429,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;
   info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
-  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, Partial<QuerynotificationsArgs>>;
+  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QuerynotificationsArgs, 'filter'>>;
   online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;
