@@ -18,6 +18,8 @@ input NotificationInput {
 input NotificationFilter {
     importance: Importance
     type: NotificationType
+    offset: Int!
+    limit: Int!
 }
 
 type Mutation {
@@ -25,7 +27,7 @@ type Mutation {
 }
 
 type Query {
-    notifications(filter: NotificationFilter): [Notification!]!
+    notifications(filter: NotificationFilter!): [Notification!]!
 }
 
 type Subscription {
