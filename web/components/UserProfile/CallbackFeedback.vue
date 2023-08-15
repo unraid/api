@@ -89,10 +89,7 @@ const subheading = computed(() => {
   return '';
 });
 
-const closeText = computed(() => {
-  const txt = !connectPluginInstalled.value ? props.t('No thanks') : props.t('Close');
-  return refreshServerStateStatus.value === 'done' ? txt : props.t('Reload');
-});
+const closeText = computed(() => !connectPluginInstalled.value ? props.t('No thanks') : props.t('Close'));
 const close = () => {
   if (callbackStatus.value === 'loading') { return console.debug('[close] not allowed'); }
   return refreshServerStateStatus.value === 'done'
