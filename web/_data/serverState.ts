@@ -56,8 +56,8 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  // connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  connectPluginInstalled: '',
+  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
+  // connectPluginInstalled: '',
   registered: true,
   regGen: 0,
   // "regGuid": "0781-5583-8355-81071A2B0211",

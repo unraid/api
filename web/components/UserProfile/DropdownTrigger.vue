@@ -16,7 +16,6 @@ const {
   registered,
   state,
   stateData,
-  username,
 } = storeToRefs(useServerStore());
 
 const registeredAndconnectPluginInstalled = computed(() => connectPluginInstalled.value && registered.value);
@@ -24,7 +23,6 @@ const showErrorIcon = computed(() => errors.value.length || stateData.value.erro
 
 const text = computed((): string | undefined => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') { return props.t('Fix Error'); }
-  if (registeredAndconnectPluginInstalled.value) { return username.value; }
 });
 
 const title = computed((): string => {

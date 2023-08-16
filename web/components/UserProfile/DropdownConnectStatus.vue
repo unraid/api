@@ -1,11 +1,14 @@
-<script setup lang="ts">
-import { ExclamationTriangleIcon, CheckCircleIcon } from '@heroicons/vue/24/solid';
+ <script setup lang="ts">
+import { ExclamationTriangleIcon, CheckCircleIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
 import BrandLoading from '~/components/Brand/Loading.vue';
 import { useUnraidApiStore } from '~/store/unraidApi';
+import { useServerStore } from '~/store/server';
 
 const props = defineProps<{ t: any; }>();
+
+const { username } = storeToRefs(useServerStore());
 
 const unraidApiStore = useUnraidApiStore();
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(unraidApiStore);
@@ -52,18 +55,13 @@ const status = computed((): StatusOutput | undefined => {
 </script>
 
 <template>
-  <li
-    v-if="status"
-    class="flex flex-row justify-start items-center gap-8px mt-8px px-8px"
-  >
-    <component
-      :is="status.icon"
-      :class="status.iconClasses"
-      aria-hidden="true"
-    />
-    <span :class="status?.textClasses">
-      {{ status.text }}
-    </span>
+  <li v-if="username" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+    <UserCircleIcon class="w-16px h-16px" aria-hidden="true" />
+    {{ username }}
+  </li>
+  <li v-if="status" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+    <component :is="status.icon" :class="status.iconClasses" aria-hidden="true" />
+    {{ status.text }}
   </li>
   <li v-if="unraidApiRestartAction" class="w-full">
     <UpcDropdownItem :item="unraidApiRestartAction" :t="t" />
