@@ -11,14 +11,8 @@ const props = defineProps<{ t: any; }>();
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
-const {
-  connectPluginInstalled,
-  registered,
-  state,
-  stateData,
-} = storeToRefs(useServerStore());
+const { state, stateData } = storeToRefs(useServerStore());
 
-const registeredAndconnectPluginInstalled = computed(() => connectPluginInstalled.value && registered.value);
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string | undefined => {
@@ -35,7 +29,7 @@ const title = computed((): string => {
 
 <template>
   <button
-    class="group text-18px hover:text-alpha focus:text-alpha border-0 relative flex flex-row justify-end items-center h-full gap-x-8px outline-none focus:outline-none"
+    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 hover:text-alpha focus:text-alpha"
     :title="title"
     @click="dropdownStore.dropdownToggle()"
   >
