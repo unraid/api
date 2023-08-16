@@ -92,7 +92,7 @@ onBeforeMount(() => {
           <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
-        <button :title="t('Click to Copy LAN IP {0}', [lanIp])" @click="copyLanIp()" class="opacity-100 hover:opacity-75 focus:opacity-75">
+        <button :title="t('Click to Copy LAN IP {0}', [lanIp])" @click="copyLanIp()" class="opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity">
           {{ name }}
         </button>
         <span
