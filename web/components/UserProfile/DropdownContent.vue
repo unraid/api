@@ -78,7 +78,7 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
 <template>
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
     <header v-if="connectPluginInstalled" class="flex flex-row items-center justify-between mt-8px mx-8px">
-      <h2 class="text-18px leading-none flex flex-row gap-x-8px items-center justify-between">
+      <h2 class="text-18px leading-none flex flex-row gap-x-4px items-center justify-between">
         <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-beta w-[120px]" />
         <UpcBeta />
       </h2>
