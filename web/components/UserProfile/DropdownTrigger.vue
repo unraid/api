@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { InformationCircleIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
+import {
+  Bars3Icon,
+  Bars3BottomRightIcon,
+  ExclamationTriangleIcon,
+  InformationCircleIcon,
+  ShieldExclamationIcon,
+} from '@heroicons/vue/24/solid';
 
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
@@ -29,7 +35,7 @@ const title = computed((): string => {
 
 <template>
   <button
-    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 hover:text-alpha focus:text-alpha"
+    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 hover:text-alpha focus:text-alpha transition-opacity"
     :title="title"
     @click="dropdownStore.dropdownToggle()"
   >
@@ -42,7 +48,10 @@ const title = computed((): string => {
       <span>{{ text }}</span>
       <span class="absolute bottom-[-3px] inset-x-0 h-2px w-full bg-gradient-to-r from-unraid-red to-orange rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity" />
     </span>
-    <UpcDropdownTriggerMenuIcon :open="dropdownVisible" />
+
+    <Bars3Icon v-if="!dropdownVisible" class="w-20px" />
+    <Bars3BottomRightIcon v-else class="w-20px" />
+
     <BrandAvatar />
   </button>
 </template>
