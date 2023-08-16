@@ -55,13 +55,13 @@ const status = computed((): StatusOutput | undefined => {
 </script>
 
 <template>
-  <li v-if="username" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
+  <li v-if="username" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px opacity-75">
     <UserCircleIcon class="w-16px h-16px" aria-hidden="true" />
     {{ username }}
   </li>
   <li v-if="status" class="flex flex-row justify-start items-center gap-8px mt-8px px-8px">
     <component :is="status.icon" :class="status.iconClasses" aria-hidden="true" />
-    {{ status.text }}
+    <span class="opacity-75">{{ status.text }}</span>
   </li>
   <li v-if="unraidApiRestartAction" class="w-full">
     <UpcDropdownItem :item="unraidApiRestartAction" :t="t" />
