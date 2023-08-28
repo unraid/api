@@ -59,7 +59,7 @@ const {
  */
 const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/ManagementAccess');
 
-const showPromoCta = computed(() => callbackStatus.value === 'success' && !connectPluginInstalled.value);
+// const showPromoCta = computed(() => callbackStatus.value === 'success' && !connectPluginInstalled.value);
 const showSignInCta = computed(() => connectPluginInstalled.value && !registered.value && authAction.value?.name === 'signIn' && accountActionType.value !== 'signIn');
 
 const heading = computed(() => {
@@ -89,7 +89,7 @@ const subheading = computed(() => {
   return '';
 });
 
-const closeText = computed(() => !connectPluginInstalled.value ? props.t('No thanks') : props.t('Close'));
+const closeText = computed(() => props.t('Close')); // !connectPluginInstalled.value ? props.t('No thanks') :
 const close = () => {
   if (callbackStatus.value === 'loading') { return console.debug('[close] not allowed'); }
   return refreshServerStateStatus.value === 'done'
@@ -97,10 +97,10 @@ const close = () => {
     : window.location.reload();
 };
 
-const promoClick = () => {
-  promoStore.openOnNextLoad();
-  close();
-};
+// const promoClick = () => {
+//   promoStore.openOnNextLoad();
+//   close();
+// };
 
 const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 
@@ -225,11 +225,11 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           :text="accountActionStatusCopy.text"
         />
 
-        <UpcCallbackFeedbackStatus
+        <!-- <UpcCallbackFeedbackStatus
           v-if="showPromoCta"
           :icon="InformationCircleIcon"
           :text="t('Enhance your experience with Unraid Connect')"
-        />
+        /> -->
 
         <UpcCallbackFeedbackStatus
           v-if="showSignInCta"
@@ -258,11 +258,11 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           />
         </template>
 
-        <BrandButton
+        <!-- <BrandButton
           v-if="showPromoCta"
           :text="t('Learn More')"
           @click="promoClick"
-        />
+        /> -->
 
         <BrandButton
           v-if="showSignInCta"
