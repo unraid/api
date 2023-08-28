@@ -8,7 +8,8 @@
  */
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { createPinia, defineStore, setActivePinia, storeToRefs, type StoreDefinition, type StoreGeneric } from 'pinia';
+import type { ComputedRef, Ref } from 'vue';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -27,22 +28,15 @@ export type TrialStart = 'trialStart';
 export type Purchase = 'purchase';
 export type Redeem = 'redeem';
 export type Upgrade = 'upgrade';
+export type AccountActionTypes = Troubleshoot | SignIn | SignOut | OemSignOut;
+export type AccountKeyActionTypes = Recover | Replace | TrialExtend | TrialStart;
+export type PurchaseActionTypes = Purchase | Redeem | Upgrade;
 
-export type AccountAction = SignIn | SignOut | OemSignOut | Troubleshoot;
-export type AccountKeyAction = Recover | Replace | TrialExtend | TrialStart;
-export type PurchaseAction = Purchase | Redeem | Upgrade;
+export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
 
-export type ServerAction = AccountAction | AccountKeyAction | PurchaseAction;
-
-export interface UserInfo {
-  'custom:ips_id'?: string;
-  email?: string;
-  email_verifed?: 'true' | 'false';
-  preferred_username?: string;
-  sub?: string;
-  username?: string;
-}
-
+/**
+ * Represents a server, payload comes from the server to account.unraid.net
+ */
 export interface ServerData {
   description?: string;
   deviceCount?: number;
@@ -60,85 +54,94 @@ export interface ServerData {
   wanFQDN?: string;
 }
 
-export interface ServerPayload {
-  server: ServerData;
-  type: ServerAction;
-}
-
 export interface ExternalSignIn {
   type: SignIn;
   apiKey: string;
   user: UserInfo;
 }
+
 export interface ExternalSignOut {
   type: SignOut | OemSignOut;
 }
+
 export interface ExternalKeyActions {
-  type: PurchaseAction | AccountKeyAction;
+  type: PurchaseActionTypes | AccountKeyActionTypes;
   keyUrl: string;
 }
 
-export type ExternalActions =
-  | ExternalSignIn
-  | ExternalSignOut
-  | ExternalKeyActions;
+export interface ServerPayload {
+  type: ServerActionTypes;
+  server: ServerData;
+}
 
-export type UpcActions = ServerPayload;
+export interface ServerTroubleshoot {
+  type: Troubleshoot;
+  server: ServerData;
+}
 
+export type ExternalActions = ExternalSignIn | ExternalSignOut | ExternalKeyActions;
+
+export type UpcActions = ServerPayload | ServerTroubleshoot;
+
+export type SendPayloads = ExternalActions[] | UpcActions[];
+
+/**
+ * Payload containing all actions that are sent from account.unraid.net to the server
+ */
 export interface ExternalPayload {
+  type: 'forUpc';
   actions: ExternalActions[];
   sender: string;
-  type: 'forUpc';
 }
+
+/**
+ * Payload containing all actions that are sent from a server to account.unraid.net
+ */
 export interface UpcPayload {
   actions: UpcActions[];
   sender: string;
   type: 'fromUpc';
 }
 
-export type SendPayloads = ExternalActions[] | UpcActions[];
-
 export type QueryPayloads = ExternalPayload | UpcPayload;
 
-interface CallbackActionsStore {
-  redirectToCallbackType: (decryptedData: QueryPayloads) => void;
+export interface UserInfo {
+  'custom:ips_id'?: string;
+  email?: string;
+  email_verifed?: 'true' | 'false';
+  preferred_username?: string;
+  sub?: string;
+  username?: string;
+}
+
+export interface CallbackActionsStore {
+  saveCallbackData: (decryptedData: QueryPayloads) => void;
   encryptionKey: string;
   sendType: 'fromUpc' | 'forUpc';
 }
 
 export const useCallbackStoreGeneric = (
-  useCallbackActions: () => CallbackActionsStore,
+  useCallbackActions: () => CallbackActionsStore
 ) =>
   defineStore('callback', () => {
     const callbackActions = useCallbackActions();
-    const encryptionKey = import.meta.env.VITE_CALLBACK_KEY;
-    const defaultSendType = 'fromUpc';
-
-    const send = (url: string, payload: SendPayloads, newTab: boolean = false, sendType?: 'fromUpc' | 'forUpc') => {
-      console.debug('[callback.send]', { url, payload, sendType, newTab });
-      try {
-        const stringifiedData = JSON.stringify({
-          actions: [
-            ...payload,
-          ],
-          sender: window.location.href,
-          type: sendType ?? defaultSendType,
-        });
-        const encryptedMessage = AES.encrypt(stringifiedData, encryptionKey).toString();
-        // build and go to url
-        const destinationUrl = new URL(url);
-        destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
-        console.debug('[callback.send]', encryptedMessage, destinationUrl);
-
-        if (newTab) {
-          window.open(destinationUrl.toString(), '_blank');
-          return;
-        }
-        window.location.href = destinationUrl.toString();
-      } catch (error) {
-        console.error(error);
-        throw new Error('Unable to create callback event');
-      }
+    const send = (url: string, payload: SendPayloads) => {
+      console.debug('[callback.send]');
+      const stringifiedData = JSON.stringify({
+        actions: [...payload],
+        sender: window.location.href,
+        type: callbackActions.sendType,
+      });
+      const encryptedMessage = AES.encrypt(
+        stringifiedData,
+        callbackActions.encryptionKey,
+      ).toString();
+      // build and go to url
+      const destinationUrl = new URL(url);
+      destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
+      console.debug('[callback.send]', encryptedMessage, destinationUrl);
+      window.location.href = destinationUrl.toString();
+      return;
     };
 
     const watcher = () => {
@@ -150,16 +153,11 @@ export const useCallbackStoreGeneric = (
         return console.debug('[callback.watcher] no callback to handle');
       }
 
-      try {
-        const decryptedMessage = AES.decrypt(callbackValue, encryptionKey);
-        const decryptedData: QueryPayloads = JSON.parse(decryptedMessage.toString(Utf8));
-        console.debug('[callback.watcher]', decryptedMessage, decryptedData);
-        // Parse the data and perform actions
-        callbackActions.redirectToCallbackType(decryptedData);
-      } catch (error) {
-        console.error(error);
-        throw new Error('Couldn\'t decrypt callback data');
-      }
+      const decryptedMessage = AES.decrypt(callbackValue, callbackActions.encryptionKey);
+      const decryptedData: QueryPayloads = JSON.parse(decryptedMessage.toString(Utf8));
+      console.debug('[callback.watcher]', decryptedMessage, decryptedData);
+      // Parse the data and perform actions
+      callbackActions.saveCallbackData(decryptedData);
     };
 
     return {

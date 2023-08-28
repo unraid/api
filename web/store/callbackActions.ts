@@ -4,7 +4,7 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
-import { useCallbackStoreGeneric, type ExternalPayload, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
+import { useCallbackStoreGeneric, type CallbackActionsStore, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const accountStore = useAccountStore();
@@ -14,20 +14,34 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
 
-  const callbackData = ref<ExternalPayload>();
+  const callbackData = ref<QueryPayloads>();
   const callbackError = ref();
 
-  const redirectToCallbackType = (decryptedData: QueryPayloads) => {
-    console.debug('[redirectToCallbackType]', { decryptedData });
+  const saveCallbackData = (
+    decryptedData?: QueryPayloads,
+  ) => {
+    console.debug('[saveCallbackData]', { decryptedData });
 
-    if (!decryptedData.type || decryptedData.type === 'fromUpc' || !decryptedData.actions?.length) {
+    if (decryptedData) {
+      callbackData.value = decryptedData;
+    }
+
+    if (!callbackData.value) {
+      return console.error('Saved callback data not found');
+    }
+
+    redirectToCallbackType?.();
+  };
+
+  const redirectToCallbackType = () => {
+    console.debug('[redirectToCallbackType]');
+
+    if (!callbackData.value || !callbackData.value.type || callbackData.value.type !== 'forUpc' || !callbackData.value.actions?.length) {
       callbackError.value = 'Callback redirect type not present or incorrect';
       callbackStatus.value = 'ready'; // default status
       return console.error('[redirectToCallbackType]', callbackError.value);
     }
-
     // Display the feedback modal
-    callbackData.value = decryptedData;
     callbackStatus.value = 'loading';
 
     // Parse the data and perform actions
@@ -71,11 +85,17 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   });
 
   return {
-    redirectToCallbackType,
+    // state
     callbackData,
     callbackStatus,
+    // actions
+    redirectToCallbackType,
+    saveCallbackData,
     setCallbackStatus,
+    // helpers
+    sendType: 'fromUpc',
+    encryptionKey: import.meta.env.VITE_CALLBACK_KEY,
   };
 });
 
-export const useCallbackStore = useCallbackStoreGeneric(useCallbackActionsStore);
+export const useCallbackStore = useCallbackStoreGeneric(useCallbackActionsStore as unknown as () => CallbackActionsStore);
