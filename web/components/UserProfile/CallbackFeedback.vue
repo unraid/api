@@ -8,7 +8,7 @@ import { PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
-import { usePromoStore } from '~/store/promo';
+// import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 
 export interface Props {
@@ -23,7 +23,7 @@ const props = withDefaults(defineProps<Props>(), {
 const accountStore = useAccountStore();
 const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
-const promoStore = usePromoStore();
+// const promoStore = usePromoStore();
 const serverStore = useServerStore();
 
 const {
@@ -196,7 +196,9 @@ const accountActionStatusCopy = computed((): { text: string; } => {
               :for-expire="true"
               :t="t"
             />
-            <p v-else>{{ t('Calculating trial expiration…') }}</p>
+            <p v-else>
+              {{ t('Calculating trial expiration…') }}
+            </p>
           </div>
 
           <template v-if="keyInstallStatus === 'failed'">
