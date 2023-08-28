@@ -8,8 +8,7 @@
  */
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import { createPinia, defineStore, setActivePinia, storeToRefs, type StoreDefinition, type StoreGeneric } from 'pinia';
-import type { ComputedRef, Ref } from 'vue';
+import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -54,6 +53,14 @@ export interface ServerData {
   wanFQDN?: string;
 }
 
+export interface UserInfo {
+  'custom:ips_id'?: string;
+  email?: string;
+  email_verifed?: 'true' | 'false';
+  preferred_username?: string;
+  sub?: string;
+  username?: string;
+}
 export interface ExternalSignIn {
   type: SignIn;
   apiKey: string;
@@ -105,15 +112,6 @@ export interface UpcPayload {
 
 export type QueryPayloads = ExternalPayload | UpcPayload;
 
-export interface UserInfo {
-  'custom:ips_id'?: string;
-  email?: string;
-  email_verifed?: 'true' | 'false';
-  preferred_username?: string;
-  sub?: string;
-  username?: string;
-}
-
 export interface CallbackActionsStore {
   saveCallbackData: (decryptedData: QueryPayloads) => void;
   encryptionKey: string;
@@ -141,7 +139,6 @@ export const useCallbackStoreGeneric = (
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
       console.debug('[callback.send]', encryptedMessage, destinationUrl);
       window.location.href = destinationUrl.toString();
-      return;
     };
 
     const watcher = () => {

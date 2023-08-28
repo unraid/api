@@ -1,4 +1,4 @@
- <script setup lang="ts">
+<script setup lang="ts">
 import { ExclamationTriangleIcon, CheckCircleIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
