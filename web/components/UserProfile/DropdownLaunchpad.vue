@@ -45,6 +45,7 @@ const showExpireTime = computed(() => {
           :href="action?.href"
           :icon="action.icon"
           :text="t(action.text)"
+          :title="action?.title ? t(action?.title) : null"
           @click="action.click()"
         />
       </li>
