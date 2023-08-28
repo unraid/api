@@ -190,12 +190,14 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           :error="keyInstallStatus === 'failed'"
           :text="keyInstallStatusCopy.text"
         >
-          <UpcUptimeExpire
-            v-if="keyType === 'Trial'"
-            :for-expire="true"
-            class="opacity-75 italic mt-4px"
-            :t="t"
-          />
+          <div v-if="keyType === 'Trial'" class="opacity-75 italic mt-4px">
+            <UpcUptimeExpire
+              v-if="refreshServerStateStatus === 'done'"
+              :for-expire="true"
+              :t="t"
+            />
+            <p v-else>{{ t('Calculating trial expiration…') }}</p>
+          </div>
 
           <template v-if="keyInstallStatus === 'failed'">
             <div v-if="isSupported" class="flex justify-center">
