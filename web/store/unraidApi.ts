@@ -123,7 +123,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
     const retryLink = new RetryLink({
       attempts: {
-        max: Infinity,
+        max: 20,
         retryIf: (error, _operation) => {
           console.debug('[retryLink.retryIf]', { error, _operation, prioritizeCorsError });
           return !!error && !prioritizeCorsError; // don't retry when ERROR_CORS_403
@@ -131,7 +131,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       },
       delay: {
         initial: prioritizeCorsError ? 3000 : 300,
-        max: 10,
+        max: 10000,
         jitter: true,
       },
     });
