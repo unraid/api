@@ -242,7 +242,7 @@ const accountActionStatusCopy = computed((): { text: string; } => {
     </template>
 
     <template #footer>
-      <div v-if="callbackStatus === 'success'" class="flex flex-row-reverse justify-center gap-16px">
+      <div v-if="callbackStatus === 'success'" class="flex flex-row justify-center gap-16px">
         <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
           <BrandButton
             v-if="isSettingsPage"
@@ -268,6 +268,7 @@ const accountActionStatusCopy = computed((): { text: string; } => {
 
         <BrandButton
           v-if="showSignInCta"
+          btn-style="underline"
           :disabled="authAction?.disabled"
           :external="authAction?.external"
           :icon="authAction?.icon"
@@ -276,7 +277,7 @@ const accountActionStatusCopy = computed((): { text: string; } => {
         />
 
         <BrandButton
-          btn-style="underline"
+          :btn-style="!showSignInCta ? 'underline': undefined"
           :text="closeText"
           @click="close"
         />
