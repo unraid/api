@@ -91,7 +91,9 @@ const subheading = computed(() => {
 
 const closeText = computed(() => props.t('Close')); // !connectPluginInstalled.value ? props.t('No thanks') :
 const close = () => {
-  if (callbackStatus.value === 'loading') { return console.debug('[close] not allowed'); }
+  if (callbackStatus.value === 'loading') {
+    return;
+  }
   return refreshServerStateStatus.value === 'done'
     ? callbackActionsStore.setCallbackStatus('ready')
     : window.location.reload();
@@ -243,6 +245,22 @@ const accountActionStatusCopy = computed((): { text: string; } => {
 
     <template #footer>
       <div v-if="callbackStatus === 'success'" class="flex flex-row justify-center gap-16px">
+        <BrandButton
+          v-if="showSignInCta"
+          btn-style="underline"
+          :disabled="authAction?.disabled"
+          :external="authAction?.external"
+          :icon="authAction?.icon"
+          :text="t(authAction?.text)"
+          @click="authAction?.click"
+        />
+
+        <BrandButton
+          :btn-style="!showSignInCta ? 'underline': undefined"
+          :text="closeText"
+          @click="close"
+        />
+
         <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
           <BrandButton
             v-if="isSettingsPage"
@@ -265,22 +283,6 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           :text="t('Learn More')"
           @click="promoClick"
         /> -->
-
-        <BrandButton
-          v-if="showSignInCta"
-          btn-style="underline"
-          :disabled="authAction?.disabled"
-          :external="authAction?.external"
-          :icon="authAction?.icon"
-          :text="t(authAction?.text)"
-          @click="authAction?.click"
-        />
-
-        <BrandButton
-          :btn-style="!showSignInCta ? 'underline': undefined"
-          :text="closeText"
-          @click="close"
-        />
       </div>
     </template>
   </Modal>
