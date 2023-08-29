@@ -20,8 +20,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const saveCallbackData = (
     decryptedData?: QueryPayloads,
   ) => {
-    console.debug('[saveCallbackData]', { decryptedData });
-
     if (decryptedData) {
       callbackData.value = decryptedData;
     }
@@ -34,8 +32,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   };
 
   const redirectToCallbackType = () => {
-    console.debug('[redirectToCallbackType]');
-
     if (!callbackData.value || !callbackData.value.type || callbackData.value.type !== 'forUpc' || !callbackData.value.actions?.length) {
       callbackError.value = 'Callback redirect type not present or incorrect';
       callbackStatus.value = 'ready'; // default status
@@ -46,7 +42,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     // Parse the data and perform actions
     callbackData.value.actions.forEach(async (action, index, array) => {
-      console.debug('[action]', action);
       if (action?.keyUrl) {
         await installKeyStore.install(action as ExternalKeyActions);
       }
@@ -73,7 +68,6 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const setCallbackStatus = (status: CallbackStatus) => { callbackStatus.value = status; };
 
   watch(callbackStatus, (newVal, oldVal) => {
-    console.debug('[callbackStatus]', newVal);
     if (newVal === 'loading') {
       addPreventClose();
     }

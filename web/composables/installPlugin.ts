@@ -1,9 +1,7 @@
 const useInstallPlugin = () => {
   const install = (payload = { staging: false, update: false }) => {
-    console.debug('[useInstallPlugin.install]', { payload });
     try {
       const file = `https://sfo2.digitaloceanspaces.com/unraid-dl/unraid-api/dynamix.unraid.net${payload?.staging ? '.staging.plg' : '.plg'}`;
-      console.debug('[useInstallPlugin.install]', file);
 
       if (!payload.update) {
         // after initial install, the dropdown store looks for this to automatically open the launchpad dropdown
@@ -13,7 +11,6 @@ const useInstallPlugin = () => {
 
       // @ts-ignore – `openPlugin` will be included in 6.10.4+ DefaultPageLayout
       if (typeof openPlugin === 'function') {
-        console.debug('[useInstallPlugin.install] using openPlugin', file);
 
         // @ts-ignore
         openPlugin(
@@ -23,7 +20,6 @@ const useInstallPlugin = () => {
           'refresh',
         );
       } else {
-        console.debug('[useInstallPlugin.install] using openBox', file);
         // `openBox()` is defined in the webgui's DefaultPageLayout.php and used when openPlugin is not available
 
         // @ts-ignore

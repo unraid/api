@@ -26,14 +26,12 @@ export const useTrialStore = defineStore('trial', () => {
   const trialModalVisible = computed(() => trialStatus.value === 'failed' || trialStatus.value === 'trialExtend' || trialStatus.value === 'trialStart');
 
   const requestTrial = async (type?: TrialExtend | TrialStart) => {
-    console.debug('[requestTrial]');
     try {
       const payload = {
         guid: serverStore.guid,
         timestamp: Math.floor(Date.now() / 1000),
       };
       const response: StartTrialResponse = await startTrial(payload).json();
-      console.debug('[requestTrial]', response);
       if (!response.license) {
         trialStatus.value = 'failed';
         return console.error('[requestTrial]', 'No license returned', response);
@@ -49,7 +47,6 @@ export const useTrialStore = defineStore('trial', () => {
         sender: window.location.href,
         type: 'forUpc',
       };
-      console.debug('[requestTrial]', trialStartData);
       trialStatus.value = 'success';
       return callbackActionsStore.redirectToCallbackType(trialStartData);
     } catch (error) {
@@ -62,8 +59,7 @@ export const useTrialStore = defineStore('trial', () => {
     trialStatus.value = status;
   };
 
-  watch(trialStatus, (newVal, oldVal) => {
-    console.debug('[trialStatus]', newVal, oldVal);
+  watch(trialStatus, (newVal) => {
     // opening
     if (newVal === 'trialExtend' || newVal === 'trialStart') {
       addPreventClose();

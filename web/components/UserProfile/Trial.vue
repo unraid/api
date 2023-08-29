@@ -46,7 +46,9 @@ const trialStatusCopy = computed((): TrialStatusCopy | null => {
 });
 
 const close = () => {
-  if (trialStatus.value === 'trialStart') { return console.debug('[close] not allowed'); }
+  if (trialStatus.value === 'trialStart') {
+    return;
+  }
   trialStore.setTrialStatus('ready');
 };
 </script>

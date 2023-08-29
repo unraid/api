@@ -42,7 +42,6 @@ export const useErrorsStore = defineStore('errors', () => {
   };
 
   const setError = (error: Error) => {
-    console.debug('[setError]', error);
     errors.value.push(error);
   };
 
@@ -52,27 +51,22 @@ export const useErrorsStore = defineStore('errors', () => {
   }
 
   const openTroubleshoot = async (payload: TroubleshootPayload) => {
-    console.debug('[openTroubleshoot]', payload);
     try {
       // @ts-ignore – `FeedbackButton` will be included in 6.10.4+ DefaultPageLayout
       await FeedbackButton();
       // once the modal is visible we need to select the radio to correctly show the bug report form
       let $modal = document.querySelector('.sweet-alert.visible');
       while (!$modal) {
-        console.debug('[openTroubleshoot] getting $modal…');
         await new Promise(resolve => setTimeout(resolve, 100));
         $modal = document.querySelector('.sweet-alert.visible');
       }
-      console.debug('[openTroubleshoot] $modal', $modal);
       // autofill errors into the bug report form
       if (errors.value.length) {
         let $textarea: HTMLInputElement | null = $modal.querySelector('#troubleshootDetails');
         while (!$textarea) {
-          console.debug('[openTroubleshoot] getting $textarea…');
           await new Promise(resolve => setTimeout(resolve, 100));
           $textarea = $modal.querySelector('#troubleshootDetails');
         }
-        console.debug('[openTroubleshoot] $textarea', $textarea);
         const errorMessages = errors.value.map((error, index) => {
           const index1 = index + 1;
           let message = `• Error ${index1}: ${error.heading}\n`;
@@ -91,11 +85,9 @@ export const useErrorsStore = defineStore('errors', () => {
       // autofill emails
       let $emailInput: HTMLInputElement | null = $modal.querySelector('#troubleshootEmail');
       while (!$emailInput) {
-        console.debug('[openTroubleshoot] getting $emailInput…');
         await new Promise(resolve => setTimeout(resolve, 100));
         $emailInput = $modal.querySelector('#troubleshootEmail');
       }
-      console.debug('[openTroubleshoot] $emailInput', $emailInput);
       if (payload.email) {
         $emailInput.value = payload.email;
       } else {

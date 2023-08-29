@@ -15,7 +15,6 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const serverStore = useServerStore();
 
   const redeem = () => {
-    console.debug('[serverStore.redeem]');
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [{
@@ -28,7 +27,6 @@ export const usePurchaseStore = defineStore('purchase', () => {
     );
   };
   const purchase = () => {
-    console.debug('[serverStore.purchase]');
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [{
@@ -41,7 +39,6 @@ export const usePurchaseStore = defineStore('purchase', () => {
     );
   };
   const upgrade = () => {
-    console.debug('[serverStore.upgrade]');
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
       [{

@@ -29,7 +29,6 @@ export const useAccountStore = defineStore('account', () => {
 
   // Actions
   const recover = () => {
-    console.debug('[accountStore.recover]');
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -42,7 +41,6 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
   const replace = () => {
-    console.debug('[accountStore.replace]');
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -55,7 +53,6 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
   const signIn = () => {
-    console.debug('[accountStore.signIn]');
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -68,7 +65,6 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
   const signOut = () => {
-    console.debug('[accountStore.signOut]');
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -81,7 +77,6 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
   const trialExtend = () => {
-    console.debug('[accountStore.trialExtend]');
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -94,7 +89,6 @@ export const useAccountStore = defineStore('account', () => {
     );
   };
   const trialStart = () => {
-    console.debug('[accountStore.trialStart]');
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -111,7 +105,6 @@ export const useAccountStore = defineStore('account', () => {
    * @note unraid-api requires apikey & token realted keys to be lowercase
    */
   const updatePluginConfig = async (action: ExternalSignIn | ExternalSignOut) => {
-    console.debug('[accountStore.updatePluginConfig]', action);
     // save any existing username before updating
     if (serverStore.username) { username.value = serverStore.username; }
 
@@ -119,7 +112,6 @@ export const useAccountStore = defineStore('account', () => {
     accountActionStatus.value = 'updating';
 
     if (!serverStore.registered && !accountAction.value.user) {
-      console.debug('[accountStore.updatePluginConfig] Not registered skipping sign out');
       accountActionHide.value = true;
       accountActionStatus.value = 'success';
       return;
@@ -154,11 +146,9 @@ export const useAccountStore = defineStore('account', () => {
         })
         .post()
         .res((res) => {
-          console.debug('[accountStore.updatePluginConfig] WebguiUpdate res', res);
           accountActionStatus.value = 'success';
         })
         .catch((err) => {
-          console.debug('[accountStore.updatePluginConfig] WebguiUpdate err', err);
           accountActionStatus.value = 'failed';
           errorsStore.setError({
             heading: 'Failed to update Connect account configuration',
@@ -170,7 +160,6 @@ export const useAccountStore = defineStore('account', () => {
         });
       return response;
     } catch (err) {
-      console.debug('[accountStore.updatePluginConfig] WebguiUpdate catch err', err);
       accountActionStatus.value = 'failed';
       errorsStore.setError({
         heading: 'Failed to update Connect account configuration',

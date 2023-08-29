@@ -44,7 +44,6 @@ export interface WebguiUnraidApiCommandPayload {
   param1?: '-v'|'-vv';
 }
 export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayload) => {
-  console.debug('[WebguiUnraidApiCommand]', payload);
   if (!payload) { return console.error('[WebguiUnraidApiCommand] payload is required'); }
 
   try {
@@ -53,13 +52,12 @@ export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayl
       .formUrl(payload)
       .post()
       .json((json) => {
-        console.debug('[WebguiUnraidApiCommand]', json);
         return json;
       })
       .catch((error) => {
-        console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${command}`, error);
+        console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${payload}`, error);
       });
   } catch (error) {
-    console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${command}`, error);
+    console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api ${payload}`, error);
   }
 };

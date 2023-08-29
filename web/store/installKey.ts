@@ -29,7 +29,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
   });
 
   const install = async (action: ExternalKeyActions) => {
-    console.debug('[install]');
     keyInstallStatus.value = 'installing';
     keyAction.value = action;
 
@@ -67,10 +66,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
       });
     }
   };
-
-  watch(keyInstallStatus, (newV, oldV) => {
-    console.debug('[keyInstallStatus]', newV, oldV);
-  });
 
   return {
     // State
