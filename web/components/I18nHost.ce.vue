@@ -19,12 +19,10 @@ let nonDefaultLocale = false;
  */
 const windowLocaleData = (window as any).LOCALE_DATA || null;
 if (windowLocaleData) {
-  console.debug('[I18nHost] parsing messages');
   try {
     parsedMessages = JSON.parse(decodeURIComponent(windowLocaleData));
     parsedLocale = Object.keys(parsedMessages)[0];
     nonDefaultLocale = parsedLocale !== defaultLocale;
-    console.debug('[I18nHost] messages parsed. Now setting up vue-i18n', nonDefaultLocale, parsedLocale, parsedMessages);
   } catch (error) {
     console.error('[I18nHost] error parsing messages', error);
   }

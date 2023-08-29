@@ -33,7 +33,6 @@ onBeforeMount(() => {
 watchEffect(async () => {
   // if we don't have a client WAN IP AND we have the server WAN IP then we fetch
   if (!wanIp.value && props.phpWanIp) {
-    console.debug('[watch] wanIp');
     loading.value = true;
 
     const response = await request.url('https://wanip4.unraid.net/')
@@ -41,7 +40,6 @@ watchEffect(async () => {
       .text();
 
     if (response) {
-      console.debug('[watch] wanIp response', response);
       loading.value = false;
       wanIp.value = response as string; // response returns text nothing to traverse
       // save in sessionStorage so we only make this request once per webGUI session

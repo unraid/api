@@ -21,7 +21,6 @@ export const useDropdownStore = defineStore('dropdown', () => {
    */
   const serverStateEnokeyfile = computed(() => serverStore.state === 'ENOKEYFILE');
   watch(serverStateEnokeyfile, (newVal, oldVal) => {
-    console.debug('[watch.serverStateEnokeyfile]', newVal, oldVal);
     const autoOpenSessionStorage = `unraid_${serverStore.guid.slice(-12) ?? 'NO_GUID'}_ENOKEYFILE`;
     if (newVal && !sessionStorage.getItem(autoOpenSessionStorage)) {
       sessionStorage.setItem(autoOpenSessionStorage, 'true');

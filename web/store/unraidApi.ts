@@ -29,14 +29,12 @@ const httpEndpoint = GRAPHQL;
 const wsEndpoint = new URL(GRAPHQL.toString().replace('http', 'ws'));
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
-  console.debug('[useUnraidApiStore]');
   const accountStore = useAccountStore();
   // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   const unraidApiClient = ref<ApolloClient<any>>();
   watch(unraidApiClient, (newVal, oldVal) => {
-    console.debug('[watch:unraidApiStore.unraidApiClient]', { newVal, oldVal });
     if (newVal) {
       const apiResponse = serverStore.fetchServerFromApi();
       if (apiResponse) {
@@ -48,9 +46,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
   // const unraidApiErrors = ref<any[]>([]);
   const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
-  watch(unraidApiStatus, (newVal, oldVal) => {
-    console.debug('[watch:unraidApiStore.unraidApiStatus]', { newVal, oldVal });
-  });
 
   const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
     const { connectPluginInstalled, stateDataError } = serverStore;
@@ -69,9 +64,9 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
    * Automatically called when an apiKey is set in the serverStore
    */
   const createApolloClient = () => {
-    console.debug('[useUnraidApiStore.createApolloClient]', serverStore.apiKey);
+    // sign out imminent, skipping createApolloClient
     if (accountStore.accountActionType === 'signOut') {
-      return console.debug('[useUnraidApiStore.createApolloClient] sign out imminent, skipping createApolloClient');
+      return;
     }
 
     unraidApiStatus.value = 'connecting';
@@ -97,7 +92,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
      */
     const errorLink = onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors) {
-        console.debug('[GraphQL error]', graphQLErrors);
         graphQLErrors.map((error) => {
           console.error('[GraphQL error]', error, error.error.message);
           if (error.error.message.includes('offline')) {
@@ -108,7 +102,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
           }
           return error.message;
         });
-        console.debug('[GraphQL error]', graphQLErrors);
       }
 
       if (networkError && !prioritizeCorsError) {
@@ -125,7 +118,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       attempts: {
         max: 20,
         retryIf: (error, _operation) => {
-          console.debug('[retryLink.retryIf]', { error, _operation, prioritizeCorsError });
           return !!error && !prioritizeCorsError; // don't retry when ERROR_CORS_403
         },
       },
@@ -164,14 +156,14 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     });
 
     provideApolloClient(unraidApiClient.value);
-    console.debug('[useUnraidApiStore.createApolloClient] 🏁 CREATED');
   };
   /**
    * Automatically called when an apiKey is unset in the serverStore
    */
   const closeUnraidApiClient = async () => {
-    console.debug('[useUnraidApiStore.closeUnraidApiClient] STARTED');
-    if (!unraidApiClient.value) { return console.debug('[useUnraidApiStore.closeUnraidApiClient] unraidApiClient not set'); }
+    if (!unraidApiClient.value) {
+      return;
+    }
     if (unraidApiClient.value) {
       await unraidApiClient.value.clearStore();
       unraidApiClient.value.stop();
@@ -179,7 +171,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     }
     unraidApiClient.value = undefined;
     unraidApiStatus.value = 'offline';
-    console.debug('[useUnraidApiStore.closeUnraidApiClient] DONE');
   };
 
   const restartUnraidApiClient = async () => {
@@ -188,7 +179,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       csrf_token: serverStore.csrf,
       command: 'start',
     });
-    console.debug('[restartUnraidApiClient]', response);
     return setTimeout(() => {
       if (unraidApiClient.value) {
         createApolloClient();

@@ -30,7 +30,6 @@ export const useThemeStore = defineStore('theme', () => {
   });
   // Actions
   const setTheme = (data: Theme) => {
-    console.debug('[setTheme]');
     theme.value = data;
   };
   const setCssVars = () => {

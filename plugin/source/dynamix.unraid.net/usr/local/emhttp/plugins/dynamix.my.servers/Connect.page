@@ -156,7 +156,6 @@ function registerServer(button) {
             "api_extraOrigins": validateExtraOrigins(),
         };
 
-        // console.debug(JSON.stringify(postobj,null,2))
         $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
         $.post('/webGui/include/Dispatcher.php', postobj, function(data2) {
 <?if(!$isRegistered):?>

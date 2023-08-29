@@ -544,7 +544,6 @@ export const useServerStore = defineStore('server', () => {
 
     // Keeping separate from validApiKeyLength because we may want to add more checks. Cloud also help with debugging user error submissions.
     if (apiKey.value.length !== 64) {
-      console.debug('[invalidApiKey] invalid length');
       return {
         heading: 'Invalid API Key',
         level: 'error',
@@ -554,7 +553,6 @@ export const useServerStore = defineStore('server', () => {
       };
     }
     if (!apiKey.value.startsWith('unupc_')) {
-      console.debug('[invalidApiKey] invalid for upc');
       return {
         heading: 'Invalid API Key Format',
         level: 'error',
@@ -566,7 +564,6 @@ export const useServerStore = defineStore('server', () => {
     return undefined;
   });
   watch(invalidApiKey, (newVal, oldVal) => {
-    console.debug('[watch:invalidApiKey]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
@@ -584,7 +581,6 @@ export const useServerStore = defineStore('server', () => {
     return undefined;
   });
   watch(tooManyDevices, (newVal, oldVal) => {
-    console.debug('[watch:tooManyDevices]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
@@ -610,7 +606,6 @@ export const useServerStore = defineStore('server', () => {
     return undefined;
   });
   watch(pluginInstallFailed, (newVal, oldVal) => {
-    console.debug('[watch:pluginInstallFailed]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
@@ -643,7 +638,6 @@ export const useServerStore = defineStore('server', () => {
         }
       : undefined));
   watch(deprecatedUnraidSSL, (newVal, oldVal) => {
-    console.debug('[watch:deprecatedUnraidSSL]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
@@ -672,7 +666,6 @@ export const useServerStore = defineStore('server', () => {
     };
   });
   watch(cloudError, (newVal, oldVal) => {
-    console.debug('[watch:cloudError]', newVal, oldVal);
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
   });
@@ -692,20 +685,16 @@ export const useServerStore = defineStore('server', () => {
    */
   const registeredWithValidApiKey = computed(() => registered.value && !invalidApiKey.value);
   watch(registeredWithValidApiKey, (newVal, oldVal) => {
-    console.debug('[watch:registeredWithValidApiKey]', newVal, oldVal);
     if (oldVal) {
-      console.debug('[watch:registeredWithValidApiKey] no apiKey, stop unraid-api client');
       return unraidApiStore.closeUnraidApiClient();
     }
     if (newVal) {
       // if this is just after sign in, let's delay the start by a few seconds to give unraid-api time to update
       if (accountStore.accountActionType === 'signIn') {
-        console.debug('[watch:registeredWithValidApiKey] delay start unraid-api client');
         return setTimeout(() => {
           unraidApiStore.createApolloClient();
         }, 2000);
       } else {
-        console.debug('[watch:registeredWithValidApiKey] new apiKey, start unraid-api client');
         return unraidApiStore.createApolloClient();
       }
     }
@@ -714,7 +703,6 @@ export const useServerStore = defineStore('server', () => {
    * Actions
    */
   const setServer = (data: Server) => {
-    console.debug('[setServer] data', data);
     if (typeof data?.apiKey !== 'undefined') { apiKey.value = data.apiKey; }
     if (typeof data?.apiVersion !== 'undefined') { apiVersion.value = data.apiVersion; }
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
@@ -745,7 +733,6 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.uptime !== 'undefined') { uptime.value = data.uptime; }
     if (typeof data?.username !== 'undefined') { username.value = data.username; }
     if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
-    console.debug('[setServer] server', server.value);
   };
 
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
@@ -769,7 +756,6 @@ export const useServerStore = defineStore('server', () => {
       expireTime: (data.registration && data.registration.expiration) ? data.registration.expiration : 0,
       ...(data.cloud && { cloud: data.cloud }),
     };
-    console.debug('[mutateServerStateFromApi] mutatedData', mutatedData);
     return mutatedData;
   };
 
@@ -781,7 +767,6 @@ export const useServerStore = defineStore('server', () => {
     const serverState = computed(() => resultServerState.value ?? null);
     apiServerStateRefresh.value = refetchServerState;
     watch(serverState, (value) => {
-      console.debug('[watch:serverState]', value);
       if (value) {
         const mutatedServerStateResult = mutateServerStateFromApi(value);
         setServer(mutatedServerStateResult);
@@ -791,12 +776,10 @@ export const useServerStore = defineStore('server', () => {
   };
 
   const phpServerStateRefresh = async () => {
-    console.debug('[phpServerStateRefresh] start');
     try {
       const stateResponse: Server = await WebguiState
         .get()
         .json();
-      console.debug('[phpServerStateRefresh] stateResponse', stateResponse);
       setServer(stateResponse);
       return stateResponse;
     } catch (error) {
@@ -811,7 +794,6 @@ export const useServerStore = defineStore('server', () => {
   const refreshServerState = async () => {
     // If we've reached the refresh limit, stop refreshing
     if (refreshCount >= refreshLimit) {
-      console.debug('[refreshServerState] refresh limit reached, stop refreshing');
       refreshServerStateStatus.value = 'timeout';
       return false;
     }
@@ -822,43 +804,27 @@ export const useServerStore = defineStore('server', () => {
     const oldRegistered = registered.value;
     const oldState = state.value;
     const fromApi = !!apiServerStateRefresh.value;
-    console.debug('[refreshServerState] start', {
-      fromApi,
-      refreshCount,
-    });
     // Fetch the server state from the API or PHP
     const response = fromApi
       ? await apiServerStateRefresh.value()
       : await phpServerStateRefresh();
     if (!response) {
-      console.debug('[refreshServerState] no response, fetch again in 250ms…');
       return setTimeout(() => {
         refreshServerState();
       }, refreshTimeout);
     }
-    console.debug('[refreshServerState] response', response);
     // Extract the new values from the response
     const newRegistered = fromApi && response?.data ? !!response.data.owner.username : response.registered;
     const newState = fromApi && response?.data ? response.data.vars.regState : response.state;
     // Compare the new values to the old values
     const registrationStatusChanged = oldRegistered !== newRegistered;
     const stateChanged = oldState !== newState;
-    console.debug('[refreshServerState] newState', {
-      oldRegistered,
-      newRegistered,
-      oldState,
-      newState,
-      registrationStatusChanged,
-      stateChanged,
-    });
     // If the registration status or state changed, stop refreshing
     if (registrationStatusChanged || stateChanged) {
-      console.debug('[refreshServerState] change detected, stop refreshing', { registrationStatusChanged, stateChanged });
       refreshServerStateStatus.value = 'done';
       return true;
     }
     // If we haven't reached the refresh limit, try again
-    console.debug('[refreshServerState] no change, fetch again in 250ms…', { registrationStatusChanged, stateChanged });
     setTimeout(() => {
       return refreshServerState();
     }, refreshTimeout);
