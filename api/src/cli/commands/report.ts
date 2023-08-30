@@ -345,7 +345,7 @@ export const report = async (...argv: string[]) => {
                     ? 'authenticated'
                     : 'signed out',
                 ...(config?.remote?.username
-                    ? { myServersUsername: config?.remote?.username }
+                    ? { myServersUsername: config?.remote?.username?.includes('@') ? 'REDACTED' : config?.remote.username }
                     : {}),
             },
             minigraph: {
