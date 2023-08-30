@@ -15,9 +15,59 @@ export const isDefinedNonNullAny = (v: any): v is definedNonNullAny => v !== und
 
 export const definedNonNullAnySchema = z.any().refine((v) => isDefinedNonNullAny(v));
 
+export const ArrayDiskFsColorSchema = z.nativeEnum(ArrayDiskFsColor);
+
+export const ArrayDiskStatusSchema = z.nativeEnum(ArrayDiskStatus);
+
+export const ArrayDiskTypeSchema = z.nativeEnum(ArrayDiskType);
+
+export const ArrayPendingStateSchema = z.nativeEnum(ArrayPendingState);
+
+export const ArrayStateSchema = z.nativeEnum(ArrayState);
+
+export const ConfigErrorStateSchema = z.nativeEnum(ConfigErrorState);
+
+export const ContainerPortTypeSchema = z.nativeEnum(ContainerPortType);
+
+export const ContainerStateSchema = z.nativeEnum(ContainerState);
+
+export const DiskFsTypeSchema = z.nativeEnum(DiskFsType);
+
+export const DiskInterfaceTypeSchema = z.nativeEnum(DiskInterfaceType);
+
+export const DiskSmartStatusSchema = z.nativeEnum(DiskSmartStatus);
+
+export const ImportanceSchema = z.nativeEnum(Importance);
+
+export const MemoryFormFactorSchema = z.nativeEnum(MemoryFormFactor);
+
+export const MemoryTypeSchema = z.nativeEnum(MemoryType);
+
+export const MinigraphStatusSchema = z.nativeEnum(MinigraphStatus);
+
+export const NotificationTypeSchema = z.nativeEnum(NotificationType);
+
+export const RegistrationStateSchema = z.nativeEnum(RegistrationState);
+
+export const ServerStatusSchema = z.nativeEnum(ServerStatus);
+
+export const TemperatureSchema = z.nativeEnum(Temperature);
+
+export const ThemeSchema = z.nativeEnum(Theme);
+
+export const VmStateSchema = z.nativeEnum(VmState);
+
+export const WAN_ACCESS_TYPESchema = z.nativeEnum(WAN_ACCESS_TYPE);
+
+export const WAN_FORWARD_TYPESchema = z.nativeEnum(WAN_FORWARD_TYPE);
+
+export const mdStateSchema = z.nativeEnum(mdState);
+
+export const registrationTypeSchema = z.nativeEnum(registrationType);
+
 export function AllowedOriginInputSchema(): z.ZodObject<Properties<AllowedOriginInput>> {
-  return z.object<Properties<AllowedOriginInput>>({
-    origins: z.array(z.string())
+  return z.object({
+    origins: z.array(definedNonNullAnySchema)
   })
 }
 
@@ -149,23 +199,21 @@ export function ConfigSchema(): z.ZodObject<Properties<Config>> {
   })
 }
 
-export const ConfigErrorStateSchema = z.nativeEnum(ConfigErrorState);
-
 export function ConnectSignInInputSchema(): z.ZodObject<Properties<ConnectSignInInput>> {
-  return z.object<Properties<ConnectSignInInput>>({
-    accessToken: z.string().nullish(),
-    apiKey: z.string(),
-    idToken: z.string().nullish(),
-    refreshToken: z.string().nullish(),
+  return z.object({
+    accessToken: definedNonNullAnySchema.nullish(),
+    apiKey: definedNonNullAnySchema,
+    idToken: definedNonNullAnySchema.nullish(),
+    refreshToken: definedNonNullAnySchema.nullish(),
     userInfo: z.lazy(() => ConnectUserInfoInputSchema().nullish())
   })
 }
 
 export function ConnectUserInfoInputSchema(): z.ZodObject<Properties<ConnectUserInfoInput>> {
-  return z.object<Properties<ConnectUserInfoInput>>({
-    avatar: z.string().nullish(),
-    email: z.string(),
-    preferred_username: z.string()
+  return z.object({
+    avatar: definedNonNullAnySchema.nullish(),
+    email: definedNonNullAnySchema,
+    preferred_username: definedNonNullAnySchema
   })
 }
 
@@ -706,10 +754,10 @@ export function ServiceSchema(): z.ZodObject<Properties<Service>> {
 }
 
 export function SetupRemoteAccessInputSchema(): z.ZodObject<Properties<SetupRemoteAccessInput>> {
-  return z.object<Properties<SetupRemoteAccessInput>>({
+  return z.object({
     accessType: WAN_ACCESS_TYPESchema,
     forwardType: WAN_FORWARD_TYPESchema.nullish(),
-    port: z.number().nullish()
+    port: definedNonNullAnySchema.nullish()
   })
 }
 
@@ -1064,10 +1112,6 @@ export function VmsSchema(): z.ZodObject<Properties<Vms>> {
   })
 }
 
-export const WAN_ACCESS_TYPESchema = z.nativeEnum(WAN_ACCESS_TYPE);
-
-export const WAN_FORWARD_TYPESchema = z.nativeEnum(WAN_FORWARD_TYPE);
-
 export function WelcomeSchema(): z.ZodObject<Properties<Welcome>> {
   return z.object({
     __typename: z.literal('Welcome').optional(),
@@ -1123,10 +1167,6 @@ export function deleteUserInputSchema(): z.ZodObject<Properties<deleteUserInput>
     name: definedNonNullAnySchema
   })
 }
-
-export const mdStateSchema = z.nativeEnum(mdState);
-
-export const registrationTypeSchema = z.nativeEnum(registrationType);
 
 export function updateApikeyInputSchema(): z.ZodObject<Properties<updateApikeyInput>> {
   return z.object({
