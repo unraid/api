@@ -11,68 +11,71 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+        with:
+          persist-credentials: true
+      - name: Reconfigure git to use HTTP authenti:cation
+        run: >
+          git config --global url."https://github.com/".insteadOf
+          ssh://git@github.com/
+      - name: Build Docker Compose
+        working-directory: api
+        run: |
+          docker-compose build builder
+      - name: Save Image
+        run: docker save unraid-api:builder > /tmp/builder.tar
+      - name: Upload Image
+        uses: actions/upload-artifact@v3
+        with:
+          name: builder
+          path: /tmp/builder.tar
+
   lint-api:
+    needs: [build]
     continue-on-error: true
     defaults:
       run:
         working-directory: api
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
         with:
-          persist-credentials: false
-      - name: Reconfigure git to use HTTP authenti:cation
-        run: >
-          git config --global url."https://github.com/".insteadOf
-          ssh://git@github.com/
-
-      - name: Install node
-        uses: actions/setup-node@v3
-        with:
-          node-version-file: "api/.nvmrc"
-
-      #      - name: Cache dependencies
-      #        uses: actions/cache@v2
-      #        with:
-      #          path: ~/.npm
-      #          key: npm-${{ hashFiles('package-lock.json') }}
-      #          restore-keys: npm-
-
-      - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev
-
-      - name: Installing node deps
-        run: npm ci
-
-      - name: Lint files
-        run: npm run lint
+          name: builder
+          path: /tmp
+      - name: Load image
+        run: |
+          docker load --input /tmp/builder.tar
+      - name: Lint
+        run: |
+          docker run unraid-api:builder npm run lint
 
   test-api:
+    needs: [build]
     defaults:
       run:
         working-directory: api
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
         with:
-          persist-credentials: false
-
-      - name: Reconfigure git to use HTTP authentication
-        run: >
-          git config --global url."https://github.com/".insteadOf
-          ssh://git@github.com/
-
-      - name: Build Docker Compose
+          name: builder
+          path: /tmp
+      - name: Load image
         run: |
-          docker network create mothership_default
-          docker-compose build builder
-      - name: Run Docker Compose
-        run: docker-compose run builder npm run coverage
+          docker load --input /tmp/builder.tar
+      - name: Test
+        run: |
+          docker run unraid-api:builder npm run coverage
+
 
   build-api:
+    needs: [build]
     defaults:
       run:
         working-directory: api
@@ -87,30 +90,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install node
-        uses: actions/setup-node@v3
+      - name: Download artifact
+        uses: actions/download-artifact@v3
         with:
-          node-version-file: "api/.nvmrc"
+          name: build
+          path: /tmp
+      - name: Load image
+        run: |
+          docker load --input /tmp/builder.tar
 
-      - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev
-
-      #      - name: Cache dependencies
-      #        uses: actions/cache@v2
-      #        with:
-      #          path: ~/.npm
-      #          key: npm-${{ hashFiles('package-lock.json') }}
-      #          restore-keys: npm-
-
-      - name: Installing node deps
-        run: npm install
-
-      - name: Install pkg
-        run: npm i -g pkg
-
-      - name: Build and Pack
-        id: build-pack-binary
-        run: WORKDIR=${{ github.workspace }} && npm run build-pkg
+      - name: Run Docker Compose
+        run: docker run builder npm run build-pkg
 
       - name: Set Hashes
         id: set-hashes

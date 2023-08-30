@@ -27,20 +27,20 @@ x-volumes: &volumes
 
 networks:
   mothership_default:
-    external: true
 services:
 
   dev:
     networks:
       - mothership_default
-    image: unraid-api-node-18
+    image: unraid-api:development
     ports:
       - "3001:3001"
     build: 
       context: .
+      target: development
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:18.17.1
+        NODE_IMAGE: node:18.17.1-alpine
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
@@ -54,15 +54,15 @@ services:
 
 
   builder:
-    image: unraid-api-node-18
+    image: unraid-api:builder
     build: 
       context: .
+      target: builder
       dockerfile: Dockerfile
       args: 
-        NODE_IMAGE: node:18.17.1
+        NODE_IMAGE: node:18.17.1-alpine
         NODE_ENV: development
         NPM_I_CMD: npm i
     <<: *volumes
-    platform: linux/amd64
     profiles:
       - builder

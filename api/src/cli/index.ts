@@ -1,4 +1,3 @@
-import { causeSegfault } from 'segfault-handler';
 import { parse } from 'ts-command-line-args';
 import { cliLogger } from '@app/core/log';
 import { type Flags, mainOptions, options, args } from '@app/cli/options';
@@ -63,14 +62,6 @@ export const main = async (...argv: string[]) => {
 
 	// Run the command
 	await commandMethod(...argv);
-
-	// Only segfault in a specific mode
-	if (process.env.PLEASE_SEGFAULT_FOR_ME) {
-		// Wait 30s and then segfault
-		setTimeout(() => {
-			causeSegfault();
-		}, 30_000);
-	}
 
 	// Allow the process to exit
 	// Don't exit when we start though
