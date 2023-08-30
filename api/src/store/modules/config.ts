@@ -277,12 +277,18 @@ export const config = createSlice({
             state.remote.idtoken = action.payload.idtoken ?? '';
             state.remote.accesstoken = action.payload.accesstoken ?? ''
             state.remote.refreshtoken = action.payload.refreshtoken ?? ''
+            state.remote.email = action.payload.email ?? '',
+            state.remote.username = action.payload.username ?? '',
+            state.remote.avatar = action.payload.avatar ?? ''
         },
         signOut: (state) => {
             state.remote.apikey = '';
             state.remote.idtoken = '';
             state.remote.accesstoken = '';
             state.remote.refreshtoken = '';
+            state.remote.email = '';
+            state.remote.username = '';
+            state.remote.avatar = '';
         }
     },
     extraReducers(builder) {

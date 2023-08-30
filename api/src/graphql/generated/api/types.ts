@@ -246,8 +246,15 @@ export enum ConfigErrorState {
 export type ConnectSignInInput = {
   accessToken?: InputMaybe<Scalars['String']>;
   apiKey: Scalars['String'];
-  idToken: Scalars['String'];
+  idToken?: InputMaybe<Scalars['String']>;
   refreshToken?: InputMaybe<Scalars['String']>;
+  userInfo?: InputMaybe<ConnectUserInfoInput>;
+};
+
+export type ConnectUserInfoInput = {
+  avatar?: InputMaybe<Scalars['String']>;
+  email: Scalars['String'];
+  preferred_username: Scalars['String'];
 };
 
 export type ContainerHostConfig = {
@@ -1700,6 +1707,7 @@ export type ResolversTypes = ResolversObject<{
   Config: ResolverTypeWrapper<Config>;
   ConfigErrorState: ConfigErrorState;
   ConnectSignInInput: ConnectSignInInput;
+  ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ResolverTypeWrapper<ContainerHostConfig>;
   ContainerMount: ResolverTypeWrapper<ContainerMount>;
   ContainerPort: ResolverTypeWrapper<ContainerPort>;
@@ -1813,6 +1821,7 @@ export type ResolversParentTypes = ResolversObject<{
   CloudResponse: CloudResponse;
   Config: Config;
   ConnectSignInInput: ConnectSignInInput;
+  ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ContainerHostConfig;
   ContainerMount: ContainerMount;
   ContainerPort: ContainerPort;

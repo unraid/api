@@ -1,6 +1,13 @@
+input ConnectUserInfoInput {
+    preferred_username: String!
+    email: String!
+    avatar: String
+}
+
 input ConnectSignInInput {
     apiKey: String!
-    idToken: String!
+    idToken: String
+    userInfo: ConnectUserInfoInput
     accessToken: String
     refreshToken: String
 }

@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types';
 
 import { z } from 'zod'
-import { AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Device, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, Permissions, ProfileModel, Registration, RegistrationState, RelayResponse, Scope, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, TwoFactorLocal, TwoFactorRemote, TwoFactorWithToken, TwoFactorWithoutToken, UnassignedDevice, Uptime, Usb, User, Vars, Versions, VmDomain, VmNetwork, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addScopeInput, addScopeToApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
+import { AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Device, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, Permissions, ProfileModel, Registration, RegistrationState, RelayResponse, Scope, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, TwoFactorLocal, TwoFactorRemote, TwoFactorWithToken, TwoFactorWithoutToken, UnassignedDevice, Uptime, Usb, User, Vars, Versions, VmDomain, VmNetwork, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addScopeInput, addScopeToApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -165,8 +165,17 @@ export function ConnectSignInInputSchema(): z.ZodObject<Properties<ConnectSignIn
   return z.object<Properties<ConnectSignInInput>>({
     accessToken: z.string().nullish(),
     apiKey: z.string(),
-    idToken: z.string(),
-    refreshToken: z.string().nullish()
+    idToken: z.string().nullish(),
+    refreshToken: z.string().nullish(),
+    userInfo: z.lazy(() => ConnectUserInfoInputSchema().nullish())
+  })
+}
+
+export function ConnectUserInfoInputSchema(): z.ZodObject<Properties<ConnectUserInfoInput>> {
+  return z.object<Properties<ConnectUserInfoInput>>({
+    avatar: z.string().nullish(),
+    email: z.string(),
+    preferred_username: z.string()
   })
 }
 
