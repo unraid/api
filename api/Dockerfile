@@ -1,18 +1,19 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-ARG NODE_IMAGE=node:18.17.1
+ARG NODE_IMAGE=node:18.17.1-alpine
 FROM $NODE_IMAGE As development
 
-# Install build tools
-RUN apt-get update -y && apt-get install  -y \
+# Install build tools and dependencies
+RUN apk update && apk add \
+    bash \
+    alpine-sdk \
     python3 \
     libvirt-dev \
     jq \
     zstd
 
 RUN mkdir /var/log/unraid-api/
-
 
 ARG NODE_ENV=development
 ARG NPM_I_CMD=npm i
@@ -38,5 +39,13 @@ RUN $NPM_I_CMD
 RUN npm i -g pkg zx
 
 EXPOSE 4000
+
+###########################################################
+# Builder Image
+###########################################################
+
+FROM development AS builder
+
+COPY ./src ./src
 
 CMD ["npm", "run", "build-pkg"]

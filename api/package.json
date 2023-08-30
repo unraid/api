@@ -13,7 +13,6 @@
   "pkg": {
     "assets": [
       "dist/index.cjs",
-      "node_modules/segfault-handler",
       "node_modules/@vmngr/libvirt/build/Release",
       "node_modules/ts-invariant/",
       "src/**/*.graphql"
@@ -112,7 +111,6 @@
     "pidusage": "^3.0.2",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
-    "segfault-handler": "^1.3.0",
     "semver": "^7.4.0",
     "stoppable": "^1.1.0",
     "subscriptions-transport-ws": "^0.11.0",
