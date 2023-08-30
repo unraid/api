@@ -329,6 +329,16 @@ exports[`Returns default permissions 1`] = `
         "attributes": "*",
         "resource": "vars",
       },
+      {
+        "action": "read:own",
+        "attributes": "*",
+        "resource": "connect",
+      },
+      {
+        "action": "update:own",
+        "attributes": "*",
+        "resource": "connect",
+      },
     ],
   },
   "user": {
