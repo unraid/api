@@ -82,7 +82,7 @@
     "command-exists": "^1.2.9",
     "convert": "^4.10.0",
     "cors": "^2.8.5",
-    "cross-fetch": "^3.1.5",
+    "cross-fetch": "^4.0.0",
     "docker-event-emitter": "^0.3.0",
     "dockerode": "^3.3.5",
     "dotenv": "^16.0.3",
