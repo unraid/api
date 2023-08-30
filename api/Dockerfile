@@ -1,12 +1,12 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-ARG NODE_IMAGE=node:18
+ARG NODE_IMAGE=node:18.17.1
 FROM $NODE_IMAGE As development
 
 # Install build tools
 RUN apt-get update -y && apt-get install  -y \
-    python \
+    python3 \
     libvirt-dev \
     jq \
     zstd
