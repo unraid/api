@@ -79,6 +79,8 @@ export const upc: Role = {
 		{ resource: 'registration', action: 'read:any', attributes: '*' },
 		{ resource: 'servers', action: 'read:any', attributes: '*' },
 		{ resource: 'vars', action: 'read:any', attributes: '*' },
+        { resource: 'connect', action: 'read:own', attributes: '*' },
+        { resource: 'connect', action: 'update:own', attributes: '*' }
 	],
 };
 

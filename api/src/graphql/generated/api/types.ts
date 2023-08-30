@@ -17,7 +17,12 @@ export type Scalars = {
   DateTime: string;
   JSON: { [key: string]: any };
   Long: number;
+  Port: number;
   UUID: string;
+};
+
+export type AllowedOriginInput = {
+  origins: Array<Scalars['String']>;
 };
 
 export type ApiKey = {
@@ -237,6 +242,20 @@ export enum ConfigErrorState {
   UNKNOWN_ERROR = 'UNKNOWN_ERROR',
   WITHDRAWN = 'WITHDRAWN'
 }
+
+export type ConnectSignInInput = {
+  accessToken?: InputMaybe<Scalars['String']>;
+  apiKey: Scalars['String'];
+  idToken?: InputMaybe<Scalars['String']>;
+  refreshToken?: InputMaybe<Scalars['String']>;
+  userInfo?: InputMaybe<ConnectUserInfoInput>;
+};
+
+export type ConnectUserInfoInput = {
+  avatar?: InputMaybe<Scalars['String']>;
+  email: Scalars['String'];
+  preferred_username: Scalars['String'];
+};
 
 export type ContainerHostConfig = {
   __typename?: 'ContainerHostConfig';
@@ -564,6 +583,8 @@ export type Mutation = {
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']>;
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']>;
+  connectSignIn: Scalars['Boolean'];
+  connectSignOut: Scalars['Boolean'];
   /** Delete a user */
   deleteUser?: Maybe<User>;
   /** Get an existing API key */
@@ -578,6 +599,8 @@ export type Mutation = {
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']>;
   sendNotification?: Maybe<Notification>;
+  setAdditionalAllowedOrigins: Array<Scalars['String']>;
+  setupRemoteAccess: Scalars['Boolean'];
   shutdown?: Maybe<Scalars['String']>;
   /** Start array */
   startArray?: Maybe<ArrayType>;
@@ -585,7 +608,6 @@ export type Mutation = {
   startParityCheck?: Maybe<Scalars['JSON']>;
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
-  testMutation?: Maybe<Scalars['JSON']>;
   unmountArrayDisk?: Maybe<Disk>;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
@@ -623,6 +645,11 @@ export type MutationclearArrayDiskStatisticsArgs = {
 };
 
 
+export type MutationconnectSignInArgs = {
+  input: ConnectSignInInput;
+};
+
+
 export type MutationdeleteUserArgs = {
   input: deleteUserInput;
 };
@@ -655,14 +682,18 @@ export type MutationsendNotificationArgs = {
 };
 
 
-export type MutationstartParityCheckArgs = {
-  correct?: InputMaybe<Scalars['Boolean']>;
+export type MutationsetAdditionalAllowedOriginsArgs = {
+  input: AllowedOriginInput;
 };
 
 
-export type MutationtestMutationArgs = {
-  id: Scalars['String'];
-  input?: InputMaybe<testMutationInput>;
+export type MutationsetupRemoteAccessArgs = {
+  input: SetupRemoteAccessInput;
+};
+
+
+export type MutationstartParityCheckArgs = {
+  correct?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -886,7 +917,6 @@ export type Query = {
   servers: Array<Server>;
   /** Network Shares */
   shares?: Maybe<Array<Maybe<Share>>>;
-  testQuery?: Maybe<Scalars['JSON']>;
   twoFactor?: Maybe<TwoFactorWithToken>;
   unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
   /** User account */
@@ -934,12 +964,6 @@ export type QuerynotificationsArgs = {
 
 export type QueryserverArgs = {
   name: Scalars['String'];
-};
-
-
-export type QuerytestQueryArgs = {
-  id: Scalars['String'];
-  input?: InputMaybe<testQueryInput>;
 };
 
 
@@ -1051,6 +1075,12 @@ export type Service = {
   version?: Maybe<Scalars['String']>;
 };
 
+export type SetupRemoteAccessInput = {
+  accessType: WAN_ACCESS_TYPE;
+  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  port?: InputMaybe<Scalars['Port']>;
+};
+
 /** Network Share */
 export type Share = {
   __typename?: 'Share';
@@ -1105,7 +1135,6 @@ export type Subscription = {
   service?: Maybe<Array<Service>>;
   share: Share;
   shares?: Maybe<Array<Share>>;
-  testSubscription: Scalars['String'];
   twoFactor?: Maybe<TwoFactorWithoutToken>;
   unassignedDevices?: Maybe<Array<UnassignedDevice>>;
   user: User;
@@ -1503,6 +1532,17 @@ export type Vms = {
   domain?: Maybe<Array<VmDomain>>;
 };
 
+export enum WAN_ACCESS_TYPE {
+  ALWAYS = 'ALWAYS',
+  DISABLED = 'DISABLED',
+  DYNAMIC = 'DYNAMIC'
+}
+
+export enum WAN_FORWARD_TYPE {
+  STATIC = 'STATIC',
+  UPNP = 'UPNP'
+}
+
 export type Welcome = {
   __typename?: 'Welcome';
   message: Scalars['String'];
@@ -1565,15 +1605,6 @@ export enum registrationType {
   /** Trial */
   TRIAL = 'TRIAL'
 }
-
-export type testMutationInput = {
-  state: Scalars['String'];
-};
-
-export type testQueryInput = {
-  optional?: InputMaybe<Scalars['Boolean']>;
-  state: Scalars['String'];
-};
 
 export type updateApikeyInput = {
   description?: InputMaybe<Scalars['String']>;
@@ -1656,6 +1687,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
+  AllowedOriginInput: AllowedOriginInput;
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
   Array: ResolverTypeWrapper<ArrayType>;
@@ -1674,6 +1706,8 @@ export type ResolversTypes = ResolversObject<{
   CloudResponse: ResolverTypeWrapper<CloudResponse>;
   Config: ResolverTypeWrapper<Config>;
   ConfigErrorState: ConfigErrorState;
+  ConnectSignInInput: ConnectSignInInput;
+  ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ResolverTypeWrapper<ContainerHostConfig>;
   ContainerMount: ResolverTypeWrapper<ContainerMount>;
   ContainerPort: ResolverTypeWrapper<ContainerPort>;
@@ -1722,6 +1756,7 @@ export type ResolversTypes = ResolversObject<{
   Partition: ResolverTypeWrapper<Partition>;
   Pci: ResolverTypeWrapper<Pci>;
   Permissions: ResolverTypeWrapper<Permissions>;
+  Port: ResolverTypeWrapper<Scalars['Port']>;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
@@ -1731,6 +1766,7 @@ export type ResolversTypes = ResolversObject<{
   Server: ResolverTypeWrapper<Server>;
   ServerStatus: ServerStatus;
   Service: ResolverTypeWrapper<Service>;
+  SetupRemoteAccessInput: SetupRemoteAccessInput;
   Share: ResolverTypeWrapper<Share>;
   String: ResolverTypeWrapper<Scalars['String']>;
   Subscription: ResolverTypeWrapper<{}>;
@@ -1753,6 +1789,8 @@ export type ResolversTypes = ResolversObject<{
   VmNetwork: ResolverTypeWrapper<VmNetwork>;
   VmState: VmState;
   Vms: ResolverTypeWrapper<Vms>;
+  WAN_ACCESS_TYPE: WAN_ACCESS_TYPE;
+  WAN_FORWARD_TYPE: WAN_FORWARD_TYPE;
   Welcome: ResolverTypeWrapper<Welcome>;
   addApiKeyInput: addApiKeyInput;
   addScopeInput: addScopeInput;
@@ -1763,14 +1801,13 @@ export type ResolversTypes = ResolversObject<{
   deleteUserInput: deleteUserInput;
   mdState: mdState;
   registrationType: registrationType;
-  testMutationInput: testMutationInput;
-  testQueryInput: testQueryInput;
   updateApikeyInput: updateApikeyInput;
   usersInput: usersInput;
 }>;
 
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
+  AllowedOriginInput: AllowedOriginInput;
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
   Array: ArrayType;
@@ -1783,6 +1820,8 @@ export type ResolversParentTypes = ResolversObject<{
   Cloud: Cloud;
   CloudResponse: CloudResponse;
   Config: Config;
+  ConnectSignInInput: ConnectSignInInput;
+  ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ContainerHostConfig;
   ContainerMount: ContainerMount;
   ContainerPort: ContainerPort;
@@ -1821,6 +1860,7 @@ export type ResolversParentTypes = ResolversObject<{
   Partition: Partition;
   Pci: Pci;
   Permissions: Permissions;
+  Port: Scalars['Port'];
   ProfileModel: ProfileModel;
   Query: {};
   Registration: Registration;
@@ -1828,6 +1868,7 @@ export type ResolversParentTypes = ResolversObject<{
   Scope: Scope;
   Server: Server;
   Service: Service;
+  SetupRemoteAccessInput: SetupRemoteAccessInput;
   Share: Share;
   String: Scalars['String'];
   Subscription: {};
@@ -1855,8 +1896,6 @@ export type ResolversParentTypes = ResolversObject<{
   arrayDiskInput: arrayDiskInput;
   authenticateInput: authenticateInput;
   deleteUserInput: deleteUserInput;
-  testMutationInput: testMutationInput;
-  testQueryInput: testQueryInput;
   updateApikeyInput: updateApikeyInput;
   usersInput: usersInput;
 }>;
@@ -2245,6 +2284,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationaddUserArgs, 'input'>>;
   cancelParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
+  connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
+  connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
   getApiKey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationgetApiKeyArgs, 'name'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationloginArgs, 'password' | 'username'>>;
@@ -2254,11 +2295,12 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   removeDiskFromArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationremoveDiskFromArrayArgs>>;
   resumeParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   sendNotification?: Resolver<Maybe<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<MutationsendNotificationArgs, 'notification'>>;
+  setAdditionalAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationsetAdditionalAllowedOriginsArgs, 'input'>>;
+  setupRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationsetupRemoteAccessArgs, 'input'>>;
   shutdown?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   startArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
   startParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, Partial<MutationstartParityCheckArgs>>;
   stopArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
-  testMutation?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationtestMutationArgs, 'id'>>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   updateApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationupdateApikeyArgs, 'name'>>;
 }>;
@@ -2404,6 +2446,10 @@ export type PermissionsResolvers<ContextType = Context, ParentType extends Resol
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export interface PortScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Port'], any> {
+  name: 'Port';
+}
+
 export type ProfileModelResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ProfileModel'] = ResolversParentTypes['ProfileModel']> = ResolversObject<{
   avatar?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2438,7 +2484,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType, RequireFields<QueryserverArgs, 'name'>>;
   servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
-  testQuery?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<QuerytestQueryArgs, 'id'>>;
   twoFactor?: Resolver<Maybe<ResolversTypes['TwoFactorWithToken']>, ParentType, ContextType>;
   unassignedDevices?: Resolver<Maybe<Array<Maybe<ResolversTypes['UnassignedDevice']>>>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryuserArgs, 'id'>>;
@@ -2537,7 +2582,6 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   service?: SubscriptionResolver<Maybe<Array<ResolversTypes['Service']>>, "service", ParentType, ContextType, RequireFields<SubscriptionserviceArgs, 'name'>>;
   share?: SubscriptionResolver<ResolversTypes['Share'], "share", ParentType, ContextType, RequireFields<SubscriptionshareArgs, 'id'>>;
   shares?: SubscriptionResolver<Maybe<Array<ResolversTypes['Share']>>, "shares", ParentType, ContextType>;
-  testSubscription?: SubscriptionResolver<ResolversTypes['String'], "testSubscription", ParentType, ContextType>;
   twoFactor?: SubscriptionResolver<Maybe<ResolversTypes['TwoFactorWithoutToken']>, "twoFactor", ParentType, ContextType>;
   unassignedDevices?: SubscriptionResolver<Maybe<Array<ResolversTypes['UnassignedDevice']>>, "unassignedDevices", ParentType, ContextType>;
   user?: SubscriptionResolver<ResolversTypes['User'], "user", ParentType, ContextType, RequireFields<SubscriptionuserArgs, 'id'>>;
@@ -2911,6 +2955,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Partition?: PartitionResolvers<ContextType>;
   Pci?: PciResolvers<ContextType>;
   Permissions?: PermissionsResolvers<ContextType>;
+  Port?: GraphQLScalarType;
   ProfileModel?: ProfileModelResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Registration?: RegistrationResolvers<ContextType>;
