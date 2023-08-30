@@ -1,0 +1,41 @@
+input ConnectUserInfoInput {
+    preferred_username: String!
+    email: String!
+    avatar: String
+}
+
+input ConnectSignInInput {
+    apiKey: String!
+    idToken: String
+    userInfo: ConnectUserInfoInput
+    accessToken: String
+    refreshToken: String
+}
+
+input AllowedOriginInput {
+    origins: [String!]!
+}
+
+enum WAN_ACCESS_TYPE {
+    DYNAMIC
+    ALWAYS
+    DISABLED
+}
+
+enum WAN_FORWARD_TYPE {
+    UPNP
+    STATIC
+}
+
+input SetupRemoteAccessInput {
+    accessType: WAN_ACCESS_TYPE!
+    forwardType: WAN_FORWARD_TYPE
+    port: Port
+}
+
+type Mutation {
+    connectSignIn(input: ConnectSignInInput!): Boolean!
+    connectSignOut: Boolean!
+    setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
+    setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
+}           

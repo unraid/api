@@ -38,7 +38,7 @@ export const handleRemoteAccessEvent = createAsyncThunk<void, RemoteAccessEventF
 			break;
 		case RemoteAccessEventActionType.PING:
 			// Ping - would continue remote access if necessary;
-			RemoteAccessController.instance.extendRemoteAccess({ getState, dispatch });
+			RemoteAccessController.instance.extendRemoteAccess({ dispatch });
 			break;
 		case RemoteAccessEventActionType.END:
 			// End
