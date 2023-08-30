@@ -22,17 +22,31 @@ jobs:
         run: >
           git config --global url."https://github.com/".insteadOf
           ssh://git@github.com/
+        # Login to ECR
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: "us-west-2"
+      - name: Amazon ECR "Login" Action for GitHub Actions
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
       - name: Build Docker Compose
         working-directory: api
         run: |
           docker-compose build builder
-      - name: Save Image
-        run: docker save unraid-api:builder > /tmp/builder.tar
-      - name: Upload Image
-        uses: actions/upload-artifact@v3
-        with:
-          name: builder
-          path: /tmp/builder.tar
+
+      - name: Tag and push
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+
+          git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          builder_repo_name="$REGISTRY/unraid/api-builder"
+          builder_container_tag="$git_hash"
+          docker tag unraid-api:builder "$builder_repo_name"/slimjim:"$builder_container_tag"
+          docker push "$builder_repo_name"/slimjim:"$builder_container_tag"
 
   lint-api:
     needs: [build]
