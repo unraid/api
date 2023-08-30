@@ -123,7 +123,7 @@ export const useCallbackStoreGeneric = (
 ) =>
   defineStore('callback', () => {
     const callbackActions = useCallbackActions();
-    const send = (url: string, payload: SendPayloads) => {
+    const send = (url: string, payload: SendPayloads, newTab: boolean = false) => {
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [...payload],
@@ -138,6 +138,10 @@ export const useCallbackStoreGeneric = (
       const destinationUrl = new URL(url);
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
       console.debug('[callback.send]', encryptedMessage, destinationUrl);
+      if (newTab) {
+        window.open(destinationUrl.toString(), '_blank');
+        return;
+      }
       window.location.href = destinationUrl.toString();
     };
 
