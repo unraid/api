@@ -9,19 +9,20 @@ const runCommand = (command) => {
     }
 };
 
-const getTags = () => {
-    const GIT_SHA_ENV = process.env.GIT_SHA
-    const IS_TAGGED_ENV = Boolean(process.env.IS_TAGGED);
-    if (GIT_SHA_ENV && IS_TAGGED_ENV) {
-        console.log('GIT_SHA_ENV', GIT_SHA_ENV, 'IS_TAGGED_ENV', IS_TAGGED_ENV);
+const getTags = (env = process.env) => {
+
+    if (env.GIT_SHA) {
         return {
-            shortSha: GIT_SHA_ENV,
-            isTagged: IS_TAGGED_ENV
+            shortSha: env.GIT_SHA,
+            isTagged: Boolean(env.IS_TAGGED)
         }
     } else {
         const gitShortSHA = runCommand('git rev-parse --short HEAD');
         const isCommitTagged = runCommand('git describe --tags --abbrev=0 --exact-match') !== undefined;
         console.log('gitShortSHA', gitShortSHA, 'isCommitTagged', isCommitTagged);
+        if (!gitShortSHA) {
+            throw new Error('Failing build due to missing SHA');
+        }
         return {
             shortSha: gitShortSHA,
             isTagged: isCommitTagged
