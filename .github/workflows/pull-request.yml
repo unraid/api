@@ -31,7 +31,7 @@ jobs:
           image_tag="unraid/api-builder:$git_hash"
           echo $image_tag
           echo "tag=$image_tag" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
 
       - name: Build
         uses: docker/build-push-action@v4
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           persist-credentials: true
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
         with:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host
@@ -93,7 +93,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           persist-credentials: true
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
         with:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host
@@ -134,7 +134,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           persist-credentials: true
-      - uses: docker/setup-buildx-action@v1
+      - uses: docker/setup-buildx-action@v2
         with:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host

@@ -37,7 +37,7 @@ try {
 	}).then(pkg => pkg.default);
 
 	const tags = getTags();
-
+	
 	// Decide whether to use full version or just tag
 	const isTaggedRelease = tags.isTagged;
 	const gitShaShort = tags.shortSha;
