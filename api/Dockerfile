@@ -27,11 +27,11 @@ COPY tsconfig.json tsup.config.ts .eslintrc.cjs .npmrc .env.production .env.stag
 
 COPY package.json package-lock.json ./
 
-# Install deps
-RUN npm i
-
 # Install pkg
 RUN npm i -g pkg zx
+
+# Install deps
+RUN npm ci
 
 EXPOSE 4000
 
