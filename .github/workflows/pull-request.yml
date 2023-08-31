@@ -10,6 +10,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -90,23 +91,37 @@ jobs:
           docker run unraid-api:builder npm run lint
 
   test-api:
+
+    services:
+      registry: # https://docs.docker.com/build/ci/github-actions/named-contexts/#using-with-a-container-builder
+        image: registry:2
+        ports:
+          - 5000:5000
     needs: [build]
     defaults:
       run:
         working-directory: api
     runs-on: ubuntu-latest
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v3
+      - name: Checkout repo
+        uses: actions/checkout@v3
         with:
-          name: builder
-          path: /tmp
-      - name: Load image
-        run: |
-          docker load --input /tmp/builder.tar
+          persist-credentials: true
+      - uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: api
+          target: builder
+          push: true
+          tags: localhost:5000/unraid-api:builder
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          provenance: false
       - name: Test
         run: |
-          docker run unraid-api:builder npm run coverage
+          docker run localhost:5000/unraid-api:builder npm run coverage
 
 
   build-api:
