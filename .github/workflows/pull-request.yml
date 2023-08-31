@@ -47,7 +47,7 @@ jobs:
           context: api
           target: builder
           push: true
-          tags: "$REGISTRY/unraid/api-builder:$TAG"
+          tags: "${{ REGISTRY }}/unraid/api-builder:${{ TAG }}"
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
