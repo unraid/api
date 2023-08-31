@@ -12,7 +12,7 @@ concurrency:
 
 
 jobs:
-  build:
+  build-cache:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
@@ -42,10 +42,9 @@ jobs:
           tags: unraid-api:builder
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
 
   lint-api:
-    needs: [build]
+    needs: [build-cache]
     continue-on-error: true
     defaults:
       run:
@@ -57,28 +56,30 @@ jobs:
         with:
           persist-credentials: true
       - uses: docker/setup-buildx-action@v1
+        with:
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
           context: api
           target: builder
-          load: true
-          tags: unraid-api:builder
+          push: true
+          tags: localhost:5000/unraid-api:builder
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
       - name: Lint
         run: |
-          docker run unraid-api:builder npm run lint
+          docker run localhost:5000/unraid-api:builder npm run lint
 
   test-api:
 
     services:
-      registry: # https://docs.docker.com/build/ci/github-actions/named-contexts/#using-with-a-container-builder
+      registry: # Using a local registry is ~3x faster than exporting the image to docker agent
         image: registry:2
         ports:
           - 5000:5000
-    needs: [build]
+    needs: [build-cache]
     defaults:
       run:
         working-directory: api
@@ -102,14 +103,13 @@ jobs:
           tags: localhost:5000/unraid-api:builder
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          provenance: false
       - name: Test
         run: |
           docker run localhost:5000/unraid-api:builder npm run coverage
 
 
   build-api:
-    needs: [build]
+    needs: [build-cache]
     defaults:
       run:
         working-directory: api
@@ -123,18 +123,25 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Download artifact
-        uses: actions/download-artifact@v3
         with:
-          name: build
-          path: /tmp
-      - name: Load image
-        run: |
-          docker load --input /tmp/builder.tar
+          persist-credentials: true
+      - uses: docker/setup-buildx-action@v1
+        with:
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
+
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: api
+          target: builder
+          push: true
+          tags: localhost:5000/unraid-api:builder
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
       - name: Run Docker Compose
-        run: docker run builder npm run build-pkg
+        run: docker run localhost:5000/unraid-api:builder npm run build-pkg
 
       - name: Set Hashes
         id: set-hashes
