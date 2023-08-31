@@ -115,7 +115,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Run Docker Compose
+      - name: Run Build
         run: docker run -e GIT_SHA=$(git rev-parse --short HEAD) -e IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match) -v $(pwd)/deploy:/app/deploy/  localhost:5000/unraid-api:builder npm run build-pkg
 
       - name: Set Hashes
