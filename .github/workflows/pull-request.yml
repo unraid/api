@@ -5,51 +5,18 @@ on:
     paths:
       - api/**
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
-
 jobs:
-  build-cache:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v3
-        with:
-          persist-credentials: true
-      - name: Reconfigure git to use HTTP authenti:cation
-        run: >
-          git config --global url."https://github.com/".insteadOf
-          ssh://git@github.com/
-      - name: Tag
-        id: tag
-        run: |
-          git_hash=$(git rev-parse --short "$GITHUB_SHA")
-          branch=${GITHUB_HEAD_REF:-${GITHUB_REF#refs/heads/}}
-          image_tag="unraid/api-builder:$git_hash"
-          echo $image_tag
-          echo "tag=$image_tag" >> "$GITHUB_OUTPUT"
-      - uses: docker/setup-buildx-action@v2
-
-      - name: Build
-        uses: docker/build-push-action@v4
-        with:
-          context: api
-          target: builder
-          push: false
-          tags: unraid-api:builder
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
   lint-api:
     services:
       registry: # Using a local registry is ~3x faster than exporting the image to docker agent
         image: registry:2
         ports:
           - 5000:5000
-    needs: [build-cache]
+
     continue-on-error: true
     defaults:
       run:
@@ -83,7 +50,7 @@ jobs:
         image: registry:2
         ports:
           - 5000:5000
-    needs: [build-cache]
+
     defaults:
       run:
         working-directory: api
@@ -111,14 +78,13 @@ jobs:
         run: |
           docker run localhost:5000/unraid-api:builder npm run coverage
 
-
   build-api:
     services:
       registry: # Using a local registry is ~3x faster than exporting the image to docker agent
         image: registry:2
         ports:
           - 5000:5000
-    needs: [build-cache]
+
     defaults:
       run:
         working-directory: api
@@ -151,7 +117,6 @@ jobs:
 
       - name: Run Docker Compose
         run: docker run -e GIT_SHA=$(git rev-parse --short HEAD) -e IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match) -v $(pwd)/deploy:/app/deploy/  localhost:5000/unraid-api:builder npm run build-pkg
-
 
       - name: Set Hashes
         id: set-hashes
