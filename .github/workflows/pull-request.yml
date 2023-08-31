@@ -34,11 +34,9 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Tag
         id: tag
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           git_hash=$(git rev-parse --short "$GITHUB_SHA")
-          image_tag="$REGISTRY/unraid/api-builder:$git_hash"
+          image_tag="unraid/api-builder:$git_hash"
           echo $image_tag
           echo "tag={$image_tag}" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v1
@@ -48,9 +46,10 @@ jobs:
           context: api
           target: builder
           push: true
-          tags: ${{ steps.tag.outputs.tag}}
+          tags: ${{ steps.login-ecr.outputs.registry }}/${{ steps.tag.outputs.tag }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          provenance: false
 
   lint-api:
     needs: [build]
