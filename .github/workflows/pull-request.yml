@@ -113,6 +113,11 @@ jobs:
 
 
   build-api:
+    services:
+      registry: # Using a local registry is ~3x faster than exporting the image to docker agent
+        image: registry:2
+        ports:
+          - 5000:5000
     needs: [build-cache]
     defaults:
       run:
