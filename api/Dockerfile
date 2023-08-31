@@ -42,6 +42,7 @@ EXPOSE 4000
 
 FROM development AS builder
 
+COPY .eslintrc.cjs ./
 COPY ./src ./src
 
 CMD ["npm", "run", "build-pkg"]
