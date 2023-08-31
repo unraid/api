@@ -32,21 +32,23 @@ jobs:
       - name: Amazon ECR "Login" Action for GitHub Actions
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
-      - name: Build Docker Compose
-        working-directory: api
+      - name: Tag
+        id: tag
         run: |
-          docker-compose build builder
-
-      - name: Tag and push
+          git_hash=$(git rev-parse --short "$GITHUB_SHA")
+          echo "{tag}={$git_hash}" >> "$GITHUB_OUTPUT"
+      - name: Build and push
+        uses: docker/build-push-action@v4
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        run: |
-
-          git_hash=$(git rev-parse --short "$GITHUB_SHA")
-          builder_repo_name="$REGISTRY/unraid/api-builder"
-          builder_container_tag="$git_hash"
-          docker tag unraid-api:builder "$builder_repo_name":"$builder_container_tag"
-          docker push "$builder_repo_name":"$builder_container_tag"
+          TAG: ${{ steps.tag.outputs.tag }}
+        with:
+          context: api
+          target: builder
+          push: true
+          tags: "$REGISTRY/unraid/api-builder:$TAG"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   lint-api:
     needs: [build]
