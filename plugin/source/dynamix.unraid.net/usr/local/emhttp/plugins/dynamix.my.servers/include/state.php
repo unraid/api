@@ -31,7 +31,7 @@ $configErrorEnum = [
 $registered = !empty($myservers['remote']['username']) && $connectPluginInstalled;
 
 $serverState = [
-    "apiKey" => $registered ? $myservers['upc']['apikey'] ?? '' : '',
+    "apiKey" => $myservers['upc']['apikey'] ?? '',
     "apiVersion" => $myservers['api']['version'] ?? '',
     "avatar" => (!empty($myservers['remote']['avatar']) && $connectPluginInstalled) ? $myservers['remote']['avatar'] : '',
     "config" => [
@@ -76,6 +76,6 @@ $serverState = [
     ],
     "ts" => time(),
     "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
-    "username" => $registered ? $myservers['remote']['username'] : '',
+    "username" => $myservers['remote']['username'] ?? '',
     "wanFQDN" => $nginx['NGINX_WANFQDN'] ?? '',
 ];
