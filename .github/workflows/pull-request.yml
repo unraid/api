@@ -44,6 +44,11 @@ jobs:
           cache-to: type=gha,mode=max
 
   lint-api:
+    services:
+      registry: # Using a local registry is ~3x faster than exporting the image to docker agent
+        image: registry:2
+        ports:
+          - 5000:5000
     needs: [build-cache]
     continue-on-error: true
     defaults:
@@ -73,7 +78,6 @@ jobs:
           docker run localhost:5000/unraid-api:builder npm run lint
 
   test-api:
-
     services:
       registry: # Using a local registry is ~3x faster than exporting the image to docker agent
         image: registry:2
