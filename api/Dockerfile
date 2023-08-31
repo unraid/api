@@ -1,11 +1,12 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-ARG NODE_IMAGE=node:18.17.1
-FROM $NODE_IMAGE As development
+FROM node:18.17.1-alpine As development
 
-# Install build tools
-RUN apt-get update -y && apt-get install  -y \
+# Install build tools and dependencies
+RUN apk add --no-cache \
+    bash \
+    alpine-sdk \
     python3 \
     libvirt-dev \
     jq \
@@ -13,30 +14,33 @@ RUN apt-get update -y && apt-get install  -y \
 
 RUN mkdir /var/log/unraid-api/
 
-
-ARG NODE_ENV=development
-ARG NPM_I_CMD=npm i
-
 WORKDIR /app
 
 # Set app env
-ENV NODE_ENV=$NODE_ENV
+ENV NODE_ENV=development
 
 # Setup cache for pkg
 ENV PKG_CACHE_PATH /app/.pkg-cache
 RUN mkdir -p ${PKG_CACHE_PATH}
 
-COPY package.json package-lock.json ./
-COPY tsconfig.json tsup.config.ts ./
-COPY .npmrc ./
-COPY .env.production .env.staging  ./
+COPY tsconfig.json tsup.config.ts .eslintrc.cjs .npmrc .env.production .env.staging ./
 
-# Install deps
-RUN $NPM_I_CMD
+COPY package.json package-lock.json ./
 
 # Install pkg
 RUN npm i -g pkg zx
 
+# Install deps
+RUN npm ci
+
 EXPOSE 4000
+
+###########################################################
+# Builder Image
+###########################################################
+
+FROM development AS builder
+
+COPY . .
 
 CMD ["npm", "run", "build-pkg"]

@@ -5,13 +5,18 @@ on:
     paths:
       - api/**
 
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 jobs:
   lint-api:
+    services:
+      registry: # Using a local registry is ~3x faster than exporting the image to docker agent
+        image: registry:2
+        ports:
+          - 5000:5000
+
     continue-on-error: true
     defaults:
       run:
@@ -21,58 +26,65 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          persist-credentials: false
-      - name: Reconfigure git to use HTTP authenti:cation
-        run: >
-          git config --global url."https://github.com/".insteadOf
-          ssh://git@github.com/
-
-      - name: Install node
-        uses: actions/setup-node@v3
+          persist-credentials: true
+      - uses: docker/setup-buildx-action@v2
         with:
-          node-version-file: "api/.nvmrc"
-
-      #      - name: Cache dependencies
-      #        uses: actions/cache@v2
-      #        with:
-      #          path: ~/.npm
-      #          key: npm-${{ hashFiles('package-lock.json') }}
-      #          restore-keys: npm-
-
-      - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev
-
-      - name: Installing node deps
-        run: npm ci
-
-      - name: Lint files
-        run: npm run lint
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: api
+          target: builder
+          push: true
+          tags: localhost:5000/unraid-api:builder
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Lint
+        run: |
+          docker run localhost:5000/unraid-api:builder npm run lint
 
   test-api:
+    services:
+      registry: # Using a local registry is ~3x faster than exporting the image to docker agent
+        image: registry:2
+        ports:
+          - 5000:5000
+
     defaults:
       run:
         working-directory: api
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
         with:
-          persist-credentials: false
+          persist-credentials: true
+      - uses: docker/setup-buildx-action@v2
+        with:
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
 
-      - name: Reconfigure git to use HTTP authentication
-        run: >
-          git config --global url."https://github.com/".insteadOf
-          ssh://git@github.com/
-
-      - name: Build Docker Compose
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: api
+          target: builder
+          push: true
+          tags: localhost:5000/unraid-api:builder
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Test
         run: |
-          docker network create mothership_default
-          docker-compose build builder
-      - name: Run Docker Compose
-        run: docker-compose run builder npm run coverage
+          docker run localhost:5000/unraid-api:builder npm run coverage
 
   build-api:
+    services:
+      registry: # Using a local registry is ~3x faster than exporting the image to docker agent
+        image: registry:2
+        ports:
+          - 5000:5000
+
     defaults:
       run:
         working-directory: api
@@ -86,31 +98,25 @@ jobs:
     steps:
       - name: Checkout repo
         uses: actions/checkout@v3
-
-      - name: Install node
-        uses: actions/setup-node@v3
         with:
-          node-version-file: "api/.nvmrc"
+          persist-credentials: true
+      - uses: docker/setup-buildx-action@v2
+        with:
+          # network=host driver-opt needed to push to local registry
+          driver-opts: network=host
 
-      - name: Install libvirt-dev
-        run: sudo apt-get update && sudo apt-get install libvirt-dev
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: api
+          target: builder
+          push: true
+          tags: localhost:5000/unraid-api:builder
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
-      #      - name: Cache dependencies
-      #        uses: actions/cache@v2
-      #        with:
-      #          path: ~/.npm
-      #          key: npm-${{ hashFiles('package-lock.json') }}
-      #          restore-keys: npm-
-
-      - name: Installing node deps
-        run: npm install
-
-      - name: Install pkg
-        run: npm i -g pkg
-
-      - name: Build and Pack
-        id: build-pack-binary
-        run: WORKDIR=${{ github.workspace }} && npm run build-pkg
+      - name: Run Build
+        run: docker run -e GIT_SHA=$(git rev-parse --short HEAD) -e IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match) -v $(pwd)/deploy:/app/deploy/  localhost:5000/unraid-api:builder npm run build-pkg
 
       - name: Set Hashes
         id: set-hashes
