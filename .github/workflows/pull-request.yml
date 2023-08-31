@@ -80,7 +80,7 @@ jobs:
         with:
           context: api
           target: builder
-          push: false
+          load: true
           tags: unraid-api:builder
           cache-from: type=gha
           cache-to: type=gha,mode=max
