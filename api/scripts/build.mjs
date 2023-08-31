@@ -36,11 +36,12 @@ try {
 		assert: { type: 'json' },
 	}).then(pkg => pkg.default);
 
-	const tags = getTags();
+	const tags = getTags(process.env);
 	
 	// Decide whether to use full version or just tag
 	const isTaggedRelease = tags.isTagged;
 	const gitShaShort = tags.shortSha;
+	
 	const deploymentVersion = isTaggedRelease ? version : `${version}+${gitShaShort}`;
 
 	// Create deployment package.json

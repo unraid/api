@@ -21,7 +21,7 @@ export default defineConfig({
     esbuildOptions(options) {
         if (!options.define) options.define = {};
 
-        const tags = getTags();
+        const tags = getTags(process.env);
 
         options.define['process.env.VERSION'] = tags.isTagged
             ? `"${version}"`
