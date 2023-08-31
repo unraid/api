@@ -34,20 +34,20 @@ jobs:
         uses: aws-actions/amazon-ecr-login@v1
       - name: Tag
         id: tag
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
           git_hash=$(git rev-parse --short "$GITHUB_SHA")
-          echo "{tag}={$git_hash}" >> "$GITHUB_OUTPUT"
+          image_tag="$REGISTRY/unraid/api-builder:$git_hash"
+          echo "{tag}={$image_tag}" >> "$GITHUB_OUTPUT"
       - uses: docker/setup-buildx-action@v1
       - name: Build and push
         uses: docker/build-push-action@v4
-        env:
-          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          TAG: ${{ steps.tag.outputs.tag }}
         with:
           context: api
           target: builder
           push: true
-          tags: "${{ REGISTRY }}/unraid/api-builder:${{ TAG }}"
+          tags: ${{ steps.tag.outputs.tag}}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
