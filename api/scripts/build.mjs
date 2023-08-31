@@ -2,6 +2,8 @@
 import { exit } from 'process';
 import { cd, $ } from 'zx';
 
+import getTags from './get-tags.mjs'
+
 try {
 	// Enable colours in output
 	process.env.FORCE_COLOR = '1';
@@ -34,9 +36,12 @@ try {
 		assert: { type: 'json' },
 	}).then(pkg => pkg.default);
 
+	const tags = getTags(process.env);
+	
 	// Decide whether to use full version or just tag
-	const isTaggedRelease = await $`git describe --tags --abbrev=0 --exact-match`.then(() => true).catch(() => false);
-	const gitShaShort = await $`git rev-parse --short HEAD`.then(({ stdout }) => stdout.trim());
+	const isTaggedRelease = tags.isTagged;
+	const gitShaShort = tags.shortSha;
+	
 	const deploymentVersion = isTaggedRelease ? version : `${version}+${gitShaShort}`;
 
 	// Create deployment package.json
