@@ -23,10 +23,9 @@ ENV NODE_ENV=development
 ENV PKG_CACHE_PATH /app/.pkg-cache
 RUN mkdir -p ${PKG_CACHE_PATH}
 
+COPY tsconfig.json tsup.config.ts .eslintrc.cjs .npmrc .env.production .env.staging ./
+
 COPY package.json package-lock.json ./
-COPY tsconfig.json tsup.config.ts ./
-COPY .npmrc ./
-COPY .env.production .env.staging  ./
 
 # Install deps
 RUN npm i
@@ -42,7 +41,6 @@ EXPOSE 4000
 
 FROM development AS builder
 
-COPY .eslintrc.cjs ./
 COPY ./src ./src
 
 CMD ["npm", "run", "build-pkg"]
