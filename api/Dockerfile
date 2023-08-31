@@ -1,8 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-ARG NODE_IMAGE=node:18.17.1-alpine
-FROM $NODE_IMAGE As development
+FROM node:18.17.1-alpine As development
 
 # Install build tools and dependencies
 RUN apk update && apk add \
@@ -15,13 +14,10 @@ RUN apk update && apk add \
 
 RUN mkdir /var/log/unraid-api/
 
-ARG NODE_ENV=development
-ARG NPM_I_CMD=npm i
-
 WORKDIR /app
 
 # Set app env
-ENV NODE_ENV=$NODE_ENV
+ENV NODE_ENV=development
 
 # Setup cache for pkg
 ENV PKG_CACHE_PATH /app/.pkg-cache
@@ -33,7 +29,7 @@ COPY .npmrc ./
 COPY .env.production .env.staging  ./
 
 # Install deps
-RUN $NPM_I_CMD
+RUN npm i
 
 # Install pkg
 RUN npm i -g pkg zx
