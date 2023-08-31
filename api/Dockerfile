@@ -41,6 +41,6 @@ EXPOSE 4000
 
 FROM development AS builder
 
-COPY ./src ./src
+COPY . .
 
 CMD ["npm", "run", "build-pkg"]
