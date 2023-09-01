@@ -50,7 +50,15 @@ export const useServerStore = defineStore('server', () => {
   /**
    * State
    */
-  const apiKey = ref<string>(''); // @todo potentially move to a user store
+  const apiKey = ref<string>('');
+  watch(apiKey, (newVal, oldVal) => {
+    if (newVal) {
+      return unraidApiStore.createApolloClient();
+    }
+    if (oldVal) {
+      return unraidApiStore.closeUnraidApiClient();
+    }
+  });
   const apiVersion = ref<string>('');
   const avatar = ref<string>(''); // @todo potentially move to a user store
   const cloud = ref<ServerStateCloudStatus>();
@@ -536,38 +544,6 @@ export const useServerStore = defineStore('server', () => {
   });
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
-  const invalidApiKey = computed((): Error | undefined => {
-    // must be registered with plugin installed
-    if (!connectPluginInstalled.value || !registered.value) {
-      return undefined;
-    }
-
-    // Keeping separate from validApiKeyLength because we may want to add more checks. Cloud also help with debugging user error submissions.
-    if (apiKey.value.length !== 64) {
-      return {
-        heading: 'Invalid API Key',
-        level: 'error',
-        message: 'Please sign out then sign back in to refresh your API key.',
-        ref: 'invalidApiKeyLength',
-        type: 'server',
-      };
-    }
-    if (!apiKey.value.startsWith('unupc_')) {
-      return {
-        heading: 'Invalid API Key Format',
-        level: 'error',
-        message: 'Please sign out then sign back in to refresh your API key.',
-        ref: 'invalidApiKeyFormat',
-        type: 'server',
-      };
-    }
-    return undefined;
-  });
-  watch(invalidApiKey, (newVal, oldVal) => {
-    if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
-    if (newVal) { errorsStore.setError(newVal); }
-  });
-
   const tooManyDevices = computed((): Error | undefined => {
     if (!config.value?.valid && config.value?.error === 'INVALID') {
       return {
@@ -643,7 +619,8 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const cloudError = computed((): Error | undefined => {
-    if (!cloud.value?.error) { return undefined; }
+    // if we're not registered then the cloud error should be ignored
+    if (!registered.value || !cloud.value?.error) { return; }
     return {
       actions: [
         {
@@ -660,7 +637,7 @@ export const useServerStore = defineStore('server', () => {
       debugServer: serverDebugPayload.value,
       heading: 'Unraid Connect Error',
       level: 'error',
-      message: cloud.value.error,
+      message: cloud.value?.error ?? '',
       ref: 'cloudError',
       type: 'unraidApiState',
     };
@@ -676,28 +653,8 @@ export const useServerStore = defineStore('server', () => {
       tooManyDevices.value,
       pluginInstallFailed.value,
       deprecatedUnraidSSL.value,
-      invalidApiKey.value,
       cloudError.value,
     ].filter(Boolean);
-  });
-  /**
-   * Determines whether or not we start or stop the apollo client for unraid-api
-   */
-  const registeredWithValidApiKey = computed(() => registered.value && !invalidApiKey.value);
-  watch(registeredWithValidApiKey, (newVal, oldVal) => {
-    if (oldVal) {
-      return unraidApiStore.closeUnraidApiClient();
-    }
-    if (newVal) {
-      // if this is just after sign in, let's delay the start by a few seconds to give unraid-api time to update
-      if (accountStore.accountActionType === 'signIn') {
-        return setTimeout(() => {
-          unraidApiStore.createApolloClient();
-        }, 2000);
-      } else {
-        return unraidApiStore.createApolloClient();
-      }
-    }
   });
   /**
    * Actions
@@ -814,7 +771,7 @@ export const useServerStore = defineStore('server', () => {
       }, refreshTimeout);
     }
     // Extract the new values from the response
-    const newRegistered = fromApi && response?.data ? !!response.data.owner.username : response.registered;
+    const newRegistered = fromApi && response?.data ? response.data.owner.username !== 'root' : response.registered;
     const newState = fromApi && response?.data ? response.data.vars.regState : response.state;
     // Compare the new values to the old values
     const registrationStatusChanged = oldRegistered !== newRegistered;
@@ -858,12 +815,10 @@ export const useServerStore = defineStore('server', () => {
     // getters
     authAction,
     deprecatedUnraidSSL,
-    invalidApiKey,
     isRemoteAccess,
     keyActions,
     pluginInstallFailed,
     pluginOutdated,
-    registeredWithValidApiKey,
     server,
     serverAccountPayload,
     serverPurchasePayload,

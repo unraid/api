@@ -3,16 +3,18 @@ import { TransitionRoot } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 
 import { useDropdownStore } from '~/store/dropdown';
+import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
 defineProps<{ t: any; }>();
 
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
+const { errors } = storeToRefs(useErrorsStore());
 const { connectPluginInstalled, registered, state, stateDataError } = storeToRefs(useServerStore());
 
 const showDefaultContent = computed(() => !showLaunchpad.value);
-const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPluginInstalled.value && !registered.value) && !stateDataError.value));
+const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPluginInstalled.value && !registered.value) && !errors.value.length && !stateDataError.value));
 </script>
 
 <template>

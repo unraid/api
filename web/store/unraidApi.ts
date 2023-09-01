@@ -64,11 +64,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
    * Automatically called when an apiKey is set in the serverStore
    */
   const createApolloClient = () => {
-    // sign out imminent, skipping createApolloClient
-    if (accountStore.accountActionType === 'signOut') {
-      return;
-    }
-
     unraidApiStatus.value = 'connecting';
 
     const headers = { 'x-api-key': serverStore.apiKey };

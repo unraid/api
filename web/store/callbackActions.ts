@@ -45,28 +45,46 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       if (action?.keyUrl) {
         await installKeyStore.install(action as ExternalKeyActions);
       }
-      if (action?.user || action.type === 'signOut' || action.type === 'oemSignOut') {
-        await accountStore.updatePluginConfig(action);
+      if (action?.user || action.type === 'signIn') {
+        accountStore.setAccountAction(action);
+        accountStore.setConnectSignInPayload({
+          apiKey: action.apiKey,
+          email: action.user.email,
+          preferred_username: action.user.preferred_username,
+        });
+      }
+      if (action.type === 'signOut' || action.type === 'oemSignOut') {
+        accountStore.setAccountAction(action);
+        accountStore.setQueueConnectSignOut(true);
       }
       // all actions have run
       if (array.length === (index + 1)) {
         await serverStore.refreshServerState();
         // callbackStatus.value = 'done';
-        if (array.length > 1) {
-          // if we have more than 1 action it means there was a key install and an account action so both need to be successful
-          const allSuccess = accountStore.accountActionStatus === 'success' && installKeyStore.keyInstallStatus === 'success';
-          callbackStatus.value = allSuccess ? 'success' : 'error';
-        } else {
-          // only 1 action needs to be successful
-          const oneSuccess = accountStore.accountActionStatus === 'success' || installKeyStore.keyInstallStatus === 'success';
-          callbackStatus.value = oneSuccess ? 'success' : 'error';
-        }
       }
     });
   };
+  // Wait until we have a refreshServerStateStatus value to determine callbackStatus
+  const refreshServerStateStatus = computed(() => serverStore.refreshServerStateStatus);
+  watchEffect(() => {
+    if (callbackData.value?.actions && refreshServerStateStatus.value === 'done') {
+      if (callbackData.value.actions.length > 1) {
+        // if we have more than 1 action it means there was a key install and an account action so both need to be successful
+        const allSuccess = accountStore.accountActionStatus === 'success' && installKeyStore.keyInstallStatus === 'success';
+        callbackStatus.value = allSuccess ? 'success' : 'error';
+      } else {
+        // only 1 action needs to be successful
+        const oneSuccess = accountStore.accountActionStatus === 'success' || installKeyStore.keyInstallStatus === 'success';
+        callbackStatus.value = oneSuccess ? 'success' : 'error';
+      }
+    }
+    /** @todo ensure timeout messaging is correct */
+    if (callbackData.value?.actions && refreshServerStateStatus.value === 'timeout') {
+      callbackStatus.value = 'error';
+    }
+  });
 
   const setCallbackStatus = (status: CallbackStatus) => { callbackStatus.value = status; };
-
   watch(callbackStatus, (newVal, oldVal) => {
     if (newVal === 'loading') {
       addPreventClose();
