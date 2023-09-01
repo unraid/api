@@ -89,6 +89,7 @@ export class GraphQLClient {
         const isStateValid = isAPIStateDataFullyLoaded() && isApiKeyValid();
 
         if (!GraphQLClient.instance && isStateValid) {
+            minigraphLogger.debug("Creating a new Apollo Client Instance");
             GraphQLClient.instance = GraphQLClient.createGraphqlClient();
         }
 
