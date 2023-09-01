@@ -30,7 +30,7 @@ export const useAccountStore = defineStore('account', () => {
   // State
   const accountAction = ref<ExternalSignIn | ExternalSignOut>();
   const accountActionHide = ref<boolean>(false);
-  const accountActionStatus = ref<'failed' | 'ready' | 'success' | 'updating'>('ready');
+  const accountActionStatus = ref<'failed' | 'ready' | 'success' | 'updating' | 'waiting'>('ready');
 
   /**
    * Handling sign in / out via graph api
@@ -39,10 +39,16 @@ export const useAccountStore = defineStore('account', () => {
   const connectSignInPayload = ref<ConnectSignInMutationPayload | undefined>();
   const setConnectSignInPayload = (payload: ConnectSignInMutationPayload | undefined) => {
     connectSignInPayload.value = payload;
+    if (payload) {
+      accountActionStatus.value = 'waiting';
+    }
   };
   const queueConnectSignOut = ref<boolean>(false);
   const setQueueConnectSignOut = (data: boolean) => {
     queueConnectSignOut.value = data;
+    if (data) {
+      accountActionStatus.value = 'waiting';
+    }
   };
   watchEffect(() => {
     if (unraidApiClient.value && connectSignInPayload.value) {

@@ -48,7 +48,6 @@ const {
   refreshServerStateStatus,
   username,
 } = storeToRefs(serverStore);
-
 /**
  * Post sign in success state:
  * If we're on the Connect settings page in the webGUI
@@ -144,6 +143,12 @@ const accountActionStatusCopy = computed((): { text: string; } => {
     case 'ready':
       return {
         text: props.t('Ready to update Connect account configuration'),
+      };
+    case 'waiting':
+      return {
+        text: accountAction.value?.type === 'signIn'
+          ? props.t('Signing In')
+          : props.t('Signing Out'),
       };
     case 'updating':
       return {

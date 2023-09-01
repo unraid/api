@@ -619,8 +619,15 @@ export const useServerStore = defineStore('server', () => {
   });
 
   const cloudError = computed((): Error | undefined => {
-    // if we're not registered then the cloud error should be ignored
-    if (!registered.value || !cloud.value?.error) { return; }
+    // if we're not registered or we're in the process of signing out then the cloud error should be ignored
+    if (!registered.value
+      || !cloud.value?.error
+      || accountStore.accountActionType === 'signOut'
+      || accountStore.accountActionType === 'oemSignOut'
+    ) {
+      return;
+    }
+    // otherwise if we are we should display any cloud errors
     return {
       actions: [
         {

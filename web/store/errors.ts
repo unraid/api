@@ -42,6 +42,7 @@ export const useErrorsStore = defineStore('errors', () => {
   };
 
   const setError = (error: Error) => {
+    console.error('[setError]', error);
     errors.value.push(error);
   };
 
