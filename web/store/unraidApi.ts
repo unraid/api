@@ -89,6 +89,8 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
           console.error('[GraphQL error]', error, error.error.message);
           if (error.error.message.includes('offline')) {
             unraidApiStatus.value = 'offline';
+            // attempt to automatically restart the unraid-api
+            if (unraidApiRestartAction) restartUnraidApiClient();
           }
           if (error.error.message && error.error.message.includes(ERROR_CORS_403)) {
             prioritizeCorsError = true;
