@@ -20,7 +20,7 @@ export const useDropdownStore = defineStore('dropdown', () => {
    * Automatically open the user dropdown on first page load when ENOKEYFILE aka a new server
    */
   const serverStateEnokeyfile = computed(() => serverStore.state === 'ENOKEYFILE');
-  watch(serverStateEnokeyfile, (newVal, oldVal) => {
+  watch(serverStateEnokeyfile, (newVal) => {
     const autoOpenSessionStorage = `unraid_${serverStore.guid.slice(-12) ?? 'NO_GUID'}_ENOKEYFILE`;
     if (newVal && !sessionStorage.getItem(autoOpenSessionStorage)) {
       sessionStorage.setItem(autoOpenSessionStorage, 'true');

@@ -12,7 +12,6 @@ import { UserProfileLink } from 'types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
 import { GRAPHQL } from '~/helpers/urls';
-import { useAccountStore } from '~/store/account';
 // import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
@@ -29,12 +28,11 @@ const httpEndpoint = GRAPHQL;
 const wsEndpoint = new URL(GRAPHQL.toString().replace('http', 'ws'));
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
-  const accountStore = useAccountStore();
   // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   const unraidApiClient = ref<ApolloClient<any>>();
-  watch(unraidApiClient, (newVal, oldVal) => {
+  watch(unraidApiClient, (newVal) => {
     if (newVal) {
       const apiResponse = serverStore.fetchServerFromApi();
       if (apiResponse) {
@@ -170,7 +168,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
   const restartUnraidApiClient = async () => {
     unraidApiStatus.value = 'restarting';
-    const response = await WebguiUnraidApiCommand({
+    await WebguiUnraidApiCommand({
       csrf_token: serverStore.csrf,
       command: 'start',
     });

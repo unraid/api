@@ -111,23 +111,12 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
             </header>
             <slot name="main" />
 
-            <TransitionChild
-              appear
-              as="template"
-              enter="duration-300 ease-out"
-              enter-from="opacity-0"
-              enter-to="opacity-100"
-              leave="duration-200 ease-in"
-              leave-from="opacity-100"
-              leave-to="opacity-0"
-            >
-              <footer v-if="$slots['footer']" class="text-14px relative -mx-16px -mb-16px sm:-mx-24px sm:-mb-24px p-4 sm:p-6">
-                <div class="absolute z-0 inset-0 opacity-10 bg-beta" />
-                <div class="relative z-10">
-                  <slot name="footer" />
-                </div>
-              </footer>
-            </TransitionChild>
+            <footer v-if="$slots['footer']" class="text-14px relative -mx-16px -mb-16px sm:-mx-24px sm:-mb-24px p-4 sm:p-6">
+              <div class="absolute z-0 inset-0 opacity-10 bg-beta" />
+              <div class="relative z-10">
+                <slot name="footer" />
+              </div>
+            </footer>
           </div>
         </TransitionChild>
       </div>

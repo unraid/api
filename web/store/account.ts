@@ -7,7 +7,6 @@ import { useCallbackStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
-import { WebguiUpdate } from '~/composables/services/webgui';
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 import type { ExternalSignIn, ExternalSignOut } from '~/store/callback';
 /**
@@ -59,8 +58,6 @@ export const useAccountStore = defineStore('account', () => {
       }, 250);
     }
   });
-
-  const username = ref<string>('');
 
   // Getters
   const accountActionType = computed(() => accountAction.value?.type);
@@ -140,15 +137,15 @@ export const useAccountStore = defineStore('account', () => {
   };
 
   const connectSignInMutation = async () => {
-    if (!connectSignInPayload.value
-      || (connectSignInPayload.value && (!connectSignInPayload.value.apiKey || !connectSignInPayload.value.email || !connectSignInPayload.value.preferred_username))
+    if (!connectSignInPayload.value ||
+      (connectSignInPayload.value && (!connectSignInPayload.value.apiKey || !connectSignInPayload.value.email || !connectSignInPayload.value.preferred_username))
     ) {
       accountActionStatus.value = 'failed';
       return;
     }
 
     accountActionStatus.value = 'updating';
-    const { mutate: signInMutation, onDone, onError } = useMutation(CONNECT_SIGN_IN, {
+    const { mutate: signInMutation, onDone, onError } = await useMutation(CONNECT_SIGN_IN, {
       variables: {
         input: {
           apiKey: connectSignInPayload.value.apiKey,
@@ -178,7 +175,7 @@ export const useAccountStore = defineStore('account', () => {
       });
     });
 
-    onError(error => {
+    onError((error) => {
       logErrorMessages(error);
       accountActionStatus.value = 'failed';
       errorsStore.setError({
@@ -200,7 +197,7 @@ export const useAccountStore = defineStore('account', () => {
       return;
     }
 
-    const { mutate: signOutMutation, onDone, onError } = useMutation(CONNECT_SIGN_OUT);
+    const { mutate: signOutMutation, onDone, onError } = await useMutation(CONNECT_SIGN_OUT);
 
     signOutMutation();
 
@@ -210,7 +207,7 @@ export const useAccountStore = defineStore('account', () => {
       setQueueConnectSignOut(false); // reset
     });
 
-    onError(error => {
+    onError((error) => {
       logErrorMessages(error);
       accountActionStatus.value = 'failed';
       errorsStore.setError({

@@ -123,7 +123,7 @@ export const useCallbackStoreGeneric = (
 ) =>
   defineStore('callback', () => {
     const callbackActions = useCallbackActions();
-    const send = (url: string, payload: SendPayloads, newTab: boolean = false) => {
+    const send = (url: string, payload: SendPayloads, newTab = false) => {
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [...payload],
