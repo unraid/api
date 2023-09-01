@@ -9,7 +9,6 @@ import { enableUpnpListener } from '@app/store/listeners/upnp-listener';
 import { enableAllowedOriginListener } from '@app/store/listeners/allowed-origin-listener';
 import { enableConfigFileListener } from '@app/store/listeners/config-listener';
 import { enableVersionListener } from '@app/store/listeners/version-listener';
-import { enableApiKeyListener } from '@app/store/listeners/api-key-listener';
 import { enableMothershipJobsListener } from '@app/store/listeners/mothership-subscription-listener';
 import { enableDynamicRemoteAccessListener } from '@app/store/listeners/dynamic-remote-access-listener';
 import { enableArrayEventListener } from '@app/store/listeners/array-event-listener';
@@ -33,16 +32,17 @@ export const addAppListener = addListener as TypedAddListener<
     AppDispatch
 >;
 
-// Begin listening for events
-enableConfigFileListener('flash')();
-enableConfigFileListener('memory')();
-enableApiKeyListener();
-enableUpnpListener();
-enableAllowedOriginListener();
-enableVersionListener();
-enableMothershipJobsListener();
-enableDynamicRemoteAccessListener();
-enableArrayEventListener();
-enableWanAccessChangeListener();
-enableServerStateListener();
-enableNotificationPathListener();
+export const startMiddlewareListeners = () => {
+    // Begin listening for events
+    enableConfigFileListener('flash')();
+    enableConfigFileListener('memory')();
+    enableUpnpListener();
+    enableAllowedOriginListener();
+    enableVersionListener();
+    enableMothershipJobsListener();
+    enableDynamicRemoteAccessListener();
+    enableArrayEventListener();
+    enableWanAccessChangeListener();
+    enableServerStateListener();
+    enableNotificationPathListener();
+}

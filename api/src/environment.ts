@@ -14,3 +14,4 @@ export const GRAPHQL_INTROSPECTION = Boolean(
 export const PORT = process.env.PORT ?? '/var/run/unraid-api.sock';
 export const DRY_RUN = process.env.DRY_RUN === 'true';
 export const BYPASS_PERMISSION_CHECKS = process.env.BYPASS_PERMISSION_CHECKS === 'true';
+export const LOG_CORS = process.env.LOG_CORS === 'true';

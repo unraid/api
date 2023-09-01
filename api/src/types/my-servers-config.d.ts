@@ -1,7 +1,7 @@
 import { type MinigraphStatus } from '@app/graphql/generated/api/types';
 import { type DynamicRemoteAccessType } from '@app/remoteAccess/types';
 
-interface MyServersConfig {
+interface MyServersConfig extends Record<string, unknown> {
 	api: {
 		version: string;
 		extraOrigins?: string;

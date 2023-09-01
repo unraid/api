@@ -6,6 +6,8 @@ FROM node:18.17.1-alpine As development
 # Install build tools and dependencies
 RUN apk add --no-cache \
     bash \
+    # Real PS Command (needed for some dependencies)
+    procps \ 
     alpine-sdk \
     python3 \
     libvirt-dev \
