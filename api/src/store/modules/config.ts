@@ -70,8 +70,8 @@ export const initialState: SliceState = {
 } as const;
 
 export const loginUser = createAsyncThunk<
-    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username'>,
-    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username'>,
+    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username' | 'apikey'>,
+    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username' | 'apikey'>,
     { state: RootState }
 >('config/login-user', async (userInfo) => {
     logger.info('Logging in user: %s', userInfo.username);
@@ -263,33 +263,6 @@ export const config = createSlice({
         setWanAccess(state, action: PayloadAction<'yes' | 'no'>) {
             state.remote.wanaccess = action.payload;
         },
-        signIn: (
-            state,
-            action: PayloadAction<
-                Pick<
-                    MyServersConfig['remote'],
-                    'apikey' 
-                > & Partial<Pick<MyServersConfig['remote'],
-                   'idtoken' | 'accesstoken' | 'refreshtoken' | 'username' | 'avatar' | 'email'>>
-            >
-        ) => {
-            state.remote.apikey = action.payload.apikey;
-            state.remote.idtoken = action.payload.idtoken ?? '';
-            state.remote.accesstoken = action.payload.accesstoken ?? ''
-            state.remote.refreshtoken = action.payload.refreshtoken ?? ''
-            state.remote.email = action.payload.email ?? '',
-            state.remote.username = action.payload.username ?? '',
-            state.remote.avatar = action.payload.avatar ?? ''
-        },
-        signOut: (state) => {
-            state.remote.apikey = '';
-            state.remote.idtoken = '';
-            state.remote.accesstoken = '';
-            state.remote.refreshtoken = '';
-            state.remote.email = '';
-            state.remote.username = '';
-            state.remote.avatar = '';
-        }
     },
     extraReducers(builder) {
         builder.addCase(loadConfigFile.pending, (state) => {
@@ -323,13 +296,28 @@ export const config = createSlice({
             }
         });
 
-        builder.addCase(logoutUser.pending, (state) => {
+        builder.addCase(loginUser.fulfilled, (state, action) => {
+            merge(state, {
+                remote: {
+                    apikey: action.payload.apikey,
+                    email: action.payload.email,
+                    username: action.payload.username,
+                    avatar: action.payload.avatar,
+                },
+            });
+        });
+
+        builder.addCase(logoutUser.fulfilled, (state) => {
             merge(state, {
                 remote: {
                     apikey: '',
                     avatar: '',
                     email: '',
                     username: '',
+                    idtoken: '',
+                    accessToken: '',
+                    refreshToken: '',
+                    dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
                 },
             });
         });
@@ -348,8 +336,6 @@ export const {
     setUpnpState,
     setWanPortToValue,
     setWanAccess,
-    signIn,
-    signOut
 } = actions;
 
 export const configReducer = reducer;

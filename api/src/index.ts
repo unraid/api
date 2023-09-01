@@ -22,6 +22,8 @@ import { type BaseContext, type ApolloServer } from '@apollo/server';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
+import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
+import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
 
 let server: ApolloServer<BaseContext>;
 
@@ -64,13 +66,10 @@ void am(
         setupRegistrationKeyWatch();
 
         // Start listening to docker events
-        await setupVarRunWatch();
+        setupVarRunWatch();
 
         // Start listening to dynamix config file changes
         setupDynamixConfigWatch();
-
-        // Try and load the HTTP server
-        logger.debug('Starting HTTP server');
 
         // Disabled until we need the access token to work
         // TokenRefresh.init();
@@ -82,6 +81,10 @@ void am(
         server = await createApolloExpressServer();
 
         PingTimeoutJobs.init();
+
+        startMiddlewareListeners();
+
+        await validateApiKeyIfPresent();
 
         // On process exit stop HTTP server - this says it supports async but it doesnt seem to
         exitHook(() => {

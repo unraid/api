@@ -48,6 +48,8 @@ watch(configFilePath).on('all', updatePubsub);
 watch(customImageFilePath).on('all', updatePubsub);
 
 export const createApolloExpressServer = async () => {
+    // Try and load the HTTP server
+    graphqlLogger.debug('Starting HTTP server');
     const app = express();
     const httpServer = http.createServer(app);
 
@@ -207,10 +209,10 @@ export const createApolloExpressServer = async () => {
             apolloServerPluginOnExit,
             ApolloServerPluginDrainHttpServer({ httpServer }),
         ],
-        introspection: GRAPHQL_INTROSPECTION
+        introspection: GRAPHQL_INTROSPECTION,
     });
 
-    await apolloServer.start()
+    await apolloServer.start();
 
     app.get('/graphql/api/logs', getLogs);
 
@@ -347,7 +349,7 @@ export const createApolloExpressServer = async () => {
             res.status(error.status ?? 500).send(error);
         }
     );
-    
-	httpServer.listen(PORT);
+
+    httpServer.listen(PORT);
     return apolloServer;
 };
