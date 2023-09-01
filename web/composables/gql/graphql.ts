@@ -20,8 +20,14 @@ export type Scalars = {
   JSON: { input: string; output: string; }
   /** The `Long` scalar type represents 52-bit integers */
   Long: { input: number; output: number; }
+  /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
+  Port: { input: number; output: number; }
   /** A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier. */
   UUID: { input: string; output: string; }
+};
+
+export type AllowedOriginInput = {
+  origins: Array<Scalars['String']['input']>;
 };
 
 export type ApiKey = {
@@ -241,6 +247,20 @@ export enum ConfigErrorState {
   UnknownError = 'UNKNOWN_ERROR',
   Withdrawn = 'WITHDRAWN'
 }
+
+export type ConnectSignInInput = {
+  accessToken?: InputMaybe<Scalars['String']['input']>;
+  apiKey: Scalars['String']['input'];
+  idToken?: InputMaybe<Scalars['String']['input']>;
+  refreshToken?: InputMaybe<Scalars['String']['input']>;
+  userInfo?: InputMaybe<ConnectUserInfoInput>;
+};
+
+export type ConnectUserInfoInput = {
+  avatar?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  preferred_username: Scalars['String']['input'];
+};
 
 export type ContainerHostConfig = {
   __typename?: 'ContainerHostConfig';
@@ -568,6 +588,8 @@ export type Mutation = {
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
+  connectSignIn: Scalars['Boolean']['output'];
+  connectSignOut: Scalars['Boolean']['output'];
   /** Delete a user */
   deleteUser?: Maybe<User>;
   /** Get an existing API key */
@@ -582,6 +604,8 @@ export type Mutation = {
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
   sendNotification?: Maybe<Notification>;
+  setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
+  setupRemoteAccess: Scalars['Boolean']['output'];
   shutdown?: Maybe<Scalars['String']['output']>;
   /** Start array */
   startArray?: Maybe<ArrayType>;
@@ -589,7 +613,6 @@ export type Mutation = {
   startParityCheck?: Maybe<Scalars['JSON']['output']>;
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
-  testMutation?: Maybe<Scalars['JSON']['output']>;
   unmountArrayDisk?: Maybe<Disk>;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
@@ -627,6 +650,11 @@ export type MutationclearArrayDiskStatisticsArgs = {
 };
 
 
+export type MutationconnectSignInArgs = {
+  input: ConnectSignInInput;
+};
+
+
 export type MutationdeleteUserArgs = {
   input: deleteUserInput;
 };
@@ -659,14 +687,18 @@ export type MutationsendNotificationArgs = {
 };
 
 
-export type MutationstartParityCheckArgs = {
-  correct?: InputMaybe<Scalars['Boolean']['input']>;
+export type MutationsetAdditionalAllowedOriginsArgs = {
+  input: AllowedOriginInput;
 };
 
 
-export type MutationtestMutationArgs = {
-  id: Scalars['String']['input'];
-  input?: InputMaybe<testMutationInput>;
+export type MutationsetupRemoteAccessArgs = {
+  input: SetupRemoteAccessInput;
+};
+
+
+export type MutationstartParityCheckArgs = {
+  correct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -711,6 +743,8 @@ export type Notification = {
 
 export type NotificationFilter = {
   importance?: InputMaybe<Importance>;
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
   type?: InputMaybe<NotificationType>;
 };
 
@@ -888,7 +922,6 @@ export type Query = {
   servers: Array<Server>;
   /** Network Shares */
   shares?: Maybe<Array<Maybe<Share>>>;
-  testQuery?: Maybe<Scalars['JSON']['output']>;
   twoFactor?: Maybe<TwoFactorWithToken>;
   unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
   /** User account */
@@ -930,18 +963,12 @@ export type QuerydockerNetworksArgs = {
 
 
 export type QuerynotificationsArgs = {
-  filter?: InputMaybe<NotificationFilter>;
+  filter: NotificationFilter;
 };
 
 
 export type QueryserverArgs = {
   name: Scalars['String']['input'];
-};
-
-
-export type QuerytestQueryArgs = {
-  id: Scalars['String']['input'];
-  input?: InputMaybe<testQueryInput>;
 };
 
 
@@ -1053,6 +1080,12 @@ export type Service = {
   version?: Maybe<Scalars['String']['output']>;
 };
 
+export type SetupRemoteAccessInput = {
+  accessType: WAN_ACCESS_TYPE;
+  forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
+  port?: InputMaybe<Scalars['Port']['input']>;
+};
+
 /** Network Share */
 export type Share = {
   __typename?: 'Share';
@@ -1107,7 +1140,6 @@ export type Subscription = {
   service?: Maybe<Array<Service>>;
   share: Share;
   shares?: Maybe<Array<Share>>;
-  testSubscription: Scalars['String']['output'];
   twoFactor?: Maybe<TwoFactorWithoutToken>;
   unassignedDevices?: Maybe<Array<UnassignedDevice>>;
   user: User;
@@ -1505,6 +1537,17 @@ export type Vms = {
   domain?: Maybe<Array<VmDomain>>;
 };
 
+export enum WAN_ACCESS_TYPE {
+  Always = 'ALWAYS',
+  Disabled = 'DISABLED',
+  Dynamic = 'DYNAMIC'
+}
+
+export enum WAN_FORWARD_TYPE {
+  Static = 'STATIC',
+  Upnp = 'UPNP'
+}
+
 export type Welcome = {
   __typename?: 'Welcome';
   message: Scalars['String']['output'];
@@ -1568,15 +1611,6 @@ export enum registrationType {
   Trial = 'TRIAL'
 }
 
-export type testMutationInput = {
-  state: Scalars['String']['input'];
-};
-
-export type testQueryInput = {
-  optional?: InputMaybe<Scalars['Boolean']['input']>;
-  state: Scalars['String']['input'];
-};
-
 export type updateApikeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   expiresAt: Scalars['Long']['input'];
@@ -1586,10 +1620,24 @@ export type usersInput = {
   slim?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+export type ConnectSignInMutationVariables = Exact<{
+  input: ConnectSignInInput;
+}>;
+
+
+export type ConnectSignInMutation = { __typename?: 'Mutation', connectSignIn: boolean };
+
+export type SignOutMutationVariables = Exact<{ [key: string]: never; }>;
+
+
+export type SignOutMutation = { __typename?: 'Mutation', connectSignOut: boolean };
+
 export type serverStateQueryVariables = Exact<{ [key: string]: never; }>;
 
 
 export type serverStateQuery = { __typename?: 'Query', cloud?: { __typename?: 'Cloud', error?: string | null, apiKey: { __typename?: 'ApiKeyResponse', valid: boolean, error?: string | null }, cloud: { __typename?: 'CloudResponse', status: string, error?: string | null }, minigraphql: { __typename?: 'MinigraphqlResponse', status: MinigraphStatus, error?: string | null }, relay?: { __typename?: 'RelayResponse', status: string, error?: string | null } | null } | null, config: { __typename?: 'Config', error?: ConfigErrorState | null, valid?: boolean | null }, info?: { __typename?: 'Info', os?: { __typename?: 'Os', hostname?: string | null } | null } | null, owner?: { __typename?: 'Owner', avatar?: string | null, username?: string | null } | null, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars?: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } | null };
 
 
+export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
+export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
 export const serverStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}}]} as unknown as DocumentNode<serverStateQuery, serverStateQueryVariables>;
