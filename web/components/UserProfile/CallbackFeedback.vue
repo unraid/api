@@ -243,8 +243,8 @@ const accountActionStatusCopy = computed((): { text: string; } => {
       </div>
     </template>
 
-    <template #footer>
-      <div v-if="callbackStatus === 'success'" class="flex flex-row justify-center gap-16px">
+    <template v-if="callbackStatus === 'success'" #footer>
+      <div class="flex flex-row justify-center gap-16px">
         <BrandButton
           v-if="showSignInCta"
           btn-style="underline"
