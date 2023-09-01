@@ -1,6 +1,7 @@
 import { type NextFunction, type Request, type Response } from 'express';
 import { logger } from '@app/core';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
+import { LOG_CORS } from '@app/environment';
 
 const getOriginGraphqlError = () => ({
     data: null,
@@ -39,13 +40,11 @@ export const originMiddleware = (
         next();
         return;
     } else {
-        logger.addContext('origins', allowedOrigins.join(', '))
-        logger.trace(
-            `Current Origin: ${
-                origin ?? 'undefined'
-            }`
-        );
-        logger.removeContext('origins')
+        if (LOG_CORS) {
+            logger.addContext('origins', allowedOrigins.join(', '));
+            logger.trace(`Current Origin: ${origin ?? 'undefined'}`);
+            logger.removeContext('origins');
+        }
     }
 
     // Disallow requests with no origin
@@ -56,7 +55,9 @@ export const originMiddleware = (
         return;
     }
 
-    logger.trace(`📒 Checking "${origin}" for CORS access.`);
+    if (LOG_CORS) {
+        logger.trace(`📒 Checking "${origin}" for CORS access.`);
+    }
 
     // Only allow known origins
     if (!allowedOrigins.includes(origin)) {
@@ -68,6 +69,8 @@ export const originMiddleware = (
         return;
     }
 
-    logger.trace('✔️ Origin check passed, granting CORS!');
+    if (LOG_CORS) {
+        logger.trace('✔️ Origin check passed, granting CORS!');
+    }
     next();
 };

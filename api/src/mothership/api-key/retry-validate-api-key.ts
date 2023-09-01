@@ -21,6 +21,5 @@ export const retryValidateApiKey = async (getState: () => RootState, dispatch: A
 			randomize: true,
 			factor: 2,
 		});
-	// Run recursive set timeout job
 	}
 };

@@ -1,10 +1,10 @@
 import { ensurePermission } from '@app/core/utils/index';
+import { NODE_ENV } from '@app/environment';
 import { type MutationResolvers } from '@app/graphql/generated/api/types';
 import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
 import { validateApiKeyWithKeyServer } from '@app/mothership/api-key/validate-api-key-with-keyserver';
 import { getters, store } from '@app/store/index';
-import { setApiKeyState } from '@app/store/modules/apikey';
-import { loginUser, signIn } from '@app/store/modules/config';
+import { loginUser } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
 import { GraphQLError } from 'graphql';
 import { decodeJwt } from 'jose';
@@ -21,7 +21,7 @@ export const connectSignIn: MutationResolvers['connectSignIn'] = async (
     });
 
     if (getters.emhttp().status === FileLoadStatus.LOADED) {
-        const result = await validateApiKeyWithKeyServer({
+        const result = NODE_ENV === 'development' ? API_KEY_STATUS.API_KEY_VALID : await validateApiKeyWithKeyServer({
             apiKey: args.input.apiKey,
             flashGuid: getters.emhttp().var.flashGuid,
         });
@@ -43,22 +43,14 @@ export const connectSignIn: MutationResolvers['connectSignIn'] = async (
         ) {
             throw new GraphQLError('Missing User Attributes');
         }
-        store.dispatch(setApiKeyState(API_KEY_STATUS.API_KEY_VALID));
-        store.dispatch(
-            signIn({
-                apikey: args.input.apiKey,
-                username: userInfo.preferred_username,
-                email: userInfo.email,
-                avatar:
-                    typeof userInfo.avatar === 'string' ? userInfo.avatar : '',
-            })
-        );
+
         // @TODO once we deprecate old sign in method, switch this to do all validation requests
         await store.dispatch(
             loginUser({
-                avatar: '',
+                avatar: typeof userInfo.avatar === 'string' ? userInfo.avatar : '',
                 username: userInfo.preferred_username,
                 email: userInfo.email,
+                apikey: args.input.apiKey,
             })
         );
         return true;

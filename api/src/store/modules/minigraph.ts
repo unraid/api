@@ -80,7 +80,6 @@ export const mothership = createSlice({
                 'Connecting - refresh the page for an updated status.';
         });
         builder.addCase(logoutUser.pending, (state) => {
-            // GraphQLClient.clearInstance();
             state.error = null;
             state.timeout = null;
             state.lastPing = null;
