@@ -11,7 +11,6 @@ const useInstallPlugin = () => {
 
       // @ts-ignore – `openPlugin` will be included in 6.10.4+ DefaultPageLayout
       if (typeof openPlugin === 'function') {
-
         // @ts-ignore
         openPlugin(
           `plugin ${payload.update ? 'update' : 'install'} ${file}`,
