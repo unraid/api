@@ -56,11 +56,11 @@ export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayl
         return json;
       })
       .catch((error) => {
-        console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api`, error, payload);
+        console.error('[WebguiUnraidApiCommand] catch failed to execute unraid-api', error, payload);
         return error;
       });
   } catch (error) {
-    console.error(`[WebguiUnraidApiCommand] catch failed to execute unraid-api`, error, payload);
+    console.error('[WebguiUnraidApiCommand] catch failed to execute unraid-api', error, payload);
     return error;
   }
 };

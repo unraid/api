@@ -266,7 +266,7 @@ export const useServerStore = defineStore('server', () => {
    */
   const signInAction = computed((): ServerStateDataAction => {
     const disabled = unraidApiStore.unraidApiStatus !== 'online';
-    let title = disabled ? 'Sign In requires a connection to unraid-api' : '';
+    const title = disabled ? 'Sign In requires a connection to unraid-api' : '';
     return {
       click: () => { accountStore.signIn(); },
       disabled,
@@ -275,7 +275,7 @@ export const useServerStore = defineStore('server', () => {
       name: 'signIn',
       text: 'Sign In with Unraid.net Account',
       title,
-    }
+    };
   });
   /**
    * The Sign Out action is a computed property because it depends on the state of the keyfile & unraid-api being online
@@ -637,10 +637,10 @@ export const useServerStore = defineStore('server', () => {
 
   const cloudError = computed((): Error | undefined => {
     // if we're not registered or we're in the process of signing out then the cloud error should be ignored
-    if (!registered.value
-      || !cloud.value?.error
-      || accountStore.accountActionType === 'signOut'
-      || accountStore.accountActionType === 'oemSignOut'
+    if (!registered.value ||
+      !cloud.value?.error ||
+      accountStore.accountActionType === 'signOut' ||
+      accountStore.accountActionType === 'oemSignOut'
     ) {
       return;
     }
@@ -719,15 +719,18 @@ export const useServerStore = defineStore('server', () => {
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
     const mutatedData = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values
-      ...(data.owner && data.owner.username !== 'root' ? {
-        // avatar: data.owner.avatar,
-        username: data.owner.username,
-        registered: true,
-      } : { // handles sign outs
-        // avatar: data.owner.avatar,
-        username: '',
-        registered: false,
-      }),
+      ...(data.owner && data.owner.username !== 'root'
+        ? {
+          // avatar: data.owner.avatar,
+            username: data.owner.username,
+            registered: true,
+          }
+        : { // handles sign outs
+          // avatar: data.owner.avatar,
+            username: '',
+            registered: false,
+          }
+      ),
       name: (data.info && data.info.os) ? data.info.os.hostname : null,
       keyfile: (data.registration && data.registration.keyFile) ? data.registration.keyFile.contents : null,
       regGen: data.vars ? data.vars.regGen : null,
