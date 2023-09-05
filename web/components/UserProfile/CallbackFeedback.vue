@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core';
-import { ClipboardIcon, CogIcon, InformationCircleIcon } from '@heroicons/vue/24/solid';
+import { ClipboardIcon, CogIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -10,7 +10,6 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
-import { useUnraidApiStore } from '~/store/unraidApi';
 
 export interface Props {
   open?: boolean;
@@ -26,7 +25,6 @@ const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 // const promoStore = usePromoStore();
 const serverStore = useServerStore();
-const unraidApiStore = useUnraidApiStore();
 
 const {
   accountAction,
@@ -45,12 +43,9 @@ const {
 } = storeToRefs(installKeyStore);
 const {
   connectPluginInstalled,
-  registered,
-  authAction,
   refreshServerStateStatus,
   username,
 } = storeToRefs(serverStore);
-const { unraidApiStatus } = storeToRefs(unraidApiStore);
 /**
  * Post sign in success state:
  * If we're on the Connect settings page in the webGUI
@@ -246,7 +241,6 @@ const accountActionStatusCopy = computed((): { text: string; } => {
 
     <template v-if="callbackStatus === 'success'" #footer>
       <div class="flex flex-row justify-center gap-16px">
-
         <BrandButton
           btn-style="underline"
           :text="closeText"
