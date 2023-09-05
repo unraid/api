@@ -1,12 +1,17 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
 import { useServerStore } from '~/store/server';
+import { useUnraidApiStore } from '~/store/unraidApi';
+
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
+
+import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
 const props = defineProps<{ t: any; }>();
 
 const { expireTime, connectPluginInstalled, registered, state, stateData } = storeToRefs(useServerStore());
+const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(useUnraidApiStore());
 
 const showConnectCopy = computed(() => (connectPluginInstalled.value && !registered.value && !stateData.value?.error));
 
@@ -37,6 +42,16 @@ const showExpireTime = computed(() => {
       />
     </header>
     <ul v-if="stateData.actions" class="list-reset flex flex-col gap-y-8px px-16px">
+      <li v-if="unraidApiStatus !== 'online'">
+        <BrandButton
+          class="w-full"
+          :disabled="unraidApiStatus === 'connecting' || unraidApiStatus === 'restarting'"
+          :icon="unraidApiStatus === 'restarting' ? BrandLoadingWhite : unraidApiRestartAction?.icon"
+          :text="unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')"
+          :title="unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')"
+          @click="unraidApiRestartAction?.click()"
+        />
+      </li>
       <li v-for="action in stateData.actions" :key="action.name">
         <BrandButton
           class="w-full"

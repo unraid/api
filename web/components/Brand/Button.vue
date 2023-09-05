@@ -1,5 +1,8 @@
 <script setup lang="ts">
 import { XCircleIcon } from '@heroicons/vue/24/solid';
+import BrandLoading from '~/components/Brand/Loading.vue';
+import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
+
 export interface ButtonProps {
   btnStyle?: 'fill' | 'outline' | 'underline';
   btnType?: 'button' | 'submit' | 'reset';
@@ -8,7 +11,7 @@ export interface ButtonProps {
   download?: boolean;
   external?: boolean;
   href?: string;
-  icon?: typeof XCircleIcon;
+  icon?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
   text?: string;
 }
 const props = withDefaults(defineProps<ButtonProps>(), {

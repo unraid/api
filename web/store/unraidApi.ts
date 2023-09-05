@@ -12,7 +12,7 @@ import { UserProfileLink } from 'types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
 import { GRAPHQL } from '~/helpers/urls';
-// import { useErrorsStore } from '~/store/errors';
+import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
 /**
@@ -28,7 +28,7 @@ const httpEndpoint = GRAPHQL;
 const wsEndpoint = new URL(GRAPHQL.toString().replace('http', 'ws'));
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
-  // const errorsStore = useErrorsStore();
+  const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
   const unraidApiClient = ref<ApolloClient<any>>();
@@ -62,6 +62,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
    * Automatically called when an apiKey is set in the serverStore
    */
   const createApolloClient = () => {
+    // return; // @todo remove
     unraidApiStatus.value = 'connecting';
 
     const headers = { 'x-api-key': serverStore.apiKey };
@@ -170,15 +171,20 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
   const restartUnraidApiClient = async () => {
     unraidApiStatus.value = 'restarting';
-    await WebguiUnraidApiCommand({
-      csrf_token: serverStore.csrf,
-      command: 'start',
-    });
-    return setTimeout(() => {
-      if (unraidApiClient.value) {
-        createApolloClient();
-      }
-    }, 5000);
+    try {
+      const response = await WebguiUnraidApiCommand({
+        csrf_token: serverStore.csrf,
+        command: 'start',
+      });
+      console.debug('[restartUnraidApiClient] response', response);
+      return setTimeout(() => {
+        if (unraidApiClient.value) {
+          createApolloClient();
+        }
+      }, 5000);
+    } catch (error) {
+      errorsStore.setError(error);
+    }
   };
 
   return {

@@ -14,11 +14,9 @@ export const request = wretch()
     return (
       response
         .error('Error', (error) => {
-          console.log('global catch (Error class)', error);
           errorsStore.setError(error);
         })
         .error('TypeError', (error) => {
-          console.log('global type error catch (TypeError class)', error);
           errorsStore.setError(error);
         })
     );

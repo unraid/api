@@ -261,25 +261,42 @@ export const useServerStore = defineStore('server', () => {
     name: 'replace',
     text: 'Replace Key',
   };
-  const signInAction: ServerStateDataAction = {
-    click: () => { accountStore.signIn(); },
-    external: true,
-    icon: GlobeAltIcon,
-    name: 'signIn',
-    text: 'Sign In with Unraid.net Account',
-  };
   /**
-   * This action is a computed property because it depends on the state of the keyfile
+   * The Sign In action is a computed property because it depends on the state of the unraid-api being online
+   */
+  const signInAction = computed((): ServerStateDataAction => {
+    const disabled = unraidApiStore.unraidApiStatus !== 'online';
+    let title = disabled ? 'Sign In requires a connection to unraid-api' : '';
+    return {
+      click: () => { accountStore.signIn(); },
+      disabled,
+      external: true,
+      icon: GlobeAltIcon,
+      name: 'signIn',
+      text: 'Sign In with Unraid.net Account',
+      title,
+    }
+  });
+  /**
+   * The Sign Out action is a computed property because it depends on the state of the keyfile & unraid-api being online
    */
   const signOutAction = computed((): ServerStateDataAction => {
+    const disabled: boolean = !keyfile.value || unraidApiStore.unraidApiStatus !== 'online';
+    let title = '';
+    if (!keyfile.value) {
+      title = 'Sign Out requires a keyfile';
+    }
+    if (unraidApiStore.unraidApiStatus !== 'online') {
+      title = 'Sign Out requires a connection to unraid-api';
+    }
     return {
       click: () => { accountStore.signOut(); },
-      disabled: !keyfile.value,
+      disabled,
       external: true,
       icon: ArrowRightOnRectangleIcon,
       name: 'signOut',
       text: 'Sign Out of Unraid.net',
-      title: !keyfile.value ? 'Sign Out requires a keyfile' : '',
+      title,
     };
   });
   const trialExtendAction: ServerStateDataAction = {
@@ -303,7 +320,7 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([purchaseAction, redeemAction, trialStartAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -314,7 +331,7 @@ export const useServerStore = defineStore('server', () => {
       case 'TRIAL':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([purchaseAction, redeemAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -325,7 +342,7 @@ export const useServerStore = defineStore('server', () => {
       case 'EEXPIRED':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([purchaseAction, redeemAction]),
             ...(trialExtensionEligible.value ? [trialExtendAction] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
@@ -340,7 +357,7 @@ export const useServerStore = defineStore('server', () => {
       case 'BASIC':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([upgradeAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -355,7 +372,7 @@ export const useServerStore = defineStore('server', () => {
       case 'PLUS':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([upgradeAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -370,7 +387,7 @@ export const useServerStore = defineStore('server', () => {
       case 'PRO':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Pro',
@@ -391,7 +408,7 @@ export const useServerStore = defineStore('server', () => {
         }
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([replaceAction, purchaseAction, redeemAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -403,7 +420,7 @@ export const useServerStore = defineStore('server', () => {
       case 'EGUID1':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([purchaseAction, redeemAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -416,7 +433,7 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE2':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([recoverAction, purchaseAction, redeemAction]),
             ...(registered.value ? [signOutAction.value] : []),
           ],
@@ -430,7 +447,7 @@ export const useServerStore = defineStore('server', () => {
       case 'ETRIAL':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([purchaseAction, redeemAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -442,7 +459,7 @@ export const useServerStore = defineStore('server', () => {
       case 'ENOKEYFILE1':
         return {
           actions: [
-            ...(!registered.value && connectPluginInstalled.value ? [signInAction] : []),
+            ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([purchaseAction, redeemAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
