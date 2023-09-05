@@ -8,8 +8,6 @@ import '~/assets/main.css';
 
 const { t } = useI18n();
 const { keyActions } = storeToRefs(useServerStore());
-
-console.log('[keyActions]', keyActions.value);
 </script>
 
 <template>
