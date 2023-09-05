@@ -168,13 +168,17 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     unraidApiClient.value = undefined;
     unraidApiStatus.value = 'offline';
   };
-
+  /**
+   * Can both start and restart the unraid-api depending on it's current status
+   */
   const restartUnraidApiClient = async () => {
+    const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
+    console.debug('[restartUnraidApiClient]', { command });
     unraidApiStatus.value = 'restarting';
     try {
       const response = await WebguiUnraidApiCommand({
         csrf_token: serverStore.csrf,
-        command: 'start',
+        command,
       });
       console.debug('[restartUnraidApiClient] response', response);
       return setTimeout(() => {

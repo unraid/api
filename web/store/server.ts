@@ -719,10 +719,14 @@ export const useServerStore = defineStore('server', () => {
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
     const mutatedData = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values
-      ...(data.owner && data.owner.username !== 'root' && {
+      ...(data.owner && data.owner.username !== 'root' ? {
         // avatar: data.owner.avatar,
         username: data.owner.username,
         registered: true,
+      } : { // handles sign outs
+        // avatar: data.owner.avatar,
+        username: '',
+        registered: false,
       }),
       name: (data.info && data.info.os) ? data.info.os.hostname : null,
       keyfile: (data.registration && data.registration.keyFile) ? data.registration.keyFile.contents : null,
