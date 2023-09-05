@@ -10,6 +10,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
+import { useUnraidApiStore } from '~/store/unraidApi';
 
 export interface Props {
   open?: boolean;
@@ -25,6 +26,7 @@ const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 // const promoStore = usePromoStore();
 const serverStore = useServerStore();
+const unraidApiStore = useUnraidApiStore();
 
 const {
   accountAction,
@@ -48,6 +50,7 @@ const {
   refreshServerStateStatus,
   username,
 } = storeToRefs(serverStore);
+const { unraidApiStatus } = storeToRefs(unraidApiStore);
 /**
  * Post sign in success state:
  * If we're on the Connect settings page in the webGUI
@@ -59,7 +62,6 @@ const {
 const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/ManagementAccess');
 
 // const showPromoCta = computed(() => callbackStatus.value === 'success' && !connectPluginInstalled.value);
-const showSignInCta = computed(() => connectPluginInstalled.value && !registered.value && authAction.value?.name === 'signIn' && accountActionType.value !== 'signIn');
 
 const heading = computed(() => {
   switch (callbackStatus.value) {
@@ -239,29 +241,14 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           :icon="InformationCircleIcon"
           :text="t('Enhance your experience with Unraid Connect')"
         /> -->
-
-        <UpcCallbackFeedbackStatus
-          v-if="showSignInCta"
-          :icon="InformationCircleIcon"
-          :text="t('Sign In to utilize Unraid Connect')"
-        />
       </div>
     </template>
 
     <template v-if="callbackStatus === 'success'" #footer>
       <div class="flex flex-row justify-center gap-16px">
-        <BrandButton
-          v-if="showSignInCta"
-          btn-style="underline"
-          :disabled="authAction?.disabled"
-          :external="authAction?.external"
-          :icon="authAction?.icon"
-          :text="t(authAction?.text)"
-          @click="authAction?.click"
-        />
 
         <BrandButton
-          :btn-style="!showSignInCta ? 'underline': undefined"
+          btn-style="underline"
           :text="closeText"
           @click="close"
         />
