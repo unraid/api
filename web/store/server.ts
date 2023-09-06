@@ -266,7 +266,7 @@ export const useServerStore = defineStore('server', () => {
    */
   const signInAction = computed((): ServerStateDataAction => {
     const disabled = unraidApiStore.unraidApiStatus !== 'online';
-    const title = disabled ? 'Sign In requires a connection to unraid-api' : '';
+    const title = disabled ? 'Sign In requires the local unraid-api to be running' : '';
     return {
       click: () => { accountStore.signIn(); },
       disabled,
@@ -287,7 +287,7 @@ export const useServerStore = defineStore('server', () => {
       title = 'Sign Out requires a keyfile';
     }
     if (unraidApiStore.unraidApiStatus !== 'online') {
-      title = 'Sign Out requires a connection to unraid-api';
+      title = 'Sign Out requires the local unraid-api to be running';
     }
     return {
       click: () => { accountStore.signOut(); },
