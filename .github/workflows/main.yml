@@ -282,11 +282,6 @@ jobs:
           removeMarkdown: false
           filePath: "./api/CHANGELOG.md"
 
-      - name: Create release notes
-        run: |
-          # escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${{steps.changelog.outputs.latestBody}}")
-          # sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
-
       - name: Run LS in unraid-api folder
         run: |
           cp archive/dynamix.unraid.net.staging-*.txz staging-release/
