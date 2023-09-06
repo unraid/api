@@ -200,5 +200,7 @@
   "Your free Trial key provides all the functionality of a Pro Registration key": "Your free Trial key provides all the functionality of a Pro Registration key",
   "Calculating trial expiration…": "Calculating trial expiration…",
   "Signing In": "Signing In",
-  "Signing Out": "Signing Out"
+  "Signing Out": "Signing Out",
+  "Sign In requires the local unraid-api to be running": "Sign In requires the local unraid-api to be running",
+  "Sign Out requires the local unraid-api to be running": "Sign Out requires the local unraid-api to be running"
 }
