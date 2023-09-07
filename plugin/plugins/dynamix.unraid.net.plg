@@ -161,7 +161,7 @@ exit 0
 <?
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
 
-# for convenience, scan myservers.cfg for deleteOnUninstall="no" and if that exists, 
+# for convenience, scan myservers.cfg for deleteOnUninstall="no" and if that exists,
 # then skip the rest of the cleanup.
 $deleteOnUninstall = ($msini === false || empty($msini['plugin']['deleteOnUninstall']) || $msini['plugin']['deleteOnUninstall'] == 'yes');
 
@@ -319,6 +319,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR-" ]] && mv -f "$DIR-" "$DIR"
   # delete plugin files from flash drive and OS
   rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
   rm -f /etc/rc.d/rc.unraid-api
@@ -379,7 +380,7 @@ if [[ "${version:0:3}" == "6.9" || "${version:0:7}" == "6.10.0-" ]]; then
   echo
   PLGNAME=dynamix.unraid.net
   [ "${PLGTYPE}" = "staging" ] && PLGNAME=dynamix.unraid.net.staging
-  
+
   DIR="/usr/local/emhttp/plugins/${PLGNAME}" && [[ ! -d "$DIR" ]] && mkdir "$DIR"
 cat << EOF > "$DIR/README.md"
 **Unraid Connect**
@@ -405,6 +406,7 @@ FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
+DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR" ]] && mv -f "$DIR" "$DIR-"
 
 # move settings on flash drive
 CFG_OLD=/boot/config/plugins/Unraid.net
