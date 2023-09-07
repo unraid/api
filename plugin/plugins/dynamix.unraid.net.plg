@@ -320,6 +320,8 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR-" ]] && mv -f "$DIR-" "$DIR"
+  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   # delete plugin files from flash drive and OS
   rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
   rm -f /etc/rc.d/rc.unraid-api
@@ -407,6 +409,8 @@ FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
 DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR" ]] && mv -f "$DIR" "$DIR-"
+FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
+FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 
 # move settings on flash drive
 CFG_OLD=/boot/config/plugins/Unraid.net
