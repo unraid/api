@@ -201,5 +201,10 @@ $webComponentTranslations = [
     'Install Recovered' => _('Install Recovered'),
     'Install Replaced' => _('Install Replaced'),
     'Your free Trial key provides all the functionality of a Pro Registration key' => _('Your free Trial key provides all the functionality of a Pro Registration key'),
+    'Calculating trial expiration…' => _('Calculating trial expiration…'),
+    'Signing In' => _('Signing In'),
+    'Signing Out' => _('Signing Out'),
+    'Sign In requires the local unraid-api to be running' => _('Sign In requires the local unraid-api to be running'),
+    'Sign Out requires the local unraid-api to be running' => _('Sign Out requires the local unraid-api to be running')
   ],
 ];
