@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.2](https://github.com/unraid/api/compare/v3.2.1...v3.2.2) (2023-09-07)
+
+
+### Bug Fixes
+
+* **web:** namespace conflight with dynamix.file.manager ([d3c2b74](https://github.com/unraid/api/commit/d3c2b74b9f36ccc3cbe6b4b633fb1a03001b73c7))
+
 ### [3.2.1](https://github.com/unraid/api/compare/v3.2.0...v3.2.1) (2023-09-06)
 
 
