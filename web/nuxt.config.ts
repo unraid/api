@@ -10,7 +10,7 @@ for (const k in envConfig) {
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
  */
 function terserReservations (inputStr: string) {
-  const combinations = [];
+  const combinations = ['ace'];
 
   // Add 1-character combinations
   for (let i = 0; i < inputStr.length; i++) {
@@ -27,7 +27,7 @@ function terserReservations (inputStr: string) {
   return combinations;
 }
 
-const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
