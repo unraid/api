@@ -42,7 +42,7 @@ const showExpireTime = computed(() => {
       />
     </header>
     <ul v-if="stateData.actions" class="list-reset flex flex-col gap-y-8px px-16px">
-      <li v-if="unraidApiStatus !== 'online'">
+      <li v-if="connectPluginInstalled && unraidApiStatus !== 'online'">
         <BrandButton
           class="w-full"
           :disabled="unraidApiStatus === 'connecting' || unraidApiStatus === 'restarting'"
