@@ -4,7 +4,9 @@
   "scripts": {
     "build": "nuxt build",
     "build:dev": "nuxt build && npm run deploy:dev",
+    "build:webgui": "nuxt build && npm run copy-to-webgui",
     "deploy:dev": "./scripts/deploy-dev.sh",
+    "copy-to-webgui": "./scripts/copy-to-webgui-repo.sh",
     "dev": "nuxt dev",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "generate": "nuxt generate",
