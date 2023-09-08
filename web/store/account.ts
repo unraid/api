@@ -211,8 +211,6 @@ export const useAccountStore = defineStore('account', () => {
       console.debug('[connectSignOutMutation]', res);
       accountActionStatus.value = 'success';
       setQueueConnectSignOut(false); // reset
-      // Restarting the unraid api client to see if this helps remedy the unpredictable issue of needing to sign in twice
-      unraidApiStore.restartUnraidApiClient();
     });
 
     onError((error) => {
