@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.2.3](https://github.com/unraid/api/compare/v3.2.2...v3.2.3) (2023-09-08)
+
+
+### Bug Fixes
+
+* **plg:** preserve & restore new plg files on install / remove ([7e1f59a](https://github.com/unraid/api/commit/7e1f59afd218235934a53ac4ea6fd166689269a4))
+* remove API restart command ([0eb1530](https://github.com/unraid/api/commit/0eb1530d649647f47d26de459e394fd48e79b071))
+* **web:** add missing translations ([0227a1e](https://github.com/unraid/api/commit/0227a1ed1bdf953eae7784fccf04dd94995f5114))
+* **web:** htmlspecialchars name & description ([a874fd8](https://github.com/unraid/api/commit/a874fd8f4b2fdf5d261f3b167452532bf09059ab))
+
 ### [3.2.2](https://github.com/unraid/api/compare/v3.2.1...v3.2.2) (2023-09-07)
 
 
