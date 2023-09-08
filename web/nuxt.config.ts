@@ -5,6 +5,16 @@ for (const k in envConfig) {
   process.env[k] = envConfig[k];
 }
 
+console.log('\n');
+console.log('==============================');
+console.log('========= ENV VALUES =========');
+console.log('==============================');
+console.log('[ACCOUNT URL]', process.env.VITE_ACCOUNT);
+console.log('[CONNECT URL]', process.env.VITE_CONNECT);
+console.log('[UNRAID.NET URL]', process.env.VITE_UNRAID_NET);
+console.log('==============================');
+console.log('\n');
+
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
