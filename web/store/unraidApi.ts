@@ -3,7 +3,7 @@ import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { getMainDefinition } from '@apollo/client/utilities';
-import { ArrowPathIcon } from '@heroicons/vue/24/solid';
+import { ArrowPathIcon, CogIcon } from '@heroicons/vue/24/solid';
 import { provideApolloClient } from '@vue/apollo-composable';
 // import { logErrorMessages } from '@vue/apollo-util';
 import { createClient } from 'graphql-ws';
@@ -11,7 +11,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { UserProfileLink } from 'types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
-import { GRAPHQL } from '~/helpers/urls';
+import { GRAPHQL, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
@@ -38,6 +38,22 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       if (apiResponse) {
         // we have a response, so we're online
         unraidApiStatus.value = 'online';
+
+        const msg = `<p>The CORS policy for this site does not allow access from the specified Origin'./p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
+        errorsStore.setError({
+          heading: 'Unraid API • CORS Error',
+          message: msg,
+          level: 'error',
+          ref: 'unraidApiCorsError',
+          type: 'unraidApiGQL',
+          actions: [
+            {
+              href: `${PLUGIN_SETTINGS.toString()}#extraOriginsSettings`,
+              icon: CogIcon,
+              text: 'Go to Connect Settings',
+            }
+          ],
+        });
       }
     }
   });
@@ -95,6 +111,21 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
           }
           if (error.error.message && error.error.message.includes(ERROR_CORS_403)) {
             prioritizeCorsError = true;
+            const msg = `<p>${error.error.message}</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
+            errorsStore.setError({
+              heading: 'Unraid API • CORS Error',
+              message: msg,
+              level: 'error',
+              ref: 'unraidApiCorsError',
+              type: 'unraidApiGQL',
+              actions: [
+                {
+                  href: `${PLUGIN_SETTINGS.toString()}#extraOriginsSettings`,
+                  icon: CogIcon,
+                  text: 'Go to Connect Settings',
+                }
+              ],
+            });
           }
           return error.message;
         });

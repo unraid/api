@@ -87,13 +87,26 @@ div.shade-gray{background-color:#121510;margin-top:10px;padding:8px 0 3px 0}
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
 
-$('body').on('change keyup', '#UnraidNetSettings', function(data) {
+$('body').on('change keyup', '.js-extraOrigins', function(data) {
+  console.debug('change keyup', data);
   validateExtraOrigins();
   if (!isExtraOriginsValid) {
-    return $(this).find('.applyBtn').prop("disabled",true);
+    return $('.js-extraOriginsApply').prop("disabled",true);
   }
-  return $(this).find('.applyBtn').removeAttr('disabled');
+  return $('.js-extraOriginsApply').removeAttr('disabled');
 });
+
+function applyExtraOrigins(button) {
+  const postobj = {
+      "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
+      "api_extraOrigins": validateExtraOrigins(),
+  };
+
+  $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+  $.post('/webGui/include/Dispatcher.php', postobj, function(_extraOriginsData) {
+    window.location.reload();
+  });
+}
 
 function registerServer(button) {
 
@@ -153,7 +166,6 @@ function registerServer(button) {
              // only allow 'yes' value when fields are enabled
             "local_2Fa": enableLocalT2fa ? $('#local2fa').val() : 'no',
             "remote_2Fa": enableRemoteT2fa ? $('#remote2fa').val()  : 'no',
-            "api_extraOrigins": validateExtraOrigins(),
         };
 
         $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
@@ -430,9 +442,9 @@ $.post('/plugins/dynamix.my.servers/include/UpdateFlashBackup.php',{command:"sta
 let isExtraOriginsValid = false;
 const validateExtraOrigins = () => {
   const val = $('.js-extraOrigins').val();
-  const $grandParent = $('.js-extraOrigins').parent().parent(); // setting here in this scope b/c it didn't work setting outside of this function
+  const $label = $('.js-extraOriginsLabel'); // setting here in this scope b/c it didn't work setting outside of this function
   if (!val) {
-    $grandParent.removeClass('red-text');
+    $label.removeClass('red-text');
     isExtraOriginsValid = true;
     return '';
   }
@@ -440,12 +452,12 @@ const validateExtraOrigins = () => {
   if (trimmed.slice(-1) === ',') trimmed = trimmed.slice(0, -1); // if last char is in string is a comma we need to remove it other wise `isCommaSeparatedURLs` will fail
   const isValid = isCommaSeparatedURLs(trimmed);
   if (!isValid) { // tell the user to fix it
-    $grandParent.addClass('red-text');
+    $label.addClass('red-text');
     isExtraOriginsValid = false;
     return '';
   }
   // remove any negative feedback
-  $grandParent.removeClass('red-text');
+  $label.removeClass('red-text');
   isExtraOriginsValid = true;
   return trimmed;
 };
@@ -591,11 +603,6 @@ _(Enable Transparent 2FA for Local Access)_<!-- do not index -->:
   </select> <span id="local2fa_remark" style="display:<?=($enableLocalT2fa ? 'none' : 'inline')?>;"><?=$localT2faRemark??''?></span>
 
 :myservers_local_t2fa_help:
-
-_(Unraid API extra origins)_<!-- do not index -->:
-: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$myservers['api']['extraOrigins']??''?>">
-
-:unraidnet_extraorigins_help:
 <?endif // end check for showT2Fa ?>
 
 &nbsp;
@@ -666,7 +673,6 @@ _(Flash backup)_:
 
 </div>
 </form>
-</div><!-- end Flash Backup section -->
 <script>
 changeRemoteAccess($('#remoteAccess'));
 var flashbackupsub = new NchanSubscriber('/sub/flashbackup');
@@ -683,6 +689,7 @@ $(function() {
 });
 </script>
 <?endif // end show flash backup form ?>
+</div><!-- end Flash Backup section -->
 
 <!-- start unraid-api section -->
 <div markdown="1" class="js-unraidApiLogs <?=$shade?>">
@@ -691,6 +698,17 @@ $(function() {
 
 _(Account status)_:
 : <unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>
+
+<!-- start extra origins -->
+<span class="js-extraOriginsLabel">_(Unraid API extra origins)_:</span>
+: <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$myservers['api']['extraOrigins']??''?>">
+
+:unraidnet_extraorigins_help:
+
+&nbsp;
+: <button class="js-extraOriginsApply" type="button" onclick="applyExtraOrigins(this)" disabled="disabled">_(Apply)_</button>
+<!-- // end extra origins -->
+
 
 <?if($isRegistered):?>
 _(Connected to Unraid Connect Cloud)_: 

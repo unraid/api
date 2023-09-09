@@ -11,7 +11,7 @@ import type { Server } from '~/types/server';
  */
 setActivePinia(createPinia());
 
-export type ErrorType = 'account' | 'callback' | 'installKey' | 'server' | 'serverState' | 'unraidApiState';
+export type ErrorType = 'account' | 'callback' | 'installKey' | 'server' | 'serverState' | 'unraidApiGQL' | 'unraidApiState';
 export interface Error {
   actions?: ButtonProps[];
   debugServer?: Server;
