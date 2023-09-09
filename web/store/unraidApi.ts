@@ -38,7 +38,9 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       if (apiResponse) {
         // we have a response, so we're online
         unraidApiStatus.value = 'online';
-
+        /**
+         * @todo remove TEMPORARILY FORCING THIS ERROR
+         */
         const msg = `<p>The CORS policy for this site does not allow access from the specified Origin'./p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
         errorsStore.setError({
           heading: 'Unraid API • CORS Error',
