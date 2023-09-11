@@ -11,7 +11,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { UserProfileLink } from 'types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
-import { GRAPHQL, PLUGIN_SETTINGS } from '~/helpers/urls';
+import { GRAPHQL, SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
@@ -38,24 +38,6 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       if (apiResponse) {
         // we have a response, so we're online
         unraidApiStatus.value = 'online';
-        /**
-         * @todo remove TEMPORARILY FORCING THIS ERROR
-         */
-        const msg = `<p>The CORS policy for this site does not allow access from the specified Origin'./p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
-        errorsStore.setError({
-          heading: 'Unraid API • CORS Error',
-          message: msg,
-          level: 'error',
-          ref: 'unraidApiCorsError',
-          type: 'unraidApiGQL',
-          actions: [
-            {
-              href: `${PLUGIN_SETTINGS.toString()}#extraOriginsSettings`,
-              icon: CogIcon,
-              text: 'Go to Connect Settings',
-            }
-          ],
-        });
       }
     }
   });
@@ -113,7 +95,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
           }
           if (error.error.message && error.error.message.includes(ERROR_CORS_403)) {
             prioritizeCorsError = true;
-            const msg = `<p>${error.error.message}</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
+            const msg = `<p>The CORS policy for this site does not allow access from the specified Origin.</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
             errorsStore.setError({
               heading: 'Unraid API • CORS Error',
               message: msg,
@@ -122,7 +104,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
               type: 'unraidApiGQL',
               actions: [
                 {
-                  href: `${PLUGIN_SETTINGS.toString()}#extraOriginsSettings`,
+                  href: `${SETTINGS_MANAGMENT_ACCESS.toString()}#extraOriginsSettings`,
                   icon: CogIcon,
                   text: 'Go to Connect Settings',
                 }
