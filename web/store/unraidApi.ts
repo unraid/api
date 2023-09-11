@@ -95,7 +95,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
           }
           if (error.error.message && error.error.message.includes(ERROR_CORS_403)) {
             prioritizeCorsError = true;
-            const msg = `<p>The CORS policy for this site does not allow access from the specified Origin.</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
+            const msg = `<p>The CORS policy for the unraid-api does not allow access from the specified origin.</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
             errorsStore.setError({
               heading: 'Unraid API • CORS Error',
               message: msg,
