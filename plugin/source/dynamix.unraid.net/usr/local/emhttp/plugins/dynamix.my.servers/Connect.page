@@ -87,27 +87,6 @@ div.shade-gray{background-color:#121510;margin-top:10px;padding:8px 0 3px 0}
 const hasMyUnraidNetCert = <?=($hasMyUnraidNetCert ? 'true' : 'false')?>;
 const wanAccessOrg = "<?=$myservers['remote']['wanaccess']?>";
 
-$('body').on('change keyup', '.js-extraOrigins', function(data) {
-  console.debug('change keyup', data);
-  validateExtraOrigins();
-  if (!isExtraOriginsValid) {
-    return $('.js-extraOriginsApply').prop("disabled",true);
-  }
-  return $('.js-extraOriginsApply').removeAttr('disabled');
-});
-
-function applyExtraOrigins(button) {
-  const postobj = {
-      "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
-      "api_extraOrigins": validateExtraOrigins(),
-  };
-
-  $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-  $.post('/webGui/include/Dispatcher.php', postobj, function(_extraOriginsData) {
-    window.location.reload();
-  });
-}
-
 function registerServer(button) {
 
     const $remoteAccessInput = $('#remoteAccess');
@@ -439,6 +418,18 @@ function buttonStateReset(newstate) {
 }
 $.post('/plugins/dynamix.my.servers/include/UpdateFlashBackup.php',{command:"status"});
 
+function applyExtraOrigins(button) {
+  const postobj = {
+      "#cfg": "/boot/config/plugins/dynamix.my.servers/myservers.cfg",
+      "api_extraOrigins": validateExtraOrigins(),
+  };
+
+  $(button).prop("disabled", true).html("_(Applying)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
+  $.post('/webGui/include/Dispatcher.php', postobj, function(_extraOriginsData) {
+    window.location.reload();
+  });
+}
+
 let isExtraOriginsValid = false;
 const validateExtraOrigins = () => {
   const val = $('.js-extraOrigins').val();
@@ -465,6 +456,15 @@ const isCommaSeparatedURLs = input =>
   input
     .split(",")
     .every(value => /^(http|https):\/\/[^ "]+$/.test(value));
+
+$('body').on('change keyup', '.js-extraOrigins', function(data) {
+  console.debug('change keyup', data);
+  validateExtraOrigins();
+  if (!isExtraOriginsValid) {
+    return $('.js-extraOriginsApply').prop("disabled",true);
+  }
+  return $('.js-extraOriginsApply').removeAttr('disabled');
+});
 </script>
 
 <form id="UnraidNetSettings" markdown="1" name="UnraidNetSettings" method="POST" action="/update.htm" target="progressFrame">
@@ -700,7 +700,7 @@ _(Account status)_:
 : <unraid-i18n-host><unraid-auth></unraid-auth></unraid-i18n-host>
 
 <!-- start extra origins -->
-<span class="js-extraOriginsLabel">_(Unraid API extra origins)_:</span>
+<span id="extraOriginsSettings" class="js-extraOriginsLabel">_(Unraid API extra origins)_:</span>
 : <input class="js-extraOrigins" name="extraOrigins" type="text" value="<?=$myservers['api']['extraOrigins']??''?>">
 
 :unraidnet_extraorigins_help:
