@@ -6,6 +6,7 @@ import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsStore } from '~/store/updateOs';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{ t: any; }>();
@@ -13,8 +14,9 @@ const props = defineProps<{ t: any; }>();
 const errorsStore = useErrorsStore();
 // const promoStore = usePromoStore();
 
-const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
 const { errors } = storeToRefs(errorsStore);
+const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
+const { updateAvailable, initUpdateOsCallback } = storeToRefs(useUpdateOsStore());
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -24,7 +26,7 @@ const links = computed(():UserProfileLink[] => {
     ...(registered.value && connectPluginInstalled.value
       ? [
           {
-            emphasize: true,
+            emphasize: !updateAvailable.value, // only emphasize when we don't have an update available
             external: true,
             href: CONNECT_DASHBOARD.toString(),
             icon: ArrowTopRightOnSquareIcon,
@@ -90,6 +92,12 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
       <li v-if="showKeyline" class="my-8px">
         <UpcKeyline />
       </li>
+
+      <template v-if="updateAvailable">
+        <li>
+          <UpcDropdownItem :item="initUpdateOsCallback" :t="t" />
+        </li>
+      </template>
 
       <template v-if="keyActions">
         <li v-for="action in keyActions" :key="action.name">
