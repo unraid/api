@@ -27,8 +27,9 @@ export type TrialStart = 'trialStart';
 export type Purchase = 'purchase';
 export type Redeem = 'redeem';
 export type Upgrade = 'upgrade';
+export type UpdateOs = 'updateOs';
 export type AccountActionTypes = Troubleshoot | SignIn | SignOut | OemSignOut;
-export type AccountKeyActionTypes = Recover | Replace | TrialExtend | TrialStart;
+export type AccountKeyActionTypes = Recover | Replace | TrialExtend | TrialStart | UpdateOs;
 export type PurchaseActionTypes = Purchase | Redeem | Upgrade;
 
 export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
@@ -76,6 +77,11 @@ export interface ExternalKeyActions {
   keyUrl: string;
 }
 
+export interface ExternalUpdateOsAction {
+  type: UpdateOs;
+  plgUrl: string;
+}
+
 export interface ServerPayload {
   type: ServerActionTypes;
   server: ServerData;
@@ -86,7 +92,7 @@ export interface ServerTroubleshoot {
   server: ServerData;
 }
 
-export type ExternalActions = ExternalSignIn | ExternalSignOut | ExternalKeyActions;
+export type ExternalActions = ExternalSignIn | ExternalSignOut | ExternalKeyActions | ExternalUpdateOsAction;
 
 export type UpcActions = ServerPayload | ServerTroubleshoot;
 

@@ -4,12 +4,14 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsStore } from '~/store/updateOs';
 import { useCallbackStoreGeneric, type CallbackActionsStore, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
+  const updateOsStore = useUpdateOsStore();
 
   type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
@@ -57,6 +59,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         accountStore.setAccountAction(action);
         accountStore.setQueueConnectSignOut(true);
       }
+
+      // if (action.type === 'updateOs') {
+      //   updateOsStore.setAccountAction(action);
+      //   updateOsStore.installOsUpdate();
+      // }
       // all actions have run
       if (array.length === (index + 1)) {
         await serverStore.refreshServerState();

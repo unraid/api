@@ -7,6 +7,7 @@ import { useCallbackStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
+import { useUpdateOsStore } from '~/store/updateOs';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -21,6 +22,7 @@ const { t } = useI18n();
 const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore();
 const serverStore = useServerStore();
+const updateOsStore = useUpdateOsStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { name, description, lanIp, state, connectPluginInstalled } = storeToRefs(serverStore);
@@ -73,6 +75,7 @@ onBeforeMount(() => {
   }
 
   callbackStore.watcher();
+  updateOsStore.checkForOsUpdate();
 });
 </script>
 

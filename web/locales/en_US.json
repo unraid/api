@@ -202,5 +202,6 @@
   "Signing In": "Signing In",
   "Signing Out": "Signing Out",
   "Sign In requires the local unraid-api to be running": "Sign In requires the local unraid-api to be running",
-  "Sign Out requires the local unraid-api to be running": "Sign Out requires the local unraid-api to be running"
+  "Sign Out requires the local unraid-api to be running": "Sign Out requires the local unraid-api to be running",
+  "Unraid OS Update Available": "Unraid OS Update Available"
 }

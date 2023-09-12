@@ -834,6 +834,7 @@ export const useServerStore = defineStore('server', () => {
     locale,
     lanIp,
     name,
+    osVersion,
     registered,
     regGen,
     regGuid,
