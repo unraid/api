@@ -16,6 +16,8 @@ const PURCHASE_CALLBACK = new URL('/c', UNRAID_NET);
 const SETTINGS_MANAGMENT_ACCESS = new URL('/Settings/ManagementAccess', window.location.origin);
 const PLUGIN_SETTINGS = new URL('#UnraidNetSettings', SETTINGS_MANAGMENT_ACCESS);
 
+const OS_RELEASES = new URL('https://s3.amazonaws.com/dnld.lime-technology.com/stable/releases.json');
+
 export {
   ACCOUNT,
   ACCOUNT_CALLBACK,
@@ -28,4 +30,5 @@ export {
   PURCHASE_CALLBACK,
   PLUGIN_SETTINGS,
   SETTINGS_MANAGMENT_ACCESS,
+  OS_RELEASES,
 };
