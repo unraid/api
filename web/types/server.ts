@@ -110,7 +110,7 @@ export interface ServerPurchaseCallbackSendPayload {
   site: string;
 }
 
-export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'replace' | 'trialExtend' | 'trialStart';
+export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
 
 export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
 

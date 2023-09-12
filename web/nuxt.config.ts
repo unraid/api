@@ -1,17 +1,14 @@
 import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
 const envConfig = parse(readFileSync('.env'));
-for (const k in envConfig) {
-  process.env[k] = envConfig[k];
-}
-
 console.log('\n');
 console.log('==============================');
 console.log('========= ENV VALUES =========');
 console.log('==============================');
-console.log('[ACCOUNT URL]', process.env.VITE_ACCOUNT);
-console.log('[CONNECT URL]', process.env.VITE_CONNECT);
-console.log('[UNRAID.NET URL]', process.env.VITE_UNRAID_NET);
+for (const k in envConfig) {
+  process.env[k] = envConfig[k];
+  console.log(`[${k}]`, process.env[k]);
+}
 console.log('==============================');
 console.log('\n');
 
@@ -63,7 +60,7 @@ export default defineNuxtConfig({
     build: {
       minify: 'terser',
       terserOptions: {
-        mangle: {
+        mangle: process.env.VITE_ALLOW_CONSOLE_LOGS ? false : {
           reserved: terserReservations(charsToReserve),
           toplevel: true,
         },
