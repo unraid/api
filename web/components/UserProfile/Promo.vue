@@ -1,7 +1,5 @@
 <script lang="ts" setup>
 /**
- * @todo devEnv should be a .env variable so we can gate staging installs
- *
  * @todo future idea – turn this into a carousel. each feature could have a short video if we ever them
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
@@ -64,6 +62,12 @@ const features = ref<UserProfilePromoFeature[]>([
 ]);
 
 const staging = ref(false);
+
+const connectPluginUrl = computed((): string => {
+  const url = new URL(`https://sfo2.digitaloceanspaces.com/unraid-dl/unraid-api/dynamix.unraid.net${staging.value ? '.staging.plg' : '.plg'}`);
+  return url.toString();
+});
+
 const { install } = useInstallPlugin();
 </script>
 
@@ -106,7 +110,7 @@ const { install } = useInstallPlugin();
         </SwitchGroup>
         <button
           class="text-white text-14px text-center w-full flex flex-row items-center justify-center gap-x-8px px-8px py-8px cursor-pointer rounded-md bg-gradient-to-r from-unraid-red to-orange hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60"
-          @click="install({ staging, update: false })"
+          @click="install({ pluginUrl: connectPluginUrl, modalTitle: t('Installing Connect') })"
         >
           {{ staging ? 'Install Connect Staging' : t('Install Connect') }}
         </button>
