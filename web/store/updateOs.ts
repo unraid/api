@@ -2,11 +2,14 @@ import { BellAlertIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import gt from 'semver/functions/gt';
 
+import useInstallPlugin from '~/composables/installPlugin';
 import { request } from '~/composables/services/request';
 import { ACCOUNT_CALLBACK, OS_RELEASES } from '~/helpers/urls';
 import { useCallbackStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
+import type { InstallPluginPayload } from '~/composables/installPlugin';
+import type { OsRelease } from '~/store/callback';
 import type { ServerStateDataAction } from '~/types/server';
 
 /**
@@ -15,29 +18,17 @@ import type { ServerStateDataAction } from '~/types/server';
  */
 setActivePinia(createPinia());
 
-export interface OsRelease {
-  basefile: string; // "unRAIDServer-6.12.4-x86_64.zip"
-  changelog: string; // "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/stable/unRAIDServer-6.12.4-x86_64.txt"
-  date: string; // "2023-08-31"
-  md5: string; // "df6e5859d28c14617efde36d59458206"
-  name: string; // "Unraid 6.12.4"
-  size: string; // "439999418"
-  url: string; // "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/stable/unRAIDServer-6.12.4-x86_64.zip"
-}
-
 export const useUpdateOsStore = defineStore('updateOs', () => {
   const callbackStore = useCallbackStore();
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
 
+  const { install: installPlugin } = useInstallPlugin();
+
   // State
-  const status = ref<'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
-  const updateAvailable = ref<OsRelease | undefined>();
-  watchEffect(() => {
-    if (updateAvailable.value) {
-      console.debug('[useUpdateOsStore] updateAvailable', updateAvailable.value);
-    }
-  });
+  const status = ref<'confirming' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
+  const callbackUpdateRelease = ref<OsRelease | undefined>(); // used when coming back from callback, this will be the release to install
+  const updateAvailable = ref<OsRelease | undefined>(); // used locally to show update action button
   const downgradeAvailable = ref<boolean>(false);
 
   // Getters
@@ -66,16 +57,6 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     }
   };
 
-  const downgradeOs = async () => {
-    console.debug('[downgradeOs]');
-    status.value = 'downgrading';
-  };
-
-  const installOsUpdate = (plgUrl: string) => {
-    console.debug('[installOsUpdate]', plgUrl);
-    status.value = 'updating';
-  };
-
   const initUpdateOsCallback = computed((): ServerStateDataAction => {
     return {
       click: () => {
@@ -98,14 +79,46 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     }
   });
 
+  const confirmUpdateOs = (payload: OsRelease) => {
+    console.debug('[confirmUpdateOs]');
+    callbackUpdateRelease.value = payload;
+    setStatus('confirming');
+  };
+
+  const installOsUpdate = () => {
+    console.debug('[installOsUpdate]', callbackUpdateRelease.value);
+    if (!callbackUpdateRelease.value) {
+      return console.error('[installOsUpdate] release not found');
+    }
+
+    status.value = 'updating';
+    installPlugin({
+      modalTitle: `${callbackUpdateRelease.value.name} Update`,
+      pluginUrl: callbackUpdateRelease.value.url,
+      update: true,
+    });
+  };
+
+  const downgradeOs = async () => {
+    console.debug('[downgradeOs]');
+    setStatus('downgrading');
+  };
+
+  const setStatus = (payload: typeof status.value) => {
+    status.value = payload;
+  };
+
   return {
     // State
+    callbackUpdateRelease,
     status,
     updateAvailable,
     // Actions
     checkForOsUpdate,
+    confirmUpdateOs,
     downgradeOs,
     installOsUpdate,
     initUpdateOsCallback,
+    setStatus,
   };
 });
