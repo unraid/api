@@ -34,6 +34,16 @@ export type PurchaseActionTypes = Purchase | Redeem | Upgrade;
 
 export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
 
+export interface OsRelease {
+  basefile: string; // "unRAIDServer-6.12.4-x86_64.zip"
+  changelog: string; // "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/stable/unRAIDServer-6.12.4-x86_64.txt"
+  date: string; // "2023-08-31"
+  md5: string; // "df6e5859d28c14617efde36d59458206"
+  name: string; // "Unraid 6.12.4"
+  size: string; // "439999418"
+  url: string; // "https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/stable/unRAIDServer-6.12.4-x86_64.zip"
+}
+
 /**
  * Represents a server, payload comes from the server to account.unraid.net
  */
@@ -79,7 +89,7 @@ export interface ExternalKeyActions {
 
 export interface ExternalUpdateOsAction {
   type: UpdateOs;
-  plgUrl: string;
+  release: OsRelease;
 }
 
 export interface ServerPayload {
