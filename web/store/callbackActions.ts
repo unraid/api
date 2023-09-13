@@ -60,12 +60,16 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         accountStore.setQueueConnectSignOut(true);
       }
 
-      // if (action.type === 'updateOs') {
-      //   updateOsStore.setAccountAction(action);
-      //   updateOsStore.installOsUpdate();
-      // }
-      // all actions have run
-      if (array.length === (index + 1)) {
+      if (action.type === 'updateOs' && action?.release) {
+        updateOsStore.confirmUpdateOs(action.release);
+        if (array.length === 1) { // only 1 action, skip refresh server state
+          // removing query string relase is set so users can't refresh the page and go through the same actions
+          window.history.replaceState(null, '', window.location.pathname);
+          return
+        }
+      }
+
+      if (array.length === (index + 1)) { // all actions have run
         await serverStore.refreshServerState();
         // callbackStatus.value = 'done';
       }
