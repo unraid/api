@@ -60,6 +60,7 @@
   "No thanks": "No thanks",
   "Learn more": "Learn more",
   "Install Connect": "Install Connect",
+  "Installing Connect": "Installing Connect",
   "Close Modal": "Close Modal",
   "Close": "Close",
   "Reload": "Reload",
@@ -203,5 +204,11 @@
   "Signing Out": "Signing Out",
   "Sign In requires the local unraid-api to be running": "Sign In requires the local unraid-api to be running",
   "Sign Out requires the local unraid-api to be running": "Sign Out requires the local unraid-api to be running",
-  "Unraid OS Update Available": "Unraid OS Update Available"
+  "Unraid OS Update Available": "Unraid OS Update Available",
+  "Update Unraid OS confirmation required": "Update Unraid OS confirmation required",
+  "Please confirm the update details below": "Please confirm the update details below",
+  "Current Version: Unraid {0}": "Current Version: Unraid {0}",
+  "New Version: {0}": "New Version: {0}",
+  "This update will require a reboot": "This update will require a reboot",
+  "Confirm and start update": "Confirm and start update"
 }
