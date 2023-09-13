@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core';
-import { ClipboardIcon, CogIcon } from '@heroicons/vue/24/solid';
+import { ChevronDoubleDownIcon, ClipboardIcon, CogIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -10,6 +10,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsStore } from '~/store/updateOs';
 
 export interface Props {
   open?: boolean;
@@ -25,6 +26,7 @@ const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 // const promoStore = usePromoStore();
 const serverStore = useServerStore();
+const updateOsStore = useUpdateOsStore();
 
 const {
   accountAction,
@@ -45,7 +47,12 @@ const {
   connectPluginInstalled,
   refreshServerStateStatus,
   username,
+  osVersion,
 } = storeToRefs(serverStore);
+const {
+  status: updateOsStatus,
+  callbackUpdateRelease,
+} = storeToRefs(updateOsStore);
 /**
  * Post sign in success state:
  * If we're on the Connect settings page in the webGUI
@@ -59,6 +66,9 @@ const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/Ma
 // const showPromoCta = computed(() => callbackStatus.value === 'success' && !connectPluginInstalled.value);
 
 const heading = computed(() => {
+  if (updateOsStatus.value === 'confirming') {
+    return props.t('Update Unraid OS confirmation required');
+  }
   switch (callbackStatus.value) {
     case 'error':
       return props.t('Error');
@@ -69,6 +79,9 @@ const heading = computed(() => {
   }
 });
 const subheading = computed(() => {
+  if (updateOsStatus.value === 'confirming') {
+    return props.t('Please confirm the update details below');
+  }
   if (callbackStatus.value === 'error') {
     return props.t('Something went wrong'); /** @todo show actual error messages */
   }
@@ -95,12 +108,15 @@ const close = () => {
     : window.location.reload();
 };
 
+const cancelUpdateOs = () => {
+  updateOsStore.setStatus('ready');
+  callbackActionsStore.setCallbackStatus('ready')
+};
+
 // const promoClick = () => {
 //   promoStore.openOnNextLoad();
 //   close();
 // };
-
-const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 
 const keyInstallStatusCopy = computed((): { text: string; } => {
   let txt1 = props.t('Installing');
@@ -167,6 +183,8 @@ const accountActionStatusCopy = computed((): { text: string; } => {
       };
   }
 });
+
+const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
 </script>
 
 <template>
@@ -237,38 +255,69 @@ const accountActionStatusCopy = computed((): { text: string; } => {
           :text="t('Enhance your experience with Unraid Connect')"
         /> -->
       </div>
+
+      <template v-if="updateOsStatus === 'confirming'">
+        <div class="text-center flex flex-col gap-y-8px my-16px">
+          <div class="flex flex-col gap-y-4px">
+            <p class="text-18px">
+              {{ t('Current Version: Unraid {0}', [osVersion]) }}
+            </p>
+            <ChevronDoubleDownIcon class="w-32px h-32px mx-auto fill-current opacity-50" />
+            <p class="text-18px">
+              {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
+            </p>
+            <p class="text-14px italic opacity-75">
+              {{ t('This update will require a reboot') }}
+            </p>
+          </div>
+        </div>
+      </template>
     </template>
 
-    <template v-if="callbackStatus === 'success'" #footer>
+    <template v-if="callbackStatus === 'success' || updateOsStatus === 'confirming'" #footer>
       <div class="flex flex-row justify-center gap-16px">
-        <BrandButton
-          btn-style="underline"
-          :text="closeText"
-          @click="close"
-        />
-
-        <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
+        <template v-if="callbackStatus === 'success'">
           <BrandButton
-            v-if="isSettingsPage"
-            :icon="CogIcon"
-            :text="t('Configure Connect Features')"
-            class="grow-0"
+            btn-style="underline"
+            :text="closeText"
             @click="close"
           />
-          <BrandButton
-            v-else
-            :href="PLUGIN_SETTINGS.toString()"
-            :icon="CogIcon"
-            :text="t('Configure Connect Features')"
-            class="grow-0"
-          />
+
+          <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
+            <BrandButton
+              v-if="isSettingsPage"
+              :icon="CogIcon"
+              :text="t('Configure Connect Features')"
+              class="grow-0"
+              @click="close"
+            />
+            <BrandButton
+              v-else
+              :href="PLUGIN_SETTINGS.toString()"
+              :icon="CogIcon"
+              :text="t('Configure Connect Features')"
+              class="grow-0"
+            />
+          </template>
+
+          <!-- <BrandButton
+            v-if="showPromoCta"
+            :text="t('Learn More')"
+            @click="promoClick"
+          /> -->
         </template>
 
-        <!-- <BrandButton
-          v-if="showPromoCta"
-          :text="t('Learn More')"
-          @click="promoClick"
-        /> -->
+        <template v-if="updateOsStatus === 'confirming'">
+          <BrandButton
+            btn-style="underline"
+            :text="t('Cancel')"
+            @click="cancelUpdateOs"
+          />
+          <BrandButton
+            :text="t('Confirm and start update')"
+            @click="updateOsStore.installOsUpdate()"
+          />
+        </template>
       </div>
     </template>
   </Modal>
