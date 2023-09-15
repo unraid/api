@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+// @todo ensure key installs and updateOs can be handled at the same time
+// @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
 import { useClipboard } from '@vueuse/core';
 import { ChevronDoubleDownIcon, ClipboardIcon, CogIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
