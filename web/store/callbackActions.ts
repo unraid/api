@@ -60,8 +60,8 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         accountStore.setQueueConnectSignOut(true);
       }
 
-      if (action.type === 'updateOs' && action?.release) {
-        updateOsStore.confirmUpdateOs(action.release);
+      if (action.type === 'updateOs' && action?.releaseHash) {
+        updateOsStore.confirmUpdateOs(action.releaseHash);
         if (array.length === 1) { // only 1 action, skip refresh server state
           // removing query string relase is set so users can't refresh the page and go through the same actions
           window.history.replaceState(null, '', window.location.pathname);
