@@ -2,6 +2,7 @@
  * @todo Check OS and Connect Plugin versions against latest via API every session
 */
 import { defineStore, createPinia, setActivePinia } from 'pinia';
+import prerelease from 'semver/functions/prerelease';
 import {
   ArrowRightOnRectangleIcon,
   CogIcon,
@@ -107,6 +108,11 @@ export const useServerStore = defineStore('server', () => {
   const pluginOutdated = computed(():boolean => {
     return false;
   });
+
+  const isOsVersionStable = computed(() => {
+    const hasPrerelease = prerelease(osVersion.value);
+    return !hasPrerelease;
+  }); // used to determine if we should look for stable or next releases
 
   const server = computed(():Server => {
     return {
@@ -844,6 +850,7 @@ export const useServerStore = defineStore('server', () => {
     uptime,
     username,
     refreshServerStateStatus,
+    isOsVersionStable,
     // getters
     authAction,
     deprecatedUnraidSSL,
