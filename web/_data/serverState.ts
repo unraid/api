@@ -43,6 +43,8 @@ export const serverState: Server = {
     // error: 'INVALID',
     valid: true,
   },
+  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
+  // connectPluginInstalled: '',
   description: 'DevServer9000',
   deviceCount: 3,
   expireTime,
@@ -56,8 +58,7 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  // connectPluginInstalled: '',
+  osVersion: '6.12.5-rc1',
   registered: true,
   regGen: 0,
   // "regGuid": "0781-5583-8355-81071A2B0211",
