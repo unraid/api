@@ -7,7 +7,7 @@ import { useCallbackStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
-import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsStore } from '~/store/updateOsActions';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -25,7 +25,16 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const { name, description, lanIp, state, connectPluginInstalled } = storeToRefs(serverStore);
+const {
+  name,
+  description,
+  guid,
+  keyfile,
+  lanIp,
+  osVersion,
+  state,
+  connectPluginInstalled,
+} = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 const hideDropdown = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
@@ -75,7 +84,12 @@ onBeforeMount(() => {
   }
 
   callbackStore.watcher();
-  updateOsStore.checkForOsUpdate();
+  updateOsStore.checkForUpdate({
+    cache: true,
+    guid: guid.value,
+    keyfile: keyfile.value,
+    osVersion: osVersion.value,
+  });
 });
 </script>
 

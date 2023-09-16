@@ -12,7 +12,7 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   open?: boolean;
@@ -28,7 +28,7 @@ const callbackActionsStore = useCallbackActionsStore();
 const installKeyStore = useInstallKeyStore();
 // const promoStore = usePromoStore();
 const serverStore = useServerStore();
-const updateOsStore = useUpdateOsStore();
+const updateOsActionStore = useUpdateOsActionsStore();
 
 const {
   accountAction,
@@ -54,7 +54,7 @@ const {
 const {
   status: updateOsStatus,
   callbackUpdateRelease,
-} = storeToRefs(updateOsStore);
+} = storeToRefs(updateOsActionStore);
 /**
  * Post sign in success state:
  * If we're on the Connect settings page in the webGUI
@@ -111,7 +111,7 @@ const close = () => {
 };
 
 const cancelUpdateOs = () => {
-  updateOsStore.setStatus('ready');
+  updateOsActionStore.setStatus('ready');
   callbackActionsStore.setCallbackStatus('ready')
 };
 
@@ -317,7 +317,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
           />
           <BrandButton
             :text="t('Confirm and start update')"
-            @click="updateOsStore.installOsUpdate()"
+            @click="updateOsActionStore.installOsUpdate()"
           />
         </template>
       </div>
