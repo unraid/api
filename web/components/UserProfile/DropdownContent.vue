@@ -6,7 +6,7 @@ import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{ t: any; }>();
@@ -16,7 +16,8 @@ const errorsStore = useErrorsStore();
 
 const { errors } = storeToRefs(errorsStore);
 const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
-const { updateAvailable, initUpdateOsCallback } = storeToRefs(useUpdateOsStore());
+const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
+const { initUpdateOsCallback } = storeToRefs(useUpdateOsActionsStore());
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -26,7 +27,7 @@ const links = computed(():UserProfileLink[] => {
     ...(registered.value && connectPluginInstalled.value
       ? [
           {
-            emphasize: !updateAvailable.value, // only emphasize when we don't have an update available
+            emphasize: !osUpdateAvailable.value, // only emphasize when we don't have an update available
             external: true,
             href: CONNECT_DASHBOARD.toString(),
             icon: ArrowTopRightOnSquareIcon,
@@ -93,7 +94,7 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
         <UpcKeyline />
       </li>
 
-      <template v-if="updateAvailable">
+      <template v-if="osUpdateAvailable">
         <li>
           <UpcDropdownItem :item="initUpdateOsCallback" :t="t" />
         </li>

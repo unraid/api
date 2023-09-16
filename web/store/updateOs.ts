@@ -1,20 +1,47 @@
-import testOsReleasesResponse from '~/_data/osReleases'; // test data
+import testReleasesResponse from '~/_data/osReleases'; // test data
 
-import { BellAlertIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import gt from 'semver/functions/gt';
-import coerce from 'semver/functions/coerce';
+import prerelease from 'semver/functions/prerelease';
 import type { SemVer } from 'semver';
+import { computed, ref } from 'vue';
 
-import useInstallPlugin from '~/composables/installPlugin';
-import { request } from '~/composables/services/request';
-import { ACCOUNT_CALLBACK, OS_RELEASES } from '~/helpers/urls';
-import { useCallbackStore } from '~/store/callbackActions';
-import { useErrorsStore } from '~/store/errors';
-import { useServerStore } from '~/store/server';
-import type { InstallPluginPayload } from '~/composables/installPlugin';
-import type { OsRelease, OsReleasesResponse } from '~/store/callback';
-import type { ServerStateDataAction } from '~/types/server';
+export interface RequestReleasesPayload {
+  cache?: boolean; // saves response to localStorage
+  guid: string;
+  includeNext?: boolean; // if a user is on a stable release and they want to see what's available on the next branch
+  keyfile: string;
+  osVersion: SemVer | string;
+  skipCache?: boolean; // forces a refetch from the api
+}
+
+export interface Release {
+  version: string; // 6.12.4
+  name: string; // Unraid Server 6.12.4
+  basefile: string; // unRAIDServer-6.12.4-x86_64.zip
+  date: string; // 2023-08-31
+  url: string; // https://dl.stable.unraid.net/unRAIDServer-6.12.4-x86_64.zip
+  changelog: string; // https://unraid.net/blog/unraid-os-6.12.4-release-notes
+  md5: string; // 9050bddcf415f2d0518804e551c1be98
+  size: number; // 12345122
+  sha256: string; // fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4
+  plugin_url: string; // https://dl.stable.unraid.net/unRAIDServer-6.12.4.plg
+  plugin_sha256: string; // 83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
+}
+export interface ReleasesResponse {
+  stable: Release[];
+  next?: Release[];
+  preview?: Release[];
+  test?: Release[];
+}
+export interface CachedReleasesResponse {
+  timestamp: number;
+  response: ReleasesResponse;
+}
+
+export interface UpdateOsActionStore {
+  osVersion: SemVer | string;
+}
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -22,189 +49,163 @@ import type { ServerStateDataAction } from '~/types/server';
  */
 setActivePinia(createPinia());
 
-export interface CachedOsReleasesResponse {
-  timestamp: number;
-  response: OsReleasesResponse;
-}
+export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
-export const useUpdateOsStore = defineStore('updateOs', () => {
-  const callbackStore = useCallbackStore();
-  const errorsStore = useErrorsStore();
-  const serverStore = useServerStore();
-
-  const { install: installPlugin } = useInstallPlugin();
-
-  // State
-  const status = ref<'confirming' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
-  const releasesJson = ref<CachedOsReleasesResponse | undefined>(localStorage.getItem('releasesJson') ? JSON.parse(localStorage.getItem('releasesJson') ?? '') : undefined);
-  const callbackUpdateRelease = ref<OsRelease | undefined>(); // used when coming back from callback, this will be the release to install
-  const updateAvailable = ref<OsRelease | undefined>(); // used locally to show update action button
-  const downgradeAvailable = ref<boolean>(false);
-
-  // Getters
-  const currentOsVersion = computed(() => serverStore?.osVersion);
-  const isOsVersionStable = computed(() => serverStore?.isOsVersionStable); // used to determine if we should look for stable or next releases
-  // const currentOsVersionNext = computed((): boolean => serverStore?.osVersionNext);
-
-  // Actions
-  const fetchOsReleases = async () => {
-    try {
-      // const response: OsReleasesResponse = await request.url(OS_RELEASES.toString()).get().json();
-      const response = testOsReleasesResponse;
-      releasesJson.value = {
+export const useUpdateOsStoreGeneric = (
+  useUpdateOsActions: () => UpdateOsActionStore,
+) =>
+  defineStore('updateOs', () => {
+    const updateOsActions = useUpdateOsActions();
+    // state
+    const available = ref<string>('');
+    const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
+    const osVersion = ref<SemVer | string>(updateOsActions.osVersion);
+    // getters
+    const isOsVersionStable = computed(() => {
+      const hasPrerelease = prerelease(osVersion.value);
+      return !hasPrerelease;
+    });
+    // actions
+    const setReleasesState = (response: ReleasesResponse) => {
+      releases.value = {
         timestamp: Date.now(),
         response,
       };
-      localStorage.setItem('releasesJson', JSON.stringify(releasesJson.value));
-    } catch (error) {
-      console.error('[fetchOsReleases]', error);
-    }
-  };
-  const purgeReleasesJsonCache = () => {
-    releasesJson.value = undefined;
-    localStorage.removeItem('releasesJson');
-  };
-  const checkForOsUpdate = async (skipCache: boolean = false, includeNext: boolean = false) => {
-    if (!currentOsVersion.value) {
-      return console.error('[checkForOsUpdate] currentOsVersion not found, skipping OS update check');
     }
 
-    if (skipCache) { // forces new check
-      purgeReleasesJsonCache();
-    }
-
-    try {
-      /**
-     * Compare the timestamp of the cached data to the current time,
-     * if it's older than 7 days, reset releasesJson.
-     * Which will trigger a new API call to get the releases.
-     * Otherwise skip the API call and use the cached data.
-     */
-      if (releasesJson.value) {
-        const currentTime = new Date().getTime();
-        const localState = releasesJson.value;
-        const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
-        if (currentTime - localState.timestamp > cacheDuration) {
-          purgeReleasesJsonCache();
-          await fetchOsReleases();
-        }
-      } else {
-        await fetchOsReleases();
-      }
-
-      if (releasesJson.value && releasesJson.value.response) {
-        /**
-         * If we're on stable and the user hasn't requested to include next releases in the check
-         * then remove next releases from the cached data
-         */
-        if (!includeNext && isOsVersionStable.value && releasesJson.value.response.next) {
-          delete releasesJson.value.response.next;
-        }
-
-        Object.keys(releasesJson.value.response ?? {}).forEach(key => {
-          if (!releasesJson.value) { // this is just to make TS happy (it's already checked above…thanks github copilot for knowing what I needed)
-            return;
-          }
-
-          if (updateAvailable.value) {
-            return;
-          }
-
-          const releases = releasesJson.value.response[key as keyof OsReleasesResponse];
-
-          if (releases && releases.length > 0) {
-            releases.find(release => {
-              if (gt(release.version, currentOsVersion.value)) { /** @todo '6.12.0' temporary for dev. Replace with currentOsVersion.value */
-                updateAvailable.value = release;
-                return true; // stop looping, we found an update
-              }
-            });
-          }
-        });
-      }
-    } catch (error) {
-      console.error('[checkForOsUpdate]', error);
-    }
-  };
-
-  const initUpdateOsCallback = computed((): ServerStateDataAction => {
-    return {
-      click: () => {
-        callbackStore.send(
-          ACCOUNT_CALLBACK.toString(),
-          [{
-            server: {
-              ...serverStore.serverAccountPayload,
-            },
-            type: 'updateOs',
-          }],
-          serverStore.inIframe,
-        );
-      },
-      emphasize: true,
-      external: true,
-      icon: BellAlertIcon,
-      name: 'updateOs',
-      text: 'Unraid OS Update Available',
-    }
-  });
-  /**
-   * @description When receiving the callback the Account update page we'll use the provided releaseMd5 to find the release in the releasesJson cache.
-   */
-  const confirmUpdateOs = async (releaseMd5: string) => {
-    /** this should never happen, but if it does we should probably try to fetch the releases again */
-    if (!releasesJson.value) {
-      await fetchOsReleases();
+    const cacheReleasesResponse = () => {
+      localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
     };
 
-    Object.keys(releasesJson.value?.response ?? {}).forEach(key => {
-      const releases = releasesJson.value?.response[key as keyof OsReleasesResponse];
+    const purgeReleasesCache = () => {
+      releases.value = undefined;
+      localStorage.removeItem(RELEASES_LOCAL_STORAGE_KEY);
+    };
 
-      if (releases && releases.length > 0) {
-        releases.forEach(release => {
-          if (release.md5 === releaseMd5) {
-            callbackUpdateRelease.value = release;
-            return;
+    const requestReleases = async (payload: RequestReleasesPayload): Promise<ReleasesResponse | undefined> => {
+      if (!payload || !payload.guid || !payload.keyfile) {
+        throw new Error('Invalid Payload for updateOs.requestReleases');
+      }
+
+      if (payload.skipCache) {
+        purgeReleasesCache();
+      }
+
+      /**
+       * Compare the timestamp of the cached releases data to the current time,
+       * if it's older than 7 days, reset releases.
+       * Which will trigger a new API call to get the releases.
+       * Otherwise skip the API call and use the cached data.
+       */
+      if (releases.value) {
+        const currentTime = new Date().getTime();
+        const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
+        if (currentTime - releases.value.timestamp > cacheDuration) {
+          purgeReleasesCache();
+        } else {
+          // if the cache is valid return the existing response
+          return releases.value.response;
+        }
+      }
+
+      // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
+      try {
+        // const response: ReleasesResponse = await request.url(OS_RELEASES.toString()).get().json();
+        const response: ReleasesResponse = await testReleasesResponse;
+
+        // save it to local state
+        setReleasesState(response);
+        if (payload.cache) {
+          cacheReleasesResponse();
+        }
+
+        return response;
+      } catch (error) {
+        console.error('[requestReleases]', error);
+      }
+    };
+
+    const checkForUpdate = async (payload: RequestReleasesPayload) => {
+      console.debug('[checkForUpdate]', payload);
+
+      if (!payload || !payload.osVersion || !payload.guid || !payload.keyfile) {
+        console.error('[checkForUpdate] invalid payload');
+        throw new Error('Invalid Payload for updateOs.checkForUpdate');
+      }
+
+      // set the osVersion since this is the first thing in this store using it…that way we don't need to import the server store in this store.
+      osVersion.value = payload.osVersion;
+
+      // gets releases from cache or fetches from api
+      await requestReleases(payload);
+
+      if (!releases.value) {
+        return console.error('[checkForUpdate] no releases found');
+      }
+
+      /**
+       * If we're on stable and the user hasn't requested to include next releases in the check
+       * then remove next releases from the cached data
+       */
+      if (!payload.includeNext && isOsVersionStable.value && releases.value.response.next) {
+        delete releases.value.response.next;
+      }
+
+      Object.keys(releases.value.response ?? {}).forEach(key => {
+        // this is just to make TS happy (it's already checked above…thanks github copilot for knowing what I needed)
+        if (!releases.value) {
+          return;
+        }
+        // if we've already found an available update, skip the rest
+        if (available.value) {
+          return;
+        }
+
+        const branchReleases = releases.value.response[key as keyof ReleasesResponse];
+
+        if (!branchReleases || branchReleases.length === 0) {
+          return;
+        }
+
+        branchReleases.find(release => {
+          if (gt(release.version, osVersion.value)) {
+            available.value = release.version;
+            return true;
           }
         });
-      }
-    })
+      });
+    };
 
-    setStatus('confirming');
-  };
+    const findReleaseByMd5 = (releaseMd5: string): Release | null => {
+      let releaseForReturn: Release | null = null;
 
-  const installOsUpdate = () => {
-    if (!callbackUpdateRelease.value) {
-      return console.error('[installOsUpdate] release not found');
-    }
+      Object.keys(releases.value?.response ?? {}).forEach(key => {
+        const branchReleases = releases.value?.response[key as keyof ReleasesResponse];
 
-    status.value = 'updating';
-    installPlugin({
-      modalTitle: `${callbackUpdateRelease.value.name} Update`,
-      pluginUrl: callbackUpdateRelease.value.url,
-      update: true,
-    });
-  };
+        if (releaseForReturn || !branchReleases || branchReleases.length == 0) {
+          return;
+        }
 
-  const downgradeOs = async () => {
-    setStatus('downgrading');
-  };
+        branchReleases.find(release => {
+          if (release.md5 === releaseMd5) {;
+            releaseForReturn = release;
+            return release;
+          }
+        });
+      });
 
-  const setStatus = (payload: typeof status.value) => {
-    status.value = payload;
-  };
+      return releaseForReturn;
+    };
 
-  return {
-    // State
-    callbackUpdateRelease,
-    status,
-    updateAvailable,
-    // Actions
-    checkForOsUpdate,
-    confirmUpdateOs,
-    downgradeOs,
-    installOsUpdate,
-    initUpdateOsCallback,
-    setStatus,
-  };
-});
+    return {
+      // state
+      available,
+      releases,
+      // getters
+      isOsVersionStable,
+      // actions
+      checkForUpdate,
+      findReleaseByMd5,
+      requestReleases,
+    };
+  });

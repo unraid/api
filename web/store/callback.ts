@@ -34,26 +34,6 @@ export type PurchaseActionTypes = Purchase | Redeem | Upgrade;
 
 export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
 
-export interface OsRelease {
-  version: string; // 6.12.4
-  name: string; // Unraid Server 6.12.4
-  basefile: string; // unRAIDServer-6.12.4-x86_64.zip
-  date: string; // 2023-08-31
-  url: string; // https://dl.stable.unraid.net/unRAIDServer-6.12.4-x86_64.zip
-  changelog: string; // https://unraid.net/blog/unraid-os-6.12.4-release-notes
-  md5: string; // 9050bddcf415f2d0518804e551c1be98
-  size: number; // 12345122
-  sha256: string; // fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4
-  plugin_url: string; // https://dl.stable.unraid.net/unRAIDServer-6.12.4.plg
-  plugin_sha256: string; // 83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
-}
-export interface OsReleasesResponse {
-  stable: OsRelease[];
-  next?: OsRelease[];
-  preview?: OsRelease[];
-  test?: OsRelease[];
-}
-
 /**
  * Represents a server, payload comes from the server to account.unraid.net
  */
