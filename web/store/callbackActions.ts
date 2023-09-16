@@ -4,7 +4,7 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import { useCallbackStoreGeneric, type CallbackActionsStore, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
@@ -12,6 +12,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
   const updateOsStore = useUpdateOsStore();
+  const updateOsActionsStore = useUpdateOsActionsStore();
 
   type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
   const callbackStatus = ref<CallbackStatus>('ready');
@@ -61,7 +62,11 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
       }
 
       if (action.type === 'updateOs' && action?.releaseHash) {
-        updateOsStore.confirmUpdateOs(action.releaseHash);
+        const foundRelease = updateOsStore.findReleaseByMd5(action.releaseHash);
+        if (!foundRelease) {
+          throw new Error('Release not found');
+        }
+        updateOsActionsStore.confirmUpdateOs(foundRelease);
         if (array.length === 1) { // only 1 action, skip refresh server state
           // removing query string relase is set so users can't refresh the page and go through the same actions
           window.history.replaceState(null, '', window.location.pathname);
