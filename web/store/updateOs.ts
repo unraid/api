@@ -52,18 +52,59 @@ setActivePinia(createPinia());
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
 export const useUpdateOsStoreGeneric = (
-  useUpdateOsActions: () => UpdateOsActionStore,
+  useUpdateOsActions?: () => UpdateOsActionStore,
+  currentOsVersion?: SemVer | string,
 ) =>
   defineStore('updateOs', () => {
-    const updateOsActions = useUpdateOsActions();
     // state
     const available = ref<string>('');
     const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
-    const osVersion = ref<SemVer | string>(updateOsActions.osVersion);
+    const osVersion = ref<SemVer | string>('');
+
+    if (useUpdateOsActions !== undefined) {
+      const updateOsActions = useUpdateOsActions();
+      osVersion.value = updateOsActions.osVersion;
+    } else if (currentOsVersion !== undefined && (typeof currentOsVersion === 'string' || currentOsVersion instanceof SemVer)) {
+      osVersion.value = currentOsVersion;
+    }
+
     // getters
     const isOsVersionStable = computed(() => {
       const hasPrerelease = prerelease(osVersion.value);
       return !hasPrerelease;
+    });
+
+    const filteredStableReleases = computed(() => {
+      if (!osVersion.value) return undefined;
+
+      if (releases.value?.response?.stable) {
+        return releases.value?.response?.stable.filter(release => {
+          console.debug('stable: ', release.version, osVersion.value);
+          return gt(release.version, osVersion.value as string);
+        });
+      }
+      return undefined;
+    });
+
+    const filteredNextReleases = computed(() => {
+      if (!osVersion.value) return undefined;
+
+      if (releases.value?.response?.next) {
+        return releases.value?.response?.next.filter(release => {
+          console.debug('next: ', release.version, osVersion.value);
+          return gt(release.version, osVersion.value as string);
+        });
+      }
+      return undefined;
+    });
+
+    const allFilteredReleases = computed(() => {
+      if (!filteredStableReleases.value && !filteredNextReleases.value) return undefined;
+
+      return {
+        ...(filteredStableReleases.value && { stable: [...filteredStableReleases.value] }),
+        ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
+      }
     });
     // actions
     const setReleasesState = (response: ReleasesResponse) => {
@@ -203,6 +244,9 @@ export const useUpdateOsStoreGeneric = (
       releases,
       // getters
       isOsVersionStable,
+      filteredStableReleases,
+      filteredNextReleases,
+      allFilteredReleases,
       // actions
       checkForUpdate,
       findReleaseByMd5,
