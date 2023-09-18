@@ -35,7 +35,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const callbackStore = useCallbackStore();
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
-  const updateOsStoreGeneric = useUpdateOsStoreGeneric();
+  const useUpdateOsStore = useUpdateOsStoreGeneric();
+  const updateOsStore = useUpdateOsStore();
 
   const { install: installPlugin } = useInstallPlugin();
 
@@ -46,14 +47,19 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const callbackUpdateRelease = ref<Release | null>(null);
 
   // Actions
-  const initUpdateOsCallback = computed((): ServerStateDataAction => {
+  const initUpdateOsCallback = (includeNextReleases: boolean = false) => {
     return {
-      click: () => {
+      click: (includeNext: boolean = includeNextReleases) => {
         callbackStore.send(
           ACCOUNT_CALLBACK.toString(),
           [{
             server: {
               ...serverStore.serverAccountPayload,
+              /**
+               * Prefer the param in the event for when a user is on stable and wants to see Next releases.
+               * Otherwise if the os version is NOT stable, we'll include next releases
+               */
+              includeNext: includeNext ?? !updateOsStore.isOsVersionStable,
             },
             type: 'updateOs',
           }],
@@ -64,9 +70,11 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       external: true,
       icon: BellAlertIcon,
       name: 'updateOs',
-      text: 'Unraid OS Update Available',
+      text: 'Unraid OS {0} Update Available',
+      textParams: [updateOsStore.available],
     }
-  });
+  };
+
   /**
    * @description When receiving the callback the Account update page we'll use the provided releaseMd5 to find the release in the releases cache.
    */
