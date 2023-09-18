@@ -44,6 +44,7 @@ export interface ServerData {
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
+  includeNext?: boolean;
   keyfile?: string;
   locale?: string;
   name?: string;
@@ -85,6 +86,7 @@ export interface ExternalUpdateOsAction {
 export interface ServerPayload {
   type: ServerActionTypes;
   server: ServerData;
+  includeNext?: boolean;
 }
 
 export interface ServerTroubleshoot {

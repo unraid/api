@@ -13,11 +13,11 @@ const props = defineProps<{ t: any; }>();
 
 const errorsStore = useErrorsStore();
 // const promoStore = usePromoStore();
+const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { errors } = storeToRefs(errorsStore);
 const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
-const { initUpdateOsCallback } = storeToRefs(useUpdateOsActionsStore());
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -96,7 +96,7 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
 
       <template v-if="osUpdateAvailable">
         <li>
-          <UpcDropdownItem :item="initUpdateOsCallback" :t="t" />
+          <UpcDropdownItem :item="updateOsActionsStore.initUpdateOsCallback()" :t="t" />
         </li>
       </template>
 
