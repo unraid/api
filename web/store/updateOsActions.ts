@@ -56,10 +56,11 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
             server: {
               ...serverStore.serverAccountPayload,
               /**
+               * @todo - for the time being we'll always include next releases
                * Prefer the param in the event for when a user is on stable and wants to see Next releases.
                * Otherwise if the os version is NOT stable, we'll include next releases
                */
-              includeNext: includeNext ?? !updateOsStore.isOsVersionStable,
+              includeNext: true ?? includeNext ?? !updateOsStore.isOsVersionStable,
             },
             type: 'updateOs',
           }],
