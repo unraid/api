@@ -110,9 +110,14 @@ const close = () => {
     : window.location.reload();
 };
 
+const confirmUpdateOs = () => {
+  updateOsActionStore.installOsUpdate();
+  callbackActionsStore.setCallbackStatus('ready');
+};
+
 const cancelUpdateOs = () => {
   updateOsActionStore.setStatus('ready');
-  callbackActionsStore.setCallbackStatus('ready')
+  callbackActionsStore.setCallbackStatus('ready');
 };
 
 // const promoClick = () => {
@@ -264,7 +269,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
             <p class="text-18px">
               {{ t('Current Version: Unraid {0}', [osVersion]) }}
             </p>
-            <ChevronDoubleDownIcon class="w-32px h-32px mx-auto fill-current opacity-50" />
+            <ChevronDoubleDownIcon class="animate-pulse w-32px h-32px mx-auto fill-current opacity-50" />
             <p class="text-18px">
               {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
             </p>
@@ -317,7 +322,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
           />
           <BrandButton
             :text="t('Confirm and start update')"
-            @click="updateOsActionStore.installOsUpdate()"
+            @click="confirmUpdateOs"
           />
         </template>
       </div>
