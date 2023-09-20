@@ -17,27 +17,32 @@ onBeforeMount(() => {
         UserProfileCe
       </h3>
       <unraid-user-profile :server="JSON.stringify(serverState)" />
-      <hr class="border-black">
+      <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         DownloadApiLogsCe
       </h3>
       <unraid-download-api-logs />
-      <hr class="border-black">
+      <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         AuthCe
       </h3>
       <unraid-auth />
-      <hr class="border-black">
+      <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         KeyActionsCe
       </h3>
       <unraid-key-actions />
-      <hr class="border-black">
+      <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         WanIpCheckCe
       </h3>
       <unraid-wan-ip-check php-wan-ip="47.184.85.45" />
-      <hr class="border-black">
+      <hr class="border-black dark:border-white">
+      <h3 class="text-lg font-semibold font-mono">
+        UpdateOsCe
+      </h3>
+      <unraid-update-os />
+      <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         ModalsCe
       </h3>
