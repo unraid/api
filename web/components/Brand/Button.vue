@@ -12,6 +12,7 @@ export interface ButtonProps {
   external?: boolean;
   href?: string;
   icon?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
+  iconRight?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
   text?: string;
 }
 const props = withDefaults(defineProps<ButtonProps>(), {
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   click: undefined,
   href: undefined,
   icon: undefined,
+  iconRight: undefined,
   text: undefined,
 });
 
@@ -51,5 +53,6 @@ const classes = computed(() => {
   >
     <component :is="icon" v-if="icon" class="flex-shrink-0 w-14px" />
     {{ text }}
+    <component :is="iconRight" v-if="iconRight" class="flex-shrink-0 w-14px" />
   </component>
 </template>

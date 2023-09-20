@@ -97,6 +97,10 @@ export default defineNuxtConfig({
             path: '@/components/UserProfile.ce',
           },
           {
+            name: 'UnraidUpdateOs',
+            path: '@/components/UpdateOs.ce',
+          },
+          {
             name: 'UnraidWanIpCheck',
             path: '@/components/WanIpCheck.ce',
           },
