@@ -19,27 +19,32 @@ onBeforeMount(() => {
             UserProfileCe
           </h3>
           <UserProfileCe :server="serverState" />
-          <hr class="border-black">
+          <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             DownloadApiLogsCe
           </h3>
           <DownloadApiLogsCe />
-          <hr class="border-black">
+          <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             AuthCe
           </h3>
           <AuthCe />
-          <hr class="border-black">
+          <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             KeyActionsCe
           </h3>
           <KeyActionsCe />
-          <hr class="border-black">
+          <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             WanIpCheckCe
           </h3>
           <WanIpCheckCe php-wan-ip="47.184.85.45" />
-          <hr class="border-black">
+          <hr class="border-black dark:border-white">
+          <h3 class="text-lg font-semibold font-mono">
+            UpdateOsCe
+          </h3>
+          <UpdateOsCe />
+          <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             ModalsCe
           </h3>

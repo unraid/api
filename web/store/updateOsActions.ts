@@ -22,8 +22,9 @@ import {
   type UpdateOsActionStore,
 } from '~/store/updateOs';
 
-import { type InstallPluginPayload } from '~/composables/installPlugin';
+import type { InstallPluginPayload } from '~/composables/installPlugin';
 import type { ServerStateDataAction } from '~/types/server';
+import type { UserProfileLink } from '~/types/userProfile';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -47,7 +48,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const callbackUpdateRelease = ref<Release | null>(null);
 
   // Actions
-  const initUpdateOsCallback = (includeNextReleases: boolean = false) => {
+  const initUpdateOsCallback = (includeNextReleases: boolean = false): UserProfileLink => {
     return {
       click: (includeNext: boolean = includeNextReleases) => {
         callbackStore.send(

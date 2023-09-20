@@ -4,7 +4,6 @@ import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 export interface Props {
-  clickParams?: any; // so we can pass in params to the click handler
   item: ServerStateDataAction | UserProfileLink;
   rounded?: boolean;
   t: any;
