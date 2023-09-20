@@ -69,10 +69,8 @@ export const useUpdateOsStoreGeneric = (
     }
 
     // getters
-    const isOsVersionStable = computed(() => {
-      const hasPrerelease = prerelease(osVersion.value);
-      return !hasPrerelease;
-    });
+    const cachedReleasesTimestamp = computed(() => releases.value?.timestamp);
+    const isOsVersionStable = computed(() => !isVersionStable(osVersion.value));
 
     const filteredStableReleases = computed(() => {
       if (!osVersion.value) return undefined;
@@ -186,9 +184,11 @@ export const useUpdateOsStoreGeneric = (
 
       /**
        * If we're on stable and the user hasn't requested to include next releases in the check
-       * then remove next releases from the cached data
+       * then remove next releases from the data
        */
-      if (!payload.includeNext && isOsVersionStable.value && releases.value.response.next) {
+      console.debug('[checkForUpdate] checking for next releases', payload.includeNext, isOsVersionStable.value, releases.value.response.next)
+      if (!payload.includeNext || isOsVersionStable.value && releases.value.response.next) {
+        console.debug('[checkForUpdate] removing next releases from data')
         delete releases.value.response.next;
       }
 
@@ -238,11 +238,14 @@ export const useUpdateOsStoreGeneric = (
       return releaseForReturn;
     };
 
+    const isVersionStable = (version: SemVer | string): boolean => prerelease(version) === null;
+
     return {
       // state
       available,
       releases,
       // getters
+      cachedReleasesTimestamp,
       isOsVersionStable,
       filteredStableReleases,
       filteredNextReleases,
@@ -251,5 +254,6 @@ export const useUpdateOsStoreGeneric = (
       checkForUpdate,
       findReleaseByMd5,
       requestReleases,
+      isVersionStable,
     };
   });

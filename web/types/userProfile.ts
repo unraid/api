@@ -9,7 +9,7 @@ export interface UserProfileLink {
   icon?: typeof ArrowTopRightOnSquareIcon;
   name?: string;
   text: string;
-  textParams?: string|number[];
+  textParams?: string[] | number[];
   title?: string;
 }
 

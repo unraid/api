@@ -211,5 +211,7 @@
   "Current Version: Unraid {0}": "Current Version: Unraid {0}",
   "New Version: {0}": "New Version: {0}",
   "This update will require a reboot": "This update will require a reboot",
-  "Confirm and start update": "Confirm and start update"
+  "Confirm and start update": "Confirm and start update",
+  "Update Unraid OS": "Update Unraid OS",
+  "Last checked: {0}": "Last checked: {0}"
 }

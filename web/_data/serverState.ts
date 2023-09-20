@@ -58,7 +58,7 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  osVersion: '6.12.5-rc1',
+  osVersion: '6.12.3',
   registered: true,
   regGen: 0,
   // "regGuid": "0781-5583-8355-81071A2B0211",
