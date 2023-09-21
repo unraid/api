@@ -4,12 +4,9 @@
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  */
-import dayjs, { extend } from 'dayjs';
-import relativeTime from 'dayjs/plugin/relativeTime';
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-import { useUpdateOsStore } from '~/store/updateOsActions';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -17,30 +14,31 @@ import '~/assets/main.css';
 const { t } = useI18n();
 
 export interface Props {
+  rebootType?: 'downgrade' | 'upgrade' | 'none';
   restoreVersion?: string;
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
+  rebootType: 'none',
   restoreVersion: '',
 });
 
-const updateOsStore = useUpdateOsStore();
-const { cachedReleasesTimestamp } = storeToRefs(updateOsStore);
+const updateOsActionsStore = useUpdateOsActionsStore();
 
-extend(relativeTime);
-const parsedReleaseTimestamp = computed(() => {
-  if (!cachedReleasesTimestamp.value) { return ''; }
-  return {
-    formatted: dayjs(cachedReleasesTimestamp.value).format('YYYY-MM-DD HH:mm:ss'),
-    relative: dayjs().to(dayjs(cachedReleasesTimestamp.value)),
-  };
+onBeforeMount(() => {
+  updateOsActionsStore.setRebootType(props.rebootType);
 });
 </script>
 
 <template>
   <div class="grid gap-y-24px max-w-1024px mx-auto">
-    <UpdateOsStatus :release-check-time="parsedReleaseTimestamp" :t="t" />
-    <UpdateOsUpdate :release-check-time="parsedReleaseTimestamp" :t="t" />
-    <UpdateOsDowngrade v-if="restoreVersion" :version="restoreVersion" :t="t" />
+    <UpdateOsStatus :t="t" />
+    <UpdateOsUpdate
+      v-if="rebootType === 'none'"
+      :t="t" />
+    <UpdateOsDowngrade
+      v-if="restoreVersion && rebootType === 'none'"
+      :version="restoreVersion"
+      :t="t" />
   </div>
 </template>
 

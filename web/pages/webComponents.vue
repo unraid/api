@@ -41,6 +41,11 @@ onBeforeMount(() => {
       <unraid-wan-ip-check php-wan-ip="47.184.85.45" />
       <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
+        HeaderOsVersion
+      </h3>
+      <unraid-header-os-version />
+      <hr class="border-black dark:border-white">
+      <h3 class="text-lg font-semibold font-mono">
         UpdateOsCe
       </h3>
       <unraid-update-os />
