@@ -1,40 +1,31 @@
 <script lang="ts" setup>
 import {
+  ArrowPathIcon,
   BellAlertIcon,
   CheckCircleIcon,
+  ExclamationTriangleIcon,
   InformationCircleIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-const props = defineProps<{
-  releaseCheckTime: {
-    formatted: string;
-    relative: string;
-  };
+export interface Props {
+  restoreVersion?: string | undefined; 
   t: any;
-}>();
+}
+const props = withDefaults(defineProps<Props>(), {
+  restoreVersion: undefined,
+});
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
+const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
-const { available } = storeToRefs(updateOsStore);
-
-const viewReleaseNotes = () => {
-  // @ts-ignore – this is a global function provided by the webgui
-  if (typeof openChanges === 'function') {
-    // @ts-ignore
-    openChanges(
-      'showchanges /var/tmp/unRAIDServer.txt',
-      props.t('{0} Release Notes', [osVersion.value]),
-    );
-  } else {
-    alert('Unable to open release notes');
-  }
-};
+const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
+const { rebootType } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
@@ -43,24 +34,50 @@ const viewReleaseNotes = () => {
     <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
       <div class="inline-flex gap-8px">
         <button
-          @click="viewReleaseNotes"
+          @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
           class="group"
-          :title="t('View changelog for current version {0}', [osVersion])"
+          :title="t('View release notes')"
         >
-          <UiBadge :icon="InformationCircleIcon">
+          <UiBadge :icon="InformationCircleIcon" class="underline">
             {{ t('Current Version {0}', [osVersion]) }}
           </UiBadge>
         </button>
+
         <UiBadge
+          v-if="!guid || !keyfile"
+          :color="'red'"
+          :icon="ExclamationTriangleIcon"
+          :title="t('A valid keyfile and USB Flash boot device are required to check for updates.')"
+        >
+          {{ t('Unable to check for updates') }}
+        </UiBadge>
+        <UiBadge
+          v-else-if="rebootType === 'none'"
           :color="available ? 'orange' : 'green'"
           :icon="available ? BellAlertIcon : CheckCircleIcon"
-          :title="t('Last checked: {0}', [releaseCheckTime.relative])"
+          :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
         >
-          {{ available ? 'Update Available' : 'Up-to-date' }}
+          {{ available ? t('Update Available') : t('Up-to-date') }}
+        </UiBadge>
+        <UiBadge
+          v-else
+          :color="'yellow'"
+          :icon="ExclamationTriangleIcon"
+        >
+          {{ rebootType === 'downgrade' ? t('Reboot Required for Downgrade') : t('Reboot Required for Update') }}
         </UiBadge>
       </div>
 
-      <UpdateOsCheckButton :releaseCheckTime="releaseCheckTime" :t="t" />
+      <div>
+        <UpdateOsCheckButton
+          v-if="rebootType === 'none'"
+          :t="t" />
+        <BrandButton
+          v-else
+          @click="updateOsActionsStore.rebootServer()"
+          :icon="ArrowPathIcon"
+          :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade') : t('Reboot Now to Update')" />
+      </div>
     </div>
   </div>
 </template>

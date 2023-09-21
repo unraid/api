@@ -1,15 +1,9 @@
-import testOsReleasesResponse from '~/_data/osReleases'; // test data
-
 import { BellAlertIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import gt from 'semver/functions/gt';
-import coerce from 'semver/functions/coerce';
-import type { SemVer } from 'semver';
 
 import useInstallPlugin from '~/composables/installPlugin';
-import { request } from '~/composables/services/request';
 
-import { ACCOUNT_CALLBACK, OS_RELEASES } from '~/helpers/urls';
+import { ACCOUNT_CALLBACK } from '~/helpers/urls';
 
 import { useCallbackStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
@@ -17,13 +11,9 @@ import { useServerStore } from '~/store/server';
 import {
   useUpdateOsStoreGeneric,
   type Release,
-  type ReleasesResponse,
-  type CachedReleasesResponse,
   type UpdateOsActionStore,
 } from '~/store/updateOs';
 
-import type { InstallPluginPayload } from '~/composables/installPlugin';
-import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 /**
@@ -44,7 +34,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   // State
   const osVersion = computed(() => serverStore.osVersion);
   /** used when coming back from callback, this will be the release to install */
-  const status = ref<'confirming' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
+  const rebootType = ref<'downgrade' | 'upgrade' | 'none'>('none');
+  const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
   const callbackUpdateRelease = ref<Release | null>(null);
 
   // Actions
@@ -98,25 +89,46 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     });
   };
 
-  const downgradeOs = async () => {
-    setStatus('downgrading');
+  const rebootServer = async () => {
+    // @ts-ignore • global set in the webgui
+    document.rebootNow.submit();
+  };
+
+  const viewCurrentReleaseNotes = (text: string) => {
+    // @ts-ignore – this is a global function provided by the webgui
+    if (typeof openChanges === 'function') {
+      // @ts-ignore
+      openChanges(
+        'showchanges /var/tmp/unRAIDServer.txt',
+        text,
+      );
+    } else {
+      alert('Unable to open release notes');
+    }
   };
 
   const setStatus = (payload: typeof status.value) => {
     status.value = payload;
   };
 
+  const setRebootType = (payload: typeof rebootType.value) => {
+    rebootType.value = payload;
+  };
+
   return {
     // State
-    osVersion,
     callbackUpdateRelease,
+    osVersion,
+    rebootType,
     status,
     // Actions
     confirmUpdateOs,
-    downgradeOs,
     installOsUpdate,
     initUpdateOsCallback,
+    rebootServer,
     setStatus,
+    setRebootType,
+    viewCurrentReleaseNotes,
   };
 });
 
