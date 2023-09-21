@@ -4,14 +4,16 @@ import BrandLoading from '~/components/Brand/Loading.vue';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
 const props = withDefaults(defineProps<{
-  color?: 'gray' | 'red' | 'yellow' | 'green' | 'blue' | 'indigo' | 'purple' | 'pink' | 'orange' | 'black' | 'white' | 'transparent' | 'current';
+  color?: 'alpha' | 'beta' | 'gamma' | 'gray' | 'red' | 'yellow' | 'green' | 'blue' | 'indigo' | 'purple' | 'pink' | 'orange' | 'black' | 'white' | 'transparent' | 'current' | 'custom';
   icon?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
   iconRight?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
+  iconStyles?: string;
   size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
 }>(), {
   color: 'gray',
   icon: undefined,
   iconRight: undefined,
+  iconStyles: '',
   size: '16px',
 });
 
@@ -20,6 +22,15 @@ const computedStyleClasses = computed(() => {
   let textSize = '';
   let iconSize = '';
   switch (props.color) {
+    case 'alpha':
+      colorClasses = 'bg-alpha text-white group-hover:opacity-75 group-focus:opacity-75';
+      break;
+    case 'beta':
+      colorClasses = 'bg-beta text-white group-hover:opacity-75 group-focus:opacity-75';
+      break;
+    case 'gamma':
+      colorClasses = 'bg-gamma text-white group-hover:opacity-75 group-focus:opacity-75';
+      break;
     case 'red':
       colorClasses = 'bg-unraid-red text-white group-hover:bg-orange-dark group-focus:bg-orange-dark';
       break;
@@ -27,7 +38,7 @@ const computedStyleClasses = computed(() => {
       colorClasses = 'bg-yellow-100 text-yellow-800 group-hover:bg-yellow-200 group-focus:bg-yellow-200';
       break;
     case 'green':
-      colorClasses = 'bg-green-100 text-green-800 group-hover:bg-green-200 group-focus:bg-green-200';
+      colorClasses = 'bg-green-200 text-green-800 group-hover:bg-green-300 group-focus:bg-green-300';
       break;
     case 'blue':
       colorClasses = 'bg-blue-100 text-blue-800 group-hover:bg-blue-200 group-focus:bg-blue-200';
@@ -59,37 +70,40 @@ const computedStyleClasses = computed(() => {
     case 'gray':
       colorClasses = 'bg-gray-200 text-gray-800 group-hover:bg-gray-300 group-focus:bg-gray-300';
       break;
+    case 'custom':
+      colorClasses = '';
+      break;
   }
   switch (props.size) {
     case '12px':
-      textSize = 'text-12px px-8px py-4px';
+      textSize = 'text-12px px-8px py-4px gap-4px';
       iconSize = 'w-12px';
       break;
     case '14px':
-      textSize = 'text-14px px-8px py-4px';
+      textSize = 'text-14px px-8px py-4px gap-8px';
       iconSize = 'w-14px';
       break;
     case '16px':
-      textSize = 'text-16px px-12px py-8px';
+      textSize = 'text-16px px-12px py-8px gap-8px';
       iconSize = 'w-16px';
       break;
     case '18px':
-      textSize = 'text-18px px-12px py-8px';
+      textSize = 'text-18px px-12px py-8px gap-8px';
       iconSize = 'w-18px';
       break;
     case '20px':
-      textSize = 'text-20px px-16px py-12px';
+      textSize = 'text-20px px-16px py-12px gap-8px';
       iconSize = 'w-20px';
       break;
     case '24px':
-      textSize = 'text-24px px-16px py-12px';
+      textSize = 'text-24px px-16px py-12px gap-8px';
       iconSize = 'w-24px';
       break;
   }
 
   return {
     badge: `${textSize} ${colorClasses}`,
-    icon: iconSize,
+    icon: `${iconSize} ${props.iconStyles}`,
   };
 });
 </script>
@@ -99,7 +113,6 @@ const computedStyleClasses = computed(() => {
     class="inline-flex items-center rounded-full font-semibold leading-none transition-all duration-200 ease-in-out"
     :class="[
       computedStyleClasses.badge,
-      icon || iconRight ? 'gap-8px' : '',
     ]"
   >
     <component :is="icon" v-if="icon" class="flex-shrink-0" :class="computedStyleClasses.icon" />

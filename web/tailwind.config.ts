@@ -54,6 +54,7 @@ export default <Partial<Config>>{
         '4px': '4px',
         '6px': '6px',
         '8px': '8px',
+        '10px': '10px',
         '12px': '12px',
         '14px': '14px',
         '16px': '16px',

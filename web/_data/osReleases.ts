@@ -43,32 +43,32 @@ const testOsReleasesResponse: OsReleasesResponse = {
     }
   ],
   "stable": [
-    // {
-    //   "version": "6.12.5",
-    //   "name": "Unraid Server 6.12.5",
-    //   "basefile": "unRAIDServer-6.12.5-x86_64.zip",
-    //   "date": "2023-08-31",
-    //   "url": "https://dl.stable.unraid.net/unRAIDServer-6.12.5-x86_64.zip",
-    //   "changelog": "https://unraid.net/blog/unraid-os-6.12.5-release-notes",
-    //   "md5": "FAKEbddcf415f2d0518804e551c16125",
-    //   "size": 12345122,
-    //   "sha256": "fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4",
-    //   "plugin_url": "https://dl.stable.unraid.net/unRAIDServer-6.12.5.plg",
-    //   "plugin_sha256": "83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
-    // },
-    // {
-    //   "version": "6.12.4",
-    //   "name": "Unraid Server 6.12.4",
-    //   "basefile": "unRAIDServer-6.12.4-x86_64.zip",
-    //   "date": "2023-08-31",
-    //   "url": "https://dl.stable.unraid.net/unRAIDServer-6.12.4-x86_64.zip",
-    //   "changelog": "https://unraid.net/blog/unraid-os-6.12.4-release-notes",
-    //   "md5": "9050bddcf415f2d0518804e551c1be98",
-    //   "size": 12345122,
-    //   "sha256": "fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4",
-    //   "plugin_url": "https://dl.stable.unraid.net/unRAIDServer-6.12.4.plg",
-    //   "plugin_sha256": "83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
-    // },
+    {
+      "version": "6.12.5",
+      "name": "Unraid Server 6.12.5",
+      "basefile": "unRAIDServer-6.12.5-x86_64.zip",
+      "date": "2023-08-31",
+      "url": "https://dl.stable.unraid.net/unRAIDServer-6.12.5-x86_64.zip",
+      "changelog": "https://unraid.net/blog/unraid-os-6.12.5-release-notes",
+      "md5": "FAKEbddcf415f2d0518804e551c16125",
+      "size": 12345122,
+      "sha256": "fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4",
+      "plugin_url": "https://dl.stable.unraid.net/unRAIDServer-6.12.5.plg",
+      "plugin_sha256": "83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
+    },
+    {
+      "version": "6.12.4",
+      "name": "Unraid Server 6.12.4",
+      "basefile": "unRAIDServer-6.12.4-x86_64.zip",
+      "date": "2023-08-31",
+      "url": "https://dl.stable.unraid.net/unRAIDServer-6.12.4-x86_64.zip",
+      "changelog": "https://unraid.net/blog/unraid-os-6.12.4-release-notes",
+      "md5": "9050bddcf415f2d0518804e551c1be98",
+      "size": 12345122,
+      "sha256": "fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4",
+      "plugin_url": "https://dl.stable.unraid.net/unRAIDServer-6.12.4.plg",
+      "plugin_sha256": "83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
+    },
     {
       "version": "6.12.3",
       "name": "Unraid Server 6.12.3",

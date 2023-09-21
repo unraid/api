@@ -56,8 +56,11 @@ const outsideDropdown = () => {
 let copyIpInterval: string | number | NodeJS.Timeout | undefined;
 const { copy, copied, isSupported } = useClipboard({ source: lanIp.value ?? '' });
 const showCopyNotSupported = ref<boolean>(false);
-const copyLanIp = () => {
-  if (!isSupported) { showCopyNotSupported.value = true; }
+const copyLanIp = () => { // if http then clipboard is not supported
+  if (!isSupported || window.location.protocol === 'http:') {
+    showCopyNotSupported.value = true;
+    return;
+  }
   copy(lanIp.value ?? '');
 };
 watch(showCopyNotSupported, (newVal, oldVal) => {
@@ -86,13 +89,17 @@ onBeforeMount(() => {
 
   callbackStore.watcher();
 
-  updateOsStore.checkForUpdate({
-    cache: true,
-    guid: guid.value,
-    includeNext: isOsVersionStable.value, // @todo ensure this is correct
-    keyfile: keyfile.value,
-    osVersion: osVersion.value,
-  });
+  if (guid.value && keyfile.value) {
+    updateOsStore.checkForUpdate({
+      cache: true,
+      guid: guid.value,
+      includeNext: isOsVersionStable.value, // @todo ensure this is correct
+      keyfile: keyfile.value,
+      osVersion: osVersion.value,
+    });
+  } else {
+    console.warn('A valid keyfile and USB Flash boot device are required to check for updates.');
+  }
 });
 </script>
 

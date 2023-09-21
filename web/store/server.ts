@@ -327,7 +327,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction, trialStartAction]),
+            ...([purchaseAction, redeemAction, trialStartAction, recoverAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'No Keyfile',

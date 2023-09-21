@@ -53,7 +53,7 @@ export const serverState: Server = {
   guid: randomGuid,
   // "guid": "0781-5583-8355-81071A2B0211",
   inIframe: false,
-  keyfile: 'DUMMY_KEYFILE',
+  // keyfile: 'DUMMY_KEYFILE',
   lanIp: '192.168.254.36',
   license: '',
   locale: 'en_US', // en_US, ja
