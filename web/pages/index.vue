@@ -43,6 +43,11 @@ onBeforeMount(() => {
           <WanIpCheckCe php-wan-ip="47.184.85.45" />
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
+            HeaderOsVersion
+          </h3>
+          <HeaderOsVersionCe />
+          <hr class="border-black dark:border-white">
+          <h3 class="text-lg font-semibold font-mono">
             UpdateOsCe
           </h3>
           <UpdateOsCe :restore-version="'6.11.2'" />

@@ -3,7 +3,6 @@
  * @todo require keyfile to be set before allowing user to check for updates
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
- * @todo detect downgrade possibility
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue'
 import {
@@ -23,10 +22,6 @@ import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActio
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
-  releaseCheckTime: {
-    formatted: string;
-    relative: string;
-  };
   t: any;
 }>();
 
@@ -37,8 +32,6 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
 const { available } = storeToRefs(updateOsStore);
 
-const includeNext = ref(false);
-
 const updateButton = ref<UserProfileLink | undefined>();
 
 const availableText = computed(() => {
@@ -47,16 +40,7 @@ const availableText = computed(() => {
   }
 });
 
-const check = () => {
-  updateOsStore.checkForUpdate({
-    cache: true,
-    guid: guid.value,
-    includeNext: includeNext.value,
-    keyfile: keyfile.value,
-    osVersion: osVersion.value,
-    skipCache: true,
-  });
-};
+const ineligible = computed(() => !guid.value || !keyfile.value || !osVersion.value);
 
 watchEffect(() => {
   if (available.value) {
@@ -79,13 +63,18 @@ watchEffect(() => {
           </span>
         </h3>
         <div class="text-16px leading-relaxed whitespace-normal opacity-75">
-          <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
+          <p v-if="ineligible">{{ t('A valid keyfile and USB Flash boot device are required to check for updates.') }} {{ t('Please fix any errors and try again.') }}</p>
+          <p v-else>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
         </div>
       </div>
 
-
       <BrandButton
-        v-if="available && updateButton"
+        v-if="ineligible"
+        href="/Tools/Registration"
+        :text="t('Go to Tools > Registration')"
+        />
+      <BrandButton
+        v-else-if="available && updateButton"
         @click="updateButton?.click"
         :external="updateButton?.external"
         :icon-right="ArrowTopRightOnSquareIcon"

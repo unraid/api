@@ -85,6 +85,10 @@ export default defineNuxtConfig({
             path: '@/components/DownloadApiLogs.ce',
           },
           {
+            name: 'UnraidHeaderOsVersion',
+            path: '@/components/HeaderOsVersion.ce',
+          },
+          {
             name: 'UnraidKeyActions',
             path: '@/components/KeyActions.ce',
           },

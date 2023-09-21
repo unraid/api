@@ -1,5 +1,7 @@
 import testReleasesResponse from '~/_data/osReleases'; // test data
 
+import dayjs, { extend } from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import gt from 'semver/functions/gt';
 import prerelease from 'semver/functions/prerelease';
@@ -49,6 +51,8 @@ export interface UpdateOsActionStore {
  */
 setActivePinia(createPinia());
 
+extend(relativeTime);
+
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
 export const useUpdateOsStoreGeneric = (
@@ -58,8 +62,8 @@ export const useUpdateOsStoreGeneric = (
   defineStore('updateOs', () => {
     // state
     const available = ref<string>('');
-    const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
     const osVersion = ref<SemVer | string>('');
+    const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
 
     if (useUpdateOsActions !== undefined) {
       const updateOsActions = useUpdateOsActions();
@@ -69,7 +73,13 @@ export const useUpdateOsStoreGeneric = (
     }
 
     // getters
-    const cachedReleasesTimestamp = computed(() => releases.value?.timestamp);
+    const parsedReleaseTimestamp = computed(() => {
+      if (!releases.value?.timestamp) { return undefined; }
+      return {
+        formatted: dayjs(releases.value?.timestamp).format('YYYY-MM-DD HH:mm:ss'),
+        relative: dayjs().to(dayjs(releases.value?.timestamp)),
+      };
+    });
     const isOsVersionStable = computed(() => !isVersionStable(osVersion.value));
     const isAvailableStable = computed(() => {
       if (!available.value) return undefined;
@@ -263,7 +273,7 @@ export const useUpdateOsStoreGeneric = (
       available,
       releases,
       // getters
-      cachedReleasesTimestamp,
+      parsedReleaseTimestamp,
       isOsVersionStable,
       isAvailableStable,
       filteredStableReleases,
