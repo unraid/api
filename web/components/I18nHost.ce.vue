@@ -45,3 +45,9 @@ provide(I18nInjectionKey, i18n);
 <template>
   <slot />
 </template>
+
+<style>
+/* unraid-i18n-host {
+  font-size: 16px;
+} */
+</style>

@@ -49,6 +49,7 @@
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.14.0",
     "hex-to-rgba": "^2.0.1",
+    "marked": "^9.0.3",
     "semver": "^7.5.4",
     "vue-i18n": "^9.2.2",
     "wretch": "^2.6.0"
