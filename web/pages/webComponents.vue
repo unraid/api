@@ -16,7 +16,9 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">
         UserProfileCe
       </h3>
-      <unraid-user-profile :server="JSON.stringify(serverState)" />
+      <header class="bg-beta py-4">
+        <unraid-user-profile :server="JSON.stringify(serverState)" />
+      </header>
       <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         DownloadApiLogsCe
