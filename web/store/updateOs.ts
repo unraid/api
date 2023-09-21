@@ -71,6 +71,10 @@ export const useUpdateOsStoreGeneric = (
     // getters
     const cachedReleasesTimestamp = computed(() => releases.value?.timestamp);
     const isOsVersionStable = computed(() => !isVersionStable(osVersion.value));
+    const isAvailableStable = computed(() => {
+      if (!available.value) return undefined;
+      return !isVersionStable(available.value);
+    });
 
     const filteredStableReleases = computed(() => {
       if (!osVersion.value) return undefined;
@@ -106,6 +110,7 @@ export const useUpdateOsStoreGeneric = (
     });
     // actions
     const setReleasesState = (response: ReleasesResponse) => {
+      console.debug('[setReleasesState]');
       releases.value = {
         timestamp: Date.now(),
         response,
@@ -113,44 +118,64 @@ export const useUpdateOsStoreGeneric = (
     }
 
     const cacheReleasesResponse = () => {
+      console.debug('[cacheReleasesResponse]');
       localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
     };
 
-    const purgeReleasesCache = () => {
+    const purgeReleasesCache = async () => {
+      console.debug('[purgeReleasesCache]');
       releases.value = undefined;
-      localStorage.removeItem(RELEASES_LOCAL_STORAGE_KEY);
+      await localStorage.removeItem(RELEASES_LOCAL_STORAGE_KEY);
     };
 
     const requestReleases = async (payload: RequestReleasesPayload): Promise<ReleasesResponse | undefined> => {
+      console.debug('[requestReleases]', payload);
+
       if (!payload || !payload.guid || !payload.keyfile) {
         throw new Error('Invalid Payload for updateOs.requestReleases');
       }
 
       if (payload.skipCache) {
-        purgeReleasesCache();
+        await purgeReleasesCache();
       }
-
       /**
-       * Compare the timestamp of the cached releases data to the current time,
-       * if it's older than 7 days, reset releases.
-       * Which will trigger a new API call to get the releases.
-       * Otherwise skip the API call and use the cached data.
-       */
-      if (releases.value) {
-        const currentTime = new Date().getTime();
-        const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
-        if (currentTime - releases.value.timestamp > cacheDuration) {
-          purgeReleasesCache();
-        } else {
-          // if the cache is valid return the existing response
-          return releases.value.response;
-        }
-      }
+      * Compare the timestamp of the cached releases data to the current time,
+      * if it's older than 7 days, reset releases.
+      * Which will trigger a new API call to get the releases.
+      * Otherwise skip the API call and use the cached data.
+      */
+     else if (!payload.skipCache && releases.value) {
+       const currentTime = new Date().getTime();
+       const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
+       if (currentTime - releases.value.timestamp > cacheDuration) {
+        // cache is expired, purge it
+         console.debug('[requestReleases] cache EXPIRED');
+         await purgeReleasesCache();
+       } else {
+         // if the cache is valid return the existing response
+         console.debug('[requestReleases] cache VALID');
+         return releases.value.response;
+       }
+     }
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
-        // const response: ReleasesResponse = await request.url(OS_RELEASES.toString()).get().json();
-        const response: ReleasesResponse = await testReleasesResponse;
+        console.debug('[requestReleases] fetching new releases', testReleasesResponse);
+        /**
+         * @todo replace with real api call, note that the structuredClone is required otherwise Vue will not provided a reactive object from the original static response
+         * const response: ReleasesResponse = await request.url(OS_RELEASES.toString()).get().json();
+         */
+        const response: ReleasesResponse = await structuredClone(testReleasesResponse);
+        console.debug('[requestReleases] response', response);
+        /**
+         * If we're on stable and the user hasn't requested to include next releases in the check
+         * then remove next releases from the data
+         */
+        console.debug('[requestReleases] checking for next releases', payload.includeNext, response.next)
+        if (!payload.includeNext && response.next) {
+          console.debug('[requestReleases] removing next releases from data')
+          delete response.next;
+        }
 
         // save it to local state
         setReleasesState(response);
@@ -175,21 +200,14 @@ export const useUpdateOsStoreGeneric = (
       // set the osVersion since this is the first thing in this store using it…that way we don't need to import the server store in this store.
       osVersion.value = payload.osVersion;
 
+      // reset available
+      available.value = '';
+
       // gets releases from cache or fetches from api
       await requestReleases(payload);
 
       if (!releases.value) {
         return console.error('[checkForUpdate] no releases found');
-      }
-
-      /**
-       * If we're on stable and the user hasn't requested to include next releases in the check
-       * then remove next releases from the data
-       */
-      console.debug('[checkForUpdate] checking for next releases', payload.includeNext, isOsVersionStable.value, releases.value.response.next)
-      if (!payload.includeNext || isOsVersionStable.value && releases.value.response.next) {
-        console.debug('[checkForUpdate] removing next releases from data')
-        delete releases.value.response.next;
       }
 
       Object.keys(releases.value.response ?? {}).forEach(key => {
@@ -247,6 +265,7 @@ export const useUpdateOsStoreGeneric = (
       // getters
       cachedReleasesTimestamp,
       isOsVersionStable,
+      isAvailableStable,
       filteredStableReleases,
       filteredNextReleases,
       allFilteredReleases,

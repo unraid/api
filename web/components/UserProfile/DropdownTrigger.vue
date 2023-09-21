@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia';
 import {
   Bars3Icon,
   Bars3BottomRightIcon,
+  BellAlertIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
   ShieldExclamationIcon,
@@ -11,6 +12,7 @@ import {
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsStore } from '~/store/updateOsActions';
 
 const props = defineProps<{ t: any; }>();
 
@@ -18,6 +20,7 @@ const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
 const { state, stateData } = storeToRefs(useServerStore());
+const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
@@ -49,9 +52,16 @@ const title = computed((): string => {
       <span class="absolute bottom-[-3px] inset-x-0 h-2px w-full bg-gradient-to-r from-unraid-red to-orange rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity" />
     </span>
 
+    <BellAlertIcon v-if="osUpdateAvailable" class="hover:animate-pulse text-white fill-current relative w-16px h-16px" />
+
     <Bars3Icon v-if="!dropdownVisible" class="w-20px" />
     <Bars3BottomRightIcon v-else class="w-20px" />
 
-    <BrandAvatar />
+    <span class="relative">
+      <BrandAvatar />
+      <!-- <span v-if="osUpdateAvailable" class="absolute z-10 -bottom-1 -right-3 w-24px h-24px flex items-center justify-center shadow border border-white bg-gradient-to-r from-unraid-red to-orange rounded-full">
+        <BellAlertIcon class="hover:animate-pulse text-white fill-current relative w-12px h-12px" />
+      </span> -->
+    </span>
   </button>
 </template>
