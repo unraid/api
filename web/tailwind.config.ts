@@ -96,6 +96,7 @@ export default <Partial<Config>>{
         '350px': '350px',
         '640px': '640px',
         '800px': '800px',
+        '1024px': '1024px',
       },
       screens: {
         '2xs': '470px',

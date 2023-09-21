@@ -18,7 +18,9 @@ onBeforeMount(() => {
           <h3 class="text-lg font-semibold font-mono">
             UserProfileCe
           </h3>
-          <UserProfileCe :server="serverState" />
+          <header class="bg-beta py-4">
+            <UserProfileCe :server="serverState" />
+          </header>
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             DownloadApiLogsCe
@@ -43,7 +45,7 @@ onBeforeMount(() => {
           <h3 class="text-lg font-semibold font-mono">
             UpdateOsCe
           </h3>
-          <UpdateOsCe />
+          <UpdateOsCe :restore-version="'6.11.2'" />
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             ModalsCe
