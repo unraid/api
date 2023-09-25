@@ -21,7 +21,7 @@ const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { osVersion } = storeToRefs(serverStore);
-const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
+const { available } = storeToRefs(updateOsStore);
 const { rebootType } = storeToRefs(updateOsActionsStore);
 </script>
 
@@ -45,7 +45,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
 
     <a href="/Tools/Update" class="group" :title="t('Go to Tools > Update')">
       <UiBadge
-        v-if="available && rebootType === 'none'"
+        v-if="available && rebootType === ''"
         color="orange"
         :icon="BellAlertIcon"
         size="12px"
@@ -53,7 +53,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
         {{ t('Update Available') }}
       </UiBadge>
       <UiBadge
-        v-else-if="rebootType !== 'none'"
+        v-else-if="rebootType !== ''"
         :color="'yellow'"
         :icon="ExclamationTriangleIcon"
         size="12px"
