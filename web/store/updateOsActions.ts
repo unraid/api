@@ -34,7 +34,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   // State
   const osVersion = computed(() => serverStore.osVersion);
   /** used when coming back from callback, this will be the release to install */
-  const rebootType = ref<'downgrade' | 'upgrade' | 'none'>('none');
+  const rebootType = ref<'downgrade' | 'upgrade' | ''>('');
   const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
   const callbackUpdateRelease = ref<Release | null>(null);
 
@@ -94,13 +94,13 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     document.rebootNow.submit();
   };
 
-  const viewCurrentReleaseNotes = (text: string) => {
+  const viewCurrentReleaseNotes = ( modalTitle: string, webguiFilePath?: string | undefined,) => {
     // @ts-ignore – this is a global function provided by the webgui
     if (typeof openChanges === 'function') {
       // @ts-ignore
       openChanges(
-        'showchanges /var/tmp/unRAIDServer.txt',
-        text,
+        `showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`,
+        modalTitle,
       );
     } else {
       alert('Unable to open release notes');
