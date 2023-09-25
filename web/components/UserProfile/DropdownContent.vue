@@ -18,6 +18,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { errors } = storeToRefs(errorsStore);
 const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
+const { rebootType } = storeToRefs(updateOsActionsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -94,7 +95,7 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
         <UpcKeyline />
       </li>
 
-      <template v-if="osUpdateAvailable">
+      <template v-if="osUpdateAvailable && !rebootType">
         <li>
           <UpcDropdownItem :item="updateOsActionsStore.initUpdateOsCallback()" :t="t" />
         </li>

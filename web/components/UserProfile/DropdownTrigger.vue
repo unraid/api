@@ -12,7 +12,7 @@ import {
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const props = defineProps<{ t: any; }>();
 
@@ -21,6 +21,7 @@ const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
 const { state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
+const { rebootType } = storeToRefs(useUpdateOsActionsStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
@@ -52,7 +53,7 @@ const title = computed((): string => {
       <span class="absolute bottom-[-3px] inset-x-0 h-2px w-full bg-gradient-to-r from-unraid-red to-orange rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity" />
     </span>
 
-    <BellAlertIcon v-if="osUpdateAvailable" class="hover:animate-pulse text-white fill-current relative w-16px h-16px" />
+    <BellAlertIcon v-if="osUpdateAvailable && !rebootType" class="hover:animate-pulse text-white fill-current relative w-16px h-16px" />
 
     <Bars3Icon v-if="!dropdownVisible" class="w-20px" />
     <Bars3BottomRightIcon v-else class="w-20px" />
