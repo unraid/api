@@ -36,6 +36,7 @@ export default <Partial<Config>>{
         alpha: 'var(--color-alpha)',
         beta: 'var(--color-beta)',
         gamma: 'var(--color-gamma)',
+        'gamma-opaque': 'var(--color-gamma-opaque)',
       },
       // Unfortunately due to webGUI CSS setting base HTML font-size to .65% or something we must use pixel values for web components
       fontSize: {
