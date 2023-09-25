@@ -55,7 +55,7 @@ watchEffect(() => {
   <UiCardWrapper :increased-padding="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
-        <h3 class="text-20px font-semibold leading-6 flex flex-row items-center gap-8px">
+        <h3 class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px">
           <BellAlertIcon v-if="available" class="w-20px shrink-0" />
           <ArrowPathIcon v-else class="w-20px shrink-0" />
           <span>

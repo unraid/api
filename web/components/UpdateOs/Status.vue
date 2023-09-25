@@ -32,7 +32,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
   <div class="grid gap-y-16px">
     <h1 class="text-24px">{{ t('Update Unraid OS') }}</h1>
     <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
-      <div class="inline-flex gap-8px">
+      <div class="inline-flex flex-wrap justify-center gap-8px">
         <button
           @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
           class="group"
@@ -52,7 +52,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
           {{ t('Unable to check for updates') }}
         </UiBadge>
         <UiBadge
-          v-else-if="rebootType === 'none'"
+          v-else-if="rebootType === ''"
           :color="available ? 'orange' : 'green'"
           :icon="available ? BellAlertIcon : CheckCircleIcon"
           :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
@@ -70,7 +70,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
 
       <div>
         <UpdateOsCheckButton
-          v-if="rebootType === 'none'"
+          v-if="rebootType === ''"
           :t="t" />
         <BrandButton
           v-else

@@ -240,5 +240,6 @@
   "Go to Tools > Update": "Go to Tools > Update",
   "A valid keyfile and USB Flash boot device are required to check for updates.": "A valid keyfile and USB Flash boot device are required to check for updates.",
   "Please fix any errors and try again.": "Please fix any errors and try again.",
-  "Go to Tools > Registration": "Go to Tools > Registration"
+  "Go to Tools > Registration": "Go to Tools > Registration",
+  "Original release date {0}": "Original release date {0}"
 }

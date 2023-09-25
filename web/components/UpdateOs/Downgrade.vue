@@ -17,6 +17,7 @@ import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
   t: any;
+  releaseDate: string;
   version: string;
 }>();
 
@@ -47,7 +48,7 @@ const downgradeButton = ref<UserProfileLink | undefined>({
       }"
     >
       <div class="grid gap-y-16px">
-        <h3 class="text-20px font-semibold leading-6 flex flex-row items-center gap-8px">
+        <h3 class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px">
           <ArrowUturnDownIcon class="w-20px shrink-0" />
           {{ t('Downgrade Unraid OS to {0}', [version]) }}
         </h3>
@@ -70,11 +71,7 @@ const downgradeButton = ref<UserProfileLink | undefined>({
           :icon="LifebuoyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Open a bug report')" />
-        <BrandButton
-          @click="downgradeButton?.click"
-          btn-style="underline"
-          :icon="InformationCircleIcon"
-          :text="t('View Changelog for {0}', [version])" />
+        <p class="opacity-75">{{ t('Original release date {0}', [releaseDate]) }}</p>
         <BrandButton
           @click="downgradeButton?.click"
           btn-style="outline"
