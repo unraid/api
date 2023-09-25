@@ -25,7 +25,11 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
 const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
-const { rebootType } = storeToRefs(updateOsActionsStore);
+const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+
+watchEffect(() => {
+  console.debug('[rebootType]', rebootType.value, rebootTypeText.value);
+});
 </script>
 
 <template>
@@ -64,7 +68,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
           :color="'yellow'"
           :icon="ExclamationTriangleIcon"
         >
-          {{ rebootType === 'downgrade' ? t('Reboot Required for Downgrade') : t('Reboot Required for Update') }}
+          {{ t(rebootTypeText) }}
         </UiBadge>
       </div>
 
@@ -73,7 +77,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
           v-if="rebootType === ''"
           :t="t" />
         <BrandButton
-          v-else
+          v-else-if="rebootType === 'downgrade' || rebootType === 'upgrade'"
           @click="updateOsActionsStore.rebootServer()"
           :icon="ArrowPathIcon"
           :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade') : t('Reboot Now to Update')" />
