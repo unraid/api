@@ -34,9 +34,22 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   // State
   const osVersion = computed(() => serverStore.osVersion);
   /** used when coming back from callback, this will be the release to install */
-  const rebootType = ref<'downgrade' | 'upgrade' | ''>('');
   const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
   const callbackUpdateRelease = ref<Release | null>(null);
+  const rebootType = ref<'thirdPartyDriversDownloading' | 'downgrade' | 'upgrade' | ''>('');
+  const rebootTypeText = computed(() => {
+    /** translations are handled by rendering template's `t()` */
+    switch (rebootType.value) {
+      case 'thirdPartyDriversDownloading':
+        return 'Updating 3rd party drivers';
+      case 'downgrade':
+        return 'Reboot Required for Downgrade';
+      case 'upgrade':
+        return 'Reboot Required for Update'
+      default:
+        return '';
+    }
+  })
 
   // Actions
   const initUpdateOsCallback = (includeNextReleases: boolean = false): UserProfileLink => {
@@ -120,6 +133,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     callbackUpdateRelease,
     osVersion,
     rebootType,
+    rebootTypeText,
     status,
     // Actions
     confirmUpdateOs,

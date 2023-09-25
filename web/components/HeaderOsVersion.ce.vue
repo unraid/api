@@ -22,7 +22,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { osVersion } = storeToRefs(serverStore);
 const { available } = storeToRefs(updateOsStore);
-const { rebootType } = storeToRefs(updateOsActionsStore);
+const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
@@ -58,7 +58,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
         :icon="ExclamationTriangleIcon"
         size="12px"
       >
-        {{ rebootType === 'downgrade' ? t('Reboot Required for Downgrade') : t('Reboot Required for Update') }}
+        {{ t(rebootTypeText) }}
       </UiBadge>
     </a>
   </div>
