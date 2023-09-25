@@ -58,6 +58,7 @@ export const useThemeStore = defineStore('theme', () => {
     body.style.setProperty('--color-alpha', alpha);
     body.style.setProperty('--color-beta', beta);
     body.style.setProperty('--color-gamma', gamma);
+    body.style.setProperty('--color-gamma-opaque', hexToRgba(gamma, 0.25));
     // box shadow
     body.style.setProperty('--shadow-beta', `0 25px 50px -12px ${hexToRgba(beta, 0.15)}`);
     body.style.setProperty('--ring-offset-shadow', `0 0 ${beta}`);
@@ -65,6 +66,7 @@ export const useThemeStore = defineStore('theme', () => {
   };
 
   watch(theme, () => {
+    console.debug('[watch.theme]', theme.value);
     setCssVars();
   });
 
