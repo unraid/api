@@ -8,6 +8,7 @@ import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
+  WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
@@ -70,7 +71,8 @@ watchEffect(() => {
       <BrandButton
         v-if="ineligible"
         href="/Tools/Registration"
-        :text="t('Go to Tools > Registration')"
+        :icon="WrenchScrewdriverIcon"
+        :text="t('Go to Tools > Registration to fix')"
         />
       <BrandButton
         v-else-if="available && updateButton"

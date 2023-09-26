@@ -89,6 +89,9 @@ export const useServerStore = defineStore('server', () => {
   const regGuid = ref<string>('');
   const regTm = ref<number>(0);
   const regTo = ref<string>('');
+  const regTy = ref<string>('');
+  const regUpdExpAt = ref<number>(0);
+  const regUpdExpired = computed(() => regUpdExpAt.value < Date.now()); // @todo temp solution until webgui provides
   const site = ref<string>('');
   const state = ref<ServerState>();
   const theme = ref<Theme>();
@@ -262,6 +265,13 @@ export const useServerStore = defineStore('server', () => {
     name: 'redeem',
     text: 'Redeem Activation Code',
   };
+  const renewAction = ref<ServerStateDataAction>({
+    click: () => { purchaseStore.redeem(); },
+    external: true,
+    icon: KeyIcon,
+    name: 'renew',
+    text: 'Renew Key to Enable OS Updates',
+  });
   const replaceAction: ServerStateDataAction = {
     click: () => { accountStore.replace(); },
     external: true,
@@ -716,6 +726,8 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.registered !== 'undefined') { registered.value = data.registered; }
     if (typeof data?.regGen !== 'undefined') { regGen.value = data.regGen; }
     if (typeof data?.regGuid !== 'undefined') { regGuid.value = data.regGuid; }
+    if (typeof data?.regTy !== 'undefined') { regTy.value = data.regTy; }
+    if (typeof data?.regUpdExpAt !== 'undefined') { regUpdExpAt.value = data.regUpdExpAt; }
     if (typeof data?.site !== 'undefined') { site.value = data.site; }
     if (typeof data?.state !== 'undefined') { state.value = data.state; }
     if (typeof data?.theme !== 'undefined') { theme.value = data.theme; }
@@ -853,6 +865,9 @@ export const useServerStore = defineStore('server', () => {
     regGuid,
     regTm,
     regTo,
+    regTy,
+    regUpdExpAt,
+    regUpdExpired,
     site,
     state,
     theme,
@@ -860,6 +875,7 @@ export const useServerStore = defineStore('server', () => {
     username,
     refreshServerStateStatus,
     isOsVersionStable,
+    renewAction,
     // getters
     authAction,
     deprecatedUnraidSSL,

@@ -29,12 +29,14 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'EEXPIRED';
+const state: ServerState = 'TRIAL';
+const regTy = 'Trial';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
+const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
 let expireTime = 0;
-if (state === 'TRIAL') { expireTime = Date.now() + 60 * 60 * 1000; } // in 1 hour
-if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
+if (state === 'TRIAL') { expireTime = oneHourFromNow; } // in 1 hour
+else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
@@ -63,6 +65,9 @@ export const serverState: Server = {
   regGen: 0,
   regTm: uptime,
   regTo: 'Zack Spear',
+  regTy,
+  // regUpdExpAt: oneHourFromNow,
+  regUpdExpAt: uptime,
   // "regGuid": "0781-5583-8355-81071A2B0211",
   site: 'http://localhost:4321',
   state,

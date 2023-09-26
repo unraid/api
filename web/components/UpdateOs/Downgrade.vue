@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { TransitionRoot } from '@headlessui/vue';
 import {
   ArrowTopRightOnSquareIcon,
   ArrowUturnDownIcon,
@@ -21,8 +22,6 @@ const props = defineProps<{
   version: string;
 }>();
 
-const updateOsActionsStore = useUpdateOsActionsStore();
-
 const visible = ref(false);
 const toggleVisible = () => {
   visible.value = !visible.value;
@@ -40,13 +39,7 @@ const downgradeButton = ref<UserProfileLink | undefined>({
 
 <template>
   <UiCardWrapper :increased-padding="true">
-    <div
-      class="flex flex-col sm:flex-row sm:justify-between gap-20px sm:gap-24px"
-      :class="{
-        'sm:items-center': !visible,
-        'sm:items-start': visible,
-      }"
-    >
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
         <h3 class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px">
           <ArrowUturnDownIcon class="w-20px shrink-0" />
@@ -61,6 +54,7 @@ const downgradeButton = ref<UserProfileLink | undefined>({
         v-if="!visible"
         @click="toggleVisible"
         :btn-style="'outline'"
+        :icon="InformationCircleIcon"
         :text="t('Learn More')" />
 
       <div v-else-if="downgradeButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
@@ -71,7 +65,9 @@ const downgradeButton = ref<UserProfileLink | undefined>({
           :icon="LifebuoyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Open a bug report')" />
-        <p class="opacity-75">{{ t('Original release date {0}', [releaseDate]) }}</p>
+
+        <p v-if="releaseDate" class="opacity-75">{{ t('Original release date {0}', [releaseDate]) }}</p>
+
         <BrandButton
           @click="downgradeButton?.click"
           btn-style="outline"
