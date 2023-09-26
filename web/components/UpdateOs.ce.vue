@@ -39,7 +39,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
-  <div class="grid gap-y-24px max-w-1024px mx-auto px-16px">
+  <PageContainer>
     <UpdateOsStatus :t="t" />
     <UpdateOsUpdate
       v-if="rebootType === ''"
@@ -52,7 +52,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
     <UpdateOsThirdPartyDrivers
       v-if="rebootType === 'thirdPartyDriversDownloading'"
       :t="t" />
-  </div>
+  </PageContainer>
 </template>
 
 <style lang="postcss">

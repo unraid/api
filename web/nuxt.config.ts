@@ -89,10 +89,6 @@ export default defineNuxtConfig({
             path: '@/components/HeaderOsVersion.ce',
           },
           {
-            name: 'UnraidKeyActions',
-            path: '@/components/KeyActions.ce',
-          },
-          {
             name: 'UnraidModals',
             path: '@/components/Modals.ce',
           },
@@ -103,6 +99,10 @@ export default defineNuxtConfig({
           {
             name: 'UnraidUpdateOs',
             path: '@/components/UpdateOs.ce',
+          },
+          {
+            name: 'UnraidRegistration',
+            path: '@/components/Registration.ce',
           },
           {
             name: 'UnraidWanIpCheck',
