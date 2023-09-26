@@ -51,8 +51,8 @@ const classes = computed(() => {
     :class="classes"
     @click="click ?? $emit('click')"
   >
-    <component :is="icon" v-if="icon" class="flex-shrink-0 w-14px" />
+    <component v-if="icon" :is="icon" class="flex-shrink-0 w-14px" />
     {{ text }}
-    <component :is="iconRight" v-if="iconRight" class="flex-shrink-0 w-14px" />
+    <component v-if="iconRight" :is="iconRight" class="flex-shrink-0 w-14px" />
   </component>
 </template>

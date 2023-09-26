@@ -28,6 +28,9 @@ import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import KeyActions from '~/components/KeyActions.vue';
+import RegistrationUpgradeExpiration from '~/components/Registration/UpgradeExpiration.vue';
+
 const { t } = useI18n();
 
 export interface Props {
@@ -45,71 +48,59 @@ const {
   guid,
   flashVendor,
   flashProduct,
+  keyActions,
+  keyfile,
   regGuid,
   regTm,
   regTo,
+  regTy,
+  regUpdExpAt,
+  regUpdExpired,
   state,
   stateData,
   stateDataError,
 } = storeToRefs(serverStore);
 
+const devicesAvailable = computed(() => {
+  switch(regTy.value) {
+    case 'Basic':
+      return 6;
+    case 'Plus':
+      return 12;
+    case 'Pro':
+    case 'Trial':
+      return 'unlimited';
+  }
+});
+
 const items = computed(() => {
   return [
-    ...(regTo.value
-      ? [
-          {
-            label: 'Registered to',
-            text: regTo.value,
-          },
-        ]
-      : []
-    ),
-    ...(regTo.value
-      ? [
-          {
-            label: 'Registered on',
-            text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm'),
-          },
-        ]
-      : []
-    ),
+    ...(regTy.value ? [{ label: t('License key type'), text: regTy.value }] : []),
+    ...(regTo.value ? [ { label: t('Registered to'), text: regTo.value }] : []),
+    ...(regTo.value ? [{ label: t('Registered on'), text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm')}] : []),
     /**
      * @todo factor in grandfathered users and display a different message
      */
-    ...(regTo.value
-      ? [
-          {
-            label: 'Updates Expire',
-            text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm'),
-          },
-        ]
-      : []
-    ),
-    ...(state.value === 'EGUID'
-      ? [
-          {
-            label: 'Registered GUID',
-            text: regGuid.value,
-          },
-        ]
-      : []
-    ),
-    {
-      label: 'Flash GUID',
-      text: guid.value,
-    },
-    {
-      label: 'Flash Vendor',
-      text: flashVendor.value,
-    },
-    {
-      label: 'Flash Product',
-      text: flashProduct.value,
-    },
-    {
-      label: 'Attached Storage Devices',
-      text: deviceCount.value,
-    },
+    ...(regUpdExpAt.value
+      ? [{
+          error: regUpdExpired.value,
+          label: t('OS Update Eligibility'),
+          component: RegistrationUpgradeExpiration,
+          componentProps: { t: t },
+        }]
+      : []),
+    ...(state.value === 'EGUID' ? [{ label: t('Registered GUID'), text: regGuid.value }] : [] ),
+    { label: t('Flash GUID'), text: guid.value },
+    { label: t('Flash Vendor'), text: flashVendor.value },
+    { label: t('Flash Product'), text: flashProduct.value },
+    { label: t('Attached Storage Devices'), text: t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value]) },
+    ...(regUpdExpAt.value
+      ? [{
+          label: t('License key actions'),
+          component: KeyActions,
+          componentProps: { t: t },
+        }]
+      : []),
   ];
 });
 </script>
@@ -133,22 +124,21 @@ const items = computed(() => {
             v-html="stateData.message"
             class="prose text-16px leading-relaxed whitespace-normal opacity-75"></div>
         </header>
-        <section>
-          <dl>
-            <RegistrationItem
-              v-for="item in items"
-              :key="item.label"
-              :label="item.label"
-              :text="item.text"
-              :t="t" />
-            <div class="p-16px sm:px-20px sm:grid sm:grid-cols-3 sm:gap-16px">
-              <dt class="text-16px font-medium leading-normal">&nbsp;</dt>
-              <dd class="mt-2 text-16px sm:col-span-2 sm:mt-0">
-                <KeyActions :t="t" />
-              </dd>
-            </div>
-          </dl>
-        </section>
+        <dl>
+          <RegistrationItem
+            v-for="item in items"
+            :key="item.label"
+            :component="item?.component"
+            :component-props="item?.componentProps"
+            :error="item.error ?? false"
+            :label="item.label"
+            :text="item.text"
+          >
+            <template v-if="item.component" #right>
+              <component :is="item.component" v-bind="item.componentProps" />
+            </template>
+          </RegistrationItem>
+        </dl>
       </div>
     </UiCardWrapper>
   </UiPageContainer>
