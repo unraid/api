@@ -33,11 +33,6 @@ onBeforeMount(() => {
           <AuthCe />
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
-            KeyActionsCe
-          </h3>
-          <KeyActionsCe />
-          <hr class="border-black dark:border-white">
-          <h3 class="text-lg font-semibold font-mono">
             WanIpCheckCe
           </h3>
           <WanIpCheckCe php-wan-ip="47.184.85.45" />
@@ -51,6 +46,11 @@ onBeforeMount(() => {
             UpdateOsCe
           </h3>
           <UpdateOsCe :restore-version="'6.11.2'" />
+          <hr class="border-black dark:border-white">
+          <h3 class="text-lg font-semibold font-mono">
+            RegistrationCe
+          </h3>
+          <RegistrationCe :restore-version="'6.11.2'" />
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             ModalsCe

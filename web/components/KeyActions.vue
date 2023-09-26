@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
 
-const { t } = useI18n();
+defineProps<{
+  t: any;
+}>();
+
 const { keyActions } = storeToRefs(useServerStore());
 </script>
 
@@ -25,9 +25,3 @@ const { keyActions } = storeToRefs(useServerStore());
     </li>
   </ul>
 </template>
-
-<style lang="postcss">
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-</style>

@@ -61,6 +61,8 @@ export const serverState: Server = {
   osVersion: '6.12.3',
   registered: true,
   regGen: 0,
+  regTm: uptime,
+  regTo: 'Zack Spear',
   // "regGuid": "0781-5583-8355-81071A2B0211",
   site: 'http://localhost:4321',
   state,
