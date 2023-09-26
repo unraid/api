@@ -26,10 +26,6 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
 const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
-
-watchEffect(() => {
-  console.debug('[rebootType]', rebootType.value, rebootTypeText.value);
-});
 </script>
 
 <template>
