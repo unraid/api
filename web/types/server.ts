@@ -62,6 +62,8 @@ export interface Server {
   registered?: boolean;
   regGen?: number;
   regGuid?: string;
+  regTm?: number;
+  regTo?: string;
   site?: string;
   state?: ServerState;
   theme?: Theme | undefined;
