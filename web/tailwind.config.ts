@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-
+/** @type {import('tailwindcss').Config} */
 export default <Partial<Config>>{
   safelist: [
     'DropdownWrapper_blip',
@@ -104,6 +104,21 @@ export default <Partial<Config>>{
         '2xs': '470px',
         xs: '530px',
       },
+      /**
+       * @todo modify prose classes to use pixels for webgui…sadge https://tailwindcss.com/docs/typography-plugin#customizing-the-default-theme
+       */
+      typography: (theme) => ({
+        DEFAULT: {
+          css: {
+            color: theme('colors.beta'),
+
+            // ...
+          },
+        },
+      }),
     }
-  }
+  },
+  plugins: [
+    require('@tailwindcss/typography'),
+  ],
 };

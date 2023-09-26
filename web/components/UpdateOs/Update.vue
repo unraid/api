@@ -4,7 +4,6 @@
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  */
-import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue'
 import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
