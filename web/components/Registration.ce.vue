@@ -41,8 +41,10 @@ const {
   guid,
   flashVendor,
   flashProduct,
+  regGuid,
   regTm,
   regTo,
+  state,
   stateData,
   stateDataError,
 } = storeToRefs(serverStore);
@@ -61,6 +63,15 @@ const items = computed(() => {
       label: 'Updates Expire:',
       text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm'),
     },
+    ...(state.value === 'EGUID'
+      ? [
+          {
+            label: 'Registered GUID:',
+            text: regGuid.value,
+          },
+        ]
+      : []
+    ),
     {
       label: 'Flash GUID:',
       text: guid.value,
