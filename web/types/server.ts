@@ -64,6 +64,9 @@ export interface Server {
   regGuid?: string;
   regTm?: number;
   regTo?: string;
+  regTy?: string;
+  regUpdExpAt?: number;
+  regUpdExpired?: boolean;
   site?: string;
   state?: ServerState;
   theme?: Theme | undefined;
@@ -113,7 +116,7 @@ export interface ServerPurchaseCallbackSendPayload {
   site: string;
 }
 
-export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
+export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'renew' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
 
 export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
 
