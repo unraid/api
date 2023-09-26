@@ -29,7 +29,7 @@ source_directory="plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dyna
 destination_directory="/usr/local/emhttp/plugins/dynamix.my.servers"
 
 # Replace the value inside the rsync command with the user's input
-rsync_command="rsync -avz --progress --stats -m -e ssh \"$source_directory/\" \"root@${server_name}.local:$destination_directory/\""
+rsync_command="rsync -avz --progress --stats -m -e ssh \"$source_directory/\" \"root@${server_name}:$destination_directory/\""
 
 echo "Executing the following command:"
 echo "$rsync_command"

@@ -87,6 +87,8 @@ export const useServerStore = defineStore('server', () => {
   const registered = ref<boolean>();
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
+  const regTm = ref<number>(0);
+  const regTo = ref<string>('');
   const site = ref<string>('');
   const state = ref<ServerState>();
   const theme = ref<Theme>();
@@ -720,6 +722,8 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.uptime !== 'undefined') { uptime.value = data.uptime; }
     if (typeof data?.username !== 'undefined') { username.value = data.username; }
     if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
+    if (typeof data?.regTm !== 'undefined') { regTm.value = data.regTm; }
+    if (typeof data?.regTo !== 'undefined') { regTo.value = data.regTo; }
   };
 
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
@@ -835,6 +839,8 @@ export const useServerStore = defineStore('server', () => {
     description,
     deviceCount,
     expireTime,
+    flashProduct,
+    flashVendor,
     guid,
     keyfile,
     inIframe,
@@ -845,6 +851,8 @@ export const useServerStore = defineStore('server', () => {
     registered,
     regGen,
     regGuid,
+    regTm,
+    regTo,
     site,
     state,
     theme,
