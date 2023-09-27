@@ -251,6 +251,7 @@
   "Flash Product": "Flash Product",
   "Attached Storage Devices": "Attached Storage Devices",
   "{0} out of {1} devices": "{0} out of {1} devices",
+  "{0} out of {1} allowed devices – upgrade your key to support more devices": "{0} out of {1} allowed devices – upgrade your key to support more devices",
   "{0} devices": "{0} devices",
   "unlimited": "unlimited",
   "Unable to check for updates": "Unable to check for updates",
