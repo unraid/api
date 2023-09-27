@@ -15,6 +15,8 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
+import 'tailwindcss/tailwind.css';
+import '~/assets/main.css';
 import {
   ShieldCheckIcon,
   ShieldExclamationIcon,
@@ -24,12 +26,12 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
-
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
+import { RegistrationItemProps } from '~/types/registration';
 
 import KeyActions from '~/components/KeyActions.vue';
+import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
 import RegistrationUpgradeExpiration from '~/components/Registration/UpgradeExpiration.vue';
+import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 
 const { t } = useI18n();
 
@@ -61,41 +63,83 @@ const {
   stateDataError,
 } = storeToRefs(serverStore);
 
-const devicesAvailable = computed(() => {
+const devicesAvailable = computed((): number => {
   switch(regTy.value) {
+    case 'Starter':
+      return 4;
     case 'Basic':
       return 6;
     case 'Plus':
       return 12;
+    case 'Unleashed':
+    case 'Lifetime':
     case 'Pro':
     case 'Trial':
-      return 'unlimited';
+      return 9999;
+    default:
+      return 0;
   }
 });
 
-const items = computed(() => {
+const items = computed((): RegistrationItemProps[] => {
   return [
-    ...(regTy.value ? [{ label: t('License key type'), text: regTy.value }] : []),
-    ...(regTo.value ? [ { label: t('Registered to'), text: regTo.value }] : []),
-    ...(regTo.value ? [{ label: t('Registered on'), text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm')}] : []),
-    /**
-     * @todo factor in grandfathered users and display a different message
-     */
-    ...(regUpdExpAt.value
-      ? [{
+    ...(regTy.value ? [{
+        label: t('License key type'),
+        text: regTy.value,
+      }] : []),
+    ...(state.value === 'TRIAL' || state.value === 'EEXPIRED' ? [{
+        error: state.value === 'EEXPIRED',
+        label: t('Trial expiration'),
+        component: UserProfileUptimeExpire,
+        componentProps: {
+          forExpire: true,
+          shortText: true,
+          t: t,
+        },
+        componentOpacity: true,
+      }] : []),
+    ...(regTo.value ? [{
+        label: t('Registered to'),
+        text: regTo.value,
+       }] : []),
+    ...(regTo.value && regTm.value ? [{
+        label: t('Registered on'),
+        text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm'),
+      }] : []),
+    ...(regUpdExpAt.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
           error: regUpdExpired.value,
           label: t('OS Update Eligibility'),
           component: RegistrationUpgradeExpiration,
           componentProps: { t: t },
         }]
       : []),
-    ...(state.value === 'EGUID' ? [{ label: t('Registered GUID'), text: regGuid.value }] : [] ),
-    { label: t('Flash GUID'), text: guid.value },
-    { label: t('Flash Vendor'), text: flashVendor.value },
-    { label: t('Flash Product'), text: flashProduct.value },
-    { label: t('Attached Storage Devices'), text: t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value]) },
-    ...(regUpdExpAt.value
-      ? [{
+    ...(state.value === 'EGUID' ? [{
+        label: t('Registered GUID'),
+        text: regGuid.value,
+        }] : [] ),
+    ...(guid.value ? [{
+        label: t('Flash GUID'),
+        text: guid.value,
+        }] : [] ),
+    ...(flashVendor.value ? [{
+        label: t('Flash Vendor'),
+        text: flashVendor.value,
+        }] : [] ),
+    ...(flashProduct.value ? [{
+        label: t('Flash Product'),
+        text: flashProduct.value,
+        }] : [] ),
+    ...(!stateDataError.value ? [{
+        error: deviceCount.value > devicesAvailable.value,
+        label: t('Attached Storage Devices'),
+        text: t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
+      }] : []),
+    ...(!stateDataError.value && guid.value ? [{
+          label: t('Key Replacement Eligibility'),
+          component: RegistrationReplaceCheck,
+          componentProps: { t: t },
+        }] : []),
+    ...(keyActions.value ? [{
           label: t('License key actions'),
           component: KeyActions,
           componentProps: { t: t },
@@ -135,7 +179,10 @@ const items = computed(() => {
             :text="item.text"
           >
             <template v-if="item.component" #right>
-              <component :is="item.component" v-bind="item.componentProps" />
+              <component
+                :is="item.component"
+                v-bind="item.componentProps"
+                :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']" />
             </template>
           </RegistrationItem>
         </dl>
