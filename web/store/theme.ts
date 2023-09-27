@@ -66,7 +66,6 @@ export const useThemeStore = defineStore('theme', () => {
   };
 
   watch(theme, () => {
-    console.debug('[watch.theme]', theme.value);
     setCssVars();
   });
 
