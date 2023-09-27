@@ -13,13 +13,12 @@ import { validateGuid, type ValidateGuidPayload } from '~/composables/services/k
 import { useServerStore } from '~/store/server';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
-import { storeKeyNameFromField } from '@apollo/client/utilities';
 
 const props = defineProps<{
   t: any;
 }>();
 
-const { guid } = storeToRefs(useServerStore());
+const { guid, keyfile } = storeToRefs(useServerStore());
 
 const error = ref<{
   name: string;
@@ -65,7 +64,16 @@ const check = async () => {
   try {
     status.value = 'checking';
     error.value = null;
-    const response: ValidateGuidPayload = await validateGuid({ guid: guid.value }).json();
+    /**
+     * @todo will eventually take a keyfile and provide renewal details. If this says there's a reneal key available then we'll make a separate request to replace / swap the new key. We'll also use this to update the keyfile to the new key type for legacy users.
+     * endpoint will be through key server
+     * this should happen automatically when the web components are mounted…
+     * account.unraid.net will do a similar thing`
+     */
+    const response: ValidateGuidPayload = await validateGuid({
+      guid: guid.value,
+      keyfile: keyfile.value,
+    }).json();
     sessionStorage.setItem('replaceCheck', JSON.stringify(response));
     status.value = response?.replaceable ? 'eligible' : 'ineligible';
   } catch (err) {
