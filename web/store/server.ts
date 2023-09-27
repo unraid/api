@@ -373,13 +373,15 @@ export const useServerStore = defineStore('server', () => {
             : '<p>You have used all your Trial extensions. To continue using Unraid OS you may purchase a license key.</p>',
         };
       case 'BASIC':
+      case 'STARTER':
         return {
+          /** @todo for starter we need to have a renew key action */
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...([upgradeAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'Basic',
+          humanReadable: state.value === 'BASIC' ? 'Basic' : 'Starter',
           heading: 'Thank you for choosing Unraid OS!',
           message: registered.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
@@ -403,12 +405,17 @@ export const useServerStore = defineStore('server', () => {
               : '',
         };
       case 'PRO':
+      case 'LIFETIME':
+      case 'UNLEASHED':
         return {
+          /** @todo for unleashed we need to have a renew key action */
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'Pro',
+          humanReadable: state.value === 'PRO'
+            ? 'Pro'
+            : (state.value === 'LIFETIME' ? 'Lifetime' : 'Unleashed'),
           heading: 'Thank you for choosing Unraid OS!',
           message: registered.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
