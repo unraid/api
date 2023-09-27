@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'TRIAL';
+const state: ServerState = 'ENOCONN';
 let regTy = '';
 switch (state) {
   // @ts-ignore
@@ -101,7 +101,7 @@ export const serverState: Server = {
     bgColor: '',
     descriptionShow: true,
     metaColor: '',
-    name: 'white',
+    name: 'black',
     textColor: ''
   },
   uptime,
