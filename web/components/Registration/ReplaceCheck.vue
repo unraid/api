@@ -32,21 +32,21 @@ const statusOutput = computed(() => {
   switch (status.value) {
     case 'eligible':
       return {
-        classes: 'text-green-500',
+        color: 'green',
         icon: CheckCircleIcon,
         text: props.t('Eligible'),
       };
 
     case 'ineligible':
       return {
-        classes: 'text-red-500',
+        color: 'red',
         icon: XCircleIcon,
         text: props.t('Ineligible'),
       };
 
     case 'error':
       return {
-        classes: 'text-red-500',
+        color: 'red',
         icon: ShieldExclamationIcon,
         text: error.value?.message || 'Unknown error',
       };
@@ -101,13 +101,9 @@ onBeforeMount(() => {
       v-else-if="statusOutput"
       class="flex flex-col sm:flex-row items-start justify-between gap-4px"
     >
-      <span class="flex flex-row items-center gap-x-8px p-8px" :class="[statusOutput?.classes]">
-        <component
-          v-if="statusOutput?.icon"
-          :is="statusOutput?.icon"
-          class="w-16px fill-current" />
-        {{ statusOutput?.text }}
-      </span>
+      <UiBadge :color="statusOutput.color" :icon="statusOutput.icon" size="16px">
+        {{ statusOutput.text }}
+      </UiBadge>
       <BrandButton
         v-if="status === 'eligible' || status === 'ineligible'"
         btn-style="underline"
