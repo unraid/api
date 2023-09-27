@@ -6,5 +6,5 @@ export interface RegistrationItemProps {
   componentOpacity?: boolean;
   error?: boolean;
   label?: string;
-  text?: number | string | undefined;
+  text?: number | string;
 }
