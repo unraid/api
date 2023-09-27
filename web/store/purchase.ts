@@ -50,10 +50,23 @@ export const usePurchaseStore = defineStore('purchase', () => {
       serverStore.inIframe,
     );
   };
+  const renew = () => {
+    callbackStore.send(
+      PURCHASE_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverPurchasePayload,
+        },
+        type: 'renew',
+      }],
+      serverStore.inIframe,
+    );
+  };
 
   return {
     redeem,
     purchase,
     upgrade,
+    renew,
   };
 });

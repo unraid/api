@@ -6,11 +6,13 @@ import { useServerStore } from '~/store/server';
 
 export interface Props {
   forExpire?: boolean;
+  shortText?: boolean;
   t: any;
 }
 
 const props = withDefaults(defineProps<Props>(), {
   forExpire: false,
+  shortText: false,
 });
 
 const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(props.t);
@@ -41,11 +43,11 @@ const output = computed(() => {
   if (!countUp.value || state.value === 'EEXPIRED') {
     return {
       title: state.value === 'EEXPIRED'
-        ? props.t('Trial Key Expired at {0}', [formattedTime.value])
-        : props.t('Trial Key Expires at {0}', [formattedTime.value]),
+        ? props.t(props.shortText ? 'Expired at {0}' : 'Trial Key Expired at {0}', [formattedTime.value])
+        : props.t(props.shortText ? 'Expires at {0}' : 'Trial Key Expires at {0}', [formattedTime.value]),
       text: state.value === 'EEXPIRED'
-        ? props.t('Trial Key Expired {0}', [parsedTime.value])
-        : props.t('Trial Key Expires in {0}', [parsedTime.value]),
+        ? props.t(props.shortText ? 'Expired {0}' : 'Trial Key Expired {0}', [parsedTime.value])
+        : props.t(props.shortText ? 'Expires in {0}' : 'Trial Key Expires in {0}', [parsedTime.value]),
     };
   }
   return {
