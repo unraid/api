@@ -30,7 +30,31 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED2
 // ENOCONN
 const state: ServerState = 'TRIAL';
-const regTy = 'Trial';
+let regTy = '';
+switch (state) {
+  // @ts-ignore
+  case 'EEXPIRED':
+  // @ts-ignore
+  case 'ENOCONN':
+  // @ts-ignore
+  case 'TRIAL':
+    regTy = 'Trial';
+    break;
+  // @ts-ignore
+  case 'BASIC':
+  // @ts-ignore
+  case 'PLUS':
+  // @ts-ignore
+  case 'PRO':
+  // @ts-ignore
+  case 'STARTER':
+  // @ts-ignore
+  case 'UNLEASHED':
+  // @ts-ignore
+  case 'LIFETIME':
+    regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); // title case
+    break;
+}
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
@@ -77,7 +101,7 @@ export const serverState: Server = {
     bgColor: '',
     descriptionShow: true,
     metaColor: '',
-    name: 'white',
+    name: 'black',
     textColor: ''
   },
   uptime,
