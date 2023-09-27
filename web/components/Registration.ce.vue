@@ -132,7 +132,9 @@ const items = computed((): RegistrationItemProps[] => {
     ...(!stateDataError.value ? [{
         error: deviceCount.value > devicesAvailable.value,
         label: t('Attached Storage Devices'),
-        text: t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
+        text: deviceCount.value > devicesAvailable.value
+          ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value])
+          : t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
       }] : []),
     ...(!stateDataError.value && guid.value ? [{
           label: t('Key Replacement Eligibility'),
