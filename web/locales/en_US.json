@@ -267,5 +267,6 @@
   "Check Eligibility": "Check Eligibility",
   "Eligible": "Eligible",
   "Ineligible": "Ineligible",
-  "Flash GUID required": "Flash GUID required"
+  "Flash GUID required": "Flash GUID required",
+  "Unraid {0}": "Unraid {0}"
 }
