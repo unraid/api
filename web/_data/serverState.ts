@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'ENOCONN';
+const state: ServerState = 'BASIC';
 let regTy = '';
 switch (state) {
   // @ts-ignore
@@ -72,7 +72,7 @@ export const serverState: Server = {
   connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
   // connectPluginInstalled: '',
   description: 'DevServer9000',
-  deviceCount: 3,
+  deviceCount: 12,
   expireTime,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
