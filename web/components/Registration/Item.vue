@@ -22,7 +22,7 @@ const evenBgColor = computed(() => {
       !error && evenBgColor,
       error && 'text-white bg-unraid-red',
     ]"
-    class="text-16px p-16px grid grid-cols-1 gap-4px sm:px-20px sm:grid-cols-3 sm:gap-16px items-start"
+    class="text-16px p-16px grid grid-cols-1 gap-4px sm:px-20px sm:grid-cols-3 sm:gap-16px items-start rounded"
   >
     <dt class="font-semibold flex flex-row justify-start items-center gap-x-8px">
       <ShieldExclamationIcon v-if="error" class="w-16px h-16px fill-current" />
