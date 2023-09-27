@@ -101,7 +101,7 @@ export const serverState: Server = {
     bgColor: '',
     descriptionShow: true,
     metaColor: '',
-    name: 'black',
+    name: 'white',
     textColor: ''
   },
   uptime,
