@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { OnClickOutside } from '@vueuse/components';
+import { useClipboard } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
@@ -70,7 +71,7 @@ watch(showCopyNotSupported, (newVal, oldVal) => {
     clearTimeout(copyIpInterval);
     copyIpInterval = setTimeout(() => {
       showCopyNotSupported.value = false;
-    }, 2000);
+    }, 5000);
   }
 });
 
