@@ -111,10 +111,17 @@ export default <Partial<Config>>{
         DEFAULT: {
           css: {
             color: theme('colors.beta'),
+            a: {
+              color: theme('colors.orange'),
+              textDecoration: 'underline',
+              '&:hover': {
+                color: theme('colors.orange-dark'),
+              },
+            },
             '--tw-prose-body': theme('colors.beta'),
             '--tw-prose-headings': theme('colors.beta'),
             '--tw-prose-lead': theme('colors.beta'),
-            '--tw-prose-links': theme('colors.beta'),
+            '--tw-prose-links': theme('colors.orange'),
             '--tw-prose-bold': theme('colors.beta'),
             '--tw-prose-counters': theme('colors.beta'),
             '--tw-prose-bullets': theme('colors.beta'),
@@ -130,7 +137,7 @@ export default <Partial<Config>>{
             '--tw-prose-invert-body': theme('colors.alpha'),
             '--tw-prose-invert-headings': theme('colors.alpha'),
             '--tw-prose-invert-lead': theme('colors.alpha'),
-            '--tw-prose-invert-links': theme('colors.alpha'),
+            '--tw-prose-invert-links': theme('colors.orange'),
             '--tw-prose-invert-bold': theme('colors.alpha'),
             '--tw-prose-invert-counters': theme('colors.alpha'),
             '--tw-prose-invert-bullets': theme('colors.alpha'),
