@@ -7,6 +7,7 @@ import { RegistrationItemProps } from '~/types/registration';
 
 withDefaults(defineProps<RegistrationItemProps>(), {
   error: false,
+  text: '',
 });
 
 const { darkMode } = storeToRefs(useThemeStore());
@@ -29,7 +30,9 @@ const evenBgColor = computed(() => {
       <span>{{ label }}</span>
     </dt>
     <dd class="leading-normal sm:col-span-2">
-      <span v-if="text" class="select-all" :class="!error ? 'opacity-75' : ''">{{ text }}</span>
+      <span v-if="text" class="select-all" :class="!error ? 'opacity-75' : ''">
+        {{ text }}
+      </span>
       <template v-if="$slots['right']">
         <slot name="right"></slot>
       </template>
