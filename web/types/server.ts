@@ -32,6 +32,9 @@ export type ServerState = 'BASIC'
   | 'EBLACKLISTED1'
   | 'EBLACKLISTED2'
   | 'ENOCONN'
+  | 'STARTER'
+  | 'UNLEASHED'
+  | 'LIFETIME'
   | undefined;
 
 export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';

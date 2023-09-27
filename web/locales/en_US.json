@@ -251,6 +251,8 @@
   "Flash Product": "Flash Product",
   "Attached Storage Devices": "Attached Storage Devices",
   "{0} out of {1} devices": "{0} out of {1} devices",
+  "{0} devices": "{0} devices",
+  "unlimited": "unlimited",
   "Unable to check for updates": "Unable to check for updates",
   "License key actions": "License key actions",
   "License key type": "License key type",
@@ -260,5 +262,9 @@
   "Expired {0}": "Expired {0}",
   "Expires in {0}": "Expires in {0}",
   "Renew your license key now": "Renew your license key now",
-  "Renew Key to Enable OS Updates": "Renew Key to Enable OS Updates"
+  "Renew Key to Enable OS Updates": "Renew Key to Enable OS Updates",
+  "Check Eligibility": "Check Eligibility",
+  "Eligible": "Eligible",
+  "Ineligible": "Ineligible",
+  "Flash GUID required": "Flash GUID required"
 }

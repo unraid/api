@@ -266,7 +266,7 @@ export const useServerStore = defineStore('server', () => {
     text: 'Redeem Activation Code',
   };
   const renewAction = ref<ServerStateDataAction>({
-    click: () => { purchaseStore.redeem(); },
+    click: () => { purchaseStore.renew(); },
     external: true,
     icon: KeyIcon,
     name: 'renew',

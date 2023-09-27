@@ -15,6 +15,13 @@ export const startTrial = (payload: StartTrialPayload) => KeyServer
   .formUrl(payload)
   .post();
 
+export interface ValidateGuidPayload {
+  purchaseable: true,
+  registered: false,
+  replaceable: false,
+  upgradeable: false,
+  upgradeAllowed: 'pro' | 'plus' | 'unleashed'[],
+}
 export const validateGuid = (payload: { guid: string }) => KeyServer
   .url('/validate/guid')
   .formUrl(payload)
