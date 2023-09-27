@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import {
+  ArrowTopRightOnSquareIcon,
   CheckCircleIcon,
   KeyIcon,
   XCircleIcon,
@@ -98,14 +99,23 @@ onBeforeMount(() => {
 
     <p
       v-else-if="statusOutput"
-      class="flex flex-row items-center gap-x-4px"
-      :class="[statusOutput?.classes]"
+      class="flex flex-col sm:flex-row items-start justify-between gap-4px"
     >
-      <component
-        v-if="statusOutput?.icon"
-        :is="statusOutput?.icon"
-        class="w-16px fill-current" />
-      {{ statusOutput?.text }}
+      <span class="flex flex-row items-center gap-x-8px p-8px" :class="[statusOutput?.classes]">
+        <component
+          v-if="statusOutput?.icon"
+          :is="statusOutput?.icon"
+          class="w-16px fill-current" />
+        {{ statusOutput?.text }}
+      </span>
+      <BrandButton
+        v-if="status === 'eligible' || status === 'ineligible'"
+        btn-style="underline"
+        :external="true"
+        :href="'https://docs.unraid.net/unraid-os/manual/changing-the-flash-device/'"
+        :iconRight="ArrowTopRightOnSquareIcon"
+        :text="t('Learn More')"
+      />
     </p>
   </div>
 </template>
