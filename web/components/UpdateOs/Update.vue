@@ -17,7 +17,6 @@ import { ref, watchEffect } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
@@ -25,22 +24,23 @@ const props = defineProps<{
   t: any;
 }>();
 
-const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { guid, keyfile, osVersion } = storeToRefs(serverStore);
 const { available } = storeToRefs(updateOsStore);
+const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
 const updateButton = ref<UserProfileLink | undefined>();
 
-const availableText = computed(() => {
+const heading = computed(() => {
+  if (ineligibleText.value) {
+    return props.t('Ineligible for Unraid OS updates');
+  }
   if (available.value && updateButton?.value?.text && updateButton?.value?.textParams) {
     return props.t(updateButton?.value.text, updateButton?.value.textParams);
   }
+  return props.t('Check for Updates');
 });
-
-const ineligible = computed(() => !guid.value || !keyfile.value || !osVersion.value);
 
 watchEffect(() => {
   if (available.value) {
@@ -59,17 +59,17 @@ watchEffect(() => {
           <BellAlertIcon v-if="available" class="w-20px shrink-0" />
           <ArrowPathIcon v-else class="w-20px shrink-0" />
           <span>
-            {{ availableText ? availableText : t('Check for Updates')}}
+            {{ heading }}
           </span>
         </h3>
         <div class="text-16px leading-relaxed whitespace-normal opacity-75">
-          <p v-if="ineligible">{{ t('A valid keyfile and USB Flash boot device are required to check for updates.') }} {{ t('Please fix any errors and try again.') }}</p>
+          <p v-if="ineligibleText">{{ ineligibleText }}</p>
           <p v-else>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
         </div>
       </div>
 
       <BrandButton
-        v-if="ineligible"
+        v-if="ineligibleText"
         href="/Tools/Registration"
         :icon="WrenchScrewdriverIcon"
         :text="t('Go to Tools > Registration to fix')"
