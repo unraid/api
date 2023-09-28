@@ -6,6 +6,7 @@
  */
 import {
   ArrowPathIcon,
+  ArrowSmallRightIcon,
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   ShieldExclamationIcon,
@@ -82,7 +83,8 @@ watchEffect(() => {
         btn-style="white"
         href="/Tools/Registration"
         :icon="WrenchScrewdriverIcon"
-        :text="t('Go to Tools > Registration to fix')"
+        :icon-right="ArrowSmallRightIcon"
+        :text="t('Learn more and fix')"
         />
       <BrandButton
         v-else-if="available && updateButton"
