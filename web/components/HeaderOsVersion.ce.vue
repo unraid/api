@@ -36,7 +36,7 @@ const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
         color="custom"
         :icon="InformationCircleIcon"
         icon-styles="text-gamma"
-        size="12px"
+        size="14px"
         class="text-gamma group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
       >
         {{ osVersion }}
