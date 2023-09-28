@@ -8,9 +8,9 @@ import {
   ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
+  ShieldExclamationIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/solid';
-import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { ref, watchEffect } from 'vue';
 
@@ -42,6 +42,16 @@ const heading = computed(() => {
   return props.t('Check for Updates');
 });
 
+const headingIcon = computed(() => {
+  if (ineligibleText.value) {
+    return ShieldExclamationIcon;
+  }
+  if (available.value) {
+    return BellAlertIcon;
+  }
+  return ArrowPathIcon;
+});
+
 watchEffect(() => {
   if (available.value) {
     updateButton.value = updateOsActionsStore.initUpdateOsCallback();
@@ -52,17 +62,16 @@ watchEffect(() => {
 </script>
 
 <template>
-  <UiCardWrapper :increased-padding="true">
+  <UiCardWrapper :error="!!ineligibleText" :increased-padding="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
         <h3 class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px">
-          <BellAlertIcon v-if="available" class="w-20px shrink-0" />
-          <ArrowPathIcon v-else class="w-20px shrink-0" />
+          <component :is="headingIcon" class="w-20px shrink-0" />
           <span>
             {{ heading }}
           </span>
         </h3>
-        <div class="text-16px leading-relaxed whitespace-normal opacity-75">
+        <div class="text-16px leading-relaxed whitespace-normal" :class="!ineligibleText ? 'opacity-75' : ''">
           <p v-if="ineligibleText">{{ ineligibleText }}</p>
           <p v-else>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
         </div>
@@ -70,6 +79,7 @@ watchEffect(() => {
 
       <BrandButton
         v-if="ineligibleText"
+        btn-style="white"
         href="/Tools/Registration"
         :icon="WrenchScrewdriverIcon"
         :text="t('Go to Tools > Registration to fix')"
