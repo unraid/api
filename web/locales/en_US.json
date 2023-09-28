@@ -275,5 +275,9 @@
   "Starter": "Starter",
   "Unleashed": "Unleashed",
   "Lifetime": "Lifetime",
-  "Renew your license key to continue receiving OS updates.": "Renew your license key to continue receiving OS updates."
+  "Renew your license key to continue receiving OS updates.": "Renew your license key to continue receiving OS updates.",
+  "A valid GUID is required to check for updates.": "A valid GUID is required to check for updates.",
+  "A valid keyfile is required to check for updates.": "A valid keyfile is required to check for updates.",
+  "A valid OS version is required to check for updates.": "A valid OS version is required to check for updates.",
+  "Your OS update eligibility has expired. Please renew your license key enable updates.": "Your OS update eligibility has expired. Please renew your license key enable updates."
 }

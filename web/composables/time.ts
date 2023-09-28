@@ -1,5 +1,6 @@
 import dayjs, { extend } from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import { DateFormatOption, ServerDateTimeFormat, TimeFormatOption } from 'types/server';
 
 /** @see https://day.js.org/docs/en/display/format#localized-formats */
 extend(localizedFormat);
@@ -15,7 +16,22 @@ export interface TimeStringsObject {
   displaySeconds?: boolean;
 }
 
-const useTimeHelper = (t: any) => {
+const dateFormatOptions: DateFormatOption[] = [
+  { format: '%A, %Y %B %e', display: 'ddd, YYYY MMMM D' },
+  { format: '%A, %e %B %Y', display: 'ddd, D MMMM YYYY' },
+  { format: '%A, %B %e, %Y', display: 'ddd, MMMM D, YYYY' },
+  { format: '%A, %m/%d/%Y', display: 'ddd, MM/DD/YYYY' },
+  { format: '%A, %d-%m-%Y', display: 'ddd, DD-MM-YYYY' },
+  { format: '%A, %d.%m.%Y', display: 'ddd, DD.MM.YYYY' },
+  { format: '%A, %Y-%m-%d', display: 'ddd, YYYY-MM-DD' },
+];
+
+const timeFormatOptions: TimeFormatOption[] = [
+  { format: '%I:%M %p', display: 'hh:mm' },
+  { format: '%R', display: 'HH:mm' },
+];
+
+const useTimeHelper = (format: ServerDateTimeFormat | undefined, t: any) => {
   const buildStringFromValues = (payload: TimeStringsObject) => {
     const {
       years,
@@ -39,7 +55,17 @@ const useTimeHelper = (t: any) => {
     return result.join(' ');
   };
 
-  const formatDate = (date: number): string => dayjs(date).format('LLLL');
+  // use the format from the server to determine the format to use
+  const findMatchingFormat = (
+      selectedFormat: string,
+      formats: DateFormatOption[] | TimeFormatOption[],
+    ): DateFormatOption | TimeFormatOption | undefined =>
+    formats.find(formatOption => formatOption.format === selectedFormat);
+  const dateFormat = findMatchingFormat(format?.date ?? dateFormatOptions[0].format, dateFormatOptions);
+  const timeFormat = findMatchingFormat(format?.time ?? timeFormatOptions[0].format , timeFormatOptions);
+
+  const formatDate = (date: number): string =>
+    dayjs(date).format(`${dateFormat?.display} ${timeFormat?.display}`);
 
   /**
  * Original meat and potatos from:

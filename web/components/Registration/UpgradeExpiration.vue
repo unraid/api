@@ -10,10 +10,11 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(props.t);
 
 const serverStore = useServerStore();
-const { regTy, regExp, regUpdatesExpired, state } = storeToRefs(serverStore);
+const { dateTimeFormat, regTy, regExp, regUpdatesExpired, state } = storeToRefs(serverStore);
+
+const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
 
 const parsedTime = ref<string>('');
 const formattedTime = computed<string>(() => formatDate(regExp.value));
@@ -38,7 +39,6 @@ const runDiff = () => {
 
 let interval: string | number | NodeJS.Timeout | undefined;
 onBeforeMount(() => {
-  console.debug('[UpgradeExpiration.onBeforeMount]', props);
   runDiff();
   interval = setInterval(() => {
     runDiff();

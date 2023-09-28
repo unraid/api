@@ -15,10 +15,10 @@ const props = withDefaults(defineProps<Props>(), {
   shortText: false,
 });
 
-const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(props.t);
-
 const serverStore = useServerStore();
-const { uptime, expireTime, state } = storeToRefs(serverStore);
+const { dateTimeFormat, uptime, expireTime, state } = storeToRefs(serverStore);
+
+const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
 
 const time = computed(() => {
   if (props.forExpire && expireTime.value) {
