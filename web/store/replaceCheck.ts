@@ -8,11 +8,16 @@ import type { WretchError } from 'wretch';
 
 import { validateGuid, type ValidateGuidPayload } from '~/composables/services/keyServer';
 import { useServerStore } from '~/store/server';
+import type { UiBadgeProps } from '~/types/ui/badge';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
 setActivePinia(createPinia());
+
+export interface UiBadgePropsExtended extends UiBadgeProps {
+  text?: string;
+}
 
 export const useReplaceCheckStore = defineStore('replaceCheck', () => {
   const serverStore = useServerStore();
@@ -27,7 +32,7 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
     cause?: unknown;
   } | null>(null);
   const status = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
-  const statusOutput = computed(() => {
+  const statusOutput = computed((): UiBadgePropsExtended => {
     // text values are translated in the component
     switch (status.value) {
       case 'eligible':
