@@ -63,13 +63,14 @@ export interface Server {
   name?: string;
   osVersion?: string;
   registered?: boolean;
+  regDev?: number;
   regGen?: number;
   regGuid?: string;
   regTm?: number;
   regTo?: string;
   regTy?: string;
-  regUpdExpAt?: number;
-  regUpdExpired?: boolean;
+  regExp?: number;
+  regUpdatesExpired?: boolean;
   site?: string;
   state?: ServerState;
   theme?: Theme | undefined;

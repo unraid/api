@@ -85,13 +85,14 @@ export const useServerStore = defineStore('server', () => {
   const name = ref<string>('');
   const osVersion = ref<string>('');
   const registered = ref<boolean>();
+  const regDev = ref<number>(0);
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
   const regTm = ref<number>(0);
   const regTo = ref<string>('');
   const regTy = ref<string>('');
-  const regUpdExpAt = ref<number>(0);
-  const regUpdExpired = computed(() => regUpdExpAt.value < Date.now()); // @todo temp solution until webgui provides
+  const regExp = ref<number>(0);
+  const regUpdatesExpired = computed(() => regExp.value < Date.now()); // @todo temp solution until webgui provides
   const site = ref<string>('');
   const state = ref<ServerState>();
   const theme = ref<Theme>();
@@ -141,6 +142,7 @@ export const useServerStore = defineStore('server', () => {
       name: name.value,
       osVersion: osVersion.value,
       registered: registered.value,
+      regDev: regDev.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
       site: site.value,
@@ -375,9 +377,9 @@ export const useServerStore = defineStore('server', () => {
       case 'BASIC':
       case 'STARTER':
         return {
-          /** @todo for starter we need to have a renew key action */
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
+            ...(state.value === 'STARTER' && regUpdatesExpired.value ? [renewAction.value] : []),
             ...([upgradeAction]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
@@ -408,9 +410,9 @@ export const useServerStore = defineStore('server', () => {
       case 'LIFETIME':
       case 'UNLEASHED':
         return {
-          /** @todo for unleashed we need to have a renew key action */
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
+            ...(state.value === 'UNLEASHED' && regUpdatesExpired.value ? [renewAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: state.value === 'PRO'
@@ -587,7 +589,8 @@ export const useServerStore = defineStore('server', () => {
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
   const tooManyDevices = computed((): Error | undefined => {
-    if (!config.value?.valid && config.value?.error === 'INVALID') {
+    if ((deviceCount.value !== 0 && regDev.value !== 0 && deviceCount.value > regDev.value)
+        || !config.value?.valid && config.value?.error === 'INVALID') {
       return {
         heading: 'Too Many Devices',
         level: 'error',
@@ -734,7 +737,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.regGen !== 'undefined') { regGen.value = data.regGen; }
     if (typeof data?.regGuid !== 'undefined') { regGuid.value = data.regGuid; }
     if (typeof data?.regTy !== 'undefined') { regTy.value = data.regTy; }
-    if (typeof data?.regUpdExpAt !== 'undefined') { regUpdExpAt.value = data.regUpdExpAt; }
+    if (typeof data?.regExp !== 'undefined') { regExp.value = data.regExp; }
     if (typeof data?.site !== 'undefined') { site.value = data.site; }
     if (typeof data?.state !== 'undefined') { state.value = data.state; }
     if (typeof data?.theme !== 'undefined') { theme.value = data.theme; }
@@ -868,13 +871,14 @@ export const useServerStore = defineStore('server', () => {
     name,
     osVersion,
     registered,
+    regDev,
     regGen,
     regGuid,
     regTm,
     regTo,
     regTy,
-    regUpdExpAt,
-    regUpdExpired,
+    regExp,
+    regUpdatesExpired,
     site,
     state,
     theme,
