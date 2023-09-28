@@ -13,6 +13,7 @@ export interface ButtonProps {
   href?: string;
   icon?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
   iconRight?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
+  iconRightHover?: boolean;
   size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
   text?: string;
 }
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   href: undefined,
   icon: undefined,
   iconRight: undefined,
+  iconRightHover: false,
   size: '16px',
   text: undefined,
 });
@@ -30,6 +32,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
 defineEmits(['click']);
 
 const classes = computed(() => {
+  const buttonDefaults = 'group text-center font-semibold flex flex-row items-center justify-center cursor-pointer rounded-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed';
   let buttonColors = '';
   let buttonSize = '';
   let iconSize = '';
@@ -80,7 +83,7 @@ const classes = computed(() => {
   }
 
   return {
-    button: `${buttonSize} ${buttonColors} text-center font-semibold flex flex-row items-center justify-center cursor-pointer rounded-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed`,
+    button: `${buttonSize} ${buttonColors} ${buttonDefaults}`,
     icon: `${iconSize} fill-current flex-shrink-0`,
   };
 });
@@ -97,8 +100,19 @@ const classes = computed(() => {
     :class="classes.button"
     @click="click ?? $emit('click')"
   >
-    <component v-if="icon" :is="icon" :class="classes.icon" />
+    <component
+      v-if="icon"
+      :is="icon"
+      :class="classes.icon" />
+
     {{ text }}
-    <component v-if="iconRight" :is="iconRight" :class="classes.icon" />
+
+    <component
+      v-if="iconRight"
+      :is="iconRight"
+      :class="[
+        classes.icon,
+        iconRightHover ? 'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all' : '',
+      ]" />
   </component>
 </template>
