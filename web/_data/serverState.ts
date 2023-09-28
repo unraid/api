@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'ENOKEYFILE';
+const state: ServerState = 'STARTER';
 let regDev = 0;
 let regTy = '';
 switch (state) {
@@ -66,6 +66,12 @@ let expireTime = 0;
 if (state === 'TRIAL') { expireTime = oneHourFromNow; } // in 1 hour
 else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 
+let regExp: number | undefined = undefined;
+if (state === 'STARTER' || state === 'UNLEASHED') {
+  // regExp = oneHourFromNow;
+  regExp = uptime;
+}
+
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
   avatar: 'https://source.unsplash.com/300x300/?portrait',
@@ -83,7 +89,7 @@ export const serverState: Server = {
   guid: randomGuid,
   // "guid": "0781-5583-8355-81071A2B0211",
   inIframe: false,
-  // keyfile: 'DUMMY_KEYFILE',
+  keyfile: 'DUMMY_KEYFILE',
   lanIp: '192.168.254.36',
   license: '',
   locale: 'en_US', // en_US, ja
@@ -95,7 +101,7 @@ export const serverState: Server = {
   regTo: 'Zack Spear',
   regTy,
   // regExp: oneHourFromNow,
-  regExp: uptime,
+  regExp,
   // "regGuid": "0781-5583-8355-81071A2B0211",
   site: 'http://localhost:4321',
   state,
