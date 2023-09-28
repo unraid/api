@@ -114,7 +114,7 @@ const items = computed((): RegistrationItemProps[] => {
           error: regUpdatesExpired.value,
           label: t('OS Update Eligibility'),
           component: RegistrationUpgradeExpiration,
-          componentProps: { t: t },
+          componentProps: { t },
           componentOpacity: !regUpdatesExpired.value,
         }]
       : []),
