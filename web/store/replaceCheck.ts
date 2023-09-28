@@ -19,6 +19,8 @@ export interface UiBadgePropsExtended extends UiBadgeProps {
   text?: string;
 }
 
+export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
+
 export const useReplaceCheckStore = defineStore('replaceCheck', () => {
   const serverStore = useServerStore();
 
@@ -57,8 +59,8 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
     }
   });
   const validationResponse = ref<ValidateGuidPayload | undefined>(
-    sessionStorage.getItem('replaceCheck')
-      ? JSON.parse(sessionStorage.getItem('replaceCheck') as string)
+    sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY)
+      ? JSON.parse(sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY) as string)
       : undefined
   );
 
@@ -88,7 +90,7 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
       /** @todo fix type issue */
       status.value = response?.replaceable ? 'eligible' : 'ineligible';
       if (status.value === 'eligible' || status.value === 'ineligible') {
-        sessionStorage.setItem('replaceCheck', JSON.stringify(response));
+        sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify(response));
       }
     } catch (err) {
       const catchError = err as WretchError;
