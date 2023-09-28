@@ -2,8 +2,10 @@
 import { storeToRefs } from 'pinia';
 
 import { useServerStore } from '~/store/server';
+import type { ServerStateDataAction } from '~/types/server';
 
 const props = defineProps<{
+  actions: ServerStateDataAction[];
   filterBy?: string[] | undefined;
   filterOut?: string[] | undefined;
   t: any;
@@ -11,10 +13,12 @@ const props = defineProps<{
 
 const { keyActions } = storeToRefs(useServerStore());
 
-const filteredKeyActions = computed(() => {
-  if (!keyActions.value || (!props.filterOut && !props.filterBy)) return keyActions.value;
+const computedActions = computed((): ServerStateDataAction[] | undefined => props.actions ? props.actions : keyActions.value);
 
-  return keyActions.value.filter((action: { name: string; }) => {
+const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
+  if (!computedActions.value || (!props.filterOut && !props.filterBy)) return computedActions.value;
+
+  return computedActions.value.filter((action: { name: string; }) => {
     return props.filterOut
       ? !props.filterOut?.includes(action.name)
       : props.filterBy?.includes(action.name);

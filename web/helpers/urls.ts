@@ -1,10 +1,11 @@
 const ACCOUNT = new URL(import.meta.env.VITE_ACCOUNT ?? 'https://account.unraid.net');
+const DOCS = new URL('https://docs.unraid.net');
 const FORUMS = new URL('https://forums.unraid.net');
 const UNRAID_NET = new URL(localStorage.getItem('craftUrl') ?? import.meta.env.VITE_UNRAID_NET ?? 'https://unraid.net');
 
 const ACCOUNT_CALLBACK = new URL('c', ACCOUNT);
 const FORUMS_BUG_REPORT = new URL('/bug-reports', FORUMS);
-const CONNECT_DOCS = new URL('https://docs.unraid.net/category/unraid-connect');
+const CONNECT_DOCS = new URL('category/unraid-connect', DOCS);
 const CONNECT_DASHBOARD = new URL(import.meta.env.VITE_CONNECT ?? 'https://connect.myunraid.net');
 const CONNECT_FORUMS = new URL('/forum/94-connect-plugin-support/', FORUMS);
 const CONTACT = new URL('/contact', UNRAID_NET);
@@ -16,6 +17,9 @@ const SETTINGS_MANAGMENT_ACCESS = new URL('/Settings/ManagementAccess', window.l
 const PLUGIN_SETTINGS = new URL('#UnraidNetSettings', SETTINGS_MANAGMENT_ACCESS);
 
 const OS_RELEASES = new URL('https://s3.amazonaws.com/dnld.lime-technology.com/stable/releases.json');
+
+const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
+const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device/#notes-about-replacing-your-registration-key', DOCS);
 
 export {
   ACCOUNT,
@@ -32,4 +36,6 @@ export {
   PLUGIN_SETTINGS,
   SETTINGS_MANAGMENT_ACCESS,
   OS_RELEASES,
+  DOCS_REGISTRATION_LICENSING,
+  DOCS_REGISTRATION_REPLACE_KEY,
 };

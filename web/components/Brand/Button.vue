@@ -4,7 +4,7 @@ import BrandLoading from '~/components/Brand/Loading.vue';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
 export interface ButtonProps {
-  btnStyle?: 'fill' | 'outline' | 'underline';
+  btnStyle?: 'fill' | 'gray' | 'outline' | 'underline';
   btnType?: 'button' | 'submit' | 'reset';
   click?: () => void;
   disabled?: boolean;
@@ -31,6 +31,8 @@ const classes = computed(() => {
   switch (props.btnStyle) {
     case 'fill':
       return 'text-white bg-gradient-to-r from-unraid-red to-orange shadow-none hover:from-unraid-red/60 hover:to-orange/60 focus:from-unraid-red/60 focus:to-orange/60 hover:shadow-md focus:shadow-md';
+    case 'gray':
+      return 'text-black bg-grey shadow-none transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid hover:shadow-md focus:shadow-md';
     case 'outline':
       return 'text-orange bg-gradient-to-r from-transparent to-transparent border-2 border-solid border-orange shadow-none hover:text-white focus:text-white hover:from-unraid-red hover:to-orange focus:from-unraid-red focus:to-orange hover:shadow-md focus:shadow-md';
     case 'underline':
