@@ -1,15 +1,7 @@
 <script setup lang="ts">
-import { XCircleIcon } from '@heroicons/vue/24/solid';
-import BrandLoading from '~/components/Brand/Loading.vue';
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
+import type { UiBadgeProps } from '~/types/ui/badge';
 
-const props = withDefaults(defineProps<{
-  color?: 'alpha' | 'beta' | 'gamma' | 'gray' | 'red' | 'yellow' | 'green' | 'blue' | 'indigo' | 'purple' | 'pink' | 'orange' | 'black' | 'white' | 'transparent' | 'current' | 'custom';
-  icon?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
-  iconRight?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
-  iconStyles?: string;
-  size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
-}>(), {
+const props = withDefaults(defineProps<UiBadgeProps>(), {
   color: 'gray',
   icon: undefined,
   iconRight: undefined,
