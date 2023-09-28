@@ -39,7 +39,7 @@ const useTimeHelper = (t: any) => {
     return result.join(' ');
   };
 
-  const formatDate = (date: number): string => dayjs(date).format('llll');
+  const formatDate = (date: number): string => dayjs(date).format('LLLL');
 
   /**
  * Original meat and potatos from:
