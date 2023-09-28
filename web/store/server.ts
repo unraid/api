@@ -34,6 +34,7 @@ import type {
   ServerStateData,
   ServerStateDataAction,
   ServerconnectPluginInstalled,
+  ServerDateTimeFormat,
 } from '~/types/server';
 
 /**
@@ -67,6 +68,7 @@ export const useServerStore = defineStore('server', () => {
   const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
   const connectPluginVersion = ref<string>('');
   const csrf = ref<string>(''); // required to make requests to Unraid webgui
+  const dateTimeFormat = ref<ServerDateTimeFormat | undefined>();
   const description = ref<string>('');
   const deviceCount = ref<number>(0);
   const email = ref<string>('');
@@ -92,7 +94,7 @@ export const useServerStore = defineStore('server', () => {
   const regTo = ref<string>('');
   const regTy = ref<string>('');
   const regExp = ref<number>(0);
-  const regUpdatesExpired = computed(() => regExp.value < Date.now()); // @todo temp solution until webgui provides
+  const regUpdatesExpired = computed(() => regExp.value < Date.now());
   const site = ref<string>('');
   const state = ref<ServerState>();
   const theme = ref<Theme>();
@@ -858,6 +860,7 @@ export const useServerStore = defineStore('server', () => {
     config,
     connectPluginInstalled,
     csrf,
+    dateTimeFormat,
     description,
     deviceCount,
     expireTime,

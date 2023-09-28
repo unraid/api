@@ -25,7 +25,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
 const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
-const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
@@ -47,9 +47,9 @@ const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
           v-if="!guid || !keyfile"
           :color="'red'"
           :icon="ExclamationTriangleIcon"
-          :title="t('A valid keyfile and USB Flash boot device are required to check for updates.')"
+          :title="t(ineligibleText)"
         >
-          {{ t('Unable to check for updates') }}
+          {{ t('Ineligible for updates') }}
         </UiBadge>
         <UiBadge
           v-else-if="rebootType === ''"

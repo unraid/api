@@ -144,3 +144,18 @@ export interface ServerStateData {
   error?: ServerStateDataError | boolean;
   withKey?: boolean; // @todo potentially remove
 }
+
+export interface DateFormatOption {
+  format: string;
+  display: string;
+}
+
+export interface TimeFormatOption {
+  format: string;
+  display: string;
+}
+
+export interface ServerDateTimeFormat {
+  date: string;
+  time: string;
+}

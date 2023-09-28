@@ -25,8 +25,9 @@ import dayjs from 'dayjs'
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
+import useTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
-import { RegistrationItemProps } from '~/types/registration';
+import type { RegistrationItemProps } from '~/types/registration';
 
 import KeyActions from '~/components/KeyActions.vue';
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
@@ -46,6 +47,7 @@ withDefaults(defineProps<Props>(), {
 
 const serverStore = useServerStore();
 const {
+  dateTimeFormat,
   deviceCount,
   guid,
   flashVendor,
@@ -62,6 +64,8 @@ const {
   stateData,
   stateDataError,
 } = storeToRefs(serverStore);
+
+const { formatDate } = useTimeHelper(dateTimeFormat.value, t);
 
 const devicesAvailable = computed((): number => {
   switch(regTy.value) {
@@ -104,7 +108,7 @@ const items = computed((): RegistrationItemProps[] => {
        }] : []),
     ...(regTo.value && regTm.value ? [{
         label: t('Registered on'),
-        text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm'),
+        text: formatDate(regTm.value),
       }] : []),
     ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
           error: regUpdatesExpired.value,
