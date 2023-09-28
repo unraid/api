@@ -1,15 +1,21 @@
 <script lang="ts" setup>
+import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
 import { useServerStore } from '~/store/server';
 import type { ServerStateDataAction } from '~/types/server';
 
-const props = defineProps<{
-  actions: ServerStateDataAction[];
+const props = withDefaults(defineProps<{
+  actions?: ServerStateDataAction[];
   filterBy?: string[] | undefined;
   filterOut?: string[] | undefined;
+  maxWidth?: boolean;
   t: any;
-}>();
+}>(), {
+  filterBy: undefined,
+  filterOut: undefined,
+  maxWidth: false,
+});
 
 const { keyActions } = storeToRefs(useServerStore());
 
@@ -30,11 +36,16 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
   <ul v-if="filteredKeyActions" class="flex flex-col gap-y-8px">
     <li v-for="action in filteredKeyActions" :key="action.name">
       <BrandButton
-        class="w-full sm:max-w-300px"
+        :class="[
+          'w-full',
+          props.maxWidth ? 'sm:max-w-300px' : '',
+        ]"
         :disabled="action?.disabled"
         :external="action?.external"
         :href="action?.href"
         :icon="action.icon"
+        :icon-right="ArrowTopRightOnSquareIcon"
+        :icon-right-hover="true"
         :text="t(action.text)"
         @click="action.click()"
       />
