@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'UNLEASHED';
+const state: ServerState = 'ENOKEYFILE';
 let regDev = 0;
 let regTy = '';
 switch (state) {
