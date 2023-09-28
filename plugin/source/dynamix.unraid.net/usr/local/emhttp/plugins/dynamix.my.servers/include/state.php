@@ -41,6 +41,10 @@ $serverState = [
     "connectPluginInstalled" => $connectPluginInstalled,
     "connectPluginVersion" => $connectPluginVersion,
     "csrf" => $var['csrf_token'],
+    "dateTimeFormat" => [
+        "date" => $var['date_format'],
+        "time" => $var['time_format'],
+    ],
     "description" => $var['COMMENT'] ? htmlspecialchars($var['COMMENT']) : '',
     "deviceCount" => $var['deviceCount'],
     "email" => $myservers['remote']['email'] ?? '',

@@ -49,7 +49,24 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       default:
         return '';
     }
-  })
+  });
+
+  const ineligible = computed(() => !serverStore.guid || !serverStore.keyfile || !serverStore.osVersion || serverStore.regUpdatesExpired);
+  const ineligibleText = computed(() => { // translated in components
+    if (!serverStore.guid) {
+      return 'A valid GUID is required to check for updates.';
+    }
+    if (!serverStore.keyfile) {
+      return 'A valid keyfile is required to check for updates.';
+    }
+    if (!serverStore.osVersion) {
+      return 'A valid OS version is required to check for updates.';
+    }
+    if (serverStore.regUpdatesExpired) {
+      return 'Your OS update eligibility has expired. Please renew your license key enable updates.';
+    }
+    return '';
+  });
 
   // Actions
   const initUpdateOsCallback = (includeNextReleases: boolean = false): UserProfileLink => {
@@ -128,6 +145,12 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     rebootType.value = payload;
   };
 
+  watchEffect(() => {
+    if (status.value === 'ready' && ineligible.value) {
+      setStatus('ineligible');
+    }
+  });
+
   return {
     // State
     callbackUpdateRelease,
@@ -135,6 +158,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     rebootType,
     rebootTypeText,
     status,
+    ineligible,
+    ineligibleText,
     // Actions
     confirmUpdateOs,
     installOsUpdate,
