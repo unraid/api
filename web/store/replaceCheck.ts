@@ -85,8 +85,11 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
         guid: guid.value,
         keyfile: keyfile.value,
       }).json();
-      sessionStorage.setItem('replaceCheck', JSON.stringify(response));
+      /** @todo fix type issue */
       status.value = response?.replaceable ? 'eligible' : 'ineligible';
+      if (status.value === 'eligible' || status.value === 'ineligible') {
+        sessionStorage.setItem('replaceCheck', JSON.stringify(response));
+      }
     } catch (err) {
       const catchError = err as WretchError;
       status.value = 'error';
