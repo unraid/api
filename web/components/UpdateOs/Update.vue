@@ -34,9 +34,6 @@ const { ineligibleText } = storeToRefs(updateOsActionsStore);
 const updateButton = ref<UserProfileLink | undefined>();
 
 const heading = computed(() => {
-  if (ineligibleText.value) {
-    return props.t('Ineligible for Unraid OS updates');
-  }
   if (available.value && updateButton?.value?.text && updateButton?.value?.textParams) {
     return props.t(updateButton?.value.text, updateButton?.value.textParams);
   }
@@ -51,6 +48,13 @@ const headingIcon = computed(() => {
     return BellAlertIcon;
   }
   return ArrowPathIcon;
+});
+
+const subheading = computed(() => {
+  if (ineligibleText.value) {
+    return props.t('Ineligible for Unraid OS updates');
+  }
+  return '';
 });
 
 watchEffect(() => {
@@ -72,6 +76,9 @@ watchEffect(() => {
             {{ heading }}
           </span>
         </h3>
+        <h4 v-if="subheading" class="text-18px font-semibold leading-normal">
+          {{ subheading }}
+        </h4>
         <div class="text-16px leading-relaxed whitespace-normal" :class="!ineligibleText ? 'opacity-75' : ''">
           <p v-if="ineligibleText">{{ ineligibleText }}</p>
           <p v-else>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
@@ -85,6 +92,7 @@ watchEffect(() => {
         :icon="WrenchScrewdriverIcon"
         :icon-right="ArrowSmallRightIcon"
         :text="t('Learn more and fix')"
+        class="flex-none"
         />
       <BrandButton
         v-else-if="available && updateButton"
@@ -92,7 +100,8 @@ watchEffect(() => {
         :external="updateButton?.external"
         :icon-right="ArrowTopRightOnSquareIcon"
         :name="updateButton?.name"
-        :text="t('View changelog & update')" />
+        :text="t('View changelog & update')"
+        class="flex-none" />
     </div>
   </UiCardWrapper>
 </template>
