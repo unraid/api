@@ -26,7 +26,7 @@ const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
-  <div class="flex flex-row justify-center gap-x-8px">
+  <div class="flex flex-row justify-center gap-x-4px">
     <button
       @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
       class="group"
