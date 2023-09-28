@@ -24,7 +24,7 @@ defineProps<{
       @click="replaceCheckStore.check"
       :disabled="status !== 'ready'"
       :icon="status === 'checking' ? BrandLoadingWhite : KeyIcon"
-      :text="t('Check Eligibility')"
+      :text="status === 'checking' ? t('Checking…') : t('Check Eligibility')"
       class="flex-grow" />
 
     <UiBadge
