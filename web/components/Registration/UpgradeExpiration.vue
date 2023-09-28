@@ -64,7 +64,7 @@ onBeforeUnmount(() => {
     <div class="flex flex-wrap items-start justify-between gap-8px">
       <BrandButton
         v-if="regUpdatesExpired" 
-        :btn-style="'gray'"
+        btn-style="white"
         :disabled="renewAction?.disabled"
         :external="renewAction?.external"
         :icon="renewAction.icon"
