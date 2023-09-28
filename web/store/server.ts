@@ -95,7 +95,10 @@ export const useServerStore = defineStore('server', () => {
   const regTo = ref<string>('');
   const regTy = ref<string>('');
   const regExp = ref<number>(0);
-  const regUpdatesExpired = computed(() => regExp.value < Date.now());
+  const regUpdatesExpired = computed(() => {
+    if (!regExp.value || state.value !== 'STARTER' && state.value !== 'UNLEASHED') { return false; }
+    return regExp.value < Date.now();
+  });
   const site = ref<string>('');
   const state = ref<ServerState>();
   const theme = ref<Theme>();
