@@ -146,10 +146,14 @@ const items = computed((): RegistrationItemProps[] => {
           component: RegistrationReplaceCheck,
           componentProps: { t: t },
         }] : []),
-    ...(keyActions.value ? [{
+    // filter out renew action and only display other key actions
+    ...(!keyActions.value?.filter(action => !['renew'].includes(action.name)) ? [{
           label: t('License key actions'),
           component: KeyActions,
-          componentProps: { t: t },
+          componentProps: {
+            filterOut: ['renew'],
+            t,
+           },
         }]
       : []),
   ];

@@ -35,6 +35,7 @@ import type {
   ServerStateDataAction,
   ServerconnectPluginInstalled,
   ServerDateTimeFormat,
+  ServerStateDataKeyActions,
 } from '~/types/server';
 
 /**
@@ -852,6 +853,16 @@ export const useServerStore = defineStore('server', () => {
     }, refreshTimeout);
   };
 
+  const filteredKeyActions = (filterType: 'by' | 'out', filters: ServerStateDataKeyActions[]): ServerStateDataAction[] | undefined  => {
+    if (!stateData.value.actions) { return; }
+
+    return stateData.value.actions.filter((action) => {
+      return filterType === 'out'
+        ? !filters.includes(action.name)
+        : filters.includes(action.name);
+    });
+  };
+
   return {
     // state
     apiKey,
@@ -908,5 +919,6 @@ export const useServerStore = defineStore('server', () => {
     setServer,
     fetchServerFromApi,
     refreshServerState,
+    filteredKeyActions,
   };
 });
