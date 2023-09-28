@@ -280,5 +280,7 @@
   "A valid GUID is required to check for updates.": "A valid GUID is required to check for updates.",
   "A valid keyfile is required to check for updates.": "A valid keyfile is required to check for updates.",
   "A valid OS version is required to check for updates.": "A valid OS version is required to check for updates.",
-  "Your OS update eligibility has expired. Please renew your license key enable updates.": "Your OS update eligibility has expired. Please renew your license key enable updates."
+  "Your OS update eligibility has expired. Please renew your license key enable updates.": "Your OS update eligibility has expired. Please renew your license key enable updates.",
+  "Ineligible for updates": "Ineligible for updates",
+  "Ineligible for Unraid OS updates": "Ineligible for Unraid OS updates"
 }
