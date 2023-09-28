@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import {
   BellAlertIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
 } from '@heroicons/vue/24/solid';
@@ -22,7 +21,10 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { osVersion } = storeToRefs(serverStore);
 const { available } = storeToRefs(updateOsStore);
-const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+
+const showUpdateAvailable = computed(() => !ineligibleText.value && available.value && rebootType.value === '');
+const showRebootRequired = computed(() => rebootType.value !== '');
 </script>
 
 <template>
@@ -43,9 +45,9 @@ const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
       </UiBadge>
     </button>
 
-    <a href="/Tools/Update" class="group" :title="t('Go to Tools > Update')">
+    <a v-if="showUpdateAvailable || showRebootRequired" href="/Tools/Update" class="group" :title="t('Go to Tools > Update')">
       <UiBadge
-        v-if="available && rebootType === ''"
+        v-if="showUpdateAvailable"
         color="orange"
         :icon="BellAlertIcon"
         size="12px"
@@ -53,7 +55,7 @@ const { rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
         {{ t('Update Available') }}
       </UiBadge>
       <UiBadge
-        v-else-if="rebootType !== ''"
+        v-else-if="showRebootRequired"
         :color="'yellow'"
         :icon="ExclamationTriangleIcon"
         size="12px"
