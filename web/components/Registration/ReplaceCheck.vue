@@ -12,7 +12,7 @@ import { useReplaceCheckStore } from '~/store/replaceCheck';
 const replaceCheckStore = useReplaceCheckStore();
 const { status, statusOutput } = storeToRefs(replaceCheckStore);
 
-const props = defineProps<{
+defineProps<{
   t: any;
 }>();
 </script>
