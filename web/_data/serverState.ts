@@ -29,7 +29,8 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'STARTER';
+const state: ServerState = 'UNLEASHED';
+let regDev = 0;
 let regTy = '';
 switch (state) {
   // @ts-ignore
@@ -39,20 +40,23 @@ switch (state) {
   // @ts-ignore
   case 'TRIAL':
     regTy = 'Trial';
-    break;
   // @ts-ignore
   case 'BASIC':
+    regDev = 6;
   // @ts-ignore
   case 'PLUS':
+    regDev = 12;
   // @ts-ignore
   case 'PRO':
   // @ts-ignore
   case 'STARTER':
+    regDev = 4;
   // @ts-ignore
   case 'UNLEASHED':
   // @ts-ignore
   case 'LIFETIME':
-    regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); // title case
+    if (regDev === 0) regDev = 99999;
+    if (regTy === '') regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); // title case
     break;
 }
 
@@ -69,8 +73,8 @@ export const serverState: Server = {
     // error: 'INVALID',
     valid: true,
   },
-  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  // connectPluginInstalled: '',
+  // connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
+  connectPluginInstalled: '',
   description: 'DevServer9000',
   deviceCount: 12,
   expireTime,
@@ -90,8 +94,8 @@ export const serverState: Server = {
   regTm: uptime,
   regTo: 'Zack Spear',
   regTy,
-  // regUpdExpAt: oneHourFromNow,
-  regUpdExpAt: uptime,
+  // regExp: oneHourFromNow,
+  regExp: uptime,
   // "regGuid": "0781-5583-8355-81071A2B0211",
   site: 'http://localhost:4321',
   state,

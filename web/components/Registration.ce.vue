@@ -56,8 +56,8 @@ const {
   regTm,
   regTo,
   regTy,
-  regUpdExpAt,
-  regUpdExpired,
+  regExp,
+  regUpdatesExpired,
   state,
   stateData,
   stateDataError,
@@ -106,11 +106,12 @@ const items = computed((): RegistrationItemProps[] => {
         label: t('Registered on'),
         text: dayjs(regTm.value).format('YYYY-MM-DD HH:mm'),
       }] : []),
-    ...(regUpdExpAt.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
-          error: regUpdExpired.value,
+    ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
+          error: regUpdatesExpired.value,
           label: t('OS Update Eligibility'),
           component: RegistrationUpgradeExpiration,
           componentProps: { t: t },
+          componentOpacity: !regUpdatesExpired.value,
         }]
       : []),
     ...(state.value === 'EGUID' ? [{
