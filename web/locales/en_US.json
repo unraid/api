@@ -283,5 +283,9 @@
   "Your OS update eligibility has expired. Please renew your license key enable updates.": "Your OS update eligibility has expired. Please renew your license key enable updates.",
   "Ineligible for updates": "Ineligible for updates",
   "Ineligible for Unraid OS updates": "Ineligible for Unraid OS updates",
-  "Learn more and fix": "Learn more and fix"
+  "Learn more and fix": "Learn more and fix",
+  "Expires at {0}": "Expires at {0}",
+  "Expires in {0}": "Expires in {0}",
+  "Expired": "Expired",
+  "Expired {0}": "Expired {0}"
 }
