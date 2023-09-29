@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'STARTER';
+const state: ServerState = 'ENOKEYFILE';
 let regDev = 0;
 let regTy = '';
 switch (state) {
@@ -94,7 +94,7 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  osVersion: '6.12.3',
+  osVersion: '6.12.3-beta25',
   registered: true,
   regGen: 0,
   regTm: uptime,
