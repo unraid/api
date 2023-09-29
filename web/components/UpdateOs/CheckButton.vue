@@ -23,9 +23,9 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
-const { parsedReleaseTimestamp } = storeToRefs(updateOsStore);
+const { isOsVersionStable, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 
-const includeNext = ref(false);
+const includeNext = ref(isOsVersionStable.value ?? false);
 
 const status = ref<'ready' | 'checking' | 'ineligible'>('ready');
 

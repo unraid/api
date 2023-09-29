@@ -102,7 +102,7 @@ onBeforeMount(() => {
     updateOsStore.checkForUpdate({
       cache: true,
       guid: guid.value,
-      includeNext: isOsVersionStable.value, // @todo ensure this is correct
+      includeNext: !isOsVersionStable.value, // if we're already on a non-stable release, include next
       keyfile: keyfile.value,
       osVersion: osVersion.value,
     });
