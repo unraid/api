@@ -32,6 +32,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
 defineEmits(['click']);
 
 const classes = computed(() => {
+  /** @todo consider underline for all buttons to improve accessibility and quick readability */
   const buttonDefaults = 'group text-center font-semibold relative z-0 flex flex-row items-center justify-center cursor-pointer rounded-md shadow-none hover:shadow-md focus:shadow-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed';
   let buttonColors = '';
   let buttonSize = '';
