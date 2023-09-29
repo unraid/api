@@ -28,7 +28,7 @@ $configErrorEnum = [
     "withdrawn" => 'WITHDRAWN',
 ];
 
-$registered = !empty($myservers['remote']['username']) && $connectPluginInstalled;
+$registered = !empty($myservers['remote']['apikey']) && $connectPluginInstalled;
 
 $serverState = [
     "apiKey" => $myservers['upc']['apikey'] ?? '',
