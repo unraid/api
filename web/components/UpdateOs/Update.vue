@@ -169,12 +169,15 @@ watchEffect(() => {
           :text="flashBackupText"
           class="flex-none" />
 
-        <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">{{ t('Backing up...this may take a few minutes. Please wait for the download to complete before starting the update.') }}</p>
+        <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">
+          {{ t('Backing up...this may take a few minutes') }}
+        </p>
 
         <SwitchGroup as="div">
           <div class="flex flex-shrink-0 items-center gap-16px">
             <Switch
               v-model="acknowledgeBackup"
+              :disabled="flashBackupBasicStatus === 'started'"
               :class="[
                 acknowledgeBackup ? 'bg-green-500' : 'bg-gray-200',
                 'relative inline-flex h-24px w-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
@@ -216,7 +219,7 @@ watchEffect(() => {
 
         <BrandButton
           @click="updateButton?.click"
-          :disabled="!acknowledgeBackup"
+          :disabled="!acknowledgeBackup || flashBackupBasicStatus === 'started'"
           :external="updateButton?.external"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
