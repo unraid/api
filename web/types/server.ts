@@ -99,12 +99,14 @@ export interface ServerAccountCallbackSendPayload {
   registered: boolean;
   regGen?: number;
   regGuid?: string;
+  regExp?: number;
+  regUpdatesExpired?: boolean;
   site?: string;
   state: ServerState;
   wanFQDN?: string;
 }
 
-export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Trial';
+export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Starter' | 'Trial' | 'Unleashed';
 
 export interface ServerPurchaseCallbackSendPayload {
   apiVersion?: string;
@@ -117,6 +119,8 @@ export interface ServerPurchaseCallbackSendPayload {
   locale: string;
   osVersion?: string;
   registered: boolean;
+  regExp?: number;
+  regUpdatesExpired?: boolean;
   state: ServerState;
   site: string;
 }
