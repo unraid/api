@@ -296,7 +296,7 @@
   "You have not activated the Flash Backup feature via the Unraid Connect plugin.": "You have not activated the Flash Backup feature via the Unraid Connect plugin.",
   "Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.": "Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.",
   "Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.": "Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.",
-  "Backing up...this may take a few minutes. Please wait for the download to complete before starting the update.": "Backing up...this may take a few minutes. Please wait for the download to complete before starting the update.",
+  "Backing up...this may take a few minutes": "Backing up...this may take a few minutes",
   "Acklowledge that you have made a Flash Backup to enable this action": "Acklowledge that you have made a Flash Backup to enable this action",
   "You can also manually create a new backup by clicking the Create Flash Backup button.": "You can also manually create a new backup by clicking the Create Flash Backup button.",
   "You can manually create a backup by clicking the Create Flash Backup button.": "You can manually create a backup by clicking the Create Flash Backup button.",
