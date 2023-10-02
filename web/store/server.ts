@@ -152,6 +152,8 @@ export const useServerStore = defineStore('server', () => {
       regDev: regDev.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
+      regExp: regExp.value,
+      regUpdatesExpired: regUpdatesExpired.value,
       site: site.value,
       state: state.value,
       theme: theme.value,
@@ -174,6 +176,12 @@ export const useServerStore = defineStore('server', () => {
       case 'PRO':
         keyTypeForPurchase = 'Pro';
         break;
+      case 'STARTER':
+        keyTypeForPurchase = 'Starter';
+        break;
+      case 'UNLEASHED':
+        keyTypeForPurchase = 'Unleashed';
+        break;
     }
     const server = {
       apiVersion: apiVersion.value,
@@ -186,6 +194,8 @@ export const useServerStore = defineStore('server', () => {
       locale: locale.value,
       osVersion: osVersion.value,
       registered: registered.value ?? false,
+      regExp: regExp.value,
+      regUpdatesExpired: regUpdatesExpired.value,
       state: state.value,
       site: site.value,
     };
@@ -208,6 +218,8 @@ export const useServerStore = defineStore('server', () => {
       osVersion: osVersion.value,
       registered: registered.value ?? false,
       regGuid: regGuid.value,
+      regExp: regExp.value,
+      regUpdatesExpired: regUpdatesExpired.value,
       site: site.value,
       state: state.value,
       wanFQDN: wanFQDN.value,
