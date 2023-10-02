@@ -2,7 +2,7 @@
 import { storeToRefs } from 'pinia';
 import { ArrowTopRightOnSquareIcon, CogIcon } from '@heroicons/vue/24/solid';
 
-import { ACCOUNT, CONNECT_DASHBOARD, PLUGIN_SETTINGS } from '~/helpers/urls';
+import { ACCOUNT, CONNECT_DASHBOARD, WEBGUI_CONNECT_SETTINGS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 // import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
@@ -18,7 +18,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { errors } = storeToRefs(errorsStore);
 const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
-const { rebootType } = storeToRefs(updateOsActionsStore);
+const { rebootType, toolsRegistrationAction } = storeToRefs(updateOsActionsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -43,7 +43,7 @@ const links = computed(():UserProfileLink[] => {
             title: props.t('Manage Unraid.net Account in new tab'),
           },
           {
-            href: PLUGIN_SETTINGS.toString(),
+            href: WEBGUI_CONNECT_SETTINGS.toString(),
             icon: CogIcon,
             text: props.t('Settings'),
             title: props.t('Go to Connect plugin settings'),
@@ -97,7 +97,7 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
 
       <template v-if="osUpdateAvailable && !rebootType">
         <li>
-          <UpcDropdownItem :item="updateOsActionsStore.initUpdateOsCallback()" :t="t" />
+          <UpcDropdownItem :item="toolsRegistrationAction" :t="t" />
         </li>
       </template>
 

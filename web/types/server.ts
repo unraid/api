@@ -51,6 +51,7 @@ export interface Server {
   deviceCount?: number;
   email?: string;
   expireTime?: number;
+  flashBackupActivated?: boolean;
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;

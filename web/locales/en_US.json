@@ -226,7 +226,7 @@
   "Checking...": "Checking...",
   "View release notes": "View release notes",
   "View Changelog for {0}": "View Changelog for {0}",
-  "View changelog & update": "View changelog & update",
+  "View Changelog & Update": "View Changelog & Update",
   "{0} Release Notes": "{0} Release Notes",
   "Unable to open release notes": "Unable to open release notes",
   "Downgrades are only recommended if you're unable to solve a critical issue. In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue. You will be prompted with the option to download the Diagnostics zip once the downgrade process is started. From there please open a bug report on our forums with a description of the issue and include your diagnostics.": "Downgrades are only recommended if you're unable to solve a critical issue. In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue. You will be prompted with the option to download the Diagnostics zip once the downgrade process is started. From there please open a bug report on our forums with a description of the issue and include your diagnostics.",
@@ -287,5 +287,18 @@
   "Expires at {0}": "Expires at {0}",
   "Expires in {0}": "Expires in {0}",
   "Expired": "Expired",
-  "Expired {0}": "Expired {0}"
+  "Expired {0}": "Expired {0}",
+  "Create Flash Backup": "Create Flash Backup",
+  "Get a Lifetime Key" : "Get a Lifetime Key",
+  "We recommend backing up your USB Flash Boot Device before starting the update.": "We recommend backing up your USB Flash Boot Device before starting the update.",
+  "You have already activated the Flash Backup feature via the Unraid Connect plugin.": "You have already activated the Flash Backup feature via the Unraid Connect plugin.",
+  "Go to Tools > Management Access to ensure your backup is up-to-date.": "Go to Tools > Management Access to ensure your backup is up-to-date.",
+  "You have not activated the Flash Backup feature via the Unraid Connect plugin.": "You have not activated the Flash Backup feature via the Unraid Connect plugin.",
+  "Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.": "Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.",
+  "Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.": "Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.",
+  "Backing up...this may take a few minutes. Please wait for the download to complete before starting the update.": "Backing up...this may take a few minutes. Please wait for the download to complete before starting the update.",
+  "Acklowledge that you have made a Flash Backup to enable this action": "Acklowledge that you have made a Flash Backup to enable this action",
+  "You can also manually create a new backup by clicking the Create Flash Backup button.": "You can also manually create a new backup by clicking the Create Flash Backup button.",
+  "You can manually create a backup by clicking the Create Flash Backup button.": "You can manually create a backup by clicking the Create Flash Backup button.",
+  "I have made a Flash Backup": "I have made a Flash Backup"
 }

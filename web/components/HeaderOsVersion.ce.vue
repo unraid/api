@@ -10,6 +10,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
@@ -45,7 +46,12 @@ const showRebootRequired = computed(() => rebootType.value !== '');
       </UiBadge>
     </button>
 
-    <a v-if="showUpdateAvailable || showRebootRequired" href="/Tools/Update" class="group" :title="t('Go to Tools > Update')">
+    <a
+      v-if="showUpdateAvailable || showRebootRequired"
+      :href="WEBGUI_TOOLS_UPDATE.toString()"
+      class="group"
+      :title="t('Go to Tools > Update')"
+    >
       <UiBadge
         v-if="showUpdateAvailable"
         color="orange"

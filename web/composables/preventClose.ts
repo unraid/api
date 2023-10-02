@@ -1,7 +1,7 @@
 export const preventClose = (e: { preventDefault: () => void; returnValue: string; }) => {
   e.preventDefault();
   e.returnValue = '';
-  alert('Closing this pop-up window while actions are being preformed may lead to unintended errors.');
+  confirm('Closing this pop-up window while actions are being preformed may lead to unintended errors.');
 };
 
 export const addPreventClose = () => {
