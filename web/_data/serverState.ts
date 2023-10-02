@@ -29,7 +29,7 @@ const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is regist
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'ENOKEYFILE';
+const state: ServerState = 'STARTER';
 let regDev = 0;
 let regTy = '';
 switch (state) {
@@ -68,8 +68,8 @@ else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 
 let regExp: number | undefined = undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
-  // regExp = oneHourFromNow;
-  regExp = uptime;
+  regExp = oneHourFromNow;
+  // regExp = uptime;
 }
 
 export const serverState: Server = {
@@ -79,11 +79,12 @@ export const serverState: Server = {
     // error: 'INVALID',
     valid: true,
   },
-  // connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  connectPluginInstalled: '',
+  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
+  // connectPluginInstalled: '',
   description: 'DevServer9000',
-  deviceCount: 12,
+  deviceCount: 3,
   expireTime,
+  flashBackupActivated: true,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
   guid: randomGuid,
@@ -94,13 +95,12 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  osVersion: '6.12.3-beta25',
+  osVersion: '6.12.5',
   registered: true,
   regGen: 0,
   regTm: uptime,
   regTo: 'Zack Spear',
   regTy,
-  // regExp: oneHourFromNow,
   regExp,
   // "regGuid": "0781-5583-8355-81071A2B0211",
   site: 'http://localhost:4321',

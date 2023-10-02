@@ -33,7 +33,7 @@ defineEmits(['click']);
 
 const classes = computed(() => {
   /** @todo consider underline for all buttons to improve accessibility and quick readability */
-  const buttonDefaults = 'group text-center font-semibold relative z-0 flex flex-row items-center justify-center cursor-pointer rounded-md shadow-none hover:shadow-md focus:shadow-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed';
+  const buttonDefaults = 'group text-center font-semibold leading-none relative z-0 flex flex-row items-center justify-center cursor-pointer rounded-md shadow-none hover:shadow-md focus:shadow-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed';
   let buttonColors = '';
   let buttonSize = '';
   let iconSize = '';
@@ -58,27 +58,27 @@ const classes = computed(() => {
 
   switch (props.size) {
     case '12px':
-      buttonSize = 'text-12px px-8px py-4px gap-4px';
+      buttonSize = 'text-12px p-8px gap-4px';
       iconSize = 'w-12px';
       break;
     case '14px':
-      buttonSize = 'text-14px px-8px py-4px gap-8px';
+      buttonSize = 'text-14px p-8px gap-8px';
       iconSize = 'w-14px';
       break;
     case '16px':
-      buttonSize = 'text-16px px-12px py-8px gap-8px';
+      buttonSize = 'text-16px p-12px gap-8px';
       iconSize = 'w-16px';
       break;
     case '18px':
-      buttonSize = 'text-18px px-12px py-8px gap-8px';
+      buttonSize = 'text-18px p-12px gap-8px';
       iconSize = 'w-18px';
       break;
     case '20px':
-      buttonSize = 'text-20px px-16px py-12px gap-8px';
+      buttonSize = 'text-20px p-16px gap-8px';
       iconSize = 'w-20px';
       break;
     case '24px':
-      buttonSize = 'text-24px px-16px py-12px gap-8px';
+      buttonSize = 'text-24px p-16px gap-8px';
       iconSize = 'w-24px';
       break;
   }
