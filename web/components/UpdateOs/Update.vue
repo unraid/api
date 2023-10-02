@@ -4,7 +4,9 @@
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  */
+import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import {
+  ArchiveBoxArrowDownIcon,
   ArrowPathIcon,
   ArrowSmallRightIcon,
   ArrowTopRightOnSquareIcon,
@@ -18,6 +20,7 @@ import { ref, watchEffect } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
@@ -28,6 +31,7 @@ const props = defineProps<{
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
+const { connectPluginInstalled, flashBackupActivated } = storeToRefs(useServerStore());
 const { available } = storeToRefs(updateOsStore);
 const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
@@ -57,11 +61,69 @@ const subheading = computed(() => {
   return '';
 });
 
+const flashBackupCopy = computed(() => {
+  const base = props.t('We recommend backing up your USB Flash Boot Device before starting the update.');
+  if (connectPluginInstalled.value && flashBackupActivated.value) {
+    return `${base}
+      ${props.t('You have already activated the Flash Backup feature via the Unraid Connect plugin.')}
+      ${props.t('Go to Tools > Management Access to ensure your backup is up-to-date.')}
+      ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
+    `;
+  }
+  if (connectPluginInstalled.value && !flashBackupActivated.value) {
+    return `${base}
+      ${props.t('You have not activated the Flash Backup feature via the Unraid Connect plugin.')}
+      ${props.t('Go to Tools > Management Access to activate the Flash Backup feature and ensure your backup is up-to-date.')}
+      ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
+    `;
+  }
+  return `${base} ${props.t('You can manually create a backup by clicking the Create Flash Backup button.')}`
+});
+
+const acknowledgeBackup = ref<boolean>(false);
+const flashBackupBasicStatus = ref<'complete' | 'ready' | 'started'>('ready');
+const flashBackupText = computed(() => props.t('Create Flash Backup'));
+const startFlashBackup = () => {
+  console.debug('[startFlashBackup]', Date.now());
+  // @ts-ignore – global function provided by the webgui on the update page
+  if (typeof flashBackup === 'function') {
+    flashBackupBasicStatus.value = 'started';
+    // @ts-ignore – global function provided by the webgui on the update page
+    flashBackup();
+    checkFlashBackupStatus();
+  } else {
+    alert(props.t('Flash Backup is not available. Navigate to {0}/Main/Settings/Flash to try again then come back to this page.', [window.location.origin]));
+  }
+};
+/**
+ * Checking for element on the page to determine if the flash backup has started
+ */
+const checkFlashBackupStatus = () => {
+  let loadingElement: HTMLCollectionOf<Element> = document.getElementsByClassName('spinner');
+  setTimeout(() => {
+    if (loadingElement.length > 0 && loadingElement[0]) {
+      const el = loadingElement[0] as HTMLDivElement;
+      const loaderHidden = el.style.display === 'none';
+      if (loaderHidden) {
+        flashBackupBasicStatus.value = 'complete';
+        console.debug('[checkFlashBackupStatus] complete', Date.now());
+      } else {
+        checkFlashBackupStatus(); // check again
+      }
+    } else {
+      flashBackupBasicStatus.value = 'complete';
+    }
+  }, 500);
+};
+
 watchEffect(() => {
   if (available.value) {
     updateButton.value = updateOsActionsStore.initUpdateOsCallback();
   } else {
     updateButton.value = undefined;
+  }
+  if (flashBackupBasicStatus.value === 'complete') {
+    acknowledgeBackup.value = true; // auto check the box
   }
 });
 </script>
@@ -79,9 +141,12 @@ watchEffect(() => {
         <h4 v-if="subheading" class="text-18px font-semibold leading-normal">
           {{ subheading }}
         </h4>
-        <div class="text-16px leading-relaxed whitespace-normal" :class="!ineligibleText ? 'opacity-75' : ''">
+        <div class="prose text-16px leading-relaxed whitespace-normal" :class="!ineligibleText ? 'opacity-75' : ''">
           <p v-if="ineligibleText">{{ ineligibleText }}</p>
-          <p v-else>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
+          <template v-else>
+            <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
+            <p v-if="available">{{ flashBackupCopy }}</p>
+          </template>
         </div>
       </div>
 
@@ -94,14 +159,71 @@ watchEffect(() => {
         :text="t('Learn more and fix')"
         class="flex-none"
         />
-      <BrandButton
-        v-else-if="available && updateButton"
-        @click="updateButton?.click"
-        :external="updateButton?.external"
-        :icon-right="ArrowTopRightOnSquareIcon"
-        :name="updateButton?.name"
-        :text="t('View changelog & update')"
-        class="flex-none" />
+      <div v-else-if="available && updateButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+        <BrandButton
+          @click="startFlashBackup"
+          btn-style="outline"
+          :disabled="flashBackupBasicStatus === 'started'"
+          :icon="ArchiveBoxArrowDownIcon"
+          :name="'flashBackup'"
+          :text="flashBackupText"
+          class="flex-none" />
+
+        <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">{{ t('Backing up...this may take a few minutes. Please wait for the download to complete before starting the update.') }}</p>
+
+        <SwitchGroup as="div">
+          <div class="flex flex-shrink-0 items-center gap-16px">
+            <Switch
+              v-model="acknowledgeBackup"
+              :class="[
+                acknowledgeBackup ? 'bg-green-500' : 'bg-gray-200',
+                'relative inline-flex h-24px w-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
+              ]"
+            >
+              <span
+                :class="[
+                  acknowledgeBackup ? 'translate-x-20px' : 'translate-x-0',
+                  'pointer-events-none relative inline-block h-20px w-20px transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                ]"
+              >
+                <span
+                  :class="[
+                    acknowledgeBackup ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+                    'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                  ]"
+                  aria-hidden="true"
+                >
+                  <svg class="h-12px w-12px text-gray-400" fill="none" viewBox="0 0 12 12">
+                    <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <span
+                  :class="[
+                    acknowledgeBackup ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+                    'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                  ]"
+                  aria-hidden="true"
+                >
+                  <svg class="h-12px w-12px text-green-500" fill="currentColor" viewBox="0 0 12 12">
+                    <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+                  </svg>
+                </span>
+              </span>
+            </Switch>
+            <SwitchLabel class="text-14px">{{ t('I have made a Flash Backup') }}</SwitchLabel>
+          </div>
+        </SwitchGroup>
+
+        <BrandButton
+          @click="updateButton?.click"
+          :disabled="!acknowledgeBackup"
+          :external="updateButton?.external"
+          :icon-right="ArrowTopRightOnSquareIcon"
+          :name="updateButton?.name"
+          :text="t('View Changelog & Update')"
+          :title="!acknowledgeBackup ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
+          class="flex-none" />
+      </div>
     </div>
   </UiCardWrapper>
 </template>

@@ -16,7 +16,7 @@ import { useQuery } from '@vue/apollo-composable';
 import { SERVER_STATE_QUERY } from './server.fragment';
 import type { serverStateQuery } from '~/composables/gql/graphql';
 import { WebguiState } from '~/composables/services/webgui';
-import { SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
+import { WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore, type Error } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
@@ -74,6 +74,7 @@ export const useServerStore = defineStore('server', () => {
   const deviceCount = ref<number>(0);
   const email = ref<string>('');
   const expireTime = ref<number>(0);
+  const flashBackupActivated = ref<boolean>(false);
   const flashProduct = ref<string>('');
   const flashVendor = ref<string>('');
   const guid = ref<string>('');
@@ -391,7 +392,7 @@ export const useServerStore = defineStore('server', () => {
           ],
           humanReadable: state.value === 'BASIC' ? 'Basic' : 'Starter',
           heading: 'Thank you for choosing Unraid OS!',
-          message: registered.value
+          message: registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
             : guidRegistered.value
               ? '<p>To support more storage devices as your server grows, click Upgrade Key.</p>'
@@ -406,7 +407,7 @@ export const useServerStore = defineStore('server', () => {
           ],
           humanReadable: 'Plus',
           heading: 'Thank you for choosing Unraid OS!',
-          message: registered.value
+          message: registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
             : guidRegistered.value
               ? '<p>To support more storage devices as your server grows, click Upgrade Key.</p>'
@@ -425,7 +426,7 @@ export const useServerStore = defineStore('server', () => {
             ? 'Pro'
             : (state.value === 'LIFETIME' ? 'Lifetime' : 'Unleashed'),
           heading: 'Thank you for choosing Unraid OS!',
-          message: registered.value
+          message: registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
             : '',
         };
@@ -645,7 +646,7 @@ export const useServerStore = defineStore('server', () => {
       ? {
           actions: [
             {
-              href: SETTINGS_MANAGMENT_ACCESS.toString(),
+              href: WEBGUI_SETTINGS_MANAGMENT_ACCESS.toString(),
               icon: CogIcon,
               text: 'Go to Management Access Now',
             },
@@ -730,6 +731,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.deviceCount !== 'undefined') { deviceCount.value = data.deviceCount; }
     if (typeof data?.email !== 'undefined') { email.value = data.email; }
     if (typeof data?.expireTime !== 'undefined') { expireTime.value = data.expireTime; }
+    if (typeof data?.flashBackupActivated !== 'undefined') { flashBackupActivated.value = data.flashBackupActivated; }
     if (typeof data?.flashProduct !== 'undefined') { flashProduct.value = data.flashProduct; }
     if (typeof data?.flashVendor !== 'undefined') { flashVendor.value = data.flashVendor; }
     if (typeof data?.guid !== 'undefined') { guid.value = data.guid; }
@@ -878,6 +880,7 @@ export const useServerStore = defineStore('server', () => {
     description,
     deviceCount,
     expireTime,
+    flashBackupActivated,
     flashProduct,
     flashVendor,
     guid,

@@ -3,7 +3,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import useInstallPlugin from '~/composables/installPlugin';
 
-import { ACCOUNT_CALLBACK } from '~/helpers/urls';
+import { ACCOUNT_CALLBACK, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import { useCallbackStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
@@ -66,6 +66,17 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       return 'Your OS update eligibility has expired. Please renew your license key enable updates.';
     }
     return '';
+  });
+
+  const toolsRegistrationAction = computed(() => {
+    return {
+      href: WEBGUI_TOOLS_UPDATE.toString(),
+      emphasize: true,
+      icon: BellAlertIcon,
+      name: 'updateOs',
+      text: 'Unraid OS {0} Update Available',
+      textParams: [updateOsStore.available],
+    }
   });
 
   // Actions
@@ -160,6 +171,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     status,
     ineligible,
     ineligibleText,
+    toolsRegistrationAction,
     // Actions
     confirmUpdateOs,
     installOsUpdate,

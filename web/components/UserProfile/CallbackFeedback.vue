@@ -6,7 +6,7 @@ import { ChevronDoubleDownIcon, ClipboardIcon, CogIcon } from '@heroicons/vue/24
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
-import { PLUGIN_SETTINGS } from '~/helpers/urls';
+import { WEBGUI_CONNECT_SETTINGS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
@@ -300,7 +300,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
             />
             <BrandButton
               v-else
-              :href="PLUGIN_SETTINGS.toString()"
+              :href="WEBGUI_CONNECT_SETTINGS.toString()"
               :icon="CogIcon"
               :text="t('Configure Connect Features')"
               class="grow-0"

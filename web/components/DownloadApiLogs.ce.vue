@@ -3,7 +3,7 @@ import { storeToRefs } from 'pinia';
 import { ArrowDownTrayIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { useI18n } from 'vue-i18n';
 
-import { CONNECT_FORUMS, CONTACT, DISCORD, GRAPHQL } from '~/helpers/urls';
+import { CONNECT_FORUMS, CONTACT, DISCORD, WEBGUI_GRAPHQL } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -12,7 +12,7 @@ const { t } = useI18n();
 
 const { apiKey } = storeToRefs(useServerStore());
 
-const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.value}`, GRAPHQL));
+const downloadUrl = computed(() => new URL(`/graphql/api/logs?apiKey=${apiKey.value}`, WEBGUI_GRAPHQL));
 </script>
 
 <template>
