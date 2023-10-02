@@ -10,11 +10,13 @@ const CONNECT_DASHBOARD = new URL(import.meta.env.VITE_CONNECT ?? 'https://conne
 const CONNECT_FORUMS = new URL('/forum/94-connect-plugin-support/', FORUMS);
 const CONTACT = new URL('/contact', UNRAID_NET);
 const DISCORD = new URL('https://discord.gg/unraid');
-const GRAPHQL = new URL('/graphql', import.meta.env.VITE_GRAPHQL ?? window.location.origin);
 const PURCHASE_CALLBACK = new URL('/c', UNRAID_NET);
 
-const SETTINGS_MANAGMENT_ACCESS = new URL('/Settings/ManagementAccess', window.location.origin);
-const PLUGIN_SETTINGS = new URL('#UnraidNetSettings', SETTINGS_MANAGMENT_ACCESS);
+const WEBGUI = new URL(import.meta.env.VITE_WEBGUI ?? window.location.origin);
+const WEBGUI_GRAPHQL = new URL('/graphql', WEBGUI);
+const WEBGUI_SETTINGS_MANAGMENT_ACCESS = new URL('/Settings/ManagementAccess', WEBGUI);
+const WEBGUI_CONNECT_SETTINGS = new URL('#UnraidNetSettings', WEBGUI_SETTINGS_MANAGMENT_ACCESS);
+const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
 const OS_RELEASES = new URL('https://s3.amazonaws.com/dnld.lime-technology.com/stable/releases.json');
 
@@ -31,11 +33,13 @@ export {
   DISCORD,
   FORUMS,
   FORUMS_BUG_REPORT,
-  GRAPHQL,
   PURCHASE_CALLBACK,
-  PLUGIN_SETTINGS,
-  SETTINGS_MANAGMENT_ACCESS,
   OS_RELEASES,
   DOCS_REGISTRATION_LICENSING,
   DOCS_REGISTRATION_REPLACE_KEY,
+  WEBGUI,
+  WEBGUI_CONNECT_SETTINGS,
+  WEBGUI_GRAPHQL,
+  WEBGUI_SETTINGS_MANAGMENT_ACCESS,
+  WEBGUI_TOOLS_UPDATE,
 };

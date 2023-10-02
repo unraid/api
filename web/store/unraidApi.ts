@@ -11,7 +11,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { UserProfileLink } from 'types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
-import { GRAPHQL, SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
+import { WEBGUI_GRAPHQL, WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
@@ -24,8 +24,8 @@ setActivePinia(createPinia());
 const ERROR_CORS_403 = 'The CORS policy for this site does not allow access from the specified Origin';
 let prioritizeCorsError = false; // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
-const httpEndpoint = GRAPHQL;
-const wsEndpoint = new URL(GRAPHQL.toString().replace('http', 'ws'));
+const httpEndpoint = WEBGUI_GRAPHQL;
+const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
 
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   const errorsStore = useErrorsStore();
@@ -104,7 +104,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
               type: 'unraidApiGQL',
               actions: [
                 {
-                  href: `${SETTINGS_MANAGMENT_ACCESS.toString()}#extraOriginsSettings`,
+                  href: `${WEBGUI_SETTINGS_MANAGMENT_ACCESS.toString()}#extraOriginsSettings`,
                   icon: CogIcon,
                   text: 'Go to Connect Settings',
                 }
