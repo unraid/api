@@ -119,22 +119,18 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
        */
       let response: ValidateGuidResponse | undefined;
       if (validationResponse.value) {
-        console.debug('[ReplaceCheck.check] validationResponse FOUND');
         response = validationResponse.value;
       } else {
-        console.debug('[ReplaceCheck.check] validationResponse NOT FOUND');
         response = await validateGuid({
           guid: guid.value,
           keyfile: keyfile.value,
         }).json();
       }
-      console.debug('[ReplaceCheck.check] response', response);
 
       setReplaceStatus(response?.replaceable ? 'eligible' : 'ineligible');
 
       /** cache the response to prevent repeated POSTs in the session */
       if (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible' && !validationResponse.value) {
-        console.debug('[ReplaceCheck.check] cache response');
         sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify({
           key: keyfileShort.value,
           timestamp: Date.now(),
@@ -143,23 +139,19 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       }
 
       if (response?.hasNewerKeyfile) {
-        console.debug('[ReplaceCheck.check] hasNewerKeyfile');
         setRenewStatus('checking');
 
         const keyLatestResponse: KeyLatestResponse = await keyLatest({
           keyfile: keyfile.value,
         }).json();
-        console.debug('[ReplaceCheck.check] keyLatestResponse', keyLatestResponse);
 
         if (keyLatestResponse?.license) {
-          console.debug('[ReplaceCheck.check] keyLatestResponse.license', keyLatestResponse.license);
           setRenewStatus('installing');
 
           await installKeyStore.install({
             keyUrl: keyLatestResponse.license,
             type: 'renew',
           }).then(() => {
-            console.debug('[ReplaceCheck.check] installKeyStore.install success');
             setRenewStatus('installed');
             // reset the validation response so we can check again on the subsequent page load. Will also prevent the keyfile from being installed again on page refresh.
             purgeValidationResponse();
@@ -188,18 +180,15 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
    */
   onBeforeMount(async () => {
     if (validationResponse.value) {
-      console.debug('[validationResponse] cache FOUND');
       // ensure the response timestamp is still valid and not old due to someone keeping their browser open
       const currentTime = new Date().getTime();
       const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
       // also checking if the keyfile is the same as the one we have in the store
       if (currentTime - validationResponse.value.timestamp > cacheDuration || !validationResponse.value.key || validationResponse.value.key !== keyfileShort.value) {
         // cache is expired, purge it
-        console.debug('[validationResponse] cache EXPIRED');
         purgeValidationResponse();
       } else {
         // if the cache is valid return the existing response
-        console.debug('[validationResponse] cache VALID');
         setReplaceStatus(validationResponse.value?.replaceable ? 'eligible' : 'ineligible');
       }
     }
