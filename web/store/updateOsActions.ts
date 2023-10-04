@@ -33,6 +33,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
   // State
   const osVersion = computed(() => serverStore.osVersion);
+  const regExp = computed(() => serverStore.regExp);
+  const regUpdatesExpired = computed(() => serverStore.regUpdatesExpired);
   /** used when coming back from callback, this will be the release to install */
   const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
   const callbackUpdateRelease = ref<Release | null>(null);
@@ -51,7 +53,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     }
   });
 
-  const ineligible = computed(() => !serverStore.guid || !serverStore.keyfile || !serverStore.osVersion || serverStore.regUpdatesExpired);
+  const ineligible = computed(() => !serverStore.guid || !serverStore.keyfile || !osVersion.value || regUpdatesExpired.value);
   const ineligibleText = computed(() => { // translated in components
     if (!serverStore.guid) {
       return 'A valid GUID is required to check for updates.';
@@ -59,11 +61,11 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     if (!serverStore.keyfile) {
       return 'A valid keyfile is required to check for updates.';
     }
-    if (!serverStore.osVersion) {
+    if (!osVersion.value) {
       return 'A valid OS version is required to check for updates.';
     }
-    if (serverStore.regUpdatesExpired) {
-      return 'Your OS update eligibility has expired. Please renew your license key enable updates.';
+    if (regUpdatesExpired.value) {
+      return 'Your OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.';
     }
     return '';
   });
@@ -166,6 +168,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     // State
     callbackUpdateRelease,
     osVersion,
+    regExp,
+    regUpdatesExpired,
     rebootType,
     rebootTypeText,
     status,
