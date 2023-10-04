@@ -6,11 +6,10 @@ import {
 import { storeToRefs } from 'pinia';
 
 import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 
 const replaceRenewStore = useReplaceRenewStore();
-const { status, statusOutput } = storeToRefs(replaceRenewStore);
+const { replaceStatusOutput } = storeToRefs(replaceRenewStore);
 
 defineProps<{
   t: any;
@@ -20,20 +19,19 @@ defineProps<{
 <template>
   <div class="flex flex-wrap items-start justify-between gap-8px">
     <BrandButton
-      v-if="status === 'checking' || status === 'ready'"
+      v-if="!replaceStatusOutput"
       @click="replaceRenewStore.check"
-      :disabled="status !== 'ready'"
-      :icon="status === 'checking' ? BrandLoadingWhite : KeyIcon"
-      :text="status === 'checking' ? t('Checking...') : t('Check Eligibility')"
+      :icon="KeyIcon"
+      :text="t('Check Eligibility')"
       class="flex-grow" />
 
     <UiBadge
-      v-else-if="statusOutput"
-      :color="statusOutput.color"
-      :icon="statusOutput.icon"
+      v-else
+      :color="replaceStatusOutput.color"
+      :icon="replaceStatusOutput.icon"
       size="16px"
     >
-      {{ t(statusOutput.text) }}
+      {{ t(replaceStatusOutput.text) }}
     </UiBadge>
 
     <BrandButton
