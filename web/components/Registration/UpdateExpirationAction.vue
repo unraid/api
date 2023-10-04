@@ -13,7 +13,7 @@ export interface Props {
 const props = defineProps<Props>();
 
 const serverStore = useServerStore();
-const { dateTimeFormat, regTy, regExp, regUpdatesExpired, renewAction, state } = storeToRefs(serverStore);
+const { dateTimeFormat, regExp, regUpdatesExpired, renewAction } = storeToRefs(serverStore);
 
 const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
 
@@ -26,11 +26,11 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? props.t('Ineligible since {0}', [formattedTime.value])
-      : props.t('Valid until {0}', [formattedTime.value]),
+      ? props.t('Ineligible for updates released after {0}', [formattedTime.value])
+      : props.t('Eligible for updates until {0}', [formattedTime.value]),
     title: regUpdatesExpired.value
       ? props.t('Ineligible as of {0}', [parsedTime.value])
-      : props.t('Valid for {0}', [parsedTime.value]),
+      : props.t('Eligible for updates for {0}', [parsedTime.value]),
   };
 });
 
@@ -53,18 +53,16 @@ onBeforeUnmount(() => {
 
 <template>
   <div v-if="output" class="flex flex-col gap-8px">
-    <p
-      :title="output.title"
-    >
-      {{ output.text }}
-    </p>
-    <p v-if="regUpdatesExpired" class="text-14px opacity-90">
-      <em>{{ t('Renew your license key to continue receiving OS updates.') }}</em>
-    </p>
+    <RegistrationUpdateExpiration :t="t" />
+
+    <template v-if="regUpdatesExpired">
+      <p class="text-14px opacity-90">
+        <em>{{ t('Pay your annual fee to continue receiving OS updates.') }} {{ t('You may still update to releases dated prior to your update expiration date.') }}</em>
+      </p>
+    </template>
     <div class="flex flex-wrap items-start justify-between gap-8px">
       <BrandButton
-        v-if="regUpdatesExpired" 
-        btn-style="white"
+        v-if="regUpdatesExpired"
         :disabled="renewAction?.disabled"
         :external="renewAction?.external"
         :icon="renewAction.icon"
@@ -72,7 +70,7 @@ onBeforeUnmount(() => {
         :icon-right-hover="true"
         :text="t('Renew Key')"
         @click="renewAction.click()"
-        :title="t('Renew your license key to continue receiving OS updates.')"
+        :title="t('Pay your annual fee to continue receiving OS updates.')"
         class="flex-grow"
       />
 
