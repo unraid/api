@@ -8,6 +8,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
+import useTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
@@ -23,9 +24,44 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { guid, keyfile, osVersion } = storeToRefs(serverStore);
+const { dateTimeFormat, osVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
 const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+
+const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
+
+const parsedTime = ref<string>('');
+const formattedTime = computed<string>(() => formatDate(regExp.value));
+
+const regExpOutput = computed(() => {
+  if (!regExp.value) {
+    return undefined;
+  }
+  return {
+    text: regUpdatesExpired.value
+      ? props.t('Ineligible for updates released after {0}', [formattedTime.value])
+      : props.t('Eligible for updates until {0}', [formattedTime.value]),
+    title: regUpdatesExpired.value
+      ? props.t('Ineligible as of {0}', [parsedTime.value])
+      : props.t('Eligible for updates for {0}', [parsedTime.value]),
+  };
+});
+
+const runDiff = () => {
+  parsedTime.value = buildStringFromValues(dateDiff((regExp.value).toString(), false));
+};
+
+let interval: string | number | NodeJS.Timeout | undefined;
+onBeforeMount(() => {
+  runDiff();
+  interval = setInterval(() => {
+    runDiff();
+  }, 1000);
+});
+
+onBeforeUnmount(() => {
+  clearInterval(interval);
+});
 </script>
 
 <template>
@@ -44,12 +80,12 @@ const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActio
         </button>
 
         <UiBadge
-          v-if="!guid || !keyfile"
+          v-if="ineligibleText"
           :color="'red'"
           :icon="ExclamationTriangleIcon"
-          :title="t(ineligibleText)"
+          :title="regExpOutput?.text"
         >
-          {{ t('Ineligible for updates') }}
+          {{ t('Ineligible for new updates') }}
         </UiBadge>
         <UiBadge
           v-else-if="rebootType === ''"
