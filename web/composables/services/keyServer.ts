@@ -16,11 +16,13 @@ export const startTrial = (payload: StartTrialPayload) => KeyServer
   .post();
 
 export interface ValidateGuidResponse {
-  purchaseable: true,
-  registered: false,
-  replaceable: false,
-  upgradeable: false,
-  upgradeAllowed: 'pro' | 'plus' | 'unleashed'[],
+  hasNewerKeyfile : boolean;
+  purchaseable: true;
+  registered: false;
+  replaceable: false;
+  upgradeable: false;
+  upgradeAllowed: 'pro' | 'plus' | 'unleashed' | 'lifetime'[];
+  updatesRenewable: false;
 }
 export interface ValidateGuidPayload {
   guid: string;
