@@ -184,7 +184,6 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   };
 
   /**
-   * @todo not sure if this is working…guid endpoint still firing
    * If we already have a validation response, set the status to eligible or ineligible
    */
   onBeforeMount(async () => {
