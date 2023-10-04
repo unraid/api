@@ -8,6 +8,7 @@ import { RegistrationItemProps } from '~/types/registration';
 withDefaults(defineProps<RegistrationItemProps>(), {
   error: false,
   text: '',
+  warning: false,
 });
 
 const { darkMode } = storeToRefs(useThemeStore());
@@ -20,8 +21,9 @@ const evenBgColor = computed(() => {
 <template>
   <div
     :class="[
-      !error && evenBgColor,
+      !error && !warning && evenBgColor,
       error && 'text-white bg-unraid-red',
+      warning && 'text-black bg-yellow-100',
     ]"
     class="text-16px p-16px grid grid-cols-1 gap-4px sm:px-20px sm:grid-cols-3 sm:gap-16px items-start rounded"
   >
