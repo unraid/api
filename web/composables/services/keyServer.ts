@@ -32,3 +32,14 @@ export const validateGuid = (payload: ValidateGuidPayload) => KeyServer
   .url('/validate/guid')
   .formUrl(payload)
   .post();
+
+export interface KeyLatestPayload {
+  keyfile: string;
+}
+export interface KeyLatestResponse {
+  license: string;
+}
+export const keyLatest = (payload: KeyLatestPayload) => KeyServer
+  .url('/key/latest')
+  .formUrl(payload)
+  .post();

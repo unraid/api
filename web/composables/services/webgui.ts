@@ -64,3 +64,31 @@ export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayl
     return error;
   }
 };
+
+export interface NotifyPostParameters {
+  cmd: 'init' | 'smtp-init' | 'cron-init' | 'add' | 'get' | 'hide' | 'archive';
+  csrf_token: string;
+  e?: string;  // 'add' command option
+  s?: string;  // 'add' command option
+  d?: string;  // 'add' command option
+  i?: string;  // 'add' command option
+  m?: string;  // 'add' command option
+  x?: string;  // 'add' command option
+  t?: string;  // 'add' command option
+  file?: string;  // 'hide' and 'archive' command option
+}
+export const WebguiNotify = async (payload: NotifyPostParameters) => {
+  console.debug('[WebguiNotify] payload', payload);
+  if (!payload) { return console.error('[WebguiNotify] payload is required'); }
+
+  try {
+    const response = await request
+      .url('/webGui/include/Notify.php')
+      .formData(payload)
+      .post();
+    return response;
+  } catch (error) {
+    console.error('[WebguiNotify] catch failed to execute Notify', error, payload);
+    return error;
+  }
+}
