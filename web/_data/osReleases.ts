@@ -1,4 +1,4 @@
-import type { OsReleasesResponse } from '~/store/callback';
+import type { OsReleasesResponse } from '@/stores/callback';
 
 const testOsReleasesResponse: OsReleasesResponse = {
   "next": [
@@ -6,7 +6,7 @@ const testOsReleasesResponse: OsReleasesResponse = {
       "version": "7.0.0-beta2",
       "name": "Unraid Server 7.0.0-beta2",
       "basefile": "unRAIDServer-7.0.0-beta2-x86_64.zip",
-      "date": "2023-06-15",
+      "date": "2023-11-03",
       "url": "https://dl.next.unraid.net/unRAIDServer-7.0.0-beta2-x86_64.zip",
       "changelog": "",
       "md5": "FAKEbddcf415f2d0518804e551c1beXXX",
@@ -19,7 +19,7 @@ const testOsReleasesResponse: OsReleasesResponse = {
       "version": "7.0.0-beta1",
       "name": "Unraid Server 7.0.0-beta1",
       "basefile": "unRAIDServer-7.0.0-beta1-x86_64.zip",
-      "date": "2023-06-15",
+      "date": "2023-10-02",
       "url": "https://dl.next.unraid.net/unRAIDServer-7.0.0-beta1-x86_64.zip",
       "changelog": "",
       "md5": "FAKEbddcf415f2d0518804e551c1beYYY",
