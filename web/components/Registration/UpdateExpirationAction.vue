@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
 import useTimeHelper from '~/composables/time';
 import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
+import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 
 export interface Props {
@@ -12,8 +13,20 @@ export interface Props {
 
 const props = defineProps<Props>();
 
+const replaceRenewStore = useReplaceRenewStore();
 const serverStore = useServerStore();
-const { dateTimeFormat, regExp, regUpdatesExpired, renewAction } = storeToRefs(serverStore);
+
+const { renewStatus } = storeToRefs(replaceRenewStore);
+const {
+  dateTimeFormat,
+  regExp,
+  regUpdatesExpired,
+  renewAction,
+} = storeToRefs(serverStore);
+
+const reload = () => {
+  window.location.reload();
+};
 
 const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
 
@@ -55,14 +68,24 @@ onBeforeUnmount(() => {
   <div v-if="output" class="flex flex-col gap-8px">
     <RegistrationUpdateExpiration :t="t" />
 
-    <template v-if="regUpdatesExpired">
-      <p class="text-14px opacity-90">
-        <em>{{ t('Pay your annual fee to continue receiving OS updates.') }} {{ t('You may still update to releases dated prior to your update expiration date.') }}</em>
-      </p>
-    </template>
+    <p v-if="renewStatus === 'installed' || regUpdatesExpired" class="text-14px opacity-90">
+      <template v-if="renewStatus === 'installed'">
+        {{ t('Your license key was automatically renewed and installed. Reload the page to see updated details.') }}
+      </template>
+      <em v-else-if="regUpdatesExpired">
+        {{ t('Pay your annual fee to continue receiving OS updates.') }} {{ t('You may still update to releases dated prior to your update expiration date.') }}
+      </em>
+    </p>
     <div class="flex flex-wrap items-start justify-between gap-8px">
       <BrandButton
-        v-if="regUpdatesExpired"
+        v-if="renewStatus === 'installed'"
+        :icon="ArrowPathIcon"
+        :text="t('Reload Page')"
+        @click="reload"
+        class="flex-grow"
+       />
+      <BrandButton
+        v-else-if="regUpdatesExpired"
         :disabled="renewAction?.disabled"
         :external="renewAction?.external"
         :icon="renewAction.icon"
