@@ -105,7 +105,7 @@ watchEffect(() => {
             </span>
           </span>
         </Switch>
-        <SwitchLabel class="text-14px">{{ t('Check Prereleases') }}</SwitchLabel>
+        <SwitchLabel class="text-14px">{{ t('Check for Prereleases') }}</SwitchLabel>
       </div>
     </SwitchGroup>
     <span class="flex flex-col gap-y-8px">
