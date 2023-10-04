@@ -31,7 +31,7 @@ import type { RegistrationItemProps } from '~/types/registration';
 
 import KeyActions from '~/components/KeyActions.vue';
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
-import RegistrationUpgradeExpiration from '~/components/Registration/UpgradeExpiration.vue';
+import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 
 const { t } = useI18n();
@@ -111,9 +111,9 @@ const items = computed((): RegistrationItemProps[] => {
         text: formatDate(regTm.value),
       }] : []),
     ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
-          error: regUpdatesExpired.value,
           label: t('OS Update Eligibility'),
-          component: RegistrationUpgradeExpiration,
+          warning: regUpdatesExpired.value,
+          component: RegistrationUpdateExpirationAction,
           componentProps: { t },
           componentOpacity: !regUpdatesExpired.value,
         }]
@@ -186,6 +186,7 @@ const items = computed((): RegistrationItemProps[] => {
             :component="item?.component"
             :component-props="item?.componentProps"
             :error="item.error ?? false"
+            :warning="item.warning ?? false"
             :label="item.label"
             :text="item.text"
           >
