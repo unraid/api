@@ -58,7 +58,7 @@ $serverState = [
     "internalPort" => $_SERVER['SERVER_PORT'],
     "keyfile" => empty($var['regFILE']) ? '' : str_replace(['+', '/', '='], ['-', '_', ''], trim(base64_encode(@file_get_contents($var['regFILE'])))),
     "lanIp" => ipaddr(),
-    "locale" => ($_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
+    "locale" => (!empty($_SESSION) && $_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
     "model" => $var['SYS_MODEL'],
     "name" => htmlspecialchars($var['NAME']),
     "osVersion" => $var['version'],
