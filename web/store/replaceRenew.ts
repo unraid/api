@@ -6,7 +6,7 @@ import {
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import type { WretchError } from 'wretch';
 
-import { validateGuid, type ValidateGuidPayload } from '~/composables/services/keyServer';
+import { validateGuid, type ValidateGuidResponse } from '~/composables/services/keyServer';
 import { useServerStore } from '~/store/server';
 import type { UiBadgeProps } from '~/types/ui/badge';
 /**
@@ -21,7 +21,7 @@ export interface UiBadgePropsExtended extends UiBadgeProps {
 
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
-export const useReplaceCheckStore = defineStore('replaceCheck', () => {
+export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);
@@ -34,7 +34,7 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
     cause?: unknown;
   } | null>(null);
   const status = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
-  const statusOutput = computed((): UiBadgePropsExtended => {
+  const statusOutput = computed((): UiBadgePropsExtended | undefined => {
     // text values are translated in the component
     switch (status.value) {
       case 'eligible':
@@ -55,10 +55,10 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
           icon: ShieldExclamationIcon,
           text: error.value?.message || 'Unknown error',
         };
-      default: return null;
+      default: return undefined;
     }
   });
-  const validationResponse = ref<ValidateGuidPayload | undefined>(
+  const validationResponse = ref<ValidateGuidResponse | undefined>(
     sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY)
       ? JSON.parse(sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY) as string)
       : undefined
@@ -83,14 +83,24 @@ export const useReplaceCheckStore = defineStore('replaceCheck', () => {
        * this should happen automatically when the web components are mounted…
        * account.unraid.net will do a similar thing`
        */
-      const response: ValidateGuidPayload = await validateGuid({
+      const response: ValidateGuidResponse = await validateGuid({
         guid: guid.value,
         keyfile: keyfile.value,
       }).json();
-      /** @todo fix type issue */
+      console.log('[ReplaceCheck.check] response', response);
+
       status.value = response?.replaceable ? 'eligible' : 'ineligible';
+
       if (status.value === 'eligible' || status.value === 'ineligible') {
         sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify(response));
+      }
+
+      /**
+       * @todo if response?.hasNewerKeyfile then we need to prompt the user to replace the keyfile. This will be a separate request to the key server.
+       * @todo we don't want to automatically make this request for the new keyfile.
+       */
+      if (response?.hasNewerKeyfile) {
+        console.log('[ReplaceCheck.check] hasNewerKeyfile');
       }
     } catch (err) {
       const catchError = err as WretchError;
