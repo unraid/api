@@ -16,7 +16,7 @@ const props = withDefaults(defineProps<Props>(), {
 const serverStore = useServerStore();
 const { dateTimeFormat, regExp, regUpdatesExpired } = storeToRefs(serverStore);
 
-const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
+const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
 
 const parsedTime = ref<string>('');
 const formattedTime = computed<string>(() => formatDate(regExp.value));

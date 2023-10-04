@@ -31,7 +31,12 @@ const timeFormatOptions: TimeFormatOption[] = [
   { format: '%R', display: 'HH:mm' },
 ];
 
-const useTimeHelper = (format: ServerDateTimeFormat | undefined, t: any) => {
+/**
+ * @param format provided by Unraid server's state.php and set in the server store
+ * @param t translations
+ * @param hideMinutesSeconds true will hide minutes and seconds from the output
+ */
+const useTimeHelper = (format: ServerDateTimeFormat | undefined, t: any, hideMinutesSeconds?: boolean) => {
   const buildStringFromValues = (payload: TimeStringsObject) => {
     const {
       years,
@@ -61,11 +66,17 @@ const useTimeHelper = (format: ServerDateTimeFormat | undefined, t: any) => {
       formats: DateFormatOption[] | TimeFormatOption[],
     ): DateFormatOption | TimeFormatOption | undefined =>
     formats.find(formatOption => formatOption.format === selectedFormat);
+
   const dateFormat = findMatchingFormat(format?.date ?? dateFormatOptions[0].format, dateFormatOptions);
-  const timeFormat = findMatchingFormat(format?.time ?? timeFormatOptions[0].format , timeFormatOptions);
+
+  let displayFormat = `${dateFormat?.display}`;
+  if (!hideMinutesSeconds) {
+    const timeFormat = findMatchingFormat(format?.time ?? timeFormatOptions[0].format, timeFormatOptions);
+    displayFormat = `${displayFormat} ${timeFormat?.display}`;
+  }
 
   const formatDate = (date: number): string =>
-    dayjs(date).format(`${dateFormat?.display} ${timeFormat?.display}`);
+    dayjs(date).format(displayFormat);
 
   /**
  * Original meat and potatos from:
