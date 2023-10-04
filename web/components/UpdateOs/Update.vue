@@ -11,6 +11,7 @@ import {
   ArrowSmallRightIcon,
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
+  EyeIcon,
   ShieldExclamationIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/solid';
@@ -23,6 +24,7 @@ import '~/assets/main.css';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
+import { LazyUiCardWrapper } from '.nuxt/components';
 
 const props = defineProps<{
   t: any;
@@ -45,20 +47,10 @@ const heading = computed(() => {
 });
 
 const headingIcon = computed(() => {
-  if (ineligibleText.value) {
-    return ShieldExclamationIcon;
-  }
   if (available.value) {
     return BellAlertIcon;
   }
   return ArrowPathIcon;
-});
-
-const subheading = computed(() => {
-  if (ineligibleText.value) {
-    return props.t('Ineligible for Unraid OS updates');
-  }
-  return '';
 });
 
 const flashBackupCopy = computed(() => {
@@ -116,11 +108,18 @@ const checkFlashBackupStatus = () => {
   }, 500);
 };
 
+const disableCallbackButton = computed(() => {
+  if (!ineligibleText.value) { // if we're eilgibe acknowledgeBackup is required or flashBackupBasicStatus must be complete
+    return !acknowledgeBackup.value || flashBackupBasicStatus.value === 'started'
+  }
+  return false;
+});
+
 watchEffect(() => {
   if (available.value) {
     updateButton.value = updateOsActionsStore.initUpdateOsCallback();
   } else {
-    updateButton.value = undefined;
+    updateButton.value = updateOsActionsStore.initUpdateOsCallback();
   }
   if (flashBackupBasicStatus.value === 'complete') {
     acknowledgeBackup.value = true; // auto check the box
@@ -129,20 +128,31 @@ watchEffect(() => {
 </script>
 
 <template>
-  <UiCardWrapper :error="!!ineligibleText" :increased-padding="true">
+  <!--  :warning="!!ineligibleText" -->
+  <UiCardWrapper :increased-padding="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
-        <h3 class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px">
+        <RegistrationUpdateExpiration
+          v-if="ineligibleText"
+          component-is="h3"
+          :t="t"
+          class="text-unraid-red text-20px font-semibold leading-normal flex flex-row items-center gap-8px"
+        >
+          <ShieldExclamationIcon class="w-20px shrink-0" />
+        </RegistrationUpdateExpiration>
+
+        <h3
+          v-else
+          class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px"
+        >
           <component :is="headingIcon" class="w-20px shrink-0" />
           <span>
             {{ heading }}
           </span>
         </h3>
-        <h4 v-if="subheading" class="text-18px font-semibold leading-normal">
-          {{ subheading }}
-        </h4>
+
         <div class="prose text-16px leading-relaxed whitespace-normal" :class="!ineligibleText ? 'opacity-75' : ''">
-          <p v-if="ineligibleText">{{ ineligibleText }}</p>
+          <p v-if="ineligibleText">{{ t(ineligibleText) }} {{ t('You may still update to releases dated prior to your update expiration date.') }}</p>
           <template v-else>
             <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
             <p v-if="available">{{ flashBackupCopy }}</p>
@@ -150,81 +160,84 @@ watchEffect(() => {
         </div>
       </div>
 
-      <BrandButton
-        v-if="ineligibleText"
-        btn-style="white"
-        href="/Tools/Registration"
-        :icon="WrenchScrewdriverIcon"
-        :icon-right="ArrowSmallRightIcon"
-        :text="t('Learn more and fix')"
-        class="flex-none"
-        />
-      <div v-else-if="available && updateButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+      <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <BrandButton
-          @click="startFlashBackup"
-          btn-style="outline"
-          :disabled="flashBackupBasicStatus === 'started'"
-          :icon="ArchiveBoxArrowDownIcon"
-          :name="'flashBackup'"
-          :text="flashBackupText"
+          v-if="ineligibleText"
+          href="/Tools/Registration"
+          :icon="WrenchScrewdriverIcon"
+          :icon-right="ArrowSmallRightIcon"
+          :text="t('Learn more and fix')"
           class="flex-none" />
 
-        <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">
-          {{ t('Backing up...this may take a few minutes') }}
-        </p>
+        <template v-else-if="available && updateButton">
+          <BrandButton
+            @click="startFlashBackup"
+            btn-style="outline"
+            :disabled="flashBackupBasicStatus === 'started'"
+            :icon="ArchiveBoxArrowDownIcon"
+            :name="'flashBackup'"
+            :text="flashBackupText"
+            class="flex-none" />
 
-        <SwitchGroup as="div">
-          <div class="flex flex-shrink-0 items-center gap-16px">
-            <Switch
-              v-model="acknowledgeBackup"
-              :disabled="flashBackupBasicStatus === 'started'"
-              :class="[
-                acknowledgeBackup ? 'bg-green-500' : 'bg-gray-200',
-                'relative inline-flex h-24px w-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
-              ]"
-            >
-              <span
+          <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">
+            {{ t('Backing up...this may take a few minutes') }}
+          </p>
+
+          <SwitchGroup as="div">
+            <div class="flex flex-shrink-0 items-center gap-16px">
+              <Switch
+                v-model="acknowledgeBackup"
+                :disabled="flashBackupBasicStatus === 'started'"
                 :class="[
-                  acknowledgeBackup ? 'translate-x-20px' : 'translate-x-0',
-                  'pointer-events-none relative inline-block h-20px w-20px transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
+                  acknowledgeBackup ? 'bg-green-500' : 'bg-gray-200',
+                  'relative inline-flex h-24px w-[44px] flex-shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus:ring-2 focus:ring-indigo-600 focus:ring-offset-2',
                 ]"
               >
                 <span
                   :class="[
-                    acknowledgeBackup ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
-                    'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                    acknowledgeBackup ? 'translate-x-20px' : 'translate-x-0',
+                    'pointer-events-none relative inline-block h-20px w-20px transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out',
                   ]"
-                  aria-hidden="true"
                 >
-                  <svg class="h-12px w-12px text-gray-400" fill="none" viewBox="0 0 12 12">
-                    <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
-                  </svg>
+                  <span
+                    :class="[
+                      acknowledgeBackup ? 'opacity-0 duration-100 ease-out' : 'opacity-100 duration-200 ease-in',
+                      'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                    ]"
+                    aria-hidden="true"
+                  >
+                    <svg class="h-12px w-12px text-gray-400" fill="none" viewBox="0 0 12 12">
+                      <path d="M4 8l2-2m0 0l2-2M6 6L4 4m2 2l2 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+                  </span>
+                  <span
+                    :class="[
+                      acknowledgeBackup ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
+                      'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
+                    ]"
+                    aria-hidden="true"
+                  >
+                    <svg class="h-12px w-12px text-green-500" fill="currentColor" viewBox="0 0 12 12">
+                      <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
+                    </svg>
+                  </span>
                 </span>
-                <span
-                  :class="[
-                    acknowledgeBackup ? 'opacity-100 duration-200 ease-in' : 'opacity-0 duration-100 ease-out',
-                    'absolute inset-0 flex h-full w-full items-center justify-center transition-opacity',
-                  ]"
-                  aria-hidden="true"
-                >
-                  <svg class="h-12px w-12px text-green-500" fill="currentColor" viewBox="0 0 12 12">
-                    <path d="M3.707 5.293a1 1 0 00-1.414 1.414l1.414-1.414zM5 8l-.707.707a1 1 0 001.414 0L5 8zm4.707-3.293a1 1 0 00-1.414-1.414l1.414 1.414zm-7.414 2l2 2 1.414-1.414-2-2-1.414 1.414zm3.414 2l4-4-1.414-1.414-4 4 1.414 1.414z" />
-                  </svg>
-                </span>
-              </span>
-            </Switch>
-            <SwitchLabel class="text-14px">{{ t('I have made a Flash Backup') }}</SwitchLabel>
-          </div>
-        </SwitchGroup>
+              </Switch>
+              <SwitchLabel class="text-14px">{{ t('I have made a Flash Backup') }}</SwitchLabel>
+            </div>
+          </SwitchGroup>
+        </template>
 
         <BrandButton
           @click="updateButton?.click"
-          :disabled="!acknowledgeBackup || flashBackupBasicStatus === 'started'"
+          :btn-style="ineligibleText ? 'outline' : 'fill'"
+          :disabled="disableCallbackButton"
           :external="updateButton?.external"
+          :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
-          :text="t('View Changelog & Update')"
-          :title="!acknowledgeBackup ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
+          :text="!ineligibleText ? t('View Changelog & Update') : t('View Available Updates')"
+          :title="!acknowledgeBackup && !ineligibleText ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
           class="flex-none" />
       </div>
     </div>
