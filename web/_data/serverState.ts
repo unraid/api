@@ -68,8 +68,8 @@ else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 
 let regExp: number | undefined = undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
-  regExp = oneHourFromNow;
-  // regExp = uptime;
+  // regExp = oneHourFromNow;
+  regExp = uptime;
 }
 
 export const serverState: Server = {
@@ -79,8 +79,8 @@ export const serverState: Server = {
     // error: 'INVALID',
     valid: true,
   },
-  connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  // connectPluginInstalled: '',
+  // connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
+  connectPluginInstalled: '',
   description: 'DevServer9000',
   deviceCount: 3,
   expireTime,
@@ -95,7 +95,7 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'fuji',
-  osVersion: '6.12.5',
+  osVersion: '6.12.4',
   registered: true,
   regGen: 0,
   regTm: uptime,
