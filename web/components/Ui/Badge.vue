@@ -27,7 +27,7 @@ const computedStyleClasses = computed(() => {
       colorClasses = 'bg-unraid-red text-white group-hover:bg-orange-dark group-focus:bg-orange-dark';
       break;
     case 'yellow':
-      colorClasses = 'bg-yellow-100 text-yellow-800 group-hover:bg-yellow-200 group-focus:bg-yellow-200';
+      colorClasses = 'bg-yellow-100 text-black group-hover:bg-yellow-200 group-focus:bg-yellow-200';
       break;
     case 'green':
       colorClasses = 'bg-green-200 text-green-800 group-hover:bg-green-300 group-focus:bg-green-300';
