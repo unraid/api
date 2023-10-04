@@ -7,4 +7,5 @@ export interface RegistrationItemProps {
   error?: boolean;
   label?: string;
   text?: number | string;
+  warning?: boolean;
 }
