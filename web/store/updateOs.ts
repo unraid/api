@@ -273,16 +273,10 @@ export const useUpdateOsStoreGeneric = (
      * @returns boolean – true should block the update and require key renewal, false should allow the update without key renewal
      */
     const releaseDateGtRegExpDate = (releaseDate: number | string, regExpDate: number): boolean => {
-      const parsedReleaseDate = dayjs(releaseDate, 'YYYY-MM-DD').valueOf();
-      const parsedRegExpDate = dayjs(regExpDate ?? undefined).valueOf();
-      console.log('releaseDateGtRegExpDate', {
-          releaseDate,
-          regExpDate,
-          parsedReleaseDate: parsedReleaseDate,
-          parsedRegExpDate: parsedRegExpDate,
-          isAfter: parsedReleaseDate > parsedRegExpDate,
-      });
-      return parsedReleaseDate > parsedRegExpDate;
+      const parsedReleaseDate = dayjs(releaseDate, 'YYYY-MM-DD');
+      const parsedUpdateExpirationDate = dayjs(regExpDate ?? undefined);
+
+      return parsedReleaseDate.isAfter(parsedUpdateExpirationDate, 'day');
     };
 
     return {
