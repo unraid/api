@@ -1,6 +1,7 @@
 import testReleasesResponse from '~/_data/osReleases'; // test data
 
-import dayjs, { extend } from 'dayjs';
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import gt from 'semver/functions/gt';
@@ -51,7 +52,8 @@ export interface UpdateOsActionStore {
  */
 setActivePinia(createPinia());
 
-extend(relativeTime);
+dayjs.extend(customParseFormat);
+dayjs.extend(relativeTime);
 
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
@@ -267,6 +269,21 @@ export const useUpdateOsStoreGeneric = (
     };
 
     const isVersionStable = (version: SemVer | string): boolean => prerelease(version) === null;
+    /**
+     * @returns boolean – true should block the update and require key renewal, false should allow the update without key renewal
+     */
+    const releaseDateGtRegExpDate = (releaseDate: number | string, regExpDate: number): boolean => {
+      const parsedReleaseDate = dayjs(releaseDate, 'YYYY-MM-DD').valueOf();
+      const parsedRegExpDate = dayjs(regExpDate ?? undefined).valueOf();
+      console.log('releaseDateGtRegExpDate', {
+          releaseDate,
+          regExpDate,
+          parsedReleaseDate: parsedReleaseDate,
+          parsedRegExpDate: parsedRegExpDate,
+          isAfter: parsedReleaseDate > parsedRegExpDate,
+      });
+      return parsedReleaseDate > parsedRegExpDate;
+    };
 
     return {
       // state
@@ -284,5 +301,6 @@ export const useUpdateOsStoreGeneric = (
       findReleaseByMd5,
       requestReleases,
       isVersionStable,
+      releaseDateGtRegExpDate,
     };
   });
