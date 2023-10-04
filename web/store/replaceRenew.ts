@@ -27,6 +27,12 @@ export interface UiBadgePropsExtended extends UiBadgeProps {
   text?: string;
 }
 
+
+interface CachedValidationResponse extends ValidateGuidResponse {
+  key: string;
+  timestamp: number;
+}
+
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
@@ -35,6 +41,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
 
   const guid = computed(() => serverStore.guid);
   const keyfile = computed(() => serverStore.keyfile);
+  const keyfileShort = computed(() => keyfile.value?.slice(-10));
 
   const error = ref<{
     name: string;
@@ -83,10 +90,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   /**
    * onBeforeMount checks the timestamp of the validation response and purges it if it's too old
    */
-  interface validationResponseWithTimestamp extends ValidateGuidResponse {
-    timestamp: number;
-  }
-  const validationResponse = ref<validationResponseWithTimestamp | undefined>(
+  const validationResponse = ref<CachedValidationResponse | undefined>(
     sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY)
       ? JSON.parse(sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY) as string)
       : undefined
@@ -132,6 +136,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       if (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible' && !validationResponse.value) {
         console.debug('[ReplaceCheck.check] cache response');
         sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify({
+          key: keyfileShort.value,
           timestamp: Date.now(),
           ...response,
         }));
@@ -185,11 +190,11 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   onBeforeMount(async () => {
     if (validationResponse.value) {
       console.debug('[validationResponse] cache FOUND');
-      // ensure the response is still valid and not old due to someone keeping their browser open
+      // ensure the response timestamp is still valid and not old due to someone keeping their browser open
       const currentTime = new Date().getTime();
       const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
-
-      if (currentTime - validationResponse.value.timestamp > cacheDuration) {
+      // also checking if the keyfile is the same as the one we have in the store
+      if (currentTime - validationResponse.value.timestamp > cacheDuration || !validationResponse.value.key || validationResponse.value.key !== keyfileShort.value) {
         // cache is expired, purge it
         console.debug('[validationResponse] cache EXPIRED');
         purgeValidationResponse();
