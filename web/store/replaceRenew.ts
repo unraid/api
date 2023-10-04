@@ -6,9 +6,17 @@ import {
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import type { WretchError } from 'wretch';
 
-import { validateGuid, type ValidateGuidResponse } from '~/composables/services/keyServer';
+import {
+  keyLatest,
+  validateGuid,
+  type KeyLatestResponse,
+  type ValidateGuidResponse,
+} from '~/composables/services/keyServer';
+import { WebguiNotify } from '~/composables/services/webgui';
+import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import type { UiBadgeProps } from '~/types/ui/badge';
+import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -22,6 +30,7 @@ export interface UiBadgePropsExtended extends UiBadgeProps {
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
+  const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);
@@ -33,21 +42,26 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     stack?: string | undefined;
     cause?: unknown;
   } | null>(null);
-  const status = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
-  const statusOutput = computed((): UiBadgePropsExtended | undefined => {
+
+  const renewStatus = ref<'checking' | 'error' | 'installing' | 'installed' | 'ready'>('ready');
+  const setRenewStatus = (status: typeof renewStatus.value) => renewStatus.value = status;
+
+  const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
+  const setReplaceStatus = (status: typeof replaceStatus.value) => replaceStatus.value = status;
+  const replaceStatusOutput = computed((): UiBadgePropsExtended | undefined => {
     // text values are translated in the component
-    switch (status.value) {
+    switch (replaceStatus.value) {
+      case 'checking':
+        return {
+          color: 'gamma',
+          icon: BrandLoadingWhite,
+          text: 'Checking...',
+        };
       case 'eligible':
         return {
           color: 'green',
           icon: CheckCircleIcon,
           text: 'Eligible',
-        };
-      case 'ineligible':
-        return {
-          color: 'red',
-          icon: XCircleIcon,
-          text: 'Ineligible',
         };
       case 'error':
         return {
@@ -55,73 +69,146 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
           icon: ShieldExclamationIcon,
           text: error.value?.message || 'Unknown error',
         };
-      default: return undefined;
+      case 'ineligible':
+        return {
+          color: 'red',
+          icon: XCircleIcon,
+          text: 'Ineligible',
+        };
+      case 'ready':
+      default:
+        return undefined;
     }
   });
-  const validationResponse = ref<ValidateGuidResponse | undefined>(
+  /**
+   * onBeforeMount checks the timestamp of the validation response and purges it if it's too old
+   */
+  interface validationResponseWithTimestamp extends ValidateGuidResponse {
+    timestamp: number;
+  }
+  const validationResponse = ref<validationResponseWithTimestamp | undefined>(
     sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY)
       ? JSON.parse(sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY) as string)
       : undefined
   );
 
+  const purgeValidationResponse = () => {
+    validationResponse.value = undefined;
+    sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+  }
+
   const check = async () => {
     if (!guid.value) {
-      status.value = 'error';
+      setReplaceStatus('error');
       error.value = { name: 'Error', message: 'Flash GUID required to check replacement status' };
     }
     if (!keyfile.value) {
-      status.value = 'error';
+      setReplaceStatus('error');
       error.value = { name: 'Error', message: 'Keyfile required to check replacement status' };
     }
 
     try {
-      status.value = 'checking';
+      setReplaceStatus('checking');
       error.value = null;
       /**
-       * @todo will eventually take a keyfile and provide renewal details. If this says there's a reneal key available then we'll make a separate request to replace / swap the new key. We'll also use this to update the keyfile to the new key type for legacy users.
-       * endpoint will be through key server
-       * this should happen automatically when the web components are mounted…
-       * account.unraid.net will do a similar thing`
+       * If the session already has a validation response, use that instead of making a new request
        */
-      const response: ValidateGuidResponse = await validateGuid({
-        guid: guid.value,
-        keyfile: keyfile.value,
-      }).json();
-      console.log('[ReplaceCheck.check] response', response);
+      let response: ValidateGuidResponse | undefined;
+      if (validationResponse.value) {
+        console.debug('[ReplaceCheck.check] validationResponse FOUND');
+        response = validationResponse.value;
+      } else {
+        console.debug('[ReplaceCheck.check] validationResponse NOT FOUND');
+        response = await validateGuid({
+          guid: guid.value,
+          keyfile: keyfile.value,
+        }).json();
+      }
+      console.debug('[ReplaceCheck.check] response', response);
 
-      status.value = response?.replaceable ? 'eligible' : 'ineligible';
+      setReplaceStatus(response?.replaceable ? 'eligible' : 'ineligible');
 
-      if (status.value === 'eligible' || status.value === 'ineligible') {
-        sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify(response));
+      /** cache the response to prevent repeated POSTs in the session */
+      if (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible' && !validationResponse.value) {
+        console.debug('[ReplaceCheck.check] cache response');
+        sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          ...response,
+        }));
       }
 
-      /**
-       * @todo if response?.hasNewerKeyfile then we need to prompt the user to replace the keyfile. This will be a separate request to the key server.
-       * @todo we don't want to automatically make this request for the new keyfile.
-       */
       if (response?.hasNewerKeyfile) {
-        console.log('[ReplaceCheck.check] hasNewerKeyfile');
+        console.debug('[ReplaceCheck.check] hasNewerKeyfile');
+        setRenewStatus('checking');
+
+        const keyLatestResponse: KeyLatestResponse = await keyLatest({
+          keyfile: keyfile.value,
+        }).json();
+        console.debug('[ReplaceCheck.check] keyLatestResponse', keyLatestResponse);
+
+        if (keyLatestResponse?.license) {
+          console.debug('[ReplaceCheck.check] keyLatestResponse.license', keyLatestResponse.license);
+          setRenewStatus('installing');
+
+          await installKeyStore.install({
+            keyUrl: keyLatestResponse.license,
+            type: 'renew',
+          }).then(() => {
+            console.debug('[ReplaceCheck.check] installKeyStore.install success');
+            setRenewStatus('installed');
+            // reset the validation response so we can check again on the subsequent page load. Will also prevent the keyfile from being installed again on page refresh.
+            purgeValidationResponse();
+            /** @todo this doesn't work */
+            WebguiNotify({
+                cmd: 'add',
+                csrf_token: serverStore.csrf,
+                e: 'Keyfile Renewed and Installed (event)',
+                s: 'Keyfile Renewed and Installed (subject)',
+                d: 'While license keys are perpetual, certain keyfiles are not. Your keyfile has automatically been renewed and installed in the background. Thanks for your support!',
+                m: 'Your keyfile has automatically been renewed and installed in the background. Thanks for your support!',
+              })
+          });
+        }
       }
     } catch (err) {
       const catchError = err as WretchError;
-      status.value = 'error';
+      setReplaceStatus('error');
       error.value = catchError?.message ? catchError : { name: 'Error', message: 'Unknown error' };
       console.error('[ReplaceCheck.check]', catchError);
     }
   };
 
   /**
+   * @todo not sure if this is working…guid endpoint still firing
    * If we already have a validation response, set the status to eligible or ineligible
    */
-  onBeforeMount(() => {
+  onBeforeMount(async () => {
     if (validationResponse.value) {
-      status.value = validationResponse.value?.replaceable ? 'eligible' : 'ineligible';
+      console.debug('[validationResponse] cache FOUND');
+      // ensure the response is still valid and not old due to someone keeping their browser open
+      const currentTime = new Date().getTime();
+      const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
+
+      if (currentTime - validationResponse.value.timestamp > cacheDuration) {
+        // cache is expired, purge it
+        console.debug('[validationResponse] cache EXPIRED');
+        purgeValidationResponse();
+      } else {
+        // if the cache is valid return the existing response
+        console.debug('[validationResponse] cache VALID');
+        setReplaceStatus(validationResponse.value?.replaceable ? 'eligible' : 'ineligible');
+      }
     }
   });
 
   return {
-    status,
-    statusOutput,
+    // state
+    renewStatus,
+    replaceStatus,
+    replaceStatusOutput,
+    // actions
     check,
+    setReplaceStatus,
+    setRenewStatus,
   };
 });

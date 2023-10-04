@@ -26,11 +26,12 @@ export type TrialExtend = 'trialExtend';
 export type TrialStart = 'trialStart';
 export type Purchase = 'purchase';
 export type Redeem = 'redeem';
+export type Renew = 'renew'
 export type Upgrade = 'upgrade';
 export type UpdateOs = 'updateOs';
 export type AccountActionTypes = Troubleshoot | SignIn | SignOut | OemSignOut;
 export type AccountKeyActionTypes = Recover | Replace | TrialExtend | TrialStart | UpdateOs;
-export type PurchaseActionTypes = Purchase | Redeem | Upgrade;
+export type PurchaseActionTypes = Purchase | Redeem | Renew | Upgrade;
 
 export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
 
