@@ -1,18 +1,19 @@
 <script setup lang="ts">
-import { XCircleIcon } from '@heroicons/vue/24/solid';
-import BrandLoading from '~/components/Brand/Loading.vue';
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
+import {
+  computed,
+  type Component,
+} from 'vue';
 
 export interface ButtonProps {
-  btnStyle?: 'fill' | 'gray' | 'outline' | 'underline' | 'white';
+  btnStyle?: 'fill' | 'gray' | 'outline' | 'outline-white' | 'underline' | 'white';
   btnType?: 'button' | 'submit' | 'reset';
   click?: () => void;
   disabled?: boolean;
   download?: boolean;
   external?: boolean;
   href?: string;
-  icon?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
-  iconRight?: typeof XCircleIcon | typeof BrandLoading | typeof BrandLoadingWhite;
+  icon?: Component;
+  iconRight?: Component;
   iconRightHover?: boolean;
   size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
   text?: string;
@@ -26,7 +27,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   iconRight: undefined,
   iconRightHover: false,
   size: '16px',
-  text: undefined,
+  text: '',
 });
 
 defineEmits(['click']);
@@ -40,13 +41,16 @@ const classes = computed(() => {
 
   switch (props.btnStyle) {
     case 'fill':
-      buttonColors = 'text-white';
+      buttonColors = 'text-white bg-transparent border-2 border-solid border-transparent';
       break;
     case 'gray':
       buttonColors = 'text-black bg-grey transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid';
       break;
     case 'outline':
       buttonColors = 'text-orange bg-transparent border-2 border-solid border-orange hover:text-white focus:text-white';
+      break;
+    case 'outline-white':
+      buttonColors = 'text-white bg-transparent border-2 border-solid border-white hover:text-black focus:text-black hover:bg-white focus:bg-white';
       break;
     case 'underline':
       buttonColors = 'opacity-75 hover:opacity-100 focus:opacity-100 underline transition hover:text-alpha hover:bg-beta focus:text-alpha focus:bg-beta';
@@ -103,9 +107,9 @@ const classes = computed(() => {
   >
 
     <div v-if="btnStyle === 'fill'"
-      class="absolute inset-0 -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60" />
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60" />
     <div v-if="btnStyle === 'outline'"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0  transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100" />
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100" />
 
     <component
       v-if="icon"
@@ -113,6 +117,7 @@ const classes = computed(() => {
       :class="classes.icon" />
 
     {{ text }}
+    <slot></slot>
 
     <component
       v-if="iconRight"
