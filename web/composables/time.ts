@@ -27,7 +27,7 @@ const dateFormatOptions: DateFormatOption[] = [
 ];
 
 const timeFormatOptions: TimeFormatOption[] = [
-  { format: '%I:%M %p', display: 'hh:mm' },
+  { format: '%I:%M %p', display: 'hh:mma' },
   { format: '%R', display: 'HH:mm' },
 ];
 
