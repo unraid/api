@@ -29,12 +29,6 @@ const serverStore = useServerStore();
 const { dateTimeFormat } = storeToRefs(serverStore);
 const { formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
 
-const visible = ref(false);
-const toggleVisible = () => {
-  visible.value = !visible.value;
-  /** @todo scroll to bottom of component into view */
-};
-
 const formattedReleaseDate = computed(() => {
   if (props.releaseDate) {
     return formatDate(dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf());
@@ -72,20 +66,12 @@ const downgradeButton = ref<UserProfileLink | undefined>({
             </span>
           </span>
         </h3>
-        <div v-if="visible" class="text-16px leading-relaxed opacity-75 whitespace-normal">
+        <div class="text-16px leading-relaxed opacity-75 whitespace-normal">
           <p>{{ t('Downgrades are only recommended if you\'re unable to solve a critical issue. In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue. You will be prompted with the option to download the Diagnostics zip once the downgrade process is started. From there please open a bug report on our forums with a description of the issue and include your diagnostics.') }}</p>
         </div>
       </div>
 
-      <BrandButton
-        v-if="!visible"
-        @click="toggleVisible"
-        :btn-style="'outline'"
-        :icon="InformationCircleIcon"
-        :text="t('Learn More')"
-        class="flex-shrink-0" />
-
-      <div v-else-if="downgradeButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+      <div v-if="downgradeButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <BrandButton
           :btn-style="'underline'"
           :external="true"
