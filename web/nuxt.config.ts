@@ -101,7 +101,7 @@ export default defineNuxtConfig({
             path: '@/components/UpdateOs.ce',
           },
           {
-            name: 'UnraidUpdateOs',
+            name: 'UnraidDowngradeOs',
             path: '@/components/DowngradeOs.ce',
           },
           {
