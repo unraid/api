@@ -8,6 +8,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
+import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import useTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -25,10 +26,10 @@ const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { dateTimeFormat, osVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
-const { available, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
+const { available, availableWithRenewal, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
 
-const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
+const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
 
 const parsedTime = ref<string>('');
 const formattedTime = computed<string>(() => formatDate(regExp.value));
@@ -68,7 +69,7 @@ onBeforeUnmount(() => {
   <div class="grid gap-y-16px">
     <h1 class="text-24px">{{ t('Update Unraid OS') }}</h1>
     <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
-      <div class="inline-flex flex-wrap justify-center gap-8px">
+      <div class="inline-flex flex-wrap justify-start gap-8px">
         <button
           @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
           class="group"
@@ -79,21 +80,42 @@ onBeforeUnmount(() => {
           </UiBadge>
         </button>
 
+        <a
+          v-if="ineligibleText && !availableWithRenewal"
+          :href="WEBGUI_TOOLS_REGISTRATION.toString()"
+          class="group"
+          :title="t('Learn more and fix')"
+        >
+          <UiBadge
+            :color="'yellow'"
+            :icon="ExclamationTriangleIcon"
+            :title="regExpOutput?.text"
+            class="underline"
+          >
+            {{ t('Key ineligible for future releases') }}
+          </UiBadge>
+        </a>
         <UiBadge
-          v-if="ineligibleText"
-          :color="'red'"
+          v-else-if="ineligibleText && availableWithRenewal"
+          :color="'yellow'"
           :icon="ExclamationTriangleIcon"
           :title="regExpOutput?.text"
         >
-          {{ t('Ineligible for new updates') }}
+          {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
         </UiBadge>
+
         <UiBadge
-          v-else-if="rebootType === ''"
+          v-if="rebootType === ''"
           :color="available ? 'orange' : 'green'"
           :icon="available ? BellAlertIcon : CheckCircleIcon"
           :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
         >
-          {{ available ? t('Update Available') : t('Up-to-date') }}
+          {{ (available
+              ? t('Unraid {0} Available', [available])
+              : (availableWithRenewal
+                ? t('Up-to-date with eligible releases')
+                : t('Up-to-date')))
+          }}
         </UiBadge>
         <UiBadge
           v-else
@@ -104,7 +126,7 @@ onBeforeUnmount(() => {
         </UiBadge>
       </div>
 
-      <div>
+      <div class="shrink-0">
         <UpdateOsCheckButton
           v-if="rebootType === ''"
           :t="t" />
