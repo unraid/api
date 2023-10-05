@@ -18,28 +18,34 @@ fi
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 const { t } = useI18n();
 
-const updateOsStore = useUpdateOsStore();
+export interface Props {
+  restoreReleaseDate?: string;
+  restoreVersion?: string;
+}
+withDefaults(defineProps<Props>(), {
+  restoreReleaseDate: '',
+  restoreVersion: '',
+});
+
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootType } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
   <UiPageContainer>
-    <UpdateOsStatus :showUpdateCheck="true" :t="t" />
-    <UpdateOsUpdateIneligible
-      v-if="availableWithRenewal && rebootType === ''"
-      :t="t" />
-    <UpdateOsUpdate
-      v-if="available && rebootType === ''"
+    <UpdateOsStatus :t="t" />
+    <UpdateOsDowngrade
+      v-if="restoreVersion && rebootType === ''"
+      :release-date="restoreReleaseDate"
+      :version="restoreVersion"
       :t="t" />
     <UpdateOsThirdPartyDrivers
       v-if="rebootType === 'thirdPartyDriversDownloading'"
