@@ -61,7 +61,9 @@ switch (state) {
 }
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
+const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
 const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
+const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
 let expireTime = 0;
 if (state === 'TRIAL') { expireTime = oneHourFromNow; } // in 1 hour
 else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
@@ -69,9 +71,14 @@ else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 let regExp: number | undefined = undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
   // regExp = oneHourFromNow;
+  // regExp = oneDayFromNow;
+  regExp = oneDayAgo;
   // regExp = uptime;
-  regExp = 1696363920000; // nori.local's expiration
+  // regExp = 1696363920000; // nori.local's expiration
 }
+
+// const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
+const connectPluginInstalled = '';
 
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
@@ -80,12 +87,11 @@ export const serverState: Server = {
     // error: 'INVALID',
     valid: true,
   },
-  // connectPluginInstalled: 'dynamix.unraid.net.staging.plg',
-  connectPluginInstalled: '',
+  connectPluginInstalled,
   description: 'DevServer9000',
   deviceCount: 3,
   expireTime,
-  flashBackupActivated: true,
+  flashBackupActivated: connectPluginInstalled ? true : false,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
   guid: randomGuid,
@@ -97,7 +103,8 @@ export const serverState: Server = {
   locale: 'en_US', // en_US, ja
   name: 'fuji',
   osVersion: '6.12.4',
-  registered: true,
+  // registered: connectPluginInstalled ? true : false,
+  registered: connectPluginInstalled ? false : true,
   regGen: 0,
   regTm: uptime,
   regTo: 'Zack Spear',
