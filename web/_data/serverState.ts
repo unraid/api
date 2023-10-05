@@ -69,7 +69,8 @@ else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 let regExp: number | undefined = undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
   // regExp = oneHourFromNow;
-  regExp = uptime;
+  // regExp = uptime;
+  regExp = 1696363920000; // nori.local's expiration
 }
 
 export const serverState: Server = {
