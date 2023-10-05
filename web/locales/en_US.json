@@ -205,6 +205,7 @@
   "Signing Out": "Signing Out",
   "Sign In requires the local unraid-api to be running": "Sign In requires the local unraid-api to be running",
   "Sign Out requires the local unraid-api to be running": "Sign Out requires the local unraid-api to be running",
+  "Unraid OS {0} Released": "Unraid OS {0} Released",
   "Unraid OS {0} Update Available": "Unraid OS {0} Update Available",
   "Unraid OS Update Available": "Unraid OS Update Available",
   "Update Unraid OS confirmation required": "Update Unraid OS confirmation required",
@@ -281,8 +282,8 @@
   "A valid GUID is required to check for updates.": "A valid GUID is required to check for updates.",
   "A valid keyfile is required to check for updates.": "A valid keyfile is required to check for updates.",
   "A valid OS version is required to check for updates.": "A valid OS version is required to check for updates.",
-  "Your OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.": "Your OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.",
-  "Ineligible for new updates": "Ineligible for new updates",
+  "Your license key's OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.": "Your license key's OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.",
+  "Key ineligible for new updates": "Key ineligible for new updates",
   "Ineligible for Unraid OS updates": "Ineligible for Unraid OS updates",
   "Learn more and fix": "Learn more and fix",
   "Expires at {0}": "Expires at {0}",
@@ -303,5 +304,11 @@
   "You can manually create a backup by clicking the Create Flash Backup button.": "You can manually create a backup by clicking the Create Flash Backup button.",
   "I have made a Flash Backup": "I have made a Flash Backup",
   "You may still update to releases dated prior to your update expiration date.": "You may still update to releases dated prior to your update expiration date.",
-  "View Available Updates": "View Available Updates"
+  "View Available Updates": "View Available Updates",
+  "Your license key is not eligible for Unraid OS {0}": "Your license key is not eligible for Unraid OS {0}",
+  "Unraid {0} Available": "Unraid {0} Available",
+  "Key ineligible for {0}": "Key ineligible for {0}",
+  "Up-to-date with eligible releases": "Up-to-date with eligible releases",
+  "Key ineligible for future releases": "Key ineligible for future releases",
+  "View Changelog": "View Changelog"
 }
