@@ -65,7 +65,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       return 'A valid OS version is required to check for updates.';
     }
     if (regUpdatesExpired.value) {
-      return 'Your OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.';
+      return `Your license key's OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.`;
     }
     return '';
   });
