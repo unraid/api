@@ -1,6 +1,7 @@
 /**
  * @todo Check OS and Connect Plugin versions against latest via API every session
 */
+import dayjs from 'dayjs';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import prerelease from 'semver/functions/prerelease';
 import {
@@ -98,7 +99,10 @@ export const useServerStore = defineStore('server', () => {
   const regExp = ref<number>(0);
   const regUpdatesExpired = computed(() => {
     if (!regExp.value || state.value !== 'STARTER' && state.value !== 'UNLEASHED') { return false; }
-    return regExp.value < Date.now();
+    const today = dayjs();
+    const parsedUpdateExpirationDate = dayjs(regExp.value);
+
+    return today.isAfter(parsedUpdateExpirationDate, 'day');
   });
   const site = ref<string>('');
   const state = ref<ServerState>();
