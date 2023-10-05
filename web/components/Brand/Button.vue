@@ -5,7 +5,7 @@ import {
 } from 'vue';
 
 export interface ButtonProps {
-  btnStyle?: 'fill' | 'gray' | 'outline' | 'outline-white' | 'underline' | 'white';
+  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'white';
   btnType?: 'button' | 'submit' | 'reset';
   click?: () => void;
   disabled?: boolean;
@@ -14,7 +14,8 @@ export interface ButtonProps {
   href?: string;
   icon?: Component;
   iconRight?: Component;
-  iconRightHover?: boolean;
+  iconRightHoverDisplay?: boolean;
+  // iconRightHoverAnimate?: boolean;
   size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
   text?: string;
 }
@@ -25,7 +26,8 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   href: undefined,
   icon: undefined,
   iconRight: undefined,
-  iconRightHover: false,
+  iconRightHoverDisplay: false,
+  // iconRightHoverAnimate: true,
   size: '16px',
   text: '',
 });
@@ -34,26 +36,32 @@ defineEmits(['click']);
 
 const classes = computed(() => {
   /** @todo consider underline for all buttons to improve accessibility and quick readability */
-  const buttonDefaults = 'group text-center font-semibold leading-none relative z-0 flex flex-row items-center justify-center cursor-pointer rounded-md shadow-none hover:shadow-md focus:shadow-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed';
+  const buttonDefaults = 'group text-center font-semibold leading-none relative z-0 flex flex-row items-center justify-center border-2 border-solid shadow-none cursor-pointer rounded-md hover:shadow-md focus:shadow-md disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed';
   let buttonColors = '';
   let buttonSize = '';
   let iconSize = '';
 
   switch (props.btnStyle) {
+    case 'black':
+      buttonColors = 'text-white bg-black border-black transition hover:text-black focus:text-black  hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey';
+      break;
     case 'fill':
-      buttonColors = 'text-white bg-transparent border-2 border-solid border-transparent';
+      buttonColors = 'text-white bg-transparent border-transparent'; // border and bg are set in the template
       break;
     case 'gray':
-      buttonColors = 'text-black bg-grey transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid';
+      buttonColors = 'text-black bg-grey transition hover:text-white focus:text-white hover:bg-grey-mid focus:bg-grey-mid hover:border-grey-mid focus:border-grey-mid';
       break;
-    case 'outline':
-      buttonColors = 'text-orange bg-transparent border-2 border-solid border-orange hover:text-white focus:text-white';
+    case 'outline': // border and bg are set in the template
+      buttonColors = 'text-orange bg-transparent border-orange hover:text-white focus:text-white';
+      break;
+    case 'outline-black':
+      buttonColors = 'text-black bg-transparent border-black hover:text-black focus:text-black hover:bg-grey focus:bg-grey hover:border-grey focus:border-grey';
       break;
     case 'outline-white':
-      buttonColors = 'text-white bg-transparent border-2 border-solid border-white hover:text-black focus:text-black hover:bg-white focus:bg-white';
+      buttonColors = 'text-white bg-transparent border-white hover:text-black focus:text-black hover:bg-white focus:bg-white';
       break;
     case 'underline':
-      buttonColors = 'opacity-75 hover:opacity-100 focus:opacity-100 underline transition hover:text-alpha hover:bg-beta focus:text-alpha focus:bg-beta';
+      buttonColors = 'opacity-75 underline border-transparent transition hover:text-alpha hover:bg-beta hover:border-beta focus:text-alpha focus:bg-beta focus:border-beta hover:opacity-100 focus:opacity-100';
       break;
     case 'white':
       buttonColors = 'text-black bg-white transition hover:bg-grey focus:bg-grey';
@@ -124,7 +132,7 @@ const classes = computed(() => {
       :is="iconRight"
       :class="[
         classes.icon,
-        iconRightHover ? 'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all' : '',
+        iconRightHoverDisplay && 'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all',
       ]" />
   </component>
 </template>
