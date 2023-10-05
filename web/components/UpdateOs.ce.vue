@@ -18,7 +18,7 @@ fi
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -34,15 +34,21 @@ withDefaults(defineProps<Props>(), {
   restoreVersion: '',
 });
 
+const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
+
+const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootType } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
   <UiPageContainer>
     <UpdateOsStatus :t="t" />
+    <UpdateOsUpdateIneligible
+      v-if="availableWithRenewal && rebootType === ''"
+      :t="t" />
     <UpdateOsUpdate
-      v-if="rebootType === ''"
+      v-if="available && rebootType === ''"
       :t="t" />
     <UpdateOsDowngrade
       v-if="restoreVersion && rebootType === ''"
