@@ -14,11 +14,13 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
-  restoreVersion?: string | undefined; 
+  restoreVersion?: string | undefined;
+  showUpdateCheck?: boolean;
   t: any;
 }
 const props = withDefaults(defineProps<Props>(), {
   restoreVersion: undefined,
+  showUpdateCheck: false,
 });
 
 const serverStore = useServerStore();
@@ -128,7 +130,7 @@ onBeforeUnmount(() => {
 
       <div class="shrink-0">
         <UpdateOsCheckButton
-          v-if="rebootType === ''"
+          v-if="showUpdateCheck && rebootType === ''"
           :t="t" />
         <BrandButton
           v-else-if="rebootType === 'downgrade' || rebootType === 'upgrade'"

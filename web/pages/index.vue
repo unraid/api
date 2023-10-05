@@ -48,6 +48,11 @@ onBeforeMount(() => {
           <UpdateOsCe :restore-release-date="'2022-10-10'" :restore-version="'6.11.2'" />
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
+            DowngraadeOsCe
+          </h3>
+          <DowngradeOsCe :restore-release-date="'2022-10-10'" :restore-version="'6.11.2'" />
+          <hr class="border-black dark:border-white">
+          <h3 class="text-lg font-semibold font-mono">
             RegistrationCe
           </h3>
           <RegistrationCe />
