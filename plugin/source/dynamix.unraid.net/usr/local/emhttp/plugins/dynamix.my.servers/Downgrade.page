@@ -1,10 +1,12 @@
 Menu="About"
-Title="Update OS"
+Title="Downgrade OS"
 Icon="icon-update"
 Tag="upload"
 ---
-<?PHP
+<?php
 /**
+ * @todo - need a downgrade icon
+ *
  * If /boot/previous/bzroot exists, then the user has the option to downgrade to the previous version.
  * Parse the text file /boot/previous/changes.txt to get the version number of the previous version.
  * Then we move some files around and reboot.
@@ -144,7 +146,7 @@ function flashBackup() {
 </script>
 
 <unraid-i18n-host>
-  <unraid-update-os
+  <unraid-downgrade-os
     restore-version="<?= $restoreExists && $restoreVersion != 'unknown' ? $restoreVersion : '' ?>"
-    restore-release-date="<?= $restoreExists && $restoreVersionReleaseDate != 'unknown' ? $restoreVersionReleaseDate : '' ?>"></unraid-update-os>
+    restore-release-date="<?= $restoreExists && $restoreVersionReleaseDate != 'unknown' ? $restoreVersionReleaseDate : '' ?>"></unraid-downgrade-os>
 </unraid-i18n-host>
