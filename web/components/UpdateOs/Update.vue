@@ -15,27 +15,34 @@ import {
   ShieldExclamationIcon,
   WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/solid';
+import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { ref, watchEffect } from 'vue';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+import useTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
-import { LazyUiCardWrapper } from '.nuxt/components';
 
 const props = defineProps<{
   t: any;
 }>();
+
+
+const serverStore = useServerStore();
+const { dateTimeFormat } = storeToRefs(serverStore);
+const { formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
 
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { connectPluginInstalled, flashBackupActivated } = storeToRefs(useServerStore());
 const { available } = storeToRefs(updateOsStore);
-const { ineligibleText } = storeToRefs(updateOsActionsStore);
+
+const release = computed(() => updateOsStore.findRelease('version', available.value) ?? undefined);
 
 const updateButton = ref<UserProfileLink | undefined>();
 
@@ -51,6 +58,13 @@ const headingIcon = computed(() => {
     return BellAlertIcon;
   }
   return ArrowPathIcon;
+});
+
+const formattedReleaseDate = computed(() => {
+  if (release.value?.date) {
+    return formatDate(dayjs(release.value?.date, 'YYYY-MM-DD').valueOf());
+  }
+  return '';
 });
 
 const flashBackupCopy = computed(() => {
@@ -108,12 +122,7 @@ const checkFlashBackupStatus = () => {
   }, 500);
 };
 
-const disableCallbackButton = computed(() => {
-  if (!ineligibleText.value) { // if we're eilgibe acknowledgeBackup is required or flashBackupBasicStatus must be complete
-    return !acknowledgeBackup.value || flashBackupBasicStatus.value === 'started'
-  }
-  return false;
-});
+const disableCallbackButton = computed(() => !acknowledgeBackup.value || flashBackupBasicStatus.value === 'started');
 
 watchEffect(() => {
   if (available.value) {
@@ -128,48 +137,34 @@ watchEffect(() => {
 </script>
 
 <template>
-  <!--  :warning="!!ineligibleText" -->
   <UiCardWrapper :increased-padding="true">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-20px sm:gap-24px">
       <div class="grid gap-y-16px">
-        <RegistrationUpdateExpiration
-          v-if="ineligibleText"
-          component-is="h3"
-          :t="t"
-          class="text-unraid-red text-20px font-semibold leading-normal flex flex-row items-center gap-8px"
-        >
-          <ShieldExclamationIcon class="w-20px shrink-0" />
-        </RegistrationUpdateExpiration>
-
         <h3
-          v-else
-          class="text-20px font-semibold leading-normal flex flex-row items-center gap-8px"
+          class="font-semibold leading-normal flex flex-row items-start justify-start gap-8px"
         >
           <component :is="headingIcon" class="w-20px shrink-0" />
-          <span>
-            {{ heading }}
+          <span class="leading-none inline-flex flex-wrap justify-start items-baseline gap-8px">
+            <span class="text-20px">
+              {{ heading }}
+            </span>
+            <span
+              v-if="formattedReleaseDate"
+              class="text-16px opacity-75 shrink"
+            >
+              {{ formattedReleaseDate }}
+            </span>
           </span>
         </h3>
 
-        <div class="prose text-16px leading-relaxed whitespace-normal" :class="!ineligibleText ? 'opacity-75' : ''">
-          <p v-if="ineligibleText">{{ t(ineligibleText) }} {{ t('You may still update to releases dated prior to your update expiration date.') }}</p>
-          <template v-else>
-            <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
-            <p v-if="available">{{ flashBackupCopy }}</p>
-          </template>
+        <div class="prose opacity-75 text-16px leading-relaxed whitespace-normal">
+          <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
+          <p v-if="available">{{ flashBackupCopy }}</p>
         </div>
       </div>
 
       <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
-        <BrandButton
-          v-if="ineligibleText"
-          href="/Tools/Registration"
-          :icon="WrenchScrewdriverIcon"
-          :icon-right="ArrowSmallRightIcon"
-          :text="t('Learn more and fix')"
-          class="flex-none" />
-
-        <template v-else-if="available && updateButton">
+        <template v-if="available && updateButton">
           <BrandButton
             @click="startFlashBackup"
             btn-style="outline"
@@ -230,14 +225,14 @@ watchEffect(() => {
 
         <BrandButton
           @click="updateButton?.click"
-          :btn-style="ineligibleText ? 'outline' : 'fill'"
+          btn-style="fill"
           :disabled="disableCallbackButton"
           :external="updateButton?.external"
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
-          :text="!ineligibleText ? t('View Changelog & Update') : t('View Available Updates')"
-          :title="!acknowledgeBackup && !ineligibleText ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
+          :text="t('View Available Updates')"
+          :title="!acknowledgeBackup ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
           class="flex-none" />
       </div>
     </div>

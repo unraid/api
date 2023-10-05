@@ -44,6 +44,8 @@ export interface CachedReleasesResponse {
 
 export interface UpdateOsActionStore {
   osVersion: SemVer | string;
+  regExp: number;
+  regUpdatesExpired: boolean;
 }
 
 /**
@@ -60,19 +62,26 @@ export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 export const useUpdateOsStoreGeneric = (
   useUpdateOsActions?: () => UpdateOsActionStore,
   currentOsVersion?: SemVer | string,
+  currentRegExp?: number,
+  currentRegUpdatesExpired?: boolean,
 ) =>
   defineStore('updateOs', () => {
+    // Since this file is shared between account.unraid.net and the web components, we need to handle the state differently
+    const updateOsActions = useUpdateOsActions !== undefined ? useUpdateOsActions() : undefined;
+    // creating refs from the passed in values so that we can use them in the computed properties
+    const paramCurrentOsVersion = ref<SemVer | string>(currentOsVersion ?? '');
+    const paramCurrentRegExp = ref<number>(currentRegExp ?? 0);
+    const paramCurrentRegUpdatesExpired = ref<boolean>(currentRegUpdatesExpired ?? false);
+
     // state
     const available = ref<string>('');
-    const osVersion = ref<SemVer | string>('');
+    const availableWithRenewal = ref<string>('');
     const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
 
-    if (useUpdateOsActions !== undefined) {
-      const updateOsActions = useUpdateOsActions();
-      osVersion.value = updateOsActions.osVersion;
-    } else if (currentOsVersion !== undefined && (typeof currentOsVersion === 'string' || currentOsVersion instanceof SemVer)) {
-      osVersion.value = currentOsVersion;
-    }
+    // getters – when set from updateOsActions we're in the webgui web components otherwise we're in account.unraid.net
+    const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
+    const regExp = computed(() => updateOsActions?.regExp ?? paramCurrentRegExp.value ?? 0);
+    const regUpdatesExpired = computed(() => updateOsActions?.regUpdatesExpired ?? paramCurrentRegUpdatesExpired.value ?? false);
 
     // getters
     const parsedReleaseTimestamp = computed(() => {
@@ -88,36 +97,60 @@ export const useUpdateOsStoreGeneric = (
       return !isVersionStable(available.value);
     });
 
-    const filteredStableReleases = computed(() => {
-      if (!osVersion.value) return undefined;
-
-      if (releases.value?.response?.stable) {
-        return releases.value?.response?.stable.filter(release => {
-          console.debug('stable: ', release.version, osVersion.value);
-          return gt(release.version, osVersion.value as string);
-        });
-      }
-      return undefined;
-    });
-
     const filteredNextReleases = computed(() => {
       if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.next) {
-        return releases.value?.response?.next.filter(release => {
-          console.debug('next: ', release.version, osVersion.value);
-          return gt(release.version, osVersion.value as string);
-        });
+        return releases.value?.response?.next.filter(
+          release => gt(release.version, osVersion.value as string)
+        );
+      }
+      return undefined;
+    });
+
+    const filteredPreviewReleases = computed(() => {
+      if (!osVersion.value) return undefined;
+
+      if (releases.value?.response?.preview) {
+        return releases.value?.response?.preview.filter(
+          release => gt(release.version, osVersion.value as string)
+        );
+      }
+      return undefined;
+    });
+
+    const filteredStableReleases = computed(() => {
+      if (!osVersion.value) return undefined;
+
+      if (releases.value?.response?.stable) {
+        return releases.value?.response?.stable.filter(
+          release => gt(release.version, osVersion.value as string)
+        );
+      }
+      return undefined;
+    });
+
+    const filteredTestReleases = computed(() => {
+      if (!osVersion.value) return undefined;
+
+      if (releases.value?.response?.test) {
+        return releases.value?.response?.test.filter(
+          release => gt(release.version, osVersion.value as string)
+        );
       }
       return undefined;
     });
 
     const allFilteredReleases = computed(() => {
-      if (!filteredStableReleases.value && !filteredNextReleases.value) return undefined;
+      if (!filteredNextReleases.value && !filteredPreviewReleases && !filteredStableReleases.value && !filteredTestReleases) {
+        return undefined;
+      }
 
       return {
-        ...(filteredStableReleases.value && { stable: [...filteredStableReleases.value] }),
         ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
+        ...(filteredPreviewReleases.value && { preview: [...filteredPreviewReleases.value] }),
+        ...(filteredStableReleases.value && { stable: [...filteredStableReleases.value] }),
+        ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
       }
     });
     // actions
@@ -209,11 +242,9 @@ export const useUpdateOsStoreGeneric = (
         throw new Error('Invalid Payload for updateOs.checkForUpdate');
       }
 
-      // set the osVersion since this is the first thing in this store using it…that way we don't need to import the server store in this store.
-      osVersion.value = payload.osVersion;
-
-      // reset available
+      // reset any available
       available.value = '';
+      availableWithRenewal.value = '';
 
       // gets releases from cache or fetches from api
       await requestReleases(payload);
@@ -240,6 +271,14 @@ export const useUpdateOsStoreGeneric = (
 
         branchReleases.find(release => {
           if (gt(release.version, osVersion.value)) {
+            // before we set the available version, check if the license key updates have expired to ensure we don't show an update that the user can't install
+            if (regUpdatesExpired.value && releaseDateGtRegExpDate(release.date, regExp.value)) {
+              // then save the value to use throughout messaging
+              if (!availableWithRenewal.value) { // so we don't overwrite a newer version
+                availableWithRenewal.value = release.version;
+              }
+              return false;
+            }
             available.value = release.version;
             return true;
           }
@@ -268,6 +307,27 @@ export const useUpdateOsStoreGeneric = (
       return releaseForReturn;
     };
 
+    const findRelease = (searchKey: keyof Release, searchValue: string): Release | null => {
+      let releaseForReturn: Release | null = null;
+
+      Object.keys(releases.value?.response ?? {}).forEach(key => {
+        const branchReleases = releases.value?.response[key as keyof ReleasesResponse];
+
+        if (releaseForReturn || !branchReleases || branchReleases.length == 0) {
+          return;
+        }
+
+        branchReleases.find(release => {
+          if (release[searchKey] === searchValue) {;
+            releaseForReturn = release;
+            return release;
+          }
+        });
+      });
+
+      return releaseForReturn;
+    };
+
     const isVersionStable = (version: SemVer | string): boolean => prerelease(version) === null;
     /**
      * @returns boolean – true should block the update and require key renewal, false should allow the update without key renewal
@@ -282,17 +342,21 @@ export const useUpdateOsStoreGeneric = (
     return {
       // state
       available,
+      availableWithRenewal,
       releases,
       // getters
       parsedReleaseTimestamp,
       isOsVersionStable,
       isAvailableStable,
-      filteredStableReleases,
       filteredNextReleases,
+      filteredPreviewReleases,
+      filteredStableReleases,
+      filteredTestReleases,
       allFilteredReleases,
       // actions
       checkForUpdate,
       findReleaseByMd5,
+      findRelease,
       requestReleases,
       isVersionStable,
       releaseDateGtRegExpDate,
