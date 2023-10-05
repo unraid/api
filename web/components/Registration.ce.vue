@@ -36,15 +36,6 @@ import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 
 const { t } = useI18n();
 
-export interface Props {
-  restoreReleaseDate?: string;
-  restoreVersion?: string;
-}
-withDefaults(defineProps<Props>(), {
-  restoreReleaseDate: '',
-  restoreVersion: '',
-});
-
 const serverStore = useServerStore();
 const {
   dateTimeFormat,
