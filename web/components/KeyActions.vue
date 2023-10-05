@@ -45,7 +45,7 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
         :href="action?.href"
         :icon="action.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
-        :icon-right-hover="true"
+        :icon-right-hover-display="true"
         :text="t(action.text)"
         @click="action.click()"
       />
