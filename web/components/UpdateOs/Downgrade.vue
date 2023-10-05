@@ -32,6 +32,7 @@ const { formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
 const visible = ref(false);
 const toggleVisible = () => {
   visible.value = !visible.value;
+  /** @todo scroll to bottom of component into view */
 };
 
 const formattedReleaseDate = computed(() => {
