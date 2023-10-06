@@ -9,7 +9,7 @@ import {
 import { storeToRefs } from 'pinia';
 
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
-import useDateTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 

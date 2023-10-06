@@ -25,7 +25,7 @@ import dayjs from 'dayjs'
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-import useDateTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import type { RegistrationItemProps } from '~/types/registration';
 
