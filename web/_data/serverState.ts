@@ -61,6 +61,7 @@ switch (state) {
 }
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
+const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
 const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
 const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
 const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
@@ -106,7 +107,7 @@ export const serverState: Server = {
   // registered: connectPluginInstalled ? true : false,
   registered: connectPluginInstalled ? false : true,
   regGen: 0,
-  regTm: uptime,
+  regTm: twoDaysAgo,
   regTo: 'Zack Spear',
   regTy,
   regExp,

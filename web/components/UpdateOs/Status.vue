@@ -9,7 +9,7 @@ import {
 import { storeToRefs } from 'pinia';
 
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
-import useTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
@@ -17,10 +17,12 @@ export interface Props {
   restoreVersion?: string | undefined;
   showUpdateCheck?: boolean;
   t: any;
+  title?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
   restoreVersion: undefined,
   showUpdateCheck: false,
+  title: undefined,
 });
 
 const serverStore = useServerStore();
@@ -31,10 +33,10 @@ const { dateTimeFormat, osVersion, regExp, regUpdatesExpired } = storeToRefs(ser
 const { available, availableWithRenewal, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
 
-const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
-
-const parsedTime = ref<string>('');
-const formattedTime = computed<string>(() => formatDate(regExp.value));
+const {
+  outputDateTimeReadableDiff: readableDiffRegExp,
+  outputDateTimeFormatted: formattedRegExp,
+} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
 
 const regExpOutput = computed(() => {
   if (!regExp.value) {
@@ -42,34 +44,18 @@ const regExpOutput = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? props.t('Ineligible for updates released after {0}', [formattedTime.value])
-      : props.t('Eligible for updates until {0}', [formattedTime.value]),
+      ? props.t('Ineligible for updates released after {0}', [formattedRegExp.value])
+      : props.t('Eligible for updates until {0}', [formattedRegExp.value]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [parsedTime.value])
-      : props.t('Eligible for updates for {0}', [parsedTime.value]),
+      ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
+      : props.t('Eligible for updates for {0}', [readableDiffRegExp.value]),
   };
-});
-
-const runDiff = () => {
-  parsedTime.value = buildStringFromValues(dateDiff((regExp.value).toString(), false));
-};
-
-let interval: string | number | NodeJS.Timeout | undefined;
-onBeforeMount(() => {
-  runDiff();
-  interval = setInterval(() => {
-    runDiff();
-  }, 1000);
-});
-
-onBeforeUnmount(() => {
-  clearInterval(interval);
 });
 </script>
 
 <template>
   <div class="grid gap-y-16px">
-    <h1 class="text-24px">{{ t('Update Unraid OS') }}</h1>
+    <h1 v-if="title" class="text-24px">{{ title }}</h1>
     <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
       <div class="inline-flex flex-wrap justify-start gap-8px">
         <button

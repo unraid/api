@@ -13,7 +13,7 @@ import { ref, watchEffect } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import useTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -26,13 +26,12 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat } = storeToRefs(serverStore);
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
+const { dateTimeFormat, regTy, renewAction } = storeToRefs(serverStore);
+const { availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
-const { formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
-
 const availableWithRenewalRelease = computed(() => updateOsStore.findRelease('version', availableWithRenewal.value) ?? undefined);
+const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(availableWithRenewalRelease.value?.date, 'YYYY-MM-DD').valueOf());
 
 const heading = computed((): string => {
   if (availableWithRenewal.value) {
@@ -41,20 +40,8 @@ const heading = computed((): string => {
   return props.t('License Key Updates Expired');
 });
 
-// const subheading = computed(() => {
-//   if (availableWithRenewal.value) {
-//     return props.t('Your license key is not eligible for Unraid OS {0}', [availableWithRenewal.value]);
-//   }
-//   return '';
-// });
-
-const text = computed((): string => {
-  const base = ineligibleText.value;
-  if (available.value) {
-    return `<p>${base}</p>
-            <p>${props.t('You may still update to releases dated prior to your update expiration date.')}</p>`;
-  }
-  return base;
+const text = computed(() => {
+  return props.t(ineligibleText.value, [regTy.value, formattedReleaseDate.value]);
 });
 
 const updateButton = ref<UserProfileLink | undefined>();
@@ -81,10 +68,10 @@ watchEffect(() => {
               {{ heading }}
             </span>
             <span
-              v-if="availableWithRenewalRelease && availableWithRenewalRelease.date"
+              v-if="availableWithRenewalRelease && availableWithRenewalRelease.date && formattedReleaseDate"
               class="text-16px opacity-75 shrink"
             >
-              {{ formatDate(dayjs(availableWithRenewalRelease.date, 'YYYY-MM-DD').valueOf()) }}
+              {{ formattedReleaseDate }}
             </span>
           </span>
         </h3>
@@ -93,17 +80,29 @@ watchEffect(() => {
           <RegistrationUpdateExpiration :t="t" />
         </h4>
 
-        <div class="prose text-black text-16px leading-relaxed whitespace-normal" v-html="text" />
+        <div
+          class="prose text-black text-16px leading-relaxed whitespace-normal"
+          v-html="text" />
       </div>
 
       <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <BrandButton
+          :disabled="renewAction?.disabled"
+          :external="renewAction?.external"
+          :icon="renewAction.icon"
+          :icon-right="ArrowTopRightOnSquareIcon"
+          :text="t('Extend License')"
+          @click="renewAction.click()"
+          :title="t('Pay your annual fee to continue receiving OS updates.')"
+          class="flex-grow"
+        />
+        <!-- <BrandButton
           btn-style="black"
           href="/Tools/Registration"
           :icon="WrenchScrewdriverIcon"
           :icon-right="ArrowSmallRightIcon"
           :text="t('Learn more and fix')"
-          class="flex-none" />
+          class="flex-none" /> -->
 
         <BrandButton
           v-if="availableWithRenewal && updateButton"

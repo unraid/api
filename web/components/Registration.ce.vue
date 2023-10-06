@@ -25,7 +25,7 @@ import dayjs from 'dayjs'
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-import useTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import type { RegistrationItemProps } from '~/types/registration';
 
@@ -56,7 +56,7 @@ const {
   stateDataError,
 } = storeToRefs(serverStore);
 
-const { formatDate } = useTimeHelper(dateTimeFormat.value, t);
+const { outputDateTimeFormatted: formattedRegTm } = useDateTimeHelper(dateTimeFormat.value, t, false, regTm.value);
 
 const devicesAvailable = computed((): number => {
   switch(regTy.value) {
@@ -99,7 +99,7 @@ const items = computed((): RegistrationItemProps[] => {
        }] : []),
     ...(regTo.value && regTm.value ? [{
         label: t('Registered on'),
-        text: formatDate(regTm.value),
+        text: formattedRegTm.value,
       }] : []),
     ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
           label: t('OS Update Eligibility'),
