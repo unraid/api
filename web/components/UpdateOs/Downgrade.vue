@@ -14,7 +14,7 @@ import { ref } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import useDateTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/dateTime';
 import { FORUMS_BUG_REPORT } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
