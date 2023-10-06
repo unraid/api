@@ -2,10 +2,11 @@
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
-import useTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/time';
 import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   t: any;
@@ -15,6 +16,8 @@ const props = defineProps<Props>();
 
 const replaceRenewStore = useReplaceRenewStore();
 const serverStore = useServerStore();
+const updateOsStore = useUpdateOsStore();
+const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { renewStatus } = storeToRefs(replaceRenewStore);
 const {
@@ -22,16 +25,19 @@ const {
   regExp,
   regUpdatesExpired,
   renewAction,
+  regTy,
 } = storeToRefs(serverStore);
+const { availableWithRenewal } = storeToRefs(updateOsStore);
+const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
 const reload = () => {
   window.location.reload();
 };
 
-const { buildStringFromValues, dateDiff, formatDate } = useTimeHelper(dateTimeFormat.value, props.t);
-
-const parsedTime = ref<string>('');
-const formattedTime = computed<string>(() => formatDate(regExp.value));
+const {
+  outputDateTimeReadableDiff: readableDiffRegExp,
+  outputDateTimeFormatted: formattedRegExp,
+} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
 
 const output = computed(() => {
   if (!regExp.value) {
@@ -39,28 +45,12 @@ const output = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? props.t('Ineligible for updates released after {0}', [formattedTime.value])
-      : props.t('Eligible for updates until {0}', [formattedTime.value]),
+      ? props.t('Ineligible for updates released after {0}', [formattedRegExp.value])
+      : props.t('Eligible for updates until {0}', [formattedRegExp.value]),
     title: regUpdatesExpired.value
-      ? props.t('Ineligible as of {0}', [parsedTime.value])
-      : props.t('Eligible for updates for {0}', [parsedTime.value]),
+      ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
+      : props.t('Eligible for updates for {0}', [readableDiffRegExp.value]),
   };
-});
-
-const runDiff = () => {
-  parsedTime.value = buildStringFromValues(dateDiff((regExp.value).toString(), false));
-};
-
-let interval: string | number | NodeJS.Timeout | undefined;
-onBeforeMount(() => {
-  runDiff();
-  interval = setInterval(() => {
-    runDiff();
-  }, 1000);
-});
-
-onBeforeUnmount(() => {
-  clearInterval(interval);
 });
 </script>
 
@@ -68,13 +58,13 @@ onBeforeUnmount(() => {
   <div v-if="output" class="flex flex-col gap-8px">
     <RegistrationUpdateExpiration :t="t" />
 
-    <p v-if="renewStatus === 'installed' || regUpdatesExpired" class="text-14px opacity-90">
+    <p class="text-14px opacity-90">
       <template v-if="renewStatus === 'installed'">
         {{ t('Your license key was automatically renewed and installed. Reload the page to see updated details.') }}
       </template>
-      <em v-else-if="regUpdatesExpired">
-        {{ t('Pay your annual fee to continue receiving OS updates.') }} {{ t('You may still update to releases dated prior to your update expiration date.') }}
-      </em>
+      <template v-else-if="regUpdatesExpired && ineligibleText">
+        {{ t(ineligibleText, [regTy, formattedRegExp]) }}
+      </template>
     </p>
     <div class="flex flex-wrap items-start justify-between gap-8px">
       <BrandButton
@@ -91,7 +81,7 @@ onBeforeUnmount(() => {
         :icon="renewAction.icon"
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
-        :text="t('Renew Key')"
+        :text="t('Extend License')"
         @click="renewAction.click()"
         :title="t('Pay your annual fee to continue receiving OS updates.')"
         class="flex-grow"

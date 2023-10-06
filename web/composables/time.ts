@@ -35,8 +35,15 @@ const timeFormatOptions: TimeFormatOption[] = [
  * @param format provided by Unraid server's state.php and set in the server store
  * @param t translations
  * @param hideMinutesSeconds true will hide minutes and seconds from the output
+ * @param providedDateTime optional provided date time to use instead of Date.now()
  */
-const useTimeHelper = (format: ServerDateTimeFormat | undefined, t: any, hideMinutesSeconds?: boolean) => {
+const useDateTimeHelper = (
+  format: ServerDateTimeFormat | undefined,
+  t: any,
+  hideMinutesSeconds?: boolean,
+  providedDateTime?: number | undefined,
+  diffCountUp?: boolean,
+) => {
   const buildStringFromValues = (payload: TimeStringsObject) => {
     const {
       years,
@@ -167,11 +174,35 @@ const useTimeHelper = (format: ServerDateTimeFormat | undefined, t: any, hideMin
 
   const dateDiff = (time: string, countUp: boolean) => countUp ? readableDifference(time, '') : readableDifference('', time);
 
+  // provide outputs for components
+  const outputDateTimeReadableDiff = ref<string>('');
+  const outputDateTimeFormatted = computed(() => formatDate(providedDateTime ?? Date.now()));
+
+  const runDiff = () => {
+    outputDateTimeReadableDiff.value = buildStringFromValues(dateDiff((providedDateTime ?? Date.now()).toString(), diffCountUp ?? false));
+  };
+
+  let interval: string | number | NodeJS.Timeout | undefined;
+  onBeforeMount(() => {
+    if (providedDateTime) {
+      runDiff();
+      interval = setInterval(() => {
+        runDiff();
+      }, 1000);
+    }
+  });
+
+  onBeforeUnmount(() => {
+    if (interval) {
+      clearInterval(interval);
+    }
+  });
+
   return {
-    buildStringFromValues,
-    dateDiff,
     formatDate,
+    outputDateTimeReadableDiff,
+    outputDateTimeFormatted,
   };
 };
 
-export default useTimeHelper;
+export default useDateTimeHelper;
