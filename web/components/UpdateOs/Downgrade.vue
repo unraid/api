@@ -14,7 +14,7 @@ import { ref } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import useTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/time';
 import { FORUMS_BUG_REPORT } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -27,14 +27,9 @@ const props = defineProps<{
 
 const serverStore = useServerStore();
 const { dateTimeFormat } = storeToRefs(serverStore);
-const { formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
-
-const formattedReleaseDate = computed(() => {
-  if (props.releaseDate) {
-    return formatDate(dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf());
-  }
-  return '';
-});
+const {
+  outputDateTimeFormatted: formattedReleaseDate,
+} = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf());
 
 const downgradeButton = ref<UserProfileLink | undefined>({
   click: () => {
