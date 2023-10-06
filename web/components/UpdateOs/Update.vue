@@ -22,7 +22,7 @@ import { ref, watchEffect } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import useTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/time';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -34,7 +34,6 @@ const props = defineProps<{
 
 const serverStore = useServerStore();
 const { dateTimeFormat } = storeToRefs(serverStore);
-const { formatDate } = useTimeHelper(dateTimeFormat.value, props.t, true);
 
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
@@ -43,6 +42,9 @@ const { connectPluginInstalled, flashBackupActivated } = storeToRefs(useServerSt
 const { available } = storeToRefs(updateOsStore);
 
 const release = computed(() => updateOsStore.findRelease('version', available.value) ?? undefined);
+const {
+  outputDateTimeFormatted: formattedReleaseDate,
+} = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(release.value?.date ?? '', 'YYYY-MM-DD').valueOf());
 
 const updateButton = ref<UserProfileLink | undefined>();
 
@@ -58,13 +60,6 @@ const headingIcon = computed(() => {
     return BellAlertIcon;
   }
   return ArrowPathIcon;
-});
-
-const formattedReleaseDate = computed(() => {
-  if (release.value?.date) {
-    return formatDate(dayjs(release.value?.date, 'YYYY-MM-DD').valueOf());
-  }
-  return '';
 });
 
 const flashBackupCopy = computed(() => {
@@ -149,7 +144,7 @@ watchEffect(() => {
               {{ heading }}
             </span>
             <span
-              v-if="formattedReleaseDate"
+              v-if="release && formattedReleaseDate"
               class="text-16px opacity-75 shrink"
             >
               {{ formattedReleaseDate }}

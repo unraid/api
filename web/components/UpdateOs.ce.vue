@@ -34,7 +34,10 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
 
 <template>
   <UiPageContainer>
-    <UpdateOsStatus :showUpdateCheck="true" :t="t" />
+    <UpdateOsStatus
+      :showUpdateCheck="true"
+      :title="t('Update Unraid OS')"
+      :t="t" />
     <UpdateOsUpdateIneligible
       v-if="availableWithRenewal && rebootType === ''"
       :t="t" />

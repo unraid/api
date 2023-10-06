@@ -310,5 +310,9 @@
   "Key ineligible for {0}": "Key ineligible for {0}",
   "Up-to-date with eligible releases": "Up-to-date with eligible releases",
   "Key ineligible for future releases": "Key ineligible for future releases",
-  "View Changelog": "View Changelog"
+  "View Changelog": "View Changelog",
+  "You are still eligible to access OS updates that were published on or before {1}.": "You are still eligible to access OS updates that were published on or before {1}.",
+  "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.": "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.",
+  "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.": "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.",
+  "Extend License": "Extend License"
 }
