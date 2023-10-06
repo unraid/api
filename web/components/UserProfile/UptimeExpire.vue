@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 
-import useDateTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 
 export interface Props {
