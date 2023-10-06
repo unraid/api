@@ -36,6 +36,7 @@ const timeFormatOptions: TimeFormatOption[] = [
  * @param t translations
  * @param hideMinutesSeconds true will hide minutes and seconds from the output
  * @param providedDateTime optional provided date time to use instead of Date.now()
+ * @param diffCountUp true will count up from the provided date time instead of down
  */
 const useDateTimeHelper = (
   format: ServerDateTimeFormat | undefined,
