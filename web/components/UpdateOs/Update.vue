@@ -22,7 +22,7 @@ import { ref, watchEffect } from 'vue';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import useDateTimeHelper from '~/composables/time';
+import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
