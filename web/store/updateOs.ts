@@ -1,5 +1,3 @@
-import testReleasesResponse from '~/_data/osReleases'; // test data
-
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -8,6 +6,14 @@ import gt from 'semver/functions/gt';
 import prerelease from 'semver/functions/prerelease';
 import type { SemVer } from 'semver';
 import { computed, ref } from 'vue';
+import wretch from 'wretch';
+
+import {
+  OS_RELEASES,
+  OS_RELEASES_NEXT,
+  OS_RELEASES_PREVIEW,
+} from '@/helpers/urls';
+// import testReleasesResponse from '~/_data/osReleases'; // test data
 
 export interface RequestReleasesPayload {
   cache?: boolean; // saves response to localStorage
@@ -142,7 +148,7 @@ export const useUpdateOsStoreGeneric = (
     });
 
     const allFilteredReleases = computed(() => {
-      if (!filteredNextReleases.value && !filteredPreviewReleases && !filteredStableReleases.value && !filteredTestReleases) {
+      if (!filteredNextReleases.value && !filteredPreviewReleases.value && !filteredStableReleases.value && !filteredTestReleases.value) {
         return undefined;
       }
 
@@ -205,21 +211,23 @@ export const useUpdateOsStoreGeneric = (
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
-        console.debug('[requestReleases] fetching new releases', testReleasesResponse);
+        console.debug('[requestReleases] fetching new releases');
         /**
-         * @todo replace with real api call, note that the structuredClone is required otherwise Vue will not provided a reactive object from the original static response
-         * const response: ReleasesResponse = await request.url(OS_RELEASES.toString()).get().json();
+         * @note for the static json a structuredClone is required otherwise Vue will not provided a reactive object from the original static response
+         * const response: ReleasesResponse = await structuredClone(testReleasesResponse);
          */
-        const response: ReleasesResponse = await structuredClone(testReleasesResponse);
+        const response: ReleasesResponse = await wretch(OS_RELEASES.toString()).get().json();
         console.debug('[requestReleases] response', response);
         /**
          * If we're on stable and the user hasn't requested to include next releases in the check
          * then remove next releases from the data
          */
-        console.debug('[requestReleases] checking for next releases', payload.includeNext, response.next)
-        if (!payload.includeNext && response.next) {
-          console.debug('[requestReleases] removing next releases from data')
-          delete response.next;
+        console.debug('[requestReleases] checking for next releases', payload.includeNext, response.next, response.preview, response.test);
+        if (!payload.includeNext && (response.next || response.preview || response.test)) {
+          console.debug('[requestReleases] removing prereleases from data');
+          if (response.next) delete response.next;
+          if (response.preview) delete response.preview;
+          if (response.test) delete response.test;
         }
 
         // save it to local state
