@@ -4,16 +4,6 @@ Title="Registration"
 Icon="icon-registration"
 Tag="pencil"
 ---
-<?php
-function my_time_any($time) {
-  return $time ? _(my_time($time),0) : _('Anytime');
-}
-function my_time_now($time) {
-  return $time ? _(my_time($time),0) : _('Unknown');
-}
-
-$regGen = (int)$var['regGen'] ?? 0;
-$trialExtensionEligible = $regGen === 0 || $regGen === 1;
-
-echo '<unraid-i18n-host><unraid-registration></unraid-registration></unraid-i18n-host>';
-?>
+<unraid-i18n-host>
+  <unraid-registration></unraid-registration>
+</unraid-i18n-host>
