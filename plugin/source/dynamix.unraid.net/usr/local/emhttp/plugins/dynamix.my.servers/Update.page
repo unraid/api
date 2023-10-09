@@ -3,118 +3,7 @@ Title="Update OS"
 Icon="icon-update"
 Tag="upload"
 ---
-<?PHP
-/**
- * If /boot/previous/bzroot exists, then the user has the option to downgrade to the previous version.
- * Parse the text file /boot/previous/changes.txt to get the version number of the previous version.
- * Then we move some files around and reboot.
- */
-$check = $notify['unraidos'] ? 0 : 1;
-
-$restoreVersion = $restoreBranch = $restoreVersionReleaseDate = 'unknown';
-$restoreExists = file_exists('/boot/previous/bzroot');
-$restoreChangelogPath = '/boot/previous/changes.txt';
-
-$diagnosticsZip = htmlspecialchars(str_replace(' ', '_', strtolower($var['NAME'])));
-
-if (file_exists($restoreChangelogPath)) {
-  exec("head -n4 $restoreChangelogPath", $rows);
-  foreach ($rows as $row) {
-    $i = stripos($row,'version');
-    if ($i !== false) {
-      [$restoreVersion, $restoreVersionReleaseDate] = explode(' ', trim(substr($row, $i+7)));
-      break;
-    }
-  }
-  $restoreBranch = strpos($restoreVersion, 'rc') !== false
-    ? _('Next')
-    : (strpos($restoreVersion, 'beta') !== false
-      ? _('Beta')
-      : _('Stable'));
-}
-?>
-
 <script>
-var diagnosticsFile = "";
-var nchan_diagnostics = new NchanSubscriber('/sub/diagnostics', { subscriber: 'websocket' });
-const args = {};
-
-nchan_diagnostics.on('message', function(data) {
-  if (data == '_DONE_') {
-    nchan_diagnostics.stop();
-    $('.sweet-alert').hide('fast').removeClass('nchan');
-    swal.close();
-    location = diagnosticsFile;
-    setTimeout(cleanUp,4000);
-  } else if (data) {
-    let box = $('pre#swaltext');
-    box.html(box.html() + '<br>' + data).scrollTop(box[0].scrollHeight);
-  }
-});
-
-function downgradeAction() {
-  $.get('/plugins/dynamix.plugin.manager/include/Downgrade.php', { version: '<?=$restoreVersion?>' }, function() { refresh(); });
-}
-
-function downgrade() {
-  swal({
-    title: "_(Diagnostics)_",
-    text: "_(Please provide diagnostics when experiencing problems)_<br>_(Post these in the forums)_",
-    html: true,
-    type: 'warning',
-    showCancelButton: true,
-    confirmButtonText: "<?= _('Diagnostics') ?>",
-    cancelButtonText: "<?= _('Restore') ?>",
-  }, function(diag) {
-    if (diag) {
-      // get diagnostics and then downgrade
-      setTimeout(function() {
-        diagnostics(zipfile());
-      }, 250);
-    } else {
-      // downgrade immediately
-      downgradeAction();
-    }
-  });
-}
-
-function cleanUp() {
-  if (document.hasFocus()) {
-    $.post('/webGui/include/Download.php', { cmd: 'delete', file: diagnosticsFile }, downgradeAction());
-  } else {
-    setTimeout(cleanUp,2000);
-  }
-}
-function zipfile() {
-  const tzoffset = (new Date()).getTimezoneOffset() * 60000; // offset in milliseconds
-  const localISOTime = (new Date(Date.now() - tzoffset));
-  const year = localISOTime.getFullYear();
-  const month = String(localISOTime.getMonth() + 1).padStart(2, '0');
-  const day = String(localISOTime.getDate()).padStart(2, '0');
-  const hours = String(localISOTime.getHours()).padStart(2, '0');
-  const minutes = String(localISOTime.getMinutes()).padStart(2, '0');
-  const dateOutput = `${year}${month}${day}_${hours}${minutes}`;
-  return '<?=$diagnosticsZip?>-diagnostics-' + dateOutput + '.zip';
-}
-function diagnostics(file) {
-  nchan_diagnostics.start();
-  $.post('/webGui/include/Download.php', { cmd:'diag', file: file, anonymize: '' }, function(zip) {
-    if (zip) {
-      diagnosticsFile = zip;
-      swal({
-        title: "_(Downloading)_...",
-        text: "/boot/logs" + zip + "<hr><pre id='swaltext'></pre>",
-        html: true,
-        animation: 'none',
-        showConfirmButton: false,
-      });
-      $('.sweet-alert').addClass('nchan');
-      $('button.confirm').prop('disabled', true);
-    } else {
-      nchan_diagnostics.stop();
-    }
-  });
-}
 function cleanUpFlashBackup(zip) {
   if (document.hasFocus()) {
     $('input[value="_(Creating Flash backup)_..."]').val("_(Flash backup)_").prop('disabled',false);
@@ -144,7 +33,5 @@ function flashBackup() {
 </script>
 
 <unraid-i18n-host>
-  <unraid-update-os
-    restore-version="<?= $restoreExists && $restoreVersion != 'unknown' ? $restoreVersion : '' ?>"
-    restore-release-date="<?= $restoreExists && $restoreVersionReleaseDate != 'unknown' ? $restoreVersionReleaseDate : '' ?>"></unraid-update-os>
+  <unraid-update-os></unraid-update-os>
 </unraid-i18n-host>
