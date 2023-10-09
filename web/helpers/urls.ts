@@ -1,3 +1,4 @@
+import { OS_RELEASES } from '~/helpers/urls';
 const ACCOUNT = new URL(import.meta.env.VITE_ACCOUNT ?? 'https://account.unraid.net');
 const DOCS = new URL('https://docs.unraid.net');
 const FORUMS = new URL('https://forums.unraid.net');
@@ -19,7 +20,9 @@ const WEBGUI_CONNECT_SETTINGS = new URL('#UnraidNetSettings', WEBGUI_SETTINGS_MA
 const WEBGUI_TOOLS_REGISTRATION = new URL('/Tools/Registration', WEBGUI);
 const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
-const OS_RELEASES = new URL('https://s3.amazonaws.com/dnld.lime-technology.com/stable/releases.json');
+const OS_RELEASES = new URL('https://next.dl.unraid.net/releases-combined.json');
+const OS_RELEASES_NEXT = new URL('https://next.dl.unraid.net/releases-combined.json');
+const OS_RELEASES_PREVIEW = new URL('https://preview.dl.unraid.net/releases-combined.json');
 
 const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
@@ -36,6 +39,8 @@ export {
   FORUMS_BUG_REPORT,
   PURCHASE_CALLBACK,
   OS_RELEASES,
+  OS_RELEASES_NEXT,
+  OS_RELEASES_PREVIEW,
   DOCS_REGISTRATION_LICENSING,
   DOCS_REGISTRATION_REPLACE_KEY,
   WEBGUI,
