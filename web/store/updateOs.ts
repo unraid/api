@@ -153,9 +153,9 @@ export const useUpdateOsStoreGeneric = (
       }
 
       return {
+        ...(filteredStableReleases.value && { stable: [...filteredStableReleases.value] }),
         ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
         ...(filteredPreviewReleases.value && { preview: [...filteredPreviewReleases.value] }),
-        ...(filteredStableReleases.value && { stable: [...filteredStableReleases.value] }),
         ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
       }
     });
@@ -204,7 +204,7 @@ export const useUpdateOsStoreGeneric = (
          await purgeReleasesCache();
        } else {
          // if the cache is valid return the existing response
-         console.debug('[requestReleases] cache VALID');
+         console.debug('[requestReleases] cache VALID', releases.value.response);
          return releases.value.response;
        }
      }
@@ -216,7 +216,7 @@ export const useUpdateOsStoreGeneric = (
          * @note for the static json a structuredClone is required otherwise Vue will not provided a reactive object from the original static response
          * const response: ReleasesResponse = await structuredClone(testReleasesResponse);
          */
-        const response: ReleasesResponse = await wretch(OS_RELEASES.toString()).get().json();
+        const response: ReleasesResponse = await wretch(OS_RELEASES_PREVIEW.toString()).get().json();
         console.debug('[requestReleases] response', response);
         /**
          * If we're on stable and the user hasn't requested to include next releases in the check
@@ -305,9 +305,9 @@ export const useUpdateOsStoreGeneric = (
         }
 
         branchReleases.find(release => {
-          if (release.md5 === releaseMd5) {;
+          if (release.md5 === releaseMd5) {
             releaseForReturn = release;
-            return release;
+            return releaseForReturn;
           }
         });
       });
@@ -326,7 +326,7 @@ export const useUpdateOsStoreGeneric = (
         }
 
         branchReleases.find(release => {
-          if (release[searchKey] === searchValue) {;
+          if (release[searchKey] === searchValue) {
             releaseForReturn = release;
             return release;
           }
