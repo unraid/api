@@ -47,7 +47,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       case 'downgrade':
         return 'Reboot Required for Downgrade';
       case 'upgrade':
-        return 'Reboot Required for Update'
+        return 'Reboot Required for Update';
       default:
         return '';
     }
