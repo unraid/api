@@ -211,6 +211,7 @@
   "Update Unraid OS confirmation required": "Update Unraid OS confirmation required",
   "Please confirm the update details below": "Please confirm the update details below",
   "Current Version {0}": "Current Version {0}",
+  "Current Version: Unraid {0}": "Current Version: Unraid {0}",
   "New Version: {0}": "New Version: {0}",
   "Version: {0}": "Version: {0}",
   "This update will require a reboot": "This update will require a reboot",
