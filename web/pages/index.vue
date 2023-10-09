@@ -45,7 +45,7 @@ onBeforeMount(() => {
           <h3 class="text-lg font-semibold font-mono">
             UpdateOsCe
           </h3>
-          <UpdateOsCe :restore-release-date="'2022-10-10'" :restore-version="'6.11.2'" />
+          <UpdateOsCe />
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             DowngraadeOsCe
