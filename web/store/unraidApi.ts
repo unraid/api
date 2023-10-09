@@ -87,13 +87,14 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     const errorLink = onError(({ graphQLErrors, networkError }) => {
       if (graphQLErrors) {
         graphQLErrors.map((error) => {
-          console.error('[GraphQL error]', error, error.error.message);
-          if (error.error.message.includes('offline')) {
+          console.error('[GraphQL error]', error);
+          const errorMsg = error.error && error.error.message ? error.error.message : error.message;
+          if (errorMsg && errorMsg.includes('offline')) {
             unraidApiStatus.value = 'offline';
             // attempt to automatically restart the unraid-api
             if (unraidApiRestartAction) { restartUnraidApiClient(); }
           }
-          if (error.error.message && error.error.message.includes(ERROR_CORS_403)) {
+          if (errorMsg && errorMsg.includes(ERROR_CORS_403)) {
             prioritizeCorsError = true;
             const msg = `<p>The CORS policy for the unraid-api does not allow access from the specified origin.</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
             errorsStore.setError({
