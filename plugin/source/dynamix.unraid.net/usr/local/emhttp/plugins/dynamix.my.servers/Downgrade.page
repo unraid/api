@@ -117,32 +117,6 @@ function diagnostics(file) {
     }
   });
 }
-function cleanUpFlashBackup(zip) {
-  if (document.hasFocus()) {
-    $('input[value="_(Creating Flash backup)_..."]').val("_(Flash backup)_").prop('disabled',false);
-    $('div.spinner').hide('slow');
-    $('#pleaseWait').hide('slow');
-    $.post('/webGui/include/Download.php',{cmd:'unlink',file:zip});
-  } else {
-    setTimeout(function(){cleanUpFlashBackup(zip);},2000);
-  }
-}
-function flashBackup() {
-  $('input[value="_(Flash backup)_"]').val('_(Creating Flash backup)_...').prop('disabled',true);
-  $('div.spinner').show('slow');
-  $('#pleaseWait').show('slow');
-  $.post('/webGui/include/Download.php',{cmd:'backup'},function(zip) {
-    if (zip) {
-      location = '/'+zip;
-      setTimeout(function(){cleanUpFlashBackup(zip);},6000);
-    } else {
-      $('input[value="_(Creating Flash backup)_..."]').val("_(Flash backup)_");
-      $('div.spinner').hide('slow');
-      $('#pleaseWait').hide('slow');
-      swal({title:"_(Creation error)_",text:"_(Insufficient free disk space available)_",type:'error',html:true,confirmButtonText:"_(Ok)_"});
-    }
-  });
-}
 </script>
 
 <unraid-i18n-host>
