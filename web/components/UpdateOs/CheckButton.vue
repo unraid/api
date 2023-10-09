@@ -54,8 +54,6 @@ const check = async () => {
 watchEffect(() => {
   if (!guid.value || !keyfile.value) {
     updateOsActionsStore.setStatus('ineligible');
-  } else {
-    updateOsActionsStore.setStatus('ready');
   }
 });
 </script>
