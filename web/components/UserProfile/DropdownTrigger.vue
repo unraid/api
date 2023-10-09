@@ -58,11 +58,6 @@ const title = computed((): string => {
     <Bars3Icon v-if="!dropdownVisible" class="w-20px" />
     <Bars3BottomRightIcon v-else class="w-20px" />
 
-    <span class="relative">
-      <BrandAvatar />
-      <!-- <span v-if="osUpdateAvailable" class="absolute z-10 -bottom-1 -right-3 w-24px h-24px flex items-center justify-center shadow border border-white bg-gradient-to-r from-unraid-red to-orange rounded-full">
-        <BellAlertIcon class="hover:animate-pulse text-white fill-current relative w-12px h-12px" />
-      </span> -->
-    </span>
+    <BrandAvatar />
   </button>
 </template>
