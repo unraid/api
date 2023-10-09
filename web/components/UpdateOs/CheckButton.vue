@@ -13,7 +13,7 @@ import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const props = defineProps<{
   t: any;
@@ -21,13 +21,13 @@ const props = defineProps<{
 
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
+const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { guid, keyfile, osVersion } = storeToRefs(serverStore);
 const { isOsVersionStable, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
+const { status } = storeToRefs(updateOsActionsStore);
 
 const includeNext = ref(isOsVersionStable.value ?? false);
-
-const status = ref<'ready' | 'checking' | 'ineligible'>('ready');
 
 const buttonText = computed(() => {
   if (status.value === 'checking') {
@@ -37,11 +37,7 @@ const buttonText = computed(() => {
 });
 
 const check = async () => {
-  if (status.value === 'ineligible') {
-    return;
-  }
-
-  status.value = 'checking';
+  updateOsActionsStore.setStatus('checking');
 
   await updateOsStore.checkForUpdate({
     cache: true,
@@ -51,21 +47,21 @@ const check = async () => {
     osVersion: osVersion.value,
     skipCache: true,
   }).finally(() => {
-    status.value = 'ready';
+    updateOsActionsStore.setStatus('ready');
   })
 };
 
 watchEffect(() => {
   if (!guid.value || !keyfile.value) {
-    status.value = 'ineligible';
+    updateOsActionsStore.setStatus('ineligible');
   } else {
-    status.value = 'ready';
+    updateOsActionsStore.setStatus('ready');
   }
 });
 </script>
 
 <template>
-  <div v-if="status !== 'ineligible'" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+  <div class="flex flex-col sm:flex-shrink-0 sm:flex-grow-0 items-center gap-16px">
     <SwitchGroup as="div">
       <div class="flex flex-shrink-0 items-center gap-16px">
         <Switch
@@ -111,7 +107,7 @@ watchEffect(() => {
     <span class="flex flex-col gap-y-8px">
       <BrandButton
         @click="check"
-        :disabled="status !== 'ready'"
+        :disabled="status === 'checking'"
         btn-style="outline"
         :text="buttonText"
         class="flex-0" />
