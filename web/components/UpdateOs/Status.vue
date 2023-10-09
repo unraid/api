@@ -13,6 +13,8 @@ import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
+import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
+
 export interface Props {
   restoreVersion?: string | undefined;
   showUpdateCheck?: boolean;
@@ -31,7 +33,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { dateTimeFormat, osVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
 const { available, availableWithRenewal, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
-const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+const { ineligibleText, rebootType, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
 const {
   outputDateTimeReadableDiff: readableDiffRegExp,
@@ -92,10 +94,18 @@ const regExpOutput = computed(() => {
           {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
         </UiBadge>
 
+
         <UiBadge
-          v-if="rebootType === ''"
-          :color="available ? 'orange' : 'green'"
-          :icon="available ? BellAlertIcon : CheckCircleIcon"
+          v-if="status === 'checking'"
+          :color="'orange'"
+          :icon="BrandLoadingWhite"
+        >
+          {{ t('Checking...') }}
+        </UiBadge>
+        <UiBadge
+          v-else-if="rebootType === ''"
+          :color="available || availableWithRenewal ? 'orange' : 'green'"
+          :icon="available || availableWithRenewal ? BellAlertIcon : CheckCircleIcon"
           :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
         >
           {{ (available
@@ -106,7 +116,7 @@ const regExpOutput = computed(() => {
           }}
         </UiBadge>
         <UiBadge
-          v-else
+          v-else-if="rebootType !== ''"
           :color="'yellow'"
           :icon="ExclamationTriangleIcon"
         >
