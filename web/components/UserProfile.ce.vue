@@ -4,7 +4,7 @@ import { useClipboard } from '@vueuse/core';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
-import { useCallbackStore } from '~/store/callbackActions';
+import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
@@ -29,6 +29,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
+const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const {
   name,
@@ -101,6 +102,9 @@ onBeforeMount(() => {
   }
 
   if (guid.value && keyfile.value) {
+    if (callbackData.value) {
+      return console.debug('Renew callback detected, skipping auto check for key replacement, renewal eligibility, and OS Update.');
+    }
     // automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys
     replaceRenewCheckStore.check();
 
