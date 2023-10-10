@@ -1,5 +1,7 @@
 import { request } from '~/composables/services/request';
 
+import type { Release } from '~/store/updateOs';
+
 const KeyServer = request.url('https://keys.lime-technology.com');
 
 export interface StartTrialPayload {
@@ -10,7 +12,7 @@ export interface StartTrialResponse {
   license?: string;
   trial?: string
 }
-export const startTrial = (payload: StartTrialPayload) => KeyServer
+export const startTrial = async (payload: StartTrialPayload) => await KeyServer
   .url('/account/trial')
   .formUrl(payload)
   .post();
@@ -28,10 +30,11 @@ export interface ValidateGuidPayload {
   guid: string;
   keyfile?: string;
 }
-export const validateGuid = (payload: ValidateGuidPayload) => KeyServer
+export const validateGuid = async (payload: ValidateGuidPayload) => await KeyServer
   .url('/validate/guid')
   .formUrl(payload)
-  .post();
+  .post()
+  .json();
 
 export interface KeyLatestPayload {
   keyfile: string;
@@ -39,7 +42,12 @@ export interface KeyLatestPayload {
 export interface KeyLatestResponse {
   license: string;
 }
-export const keyLatest = (payload: KeyLatestPayload) => KeyServer
+export const keyLatest = async (payload: KeyLatestPayload) => await KeyServer
   .url('/key/latest')
   .formUrl(payload)
   .post();
+
+export const getOsReleaseBySha256 = async (sha256: string): Release => await KeyServer
+  .url(`/versions/sha256/${sha256}`)
+  .get()
+  .json();

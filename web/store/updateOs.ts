@@ -25,17 +25,20 @@ export interface RequestReleasesPayload {
 }
 
 export interface Release {
-  version: string; // 6.12.4
-  name: string; // Unraid Server 6.12.4
-  basefile: string; // unRAIDServer-6.12.4-x86_64.zip
-  date: string; // 2023-08-31
-  url: string; // https://dl.stable.unraid.net/unRAIDServer-6.12.4-x86_64.zip
-  changelog: string; // https://unraid.net/blog/unraid-os-6.12.4-release-notes
-  md5: string; // 9050bddcf415f2d0518804e551c1be98
-  size: number; // 12345122
-  sha256: string; // fda177bb1336270b24e4df0fd0c1dd0596c44699204f57c83ce70a0f19173be4
-  plugin_url: string; // https://dl.stable.unraid.net/unRAIDServer-6.12.4.plg
-  plugin_sha256: string; // 83850536ed6982bd582ed107d977d59e9b9b786363e698b14d1daf52e2dec2d9"
+  version: string; //	"6.12.4"
+  name: string; // "Unraid 6.12.4"
+  basefile: string; // "unRAIDServer-6.12.4-x86_64.zip"
+  date: string; // "2023-08-31"
+  url: string; // "https://stable.dl.unraid.net/unRAIDServer-6.12.4-x86_64.zip"
+  changelog: string; // "https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/6.12.4.md"
+  changelog_pretty: string; // "https://docs.unraid.net/unraid-os/release-notes/6.12.4/"
+  md5: string; // "df6e5859d28c14617efde36d59458206"
+  size: string; // "439999418"
+  sha256: string; // "5ad2d22e8c124e3b925c3bd05f1d782d8521965aabcbedd7dd782db76afd9ace"
+  plugin_url: string; // "https://stable.dl.unraid.net/unRAIDServer-6.12.4.plg"
+  plugin_sha256: string; // "57d2ab6036e663208b3f72298ceb478b937b17e333986e68dcae2696c88ed152"
+  announce_url: string; // "https://unraid.net/blog/6-12-4"
+  branch: 'stable' | 'next' | 'preview' | 'test'; // "stable"
 }
 export interface ReleasesResponse {
   stable: Release[];
@@ -294,46 +297,19 @@ export const useUpdateOsStoreGeneric = (
       });
     };
 
-    const findReleaseByMd5 = (releaseMd5: string): Release | null => {
-      let releaseForReturn: Release | null = null;
-
-      Object.keys(releases.value?.response ?? {}).forEach(key => {
-        const branchReleases = releases.value?.response[key as keyof ReleasesResponse];
-
-        if (releaseForReturn || !branchReleases || branchReleases.length == 0) {
-          return;
-        }
-
-        branchReleases.find(release => {
-          if (release.md5 === releaseMd5) {
-            releaseForReturn = release;
-            return releaseForReturn;
-          }
-        });
-      });
-
-      return releaseForReturn;
-    };
-
     const findRelease = (searchKey: keyof Release, searchValue: string): Release | null => {
-      let releaseForReturn: Release | null = null;
+      const response = releases?.value?.response;
+      if (!response) return null;
 
-      Object.keys(releases.value?.response ?? {}).forEach(key => {
-        const branchReleases = releases.value?.response[key as keyof ReleasesResponse];
+      for (const key of Object.keys(response)) {
+        const branchReleases = response[key as keyof ReleasesResponse];
+        if (!branchReleases || branchReleases.length === 0) continue;
 
-        if (releaseForReturn || !branchReleases || branchReleases.length == 0) {
-          return;
-        }
+        const foundRelease = branchReleases.find(release => release[searchKey] === searchValue);
+        if (foundRelease) return foundRelease;
+      }
 
-        branchReleases.find(release => {
-          if (release[searchKey] === searchValue) {
-            releaseForReturn = release;
-            return release;
-          }
-        });
-      });
-
-      return releaseForReturn;
+      return null;
     };
 
     const isVersionStable = (version: SemVer | string): boolean => prerelease(version) === null;
@@ -363,7 +339,6 @@ export const useUpdateOsStoreGeneric = (
       allFilteredReleases,
       // actions
       checkForUpdate,
-      findReleaseByMd5,
       findRelease,
       requestReleases,
       isVersionStable,
