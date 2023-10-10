@@ -2,6 +2,7 @@ import { BellAlertIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import useInstallPlugin from '~/composables/installPlugin';
+import { getOsReleaseBySha256 } from '~/composables/services/keyServer';
 
 import { ACCOUNT_CALLBACK, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
@@ -114,8 +115,20 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   };
 
   /**
-   * @description When receiving the callback the Account update page we'll use the provided releaseMd5 to find the release in the releases cache.
+   * @description When receiving the callback the Account update page we'll use the provided sha256 of the release to get the release from the keyserver
    */
+  const getReleaseFromKeyServer = async (sha256: string): Release => {
+    console.debug('[getReleaseFromKeyServer]', sha256)
+    try {
+      const response = await getOsReleaseBySha256(sha256);
+      console.debug('[getReleaseFromKeyServer]', response);
+      return response;
+    } catch (error) {
+      console.error(error);
+      throw new Error('Unable to get release from keyserver');
+    }
+  };
+
   const confirmUpdateOs = async (release: Release) => {
     callbackUpdateRelease.value = release;
     setStatus('confirming');
@@ -130,7 +143,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     installPlugin({
       modalTitle: `${callbackUpdateRelease.value.name} Update`,
       pluginUrl: callbackUpdateRelease.value.plugin_url,
-      update: true,
+      update: false,
     });
   };
 
@@ -186,6 +199,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     setStatus,
     setRebootType,
     viewCurrentReleaseNotes,
+    getReleaseFromKeyServer,
   };
 });
 
