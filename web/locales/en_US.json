@@ -315,5 +315,6 @@
   "You are still eligible to access OS updates that were published on or before {1}.": "You are still eligible to access OS updates that were published on or before {1}.",
   "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.": "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.",
   "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.": "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.",
-  "Extend License": "Extend License"
+  "Extend License": "Extend License",
+  "Calculating OS Update Eligibility…": "Calculating OS Update Eligibility…"
 }
