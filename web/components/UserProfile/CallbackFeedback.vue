@@ -2,11 +2,16 @@
 // @todo ensure key installs and updateOs can be handled at the same time
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
 import { useClipboard } from '@vueuse/core';
-import { ChevronDoubleDownIcon, ClipboardIcon, CogIcon } from '@heroicons/vue/24/solid';
+import {
+  ChevronDoubleDownIcon,
+  ClipboardIcon,
+  CogIcon,
+  InformationCircleIcon,
+} from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
-import { WEBGUI_CONNECT_SETTINGS } from '~/helpers/urls';
+import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useInstallKeyStore } from '~/store/installKey';
@@ -50,6 +55,8 @@ const {
   refreshServerStateStatus,
   username,
   osVersion,
+  stateData,
+  stateDataError,
 } = storeToRefs(serverStore);
 const {
   status: updateOsStatus,
@@ -137,6 +144,7 @@ const keyInstallStatusCopy = computed((): { text: string; } => {
     case 'installing':
       if (keyActionType.value === 'trialExtend') { txt1 = props.t('Installing Extended Trial'); }
       if (keyActionType.value === 'recover') { txt1 = props.t('Installing Recovered'); }
+      if (keyActionType.value === 'renew') { txt1 = props.t('Installing Extended'); }
       if (keyActionType.value === 'replace') { txt1 = props.t('Installing Replaced'); }
       return {
         text: props.t('{0} {1} Key…', [txt1, keyType.value]),
@@ -229,6 +237,15 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
               {{ t('Calculating trial expiration…') }}
             </p>
           </div>
+          <div v-if="keyType === 'Starter' || keyType === 'Unleashed'" class="opacity-75 italic mt-4px">
+            <RegistrationUpdateExpiration
+              v-if="refreshServerStateStatus === 'done'"
+              :t="t"
+            />
+            <p v-else>
+              {{ t('Calculating OS Update Eligibility…') }}
+            </p>
+          </div>
 
           <template v-if="keyInstallStatus === 'failed'">
             <div v-if="isSupported" class="flex justify-center">
@@ -250,6 +267,15 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
         </UpcCallbackFeedbackStatus>
 
         <UpcCallbackFeedbackStatus
+          v-if="stateDataError && callbackStatus !== 'loading' && (keyInstallStatus === 'success' || keyInstallStatus === 'failed')"
+          :error="true"
+          :text="t('Post Install License Key Error')"
+        >
+          <h4 class="text-18px text-left font-semibold">{{ t(stateData.heading) }}</h4>
+          <div class="text-left text-16px" v-html="t(stateData.message)" />
+        </UpcCallbackFeedbackStatus>
+
+        <UpcCallbackFeedbackStatus
           v-if="accountActionStatus !== 'ready' && !accountActionHide"
           :success="accountActionStatus === 'success'"
           :error="accountActionStatus === 'failed'"
@@ -263,16 +289,19 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
         /> -->
       </div>
 
-      <template v-if="updateOsStatus === 'confirming'">
+      <template v-if="updateOsStatus === 'confirming' && !stateDataError">
         <div class="text-center flex flex-col gap-y-8px my-16px">
           <div class="flex flex-col gap-y-4px">
             <p class="text-18px">
               {{ t('Current Version: Unraid {0}', [osVersion]) }}
             </p>
+
             <ChevronDoubleDownIcon class="animate-pulse w-32px h-32px mx-auto fill-current opacity-50" />
+
             <p class="text-18px">
               {{ t('New Version: {0}', [callbackUpdateRelease?.name]) }}
             </p>
+
             <p class="text-14px italic opacity-75">
               {{ t('This update will require a reboot') }}
             </p>
@@ -314,7 +343,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
           /> -->
         </template>
 
-        <template v-if="updateOsStatus === 'confirming'">
+        <template v-if="updateOsStatus === 'confirming' && !stateDataError">
           <BrandButton
             btn-style="underline"
             :text="t('Cancel')"
@@ -323,6 +352,13 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
           <BrandButton
             :text="t('Confirm and start update')"
             @click="confirmUpdateOs"
+          />
+        </template>
+
+        <template v-if="stateDataError">
+          <BrandButton
+            :href="WEBGUI_TOOLS_REGISTRATION.toString()"
+            :text="t('Fix Error')"
           />
         </template>
       </div>
