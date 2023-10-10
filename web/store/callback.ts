@@ -81,7 +81,7 @@ export interface ExternalKeyActions {
 
 export interface ExternalUpdateOsAction {
   type: UpdateOs;
-  releaseHash: string;
+  sha256: string;
 }
 
 export interface ServerPayload {
@@ -132,12 +132,13 @@ export const useCallbackStoreGeneric = (
 ) =>
   defineStore('callback', () => {
     const callbackActions = useCallbackActions();
-    const send = (url: string, payload: SendPayloads, newTab = false) => {
+
+    const send = (url: string, payload: SendPayloads, newTab?: boolean, sendType?: string) => {
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [...payload],
         sender: window.location.href,
-        type: callbackActions.sendType,
+        type: sendType ?? callbackActions.sendType,
       });
       const encryptedMessage = AES.encrypt(
         stringifiedData,
