@@ -8,7 +8,10 @@ function makeid (length: number) {
   return result;
 }
 
-const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
+// '1111-1111-5GDB-123412341234' Starter.key = TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg
+const randomGuid = '1111-1111-5GDB-123412341234';
+
+// const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
 // const newGuid = `1234-1234-${makeid(4)}-123412341234`; // this is a new USB, not registered
 // const regWizTime = `1616711990500_${randomGuid}`;
 // const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
@@ -98,7 +101,8 @@ export const serverState: Server = {
   guid: randomGuid,
   // "guid": "0781-5583-8355-81071A2B0211",
   inIframe: false,
-  keyfile: 'DUMMY_KEYFILE',
+  // keyfile: 'DUMMY_KEYFILE',
+  keyfile: 'TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg',
   lanIp: '192.168.254.36',
   license: '',
   locale: 'en_US', // en_US, ja
