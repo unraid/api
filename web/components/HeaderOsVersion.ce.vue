@@ -29,10 +29,10 @@ const showRebootRequired = computed(() => rebootType.value !== '');
 </script>
 
 <template>
-  <div class="flex flex-row justify-center gap-x-4px">
+  <div class="flex flex-row justify-start gap-x-4px">
     <button
       @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
-      class="group"
+      class="group leading-none"
       :title="t('View release notes')"
     >
       <UiBadge
