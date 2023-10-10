@@ -34,7 +34,8 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     redirectToCallbackType?.();
   };
 
-  const redirectToCallbackType = () => {
+  const redirectToCallbackType = async () => {
+    console.debug('[redirectToCallbackType]');
     if (!callbackData.value || !callbackData.value.type || callbackData.value.type !== 'forUpc' || !callbackData.value.actions?.length) {
       callbackError.value = 'Callback redirect type not present or incorrect';
       callbackStatus.value = 'ready'; // default status
@@ -45,6 +46,8 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
 
     // Parse the data and perform actions
     callbackData.value.actions.forEach(async (action, index, array) => {
+      console.debug('[redirectToCallbackType]', { action, index, array });
+
       if (action?.keyUrl) {
         await installKeyStore.install(action as ExternalKeyActions);
       }
@@ -61,13 +64,16 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         accountStore.setQueueConnectSignOut(true);
       }
 
-      if (action.type === 'updateOs' && action?.releaseHash) {
-        const foundRelease = updateOsStore.findReleaseByMd5(action.releaseHash);
+      if (action.type === 'updateOs' && action?.sha256) {
+        console.debug('[redirectToCallbackType] updateOs', action);
+        const foundRelease = await updateOsActionsStore.getReleaseFromKeyServer(action.sha256);
+        console.debug('[redirectToCallbackType] updateOs foundRelease', foundRelease);
         if (!foundRelease) {
           throw new Error('Release not found');
         }
         updateOsActionsStore.confirmUpdateOs(foundRelease);
         if (array.length === 1) { // only 1 action, skip refresh server state
+          console.debug('[redirectToCallbackType] updateOs done');
           // removing query string relase is set so users can't refresh the page and go through the same actions
           window.history.replaceState(null, '', window.location.pathname);
           return
