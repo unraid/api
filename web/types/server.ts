@@ -56,7 +56,6 @@ export interface Server {
   flashVendor?: string;
   guid?: string;
   inIframe?: boolean;
-  includeNext?: boolean;
   keyfile?: string;
   lanIp?: string;
   license?: string;

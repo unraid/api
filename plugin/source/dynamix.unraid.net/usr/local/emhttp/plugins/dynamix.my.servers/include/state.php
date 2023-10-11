@@ -18,7 +18,7 @@ $connectPluginVersion = file_exists('/var/log/plugins/dynamix.unraid.net.plg')
         ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
         : 'base-' . $var['version']);
 
-$myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+$myservers_flash_cfg_path = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 
 $configErrorEnum = [
@@ -28,6 +28,7 @@ $configErrorEnum = [
     "withdrawn" => 'WITHDRAWN',
 ];
 
+$osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
 $registered = !empty($myservers['remote']['username']) && $connectPluginInstalled;
 
 $serverState = [
@@ -62,6 +63,7 @@ $serverState = [
     "model" => $var['SYS_MODEL'],
     "name" => htmlspecialchars($var['NAME']),
     "osVersion" => $var['version'],
+    "osVersionBranch" => $osVersionBranch,
     "protocol" => $_SERVER['REQUEST_SCHEME'],
     "regDev" => @(int)$var['regDev'] ?? 0,
     "regGen" => @(int)$var['regGen'],
