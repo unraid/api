@@ -1,6 +1,6 @@
 <script setup lang="ts">
   /**
- * @todo require keyfile to be set before allowing user to check for updates
+ * @todo require keyfile to be set before allowing user to check for OS updates
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  * @todo detect downgrade possibility
@@ -33,7 +33,7 @@ const buttonText = computed(() => {
   if (status.value === 'checking') {
     return props.t('Checking...');
   }
-  return props.t('Check For Updates');
+  return props.t('Check for OS Updates');
 });
 
 const check = async () => {

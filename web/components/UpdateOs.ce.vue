@@ -38,7 +38,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
       :showUpdateCheck="true"
       :title="t('Update Unraid OS')"
       :t="t" />
-    <UpdateOsUpdateIneligible
+    <!-- <UpdateOsUpdateIneligible
       v-if="availableWithRenewal && rebootType === ''"
       :t="t" />
     <UpdateOsUpdate
@@ -46,7 +46,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
       :t="t" />
     <UpdateOsThirdPartyDrivers
       v-if="rebootType === 'thirdPartyDriversDownloading'"
-      :t="t" />
+      :t="t" /> -->
   </UiPageContainer>
 </template>
 

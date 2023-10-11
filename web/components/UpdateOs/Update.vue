@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 /**
- * @todo require keyfile to be set before allowing user to check for updates
+ * @todo require keyfile to be set before allowing user to check for OS updates
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
  */
@@ -52,7 +52,7 @@ const heading = computed(() => {
   if (available.value && updateButton?.value?.text && updateButton?.value?.textParams) {
     return props.t(updateButton?.value.text, updateButton?.value.textParams);
   }
-  return props.t('Check for Updates');
+  return props.t('Check for OS Updates');
 });
 
 const headingIcon = computed(() => {

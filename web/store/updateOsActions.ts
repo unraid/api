@@ -57,13 +57,13 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const ineligible = computed(() => !serverStore.guid || !serverStore.keyfile || !osVersion.value || regUpdatesExpired.value);
   const ineligibleText = computed(() => { // translated in components
     if (!serverStore.guid) {
-      return 'A valid GUID is required to check for updates.';
+      return 'A valid GUID is required to check for OS updates.';
     }
     if (!serverStore.keyfile) {
-      return 'A valid keyfile is required to check for updates.';
+      return 'A valid keyfile is required to check for OS updates.';
     }
     if (!osVersion.value) {
-      return 'A valid OS version is required to check for updates.';
+      return 'A valid OS version is required to check for OS updates.';
     }
     if (regUpdatesExpired.value) {
       const base = `Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.`;
@@ -105,6 +105,19 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       name: 'updateOs',
       text: 'Check for OS Updates',
     }
+  };
+
+  const executeUpdateOsCallback = async () => {
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverAccountPayload,
+        },
+        type: 'updateOs',
+      }],
+      serverStore.inIframe,
+    );
   };
 
   /**
@@ -188,6 +201,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     confirmUpdateOs,
     installOsUpdate,
     initUpdateOsCallback,
+    executeUpdateOsCallback,
     rebootServer,
     setStatus,
     setRebootType,
