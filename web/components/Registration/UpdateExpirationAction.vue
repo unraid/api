@@ -62,9 +62,9 @@ const output = computed(() => {
       <template v-if="renewStatus === 'installed'">
         {{ t('Your license key was automatically renewed and installed. Reload the page to see updated details.') }}
       </template>
-      <template v-else-if="regUpdatesExpired && ineligibleText">
+      <!-- <template v-else-if="regUpdatesExpired && ineligibleText">
         {{ t(ineligibleText, [regTy, formattedRegExp]) }}
-      </template>
+      </template> -->
     </p>
     <div class="flex flex-wrap items-start justify-between gap-8px">
       <BrandButton

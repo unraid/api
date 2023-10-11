@@ -38,6 +38,7 @@ const {
   keyfile,
   lanIp,
   osVersion,
+  osVersionBranch,
   state,
   connectPluginInstalled,
 } = storeToRefs(serverStore);
@@ -112,9 +113,9 @@ onBeforeMount(() => {
     updateOsStore.checkForUpdate({
       cache: true,
       guid: guid.value,
-      includeNext: !isOsVersionStable.value, // if we're already on a non-stable release, include next
       keyfile: keyfile.value,
       osVersion: osVersion.value,
+      osVersionBranch: osVersionBranch.value, // if we're already on a non-stable release, include next
     });
   } else {
     console.warn('A valid keyfile and USB Flash boot device are required to check for key renewals, key replacement eligibiliy, and OS update availability.');

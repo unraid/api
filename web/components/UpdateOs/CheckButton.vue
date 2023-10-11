@@ -23,11 +23,11 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { guid, keyfile, osVersion } = storeToRefs(serverStore);
+const { guid, keyfile, osVersion, osVersionBranch } = storeToRefs(serverStore);
 const { isOsVersionStable, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { status } = storeToRefs(updateOsActionsStore);
 
-const includeNext = ref(isOsVersionStable.value ?? false);
+const includeNext = ref(osVersionBranch.value !== 'stable');
 
 const buttonText = computed(() => {
   if (status.value === 'checking') {
@@ -42,7 +42,7 @@ const check = async () => {
   await updateOsStore.checkForUpdate({
     cache: true,
     guid: guid.value,
-    includeNext: includeNext.value,
+    osVersionBranch: osVersionBranch.value,
     keyfile: keyfile.value,
     osVersion: osVersion.value,
     skipCache: true,
