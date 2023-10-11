@@ -75,8 +75,8 @@ else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 let regExp: number | undefined = undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
   // regExp = oneHourFromNow;
-  // regExp = oneDayFromNow;
-  regExp = oneDayAgo;
+  regExp = oneDayFromNow;
+  // regExp = oneDayAgo;
   // regExp = uptime;
   // regExp = 1696363920000; // nori.local's expiration
 }
@@ -106,7 +106,7 @@ export const serverState: Server = {
   lanIp: '192.168.254.36',
   license: '',
   locale: 'en_US', // en_US, ja
-  name: 'fuji',
+  name: 'dev-static',
   osVersion: '6.12.4',
   // registered: connectPluginInstalled ? true : false,
   registered: connectPluginInstalled ? false : true,
