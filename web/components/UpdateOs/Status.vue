@@ -125,7 +125,7 @@ const regExpOutput = computed(() => {
       </div>
 
       <div class="shrink-0">
-        <UpdateOsCheckButton
+        <UpdateOsCallbackButton
           v-if="showUpdateCheck && rebootType === ''"
           :t="t" />
         <BrandButton
