@@ -266,7 +266,7 @@
   "Ineligible as of {0}": "Ineligible as of {0}",
   "Eligible for updates for {0}": "Eligible for updates for {0}",
   "Renew your license key now": "Renew your license key now",
-  "Renew Key to Enable OS Updates": "Renew Key to Enable OS Updates",
+  "Extend License to Enable OS Updates": "Extend License to Enable OS Updates",
   "Check Eligibility": "Check Eligibility",
   "Eligible": "Eligible",
   "Ineligible": "Ineligible",
@@ -316,5 +316,8 @@
   "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.": "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.",
   "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.": "Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates. You are still eligible to access OS updates that were published on or before {1}.",
   "Extend License": "Extend License",
-  "Calculating OS Update Eligibility…": "Calculating OS Update Eligibility…"
+  "Calculating OS Update Eligibility…": "Calculating OS Update Eligibility…",
+  "Cancel": "Cancel",
+  "Unknown error": "Unknown error",
+  "Installing Extended": "Installing Extended"
 }
