@@ -147,6 +147,10 @@ export const useCallbackStoreGeneric = (
       // build and go to url
       const destinationUrl = new URL(url);
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
+      // becacuse this route redirects to account.unraid.net/server/update-os we need to change it
+      if (destinationUrl.pathname === '/Tools/Update') {
+        destinationUrl.pathname = '/Main'; // don't go to "/" because that auto redirects to /Main or /Dashboard
+      }
       console.debug('[callback.send]', encryptedMessage, destinationUrl);
       if (newTab) {
         window.open(destinationUrl.toString(), '_blank');
