@@ -1,10 +1,18 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
-import { ArrowTopRightOnSquareIcon, CogIcon } from '@heroicons/vue/24/solid';
+import {
+  ArrowTopRightOnSquareIcon,
+  CogIcon,
+  KeyIcon,
+} from '@heroicons/vue/24/solid';
 
-import { ACCOUNT, CONNECT_DASHBOARD, WEBGUI_CONNECT_SETTINGS } from '~/helpers/urls';
+import {
+  ACCOUNT,
+  CONNECT_DASHBOARD,
+  WEBGUI_CONNECT_SETTINGS,
+  WEBGUI_TOOLS_REGISTRATION,
+} from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
-// import { usePromoStore } from '~/store/promo';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
@@ -12,19 +20,38 @@ import type { UserProfileLink } from '~/types/userProfile';
 const props = defineProps<{ t: any; }>();
 
 const errorsStore = useErrorsStore();
-// const promoStore = usePromoStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { errors } = storeToRefs(errorsStore);
-const { keyActions, connectPluginInstalled, registered, stateData } = storeToRefs(useServerStore());
+const {
+  keyActions,
+  connectPluginInstalled,
+  registered,
+  regUpdatesExpired,
+  stateData,
+} = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
-const { rebootType, toolsRegistrationAction } = storeToRefs(updateOsActionsStore);
+const { rebootType } = storeToRefs(updateOsActionsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
 
+/**
+ * Filter out the renew action from the key actions so we can display it separately and link to the Tools > Registration page
+ */
+const filteredKeyActions = computed(() => keyActions.value?.filter(action => !['renew'].includes(action.name)));
+
 const links = computed(():UserProfileLink[] => {
   return [
+    ...(regUpdatesExpired.value ? [{
+      href: WEBGUI_TOOLS_REGISTRATION.toString(),
+      icon: KeyIcon,
+      text: props.t('OS Update Eligibility Expired'),
+      title: props.t('Go to Tools > Registration to Learn More'),
+    }] : []),
+    // callback to account.unraid.net/server/update-os
+    updateOsActionsStore.initUpdateOsCallback(),
+    // connect plugin links
     ...(registered.value && connectPluginInstalled.value
       ? [
           {
@@ -58,19 +85,6 @@ const links = computed(():UserProfileLink[] => {
         ]
       : []
     ),
-    // ...(!connectPluginInstalled.value
-    //   ? [
-    //       {
-    //         click: () => {
-    //           promoStore.promoShow();
-    //         },
-    //         icon: InformationCircleIcon,
-    //         text: props.t('Enhance your Unraid experience with Connect'),
-    //         title: props.t('Enhance your Unraid experience with Connect'),
-    //       },
-    //     ]
-    //   : []
-    // ),
   ];
 });
 
@@ -95,14 +109,8 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
         <UpcKeyline />
       </li>
 
-      <template v-if="osUpdateAvailable && !rebootType">
-        <li>
-          <UpcDropdownItem :item="toolsRegistrationAction" :t="t" />
-        </li>
-      </template>
-
-      <template v-if="keyActions">
-        <li v-for="action in keyActions" :key="action.name">
+      <template v-if="filteredKeyActions">
+        <li v-for="action in filteredKeyActions" :key="action.name">
           <UpcDropdownItem :item="action" :t="t" />
         </li>
       </template>
