@@ -99,7 +99,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
           serverStore.inIframe,
         );
       },
-      emphasize: true,
+      // emphasize: true,
       external: true,
       icon: ArrowPathIcon,
       name: 'updateOs',
