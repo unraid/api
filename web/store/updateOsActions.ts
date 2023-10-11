@@ -1,4 +1,4 @@
-import { BellAlertIcon } from '@heroicons/vue/24/solid';
+import { ArrowPathIcon, BellAlertIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import useInstallPlugin from '~/composables/installPlugin';
@@ -93,12 +93,6 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
           [{
             server: {
               ...serverStore.serverAccountPayload,
-              /**
-               * @todo - for the time being we'll always include next releases
-               * Prefer the param in the event for when a user is on stable and wants to see Next releases.
-               * Otherwise if the os version is NOT stable, we'll include next releases
-               */
-              includeNext: true ?? includeNext ?? !updateOsStore.isOsVersionStable,
             },
             type: 'updateOs',
           }],
@@ -107,10 +101,9 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       },
       emphasize: true,
       external: true,
-      icon: BellAlertIcon,
+      icon: ArrowPathIcon,
       name: 'updateOs',
-      text: 'Unraid OS {0} Update Available',
-      textParams: [updateOsStore.available],
+      text: 'Check for OS Updates',
     }
   };
 
