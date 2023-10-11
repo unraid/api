@@ -295,7 +295,7 @@ export const useServerStore = defineStore('server', () => {
     external: true,
     icon: KeyIcon,
     name: 'renew',
-    text: 'Renew Key to Enable OS Updates',
+    text: 'Extend License to Enable OS Updates',
   });
   const replaceAction: ServerStateDataAction = {
     click: () => { accountStore.replace(); },
