@@ -8,13 +8,7 @@
  */
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import { createPinia, defineStore, setActivePinia } from 'pinia';
-
-/**
- * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
- * @see https://github.com/vuejs/pinia/discussions/1085
- */
-setActivePinia(createPinia());
+import { defineStore } from 'pinia';
 
 export type SignIn = 'signIn';
 export type SignOut = 'signOut';
@@ -26,7 +20,7 @@ export type TrialExtend = 'trialExtend';
 export type TrialStart = 'trialStart';
 export type Purchase = 'purchase';
 export type Redeem = 'redeem';
-export type Renew = 'renew'
+export type Renew = 'renew';
 export type Upgrade = 'upgrade';
 export type UpdateOs = 'updateOs';
 export type AccountActionTypes = Troubleshoot | SignIn | SignOut | OemSignOut;
@@ -45,13 +39,17 @@ export interface ServerData {
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
-  includeNext?: boolean;
   keyfile?: string;
   locale?: string;
   name?: string;
+  osVersion?: string;
+  osVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
   registered: boolean;
+  regExp?: number;
+  regUpdatesExpired?: boolean;
   regGen?: number;
   regGuid?: string;
+  regTy?: string;
   state: string;
   wanFQDN?: string;
 }
@@ -87,7 +85,6 @@ export interface ExternalUpdateOsAction {
 export interface ServerPayload {
   type: ServerActionTypes;
   server: ServerData;
-  includeNext?: boolean;
 }
 
 export interface ServerTroubleshoot {
@@ -137,20 +134,19 @@ export const useCallbackStoreGeneric = (
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [...payload],
-        sender: window.location.href,
+        sender: window.location.href.replace('/Tools/Update', '/Main'),
         type: sendType ?? callbackActions.sendType,
       });
       const encryptedMessage = AES.encrypt(
         stringifiedData,
         callbackActions.encryptionKey,
       ).toString();
-      // build and go to url
-      const destinationUrl = new URL(url);
+      /**
+       * Build and go to url
+       * @note – /Tools/Update redirects to account.unraid.net/server/update-os we need to prevent any callback sends to that url to prevent redirect loops
+       */
+      const destinationUrl = new URL(url.replace('/Tools/Update', '/Main'));
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
-      // becacuse this route redirects to account.unraid.net/server/update-os we need to change it
-      if (destinationUrl.pathname === '/Tools/Update') {
-        destinationUrl.pathname = '/Main'; // don't go to "/" because that auto redirects to /Main or /Dashboard
-      }
       console.debug('[callback.send]', encryptedMessage, destinationUrl);
       if (newTab) {
         window.open(destinationUrl.toString(), '_blank');
