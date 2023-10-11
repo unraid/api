@@ -73,6 +73,9 @@ export const useUpdateOsStoreGeneric = (
   currentOsVersion?: SemVer | string,
   currentRegExp?: number,
   currentRegUpdatesExpired?: boolean,
+  currentIsLoggedIn?: boolean,
+  currentIsPreviewUser?: boolean,
+  currentIsTestUser?: boolean,
 ) =>
   defineStore('updateOs', () => {
     // Since this file is shared between account.unraid.net and the web components, we need to handle the state differently
@@ -81,6 +84,9 @@ export const useUpdateOsStoreGeneric = (
     const paramCurrentOsVersion = ref<SemVer | string>(currentOsVersion ?? '');
     const paramCurrentRegExp = ref<number>(currentRegExp ?? 0);
     const paramCurrentRegUpdatesExpired = ref<boolean>(currentRegUpdatesExpired ?? false);
+    const paramCurrentIsLoggedIn = ref<boolean>(currentIsLoggedIn ?? false);
+    const paramCurrentIsPreviewUser = ref<boolean>(currentIsPreviewUser ?? false);
+    const paramCurrentIsTestUser = ref<boolean>(currentIsTestUser ?? false);
 
     // state
     const available = ref<string>('');
@@ -91,6 +97,9 @@ export const useUpdateOsStoreGeneric = (
     const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
     const regExp = computed(() => updateOsActions?.regExp ?? paramCurrentRegExp.value ?? 0);
     const regUpdatesExpired = computed(() => updateOsActions?.regUpdatesExpired ?? paramCurrentRegUpdatesExpired.value ?? false);
+    const isLoggedIn = computed(() => updateOsActions?.isLoggedIn ?? paramCurrentIsLoggedIn.value ?? false);
+    const isPreviewUser = computed(() => updateOsActions?.isPreviewUser ?? paramCurrentIsPreviewUser.value ?? false);
+    const isTestUser = computed(() => updateOsActions?.isTestUser ?? paramCurrentIsTestUser.value ?? false);
 
     // getters
     const parsedReleaseTimestamp = computed(() => {
@@ -216,22 +225,15 @@ export const useUpdateOsStoreGeneric = (
       try {
         console.debug('[requestReleases] fetching new releases');
         /**
-         * @note for the static json a structuredClone is required otherwise Vue will not provided a reactive object from the original static response
+         * @note for testing with static json a structuredClone is required otherwise Vue will not provide a fully reactive object from the original static response
          * const response: ReleasesResponse = await structuredClone(testReleasesResponse);
          */
-        const response: ReleasesResponse = await wretch(OS_RELEASES_PREVIEW.toString()).get().json();
+        let releasesUrl = OS_RELEASES.toString();
+        if (isLoggedIn.value) releasesUrl = OS_RELEASES_NEXT.toString();
+        if (isPreviewUser.value || isTestUser.value) releasesUrl = OS_RELEASES_PREVIEW.toString();
+
+        const response: ReleasesResponse = await wretch(releasesUrl).get().json();
         console.debug('[requestReleases] response', response);
-        /**
-         * If we're on stable and the user hasn't requested to include next releases in the check
-         * then remove next releases from the data
-         */
-        console.debug('[requestReleases] checking for next releases', payload.includeNext, response.next, response.preview, response.test);
-        if (!payload.includeNext && (response.next || response.preview || response.test)) {
-          console.debug('[requestReleases] removing prereleases from data');
-          if (response.next) delete response.next;
-          if (response.preview) delete response.preview;
-          if (response.test) delete response.test;
-        }
 
         // save it to local state
         setReleasesState(response);
