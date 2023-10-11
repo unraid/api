@@ -89,6 +89,7 @@ export const useServerStore = defineStore('server', () => {
   const locale = ref<string>('');
   const name = ref<string>('');
   const osVersion = ref<string>('');
+  const osVersionBranch = ref<'stable' | 'next' | 'preview' | 'test'>('stable');
   const registered = ref<boolean>();
   const regDev = ref<number>(0);
   const regGen = ref<number>(0);
@@ -152,6 +153,7 @@ export const useServerStore = defineStore('server', () => {
       locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,
+      osVersionBranch: osVersionBranch.value,
       registered: registered.value,
       regDev: regDev.value,
       regGen: regGen.value,
@@ -197,6 +199,7 @@ export const useServerStore = defineStore('server', () => {
       keyTypeForPurchase,
       locale: locale.value,
       osVersion: osVersion.value,
+      osVersionBranch: osVersionBranch.value,
       registered: registered.value ?? false,
       regExp: regExp.value,
       regUpdatesExpired: regUpdatesExpired.value,
@@ -220,6 +223,7 @@ export const useServerStore = defineStore('server', () => {
       lanIp: lanIp.value,
       name: name.value,
       osVersion: osVersion.value,
+      osVersionBranch: osVersionBranch.value,
       registered: registered.value ?? false,
       regGuid: regGuid.value,
       regExp: regExp.value,
@@ -249,6 +253,7 @@ export const useServerStore = defineStore('server', () => {
       locale: locale.value,
       name: name.value,
       osVersion: osVersion.value,
+      osVersionBranch: osVersionBranch.value,
       registered: registered.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
@@ -757,6 +762,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.locale !== 'undefined') { locale.value = data.locale; }
     if (typeof data?.name !== 'undefined') { name.value = data.name; }
     if (typeof data?.osVersion !== 'undefined') { osVersion.value = data.osVersion; }
+    if (typeof data?.osVersionBranch !== 'undefined') { osVersionBranch.value = data.osVersionBranch; }
     if (typeof data?.registered !== 'undefined') { registered.value = data.registered; }
     if (typeof data?.regGen !== 'undefined') { regGen.value = data.regGen; }
     if (typeof data?.regGuid !== 'undefined') { regGuid.value = data.regGuid; }
@@ -906,6 +912,7 @@ export const useServerStore = defineStore('server', () => {
     lanIp,
     name,
     osVersion,
+    osVersionBranch,
     registered,
     regDev,
     regGen,

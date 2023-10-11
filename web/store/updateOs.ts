@@ -9,6 +9,7 @@ import { computed, ref } from 'vue';
 import wretch from 'wretch';
 
 import {
+  ACCOUNT,
   OS_RELEASES,
   OS_RELEASES_NEXT,
   OS_RELEASES_PREVIEW,
@@ -18,9 +19,9 @@ import {
 export interface RequestReleasesPayload {
   cache?: boolean; // saves response to localStorage
   guid: string;
-  includeNext?: boolean; // if a user is on a stable release and they want to see what's available on the next branch
   keyfile: string;
   osVersion: SemVer | string;
+  osVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
   skipCache?: boolean; // forces a refetch from the api
 }
 
@@ -53,6 +54,7 @@ export interface CachedReleasesResponse {
 
 export interface UpdateOsActionStore {
   osVersion: SemVer | string;
+  osVersionBranch: 'stable' | 'next' | 'preview' | 'test';
   regExp: number;
   regUpdatesExpired: boolean;
 }
@@ -68,38 +70,35 @@ dayjs.extend(relativeTime);
 
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
-export const useUpdateOsStoreGeneric = (
-  useUpdateOsActions?: () => UpdateOsActionStore,
-  currentOsVersion?: SemVer | string,
+interface UpdateOsStorePayload {
+  useUpdateOsActions?: UpdateOsActionStore;
+  currentOsVersion?: SemVer | string;
+  currentOsVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
   currentRegExp?: number,
   currentRegUpdatesExpired?: boolean,
-  currentIsLoggedIn?: boolean,
-  currentIsPreviewUser?: boolean,
-  currentIsTestUser?: boolean,
-) =>
+}
+
+export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
   defineStore('updateOs', () => {
+    console.debug('[updateOs] payload', payload);
     // Since this file is shared between account.unraid.net and the web components, we need to handle the state differently
-    const updateOsActions = useUpdateOsActions !== undefined ? useUpdateOsActions() : undefined;
+    const updateOsActions = payload.useUpdateOsActions !== undefined ? payload.useUpdateOsActions() : undefined;
+    console.debug('[updateOs] updateOsActions', updateOsActions);
     // creating refs from the passed in values so that we can use them in the computed properties
-    const paramCurrentOsVersion = ref<SemVer | string>(currentOsVersion ?? '');
-    const paramCurrentRegExp = ref<number>(currentRegExp ?? 0);
-    const paramCurrentRegUpdatesExpired = ref<boolean>(currentRegUpdatesExpired ?? false);
-    const paramCurrentIsLoggedIn = ref<boolean>(currentIsLoggedIn ?? false);
-    const paramCurrentIsPreviewUser = ref<boolean>(currentIsPreviewUser ?? false);
-    const paramCurrentIsTestUser = ref<boolean>(currentIsTestUser ?? false);
+    const paramCurrentOsVersion = ref<SemVer | string>(payload.currentOsVersion ?? '');
+    const paramCurrentOsVersionBranch = ref<SemVer | string>(payload.currentOsVersionBranch ?? '');
+    const paramCurrentRegExp = ref<number>(payload.currentRegExp ?? 0);
+    const paramCurrentRegUpdatesExpired = ref<boolean>(payload.currentRegUpdatesExpired ?? false);
+    // getters – when set from updateOsActions we're in the webgui web components otherwise we're in account.unraid.net
+    const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
+    const osVersionBranch = computed(() => updateOsActions?.osVersionBranch ?? paramCurrentOsVersionBranch.value ?? '');
+    const regExp = computed(() => updateOsActions?.regExp ?? paramCurrentRegExp.value ?? 0);
+    const regUpdatesExpired = computed(() => updateOsActions?.regUpdatesExpired ?? paramCurrentRegUpdatesExpired.value ?? false);
 
     // state
     const available = ref<string>('');
     const availableWithRenewal = ref<string>('');
     const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
-
-    // getters – when set from updateOsActions we're in the webgui web components otherwise we're in account.unraid.net
-    const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
-    const regExp = computed(() => updateOsActions?.regExp ?? paramCurrentRegExp.value ?? 0);
-    const regUpdatesExpired = computed(() => updateOsActions?.regUpdatesExpired ?? paramCurrentRegUpdatesExpired.value ?? false);
-    const isLoggedIn = computed(() => updateOsActions?.isLoggedIn ?? paramCurrentIsLoggedIn.value ?? false);
-    const isPreviewUser = computed(() => updateOsActions?.isPreviewUser ?? paramCurrentIsPreviewUser.value ?? false);
-    const isTestUser = computed(() => updateOsActions?.isTestUser ?? paramCurrentIsTestUser.value ?? false);
 
     // getters
     const parsedReleaseTimestamp = computed(() => {
@@ -109,11 +108,9 @@ export const useUpdateOsStoreGeneric = (
         relative: dayjs().to(dayjs(releases.value?.timestamp)),
       };
     });
-    const isOsVersionStable = computed(() => !isVersionStable(osVersion.value));
-    const isAvailableStable = computed(() => {
-      if (!available.value) return undefined;
-      return !isVersionStable(available.value);
-    });
+
+    const isOsVersionStable = computed(() => isVersionStable(osVersion.value));
+    const isAvailableStable = computed(() => available.value ? isVersionStable(available.value) : false);
 
     const filteredNextReleases = computed(() => {
       if (!osVersion.value) return undefined;
@@ -173,7 +170,6 @@ export const useUpdateOsStoreGeneric = (
     });
     // actions
     const setReleasesState = (response: ReleasesResponse) => {
-      console.debug('[setReleasesState]');
       releases.value = {
         timestamp: Date.now(),
         response,
@@ -181,12 +177,10 @@ export const useUpdateOsStoreGeneric = (
     }
 
     const cacheReleasesResponse = () => {
-      console.debug('[cacheReleasesResponse]');
       localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
     };
 
     const purgeReleasesCache = async () => {
-      console.debug('[purgeReleasesCache]');
       releases.value = undefined;
       await localStorage.removeItem(RELEASES_LOCAL_STORAGE_KEY);
     };
@@ -194,7 +188,7 @@ export const useUpdateOsStoreGeneric = (
     const requestReleases = async (payload: RequestReleasesPayload): Promise<ReleasesResponse | undefined> => {
       console.debug('[requestReleases]', payload);
 
-      if (!payload || !payload.guid || !payload.keyfile) {
+      if (!payload || !payload.osVersion || !payload.osVersionBranch || !payload.guid || !payload.keyfile) {
         throw new Error('Invalid Payload for updateOs.requestReleases');
       }
 
@@ -223,17 +217,30 @@ export const useUpdateOsStoreGeneric = (
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
-        console.debug('[requestReleases] fetching new releases');
+        /**
+         * We need two ways of determining which branch to use:
+         * 1. On the server webgui use the osVersionBranch param
+         * 2. On account.unraid.net we can use the user's auth to determine which branch to use
+         */
+        const isOnAccountApp = window.location.origin === ACCOUNT.origin;
+
+        const useNextBranch = (!isOnAccountApp && osVersionBranch.value === 'next') || isOnAccountApp && isLoggedIn.value;
+        const usePreviewBranch = (!isOnAccountApp && osVersionBranch.value === 'preview') || isOnAccountApp && isLoggedIn.value && osVersionBranch.value === 'preview'; /** @todo cognito user attributes on account app...for now use existing branch */
+        const useTestBranch = (!isOnAccountApp && osVersionBranch.value === 'test') || isOnAccountApp && isLoggedIn.value && osVersionBranch.value === 'test'; /** @todo cognito user attributes on account app...for now use existing branch */
+
+        let releasesUrl = OS_RELEASES.toString();
+        if (useNextBranch) releasesUrl = OS_RELEASES_NEXT.toString();
+        if (usePreviewBranch || useTestBranch) releasesUrl = OS_RELEASES_PREVIEW.toString();
+        // if (useTestBranch) releasesUrl = OS_RELEASES_TEST.toString();
+
+        console.debug('[requestReleases] fetching new releases from', releasesUrl);
+
+        const response: ReleasesResponse = await wretch(releasesUrl).get().json();
+        console.debug('[requestReleases] response', response);
         /**
          * @note for testing with static json a structuredClone is required otherwise Vue will not provide a fully reactive object from the original static response
          * const response: ReleasesResponse = await structuredClone(testReleasesResponse);
          */
-        let releasesUrl = OS_RELEASES.toString();
-        if (isLoggedIn.value) releasesUrl = OS_RELEASES_NEXT.toString();
-        if (isPreviewUser.value || isTestUser.value) releasesUrl = OS_RELEASES_PREVIEW.toString();
-
-        const response: ReleasesResponse = await wretch(releasesUrl).get().json();
-        console.debug('[requestReleases] response', response);
 
         // save it to local state
         setReleasesState(response);
@@ -250,7 +257,7 @@ export const useUpdateOsStoreGeneric = (
     const checkForUpdate = async (payload: RequestReleasesPayload) => {
       console.debug('[checkForUpdate]', payload);
 
-      if (!payload || !payload.osVersion || !payload.guid || !payload.keyfile) {
+      if (!payload || !payload.osVersion || !payload.osVersionBranch || !payload.guid || !payload.keyfile) {
         console.error('[checkForUpdate] invalid payload');
         throw new Error('Invalid Payload for updateOs.checkForUpdate');
       }

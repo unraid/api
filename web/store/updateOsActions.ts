@@ -34,6 +34,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
   // State
   const osVersion = computed(() => serverStore.osVersion);
+  const osVersionBranch = computed(() => serverStore.osVersionBranch);
   const regExp = computed(() => serverStore.regExp);
   const regUpdatesExpired = computed(() => serverStore.regUpdatesExpired);
   /** used when coming back from callback, this will be the release to install */
@@ -85,9 +86,9 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   });
 
   // Actions
-  const initUpdateOsCallback = (includeNextReleases: boolean = false): UserProfileLink => {
+  const initUpdateOsCallback = (): UserProfileLink => {
     return {
-      click: (includeNext: boolean = includeNextReleases) => {
+      click: () => {
         callbackStore.send(
           ACCOUNT_CALLBACK.toString(),
           [{
@@ -99,11 +100,11 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
           serverStore.inIframe,
         );
       },
-      // emphasize: true,
-      external: true,
+      external: updateOsStore.available,
       icon: ArrowPathIcon,
       name: 'updateOs',
-      text: 'Check for OS Updates',
+      text: updateOsStore.available ? 'Unraid OS {0} Update Available' : 'Check for OS Updates',
+      textParams: [updateOsStore.available],
     }
   };
 
@@ -189,6 +190,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     // State
     callbackUpdateRelease,
     osVersion,
+    osVersionBranch,
     regExp,
     regUpdatesExpired,
     rebootType,
@@ -210,4 +212,6 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   };
 });
 
-export const useUpdateOsStore = useUpdateOsStoreGeneric(useUpdateOsActionsStore as unknown as () => UpdateOsActionStore);
+export const useUpdateOsStore = useUpdateOsStoreGeneric({
+  useUpdateOsActions: useUpdateOsActionsStore as unknown as () => UpdateOsActionStore,
+});
