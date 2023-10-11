@@ -71,6 +71,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         if (!foundRelease) {
           throw new Error('Release not found');
         }
+        if (foundRelease.version === serverStore.osVersion) {
+          throw new Error('Release version is the same as the server\'s current version');
+        }
         updateOsActionsStore.confirmUpdateOs(foundRelease);
         if (array.length === 1) { // only 1 action, skip refresh server state
           console.debug('[redirectToCallbackType] updateOs done');
