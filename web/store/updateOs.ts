@@ -21,7 +21,7 @@ export interface RequestReleasesPayload {
   guid: string;
   keyfile: string;
   osVersion: SemVer | string;
-  osVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
+  osVersionBranch: 'stable' | 'next' | 'preview' | 'test';
   skipCache?: boolean; // forces a refetch from the api
 }
 
@@ -59,6 +59,36 @@ export interface UpdateOsActionStore {
   regUpdatesExpired: boolean;
 }
 
+export interface UserInfo {
+  'custom:ips_id'?: string;
+  'custom:preview_releases'?: string;
+  'custom:test_releases'?: string;
+  email?: string;
+  email_verifed?: 'true' | 'false';
+  preferred_username?: string;
+  sub?: string;
+  username?: string;
+  /**
+   * @param identities {string} JSON string containing @type Identity[]
+   */
+  identities: string;
+}
+
+interface UpdateOsStorePayload {
+  useUpdateOsActions?: UpdateOsActionStore;
+  /**
+   * If values are added below they need to exported by useUpdateOsActions so that they can be used in the computed properties
+   * @note Values below are used in both account.unraid.net and the webgui web components
+   */
+  currentOsVersion?: SemVer | string;
+  currentOsVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
+  currentRegExp?: number;
+  currentRegUpdatesExpired?: boolean;
+  /** @note Values below are only used on account.unraid.net and should be passed in on /server/update-os */
+  currentIsLoggedIn?: boolean;
+  currentAuthUserAttributes?: UserInfo;
+}
+
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -69,14 +99,6 @@ dayjs.extend(customParseFormat);
 dayjs.extend(relativeTime);
 
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
-
-interface UpdateOsStorePayload {
-  useUpdateOsActions?: UpdateOsActionStore;
-  currentOsVersion?: SemVer | string;
-  currentOsVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
-  currentRegExp?: number,
-  currentRegUpdatesExpired?: boolean,
-}
 
 export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
   defineStore('updateOs', () => {
@@ -89,11 +111,15 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     const paramCurrentOsVersionBranch = ref<SemVer | string>(payload.currentOsVersionBranch ?? '');
     const paramCurrentRegExp = ref<number>(payload.currentRegExp ?? 0);
     const paramCurrentRegUpdatesExpired = ref<boolean>(payload.currentRegUpdatesExpired ?? false);
+    const paramCurrentIsLoggedIn = ref<boolean>(payload.currentIsLoggedIn ?? false);
+    const paramCurrentAuthUserAttributes = ref<UserInfo>(payload.currentAuthUserAttributes ?? {});
     // getters – when set from updateOsActions we're in the webgui web components otherwise we're in account.unraid.net
     const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
     const osVersionBranch = computed(() => updateOsActions?.osVersionBranch ?? paramCurrentOsVersionBranch.value ?? '');
     const regExp = computed(() => updateOsActions?.regExp ?? paramCurrentRegExp.value ?? 0);
     const regUpdatesExpired = computed(() => updateOsActions?.regUpdatesExpired ?? paramCurrentRegUpdatesExpired.value ?? false);
+    const isLoggedIn = computed(() => updateOsActions?.isLoggedIn ?? paramCurrentIsLoggedIn.value ?? false);
+    const authUserAttributes = computed(() => updateOsActions?.authUserAttributes ?? paramCurrentAuthUserAttributes.value ?? {});
 
     // state
     const available = ref<string>('');
@@ -168,6 +194,35 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
         ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
       }
     });
+
+    /**
+     * We need two ways of determining which branch to use:
+     * 1. On the server webgui use the osVersionBranch param
+     * 2. On account.unraid.net we can use the user's auth to determine which branch to use
+     */
+    const releasesUrl = computed((): typeof OS_RELEASES => {
+      const isOnAccountApp = window.location.origin === ACCOUNT.origin;
+
+      const webguiNextBranch = !isOnAccountApp && osVersionBranch.value === 'next';
+      const webguiPreviewBranch = !isOnAccountApp && osVersionBranch.value === 'preview';
+      const webguiTestBranch = !isOnAccountApp && osVersionBranch.value === 'test';
+
+      const accountAppLoggedIn = isOnAccountApp && isLoggedIn.value;
+      /** @todo cognito user attributes on account app are not actually setup...for now use existing branch. In the future we could remove the || checks directly below */
+      const accountAppPreviewBranch = accountAppLoggedIn && (osVersionBranch.value === 'preview' || authUserAttributes.value['custom:preview_releases']);
+      const accountAppTestBranch = accountAppLoggedIn && (osVersionBranch.value === 'test' || authUserAttributes.value['custom:test_releases']);
+
+      const useNextBranch = webguiNextBranch || accountAppLoggedIn;
+      const usePreviewBranch = webguiPreviewBranch || accountAppPreviewBranch;
+      const useTestBranch = webguiTestBranch || accountAppTestBranch;
+
+      let releasesUrl = OS_RELEASES;
+      if (useNextBranch) releasesUrl = OS_RELEASES_NEXT;
+      if (usePreviewBranch || useTestBranch) releasesUrl = OS_RELEASES_PREVIEW;
+      /** @todo implement separate test branch json once available */
+      // if (useTestBranch) releasesUrl = OS_RELEASES_PREVIEW.toString();
+      return releasesUrl;
+    });
     // actions
     const setReleasesState = (response: ReleasesResponse) => {
       releases.value = {
@@ -217,25 +272,8 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
-        /**
-         * We need two ways of determining which branch to use:
-         * 1. On the server webgui use the osVersionBranch param
-         * 2. On account.unraid.net we can use the user's auth to determine which branch to use
-         */
-        const isOnAccountApp = window.location.origin === ACCOUNT.origin;
-
-        const useNextBranch = (!isOnAccountApp && osVersionBranch.value === 'next') || isOnAccountApp && isLoggedIn.value;
-        const usePreviewBranch = (!isOnAccountApp && osVersionBranch.value === 'preview') || isOnAccountApp && isLoggedIn.value && osVersionBranch.value === 'preview'; /** @todo cognito user attributes on account app...for now use existing branch */
-        const useTestBranch = (!isOnAccountApp && osVersionBranch.value === 'test') || isOnAccountApp && isLoggedIn.value && osVersionBranch.value === 'test'; /** @todo cognito user attributes on account app...for now use existing branch */
-
-        let releasesUrl = OS_RELEASES.toString();
-        if (useNextBranch) releasesUrl = OS_RELEASES_NEXT.toString();
-        if (usePreviewBranch || useTestBranch) releasesUrl = OS_RELEASES_PREVIEW.toString();
-        // if (useTestBranch) releasesUrl = OS_RELEASES_TEST.toString();
-
-        console.debug('[requestReleases] fetching new releases from', releasesUrl);
-
-        const response: ReleasesResponse = await wretch(releasesUrl).get().json();
+        console.debug('[requestReleases] fetching new releases from', releasesUrl.value.toString());
+        const response: ReleasesResponse = await wretch(releasesUrl.value.toString()).get().json();
         console.debug('[requestReleases] response', response);
         /**
          * @note for testing with static json a structuredClone is required otherwise Vue will not provide a fully reactive object from the original static response
