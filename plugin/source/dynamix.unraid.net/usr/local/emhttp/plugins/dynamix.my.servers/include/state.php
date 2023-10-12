@@ -29,7 +29,7 @@ $configErrorEnum = [
 ];
 
 $osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
-$registered = !empty($myservers['remote']['username']) && $connectPluginInstalled;
+$registered = !empty($myservers['remote']['apikey']) && $connectPluginInstalled;
 
 $serverState = [
     "apiKey" => $myservers['upc']['apikey'] ?? '',
