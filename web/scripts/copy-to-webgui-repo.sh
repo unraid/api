@@ -27,14 +27,18 @@ fi
 # Save the current webgui path to the state file
 echo "$webgui_path" > "$state_file"
 
+echo "Removing the unraid-components/_nuxt directory as the hashes will be updated and we need to remove the old files..."
+rm -rf "${webgui_path}emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt"
+
 # Replace the value inside the rsync command with the user's input
 rsync_command="rsync -avz -e ssh .nuxt/nuxt-custom-elements/dist/unraid-components ${webgui_path}emhttp/plugins/dynamix.my.servers"
+
+echo "Removing the irrelevant index.html file in the unraid-components directory..."
+rm -f "${webgui_path}emhttp/plugins/dynamix.my.servers/unraid-components/index.html"
 
 echo "Executing the following command:"
 echo "$rsync_command"
 
-echo "Removing the irrelevant index.html file in the unraid-components directory..."
-rm -f "${webgui_path}emhttp/plugins/dynamix.my.servers/unraid-components/index.html"
 
 # Execute the rsync command and capture the exit code
 eval "$rsync_command"
