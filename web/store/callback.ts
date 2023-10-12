@@ -56,12 +56,19 @@ export interface ServerData {
 
 export interface UserInfo {
   'custom:ips_id'?: string;
+  'custom:preview_releases'?: string;
+  'custom:test_releases'?: string;
   email?: string;
   email_verifed?: 'true' | 'false';
   preferred_username?: string;
   sub?: string;
   username?: string;
+  /**
+   * @param identities {string} JSON string containing @type Identity[]
+   */
+  identities: string;
 }
+
 export interface ExternalSignIn {
   type: SignIn;
   apiKey: string;
