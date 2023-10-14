@@ -45,7 +45,7 @@
     "crypto-js": "^4.1.1",
     "dayjs": "^1.11.7",
     "focus-trap": "^7.4.3",
-    "graphql": "^16.7.1",
+    "graphql": "^16.8.1",
     "graphql-tag": "^2.12.6",
     "graphql-ws": "^5.14.0",
     "hex-to-rgba": "^2.0.1",
