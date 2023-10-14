@@ -36,7 +36,7 @@
     "terser": "^5.19.2"
   },
   "dependencies": {
-    "@apollo/client": "^3.7.17",
+    "@apollo/client": "^3.8.4",
     "@headlessui/vue": "^1.7.14",
     "@heroicons/vue": "^2.0.18",
     "@pinia/nuxt": "^0.4.11",
