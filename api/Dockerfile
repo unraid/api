@@ -1,7 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM node:18.17.1-alpine As development
+FROM node:18.18.1-alpine As development
 
 # Install build tools and dependencies
 RUN apk add --no-cache \
