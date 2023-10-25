@@ -50,8 +50,7 @@ typings/
 .next
 
 # Visual Studio Code workspace
-.vscode/*
-!.vscode/extensions.json
+.vscode/sftp.json
 
 # OSX
 .DS_Store
