@@ -222,7 +222,10 @@ function dnsCheckServer(button) {
     };
 
     $(button).prop("disabled", true).html("_(Checking)_ <i class=\"fa fa-spinner fa-spin\" aria-hidden=\"true\"></i>");
-    $.post("https://keys.lime-technology.com/account/server/checkdns",{externalport:$('#wanport').val(),keyfile:"<?=$keyfile?>"},success).fail(failure);
+    $.post('/plugins/dynamix.my.servers/include/unraid-api.php',{command:'wanip'}, function(data) {
+      wanip = (data && data.result) ? data.result : "";
+      $.post("https://keys.lime-technology.com/account/server/checkdns",{wanip:wanip,externalport:$('#wanport').val(),keyfile:"<?=$keyfile?>"},success).fail(failure);
+    });
 }
 
 function changeRemoteAccess(dropdown) {
