@@ -41,7 +41,8 @@ $validCommands = [
   'start',
   'restart',
   'stop',
-  'report'
+  'report',
+  'wanip'
 ];
 
 $command = 'none';
@@ -61,7 +62,6 @@ if (!file_exists('/usr/local/sbin/unraid-api') || !file_exists('/usr/local/bin/u
 
 switch ($command) {
   case 'start':
-    exec('unraid-api start 2>/dev/null', $output, $retval);
     $output = implode(PHP_EOL, $output);
     response_complete(200, array('result' => $output), $output);
     break;
@@ -82,6 +82,10 @@ switch ($command) {
     exec("unraid-api report {$flag} —-raw 2>/dev/null", $output, $retval);
     $output = implode(PHP_EOL, $output);
     response_complete(200, array('result' => $output), $output);
+    break;
+  case 'wanip':
+    $wanip = trim(@file_get_contents("https://wanip4.unraid.net/"));
+    response_complete(200, array('result' => $wanip), $wanip);
     break;
   case 'none':
     response_complete(406,  array('error' => 'Nothing to do'));
