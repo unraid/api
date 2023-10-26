@@ -240,10 +240,10 @@ function changeRemoteAccess(dropdown) {
           // don't let the user edit the UPnP port
           $("#wanport").hide();
           // show the UPnP port read-only if neither port nor dropdown has changed since page loaded
-          if ($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig')) {
-            $("#wanportdisplay").show();
-          } else {
+          if (didRemoteAccessFormChange()) {
             $("#wanportdisplay").hide();
+          } else {
+            $("#wanportdisplay").show();
           }
         } else {
           // let the user edit the port
@@ -292,11 +292,21 @@ function changeRemoteAccess(dropdown) {
     $('#remoteAccessMsg').html($remoteAccessMsgTxt);
     $('#useConnectMsg').html($useConnectMsgTxt);
 
+    enableDisableApplyButton();
+}
+
+function didRemoteAccessFormChange() {
+    $changed = !($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig'));
+    return $changed;
+}
+
+function enableDisableApplyButton() {
+    $('body').find('.applyBtn').prop("disabled", !didRemoteAccessFormChange());
 }
 
 function enableDisableCheckButton() {
-    $enabled = ($("#remoteAccess").val() == $("#remoteAccess").data('orig') && $("#wanport").val() == $("#wanport").data('orig'));
-    $("#wancheck").prop("disabled", !$enabled);
+    $("#wancheck").prop("disabled", didRemoteAccessFormChange());
+    enableDisableApplyButton();
 }
 
 function checkFlashBackup() {
