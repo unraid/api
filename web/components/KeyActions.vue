@@ -22,7 +22,7 @@ const { keyActions } = storeToRefs(useServerStore());
 const computedActions = computed((): ServerStateDataAction[] | undefined => props.actions ? props.actions : keyActions.value);
 
 const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
-  if (!computedActions.value || (!props.filterOut && !props.filterBy)) return computedActions.value;
+  if (!computedActions.value || (!props.filterOut && !props.filterBy)) { return computedActions.value; }
 
   return computedActions.value.filter((action: { name: string; }) => {
     return props.filterOut

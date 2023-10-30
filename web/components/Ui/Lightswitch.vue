@@ -53,7 +53,9 @@ const checked = ref(false);
           </span>
         </span>
       </Switch>
-      <SwitchLabel class="text-14px">{{ label }}</SwitchLabel>
+      <SwitchLabel class="text-14px">
+        {{ label }}
+      </SwitchLabel>
     </div>
   </SwitchGroup>
 </template>

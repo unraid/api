@@ -20,10 +20,11 @@ defineProps<{
   <div class="flex flex-wrap items-start justify-between gap-8px">
     <BrandButton
       v-if="!replaceStatusOutput"
-      @click="replaceRenewStore.check"
       :icon="KeyIcon"
       :text="t('Check Eligibility')"
-      class="flex-grow" />
+      class="flex-grow"
+      @click="replaceRenewStore.check"
+    />
 
     <UiBadge
       v-else
@@ -38,7 +39,7 @@ defineProps<{
       btn-style="underline"
       :external="true"
       :href="DOCS_REGISTRATION_REPLACE_KEY.toString()"
-      :iconRight="ArrowTopRightOnSquareIcon"
+      :icon-right="ArrowTopRightOnSquareIcon"
       :text="t('Learn More')"
       class="text-14px"
     />

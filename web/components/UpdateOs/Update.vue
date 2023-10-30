@@ -31,7 +31,6 @@ const props = defineProps<{
   t: any;
 }>();
 
-
 const serverStore = useServerStore();
 const { dateTimeFormat } = storeToRefs(serverStore);
 
@@ -78,7 +77,7 @@ const flashBackupCopy = computed(() => {
       ${props.t('You can also manually create a new backup by clicking the Create Flash Backup button.')}
     `;
   }
-  return `${base} ${props.t('You can manually create a backup by clicking the Create Flash Backup button.')}`
+  return `${base} ${props.t('You can manually create a backup by clicking the Create Flash Backup button.')}`;
 });
 
 const acknowledgeBackup = ref<boolean>(false);
@@ -100,7 +99,7 @@ const startFlashBackup = () => {
  * Checking for element on the page to determine if the flash backup has started
  */
 const checkFlashBackupStatus = () => {
-  let loadingElement: HTMLCollectionOf<Element> = document.getElementsByClassName('spinner');
+  const loadingElement: HTMLCollectionOf<Element> = document.getElementsByClassName('spinner');
   setTimeout(() => {
     if (loadingElement.length > 0 && loadingElement[0]) {
       const el = loadingElement[0] as HTMLDivElement;
@@ -154,20 +153,23 @@ watchEffect(() => {
 
         <div class="prose opacity-75 text-16px leading-relaxed whitespace-normal">
           <p>{{ t('Receive the latest and greatest for Unraid OS. Whether it new features, security patches, or bug fixes – keeping your server up-to-date ensures the best experience that Unraid has to offer.') }}</p>
-          <p v-if="available">{{ flashBackupCopy }}</p>
+          <p v-if="available">
+            {{ flashBackupCopy }}
+          </p>
         </div>
       </div>
 
       <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <template v-if="available && updateButton">
           <BrandButton
-            @click="startFlashBackup"
             btn-style="outline"
             :disabled="flashBackupBasicStatus === 'started'"
             :icon="ArchiveBoxArrowDownIcon"
             :name="'flashBackup'"
             :text="flashBackupText"
-            class="flex-none" />
+            class="flex-none"
+            @click="startFlashBackup"
+          />
 
           <p v-if="flashBackupBasicStatus === 'started'" class="text-12px italic opacity-75 shrink">
             {{ t('Backing up...this may take a few minutes') }}
@@ -213,13 +215,14 @@ watchEffect(() => {
                   </span>
                 </span>
               </Switch>
-              <SwitchLabel class="text-14px">{{ t('I have made a Flash Backup') }}</SwitchLabel>
+              <SwitchLabel class="text-14px">
+                {{ t('I have made a Flash Backup') }}
+              </SwitchLabel>
             </div>
           </SwitchGroup>
         </template>
 
         <BrandButton
-          @click="updateButton?.click"
           btn-style="fill"
           :disabled="disableCallbackButton"
           :external="updateButton?.external"
@@ -228,7 +231,9 @@ watchEffect(() => {
           :name="updateButton?.name"
           :text="t('View Available Updates')"
           :title="!acknowledgeBackup ? t('Acklowledge that you have made a Flash Backup to enable this action') : ''"
-          class="flex-none" />
+          class="flex-none"
+          @click="updateButton?.click"
+        />
       </div>
     </div>
   </UiCardWrapper>

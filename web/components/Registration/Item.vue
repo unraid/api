@@ -36,7 +36,7 @@ const evenBgColor = computed(() => {
         {{ text }}
       </span>
       <template v-if="$slots['right']">
-        <slot name="right"></slot>
+        <slot name="right" />
       </template>
     </dd>
   </div>

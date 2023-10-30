@@ -73,14 +73,16 @@ const downgradeButton = ref<UserProfileLink | undefined>({
           :href="FORUMS_BUG_REPORT.toString()"
           :icon="LifebuoyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
-          :text="t('Open a bug report')" />
+          :text="t('Open a bug report')"
+        />
         <BrandButton
-          @click="downgradeButton?.click"
           btn-style="outline"
           :external="downgradeButton?.external"
           :icon="ArrowUturnDownIcon"
           :name="downgradeButton?.name"
-          :text="downgradeButton?.text" />
+          :text="downgradeButton?.text"
+          @click="downgradeButton?.click"
+        />
       </div>
     </div>
   </UiCardWrapper>

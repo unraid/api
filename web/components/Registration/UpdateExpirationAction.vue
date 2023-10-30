@@ -71,9 +71,9 @@ const output = computed(() => {
         v-if="renewStatus === 'installed'"
         :icon="ArrowPathIcon"
         :text="t('Reload Page')"
-        @click="reload"
         class="flex-grow"
-       />
+        @click="reload"
+      />
       <BrandButton
         v-else-if="regUpdatesExpired"
         :disabled="renewAction?.disabled"
@@ -82,16 +82,16 @@ const output = computed(() => {
         :icon-right="ArrowTopRightOnSquareIcon"
         :icon-right-hover-display="true"
         :text="t('Extend License')"
-        @click="renewAction.click()"
         :title="t('Pay your annual fee to continue receiving OS updates.')"
         class="flex-grow"
+        @click="renewAction.click()"
       />
 
       <BrandButton
         btn-style="underline"
         :external="true"
         :href="DOCS_REGISTRATION_LICENSING.toString()"
-        :iconRight="ArrowTopRightOnSquareIcon"
+        :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
         class="text-14px"
       />

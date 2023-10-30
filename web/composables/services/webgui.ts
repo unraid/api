@@ -68,14 +68,14 @@ export const WebguiUnraidApiCommand = async (payload: WebguiUnraidApiCommandPayl
 export interface NotifyPostParameters {
   cmd: 'init' | 'smtp-init' | 'cron-init' | 'add' | 'get' | 'hide' | 'archive';
   csrf_token: string;
-  e?: string;  // 'add' command option
-  s?: string;  // 'add' command option
-  d?: string;  // 'add' command option
-  i?: string;  // 'add' command option
-  m?: string;  // 'add' command option
-  x?: string;  // 'add' command option
-  t?: string;  // 'add' command option
-  file?: string;  // 'hide' and 'archive' command option
+  e?: string; // 'add' command option
+  s?: string; // 'add' command option
+  d?: string; // 'add' command option
+  i?: string; // 'add' command option
+  m?: string; // 'add' command option
+  x?: string; // 'add' command option
+  t?: string; // 'add' command option
+  file?: string; // 'hide' and 'archive' command option
 }
 export const WebguiNotify = async (payload: NotifyPostParameters) => {
   console.debug('[WebguiNotify] payload', payload);
@@ -91,4 +91,4 @@ export const WebguiNotify = async (payload: NotifyPostParameters) => {
     console.error('[WebguiNotify] catch failed to execute Notify', error, payload);
     return error;
   }
-}
+};

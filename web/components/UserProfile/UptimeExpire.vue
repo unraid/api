@@ -23,8 +23,8 @@ const time = computed(() => {
     return expireTime.value;
   }
   return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value && expireTime.value > 0
-  ? expireTime.value
-  : uptime.value;
+    ? expireTime.value
+    : uptime.value;
 });
 
 const countUp = computed<boolean>(() => {

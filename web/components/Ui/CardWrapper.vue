@@ -26,6 +26,6 @@ withDefaults(defineProps<{
       !error && !warning && 'text-beta bg-alpha border-gamma-opaque',
     ]"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

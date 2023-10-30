@@ -114,7 +114,9 @@ onMounted(() => {
             <code>
               <pre>{{ valueToMakeCallback }}</pre>
             </code>
-            <BrandButton v-if="callbackDestination" :href="callbackDestination" :external="true">{{ 'Go to Callback URL' }}</BrandButton>
+            <BrandButton v-if="callbackDestination" :href="callbackDestination" :external="true">
+              {{ 'Go to Callback URL' }}
+            </BrandButton>
             <h4>Full URL Destination</h4>
             <code>
               <pre>{{ callbackDestination }}</pre>

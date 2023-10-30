@@ -21,7 +21,7 @@ import {
   ShieldCheckIcon,
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
-import dayjs from 'dayjs'
+import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
@@ -59,7 +59,7 @@ const {
 const { outputDateTimeFormatted: formattedRegTm } = useDateTimeHelper(dateTimeFormat.value, t, false, regTm.value);
 
 const devicesAvailable = computed((): number => {
-  switch(regTy.value) {
+  switch (regTy.value) {
     case 'Starter':
       return 4;
     case 'Basic':
@@ -78,30 +78,39 @@ const devicesAvailable = computed((): number => {
 
 const items = computed((): RegistrationItemProps[] => {
   return [
-    ...(regTy.value ? [{
-        label: t('License key type'),
-        text: regTy.value,
-      }] : []),
-    ...(state.value === 'TRIAL' || state.value === 'EEXPIRED' ? [{
-        error: state.value === 'EEXPIRED',
-        label: t('Trial expiration'),
-        component: UserProfileUptimeExpire,
-        componentProps: {
-          forExpire: true,
-          shortText: true,
-          t: t,
-        },
-        componentOpacity: true,
-      }] : []),
-    ...(regTo.value ? [{
-        label: t('Registered to'),
-        text: regTo.value,
-       }] : []),
-    ...(regTo.value && regTm.value ? [{
-        label: t('Registered on'),
-        text: formattedRegTm.value,
-      }] : []),
-    ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED') ? [{
+    ...(regTy.value
+      ? [{
+          label: t('License key type'),
+          text: regTy.value,
+        }]
+      : []),
+    ...(state.value === 'TRIAL' || state.value === 'EEXPIRED'
+      ? [{
+          error: state.value === 'EEXPIRED',
+          label: t('Trial expiration'),
+          component: UserProfileUptimeExpire,
+          componentProps: {
+            forExpire: true,
+            shortText: true,
+            t,
+          },
+          componentOpacity: true,
+        }]
+      : []),
+    ...(regTo.value
+      ? [{
+          label: t('Registered to'),
+          text: regTo.value,
+        }]
+      : []),
+    ...(regTo.value && regTm.value
+      ? [{
+          label: t('Registered on'),
+          text: formattedRegTm.value,
+        }]
+      : []),
+    ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED')
+      ? [{
           label: t('OS Update Eligibility'),
           warning: regUpdatesExpired.value,
           component: RegistrationUpdateExpirationAction,
@@ -109,36 +118,49 @@ const items = computed((): RegistrationItemProps[] => {
           componentOpacity: !regUpdatesExpired.value,
         }]
       : []),
-    ...(state.value === 'EGUID' ? [{
-        label: t('Registered GUID'),
-        text: regGuid.value,
-        }] : [] ),
-    ...(guid.value ? [{
-        label: t('Flash GUID'),
-        text: guid.value,
-        }] : [] ),
-    ...(flashVendor.value ? [{
-        label: t('Flash Vendor'),
-        text: flashVendor.value,
-        }] : [] ),
-    ...(flashProduct.value ? [{
-        label: t('Flash Product'),
-        text: flashProduct.value,
-        }] : [] ),
-    ...(!stateDataError.value ? [{
-        error: deviceCount.value > devicesAvailable.value,
-        label: t('Attached Storage Devices'),
-        text: deviceCount.value > devicesAvailable.value
-          ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value])
-          : t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
-      }] : []),
-    ...(!stateDataError.value && guid.value ? [{
+    ...(state.value === 'EGUID'
+      ? [{
+          label: t('Registered GUID'),
+          text: regGuid.value,
+        }]
+      : []),
+    ...(guid.value
+      ? [{
+          label: t('Flash GUID'),
+          text: guid.value,
+        }]
+      : []),
+    ...(flashVendor.value
+      ? [{
+          label: t('Flash Vendor'),
+          text: flashVendor.value,
+        }]
+      : []),
+    ...(flashProduct.value
+      ? [{
+          label: t('Flash Product'),
+          text: flashProduct.value,
+        }]
+      : []),
+    ...(!stateDataError.value
+      ? [{
+          error: deviceCount.value > devicesAvailable.value,
+          label: t('Attached Storage Devices'),
+          text: deviceCount.value > devicesAvailable.value
+            ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value])
+            : t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
+        }]
+      : []),
+    ...(!stateDataError.value && guid.value
+      ? [{
           label: t('Key Replacement Eligibility'),
           component: RegistrationReplaceCheck,
-          componentProps: { t: t },
-        }] : []),
+          componentProps: { t },
+        }]
+      : []),
     // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
-    ...(keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0 ? [{
+    ...(keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0
+      ? [{
           label: t('License key actions'),
           component: KeyActions,
           componentProps: {
@@ -167,8 +189,9 @@ const items = computed((): RegistrationItemProps[] => {
           </h3>
           <div
             v-if="stateData.message"
+            class="prose text-16px leading-relaxed whitespace-normal opacity-75"
             v-html="stateData.message"
-            class="prose text-16px leading-relaxed whitespace-normal opacity-75"></div>
+          />
         </header>
         <dl>
           <RegistrationItem
@@ -185,7 +208,8 @@ const items = computed((): RegistrationItemProps[] => {
               <component
                 :is="item.component"
                 v-bind="item.componentProps"
-                :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']" />
+                :class="[item.componentOpacity && !item.error ? 'opacity-75' : '']"
+              />
             </template>
           </RegistrationItem>
         </dl>
