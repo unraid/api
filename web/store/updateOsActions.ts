@@ -7,7 +7,7 @@ import { getOsReleaseBySha256 } from '~/composables/services/keyServer';
 import { ACCOUNT_CALLBACK, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
 import { useCallbackStore } from '~/store/callbackActions';
-import { useErrorsStore } from '~/store/errors';
+// import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import {
   useUpdateOsStoreGeneric,
@@ -25,7 +25,7 @@ setActivePinia(createPinia());
 
 export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const callbackStore = useCallbackStore();
-  const errorsStore = useErrorsStore();
+  // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
   const useUpdateOsStore = useUpdateOsStoreGeneric();
   const updateOsStore = useUpdateOsStore();
@@ -109,7 +109,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   };
 
   const executeUpdateOsCallback = async () => {
-    callbackStore.send(
+    await callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
@@ -136,7 +136,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     }
   };
 
-  const confirmUpdateOs = async (release: Release) => {
+  const confirmUpdateOs = (release: Release) => {
     callbackUpdateRelease.value = release;
     setStatus('confirming');
   };
@@ -154,19 +154,14 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     });
   };
 
-  const rebootServer = async () => {
+  const rebootServer = () => {
     // @ts-ignore • global set in the webgui
     document.rebootNow.submit();
   };
 
-  const viewCurrentReleaseNotes = (modalTitle: string, webguiFilePath?: string | undefined) => {
-    // @ts-ignore – this is a global function provided by the webgui
-    if (typeof openChanges === 'function') {
-      // @ts-ignore
-      openChanges(
-        `showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`,
-        modalTitle,
-      );
+  const viewCurrentReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => {
+    if (typeof openChanges === 'function') { // @ts-ignore
+      openChanges(`showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle);
     } else {
       alert('Unable to open release notes');
     }

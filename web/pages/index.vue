@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import AES from 'crypto-js/aes';
-import Utf8 from 'crypto-js/enc-utf8';
 
 import { serverState } from '~/_data/serverState';
 

@@ -8,12 +8,9 @@ import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import {
   ArchiveBoxArrowDownIcon,
   ArrowPathIcon,
-  ArrowSmallRightIcon,
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   EyeIcon,
-  ShieldExclamationIcon,
-  WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';

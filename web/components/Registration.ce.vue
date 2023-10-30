@@ -21,7 +21,6 @@ import {
   ShieldCheckIcon,
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
-import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
@@ -44,7 +43,6 @@ const {
   flashVendor,
   flashProduct,
   keyActions,
-  keyfile,
   regGuid,
   regTm,
   regTo,

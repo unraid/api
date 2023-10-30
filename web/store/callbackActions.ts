@@ -11,7 +11,8 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const accountStore = useAccountStore();
   const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
-  const updateOsStore = useUpdateOsStore();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const updateOsStore = useUpdateOsStore(); // if we remove this line, the store things break…
   const updateOsActionsStore = useUpdateOsActionsStore();
 
   type CallbackStatus = 'closing' | 'error' | 'loading' | 'ready' | 'success';
@@ -34,7 +35,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     redirectToCallbackType?.();
   };
 
-  const redirectToCallbackType = async () => {
+  const redirectToCallbackType = () => {
     console.debug('[redirectToCallbackType]');
     if (!callbackData.value || !callbackData.value.type || callbackData.value.type !== 'forUpc' || !callbackData.value.actions?.length) {
       callbackError.value = 'Callback redirect type not present or incorrect';

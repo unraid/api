@@ -1,10 +1,8 @@
 <script lang="ts" setup>
 import {
-  ArrowSmallRightIcon,
   ArrowTopRightOnSquareIcon,
   ExclamationTriangleIcon,
   EyeIcon,
-  WrenchScrewdriverIcon,
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';

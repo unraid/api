@@ -1,14 +1,11 @@
 <script lang="ts" setup>
-import { TransitionRoot } from '@headlessui/vue';
 import {
   ArrowTopRightOnSquareIcon,
   ArrowUturnDownIcon,
-  InformationCircleIcon,
   LifebuoyIcon,
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
-import type { SemVer } from 'semver';
 import { ref } from 'vue';
 
 import 'tailwindcss/tailwind.css';

@@ -21,5 +21,6 @@ module.exports = {
     'vue/multi-word-component-names': 'off',
     'vue/v-on-event-hyphenation': 'off',
     'vue/no-v-html': 'off',
+    'no-fallthrough': 'off',
   }
 };

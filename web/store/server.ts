@@ -99,7 +99,7 @@ export const useServerStore = defineStore('server', () => {
   const regTy = ref<string>('');
   const regExp = ref<number>(0);
   const regUpdatesExpired = computed(() => {
-    if (!regExp.value || state.value !== 'STARTER' && state.value !== 'UNLEASHED') { return false; }
+    if (!regExp.value || (state.value !== 'STARTER' && state.value !== 'UNLEASHED')) { return false; }
     const today = dayjs();
     const parsedUpdateExpirationDate = dayjs(regExp.value);
 
@@ -618,7 +618,7 @@ export const useServerStore = defineStore('server', () => {
 
   const tooManyDevices = computed((): Error | undefined => {
     if ((deviceCount.value !== 0 && regDev.value !== 0 && deviceCount.value > regDev.value) ||
-        !config.value?.valid && config.value?.error === 'INVALID') {
+        (!config.value?.valid && config.value?.error === 'INVALID')) {
       return {
         heading: 'Too Many Devices',
         level: 'error',
