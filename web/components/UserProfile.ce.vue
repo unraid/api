@@ -43,7 +43,6 @@ const {
   connectPluginInstalled,
 } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
-const { isOsVersionStable } = storeToRefs(updateOsStore);
 
 const hideDropdown = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 

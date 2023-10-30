@@ -1,15 +1,15 @@
 import type { Server, ServerState } from '~/types/server';
 
-function makeid (length: number) {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
-  const charactersLength = characters.length;
-  let result = '';
-  for (let i = 0; i < length; i++) { result += characters.charAt(Math.floor(Math.random() * charactersLength)); }
-  return result;
-}
+// function makeid(length: number) {
+//   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
+//   const charactersLength = characters.length;
+//   let result = '';
+//   for (let i = 0; i < length; i++) { result += characters.charAt(Math.floor(Math.random() * charactersLength)); }
+//   return result;
+// }
 
 // '1111-1111-5GDB-123412341234' Starter.key = TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg
-const randomGuid = '1111-1111-5GDB-123412341234';
+const staticGuid = '1111-1111-5GDB-123412341234';
 
 // const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
 // const newGuid = `1234-1234-${makeid(4)}-123412341234`; // this is a new USB, not registered
@@ -65,12 +65,15 @@ switch (state) {
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
-const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
+// const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
 const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
 const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
 let expireTime = 0;
-if (state === 'TRIAL') { expireTime = oneHourFromNow; } // in 1 hour
-else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
+if (state === 'TRIAL') {
+  expireTime = oneHourFromNow; // in 1 hour
+} else if (state === 'EEXPIRED') {
+  expireTime = uptime; // 1 hour ago
+}
 
 let regExp: number | undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
@@ -98,7 +101,7 @@ export const serverState: Server = {
   flashBackupActivated: !!connectPluginInstalled,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
-  guid: randomGuid,
+  guid: staticGuid,
   // "guid": "0781-5583-8355-81071A2B0211",
   inIframe: false,
   // keyfile: 'DUMMY_KEYFILE',

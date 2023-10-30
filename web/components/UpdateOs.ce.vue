@@ -15,21 +15,12 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
-import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
-
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 const { t } = useI18n();
-
-const updateOsStore = useUpdateOsStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
-
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
-const { rebootType } = storeToRefs(updateOsActionsStore);
 </script>
 
 <template>
@@ -39,15 +30,6 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
       :title="t('Update Unraid OS')"
       :t="t"
     />
-    <!-- <UpdateOsUpdateIneligible
-      v-if="availableWithRenewal && rebootType === ''"
-      :t="t" />
-    <UpdateOsUpdate
-      v-if="available && rebootType === ''"
-      :t="t" />
-    <UpdateOsThirdPartyDrivers
-      v-if="rebootType === 'thirdPartyDriversDownloading'"
-      :t="t" /> -->
   </UiPageContainer>
 </template>
 

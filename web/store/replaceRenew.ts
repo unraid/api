@@ -12,9 +12,9 @@ import {
   type KeyLatestResponse,
   type ValidateGuidResponse,
 } from '~/composables/services/keyServer';
-import { WebguiNotify } from '~/composables/services/webgui';
+// import { WebguiNotify } from '~/composables/services/webgui';
 import { useCallbackStore } from '~/store/callbackActions';
-import { useInstallKeyStore } from '~/store/installKey';
+// import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import type { UiBadgeProps } from '~/types/ui/badge';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
@@ -37,7 +37,7 @@ export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   const callbackStore = useCallbackStore();
-  const installKeyStore = useInstallKeyStore();
+  // const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);
@@ -52,10 +52,14 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   } | null>(null);
 
   const renewStatus = ref<'checking' | 'error' | 'installing' | 'installed' | 'ready'>('ready');
-  const setRenewStatus = (status: typeof renewStatus.value) => renewStatus.value = status;
+  const setRenewStatus = (status: typeof renewStatus.value) => {
+    renewStatus.value = status;
+  };
 
   const replaceStatus = ref<'checking' | 'eligible' | 'error' | 'ineligible' | 'ready'>(guid.value ? 'ready' : 'error');
-  const setReplaceStatus = (status: typeof replaceStatus.value) => replaceStatus.value = status;
+  const setReplaceStatus = (status: typeof replaceStatus.value) => {
+    replaceStatus.value = status;
+  };
   const replaceStatusOutput = computed((): UiBadgePropsExtended | undefined => {
     // text values are translated in the component
     switch (replaceStatus.value) {
@@ -131,7 +135,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       setReplaceStatus(response?.replaceable ? 'eligible' : 'ineligible');
 
       /** cache the response to prevent repeated POSTs in the session */
-      if (replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible' && !validationResponse.value) {
+      if ((replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') && !validationResponse.value) {
         sessionStorage.setItem(REPLACE_CHECK_LOCAL_STORAGE_KEY, JSON.stringify({
           key: keyfileShort.value,
           timestamp: Date.now(),
@@ -188,7 +192,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   /**
    * If we already have a validation response, set the status to eligible or ineligible
    */
-  onBeforeMount(async () => {
+  onBeforeMount(() => {
     if (validationResponse.value) {
       // ensure the response timestamp is still valid and not old due to someone keeping their browser open
       const currentTime = new Date().getTime();

@@ -6,7 +6,7 @@ import { onBeforeMount } from 'vue';
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
-const props = defineProps<{
+defineProps<{
   t: any;
 }>();
 
