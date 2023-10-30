@@ -16,12 +16,14 @@ import {
 } from '@/helpers/urls';
 // import testReleasesResponse from '~/_data/osReleases'; // test data
 
+export type OsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
+
 export interface RequestReleasesPayload {
   cache?: boolean; // saves response to localStorage
   guid: string;
   keyfile: string;
   osVersion: SemVer | string;
-  osVersionBranch: 'stable' | 'next' | 'preview' | 'test';
+  osVersionBranch: OsVersionBranch;
   skipCache?: boolean; // forces a refetch from the api
 }
 
@@ -39,7 +41,7 @@ export interface Release {
   plugin_url: string; // "https://stable.dl.unraid.net/unRAIDServer-6.12.4.plg"
   plugin_sha256: string; // "57d2ab6036e663208b3f72298ceb478b937b17e333986e68dcae2696c88ed152"
   announce_url: string; // "https://unraid.net/blog/6-12-4"
-  branch: 'stable' | 'next' | 'preview' | 'test'; // "stable"
+  branch: OsVersionBranch; // "stable"
 }
 export interface ReleasesResponse {
   stable: Release[];
@@ -52,17 +54,7 @@ export interface CachedReleasesResponse {
   response: ReleasesResponse;
 }
 
-export interface UpdateOsActionStore {
-  osVersion: SemVer | string;
-  osVersionBranch: 'stable' | 'next' | 'preview' | 'test';
-  regExp: number;
-  regUpdatesExpired: boolean;
-}
-
 export interface UserInfo {
-  'custom:ips_id'?: string;
-  'custom:preview_releases'?: string;
-  'custom:test_releases'?: string;
   email?: string;
   email_verifed?: 'true' | 'false';
   preferred_username?: string;
@@ -71,17 +63,33 @@ export interface UserInfo {
   /**
    * @param identities {string} JSON string containing @type Identity[]
    */
-  identities: string;
+  identities?: string;
+  /**
+   * @param cognito:groups {string[]} JSON string containing @type string[]
+   * 
+   * Will contain all groups for the signed in user, used for determining which branch to use
+   * @example ["download-preview", "unraidPOOLID_Google"]
+   */
+  'cognito:groups'?: string[];
+}
+
+export interface UpdateOsActionStore {
+  isLoggedIn: boolean;
+  authUserAttributes: UserInfo;
+  osVersion: SemVer | string;
+  osVersionBranch: OsVersionBranch;
+  regExp: number;
+  regUpdatesExpired: boolean;
 }
 
 interface UpdateOsStorePayload {
-  useUpdateOsActions?: UpdateOsActionStore;
+  useUpdateOsActions?: () => UpdateOsActionStore;
   /**
    * If values are added below they need to exported by useUpdateOsActions so that they can be used in the computed properties
    * @note Values below are used in both account.unraid.net and the webgui web components
    */
   currentOsVersion?: SemVer | string;
-  currentOsVersionBranch?: 'stable' | 'next' | 'preview' | 'test';
+  currentOsVersionBranch?: OsVersionBranch;
   currentRegExp?: number;
   currentRegUpdatesExpired?: boolean;
   /** @note Values below are only used on account.unraid.net and should be passed in on /server/update-os */
@@ -105,8 +113,10 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
   defineStore('updateOs', () => {
     console.debug('[updateOs] payload', payload);
     // Since this file is shared between account.unraid.net and the web components, we need to handle the state differently
+    // If useUpdateOsActions is passed in, we're in the webgui web components
     const updateOsActions = payload.useUpdateOsActions !== undefined ? payload.useUpdateOsActions() : undefined;
     console.debug('[updateOs] updateOsActions', updateOsActions);
+    // If useUpdateOsActions is not passed in, we're in account.unraid.net
     // creating refs from the passed in values so that we can use them in the computed properties
     const paramCurrentOsVersion = ref<SemVer | string>(payload.currentOsVersion ?? '');
     const paramCurrentOsVersionBranch = ref<SemVer | string>(payload.currentOsVersionBranch ?? '');
@@ -140,7 +150,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     const isAvailableStable = computed(() => available.value ? isVersionStable(available.value) : false);
 
     const filteredNextReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.next) {
         return releases.value?.response?.next.filter(
@@ -151,7 +161,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     });
 
     const filteredPreviewReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.preview) {
         return releases.value?.response?.preview.filter(
@@ -162,7 +172,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     });
 
     const filteredStableReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.stable) {
         return releases.value?.response?.stable.filter(
@@ -173,7 +183,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     });
 
     const filteredTestReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.test) {
         return releases.value?.response?.test.filter(
@@ -193,7 +203,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
         ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
         ...(filteredPreviewReleases.value && { preview: [...filteredPreviewReleases.value] }),
         ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
-      };
+      }
     });
 
     /**
@@ -210,16 +220,30 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
       const accountAppLoggedIn = isOnAccountApp && isLoggedIn.value;
       /** @todo cognito user attributes on account app are not actually setup...for now use existing branch. In the future we could remove the || checks directly below */
-      const accountAppPreviewBranch = accountAppLoggedIn && (osVersionBranch.value === 'preview' || authUserAttributes.value['custom:preview_releases']);
-      const accountAppTestBranch = accountAppLoggedIn && (osVersionBranch.value === 'test' || authUserAttributes.value['custom:test_releases']);
+      const accountAppPreviewBranch = accountAppLoggedIn && (osVersionBranch.value === 'preview' || (authUserAttributes.value['cognito:groups'] && authUserAttributes.value['cognito:groups'].includes('download-preview')));
+      const accountAppTestBranch = accountAppLoggedIn && (osVersionBranch.value === 'test' || (authUserAttributes.value['cognito:groups'] && authUserAttributes.value['cognito:groups'].includes('download-test')));
+      console.debug('[releasesUrl]', {
+        isOnAccountApp,
+        webguiNextBranch,
+        webguiPreviewBranch,
+        webguiTestBranch,
+        accountAppLoggedIn,
+        accountAppPreviewBranch,
+        accountAppTestBranch,
+      });
 
       const useNextBranch = webguiNextBranch || accountAppLoggedIn;
       const usePreviewBranch = webguiPreviewBranch || accountAppPreviewBranch;
       const useTestBranch = webguiTestBranch || accountAppTestBranch;
+      console.debug('[releasesUrl]', {
+        useNextBranch,
+        usePreviewBranch,
+        useTestBranch,
+      });
 
       let releasesUrl = OS_RELEASES;
-      if (useNextBranch) { releasesUrl = OS_RELEASES_NEXT; }
-      if (usePreviewBranch || useTestBranch) { releasesUrl = OS_RELEASES_PREVIEW; }
+      if (useNextBranch) releasesUrl = OS_RELEASES_NEXT;
+      if (usePreviewBranch || useTestBranch) releasesUrl = OS_RELEASES_PREVIEW;
       /** @todo implement separate test branch json once available */
       // if (useTestBranch) releasesUrl = OS_RELEASES_PREVIEW.toString();
       return releasesUrl;
@@ -230,7 +254,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
         timestamp: Date.now(),
         response,
       };
-    };
+    }
 
     const cacheReleasesResponse = () => {
       localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
@@ -257,18 +281,18 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
         * Which will trigger a new API call to get the releases.
         * Otherwise skip the API call and use the cached data.
         */
-        const currentTime = new Date().getTime();
-        const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
-        if (currentTime - releases.value.timestamp > cacheDuration) {
+       const currentTime = new Date().getTime();
+       const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
+       if (currentTime - releases.value.timestamp > cacheDuration) {
         // cache is expired, purge it
-          console.debug('[requestReleases] cache EXPIRED');
-          await purgeReleasesCache();
-        } else {
-          // if the cache is valid return the existing response
-          console.debug('[requestReleases] cache VALID', releases.value.response);
-          return releases.value.response;
-        }
-      }
+         console.debug('[requestReleases] cache EXPIRED');
+         await purgeReleasesCache();
+       } else {
+         // if the cache is valid return the existing response
+         console.debug('[requestReleases] cache VALID', releases.value.response);
+         return releases.value.response;
+       }
+     }
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
@@ -311,7 +335,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
         return console.error('[checkForUpdate] no releases found');
       }
 
-      Object.keys(releases.value.response ?? {}).forEach((key) => {
+      Object.keys(releases.value.response ?? {}).forEach(key => {
         // this is just to make TS happy (it's already checked above…thanks github copilot for knowing what I needed)
         if (!releases.value) {
           return;
@@ -327,7 +351,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
           return;
         }
 
-        branchReleases.find((release) => {
+        branchReleases.find(release => {
           if (gt(release.version, osVersion.value)) {
             // before we set the available version, check if the license key updates have expired to ensure we don't show an update that the user can't install
             if (regUpdatesExpired.value && releaseDateGtRegExpDate(release.date, regExp.value)) {
@@ -347,14 +371,14 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
     const findRelease = (searchKey: keyof Release, searchValue: string): Release | null => {
       const response = releases?.value?.response;
-      if (!response) { return null; }
+      if (!response) return null;
 
       for (const key of Object.keys(response)) {
         const branchReleases = response[key as keyof ReleasesResponse];
-        if (!branchReleases || branchReleases.length === 0) { continue; }
+        if (!branchReleases || branchReleases.length === 0) continue;
 
         const foundRelease = branchReleases.find(release => release[searchKey] === searchValue);
-        if (foundRelease) { return foundRelease; }
+        if (foundRelease) return foundRelease;
       }
 
       return null;
