@@ -457,7 +457,7 @@ upgradepkg --install-new --reinstall "${MAINTXZ}"
 
 # confirm an expected file now exists
 # WARNING: failure here results in broken install
-[[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/cfgMigration ]] && echo "⚠️ files missing from main txz" && exit 1
+[[ ! -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/gitflash_log ]] && echo "⚠️ files missing from main txz" && exit 1
 
 echo
 echo "⚠️ Do not close this window yet"
@@ -471,10 +471,6 @@ fi
 echo
 echo "⚠️ Do not close this window yet"
 echo
-
-# run dynamix.cfg to myservers.cfg migration
-CFG_MIG=/usr/local/emhttp/plugins/dynamix.my.servers/scripts/cfgMigration
-php $CFG_MIG
 
 # Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
