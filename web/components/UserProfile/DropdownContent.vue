@@ -43,12 +43,14 @@ const filteredKeyActions = computed(() => keyActions.value?.filter(action => !['
 
 const links = computed(():UserProfileLink[] => {
   return [
-    ...(regUpdatesExpired.value ? [{
-      href: WEBGUI_TOOLS_REGISTRATION.toString(),
-      icon: KeyIcon,
-      text: props.t('OS Update Eligibility Expired'),
-      title: props.t('Go to Tools > Registration to Learn More'),
-    }] : []),
+    ...(regUpdatesExpired.value
+      ? [{
+          href: WEBGUI_TOOLS_REGISTRATION.toString(),
+          icon: KeyIcon,
+          text: props.t('OS Update Eligibility Expired'),
+          title: props.t('Go to Tools > Registration to Learn More'),
+        }]
+      : []),
     // callback to account.unraid.net/server/update-os
     updateOsActionsStore.initUpdateOsCallback(),
     // connect plugin links

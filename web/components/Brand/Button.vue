@@ -113,26 +113,31 @@ const classes = computed(() => {
     :class="classes.button"
     @click="click ?? $emit('click')"
   >
-
-    <div v-if="btnStyle === 'fill'"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60" />
-    <div v-if="btnStyle === 'outline'"
-      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100" />
+    <div
+      v-if="btnStyle === 'fill'"
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-100 transition-all rounded-md group-hover:opacity-60 group-focus:opacity-60"
+    />
+    <div
+      v-if="btnStyle === 'outline'"
+      class="absolute -top-[2px] -right-[2px] -bottom-[2px] -left-[2px] -z-10 bg-gradient-to-r from-unraid-red to-orange opacity-0 transition-all rounded-md group-hover:opacity-100 group-focus:opacity-100"
+    />
 
     <component
-      v-if="icon"
       :is="icon"
-      :class="classes.icon" />
+      v-if="icon"
+      :class="classes.icon"
+    />
 
     {{ text }}
-    <slot></slot>
+    <slot />
 
     <component
-      v-if="iconRight"
       :is="iconRight"
+      v-if="iconRight"
       :class="[
         classes.icon,
         iconRightHoverDisplay && 'opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-all',
-      ]" />
+      ]"
+    />
   </component>
 </template>

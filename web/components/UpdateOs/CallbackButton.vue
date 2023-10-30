@@ -25,10 +25,11 @@ onBeforeMount(() => {
 <template>
   <div class="flex flex-col sm:flex-shrink-0 sm:flex-grow-0 items-center">
     <BrandButton
-      @click="updateOsActionsStore.executeUpdateOsCallback()"
       :icon="ArrowPathIcon"
       :icon-right="ArrowTopRightOnSquareIcon"
       :text="t('Check for OS Updates')"
-      class="flex-0" />
+      class="flex-0"
+      @click="updateOsActionsStore.executeUpdateOsCallback()"
+    />
   </div>
 </template>

@@ -46,10 +46,12 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
       v-if="restoreVersion && rebootType === ''"
       :release-date="restoreReleaseDate"
       :version="restoreVersion"
-      :t="t" />
+      :t="t"
+    />
     <UpdateOsThirdPartyDrivers
       v-if="rebootType === 'thirdPartyDriversDownloading'"
-      :t="t" />
+      :t="t"
+    />
   </UiPageContainer>
 </template>
 

@@ -108,7 +108,7 @@ const computedStyleClasses = computed(() => {
     ]"
   >
     <component :is="icon" v-if="icon" class="flex-shrink-0" :class="computedStyleClasses.icon" />
-    <slot></slot>
+    <slot />
     <component :is="iconRight" v-if="iconRight" class="flex-shrink-0" :class="computedStyleClasses.icon" />
   </span>
 </template>

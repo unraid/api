@@ -271,7 +271,9 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
           :error="true"
           :text="t('Post Install License Key Error')"
         >
-          <h4 class="text-18px text-left font-semibold">{{ t(stateData.heading) }}</h4>
+          <h4 class="text-18px text-left font-semibold">
+            {{ t(stateData.heading) }}
+          </h4>
           <div class="text-left text-16px" v-html="t(stateData.message)" />
         </UpcCallbackFeedbackStatus>
 

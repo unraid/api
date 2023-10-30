@@ -67,8 +67,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       return 'A valid OS version is required to check for OS updates.';
     }
     if (regUpdatesExpired.value) {
-      const base = `Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.`;
-      const addtlText = `You are still eligible to access OS updates that were published on or before {1}.`;
+      const base = 'Your {0} license included one year of free updates at the time of purchase. You are now eligible to extend your license and access the latest OS updates.';
+      const addtlText = 'You are still eligible to access OS updates that were published on or before {1}.';
       return updateOsStore.available ? `${base} ${addtlText}` : base;
     }
     return '';
@@ -82,7 +82,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       name: 'updateOs',
       text: 'Unraid OS {0} Update Available',
       textParams: [updateOsStore.available],
-    }
+    };
   });
 
   // Actions
@@ -105,7 +105,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       name: 'updateOs',
       text: updateOsStore.available ? 'Unraid OS {0} Update Available' : 'Check for OS Updates',
       textParams: [updateOsStore.available],
-    }
+    };
   };
 
   const executeUpdateOsCallback = async () => {
@@ -125,7 +125,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
    * @description When receiving the callback the Account update page we'll use the provided sha256 of the release to get the release from the keyserver
    */
   const getReleaseFromKeyServer = async (sha256: string): Release => {
-    console.debug('[getReleaseFromKeyServer]', sha256)
+    console.debug('[getReleaseFromKeyServer]', sha256);
     try {
       const response = await getOsReleaseBySha256(sha256);
       console.debug('[getReleaseFromKeyServer]', response);
@@ -159,7 +159,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     document.rebootNow.submit();
   };
 
-  const viewCurrentReleaseNotes = ( modalTitle: string, webguiFilePath?: string | undefined,) => {
+  const viewCurrentReleaseNotes = (modalTitle: string, webguiFilePath?: string | undefined) => {
     // @ts-ignore – this is a global function provided by the webgui
     if (typeof openChanges === 'function') {
       // @ts-ignore

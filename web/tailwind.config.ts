@@ -107,7 +107,7 @@ export default <Partial<Config>>{
       /**
        * @todo modify prose classes to use pixels for webgui…sadge https://tailwindcss.com/docs/typography-plugin#customizing-the-default-theme
        */
-      typography: (theme) => ({
+      typography: theme => ({
         DEFAULT: {
           css: {
             color: theme('colors.beta'),
