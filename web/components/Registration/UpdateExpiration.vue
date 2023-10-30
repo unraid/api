@@ -38,11 +38,11 @@ const output = computed(() => {
 
 <template>
   <component
-    v-if="output"
     :is="componentIs"
+    v-if="output"
     :title="output.title"
   >
-    <slot></slot>
+    <slot />
     {{ output.text }}
   </component>
 </template>

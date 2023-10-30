@@ -57,13 +57,15 @@ const regExpOutput = computed(() => {
 
 <template>
   <div class="grid gap-y-16px">
-    <h1 v-if="title" class="text-24px">{{ title }}</h1>
+    <h1 v-if="title" class="text-24px">
+      {{ title }}
+    </h1>
     <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
       <div class="inline-flex flex-wrap justify-start gap-8px">
         <button
-          @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
           class="group"
           :title="t('View release notes')"
+          @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
         >
           <UiBadge :icon="InformationCircleIcon" class="underline">
             {{ t('Current Version {0}', [osVersion]) }}
@@ -94,7 +96,6 @@ const regExpOutput = computed(() => {
           {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
         </UiBadge>
 
-
         <UiBadge
           v-if="status === 'checking'"
           :color="'orange'"
@@ -109,10 +110,10 @@ const regExpOutput = computed(() => {
           :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
         >
           {{ (available
-              ? t('Unraid {0} Available', [available])
-              : (availableWithRenewal
-                ? t('Up-to-date with eligible releases')
-                : t('Up-to-date')))
+            ? t('Unraid {0} Available', [available])
+            : (availableWithRenewal
+              ? t('Up-to-date with eligible releases')
+              : t('Up-to-date')))
           }}
         </UiBadge>
         <UiBadge
@@ -127,12 +128,14 @@ const regExpOutput = computed(() => {
       <div class="shrink-0">
         <UpdateOsCallbackButton
           v-if="showUpdateCheck && rebootType === ''"
-          :t="t" />
+          :t="t"
+        />
         <BrandButton
           v-else-if="rebootType === 'downgrade' || rebootType === 'upgrade'"
-          @click="updateOsActionsStore.rebootServer()"
           :icon="ArrowPathIcon"
-          :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade') : t('Reboot Now to Update')" />
+          :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade') : t('Reboot Now to Update')"
+          @click="updateOsActionsStore.rebootServer()"
+        />
       </div>
     </div>
   </div>

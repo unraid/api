@@ -58,8 +58,8 @@ switch (state) {
   case 'UNLEASHED':
   // @ts-ignore
   case 'LIFETIME':
-    if (regDev === 0) regDev = 99999;
-    if (regTy === '') regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); // title case
+    if (regDev === 0) { regDev = 99999; }
+    if (regTy === '') { regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); } // title case
     break;
 }
 
@@ -72,7 +72,7 @@ let expireTime = 0;
 if (state === 'TRIAL') { expireTime = oneHourFromNow; } // in 1 hour
 else if (state === 'EEXPIRED') { expireTime = uptime; } // 1 hour ago
 
-let regExp: number | undefined = undefined;
+let regExp: number | undefined;
 if (state === 'STARTER' || state === 'UNLEASHED') {
   // regExp = oneHourFromNow;
   regExp = oneDayFromNow;
@@ -95,7 +95,7 @@ export const serverState: Server = {
   description: 'DevServer9000',
   deviceCount: 3,
   expireTime,
-  flashBackupActivated: connectPluginInstalled ? true : false,
+  flashBackupActivated: !!connectPluginInstalled,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
   guid: randomGuid,
@@ -109,7 +109,7 @@ export const serverState: Server = {
   name: 'dev-static',
   osVersion: '6.12.4',
   // registered: connectPluginInstalled ? true : false,
-  registered: connectPluginInstalled ? false : true,
+  registered: !connectPluginInstalled,
   regGen: 0,
   regTm: twoDaysAgo,
   regTo: 'Zack Spear',

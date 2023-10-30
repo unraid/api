@@ -11,6 +11,6 @@ withDefaults(defineProps<{
     class="grid gap-y-24px w-full mx-auto px-16px"
     :class="maxWidth"
   >
-    <slot></slot>
+    <slot />
   </div>
 </template>

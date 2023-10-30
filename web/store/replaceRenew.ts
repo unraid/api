@@ -28,7 +28,6 @@ export interface UiBadgePropsExtended extends UiBadgeProps {
   text?: string;
 }
 
-
 interface CachedValidationResponse extends ValidateGuidResponse {
   key: string;
   timestamp: number;
@@ -101,7 +100,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   const purgeValidationResponse = () => {
     validationResponse.value = undefined;
     sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
-  }
+  };
 
   const check = async () => {
     if (!guid.value) {

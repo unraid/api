@@ -82,7 +82,8 @@ watchEffect(() => {
 
         <div
           class="prose text-black text-16px leading-relaxed whitespace-normal"
-          v-html="text" />
+          v-html="text"
+        />
       </div>
 
       <div class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
@@ -92,9 +93,9 @@ watchEffect(() => {
           :icon="renewAction.icon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Extend License')"
-          @click="renewAction.click()"
           :title="t('Pay your annual fee to continue receiving OS updates.')"
           class="flex-grow"
+          @click="renewAction.click()"
         />
         <!-- <BrandButton
           btn-style="black"
@@ -106,14 +107,15 @@ watchEffect(() => {
 
         <BrandButton
           v-if="availableWithRenewal && updateButton"
-          @click="updateButton?.click"
           btn-style="outline-black"
           :external="updateButton?.external"
           :icon="EyeIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :name="updateButton?.name"
           :text="t('View Changelog')"
-          class="flex-none" />
+          class="flex-none"
+          @click="updateButton?.click"
+        />
       </div>
     </div>
   </UiCardWrapper>

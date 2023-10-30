@@ -617,8 +617,8 @@ export const useServerStore = defineStore('server', () => {
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
   const tooManyDevices = computed((): Error | undefined => {
-    if ((deviceCount.value !== 0 && regDev.value !== 0 && deviceCount.value > regDev.value)
-        || !config.value?.valid && config.value?.error === 'INVALID') {
+    if ((deviceCount.value !== 0 && regDev.value !== 0 && deviceCount.value > regDev.value) ||
+        !config.value?.valid && config.value?.error === 'INVALID') {
       return {
         heading: 'Too Many Devices',
         level: 'error',
@@ -880,7 +880,7 @@ export const useServerStore = defineStore('server', () => {
     }, refreshTimeout);
   };
 
-  const filteredKeyActions = (filterType: 'by' | 'out', filters: ServerStateDataKeyActions[]): ServerStateDataAction[] | undefined  => {
+  const filteredKeyActions = (filterType: 'by' | 'out', filters: ServerStateDataKeyActions[]): ServerStateDataAction[] | undefined => {
     if (!stateData.value.actions) { return; }
 
     return stateData.value.actions.filter((action) => {

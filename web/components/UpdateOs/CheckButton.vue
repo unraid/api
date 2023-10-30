@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  /**
+/**
  * @todo require keyfile to be set before allowing user to check for OS updates
  * @todo require keyfile to update
  * @todo require valid guid / server state to update
@@ -48,7 +48,7 @@ const check = async () => {
     skipCache: true,
   }).finally(() => {
     updateOsActionsStore.setStatus('ready');
-  })
+  });
 };
 
 watchEffect(() => {
@@ -99,16 +99,19 @@ watchEffect(() => {
             </span>
           </span>
         </Switch>
-        <SwitchLabel class="text-14px">{{ t('Check for Prereleases') }}</SwitchLabel>
+        <SwitchLabel class="text-14px">
+          {{ t('Check for Prereleases') }}
+        </SwitchLabel>
       </div>
     </SwitchGroup>
     <span class="flex flex-col gap-y-8px">
       <BrandButton
-        @click="check"
         :disabled="status === 'checking'"
         btn-style="outline"
         :text="buttonText"
-        class="flex-0" />
+        class="flex-0"
+        @click="check"
+      />
       <span
         v-if="parsedReleaseTimestamp"
         class="text-14px opacity-75 text-center"

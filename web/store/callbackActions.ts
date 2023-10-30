@@ -79,7 +79,7 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
           console.debug('[redirectToCallbackType] updateOs done');
           // removing query string relase is set so users can't refresh the page and go through the same actions
           window.history.replaceState(null, '', window.location.pathname);
-          return
+          return;
         }
       }
 

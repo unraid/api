@@ -70,9 +70,9 @@ const useDateTimeHelper = (
 
   // use the format from the server to determine the format to use
   const findMatchingFormat = (
-      selectedFormat: string,
-      formats: DateFormatOption[] | TimeFormatOption[],
-    ): DateFormatOption | TimeFormatOption | undefined =>
+    selectedFormat: string,
+    formats: DateFormatOption[] | TimeFormatOption[],
+  ): DateFormatOption | TimeFormatOption | undefined =>
     formats.find(formatOption => formatOption.format === selectedFormat);
 
   const dateFormat = findMatchingFormat(format?.date ?? dateFormatOptions[0].format, dateFormatOptions);
