@@ -6,7 +6,6 @@ import {
   ChevronDoubleDownIcon,
   ClipboardIcon,
   CogIcon,
-  InformationCircleIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';

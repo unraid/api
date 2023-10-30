@@ -24,7 +24,7 @@ const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { guid, keyfile, osVersion, osVersionBranch } = storeToRefs(serverStore);
-const { isOsVersionStable, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
+const { parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { status } = storeToRefs(updateOsActionsStore);
 
 const includeNext = ref(osVersionBranch.value !== 'stable');

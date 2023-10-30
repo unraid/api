@@ -4,7 +4,7 @@
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 
-const props = withDefaults(defineProps<{
+withDefaults(defineProps<{
   description?: string; // @todo setup
   label: string;
 }>(), {

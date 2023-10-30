@@ -6,7 +6,6 @@ import useDateTimeHelper from '~/composables/dateTime';
 import { DOCS_REGISTRATION_LICENSING } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   t: any;
@@ -16,8 +15,6 @@ const props = defineProps<Props>();
 
 const replaceRenewStore = useReplaceRenewStore();
 const serverStore = useServerStore();
-const updateOsStore = useUpdateOsStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { renewStatus } = storeToRefs(replaceRenewStore);
 const {
@@ -25,10 +22,7 @@ const {
   regExp,
   regUpdatesExpired,
   renewAction,
-  regTy,
 } = storeToRefs(serverStore);
-const { availableWithRenewal } = storeToRefs(updateOsStore);
-const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
 const reload = () => {
   window.location.reload();
@@ -62,9 +56,6 @@ const output = computed(() => {
       <template v-if="renewStatus === 'installed'">
         {{ t('Your license key was automatically renewed and installed. Reload the page to see updated details.') }}
       </template>
-      <!-- <template v-else-if="regUpdatesExpired && ineligibleText">
-        {{ t(ineligibleText, [regTy, formattedRegExp]) }}
-      </template> -->
     </p>
     <div class="flex flex-wrap items-start justify-between gap-8px">
       <BrandButton

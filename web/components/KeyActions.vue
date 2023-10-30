@@ -12,6 +12,7 @@ const props = withDefaults(defineProps<{
   maxWidth?: boolean;
   t: any;
 }>(), {
+  actions: undefined,
   filterBy: undefined,
   filterOut: undefined,
   maxWidth: false,

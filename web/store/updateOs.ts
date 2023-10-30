@@ -1,4 +1,4 @@
-import dayjs from 'dayjs';
+import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
@@ -26,7 +26,7 @@ export interface RequestReleasesPayload {
 }
 
 export interface Release {
-  version: string; //	"6.12.4"
+  version: string; // "6.12.4"
   name: string; // "Unraid 6.12.4"
   basefile: string; // "unRAIDServer-6.12.4-x86_64.zip"
   date: string; // "2023-08-31"
@@ -95,8 +95,9 @@ interface UpdateOsStorePayload {
  */
 setActivePinia(createPinia());
 
-dayjs.extend(customParseFormat);
-dayjs.extend(relativeTime);
+// dayjs plugins
+extend(customParseFormat);
+extend(relativeTime);
 
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
@@ -249,14 +250,13 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
       if (payload.skipCache) {
         await purgeReleasesCache();
-      }
-      /**
-      * Compare the timestamp of the cached releases data to the current time,
-      * if it's older than 7 days, reset releases.
-      * Which will trigger a new API call to get the releases.
-      * Otherwise skip the API call and use the cached data.
-      */
-      else if (!payload.skipCache && releases.value) {
+      } else if (!payload.skipCache && releases.value) {
+        /**
+        * Compare the timestamp of the cached releases data to the current time,
+        * if it's older than 7 days, reset releases.
+        * Which will trigger a new API call to get the releases.
+        * Otherwise skip the API call and use the cached data.
+        */
         const currentTime = new Date().getTime();
         const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
         if (currentTime - releases.value.timestamp > cacheDuration) {
@@ -340,6 +340,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
             available.value = release.version;
             return true;
           }
+          return false;
         });
       });
     };

@@ -31,7 +31,6 @@ const {
   stateData,
 } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
-const { rebootType } = storeToRefs(updateOsActionsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
