@@ -29,9 +29,35 @@ export type PurchaseActionTypes = Purchase | Redeem | Renew | Upgrade;
 
 export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
 
-/**
- * Represents a server, payload comes from the server to account.unraid.net
- */
+export type ServerState = 'BASIC'
+  | 'PLUS'
+  | 'PRO'
+  | 'TRIAL'
+  | 'EEXPIRED'
+  | 'ENOKEYFILE'
+  | 'EGUID'
+  | 'EGUID1'
+  | 'ETRIAL'
+  | 'ENOKEYFILE2'
+  | 'ENOKEYFILE1'
+  | 'ENOFLASH'
+  | 'ENOFLASH1'
+  | 'ENOFLASH2'
+  | 'ENOFLASH3'
+  | 'ENOFLASH4'
+  | 'ENOFLASH5'
+  | 'ENOFLASH6'
+  | 'ENOFLASH7'
+  | 'EBLACKLISTED'
+  | 'EBLACKLISTED1'
+  | 'EBLACKLISTED2'
+  | 'ENOCONN'
+  | 'STARTER'
+  | 'UNLEASHED'
+  | 'LIFETIME'
+  | 'STALE'
+  | undefined;
+
 export interface ServerData {
   description?: string;
   deviceCount?: number;
@@ -50,7 +76,7 @@ export interface ServerData {
   regGen?: number;
   regGuid?: string;
   regTy?: string;
-  state: string;
+  state: ServerState;
   wanFQDN?: string;
 }
 
