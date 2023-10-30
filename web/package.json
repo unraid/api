@@ -2,9 +2,9 @@
   "name": "connect-components",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "npm run type-check && nuxt build",
     "build:dev": "nuxt build && npm run deploy:dev",
-    "build:webgui": "nuxt build && npm run copy-to-webgui",
+    "build:webgui": "npm run type-check && nuxt build && npm run copy-to-webgui",
     "deploy:dev": "./scripts/deploy-dev.sh",
     "copy-to-webgui": "./scripts/copy-to-webgui-repo.sh",
     "dev": "nuxt dev",
@@ -14,7 +14,8 @@
     "postinstall": "nuxt prepare",
     "serve": "serve dist/nuxt-custom-elements/unraid-components",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
-    "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config"
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
+    "type-check": "nuxi typecheck"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^4.0.1",
