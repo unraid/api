@@ -193,7 +193,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
     unraidApiStatus.value = 'restarting';
     try {
-      const response = await WebguiUnraidApiCommand({
+      await WebguiUnraidApiCommand({
         csrf_token: serverStore.csrf,
         command,
       });
@@ -204,7 +204,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       }, 5000);
     } catch (error) {
       let errorMessage = 'Unknown error';
-      if (typeof error === "string") {
+      if (typeof error === 'string') {
         errorMessage = error.toUpperCase();
       } else if (error instanceof Error) {
         errorMessage = error.message;

@@ -65,7 +65,7 @@ export interface UserInfo {
   identities?: string;
   /**
    * @param cognito:groups {string[]} JSON string containing @type string[]
-   * 
+   *
    * Will contain all groups for the signed in user, used for determining which branch to use
    * @example ["download-preview", "unraidPOOLID_Google"]
    */
@@ -149,7 +149,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     const isAvailableStable = computed(() => available.value ? isVersionStable(available.value) : false);
 
     const filteredNextReleases = computed(() => {
-      if (!osVersion.value) return undefined;
+      if (!osVersion.value) { return undefined; }
 
       if (releases.value?.response?.next) {
         return releases.value?.response?.next.filter(
@@ -160,7 +160,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredPreviewReleases = computed(() => {
-      if (!osVersion.value) return undefined;
+      if (!osVersion.value) { return undefined; }
 
       if (releases.value?.response?.preview) {
         return releases.value?.response?.preview.filter(
@@ -171,7 +171,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredStableReleases = computed(() => {
-      if (!osVersion.value) return undefined;
+      if (!osVersion.value) { return undefined; }
 
       if (releases.value?.response?.stable) {
         return releases.value?.response?.stable.filter(
@@ -182,7 +182,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredTestReleases = computed(() => {
-      if (!osVersion.value) return undefined;
+      if (!osVersion.value) { return undefined; }
 
       if (releases.value?.response?.test) {
         return releases.value?.response?.test.filter(
@@ -202,7 +202,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
         ...(filteredPreviewReleases.value && { preview: [...filteredPreviewReleases.value] }),
         ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
-      }
+      };
     });
 
     /**
@@ -241,8 +241,8 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
       });
 
       let releasesUrl = OS_RELEASES;
-      if (useNextBranch) releasesUrl = OS_RELEASES_NEXT;
-      if (usePreviewBranch || useTestBranch) releasesUrl = OS_RELEASES_PREVIEW;
+      if (useNextBranch) { releasesUrl = OS_RELEASES_NEXT; }
+      if (usePreviewBranch || useTestBranch) { releasesUrl = OS_RELEASES_PREVIEW; }
       /** @todo implement separate test branch json once available */
       // if (useTestBranch) releasesUrl = OS_RELEASES_PREVIEW.toString();
       return releasesUrl;
@@ -253,7 +253,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         timestamp: Date.now(),
         response,
       };
-    }
+    };
 
     const cacheReleasesResponse = () => {
       localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
@@ -280,18 +280,18 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         * Which will trigger a new API call to get the releases.
         * Otherwise skip the API call and use the cached data.
         */
-       const currentTime = new Date().getTime();
-       const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
-       if (currentTime - releases.value.timestamp > cacheDuration) {
+        const currentTime = new Date().getTime();
+        const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
+        if (currentTime - releases.value.timestamp > cacheDuration) {
         // cache is expired, purge it
-         console.debug('[requestReleases] cache EXPIRED');
-         await purgeReleasesCache();
-       } else {
-         // if the cache is valid return the existing response
-         console.debug('[requestReleases] cache VALID', releases.value.response);
-         return releases.value.response;
-       }
-     }
+          console.debug('[requestReleases] cache EXPIRED');
+          await purgeReleasesCache();
+        } else {
+          // if the cache is valid return the existing response
+          console.debug('[requestReleases] cache VALID', releases.value.response);
+          return releases.value.response;
+        }
+      }
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
@@ -334,7 +334,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         return console.error('[checkForUpdate] no releases found');
       }
 
-      Object.keys(releases.value.response ?? {}).forEach(key => {
+      Object.keys(releases.value.response ?? {}).forEach((key) => {
         // this is just to make TS happy (it's already checked above…thanks github copilot for knowing what I needed)
         if (!releases.value) {
           return;
@@ -350,7 +350,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
           return;
         }
 
-        branchReleases.find(release => {
+        branchReleases.find((release) => {
           if (gt(release.version, osVersion.value)) {
             // before we set the available version, check if the license key updates have expired to ensure we don't show an update that the user can't install
             if (regUpdatesExpired.value && releaseDateGtRegExpDate(release.date, regExp.value)) {
@@ -370,14 +370,14 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
 
     const findRelease = (searchKey: keyof Release, searchValue: string): Release | null => {
       const response = releases?.value?.response;
-      if (!response) return null;
+      if (!response) { return null; }
 
       for (const key of Object.keys(response)) {
         const branchReleases = response[key as keyof ReleasesResponse];
-        if (!branchReleases || branchReleases.length === 0) continue;
+        if (!branchReleases || branchReleases.length === 0) { continue; }
 
         const foundRelease = branchReleases.find(release => release[searchKey] === searchValue);
-        if (foundRelease) return foundRelease;
+        if (foundRelease) { return foundRelease; }
       }
 
       return null;
