@@ -799,7 +799,7 @@ export const useServerStore = defineStore('server', () => {
       name: (data.info && data.info.os && data.info.os.hostname) ? data.info.os.hostname : undefined,
       keyfile: (data.registration && data.registration.keyFile && data.registration.keyFile.contents) ? data.registration.keyFile.contents : undefined,
       regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
-      state: data.vars && data.vars.regState? data.vars.regState : undefined,
+      state: data.vars && data.vars.regState ? data.vars.regState : undefined,
       config: data.config
         ? data.config
         : {
