@@ -14,7 +14,6 @@ import {
   OS_RELEASES_NEXT,
   OS_RELEASES_PREVIEW,
 } from '@/helpers/urls';
-// import testReleasesResponse from '~/_data/osReleases'; // test data
 
 export type OsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
 

@@ -1,6 +1,6 @@
 import dayjs, { extend } from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { DateFormatOption, ServerDateTimeFormat, TimeFormatOption } from 'types/server';
+import type { DateFormatOption, ServerDateTimeFormat, TimeFormatOption } from '~/types/server';
 
 /** @see https://day.js.org/docs/en/display/format#localized-formats */
 extend(localizedFormat);
