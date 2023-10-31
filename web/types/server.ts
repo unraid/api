@@ -1,13 +1,6 @@
+import type { Cloud, Config } from '~/composables/gql/graphql';
 import type { Theme } from '~/store/theme';
 import type { UserProfileLink } from '~/types/userProfile';
-
-export interface ServerStateConfigStatus {
-  error?: 'INVALID' | 'NO_KEY_SERVER' | 'UNKNOWN_ERROR' | 'WITHDRAWN';
-  valid: boolean;
-}
-export interface ServerStateCloudStatus {
-  error: string | undefined;
-}
 
 export type ServerState = 'BASIC'
   | 'PLUS'
@@ -37,13 +30,15 @@ export type ServerState = 'BASIC'
   | 'LIFETIME'
   | undefined;
 
+export type ServerOsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
+
 export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
 export interface Server {
   apiKey?: string;
   apiVersion?: string;
   avatar?: string;
-  cloud?: ServerStateCloudStatus;
-  config?: ServerStateConfigStatus | undefined;
+  cloud?: Cloud | undefined;
+  config?: Config | undefined;
   connectPluginInstalled?: ServerconnectPluginInstalled;
   connectPluginVersion?: string;
   csrf?: string;
@@ -62,6 +57,7 @@ export interface Server {
   locale?: string;
   name?: string;
   osVersion?: string;
+  osVersionBranch?: ServerOsVersionBranch;
   registered?: boolean;
   regDev?: number;
   regGen?: number;
@@ -95,10 +91,12 @@ export interface ServerAccountCallbackSendPayload {
   locale?: string;
   name?: string;
   osVersion?: string;
+  osVersionBranch?: ServerOsVersionBranch;
   registered: boolean;
+  regExp?: number;
   regGen?: number;
   regGuid?: string;
-  regExp?: number;
+  regTy?: string;
   regUpdatesExpired?: boolean;
   site?: string;
   state: ServerState;
@@ -117,6 +115,7 @@ export interface ServerPurchaseCallbackSendPayload {
   keyTypeForPurchase: ServerKeyTypeForPurchase;
   locale: string;
   osVersion?: string;
+  osVersionBranch?: ServerOsVersionBranch;
   registered: boolean;
   regExp?: number;
   regUpdatesExpired?: boolean;

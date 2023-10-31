@@ -108,21 +108,21 @@ extend(relativeTime);
 
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
-export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
+export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
   defineStore('updateOs', () => {
     console.debug('[updateOs] payload', payload);
     // Since this file is shared between account.unraid.net and the web components, we need to handle the state differently
     // If useUpdateOsActions is passed in, we're in the webgui web components
-    const updateOsActions = payload.useUpdateOsActions !== undefined ? payload.useUpdateOsActions() : undefined;
+    const updateOsActions = payload?.useUpdateOsActions !== undefined ? payload.useUpdateOsActions() : undefined;
     console.debug('[updateOs] updateOsActions', updateOsActions);
     // If useUpdateOsActions is not passed in, we're in account.unraid.net
     // creating refs from the passed in values so that we can use them in the computed properties
-    const paramCurrentOsVersion = ref<SemVer | string>(payload.currentOsVersion ?? '');
-    const paramCurrentOsVersionBranch = ref<SemVer | string>(payload.currentOsVersionBranch ?? '');
-    const paramCurrentRegExp = ref<number>(payload.currentRegExp ?? 0);
-    const paramCurrentRegUpdatesExpired = ref<boolean>(payload.currentRegUpdatesExpired ?? false);
-    const paramCurrentIsLoggedIn = ref<boolean>(payload.currentIsLoggedIn ?? false);
-    const paramCurrentAuthUserAttributes = ref<UserInfo>(payload.currentAuthUserAttributes ?? {});
+    const paramCurrentOsVersion = ref<SemVer | string>(payload?.currentOsVersion ?? '');
+    const paramCurrentOsVersionBranch = ref<SemVer | string>(payload?.currentOsVersionBranch ?? '');
+    const paramCurrentRegExp = ref<number>(payload?.currentRegExp ?? 0);
+    const paramCurrentRegUpdatesExpired = ref<boolean>(payload?.currentRegUpdatesExpired ?? false);
+    const paramCurrentIsLoggedIn = ref<boolean>(payload?.currentIsLoggedIn ?? false);
+    const paramCurrentAuthUserAttributes = ref<UserInfo>(payload?.currentAuthUserAttributes ?? {});
     // getters – when set from updateOsActions we're in the webgui web components otherwise we're in account.unraid.net
     const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
     const osVersionBranch = computed(() => updateOsActions?.osVersionBranch ?? paramCurrentOsVersionBranch.value ?? '');

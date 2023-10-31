@@ -11,7 +11,7 @@ import type { Server } from '~/types/server';
  */
 setActivePinia(createPinia());
 
-export type ErrorType = 'account' | 'callback' | 'installKey' | 'server' | 'serverState' | 'unraidApiGQL' | 'unraidApiState';
+export type ErrorType = 'account' | 'callback' | 'installKey' | 'request' | 'server' | 'serverState' | 'unraidApiGQL' | 'unraidApiState';
 export interface Error {
   actions?: ButtonProps[];
   debugServer?: Server;
@@ -107,8 +107,14 @@ export const useErrorsStore = defineStore('errors', () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         $panels = $modal.querySelectorAll('.allpanels');
       }
-      $panels.forEach(($panel: HTMLDivElement) => {
-        if ($panel.id === 'troubleshoot_panel') { $panel.style.display = 'block'; } else { $panel.style.display = 'none'; }
+      $panels.forEach(($panel: Element) => {
+        if ($panel.id === 'troubleshoot_panel') {
+          // @ts-ignore
+          $panel.style.display = 'block';
+        } else {
+          // @ts-ignore
+          $panel.style.display = 'none';
+        }
       });
     } catch (error) {
       console.error('[openTroubleshoot]', error);

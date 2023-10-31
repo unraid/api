@@ -15,7 +15,6 @@ import {
 import { useQuery } from '@vue/apollo-composable';
 
 import { SERVER_STATE_QUERY } from './server.fragment';
-import type { serverStateQuery } from '~/composables/gql/graphql';
 import { WebguiState } from '~/composables/services/webgui';
 import { WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
@@ -24,19 +23,19 @@ import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore, type Theme } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
+import type { Cloud, Config, serverStateQuery } from '~/composables/gql/graphql';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
   ServerKeyTypeForPurchase,
   ServerPurchaseCallbackSendPayload,
   ServerState,
-  ServerStateCloudStatus,
-  ServerStateConfigStatus,
   ServerStateData,
   ServerStateDataAction,
   ServerconnectPluginInstalled,
   ServerDateTimeFormat,
   ServerStateDataKeyActions,
+  ServerOsVersionBranch,
 } from '~/types/server';
 
 /**
@@ -65,8 +64,8 @@ export const useServerStore = defineStore('server', () => {
   });
   const apiVersion = ref<string>('');
   const avatar = ref<string>(''); // @todo potentially move to a user store
-  const cloud = ref<ServerStateCloudStatus>();
-  const config = ref<ServerStateConfigStatus>();
+  const cloud = ref<Cloud | undefined>();
+  const config = ref<Config | undefined>();
   const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
   const connectPluginVersion = ref<string>('');
   const csrf = ref<string>(''); // required to make requests to Unraid webgui
@@ -89,7 +88,7 @@ export const useServerStore = defineStore('server', () => {
   const locale = ref<string>('');
   const name = ref<string>('');
   const osVersion = ref<string>('');
-  const osVersionBranch = ref<'stable' | 'next' | 'preview' | 'test'>('stable');
+  const osVersionBranch = ref<ServerOsVersionBranch>('stable');
   const registered = ref<boolean>();
   const regDev = ref<number>(0);
   const regGen = ref<number>(0);
@@ -238,7 +237,7 @@ export const useServerStore = defineStore('server', () => {
 
   const serverDebugPayload = computed((): Server => {
     const payload = {
-      apiKey: apiKey.value ? `${apiKey.value.substring(0, 6)}__[REDACTED]` : '', // so we don't send full api key in email
+      apiKey: apiKey.value && typeof apiKey.value === 'string' ? `${apiKey.value.substring(0, 6)}__[REDACTED]` : '', // so we don't send full api key in email
       apiVersion: apiVersion.value,
       avatar: avatar.value,
       connectPluginInstalled: connectPluginInstalled.value,
@@ -782,12 +781,13 @@ export const useServerStore = defineStore('server', () => {
   };
 
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
+    console.debug('mutateServerStateFromApi', data);
     const mutatedData = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values
       ...(data.owner && data.owner.username !== 'root'
         ? {
           // avatar: data.owner.avatar,
-            username: data.owner.username,
+            username: data.owner.username ?? '',
             registered: true,
           }
         : { // handles sign outs
@@ -796,19 +796,22 @@ export const useServerStore = defineStore('server', () => {
             registered: false,
           }
       ),
-      name: (data.info && data.info.os) ? data.info.os.hostname : null,
-      keyfile: (data.registration && data.registration.keyFile) ? data.registration.keyFile.contents : null,
-      regGen: data.vars ? data.vars.regGen : null,
-      state: data.vars ? data.vars.regState : null,
+      name: (data.info && data.info.os && data.info.os.hostname) ? data.info.os.hostname : undefined,
+      keyfile: (data.registration && data.registration.keyFile && data.registration.keyFile.contents) ? data.registration.keyFile.contents : undefined,
+      regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
+      state: data.vars && data.vars.regState? data.vars.regState : undefined,
       config: data.config
         ? data.config
         : {
-            error: data.vars ? data.vars.configError : null,
-            valid: data.vars ? data.vars.configValid : true,
+            error: data.vars && data.vars.configError ? data.vars.configError : undefined,
+            valid: data.vars && data.vars.configValid ? data.vars.configValid : true,
           },
-      expireTime: (data.registration && data.registration.expiration) ? data.registration.expiration : 0,
-      ...(data.cloud && { cloud: data.cloud }),
+      expireTime: (data.registration && data.registration.expiration) ? parseInt(data.registration.expiration) : 0,
+      cloud: {
+        ...(data.cloud ?? {}),
+      },
     };
+    console.debug('mutatedData', mutatedData);
     return mutatedData;
   };
 
@@ -883,13 +886,13 @@ export const useServerStore = defineStore('server', () => {
     }, refreshTimeout);
   };
 
-  const filteredKeyActions = (filterType: 'by' | 'out', filters: ServerStateDataKeyActions[]): ServerStateDataAction[] | undefined => {
+  const filteredKeyActions = (filterType: 'by' | 'out', filters: string|ServerStateDataKeyActions[]): ServerStateDataAction[] | undefined => {
     if (!stateData.value.actions) { return; }
 
     return stateData.value.actions.filter((action) => {
       return filterType === 'out'
-        ? !filters.includes(action.name)
-        : filters.includes(action.name);
+        ? !filters.includes(action.name as ServerStateDataKeyActions)
+        : filters.includes(action.name as ServerStateDataKeyActions);
     });
   };
 

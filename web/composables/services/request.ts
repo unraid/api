@@ -16,10 +16,22 @@ export const request = wretch()
     return (
       response
         .error('Error', (error) => {
-          errorsStore.setError(error);
+          errorsStore.setError({
+            heading: `WretchError ${error.status}`,
+            message: `${error.text} • ${error.url}`,
+            level: 'error',
+            ref: 'wretchError',
+            type: 'request',
+          });
         })
         .error('TypeError', (error) => {
-          errorsStore.setError(error);
+          errorsStore.setError({
+            heading: `WretchTypeError ${error.status}`,
+            message: `${error.text} • ${error.url}`,
+            level: 'error',
+            ref: 'wretchTypeError',
+            type: 'request',
+          });
         })
     );
   });

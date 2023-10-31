@@ -148,7 +148,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
 
         const keyLatestResponse: KeyLatestResponse = await keyLatest({
           keyfile: keyfile.value,
-        }).json();
+        });
 
         if (keyLatestResponse?.license) {
           callbackStore.send(

@@ -31,7 +31,7 @@ export const useTrialStore = defineStore('trial', () => {
         guid: serverStore.guid,
         timestamp: Math.floor(Date.now() / 1000),
       };
-      const response: StartTrialResponse = await startTrial(payload).json();
+      const response: StartTrialResponse = await startTrial(payload);
       if (!response.license) {
         trialStatus.value = 'failed';
         return console.error('[requestTrial]', 'No license returned', response);
@@ -48,7 +48,7 @@ export const useTrialStore = defineStore('trial', () => {
         type: 'forUpc',
       };
       trialStatus.value = 'success';
-      return callbackActionsStore.redirectToCallbackType(trialStartData);
+      return callbackActionsStore.saveCallbackData(trialStartData);
     } catch (error) {
       trialStatus.value = 'failed';
       console.error('[requestTrial]', error);

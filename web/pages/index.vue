@@ -6,10 +6,11 @@ import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
 onBeforeMount(() => {
+  // @ts-ignore
   nuxtApp.$customElements.registerEntry('UnraidComponents');
 });
 
-const valueToMakeCallback = ref<string>('');
+const valueToMakeCallback = ref<SendPayloads | undefined>();
 const callbackDestination = ref<string>('');
 
 const createCallbackUrl = (payload: SendPayloads, sendType: string) => { // params differs from callbackActions.send

@@ -220,11 +220,11 @@ export type Case = {
 
 export type Cloud = {
   __typename?: 'Cloud';
-  allowedOrigins: Array<Scalars['String']['output']>;
-  apiKey: ApiKeyResponse;
-  cloud: CloudResponse;
+  allowedOrigins?: Array<Scalars['String']['output']>;
+  apiKey?: ApiKeyResponse;
+  cloud?: CloudResponse;
   error?: Maybe<Scalars['String']['output']>;
-  minigraphql: MinigraphqlResponse;
+  minigraphql?: MinigraphqlResponse;
   relay?: Maybe<RelayResponse>;
 };
 
