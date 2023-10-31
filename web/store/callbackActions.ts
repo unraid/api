@@ -5,7 +5,15 @@ import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
-import { useCallbackStoreGeneric, type CallbackActionsStore, type ExternalKeyActions, type QueryPayloads } from '~/store/callback';
+import {
+  useCallbackStoreGeneric,
+  type CallbackActionsStore,
+  type ExternalKeyActions,
+  type ExternalSignIn,
+  type ExternalSignOut,
+  type ExternalUpdateOsAction,
+  type QueryPayloads,
+} from '~/store/callback';
 
 export const useCallbackActionsStore = defineStore('callbackActions', () => {
   const accountStore = useAccountStore();
@@ -35,6 +43,16 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     redirectToCallbackType?.();
   };
 
+  const actionTypesWithKey = [
+    'recover',
+    'replace',
+    'trialExtend',
+    'trialStart',
+    'purchase',
+    'redeem',
+    'renew',
+    'upgrade',
+  ];
   const redirectToCallbackType = () => {
     console.debug('[redirectToCallbackType]');
     if (!callbackData.value || !callbackData.value.type || callbackData.value.type !== 'forUpc' || !callbackData.value.actions?.length) {
@@ -49,33 +67,28 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
     callbackData.value.actions.forEach(async (action, index, array) => {
       console.debug('[redirectToCallbackType]', { action, index, array });
 
-      if (action?.keyUrl) {
+      if (actionTypesWithKey.includes(action.type)) {
         await installKeyStore.install(action as ExternalKeyActions);
       }
-      if (action?.user || action.type === 'signIn') {
-        accountStore.setAccountAction(action);
-        accountStore.setConnectSignInPayload({
-          apiKey: action.apiKey,
-          email: action.user.email,
-          preferred_username: action.user.preferred_username,
+
+      if (action.type === 'signIn' && action?.user) {
+        accountStore.setAccountAction(action as ExternalSignIn);
+        await accountStore.setConnectSignInPayload({
+          apiKey: action?.apiKey ?? '',
+          email: action.user?.email ?? '',
+          preferred_username: action.user?.preferred_username ?? '',
         });
       }
+
       if (action.type === 'signOut' || action.type === 'oemSignOut') {
-        accountStore.setAccountAction(action);
-        accountStore.setQueueConnectSignOut(true);
+        accountStore.setAccountAction(action as ExternalSignOut);
+        await accountStore.setQueueConnectSignOut(true);
       }
 
-      if (action.type === 'updateOs' && action?.sha256) {
-        console.debug('[redirectToCallbackType] updateOs', action);
-        const foundRelease = await updateOsActionsStore.getReleaseFromKeyServer(action.sha256);
-        console.debug('[redirectToCallbackType] updateOs foundRelease', foundRelease);
-        if (!foundRelease) {
-          throw new Error('Release not found');
-        }
-        if (foundRelease.version === serverStore.osVersion) {
-          throw new Error('Release version is the same as the server\'s current version');
-        }
-        updateOsActionsStore.confirmUpdateOs(foundRelease);
+      if (action.type === 'updateOs') {
+        updateOsActionsStore.setUpdateOsAction(action as ExternalUpdateOsAction);
+        await updateOsActionsStore.actOnUpdateOsAction();
+
         if (array.length === 1) { // only 1 action, skip refresh server state
           console.debug('[redirectToCallbackType] updateOs done');
           // removing query string relase is set so users can't refresh the page and go through the same actions

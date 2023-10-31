@@ -12,10 +12,11 @@ export interface StartTrialResponse {
   license?: string;
   trial?: string
 }
-export const startTrial = async (payload: StartTrialPayload) => await KeyServer
+export const startTrial = async (payload: StartTrialPayload): Promise<StartTrialResponse> => await KeyServer
   .url('/account/trial')
   .formUrl(payload)
-  .post();
+  .post()
+  .json();
 
 export interface ValidateGuidResponse {
   hasNewerKeyfile : boolean;
@@ -30,7 +31,7 @@ export interface ValidateGuidPayload {
   guid: string;
   keyfile?: string;
 }
-export const validateGuid = async (payload: ValidateGuidPayload) => await KeyServer
+export const validateGuid = async (payload: ValidateGuidPayload): Promise<ValidateGuidResponse> => await KeyServer
   .url('/validate/guid')
   .formUrl(payload)
   .post()
@@ -42,10 +43,11 @@ export interface KeyLatestPayload {
 export interface KeyLatestResponse {
   license: string;
 }
-export const keyLatest = async (payload: KeyLatestPayload) => await KeyServer
+export const keyLatest = async (payload: KeyLatestPayload): Promise<KeyLatestResponse> => await KeyServer
   .url('/key/latest')
   .formUrl(payload)
-  .post();
+  .post()
+  .json();
 
 export const getOsReleaseBySha256 = async (sha256: string): Promise<Release> => await KeyServer
   .url(`/versions/sha256/${sha256}`)

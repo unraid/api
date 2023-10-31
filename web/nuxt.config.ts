@@ -56,6 +56,9 @@ export default defineNuxtConfig({
     { path: '~/components/UserProfile', prefix: 'Upc' },
     '~/components',
   ],
+  // typescript: {
+  //   typeCheck: true
+  // },
   vite: {
     build: {
       minify: 'terser',
@@ -71,6 +74,7 @@ export default defineNuxtConfig({
   },
   customElements: {
     entries: [
+      // @ts-ignore
       {
         name: 'UnraidComponents',
         tags: [

@@ -147,7 +147,7 @@ export const useAccountStore = defineStore('account', () => {
       (connectSignInPayload.value && (!connectSignInPayload.value.apiKey || !connectSignInPayload.value.email || !connectSignInPayload.value.preferred_username))
     ) {
       accountActionStatus.value = 'failed';
-      return;
+      return console.error('[connectSignInMutation] incorrect payload', connectSignInPayload.value);
     }
 
     accountActionStatus.value = 'updating';
@@ -197,11 +197,11 @@ export const useAccountStore = defineStore('account', () => {
   const connectSignOutMutation = async () => {
     accountActionStatus.value = 'updating';
     // @todo is this still needed here with the change to a mutation?
-    if (!serverStore.registered && accountAction.value && !accountAction.value.user) {
-      accountActionHide.value = true;
-      accountActionStatus.value = 'success';
-      return;
-    }
+    // if (!serverStore.registered && accountAction.value && !accountAction.value?.user) {
+    //   accountActionHide.value = true;
+    //   accountActionStatus.value = 'success';
+    //   return;
+    // }
 
     const { mutate: signOutMutation, onDone, onError } = await useMutation(CONNECT_SIGN_OUT);
 

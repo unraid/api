@@ -1,3 +1,4 @@
+// @ts-ignore
 import { from, ApolloClient, createHttpLink, InMemoryCache, split } from '@apollo/client/core/core.cjs';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
@@ -81,12 +82,9 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       }),
     );
 
-    /**
-     * @todo integrate errorsStore errorsStore.setError(error);
-     */
-    const errorLink = onError(({ graphQLErrors, networkError }) => {
+    const errorLink = onError(({ graphQLErrors, networkError }: any) => {
       if (graphQLErrors) {
-        graphQLErrors.map((error) => {
+        graphQLErrors.map((error: any) => {
           console.error('[GraphQL error]', error);
           const errorMsg = error.error && error.error.message ? error.error.message : error.message;
           if (errorMsg && errorMsg.includes('offline')) {
@@ -140,9 +138,13 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       },
     });
 
+    interface Definintion {
+      kind: string;
+      operation?: string;
+    };
     const splitLinks = split(
-      ({ query }) => {
-        const definition = getMainDefinition(query);
+      ({ query }: any) => {
+        const definition: Definintion = getMainDefinition(query);
         return (
           definition.kind === 'OperationDefinition' &&
           definition.operation === 'subscription'
@@ -189,21 +191,31 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
    */
   const restartUnraidApiClient = async () => {
     const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
-    console.debug('[restartUnraidApiClient]', { command });
     unraidApiStatus.value = 'restarting';
     try {
       const response = await WebguiUnraidApiCommand({
         csrf_token: serverStore.csrf,
         command,
       });
-      console.debug('[restartUnraidApiClient] response', response);
       return setTimeout(() => {
         if (unraidApiClient.value) {
           createApolloClient();
         }
       }, 5000);
     } catch (error) {
-      errorsStore.setError(error);
+      let errorMessage = 'Unknown error';
+      if (typeof error === "string") {
+        errorMessage = error.toUpperCase();
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      errorsStore.setError({
+        heading: 'Error: unraid-api restart',
+        message: errorMessage,
+        level: 'error',
+        ref: 'restartUnraidApiClient',
+        type: 'request',
+      });
     }
   };
 

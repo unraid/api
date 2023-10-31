@@ -15,6 +15,7 @@ import {
   type UpdateOsActionStore,
 } from '~/store/updateOs';
 
+import type { ExternalUpdateOsAction } from '~/store/callback';
 import type { UserProfileLink } from '~/types/userProfile';
 
 /**
@@ -33,6 +34,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const { install: installPlugin } = useInstallPlugin();
 
   // State
+  const updateAction = ref<ExternalUpdateOsAction | undefined>();
   const osVersion = computed(() => serverStore.osVersion);
   const osVersionBranch = computed(() => serverStore.osVersionBranch);
   const regExp = computed(() => serverStore.regExp);
@@ -121,11 +123,15 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     );
   };
 
+  const setUpdateOsAction = (payload: ExternalUpdateOsAction | undefined) => (updateAction.value = payload);
   /**
    * @description When receiving the callback the Account update page we'll use the provided sha256 of the release to get the release from the keyserver
    */
   const getReleaseFromKeyServer = async (sha256: string) => {
     console.debug('[getReleaseFromKeyServer]', sha256);
+    if (!sha256) {
+      throw new Error('No sha256 provided');
+    }
     try {
       const response = await getOsReleaseBySha256(sha256);
       console.debug('[getReleaseFromKeyServer]', response);
@@ -139,6 +145,18 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const confirmUpdateOs = (release: Release) => {
     callbackUpdateRelease.value = release;
     setStatus('confirming');
+  };
+
+  const actOnUpdateOsAction = async () => {
+    const foundRelease = await getReleaseFromKeyServer(updateAction.value?.sha256 ?? '');
+    console.debug('[redirectToCallbackType] updateOs foundRelease', foundRelease);
+    if (!foundRelease) {
+      throw new Error('Release not found');
+    }
+    if (foundRelease.version === serverStore.osVersion) {
+      throw new Error('Release version is the same as the server\'s current version');
+    }
+    confirmUpdateOs(foundRelease);
   };
 
   const installOsUpdate = () => {
@@ -195,6 +213,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     ineligibleText,
     toolsRegistrationAction,
     // Actions
+    actOnUpdateOsAction,
     confirmUpdateOs,
     installOsUpdate,
     initUpdateOsCallback,
@@ -202,6 +221,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     rebootServer,
     setStatus,
     setRebootType,
+    setUpdateOsAction,
     viewCurrentReleaseNotes,
     getReleaseFromKeyServer,
   };
