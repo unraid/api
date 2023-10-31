@@ -103,26 +103,28 @@ const regExpOutput = computed(() => {
         >
           {{ t('Checking...') }}
         </UiBadge>
-        <UiBadge
-          v-else-if="rebootType === ''"
-          :color="available || availableWithRenewal ? 'orange' : 'green'"
-          :icon="available || availableWithRenewal ? BellAlertIcon : CheckCircleIcon"
-          :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
-        >
-          {{ (available
-            ? t('Unraid {0} Available', [available])
-            : (availableWithRenewal
-              ? t('Up-to-date with eligible releases')
-              : t('Up-to-date')))
-          }}
-        </UiBadge>
-        <UiBadge
-          v-else-if="rebootType !== ''"
-          :color="'yellow'"
-          :icon="ExclamationTriangleIcon"
-        >
-          {{ t(rebootTypeText) }}
-        </UiBadge>
+        <template v-else>
+          <UiBadge
+            v-if="rebootType === ''"
+            :color="available || availableWithRenewal ? 'orange' : 'green'"
+            :icon="available || availableWithRenewal ? BellAlertIcon : CheckCircleIcon"
+            :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
+          >
+            {{ (available
+              ? t('Unraid {0} Available', [available])
+              : (availableWithRenewal
+                ? t('Up-to-date with eligible releases')
+                : t('Up-to-date')))
+            }}
+          </UiBadge>
+          <UiBadge
+            v-else
+            :color="'yellow'"
+            :icon="ExclamationTriangleIcon"
+          >
+            {{ t(rebootTypeText) }}
+          </UiBadge>
+        </template>
       </div>
 
       <div class="shrink-0">

@@ -1,5 +1,5 @@
-import { Theme } from '~/store/theme';
-import { UserProfileLink } from '~/types/userProfile';
+import type { Theme } from '~/store/theme';
+import type { UserProfileLink } from '~/types/userProfile';
 
 export interface ServerStateConfigStatus {
   error?: 'INVALID' | 'NO_KEY_SERVER' | 'UNKNOWN_ERROR' | 'WITHDRAWN';

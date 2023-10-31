@@ -8,7 +8,7 @@ import { provideApolloClient } from '@vue/apollo-composable';
 // import { logErrorMessages } from '@vue/apollo-util';
 import { createClient } from 'graphql-ws';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { UserProfileLink } from 'types/userProfile';
+import type { UserProfileLink } from '~/types/userProfile';
 
 import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
 import { WEBGUI_GRAPHQL, WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';

@@ -3,7 +3,7 @@ import { ShieldExclamationIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
 import { useThemeStore } from '~/store/theme';
-import { RegistrationItemProps } from '~/types/registration';
+import type { RegistrationItemProps } from '~/types/registration';
 
 withDefaults(defineProps<RegistrationItemProps>(), {
   error: false,

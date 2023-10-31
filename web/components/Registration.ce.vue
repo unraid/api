@@ -157,7 +157,7 @@ const items = computed((): RegistrationItemProps[] => {
         }]
       : []),
     // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
-    ...(keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0
+    ...(keyActions.value && keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0
       ? [{
           label: t('License key actions'),
           component: KeyActions,

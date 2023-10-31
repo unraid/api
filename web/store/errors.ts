@@ -107,7 +107,7 @@ export const useErrorsStore = defineStore('errors', () => {
         await new Promise(resolve => setTimeout(resolve, 100));
         $panels = $modal.querySelectorAll('.allpanels');
       }
-      $panels.forEach(($panel) => {
+      $panels.forEach(($panel: HTMLDivElement) => {
         if ($panel.id === 'troubleshoot_panel') { $panel.style.display = 'block'; } else { $panel.style.display = 'none'; }
       });
     } catch (error) {

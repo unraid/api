@@ -1,4 +1,3 @@
-import { OS_RELEASES } from '~/helpers/urls';
 const ACCOUNT = new URL(import.meta.env.VITE_ACCOUNT ?? 'https://account.unraid.net');
 const DOCS = new URL('https://docs.unraid.net');
 const FORUMS = new URL('https://forums.unraid.net');
