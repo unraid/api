@@ -16,6 +16,14 @@ const staticGuid = '1111-1111-5GDB-123412341234';
 // const regWizTime = `1616711990500_${randomGuid}`;
 // const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 
+const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
+const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
+// const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
+const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
+const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
+let expireTime = 0;
+let regExp: number | undefined;
+
 // ENOKEYFILE
 // TRIAL
 // BASIC
@@ -38,10 +46,12 @@ let regTy = '';
 switch (state) {
   // @ts-ignore
   case 'EEXPIRED':
+    expireTime = uptime; // 1 hour ago
   // @ts-ignore
   case 'ENOCONN':
   // @ts-ignore
   case 'TRIAL':
+    expireTime = oneHourFromNow; // in 1 hour
     regTy = 'Trial';
   // @ts-ignore
   case 'BASIC':
@@ -54,34 +64,23 @@ switch (state) {
   // @ts-ignore
   case 'STARTER':
     regDev = 4;
+    // regExp = oneHourFromNow;
+    regExp = oneDayFromNow;
+    // regExp = oneDayAgo;
+    // regExp = uptime;
+    // regExp = 1696363920000; // nori.local's expiration
   // @ts-ignore
   case 'UNLEASHED':
+    // regExp = oneHourFromNow;
+    regExp = oneDayFromNow;
+    // regExp = oneDayAgo;
+    // regExp = uptime;
+    // regExp = 1696363920000; // nori.local's expiration
   // @ts-ignore
   case 'LIFETIME':
     if (regDev === 0) { regDev = 99999; }
     if (regTy === '') { regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); } // title case
     break;
-}
-
-const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
-const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
-// const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
-const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
-const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
-let expireTime = 0;
-if (state === 'TRIAL') {
-  expireTime = oneHourFromNow; // in 1 hour
-} else if (state === 'EEXPIRED') {
-  expireTime = uptime; // 1 hour ago
-}
-
-let regExp: number | undefined;
-if (state === 'STARTER' || state === 'UNLEASHED') {
-  // regExp = oneHourFromNow;
-  regExp = oneDayFromNow;
-  // regExp = oneDayAgo;
-  // regExp = uptime;
-  // regExp = 1696363920000; // nori.local's expiration
 }
 
 // const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';

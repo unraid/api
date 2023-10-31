@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import AES from 'crypto-js/aes';
+import type { SendPayloads } from '~/store/callback';
 
 import { serverState } from '~/_data/serverState';
 
@@ -11,7 +12,7 @@ onBeforeMount(() => {
 const valueToMakeCallback = ref<string>('');
 const callbackDestination = ref<string>('');
 
-const createCallbackUrl = (payload: SendPayloads, sendType?: string) => { // params differs from callbackActions.send
+const createCallbackUrl = (payload: SendPayloads, sendType: string) => { // params differs from callbackActions.send
   console.debug('[callback.send]');
 
   valueToMakeCallback.value = payload; // differs from callbackActions.send
@@ -19,7 +20,7 @@ const createCallbackUrl = (payload: SendPayloads, sendType?: string) => { // par
   const stringifiedData = JSON.stringify({
     actions: [...payload],
     sender: window.location.href,
-    type: sendType ?? callbackActions.sendType,
+    type: sendType,
   });
   const encryptedMessage = AES.encrypt(
     stringifiedData,

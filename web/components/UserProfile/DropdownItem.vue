@@ -32,7 +32,7 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
       'rounded-md': rounded,
       'disabled:opacity-50 disabled:hover:opacity-50 disabled:focus:opacity-50 disabled:cursor-not-allowed': item?.disabled,
     }"
-    @click.stop="item?.click ? item?.click(clickParams) : null"
+    @click.stop="item?.click ? item?.click(item?.clickParams) : null"
   >
     <span class="leading-snug inline-flex flex-row items-center gap-x-8px">
       <component :is="item?.icon" class="flex-shrink-0 text-current w-16px h-16px" aria-hidden="true" />

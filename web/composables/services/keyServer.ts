@@ -47,7 +47,7 @@ export const keyLatest = async (payload: KeyLatestPayload) => await KeyServer
   .formUrl(payload)
   .post();
 
-export const getOsReleaseBySha256 = async (sha256: string): Release => await KeyServer
+export const getOsReleaseBySha256 = async (sha256: string): Promise<Release> => await KeyServer
   .url(`/versions/sha256/${sha256}`)
   .get()
   .json();

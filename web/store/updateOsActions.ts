@@ -100,7 +100,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
           serverStore.inIframe,
         );
       },
-      external: updateOsStore.available,
+      external: !!updateOsStore.available,
       icon: updateOsStore.available ? BellAlertIcon : ArrowPathIcon,
       name: 'updateOs',
       text: updateOsStore.available ? 'Unraid OS {0} Update Available' : 'Check for OS Updates',
@@ -124,7 +124,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   /**
    * @description When receiving the callback the Account update page we'll use the provided sha256 of the release to get the release from the keyserver
    */
-  const getReleaseFromKeyServer = async (sha256: string): Release => {
+  const getReleaseFromKeyServer = async (sha256: string) => {
     console.debug('[getReleaseFromKeyServer]', sha256);
     try {
       const response = await getOsReleaseBySha256(sha256);
@@ -159,7 +159,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     document.rebootNow.submit();
   };
 
-  const viewCurrentReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => {
+  const viewCurrentReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => { // @ts-ignore
     if (typeof openChanges === 'function') { // @ts-ignore
       openChanges(`showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle);
     } else {
