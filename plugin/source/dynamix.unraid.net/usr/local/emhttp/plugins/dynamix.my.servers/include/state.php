@@ -37,6 +37,7 @@ $serverState = [
     "avatar" => (!empty($myservers['remote']['avatar']) && $connectPluginInstalled) ? $myservers['remote']['avatar'] : '',
     "config" => [
         'valid' => ($var['configValid'] === 'yes'),
+        /** @todo remove error key value when config is valid */
         'error' => isset($configErrorEnum[$var['configValid']]) ? $configErrorEnum[$var['configValid']] : 'UNKNOWN_ERROR',
     ],
     "connectPluginInstalled" => $connectPluginInstalled,
