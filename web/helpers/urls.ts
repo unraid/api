@@ -1,7 +1,7 @@
-const ACCOUNT = new URL(import.meta.env.VITE_ACCOUNT ?? 'https://account.unraid.net');
+const ACCOUNT = new URL(sessionStorage.getItem('unraidAccount') ?? import.meta.env.VITE_ACCOUNT ?? 'https://account.unraid.net');
 const DOCS = new URL('https://docs.unraid.net');
 const FORUMS = new URL('https://forums.unraid.net');
-const UNRAID_NET = new URL(localStorage.getItem('craftUrl') ?? import.meta.env.VITE_UNRAID_NET ?? 'https://unraid.net');
+const UNRAID_NET = new URL(sessionStorage.getItem('unraidPurchase') ?? import.meta.env.VITE_UNRAID_NET ?? 'https://unraid.net');
 
 const ACCOUNT_CALLBACK = new URL('c', ACCOUNT);
 const FORUMS_BUG_REPORT = new URL('/bug-reports', FORUMS);
