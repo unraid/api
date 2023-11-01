@@ -8,7 +8,7 @@
  */
 import AES from 'crypto-js/aes';
 import Utf8 from 'crypto-js/enc-utf8';
-import { defineStore } from 'pinia';
+import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 export type SignIn = 'signIn';
 export type SignOut = 'signOut';
@@ -82,8 +82,6 @@ export interface ServerData {
 
 export interface UserInfo {
   'custom:ips_id'?: string;
-  'custom:preview_releases'?: string;
-  'custom:test_releases'?: string;
   email?: string;
   email_verifed?: 'true' | 'false';
   preferred_username?: string;
@@ -92,7 +90,14 @@ export interface UserInfo {
   /**
    * @param identities {string} JSON string containing @type Identity[]
    */
-  identities: string;
+  identities?: string;
+  /**
+   * @param cognito:groups {string[]} JSON string containing @type string[]
+   *
+   * Will contain all groups for the signed in user, used for determining which branch to use
+   * @example ["download-preview", "unraidPOOLID_Google"]
+   */
+  'cognito:groups'?: string[];
 }
 
 export interface ExternalSignIn {
@@ -156,6 +161,12 @@ export interface CallbackActionsStore {
   encryptionKey: string;
   sendType: 'fromUpc' | 'forUpc';
 }
+
+/**
+ * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
+ * @see https://github.com/vuejs/pinia/discussions/1085
+ */
+setActivePinia(createPinia());
 
 export const useCallbackStoreGeneric = (
   useCallbackActions: () => CallbackActionsStore
