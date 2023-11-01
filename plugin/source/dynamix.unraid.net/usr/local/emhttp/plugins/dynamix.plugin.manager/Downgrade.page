@@ -5,7 +5,7 @@ Tag="upload"
 ---
 <?php
 /**
- * @todo - need a downgrade icon
+ * @note icon-update is rotated via CSS in myservers1.php
  *
  * If /boot/previous/bzroot exists, then the user has the option to downgrade to the previous version.
  * Parse the text file /boot/previous/changes.txt to get the version number of the previous version.
