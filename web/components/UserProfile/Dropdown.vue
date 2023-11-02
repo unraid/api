@@ -3,18 +3,16 @@ import { TransitionRoot } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 
 import { useDropdownStore } from '~/store/dropdown';
-import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 
 defineProps<{ t: any; }>();
 
 const dropdownStore = useDropdownStore();
-const { dropdownVisible } = storeToRefs(dropdownStore);
-const { errors } = storeToRefs(useErrorsStore());
-const { connectPluginInstalled, registered, state, stateDataError } = storeToRefs(useServerStore());
 
-const showDefaultContent = computed(() => !showLaunchpad.value);
-const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPluginInstalled.value && !registered.value) && !errors.value.length && !stateDataError.value));
+const { dropdownVisible } = storeToRefs(dropdownStore);
+const { state } = storeToRefs(useServerStore());
+
+const showLaunchpad = computed(() => state.value === 'ENOKEYFILE');
 </script>
 
 <template>
@@ -29,8 +27,8 @@ const showLaunchpad = computed(() => state.value === 'ENOKEYFILE' || ((connectPl
     leave-to="opacity-0 translate-y-[16px]"
   >
     <UpcDropdownWrapper class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 transition-all">
-      <UpcDropdownContent v-if="showDefaultContent" :t="t" />
-      <UpcDropdownLaunchpad v-else-if="showLaunchpad" :t="t" />
+      <UpcDropdownLaunchpad v-if="showLaunchpad" :t="t" />
+      <UpcDropdownContent v-else :t="t" />
     </UpcDropdownWrapper>
   </TransitionRoot>
 </template>
