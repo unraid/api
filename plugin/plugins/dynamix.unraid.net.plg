@@ -309,12 +309,12 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
-  FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -402,8 +402,8 @@ echo
 # NOTE: any 'exit 1' after this point will result in a broken install
 
 # Preserve in case plugin is removed
-FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
+FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
@@ -415,6 +415,27 @@ FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
 DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR" ]] && mv -f "$DIR" "$DIR-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
+
+# patch DefaultPageLayout.php
+# search text:       <?=_('Version')?>: <?=_var($var,'version','?')?><?=$notes?>
+                     <?=_('Version')?>: <?=$var['version']?><?=$notes?>
+# replacement text:  <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
+FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
+# get line number matching the search text
+# shellcheck disable=SC2016
+LINENUM=$(grep -n '<?=_('"'Version'"')?>: <?=_var($var,'"'version'"','"'?'"')?><?=$notes?>' "$FILE" | cut -d : -f 1)
+# shellcheck disable=SC2016
+[[ -z $LINENUM ]] && LINENUM=$(grep -n '<?=_('"'Version'"')?>: <?=$var\['"'version'"']?><?=$notes?>' "$FILE" | cut -d : -f 1)
+if [[ -n $LINENUM ]]; then
+  # backup the file so it can be restored later
+  cp -f "$FILE" "$FILE-"
+  # sed should work, but it is very difficult to escape the search text
+  # instead, make a new file containing everything before LINENUM, then the replacement text, then everything after LINENUM
+  head -$((LINENUM-1)) "$FILE" > "$FILE~"
+  echo '<unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>' >> "$FILE~"
+  tail +$((LINENUM+1)) "$FILE" >> "$FILE~"
+  mv -f "$FILE~" "$FILE"
+fi
 
 # move settings on flash drive
 CFG_OLD=/boot/config/plugins/Unraid.net
