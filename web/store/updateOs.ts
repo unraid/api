@@ -135,6 +135,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     const available = ref<string>('');
     const availableWithRenewal = ref<string>('');
     const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
+    const releasesError = ref<string>('');
 
     // getters
     const parsedReleaseTimestamp = computed(() => {
@@ -311,6 +312,13 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
         return response;
       } catch (error) {
+        let errorMessage = 'Unknown error';
+        if (typeof error === 'string') {
+          errorMessage = error.toUpperCase();
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        releasesError.value = errorMessage;
         console.error('[requestReleases]', error);
       }
     };
@@ -399,6 +407,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
       available,
       availableWithRenewal,
       releases,
+      releasesError,
       // getters
       parsedReleaseTimestamp,
       isOsVersionStable,
