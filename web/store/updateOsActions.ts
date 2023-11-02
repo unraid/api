@@ -28,6 +28,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const callbackStore = useCallbackStore();
   // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
+  // in this instance we don't need to pass a payload because we're already in the store that would be passed to it
   const useUpdateOsStore = useUpdateOsStoreGeneric();
   const updateOsStore = useUpdateOsStore();
 

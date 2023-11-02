@@ -24,6 +24,8 @@ export interface RequestReleasesPayload {
   osVersion: SemVer | string;
   osVersionBranch: OsVersionBranch;
   skipCache?: boolean; // forces a refetch from the api
+  isLoggedIn?: boolean;
+  authUserGroups?: string[];
 }
 
 export interface Release {
@@ -63,18 +65,9 @@ export interface UserInfo {
    * @param identities {string} JSON string containing @type Identity[]
    */
   identities?: string;
-  /**
-   * @param cognito:groups {string[]} JSON string containing @type string[]
-   *
-   * Will contain all groups for the signed in user, used for determining which branch to use
-   * @example ["download-preview", "unraidPOOLID_Google"]
-   */
-  'cognito:groups'?: string[];
 }
 
 export interface UpdateOsActionStore {
-  isLoggedIn: boolean;
-  authUserAttributes: UserInfo;
   osVersion: SemVer | string;
   osVersionBranch: OsVersionBranch;
   regExp: number;
@@ -91,9 +84,6 @@ interface UpdateOsStorePayload {
   currentOsVersionBranch?: OsVersionBranch;
   currentRegExp?: number;
   currentRegUpdatesExpired?: boolean;
-  /** @note Values below are only used on account.unraid.net and should be passed in on /server/update-os */
-  currentIsLoggedIn?: boolean;
-  currentAuthUserGroups?: string[];
 }
 
 /**
@@ -108,28 +98,27 @@ extend(relativeTime);
 
 export const RELEASES_LOCAL_STORAGE_KEY = 'unraidReleasesResponse';
 
-export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
+export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
   defineStore('updateOs', () => {
     console.debug('[updateOs] payload', payload);
     // Since this file is shared between account.unraid.net and the web components, we need to handle the state differently
     // If useUpdateOsActions is passed in, we're in the webgui web components
-    const updateOsActions = payload.useUpdateOsActions !== undefined ? payload.useUpdateOsActions() : undefined;
+    const updateOsActions = payload?.useUpdateOsActions !== undefined ? payload?.useUpdateOsActions() : undefined;
     console.debug('[updateOs] updateOsActions', updateOsActions);
     // If useUpdateOsActions is not passed in, we're in account.unraid.net
     // creating refs from the passed in values so that we can use them in the computed properties
-    const paramCurrentOsVersion = ref<SemVer | string>(payload.currentOsVersion ?? '');
-    const paramCurrentOsVersionBranch = ref<SemVer | string>(payload.currentOsVersionBranch ?? '');
-    const paramCurrentRegExp = ref<number>(payload.currentRegExp ?? 0);
-    const paramCurrentRegUpdatesExpired = ref<boolean>(payload.currentRegUpdatesExpired ?? false);
-    const paramCurrentIsLoggedIn = ref<boolean>(payload.currentIsLoggedIn ?? false);
-    const paramCurrentAuthUserGroups = ref<string[]>(payload.currentAuthUserGroups ?? []);
+    const paramCurrentOsVersion = ref<SemVer | string>(payload?.currentOsVersion ?? '');
+    const paramCurrentOsVersionBranch = ref<SemVer | string>(payload?.currentOsVersionBranch ?? '');
+    const paramCurrentRegExp = ref<number>(payload?.currentRegExp ?? 0);
+    const paramCurrentRegUpdatesExpired = ref<boolean>(payload?.currentRegUpdatesExpired ?? false);
     // getters – when set from updateOsActions we're in the webgui web components otherwise we're in account.unraid.net
     const osVersion = computed(() => updateOsActions?.osVersion ?? paramCurrentOsVersion.value ?? '');
     const osVersionBranch = computed(() => updateOsActions?.osVersionBranch ?? paramCurrentOsVersionBranch.value ?? '');
     const regExp = computed(() => updateOsActions?.regExp ?? paramCurrentRegExp.value ?? 0);
     const regUpdatesExpired = computed(() => updateOsActions?.regUpdatesExpired ?? paramCurrentRegUpdatesExpired.value ?? false);
-    const isLoggedIn = computed(() => updateOsActions?.isLoggedIn ?? paramCurrentIsLoggedIn.value ?? false);
-    const authUserGroups = computed(() => updateOsActions?.currentAuthUserGroups ?? paramCurrentAuthUserGroups.value ?? []);
+    // will only ever be used by account.unraid.net
+    const authUserGroups = ref<string[]>([]);
+    const isLoggedIn = ref<boolean>(false);
 
     // state
     const available = ref<string>('');
@@ -138,6 +127,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
     const releasesError = ref<string>('');
 
     // getters
+    const parsedRegExp = computed(() => dayjs(regExp.value).format('YYYY-MM-DD'));
     const parsedReleaseTimestamp = computed(() => {
       if (!releases.value?.timestamp) { return undefined; }
       return {
@@ -220,9 +210,11 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
       const accountAppLoggedIn = isOnAccountApp && isLoggedIn.value;
       /** @todo should we remove the || checks directly below and only rely on the group? */
-      const accountAppPreviewBranch = accountAppLoggedIn && (osVersionBranch.value === 'preview' || (authUserGroups.value && authUserGroups.value.includes('download-preview')));
-      const accountAppTestBranch = accountAppLoggedIn && (osVersionBranch.value === 'test' || (authUserGroups.value && authUserGroups.value.includes('download-test')));
+      const accountAppPreviewBranch = accountAppLoggedIn && (osVersionBranch.value === 'preview' || (authUserGroups.value && authUserGroups.value.includes('download_preview')));
+      const accountAppTestBranch = accountAppLoggedIn && (osVersionBranch.value === 'test' || (authUserGroups.value && authUserGroups.value.includes('download_test')));
       console.debug('[releasesUrl]', {
+        osVersionBranch: osVersionBranch.value,
+        authUserGroups: authUserGroups.value,
         isOnAccountApp,
         webguiNextBranch,
         webguiPreviewBranch,
@@ -270,6 +262,15 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
 
       if (!payload || !payload.osVersion || !payload.osVersionBranch || !payload.guid || !payload.keyfile) {
         throw new Error('Invalid Payload for updateOs.requestReleases');
+      }
+
+      // if we're on account.unraid.net, set these values
+      if (payload.isLoggedIn) {
+        isLoggedIn.value = payload.isLoggedIn;
+        if (payload.authUserGroups) {
+          console.debug('[requestReleases] setting authUserGroups', payload.authUserGroups);
+          authUserGroups.value = payload.authUserGroups;
+        }
       }
 
       if (payload.skipCache) {
@@ -409,6 +410,7 @@ export const useUpdateOsStoreGeneric = (payload: UpdateOsStorePayload) =>
       releases,
       releasesError,
       // getters
+      parsedRegExp,
       parsedReleaseTimestamp,
       isOsVersionStable,
       isAvailableStable,
