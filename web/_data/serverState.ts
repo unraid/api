@@ -20,7 +20,7 @@ const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
 const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
 // const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
 const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
-const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
+// const oneDayFromNow = Date.now() + 24 * 60 * 60 * 1000; // 1 day from now
 let expireTime = 0;
 let regExp: number | undefined;
 
@@ -65,14 +65,14 @@ switch (state) {
   case 'STARTER':
     regDev = 4;
     // regExp = oneHourFromNow;
-    regExp = oneDayFromNow;
-    // regExp = oneDayAgo;
+    // regExp = oneDayFromNow;
+    regExp = twoDaysAgo;
     // regExp = uptime;
     // regExp = 1696363920000; // nori.local's expiration
   // @ts-ignore
   case 'UNLEASHED':
     // regExp = oneHourFromNow;
-    regExp = oneDayFromNow;
+    // regExp = oneDayFromNow;
     // regExp = oneDayAgo;
     // regExp = uptime;
     // regExp = 1696363920000; // nori.local's expiration
@@ -83,8 +83,8 @@ switch (state) {
     break;
 }
 
-// const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
-const connectPluginInstalled = '';
+const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
+// const connectPluginInstalled = '';
 
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
@@ -111,7 +111,7 @@ export const serverState: Server = {
   name: 'dev-static',
   osVersion: '6.12.4',
   // registered: connectPluginInstalled ? true : false,
-  registered: !connectPluginInstalled,
+  registered: false,
   regGen: 0,
   regTm: twoDaysAgo,
   regTo: 'Zack Spear',

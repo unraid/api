@@ -29,6 +29,7 @@ const {
   registered,
   regUpdatesExpired,
   stateData,
+  stateDataError,
 } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
 
@@ -80,27 +81,42 @@ const links = computed(():UserProfileLink[] => {
         ]
       : []
     ),
-    ...(!registered.value && connectPluginInstalled.value
-      ? [
-          ...(signInAction.value),
-        ]
-      : []
-    ),
   ];
 });
 
 const showErrors = computed(() => errors.value.length);
 const showConnectStatus = computed(() => !showErrors.value && !stateData.value.error && registered.value && connectPluginInstalled.value);
-const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?.length || links.value.length));
+const showKeyline = computed(() =>
+  (showConnectStatus.value && (keyActions.value?.length || links.value.length)) ||
+  unraidConnectWelcome.value
+);
+
+const unraidConnectWelcome = computed(() => {
+  if (connectPluginInstalled.value && !registered.value && !errors.value.length && !stateDataError.value) {
+    return {
+      heading: props.t('Thank you for installing Connect!'),
+      message: props.t('Sign In to your Unraid.net account to get started'),
+    };
+  }
+  return undefined;
+});
 </script>
 
 <template>
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
-    <header v-if="connectPluginInstalled" class="flex flex-row items-center justify-between mt-8px mx-8px">
+    <header v-if="connectPluginInstalled" class="flex flex-col items-start justify-between mt-8px mx-8px">
       <h2 class="text-18px leading-none flex flex-row gap-x-4px items-center justify-between">
         <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-beta w-[120px]" />
         <UpcBeta />
       </h2>
+      <template v-if="unraidConnectWelcome">
+        <h3 class="text-16px font-semibold mt-2">
+          {{ unraidConnectWelcome.heading }}
+        </h3>
+        <p class="text-14px">
+          {{ unraidConnectWelcome.message }}
+        </p>
+      </template>
     </header>
     <ul class="list-reset flex flex-col gap-y-4px p-0">
       <UpcDropdownConnectStatus v-if="showConnectStatus" :t="t" />
@@ -108,6 +124,10 @@ const showKeyline = computed(() => showConnectStatus.value && (keyActions.value?
 
       <li v-if="showKeyline" class="my-8px">
         <UpcKeyline />
+      </li>
+
+      <li v-if="!registered && connectPluginInstalled">
+        <UpcDropdownItem :item="signInAction[0]" :t="t" />
       </li>
 
       <template v-if="filteredKeyActions">
