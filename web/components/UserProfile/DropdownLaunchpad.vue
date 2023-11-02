@@ -8,33 +8,19 @@ import '~/assets/main.css';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
-const props = defineProps<{ t: any; }>();
+defineProps<{ t: any; }>();
 
-const { expireTime, connectPluginInstalled, registered, state, stateData } = storeToRefs(useServerStore());
+const { expireTime, connectPluginInstalled, state, stateData } = storeToRefs(useServerStore());
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(useUnraidApiStore());
 
-const showConnectCopy = computed(() => (connectPluginInstalled.value && !registered.value && !stateData.value?.error));
-
-const heading = computed(() => {
-  if (showConnectCopy.value) { return props.t('Thank you for installing Connect!'); }
-  return props.t(stateData.value.heading);
-});
-
-const subheading = computed(() => {
-  if (showConnectCopy.value) { return props.t('Sign In to your Unraid.net account to get started'); }
-  return props.t(stateData.value.message);
-});
-
-const showExpireTime = computed(() => {
-  return (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value > 0;
-});
+const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value === 'EEXPIRED') && expireTime.value > 0);
 </script>
 
 <template>
   <div class="flex flex-col gap-y-24px w-full min-w-300px md:min-w-[500px] max-w-xl p-16px">
-    <header :class="{ 'text-center': showConnectCopy }">
-      <h2 class="text-24px text-center font-semibold" v-html="heading" />
-      <div class="flex flex-col gap-y-8px" v-html="subheading" />
+    <header>
+      <h2 class="text-24px text-center font-semibold" v-html="t(stateData.heading)" />
+      <div class="flex flex-col gap-y-8px" v-html="t(stateData.message)" />
       <UpcUptimeExpire
         v-if="showExpireTime"
         class="text-center opacity-75 mt-12px"
