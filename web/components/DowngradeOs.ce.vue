@@ -41,7 +41,10 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
 
 <template>
   <UiPageContainer>
-    <UpdateOsStatus :title="t('Downgrade Unraid OS')" :t="t" />
+    <UpdateOsStatus
+      :title="t('Downgrade Unraid OS')"
+      :downgrade-not-available="restoreVersion === ''"
+      :t="t" />
     <UpdateOsDowngrade
       v-if="restoreVersion && rebootType === ''"
       :release-date="restoreReleaseDate"

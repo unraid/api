@@ -73,7 +73,6 @@ const downgradeButton = ref<UserProfileLink | undefined>({
           :text="t('Open a bug report')"
         />
         <BrandButton
-          btn-style="outline"
           :external="downgradeButton?.external"
           :icon="ArrowUturnDownIcon"
           :name="downgradeButton?.name"
