@@ -418,7 +418,7 @@ FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[
 
 # patch DefaultPageLayout.php
 # search text:       <?=_('Version')?>: <?=_var($var,'version','?')?><?=$notes?>
-                     <?=_('Version')?>: <?=$var['version']?><?=$notes?>
+#                    <?=_('Version')?>: <?=$var['version']?><?=$notes?>
 # replacement text:  <unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>
 FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php
 # get line number matching the search text
