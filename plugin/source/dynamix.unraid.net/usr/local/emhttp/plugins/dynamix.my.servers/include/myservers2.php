@@ -4,7 +4,7 @@ require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/translations.php");
 
 /**
- * Reboot detection was moved from Update.page to here as to seed the web components on every page rather than just on /Tools/Update
+ * Reboot detection
  */
 $readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)?:''; // read first 20 bytes of README.md
 $reboot = preg_match("/^\*\*(REBOOT REQUIRED|DOWNGRADE)/", $readme);

@@ -222,6 +222,7 @@
   "Last checked: {0}": "Last checked: {0}",
   "Downgrade Unraid OS": "Downgrade Unraid OS",
   "Downgrade Unraid OS to {0}": "Downgrade Unraid OS to {0}",
+  "No downgrade available": "No downgrade available",
   "Begin restore to Unraid {0}": "Begin restore to Unraid {0}",
   "Version available for restore {0}": "Version available for restore {0}",
   "check for OS updates": "check for OS updates",

@@ -5,6 +5,7 @@ import {
   CheckCircleIcon,
   ExclamationTriangleIcon,
   InformationCircleIcon,
+  XCircleIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 
@@ -16,15 +17,19 @@ import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActio
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
 export interface Props {
+  downgradeNotAvailable?: boolean;
   restoreVersion?: string | undefined;
   showUpdateCheck?: boolean;
   t: any;
   title?: string;
+  subtitle?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
+  downgradeNotAvailable: false,
   restoreVersion: undefined,
   showUpdateCheck: false,
   title: undefined,
+  subtitle: undefined,
 });
 
 const serverStore = useServerStore();
@@ -57,9 +62,14 @@ const regExpOutput = computed(() => {
 
 <template>
   <div class="grid gap-y-16px">
-    <h1 v-if="title" class="text-24px">
-      {{ title }}
-    </h1>
+    <header class="grid gap-y-4px">
+      <h1 v-if="title" class="text-24px font-semibold">
+        {{ title }}
+      </h1>
+      <h2 v-if="subtitle" class="text-20px">
+        {{ subtitle }}
+      </h2>
+    </header>
     <div class="flex flex-col md:flex-row gap-16px justify-start md:items-start md:justify-between">
       <div class="inline-flex flex-wrap justify-start gap-8px">
         <button
@@ -125,6 +135,14 @@ const regExpOutput = computed(() => {
             {{ t(rebootTypeText) }}
           </UiBadge>
         </template>
+
+        <UiBadge
+          v-if="downgradeNotAvailable"
+          :color="'gray'"
+          :icon="XCircleIcon"
+        >
+          {{ t('No downgrade available') }}
+        </UiBadge>
       </div>
 
       <div class="shrink-0">
