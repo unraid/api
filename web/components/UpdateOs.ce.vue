@@ -15,12 +15,25 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
+import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
+
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 const { t } = useI18n();
+
+const updateOsActionsStore = useUpdateOsActionsStore();
+const { rebootType } = storeToRefs(updateOsActionsStore);
+
+const subtitle = computed(() => {
+  if (rebootType.value === 'downgrade') {
+    return t('Please finish the initiated downgrade to enable updates.');
+  }
+  return '';
+});
 </script>
 
 <template>
@@ -28,6 +41,7 @@ const { t } = useI18n();
     <UpdateOsStatus
       :show-update-check="true"
       :title="t('Update Unraid OS')"
+      :subtitle="subtitle"
       :t="t"
     />
   </UiPageContainer>
