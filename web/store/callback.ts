@@ -174,7 +174,7 @@ export const useCallbackStoreGeneric = (
   defineStore('callback', () => {
     const callbackActions = useCallbackActions();
 
-    const send = (url: string, payload: SendPayloads, newTab?: boolean, sendType?: string) => {
+    const send = (url: string, payload: SendPayloads, redirectType?: 'newTab' | 'replace', sendType?: string) => {
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [...payload],
@@ -192,8 +192,12 @@ export const useCallbackStoreGeneric = (
       const destinationUrl = new URL(url.replace('/Tools/Update', '/Main'));
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
       console.debug('[callback.send]', encryptedMessage, destinationUrl);
-      if (newTab) {
+      if (redirectType === 'newTab') { // helpful when webgui is in an iframe and callbacks need to be opened in a new tab
         window.open(destinationUrl.toString(), '_blank');
+        return;
+      }
+      if (redirectType === 'replace') { // helpful when autoredirecting and we want to replace the current url to prevent back button issues with auto redirect loops
+        window.location.replace(destinationUrl.toString());
         return;
       }
       window.location.href = destinationUrl.toString();
