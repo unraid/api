@@ -17,7 +17,7 @@ const { rebootType } = storeToRefs(updateOsActionsStore);
 onBeforeMount(() => {
   /** when we're not prompting for reboot /Tools/Update will automatically send the user to account.unraid.net/server/update-os */
   if (window.location.pathname === WEBGUI_TOOLS_UPDATE.pathname && rebootType.value === '') {
-    updateOsActionsStore.executeUpdateOsCallback('replace');
+    updateOsActionsStore.executeUpdateOsCallback(true);
   }
 });
 </script>

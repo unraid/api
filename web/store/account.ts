@@ -78,7 +78,7 @@ export const useAccountStore = defineStore('account', () => {
         },
         type: 'recover',
       }],
-      serverStore.inIframe ? 'newTab' : '',
+      serverStore.inIframe ? 'newTab' : undefined,
     );
   };
   const replace = () => {
@@ -90,7 +90,7 @@ export const useAccountStore = defineStore('account', () => {
         },
         type: 'replace',
       }],
-      serverStore.inIframe ? 'newTab' : '',
+      serverStore.inIframe ? 'newTab' : undefined,
     );
   };
   const signIn = () => {
@@ -102,7 +102,7 @@ export const useAccountStore = defineStore('account', () => {
         },
         type: 'signIn',
       }],
-      serverStore.inIframe ? 'newTab' : '',
+      serverStore.inIframe ? 'newTab' : undefined,
     );
   };
   const signOut = () => {
@@ -114,7 +114,7 @@ export const useAccountStore = defineStore('account', () => {
         },
         type: 'signOut',
       }],
-      serverStore.inIframe ? 'newTab' : '',
+      serverStore.inIframe ? 'newTab' : undefined,
     );
   };
   const trialExtend = () => {
@@ -126,7 +126,7 @@ export const useAccountStore = defineStore('account', () => {
         },
         type: 'trialExtend',
       }],
-      serverStore.inIframe ? 'newTab' : '',
+      serverStore.inIframe ? 'newTab' : undefined,
     );
   };
   const trialStart = () => {
@@ -138,7 +138,7 @@ export const useAccountStore = defineStore('account', () => {
         },
         type: 'trialStart',
       }],
-      serverStore.inIframe ? 'newTab' : '',
+      serverStore.inIframe ? 'newTab' : undefined,
     );
   };
 

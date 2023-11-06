@@ -157,7 +157,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
               keyUrl: keyLatestResponse.license,
               type: 'renew',
             }],
-            false,
+            undefined,
             'forUpc',
           );
           // setRenewStatus('installing');
