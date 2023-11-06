@@ -19,9 +19,10 @@ const WEBGUI_CONNECT_SETTINGS = new URL('#UnraidNetSettings', WEBGUI_SETTINGS_MA
 const WEBGUI_TOOLS_REGISTRATION = new URL('/Tools/Registration', WEBGUI);
 const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
-const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://next.dl.unraid.net/releases-combined.json');
+const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://stable.dl.unraid.net/releases-combined.json');
 const OS_RELEASES_NEXT = new URL(import.meta.env.VITE_OS_RELEASES_NEXT ?? 'https://next.dl.unraid.net/releases-combined.json');
-const OS_RELEASES_PREVIEW = new URL(import.meta.env.VITE_OS_RELEASES_PREVIEW ?? 'https://preview.dl.unraid.net/releases-combined.json');
+const OS_RELEASES_PREVIEW = new URL(import.meta.env.VITE_OS_RELEASES_PREVIEW ?? ''); // @note we don't want these in the webgui
+const OS_RELEASES_TEST = new URL(import.meta.env.VITE_OS_RELEASES_PREVIEW ?? ''); // @note we don't want these in the webgui
 
 const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
