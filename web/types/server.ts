@@ -31,8 +31,9 @@ export type ServerState = 'BASIC'
   | undefined;
 
 export type ServerOsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
-
 export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
+export type ServerRebootType = 'thirdPartyDriversDownloading' | 'downgrade' | 'update' | '';
+
 export interface Server {
   apiKey?: string;
   apiVersion?: string;
@@ -58,6 +59,8 @@ export interface Server {
   name?: string;
   osVersion?: string;
   osVersionBranch?: ServerOsVersionBranch;
+  rebootType?: ServerRebootType;
+  rebootVersion?: string;
   registered?: boolean;
   regDev?: number;
   regGen?: number;

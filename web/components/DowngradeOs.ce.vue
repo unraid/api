@@ -37,12 +37,20 @@ withDefaults(defineProps<Props>(), {
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { rebootType } = storeToRefs(updateOsActionsStore);
+
+const subtitle = computed(() => {
+  if (rebootType.value === 'downgrade') {
+    return t('Please finish the initiated update to enable a downgrade.');
+  }
+  return '';
+});
 </script>
 
 <template>
   <UiPageContainer>
     <UpdateOsStatus
       :title="t('Downgrade Unraid OS')"
+      :subtitle="subtitle"
       :downgrade-not-available="restoreVersion === ''"
       :t="t"
     />

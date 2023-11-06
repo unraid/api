@@ -89,6 +89,8 @@ export const useServerStore = defineStore('server', () => {
   const name = ref<string>('');
   const osVersion = ref<string>('');
   const osVersionBranch = ref<ServerOsVersionBranch>('stable');
+  const rebootType = ref<'thirdPartyDriversDownloading' | 'downgrade' | 'update' | ''>('');
+  const rebootVersion = ref<string | undefined>();
   const registered = ref<boolean>();
   const regDev = ref<number>(0);
   const regGen = ref<number>(0);
@@ -742,6 +744,7 @@ export const useServerStore = defineStore('server', () => {
    * Actions
    */
   const setServer = (data: Server) => {
+    console.debug('[setServer]', data);
     if (typeof data?.apiKey !== 'undefined') { apiKey.value = data.apiKey; }
     if (typeof data?.apiVersion !== 'undefined') { apiVersion.value = data.apiVersion; }
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
@@ -765,6 +768,8 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.name !== 'undefined') { name.value = data.name; }
     if (typeof data?.osVersion !== 'undefined') { osVersion.value = data.osVersion; }
     if (typeof data?.osVersionBranch !== 'undefined') { osVersionBranch.value = data.osVersionBranch; }
+    if (typeof data?.rebootType !== 'undefined') { rebootType.value = data.rebootType; }
+    if (typeof data?.rebootVersion !== 'undefined') { rebootVersion.value = data.rebootVersion; }
     if (typeof data?.registered !== 'undefined') { registered.value = data.registered; }
     if (typeof data?.regGen !== 'undefined') { regGen.value = data.regGen; }
     if (typeof data?.regGuid !== 'undefined') { regGuid.value = data.regGuid; }
@@ -896,6 +901,12 @@ export const useServerStore = defineStore('server', () => {
     });
   };
 
+  watchEffect(() => {
+    if (rebootVersion.value) {
+      console.debug('[server.rebootVersion]', rebootVersion.value);
+    }
+  })
+
   return {
     // state
     apiKey,
@@ -919,6 +930,8 @@ export const useServerStore = defineStore('server', () => {
     name,
     osVersion,
     osVersionBranch,
+    rebootType,
+    rebootVersion,
     registered,
     regDev,
     regGen,

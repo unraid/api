@@ -238,8 +238,12 @@
   "Downgrades are only recommended if you're unable to solve a critical issue. In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue. You will be prompted with the option to download the Diagnostics zip once the downgrade process is started. From there please open a bug report on our forums with a description of the issue and include your diagnostics.": "Downgrades are only recommended if you're unable to solve a critical issue. In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue. You will be prompted with the option to download the Diagnostics zip once the downgrade process is started. From there please open a bug report on our forums with a description of the issue and include your diagnostics.",
   "Reboot Now to Downgrade": "Reboot Now to Downgrade",
   "Reboot Now to Update": "Reboot Now to Update",
+  "Reboot Now to Downgrade to {0}": "Reboot Now to Downgrade to {0}",
+  "Reboot Now to Update to {0}": "Reboot Now to Update to {0}",
   "Reboot Required for Downgrade": "Reboot Required for Downgrade",
   "Reboot Required for Update": "Reboot Required for Update",
+  "Reboot Required for Downgrade to {0}": "Reboot Required for Downgrade to {0}",
+  "Reboot Required for Update to {0}": "Reboot Required for Update to {0}",
   "Updating 3rd party drivers": "Updating 3rd party drivers",
   "Update Available": "Update Available",
   "Up-to-date": "Up-to-date",
@@ -322,5 +326,7 @@
   "Calculating OS Update Eligibility…": "Calculating OS Update Eligibility…",
   "Cancel": "Cancel",
   "Unknown error": "Unknown error",
-  "Installing Extended": "Installing Extended"
+  "Installing Extended": "Installing Extended",
+  "Please finish the initiated downgrade to enable updates.": "Please finish the initiated downgrade to enable updates.",
+  "Please finish the initiated update to enable a downgrade.": "Please finish the initiated update to enable a downgrade."
 }
