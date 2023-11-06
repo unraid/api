@@ -31,6 +31,61 @@ $configErrorEnum = [
 $osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
 $registered = !empty($myservers['remote']['apikey']) && $connectPluginInstalled;
 
+/**
+ * Reboot detection
+ */
+$rebootReadme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)?:''; // read first 20 bytes of README.md
+$rebootDetected = preg_match("/^\*\*(REBOOT REQUIRED|DOWNGRADE)/", $rebootReadme);
+
+$rebootForDowngrade = $rebootDetected && strpos($rebootReadme, 'DOWNGRADE') !== false;
+$rebootForUpdate = $rebootDetected && strpos($rebootReadme, 'REBOOT REQUIRED') !== false;
+
+$rebootType = $rebootForDowngrade ? 'downgrade' : ($rebootForUpdate ? 'update' : '');
+$rebootVersion = '';
+/**
+ * Detect if third-party drivers were part of the update process
+ */
+$processWaitingThirdParthDrivers = "inotifywait -q /boot/changes.txt -e move_self,delete_self";
+// Run the ps command to list processes and check if the process is running
+$ps_command = "ps aux | grep -E \"$processWaitingThirdParthDrivers\" | grep -v \"grep -E\"";
+$output = shell_exec($ps_command) ?? '';
+if (strpos($output, $processWaitingThirdParthDrivers) !== false) {
+    $rebootType = 'thirdPartyDriversDownloading';
+}
+
+function rebootExtractVersion() {
+    $file_path = '/boot/changes.txt';
+
+    // Check if the file exists
+    if (file_exists($file_path)) {
+        // Open the file for reading
+        $file = fopen($file_path, 'r');
+
+        // Read the file line by line until we find a line that starts with '# Version'
+        while (($line = fgets($file)) !== false) {
+            if (strpos($line, '# Version') === 0) {
+                // Use a regular expression to extract the full version string
+                if (preg_match('/# Version\s+(\S+)/', $line, $matches)) {
+                    $fullVersion = $matches[1];
+                    return $fullVersion;
+                } else {
+                    return 'Not found';
+                }
+                break;
+            }
+        }
+
+        // Close the file
+        fclose($file);
+    } else {
+        return 'File not found';
+    }
+}
+
+if ($rebootType === 'downgrade' || $rebootType === 'update') {
+    $rebootVersion = rebootExtractVersion();
+}
+
 $serverState = [
     "apiKey" => $myservers['upc']['apikey'] ?? '',
     "apiVersion" => $myservers['api']['version'] ?? '',
@@ -66,6 +121,8 @@ $serverState = [
     "osVersion" => $var['version'],
     "osVersionBranch" => $osVersionBranch,
     "protocol" => $_SERVER['REQUEST_SCHEME'],
+    "rebootType" => $rebootType,
+    "rebootVersion" => $rebootVersion,
     "regDev" => @(int)$var['regDev'] ?? 0,
     "regGen" => @(int)$var['regGen'],
     "regGuid" => @$var['regGUID'] ?? '',
