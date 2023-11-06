@@ -15,7 +15,6 @@ import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
 export interface Props {
-  rebootType?: 'downgrade' | 'upgrade' | '';
   server?: Server | string;
 }
 const props = defineProps<Props>();
@@ -27,7 +26,6 @@ const dropdownStore = useDropdownStore();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
@@ -95,11 +93,6 @@ onBeforeMount(() => {
 
   // look for any callback params
   callbackStore.watcher();
-
-  // see if we've started the downgrade or upgrade and need to display a reboot message
-  if (props.rebootType) {
-    updateOsActionsStore.setRebootType(props.rebootType);
-  }
 
   if (guid.value && keyfile.value) {
     if (callbackData.value) {

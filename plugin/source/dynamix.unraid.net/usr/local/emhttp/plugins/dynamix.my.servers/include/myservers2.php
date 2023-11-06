@@ -2,17 +2,6 @@
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/translations.php");
-
-/**
- * Reboot detection
- */
-$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)?:''; // read first 20 bytes of README.md
-$reboot = preg_match("/^\*\*(REBOOT REQUIRED|DOWNGRADE)/", $readme);
-
-$rebootForDowngrade = $reboot && strpos($readme, 'DOWNGRADE') !== false;
-$rebootForUpgrade = $reboot && strpos($readme, 'REBOOT REQUIRED') !== false;
-
-$rebootType = $rebootForDowngrade ? 'downgrade' : ($rebootForUpgrade ? 'upgrade' : '');
 ?>
 <script>
 window.LOCALE_DATA = '<?= rawurlencode(json_encode($webComponentTranslations, JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE)) ?>';
@@ -32,7 +21,5 @@ if (!document.getElementsByTagName(modalsWebComponent).length) {
 <?
 echo "
 <unraid-i18n-host>
-    <unraid-user-profile
-        reboot-type='" . $rebootType . "'
-        server='" . json_encode($serverState) . "'></unraid-user-profile>
+    <unraid-user-profile server='" . json_encode($serverState) . "'></unraid-user-profile>
 </unraid-i18n-host>";
