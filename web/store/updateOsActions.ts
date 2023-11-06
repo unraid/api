@@ -16,7 +16,6 @@ import {
 } from '~/store/updateOs';
 
 import type { ExternalUpdateOsAction } from '~/store/callback';
-import type { ServerRebootType } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 /**
@@ -102,7 +101,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
             },
             type: 'updateOs',
           }],
-          serverStore.inIframe ? 'newTab' : '',
+          serverStore.inIframe ? 'newTab' : undefined,
         );
       },
       external: !!updateOsStore.available,
@@ -122,7 +121,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
         },
         type: 'updateOs',
       }],
-      serverStore.inIframe ? 'newTab' : (autoRedirectReplace ? 'replace' : ''),
+      serverStore.inIframe ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
     );
   };
 

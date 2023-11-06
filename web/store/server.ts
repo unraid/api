@@ -905,7 +905,7 @@ export const useServerStore = defineStore('server', () => {
     if (rebootVersion.value) {
       console.debug('[server.rebootVersion]', rebootVersion.value);
     }
-  })
+  });
 
   return {
     // state
