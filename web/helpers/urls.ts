@@ -21,8 +21,9 @@ const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
 const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://stable.dl.unraid.net/releases-combined.json');
 const OS_RELEASES_NEXT = new URL(import.meta.env.VITE_OS_RELEASES_NEXT ?? 'https://next.dl.unraid.net/releases-combined.json');
-const OS_RELEASES_PREVIEW = new URL(import.meta.env.VITE_OS_RELEASES_PREVIEW ?? ''); // @note we don't want these in the webgui
-const OS_RELEASES_TEST = new URL(import.meta.env.VITE_OS_RELEASES_PREVIEW ?? ''); // @note we don't want these in the webgui
+// @note we don't want PREVIEW / TEST used in the webgui, but they're here as a necessary evil for updateOs imports
+const OS_RELEASES_PREVIEW = '';
+const OS_RELEASES_TEST = '';
 
 const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
