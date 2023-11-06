@@ -36,7 +36,7 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat, osVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
+const { dateTimeFormat, osVersion, rebootVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
 const { available, availableWithRenewal, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootType, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
@@ -75,7 +75,7 @@ const regExpOutput = computed(() => {
         <button
           class="group"
           :title="t('View release notes')"
-          @click="updateOsActionsStore.viewCurrentReleaseNotes(t('{0} Release Notes', [osVersion]))"
+          @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
         >
           <UiBadge :icon="InformationCircleIcon" class="underline">
             {{ t('Current Version {0}', [osVersion]) }}
@@ -151,9 +151,9 @@ const regExpOutput = computed(() => {
           :t="t"
         />
         <BrandButton
-          v-else-if="rebootType === 'downgrade' || rebootType === 'upgrade'"
+          v-else-if="rebootType === 'downgrade' || rebootType === 'update'"
           :icon="ArrowPathIcon"
-          :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade') : t('Reboot Now to Update')"
+          :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade to {0}', [rebootVersion]) : t('Reboot Now to Update to {0}', [rebootVersion])"
           @click="updateOsActionsStore.rebootServer()"
         />
       </div>

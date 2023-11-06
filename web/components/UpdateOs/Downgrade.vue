@@ -23,6 +23,7 @@ const props = defineProps<{
 }>();
 
 const serverStore = useServerStore();
+
 const { dateTimeFormat } = storeToRefs(serverStore);
 const {
   outputDateTimeFormatted: formattedReleaseDate,

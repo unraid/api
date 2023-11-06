@@ -140,7 +140,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     const isAvailableStable = computed(() => available.value ? isVersionStable(available.value) : false);
 
     const filteredNextReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.next) {
         return releases.value?.response?.next.filter(
@@ -151,7 +151,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredPreviewReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.preview) {
         return releases.value?.response?.preview.filter(
@@ -162,7 +162,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredStableReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.stable) {
         return releases.value?.response?.stable.filter(
@@ -173,7 +173,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredTestReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.test) {
         return releases.value?.response?.test.filter(
@@ -193,7 +193,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
         ...(filteredPreviewReleases.value && { preview: [...filteredPreviewReleases.value] }),
         ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
-      };
+      }
     });
 
     /**
@@ -203,30 +203,35 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
      */
     const releasesUrl = computed((): typeof OS_RELEASES => {
       const isOnAccountApp = window.location.origin === ACCOUNT.origin;
-
+      /**
+       * @note The webgui should only use stable and next URLs.
+       * Users with test or preview would need to manually check for updates.
+       *
+       * Alternatively, what could be done is the webgui URLs slightly differ in that the JSON only contains the sha256s of the releases.
+       * Rather than revealing the entire release object with the download URLs.
+       * This may require download URLs to be generated on the fly or the URLs are randomized and don't follow a specific pattern.
+       * Because https://stable.dl.unraid.net/unRAIDServer-6.12.4-x86_64.zip is a pretty obvious pattern.
+       * Even if it means just adding a randomized hash to the end of the URL.
+       * */
       const webguiNextBranch = !isOnAccountApp && osVersionBranch.value === 'next';
-      const webguiPreviewBranch = !isOnAccountApp && osVersionBranch.value === 'preview';
-      const webguiTestBranch = !isOnAccountApp && osVersionBranch.value === 'test';
 
       const accountAppLoggedIn = isOnAccountApp && isLoggedIn.value;
-      /** @todo should we remove the || checks directly below and only rely on the group? */
-      const accountAppPreviewBranch = accountAppLoggedIn && (osVersionBranch.value === 'preview' || (authUserGroups.value && authUserGroups.value.includes('download_preview')));
-      const accountAppTestBranch = accountAppLoggedIn && (osVersionBranch.value === 'test' || (authUserGroups.value && authUserGroups.value.includes('download_test')));
+
+      const accountAppPreviewBranch = accountAppLoggedIn && authUserGroups.value && authUserGroups.value.includes('download_preview');
+      const accountAppTestBranch = accountAppLoggedIn && authUserGroups.value && authUserGroups.value.includes('download_test');
       console.debug('[releasesUrl]', {
         osVersionBranch: osVersionBranch.value,
         authUserGroups: authUserGroups.value,
         isOnAccountApp,
         webguiNextBranch,
-        webguiPreviewBranch,
-        webguiTestBranch,
         accountAppLoggedIn,
         accountAppPreviewBranch,
         accountAppTestBranch,
       });
 
       const useNextBranch = webguiNextBranch || accountAppLoggedIn;
-      const usePreviewBranch = webguiPreviewBranch || accountAppPreviewBranch;
-      const useTestBranch = webguiTestBranch || accountAppTestBranch;
+      const usePreviewBranch = accountAppPreviewBranch;
+      const useTestBranch = accountAppTestBranch;
       console.debug('[releasesUrl]', {
         useNextBranch,
         usePreviewBranch,
@@ -234,10 +239,10 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
       });
 
       let releasesUrl = OS_RELEASES;
-      if (useNextBranch) { releasesUrl = OS_RELEASES_NEXT; }
-      if (usePreviewBranch || useTestBranch || import.meta.env.VITE_OS_RELEASES_PREVIEW_FORCE) { releasesUrl = OS_RELEASES_PREVIEW; }
-      /** @todo implement separate test branch json once available */
-      // if (useTestBranch) releasesUrl = OS_RELEASES_PREVIEW.toString();
+      if (useNextBranch) releasesUrl = OS_RELEASES_NEXT;
+      if (usePreviewBranch) releasesUrl = OS_RELEASES_PREVIEW;
+      if (useTestBranch) releasesUrl = OS_RELEASES_TEST;
+
       return releasesUrl;
     });
     // actions
@@ -246,7 +251,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         timestamp: Date.now(),
         response,
       };
-    };
+    }
 
     const cacheReleasesResponse = () => {
       localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
@@ -285,7 +290,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         const currentTime = new Date().getTime();
         const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
         if (currentTime - releases.value.timestamp > cacheDuration) {
-        // cache is expired, purge it
+          // cache is expired, purge it
           console.debug('[requestReleases] cache EXPIRED');
           await purgeReleasesCache();
         } else {
@@ -293,7 +298,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
           console.debug('[requestReleases] cache VALID', releases.value.response);
           return releases.value.response;
         }
-      }
+     }
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
@@ -343,7 +348,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         return console.error('[checkForUpdate] no releases found');
       }
 
-      Object.keys(releases.value.response ?? {}).forEach((key) => {
+      Object.keys(releases.value.response ?? {}).forEach(key => {
         // this is just to make TS happy (it's already checked above…thanks github copilot for knowing what I needed)
         if (!releases.value) {
           return;
@@ -359,7 +364,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
           return;
         }
 
-        branchReleases.find((release) => {
+        branchReleases.find(release => {
           if (gt(release.version, osVersion.value)) {
             // before we set the available version, check if the license key updates have expired to ensure we don't show an update that the user can't install
             if (regUpdatesExpired.value && releaseDateGtRegExpDate(release.date, regExp.value)) {
@@ -379,14 +384,14 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
 
     const findRelease = (searchKey: keyof Release, searchValue: string): Release | null => {
       const response = releases?.value?.response;
-      if (!response) { return null; }
+      if (!response) return null;
 
       for (const key of Object.keys(response)) {
         const branchReleases = response[key as keyof ReleasesResponse];
-        if (!branchReleases || branchReleases.length === 0) { continue; }
+        if (!branchReleases || branchReleases.length === 0) continue;
 
         const foundRelease = branchReleases.find(release => release[searchKey] === searchValue);
-        if (foundRelease) { return foundRelease; }
+        if (foundRelease) return foundRelease;
       }
 
       return null;

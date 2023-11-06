@@ -16,6 +16,7 @@ import {
 } from '~/store/updateOs';
 
 import type { ExternalUpdateOsAction } from '~/store/callback';
+import type { ServerRebootType } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 /**
@@ -43,7 +44,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   /** used when coming back from callback, this will be the release to install */
   const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
   const callbackUpdateRelease = ref<Release | null>(null);
-  const rebootType = ref<'thirdPartyDriversDownloading' | 'downgrade' | 'upgrade' | ''>('');
+  const rebootType = computed(() => serverStore.rebootType);
   const rebootTypeText = computed(() => {
     /** translations are handled by rendering template's `t()` */
     switch (rebootType.value) {
@@ -51,12 +52,13 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
         return 'Updating 3rd party drivers';
       case 'downgrade':
         return 'Reboot Required for Downgrade';
-      case 'upgrade':
+      case 'update':
         return 'Reboot Required for Update';
       default:
         return '';
     }
   });
+  const rebootVersion = computed(() => serverStore.rebootVersion);
 
   const ineligible = computed(() => !serverStore.guid || !serverStore.keyfile || !osVersion.value || regUpdatesExpired.value);
   const ineligibleText = computed(() => { // translated in components
@@ -100,7 +102,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
             },
             type: 'updateOs',
           }],
-          serverStore.inIframe,
+          serverStore.inIframe ? 'newTab' : '',
         );
       },
       external: !!updateOsStore.available,
@@ -111,7 +113,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     };
   };
 
-  const executeUpdateOsCallback = async () => {
+  const executeUpdateOsCallback = async (autoRedirectReplace?: boolean) => {
     await callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
       [{
@@ -120,7 +122,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
         },
         type: 'updateOs',
       }],
-      serverStore.inIframe,
+      serverStore.inIframe ? 'newTab' : (autoRedirectReplace ? 'replace' : ''),
     );
   };
 
@@ -177,8 +179,10 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     // @ts-ignore • global set in the webgui
     document.rebootNow.submit();
   };
-
-  const viewCurrentReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => { // @ts-ignore
+  /**
+   * By default this will display current version's release notes
+   */
+  const viewReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => { // @ts-ignore
     if (typeof openChanges === 'function') { // @ts-ignore
       openChanges(`showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle);
     } else {
@@ -188,10 +192,6 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
   const setStatus = (payload: typeof status.value) => {
     status.value = payload;
-  };
-
-  const setRebootType = (payload: typeof rebootType.value) => {
-    rebootType.value = payload;
   };
 
   watchEffect(() => {
@@ -209,6 +209,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     regUpdatesExpired,
     rebootType,
     rebootTypeText,
+    rebootVersion,
     status,
     ineligible,
     ineligibleText,
@@ -221,9 +222,8 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     executeUpdateOsCallback,
     rebootServer,
     setStatus,
-    setRebootType,
     setUpdateOsAction,
-    viewCurrentReleaseNotes,
+    viewReleaseNotes,
     getReleaseFromKeyServer,
   };
 });
