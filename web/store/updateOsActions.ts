@@ -104,7 +104,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
           serverStore.inIframe ? 'newTab' : undefined,
         );
       },
-      external: !!updateOsStore.available,
+      external: true,
       icon: updateOsStore.available ? BellAlertIcon : ArrowPathIcon,
       name: 'updateOs',
       text: updateOsStore.available ? 'Unraid OS {0} Update Available' : 'Check for OS Updates',
