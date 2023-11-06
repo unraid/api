@@ -241,8 +241,9 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
 
       let releasesUrl = OS_RELEASES;
       if (useNextBranch) { releasesUrl = OS_RELEASES_NEXT; }
-      if (usePreviewBranch) { releasesUrl = OS_RELEASES_PREVIEW; }
-      if (useTestBranch) { releasesUrl = OS_RELEASES_TEST; }
+      // @note we don't want PREVIEW / TEST used in the webgui hence additional checks to ensure the URLs exist
+      if (usePreviewBranch && OS_RELEASES_PREVIEW) { releasesUrl = OS_RELEASES_PREVIEW; }
+      if (useTestBranch && OS_RELEASES_TEST) { releasesUrl = OS_RELEASES_TEST; }
 
       return releasesUrl;
     });
