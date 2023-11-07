@@ -434,6 +434,13 @@ if [[ -n $LINENUM ]]; then
   head -$((LINENUM-1)) "$FILE" > "$FILE~"
   echo '<unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>' >> "$FILE~"
   tail +$((LINENUM+1)) "$FILE" >> "$FILE~"
+
+  # disable these lines: <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)?:''?>
+  #                      <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)??'';?>
+  #                      <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20);?>
+  # by replacing with:   <?$readme ="removed by Connect";?>
+  sed -i '/unRAIDServer\/README\.md/c\<?$readme ="removed by Connect";?>' "$FILE~"
+
   mv -f "$FILE~" "$FILE"
 fi
 
