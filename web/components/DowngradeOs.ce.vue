@@ -39,7 +39,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { rebootType } = storeToRefs(updateOsActionsStore);
 
 const subtitle = computed(() => {
-  if (rebootType.value === 'downgrade') {
+  if (rebootType.value === 'update') {
     return t('Please finish the initiated update to enable a downgrade.');
   }
   return '';
