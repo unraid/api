@@ -51,7 +51,7 @@ const subtitle = computed(() => {
     <UpdateOsStatus
       :title="t('Downgrade Unraid OS')"
       :subtitle="subtitle"
-      :downgrade-not-available="restoreVersion === ''"
+      :downgrade-not-available="restoreVersion === '' || rebootType !== ''"
       :t="t"
     />
     <UpdateOsDowngrade
