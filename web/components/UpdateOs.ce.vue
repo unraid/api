@@ -18,6 +18,7 @@ fi
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
+import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
@@ -34,11 +35,22 @@ const subtitle = computed(() => {
   }
   return '';
 });
+
+/** when we're not prompting for reboot /Tools/Update will automatically send the user to account.unraid.net/server/update-os */
+const showLoader = computed(() => window.location.pathname === WEBGUI_TOOLS_UPDATE.pathname && rebootType.value === '')
+
+onBeforeMount(() => {
+  if (showLoader.value) {
+    updateOsActionsStore.executeUpdateOsCallback(true);
+  }
+});
 </script>
 
 <template>
   <UiPageContainer>
+    <BrandLoading v-if="showLoader" class="mx-auto my-12 max-w-160px" />
     <UpdateOsStatus
+      v-else
       :show-update-check="true"
       :title="t('Update Unraid OS')"
       :subtitle="subtitle"
@@ -50,5 +62,54 @@ const subtitle = computed(() => {
 <style lang="postcss">
 @tailwind base;
 @tailwind components;
+
+.unraid_mark_2,
+.unraid_mark_4 {
+  animation: mark_2 1.5s ease infinite;
+}
+.unraid_mark_3 {
+  animation: mark_3 1.5s ease infinite;
+}
+.unraid_mark_6,
+.unraid_mark_8 {
+  animation: mark_6 1.5s ease infinite;
+}
+.unraid_mark_7 {
+  animation: mark_7 1.5s ease infinite;
+}
+
+@keyframes mark_2 {
+  50% {
+    transform: translateY(-40px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes mark_3 {
+  50% {
+    transform: translateY(-62px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes mark_6 {
+  50% {
+    transform: translateY(40px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+@keyframes mark_7 {
+  50% {
+    transform: translateY(62px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
 @tailwind utilities;
 </style>
