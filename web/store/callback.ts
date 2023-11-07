@@ -187,7 +187,6 @@ export const useCallbackStoreGeneric = (
       ).toString();
       /**
        * Build and go to url
-       * @note – /Tools/Update redirects to account.unraid.net/server/update-os we need to prevent any callback sends to that url to prevent redirect loops
        */
       const destinationUrl = new URL(url.replace('/Tools/Update', '/Main'));
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));

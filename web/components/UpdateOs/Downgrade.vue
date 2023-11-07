@@ -2,12 +2,13 @@
 import {
   ArrowTopRightOnSquareIcon,
   ArrowUturnDownIcon,
+  FolderArrowDownIcon,
   InformationCircleIcon,
   LifebuoyIcon,
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
-import { ref } from 'vue';
+import { onBeforeMount, ref } from 'vue';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -32,13 +33,27 @@ const {
   outputDateTimeFormatted: formattedReleaseDate,
 } = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(props.releaseDate, 'YYYY-MM-DD').valueOf());
 
-const downgradeButton = ref<UserProfileLink | undefined>({
+const diagnosticsButton = ref<UserProfileLink | undefined>({
   click: () => {
     // @ts-ignore – global function provided by the webgui on the update page
-    downgrade();
+    downloadDiagnostics();
+  },
+  icon: FolderArrowDownIcon,
+  name: 'download-diagnostics',
+  text: props.t('Download Diagnostics'),
+});
+
+const downgradeButton = ref<UserProfileLink>({
+  click: () => {
+    // @ts-ignore – global function provided by the webgui on the update page
+    confirmDowngrade();
   },
   name: 'downgrade',
-  text: props.t('Begin restore to Unraid {0}', [props.version]),
+  text: props.t('Begin downgrade to {0}', [props.version]),
+});
+
+onBeforeMount(() => {
+  console.debug('[props.releaseDate]', props.releaseDate, formattedReleaseDate.value);
 });
 </script>
 
@@ -55,32 +70,42 @@ const downgradeButton = ref<UserProfileLink | undefined>({
               {{ t('Downgrade Unraid OS to {0}', [version]) }}
             </span>
             <span
-              v-if="releaseDate"
+              v-if="releaseDate && formattedReleaseDate !== 'Invalid Date'"
               class="text-16px opacity-75 shrink"
             >
               {{ t('Original release date {0}', [formattedReleaseDate]) }}
             </span>
           </span>
         </h3>
-        <div class="text-16px leading-relaxed opacity-75 whitespace-normal">
-          <p>{{ t('Downgrades are only recommended if you\'re unable to solve a critical issue. In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue. You will be prompted with the option to download the Diagnostics zip once the downgrade process is started. From there please open a bug report on our forums with a description of the issue and include your diagnostics.') }}</p>
+        <div class="prose text-16px leading-relaxed opacity-75 whitespace-normal">
+          <p>{{ t(`Downgrades are only recommended if you're unable to solve a critical issue.`) }}</p>
+          <p>{{ t('In the rare event you need to downgrade we ask that you please provide us with Diagnostics so we can investigate your issue.') }}</p>
+          <p>{{ t('Download the Diagnostics zip then please open a bug report on our forums with a description of the issue along with your diagnostics.') }} </p>
         </div>
       </div>
 
       <div v-if="downgradeButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <BrandButton
           :btn-style="'underline'"
+          :icon="InformationCircleIcon"
+          :text="t('{0} Release Notes', [version])"
+          @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [version]), '/boot/previous/changes.txt')"
+        />
+        <BrandButton
+          v-if="diagnosticsButton"
+          :btn-style="'gray'"
+          :icon="diagnosticsButton.icon"
+          :name="diagnosticsButton.name"
+          :text="diagnosticsButton.text"
+          @click="diagnosticsButton.click"
+        />
+        <BrandButton
+          :btn-style="'gray'"
           :external="true"
           :href="FORUMS_BUG_REPORT.toString()"
           :icon="LifebuoyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Open a bug report')"
-        />
-        <BrandButton
-          :btn-style="'underline'"
-          :icon="InformationCircleIcon"
-          :text="t('{0} Release Notes', [version])"
-          @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [version]), '/boot/previous/changes.txt')"
         />
         <BrandButton
           :external="downgradeButton?.external"
