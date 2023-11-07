@@ -23,10 +23,10 @@ fi
 echo "$server_name" > "$state_file"
 
 # Source directory path
-source_directory="plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers"
+source_directory="plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins"
 
 # Destination directory path
-destination_directory="/usr/local/emhttp/plugins/dynamix.my.servers"
+destination_directory="/usr/local/emhttp/plugins"
 
 # Replace the value inside the rsync command with the user's input
 rsync_command="rsync -avz --progress --stats -m -e ssh \"$source_directory/\" \"root@${server_name}:$destination_directory/\""
