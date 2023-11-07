@@ -4,6 +4,11 @@ Icon="icon-update"
 Tag="upload"
 ---
 <?php
+require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
+// Create an instance of the RebootDetails class
+$rebootDetails = new RebootDetails();
+// Access the detected reboot type
+$rebootVersion = $rebootDetails->getRebootVersion();
 /**
  * @note icon-update is rotated via CSS in myservers1.php
  *
@@ -11,8 +16,6 @@ Tag="upload"
  * Parse the text file /boot/previous/changes.txt to get the version number of the previous version.
  * Then we move some files around and reboot.
  */
-$check = $notify['unraidos'] ? 0 : 1;
-
 $restoreVersion = $restoreBranch = $restoreVersionReleaseDate = 'unknown';
 $restoreExists = file_exists('/boot/previous/bzroot');
 $restoreChangelogPath = '/boot/previous/changes.txt';
@@ -158,6 +161,7 @@ function confirmDowngrade() {
 
 <unraid-i18n-host>
   <unraid-downgrade-os
+    reboot-version="<?= $rebootVersion ?>"
     restore-version="<?= $restoreExists && $restoreVersion != 'unknown' ? $restoreVersion : '' ?>"
     restore-release-date="<?= $restoreExists && $restoreVersionReleaseDate != 'unknown' ? $restoreVersionReleaseDate : '' ?>"></unraid-downgrade-os>
 </unraid-i18n-host>

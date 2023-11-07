@@ -16,8 +16,10 @@ else
 fi
  */
 import { storeToRefs } from 'pinia';
+import { onBeforeMount } from 'vue';
 import { useI18n } from 'vue-i18n';
 
+import { useServerStore } from '~/store/server';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
@@ -26,14 +28,17 @@ import '~/assets/main.css';
 const { t } = useI18n();
 
 export interface Props {
+  rebootVersion?: string;
   restoreReleaseDate?: string;
   restoreVersion?: string;
 }
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
+  rebootVersion: '',
   restoreReleaseDate: '',
   restoreVersion: '',
 });
 
+const serverStore = useServerStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { rebootType } = storeToRefs(updateOsActionsStore);
@@ -43,6 +48,10 @@ const subtitle = computed(() => {
     return t('Please finish the initiated update to enable a downgrade.');
   }
   return '';
+});
+
+onBeforeMount(() => {
+  serverStore.setRebootVersion(props.rebootVersion);
 });
 </script>
 

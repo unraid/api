@@ -901,6 +901,10 @@ export const useServerStore = defineStore('server', () => {
     });
   };
 
+  const setRebootVersion = (version: string) => {
+    rebootVersion.value = version;
+  };
+
   watchEffect(() => {
     if (rebootVersion.value) {
       console.debug('[server.rebootVersion]', rebootVersion.value);
@@ -968,5 +972,6 @@ export const useServerStore = defineStore('server', () => {
     fetchServerFromApi,
     refreshServerState,
     filteredKeyActions,
+    setRebootVersion,
   };
 });
