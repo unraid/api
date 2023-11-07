@@ -124,6 +124,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     // state
     const available = ref<string>('');
     const availableWithRenewal = ref<string>('');
+    const isOnAccountApp = ref<boolean>(window.location.origin === ACCOUNT.origin);
     const releases = ref<CachedReleasesResponse | undefined>(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ? JSON.parse(localStorage.getItem(RELEASES_LOCAL_STORAGE_KEY) ?? '') : undefined);
     const releasesError = ref<string>('');
 
@@ -152,7 +153,9 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredPreviewReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      // if we're on account.unraid.net and the user is not in the download_preview group, don't show preview releases
+      const userNotInGroup = isOnAccountApp.value && isLoggedIn.value && authUserGroups.value && !authUserGroups.value.includes('download_preview');
+      if (!osVersion.value || userNotInGroup) { return undefined; }
 
       if (releases.value?.response?.preview) {
         return releases.value?.response?.preview.filter(
@@ -174,7 +177,9 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredTestReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      // if we're on account.unraid.net and the user is not in the download_test group, don't show test releases
+      const userNotInGroup = isOnAccountApp.value && isLoggedIn.value && authUserGroups.value && !authUserGroups.value.includes('download_test');
+      if (!osVersion.value || userNotInGroup) { return undefined; }
 
       if (releases.value?.response?.test) {
         return releases.value?.response?.test.filter(
@@ -203,7 +208,6 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
      * 2. On account.unraid.net we can use the user's auth to determine which branch to use
      */
     const releasesUrl = computed((): typeof OS_RELEASES => {
-      const isOnAccountApp = window.location.origin === ACCOUNT.origin;
       /**
        * @note The webgui should only use stable and next URLs.
        * Users with test or preview would need to manually check for updates.
@@ -214,30 +218,16 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
        * Because https://stable.dl.unraid.net/unRAIDServer-6.12.4-x86_64.zip is a pretty obvious pattern.
        * Even if it means just adding a randomized hash to the end of the URL.
        * */
-      const webguiNextBranch = !isOnAccountApp && osVersionBranch.value === 'next';
+      const webguiNextBranch = !isOnAccountApp.value && osVersionBranch.value === 'next';
 
-      const accountAppLoggedIn = isOnAccountApp && isLoggedIn.value;
+      const accountAppLoggedIn = isOnAccountApp.value && isLoggedIn.value;
 
       const accountAppPreviewBranch = accountAppLoggedIn && authUserGroups.value && authUserGroups.value.includes('download_preview');
       const accountAppTestBranch = accountAppLoggedIn && authUserGroups.value && authUserGroups.value.includes('download_test');
-      console.debug('[releasesUrl]', {
-        osVersionBranch: osVersionBranch.value,
-        authUserGroups: authUserGroups.value,
-        isOnAccountApp,
-        webguiNextBranch,
-        accountAppLoggedIn,
-        accountAppPreviewBranch,
-        accountAppTestBranch,
-      });
 
       const useNextBranch = webguiNextBranch || accountAppLoggedIn;
       const usePreviewBranch = accountAppPreviewBranch;
       const useTestBranch = accountAppTestBranch;
-      console.debug('[releasesUrl]', {
-        useNextBranch,
-        usePreviewBranch,
-        useTestBranch,
-      });
 
       let releasesUrl = OS_RELEASES;
       if (useNextBranch) { releasesUrl = OS_RELEASES_NEXT; }
@@ -307,10 +297,6 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         console.debug('[requestReleases] fetching new releases from', releasesUrl.value.toString());
         const response: ReleasesResponse = await wretch(releasesUrl.value.toString()).get().json();
         console.debug('[requestReleases] response', response);
-        /**
-         * @note for testing with static json a structuredClone is required otherwise Vue will not provide a fully reactive object from the original static response
-         * const response: ReleasesResponse = await structuredClone(testReleasesResponse);
-         */
 
         // save it to local state
         setReleasesState(response);
