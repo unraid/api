@@ -2,6 +2,7 @@
 import {
   ArrowTopRightOnSquareIcon,
   ArrowUturnDownIcon,
+  InformationCircleIcon,
   LifebuoyIcon,
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
@@ -14,6 +15,7 @@ import '~/assets/main.css';
 import useDateTimeHelper from '~/composables/dateTime';
 import { FORUMS_BUG_REPORT } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
@@ -23,6 +25,7 @@ const props = defineProps<{
 }>();
 
 const serverStore = useServerStore();
+const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { dateTimeFormat } = storeToRefs(serverStore);
 const {
@@ -72,6 +75,12 @@ const downgradeButton = ref<UserProfileLink | undefined>({
           :icon="LifebuoyIcon"
           :icon-right="ArrowTopRightOnSquareIcon"
           :text="t('Open a bug report')"
+        />
+        <BrandButton
+          :btn-style="'underline'"
+          :icon="InformationCircleIcon"
+          :text="t('{0} Release Notes', [version])"
+          @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [version]), '/boot/previous/changes.txt')"
         />
         <BrandButton
           :external="downgradeButton?.external"
