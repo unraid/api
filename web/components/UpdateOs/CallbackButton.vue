@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
-import { onBeforeMount } from 'vue';
+
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 defineProps<{
   t: any;
