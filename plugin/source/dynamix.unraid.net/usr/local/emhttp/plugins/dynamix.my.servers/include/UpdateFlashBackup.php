@@ -17,7 +17,7 @@ putenv('GIT_OPTIONAL_LOCKS=0');
 
 $cli = php_sapi_name()=='cli';
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 
 $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];

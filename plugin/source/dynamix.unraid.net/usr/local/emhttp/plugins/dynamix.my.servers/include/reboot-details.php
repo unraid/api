@@ -30,7 +30,7 @@ class RebootDetails
      */
     private function detectRebootType()
     {
-        $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+        $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 
         $rebootReadme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md", false, null, 0, 20) ?: '';
         $rebootDetected = preg_match("/^\*\*(REBOOT REQUIRED|DOWNGRADE)/", $rebootReadme);

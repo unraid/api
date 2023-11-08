@@ -1,5 +1,5 @@
 <?php
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/translations.php");
 ?>
