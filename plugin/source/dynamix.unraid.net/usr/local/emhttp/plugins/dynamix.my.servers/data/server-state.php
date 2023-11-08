@@ -1,5 +1,5 @@
 <?php
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 $var = (array)parse_ini_file('state/var.ini');
 
 require_once "$docroot/webGui/include/Wrappers.php";

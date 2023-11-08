@@ -13,7 +13,7 @@
 <?
 $cli = php_sapi_name() == 'cli';
 
-$docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 
 /**
  * @name response_complete
