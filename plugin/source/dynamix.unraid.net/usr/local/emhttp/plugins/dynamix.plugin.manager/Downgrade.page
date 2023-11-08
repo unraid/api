@@ -19,7 +19,6 @@ $rebootVersion = $rebootDetails->getRebootVersion();
 $restoreVersion = $restoreBranch = $restoreVersionReleaseDate = 'unknown';
 $restoreExists = file_exists('/boot/previous/bzroot');
 $restoreChangelogPath = '/boot/previous/changes.txt';
-$restoreChangelogContent = file_get_contents($restoreChangelogPath);
 
 $serverNameEscaped = htmlspecialchars(str_replace(' ', '_', strtolower($var['NAME'])));
 
