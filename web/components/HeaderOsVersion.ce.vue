@@ -10,7 +10,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
 
@@ -25,7 +25,16 @@ const { available } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
 
 const showUpdateAvailable = computed(() => !ineligibleText.value && available.value && rebootType.value === '');
-const showRebootRequired = computed(() => rebootType.value !== '');
+
+const rebootRequiredLink = computed(() => {
+  if (rebootType.value === 'downgrade') {
+    return WEBGUI_TOOLS_DOWNGRADE.toString();
+  }
+  if (rebootType.value === 'update') {
+    return WEBGUI_TOOLS_UPDATE.toString();
+  }
+  return '';
+});
 </script>
 
 <template>
@@ -47,21 +56,25 @@ const showRebootRequired = computed(() => rebootType.value !== '');
     </button>
 
     <a
-      v-if="showUpdateAvailable || showRebootRequired"
+      v-if="showUpdateAvailable"
       :href="WEBGUI_TOOLS_UPDATE.toString()"
       class="group"
       :title="t('Go to Tools > Update')"
     >
       <UiBadge
-        v-if="showUpdateAvailable"
         color="orange"
         :icon="BellAlertIcon"
         size="12px"
       >
         {{ t('Update Available') }}
       </UiBadge>
+    </a>
+    <a
+      v-else-if="rebootRequiredLink"
+      :href="rebootRequiredLink"
+      class="group"
+    >
       <UiBadge
-        v-else-if="showRebootRequired"
         :color="'yellow'"
         :icon="ExclamationTriangleIcon"
         size="12px"
