@@ -37,6 +37,7 @@ const { t } = useI18n();
 
 const serverStore = useServerStore();
 const {
+  authAction,
   dateTimeFormat,
   deviceCount,
   guid,
@@ -151,7 +152,7 @@ const items = computed((): RegistrationItemProps[] => {
       : []),
     ...(!stateDataError.value && guid.value
       ? [{
-          label: t('Key Replacement Eligibility'),
+          label: t('Transfer License to New Flash'),
           component: RegistrationReplaceCheck,
           componentProps: { t },
         }]
@@ -175,7 +176,7 @@ const items = computed((): RegistrationItemProps[] => {
   <UiPageContainer class="max-w-800px">
     <UiCardWrapper :increased-padding="true">
       <div class="flex flex-col gap-20px sm:gap-24px">
-        <header class="grid gap-y-16px">
+        <header class="flex flex-col gap-y-16px">
           <h3
             class="text-20px md:text-24px font-semibold leading-normal flex flex-row items-center gap-8px"
             :class="stateDataError ? 'text-unraid-red' : 'text-green-500'"
@@ -190,6 +191,14 @@ const items = computed((): RegistrationItemProps[] => {
             class="prose text-16px leading-relaxed whitespace-normal opacity-75"
             v-html="stateData.message"
           />
+          <span v-if="authAction" class="grow-0">
+            <BrandButton
+              :disabled="authAction?.disabled"
+              :icon="authAction.icon"
+              :text="t(authAction.text)"
+              @click="authAction.click()"
+            />
+          </span>
         </header>
         <dl>
           <RegistrationItem
