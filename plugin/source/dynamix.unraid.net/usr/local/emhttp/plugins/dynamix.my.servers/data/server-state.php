@@ -7,6 +7,9 @@ require_once "$docroot/webGui/include/Helpers.php";
 extract(parse_plugin_cfg('dynamix',true));
 require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
 
+$serverStateClass = new ServerState();
+$serverStateData = $serverStateClass->getServerState();
+
 header('Content-type: application/json');
 
-echo json_encode($serverState);
+echo json_encode($serverStateData);
