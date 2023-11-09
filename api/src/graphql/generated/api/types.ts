@@ -6,38 +6,40 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 export type RequireFields<T, K extends keyof T> = Omit<T, K> & { [P in K]-?: NonNullable<T[P]> };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
-  DateTime: string;
-  JSON: { [key: string]: any };
-  Long: number;
-  Port: number;
-  UUID: string;
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
+  DateTime: { input: string; output: string; }
+  JSON: { input: { [key: string]: any }; output: { [key: string]: any }; }
+  Long: { input: number; output: number; }
+  Port: { input: number; output: number; }
+  UUID: { input: string; output: string; }
 };
 
 export type AllowedOriginInput = {
-  origins: Array<Scalars['String']>;
+  origins: Array<Scalars['String']['input']>;
 };
 
 export type ApiKey = {
   __typename?: 'ApiKey';
-  description?: Maybe<Scalars['String']>;
-  expiresAt: Scalars['Long'];
-  key: Scalars['String'];
-  name: Scalars['String'];
-  scopes: Scalars['JSON'];
+  description?: Maybe<Scalars['String']['output']>;
+  expiresAt: Scalars['Long']['output'];
+  key: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  scopes: Scalars['JSON']['output'];
 };
 
 export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
-  error?: Maybe<Scalars['String']>;
-  valid: Scalars['Boolean'];
+  error?: Maybe<Scalars['String']['output']>;
+  valid: Scalars['Boolean']['output'];
 };
 
 export type ArrayType = {
@@ -69,45 +71,45 @@ export type ArrayCapacity = {
 export type ArrayDisk = {
   __typename?: 'ArrayDisk';
   /**  User comment on disk  */
-  comment?: Maybe<Scalars['String']>;
+  comment?: Maybe<Scalars['String']['output']>;
   /**  (%) Disk space left for critical  */
-  critical?: Maybe<Scalars['Int']>;
-  device?: Maybe<Scalars['String']>;
-  exportable?: Maybe<Scalars['Boolean']>;
+  critical?: Maybe<Scalars['Int']['output']>;
+  device?: Maybe<Scalars['String']['output']>;
+  exportable?: Maybe<Scalars['Boolean']['output']>;
   /**  File format (ex MBR: 4KiB-aligned)  */
-  format?: Maybe<Scalars['String']>;
+  format?: Maybe<Scalars['String']['output']>;
   /**  (KB) Free Size on the FS (Not present on Parity type drive) */
-  fsFree?: Maybe<Scalars['Long']>;
+  fsFree?: Maybe<Scalars['Long']['output']>;
   /**  (KB) Total Size of the FS (Not present on Parity type drive)  */
-  fsSize?: Maybe<Scalars['Long']>;
+  fsSize?: Maybe<Scalars['Long']['output']>;
   /**  File system type for the disk  */
-  fsType?: Maybe<Scalars['String']>;
+  fsType?: Maybe<Scalars['String']['output']>;
   /**  (KB) Used Size on the FS (Not present on Parity type drive) */
-  fsUsed?: Maybe<Scalars['Long']>;
+  fsUsed?: Maybe<Scalars['Long']['output']>;
   /**  Disk indentifier, only set for present disks on the system  */
-  id: Scalars['ID'];
+  id: Scalars['ID']['output'];
   /**  Array slot number. Parity1 is always 0 and Parity2 is always 29. Array slots will be 1 - 28. Cache slots are 30 - 53. Flash is 54.  */
-  idx: Scalars['Int'];
-  name?: Maybe<Scalars['String']>;
+  idx: Scalars['Int']['output'];
+  name?: Maybe<Scalars['String']['output']>;
   /** Number of unrecoverable errors reported by the device I/O drivers. Missing data due to unrecoverable array read errors is filled in on-the-fly using parity reconstruct (and we attempt to write this data back to the sector(s) which failed). Any unrecoverable write error results in disabling the disk. */
-  numErrors: Scalars['Long'];
+  numErrors: Scalars['Long']['output'];
   /** Count of I/O read requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numReads: Scalars['Long'];
+  numReads: Scalars['Long']['output'];
   /** Count of I/O writes requests sent to the device I/O drivers. These statistics may be cleared at any time. */
-  numWrites: Scalars['Long'];
+  numWrites: Scalars['Long']['output'];
   /**  Is the disk a HDD or SSD.  */
-  rotational?: Maybe<Scalars['Boolean']>;
+  rotational?: Maybe<Scalars['Boolean']['output']>;
   /**  (KB) Disk Size total  */
-  size: Scalars['Long'];
+  size: Scalars['Long']['output'];
   status?: Maybe<ArrayDiskStatus>;
   /**  Disk temp - will be NaN if array is not started or DISK_NP  */
-  temp?: Maybe<Scalars['Int']>;
+  temp?: Maybe<Scalars['Int']['output']>;
   /**  ata | nvme | usb | (others) */
-  transport?: Maybe<Scalars['String']>;
+  transport?: Maybe<Scalars['String']['output']>;
   /**  Type of Disk - used to differentiate Cache / Flash / Array / Parity  */
   type: ArrayDiskType;
   /**  (%) Disk space left to warn  */
-  warning?: Maybe<Scalars['Int']>;
+  warning?: Maybe<Scalars['Int']['output']>;
 };
 
 export enum ArrayDiskFsColor {
@@ -191,49 +193,49 @@ export enum ArrayState {
 
 export type Baseboard = {
   __typename?: 'Baseboard';
-  assetTag?: Maybe<Scalars['String']>;
-  manufacturer: Scalars['String'];
-  model?: Maybe<Scalars['String']>;
-  serial?: Maybe<Scalars['String']>;
-  version?: Maybe<Scalars['String']>;
+  assetTag?: Maybe<Scalars['String']['output']>;
+  manufacturer: Scalars['String']['output'];
+  model?: Maybe<Scalars['String']['output']>;
+  serial?: Maybe<Scalars['String']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type Capacity = {
   __typename?: 'Capacity';
-  free: Scalars['String'];
-  total: Scalars['String'];
-  used: Scalars['String'];
+  free: Scalars['String']['output'];
+  total: Scalars['String']['output'];
+  used: Scalars['String']['output'];
 };
 
 export type Case = {
   __typename?: 'Case';
-  base64?: Maybe<Scalars['String']>;
-  error?: Maybe<Scalars['String']>;
-  icon?: Maybe<Scalars['String']>;
-  url?: Maybe<Scalars['String']>;
+  base64?: Maybe<Scalars['String']['output']>;
+  error?: Maybe<Scalars['String']['output']>;
+  icon?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type Cloud = {
   __typename?: 'Cloud';
-  allowedOrigins: Array<Scalars['String']>;
+  allowedOrigins: Array<Scalars['String']['output']>;
   apiKey: ApiKeyResponse;
   cloud: CloudResponse;
-  error?: Maybe<Scalars['String']>;
+  error?: Maybe<Scalars['String']['output']>;
   minigraphql: MinigraphqlResponse;
   relay?: Maybe<RelayResponse>;
 };
 
 export type CloudResponse = {
   __typename?: 'CloudResponse';
-  error?: Maybe<Scalars['String']>;
-  ip?: Maybe<Scalars['String']>;
-  status: Scalars['String'];
+  error?: Maybe<Scalars['String']['output']>;
+  ip?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
 };
 
 export type Config = {
   __typename?: 'Config';
   error?: Maybe<ConfigErrorState>;
-  valid?: Maybe<Scalars['Boolean']>;
+  valid?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export enum ConfigErrorState {
@@ -244,41 +246,41 @@ export enum ConfigErrorState {
 }
 
 export type ConnectSignInInput = {
-  accessToken?: InputMaybe<Scalars['String']>;
-  apiKey: Scalars['String'];
-  idToken?: InputMaybe<Scalars['String']>;
-  refreshToken?: InputMaybe<Scalars['String']>;
+  accessToken?: InputMaybe<Scalars['String']['input']>;
+  apiKey: Scalars['String']['input'];
+  idToken?: InputMaybe<Scalars['String']['input']>;
+  refreshToken?: InputMaybe<Scalars['String']['input']>;
   userInfo?: InputMaybe<ConnectUserInfoInput>;
 };
 
 export type ConnectUserInfoInput = {
-  avatar?: InputMaybe<Scalars['String']>;
-  email: Scalars['String'];
-  preferred_username: Scalars['String'];
+  avatar?: InputMaybe<Scalars['String']['input']>;
+  email: Scalars['String']['input'];
+  preferred_username: Scalars['String']['input'];
 };
 
 export type ContainerHostConfig = {
   __typename?: 'ContainerHostConfig';
-  networkMode: Scalars['String'];
+  networkMode: Scalars['String']['output'];
 };
 
 export type ContainerMount = {
   __typename?: 'ContainerMount';
-  destination: Scalars['String'];
-  driver: Scalars['String'];
-  mode: Scalars['String'];
-  name: Scalars['String'];
-  propagation: Scalars['String'];
-  rw: Scalars['Boolean'];
-  source: Scalars['String'];
-  type: Scalars['String'];
+  destination: Scalars['String']['output'];
+  driver: Scalars['String']['output'];
+  mode: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  propagation: Scalars['String']['output'];
+  rw: Scalars['Boolean']['output'];
+  source: Scalars['String']['output'];
+  type: Scalars['String']['output'];
 };
 
 export type ContainerPort = {
   __typename?: 'ContainerPort';
-  ip?: Maybe<Scalars['String']>;
-  privatePort?: Maybe<Scalars['Int']>;
-  publicPort?: Maybe<Scalars['Int']>;
+  ip?: Maybe<Scalars['String']['output']>;
+  privatePort?: Maybe<Scalars['Int']['output']>;
+  publicPort?: Maybe<Scalars['Int']['output']>;
   type?: Maybe<ContainerPortType>;
 };
 
@@ -294,11 +296,11 @@ export enum ContainerState {
 
 export type Device = {
   __typename?: 'Device';
-  device?: Maybe<Scalars['String']>;
-  id: Scalars['ID'];
-  sectorSize?: Maybe<Scalars['String']>;
-  sectors?: Maybe<Scalars['String']>;
-  tag?: Maybe<Scalars['String']>;
+  device?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  sectorSize?: Maybe<Scalars['String']['output']>;
+  sectors?: Maybe<Scalars['String']['output']>;
+  tag?: Maybe<Scalars['String']['output']>;
 };
 
 export type Devices = {
@@ -311,24 +313,24 @@ export type Devices = {
 
 export type Disk = {
   __typename?: 'Disk';
-  bytesPerSector: Scalars['Long'];
-  device: Scalars['String'];
-  firmwareRevision: Scalars['String'];
+  bytesPerSector: Scalars['Long']['output'];
+  device: Scalars['String']['output'];
+  firmwareRevision: Scalars['String']['output'];
   interfaceType: DiskInterfaceType;
-  name: Scalars['String'];
+  name: Scalars['String']['output'];
   partitions?: Maybe<Array<DiskPartition>>;
-  sectorsPerTrack: Scalars['Long'];
-  serialNum: Scalars['String'];
-  size: Scalars['Long'];
+  sectorsPerTrack: Scalars['Long']['output'];
+  serialNum: Scalars['String']['output'];
+  size: Scalars['Long']['output'];
   smartStatus: DiskSmartStatus;
-  temperature: Scalars['Long'];
-  totalCylinders: Scalars['Long'];
-  totalHeads: Scalars['Long'];
-  totalSectors: Scalars['Long'];
-  totalTracks: Scalars['Long'];
-  tracksPerCylinder: Scalars['Long'];
-  type: Scalars['String'];
-  vendor: Scalars['String'];
+  temperature: Scalars['Long']['output'];
+  totalCylinders: Scalars['Long']['output'];
+  totalHeads: Scalars['Long']['output'];
+  totalSectors: Scalars['Long']['output'];
+  totalTracks: Scalars['Long']['output'];
+  tracksPerCylinder: Scalars['Long']['output'];
+  type: Scalars['String']['output'];
+  vendor: Scalars['String']['output'];
 };
 
 export enum DiskFsType {
@@ -348,8 +350,8 @@ export enum DiskInterfaceType {
 export type DiskPartition = {
   __typename?: 'DiskPartition';
   fsType: DiskFsType;
-  name: Scalars['String'];
-  size: Scalars['Long'];
+  name: Scalars['String']['output'];
+  size: Scalars['Long']['output'];
 };
 
 export enum DiskSmartStatus {
@@ -359,83 +361,83 @@ export enum DiskSmartStatus {
 
 export type Display = {
   __typename?: 'Display';
-  banner?: Maybe<Scalars['String']>;
+  banner?: Maybe<Scalars['String']['output']>;
   case?: Maybe<Case>;
-  critical?: Maybe<Scalars['Int']>;
-  dashapps?: Maybe<Scalars['String']>;
-  date?: Maybe<Scalars['String']>;
-  hot?: Maybe<Scalars['Int']>;
-  locale?: Maybe<Scalars['String']>;
-  max?: Maybe<Scalars['Int']>;
-  number?: Maybe<Scalars['String']>;
-  resize?: Maybe<Scalars['Boolean']>;
-  scale?: Maybe<Scalars['Boolean']>;
-  tabs?: Maybe<Scalars['Boolean']>;
-  text?: Maybe<Scalars['Boolean']>;
+  critical?: Maybe<Scalars['Int']['output']>;
+  dashapps?: Maybe<Scalars['String']['output']>;
+  date?: Maybe<Scalars['String']['output']>;
+  hot?: Maybe<Scalars['Int']['output']>;
+  locale?: Maybe<Scalars['String']['output']>;
+  max?: Maybe<Scalars['Int']['output']>;
+  number?: Maybe<Scalars['String']['output']>;
+  resize?: Maybe<Scalars['Boolean']['output']>;
+  scale?: Maybe<Scalars['Boolean']['output']>;
+  tabs?: Maybe<Scalars['Boolean']['output']>;
+  text?: Maybe<Scalars['Boolean']['output']>;
   theme?: Maybe<Theme>;
-  total?: Maybe<Scalars['Boolean']>;
+  total?: Maybe<Scalars['Boolean']['output']>;
   unit?: Maybe<Temperature>;
-  usage?: Maybe<Scalars['Boolean']>;
-  users?: Maybe<Scalars['String']>;
-  warning?: Maybe<Scalars['Int']>;
-  wwn?: Maybe<Scalars['Boolean']>;
+  usage?: Maybe<Scalars['Boolean']['output']>;
+  users?: Maybe<Scalars['String']['output']>;
+  warning?: Maybe<Scalars['Int']['output']>;
+  wwn?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DockerContainer = {
   __typename?: 'DockerContainer';
-  autoStart: Scalars['Boolean'];
-  command: Scalars['String'];
-  created: Scalars['Int'];
+  autoStart: Scalars['Boolean']['output'];
+  command: Scalars['String']['output'];
+  created: Scalars['Int']['output'];
   hostConfig?: Maybe<ContainerHostConfig>;
-  id: Scalars['ID'];
-  image: Scalars['String'];
-  imageId: Scalars['String'];
-  labels?: Maybe<Scalars['JSON']>;
-  mounts?: Maybe<Array<Maybe<Scalars['JSON']>>>;
-  names?: Maybe<Array<Scalars['String']>>;
-  networkSettings?: Maybe<Scalars['JSON']>;
+  id: Scalars['ID']['output'];
+  image: Scalars['String']['output'];
+  imageId: Scalars['String']['output'];
+  labels?: Maybe<Scalars['JSON']['output']>;
+  mounts?: Maybe<Array<Maybe<Scalars['JSON']['output']>>>;
+  names?: Maybe<Array<Scalars['String']['output']>>;
+  networkSettings?: Maybe<Scalars['JSON']['output']>;
   ports: Array<ContainerPort>;
   /**  (B) Total size of all the files in the container  */
-  sizeRootFs?: Maybe<Scalars['Long']>;
+  sizeRootFs?: Maybe<Scalars['Long']['output']>;
   state: ContainerState;
-  status: Scalars['String'];
+  status: Scalars['String']['output'];
 };
 
 export type DockerNetwork = {
   __typename?: 'DockerNetwork';
-  attachable: Scalars['Boolean'];
-  configFrom?: Maybe<Scalars['JSON']>;
-  configOnly: Scalars['Boolean'];
-  containers?: Maybe<Scalars['JSON']>;
-  created?: Maybe<Scalars['String']>;
-  driver?: Maybe<Scalars['String']>;
-  enableIPv6: Scalars['Boolean'];
-  id?: Maybe<Scalars['ID']>;
-  ingress: Scalars['Boolean'];
-  internal: Scalars['Boolean'];
-  ipam?: Maybe<Scalars['JSON']>;
-  labels?: Maybe<Scalars['JSON']>;
-  name?: Maybe<Scalars['String']>;
-  options?: Maybe<Scalars['JSON']>;
-  scope?: Maybe<Scalars['String']>;
+  attachable: Scalars['Boolean']['output'];
+  configFrom?: Maybe<Scalars['JSON']['output']>;
+  configOnly: Scalars['Boolean']['output'];
+  containers?: Maybe<Scalars['JSON']['output']>;
+  created?: Maybe<Scalars['String']['output']>;
+  driver?: Maybe<Scalars['String']['output']>;
+  enableIPv6: Scalars['Boolean']['output'];
+  id?: Maybe<Scalars['ID']['output']>;
+  ingress: Scalars['Boolean']['output'];
+  internal: Scalars['Boolean']['output'];
+  ipam?: Maybe<Scalars['JSON']['output']>;
+  labels?: Maybe<Scalars['JSON']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  options?: Maybe<Scalars['JSON']['output']>;
+  scope?: Maybe<Scalars['String']['output']>;
 };
 
 export type Flash = {
   __typename?: 'Flash';
-  guid?: Maybe<Scalars['String']>;
-  product?: Maybe<Scalars['String']>;
-  vendor?: Maybe<Scalars['String']>;
+  guid?: Maybe<Scalars['String']['output']>;
+  product?: Maybe<Scalars['String']['output']>;
+  vendor?: Maybe<Scalars['String']['output']>;
 };
 
 export type Gpu = {
   __typename?: 'Gpu';
-  blacklisted: Scalars['Boolean'];
-  class: Scalars['String'];
-  id: Scalars['ID'];
-  productid: Scalars['String'];
-  type: Scalars['String'];
-  typeid: Scalars['String'];
-  vendorname: Scalars['String'];
+  blacklisted: Scalars['Boolean']['output'];
+  class: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  productid: Scalars['String']['output'];
+  type: Scalars['String']['output'];
+  typeid: Scalars['String']['output'];
+  vendorname: Scalars['String']['output'];
 };
 
 export enum Importance {
@@ -453,7 +455,7 @@ export type Info = {
   devices?: Maybe<Devices>;
   display?: Maybe<Display>;
   /** Machine ID */
-  machineId?: Maybe<Scalars['ID']>;
+  machineId?: Maybe<Scalars['ID']['output']>;
   memory?: Maybe<InfoMemory>;
   os?: Maybe<Os>;
   system?: Maybe<System>;
@@ -463,61 +465,61 @@ export type Info = {
 export type InfoApps = {
   __typename?: 'InfoApps';
   /** How many docker containers are installed */
-  installed?: Maybe<Scalars['Int']>;
+  installed?: Maybe<Scalars['Int']['output']>;
   /** How many docker containers are running */
-  started?: Maybe<Scalars['Int']>;
+  started?: Maybe<Scalars['Int']['output']>;
 };
 
 export type InfoCpu = {
   __typename?: 'InfoCpu';
-  brand: Scalars['String'];
-  cache: Scalars['JSON'];
-  cores: Scalars['Int'];
-  family: Scalars['String'];
-  flags?: Maybe<Array<Scalars['String']>>;
-  manufacturer: Scalars['String'];
-  model: Scalars['String'];
-  processors: Scalars['Long'];
-  revision: Scalars['String'];
-  socket: Scalars['String'];
-  speed: Scalars['Float'];
-  speedmax: Scalars['Float'];
-  speedmin: Scalars['Float'];
-  stepping: Scalars['Int'];
-  threads: Scalars['Int'];
-  vendor: Scalars['String'];
-  voltage?: Maybe<Scalars['String']>;
+  brand: Scalars['String']['output'];
+  cache: Scalars['JSON']['output'];
+  cores: Scalars['Int']['output'];
+  family: Scalars['String']['output'];
+  flags?: Maybe<Array<Scalars['String']['output']>>;
+  manufacturer: Scalars['String']['output'];
+  model: Scalars['String']['output'];
+  processors: Scalars['Long']['output'];
+  revision: Scalars['String']['output'];
+  socket: Scalars['String']['output'];
+  speed: Scalars['Float']['output'];
+  speedmax: Scalars['Float']['output'];
+  speedmin: Scalars['Float']['output'];
+  stepping: Scalars['Int']['output'];
+  threads: Scalars['Int']['output'];
+  vendor: Scalars['String']['output'];
+  voltage?: Maybe<Scalars['String']['output']>;
 };
 
 export type InfoMemory = {
   __typename?: 'InfoMemory';
-  active: Scalars['Long'];
-  available: Scalars['Long'];
-  buffcache: Scalars['Long'];
-  free: Scalars['Long'];
+  active: Scalars['Long']['output'];
+  available: Scalars['Long']['output'];
+  buffcache: Scalars['Long']['output'];
+  free: Scalars['Long']['output'];
   layout?: Maybe<Array<MemoryLayout>>;
-  max: Scalars['Long'];
-  swapfree: Scalars['Long'];
-  swaptotal: Scalars['Long'];
-  swapused: Scalars['Long'];
-  total: Scalars['Long'];
-  used: Scalars['Long'];
+  max: Scalars['Long']['output'];
+  swapfree: Scalars['Long']['output'];
+  swaptotal: Scalars['Long']['output'];
+  swapused: Scalars['Long']['output'];
+  total: Scalars['Long']['output'];
+  used: Scalars['Long']['output'];
 };
 
 export type KeyFile = {
   __typename?: 'KeyFile';
-  contents?: Maybe<Scalars['String']>;
-  location?: Maybe<Scalars['String']>;
+  contents?: Maybe<Scalars['String']['output']>;
+  location?: Maybe<Scalars['String']['output']>;
 };
 
 /** The current user */
 export type Me = UserAccount & {
   __typename?: 'Me';
-  description: Scalars['String'];
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  permissions?: Maybe<Scalars['JSON']>;
-  role: Scalars['String'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  permissions?: Maybe<Scalars['JSON']['output']>;
+  role: Scalars['String']['output'];
 };
 
 export enum MemoryFormFactor {
@@ -526,17 +528,17 @@ export enum MemoryFormFactor {
 
 export type MemoryLayout = {
   __typename?: 'MemoryLayout';
-  bank?: Maybe<Scalars['String']>;
-  clockSpeed?: Maybe<Scalars['Long']>;
+  bank?: Maybe<Scalars['String']['output']>;
+  clockSpeed?: Maybe<Scalars['Long']['output']>;
   formFactor?: Maybe<MemoryFormFactor>;
-  manufacturer?: Maybe<Scalars['String']>;
-  partNum?: Maybe<Scalars['String']>;
-  serialNum?: Maybe<Scalars['String']>;
-  size: Scalars['Long'];
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  partNum?: Maybe<Scalars['String']['output']>;
+  serialNum?: Maybe<Scalars['String']['output']>;
+  size: Scalars['Long']['output'];
   type?: Maybe<MemoryType>;
-  voltageConfigured?: Maybe<Scalars['Long']>;
-  voltageMax?: Maybe<Scalars['Long']>;
-  voltageMin?: Maybe<Scalars['Long']>;
+  voltageConfigured?: Maybe<Scalars['Long']['output']>;
+  voltageMax?: Maybe<Scalars['Long']['output']>;
+  voltageMin?: Maybe<Scalars['Long']['output']>;
 };
 
 export enum MemoryType {
@@ -555,17 +557,17 @@ export enum MinigraphStatus {
 
 export type MinigraphqlResponse = {
   __typename?: 'MinigraphqlResponse';
-  error?: Maybe<Scalars['String']>;
+  error?: Maybe<Scalars['String']['output']>;
   status: MinigraphStatus;
-  timeout?: Maybe<Scalars['Int']>;
+  timeout?: Maybe<Scalars['Int']['output']>;
 };
 
 export type Mount = {
   __typename?: 'Mount';
-  directory?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
-  permissions?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
+  directory?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  permissions?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<Scalars['String']['output']>;
 };
 
 export type Mutation = {
@@ -581,31 +583,31 @@ export type Mutation = {
   /** Add a new user */
   addUser?: Maybe<User>;
   /** Cancel parity check */
-  cancelParityCheck?: Maybe<Scalars['JSON']>;
-  clearArrayDiskStatistics?: Maybe<Scalars['JSON']>;
-  connectSignIn: Scalars['Boolean'];
-  connectSignOut: Scalars['Boolean'];
+  cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
+  clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
+  connectSignIn: Scalars['Boolean']['output'];
+  connectSignOut: Scalars['Boolean']['output'];
   /** Delete a user */
   deleteUser?: Maybe<User>;
   /** Get an existing API key */
   getApiKey?: Maybe<ApiKey>;
-  login?: Maybe<Scalars['String']>;
+  login?: Maybe<Scalars['String']['output']>;
   mountArrayDisk?: Maybe<Disk>;
   /** Pause parity check */
-  pauseParityCheck?: Maybe<Scalars['JSON']>;
-  reboot?: Maybe<Scalars['String']>;
+  pauseParityCheck?: Maybe<Scalars['JSON']['output']>;
+  reboot?: Maybe<Scalars['String']['output']>;
   /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
   removeDiskFromArray?: Maybe<ArrayType>;
   /** Resume parity check */
-  resumeParityCheck?: Maybe<Scalars['JSON']>;
+  resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
   sendNotification?: Maybe<Notification>;
-  setAdditionalAllowedOrigins: Array<Scalars['String']>;
-  setupRemoteAccess: Scalars['Boolean'];
-  shutdown?: Maybe<Scalars['String']>;
+  setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
+  setupRemoteAccess: Scalars['Boolean']['output'];
+  shutdown?: Maybe<Scalars['String']['output']>;
   /** Start array */
   startArray?: Maybe<ArrayType>;
   /** Start parity check */
-  startParityCheck?: Maybe<Scalars['JSON']>;
+  startParityCheck?: Maybe<Scalars['JSON']['output']>;
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
   unmountArrayDisk?: Maybe<Disk>;
@@ -616,7 +618,7 @@ export type Mutation = {
 
 export type MutationaddApikeyArgs = {
   input?: InputMaybe<updateApikeyInput>;
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 
@@ -641,7 +643,7 @@ export type MutationaddUserArgs = {
 
 
 export type MutationclearArrayDiskStatisticsArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -657,18 +659,18 @@ export type MutationdeleteUserArgs = {
 
 export type MutationgetApiKeyArgs = {
   input?: InputMaybe<authenticateInput>;
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 
 export type MutationloginArgs = {
-  password: Scalars['String'];
-  username: Scalars['String'];
+  password: Scalars['String']['input'];
+  username: Scalars['String']['input'];
 };
 
 
 export type MutationmountArrayDiskArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -693,64 +695,64 @@ export type MutationsetupRemoteAccessArgs = {
 
 
 export type MutationstartParityCheckArgs = {
-  correct?: InputMaybe<Scalars['Boolean']>;
+  correct?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type MutationunmountArrayDiskArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type MutationupdateApikeyArgs = {
   input?: InputMaybe<updateApikeyInput>;
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 export type Network = {
   __typename?: 'Network';
-  carrierChanges?: Maybe<Scalars['String']>;
-  duplex?: Maybe<Scalars['String']>;
-  iface?: Maybe<Scalars['String']>;
-  ifaceName?: Maybe<Scalars['String']>;
-  internal?: Maybe<Scalars['String']>;
-  ipv4?: Maybe<Scalars['String']>;
-  ipv6?: Maybe<Scalars['String']>;
-  mac?: Maybe<Scalars['String']>;
-  mtu?: Maybe<Scalars['String']>;
-  operstate?: Maybe<Scalars['String']>;
-  speed?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
+  carrierChanges?: Maybe<Scalars['String']['output']>;
+  duplex?: Maybe<Scalars['String']['output']>;
+  iface?: Maybe<Scalars['String']['output']>;
+  ifaceName?: Maybe<Scalars['String']['output']>;
+  internal?: Maybe<Scalars['String']['output']>;
+  ipv4?: Maybe<Scalars['String']['output']>;
+  ipv6?: Maybe<Scalars['String']['output']>;
+  mac?: Maybe<Scalars['String']['output']>;
+  mtu?: Maybe<Scalars['String']['output']>;
+  operstate?: Maybe<Scalars['String']['output']>;
+  speed?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<Scalars['String']['output']>;
 };
 
 export type Notification = {
   __typename?: 'Notification';
-  description: Scalars['String'];
-  id: Scalars['ID'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   importance: Importance;
-  link?: Maybe<Scalars['String']>;
-  subject: Scalars['String'];
+  link?: Maybe<Scalars['String']['output']>;
+  subject: Scalars['String']['output'];
   /**  ISO Timestamp for when the notification occurred  */
-  timestamp?: Maybe<Scalars['String']>;
-  title: Scalars['String'];
+  timestamp?: Maybe<Scalars['String']['output']>;
+  title: Scalars['String']['output'];
   type: NotificationType;
 };
 
 export type NotificationFilter = {
   importance?: InputMaybe<Importance>;
-  limit: Scalars['Int'];
-  offset: Scalars['Int'];
+  limit: Scalars['Int']['input'];
+  offset: Scalars['Int']['input'];
   type?: InputMaybe<NotificationType>;
 };
 
 export type NotificationInput = {
-  description?: InputMaybe<Scalars['String']>;
-  id: Scalars['ID'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  id: Scalars['ID']['input'];
   importance: Importance;
-  link?: InputMaybe<Scalars['String']>;
-  subject: Scalars['String'];
-  timestamp?: InputMaybe<Scalars['String']>;
-  title: Scalars['String'];
+  link?: InputMaybe<Scalars['String']['input']>;
+  subject: Scalars['String']['input'];
+  timestamp?: InputMaybe<Scalars['String']['input']>;
+  title: Scalars['String']['input'];
   type: NotificationType;
 };
 
@@ -762,123 +764,123 @@ export enum NotificationType {
 
 export type Os = {
   __typename?: 'Os';
-  arch?: Maybe<Scalars['String']>;
-  build?: Maybe<Scalars['String']>;
-  codename?: Maybe<Scalars['String']>;
-  codepage?: Maybe<Scalars['String']>;
-  distro?: Maybe<Scalars['String']>;
-  hostname?: Maybe<Scalars['String']>;
-  kernel?: Maybe<Scalars['String']>;
-  logofile?: Maybe<Scalars['String']>;
-  platform?: Maybe<Scalars['String']>;
-  release?: Maybe<Scalars['String']>;
-  serial?: Maybe<Scalars['String']>;
-  uptime?: Maybe<Scalars['DateTime']>;
+  arch?: Maybe<Scalars['String']['output']>;
+  build?: Maybe<Scalars['String']['output']>;
+  codename?: Maybe<Scalars['String']['output']>;
+  codepage?: Maybe<Scalars['String']['output']>;
+  distro?: Maybe<Scalars['String']['output']>;
+  hostname?: Maybe<Scalars['String']['output']>;
+  kernel?: Maybe<Scalars['String']['output']>;
+  logofile?: Maybe<Scalars['String']['output']>;
+  platform?: Maybe<Scalars['String']['output']>;
+  release?: Maybe<Scalars['String']['output']>;
+  serial?: Maybe<Scalars['String']['output']>;
+  uptime?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type Owner = {
   __typename?: 'Owner';
-  avatar?: Maybe<Scalars['String']>;
-  url?: Maybe<Scalars['String']>;
-  username?: Maybe<Scalars['String']>;
+  avatar?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+  username?: Maybe<Scalars['String']['output']>;
 };
 
 export type ParityCheck = {
   __typename?: 'ParityCheck';
-  date: Scalars['String'];
-  duration: Scalars['Int'];
-  errors: Scalars['String'];
-  speed: Scalars['String'];
-  status: Scalars['String'];
+  date: Scalars['String']['output'];
+  duration: Scalars['Int']['output'];
+  errors: Scalars['String']['output'];
+  speed: Scalars['String']['output'];
+  status: Scalars['String']['output'];
 };
 
 export type Partition = {
   __typename?: 'Partition';
-  devlinks?: Maybe<Scalars['String']>;
-  devname?: Maybe<Scalars['String']>;
-  devpath?: Maybe<Scalars['String']>;
-  devtype?: Maybe<Scalars['String']>;
-  idAta?: Maybe<Scalars['String']>;
-  idAtaDownloadMicrocode?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAam?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAamCurrentValue?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAamEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAamVendorRecommendedValue?: Maybe<Scalars['String']>;
-  idAtaFeatureSetApm?: Maybe<Scalars['String']>;
-  idAtaFeatureSetApmCurrentValue?: Maybe<Scalars['String']>;
-  idAtaFeatureSetApmEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetHpa?: Maybe<Scalars['String']>;
-  idAtaFeatureSetHpaEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPm?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPmEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPuis?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPuisEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurity?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurityEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurityEnhancedEraseUnitMin?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurityEraseUnitMin?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSmart?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSmartEnabled?: Maybe<Scalars['String']>;
-  idAtaRotationRateRpm?: Maybe<Scalars['String']>;
-  idAtaSata?: Maybe<Scalars['String']>;
-  idAtaSataSignalRateGen1?: Maybe<Scalars['String']>;
-  idAtaSataSignalRateGen2?: Maybe<Scalars['String']>;
-  idAtaWriteCache?: Maybe<Scalars['String']>;
-  idAtaWriteCacheEnabled?: Maybe<Scalars['String']>;
-  idBus?: Maybe<Scalars['String']>;
-  idFsType?: Maybe<Scalars['String']>;
-  idFsUsage?: Maybe<Scalars['String']>;
-  idFsUuid?: Maybe<Scalars['String']>;
-  idFsUuidEnc?: Maybe<Scalars['String']>;
-  idModel?: Maybe<Scalars['String']>;
-  idModelEnc?: Maybe<Scalars['String']>;
-  idPartEntryDisk?: Maybe<Scalars['String']>;
-  idPartEntryNumber?: Maybe<Scalars['String']>;
-  idPartEntryOffset?: Maybe<Scalars['String']>;
-  idPartEntryScheme?: Maybe<Scalars['String']>;
-  idPartEntrySize?: Maybe<Scalars['String']>;
-  idPartEntryType?: Maybe<Scalars['String']>;
-  idPartTableType?: Maybe<Scalars['String']>;
-  idPath?: Maybe<Scalars['String']>;
-  idPathTag?: Maybe<Scalars['String']>;
-  idRevision?: Maybe<Scalars['String']>;
-  idSerial?: Maybe<Scalars['String']>;
-  idSerialShort?: Maybe<Scalars['String']>;
-  idType?: Maybe<Scalars['String']>;
-  idWwn?: Maybe<Scalars['String']>;
-  idWwnWithExtension?: Maybe<Scalars['String']>;
-  major?: Maybe<Scalars['String']>;
-  minor?: Maybe<Scalars['String']>;
-  partn?: Maybe<Scalars['String']>;
-  subsystem?: Maybe<Scalars['String']>;
-  usecInitialized?: Maybe<Scalars['String']>;
+  devlinks?: Maybe<Scalars['String']['output']>;
+  devname?: Maybe<Scalars['String']['output']>;
+  devpath?: Maybe<Scalars['String']['output']>;
+  devtype?: Maybe<Scalars['String']['output']>;
+  idAta?: Maybe<Scalars['String']['output']>;
+  idAtaDownloadMicrocode?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAam?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAamCurrentValue?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAamEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAamVendorRecommendedValue?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetApm?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetApmCurrentValue?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetApmEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetHpa?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetHpaEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPm?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPmEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPuis?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPuisEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurity?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurityEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurityEnhancedEraseUnitMin?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurityEraseUnitMin?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSmart?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSmartEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaRotationRateRpm?: Maybe<Scalars['String']['output']>;
+  idAtaSata?: Maybe<Scalars['String']['output']>;
+  idAtaSataSignalRateGen1?: Maybe<Scalars['String']['output']>;
+  idAtaSataSignalRateGen2?: Maybe<Scalars['String']['output']>;
+  idAtaWriteCache?: Maybe<Scalars['String']['output']>;
+  idAtaWriteCacheEnabled?: Maybe<Scalars['String']['output']>;
+  idBus?: Maybe<Scalars['String']['output']>;
+  idFsType?: Maybe<Scalars['String']['output']>;
+  idFsUsage?: Maybe<Scalars['String']['output']>;
+  idFsUuid?: Maybe<Scalars['String']['output']>;
+  idFsUuidEnc?: Maybe<Scalars['String']['output']>;
+  idModel?: Maybe<Scalars['String']['output']>;
+  idModelEnc?: Maybe<Scalars['String']['output']>;
+  idPartEntryDisk?: Maybe<Scalars['String']['output']>;
+  idPartEntryNumber?: Maybe<Scalars['String']['output']>;
+  idPartEntryOffset?: Maybe<Scalars['String']['output']>;
+  idPartEntryScheme?: Maybe<Scalars['String']['output']>;
+  idPartEntrySize?: Maybe<Scalars['String']['output']>;
+  idPartEntryType?: Maybe<Scalars['String']['output']>;
+  idPartTableType?: Maybe<Scalars['String']['output']>;
+  idPath?: Maybe<Scalars['String']['output']>;
+  idPathTag?: Maybe<Scalars['String']['output']>;
+  idRevision?: Maybe<Scalars['String']['output']>;
+  idSerial?: Maybe<Scalars['String']['output']>;
+  idSerialShort?: Maybe<Scalars['String']['output']>;
+  idType?: Maybe<Scalars['String']['output']>;
+  idWwn?: Maybe<Scalars['String']['output']>;
+  idWwnWithExtension?: Maybe<Scalars['String']['output']>;
+  major?: Maybe<Scalars['String']['output']>;
+  minor?: Maybe<Scalars['String']['output']>;
+  partn?: Maybe<Scalars['String']['output']>;
+  subsystem?: Maybe<Scalars['String']['output']>;
+  usecInitialized?: Maybe<Scalars['String']['output']>;
 };
 
 export type Pci = {
   __typename?: 'Pci';
-  blacklisted?: Maybe<Scalars['String']>;
-  class?: Maybe<Scalars['String']>;
-  id: Scalars['ID'];
-  productid?: Maybe<Scalars['String']>;
-  productname?: Maybe<Scalars['String']>;
-  type?: Maybe<Scalars['String']>;
-  typeid?: Maybe<Scalars['String']>;
-  vendorid?: Maybe<Scalars['String']>;
-  vendorname?: Maybe<Scalars['String']>;
+  blacklisted?: Maybe<Scalars['String']['output']>;
+  class?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  productid?: Maybe<Scalars['String']['output']>;
+  productname?: Maybe<Scalars['String']['output']>;
+  type?: Maybe<Scalars['String']['output']>;
+  typeid?: Maybe<Scalars['String']['output']>;
+  vendorid?: Maybe<Scalars['String']['output']>;
+  vendorname?: Maybe<Scalars['String']['output']>;
 };
 
 export type Permissions = {
   __typename?: 'Permissions';
-  grants?: Maybe<Scalars['JSON']>;
-  scopes?: Maybe<Scalars['JSON']>;
+  grants?: Maybe<Scalars['JSON']['output']>;
+  scopes?: Maybe<Scalars['JSON']['output']>;
 };
 
 export type ProfileModel = {
   __typename?: 'ProfileModel';
-  avatar?: Maybe<Scalars['String']>;
-  url?: Maybe<Scalars['String']>;
-  userId?: Maybe<Scalars['ID']>;
-  username?: Maybe<Scalars['String']>;
+  avatar?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['ID']['output']>;
+  username?: Maybe<Scalars['String']['output']>;
 };
 
 export type Query = {
@@ -889,7 +891,7 @@ export type Query = {
   array: ArrayType;
   cloud?: Maybe<Cloud>;
   config: Config;
-  crashReportingEnabled?: Maybe<Scalars['Boolean']>;
+  crashReportingEnabled?: Maybe<Scalars['Boolean']['output']>;
   device?: Maybe<Device>;
   devices: Array<Maybe<Device>>;
   /** Single disk */
@@ -908,7 +910,7 @@ export type Query = {
   /** Current user account */
   me?: Maybe<Me>;
   notifications: Array<Notification>;
-  online?: Maybe<Scalars['Boolean']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
   permissions?: Maybe<Permissions>;
@@ -925,7 +927,7 @@ export type Query = {
   users: Array<User>;
   vars?: Maybe<Vars>;
   /** Virtual network for vms */
-  vmNetwork?: Maybe<Scalars['JSON']>;
+  vmNetwork?: Maybe<Scalars['JSON']['output']>;
   /** Virtual machines */
   vms?: Maybe<Vms>;
   welcome?: Maybe<Welcome>;
@@ -933,27 +935,27 @@ export type Query = {
 
 
 export type QuerydeviceArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type QuerydiskArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type QuerydockerContainersArgs = {
-  all?: InputMaybe<Scalars['Boolean']>;
+  all?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
 export type QuerydockerNetworkArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type QuerydockerNetworksArgs = {
-  all?: InputMaybe<Scalars['Boolean']>;
+  all?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 
@@ -963,12 +965,12 @@ export type QuerynotificationsArgs = {
 
 
 export type QueryserverArgs = {
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 
 export type QueryuserArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -978,20 +980,19 @@ export type QueryusersArgs = {
 
 
 export type QueryvmNetworkArgs = {
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 export type Registration = {
   __typename?: 'Registration';
-  expiration?: Maybe<Scalars['String']>;
-  guid?: Maybe<Scalars['String']>;
+  expiration?: Maybe<Scalars['String']['output']>;
+  guid?: Maybe<Scalars['String']['output']>;
   keyFile?: Maybe<KeyFile>;
   state?: Maybe<RegistrationState>;
   type?: Maybe<registrationType>;
 };
 
 export enum RegistrationState {
-  /** Basic */
   BASIC = 'BASIC',
   /** BLACKLISTED */
   EBLACKLISTED = 'EBLACKLISTED',
@@ -1024,41 +1025,41 @@ export enum RegistrationState {
   ENOKEYFILE2 = 'ENOKEYFILE2',
   /** Invalid installation */
   ETRIAL = 'ETRIAL',
-  /** Plus */
+  LIFETIME = 'LIFETIME',
   PLUS = 'PLUS',
-  /** Pro */
   PRO = 'PRO',
-  /** Trial */
-  TRIAL = 'TRIAL'
+  STARTER = 'STARTER',
+  TRIAL = 'TRIAL',
+  UNLEASHED = 'UNLEASHED'
 }
 
 export type RelayResponse = {
   __typename?: 'RelayResponse';
-  error?: Maybe<Scalars['String']>;
-  status: Scalars['String'];
-  timeout?: Maybe<Scalars['String']>;
+  error?: Maybe<Scalars['String']['output']>;
+  status: Scalars['String']['output'];
+  timeout?: Maybe<Scalars['String']['output']>;
 };
 
 /** A permission scope */
 export type Scope = {
   __typename?: 'Scope';
   /** A user friendly description */
-  description?: Maybe<Scalars['String']>;
+  description?: Maybe<Scalars['String']['output']>;
   /** A unique name for the scope */
-  name?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type Server = {
   __typename?: 'Server';
-  apikey: Scalars['String'];
-  guid: Scalars['String'];
-  lanip: Scalars['String'];
-  localurl: Scalars['String'];
-  name: Scalars['String'];
+  apikey: Scalars['String']['output'];
+  guid: Scalars['String']['output'];
+  lanip: Scalars['String']['output'];
+  localurl: Scalars['String']['output'];
+  name: Scalars['String']['output'];
   owner: ProfileModel;
-  remoteurl: Scalars['String'];
+  remoteurl: Scalars['String']['output'];
   status: ServerStatus;
-  wanip: Scalars['String'];
+  wanip: Scalars['String']['output'];
 };
 
 export enum ServerStatus {
@@ -1069,43 +1070,43 @@ export enum ServerStatus {
 
 export type Service = {
   __typename?: 'Service';
-  name?: Maybe<Scalars['String']>;
-  online?: Maybe<Scalars['Boolean']>;
+  name?: Maybe<Scalars['String']['output']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
   uptime?: Maybe<Uptime>;
-  version?: Maybe<Scalars['String']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type SetupRemoteAccessInput = {
   accessType: WAN_ACCESS_TYPE;
   forwardType?: InputMaybe<WAN_FORWARD_TYPE>;
-  port?: InputMaybe<Scalars['Port']>;
+  port?: InputMaybe<Scalars['Port']['input']>;
 };
 
 /** Network Share */
 export type Share = {
   __typename?: 'Share';
-  allocator?: Maybe<Scalars['String']>;
-  cache?: Maybe<Scalars['Boolean']>;
-  color?: Maybe<Scalars['String']>;
+  allocator?: Maybe<Scalars['String']['output']>;
+  cache?: Maybe<Scalars['Boolean']['output']>;
+  color?: Maybe<Scalars['String']['output']>;
   /** User comment */
-  comment?: Maybe<Scalars['String']>;
-  cow?: Maybe<Scalars['String']>;
+  comment?: Maybe<Scalars['String']['output']>;
+  cow?: Maybe<Scalars['String']['output']>;
   /** Disks that're excluded from this share */
-  exclude?: Maybe<Array<Maybe<Scalars['String']>>>;
-  floor?: Maybe<Scalars['String']>;
+  exclude?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  floor?: Maybe<Scalars['String']['output']>;
   /** (KB) Free space */
-  free?: Maybe<Scalars['Long']>;
+  free?: Maybe<Scalars['Long']['output']>;
   /** Disks that're included in this share */
-  include?: Maybe<Array<Maybe<Scalars['String']>>>;
-  luksStatus?: Maybe<Scalars['String']>;
+  include?: Maybe<Array<Maybe<Scalars['String']['output']>>>;
+  luksStatus?: Maybe<Scalars['String']['output']>;
   /** Display name */
-  name?: Maybe<Scalars['String']>;
-  nameOrig?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']['output']>;
+  nameOrig?: Maybe<Scalars['String']['output']>;
   /** (KB) Total size */
-  size?: Maybe<Scalars['Long']>;
-  splitLevel?: Maybe<Scalars['String']>;
+  size?: Maybe<Scalars['Long']['output']>;
+  splitLevel?: Maybe<Scalars['String']['output']>;
   /** (KB) Used Size */
-  used?: Maybe<Scalars['Long']>;
+  used?: Maybe<Scalars['Long']['output']>;
 };
 
 export type Subscription = {
@@ -1113,7 +1114,7 @@ export type Subscription = {
   apikeys?: Maybe<Array<Maybe<ApiKey>>>;
   array: ArrayType;
   config: Config;
-  crashReportingEnabled: Scalars['Boolean'];
+  crashReportingEnabled: Scalars['Boolean']['output'];
   device: Device;
   devices?: Maybe<Array<Device>>;
   display?: Maybe<Display>;
@@ -1125,10 +1126,10 @@ export type Subscription = {
   info: Info;
   me?: Maybe<Me>;
   notificationAdded: Notification;
-  online: Scalars['Boolean'];
+  online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: ParityCheck;
-  ping: Scalars['String'];
+  ping: Scalars['String']['output'];
   registration: Registration;
   server: Server;
   servers?: Maybe<Array<Server>>;
@@ -1146,47 +1147,47 @@ export type Subscription = {
 
 
 export type SubscriptiondeviceArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type SubscriptiondockerContainerArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type SubscriptiondockerNetworkArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type SubscriptionserverArgs = {
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 
 export type SubscriptionserviceArgs = {
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 
 export type SubscriptionshareArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 
 export type SubscriptionuserArgs = {
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
 };
 
 export type System = {
   __typename?: 'System';
-  manufacturer?: Maybe<Scalars['String']>;
-  model?: Maybe<Scalars['String']>;
-  serial?: Maybe<Scalars['String']>;
-  sku?: Maybe<Scalars['String']>;
-  uuid?: Maybe<Scalars['String']>;
-  version?: Maybe<Scalars['String']>;
+  manufacturer?: Maybe<Scalars['String']['output']>;
+  model?: Maybe<Scalars['String']['output']>;
+  serial?: Maybe<Scalars['String']['output']>;
+  sku?: Maybe<Scalars['String']['output']>;
+  uuid?: Maybe<Scalars['String']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export enum Temperature {
@@ -1200,19 +1201,19 @@ export enum Theme {
 
 export type TwoFactorLocal = {
   __typename?: 'TwoFactorLocal';
-  enabled?: Maybe<Scalars['Boolean']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type TwoFactorRemote = {
   __typename?: 'TwoFactorRemote';
-  enabled?: Maybe<Scalars['Boolean']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type TwoFactorWithToken = {
   __typename?: 'TwoFactorWithToken';
   local?: Maybe<TwoFactorLocal>;
   remote?: Maybe<TwoFactorRemote>;
-  token?: Maybe<Scalars['String']>;
+  token?: Maybe<Scalars['String']['output']>;
 };
 
 export type TwoFactorWithoutToken = {
@@ -1223,297 +1224,297 @@ export type TwoFactorWithoutToken = {
 
 export type UnassignedDevice = {
   __typename?: 'UnassignedDevice';
-  devlinks?: Maybe<Scalars['String']>;
-  devname?: Maybe<Scalars['String']>;
-  devpath?: Maybe<Scalars['String']>;
-  devtype?: Maybe<Scalars['String']>;
-  idAta?: Maybe<Scalars['String']>;
-  idAtaDownloadMicrocode?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAam?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAamCurrentValue?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAamEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetAamVendorRecommendedValue?: Maybe<Scalars['String']>;
-  idAtaFeatureSetApm?: Maybe<Scalars['String']>;
-  idAtaFeatureSetApmCurrentValue?: Maybe<Scalars['String']>;
-  idAtaFeatureSetApmEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetHpa?: Maybe<Scalars['String']>;
-  idAtaFeatureSetHpaEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPm?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPmEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPuis?: Maybe<Scalars['String']>;
-  idAtaFeatureSetPuisEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurity?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurityEnabled?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurityEnhancedEraseUnitMin?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSecurityEraseUnitMin?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSmart?: Maybe<Scalars['String']>;
-  idAtaFeatureSetSmartEnabled?: Maybe<Scalars['String']>;
-  idAtaRotationRateRpm?: Maybe<Scalars['String']>;
-  idAtaSata?: Maybe<Scalars['String']>;
-  idAtaSataSignalRateGen1?: Maybe<Scalars['String']>;
-  idAtaSataSignalRateGen2?: Maybe<Scalars['String']>;
-  idAtaWriteCache?: Maybe<Scalars['String']>;
-  idAtaWriteCacheEnabled?: Maybe<Scalars['String']>;
-  idBus?: Maybe<Scalars['String']>;
-  idModel?: Maybe<Scalars['String']>;
-  idModelEnc?: Maybe<Scalars['String']>;
-  idPartTableType?: Maybe<Scalars['String']>;
-  idPath?: Maybe<Scalars['String']>;
-  idPathTag?: Maybe<Scalars['String']>;
-  idRevision?: Maybe<Scalars['String']>;
-  idSerial?: Maybe<Scalars['String']>;
-  idSerialShort?: Maybe<Scalars['String']>;
-  idType?: Maybe<Scalars['String']>;
-  idWwn?: Maybe<Scalars['String']>;
-  idWwnWithExtension?: Maybe<Scalars['String']>;
-  major?: Maybe<Scalars['String']>;
-  minor?: Maybe<Scalars['String']>;
+  devlinks?: Maybe<Scalars['String']['output']>;
+  devname?: Maybe<Scalars['String']['output']>;
+  devpath?: Maybe<Scalars['String']['output']>;
+  devtype?: Maybe<Scalars['String']['output']>;
+  idAta?: Maybe<Scalars['String']['output']>;
+  idAtaDownloadMicrocode?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAam?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAamCurrentValue?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAamEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetAamVendorRecommendedValue?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetApm?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetApmCurrentValue?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetApmEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetHpa?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetHpaEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPm?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPmEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPuis?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetPuisEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurity?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurityEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurityEnhancedEraseUnitMin?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSecurityEraseUnitMin?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSmart?: Maybe<Scalars['String']['output']>;
+  idAtaFeatureSetSmartEnabled?: Maybe<Scalars['String']['output']>;
+  idAtaRotationRateRpm?: Maybe<Scalars['String']['output']>;
+  idAtaSata?: Maybe<Scalars['String']['output']>;
+  idAtaSataSignalRateGen1?: Maybe<Scalars['String']['output']>;
+  idAtaSataSignalRateGen2?: Maybe<Scalars['String']['output']>;
+  idAtaWriteCache?: Maybe<Scalars['String']['output']>;
+  idAtaWriteCacheEnabled?: Maybe<Scalars['String']['output']>;
+  idBus?: Maybe<Scalars['String']['output']>;
+  idModel?: Maybe<Scalars['String']['output']>;
+  idModelEnc?: Maybe<Scalars['String']['output']>;
+  idPartTableType?: Maybe<Scalars['String']['output']>;
+  idPath?: Maybe<Scalars['String']['output']>;
+  idPathTag?: Maybe<Scalars['String']['output']>;
+  idRevision?: Maybe<Scalars['String']['output']>;
+  idSerial?: Maybe<Scalars['String']['output']>;
+  idSerialShort?: Maybe<Scalars['String']['output']>;
+  idType?: Maybe<Scalars['String']['output']>;
+  idWwn?: Maybe<Scalars['String']['output']>;
+  idWwnWithExtension?: Maybe<Scalars['String']['output']>;
+  major?: Maybe<Scalars['String']['output']>;
+  minor?: Maybe<Scalars['String']['output']>;
   mount?: Maybe<Mount>;
-  mounted?: Maybe<Scalars['Boolean']>;
-  name?: Maybe<Scalars['String']>;
+  mounted?: Maybe<Scalars['Boolean']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
   partitions?: Maybe<Array<Maybe<Partition>>>;
-  subsystem?: Maybe<Scalars['String']>;
-  temp?: Maybe<Scalars['Int']>;
-  usecInitialized?: Maybe<Scalars['String']>;
+  subsystem?: Maybe<Scalars['String']['output']>;
+  temp?: Maybe<Scalars['Int']['output']>;
+  usecInitialized?: Maybe<Scalars['String']['output']>;
 };
 
 export type Uptime = {
   __typename?: 'Uptime';
-  timestamp?: Maybe<Scalars['String']>;
+  timestamp?: Maybe<Scalars['String']['output']>;
 };
 
 export type Usb = {
   __typename?: 'Usb';
-  id: Scalars['ID'];
-  name?: Maybe<Scalars['String']>;
+  id: Scalars['ID']['output'];
+  name?: Maybe<Scalars['String']['output']>;
 };
 
 /** A local user account */
 export type User = UserAccount & {
   __typename?: 'User';
-  description: Scalars['String'];
-  id: Scalars['ID'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   /** A unique name for the user */
-  name: Scalars['String'];
+  name: Scalars['String']['output'];
   /** If the account has a password set */
-  password?: Maybe<Scalars['Boolean']>;
-  role: Scalars['String'];
+  password?: Maybe<Scalars['Boolean']['output']>;
+  role: Scalars['String']['output'];
 };
 
 export type UserAccount = {
-  description: Scalars['String'];
-  id: Scalars['ID'];
-  name: Scalars['String'];
-  role: Scalars['String'];
+  description: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  name: Scalars['String']['output'];
+  role: Scalars['String']['output'];
 };
 
 export type Vars = {
   __typename?: 'Vars';
-  bindMgt?: Maybe<Scalars['Boolean']>;
-  cacheNumDevices?: Maybe<Scalars['Int']>;
-  cacheSbNumDisks?: Maybe<Scalars['Int']>;
-  comment?: Maybe<Scalars['String']>;
+  bindMgt?: Maybe<Scalars['Boolean']['output']>;
+  cacheNumDevices?: Maybe<Scalars['Int']['output']>;
+  cacheSbNumDisks?: Maybe<Scalars['Int']['output']>;
+  comment?: Maybe<Scalars['String']['output']>;
   configError?: Maybe<ConfigErrorState>;
-  configValid?: Maybe<Scalars['Boolean']>;
-  csrfToken?: Maybe<Scalars['String']>;
-  defaultFormat?: Maybe<Scalars['String']>;
-  defaultFsType?: Maybe<Scalars['String']>;
-  deviceCount?: Maybe<Scalars['Int']>;
-  domain?: Maybe<Scalars['String']>;
-  domainLogin?: Maybe<Scalars['String']>;
-  domainShort?: Maybe<Scalars['String']>;
-  enableFruit?: Maybe<Scalars['String']>;
-  flashGuid?: Maybe<Scalars['String']>;
-  flashProduct?: Maybe<Scalars['String']>;
-  flashVendor?: Maybe<Scalars['String']>;
+  configValid?: Maybe<Scalars['Boolean']['output']>;
+  csrfToken?: Maybe<Scalars['String']['output']>;
+  defaultFormat?: Maybe<Scalars['String']['output']>;
+  defaultFsType?: Maybe<Scalars['String']['output']>;
+  deviceCount?: Maybe<Scalars['Int']['output']>;
+  domain?: Maybe<Scalars['String']['output']>;
+  domainLogin?: Maybe<Scalars['String']['output']>;
+  domainShort?: Maybe<Scalars['String']['output']>;
+  enableFruit?: Maybe<Scalars['String']['output']>;
+  flashGuid?: Maybe<Scalars['String']['output']>;
+  flashProduct?: Maybe<Scalars['String']['output']>;
+  flashVendor?: Maybe<Scalars['String']['output']>;
   /** Percentage from 0 - 100 while upgrading a disk or swapping parity drives */
-  fsCopyPrcnt?: Maybe<Scalars['Int']>;
-  fsNumMounted?: Maybe<Scalars['Int']>;
-  fsNumUnmountable?: Maybe<Scalars['Int']>;
+  fsCopyPrcnt?: Maybe<Scalars['Int']['output']>;
+  fsNumMounted?: Maybe<Scalars['Int']['output']>;
+  fsNumUnmountable?: Maybe<Scalars['Int']['output']>;
   /** Human friendly string of array events happening */
-  fsProgress?: Maybe<Scalars['String']>;
-  fsState?: Maybe<Scalars['String']>;
-  fsUnmountableMask?: Maybe<Scalars['String']>;
-  fuseDirectio?: Maybe<Scalars['String']>;
-  fuseDirectioDefault?: Maybe<Scalars['String']>;
-  fuseDirectioStatus?: Maybe<Scalars['String']>;
-  fuseRemember?: Maybe<Scalars['String']>;
-  fuseRememberDefault?: Maybe<Scalars['String']>;
-  fuseRememberStatus?: Maybe<Scalars['String']>;
-  hideDotFiles?: Maybe<Scalars['Boolean']>;
-  joinStatus?: Maybe<Scalars['String']>;
-  localMaster?: Maybe<Scalars['Boolean']>;
-  localTld?: Maybe<Scalars['String']>;
-  luksKeyfile?: Maybe<Scalars['String']>;
-  maxArraysz?: Maybe<Scalars['Int']>;
-  maxCachesz?: Maybe<Scalars['Int']>;
-  mdColor?: Maybe<Scalars['String']>;
-  mdNumDisabled?: Maybe<Scalars['Int']>;
-  mdNumDisks?: Maybe<Scalars['Int']>;
-  mdNumErased?: Maybe<Scalars['Int']>;
-  mdNumInvalid?: Maybe<Scalars['Int']>;
-  mdNumMissing?: Maybe<Scalars['Int']>;
-  mdNumNew?: Maybe<Scalars['Int']>;
-  mdNumStripes?: Maybe<Scalars['Int']>;
-  mdNumStripesDefault?: Maybe<Scalars['Int']>;
-  mdNumStripesStatus?: Maybe<Scalars['String']>;
-  mdResync?: Maybe<Scalars['Int']>;
-  mdResyncAction?: Maybe<Scalars['String']>;
-  mdResyncCorr?: Maybe<Scalars['String']>;
-  mdResyncDb?: Maybe<Scalars['String']>;
-  mdResyncDt?: Maybe<Scalars['String']>;
-  mdResyncPos?: Maybe<Scalars['String']>;
-  mdResyncSize?: Maybe<Scalars['Int']>;
-  mdState?: Maybe<Scalars['String']>;
-  mdSyncThresh?: Maybe<Scalars['Int']>;
-  mdSyncThreshDefault?: Maybe<Scalars['Int']>;
-  mdSyncThreshStatus?: Maybe<Scalars['String']>;
-  mdSyncWindow?: Maybe<Scalars['Int']>;
-  mdSyncWindowDefault?: Maybe<Scalars['Int']>;
-  mdSyncWindowStatus?: Maybe<Scalars['String']>;
-  mdVersion?: Maybe<Scalars['String']>;
-  mdWriteMethod?: Maybe<Scalars['Int']>;
-  mdWriteMethodDefault?: Maybe<Scalars['String']>;
-  mdWriteMethodStatus?: Maybe<Scalars['String']>;
+  fsProgress?: Maybe<Scalars['String']['output']>;
+  fsState?: Maybe<Scalars['String']['output']>;
+  fsUnmountableMask?: Maybe<Scalars['String']['output']>;
+  fuseDirectio?: Maybe<Scalars['String']['output']>;
+  fuseDirectioDefault?: Maybe<Scalars['String']['output']>;
+  fuseDirectioStatus?: Maybe<Scalars['String']['output']>;
+  fuseRemember?: Maybe<Scalars['String']['output']>;
+  fuseRememberDefault?: Maybe<Scalars['String']['output']>;
+  fuseRememberStatus?: Maybe<Scalars['String']['output']>;
+  hideDotFiles?: Maybe<Scalars['Boolean']['output']>;
+  joinStatus?: Maybe<Scalars['String']['output']>;
+  localMaster?: Maybe<Scalars['Boolean']['output']>;
+  localTld?: Maybe<Scalars['String']['output']>;
+  luksKeyfile?: Maybe<Scalars['String']['output']>;
+  maxArraysz?: Maybe<Scalars['Int']['output']>;
+  maxCachesz?: Maybe<Scalars['Int']['output']>;
+  mdColor?: Maybe<Scalars['String']['output']>;
+  mdNumDisabled?: Maybe<Scalars['Int']['output']>;
+  mdNumDisks?: Maybe<Scalars['Int']['output']>;
+  mdNumErased?: Maybe<Scalars['Int']['output']>;
+  mdNumInvalid?: Maybe<Scalars['Int']['output']>;
+  mdNumMissing?: Maybe<Scalars['Int']['output']>;
+  mdNumNew?: Maybe<Scalars['Int']['output']>;
+  mdNumStripes?: Maybe<Scalars['Int']['output']>;
+  mdNumStripesDefault?: Maybe<Scalars['Int']['output']>;
+  mdNumStripesStatus?: Maybe<Scalars['String']['output']>;
+  mdResync?: Maybe<Scalars['Int']['output']>;
+  mdResyncAction?: Maybe<Scalars['String']['output']>;
+  mdResyncCorr?: Maybe<Scalars['String']['output']>;
+  mdResyncDb?: Maybe<Scalars['String']['output']>;
+  mdResyncDt?: Maybe<Scalars['String']['output']>;
+  mdResyncPos?: Maybe<Scalars['String']['output']>;
+  mdResyncSize?: Maybe<Scalars['Int']['output']>;
+  mdState?: Maybe<Scalars['String']['output']>;
+  mdSyncThresh?: Maybe<Scalars['Int']['output']>;
+  mdSyncThreshDefault?: Maybe<Scalars['Int']['output']>;
+  mdSyncThreshStatus?: Maybe<Scalars['String']['output']>;
+  mdSyncWindow?: Maybe<Scalars['Int']['output']>;
+  mdSyncWindowDefault?: Maybe<Scalars['Int']['output']>;
+  mdSyncWindowStatus?: Maybe<Scalars['String']['output']>;
+  mdVersion?: Maybe<Scalars['String']['output']>;
+  mdWriteMethod?: Maybe<Scalars['Int']['output']>;
+  mdWriteMethodDefault?: Maybe<Scalars['String']['output']>;
+  mdWriteMethodStatus?: Maybe<Scalars['String']['output']>;
   /** Machine hostname */
-  name?: Maybe<Scalars['String']>;
-  nrRequests?: Maybe<Scalars['Int']>;
-  nrRequestsDefault?: Maybe<Scalars['Int']>;
-  nrRequestsStatus?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']['output']>;
+  nrRequests?: Maybe<Scalars['Int']['output']>;
+  nrRequestsDefault?: Maybe<Scalars['Int']['output']>;
+  nrRequestsStatus?: Maybe<Scalars['String']['output']>;
   /** NTP Server 1 */
-  ntpServer1?: Maybe<Scalars['String']>;
+  ntpServer1?: Maybe<Scalars['String']['output']>;
   /** NTP Server 2 */
-  ntpServer2?: Maybe<Scalars['String']>;
+  ntpServer2?: Maybe<Scalars['String']['output']>;
   /** NTP Server 3 */
-  ntpServer3?: Maybe<Scalars['String']>;
+  ntpServer3?: Maybe<Scalars['String']['output']>;
   /** NTP Server 4 */
-  ntpServer4?: Maybe<Scalars['String']>;
-  pollAttributes?: Maybe<Scalars['String']>;
-  pollAttributesDefault?: Maybe<Scalars['String']>;
-  pollAttributesStatus?: Maybe<Scalars['String']>;
+  ntpServer4?: Maybe<Scalars['String']['output']>;
+  pollAttributes?: Maybe<Scalars['String']['output']>;
+  pollAttributesDefault?: Maybe<Scalars['String']['output']>;
+  pollAttributesStatus?: Maybe<Scalars['String']['output']>;
   /** Port for the webui via HTTP */
-  port?: Maybe<Scalars['Int']>;
-  portssh?: Maybe<Scalars['Int']>;
+  port?: Maybe<Scalars['Int']['output']>;
+  portssh?: Maybe<Scalars['Int']['output']>;
   /** Port for the webui via HTTPS */
-  portssl?: Maybe<Scalars['Int']>;
-  porttelnet?: Maybe<Scalars['Int']>;
-  queueDepth?: Maybe<Scalars['String']>;
-  regCheck?: Maybe<Scalars['String']>;
-  regFile?: Maybe<Scalars['String']>;
-  regGen?: Maybe<Scalars['String']>;
-  regGuid?: Maybe<Scalars['String']>;
+  portssl?: Maybe<Scalars['Int']['output']>;
+  porttelnet?: Maybe<Scalars['Int']['output']>;
+  queueDepth?: Maybe<Scalars['String']['output']>;
+  regCheck?: Maybe<Scalars['String']['output']>;
+  regFile?: Maybe<Scalars['String']['output']>;
+  regGen?: Maybe<Scalars['String']['output']>;
+  regGuid?: Maybe<Scalars['String']['output']>;
   regState?: Maybe<RegistrationState>;
-  regTm?: Maybe<Scalars['String']>;
-  regTm2?: Maybe<Scalars['String']>;
+  regTm?: Maybe<Scalars['String']['output']>;
+  regTm2?: Maybe<Scalars['String']['output']>;
   /** Registration owner */
-  regTo?: Maybe<Scalars['String']>;
-  /** Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now  */
-  regTy?: Maybe<Scalars['String']>;
-  safeMode?: Maybe<Scalars['Boolean']>;
-  sbClean?: Maybe<Scalars['Boolean']>;
-  sbEvents?: Maybe<Scalars['Int']>;
-  sbName?: Maybe<Scalars['String']>;
-  sbNumDisks?: Maybe<Scalars['Int']>;
-  sbState?: Maybe<Scalars['String']>;
-  sbSyncErrs?: Maybe<Scalars['Int']>;
-  sbSyncExit?: Maybe<Scalars['String']>;
-  sbSynced?: Maybe<Scalars['Int']>;
-  sbSynced2?: Maybe<Scalars['Int']>;
-  sbUpdated?: Maybe<Scalars['String']>;
-  sbVersion?: Maybe<Scalars['String']>;
-  security?: Maybe<Scalars['String']>;
+  regTo?: Maybe<Scalars['String']['output']>;
+  /** Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now */
+  regTy?: Maybe<Scalars['String']['output']>;
+  safeMode?: Maybe<Scalars['Boolean']['output']>;
+  sbClean?: Maybe<Scalars['Boolean']['output']>;
+  sbEvents?: Maybe<Scalars['Int']['output']>;
+  sbName?: Maybe<Scalars['String']['output']>;
+  sbNumDisks?: Maybe<Scalars['Int']['output']>;
+  sbState?: Maybe<Scalars['String']['output']>;
+  sbSyncErrs?: Maybe<Scalars['Int']['output']>;
+  sbSyncExit?: Maybe<Scalars['String']['output']>;
+  sbSynced?: Maybe<Scalars['Int']['output']>;
+  sbSynced2?: Maybe<Scalars['Int']['output']>;
+  sbUpdated?: Maybe<Scalars['String']['output']>;
+  sbVersion?: Maybe<Scalars['String']['output']>;
+  security?: Maybe<Scalars['String']['output']>;
   /** Total amount shares with AFP enabled */
-  shareAfpCount?: Maybe<Scalars['Int']>;
-  shareAfpEnabled?: Maybe<Scalars['Boolean']>;
-  shareAvahiAfpModel?: Maybe<Scalars['String']>;
-  shareAvahiAfpName?: Maybe<Scalars['String']>;
-  shareAvahiEnabled?: Maybe<Scalars['Boolean']>;
-  shareAvahiSmbModel?: Maybe<Scalars['String']>;
-  shareAvahiSmbName?: Maybe<Scalars['String']>;
-  shareCacheEnabled?: Maybe<Scalars['Boolean']>;
-  shareCacheFloor?: Maybe<Scalars['String']>;
+  shareAfpCount?: Maybe<Scalars['Int']['output']>;
+  shareAfpEnabled?: Maybe<Scalars['Boolean']['output']>;
+  shareAvahiAfpModel?: Maybe<Scalars['String']['output']>;
+  shareAvahiAfpName?: Maybe<Scalars['String']['output']>;
+  shareAvahiEnabled?: Maybe<Scalars['Boolean']['output']>;
+  shareAvahiSmbModel?: Maybe<Scalars['String']['output']>;
+  shareAvahiSmbName?: Maybe<Scalars['String']['output']>;
+  shareCacheEnabled?: Maybe<Scalars['Boolean']['output']>;
+  shareCacheFloor?: Maybe<Scalars['String']['output']>;
   /** Total amount of user shares */
-  shareCount?: Maybe<Scalars['Int']>;
-  shareDisk?: Maybe<Scalars['String']>;
-  shareInitialGroup?: Maybe<Scalars['String']>;
-  shareInitialOwner?: Maybe<Scalars['String']>;
-  shareMoverActive?: Maybe<Scalars['Boolean']>;
-  shareMoverLogging?: Maybe<Scalars['Boolean']>;
-  shareMoverSchedule?: Maybe<Scalars['String']>;
+  shareCount?: Maybe<Scalars['Int']['output']>;
+  shareDisk?: Maybe<Scalars['String']['output']>;
+  shareInitialGroup?: Maybe<Scalars['String']['output']>;
+  shareInitialOwner?: Maybe<Scalars['String']['output']>;
+  shareMoverActive?: Maybe<Scalars['Boolean']['output']>;
+  shareMoverLogging?: Maybe<Scalars['Boolean']['output']>;
+  shareMoverSchedule?: Maybe<Scalars['String']['output']>;
   /** Total amount shares with NFS enabled */
-  shareNfsCount?: Maybe<Scalars['Int']>;
-  shareNfsEnabled?: Maybe<Scalars['Boolean']>;
+  shareNfsCount?: Maybe<Scalars['Int']['output']>;
+  shareNfsEnabled?: Maybe<Scalars['Boolean']['output']>;
   /** Total amount shares with SMB enabled */
-  shareSmbCount?: Maybe<Scalars['Int']>;
-  shareSmbEnabled?: Maybe<Scalars['Boolean']>;
-  shareUser?: Maybe<Scalars['String']>;
-  shareUserExclude?: Maybe<Scalars['String']>;
-  shareUserInclude?: Maybe<Scalars['String']>;
-  shutdownTimeout?: Maybe<Scalars['Int']>;
-  spindownDelay?: Maybe<Scalars['String']>;
-  spinupGroups?: Maybe<Scalars['Boolean']>;
-  startArray?: Maybe<Scalars['Boolean']>;
-  startMode?: Maybe<Scalars['String']>;
-  startPage?: Maybe<Scalars['String']>;
-  sysArraySlots?: Maybe<Scalars['Int']>;
-  sysCacheSlots?: Maybe<Scalars['Int']>;
-  sysFlashSlots?: Maybe<Scalars['Int']>;
-  sysModel?: Maybe<Scalars['String']>;
-  timeZone?: Maybe<Scalars['String']>;
+  shareSmbCount?: Maybe<Scalars['Int']['output']>;
+  shareSmbEnabled?: Maybe<Scalars['Boolean']['output']>;
+  shareUser?: Maybe<Scalars['String']['output']>;
+  shareUserExclude?: Maybe<Scalars['String']['output']>;
+  shareUserInclude?: Maybe<Scalars['String']['output']>;
+  shutdownTimeout?: Maybe<Scalars['Int']['output']>;
+  spindownDelay?: Maybe<Scalars['String']['output']>;
+  spinupGroups?: Maybe<Scalars['Boolean']['output']>;
+  startArray?: Maybe<Scalars['Boolean']['output']>;
+  startMode?: Maybe<Scalars['String']['output']>;
+  startPage?: Maybe<Scalars['String']['output']>;
+  sysArraySlots?: Maybe<Scalars['Int']['output']>;
+  sysCacheSlots?: Maybe<Scalars['Int']['output']>;
+  sysFlashSlots?: Maybe<Scalars['Int']['output']>;
+  sysModel?: Maybe<Scalars['String']['output']>;
+  timeZone?: Maybe<Scalars['String']['output']>;
   /** Should a NTP server be used for time sync? */
-  useNtp?: Maybe<Scalars['Boolean']>;
-  useSsh?: Maybe<Scalars['Boolean']>;
-  useSsl?: Maybe<Scalars['Boolean']>;
+  useNtp?: Maybe<Scalars['Boolean']['output']>;
+  useSsh?: Maybe<Scalars['Boolean']['output']>;
+  useSsl?: Maybe<Scalars['Boolean']['output']>;
   /** Should telnet be enabled? */
-  useTelnet?: Maybe<Scalars['Boolean']>;
+  useTelnet?: Maybe<Scalars['Boolean']['output']>;
   /** Unraid version */
-  version?: Maybe<Scalars['String']>;
-  workgroup?: Maybe<Scalars['String']>;
+  version?: Maybe<Scalars['String']['output']>;
+  workgroup?: Maybe<Scalars['String']['output']>;
 };
 
 export type Versions = {
   __typename?: 'Versions';
-  apache?: Maybe<Scalars['String']>;
-  docker?: Maybe<Scalars['String']>;
-  gcc?: Maybe<Scalars['String']>;
-  git?: Maybe<Scalars['String']>;
-  grunt?: Maybe<Scalars['String']>;
-  gulp?: Maybe<Scalars['String']>;
-  kernel?: Maybe<Scalars['String']>;
-  mongodb?: Maybe<Scalars['String']>;
-  mysql?: Maybe<Scalars['String']>;
-  nginx?: Maybe<Scalars['String']>;
-  node?: Maybe<Scalars['String']>;
-  npm?: Maybe<Scalars['String']>;
-  openssl?: Maybe<Scalars['String']>;
-  perl?: Maybe<Scalars['String']>;
-  php?: Maybe<Scalars['String']>;
-  pm2?: Maybe<Scalars['String']>;
-  postfix?: Maybe<Scalars['String']>;
-  postgresql?: Maybe<Scalars['String']>;
-  python?: Maybe<Scalars['String']>;
-  redis?: Maybe<Scalars['String']>;
-  systemOpenssl?: Maybe<Scalars['String']>;
-  systemOpensslLib?: Maybe<Scalars['String']>;
-  tsc?: Maybe<Scalars['String']>;
-  unraid?: Maybe<Scalars['String']>;
-  v8?: Maybe<Scalars['String']>;
-  yarn?: Maybe<Scalars['String']>;
+  apache?: Maybe<Scalars['String']['output']>;
+  docker?: Maybe<Scalars['String']['output']>;
+  gcc?: Maybe<Scalars['String']['output']>;
+  git?: Maybe<Scalars['String']['output']>;
+  grunt?: Maybe<Scalars['String']['output']>;
+  gulp?: Maybe<Scalars['String']['output']>;
+  kernel?: Maybe<Scalars['String']['output']>;
+  mongodb?: Maybe<Scalars['String']['output']>;
+  mysql?: Maybe<Scalars['String']['output']>;
+  nginx?: Maybe<Scalars['String']['output']>;
+  node?: Maybe<Scalars['String']['output']>;
+  npm?: Maybe<Scalars['String']['output']>;
+  openssl?: Maybe<Scalars['String']['output']>;
+  perl?: Maybe<Scalars['String']['output']>;
+  php?: Maybe<Scalars['String']['output']>;
+  pm2?: Maybe<Scalars['String']['output']>;
+  postfix?: Maybe<Scalars['String']['output']>;
+  postgresql?: Maybe<Scalars['String']['output']>;
+  python?: Maybe<Scalars['String']['output']>;
+  redis?: Maybe<Scalars['String']['output']>;
+  systemOpenssl?: Maybe<Scalars['String']['output']>;
+  systemOpensslLib?: Maybe<Scalars['String']['output']>;
+  tsc?: Maybe<Scalars['String']['output']>;
+  unraid?: Maybe<Scalars['String']['output']>;
+  v8?: Maybe<Scalars['String']['output']>;
+  yarn?: Maybe<Scalars['String']['output']>;
 };
 
 /** A virtual machine */
 export type VmDomain = {
   __typename?: 'VmDomain';
   /** A friendly name for the vm */
-  name?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']['output']>;
   /** Current domain vm state */
   state: VmState;
-  uuid: Scalars['ID'];
+  uuid: Scalars['ID']['output'];
 };
 
 export type VmNetwork = {
   __typename?: 'VmNetwork';
-  _placeholderType?: Maybe<Scalars['String']>;
+  _placeholderType?: Maybe<Scalars['String']['output']>;
 };
 
 export enum VmState {
@@ -1545,47 +1546,47 @@ export enum WAN_FORWARD_TYPE {
 
 export type Welcome = {
   __typename?: 'Welcome';
-  message: Scalars['String'];
+  message: Scalars['String']['output'];
 };
 
 export type addApiKeyInput = {
-  key?: InputMaybe<Scalars['String']>;
-  name?: InputMaybe<Scalars['String']>;
-  userId?: InputMaybe<Scalars['String']>;
+  key?: InputMaybe<Scalars['String']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  userId?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type addScopeInput = {
   /** Scope description */
-  description?: InputMaybe<Scalars['String']>;
+  description?: InputMaybe<Scalars['String']['input']>;
   /** Scope name */
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 export type addScopeToApiKeyInput = {
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['input'];
   /** Scope name */
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 export type addUserInput = {
-  description?: InputMaybe<Scalars['String']>;
-  name: Scalars['String'];
-  password: Scalars['String'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  password: Scalars['String']['input'];
 };
 
 export type arrayDiskInput = {
   /** Disk ID */
-  id: Scalars['ID'];
+  id: Scalars['ID']['input'];
   /** The slot for the disk */
-  slot?: InputMaybe<Scalars['Int']>;
+  slot?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type authenticateInput = {
-  password: Scalars['String'];
+  password: Scalars['String']['input'];
 };
 
 export type deleteUserInput = {
-  name: Scalars['String'];
+  name: Scalars['String']['input'];
 };
 
 export enum mdState {
@@ -1594,25 +1595,23 @@ export enum mdState {
 }
 
 export enum registrationType {
-  /** Basic */
   BASIC = 'BASIC',
-  /** Invalid */
   INVALID = 'INVALID',
-  /** Plus */
+  LIFETIME = 'LIFETIME',
   PLUS = 'PLUS',
-  /** Pro */
   PRO = 'PRO',
-  /** Trial */
-  TRIAL = 'TRIAL'
+  STARTER = 'STARTER',
+  TRIAL = 'TRIAL',
+  UNLEASHED = 'UNLEASHED'
 }
 
 export type updateApikeyInput = {
-  description?: InputMaybe<Scalars['String']>;
-  expiresAt: Scalars['Long'];
+  description?: InputMaybe<Scalars['String']['input']>;
+  expiresAt: Scalars['Long']['input'];
 };
 
 export type usersInput = {
-  slim?: InputMaybe<Scalars['Boolean']>;
+  slim?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
 export type WithIndex<TObject> = TObject & Record<string, any>;
@@ -1684,6 +1683,10 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 ) => TResult | Promise<TResult>;
 
 
+/** Mapping of interface types */
+export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
+  UserAccount: ( Me ) | ( User );
+}>;
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
@@ -1699,7 +1702,7 @@ export type ResolversTypes = ResolversObject<{
   ArrayPendingState: ArrayPendingState;
   ArrayState: ArrayState;
   Baseboard: ResolverTypeWrapper<Baseboard>;
-  Boolean: ResolverTypeWrapper<Scalars['Boolean']>;
+  Boolean: ResolverTypeWrapper<Scalars['Boolean']['output']>;
   Capacity: ResolverTypeWrapper<Capacity>;
   Case: ResolverTypeWrapper<Case>;
   Cloud: ResolverTypeWrapper<Cloud>;
@@ -1713,7 +1716,7 @@ export type ResolversTypes = ResolversObject<{
   ContainerPort: ResolverTypeWrapper<ContainerPort>;
   ContainerPortType: ContainerPortType;
   ContainerState: ContainerState;
-  DateTime: ResolverTypeWrapper<Scalars['DateTime']>;
+  DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Device: ResolverTypeWrapper<Device>;
   Devices: ResolverTypeWrapper<Devices>;
   Disk: ResolverTypeWrapper<Disk>;
@@ -1725,18 +1728,18 @@ export type ResolversTypes = ResolversObject<{
   DockerContainer: ResolverTypeWrapper<DockerContainer>;
   DockerNetwork: ResolverTypeWrapper<DockerNetwork>;
   Flash: ResolverTypeWrapper<Flash>;
-  Float: ResolverTypeWrapper<Scalars['Float']>;
+  Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   Gpu: ResolverTypeWrapper<Gpu>;
-  ID: ResolverTypeWrapper<Scalars['ID']>;
+  ID: ResolverTypeWrapper<Scalars['ID']['output']>;
   Importance: Importance;
   Info: ResolverTypeWrapper<Info>;
   InfoApps: ResolverTypeWrapper<InfoApps>;
   InfoCpu: ResolverTypeWrapper<InfoCpu>;
   InfoMemory: ResolverTypeWrapper<InfoMemory>;
-  Int: ResolverTypeWrapper<Scalars['Int']>;
-  JSON: ResolverTypeWrapper<Scalars['JSON']>;
+  Int: ResolverTypeWrapper<Scalars['Int']['output']>;
+  JSON: ResolverTypeWrapper<Scalars['JSON']['output']>;
   KeyFile: ResolverTypeWrapper<KeyFile>;
-  Long: ResolverTypeWrapper<Scalars['Long']>;
+  Long: ResolverTypeWrapper<Scalars['Long']['output']>;
   Me: ResolverTypeWrapper<Me>;
   MemoryFormFactor: MemoryFormFactor;
   MemoryLayout: ResolverTypeWrapper<MemoryLayout>;
@@ -1756,7 +1759,7 @@ export type ResolversTypes = ResolversObject<{
   Partition: ResolverTypeWrapper<Partition>;
   Pci: ResolverTypeWrapper<Pci>;
   Permissions: ResolverTypeWrapper<Permissions>;
-  Port: ResolverTypeWrapper<Scalars['Port']>;
+  Port: ResolverTypeWrapper<Scalars['Port']['output']>;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
@@ -1768,7 +1771,7 @@ export type ResolversTypes = ResolversObject<{
   Service: ResolverTypeWrapper<Service>;
   SetupRemoteAccessInput: SetupRemoteAccessInput;
   Share: ResolverTypeWrapper<Share>;
-  String: ResolverTypeWrapper<Scalars['String']>;
+  String: ResolverTypeWrapper<Scalars['String']['output']>;
   Subscription: ResolverTypeWrapper<{}>;
   System: ResolverTypeWrapper<System>;
   Temperature: Temperature;
@@ -1777,12 +1780,12 @@ export type ResolversTypes = ResolversObject<{
   TwoFactorRemote: ResolverTypeWrapper<TwoFactorRemote>;
   TwoFactorWithToken: ResolverTypeWrapper<TwoFactorWithToken>;
   TwoFactorWithoutToken: ResolverTypeWrapper<TwoFactorWithoutToken>;
-  UUID: ResolverTypeWrapper<Scalars['UUID']>;
+  UUID: ResolverTypeWrapper<Scalars['UUID']['output']>;
   UnassignedDevice: ResolverTypeWrapper<UnassignedDevice>;
   Uptime: ResolverTypeWrapper<Uptime>;
   Usb: ResolverTypeWrapper<Usb>;
   User: ResolverTypeWrapper<User>;
-  UserAccount: ResolversTypes['Me'] | ResolversTypes['User'];
+  UserAccount: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['UserAccount']>;
   Vars: ResolverTypeWrapper<Vars>;
   Versions: ResolverTypeWrapper<Versions>;
   VmDomain: ResolverTypeWrapper<VmDomain>;
@@ -1814,7 +1817,7 @@ export type ResolversParentTypes = ResolversObject<{
   ArrayCapacity: ArrayCapacity;
   ArrayDisk: ArrayDisk;
   Baseboard: Baseboard;
-  Boolean: Scalars['Boolean'];
+  Boolean: Scalars['Boolean']['output'];
   Capacity: Capacity;
   Case: Case;
   Cloud: Cloud;
@@ -1825,7 +1828,7 @@ export type ResolversParentTypes = ResolversObject<{
   ContainerHostConfig: ContainerHostConfig;
   ContainerMount: ContainerMount;
   ContainerPort: ContainerPort;
-  DateTime: Scalars['DateTime'];
+  DateTime: Scalars['DateTime']['output'];
   Device: Device;
   Devices: Devices;
   Disk: Disk;
@@ -1834,17 +1837,17 @@ export type ResolversParentTypes = ResolversObject<{
   DockerContainer: DockerContainer;
   DockerNetwork: DockerNetwork;
   Flash: Flash;
-  Float: Scalars['Float'];
+  Float: Scalars['Float']['output'];
   Gpu: Gpu;
-  ID: Scalars['ID'];
+  ID: Scalars['ID']['output'];
   Info: Info;
   InfoApps: InfoApps;
   InfoCpu: InfoCpu;
   InfoMemory: InfoMemory;
-  Int: Scalars['Int'];
-  JSON: Scalars['JSON'];
+  Int: Scalars['Int']['output'];
+  JSON: Scalars['JSON']['output'];
   KeyFile: KeyFile;
-  Long: Scalars['Long'];
+  Long: Scalars['Long']['output'];
   Me: Me;
   MemoryLayout: MemoryLayout;
   MinigraphqlResponse: MinigraphqlResponse;
@@ -1860,7 +1863,7 @@ export type ResolversParentTypes = ResolversObject<{
   Partition: Partition;
   Pci: Pci;
   Permissions: Permissions;
-  Port: Scalars['Port'];
+  Port: Scalars['Port']['output'];
   ProfileModel: ProfileModel;
   Query: {};
   Registration: Registration;
@@ -1870,19 +1873,19 @@ export type ResolversParentTypes = ResolversObject<{
   Service: Service;
   SetupRemoteAccessInput: SetupRemoteAccessInput;
   Share: Share;
-  String: Scalars['String'];
+  String: Scalars['String']['output'];
   Subscription: {};
   System: System;
   TwoFactorLocal: TwoFactorLocal;
   TwoFactorRemote: TwoFactorRemote;
   TwoFactorWithToken: TwoFactorWithToken;
   TwoFactorWithoutToken: TwoFactorWithoutToken;
-  UUID: Scalars['UUID'];
+  UUID: Scalars['UUID']['output'];
   UnassignedDevice: UnassignedDevice;
   Uptime: Uptime;
   Usb: Usb;
   User: User;
-  UserAccount: ResolversParentTypes['Me'] | ResolversParentTypes['User'];
+  UserAccount: ResolversInterfaceTypes<ResolversParentTypes>['UserAccount'];
   Vars: Vars;
   Versions: Versions;
   VmDomain: VmDomain;
@@ -1901,7 +1904,7 @@ export type ResolversParentTypes = ResolversObject<{
 }>;
 
 export type subscriptionDirectiveArgs = {
-  channel: Scalars['String'];
+  channel: Scalars['String']['input'];
 };
 
 export type subscriptionDirectiveResolver<Result, Parent, ContextType = Context, Args = subscriptionDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;

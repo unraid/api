@@ -67,17 +67,17 @@ export const registrationTypeSchema = z.nativeEnum(registrationType);
 
 export function AllowedOriginInputSchema(): z.ZodObject<Properties<AllowedOriginInput>> {
   return z.object({
-    origins: z.array(definedNonNullAnySchema)
+    origins: z.array(z.string())
   })
 }
 
 export function ApiKeySchema(): z.ZodObject<Properties<ApiKey>> {
   return z.object({
     __typename: z.literal('ApiKey').optional(),
-    description: definedNonNullAnySchema.nullish(),
-    expiresAt: definedNonNullAnySchema,
-    key: definedNonNullAnySchema,
-    name: definedNonNullAnySchema,
+    description: z.string().nullish(),
+    expiresAt: z.number(),
+    key: z.string(),
+    name: z.string(),
     scopes: definedNonNullAnySchema
   })
 }
@@ -85,8 +85,8 @@ export function ApiKeySchema(): z.ZodObject<Properties<ApiKey>> {
 export function ApiKeyResponseSchema(): z.ZodObject<Properties<ApiKeyResponse>> {
   return z.object({
     __typename: z.literal('ApiKeyResponse').optional(),
-    error: definedNonNullAnySchema.nullish(),
-    valid: definedNonNullAnySchema
+    error: z.string().nullish(),
+    valid: z.boolean()
   })
 }
 
@@ -115,68 +115,68 @@ export function ArrayCapacitySchema(): z.ZodObject<Properties<ArrayCapacity>> {
 export function ArrayDiskSchema(): z.ZodObject<Properties<ArrayDisk>> {
   return z.object({
     __typename: z.literal('ArrayDisk').optional(),
-    comment: definedNonNullAnySchema.nullish(),
-    critical: definedNonNullAnySchema.nullish(),
-    device: definedNonNullAnySchema.nullish(),
-    exportable: definedNonNullAnySchema.nullish(),
-    format: definedNonNullAnySchema.nullish(),
-    fsFree: definedNonNullAnySchema.nullish(),
-    fsSize: definedNonNullAnySchema.nullish(),
-    fsType: definedNonNullAnySchema.nullish(),
-    fsUsed: definedNonNullAnySchema.nullish(),
-    id: definedNonNullAnySchema,
-    idx: definedNonNullAnySchema,
-    name: definedNonNullAnySchema.nullish(),
-    numErrors: definedNonNullAnySchema,
-    numReads: definedNonNullAnySchema,
-    numWrites: definedNonNullAnySchema,
-    rotational: definedNonNullAnySchema.nullish(),
-    size: definedNonNullAnySchema,
+    comment: z.string().nullish(),
+    critical: z.number().nullish(),
+    device: z.string().nullish(),
+    exportable: z.boolean().nullish(),
+    format: z.string().nullish(),
+    fsFree: z.number().nullish(),
+    fsSize: z.number().nullish(),
+    fsType: z.string().nullish(),
+    fsUsed: z.number().nullish(),
+    id: z.string(),
+    idx: z.number(),
+    name: z.string().nullish(),
+    numErrors: z.number(),
+    numReads: z.number(),
+    numWrites: z.number(),
+    rotational: z.boolean().nullish(),
+    size: z.number(),
     status: ArrayDiskStatusSchema.nullish(),
-    temp: definedNonNullAnySchema.nullish(),
-    transport: definedNonNullAnySchema.nullish(),
+    temp: z.number().nullish(),
+    transport: z.string().nullish(),
     type: ArrayDiskTypeSchema,
-    warning: definedNonNullAnySchema.nullish()
+    warning: z.number().nullish()
   })
 }
 
 export function BaseboardSchema(): z.ZodObject<Properties<Baseboard>> {
   return z.object({
     __typename: z.literal('Baseboard').optional(),
-    assetTag: definedNonNullAnySchema.nullish(),
-    manufacturer: definedNonNullAnySchema,
-    model: definedNonNullAnySchema.nullish(),
-    serial: definedNonNullAnySchema.nullish(),
-    version: definedNonNullAnySchema.nullish()
+    assetTag: z.string().nullish(),
+    manufacturer: z.string(),
+    model: z.string().nullish(),
+    serial: z.string().nullish(),
+    version: z.string().nullish()
   })
 }
 
 export function CapacitySchema(): z.ZodObject<Properties<Capacity>> {
   return z.object({
     __typename: z.literal('Capacity').optional(),
-    free: definedNonNullAnySchema,
-    total: definedNonNullAnySchema,
-    used: definedNonNullAnySchema
+    free: z.string(),
+    total: z.string(),
+    used: z.string()
   })
 }
 
 export function CaseSchema(): z.ZodObject<Properties<Case>> {
   return z.object({
     __typename: z.literal('Case').optional(),
-    base64: definedNonNullAnySchema.nullish(),
-    error: definedNonNullAnySchema.nullish(),
-    icon: definedNonNullAnySchema.nullish(),
-    url: definedNonNullAnySchema.nullish()
+    base64: z.string().nullish(),
+    error: z.string().nullish(),
+    icon: z.string().nullish(),
+    url: z.string().nullish()
   })
 }
 
 export function CloudSchema(): z.ZodObject<Properties<Cloud>> {
   return z.object({
     __typename: z.literal('Cloud').optional(),
-    allowedOrigins: z.array(definedNonNullAnySchema),
+    allowedOrigins: z.array(z.string()),
     apiKey: ApiKeyResponseSchema(),
     cloud: CloudResponseSchema(),
-    error: definedNonNullAnySchema.nullish(),
+    error: z.string().nullish(),
     minigraphql: MinigraphqlResponseSchema(),
     relay: RelayResponseSchema().nullish()
   })
@@ -185,9 +185,9 @@ export function CloudSchema(): z.ZodObject<Properties<Cloud>> {
 export function CloudResponseSchema(): z.ZodObject<Properties<CloudResponse>> {
   return z.object({
     __typename: z.literal('CloudResponse').optional(),
-    error: definedNonNullAnySchema.nullish(),
-    ip: definedNonNullAnySchema.nullish(),
-    status: definedNonNullAnySchema
+    error: z.string().nullish(),
+    ip: z.string().nullish(),
+    status: z.string()
   })
 }
 
@@ -195,55 +195,55 @@ export function ConfigSchema(): z.ZodObject<Properties<Config>> {
   return z.object({
     __typename: z.literal('Config').optional(),
     error: ConfigErrorStateSchema.nullish(),
-    valid: definedNonNullAnySchema.nullish()
+    valid: z.boolean().nullish()
   })
 }
 
 export function ConnectSignInInputSchema(): z.ZodObject<Properties<ConnectSignInInput>> {
   return z.object({
-    accessToken: definedNonNullAnySchema.nullish(),
-    apiKey: definedNonNullAnySchema,
-    idToken: definedNonNullAnySchema.nullish(),
-    refreshToken: definedNonNullAnySchema.nullish(),
+    accessToken: z.string().nullish(),
+    apiKey: z.string(),
+    idToken: z.string().nullish(),
+    refreshToken: z.string().nullish(),
     userInfo: z.lazy(() => ConnectUserInfoInputSchema().nullish())
   })
 }
 
 export function ConnectUserInfoInputSchema(): z.ZodObject<Properties<ConnectUserInfoInput>> {
   return z.object({
-    avatar: definedNonNullAnySchema.nullish(),
-    email: definedNonNullAnySchema,
-    preferred_username: definedNonNullAnySchema
+    avatar: z.string().nullish(),
+    email: z.string(),
+    preferred_username: z.string()
   })
 }
 
 export function ContainerHostConfigSchema(): z.ZodObject<Properties<ContainerHostConfig>> {
   return z.object({
     __typename: z.literal('ContainerHostConfig').optional(),
-    networkMode: definedNonNullAnySchema
+    networkMode: z.string()
   })
 }
 
 export function ContainerMountSchema(): z.ZodObject<Properties<ContainerMount>> {
   return z.object({
     __typename: z.literal('ContainerMount').optional(),
-    destination: definedNonNullAnySchema,
-    driver: definedNonNullAnySchema,
-    mode: definedNonNullAnySchema,
-    name: definedNonNullAnySchema,
-    propagation: definedNonNullAnySchema,
-    rw: definedNonNullAnySchema,
-    source: definedNonNullAnySchema,
-    type: definedNonNullAnySchema
+    destination: z.string(),
+    driver: z.string(),
+    mode: z.string(),
+    name: z.string(),
+    propagation: z.string(),
+    rw: z.boolean(),
+    source: z.string(),
+    type: z.string()
   })
 }
 
 export function ContainerPortSchema(): z.ZodObject<Properties<ContainerPort>> {
   return z.object({
     __typename: z.literal('ContainerPort').optional(),
-    ip: definedNonNullAnySchema.nullish(),
-    privatePort: definedNonNullAnySchema.nullish(),
-    publicPort: definedNonNullAnySchema.nullish(),
+    ip: z.string().nullish(),
+    privatePort: z.number().nullish(),
+    publicPort: z.number().nullish(),
     type: ContainerPortTypeSchema.nullish()
   })
 }
@@ -251,11 +251,11 @@ export function ContainerPortSchema(): z.ZodObject<Properties<ContainerPort>> {
 export function DeviceSchema(): z.ZodObject<Properties<Device>> {
   return z.object({
     __typename: z.literal('Device').optional(),
-    device: definedNonNullAnySchema.nullish(),
-    id: definedNonNullAnySchema,
-    sectorSize: definedNonNullAnySchema.nullish(),
-    sectors: definedNonNullAnySchema.nullish(),
-    tag: definedNonNullAnySchema.nullish()
+    device: z.string().nullish(),
+    id: z.string(),
+    sectorSize: z.string().nullish(),
+    sectors: z.string().nullish(),
+    tag: z.string().nullish()
   })
 }
 
@@ -272,24 +272,24 @@ export function DevicesSchema(): z.ZodObject<Properties<Devices>> {
 export function DiskSchema(): z.ZodObject<Properties<Disk>> {
   return z.object({
     __typename: z.literal('Disk').optional(),
-    bytesPerSector: definedNonNullAnySchema,
-    device: definedNonNullAnySchema,
-    firmwareRevision: definedNonNullAnySchema,
+    bytesPerSector: z.number(),
+    device: z.string(),
+    firmwareRevision: z.string(),
     interfaceType: DiskInterfaceTypeSchema,
-    name: definedNonNullAnySchema,
+    name: z.string(),
     partitions: z.array(DiskPartitionSchema()).nullish(),
-    sectorsPerTrack: definedNonNullAnySchema,
-    serialNum: definedNonNullAnySchema,
-    size: definedNonNullAnySchema,
+    sectorsPerTrack: z.number(),
+    serialNum: z.string(),
+    size: z.number(),
     smartStatus: DiskSmartStatusSchema,
-    temperature: definedNonNullAnySchema,
-    totalCylinders: definedNonNullAnySchema,
-    totalHeads: definedNonNullAnySchema,
-    totalSectors: definedNonNullAnySchema,
-    totalTracks: definedNonNullAnySchema,
-    tracksPerCylinder: definedNonNullAnySchema,
-    type: definedNonNullAnySchema,
-    vendor: definedNonNullAnySchema
+    temperature: z.number(),
+    totalCylinders: z.number(),
+    totalHeads: z.number(),
+    totalSectors: z.number(),
+    totalTracks: z.number(),
+    tracksPerCylinder: z.number(),
+    type: z.string(),
+    vendor: z.string()
   })
 }
 
@@ -297,98 +297,98 @@ export function DiskPartitionSchema(): z.ZodObject<Properties<DiskPartition>> {
   return z.object({
     __typename: z.literal('DiskPartition').optional(),
     fsType: DiskFsTypeSchema,
-    name: definedNonNullAnySchema,
-    size: definedNonNullAnySchema
+    name: z.string(),
+    size: z.number()
   })
 }
 
 export function DisplaySchema(): z.ZodObject<Properties<Display>> {
   return z.object({
     __typename: z.literal('Display').optional(),
-    banner: definedNonNullAnySchema.nullish(),
+    banner: z.string().nullish(),
     case: CaseSchema().nullish(),
-    critical: definedNonNullAnySchema.nullish(),
-    dashapps: definedNonNullAnySchema.nullish(),
-    date: definedNonNullAnySchema.nullish(),
-    hot: definedNonNullAnySchema.nullish(),
-    locale: definedNonNullAnySchema.nullish(),
-    max: definedNonNullAnySchema.nullish(),
-    number: definedNonNullAnySchema.nullish(),
-    resize: definedNonNullAnySchema.nullish(),
-    scale: definedNonNullAnySchema.nullish(),
-    tabs: definedNonNullAnySchema.nullish(),
-    text: definedNonNullAnySchema.nullish(),
+    critical: z.number().nullish(),
+    dashapps: z.string().nullish(),
+    date: z.string().nullish(),
+    hot: z.number().nullish(),
+    locale: z.string().nullish(),
+    max: z.number().nullish(),
+    number: z.string().nullish(),
+    resize: z.boolean().nullish(),
+    scale: z.boolean().nullish(),
+    tabs: z.boolean().nullish(),
+    text: z.boolean().nullish(),
     theme: ThemeSchema.nullish(),
-    total: definedNonNullAnySchema.nullish(),
+    total: z.boolean().nullish(),
     unit: TemperatureSchema.nullish(),
-    usage: definedNonNullAnySchema.nullish(),
-    users: definedNonNullAnySchema.nullish(),
-    warning: definedNonNullAnySchema.nullish(),
-    wwn: definedNonNullAnySchema.nullish()
+    usage: z.boolean().nullish(),
+    users: z.string().nullish(),
+    warning: z.number().nullish(),
+    wwn: z.boolean().nullish()
   })
 }
 
 export function DockerContainerSchema(): z.ZodObject<Properties<DockerContainer>> {
   return z.object({
     __typename: z.literal('DockerContainer').optional(),
-    autoStart: definedNonNullAnySchema,
-    command: definedNonNullAnySchema,
-    created: definedNonNullAnySchema,
+    autoStart: z.boolean(),
+    command: z.string(),
+    created: z.number(),
     hostConfig: ContainerHostConfigSchema().nullish(),
-    id: definedNonNullAnySchema,
-    image: definedNonNullAnySchema,
-    imageId: definedNonNullAnySchema,
+    id: z.string(),
+    image: z.string(),
+    imageId: z.string(),
     labels: definedNonNullAnySchema.nullish(),
     mounts: z.array(definedNonNullAnySchema.nullable()).nullish(),
-    names: z.array(definedNonNullAnySchema).nullish(),
+    names: z.array(z.string()).nullish(),
     networkSettings: definedNonNullAnySchema.nullish(),
     ports: z.array(ContainerPortSchema()),
-    sizeRootFs: definedNonNullAnySchema.nullish(),
+    sizeRootFs: z.number().nullish(),
     state: ContainerStateSchema,
-    status: definedNonNullAnySchema
+    status: z.string()
   })
 }
 
 export function DockerNetworkSchema(): z.ZodObject<Properties<DockerNetwork>> {
   return z.object({
     __typename: z.literal('DockerNetwork').optional(),
-    attachable: definedNonNullAnySchema,
+    attachable: z.boolean(),
     configFrom: definedNonNullAnySchema.nullish(),
-    configOnly: definedNonNullAnySchema,
+    configOnly: z.boolean(),
     containers: definedNonNullAnySchema.nullish(),
-    created: definedNonNullAnySchema.nullish(),
-    driver: definedNonNullAnySchema.nullish(),
-    enableIPv6: definedNonNullAnySchema,
-    id: definedNonNullAnySchema.nullish(),
-    ingress: definedNonNullAnySchema,
-    internal: definedNonNullAnySchema,
+    created: z.string().nullish(),
+    driver: z.string().nullish(),
+    enableIPv6: z.boolean(),
+    id: z.string().nullish(),
+    ingress: z.boolean(),
+    internal: z.boolean(),
     ipam: definedNonNullAnySchema.nullish(),
     labels: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
+    name: z.string().nullish(),
     options: definedNonNullAnySchema.nullish(),
-    scope: definedNonNullAnySchema.nullish()
+    scope: z.string().nullish()
   })
 }
 
 export function FlashSchema(): z.ZodObject<Properties<Flash>> {
   return z.object({
     __typename: z.literal('Flash').optional(),
-    guid: definedNonNullAnySchema.nullish(),
-    product: definedNonNullAnySchema.nullish(),
-    vendor: definedNonNullAnySchema.nullish()
+    guid: z.string().nullish(),
+    product: z.string().nullish(),
+    vendor: z.string().nullish()
   })
 }
 
 export function GpuSchema(): z.ZodObject<Properties<Gpu>> {
   return z.object({
     __typename: z.literal('Gpu').optional(),
-    blacklisted: definedNonNullAnySchema,
-    class: definedNonNullAnySchema,
-    id: definedNonNullAnySchema,
-    productid: definedNonNullAnySchema,
-    type: definedNonNullAnySchema,
-    typeid: definedNonNullAnySchema,
-    vendorname: definedNonNullAnySchema
+    blacklisted: z.boolean(),
+    class: z.string(),
+    id: z.string(),
+    productid: z.string(),
+    type: z.string(),
+    typeid: z.string(),
+    vendorname: z.string()
   })
 }
 
@@ -400,7 +400,7 @@ export function InfoSchema(): z.ZodObject<Properties<Info>> {
     cpu: InfoCpuSchema().nullish(),
     devices: DevicesSchema().nullish(),
     display: DisplaySchema().nullish(),
-    machineId: definedNonNullAnySchema.nullish(),
+    machineId: z.string().nullish(),
     memory: InfoMemorySchema().nullish(),
     os: OsSchema().nullish(),
     system: SystemSchema().nullish(),
@@ -411,134 +411,134 @@ export function InfoSchema(): z.ZodObject<Properties<Info>> {
 export function InfoAppsSchema(): z.ZodObject<Properties<InfoApps>> {
   return z.object({
     __typename: z.literal('InfoApps').optional(),
-    installed: definedNonNullAnySchema.nullish(),
-    started: definedNonNullAnySchema.nullish()
+    installed: z.number().nullish(),
+    started: z.number().nullish()
   })
 }
 
 export function InfoCpuSchema(): z.ZodObject<Properties<InfoCpu>> {
   return z.object({
     __typename: z.literal('InfoCpu').optional(),
-    brand: definedNonNullAnySchema,
+    brand: z.string(),
     cache: definedNonNullAnySchema,
-    cores: definedNonNullAnySchema,
-    family: definedNonNullAnySchema,
-    flags: z.array(definedNonNullAnySchema).nullish(),
-    manufacturer: definedNonNullAnySchema,
-    model: definedNonNullAnySchema,
-    processors: definedNonNullAnySchema,
-    revision: definedNonNullAnySchema,
-    socket: definedNonNullAnySchema,
-    speed: definedNonNullAnySchema,
-    speedmax: definedNonNullAnySchema,
-    speedmin: definedNonNullAnySchema,
-    stepping: definedNonNullAnySchema,
-    threads: definedNonNullAnySchema,
-    vendor: definedNonNullAnySchema,
-    voltage: definedNonNullAnySchema.nullish()
+    cores: z.number(),
+    family: z.string(),
+    flags: z.array(z.string()).nullish(),
+    manufacturer: z.string(),
+    model: z.string(),
+    processors: z.number(),
+    revision: z.string(),
+    socket: z.string(),
+    speed: z.number(),
+    speedmax: z.number(),
+    speedmin: z.number(),
+    stepping: z.number(),
+    threads: z.number(),
+    vendor: z.string(),
+    voltage: z.string().nullish()
   })
 }
 
 export function InfoMemorySchema(): z.ZodObject<Properties<InfoMemory>> {
   return z.object({
     __typename: z.literal('InfoMemory').optional(),
-    active: definedNonNullAnySchema,
-    available: definedNonNullAnySchema,
-    buffcache: definedNonNullAnySchema,
-    free: definedNonNullAnySchema,
+    active: z.number(),
+    available: z.number(),
+    buffcache: z.number(),
+    free: z.number(),
     layout: z.array(MemoryLayoutSchema()).nullish(),
-    max: definedNonNullAnySchema,
-    swapfree: definedNonNullAnySchema,
-    swaptotal: definedNonNullAnySchema,
-    swapused: definedNonNullAnySchema,
-    total: definedNonNullAnySchema,
-    used: definedNonNullAnySchema
+    max: z.number(),
+    swapfree: z.number(),
+    swaptotal: z.number(),
+    swapused: z.number(),
+    total: z.number(),
+    used: z.number()
   })
 }
 
 export function KeyFileSchema(): z.ZodObject<Properties<KeyFile>> {
   return z.object({
     __typename: z.literal('KeyFile').optional(),
-    contents: definedNonNullAnySchema.nullish(),
-    location: definedNonNullAnySchema.nullish()
+    contents: z.string().nullish(),
+    location: z.string().nullish()
   })
 }
 
 export function MeSchema(): z.ZodObject<Properties<Me>> {
   return z.object({
     __typename: z.literal('Me').optional(),
-    description: definedNonNullAnySchema,
-    id: definedNonNullAnySchema,
-    name: definedNonNullAnySchema,
+    description: z.string(),
+    id: z.string(),
+    name: z.string(),
     permissions: definedNonNullAnySchema.nullish(),
-    role: definedNonNullAnySchema
+    role: z.string()
   })
 }
 
 export function MemoryLayoutSchema(): z.ZodObject<Properties<MemoryLayout>> {
   return z.object({
     __typename: z.literal('MemoryLayout').optional(),
-    bank: definedNonNullAnySchema.nullish(),
-    clockSpeed: definedNonNullAnySchema.nullish(),
+    bank: z.string().nullish(),
+    clockSpeed: z.number().nullish(),
     formFactor: MemoryFormFactorSchema.nullish(),
-    manufacturer: definedNonNullAnySchema.nullish(),
-    partNum: definedNonNullAnySchema.nullish(),
-    serialNum: definedNonNullAnySchema.nullish(),
-    size: definedNonNullAnySchema,
+    manufacturer: z.string().nullish(),
+    partNum: z.string().nullish(),
+    serialNum: z.string().nullish(),
+    size: z.number(),
     type: MemoryTypeSchema.nullish(),
-    voltageConfigured: definedNonNullAnySchema.nullish(),
-    voltageMax: definedNonNullAnySchema.nullish(),
-    voltageMin: definedNonNullAnySchema.nullish()
+    voltageConfigured: z.number().nullish(),
+    voltageMax: z.number().nullish(),
+    voltageMin: z.number().nullish()
   })
 }
 
 export function MinigraphqlResponseSchema(): z.ZodObject<Properties<MinigraphqlResponse>> {
   return z.object({
     __typename: z.literal('MinigraphqlResponse').optional(),
-    error: definedNonNullAnySchema.nullish(),
+    error: z.string().nullish(),
     status: MinigraphStatusSchema,
-    timeout: definedNonNullAnySchema.nullish()
+    timeout: z.number().nullish()
   })
 }
 
 export function MountSchema(): z.ZodObject<Properties<Mount>> {
   return z.object({
     __typename: z.literal('Mount').optional(),
-    directory: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
-    permissions: definedNonNullAnySchema.nullish(),
-    type: definedNonNullAnySchema.nullish()
+    directory: z.string().nullish(),
+    name: z.string().nullish(),
+    permissions: z.string().nullish(),
+    type: z.string().nullish()
   })
 }
 
 export function NetworkSchema(): z.ZodObject<Properties<Network>> {
   return z.object({
     __typename: z.literal('Network').optional(),
-    carrierChanges: definedNonNullAnySchema.nullish(),
-    duplex: definedNonNullAnySchema.nullish(),
-    iface: definedNonNullAnySchema.nullish(),
-    ifaceName: definedNonNullAnySchema.nullish(),
-    internal: definedNonNullAnySchema.nullish(),
-    ipv4: definedNonNullAnySchema.nullish(),
-    ipv6: definedNonNullAnySchema.nullish(),
-    mac: definedNonNullAnySchema.nullish(),
-    mtu: definedNonNullAnySchema.nullish(),
-    operstate: definedNonNullAnySchema.nullish(),
-    speed: definedNonNullAnySchema.nullish(),
-    type: definedNonNullAnySchema.nullish()
+    carrierChanges: z.string().nullish(),
+    duplex: z.string().nullish(),
+    iface: z.string().nullish(),
+    ifaceName: z.string().nullish(),
+    internal: z.string().nullish(),
+    ipv4: z.string().nullish(),
+    ipv6: z.string().nullish(),
+    mac: z.string().nullish(),
+    mtu: z.string().nullish(),
+    operstate: z.string().nullish(),
+    speed: z.string().nullish(),
+    type: z.string().nullish()
   })
 }
 
 export function NotificationSchema(): z.ZodObject<Properties<Notification>> {
   return z.object({
     __typename: z.literal('Notification').optional(),
-    description: definedNonNullAnySchema,
-    id: definedNonNullAnySchema,
+    description: z.string(),
+    id: z.string(),
     importance: ImportanceSchema,
-    link: definedNonNullAnySchema.nullish(),
-    subject: definedNonNullAnySchema,
-    timestamp: definedNonNullAnySchema.nullish(),
-    title: definedNonNullAnySchema,
+    link: z.string().nullish(),
+    subject: z.string(),
+    timestamp: z.string().nullish(),
+    title: z.string(),
     type: NotificationTypeSchema
   })
 }
@@ -546,21 +546,21 @@ export function NotificationSchema(): z.ZodObject<Properties<Notification>> {
 export function NotificationFilterSchema(): z.ZodObject<Properties<NotificationFilter>> {
   return z.object({
     importance: ImportanceSchema.nullish(),
-    limit: definedNonNullAnySchema,
-    offset: definedNonNullAnySchema,
+    limit: z.number(),
+    offset: z.number(),
     type: NotificationTypeSchema.nullish()
   })
 }
 
 export function NotificationInputSchema(): z.ZodObject<Properties<NotificationInput>> {
   return z.object({
-    description: definedNonNullAnySchema.nullish(),
-    id: definedNonNullAnySchema,
+    description: z.string().nullish(),
+    id: z.string(),
     importance: ImportanceSchema,
-    link: definedNonNullAnySchema.nullish(),
-    subject: definedNonNullAnySchema,
-    timestamp: definedNonNullAnySchema.nullish(),
-    title: definedNonNullAnySchema,
+    link: z.string().nullish(),
+    subject: z.string(),
+    timestamp: z.string().nullish(),
+    title: z.string(),
     type: NotificationTypeSchema
   })
 }
@@ -568,117 +568,117 @@ export function NotificationInputSchema(): z.ZodObject<Properties<NotificationIn
 export function OsSchema(): z.ZodObject<Properties<Os>> {
   return z.object({
     __typename: z.literal('Os').optional(),
-    arch: definedNonNullAnySchema.nullish(),
-    build: definedNonNullAnySchema.nullish(),
-    codename: definedNonNullAnySchema.nullish(),
-    codepage: definedNonNullAnySchema.nullish(),
-    distro: definedNonNullAnySchema.nullish(),
-    hostname: definedNonNullAnySchema.nullish(),
-    kernel: definedNonNullAnySchema.nullish(),
-    logofile: definedNonNullAnySchema.nullish(),
-    platform: definedNonNullAnySchema.nullish(),
-    release: definedNonNullAnySchema.nullish(),
-    serial: definedNonNullAnySchema.nullish(),
-    uptime: definedNonNullAnySchema.nullish()
+    arch: z.string().nullish(),
+    build: z.string().nullish(),
+    codename: z.string().nullish(),
+    codepage: z.string().nullish(),
+    distro: z.string().nullish(),
+    hostname: z.string().nullish(),
+    kernel: z.string().nullish(),
+    logofile: z.string().nullish(),
+    platform: z.string().nullish(),
+    release: z.string().nullish(),
+    serial: z.string().nullish(),
+    uptime: z.string().nullish()
   })
 }
 
 export function OwnerSchema(): z.ZodObject<Properties<Owner>> {
   return z.object({
     __typename: z.literal('Owner').optional(),
-    avatar: definedNonNullAnySchema.nullish(),
-    url: definedNonNullAnySchema.nullish(),
-    username: definedNonNullAnySchema.nullish()
+    avatar: z.string().nullish(),
+    url: z.string().nullish(),
+    username: z.string().nullish()
   })
 }
 
 export function ParityCheckSchema(): z.ZodObject<Properties<ParityCheck>> {
   return z.object({
     __typename: z.literal('ParityCheck').optional(),
-    date: definedNonNullAnySchema,
-    duration: definedNonNullAnySchema,
-    errors: definedNonNullAnySchema,
-    speed: definedNonNullAnySchema,
-    status: definedNonNullAnySchema
+    date: z.string(),
+    duration: z.number(),
+    errors: z.string(),
+    speed: z.string(),
+    status: z.string()
   })
 }
 
 export function PartitionSchema(): z.ZodObject<Properties<Partition>> {
   return z.object({
     __typename: z.literal('Partition').optional(),
-    devlinks: definedNonNullAnySchema.nullish(),
-    devname: definedNonNullAnySchema.nullish(),
-    devpath: definedNonNullAnySchema.nullish(),
-    devtype: definedNonNullAnySchema.nullish(),
-    idAta: definedNonNullAnySchema.nullish(),
-    idAtaDownloadMicrocode: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAam: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAamCurrentValue: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAamEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAamVendorRecommendedValue: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetApm: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetApmCurrentValue: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetApmEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetHpa: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetHpaEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPm: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPmEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPuis: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPuisEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurity: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurityEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurityEnhancedEraseUnitMin: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurityEraseUnitMin: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSmart: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSmartEnabled: definedNonNullAnySchema.nullish(),
-    idAtaRotationRateRpm: definedNonNullAnySchema.nullish(),
-    idAtaSata: definedNonNullAnySchema.nullish(),
-    idAtaSataSignalRateGen1: definedNonNullAnySchema.nullish(),
-    idAtaSataSignalRateGen2: definedNonNullAnySchema.nullish(),
-    idAtaWriteCache: definedNonNullAnySchema.nullish(),
-    idAtaWriteCacheEnabled: definedNonNullAnySchema.nullish(),
-    idBus: definedNonNullAnySchema.nullish(),
-    idFsType: definedNonNullAnySchema.nullish(),
-    idFsUsage: definedNonNullAnySchema.nullish(),
-    idFsUuid: definedNonNullAnySchema.nullish(),
-    idFsUuidEnc: definedNonNullAnySchema.nullish(),
-    idModel: definedNonNullAnySchema.nullish(),
-    idModelEnc: definedNonNullAnySchema.nullish(),
-    idPartEntryDisk: definedNonNullAnySchema.nullish(),
-    idPartEntryNumber: definedNonNullAnySchema.nullish(),
-    idPartEntryOffset: definedNonNullAnySchema.nullish(),
-    idPartEntryScheme: definedNonNullAnySchema.nullish(),
-    idPartEntrySize: definedNonNullAnySchema.nullish(),
-    idPartEntryType: definedNonNullAnySchema.nullish(),
-    idPartTableType: definedNonNullAnySchema.nullish(),
-    idPath: definedNonNullAnySchema.nullish(),
-    idPathTag: definedNonNullAnySchema.nullish(),
-    idRevision: definedNonNullAnySchema.nullish(),
-    idSerial: definedNonNullAnySchema.nullish(),
-    idSerialShort: definedNonNullAnySchema.nullish(),
-    idType: definedNonNullAnySchema.nullish(),
-    idWwn: definedNonNullAnySchema.nullish(),
-    idWwnWithExtension: definedNonNullAnySchema.nullish(),
-    major: definedNonNullAnySchema.nullish(),
-    minor: definedNonNullAnySchema.nullish(),
-    partn: definedNonNullAnySchema.nullish(),
-    subsystem: definedNonNullAnySchema.nullish(),
-    usecInitialized: definedNonNullAnySchema.nullish()
+    devlinks: z.string().nullish(),
+    devname: z.string().nullish(),
+    devpath: z.string().nullish(),
+    devtype: z.string().nullish(),
+    idAta: z.string().nullish(),
+    idAtaDownloadMicrocode: z.string().nullish(),
+    idAtaFeatureSetAam: z.string().nullish(),
+    idAtaFeatureSetAamCurrentValue: z.string().nullish(),
+    idAtaFeatureSetAamEnabled: z.string().nullish(),
+    idAtaFeatureSetAamVendorRecommendedValue: z.string().nullish(),
+    idAtaFeatureSetApm: z.string().nullish(),
+    idAtaFeatureSetApmCurrentValue: z.string().nullish(),
+    idAtaFeatureSetApmEnabled: z.string().nullish(),
+    idAtaFeatureSetHpa: z.string().nullish(),
+    idAtaFeatureSetHpaEnabled: z.string().nullish(),
+    idAtaFeatureSetPm: z.string().nullish(),
+    idAtaFeatureSetPmEnabled: z.string().nullish(),
+    idAtaFeatureSetPuis: z.string().nullish(),
+    idAtaFeatureSetPuisEnabled: z.string().nullish(),
+    idAtaFeatureSetSecurity: z.string().nullish(),
+    idAtaFeatureSetSecurityEnabled: z.string().nullish(),
+    idAtaFeatureSetSecurityEnhancedEraseUnitMin: z.string().nullish(),
+    idAtaFeatureSetSecurityEraseUnitMin: z.string().nullish(),
+    idAtaFeatureSetSmart: z.string().nullish(),
+    idAtaFeatureSetSmartEnabled: z.string().nullish(),
+    idAtaRotationRateRpm: z.string().nullish(),
+    idAtaSata: z.string().nullish(),
+    idAtaSataSignalRateGen1: z.string().nullish(),
+    idAtaSataSignalRateGen2: z.string().nullish(),
+    idAtaWriteCache: z.string().nullish(),
+    idAtaWriteCacheEnabled: z.string().nullish(),
+    idBus: z.string().nullish(),
+    idFsType: z.string().nullish(),
+    idFsUsage: z.string().nullish(),
+    idFsUuid: z.string().nullish(),
+    idFsUuidEnc: z.string().nullish(),
+    idModel: z.string().nullish(),
+    idModelEnc: z.string().nullish(),
+    idPartEntryDisk: z.string().nullish(),
+    idPartEntryNumber: z.string().nullish(),
+    idPartEntryOffset: z.string().nullish(),
+    idPartEntryScheme: z.string().nullish(),
+    idPartEntrySize: z.string().nullish(),
+    idPartEntryType: z.string().nullish(),
+    idPartTableType: z.string().nullish(),
+    idPath: z.string().nullish(),
+    idPathTag: z.string().nullish(),
+    idRevision: z.string().nullish(),
+    idSerial: z.string().nullish(),
+    idSerialShort: z.string().nullish(),
+    idType: z.string().nullish(),
+    idWwn: z.string().nullish(),
+    idWwnWithExtension: z.string().nullish(),
+    major: z.string().nullish(),
+    minor: z.string().nullish(),
+    partn: z.string().nullish(),
+    subsystem: z.string().nullish(),
+    usecInitialized: z.string().nullish()
   })
 }
 
 export function PciSchema(): z.ZodObject<Properties<Pci>> {
   return z.object({
     __typename: z.literal('Pci').optional(),
-    blacklisted: definedNonNullAnySchema.nullish(),
-    class: definedNonNullAnySchema.nullish(),
-    id: definedNonNullAnySchema,
-    productid: definedNonNullAnySchema.nullish(),
-    productname: definedNonNullAnySchema.nullish(),
-    type: definedNonNullAnySchema.nullish(),
-    typeid: definedNonNullAnySchema.nullish(),
-    vendorid: definedNonNullAnySchema.nullish(),
-    vendorname: definedNonNullAnySchema.nullish()
+    blacklisted: z.string().nullish(),
+    class: z.string().nullish(),
+    id: z.string(),
+    productid: z.string().nullish(),
+    productname: z.string().nullish(),
+    type: z.string().nullish(),
+    typeid: z.string().nullish(),
+    vendorid: z.string().nullish(),
+    vendorname: z.string().nullish()
   })
 }
 
@@ -693,18 +693,18 @@ export function PermissionsSchema(): z.ZodObject<Properties<Permissions>> {
 export function ProfileModelSchema(): z.ZodObject<Properties<ProfileModel>> {
   return z.object({
     __typename: z.literal('ProfileModel').optional(),
-    avatar: definedNonNullAnySchema.nullish(),
-    url: definedNonNullAnySchema.nullish(),
-    userId: definedNonNullAnySchema.nullish(),
-    username: definedNonNullAnySchema.nullish()
+    avatar: z.string().nullish(),
+    url: z.string().nullish(),
+    userId: z.string().nullish(),
+    username: z.string().nullish()
   })
 }
 
 export function RegistrationSchema(): z.ZodObject<Properties<Registration>> {
   return z.object({
     __typename: z.literal('Registration').optional(),
-    expiration: definedNonNullAnySchema.nullish(),
-    guid: definedNonNullAnySchema.nullish(),
+    expiration: z.string().nullish(),
+    guid: z.string().nullish(),
     keyFile: KeyFileSchema().nullish(),
     state: RegistrationStateSchema.nullish(),
     type: registrationTypeSchema.nullish()
@@ -714,42 +714,42 @@ export function RegistrationSchema(): z.ZodObject<Properties<Registration>> {
 export function RelayResponseSchema(): z.ZodObject<Properties<RelayResponse>> {
   return z.object({
     __typename: z.literal('RelayResponse').optional(),
-    error: definedNonNullAnySchema.nullish(),
-    status: definedNonNullAnySchema,
-    timeout: definedNonNullAnySchema.nullish()
+    error: z.string().nullish(),
+    status: z.string(),
+    timeout: z.string().nullish()
   })
 }
 
 export function ScopeSchema(): z.ZodObject<Properties<Scope>> {
   return z.object({
     __typename: z.literal('Scope').optional(),
-    description: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish()
+    description: z.string().nullish(),
+    name: z.string().nullish()
   })
 }
 
 export function ServerSchema(): z.ZodObject<Properties<Server>> {
   return z.object({
     __typename: z.literal('Server').optional(),
-    apikey: definedNonNullAnySchema,
-    guid: definedNonNullAnySchema,
-    lanip: definedNonNullAnySchema,
-    localurl: definedNonNullAnySchema,
-    name: definedNonNullAnySchema,
+    apikey: z.string(),
+    guid: z.string(),
+    lanip: z.string(),
+    localurl: z.string(),
+    name: z.string(),
     owner: ProfileModelSchema(),
-    remoteurl: definedNonNullAnySchema,
+    remoteurl: z.string(),
     status: ServerStatusSchema,
-    wanip: definedNonNullAnySchema
+    wanip: z.string()
   })
 }
 
 export function ServiceSchema(): z.ZodObject<Properties<Service>> {
   return z.object({
     __typename: z.literal('Service').optional(),
-    name: definedNonNullAnySchema.nullish(),
-    online: definedNonNullAnySchema.nullish(),
+    name: z.string().nullish(),
+    online: z.boolean().nullish(),
     uptime: UptimeSchema().nullish(),
-    version: definedNonNullAnySchema.nullish()
+    version: z.string().nullish()
   })
 }
 
@@ -757,54 +757,54 @@ export function SetupRemoteAccessInputSchema(): z.ZodObject<Properties<SetupRemo
   return z.object({
     accessType: WAN_ACCESS_TYPESchema,
     forwardType: WAN_FORWARD_TYPESchema.nullish(),
-    port: definedNonNullAnySchema.nullish()
+    port: z.number().nullish()
   })
 }
 
 export function ShareSchema(): z.ZodObject<Properties<Share>> {
   return z.object({
     __typename: z.literal('Share').optional(),
-    allocator: definedNonNullAnySchema.nullish(),
-    cache: definedNonNullAnySchema.nullish(),
-    color: definedNonNullAnySchema.nullish(),
-    comment: definedNonNullAnySchema.nullish(),
-    cow: definedNonNullAnySchema.nullish(),
-    exclude: z.array(definedNonNullAnySchema.nullable()).nullish(),
-    floor: definedNonNullAnySchema.nullish(),
-    free: definedNonNullAnySchema.nullish(),
-    include: z.array(definedNonNullAnySchema.nullable()).nullish(),
-    luksStatus: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
-    nameOrig: definedNonNullAnySchema.nullish(),
-    size: definedNonNullAnySchema.nullish(),
-    splitLevel: definedNonNullAnySchema.nullish(),
-    used: definedNonNullAnySchema.nullish()
+    allocator: z.string().nullish(),
+    cache: z.boolean().nullish(),
+    color: z.string().nullish(),
+    comment: z.string().nullish(),
+    cow: z.string().nullish(),
+    exclude: z.array(z.string().nullable()).nullish(),
+    floor: z.string().nullish(),
+    free: z.number().nullish(),
+    include: z.array(z.string().nullable()).nullish(),
+    luksStatus: z.string().nullish(),
+    name: z.string().nullish(),
+    nameOrig: z.string().nullish(),
+    size: z.number().nullish(),
+    splitLevel: z.string().nullish(),
+    used: z.number().nullish()
   })
 }
 
 export function SystemSchema(): z.ZodObject<Properties<System>> {
   return z.object({
     __typename: z.literal('System').optional(),
-    manufacturer: definedNonNullAnySchema.nullish(),
-    model: definedNonNullAnySchema.nullish(),
-    serial: definedNonNullAnySchema.nullish(),
-    sku: definedNonNullAnySchema.nullish(),
-    uuid: definedNonNullAnySchema.nullish(),
-    version: definedNonNullAnySchema.nullish()
+    manufacturer: z.string().nullish(),
+    model: z.string().nullish(),
+    serial: z.string().nullish(),
+    sku: z.string().nullish(),
+    uuid: z.string().nullish(),
+    version: z.string().nullish()
   })
 }
 
 export function TwoFactorLocalSchema(): z.ZodObject<Properties<TwoFactorLocal>> {
   return z.object({
     __typename: z.literal('TwoFactorLocal').optional(),
-    enabled: definedNonNullAnySchema.nullish()
+    enabled: z.boolean().nullish()
   })
 }
 
 export function TwoFactorRemoteSchema(): z.ZodObject<Properties<TwoFactorRemote>> {
   return z.object({
     __typename: z.literal('TwoFactorRemote').optional(),
-    enabled: definedNonNullAnySchema.nullish()
+    enabled: z.boolean().nullish()
   })
 }
 
@@ -813,7 +813,7 @@ export function TwoFactorWithTokenSchema(): z.ZodObject<Properties<TwoFactorWith
     __typename: z.literal('TwoFactorWithToken').optional(),
     local: TwoFactorLocalSchema().nullish(),
     remote: TwoFactorRemoteSchema().nullish(),
-    token: definedNonNullAnySchema.nullish()
+    token: z.string().nullish()
   })
 }
 
@@ -828,280 +828,280 @@ export function TwoFactorWithoutTokenSchema(): z.ZodObject<Properties<TwoFactorW
 export function UnassignedDeviceSchema(): z.ZodObject<Properties<UnassignedDevice>> {
   return z.object({
     __typename: z.literal('UnassignedDevice').optional(),
-    devlinks: definedNonNullAnySchema.nullish(),
-    devname: definedNonNullAnySchema.nullish(),
-    devpath: definedNonNullAnySchema.nullish(),
-    devtype: definedNonNullAnySchema.nullish(),
-    idAta: definedNonNullAnySchema.nullish(),
-    idAtaDownloadMicrocode: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAam: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAamCurrentValue: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAamEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetAamVendorRecommendedValue: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetApm: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetApmCurrentValue: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetApmEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetHpa: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetHpaEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPm: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPmEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPuis: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetPuisEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurity: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurityEnabled: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurityEnhancedEraseUnitMin: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSecurityEraseUnitMin: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSmart: definedNonNullAnySchema.nullish(),
-    idAtaFeatureSetSmartEnabled: definedNonNullAnySchema.nullish(),
-    idAtaRotationRateRpm: definedNonNullAnySchema.nullish(),
-    idAtaSata: definedNonNullAnySchema.nullish(),
-    idAtaSataSignalRateGen1: definedNonNullAnySchema.nullish(),
-    idAtaSataSignalRateGen2: definedNonNullAnySchema.nullish(),
-    idAtaWriteCache: definedNonNullAnySchema.nullish(),
-    idAtaWriteCacheEnabled: definedNonNullAnySchema.nullish(),
-    idBus: definedNonNullAnySchema.nullish(),
-    idModel: definedNonNullAnySchema.nullish(),
-    idModelEnc: definedNonNullAnySchema.nullish(),
-    idPartTableType: definedNonNullAnySchema.nullish(),
-    idPath: definedNonNullAnySchema.nullish(),
-    idPathTag: definedNonNullAnySchema.nullish(),
-    idRevision: definedNonNullAnySchema.nullish(),
-    idSerial: definedNonNullAnySchema.nullish(),
-    idSerialShort: definedNonNullAnySchema.nullish(),
-    idType: definedNonNullAnySchema.nullish(),
-    idWwn: definedNonNullAnySchema.nullish(),
-    idWwnWithExtension: definedNonNullAnySchema.nullish(),
-    major: definedNonNullAnySchema.nullish(),
-    minor: definedNonNullAnySchema.nullish(),
+    devlinks: z.string().nullish(),
+    devname: z.string().nullish(),
+    devpath: z.string().nullish(),
+    devtype: z.string().nullish(),
+    idAta: z.string().nullish(),
+    idAtaDownloadMicrocode: z.string().nullish(),
+    idAtaFeatureSetAam: z.string().nullish(),
+    idAtaFeatureSetAamCurrentValue: z.string().nullish(),
+    idAtaFeatureSetAamEnabled: z.string().nullish(),
+    idAtaFeatureSetAamVendorRecommendedValue: z.string().nullish(),
+    idAtaFeatureSetApm: z.string().nullish(),
+    idAtaFeatureSetApmCurrentValue: z.string().nullish(),
+    idAtaFeatureSetApmEnabled: z.string().nullish(),
+    idAtaFeatureSetHpa: z.string().nullish(),
+    idAtaFeatureSetHpaEnabled: z.string().nullish(),
+    idAtaFeatureSetPm: z.string().nullish(),
+    idAtaFeatureSetPmEnabled: z.string().nullish(),
+    idAtaFeatureSetPuis: z.string().nullish(),
+    idAtaFeatureSetPuisEnabled: z.string().nullish(),
+    idAtaFeatureSetSecurity: z.string().nullish(),
+    idAtaFeatureSetSecurityEnabled: z.string().nullish(),
+    idAtaFeatureSetSecurityEnhancedEraseUnitMin: z.string().nullish(),
+    idAtaFeatureSetSecurityEraseUnitMin: z.string().nullish(),
+    idAtaFeatureSetSmart: z.string().nullish(),
+    idAtaFeatureSetSmartEnabled: z.string().nullish(),
+    idAtaRotationRateRpm: z.string().nullish(),
+    idAtaSata: z.string().nullish(),
+    idAtaSataSignalRateGen1: z.string().nullish(),
+    idAtaSataSignalRateGen2: z.string().nullish(),
+    idAtaWriteCache: z.string().nullish(),
+    idAtaWriteCacheEnabled: z.string().nullish(),
+    idBus: z.string().nullish(),
+    idModel: z.string().nullish(),
+    idModelEnc: z.string().nullish(),
+    idPartTableType: z.string().nullish(),
+    idPath: z.string().nullish(),
+    idPathTag: z.string().nullish(),
+    idRevision: z.string().nullish(),
+    idSerial: z.string().nullish(),
+    idSerialShort: z.string().nullish(),
+    idType: z.string().nullish(),
+    idWwn: z.string().nullish(),
+    idWwnWithExtension: z.string().nullish(),
+    major: z.string().nullish(),
+    minor: z.string().nullish(),
     mount: MountSchema().nullish(),
-    mounted: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
+    mounted: z.boolean().nullish(),
+    name: z.string().nullish(),
     partitions: z.array(PartitionSchema().nullable()).nullish(),
-    subsystem: definedNonNullAnySchema.nullish(),
-    temp: definedNonNullAnySchema.nullish(),
-    usecInitialized: definedNonNullAnySchema.nullish()
+    subsystem: z.string().nullish(),
+    temp: z.number().nullish(),
+    usecInitialized: z.string().nullish()
   })
 }
 
 export function UptimeSchema(): z.ZodObject<Properties<Uptime>> {
   return z.object({
     __typename: z.literal('Uptime').optional(),
-    timestamp: definedNonNullAnySchema.nullish()
+    timestamp: z.string().nullish()
   })
 }
 
 export function UsbSchema(): z.ZodObject<Properties<Usb>> {
   return z.object({
     __typename: z.literal('Usb').optional(),
-    id: definedNonNullAnySchema,
-    name: definedNonNullAnySchema.nullish()
+    id: z.string(),
+    name: z.string().nullish()
   })
 }
 
 export function UserSchema(): z.ZodObject<Properties<User>> {
   return z.object({
     __typename: z.literal('User').optional(),
-    description: definedNonNullAnySchema,
-    id: definedNonNullAnySchema,
-    name: definedNonNullAnySchema,
-    password: definedNonNullAnySchema.nullish(),
-    role: definedNonNullAnySchema
+    description: z.string(),
+    id: z.string(),
+    name: z.string(),
+    password: z.boolean().nullish(),
+    role: z.string()
   })
 }
 
 export function VarsSchema(): z.ZodObject<Properties<Vars>> {
   return z.object({
     __typename: z.literal('Vars').optional(),
-    bindMgt: definedNonNullAnySchema.nullish(),
-    cacheNumDevices: definedNonNullAnySchema.nullish(),
-    cacheSbNumDisks: definedNonNullAnySchema.nullish(),
-    comment: definedNonNullAnySchema.nullish(),
+    bindMgt: z.boolean().nullish(),
+    cacheNumDevices: z.number().nullish(),
+    cacheSbNumDisks: z.number().nullish(),
+    comment: z.string().nullish(),
     configError: ConfigErrorStateSchema.nullish(),
-    configValid: definedNonNullAnySchema.nullish(),
-    csrfToken: definedNonNullAnySchema.nullish(),
-    defaultFormat: definedNonNullAnySchema.nullish(),
-    defaultFsType: definedNonNullAnySchema.nullish(),
-    deviceCount: definedNonNullAnySchema.nullish(),
-    domain: definedNonNullAnySchema.nullish(),
-    domainLogin: definedNonNullAnySchema.nullish(),
-    domainShort: definedNonNullAnySchema.nullish(),
-    enableFruit: definedNonNullAnySchema.nullish(),
-    flashGuid: definedNonNullAnySchema.nullish(),
-    flashProduct: definedNonNullAnySchema.nullish(),
-    flashVendor: definedNonNullAnySchema.nullish(),
-    fsCopyPrcnt: definedNonNullAnySchema.nullish(),
-    fsNumMounted: definedNonNullAnySchema.nullish(),
-    fsNumUnmountable: definedNonNullAnySchema.nullish(),
-    fsProgress: definedNonNullAnySchema.nullish(),
-    fsState: definedNonNullAnySchema.nullish(),
-    fsUnmountableMask: definedNonNullAnySchema.nullish(),
-    fuseDirectio: definedNonNullAnySchema.nullish(),
-    fuseDirectioDefault: definedNonNullAnySchema.nullish(),
-    fuseDirectioStatus: definedNonNullAnySchema.nullish(),
-    fuseRemember: definedNonNullAnySchema.nullish(),
-    fuseRememberDefault: definedNonNullAnySchema.nullish(),
-    fuseRememberStatus: definedNonNullAnySchema.nullish(),
-    hideDotFiles: definedNonNullAnySchema.nullish(),
-    joinStatus: definedNonNullAnySchema.nullish(),
-    localMaster: definedNonNullAnySchema.nullish(),
-    localTld: definedNonNullAnySchema.nullish(),
-    luksKeyfile: definedNonNullAnySchema.nullish(),
-    maxArraysz: definedNonNullAnySchema.nullish(),
-    maxCachesz: definedNonNullAnySchema.nullish(),
-    mdColor: definedNonNullAnySchema.nullish(),
-    mdNumDisabled: definedNonNullAnySchema.nullish(),
-    mdNumDisks: definedNonNullAnySchema.nullish(),
-    mdNumErased: definedNonNullAnySchema.nullish(),
-    mdNumInvalid: definedNonNullAnySchema.nullish(),
-    mdNumMissing: definedNonNullAnySchema.nullish(),
-    mdNumNew: definedNonNullAnySchema.nullish(),
-    mdNumStripes: definedNonNullAnySchema.nullish(),
-    mdNumStripesDefault: definedNonNullAnySchema.nullish(),
-    mdNumStripesStatus: definedNonNullAnySchema.nullish(),
-    mdResync: definedNonNullAnySchema.nullish(),
-    mdResyncAction: definedNonNullAnySchema.nullish(),
-    mdResyncCorr: definedNonNullAnySchema.nullish(),
-    mdResyncDb: definedNonNullAnySchema.nullish(),
-    mdResyncDt: definedNonNullAnySchema.nullish(),
-    mdResyncPos: definedNonNullAnySchema.nullish(),
-    mdResyncSize: definedNonNullAnySchema.nullish(),
-    mdState: definedNonNullAnySchema.nullish(),
-    mdSyncThresh: definedNonNullAnySchema.nullish(),
-    mdSyncThreshDefault: definedNonNullAnySchema.nullish(),
-    mdSyncThreshStatus: definedNonNullAnySchema.nullish(),
-    mdSyncWindow: definedNonNullAnySchema.nullish(),
-    mdSyncWindowDefault: definedNonNullAnySchema.nullish(),
-    mdSyncWindowStatus: definedNonNullAnySchema.nullish(),
-    mdVersion: definedNonNullAnySchema.nullish(),
-    mdWriteMethod: definedNonNullAnySchema.nullish(),
-    mdWriteMethodDefault: definedNonNullAnySchema.nullish(),
-    mdWriteMethodStatus: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
-    nrRequests: definedNonNullAnySchema.nullish(),
-    nrRequestsDefault: definedNonNullAnySchema.nullish(),
-    nrRequestsStatus: definedNonNullAnySchema.nullish(),
-    ntpServer1: definedNonNullAnySchema.nullish(),
-    ntpServer2: definedNonNullAnySchema.nullish(),
-    ntpServer3: definedNonNullAnySchema.nullish(),
-    ntpServer4: definedNonNullAnySchema.nullish(),
-    pollAttributes: definedNonNullAnySchema.nullish(),
-    pollAttributesDefault: definedNonNullAnySchema.nullish(),
-    pollAttributesStatus: definedNonNullAnySchema.nullish(),
-    port: definedNonNullAnySchema.nullish(),
-    portssh: definedNonNullAnySchema.nullish(),
-    portssl: definedNonNullAnySchema.nullish(),
-    porttelnet: definedNonNullAnySchema.nullish(),
-    queueDepth: definedNonNullAnySchema.nullish(),
-    regCheck: definedNonNullAnySchema.nullish(),
-    regFile: definedNonNullAnySchema.nullish(),
-    regGen: definedNonNullAnySchema.nullish(),
-    regGuid: definedNonNullAnySchema.nullish(),
+    configValid: z.boolean().nullish(),
+    csrfToken: z.string().nullish(),
+    defaultFormat: z.string().nullish(),
+    defaultFsType: z.string().nullish(),
+    deviceCount: z.number().nullish(),
+    domain: z.string().nullish(),
+    domainLogin: z.string().nullish(),
+    domainShort: z.string().nullish(),
+    enableFruit: z.string().nullish(),
+    flashGuid: z.string().nullish(),
+    flashProduct: z.string().nullish(),
+    flashVendor: z.string().nullish(),
+    fsCopyPrcnt: z.number().nullish(),
+    fsNumMounted: z.number().nullish(),
+    fsNumUnmountable: z.number().nullish(),
+    fsProgress: z.string().nullish(),
+    fsState: z.string().nullish(),
+    fsUnmountableMask: z.string().nullish(),
+    fuseDirectio: z.string().nullish(),
+    fuseDirectioDefault: z.string().nullish(),
+    fuseDirectioStatus: z.string().nullish(),
+    fuseRemember: z.string().nullish(),
+    fuseRememberDefault: z.string().nullish(),
+    fuseRememberStatus: z.string().nullish(),
+    hideDotFiles: z.boolean().nullish(),
+    joinStatus: z.string().nullish(),
+    localMaster: z.boolean().nullish(),
+    localTld: z.string().nullish(),
+    luksKeyfile: z.string().nullish(),
+    maxArraysz: z.number().nullish(),
+    maxCachesz: z.number().nullish(),
+    mdColor: z.string().nullish(),
+    mdNumDisabled: z.number().nullish(),
+    mdNumDisks: z.number().nullish(),
+    mdNumErased: z.number().nullish(),
+    mdNumInvalid: z.number().nullish(),
+    mdNumMissing: z.number().nullish(),
+    mdNumNew: z.number().nullish(),
+    mdNumStripes: z.number().nullish(),
+    mdNumStripesDefault: z.number().nullish(),
+    mdNumStripesStatus: z.string().nullish(),
+    mdResync: z.number().nullish(),
+    mdResyncAction: z.string().nullish(),
+    mdResyncCorr: z.string().nullish(),
+    mdResyncDb: z.string().nullish(),
+    mdResyncDt: z.string().nullish(),
+    mdResyncPos: z.string().nullish(),
+    mdResyncSize: z.number().nullish(),
+    mdState: z.string().nullish(),
+    mdSyncThresh: z.number().nullish(),
+    mdSyncThreshDefault: z.number().nullish(),
+    mdSyncThreshStatus: z.string().nullish(),
+    mdSyncWindow: z.number().nullish(),
+    mdSyncWindowDefault: z.number().nullish(),
+    mdSyncWindowStatus: z.string().nullish(),
+    mdVersion: z.string().nullish(),
+    mdWriteMethod: z.number().nullish(),
+    mdWriteMethodDefault: z.string().nullish(),
+    mdWriteMethodStatus: z.string().nullish(),
+    name: z.string().nullish(),
+    nrRequests: z.number().nullish(),
+    nrRequestsDefault: z.number().nullish(),
+    nrRequestsStatus: z.string().nullish(),
+    ntpServer1: z.string().nullish(),
+    ntpServer2: z.string().nullish(),
+    ntpServer3: z.string().nullish(),
+    ntpServer4: z.string().nullish(),
+    pollAttributes: z.string().nullish(),
+    pollAttributesDefault: z.string().nullish(),
+    pollAttributesStatus: z.string().nullish(),
+    port: z.number().nullish(),
+    portssh: z.number().nullish(),
+    portssl: z.number().nullish(),
+    porttelnet: z.number().nullish(),
+    queueDepth: z.string().nullish(),
+    regCheck: z.string().nullish(),
+    regFile: z.string().nullish(),
+    regGen: z.string().nullish(),
+    regGuid: z.string().nullish(),
     regState: RegistrationStateSchema.nullish(),
-    regTm: definedNonNullAnySchema.nullish(),
-    regTm2: definedNonNullAnySchema.nullish(),
-    regTo: definedNonNullAnySchema.nullish(),
-    regTy: definedNonNullAnySchema.nullish(),
-    safeMode: definedNonNullAnySchema.nullish(),
-    sbClean: definedNonNullAnySchema.nullish(),
-    sbEvents: definedNonNullAnySchema.nullish(),
-    sbName: definedNonNullAnySchema.nullish(),
-    sbNumDisks: definedNonNullAnySchema.nullish(),
-    sbState: definedNonNullAnySchema.nullish(),
-    sbSyncErrs: definedNonNullAnySchema.nullish(),
-    sbSyncExit: definedNonNullAnySchema.nullish(),
-    sbSynced: definedNonNullAnySchema.nullish(),
-    sbSynced2: definedNonNullAnySchema.nullish(),
-    sbUpdated: definedNonNullAnySchema.nullish(),
-    sbVersion: definedNonNullAnySchema.nullish(),
-    security: definedNonNullAnySchema.nullish(),
-    shareAfpCount: definedNonNullAnySchema.nullish(),
-    shareAfpEnabled: definedNonNullAnySchema.nullish(),
-    shareAvahiAfpModel: definedNonNullAnySchema.nullish(),
-    shareAvahiAfpName: definedNonNullAnySchema.nullish(),
-    shareAvahiEnabled: definedNonNullAnySchema.nullish(),
-    shareAvahiSmbModel: definedNonNullAnySchema.nullish(),
-    shareAvahiSmbName: definedNonNullAnySchema.nullish(),
-    shareCacheEnabled: definedNonNullAnySchema.nullish(),
-    shareCacheFloor: definedNonNullAnySchema.nullish(),
-    shareCount: definedNonNullAnySchema.nullish(),
-    shareDisk: definedNonNullAnySchema.nullish(),
-    shareInitialGroup: definedNonNullAnySchema.nullish(),
-    shareInitialOwner: definedNonNullAnySchema.nullish(),
-    shareMoverActive: definedNonNullAnySchema.nullish(),
-    shareMoverLogging: definedNonNullAnySchema.nullish(),
-    shareMoverSchedule: definedNonNullAnySchema.nullish(),
-    shareNfsCount: definedNonNullAnySchema.nullish(),
-    shareNfsEnabled: definedNonNullAnySchema.nullish(),
-    shareSmbCount: definedNonNullAnySchema.nullish(),
-    shareSmbEnabled: definedNonNullAnySchema.nullish(),
-    shareUser: definedNonNullAnySchema.nullish(),
-    shareUserExclude: definedNonNullAnySchema.nullish(),
-    shareUserInclude: definedNonNullAnySchema.nullish(),
-    shutdownTimeout: definedNonNullAnySchema.nullish(),
-    spindownDelay: definedNonNullAnySchema.nullish(),
-    spinupGroups: definedNonNullAnySchema.nullish(),
-    startArray: definedNonNullAnySchema.nullish(),
-    startMode: definedNonNullAnySchema.nullish(),
-    startPage: definedNonNullAnySchema.nullish(),
-    sysArraySlots: definedNonNullAnySchema.nullish(),
-    sysCacheSlots: definedNonNullAnySchema.nullish(),
-    sysFlashSlots: definedNonNullAnySchema.nullish(),
-    sysModel: definedNonNullAnySchema.nullish(),
-    timeZone: definedNonNullAnySchema.nullish(),
-    useNtp: definedNonNullAnySchema.nullish(),
-    useSsh: definedNonNullAnySchema.nullish(),
-    useSsl: definedNonNullAnySchema.nullish(),
-    useTelnet: definedNonNullAnySchema.nullish(),
-    version: definedNonNullAnySchema.nullish(),
-    workgroup: definedNonNullAnySchema.nullish()
+    regTm: z.string().nullish(),
+    regTm2: z.string().nullish(),
+    regTo: z.string().nullish(),
+    regTy: z.string().nullish(),
+    safeMode: z.boolean().nullish(),
+    sbClean: z.boolean().nullish(),
+    sbEvents: z.number().nullish(),
+    sbName: z.string().nullish(),
+    sbNumDisks: z.number().nullish(),
+    sbState: z.string().nullish(),
+    sbSyncErrs: z.number().nullish(),
+    sbSyncExit: z.string().nullish(),
+    sbSynced: z.number().nullish(),
+    sbSynced2: z.number().nullish(),
+    sbUpdated: z.string().nullish(),
+    sbVersion: z.string().nullish(),
+    security: z.string().nullish(),
+    shareAfpCount: z.number().nullish(),
+    shareAfpEnabled: z.boolean().nullish(),
+    shareAvahiAfpModel: z.string().nullish(),
+    shareAvahiAfpName: z.string().nullish(),
+    shareAvahiEnabled: z.boolean().nullish(),
+    shareAvahiSmbModel: z.string().nullish(),
+    shareAvahiSmbName: z.string().nullish(),
+    shareCacheEnabled: z.boolean().nullish(),
+    shareCacheFloor: z.string().nullish(),
+    shareCount: z.number().nullish(),
+    shareDisk: z.string().nullish(),
+    shareInitialGroup: z.string().nullish(),
+    shareInitialOwner: z.string().nullish(),
+    shareMoverActive: z.boolean().nullish(),
+    shareMoverLogging: z.boolean().nullish(),
+    shareMoverSchedule: z.string().nullish(),
+    shareNfsCount: z.number().nullish(),
+    shareNfsEnabled: z.boolean().nullish(),
+    shareSmbCount: z.number().nullish(),
+    shareSmbEnabled: z.boolean().nullish(),
+    shareUser: z.string().nullish(),
+    shareUserExclude: z.string().nullish(),
+    shareUserInclude: z.string().nullish(),
+    shutdownTimeout: z.number().nullish(),
+    spindownDelay: z.string().nullish(),
+    spinupGroups: z.boolean().nullish(),
+    startArray: z.boolean().nullish(),
+    startMode: z.string().nullish(),
+    startPage: z.string().nullish(),
+    sysArraySlots: z.number().nullish(),
+    sysCacheSlots: z.number().nullish(),
+    sysFlashSlots: z.number().nullish(),
+    sysModel: z.string().nullish(),
+    timeZone: z.string().nullish(),
+    useNtp: z.boolean().nullish(),
+    useSsh: z.boolean().nullish(),
+    useSsl: z.boolean().nullish(),
+    useTelnet: z.boolean().nullish(),
+    version: z.string().nullish(),
+    workgroup: z.string().nullish()
   })
 }
 
 export function VersionsSchema(): z.ZodObject<Properties<Versions>> {
   return z.object({
     __typename: z.literal('Versions').optional(),
-    apache: definedNonNullAnySchema.nullish(),
-    docker: definedNonNullAnySchema.nullish(),
-    gcc: definedNonNullAnySchema.nullish(),
-    git: definedNonNullAnySchema.nullish(),
-    grunt: definedNonNullAnySchema.nullish(),
-    gulp: definedNonNullAnySchema.nullish(),
-    kernel: definedNonNullAnySchema.nullish(),
-    mongodb: definedNonNullAnySchema.nullish(),
-    mysql: definedNonNullAnySchema.nullish(),
-    nginx: definedNonNullAnySchema.nullish(),
-    node: definedNonNullAnySchema.nullish(),
-    npm: definedNonNullAnySchema.nullish(),
-    openssl: definedNonNullAnySchema.nullish(),
-    perl: definedNonNullAnySchema.nullish(),
-    php: definedNonNullAnySchema.nullish(),
-    pm2: definedNonNullAnySchema.nullish(),
-    postfix: definedNonNullAnySchema.nullish(),
-    postgresql: definedNonNullAnySchema.nullish(),
-    python: definedNonNullAnySchema.nullish(),
-    redis: definedNonNullAnySchema.nullish(),
-    systemOpenssl: definedNonNullAnySchema.nullish(),
-    systemOpensslLib: definedNonNullAnySchema.nullish(),
-    tsc: definedNonNullAnySchema.nullish(),
-    unraid: definedNonNullAnySchema.nullish(),
-    v8: definedNonNullAnySchema.nullish(),
-    yarn: definedNonNullAnySchema.nullish()
+    apache: z.string().nullish(),
+    docker: z.string().nullish(),
+    gcc: z.string().nullish(),
+    git: z.string().nullish(),
+    grunt: z.string().nullish(),
+    gulp: z.string().nullish(),
+    kernel: z.string().nullish(),
+    mongodb: z.string().nullish(),
+    mysql: z.string().nullish(),
+    nginx: z.string().nullish(),
+    node: z.string().nullish(),
+    npm: z.string().nullish(),
+    openssl: z.string().nullish(),
+    perl: z.string().nullish(),
+    php: z.string().nullish(),
+    pm2: z.string().nullish(),
+    postfix: z.string().nullish(),
+    postgresql: z.string().nullish(),
+    python: z.string().nullish(),
+    redis: z.string().nullish(),
+    systemOpenssl: z.string().nullish(),
+    systemOpensslLib: z.string().nullish(),
+    tsc: z.string().nullish(),
+    unraid: z.string().nullish(),
+    v8: z.string().nullish(),
+    yarn: z.string().nullish()
   })
 }
 
 export function VmDomainSchema(): z.ZodObject<Properties<VmDomain>> {
   return z.object({
     __typename: z.literal('VmDomain').optional(),
-    name: definedNonNullAnySchema.nullish(),
+    name: z.string().nullish(),
     state: VmStateSchema,
-    uuid: definedNonNullAnySchema
+    uuid: z.string()
   })
 }
 
 export function VmNetworkSchema(): z.ZodObject<Properties<VmNetwork>> {
   return z.object({
     __typename: z.literal('VmNetwork').optional(),
-    _placeholderType: definedNonNullAnySchema.nullish()
+    _placeholderType: z.string().nullish()
   })
 }
 
@@ -1115,69 +1115,69 @@ export function VmsSchema(): z.ZodObject<Properties<Vms>> {
 export function WelcomeSchema(): z.ZodObject<Properties<Welcome>> {
   return z.object({
     __typename: z.literal('Welcome').optional(),
-    message: definedNonNullAnySchema
+    message: z.string()
   })
 }
 
 export function addApiKeyInputSchema(): z.ZodObject<Properties<addApiKeyInput>> {
   return z.object({
-    key: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
-    userId: definedNonNullAnySchema.nullish()
+    key: z.string().nullish(),
+    name: z.string().nullish(),
+    userId: z.string().nullish()
   })
 }
 
 export function addScopeInputSchema(): z.ZodObject<Properties<addScopeInput>> {
   return z.object({
-    description: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema
+    description: z.string().nullish(),
+    name: z.string()
   })
 }
 
 export function addScopeToApiKeyInputSchema(): z.ZodObject<Properties<addScopeToApiKeyInput>> {
   return z.object({
-    apiKey: definedNonNullAnySchema,
-    name: definedNonNullAnySchema
+    apiKey: z.string(),
+    name: z.string()
   })
 }
 
 export function addUserInputSchema(): z.ZodObject<Properties<addUserInput>> {
   return z.object({
-    description: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema,
-    password: definedNonNullAnySchema
+    description: z.string().nullish(),
+    name: z.string(),
+    password: z.string()
   })
 }
 
 export function arrayDiskInputSchema(): z.ZodObject<Properties<arrayDiskInput>> {
   return z.object({
-    id: definedNonNullAnySchema,
-    slot: definedNonNullAnySchema.nullish()
+    id: z.string(),
+    slot: z.number().nullish()
   })
 }
 
 export function authenticateInputSchema(): z.ZodObject<Properties<authenticateInput>> {
   return z.object({
-    password: definedNonNullAnySchema
+    password: z.string()
   })
 }
 
 export function deleteUserInputSchema(): z.ZodObject<Properties<deleteUserInput>> {
   return z.object({
-    name: definedNonNullAnySchema
+    name: z.string()
   })
 }
 
 export function updateApikeyInputSchema(): z.ZodObject<Properties<updateApikeyInput>> {
   return z.object({
-    description: definedNonNullAnySchema.nullish(),
-    expiresAt: definedNonNullAnySchema
+    description: z.string().nullish(),
+    expiresAt: z.number()
   })
 }
 
 export function usersInputSchema(): z.ZodObject<Properties<usersInput>> {
   return z.object({
-    slim: definedNonNullAnySchema.nullish()
+    slim: z.boolean().nullish()
   })
 }
 
