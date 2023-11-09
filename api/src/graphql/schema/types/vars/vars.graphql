@@ -14,11 +14,15 @@ enum ConfigErrorState {
 }
 
 type Vars {
-    """Unraid version"""
+    """
+    Unraid version
+    """
     version: String
     maxArraysz: Int
     maxCachesz: Int
-    """Machine hostname"""
+    """
+    Machine hostname
+    """
     name: String
     timeZone: String
     comment: String
@@ -29,15 +33,25 @@ type Vars {
     hideDotFiles: Boolean
     localMaster: Boolean
     enableFruit: String
-    """Should a NTP server be used for time sync?"""
+    """
+    Should a NTP server be used for time sync?
+    """
     useNtp: Boolean
-    """NTP Server 1"""
+    """
+    NTP Server 1
+    """
     ntpServer1: String
-    """NTP Server 2"""
+    """
+    NTP Server 2
+    """
     ntpServer2: String
-    """NTP Server 3"""
+    """
+    NTP Server 3
+    """
     ntpServer3: String
-    """NTP Server 4"""
+    """
+    NTP Server 4
+    """
     ntpServer4: String
     domainLogin: String
     sysModel: String
@@ -45,13 +59,19 @@ type Vars {
     sysCacheSlots: Int
     sysFlashSlots: Int
     useSsl: Boolean
-    """Port for the webui via HTTP"""
+    """
+    Port for the webui via HTTP
+    """
     port: Int
-    """Port for the webui via HTTPS"""
+    """
+    Port for the webui via HTTPS
+    """
     portssl: Int
     localTld: String
     bindMgt: Boolean
-    """Should telnet be enabled?"""
+    """
+    Should telnet be enabled?
+    """
     useTelnet: Boolean
     porttelnet: Int
     useSsh: Boolean
@@ -119,10 +139,14 @@ type Vars {
     regCheck: String
     regFile: String
     regGuid: String
-    """Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now """
-    regTy: String 
+    """
+    Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now
+    """
+    regTy: String
     regState: RegistrationState
-    """Registration owner"""
+    """
+    Registration owner
+    """
     regTo: String
     regTm: String
     regTm2: String
@@ -157,20 +181,32 @@ type Vars {
     cacheNumDevices: Int
     cacheSbNumDisks: Int
     fsState: String
-    """Human friendly string of array events happening"""
+    """
+    Human friendly string of array events happening
+    """
     fsProgress: String
-    """Percentage from 0 - 100 while upgrading a disk or swapping parity drives"""
+    """
+    Percentage from 0 - 100 while upgrading a disk or swapping parity drives
+    """
     fsCopyPrcnt: Int
     fsNumMounted: Int
     fsNumUnmountable: Int
     fsUnmountableMask: String
-    """Total amount of user shares"""
+    """
+    Total amount of user shares
+    """
     shareCount: Int
-    """Total amount shares with SMB enabled"""
+    """
+    Total amount shares with SMB enabled
+    """
     shareSmbCount: Int
-    """Total amount shares with NFS enabled"""
+    """
+    Total amount shares with NFS enabled
+    """
     shareNfsCount: Int
-    """Total amount shares with AFP enabled"""
+    """
+    Total amount shares with AFP enabled
+    """
     shareAfpCount: Int
     shareMoverActive: Boolean
     csrfToken: String
@@ -182,35 +218,24 @@ enum mdState {
 }
 
 enum registrationType {
-    """Basic"""
     BASIC
-    """Plus"""
     PLUS
-    """Pro"""
     PRO
-    """Invalid"""
+    STARTER
+    UNLEASHED
+    LIFETIME
     INVALID
-    """Trial"""
     TRIAL
 }
 
 enum RegistrationState {
-    """
-    Trial
-    """
     TRIAL
-    """
-    Basic
-    """
     BASIC
-    """
-    Plus
-    """
     PLUS
-    """
-    Pro
-    """
     PRO
+    STARTER
+    UNLEASHED
+    LIFETIME
     """
     Trial Expired
     """

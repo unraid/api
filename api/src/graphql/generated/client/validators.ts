@@ -42,16 +42,16 @@ export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> 
   return z.object({
     ipv4: definedNonNullAnySchema.nullish(),
     ipv6: definedNonNullAnySchema.nullish(),
-    name: definedNonNullAnySchema.nullish(),
+    name: z.string().nullish(),
     type: URL_TYPESchema
   })
 }
 
 export function ArrayCapacityBytesInputSchema(): z.ZodObject<Properties<ArrayCapacityBytesInput>> {
   return z.object({
-    free: definedNonNullAnySchema.nullish(),
-    total: definedNonNullAnySchema.nullish(),
-    used: definedNonNullAnySchema.nullish()
+    free: z.number().nullish(),
+    total: z.number().nullish(),
+    used: z.number().nullish()
   })
 }
 
@@ -63,31 +63,31 @@ export function ArrayCapacityInputSchema(): z.ZodObject<Properties<ArrayCapacity
 
 export function DashboardAppsInputSchema(): z.ZodObject<Properties<DashboardAppsInput>> {
   return z.object({
-    installed: definedNonNullAnySchema,
-    started: definedNonNullAnySchema
+    installed: z.number(),
+    started: z.number()
   })
 }
 
 export function DashboardArrayInputSchema(): z.ZodObject<Properties<DashboardArrayInput>> {
   return z.object({
     capacity: z.lazy(() => ArrayCapacityInputSchema()),
-    state: definedNonNullAnySchema
+    state: z.string()
   })
 }
 
 export function DashboardCaseInputSchema(): z.ZodObject<Properties<DashboardCaseInput>> {
   return z.object({
-    base64: definedNonNullAnySchema,
-    error: definedNonNullAnySchema.nullish(),
-    icon: definedNonNullAnySchema,
-    url: definedNonNullAnySchema
+    base64: z.string(),
+    error: z.string().nullish(),
+    icon: z.string(),
+    url: z.string()
   })
 }
 
 export function DashboardConfigInputSchema(): z.ZodObject<Properties<DashboardConfigInput>> {
   return z.object({
-    error: definedNonNullAnySchema.nullish(),
-    valid: definedNonNullAnySchema
+    error: z.string().nullish(),
+    valid: z.boolean()
   })
 }
 
@@ -114,23 +114,23 @@ export function DashboardInputSchema(): z.ZodObject<Properties<DashboardInput>> 
 
 export function DashboardOsInputSchema(): z.ZodObject<Properties<DashboardOsInput>> {
   return z.object({
-    hostname: definedNonNullAnySchema,
-    uptime: definedNonNullAnySchema
+    hostname: z.string(),
+    uptime: z.string()
   })
 }
 
 export function DashboardServiceInputSchema(): z.ZodObject<Properties<DashboardServiceInput>> {
   return z.object({
-    name: definedNonNullAnySchema,
-    online: definedNonNullAnySchema,
+    name: z.string(),
+    online: z.boolean(),
     uptime: z.lazy(() => DashboardServiceUptimeInputSchema().nullish()),
-    version: definedNonNullAnySchema
+    version: z.string()
   })
 }
 
 export function DashboardServiceUptimeInputSchema(): z.ZodObject<Properties<DashboardServiceUptimeInput>> {
   return z.object({
-    timestamp: definedNonNullAnySchema
+    timestamp: z.string()
   })
 }
 
@@ -143,34 +143,34 @@ export function DashboardTwoFactorInputSchema(): z.ZodObject<Properties<Dashboar
 
 export function DashboardTwoFactorLocalInputSchema(): z.ZodObject<Properties<DashboardTwoFactorLocalInput>> {
   return z.object({
-    enabled: definedNonNullAnySchema
+    enabled: z.boolean()
   })
 }
 
 export function DashboardTwoFactorRemoteInputSchema(): z.ZodObject<Properties<DashboardTwoFactorRemoteInput>> {
   return z.object({
-    enabled: definedNonNullAnySchema
+    enabled: z.boolean()
   })
 }
 
 export function DashboardVarsInputSchema(): z.ZodObject<Properties<DashboardVarsInput>> {
   return z.object({
-    flashGuid: definedNonNullAnySchema,
-    regState: definedNonNullAnySchema,
-    regTy: definedNonNullAnySchema
+    flashGuid: z.string(),
+    regState: z.string(),
+    regTy: z.string()
   })
 }
 
 export function DashboardVersionsInputSchema(): z.ZodObject<Properties<DashboardVersionsInput>> {
   return z.object({
-    unraid: definedNonNullAnySchema
+    unraid: z.string()
   })
 }
 
 export function DashboardVmsInputSchema(): z.ZodObject<Properties<DashboardVmsInput>> {
   return z.object({
-    installed: definedNonNullAnySchema,
-    started: definedNonNullAnySchema
+    installed: z.number(),
+    started: z.number()
   })
 }
 
@@ -182,17 +182,17 @@ export function NetworkInputSchema(): z.ZodObject<Properties<NetworkInput>> {
 
 export function NotificationInputSchema(): z.ZodObject<Properties<NotificationInput>> {
   return z.object({
-    description: definedNonNullAnySchema.nullish(),
+    description: z.string().nullish(),
     importance: ImportanceSchema,
-    link: definedNonNullAnySchema.nullish(),
-    subject: definedNonNullAnySchema.nullish(),
-    title: definedNonNullAnySchema.nullish()
+    link: z.string().nullish(),
+    subject: z.string().nullish(),
+    title: z.string().nullish()
   })
 }
 
 export function RemoteAccessInputSchema(): z.ZodObject<Properties<RemoteAccessInput>> {
   return z.object({
-    apiKey: definedNonNullAnySchema,
+    apiKey: z.string(),
     type: RemoteAccessEventActionTypeSchema,
     url: z.lazy(() => AccessUrlInputSchema().nullish())
   })
@@ -200,15 +200,15 @@ export function RemoteAccessInputSchema(): z.ZodObject<Properties<RemoteAccessIn
 
 export function RemoteGraphQLClientInputSchema(): z.ZodObject<Properties<RemoteGraphQLClientInput>> {
   return z.object({
-    apiKey: definedNonNullAnySchema,
-    body: definedNonNullAnySchema
+    apiKey: z.string(),
+    body: z.string()
   })
 }
 
 export function RemoteGraphQLServerInputSchema(): z.ZodObject<Properties<RemoteGraphQLServerInput>> {
   return z.object({
-    body: definedNonNullAnySchema,
-    sha256: definedNonNullAnySchema,
+    body: z.string(),
+    sha256: z.string(),
     type: RemoteGraphQLEventTypeSchema
   })
 }
