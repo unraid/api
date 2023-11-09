@@ -5,10 +5,7 @@ Tag="upload"
 ---
 <?php
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
-// Create an instance of the RebootDetails class
 $rebootDetails = new RebootDetails();
-// Access the detected reboot type
-$rebootVersion = $rebootDetails->getRebootVersion();
 ?>
 <script>
 function cleanUpFlashBackup(zip) {
@@ -40,5 +37,5 @@ function flashBackup() {
 </script>
 
 <unraid-i18n-host>
-  <unraid-update-os reboot-version="<?= $rebootVersion ?>"></unraid-update-os>
+  <unraid-update-os reboot-version="<?= $rebootDetails->getRebootVersion() ?>"></unraid-update-os>
 </unraid-i18n-host>
