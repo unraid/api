@@ -7,8 +7,6 @@ Tag="upload"
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
 // Create an instance of the RebootDetails class
 $rebootDetails = new RebootDetails();
-// Access the detected reboot type
-$rebootVersion = $rebootDetails->getRebootVersion();
 /**
  * @note icon-update is rotated via CSS in myservers1.php
  *
@@ -160,7 +158,7 @@ function confirmDowngrade() {
 
 <unraid-i18n-host>
   <unraid-downgrade-os
-    reboot-version="<?= $rebootVersion ?>"
+    reboot-version="<?= $rebootDetails->getRebootVersion() ?>"
     restore-version="<?= $restoreExists && $restoreVersion != 'unknown' ? $restoreVersion : '' ?>"
     restore-release-date="<?= $restoreExists && $restoreVersionReleaseDate != 'unknown' ? $restoreVersionReleaseDate : '' ?>"></unraid-downgrade-os>
 </unraid-i18n-host>
