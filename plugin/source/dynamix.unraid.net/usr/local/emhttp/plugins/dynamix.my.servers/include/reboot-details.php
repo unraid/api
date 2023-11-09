@@ -1,5 +1,4 @@
-<?
-
+<?php
 /**
  * RebootDetails class is responsible for detecting the type and version of a system reboot required in the context of an unRAID server.
  *
