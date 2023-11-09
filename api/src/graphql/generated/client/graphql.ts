@@ -5,41 +5,43 @@ export type InputMaybe<T> = Maybe<T>;
 export type Exact<T extends { [key: string]: unknown }> = { [K in keyof T]: T[K] };
 export type MakeOptional<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]?: Maybe<T[SubKey]> };
 export type MakeMaybe<T, K extends keyof T> = Omit<T, K> & { [SubKey in K]: Maybe<T[SubKey]> };
+export type MakeEmpty<T extends { [key: string]: unknown }, K extends keyof T> = { [_ in K]?: never };
+export type Incremental<T> = T | { [P in keyof T]?: P extends ' $fragmentName' | '__typename' ? T[P] : never };
 /** All built-in and custom scalars, mapped to their actual values */
 export type Scalars = {
-  ID: string;
-  String: string;
-  Boolean: boolean;
-  Int: number;
-  Float: number;
+  ID: { input: string; output: string; }
+  String: { input: string; output: string; }
+  Boolean: { input: boolean; output: boolean; }
+  Int: { input: number; output: number; }
+  Float: { input: number; output: number; }
   /** A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar. */
-  DateTime: string;
+  DateTime: { input: string; output: string; }
   /** A field whose value is a IPv4 address: https://en.wikipedia.org/wiki/IPv4. */
-  IPv4: any;
+  IPv4: { input: any; output: any; }
   /** A field whose value is a IPv6 address: https://en.wikipedia.org/wiki/IPv6. */
-  IPv6: any;
+  IPv6: { input: any; output: any; }
   /** The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf). */
-  JSON: { [key: string]: any };
+  JSON: { input: { [key: string]: any }; output: { [key: string]: any }; }
   /** The `Long` scalar type represents 52-bit integers */
-  Long: number;
+  Long: { input: number; output: number; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
-  Port: number;
+  Port: { input: number; output: number; }
   /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
-  URL: URL;
+  URL: { input: URL; output: URL; }
 };
 
 export type AccessUrl = {
   __typename?: 'AccessUrl';
-  ipv4?: Maybe<Scalars['URL']>;
-  ipv6?: Maybe<Scalars['URL']>;
-  name?: Maybe<Scalars['String']>;
+  ipv4?: Maybe<Scalars['URL']['output']>;
+  ipv6?: Maybe<Scalars['URL']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
   type: URL_TYPE;
 };
 
 export type AccessUrlInput = {
-  ipv4?: InputMaybe<Scalars['URL']>;
-  ipv6?: InputMaybe<Scalars['URL']>;
-  name?: InputMaybe<Scalars['String']>;
+  ipv4?: InputMaybe<Scalars['URL']['input']>;
+  ipv6?: InputMaybe<Scalars['URL']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
   type: URL_TYPE;
 };
 
@@ -50,15 +52,15 @@ export type ArrayCapacity = {
 
 export type ArrayCapacityBytes = {
   __typename?: 'ArrayCapacityBytes';
-  free?: Maybe<Scalars['Long']>;
-  total?: Maybe<Scalars['Long']>;
-  used?: Maybe<Scalars['Long']>;
+  free?: Maybe<Scalars['Long']['output']>;
+  total?: Maybe<Scalars['Long']['output']>;
+  used?: Maybe<Scalars['Long']['output']>;
 };
 
 export type ArrayCapacityBytesInput = {
-  free?: InputMaybe<Scalars['Long']>;
-  total?: InputMaybe<Scalars['Long']>;
-  used?: InputMaybe<Scalars['Long']>;
+  free?: InputMaybe<Scalars['Long']['input']>;
+  total?: InputMaybe<Scalars['Long']['input']>;
+  used?: InputMaybe<Scalars['Long']['input']>;
 };
 
 export type ArrayCapacityInput = {
@@ -73,9 +75,9 @@ export type ClientConnectedEvent = {
 
 export type ClientConnectionEventData = {
   __typename?: 'ClientConnectionEventData';
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['output'];
   type: ClientType;
-  version: Scalars['String'];
+  version: Scalars['String']['output'];
 };
 
 export type ClientDisconnectedEvent = {
@@ -98,7 +100,7 @@ export enum ClientType {
 export type Config = {
   __typename?: 'Config';
   error?: Maybe<ConfigErrorState>;
-  valid?: Maybe<Scalars['Boolean']>;
+  valid?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export enum ConfigErrorState {
@@ -114,10 +116,10 @@ export type Dashboard = {
   array?: Maybe<DashboardArray>;
   config?: Maybe<DashboardConfig>;
   display?: Maybe<DashboardDisplay>;
-  id: Scalars['ID'];
-  lastPublish?: Maybe<Scalars['DateTime']>;
+  id: Scalars['ID']['output'];
+  lastPublish?: Maybe<Scalars['DateTime']['output']>;
   network?: Maybe<Network>;
-  online?: Maybe<Scalars['Boolean']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
   os?: Maybe<DashboardOs>;
   services?: Maybe<Array<Maybe<DashboardService>>>;
   twoFactor?: Maybe<DashboardTwoFactor>;
@@ -128,13 +130,13 @@ export type Dashboard = {
 
 export type DashboardApps = {
   __typename?: 'DashboardApps';
-  installed?: Maybe<Scalars['Int']>;
-  started?: Maybe<Scalars['Int']>;
+  installed?: Maybe<Scalars['Int']['output']>;
+  started?: Maybe<Scalars['Int']['output']>;
 };
 
 export type DashboardAppsInput = {
-  installed: Scalars['Int'];
-  started: Scalars['Int'];
+  installed: Scalars['Int']['input'];
+  started: Scalars['Int']['input'];
 };
 
 export type DashboardArray = {
@@ -142,40 +144,40 @@ export type DashboardArray = {
   /** Current array capacity */
   capacity?: Maybe<ArrayCapacity>;
   /** Current array state */
-  state?: Maybe<Scalars['String']>;
+  state?: Maybe<Scalars['String']['output']>;
 };
 
 export type DashboardArrayInput = {
   /** Current array capacity */
   capacity: ArrayCapacityInput;
   /** Current array state */
-  state: Scalars['String'];
+  state: Scalars['String']['input'];
 };
 
 export type DashboardCase = {
   __typename?: 'DashboardCase';
-  base64?: Maybe<Scalars['String']>;
-  error?: Maybe<Scalars['String']>;
-  icon?: Maybe<Scalars['String']>;
-  url?: Maybe<Scalars['String']>;
+  base64?: Maybe<Scalars['String']['output']>;
+  error?: Maybe<Scalars['String']['output']>;
+  icon?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
 };
 
 export type DashboardCaseInput = {
-  base64: Scalars['String'];
-  error?: InputMaybe<Scalars['String']>;
-  icon: Scalars['String'];
-  url: Scalars['String'];
+  base64: Scalars['String']['input'];
+  error?: InputMaybe<Scalars['String']['input']>;
+  icon: Scalars['String']['input'];
+  url: Scalars['String']['input'];
 };
 
 export type DashboardConfig = {
   __typename?: 'DashboardConfig';
-  error?: Maybe<Scalars['String']>;
-  valid?: Maybe<Scalars['Boolean']>;
+  error?: Maybe<Scalars['String']['output']>;
+  valid?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DashboardConfigInput = {
-  error?: InputMaybe<Scalars['String']>;
-  valid: Scalars['Boolean'];
+  error?: InputMaybe<Scalars['String']['input']>;
+  valid: Scalars['Boolean']['input'];
 };
 
 export type DashboardDisplay = {
@@ -202,37 +204,37 @@ export type DashboardInput = {
 
 export type DashboardOs = {
   __typename?: 'DashboardOs';
-  hostname?: Maybe<Scalars['String']>;
-  uptime?: Maybe<Scalars['DateTime']>;
+  hostname?: Maybe<Scalars['String']['output']>;
+  uptime?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type DashboardOsInput = {
-  hostname: Scalars['String'];
-  uptime: Scalars['DateTime'];
+  hostname: Scalars['String']['input'];
+  uptime: Scalars['DateTime']['input'];
 };
 
 export type DashboardService = {
   __typename?: 'DashboardService';
-  name?: Maybe<Scalars['String']>;
-  online?: Maybe<Scalars['Boolean']>;
+  name?: Maybe<Scalars['String']['output']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
   uptime?: Maybe<DashboardServiceUptime>;
-  version?: Maybe<Scalars['String']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type DashboardServiceInput = {
-  name: Scalars['String'];
-  online: Scalars['Boolean'];
+  name: Scalars['String']['input'];
+  online: Scalars['Boolean']['input'];
   uptime?: InputMaybe<DashboardServiceUptimeInput>;
-  version: Scalars['String'];
+  version: Scalars['String']['input'];
 };
 
 export type DashboardServiceUptime = {
   __typename?: 'DashboardServiceUptime';
-  timestamp?: Maybe<Scalars['DateTime']>;
+  timestamp?: Maybe<Scalars['DateTime']['output']>;
 };
 
 export type DashboardServiceUptimeInput = {
-  timestamp: Scalars['DateTime'];
+  timestamp: Scalars['DateTime']['input'];
 };
 
 export type DashboardTwoFactor = {
@@ -248,53 +250,53 @@ export type DashboardTwoFactorInput = {
 
 export type DashboardTwoFactorLocal = {
   __typename?: 'DashboardTwoFactorLocal';
-  enabled?: Maybe<Scalars['Boolean']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DashboardTwoFactorLocalInput = {
-  enabled: Scalars['Boolean'];
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type DashboardTwoFactorRemote = {
   __typename?: 'DashboardTwoFactorRemote';
-  enabled?: Maybe<Scalars['Boolean']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type DashboardTwoFactorRemoteInput = {
-  enabled: Scalars['Boolean'];
+  enabled: Scalars['Boolean']['input'];
 };
 
 export type DashboardVars = {
   __typename?: 'DashboardVars';
-  flashGuid?: Maybe<Scalars['String']>;
-  regState?: Maybe<Scalars['String']>;
-  regTy?: Maybe<Scalars['String']>;
+  flashGuid?: Maybe<Scalars['String']['output']>;
+  regState?: Maybe<Scalars['String']['output']>;
+  regTy?: Maybe<Scalars['String']['output']>;
 };
 
 export type DashboardVarsInput = {
-  flashGuid: Scalars['String'];
-  regState: Scalars['String'];
-  regTy: Scalars['String'];
+  flashGuid: Scalars['String']['input'];
+  regState: Scalars['String']['input'];
+  regTy: Scalars['String']['input'];
 };
 
 export type DashboardVersions = {
   __typename?: 'DashboardVersions';
-  unraid?: Maybe<Scalars['String']>;
+  unraid?: Maybe<Scalars['String']['output']>;
 };
 
 export type DashboardVersionsInput = {
-  unraid: Scalars['String'];
+  unraid: Scalars['String']['input'];
 };
 
 export type DashboardVms = {
   __typename?: 'DashboardVms';
-  installed?: Maybe<Scalars['Int']>;
-  started?: Maybe<Scalars['Int']>;
+  installed?: Maybe<Scalars['Int']['output']>;
+  started?: Maybe<Scalars['Int']['output']>;
 };
 
 export type DashboardVmsInput = {
-  installed: Scalars['Int'];
-  started: Scalars['Int'];
+  installed: Scalars['Int']['input'];
+  started: Scalars['Int']['input'];
 };
 
 export type Event = ClientConnectedEvent | ClientDisconnectedEvent | ClientPingEvent | RemoteAccessEvent | RemoteGraphQLEvent | UpdateEvent;
@@ -310,13 +312,13 @@ export enum EventType {
 
 export type FullServerDetails = {
   __typename?: 'FullServerDetails';
-  apiConnectedCount?: Maybe<Scalars['Int']>;
-  apiVersion?: Maybe<Scalars['String']>;
-  connectionTimestamp?: Maybe<Scalars['String']>;
+  apiConnectedCount?: Maybe<Scalars['Int']['output']>;
+  apiVersion?: Maybe<Scalars['String']['output']>;
+  connectionTimestamp?: Maybe<Scalars['String']['output']>;
   dashboard?: Maybe<Dashboard>;
-  lastPublish?: Maybe<Scalars['String']>;
+  lastPublish?: Maybe<Scalars['String']['output']>;
   network?: Maybe<Network>;
-  online?: Maybe<Scalars['Boolean']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export enum Importance {
@@ -334,39 +336,39 @@ export enum KeyType {
 
 export type KsServerDetails = {
   __typename?: 'KsServerDetails';
-  accessLabel: Scalars['String'];
-  accessUrl: Scalars['String'];
-  apiKey?: Maybe<Scalars['String']>;
-  description: Scalars['String'];
-  dnsHash: Scalars['String'];
-  flashBackupDate?: Maybe<Scalars['Int']>;
-  flashBackupUrl: Scalars['String'];
-  flashProduct: Scalars['String'];
-  flashVendor: Scalars['String'];
-  guid: Scalars['String'];
-  ipsId: Scalars['String'];
+  accessLabel: Scalars['String']['output'];
+  accessUrl: Scalars['String']['output'];
+  apiKey?: Maybe<Scalars['String']['output']>;
+  description: Scalars['String']['output'];
+  dnsHash: Scalars['String']['output'];
+  flashBackupDate?: Maybe<Scalars['Int']['output']>;
+  flashBackupUrl: Scalars['String']['output'];
+  flashProduct: Scalars['String']['output'];
+  flashVendor: Scalars['String']['output'];
+  guid: Scalars['String']['output'];
+  ipsId: Scalars['String']['output'];
   keyType: KeyType;
-  licenseKey: Scalars['String'];
-  name: Scalars['String'];
-  plgVersion?: Maybe<Scalars['String']>;
-  signedIn: Scalars['Boolean'];
+  licenseKey: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  plgVersion?: Maybe<Scalars['String']['output']>;
+  signedIn: Scalars['Boolean']['output'];
 };
 
 export type LegacyService = {
   __typename?: 'LegacyService';
-  name?: Maybe<Scalars['String']>;
-  online?: Maybe<Scalars['Boolean']>;
-  uptime?: Maybe<Scalars['Int']>;
-  version?: Maybe<Scalars['String']>;
+  name?: Maybe<Scalars['String']['output']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
+  uptime?: Maybe<Scalars['Int']['output']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type Mutation = {
   __typename?: 'Mutation';
-  remoteGraphQLResponse: Scalars['Boolean'];
-  remoteMutation: Scalars['String'];
-  remoteSession?: Maybe<Scalars['Boolean']>;
+  remoteGraphQLResponse: Scalars['Boolean']['output'];
+  remoteMutation: Scalars['String']['output'];
+  remoteSession?: Maybe<Scalars['Boolean']['output']>;
   sendNotification?: Maybe<Notification>;
-  sendPing?: Maybe<Scalars['Boolean']>;
+  sendPing?: Maybe<Scalars['Boolean']['output']>;
   updateDashboard: Dashboard;
   updateNetwork: Network;
 };
@@ -412,20 +414,20 @@ export type NetworkInput = {
 
 export type Notification = {
   __typename?: 'Notification';
-  description?: Maybe<Scalars['String']>;
+  description?: Maybe<Scalars['String']['output']>;
   importance?: Maybe<Importance>;
-  link?: Maybe<Scalars['String']>;
+  link?: Maybe<Scalars['String']['output']>;
   status: NotificationStatus;
-  subject?: Maybe<Scalars['String']>;
-  title?: Maybe<Scalars['String']>;
+  subject?: Maybe<Scalars['String']['output']>;
+  title?: Maybe<Scalars['String']['output']>;
 };
 
 export type NotificationInput = {
-  description?: InputMaybe<Scalars['String']>;
+  description?: InputMaybe<Scalars['String']['input']>;
   importance: Importance;
-  link?: InputMaybe<Scalars['String']>;
-  subject?: InputMaybe<Scalars['String']>;
-  title?: InputMaybe<Scalars['String']>;
+  link?: InputMaybe<Scalars['String']['input']>;
+  subject?: InputMaybe<Scalars['String']['input']>;
+  title?: InputMaybe<Scalars['String']['input']>;
 };
 
 export enum NotificationStatus {
@@ -437,7 +439,7 @@ export enum NotificationStatus {
 
 export type PingEvent = {
   __typename?: 'PingEvent';
-  data?: Maybe<Scalars['String']>;
+  data?: Maybe<Scalars['String']['output']>;
   type: EventType;
 };
 
@@ -453,26 +455,27 @@ export enum PingEventSource {
 
 export type ProfileModel = {
   __typename?: 'ProfileModel';
-  avatar?: Maybe<Scalars['String']>;
-  url?: Maybe<Scalars['String']>;
-  userId?: Maybe<Scalars['ID']>;
-  username?: Maybe<Scalars['String']>;
+  avatar?: Maybe<Scalars['String']['output']>;
+  cognito_id?: Maybe<Scalars['String']['output']>;
+  url?: Maybe<Scalars['String']['output']>;
+  userId?: Maybe<Scalars['ID']['output']>;
+  username?: Maybe<Scalars['String']['output']>;
 };
 
 export type Query = {
   __typename?: 'Query';
-  apiVersion?: Maybe<Scalars['String']>;
+  apiVersion?: Maybe<Scalars['String']['output']>;
   dashboard?: Maybe<Dashboard>;
   ksServers: Array<KsServerDetails>;
-  online?: Maybe<Scalars['Boolean']>;
-  remoteQuery: Scalars['String'];
+  online?: Maybe<Scalars['Boolean']['output']>;
+  remoteQuery: Scalars['String']['output'];
   servers: Array<Maybe<Server>>;
   status?: Maybe<ServerStatus>;
 };
 
 
 export type QuerydashboardArgs = {
-  id: Scalars['String'];
+  id: Scalars['String']['input'];
 };
 
 
@@ -538,20 +541,20 @@ export enum RemoteAccessEventActionType {
 
 export type RemoteAccessEventData = {
   __typename?: 'RemoteAccessEventData';
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['output'];
   type: RemoteAccessEventActionType;
   url?: Maybe<AccessUrl>;
 };
 
 export type RemoteAccessInput = {
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['input'];
   type: RemoteAccessEventActionType;
   url?: InputMaybe<AccessUrlInput>;
 };
 
 export type RemoteGraphQLClientInput = {
-  apiKey: Scalars['String'];
-  body: Scalars['String'];
+  apiKey: Scalars['String']['input'];
+  body: Scalars['String']['input'];
 };
 
 export type RemoteGraphQLEvent = {
@@ -563,9 +566,9 @@ export type RemoteGraphQLEvent = {
 export type RemoteGraphQLEventData = {
   __typename?: 'RemoteGraphQLEventData';
   /** Contains mutation / subscription / query data in the form of body: JSON, variables: JSON */
-  body: Scalars['String'];
+  body: Scalars['String']['output'];
   /** sha256 hash of the body */
-  sha256: Scalars['String'];
+  sha256: Scalars['String']['output'];
   type: RemoteGraphQLEventType;
 };
 
@@ -578,39 +581,39 @@ export enum RemoteGraphQLEventType {
 
 export type RemoteGraphQLServerInput = {
   /** Body - contains an object containing data: (GQL response data) or errors: (GQL Errors) */
-  body: Scalars['String'];
+  body: Scalars['String']['input'];
   /** sha256 hash of the body */
-  sha256: Scalars['String'];
+  sha256: Scalars['String']['input'];
   type: RemoteGraphQLEventType;
 };
 
 export type Server = {
   __typename?: 'Server';
-  apikey?: Maybe<Scalars['String']>;
-  guid?: Maybe<Scalars['String']>;
-  lanip?: Maybe<Scalars['String']>;
-  localurl?: Maybe<Scalars['String']>;
-  name?: Maybe<Scalars['String']>;
+  apikey?: Maybe<Scalars['String']['output']>;
+  guid?: Maybe<Scalars['String']['output']>;
+  lanip?: Maybe<Scalars['String']['output']>;
+  localurl?: Maybe<Scalars['String']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
   owner?: Maybe<ProfileModel>;
-  remoteurl?: Maybe<Scalars['String']>;
+  remoteurl?: Maybe<Scalars['String']['output']>;
   status?: Maybe<ServerStatus>;
-  wanip?: Maybe<Scalars['String']>;
+  wanip?: Maybe<Scalars['String']['output']>;
 };
 
 /**  Defines server fields that have a TTL on them, for example last ping  */
 export type ServerFieldsWithTtl = {
   __typename?: 'ServerFieldsWithTtl';
-  lastPing?: Maybe<Scalars['String']>;
+  lastPing?: Maybe<Scalars['String']['output']>;
 };
 
 export type ServerModel = {
-  apikey: Scalars['String'];
-  guid: Scalars['String'];
-  lanip: Scalars['String'];
-  localurl: Scalars['String'];
-  name: Scalars['String'];
-  remoteurl: Scalars['String'];
-  wanip: Scalars['String'];
+  apikey: Scalars['String']['output'];
+  guid: Scalars['String']['output'];
+  lanip: Scalars['String']['output'];
+  localurl: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  remoteurl: Scalars['String']['output'];
+  wanip: Scalars['String']['output'];
 };
 
 export enum ServerStatus {
@@ -621,16 +624,16 @@ export enum ServerStatus {
 
 export type Service = {
   __typename?: 'Service';
-  name?: Maybe<Scalars['String']>;
-  online?: Maybe<Scalars['Boolean']>;
+  name?: Maybe<Scalars['String']['output']>;
+  online?: Maybe<Scalars['Boolean']['output']>;
   uptime?: Maybe<Uptime>;
-  version?: Maybe<Scalars['String']>;
+  version?: Maybe<Scalars['String']['output']>;
 };
 
 export type Subscription = {
   __typename?: 'Subscription';
   events?: Maybe<Array<Event>>;
-  remoteSubscription: Scalars['String'];
+  remoteSubscription: Scalars['String']['output'];
   servers: Array<Server>;
 };
 
@@ -641,19 +644,19 @@ export type SubscriptionremoteSubscriptionArgs = {
 
 export type TwoFactorLocal = {
   __typename?: 'TwoFactorLocal';
-  enabled?: Maybe<Scalars['Boolean']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type TwoFactorRemote = {
   __typename?: 'TwoFactorRemote';
-  enabled?: Maybe<Scalars['Boolean']>;
+  enabled?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export type TwoFactorWithToken = {
   __typename?: 'TwoFactorWithToken';
   local?: Maybe<TwoFactorLocal>;
   remote?: Maybe<TwoFactorRemote>;
-  token?: Maybe<Scalars['String']>;
+  token?: Maybe<Scalars['String']['output']>;
 };
 
 export type TwoFactorWithoutToken = {
@@ -678,7 +681,7 @@ export type UpdateEvent = {
 
 export type UpdateEventData = {
   __typename?: 'UpdateEventData';
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['output'];
   type: UpdateType;
 };
 
@@ -689,7 +692,7 @@ export enum UpdateType {
 
 export type Uptime = {
   __typename?: 'Uptime';
-  timestamp?: Maybe<Scalars['String']>;
+  timestamp?: Maybe<Scalars['String']['output']>;
 };
 
 export type UserProfileModelWithServers = {
@@ -700,16 +703,16 @@ export type UserProfileModelWithServers = {
 
 export type Vars = {
   __typename?: 'Vars';
-  expireTime?: Maybe<Scalars['DateTime']>;
-  flashGuid?: Maybe<Scalars['String']>;
+  expireTime?: Maybe<Scalars['DateTime']['output']>;
+  flashGuid?: Maybe<Scalars['String']['output']>;
   regState?: Maybe<RegistrationState>;
-  regTm2?: Maybe<Scalars['String']>;
-  regTy?: Maybe<Scalars['String']>;
+  regTm2?: Maybe<Scalars['String']['output']>;
+  regTy?: Maybe<Scalars['String']['output']>;
 };
 
 export type updateDashboardMutationVariables = Exact<{
   data: DashboardInput;
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['input'];
 }>;
 
 
@@ -717,7 +720,7 @@ export type updateDashboardMutation = { __typename?: 'Mutation', updateDashboard
 
 export type sendNotificationMutationVariables = Exact<{
   notification: NotificationInput;
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['input'];
 }>;
 
 
@@ -725,7 +728,7 @@ export type sendNotificationMutation = { __typename?: 'Mutation', sendNotificati
 
 export type updateNetworkMutationVariables = Exact<{
   data: NetworkInput;
-  apiKey: Scalars['String'];
+  apiKey: Scalars['String']['input'];
 }>;
 
 

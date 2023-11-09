@@ -1,247 +1,213 @@
-import { type IniStringBoolean, type IniStringBooleanOrAuto } from '@app/core/types/ini';
+import {
+    type IniStringBoolean,
+    type IniStringBooleanOrAuto,
+} from '@app/core/types/ini';
 import { type FsType } from '@app/core/types/states/var';
 import { toNumber } from '@app/core/utils';
-import { ArrayState, RegistrationState, type registrationType } from '@app/graphql/generated/api/types';
+import {
+    ArrayState,
+    RegistrationState,
+    registrationType,
+} from '@app/graphql/generated/api/types';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
 /**
  * Unraid registration check
  */
 type RegistrationCheck =
- /** Key file is missing. */
- 'ENOKEYFILE2' |
- /** Everything is fine. */
- '';
-
-/**
-* Unraid registration type
-*
-* Check the {@link https://unraid.net/pricing | pricing page} for up to date info.
-*/
-type RegistrationType =
- /** Missing key file. */
- '- missing key file' |
- /** Free trial */
- 'Trial' |
- /** Up to 6 attached storage devices. */
- 'Basic' |
- /** Up to 12 attached storage devices. */
- 'Plus' |
- /** Unlimited attached storage devices. */
- 'Pro';
-
-type RegistrationState =
- 'TRIAL' |
- 'BASIC' |
- 'PLUS' |
- 'PRO' |
- 'EEXPIRED' |
- 'EGUID' |
- 'EGUID1' |
- 'ETRIAL' |
- 'ENOKEYFILE' |
- 'ENOKEYFILE1' |
- 'ENOKEYFILE2' |
- 'ENOFLASH1' |
- 'ENOFLASH2' |
- 'ENOFLASH3' |
- 'ENOFLASH4' |
- 'ENOFLASH5' |
- 'ENOFLASH6' |
- 'ENOFLASH7' |
- 'EBLACKLISTED' |
- 'EBLACKLISTED1' |
- 'EBLACKLISTED2' |
- 'ENOCONN';
+    /** Key file is missing. */
+    | 'ENOKEYFILE2'
+    /** Everything is fine. */
+    | '';
 
 export type VarIni = {
-	bindMgt: IniStringBooleanOrAuto;
-	cacheNumDevices: string;
-	cacheSbNumDisks: string;
-	comment: string;
-	configValid: string;
-	configState: string;
-	csrfToken: string;
-	defaultFormat: string;
-	defaultFsType: FsType;
-	deviceCount: string;
-	domain: string;
-	domainLogin: string;
-	domainShort: string;
-	flashGuid: string;
-	flashProduct: string;
-	flashVendor: string;
-	fsCopyPrcnt: string;
-	fsNumMounted: string;
-	fsNumUnmountable: string;
-	fsProgress: string;
-	fsState: string;
-	fsUnmountableMask: string;
-	fuseDirectio: string;
-	fuseDirectioDefault: string;
-	fuseDirectioStatus: string;
-	fuseRemember: string;
-	fuseRememberDefault: string;
-	fuseRememberStatus: string;
-	hideDotFiles: string;
-	localMaster: string;
-	localTld: string;
-	luksKeyfile: string;
-	maxArraysz: string;
-	maxCachesz: string;
-	mdColor: string;
-	mdNumDisabled: string;
-	mdNumDisks: string;
-	mdNumErased: string;
-	mdNumInvalid: string;
-	mdNumMissing: string;
-	mdNumNew: string;
-	mdNumStripes: string;
-	mdNumStripesDefault: string;
-	mdNumStripesStatus: string;
-	mdResync: string;
-	mdResyncAction: string;
-	mdResyncCorr: string;
-	mdResyncDb: string;
-	mdResyncDt: string;
-	mdResyncPos: string;
-	mdResyncSize: string;
-	mdState: string;
-	mdSyncThresh: string;
-	mdSyncThreshDefault: string;
-	mdSyncThreshStatus: string;
-	mdSyncWindow: string;
-	mdSyncWindowDefault: string;
-	mdSyncWindowStatus: string;
-	mdVersion: string;
-	mdWriteMethod: string;
-	mdWriteMethodDefault: string;
-	mdWriteMethodStatus: string;
-	name: string;
-	nrRequests: string;
-	nrRequestsDefault: string;
-	ntpServer1: string;
-	ntpServer2: string;
-	ntpServer3: string;
-	ntpServer4: string;
-	pollAttributes: string;
-	pollAttributesDefault: string;
-	pollAttributesStatus: string;
-	port: string;
-	portssh: string;
-	portssl: string;
-	porttelnet: string;
-	queueDepth: string;
-	regCheck: RegistrationCheck;
-	regFile: string;
-	regGen: string;
-	regGuid: string;
-	regTm: string;
-	regTm2: string;
-	regTo: string;
-	regTy: RegistrationType;
-	regState: RegistrationState;
-	safeMode: string;
-	sbClean: string;
-	sbEvents: string;
-	sbName: string;
-	sbNumDisks: string;
-	sbState: string;
-	sbSynced: string;
-	sbSynced2: string;
-	sbSyncErrs: string;
-	sbSyncExit: string;
-	sbUpdated: string;
-	sbVersion: string;
-	security: string;
-	shareAvahiEnabled: string;
-	shareAvahiSmbModel: string;
-	shareAvahiSmbName: string;
-	shareCacheEnabled: string;
-	shareCacheFloor: string;
-	shareCount: string;
-	shareDisk: string;
-	shareInitialGroup: string;
-	shareInitialOwner: string;
-	shareMoverActive: string;
-	shareMoverLogging: string;
-	shareMoverSchedule: string;
-	shareNfsCount: string;
-	shareNfsEnabled: string;
-	shareSmbCount: string;
-	shareSmbEnabled: string;
-	shareUser: string;
-	shareUserExclude: string;
-	shutdownTimeout: string;
-	spindownDelay: string;
-	spinupGroups: string;
-	startArray: string;
-	startMode: string;
-	startPage: string;
-	sysArraySlots: string;
-	sysCacheSlots: string;
-	sysFlashSlots: string;
-	sysModel: string;
-	timeZone: string;
-	useNtp: IniStringBoolean;
-	useSsh: IniStringBoolean;
-	useSsl: IniStringBooleanOrAuto;
-	useTelnet: string;
-	version: string;
-	workgroup: string;
-	useUpnp: IniStringBoolean;
+    bindMgt: IniStringBooleanOrAuto;
+    cacheNumDevices: string;
+    cacheSbNumDisks: string;
+    comment: string;
+    configValid: string;
+    configState: string;
+    csrfToken: string;
+    defaultFormat: string;
+    defaultFsType: FsType;
+    deviceCount: string;
+    domain: string;
+    domainLogin: string;
+    domainShort: string;
+    flashGuid: string;
+    flashProduct: string;
+    flashVendor: string;
+    fsCopyPrcnt: string;
+    fsNumMounted: string;
+    fsNumUnmountable: string;
+    fsProgress: string;
+    fsState: string;
+    fsUnmountableMask: string;
+    fuseDirectio: string;
+    fuseDirectioDefault: string;
+    fuseDirectioStatus: string;
+    fuseRemember: string;
+    fuseRememberDefault: string;
+    fuseRememberStatus: string;
+    hideDotFiles: string;
+    localMaster: string;
+    localTld: string;
+    luksKeyfile: string;
+    maxArraysz: string;
+    maxCachesz: string;
+    mdColor: string;
+    mdNumDisabled: string;
+    mdNumDisks: string;
+    mdNumErased: string;
+    mdNumInvalid: string;
+    mdNumMissing: string;
+    mdNumNew: string;
+    mdNumStripes: string;
+    mdNumStripesDefault: string;
+    mdNumStripesStatus: string;
+    mdResync: string;
+    mdResyncAction: string;
+    mdResyncCorr: string;
+    mdResyncDb: string;
+    mdResyncDt: string;
+    mdResyncPos: string;
+    mdResyncSize: string;
+    mdState: string;
+    mdSyncThresh: string;
+    mdSyncThreshDefault: string;
+    mdSyncThreshStatus: string;
+    mdSyncWindow: string;
+    mdSyncWindowDefault: string;
+    mdSyncWindowStatus: string;
+    mdVersion: string;
+    mdWriteMethod: string;
+    mdWriteMethodDefault: string;
+    mdWriteMethodStatus: string;
+    name: string;
+    nrRequests: string;
+    nrRequestsDefault: string;
+    ntpServer1: string;
+    ntpServer2: string;
+    ntpServer3: string;
+    ntpServer4: string;
+    pollAttributes: string;
+    pollAttributesDefault: string;
+    pollAttributesStatus: string;
+    port: string;
+    portssh: string;
+    portssl: string;
+    porttelnet: string;
+    queueDepth: string;
+    regCheck: RegistrationCheck;
+    regFile: string;
+    regGen: string;
+    regGuid: string;
+    regTm: string;
+    regTm2: string;
+    regTo: string;
+    regTy: string;
+    regState: string;
+    safeMode: string;
+    sbClean: string;
+    sbEvents: string;
+    sbName: string;
+    sbNumDisks: string;
+    sbState: string;
+    sbSynced: string;
+    sbSynced2: string;
+    sbSyncErrs: string;
+    sbSyncExit: string;
+    sbUpdated: string;
+    sbVersion: string;
+    security: string;
+    shareAvahiEnabled: string;
+    shareAvahiSmbModel: string;
+    shareAvahiSmbName: string;
+    shareCacheEnabled: string;
+    shareCacheFloor: string;
+    shareCount: string;
+    shareDisk: string;
+    shareInitialGroup: string;
+    shareInitialOwner: string;
+    shareMoverActive: string;
+    shareMoverLogging: string;
+    shareMoverSchedule: string;
+    shareNfsCount: string;
+    shareNfsEnabled: string;
+    shareSmbCount: string;
+    shareSmbEnabled: string;
+    shareUser: string;
+    shareUserExclude: string;
+    shutdownTimeout: string;
+    spindownDelay: string;
+    spinupGroups: string;
+    startArray: string;
+    startMode: string;
+    startPage: string;
+    sysArraySlots: string;
+    sysCacheSlots: string;
+    sysFlashSlots: string;
+    sysModel: string;
+    timeZone: string;
+    useNtp: IniStringBoolean;
+    useSsh: IniStringBoolean;
+    useSsl: IniStringBooleanOrAuto;
+    useTelnet: string;
+    version: string;
+    workgroup: string;
+    useUpnp: IniStringBoolean;
 };
 
 const iniBooleanToJsBoolean = (value: string, defaultValue?: boolean) => {
-	if (value === 'no' || value === 'false') {
-		return false;
-	}
+    if (value === 'no' || value === 'false') {
+        return false;
+    }
 
-	if (value === 'yes' || value === 'true') {
-		return true;
-	}
+    if (value === 'yes' || value === 'true') {
+        return true;
+    }
 
-	if (defaultValue !== undefined) {
-		return defaultValue;
-	}
+    if (defaultValue !== undefined) {
+        return defaultValue;
+    }
 
-	throw new Error(`Value "${value}" is not false/true or no/yes.`);
+    throw new Error(`Value "${value}" is not false/true or no/yes.`);
 };
 
 const iniBooleanOrAutoToJsBoolean = (value: IniStringBooleanOrAuto) => {
-	try {
-		// Either it'll return true/false or throw
-		return iniBooleanToJsBoolean((value as IniStringBoolean));
-	} catch {
-		// Auto or null
-		if (value === 'auto') {
-			return null;
-		}
-	}
+    try {
+        // Either it'll return true/false or throw
+        return iniBooleanToJsBoolean(value as IniStringBoolean);
+    } catch {
+        // Auto or null
+        if (value === 'auto') {
+            return null;
+        }
+    }
 
-	throw new Error(`Value "${value as string}" is not auto/no/yes.`);
+    throw new Error(`Value "${value as string}" is not auto/no/yes.`);
 };
 
 const safeParseMdState = (mdState: string | undefined): ArrayState => {
-	if (!mdState || typeof mdState !== 'string') {
-		return ArrayState.STOPPED;
-	}
-	const stateUpper = mdState.toUpperCase()
-	const attemptedParse =
+    if (!mdState || typeof mdState !== 'string') {
+        return ArrayState.STOPPED;
+    }
+    const stateUpper = mdState.toUpperCase();
+    const attemptedParse =
         ArrayState[
             stateUpper.startsWith('ERROR')
                 ? stateUpper.split(':')[1]
                 : stateUpper
         ];
 
-	if (!attemptedParse) {
-		return ArrayState.STOPPED
-	}
-	return attemptedParse;
-}
+    if (!attemptedParse) {
+        return ArrayState.STOPPED;
+    }
+    return attemptedParse;
+};
 
-export const parse: StateFileToIniParserMap['var'] = iniFile => {
-	return {
+export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
+    return {
         ...iniFile,
         mdState: safeParseMdState(iniFile.mdState),
         bindMgt: iniBooleanOrAutoToJsBoolean(iniFile.bindMgt),
@@ -280,12 +246,14 @@ export const parse: StateFileToIniParserMap['var'] = iniFile => {
         portssl: toNumber(iniFile.portssl),
         porttelnet: toNumber(iniFile.porttelnet),
         regCheck: iniFile.regCheck === '' ? 'Valid' : 'Error',
-        regTy: (['Basic', 'Plus', 'Pro', 'Trial'].includes(iniFile.regTy)
-            ? iniFile.regTy
-            : 'Invalid'
-        ).toUpperCase() as registrationType,
+        regTy:
+            registrationType[iniFile.regTy?.toUpperCase()] ??
+            registrationType.INVALID,
         // Make sure to use a || not a ?? as regCheck can be an empty string
-        regState: (iniFile.regCheck || iniFile.regTy || '').toUpperCase() ?? RegistrationState.EGUID,
+        regState:
+            RegistrationState[
+                (iniFile.regCheck || iniFile.regTy || '').toUpperCase()
+            ] ?? RegistrationState.EGUID,
         safeMode: iniBooleanToJsBoolean(iniFile.safeMode),
         sbClean: iniBooleanToJsBoolean(iniFile.sbClean),
         sbEvents: toNumber(iniFile.sbEvents),
