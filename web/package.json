@@ -3,8 +3,8 @@
   "private": true,
   "scripts": {
     "build": "npm run type-check && nuxt build",
-    "build:dev": "nuxt build && npm run deploy:dev",
-    "build:webgui": "npm run type-check && nuxt build && npm run copy-to-webgui",
+    "build:dev": "npm run lint && npm run type-check && nuxt build && npm run deploy:dev",
+    "build:webgui": "npm run lint && npm run type-check && nuxt build && npm run copy-to-webgui",
     "deploy:dev": "./scripts/deploy-dev.sh",
     "copy-to-webgui": "./scripts/copy-to-webgui-repo.sh",
     "dev": "nuxt dev",
