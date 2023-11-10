@@ -374,4 +374,16 @@ class WebComponentTranslations
     {
         return $this->translations ?? [];
     }
+
+    /**
+     * @param $urlEncode {bool}
+     * @return string
+     */
+    public function getTranslationsJson($urlEncode = false)
+    {
+        if ($urlEncode) {
+            return rawurlencode(json_encode($this->getTranslations(), JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE));
+        }
+        return json_encode($this->getTranslations(), JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE);
+    }
 }
