@@ -1,4 +1,7 @@
 <?php
+/**
+ * @todo refactor globals – currently if you try to use $GLOBALS the class will break.
+ */
 $webguiGlobals = $GLOBALS;
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
@@ -9,7 +12,10 @@ require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
  * Usage:
  * ```
  * $serverStateClass = new ServerState();
- * $serverStateData = $serverStateClass->getServerState();
+ *
+ * $serverStateClass->getServerState();
+ * or
+ * $serverStateClass->getServerStateJson();
  * ```
  */
 class ServerState
@@ -86,7 +92,7 @@ class ServerState
     }
 
     /**
-     * Retrieve the server information as an associative array.
+     * Retrieve the server information as an associative array
      *
      * @return array An array containing server information.
      */
@@ -156,4 +162,12 @@ class ServerState
         return $serverState;
     }
 
+    /**
+     * Retrieve the server information as a JSON string
+     *
+     * @return string A JSON string containing server information.
+     */
+    public function getServerStateJson() {
+        return json_encode($this->getServerState());
+    }
 }

@@ -3,7 +3,7 @@ $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once("$docroot/plugins/dynamix.my.servers/include/state.php");
 require_once("$docroot/plugins/dynamix.my.servers/include/translations.php");
 
-$serverStateClass = new ServerState();
+$serverState = new ServerState();
 $wCTranslations = new WebComponentTranslations();
 ?>
 <script>
@@ -24,5 +24,5 @@ if (!document.getElementsByTagName(modalsWebComponent).length) {
 <?
 echo "
 <unraid-i18n-host>
-    <unraid-user-profile server='" . json_encode($serverStateClass->getServerState()) . "'></unraid-user-profile>
+    <unraid-user-profile server='" . $serverState->getServerStateJson() . "'></unraid-user-profile>
 </unraid-i18n-host>";
