@@ -7,7 +7,7 @@ $serverState = new ServerState();
 $wCTranslations = new WebComponentTranslations();
 ?>
 <script>
-window.LOCALE_DATA = '<?= rawurlencode(json_encode($wCTranslations->getTranslations(), JSON_UNESCAPED_SLASHES, JSON_UNESCAPED_UNICODE)) ?>';
+window.LOCALE_DATA = '<?= $wCTranslations->getTranslationsJson(true) ?>';
 /**
  * So we're not needing to modify DefaultLayout with an additional include, we'll add the Modals web component to the bottom of the body.
  */
