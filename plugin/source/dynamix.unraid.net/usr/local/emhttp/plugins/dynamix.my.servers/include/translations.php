@@ -1,6 +1,6 @@
 <?php
 /**
- * Welcome to the Thunderdome. A place where you can get lost in a sea of translations. Good luck.
+ * Welcome to the Thunderdome. A place where you can get lost in a sea of translations.
  *
  * This file is used to generate the translations for the Vue3 based web components.
  *
