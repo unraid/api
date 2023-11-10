@@ -21,8 +21,8 @@
  *
  * Usage example:
  * ```
- * $wc_translations = new WebComponentTranslations();
- * $webComponentTranslations = $wc_translations->getTranslations();
+ * $wCTranslations = new WebComponentTranslations();
+ * $wCTranslations->getTranslations();
  * ```
  */
 class WebComponentTranslations
@@ -372,6 +372,6 @@ class WebComponentTranslations
 
     public function getTranslations()
     {
-        return $this->translations[$_SESSION['locale'] ?? 'en_US'] ?? [];
+        return $this->translations ?? [];
     }
 }
