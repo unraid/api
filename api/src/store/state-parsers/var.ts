@@ -2,10 +2,10 @@ import {
     type IniStringBoolean,
     type IniStringBooleanOrAuto,
 } from '@app/core/types/ini';
-import { type FsType } from '@app/core/types/states/var';
 import { toNumber } from '@app/core/utils';
 import {
     ArrayState,
+    type DiskFsType,
     RegistrationState,
     registrationType,
 } from '@app/graphql/generated/api/types';
@@ -29,7 +29,7 @@ export type VarIni = {
     configState: string;
     csrfToken: string;
     defaultFormat: string;
-    defaultFsType: FsType;
+    defaultFsType: DiskFsType;
     deviceCount: string;
     domain: string;
     domainLogin: string;
