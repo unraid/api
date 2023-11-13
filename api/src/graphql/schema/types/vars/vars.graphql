@@ -139,7 +139,7 @@ type Vars {
     regCheck: String
     regFile: String
     regGuid: String
-    regTy: registrationType
+    regTy: String
     regState: RegistrationState
     """
     Registration owner

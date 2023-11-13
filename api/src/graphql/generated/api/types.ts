@@ -1408,7 +1408,7 @@ export type Vars = {
   regTm2?: Maybe<Scalars['String']['output']>;
   /** Registration owner */
   regTo?: Maybe<Scalars['String']['output']>;
-  regTy?: Maybe<registrationType>;
+  regTy?: Maybe<Scalars['String']['output']>;
   safeMode?: Maybe<Scalars['Boolean']['output']>;
   sbClean?: Maybe<Scalars['Boolean']['output']>;
   sbEvents?: Maybe<Scalars['Int']['output']>;
@@ -2803,7 +2803,7 @@ export type VarsResolvers<ContextType = Context, ParentType extends ResolversPar
   regTm?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   regTm2?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   regTo?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  regTy?: Resolver<Maybe<ResolversTypes['registrationType']>, ParentType, ContextType>;
+  regTy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   safeMode?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   sbClean?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   sbEvents?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;

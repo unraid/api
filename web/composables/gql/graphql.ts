@@ -220,11 +220,11 @@ export type Case = {
 
 export type Cloud = {
   __typename?: 'Cloud';
-  allowedOrigins?: Array<Scalars['String']['output']>;
-  apiKey?: ApiKeyResponse;
-  cloud?: CloudResponse;
+  allowedOrigins: Array<Scalars['String']['output']>;
+  apiKey: ApiKeyResponse;
+  cloud: CloudResponse;
   error?: Maybe<Scalars['String']['output']>;
-  minigraphql?: MinigraphqlResponse;
+  minigraphql: MinigraphqlResponse;
   relay?: Maybe<RelayResponse>;
 };
 
@@ -996,7 +996,6 @@ export type Registration = {
 };
 
 export enum RegistrationState {
-  /** Basic */
   Basic = 'BASIC',
   /** BLACKLISTED */
   Eblacklisted = 'EBLACKLISTED',
@@ -1029,12 +1028,12 @@ export enum RegistrationState {
   Enokeyfile2 = 'ENOKEYFILE2',
   /** Invalid installation */
   Etrial = 'ETRIAL',
-  /** Plus */
+  Lifetime = 'LIFETIME',
   Plus = 'PLUS',
-  /** Pro */
   Pro = 'PRO',
-  /** Trial */
-  Trial = 'TRIAL'
+  Starter = 'STARTER',
+  Trial = 'TRIAL',
+  Unleashed = 'UNLEASHED'
 }
 
 export type RelayResponse = {
@@ -1412,7 +1411,6 @@ export type Vars = {
   regTm2?: Maybe<Scalars['String']['output']>;
   /** Registration owner */
   regTo?: Maybe<Scalars['String']['output']>;
-  /** Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now  */
   regTy?: Maybe<Scalars['String']['output']>;
   safeMode?: Maybe<Scalars['Boolean']['output']>;
   sbClean?: Maybe<Scalars['Boolean']['output']>;
@@ -1599,16 +1597,14 @@ export enum mdState {
 }
 
 export enum registrationType {
-  /** Basic */
   Basic = 'BASIC',
-  /** Invalid */
   Invalid = 'INVALID',
-  /** Plus */
+  Lifetime = 'LIFETIME',
   Plus = 'PLUS',
-  /** Pro */
   Pro = 'PRO',
-  /** Trial */
-  Trial = 'TRIAL'
+  Starter = 'STARTER',
+  Trial = 'TRIAL',
+  Unleashed = 'UNLEASHED'
 }
 
 export type updateApikeyInput = {
