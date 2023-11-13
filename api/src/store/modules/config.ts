@@ -239,7 +239,7 @@ export const config = createSlice({
             return merge(state, { remote: action.payload });
         },
         updateAllowedOrigins(state, action: PayloadAction<string[]>) {
-            state.remote.allowedOrigins = action.payload.join(', ');
+            state.api.extraOrigins = action.payload.join(', ');
         },
         setUpnpState(
             state,
