@@ -6,7 +6,7 @@ const config: CodegenConfig = {
   ignoreNoDocuments: false,
   config: {
     namingConvention: {
-      typeNames: './fix-array-type.ts',
+      typeNames: './fix-array-type.js',
     },
     scalars: {
       DateTime: 'string',
