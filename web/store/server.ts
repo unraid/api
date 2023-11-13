@@ -14,7 +14,8 @@ import {
 } from '@heroicons/vue/24/solid';
 import { useQuery } from '@vue/apollo-composable';
 
-import { SERVER_STATE_QUERY } from './server.fragment';
+import { SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
+import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState } from '~/composables/services/webgui';
 import { WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
@@ -23,7 +24,7 @@ import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore, type Theme } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
-import type { Cloud, Config, serverStateQuery } from '~/composables/gql/graphql';
+import type { Config, PartialCloudFragment, serverStateQuery } from '~/composables/gql/graphql';
 import type {
   Server,
   ServerAccountCallbackSendPayload,
@@ -64,7 +65,7 @@ export const useServerStore = defineStore('server', () => {
   });
   const apiVersion = ref<string>('');
   const avatar = ref<string>(''); // @todo potentially move to a user store
-  const cloud = ref<Cloud | undefined>();
+  const cloud = ref<PartialCloudFragment | undefined>();
   const config = ref<Config | undefined>();
   const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
   const connectPluginVersion = ref<string>('');
@@ -787,7 +788,7 @@ export const useServerStore = defineStore('server', () => {
 
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
     console.debug('mutateServerStateFromApi', data);
-    const mutatedData = {
+    const mutatedData: Server = {
       // if we get an owners obj back and the username is root we don't want to overwrite the values
       ...(data.owner && data.owner.username !== 'root'
         ? {
@@ -812,9 +813,7 @@ export const useServerStore = defineStore('server', () => {
             valid: data.vars && data.vars.configValid ? data.vars.configValid : true,
           },
       expireTime: (data.registration && data.registration.expiration) ? parseInt(data.registration.expiration) : 0,
-      cloud: {
-        ...(data.cloud ?? {}),
-      },
+      cloud: data.cloud ? useFragment(SERVER_CLOUD_FRAGMENT, data.cloud) : undefined,
     };
     console.debug('mutatedData', mutatedData);
     return mutatedData;
