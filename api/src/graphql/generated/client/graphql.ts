@@ -271,18 +271,12 @@ export type DashboardVars = {
   flashGuid?: Maybe<Scalars['String']['output']>;
   regState?: Maybe<Scalars['String']['output']>;
   regTy?: Maybe<Scalars['String']['output']>;
-  serverDescription?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
 };
 
 export type DashboardVarsInput = {
   flashGuid: Scalars['String']['input'];
   regState: Scalars['String']['input'];
   regTy: Scalars['String']['input'];
-  /**  Server description  */
-  serverDescription?: InputMaybe<Scalars['String']['input']>;
-  /**  Name of the server  */
-  serverName?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type DashboardVersions = {
@@ -353,7 +347,7 @@ export type KsServerDetails = {
   flashVendor: Scalars['String']['output'];
   guid: Scalars['String']['output'];
   ipsId: Scalars['String']['output'];
-  keyType?: Maybe<Scalars['String']['output']>;
+  keyType: KeyType;
   licenseKey: Scalars['String']['output'];
   name: Scalars['String']['output'];
   plgVersion?: Maybe<Scalars['String']['output']>;

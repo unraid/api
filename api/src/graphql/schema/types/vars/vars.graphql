@@ -139,10 +139,7 @@ type Vars {
     regCheck: String
     regFile: String
     regGuid: String
-    """
-    Registration type - used to be registrationType enum and should be migrated back, but changed to match mothership for now
-    """
-    regTy: String
+    regTy: registrationType
     regState: RegistrationState
     """
     Registration owner
