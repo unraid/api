@@ -4,7 +4,7 @@ import { type DynamicRemoteAccessType } from '@app/remoteAccess/types';
 interface MyServersConfig extends Record<string, unknown> {
 	api: {
 		version: string;
-		extraOrigins?: string;
+		extraOrigins: string;
 	};
 	local: {
 		'2Fa'?: string;
