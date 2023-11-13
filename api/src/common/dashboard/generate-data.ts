@@ -74,6 +74,8 @@ const getData = async (): Promise<DashboardInput> => {
 			regState: emhttp.var.regState,
 			regTy: emhttp.var.regTy,
 			flashGuid: emhttp.var.flashGuid,
+			serverName: emhttp.var.name,
+			serverDescription: emhttp.var.comment,
 		},
 		apps: {
 			installed: docker.installed ?? 0,
