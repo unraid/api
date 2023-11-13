@@ -30,7 +30,7 @@
     "build-pkg": "./scripts/build.mjs",
     "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
     "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen-esm --config codegen.yml --watch -r dotenv/config",
-    "codegen:local": "MOTHERSHIP_GRAPHQL_LINK='http://localhost:3000/graphql' graphql-codegen-esm --config codegen.yml --watch",
+    "codegen:local": "NODE_TLS_REJECT_UNAUTHORIZED=0  MOTHERSHIP_GRAPHQL_LINK='https://mothership.localhost/ws' graphql-codegen-esm --config codegen.yml --watch",
     "tsc": "tsc --noEmit",
     "lint": "DEBUG=eslint:cli-engine eslint . --config .eslintrc.cjs",
     "lint:fix": "DEBUG=eslint:cli-engine eslint . --fix --config .eslintrc.cjs",
