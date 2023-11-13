@@ -157,9 +157,7 @@ export function DashboardVarsInputSchema(): z.ZodObject<Properties<DashboardVars
   return z.object({
     flashGuid: z.string(),
     regState: z.string(),
-    regTy: z.string(),
-    serverDescription: z.string().nullish(),
-    serverName: z.string().nullish()
+    regTy: z.string()
   })
 }
 

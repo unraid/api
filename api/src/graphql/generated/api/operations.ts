@@ -1000,7 +1000,7 @@ export function VarsSchema(): z.ZodObject<Properties<Vars>> {
     regTm: z.string().nullish(),
     regTm2: z.string().nullish(),
     regTo: z.string().nullish(),
-    regTy: z.string().nullish(),
+    regTy: registrationTypeSchema.nullish(),
     safeMode: z.boolean().nullish(),
     sbClean: z.boolean().nullish(),
     sbEvents: z.number().nullish(),
