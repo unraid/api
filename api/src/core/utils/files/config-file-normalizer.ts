@@ -1,3 +1,4 @@
+import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import {
     type SliceState as ConfigSliceState,
@@ -35,7 +36,7 @@ export const getWriteableConfig = <T extends ConfigType>(
     const newState: ConfigObject<T> = {
         api: {
             version: api.version ?? initialState.api.version,
-            ...(api.extraOrigins ? { extraOrigins: api.extraOrigins } : {}),
+            extraOrigins: api.extraOrigins ?? initialState.api.extraOrigins,
         },
         local: {
             ...(local?.['2Fa'] === 'yes' ? { '2Fa': local['2Fa'] } : {}),
@@ -61,8 +62,7 @@ export const getWriteableConfig = <T extends ConfigType>(
             ...(mode === 'memory'
                 ? {
                       allowedOrigins:
-                          remote.allowedOrigins ??
-                          initialState.remote.allowedOrigins,
+                          getAllowedOrigins().join(', ')
                   }
                 : {}),
             ...(remote.dynamicRemoteAccessType ===
