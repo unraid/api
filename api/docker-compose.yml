@@ -45,12 +45,17 @@ services:
     entrypoint: /bin/bash
     environment: 
       - IS_DOCKER=true
+      - GIT_SHA=${git rev-parse --short HEAD}
+      - IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match)
     profiles:
       - builder
 
 
   builder:
     image: unraid-api:builder
+    environment:
+      - GIT_SHA=${git rev-parse --short HEAD}
+      - IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match)
     build: 
       context: .
       target: builder
