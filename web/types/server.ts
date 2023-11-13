@@ -1,4 +1,4 @@
-import type { Cloud, Config } from '~/composables/gql/graphql';
+import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
 import type { Theme } from '~/store/theme';
 import type { UserProfileLink } from '~/types/userProfile';
 
@@ -38,7 +38,7 @@ export interface Server {
   apiKey?: string;
   apiVersion?: string;
   avatar?: string;
-  cloud?: Cloud | undefined;
+  cloud?: PartialCloudFragment | undefined;
   config?: Config | undefined;
   connectPluginInstalled?: ServerconnectPluginInstalled;
   connectPluginVersion?: string;
