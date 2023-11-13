@@ -333,13 +333,6 @@ export enum Importance {
   WARNING = 'WARNING'
 }
 
-export enum KeyType {
-  BASIC = 'BASIC',
-  PLUS = 'PLUS',
-  PRO = 'PRO',
-  TRIAL = 'TRIAL'
-}
-
 export type KsServerDetails = {
   __typename?: 'KsServerDetails';
   accessLabel: Scalars['String']['output'];

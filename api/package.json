@@ -26,7 +26,7 @@
     "compile": "tsup --config ./tsup.config.ts",
     "bundle": "pkg . --public",
     "build": "npm run compile && npm run bundle",
-    "build:docker": "docker-compose run --rm builder",
+    "build:docker": "GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker-compose run --rm builder",
     "build-pkg": "./scripts/build.mjs",
     "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
     "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen-esm --config codegen.yml --watch -r dotenv/config",
