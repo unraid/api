@@ -12,6 +12,7 @@ const runCommand = (command) => {
 const getTags = (env = process.env) => {
 
     if (env.GIT_SHA) {
+        console.log(`Using env vars for git tags: ${env.GIT_SHA} ${env.IS_TAGGED}`)
         return {
             shortSha: env.GIT_SHA,
             isTagged: Boolean(env.IS_TAGGED)
