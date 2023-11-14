@@ -49,11 +49,11 @@ class RebootDetails
         $this->rebootType = $rebootForDowngrade ? 'downgrade' : ($rebootForUpdate ? 'update' : '');
 
         // Detect if third-party drivers were part of the update process
-        $processWaitingThirdParthDrivers = "inotifywait -q /boot/changes.txt -e move_self,delete_self";
+        $processWaitingThirdPartyDrivers = "inotifywait -q /boot/changes.txt -e move_self,delete_self";
         // Run the ps command to list processes and check if the process is running
-        $ps_command = "ps aux | grep -E \"$processWaitingThirdParthDrivers\" | grep -v \"grep -E\"";
+        $ps_command = "ps aux | grep -E \"$processWaitingThirdPartyDrivers\" | grep -v \"grep -E\"";
         $output = shell_exec($ps_command) ?? '';
-        if (strpos($output, $processWaitingThirdParthDrivers) !== false) {
+        if (strpos($output, $processWaitingThirdPartyDrivers) !== false) {
             $this->rebootType = 'thirdPartyDriversDownloading';
         }
     }

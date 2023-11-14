@@ -66,6 +66,10 @@ onBeforeMount(() => {
       :subtitle="subtitle"
       :t="t"
     />
+    <UpdateOsThirdPartyDrivers
+      v-if="rebootType === 'thirdPartyDriversDownloading'"
+      :t="t"
+    />
   </UiPageContainer>
 </template>
 
