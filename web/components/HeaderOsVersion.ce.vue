@@ -30,7 +30,7 @@ const rebootRequiredLink = computed(() => {
   if (rebootType.value === 'downgrade') {
     return WEBGUI_TOOLS_DOWNGRADE.toString();
   }
-  if (rebootType.value === 'update') {
+  if (rebootType.value === 'thirdPartyDriversDownloading' || rebootType.value === 'update') {
     return WEBGUI_TOOLS_UPDATE.toString();
   }
   return '';
