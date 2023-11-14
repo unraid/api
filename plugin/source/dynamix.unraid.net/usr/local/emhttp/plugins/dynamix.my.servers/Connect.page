@@ -42,8 +42,6 @@ $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $nginx['NGINX_CERTNAME'
 
 $isRegistered = !empty($myservers['remote']['username']);
 
-var_dump($myservers);
-
 $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
 $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
 $isConnected = (($mystatus['minigraph']??'')==='CONNECTED') ? true : false;
