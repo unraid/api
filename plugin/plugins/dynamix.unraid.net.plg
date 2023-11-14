@@ -324,6 +324,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR-" ]] && mv -f "$DIR-" "$DIR"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   # delete plugin files from flash drive and OS
   rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
@@ -415,6 +416,7 @@ FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$F
 FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
 DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR" ]] && mv -f "$DIR" "$DIR-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
+FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/reboot-details.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
 
 # patch DefaultPageLayout.php
