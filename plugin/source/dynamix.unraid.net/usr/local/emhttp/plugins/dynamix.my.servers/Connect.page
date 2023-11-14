@@ -17,7 +17,8 @@ $keyfile = empty($var['regFILE']) ? null : @file_get_contents($var['regFILE']);
 if ($keyfile !== false) {
   $keyfile = @base64_encode($keyfile);
 }
-// note: $myservers variable defined in myservers1.php, by parsing myservers.cfg
+$myservers_flash_cfg_path = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+$myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 // ensure some vars are defined here so we don't have to test them later
 if (empty($myservers['remote']['apikey'])) {
   $myservers['remote']['apikey'] = "";
@@ -40,6 +41,8 @@ $nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
 $hasMyUnraidNetCert = preg_match('/.*\.myunraid\.net$/', $nginx['NGINX_CERTNAME']);
 
 $isRegistered = !empty($myservers['remote']['username']);
+
+var_dump($myservers);
 
 $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
 $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
