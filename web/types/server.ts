@@ -34,6 +34,21 @@ export type ServerOsVersionBranch = 'stable' | 'next' | 'preview' | 'test';
 export type ServerconnectPluginInstalled = 'dynamix.unraid.net.plg' | 'dynamix.unraid.net.staging.plg' | 'dynamix.unraid.net.plg_installFailed' | 'dynamix.unraid.net.staging.plg_installFailed' | '';
 export type ServerRebootType = 'thirdPartyDriversDownloading' | 'downgrade' | 'update' | '';
 
+export interface DateFormatOption {
+  format: string;
+  display: string;
+}
+
+export interface TimeFormatOption {
+  format: string;
+  display: string;
+}
+
+export interface ServerDateTimeFormat {
+  date: string;
+  time: string;
+}
+
 export interface Server {
   apiKey?: string;
   apiVersion?: string;
@@ -43,6 +58,7 @@ export interface Server {
   connectPluginInstalled?: ServerconnectPluginInstalled;
   connectPluginVersion?: string;
   csrf?: string;
+  dateTimeFormat?: ServerDateTimeFormat;
   description?: string;
   deviceCount?: number;
   email?: string;
@@ -149,19 +165,4 @@ export interface ServerStateData {
   message: string;
   error?: ServerStateDataError | boolean;
   withKey?: boolean; // @todo potentially remove
-}
-
-export interface DateFormatOption {
-  format: string;
-  display: string;
-}
-
-export interface TimeFormatOption {
-  format: string;
-  display: string;
-}
-
-export interface ServerDateTimeFormat {
-  date: string;
-  time: string;
 }

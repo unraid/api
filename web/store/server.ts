@@ -754,6 +754,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.connectPluginInstalled !== 'undefined') { connectPluginInstalled.value = data.connectPluginInstalled; }
     if (typeof data?.connectPluginVersion !== 'undefined') { connectPluginVersion.value = data.connectPluginVersion; }
     if (typeof data?.csrf !== 'undefined') { csrf.value = data.csrf; }
+    if (typeof data?.dateTimeFormat !== 'undefined') { dateTimeFormat.value = data.dateTimeFormat; }
     if (typeof data?.description !== 'undefined') { description.value = data.description; }
     if (typeof data?.deviceCount !== 'undefined') { deviceCount.value = data.deviceCount; }
     if (typeof data?.email !== 'undefined') { email.value = data.email; }
