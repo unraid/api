@@ -8,7 +8,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
-import { onBeforeMount, ref } from 'vue';
+import { ref } from 'vue';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -50,10 +50,6 @@ const downgradeButton = ref<UserProfileLink>({
   },
   name: 'downgrade',
   text: props.t('Begin downgrade to {0}', [props.version]),
-});
-
-onBeforeMount(() => {
-  console.debug('[props.releaseDate]', props.releaseDate, formattedReleaseDate.value);
 });
 </script>
 
