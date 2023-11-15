@@ -34,6 +34,9 @@
  * $wCTranslations->getTranslations();
  * ```
  */
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+require_once "$docroot/webGui/include/Translations.php";
+
 class WebComponentTranslations
 {
     private $translations = [];
