@@ -1,7 +1,6 @@
 {
   "name": "connect-components",
   "private": true,
-  "version": "1.0.0",
   "scripts": {
     "build": "npm run type-check && nuxt build",
     "build:dev": "npm run lint && npm run type-check && nuxt build && npm run deploy:dev",
