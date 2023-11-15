@@ -178,7 +178,7 @@ export const useCallbackStoreGeneric = (
       console.debug('[callback.send]');
       const stringifiedData = JSON.stringify({
         actions: [...payload],
-        sender: window.location.href.replace('/Tools/Update', '/Main'),
+        sender: window.location.href.replace('/Tools/Update', '/Tools'),
         type: sendType ?? callbackActions.sendType,
       });
       const encryptedMessage = AES.encrypt(
@@ -188,7 +188,7 @@ export const useCallbackStoreGeneric = (
       /**
        * Build and go to url
        */
-      const destinationUrl = new URL(url.replace('/Tools/Update', '/Main'));
+      const destinationUrl = new URL(url.replace('/Tools/Update', '/Tools'));
       destinationUrl.searchParams.set('data', encodeURI(encryptedMessage));
       console.debug('[callback.send]', encryptedMessage, destinationUrl);
       if (redirectType === 'newTab') { // helpful when webgui is in an iframe and callbacks need to be opened in a new tab
