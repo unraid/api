@@ -34,8 +34,6 @@ const countUp = computed<boolean>(() => {
   return state.value !== 'TRIAL' && state.value !== 'ENOCONN';
 });
 
-console.debug('[useDateTimeHelper] params', dateTimeFormat.value, props.t, false, time.value, countUp.value);
-
 const {
   outputDateTimeReadableDiff: readableDiff,
   outputDateTimeFormatted: formatted,
