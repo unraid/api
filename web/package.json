@@ -1,7 +1,6 @@
 {
   "name": "connect-components",
   "private": true,
-  "version": "1.0.8",
   "scripts": {
     "build": "npm run type-check && nuxt build",
     "build:dev": "npm run lint && npm run type-check && nuxt build && npm run deploy:dev",
@@ -16,8 +15,7 @@
     "serve": "serve dist/nuxt-custom-elements/unraid-components",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
-    "type-check": "nuxi typecheck",
-    "release": "standard-version"
+    "type-check": "nuxi typecheck"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",
@@ -37,7 +35,6 @@
     "lodash-es": "^4.17.21",
     "nuxt": "^3.5.1",
     "nuxt-custom-elements": "^2.0.0-beta.18",
-    "standard-version": "^9.5.0",
     "terser": "^5.24.0"
   },
   "dependencies": {
