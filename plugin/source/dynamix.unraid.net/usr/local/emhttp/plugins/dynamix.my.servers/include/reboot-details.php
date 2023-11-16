@@ -53,7 +53,7 @@ class RebootDetails
         // Run the ps command to list processes and check if the process is running
         $ps_command = "ps aux | grep -E \"$processWaitingThirdPartyDrivers\" | grep -v \"grep -E\"";
         $output = shell_exec($ps_command) ?? '';
-        if (strpos($output, $processWaitingThirdPartyDrivers) !== false) {
+        if ($this->rebootType != '' && strpos($output, $processWaitingThirdPartyDrivers) !== false) {
             $this->rebootType = 'thirdPartyDriversDownloading';
         }
     }
