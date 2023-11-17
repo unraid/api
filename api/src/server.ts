@@ -7,14 +7,11 @@ import { ApolloServer } from '@apollo/server';
 import { expressMiddleware } from '@apollo/server/express4';
 import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
 import { logger, pubsub, graphqlLogger } from '@app/core';
-import { verifyTwoFactorToken } from '@app/common/two-factor';
-import display from '@app/graphql/resolvers/query/display';
 import { getters } from '@app/store';
 import { schema } from '@app/graphql/schema';
 import { execute, subscribe } from 'graphql';
 import { GRAPHQL_WS, SubscriptionServer } from 'subscriptions-transport-ws';
 import { wsHasConnected, wsHasDisconnected } from '@app/ws';
-import { apiKeyToUser } from '@app/graphql';
 import { randomUUID } from 'crypto';
 import { getServerAddress } from '@app/common/get-server-address';
 import { originMiddleware } from '@app/originMiddleware';
@@ -27,29 +24,15 @@ import { WebSocketServer } from 'ws';
 import { useServer } from 'graphql-ws/lib/use/ws';
 import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { getLogs } from '@app/graphql/express/get-logs';
-
-const configFilePath = path.join(
-    getters.paths()['dynamix-base'],
-    'case-model.cfg'
-);
-const customImageFilePath = path.join(
-    getters.paths()['dynamix-base'],
-    'case-model.png'
-);
-
-const updatePubsub = async () => {
-    await pubsub.publish('display', {
-        display: await display(),
-    });
-};
-
-// Update pub/sub when config/image file is added/updated/removed
-watch(configFilePath).on('all', updatePubsub);
-watch(customImageFilePath).on('all', updatePubsub);
+import { bootstrapNestServer } from '@app/unraid-api/main';
 
 export const createApolloExpressServer = async () => {
+
+    const nestServer = await bootstrapNestServer(PORT);
+
+    return nestServer;
+
     // Try and load the HTTP server
-    graphqlLogger.debug('Starting HTTP server');
     const app = express();
     const httpServer = http.createServer(app);
 
@@ -305,28 +288,6 @@ export const createApolloExpressServer = async () => {
 
     // List all endpoints at start of server
     app.get('/', (_, res: Response) => res.status(200).send('OK'));
-
-    app.post('/verify', async (req, res) => {
-        try {
-            // Check two-factor token is valid
-            verifyTwoFactorToken(req.body?.username, req.body?.token);
-
-            // Success
-            logger.debug('2FA token valid, allowing login.');
-
-            // Allow the user to pass
-            res.sendStatus(204);
-            return;
-        } catch (error: unknown) {
-            logger.addContext('error', error);
-            logger.error('Failed validating 2FA token.');
-            logger.removeContext('error');
-
-            // User failed verification
-            res.status(401);
-            res.send((error as Error).message);
-        }
-    });
 
     // Handle errors by logging them and returning a 500.
     app.use(

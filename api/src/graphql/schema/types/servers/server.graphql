@@ -1,11 +1,9 @@
 type Query {
-    server(name: String!): Server
-    servers: [Server!]!
+    server: Server
 }
 
 type Subscription {
-    server(name: String!): Server!
-    servers: [Server!]
+    server: Server
 }
 
 enum ServerStatus {

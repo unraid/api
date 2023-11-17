@@ -20,6 +20,6 @@ export function buildDelayFunction(
 			delay = Math.random() * delay;
 		}
 
-		return delay;
+		return Math.round(delay);
 	};
 }

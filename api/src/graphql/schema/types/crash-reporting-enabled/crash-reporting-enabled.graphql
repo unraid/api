@@ -1,7 +1,0 @@
-type Query {
-    crashReportingEnabled: Boolean
-}
-
-type Subscription {
-    crashReportingEnabled: Boolean!
-}

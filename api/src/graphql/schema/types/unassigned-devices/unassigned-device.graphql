@@ -1,5 +1,5 @@
 type Query {
-    unassignedDevices: [UnassignedDevice] @func(module: "getUnassignedDevices")
+    unassignedDevices: [UnassignedDevice]
 }
 
 type Subscription {

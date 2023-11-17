@@ -90,7 +90,7 @@ void am(
         exitHook(() => {
             // If port is unix socket, delete socket before exiting
             unlinkUnixPort();
-
+            
             shutdownApiEvent();
             process.exitCode = 0;
         });

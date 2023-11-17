@@ -37,13 +37,6 @@ vi.mock('@app/core/log', () => ({
 	},
 }));
 
-vi.mock('@app/common/two-factor', () => ({
-	checkTwoFactorEnabled: vi.fn(() => ({
-		isRemoteEnabled: false,
-		isLocalEnabled: false,
-	})),
-}));
-
 vi.mock('@app/common/dashboard/boot-timestamp', () => ({
 	bootTimestamp: new Date('2022-06-10T04:35:58.276Z'),
 }));

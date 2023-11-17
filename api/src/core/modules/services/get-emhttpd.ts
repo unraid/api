@@ -1,7 +1,7 @@
 import { execa } from 'execa';
-import { ensurePermission } from '@app/core/utils';
 import { type CoreContext, type CoreResult } from '@app/core/types';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 interface Result extends CoreResult {
 	json: {

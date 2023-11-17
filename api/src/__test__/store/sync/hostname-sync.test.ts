@@ -3,7 +3,6 @@ import type { RootState } from '@app/store';
 
 // Preloading imports for faster tests
 import '@app/store/sync/hostname-sync';
-import '@app/common/two-factor';
 import '@app/store/modules/emhttp';
 import { StateFileKey } from '@app/store/types';
 

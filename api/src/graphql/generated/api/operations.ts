@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types';
 
 import { z } from 'zod'
-import { AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Device, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, Permissions, ProfileModel, Registration, RegistrationState, RelayResponse, Scope, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, TwoFactorLocal, TwoFactorRemote, TwoFactorWithToken, TwoFactorWithoutToken, UnassignedDevice, Uptime, Usb, User, Vars, Versions, VmDomain, VmNetwork, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addScopeInput, addScopeToApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
+import { AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, UnassignedDevice, Uptime, Usb, User, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -248,17 +248,6 @@ export function ContainerPortSchema(): z.ZodObject<Properties<ContainerPort>> {
   })
 }
 
-export function DeviceSchema(): z.ZodObject<Properties<Device>> {
-  return z.object({
-    __typename: z.literal('Device').optional(),
-    device: z.string().nullish(),
-    id: z.string(),
-    sectorSize: z.string().nullish(),
-    sectors: z.string().nullish(),
-    tag: z.string().nullish()
-  })
-}
-
 export function DevicesSchema(): z.ZodObject<Properties<Devices>> {
   return z.object({
     __typename: z.literal('Devices').optional(),
@@ -471,7 +460,7 @@ export function MeSchema(): z.ZodObject<Properties<Me>> {
     id: z.string(),
     name: z.string(),
     permissions: definedNonNullAnySchema.nullish(),
-    role: z.string()
+    roles: z.string()
   })
 }
 
@@ -682,14 +671,6 @@ export function PciSchema(): z.ZodObject<Properties<Pci>> {
   })
 }
 
-export function PermissionsSchema(): z.ZodObject<Properties<Permissions>> {
-  return z.object({
-    __typename: z.literal('Permissions').optional(),
-    grants: definedNonNullAnySchema.nullish(),
-    scopes: definedNonNullAnySchema.nullish()
-  })
-}
-
 export function ProfileModelSchema(): z.ZodObject<Properties<ProfileModel>> {
   return z.object({
     __typename: z.literal('ProfileModel').optional(),
@@ -717,14 +698,6 @@ export function RelayResponseSchema(): z.ZodObject<Properties<RelayResponse>> {
     error: z.string().nullish(),
     status: z.string(),
     timeout: z.string().nullish()
-  })
-}
-
-export function ScopeSchema(): z.ZodObject<Properties<Scope>> {
-  return z.object({
-    __typename: z.literal('Scope').optional(),
-    description: z.string().nullish(),
-    name: z.string().nullish()
   })
 }
 
@@ -791,37 +764,6 @@ export function SystemSchema(): z.ZodObject<Properties<System>> {
     sku: z.string().nullish(),
     uuid: z.string().nullish(),
     version: z.string().nullish()
-  })
-}
-
-export function TwoFactorLocalSchema(): z.ZodObject<Properties<TwoFactorLocal>> {
-  return z.object({
-    __typename: z.literal('TwoFactorLocal').optional(),
-    enabled: z.boolean().nullish()
-  })
-}
-
-export function TwoFactorRemoteSchema(): z.ZodObject<Properties<TwoFactorRemote>> {
-  return z.object({
-    __typename: z.literal('TwoFactorRemote').optional(),
-    enabled: z.boolean().nullish()
-  })
-}
-
-export function TwoFactorWithTokenSchema(): z.ZodObject<Properties<TwoFactorWithToken>> {
-  return z.object({
-    __typename: z.literal('TwoFactorWithToken').optional(),
-    local: TwoFactorLocalSchema().nullish(),
-    remote: TwoFactorRemoteSchema().nullish(),
-    token: z.string().nullish()
-  })
-}
-
-export function TwoFactorWithoutTokenSchema(): z.ZodObject<Properties<TwoFactorWithoutToken>> {
-  return z.object({
-    __typename: z.literal('TwoFactorWithoutToken').optional(),
-    local: TwoFactorLocalSchema().nullish(),
-    remote: TwoFactorRemoteSchema().nullish()
   })
 }
 
@@ -905,7 +847,7 @@ export function UserSchema(): z.ZodObject<Properties<User>> {
     id: z.string(),
     name: z.string(),
     password: z.boolean().nullish(),
-    role: z.string()
+    roles: z.string()
   })
 }
 
@@ -1098,13 +1040,6 @@ export function VmDomainSchema(): z.ZodObject<Properties<VmDomain>> {
   })
 }
 
-export function VmNetworkSchema(): z.ZodObject<Properties<VmNetwork>> {
-  return z.object({
-    __typename: z.literal('VmNetwork').optional(),
-    _placeholderType: z.string().nullish()
-  })
-}
-
 export function VmsSchema(): z.ZodObject<Properties<Vms>> {
   return z.object({
     __typename: z.literal('Vms').optional(),
@@ -1124,20 +1059,6 @@ export function addApiKeyInputSchema(): z.ZodObject<Properties<addApiKeyInput>> 
     key: z.string().nullish(),
     name: z.string().nullish(),
     userId: z.string().nullish()
-  })
-}
-
-export function addScopeInputSchema(): z.ZodObject<Properties<addScopeInput>> {
-  return z.object({
-    description: z.string().nullish(),
-    name: z.string()
-  })
-}
-
-export function addScopeToApiKeyInputSchema(): z.ZodObject<Properties<addScopeToApiKeyInput>> {
-  return z.object({
-    apiKey: z.string(),
-    name: z.string()
   })
 }
 

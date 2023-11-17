@@ -39,9 +39,6 @@ export const Subscription: Resolvers['Subscription'] = {
     info: {
         ...createSubscription('info'),
     },
-    servers: {
-        ...createSubscription('servers'),
-    },
     shares: {
         ...createSubscription('shares'),
     },

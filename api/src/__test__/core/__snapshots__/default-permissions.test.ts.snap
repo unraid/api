@@ -215,11 +215,6 @@ exports[`Returns default permissions 1`] = `
         "resource": "dashboard",
       },
       {
-        "action": "read:own",
-        "attributes": "*",
-        "resource": "two-factor",
-      },
-      {
         "action": "read:any",
         "attributes": "*",
         "resource": "array",

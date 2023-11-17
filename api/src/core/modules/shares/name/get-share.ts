@@ -1,7 +1,8 @@
 import type { CoreContext, CoreResult } from '@app/core/types/global';
 import type { UserShare, DiskShare } from '@app/core/types/states/share';
 import { AppError } from '@app/core/errors/app-error';
-import { getShares, ensurePermission } from '@app/core/utils';
+import { getShares } from '@app/core/utils';
+import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 
 interface Context extends CoreContext {
 	params: {

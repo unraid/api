@@ -1,6 +1,6 @@
 type Query {
     """Single disk"""
-    disk(id: ID!): Disk @func(module: "getDisk")
+    disk(id: ID!): Disk
     """Mulitiple disks"""
     disks: [Disk]!
 }

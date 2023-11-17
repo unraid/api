@@ -15,18 +15,18 @@ input updateApikeyInput {
 
 type Query {
     """Get all API keys"""
-    apiKeys: [ApiKey] @func(module: "getApikeys")
+    apiKeys: [ApiKey]
 }
 
 type Mutation {
     """Get an existing API key"""
-    getApiKey(name: String!, input: authenticateInput): ApiKey @func(module: "getApikey")
+    getApiKey(name: String!, input: authenticateInput): ApiKey
 
     """Create a new API key"""
-    addApikey(name: String!, input: updateApikeyInput): ApiKey @func(module: "addApikey")
+    addApikey(name: String!, input: updateApikeyInput): ApiKey
 
     """Update an existing API key"""
-    updateApikey(name: String!, input: updateApikeyInput): ApiKey @func(module: "updateApikey")
+    updateApikey(name: String!, input: updateApikeyInput): ApiKey
 }
 
 type Subscription {

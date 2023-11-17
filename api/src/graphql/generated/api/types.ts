@@ -294,15 +294,6 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
-export type Device = {
-  __typename?: 'Device';
-  device?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  sectorSize?: Maybe<Scalars['String']['output']>;
-  sectors?: Maybe<Scalars['String']['output']>;
-  tag?: Maybe<Scalars['String']['output']>;
-};
-
 export type Devices = {
   __typename?: 'Devices';
   gpu?: Maybe<Array<Maybe<Gpu>>>;
@@ -519,7 +510,7 @@ export type Me = UserAccount & {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions?: Maybe<Scalars['JSON']['output']>;
-  role: Scalars['String']['output'];
+  roles: Scalars['String']['output'];
 };
 
 export enum MemoryFormFactor {
@@ -576,10 +567,6 @@ export type Mutation = {
   addApikey?: Maybe<ApiKey>;
   /** Add new disk to array */
   addDiskToArray?: Maybe<ArrayType>;
-  /** Add a new permission scope */
-  addScope?: Maybe<Scope>;
-  /** Add a new permission scope to apiKey */
-  addScopeToApiKey?: Maybe<Scope>;
   /** Add a new user */
   addUser?: Maybe<User>;
   /** Cancel parity check */
@@ -624,16 +611,6 @@ export type MutationaddApikeyArgs = {
 
 export type MutationaddDiskToArrayArgs = {
   input?: InputMaybe<arrayDiskInput>;
-};
-
-
-export type MutationaddScopeArgs = {
-  input: addScopeInput;
-};
-
-
-export type MutationaddScopeToApiKeyArgs = {
-  input: addScopeToApiKeyInput;
 };
 
 
@@ -869,12 +846,6 @@ export type Pci = {
   vendorname?: Maybe<Scalars['String']['output']>;
 };
 
-export type Permissions = {
-  __typename?: 'Permissions';
-  grants?: Maybe<Scalars['JSON']['output']>;
-  scopes?: Maybe<Scalars['JSON']['output']>;
-};
-
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -891,9 +862,6 @@ export type Query = {
   array: ArrayType;
   cloud?: Maybe<Cloud>;
   config: Config;
-  crashReportingEnabled?: Maybe<Scalars['Boolean']['output']>;
-  device?: Maybe<Device>;
-  devices: Array<Maybe<Device>>;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */
@@ -913,29 +881,19 @@ export type Query = {
   online?: Maybe<Scalars['Boolean']['output']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
-  permissions?: Maybe<Permissions>;
   registration?: Maybe<Registration>;
   server?: Maybe<Server>;
   servers: Array<Server>;
   /** Network Shares */
   shares?: Maybe<Array<Maybe<Share>>>;
-  twoFactor?: Maybe<TwoFactorWithToken>;
   unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
   /** User account */
   user?: Maybe<User>;
   /** User accounts */
   users: Array<User>;
   vars?: Maybe<Vars>;
-  /** Virtual network for vms */
-  vmNetwork?: Maybe<Scalars['JSON']['output']>;
   /** Virtual machines */
   vms?: Maybe<Vms>;
-  welcome?: Maybe<Welcome>;
-};
-
-
-export type QuerydeviceArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -976,11 +934,6 @@ export type QueryuserArgs = {
 
 export type QueryusersArgs = {
   input?: InputMaybe<usersInput>;
-};
-
-
-export type QueryvmNetworkArgs = {
-  name: Scalars['String']['input'];
 };
 
 export type Registration = {
@@ -1038,15 +991,6 @@ export type RelayResponse = {
   error?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   timeout?: Maybe<Scalars['String']['output']>;
-};
-
-/** A permission scope */
-export type Scope = {
-  __typename?: 'Scope';
-  /** A user friendly description */
-  description?: Maybe<Scalars['String']['output']>;
-  /** A unique name for the scope */
-  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type Server = {
@@ -1114,9 +1058,6 @@ export type Subscription = {
   apikeys?: Maybe<Array<Maybe<ApiKey>>>;
   array: ArrayType;
   config: Config;
-  crashReportingEnabled: Scalars['Boolean']['output'];
-  device: Device;
-  devices?: Maybe<Array<Device>>;
   display?: Maybe<Display>;
   dockerContainer: DockerContainer;
   dockerContainers?: Maybe<Array<Maybe<DockerContainer>>>;
@@ -1131,23 +1072,16 @@ export type Subscription = {
   parityHistory: ParityCheck;
   ping: Scalars['String']['output'];
   registration: Registration;
-  server: Server;
-  servers?: Maybe<Array<Server>>;
+  server?: Maybe<Server>;
+  servers: Array<Server>;
   service?: Maybe<Array<Service>>;
   share: Share;
   shares?: Maybe<Array<Share>>;
-  twoFactor?: Maybe<TwoFactorWithoutToken>;
   unassignedDevices?: Maybe<Array<UnassignedDevice>>;
   user: User;
   users: Array<Maybe<User>>;
   vars: Vars;
-  vmNetworks?: Maybe<Array<VmNetwork>>;
   vms?: Maybe<Vms>;
-};
-
-
-export type SubscriptiondeviceArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -1198,29 +1132,6 @@ export enum Temperature {
 export enum Theme {
   WHITE = 'white'
 }
-
-export type TwoFactorLocal = {
-  __typename?: 'TwoFactorLocal';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type TwoFactorRemote = {
-  __typename?: 'TwoFactorRemote';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type TwoFactorWithToken = {
-  __typename?: 'TwoFactorWithToken';
-  local?: Maybe<TwoFactorLocal>;
-  remote?: Maybe<TwoFactorRemote>;
-  token?: Maybe<Scalars['String']['output']>;
-};
-
-export type TwoFactorWithoutToken = {
-  __typename?: 'TwoFactorWithoutToken';
-  local?: Maybe<TwoFactorLocal>;
-  remote?: Maybe<TwoFactorRemote>;
-};
 
 export type UnassignedDevice = {
   __typename?: 'UnassignedDevice';
@@ -1298,14 +1209,14 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
-  role: Scalars['String']['output'];
+  roles: Scalars['String']['output'];
 };
 
 export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  role: Scalars['String']['output'];
+  roles: Scalars['String']['output'];
 };
 
 export type Vars = {
@@ -1511,11 +1422,6 @@ export type VmDomain = {
   uuid: Scalars['ID']['output'];
 };
 
-export type VmNetwork = {
-  __typename?: 'VmNetwork';
-  _placeholderType?: Maybe<Scalars['String']['output']>;
-};
-
 export enum VmState {
   CRASHED = 'CRASHED',
   IDLE = 'IDLE',
@@ -1552,19 +1458,6 @@ export type addApiKeyInput = {
   key?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type addScopeInput = {
-  /** Scope description */
-  description?: InputMaybe<Scalars['String']['input']>;
-  /** Scope name */
-  name: Scalars['String']['input'];
-};
-
-export type addScopeToApiKeyInput = {
-  apiKey: Scalars['String']['input'];
-  /** Scope name */
-  name: Scalars['String']['input'];
 };
 
 export type addUserInput = {
@@ -1716,7 +1609,6 @@ export type ResolversTypes = ResolversObject<{
   ContainerPortType: ContainerPortType;
   ContainerState: ContainerState;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
-  Device: ResolverTypeWrapper<Device>;
   Devices: ResolverTypeWrapper<Devices>;
   Disk: ResolverTypeWrapper<Disk>;
   DiskFsType: DiskFsType;
@@ -1757,14 +1649,12 @@ export type ResolversTypes = ResolversObject<{
   ParityCheck: ResolverTypeWrapper<ParityCheck>;
   Partition: ResolverTypeWrapper<Partition>;
   Pci: ResolverTypeWrapper<Pci>;
-  Permissions: ResolverTypeWrapper<Permissions>;
   Port: ResolverTypeWrapper<Scalars['Port']['output']>;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
   RegistrationState: RegistrationState;
   RelayResponse: ResolverTypeWrapper<RelayResponse>;
-  Scope: ResolverTypeWrapper<Scope>;
   Server: ResolverTypeWrapper<Server>;
   ServerStatus: ServerStatus;
   Service: ResolverTypeWrapper<Service>;
@@ -1775,10 +1665,6 @@ export type ResolversTypes = ResolversObject<{
   System: ResolverTypeWrapper<System>;
   Temperature: Temperature;
   Theme: Theme;
-  TwoFactorLocal: ResolverTypeWrapper<TwoFactorLocal>;
-  TwoFactorRemote: ResolverTypeWrapper<TwoFactorRemote>;
-  TwoFactorWithToken: ResolverTypeWrapper<TwoFactorWithToken>;
-  TwoFactorWithoutToken: ResolverTypeWrapper<TwoFactorWithoutToken>;
   UUID: ResolverTypeWrapper<Scalars['UUID']['output']>;
   UnassignedDevice: ResolverTypeWrapper<UnassignedDevice>;
   Uptime: ResolverTypeWrapper<Uptime>;
@@ -1788,15 +1674,12 @@ export type ResolversTypes = ResolversObject<{
   Vars: ResolverTypeWrapper<Vars>;
   Versions: ResolverTypeWrapper<Versions>;
   VmDomain: ResolverTypeWrapper<VmDomain>;
-  VmNetwork: ResolverTypeWrapper<VmNetwork>;
   VmState: VmState;
   Vms: ResolverTypeWrapper<Vms>;
   WAN_ACCESS_TYPE: WAN_ACCESS_TYPE;
   WAN_FORWARD_TYPE: WAN_FORWARD_TYPE;
   Welcome: ResolverTypeWrapper<Welcome>;
   addApiKeyInput: addApiKeyInput;
-  addScopeInput: addScopeInput;
-  addScopeToApiKeyInput: addScopeToApiKeyInput;
   addUserInput: addUserInput;
   arrayDiskInput: arrayDiskInput;
   authenticateInput: authenticateInput;
@@ -1828,7 +1711,6 @@ export type ResolversParentTypes = ResolversObject<{
   ContainerMount: ContainerMount;
   ContainerPort: ContainerPort;
   DateTime: Scalars['DateTime']['output'];
-  Device: Device;
   Devices: Devices;
   Disk: Disk;
   DiskPartition: DiskPartition;
@@ -1861,13 +1743,11 @@ export type ResolversParentTypes = ResolversObject<{
   ParityCheck: ParityCheck;
   Partition: Partition;
   Pci: Pci;
-  Permissions: Permissions;
   Port: Scalars['Port']['output'];
   ProfileModel: ProfileModel;
   Query: {};
   Registration: Registration;
   RelayResponse: RelayResponse;
-  Scope: Scope;
   Server: Server;
   Service: Service;
   SetupRemoteAccessInput: SetupRemoteAccessInput;
@@ -1875,10 +1755,6 @@ export type ResolversParentTypes = ResolversObject<{
   String: Scalars['String']['output'];
   Subscription: {};
   System: System;
-  TwoFactorLocal: TwoFactorLocal;
-  TwoFactorRemote: TwoFactorRemote;
-  TwoFactorWithToken: TwoFactorWithToken;
-  TwoFactorWithoutToken: TwoFactorWithoutToken;
   UUID: Scalars['UUID']['output'];
   UnassignedDevice: UnassignedDevice;
   Uptime: Uptime;
@@ -1888,12 +1764,9 @@ export type ResolversParentTypes = ResolversObject<{
   Vars: Vars;
   Versions: Versions;
   VmDomain: VmDomain;
-  VmNetwork: VmNetwork;
   Vms: Vms;
   Welcome: Welcome;
   addApiKeyInput: addApiKeyInput;
-  addScopeInput: addScopeInput;
-  addScopeToApiKeyInput: addScopeToApiKeyInput;
   addUserInput: addUserInput;
   arrayDiskInput: arrayDiskInput;
   authenticateInput: authenticateInput;
@@ -1901,12 +1774,6 @@ export type ResolversParentTypes = ResolversObject<{
   updateApikeyInput: updateApikeyInput;
   usersInput: usersInput;
 }>;
-
-export type subscriptionDirectiveArgs = {
-  channel: Scalars['String']['input'];
-};
-
-export type subscriptionDirectiveResolver<Result, Parent, ContextType = Context, Args = subscriptionDirectiveArgs> = DirectiveResolverFn<Result, Parent, ContextType, Args>;
 
 export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKey'] = ResolversParentTypes['ApiKey']> = ResolversObject<{
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2042,15 +1909,6 @@ export type ContainerPortResolvers<ContextType = Context, ParentType extends Res
 export interface DateTimeScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['DateTime'], any> {
   name: 'DateTime';
 }
-
-export type DeviceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Device'] = ResolversParentTypes['Device']> = ResolversObject<{
-  device?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  sectorSize?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  sectors?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  tag?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
 
 export type DevicesResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Devices'] = ResolversParentTypes['Devices']> = ResolversObject<{
   gpu?: Resolver<Maybe<Array<Maybe<ResolversTypes['Gpu']>>>, ParentType, ContextType>;
@@ -2244,7 +2102,7 @@ export type MeResolvers<ContextType = Context, ParentType extends ResolversParen
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   permissions?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  role?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2281,8 +2139,6 @@ export type MountResolvers<ContextType = Context, ParentType extends ResolversPa
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
   addApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationaddApikeyArgs, 'name'>>;
   addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationaddDiskToArrayArgs>>;
-  addScope?: Resolver<Maybe<ResolversTypes['Scope']>, ParentType, ContextType, RequireFields<MutationaddScopeArgs, 'input'>>;
-  addScopeToApiKey?: Resolver<Maybe<ResolversTypes['Scope']>, ParentType, ContextType, RequireFields<MutationaddScopeToApiKeyArgs, 'input'>>;
   addUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationaddUserArgs, 'input'>>;
   cancelParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
@@ -2442,12 +2298,6 @@ export type PciResolvers<ContextType = Context, ParentType extends ResolversPare
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type PermissionsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Permissions'] = ResolversParentTypes['Permissions']> = ResolversObject<{
-  grants?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  scopes?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export interface PortScalarConfig extends GraphQLScalarTypeConfig<ResolversTypes['Port'], any> {
   name: 'Port';
 }
@@ -2465,9 +2315,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   array?: Resolver<ResolversTypes['Array'], ParentType, ContextType>;
   cloud?: Resolver<Maybe<ResolversTypes['Cloud']>, ParentType, ContextType>;
   config?: Resolver<ResolversTypes['Config'], ParentType, ContextType>;
-  crashReportingEnabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  device?: Resolver<Maybe<ResolversTypes['Device']>, ParentType, ContextType, RequireFields<QuerydeviceArgs, 'id'>>;
-  devices?: Resolver<Array<Maybe<ResolversTypes['Device']>>, ParentType, ContextType>;
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
@@ -2481,19 +2328,15 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;
-  permissions?: Resolver<Maybe<ResolversTypes['Permissions']>, ParentType, ContextType>;
   registration?: Resolver<Maybe<ResolversTypes['Registration']>, ParentType, ContextType>;
   server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType, RequireFields<QueryserverArgs, 'name'>>;
   servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
-  twoFactor?: Resolver<Maybe<ResolversTypes['TwoFactorWithToken']>, ParentType, ContextType>;
   unassignedDevices?: Resolver<Maybe<Array<Maybe<ResolversTypes['UnassignedDevice']>>>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryuserArgs, 'id'>>;
   users?: Resolver<Array<ResolversTypes['User']>, ParentType, ContextType, Partial<QueryusersArgs>>;
   vars?: Resolver<Maybe<ResolversTypes['Vars']>, ParentType, ContextType>;
-  vmNetwork?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<QueryvmNetworkArgs, 'name'>>;
   vms?: Resolver<Maybe<ResolversTypes['Vms']>, ParentType, ContextType>;
-  welcome?: Resolver<Maybe<ResolversTypes['Welcome']>, ParentType, ContextType>;
 }>;
 
 export type RegistrationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Registration'] = ResolversParentTypes['Registration']> = ResolversObject<{
@@ -2509,12 +2352,6 @@ export type RelayResponseResolvers<ContextType = Context, ParentType extends Res
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timeout?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type ScopeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Scope'] = ResolversParentTypes['Scope']> = ResolversObject<{
-  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2562,9 +2399,6 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   apikeys?: SubscriptionResolver<Maybe<Array<Maybe<ResolversTypes['ApiKey']>>>, "apikeys", ParentType, ContextType>;
   array?: SubscriptionResolver<ResolversTypes['Array'], "array", ParentType, ContextType>;
   config?: SubscriptionResolver<ResolversTypes['Config'], "config", ParentType, ContextType>;
-  crashReportingEnabled?: SubscriptionResolver<ResolversTypes['Boolean'], "crashReportingEnabled", ParentType, ContextType>;
-  device?: SubscriptionResolver<ResolversTypes['Device'], "device", ParentType, ContextType, RequireFields<SubscriptiondeviceArgs, 'id'>>;
-  devices?: SubscriptionResolver<Maybe<Array<ResolversTypes['Device']>>, "devices", ParentType, ContextType>;
   display?: SubscriptionResolver<Maybe<ResolversTypes['Display']>, "display", ParentType, ContextType>;
   dockerContainer?: SubscriptionResolver<ResolversTypes['DockerContainer'], "dockerContainer", ParentType, ContextType, RequireFields<SubscriptiondockerContainerArgs, 'id'>>;
   dockerContainers?: SubscriptionResolver<Maybe<Array<Maybe<ResolversTypes['DockerContainer']>>>, "dockerContainers", ParentType, ContextType>;
@@ -2579,17 +2413,15 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   parityHistory?: SubscriptionResolver<ResolversTypes['ParityCheck'], "parityHistory", ParentType, ContextType>;
   ping?: SubscriptionResolver<ResolversTypes['String'], "ping", ParentType, ContextType>;
   registration?: SubscriptionResolver<ResolversTypes['Registration'], "registration", ParentType, ContextType>;
-  server?: SubscriptionResolver<ResolversTypes['Server'], "server", ParentType, ContextType, RequireFields<SubscriptionserverArgs, 'name'>>;
-  servers?: SubscriptionResolver<Maybe<Array<ResolversTypes['Server']>>, "servers", ParentType, ContextType>;
+  server?: SubscriptionResolver<Maybe<ResolversTypes['Server']>, "server", ParentType, ContextType, RequireFields<SubscriptionserverArgs, 'name'>>;
+  servers?: SubscriptionResolver<Array<ResolversTypes['Server']>, "servers", ParentType, ContextType>;
   service?: SubscriptionResolver<Maybe<Array<ResolversTypes['Service']>>, "service", ParentType, ContextType, RequireFields<SubscriptionserviceArgs, 'name'>>;
   share?: SubscriptionResolver<ResolversTypes['Share'], "share", ParentType, ContextType, RequireFields<SubscriptionshareArgs, 'id'>>;
   shares?: SubscriptionResolver<Maybe<Array<ResolversTypes['Share']>>, "shares", ParentType, ContextType>;
-  twoFactor?: SubscriptionResolver<Maybe<ResolversTypes['TwoFactorWithoutToken']>, "twoFactor", ParentType, ContextType>;
   unassignedDevices?: SubscriptionResolver<Maybe<Array<ResolversTypes['UnassignedDevice']>>, "unassignedDevices", ParentType, ContextType>;
   user?: SubscriptionResolver<ResolversTypes['User'], "user", ParentType, ContextType, RequireFields<SubscriptionuserArgs, 'id'>>;
   users?: SubscriptionResolver<Array<Maybe<ResolversTypes['User']>>, "users", ParentType, ContextType>;
   vars?: SubscriptionResolver<ResolversTypes['Vars'], "vars", ParentType, ContextType>;
-  vmNetworks?: SubscriptionResolver<Maybe<Array<ResolversTypes['VmNetwork']>>, "vmNetworks", ParentType, ContextType>;
   vms?: SubscriptionResolver<Maybe<ResolversTypes['Vms']>, "vms", ParentType, ContextType>;
 }>;
 
@@ -2600,29 +2432,6 @@ export type SystemResolvers<ContextType = Context, ParentType extends ResolversP
   sku?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   uuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   version?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type TwoFactorLocalResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TwoFactorLocal'] = ResolversParentTypes['TwoFactorLocal']> = ResolversObject<{
-  enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type TwoFactorRemoteResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TwoFactorRemote'] = ResolversParentTypes['TwoFactorRemote']> = ResolversObject<{
-  enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type TwoFactorWithTokenResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TwoFactorWithToken'] = ResolversParentTypes['TwoFactorWithToken']> = ResolversObject<{
-  local?: Resolver<Maybe<ResolversTypes['TwoFactorLocal']>, ParentType, ContextType>;
-  remote?: Resolver<Maybe<ResolversTypes['TwoFactorRemote']>, ParentType, ContextType>;
-  token?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type TwoFactorWithoutTokenResolvers<ContextType = Context, ParentType extends ResolversParentTypes['TwoFactorWithoutToken'] = ResolversParentTypes['TwoFactorWithoutToken']> = ResolversObject<{
-  local?: Resolver<Maybe<ResolversTypes['TwoFactorLocal']>, ParentType, ContextType>;
-  remote?: Resolver<Maybe<ResolversTypes['TwoFactorRemote']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2702,7 +2511,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   password?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  role?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2711,7 +2520,7 @@ export type UserAccountResolvers<ContextType = Context, ParentType extends Resol
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  role?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
 }>;
 
 export type VarsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vars'] = ResolversParentTypes['Vars']> = ResolversObject<{
@@ -2897,11 +2706,6 @@ export type VmDomainResolvers<ContextType = Context, ParentType extends Resolver
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
-export type VmNetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['VmNetwork'] = ResolversParentTypes['VmNetwork']> = ResolversObject<{
-  _placeholderType?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
 export type VmsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vms'] = ResolversParentTypes['Vms']> = ResolversObject<{
   domain?: Resolver<Maybe<Array<ResolversTypes['VmDomain']>>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2928,7 +2732,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ContainerMount?: ContainerMountResolvers<ContextType>;
   ContainerPort?: ContainerPortResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
-  Device?: DeviceResolvers<ContextType>;
   Devices?: DevicesResolvers<ContextType>;
   Disk?: DiskResolvers<ContextType>;
   DiskPartition?: DiskPartitionResolvers<ContextType>;
@@ -2956,22 +2759,16 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ParityCheck?: ParityCheckResolvers<ContextType>;
   Partition?: PartitionResolvers<ContextType>;
   Pci?: PciResolvers<ContextType>;
-  Permissions?: PermissionsResolvers<ContextType>;
   Port?: GraphQLScalarType;
   ProfileModel?: ProfileModelResolvers<ContextType>;
   Query?: QueryResolvers<ContextType>;
   Registration?: RegistrationResolvers<ContextType>;
   RelayResponse?: RelayResponseResolvers<ContextType>;
-  Scope?: ScopeResolvers<ContextType>;
   Server?: ServerResolvers<ContextType>;
   Service?: ServiceResolvers<ContextType>;
   Share?: ShareResolvers<ContextType>;
   Subscription?: SubscriptionResolvers<ContextType>;
   System?: SystemResolvers<ContextType>;
-  TwoFactorLocal?: TwoFactorLocalResolvers<ContextType>;
-  TwoFactorRemote?: TwoFactorRemoteResolvers<ContextType>;
-  TwoFactorWithToken?: TwoFactorWithTokenResolvers<ContextType>;
-  TwoFactorWithoutToken?: TwoFactorWithoutTokenResolvers<ContextType>;
   UUID?: GraphQLScalarType;
   UnassignedDevice?: UnassignedDeviceResolvers<ContextType>;
   Uptime?: UptimeResolvers<ContextType>;
@@ -2981,11 +2778,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Vars?: VarsResolvers<ContextType>;
   Versions?: VersionsResolvers<ContextType>;
   VmDomain?: VmDomainResolvers<ContextType>;
-  VmNetwork?: VmNetworkResolvers<ContextType>;
   Vms?: VmsResolvers<ContextType>;
   Welcome?: WelcomeResolvers<ContextType>;
 }>;
 
-export type DirectiveResolvers<ContextType = Context> = ResolversObject<{
-  subscription?: subscriptionDirectiveResolver<any, any, ContextType>;
-}>;

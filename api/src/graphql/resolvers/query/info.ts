@@ -1,11 +1,9 @@
 import {
-    baseboard,
     cpu,
     cpuFlags,
     mem,
     memLayout,
     osInfo,
-    system,
     versions,
 } from 'systeminformation';
 import { docker } from '@app/core/utils/clients/docker';
@@ -16,13 +14,10 @@ import {
     type Display,
     type Theme,
     type Temperature,
-    type Baseboard,
     type Versions,
     type InfoMemory,
     type MemoryLayout,
-    type System,
     type Devices,
-    type InfoResolvers,
     type Gpu,
 } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
@@ -33,7 +28,6 @@ import toBytes from 'bytes';
 import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { AppError } from '@app/core/errors/app-error';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
-import { getMachineId } from '@app/core/utils/misc/get-machine-id';
 import { execaCommandSync, execa } from 'execa';
 import { pathExists } from 'path-exists';
 import { filter as asyncFilter } from 'p-iteration';
@@ -58,7 +52,7 @@ export const generateApps = async (): Promise<InfoApps> => {
     return { installed, started };
 };
 
-const generateOs = async (): Promise<InfoOs> => {
+export const generateOs = async (): Promise<InfoOs> => {
     const os = await osInfo();
 
     return {
@@ -67,10 +61,12 @@ const generateOs = async (): Promise<InfoOs> => {
     };
 };
 
-const generateCpu = async (): Promise<InfoCpu> => {
+export const generateCpu = async (): Promise<InfoCpu> => {
     const { cores, physicalCores, speedMin, speedMax, stepping, ...rest } =
         await cpu();
-    const flags = await cpuFlags().then((flags) => flags.split(' '));
+    const flags = await cpuFlags()
+        .then((flags) => flags.split(' '))
+        .catch(() => []);
 
     return {
         ...rest,
@@ -84,7 +80,7 @@ const generateCpu = async (): Promise<InfoCpu> => {
     };
 };
 
-const generateDisplay = async (): Promise<Display> => {
+export const generateDisplay = async (): Promise<Display> => {
     const filePath = getters.paths()['dynamix-config'];
     const state = loadState<DynamixConfig>(filePath);
     if (!state) {
@@ -110,9 +106,7 @@ const generateDisplay = async (): Promise<Display> => {
     };
 };
 
-const generateBaseboard = async (): Promise<Baseboard> => baseboard();
-
-const generateVersions = async (): Promise<Versions> => {
+export const generateVersions = async (): Promise<Versions> => {
     const unraid = await getUnraidVersion();
     const softwareVersions = await versions();
 
@@ -122,7 +116,7 @@ const generateVersions = async (): Promise<Versions> => {
     };
 };
 
-const generateMemory = async (): Promise<InfoMemory> => {
+export const generateMemory = async (): Promise<InfoMemory> => {
     const layout = await memLayout().then((dims) =>
         dims.map((dim) => dim as MemoryLayout)
     );
@@ -175,7 +169,7 @@ const generateMemory = async (): Promise<InfoMemory> => {
     };
 };
 
-const generateDevices = async (): Promise<Devices> => {
+export const generateDevices = async (): Promise<Devices> => {
     /**
      * Set device class to device.
      * @param device The device to modify.
@@ -277,24 +271,24 @@ const generateDevices = async (): Promise<Devices> => {
      * @ignore
      * @private
      */
-    const systemGPUDevices: Promise<Gpu[]> = systemPciDevices().then(
-        (devices) => {
-            return devices.filter(
-                (device) => device.class === 'vga' && !device.allowed
-            ).map(entry => {
-                const gpu: Gpu = {
-                    blacklisted: entry.allowed,
-                    class: entry.class,
-                    id: entry.id,
-                    productid: entry.product,
-                    typeid: entry.typeid,
-                    type: entry.manufacturer,
-                    vendorname: entry.vendorname
-                }
-                return gpu;
-            });
-        }
-    ).catch(() => []);
+    const systemGPUDevices: Promise<Gpu[]> = systemPciDevices()
+        .then((devices) => {
+            return devices
+                .filter((device) => device.class === 'vga' && !device.allowed)
+                .map((entry) => {
+                    const gpu: Gpu = {
+                        blacklisted: entry.allowed,
+                        class: entry.class,
+                        id: entry.id,
+                        productid: entry.product,
+                        typeid: entry.typeid,
+                        type: entry.manufacturer,
+                        vendorname: entry.vendorname,
+                    };
+                    return gpu;
+                });
+        })
+        .catch(() => []);
 
     /**
      * System usb devices.
@@ -422,13 +416,15 @@ const generateDevices = async (): Promise<Devices> => {
                 }) ?? [];
 
             // Get all usb devices
-            const usbDevices = await execa('lsusb').then(async ({ stdout }) =>
-                parseUsbDevices(stdout)
-                    .map(parseDevice)
-                    .filter(filterBootDrive)
-                    .filter(filterUsbHubs)
-                    .map(sanitizeVendorName)
-            );
+            const usbDevices = await execa('lsusb')
+                .then(async ({ stdout }) =>
+                    parseUsbDevices(stdout)
+                        .map(parseDevice)
+                        .filter(filterBootDrive)
+                        .filter(filterUsbHubs)
+                        .map(sanitizeVendorName)
+                )
+                .catch(() => []);
 
             return usbDevices;
         } catch (error: unknown) {
@@ -444,21 +440,4 @@ const generateDevices = async (): Promise<Devices> => {
         pci: await systemPciDevices(),
         usb: await getSystemUSBDevices(),
     };
-};
-
-const generateMachineId = async (): Promise<string> => getMachineId();
-
-const generateSystem = async (): Promise<System> => system();
-
-export const infoSubResolvers: InfoResolvers = {
-    apps: async () => generateApps(),
-    baseboard: async () => generateBaseboard(),
-    cpu: async () => generateCpu(),
-    devices: async () => generateDevices(),
-    display: async () => generateDisplay(),
-    machineId: async () => generateMachineId(),
-    memory: async () => generateMemory(),
-    os: async () => generateOs(),
-    system: async () => generateSystem(),
-    versions: async () => generateVersions(),
 };
