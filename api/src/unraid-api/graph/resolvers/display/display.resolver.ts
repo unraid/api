@@ -1,6 +1,8 @@
+import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 import { type Display } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
-import { Query, Resolver } from '@nestjs/graphql';
+import { Query, Resolver, Subscription } from '@nestjs/graphql';
+import { UseRoles } from 'nest-access-control';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -56,6 +58,11 @@ const states = {
 @Resolver()
 export class DisplayResolver {
     @Query()
+    @UseRoles({
+        resource: 'display',
+        action: 'read',
+        possession: 'any',
+    })
     public async display(): Promise<Display> {
         /**
          * This is deprecated, remove it eventually
@@ -93,5 +100,15 @@ export class DisplayResolver {
                 icon: serverCase,
             },
         };
+    }
+
+    @Subscription('display')
+    @UseRoles({
+        resource: 'display',
+        action: 'read',
+        possession: 'any',
+    })
+    public async displaySubscription() {
+        return createSubscription(PUBSUB_CHANNEL.DISPLAY);
     }
 }

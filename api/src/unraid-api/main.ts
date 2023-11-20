@@ -12,6 +12,7 @@ import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.
 import { GraphQLError } from 'graphql';
 import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
 import { getServerAddress } from '@app/common/get-server-address';
+import { PORT } from '@app/environment';
 
 export const corsOptionsDelegate: CorsOptionsDelegate = async (
     origin: string | undefined,
@@ -26,7 +27,7 @@ export const corsOptionsDelegate: CorsOptionsDelegate = async (
     }
 };
 
-export async function bootstrapNestServer(port: string): Promise<NestFastifyApplication> {
+export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
         new FastifyAdapter({ logger: false }),
@@ -39,7 +40,7 @@ export async function bootstrapNestServer(port: string): Promise<NestFastifyAppl
     );
 
     const logger = new Logger('Nest Setup')
-    await app.listen(port, '0.0.0.0');
+    await app.listen(PORT, '0.0.0.0');
     logger.debug('listening at ' + getServerAddress(app.getHttpServer()));
     return app;
 }

@@ -12,22 +12,11 @@ import { schema } from '@app/graphql/schema';
 import { execute, subscribe } from 'graphql';
 import { GRAPHQL_WS, SubscriptionServer } from 'subscriptions-transport-ws';
 import { wsHasConnected, wsHasDisconnected } from '@app/ws';
-import { randomUUID } from 'crypto';
-import { getServerAddress } from '@app/common/get-server-address';
-import { originMiddleware } from '@app/originMiddleware';
-import { API_VERSION, GRAPHQL_INTROSPECTION, PORT } from '@app/environment';
-import {
-    getBannerPathIfPresent,
-    getCasePathIfPresent,
-} from '@app/core/utils/images/image-file-helpers';
-import { WebSocketServer } from 'ws';
-import { useServer } from 'graphql-ws/lib/use/ws';
-import { GRAPHQL_TRANSPORT_WS_PROTOCOL } from 'graphql-ws';
 import { bootstrapNestServer } from '@app/unraid-api/main';
 
 export const createApolloExpressServer = async () => {
 
-    const nestServer = await bootstrapNestServer(PORT);
+    const nestServer = await bootstrapNestServer();
 
     return nestServer;
 };

@@ -1,3 +1,4 @@
+import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id';
 import {
     generateApps,
@@ -8,7 +9,7 @@ import {
     generateOs,
     generateVersions,
 } from '@app/graphql/resolvers/query/info';
-import { Query, ResolveField, Resolver } from '@nestjs/graphql';
+import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 import { baseboard, system } from 'systeminformation';
 
@@ -71,5 +72,15 @@ export class InfoResolver {
     @ResolveField('versions')
     public async versions() {
         return generateVersions();
+    }
+
+    @Subscription('info')
+    @UseRoles({
+        resource: 'info',
+        action: 'read',
+        possession: 'any',
+    })
+    public async infoSubscription() {
+        return createSubscription(PUBSUB_CHANNEL.INFO);
     }
 }

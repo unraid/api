@@ -1,8 +1,12 @@
+import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
-import { registrationType, type Registration } from '@app/graphql/generated/api/types';
+import {
+    registrationType,
+    type Registration,
+} from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
-import { Query, Resolver } from '@nestjs/graphql';
+import { Query, Resolver, Subscription } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 
 @Resolver()
@@ -36,5 +40,15 @@ export class RegistrationResolver {
             },
         };
         return registration;
+    }
+
+    @Subscription('registration')
+    @UseRoles({
+        resource: 'registration',
+        action: 'read',
+        possession: 'any',
+    })
+    public registrationSubscription() {
+        return createSubscription(PUBSUB_CHANNEL.REGISTRATION);
     }
 }

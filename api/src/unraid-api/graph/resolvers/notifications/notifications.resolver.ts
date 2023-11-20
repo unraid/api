@@ -1,12 +1,13 @@
 import { type NotificationFilter } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
-import { Query, Resolver, Args, Mutation } from '@nestjs/graphql';
+import { Query, Resolver, Args, Mutation, Subscription } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { UseRoles } from 'nest-access-control';
 import { Logger } from '@nestjs/common';
 import { type NotificationInput } from '@app/graphql/generated/client/graphql';
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { SEND_NOTIFICATION_MUTATION } from '@app/graphql/mothership/mutations';
+import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 
 @Resolver()
 export class NotificationsResolver {
@@ -84,5 +85,15 @@ export class NotificationsResolver {
         });
 
         return promise;
+    }
+
+    @Subscription('notificationAdded')
+    @UseRoles({
+        resource: 'notifications',
+        action: 'read',
+        possession: 'any',
+    })
+    async notificationAdded() {
+        return createSubscription(PUBSUB_CHANNEL.NOTIFICATION);
     }
 }

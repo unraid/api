@@ -136,6 +136,7 @@ const roles: Record<string, Role> = {
             { resource: 'logs', action: 'read:any', attributes: '*' },
             { resource: 'docker/network', action: 'read:any', attributes: '*' },
             { resource: 'notifications', action: 'read:any', attributes: '*' },
+            { resource: 'vms', action: 'read:any', attributes: '*' },
             { resource: 'vms/domain', action: 'read:any', attributes: '*' },
             { resource: 'unraid-version', action: 'read:any', attributes: '*' },
         ],

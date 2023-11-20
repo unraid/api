@@ -5,6 +5,11 @@ import { UseRoles } from 'nest-access-control';
 @Resolver()
 export class VmsResolver {
     @Query()
+    @UseRoles({
+        resource: 'vms',
+        action: 'read',
+        possession: 'any',
+    })
     public async vms() {
         /**
          * @todo Method implemntation
@@ -15,7 +20,7 @@ export class VmsResolver {
     @Resolver('domain')
     @Query()
     @UseRoles({
-        resource: 'domain',
+        resource: 'vms/domain',
         action: 'read',
         possession: 'any',
     })

@@ -1,5 +1,6 @@
+import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 import { getters } from '@app/store/index';
-import { Query, Resolver } from '@nestjs/graphql';
+import { Query, Resolver, Subscription } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 
 @Resolver()
@@ -25,5 +26,15 @@ export class OwnerResolver {
             username: remote.username,
             avatar: remote.avatar,
         };
+    }
+
+    @Subscription('owner')
+    @UseRoles({
+        resource: 'owner',
+        action: 'read',
+        possession: 'own',
+    })
+    public ownerSubscription() {
+        return createSubscription(PUBSUB_CHANNEL.OWNER);
     }
 }
