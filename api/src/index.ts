@@ -12,20 +12,20 @@ import { loadStateFiles } from '@app/store/modules/emhttp';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
-import { createApolloExpressServer } from '@app/server';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
-import { type BaseContext, type ApolloServer } from '@apollo/server';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
 import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
-
-let server: ApolloServer<BaseContext>;
+import { bootstrapNestServer } from '@app/unraid-api/main';
+import { type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { type RawServerDefault}  from 'fastify';
+let server: NestFastifyApplication<RawServerDefault>;
 
 const unlinkUnixPort = () => {
     if (isNaN(parseInt(PORT, 10))) {
@@ -78,8 +78,7 @@ void am(
         unlinkUnixPort();
 
         // Start webserver
-        server = await createApolloExpressServer();
-
+        server = await bootstrapNestServer();
         PingTimeoutJobs.init();
 
         startMiddlewareListeners();
@@ -103,7 +102,7 @@ void am(
         // Stop server
         logger.debug('Stopping HTTP server');
         if (server) {
-            await server.stop();
+            await server.close();
         }
 
         // Kill application
