@@ -1,6 +1,6 @@
 import { logger } from '@app/core/log';
 import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
 import { StateFileKey } from '@app/store/types';
@@ -24,7 +24,7 @@ export const enableArrayEventListener = () =>
                 await delay(5_000);
                 const array = getArrayData(getState);
                 if (!isEqual(oldArrayData, array)) {
-                    pubsub.publish('array', { array });
+                    pubsub.publish(PUBSUB_CHANNEL.ARRAY, { array });
                     logger.addContext('event', array);
                     logger.debug('Array was updated, publishing event');
                     logger.removeContext('event');

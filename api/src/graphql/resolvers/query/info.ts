@@ -119,7 +119,7 @@ export const generateVersions = async (): Promise<Versions> => {
 export const generateMemory = async (): Promise<InfoMemory> => {
     const layout = await memLayout().then((dims) =>
         dims.map((dim) => dim as MemoryLayout)
-    );
+    ).catch(() => []);
     const info = await mem();
     let max = info.total;
 

@@ -1,5 +1,5 @@
 import { mothershipLogger } from '@app/core/log';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { getServers } from '@app/graphql/schema/utils';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { startAppListening } from '@app/store/listeners/listener-middleware';
@@ -26,12 +26,12 @@ export const enableServerStateListener = () =>
                 );
                 if (servers.length > 0) {
                     // Publish owner event
-                    await pubsub.publish('owner', {
+                    await pubsub.publish(PUBSUB_CHANNEL.OWNER, {
                         owner: servers[0].owner,
                     });
 
                     // Publish servers event
-                    await pubsub.publish('servers', {
+                    await pubsub.publish(PUBSUB_CHANNEL.SERVERS, {
                         servers: servers,
                     });
                 }

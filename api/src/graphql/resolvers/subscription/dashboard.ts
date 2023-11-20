@@ -1,6 +1,6 @@
 import { dashboardLogger } from '@app/core/log';
 import { generateData } from '@app/common/dashboard/generate-data';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { getters, store } from '@app/store';
 import { saveDataPacket } from '@app/store/modules/dashboard';
 import { isEqual } from 'lodash';
@@ -68,7 +68,7 @@ export const publishToDashboard = async () => {
 		dashboardLogger.removeContext('update');
 
 		// Update local clients
-		await pubsub.publish('dashboard', {
+		await pubsub.publish(PUBSUB_CHANNEL.DASHBOARD, {
 			dashboard: dataPacket,
 		});
 		if (dataPacket) {

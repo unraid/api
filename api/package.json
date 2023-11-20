@@ -47,6 +47,7 @@
     "stop:dev": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty NODE_ENV=development LOG_LEVEL=trace NODE_ENV=development tsup --config ./tsup.config.ts --watch --onSuccess 'DOTENV_CONFIG_PATH=./.env.development node -r dotenv/config dist/unraid-api.cjs stop --debug'",
     "start:report": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty NODE_ENV=development LOG_LEVEL=trace NODE_ENV=development LOG_CONTEXT=true tsup --config ./tsup.config.ts --watch --onSuccess 'DOTENV_CONFIG_PATH=./.env.development node -r dotenv/config dist/unraid-api.cjs report --debug'",
     "start:docker": "docker compose run --rm builder-interactive",
+    "build:dev": "GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker-compose build dev",
     "docker:dev": "GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker-compose run --rm --service-ports dev",
     "docker:test": "GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker-compose run --rm builder npm run test"
   },
@@ -123,7 +124,6 @@
     "request": "^2.88.2",
     "semver": "^7.4.0",
     "stoppable": "^1.1.0",
-    "subscriptions-transport-ws": "^0.11.0",
     "systeminformation": "^5.21.2",
     "ts-command-line-args": "^2.5.0",
     "uuid": "^9.0.0",

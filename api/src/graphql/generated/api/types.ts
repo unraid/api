@@ -922,11 +922,6 @@ export type QuerynotificationsArgs = {
 };
 
 
-export type QueryserverArgs = {
-  name: Scalars['String']['input'];
-};
-
-
 export type QueryuserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -1073,7 +1068,6 @@ export type Subscription = {
   ping: Scalars['String']['output'];
   registration: Registration;
   server?: Maybe<Server>;
-  servers: Array<Server>;
   service?: Maybe<Array<Service>>;
   share: Share;
   shares?: Maybe<Array<Share>>;
@@ -1092,11 +1086,6 @@ export type SubscriptiondockerContainerArgs = {
 
 export type SubscriptiondockerNetworkArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type SubscriptionserverArgs = {
-  name: Scalars['String']['input'];
 };
 
 
@@ -2329,7 +2318,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;
   registration?: Resolver<Maybe<ResolversTypes['Registration']>, ParentType, ContextType>;
-  server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType, RequireFields<QueryserverArgs, 'name'>>;
+  server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType>;
   servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
   unassignedDevices?: Resolver<Maybe<Array<Maybe<ResolversTypes['UnassignedDevice']>>>, ParentType, ContextType>;
@@ -2413,8 +2402,7 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   parityHistory?: SubscriptionResolver<ResolversTypes['ParityCheck'], "parityHistory", ParentType, ContextType>;
   ping?: SubscriptionResolver<ResolversTypes['String'], "ping", ParentType, ContextType>;
   registration?: SubscriptionResolver<ResolversTypes['Registration'], "registration", ParentType, ContextType>;
-  server?: SubscriptionResolver<Maybe<ResolversTypes['Server']>, "server", ParentType, ContextType, RequireFields<SubscriptionserverArgs, 'name'>>;
-  servers?: SubscriptionResolver<Array<ResolversTypes['Server']>, "servers", ParentType, ContextType>;
+  server?: SubscriptionResolver<Maybe<ResolversTypes['Server']>, "server", ParentType, ContextType>;
   service?: SubscriptionResolver<Maybe<Array<ResolversTypes['Service']>>, "service", ParentType, ContextType, RequireFields<SubscriptionserviceArgs, 'name'>>;
   share?: SubscriptionResolver<ResolversTypes['Share'], "share", ParentType, ContextType, RequireFields<SubscriptionshareArgs, 'id'>>;
   shares?: SubscriptionResolver<Maybe<Array<ResolversTypes['Share']>>, "shares", ParentType, ContextType>;

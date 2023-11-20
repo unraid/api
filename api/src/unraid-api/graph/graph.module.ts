@@ -10,6 +10,7 @@ import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ResolversModule } from './resolvers/resolvers.module';
+import { GRAPHQL_INTROSPECTION } from '@app/environment';
 
 @Module({
     imports: [
@@ -17,7 +18,21 @@ import { ResolversModule } from './resolvers/resolvers.module';
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
             playground: true,
-            installSubscriptionHandlers: true,
+            introspection: GRAPHQL_INTROSPECTION ? true : false,
+            context: ({ req, connectionParams, extra }) => ({
+                req,
+                connectionParams,
+                extra,
+            }),
+
+            subscriptions: {
+                'graphql-ws': {
+                    path: '/graphql',
+                },
+                'subscriptions-transport-ws': {
+                    path: '/graphql',
+                },
+            },
             path: '/graphql',
             typePaths: ['**/*.graphql'],
             resolvers: {
@@ -26,11 +41,6 @@ import { ResolversModule } from './resolvers/resolvers.module';
                 UUID: UUIDResolver,
                 DateTime: DateTimeResolver,
                 Port: PortResolver,
-                /* Mutation,
-                Subscription,
-                Vms: {
-                    domain: domainResolver,
-                }, */
             },
             // schema: schema
         }),

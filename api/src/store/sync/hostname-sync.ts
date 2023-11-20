@@ -1,5 +1,5 @@
 import { logger } from '@app/core/log';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { type RootState, store } from '@app/store';
 import { FileLoadStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import isEqual from 'lodash/isEqual';
@@ -45,7 +45,7 @@ export const syncHostname: StoreSubscriptionHandler = async lastState => {
 		logger.debug('Hostname was updated, publishing event');
 
 		// Publish to graphql
-		await pubsub.publish('info', currentEvent);
+		await pubsub.publish(PUBSUB_CHANNEL.INFO, currentEvent);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Failed publishing array event with unknown error "${String(error)}"`);
 		logger.error('Failed publishing array event with "%s"', error.message);

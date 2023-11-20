@@ -33,7 +33,7 @@ const getWebsocketWithMothershipHeaders = () => {
                 headers: getMothershipWebsocketHeaders(),
             });
         }
-    }
+    };
 };
 
 const delayFn = buildDelayFunction({
@@ -89,7 +89,7 @@ export class GraphQLClient {
         const isStateValid = isAPIStateDataFullyLoaded() && isApiKeyValid();
 
         if (!GraphQLClient.instance && isStateValid) {
-            minigraphLogger.debug("Creating a new Apollo Client Instance");
+            minigraphLogger.debug('Creating a new Apollo Client Instance');
             GraphQLClient.instance = GraphQLClient.createGraphqlClient();
         }
 
@@ -128,7 +128,7 @@ export class GraphQLClient {
                         logoutUser({ reason: 'Invalid API Key on Mothership' })
                     );
                 }
-
+                
                 const getDelay = delayFn(count);
                 store.dispatch(setMothershipTimeout(getDelay));
                 minigraphLogger.info('Delay currently is', getDelay);

@@ -8,4 +8,10 @@ export class ServerResolver {
     public async server(): Promise<Server | null> {
         return getLocalServer()[0];
     }
+
+    @Resolver('servers')
+    @Query()
+    public async servers(): Promise<Server[]> {
+        return getLocalServer();
+    }
 }

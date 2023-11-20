@@ -4,6 +4,7 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module';
 import { GraphModule } from '@app/unraid-api/graph/graph.module';
 import { RestModule } from '@app/unraid-api/rest/rest.module';
 import { Module } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import { ACGuard, AccessControlModule } from 'nest-access-control';
 
 @Module({
@@ -12,7 +13,7 @@ import { ACGuard, AccessControlModule } from 'nest-access-control';
     providers: [
         {
             provide: 'APP_GUARD',
-            useClass: GraphqlAuthGuard,
+            useFactory: () => new GraphqlAuthGuard(new Reflector()),
         },
         {
             provide: 'APP_GUARD',

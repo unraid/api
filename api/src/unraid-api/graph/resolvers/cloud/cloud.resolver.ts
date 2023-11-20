@@ -44,7 +44,7 @@ export class CloudResolver {
         };
     }
 
-    @Mutation('connectSignIn')
+    @Mutation()
     @UseRoles({
         resource: 'connect',
         action: 'update',
@@ -59,7 +59,7 @@ export class CloudResolver {
         return connectSignIn(input);
     }
 
-    @Mutation('connectSignOut')
+    @Mutation()
     @UseRoles({
         resource: 'connect',
         action: 'update',
@@ -69,5 +69,6 @@ export class CloudResolver {
         await store.dispatch(
             logoutUser({ reason: 'Manual Sign Out Using API' })
         );
+        return true;
     }
 }

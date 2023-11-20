@@ -1,5 +1,6 @@
 type Query {
     server: Server
+    servers: [Server!]!
 }
 
 type Subscription {

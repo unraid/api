@@ -6,12 +6,23 @@ const eventEmitter = new EventEmitter();
 eventEmitter.setMaxListeners(30);
 
 export enum PUBSUB_CHANNEL {
+    ARRAY = 'ARRAY',
+    DASHBOARD = 'DASHBOARD',
     DISPLAY = 'DISPLAY',
     INFO = 'INFO',
     NOTIFICATION = 'NOTIFICATION',
     OWNER = 'OWNER',
     SERVERS = 'SERVERS',
-
+    VMS = 'VMS',
+    REGISTRATION = 'REGISTRATION',
 }
 
 export const pubsub = new PubSub({ eventEmitter });
+
+/**
+ * Create a pubsub subscription.
+ * @param channel The pubsub channel to subscribe to.
+ */
+export const createSubscription = (channel: PUBSUB_CHANNEL) => {
+    return pubsub.asyncIterator(channel);
+};
