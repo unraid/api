@@ -1,14 +1,15 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM node:18.17.1-alpine As development
+
+# Cannot use Alpine as it breaks the final PKG build
+FROM node:18.17 As development
 
 # Install build tools and dependencies
-RUN apk add --no-cache \
+RUN apt-get update -y && apt-get install -y \
     bash \
     # Real PS Command (needed for some dependencies)
     procps \ 
-    alpine-sdk \
     python3 \
     libvirt-dev \
     jq \
