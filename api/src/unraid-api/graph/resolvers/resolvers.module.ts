@@ -13,6 +13,7 @@ import { FlashResolver } from './flash/flash.resolver';
 import { OwnerResolver } from './owner/owner.resolver';
 import { RegistrationResolver } from './registration/registration.resolver';
 import { ServerResolver } from './servers/server.resolver';
+import { VarsResolver } from './vars/vars.resolver';
 
 @Module({
     providers: [
@@ -30,6 +31,7 @@ import { ServerResolver } from './servers/server.resolver';
         OwnerResolver,
         RegistrationResolver,
         ServerResolver,
+        VarsResolver,
     ],
 })
 export class ResolversModule {}
