@@ -20,5 +20,4 @@ export * from './get-parity-history';
 export * from './get-permissions';
 export * from './get-services';
 export * from './get-users';
-export * from './get-vars';
 export * from './get-welcome';
