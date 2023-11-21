@@ -1,9 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-
-# Cannot use Alpine as it breaks the final PKG build
-FROM node:18.17 As development
+FROM node:18.17.1-bookworm-slim As development
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \
