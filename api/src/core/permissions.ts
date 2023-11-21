@@ -14,7 +14,7 @@ export interface Role {
 // Use built in permissions
 const roles: Record<string, Role> = {
     admin: {
-        extends: 'user',
+        extends: 'guest',
         permissions: [
             { resource: 'apikey', action: 'read:any', attributes: '*' },
             { resource: 'cloud', action: 'read:own', attributes: '*' },
@@ -89,13 +89,6 @@ const roles: Record<string, Role> = {
             { resource: 'vms/network', action: 'read:any', attributes: '*' },
         ],
     },
-    user: {
-        extends: 'guest',
-        permissions: [
-            { resource: 'apikey', action: 'read:own', attributes: '*' },
-            { resource: 'permission', action: 'read:any', attributes: '*' },
-        ],
-    },
     upc: {
         extends: 'guest',
         permissions: [
@@ -111,6 +104,7 @@ const roles: Record<string, Role> = {
             { resource: 'disk', action: 'read:any', attributes: '*' },
             { resource: 'display', action: 'read:any', attributes: '*' },
             { resource: 'flash', action: 'read:any', attributes: '*' },
+            { resource: 'info', action: 'read:any', attributes: '*' },
             { resource: 'logs', action: 'read:any', attributes: '*' },
             { resource: 'os', action: 'read:any', attributes: '*' },
             { resource: 'owner', action: 'read:any', attributes: '*' },
