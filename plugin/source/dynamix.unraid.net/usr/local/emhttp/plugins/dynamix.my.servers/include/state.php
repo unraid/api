@@ -98,7 +98,7 @@ class ServerState
         $this->registered = !empty($this->myservers['remote']['apikey']) && $this->connectPluginInstalled;
 
         // if we're on 6.12.6 or newer, get the case model as this version will include the cookie with the case model when it's reset
-        if (version_compare('6.12.6', $osVersion, '>=')) {
+        if (version_compare('6.12.6', $this->osVersion, '>=')) {
             $this->caseModel = $this->getServerCase();
         }
 
@@ -113,23 +113,23 @@ class ServerState
     }
 
     public function getServerCase() {
-        $caseModel = $_COOKIE['caseModel'] ?? false;
+        $caseModel = $_COOKIE['caseModel'] ?? '';
         // if we don't have a cookie, check the file and set the cookie if we find one
         if (!$caseModel) {
             $caseModelFile = '/boot/config/plugins/dynamix/case-model.cfg';
-            $caseModel = file_exists($caseModelFile) ? file_get_contents($caseModelFile) : false;
-            if ($caseModel) {
-                $cookieOptions = array (
-                    'expires' => time() + (10 * 365 * 24 * 60 * 60), // overkill with 10 years
-                    'path' => '/',
-                    'secure' => false,
-                    'httponly' => false,
-                    'samesite' => 'Strict',
-                );
-                setcookie('caseModel', $caseModel, $cookieOptions);
-            } else {
-                $caseModel = 'unknown';
-            }
+            $caseModel = file_exists($caseModelFile) ? file_get_contents($caseModelFile) : '';
+            // if ($caseModel) {
+            //     $cookieOptions = array (
+            //         'expires' => time() + (10 * 365 * 24 * 60 * 60), // overkill with 10 years
+            //         'path' => '/',
+            //         'secure' => false,
+            //         'httponly' => false,
+            //         'samesite' => 'Strict',
+            //     );
+            //     setcookie('caseModel', $caseModel, $cookieOptions);
+            // } else {
+            //     $caseModel = 'unknown';
+            // }
         }
         return $caseModel;
     }
