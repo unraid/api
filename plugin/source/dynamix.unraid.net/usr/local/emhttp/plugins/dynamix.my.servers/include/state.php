@@ -45,9 +45,11 @@ class ServerState
         "nokeyserver" => 'NO_KEY_SERVER',
         "withdrawn" => 'WITHDRAWN',
     ];
+    private $osVersion;
     private $osVersionBranch;
     private $registered;
     private $rebootDetails;
+    private $caseModel;
 
     /**
      * Constructor to initialize class properties and gather server information.
@@ -83,12 +85,22 @@ class ServerState
             : (file_exists('/var/log/plugins/dynamix.unraid.net.staging.plg')
                 ? trim(@exec('/usr/local/sbin/plugin version /var/log/plugins/dynamix.unraid.net.staging.plg 2>/dev/null'))
                 : 'base-' . $this->var['version']);
-
+        /**
+         * @todo can we read this from somewhere other than the flash? Connect page uses this path and /boot/config/plugins/dynamix.my.servers/myservers.cfg…
+         * - $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
+         * - $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
+         */
         $this->myserversFlashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
         $this->myservers = file_exists($this->myserversFlashCfgPath) ? @parse_ini_file($this->myserversFlashCfgPath, true) : [];
 
+        $this->osVersion = $this->var['version'];
         $this->osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
         $this->registered = !empty($this->myservers['remote']['apikey']) && $this->connectPluginInstalled;
+
+        // if we're on 6.12.6 or newer, get the case model as this version will include the cookie with the case model when it's reset
+        if (version_compare('6.12.6', $osVersion, '>=')) {
+            $this->caseModel = $this->getServerCase();
+        }
 
         $this->rebootDetails = new RebootDetails();
     }
@@ -98,6 +110,28 @@ class ServerState
      */
     public function getWebguiGlobal(string $key) {
         return $this->webguiGlobals[$key];
+    }
+
+    public function getServerCase() {
+        $caseModel = $_COOKIE['caseModel'] ?? false;
+        // if we don't have a cookie, check the file and set the cookie if we find one
+        if (!$caseModel) {
+            $caseModelFile = '/boot/config/plugins/dynamix/case-model.cfg';
+            $caseModel = file_exists($caseModelFile) ? file_get_contents($caseModelFile) : false;
+            if ($caseModel) {
+                $cookieOptions = array (
+                    'expires' => time() + (10 * 365 * 24 * 60 * 60), // overkill with 10 years
+                    'path' => '/',
+                    'secure' => false,
+                    'httponly' => false,
+                    'samesite' => 'Strict',
+                );
+                setcookie('caseModel', $caseModel, $cookieOptions);
+            } else {
+                $caseModel = 'unknown';
+            }
+        }
+        return $caseModel;
     }
 
     /**
@@ -111,6 +145,7 @@ class ServerState
             "apiKey" => $this->myservers['upc']['apikey'] ?? '',
             "apiVersion" => $this->myservers['api']['version'] ?? '',
             "avatar" => (!empty($this->myservers['remote']['avatar']) && $this->connectPluginInstalled) ? $this->myservers['remote']['avatar'] : '',
+            "caseModel" => $this->caseModel,
             "config" => [
                 'valid' => ($this->var['configValid'] === 'yes'),
                 'error' => isset($this->configErrorEnum[$this->var['configValid']]) ? $this->configErrorEnum[$this->var['configValid']] : 'UNKNOWN_ERROR',
