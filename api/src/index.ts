@@ -87,6 +87,7 @@ void am(
 
         // On process exit stop HTTP server - this says it supports async but it doesnt seem to
         exitHook(() => {
+            server?.close?.();
             // If port is unix socket, delete socket before exiting
             unlinkUnixPort();
             
@@ -98,12 +99,7 @@ void am(
         // Log error to syslog
         logger.error('API-GLOBAL-ERROR', error);
         shutdownApiEvent();
-
-        // Stop server
-        logger.debug('Stopping HTTP server');
-        if (server) {
-            await server.close();
-        }
+        if (server) { await server?.close?.() }
 
         // Kill application
         process.exitCode = 1;
