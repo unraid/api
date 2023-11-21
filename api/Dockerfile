@@ -11,8 +11,8 @@ RUN apt-get update -y && apt-get install -y \
     python3 \
     libvirt-dev \
     jq \
-    zstd \ 
-    git \ 
+    zstd \
+    git \
     build-essential
 
 RUN mkdir /var/log/unraid-api/
