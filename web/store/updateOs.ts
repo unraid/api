@@ -180,7 +180,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
       // if current osBranch is next, preview, or test we should return the latest stable release regardless if the current version is ahead
       if ((!filteredReleases || filteredReleases.length === 0) && osVersionBranch.value !== 'stable' && releases.value?.response?.stable[0]) {
         filteredReleases = releases.value?.response?.stable.filter( // using filter so we get an array back
-          (release, index) => index === 0
+          (_release, index) => index === 0
         );
       }
 
