@@ -53,6 +53,7 @@ export interface Server {
   apiKey?: string;
   apiVersion?: string;
   avatar?: string;
+  caseModel?: string;
   cloud?: PartialCloudFragment | undefined;
   config?: Config | undefined;
   connectPluginInstalled?: ServerconnectPluginInstalled;
@@ -97,6 +98,7 @@ export interface Server {
 
 export interface ServerAccountCallbackSendPayload {
   apiVersion?: string;
+  caseModel?: string;
   connectPluginVersion?: string;
   description?: string;
   deviceCount?: number;

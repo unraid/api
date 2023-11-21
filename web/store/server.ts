@@ -65,6 +65,7 @@ export const useServerStore = defineStore('server', () => {
   });
   const apiVersion = ref<string>('');
   const avatar = ref<string>(''); // @todo potentially move to a user store
+  const caseModel = ref<string>('');
   const cloud = ref<PartialCloudFragment | undefined>();
   const config = ref<Config | undefined>();
   const connectPluginInstalled = ref<ServerconnectPluginInstalled>('');
@@ -215,6 +216,7 @@ export const useServerStore = defineStore('server', () => {
   const serverAccountPayload = computed((): ServerAccountCallbackSendPayload => {
     return {
       apiVersion: apiVersion.value,
+      caseModel: caseModel.value,
       connectPluginVersion: connectPluginVersion.value,
       description: description.value,
       expireTime: expireTime.value,
@@ -749,6 +751,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.apiKey !== 'undefined') { apiKey.value = data.apiKey; }
     if (typeof data?.apiVersion !== 'undefined') { apiVersion.value = data.apiVersion; }
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
+    if (typeof data?.caseModel !== 'undefined') { caseModel.value = data.caseModel; }
     if (typeof data?.cloud !== 'undefined') { cloud.value = data.cloud; }
     if (typeof data?.config !== 'undefined') { config.value = data.config; }
     if (typeof data?.connectPluginInstalled !== 'undefined') { connectPluginInstalled.value = data.connectPluginInstalled; }
