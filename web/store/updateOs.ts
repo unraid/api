@@ -142,7 +142,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     const isAvailableStable = computed(() => available.value ? isVersionStable(available.value) : false);
 
     const filteredNextReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
 
       if (releases.value?.response?.next) {
         return releases.value?.response?.next.filter(
@@ -155,7 +155,9 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     const filteredPreviewReleases = computed(() => {
       // if we're on account.unraid.net and the user is not in the download_preview group, don't show preview releases
       const userNotInGroup = isOnAccountApp.value && isLoggedIn.value && authUserGroups.value && !authUserGroups.value.includes('download_preview');
-      if (!osVersion.value || userNotInGroup) { return undefined; }
+      if (!osVersion.value || userNotInGroup) return undefined;
+      // if not authed but the current osVersionBranch is test then return an empty array to prevent showing test releases but still showing the test branch in the tabs
+      if (isOnAccountApp.value && !isLoggedIn.value && osVersionBranch.value === 'preview') return [];
 
       if (releases.value?.response?.preview) {
         return releases.value?.response?.preview.filter(
@@ -166,20 +168,29 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const filteredStableReleases = computed(() => {
-      if (!osVersion.value) { return undefined; }
+      if (!osVersion.value) return undefined;
+
+      let filteredReleases: Release[] | undefined = undefined;
 
       if (releases.value?.response?.stable) {
-        return releases.value?.response?.stable.filter(
+        filteredReleases = releases.value?.response?.stable.filter(
           release => gt(release.version, osVersion.value as string)
         );
       }
-      return undefined;
+      // if current osBranch is next, preview, or test we should return the latest stable release regardless if the current version is ahead
+      if ((!filteredReleases || filteredReleases.length === 0) && osVersionBranch.value !== 'stable') {
+        filteredReleases = [releases.value?.response?.stable[0]];
+      }
+
+      return filteredReleases;
     });
 
     const filteredTestReleases = computed(() => {
       // if we're on account.unraid.net and the user is not in the download_test group, don't show test releases
       const userNotInGroup = isOnAccountApp.value && isLoggedIn.value && authUserGroups.value && !authUserGroups.value.includes('download_test');
-      if (!osVersion.value || userNotInGroup) { return undefined; }
+      if (!osVersion.value || userNotInGroup) return undefined;
+      // if not authed but the current osVersionBranch is test then return an empty array to prevent showing test releases but still showing the test branch in the tabs
+      if (isOnAccountApp.value && !isLoggedIn.value && osVersionBranch.value === 'test') return [];
 
       if (releases.value?.response?.test) {
         return releases.value?.response?.test.filter(
@@ -190,7 +201,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
     });
 
     const allFilteredReleases = computed(() => {
-      if (!filteredNextReleases.value && !filteredPreviewReleases.value && !filteredStableReleases.value && !filteredTestReleases.value) {
+      if (!releases.value || !filteredNextReleases.value && !filteredPreviewReleases.value && !filteredStableReleases.value && !filteredTestReleases.value) {
         return undefined;
       }
 
@@ -199,7 +210,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         ...(filteredNextReleases.value && { next: [...filteredNextReleases.value] }),
         ...(filteredPreviewReleases.value && { preview: [...filteredPreviewReleases.value] }),
         ...(filteredTestReleases.value && { test: [...filteredTestReleases.value] }),
-      };
+      }
     });
 
     /**
@@ -243,7 +254,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         timestamp: Date.now(),
         response,
       };
-    };
+    }
 
     const cacheReleasesResponse = () => {
       localStorage.setItem(RELEASES_LOCAL_STORAGE_KEY, JSON.stringify(releases.value));
@@ -290,7 +301,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
           console.debug('[requestReleases] cache VALID', releases.value.response);
           return releases.value.response;
         }
-      }
+     }
 
       // If here we're needing to fetch a new releases…whether it's the first time or b/c the cache was expired
       try {
@@ -336,7 +347,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
         return console.error('[checkForUpdate] no releases found');
       }
 
-      Object.keys(releases.value.response ?? {}).forEach((key) => {
+      Object.keys(releases.value.response ?? {}).forEach(key => {
         // this is just to make TS happy (it's already checked above…thanks github copilot for knowing what I needed)
         if (!releases.value) {
           return;
@@ -352,7 +363,7 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
           return;
         }
 
-        branchReleases.find((release) => {
+        branchReleases.find(release => {
           if (gt(release.version, osVersion.value)) {
             // before we set the available version, check if the license key updates have expired to ensure we don't show an update that the user can't install
             if (regUpdatesExpired.value && releaseDateGtRegExpDate(release.date, regExp.value)) {
@@ -372,14 +383,14 @@ export const useUpdateOsStoreGeneric = (payload?: UpdateOsStorePayload) =>
 
     const findRelease = (searchKey: keyof Release, searchValue: string): Release | null => {
       const response = releases?.value?.response;
-      if (!response) { return null; }
+      if (!response) return null;
 
       for (const key of Object.keys(response)) {
         const branchReleases = response[key as keyof ReleasesResponse];
-        if (!branchReleases || branchReleases.length === 0) { continue; }
+        if (!branchReleases || branchReleases.length === 0) continue;
 
         const foundRelease = branchReleases.find(release => release[searchKey] === searchValue);
-        if (foundRelease) { return foundRelease; }
+        if (foundRelease) return foundRelease;
       }
 
       return null;
