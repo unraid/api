@@ -35,7 +35,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
 
     const server: FastifyInstance<Server, IncomingMessage, ServerResponse> =
         Fastify({
-            logger: true,
+            logger: false,
         });
 
     const app = await NestFactory.create<NestFastifyApplication>(
