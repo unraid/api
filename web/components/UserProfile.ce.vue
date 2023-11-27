@@ -40,7 +40,7 @@ const {
   state,
   connectPluginInstalled,
 } = storeToRefs(serverStore);
-const { bannerGradient, theme } = storeToRefs(useThemeStore());
+const { bannerGradient, theme, altTheme } = storeToRefs(useThemeStore());
 
 const hideDropdown = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 
@@ -116,7 +116,14 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div id="UserProfile" class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px">
+  <div
+    id="UserProfile"
+    :class="{
+      'text-alpha': !altTheme,
+      'text-beta': altTheme,
+    }"
+    class="relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
+  >
     <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
 
     <div class="text-gamma text-10px xs:text-12px text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
@@ -126,7 +133,7 @@ onBeforeMount(() => {
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
-      <h1 class="text-alpha text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0">
+      <h1 class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0">
         <template v-if="description && theme?.descriptionShow">
           <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
