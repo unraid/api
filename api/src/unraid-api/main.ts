@@ -13,16 +13,17 @@ import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.
 import { GraphQLError } from 'graphql';
 import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
 import { PORT } from '@app/environment';
-import { ShutdownObserver } from '@app/unraid-api/observers/shutdown.observer';
 import { type FastifyInstance } from 'fastify';
 import { type Server, type IncomingMessage, type ServerResponse } from 'http';
 export const corsOptionsDelegate: CorsOptionsDelegate = async (
     origin: string | undefined
 ) => {
+    const logger = new Logger('corsOptionsDelegate')
     const allowedOrigins = getAllowedOrigins();
     if (origin && allowedOrigins.includes(origin)) {
         return true;
     } else {
+        logger.debug(`Origin not in allowed origins: ${origin}`);
         throw new GraphQLError(
             'The CORS policy for this site does not allow access from the specified Origin.'
         );

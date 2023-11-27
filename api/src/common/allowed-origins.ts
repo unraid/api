@@ -3,7 +3,7 @@ import { uniq } from 'lodash';
 import { getServerIps, getUrlForField } from '@app/graphql/resolvers/subscription/network';
 import { FileLoadStatus } from '@app/store/types';
 import { logger } from '../core';
-import { ENVIRONMENT, INTROSPECTION } from '@app/environment';
+import { GRAPHQL_INTROSPECTION } from '@app/environment';
 
 const getAllowedSocks = (): string[] => [
 	// Notifier bridge
@@ -76,7 +76,7 @@ const getConnectOrigins = () : string[] => {
 }
 
 const getApolloSandbox = (): string[] => {
-	if (INTROSPECTION || ENVIRONMENT === 'development') {
+	if (GRAPHQL_INTROSPECTION) {
 		return ['https://studio.apollographql.com'];
 	}
 	return [];
