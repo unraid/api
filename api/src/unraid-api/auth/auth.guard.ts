@@ -34,7 +34,7 @@ export class GraphqlAuthGuard
                 );
             }
 
-            throw new HttpException('User not found', 401);
+            throw new UnauthorizedException('User not found');
         }
 
         return user;

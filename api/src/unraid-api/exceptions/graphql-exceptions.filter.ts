@@ -15,7 +15,7 @@ export class GraphQLExceptionsFilter<T extends GraphQLError>
         const response: FastifyReply<any> = ctx.getResponse<FastifyReply>();
 
         response
-            .status(200)
+            .code(200)
             .send({
                 data: null,
                 errors: [

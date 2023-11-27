@@ -44,8 +44,8 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     );
 
     app.useGlobalFilters(
-        new HttpExceptionFilter(),
-        new GraphQLExceptionsFilter()
+        new GraphQLExceptionsFilter(),
+        new HttpExceptionFilter()
     );
 
     await app.init();
