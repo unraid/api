@@ -109,7 +109,8 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'dev-static',
-  osVersion: '6.12.4',
+  osVersion: '6.13.0-beta0.22',
+  osVersionBranch: 'preview',
   // registered: connectPluginInstalled ? true : false,
   registered: false,
   regGen: 0,
