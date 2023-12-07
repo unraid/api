@@ -25,9 +25,7 @@ export const enableArrayEventListener = () =>
                 const array = getArrayData(getState);
                 if (!isEqual(oldArrayData, array)) {
                     pubsub.publish(PUBSUB_CHANNEL.ARRAY, { array });
-                    logger.addContext('event', array);
-                    logger.debug('Array was updated, publishing event');
-                    logger.removeContext('event');
+                    logger.debug({ event: array }, 'Array was updated, publishing event');
                 }
 
                 subscribe();

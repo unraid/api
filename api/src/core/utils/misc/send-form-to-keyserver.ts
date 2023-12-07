@@ -17,9 +17,8 @@ export const sendFormToKeyServer = async (url: string, data: Record<string, unkn
 
 	// Convert form to string
 	const body = form.toString();
-	logger.addContext('form', body);
-	logger.trace('Sending form to key-server');
-	logger.removeContext('form');
+
+	logger.trace({form: body }, 'Sending form to key-server');
 
 	// Send form
 	return got(url, {

@@ -120,6 +120,8 @@
     "p-retry": "^4.6.2",
     "passport-http-header-strategy": "^1.1.0",
     "pidusage": "^3.0.2",
+    "pino": "^8.16.2",
+    "pino-pretty": "^10.2.3",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
     "semver": "^7.4.0",

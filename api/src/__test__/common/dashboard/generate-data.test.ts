@@ -16,24 +16,18 @@ vi.mock('@app/core/log', () => ({
 		error: vi.fn(),
 		debug: vi.fn(),
 		trace: vi.fn(),
-		addContext: vi.fn(),
-		removeContext: vi.fn(),
 	},
 	dashboardLogger: {
 		info: vi.fn(),
 		error: vi.fn((...input) => console.log(input)),
 		debug: vi.fn(),
 		trace: vi.fn(),
-		addContext: vi.fn(),
-		removeContext: vi.fn(),
 	},
 	emhttpLogger: {
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
 		trace: vi.fn(),
-		addContext: vi.fn(),
-		removeContext: vi.fn(),
 	},
 }));
 

@@ -75,15 +75,10 @@ export const getCloudData = async (
         const cloud = await client.query({ query: getCloudDocument });
         return cloud.data.cloud ?? null;
     } catch (error: unknown) {
-        cliLogger.addContext(
-            'error-stack',
-            error instanceof Error ? error.stack : error
-        );
         cliLogger.trace(
             'Failed fetching cloud from local graphql with "%s"',
             error instanceof Error ? error.message : 'Unknown Error'
         );
-        cliLogger.removeContext('error-stack');
 
         return null;
     }
@@ -122,12 +117,10 @@ export const getServersData = async ({
         );
         return foundServers;
     } catch (error: unknown) {
-        cliLogger.addContext('error', error);
         cliLogger.trace(
             'Failed fetching servers from local graphql with "%s"',
             error instanceof Error ? error.message : 'Unknown Error'
         );
-        cliLogger.removeContext('error');
         return {
             online: [],
             offline: [],

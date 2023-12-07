@@ -41,9 +41,7 @@ export const subscribeToEvents = async (apiKey: string) => {
                 errors.join(',')
             );
         } else if (data) {
-            mothershipLogger.addContext('events', data.events);
-            mothershipLogger.trace('Got events from mothership');
-            mothershipLogger.removeContext('events');
+            mothershipLogger.trace({ events: data.events }, 'Got events from mothership');
 
             for (const event of data.events?.filter(notNull) ?? []) {
                 switch (event.__typename) {

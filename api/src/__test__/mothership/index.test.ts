@@ -19,7 +19,7 @@ vi.mock('@graphql-tools/schema', () => ({
 
 vi.mock('@app/core/log', () => ({
 	default: { relayLogger: { trace: vi.fn() } },
-	relayLogger: { trace: vi.fn(), addContext: vi.fn(), removeContext: vi.fn() },
+	relayLogger: { trace: vi.fn() },
 	logger: { trace: vi.fn() },
 }));
 
