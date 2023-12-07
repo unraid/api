@@ -330,5 +330,6 @@
   "Unknown error": "Unknown error",
   "Installing Extended": "Installing Extended",
   "Please finish the initiated downgrade to enable updates.": "Please finish the initiated downgrade to enable updates.",
-  "Please finish the initiated update to enable a downgrade.": "Please finish the initiated update to enable a downgrade."
+  "Please finish the initiated update to enable a downgrade.": "Please finish the initiated update to enable a downgrade.",
+  "Download Diagnostics": "Download Diagnostics"
 }
