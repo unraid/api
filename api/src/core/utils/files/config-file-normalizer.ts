@@ -35,8 +35,8 @@ export const getWriteableConfig = <T extends ConfigType>(
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
     const newState: ConfigObject<T> = {
         api: {
-            version: api.version ?? initialState.api.version,
-            extraOrigins: api.extraOrigins ?? initialState.api.extraOrigins,
+            version: api?.version ?? initialState.api.version,
+            extraOrigins: api?.extraOrigins ?? initialState.api.extraOrigins,
         },
         local: {
             ...(local?.['2Fa'] === 'yes' ? { '2Fa': local['2Fa'] } : {}),
