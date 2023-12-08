@@ -17,3 +17,4 @@ export const BYPASS_PERMISSION_CHECKS = process.env.BYPASS_PERMISSION_CHECKS ===
 export const LOG_CORS = process.env.LOG_CORS === 'true';
 export const LOG_TYPE = process.env.LOG_TYPE as 'pretty' | 'raw';
 export const LOG_LEVEL = process.env.LOG_LEVEL as 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
+export const LOG_TRANSPORT = process.env.LOG_TRANSPORT as 'file' | 'stdout';

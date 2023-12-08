@@ -1,5 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger } from '@nestjs/common';
+import { Logger as PinoLogger } from 'nestjs-pino';
+import { Logger} from '@nestjs/common'
 import { AppModule } from './app/app.module';
 import Fastify from 'fastify';
 import {
@@ -15,6 +16,7 @@ import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exce
 import { PORT } from '@app/environment';
 import { type FastifyInstance } from 'fastify';
 import { type Server, type IncomingMessage, type ServerResponse } from 'http';
+import { apiLogger } from '@app/core/log';
 export const corsOptionsDelegate: CorsOptionsDelegate = async (
     origin: string | undefined
 ) => {
@@ -31,7 +33,6 @@ export const corsOptionsDelegate: CorsOptionsDelegate = async (
 };
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    const logger = new Logger('bootstrapNestServer');
 
     const server: FastifyInstance<Server, IncomingMessage, ServerResponse> =
         Fastify({
@@ -41,16 +42,17 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
         new FastifyAdapter(server),
-        { cors: { origin: corsOptionsDelegate } }
+        { cors: { origin: corsOptionsDelegate }, bufferLogs: false }
     );
+    app.useLogger(app.get(PinoLogger));
 
+    apiLogger.debug('Starting Nest Server on Port / Path: %s', PORT);
     app.useGlobalFilters(
         new GraphQLExceptionsFilter(),
         new HttpExceptionFilter()
     );
 
     await app.init();
-    logger.debug('Starting Nest Server on Port / Path: ' + PORT);
     if (Number.isNaN(parseInt(PORT))) {
         server.listen({ path: '/var/run/unraid-api.sock' });
     } else {
@@ -58,7 +60,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     }
 
     //await app.getHttpAdapter().listen(PORT);
-    logger.debug('Nest Server is now listening');
+    apiLogger.debug('Nest Server is now listening');
 
     return app;
 }

@@ -21,7 +21,7 @@ export const enableServerStateListener = () =>
             if (isAPIStateDataFullyLoaded(getState())) {
                 const servers = getServers(getState);
                 mothershipLogger.trace(
-                    'Got local server state %o',
+                    'Got local server state',
                     servers
                 );
                 if (servers.length > 0) {

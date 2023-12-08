@@ -1,7 +1,7 @@
-import chalk from 'chalk';
-import { pino, type LoggerOptions } from 'pino';
-import { LOG_TYPE } from '@app/environment';
-import { serializeError } from 'serialize-error';
+import { pino } from 'pino';
+import { LOG_TRANSPORT, LOG_TYPE } from '@app/environment';
+
+import pretty from 'pino-pretty';
 
 export const levels = [
     'trace',
@@ -12,82 +12,37 @@ export const levels = [
     'fatal',
 ] as const;
 
-const contextEnabled = Boolean(process.env.LOG_CONTEXT);
-const stackEnabled = Boolean(process.env.LOG_STACKTRACE);
-const tracingEnabled = Boolean(process.env.LOG_TRACING);
-const fullLoggingPattern = chalk`{gray [%d]} %x\{id\} %[[%p]%] %[[%c]%] %m{gray %x\{context\}}${
-    tracingEnabled ? ' %[%f:%l%]' : ''
-}`;
-const minimumLoggingPattern = '%m';
-const appenders = process.env.LOG_TRANSPORT?.split(',').map((transport) =>
-    transport.trim()
-) ?? ['out'];
 const level =
     levels[
         levels.indexOf(
             process.env.LOG_LEVEL?.toLowerCase() as (typeof levels)[number]
         )
     ] ?? 'info';
-const logLayout = {
-    type: 'pattern',
-    // Depending on what this env is set to we'll either get raw or pretty logs
-    // The reason we do this is to allow the app to change this value
-    // This way pretty logs can be turned off programmatically
-    pattern:
-        process.env.LOG_TYPE === 'pretty'
-            ? fullLoggingPattern
-            : minimumLoggingPattern,
-    tokens: {
-        id() {
-            return chalk`{gray [${process.pid}]}`;
-        },
-        context({ context }: { context?: any }) {
-            if (!contextEnabled || !context) {
-                return '';
-            }
 
-            try {
-                const contextEntries = Object.entries(context)
-                    .map(([key, value]) => [
-                        key,
-                        value instanceof Error
-                            ? stackEnabled
-                                ? serializeError(value)
-                                : value
-                            : value,
-                    ])
-                    .filter(([key]) => key !== 'pid');
-                const cleanContext = Object.fromEntries(contextEntries);
-                return `\n${Object.entries(cleanContext)
-                    .map(
-                        ([key, value]) =>
-                            `${key}=${JSON.stringify(value, null, 2)}`
-                    )
-                    .join(' ')}`;
-            } catch (error: unknown) {
-                const errorInfo =
-                    error instanceof Error
-                        ? `${error.message}: ${error.stack ?? 'no stack'}`
-                        : 'Error not instance of error';
-                return `Error generating context: ${errorInfo}`;
-            }
+const logDestination =
+    LOG_TRANSPORT === 'file' ? pino.destination('/var/log/unraid-api/stdout.log') : 1;
+
+const stream =
+    LOG_TYPE === 'pretty'
+        ? pretty({
+              singleLine: true,
+              hideObject: false,
+              colorize: true,
+              ignore: 'time,hostname,pid',
+              destination: logDestination,
+          })
+        : pino.destination(logDestination);
+
+export const logger = pino(
+    {
+        level,
+        timestamp: () => `,"time":"${new Date().toISOString()}"`,
+        formatters: {
+            level: (label: string) => ({ level: label }),
         },
     },
-};
-
-const pinoOptions: LoggerOptions = {
-    level,
-    timestamp: () => `,"time":"${new Date().toISOString()}"`,
-    formatters: {
-        level: (label: string) => ({ level: label }),
-    },
-    /* transport: {
-        options: { colorize: true },
-        target: LOG_TYPE === 'pretty' ? 'pino-pretty' : '',
-    }, */
-};
-
-export const logger = pino(pinoOptions);
+    stream
+);
 
 export const internalLogger = logger.child({ logger: 'internal' });
 export const appLogger = logger.child({ logger: 'app' });
@@ -104,8 +59,10 @@ export const upnpLogger = logger.child({ logger: 'upnp' });
 export const keyServerLogger = logger.child({ logger: 'key-server' });
 export const remoteAccessLogger = logger.child({ logger: 'remote-access' });
 export const remoteQueryLogger = logger.child({ logger: 'remote-query' });
+export const apiLogger = logger.child({ logger: 'api' });
 
 export const loggers = [
+    internalLogger,
     appLogger,
     mothershipLogger,
     dashboardLogger,
@@ -120,6 +77,7 @@ export const loggers = [
     keyServerLogger,
     remoteAccessLogger,
     remoteQueryLogger,
+    apiLogger
 ];
 
 // Send SIGUSR1 to increase log level

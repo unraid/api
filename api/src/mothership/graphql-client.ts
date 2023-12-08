@@ -131,7 +131,7 @@ export class GraphQLClient {
                 
                 const getDelay = delayFn(count);
                 store.dispatch(setMothershipTimeout(getDelay));
-                minigraphLogger.info('Delay currently is', getDelay);
+                minigraphLogger.info('Delay currently is: %i', getDelay);
                 return getDelay;
             },
             attempts: { max: Infinity },
