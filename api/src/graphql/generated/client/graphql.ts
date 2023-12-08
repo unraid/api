@@ -345,7 +345,7 @@ export type KsServerDetails = {
   flashProduct: Scalars['String']['output'];
   flashVendor: Scalars['String']['output'];
   guid: Scalars['String']['output'];
-  ipsId: Scalars['String']['output'];
+  ipsId?: Maybe<Scalars['String']['output']>;
   keyType?: Maybe<Scalars['String']['output']>;
   licenseKey: Scalars['String']['output'];
   name: Scalars['String']['output'];

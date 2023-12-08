@@ -96,8 +96,7 @@ void am(
         });
     },
     async (error: NodeJS.ErrnoException) => {
-        // Log error to syslog
-        logger.error('API-GLOBAL-ERROR', error);
+        logger.error('API-GLOBAL-ERROR %s %s', error.message, error.stack);
         shutdownApiEvent();
         if (server) { await server?.close?.() }
 

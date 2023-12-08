@@ -11,6 +11,8 @@ import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ResolversModule } from './resolvers/resolvers.module';
 import { GRAPHQL_INTROSPECTION } from '@app/environment';
+import { typeDefs } from '@app/graphql/schema/index';
+import { print } from 'graphql';
 
 @Module({
     imports: [
@@ -34,7 +36,7 @@ import { GRAPHQL_INTROSPECTION } from '@app/environment';
                 },
             },
             path: '/graphql',
-            typePaths: ['**/*.graphql'],
+            typeDefs: print(typeDefs),
             resolvers: {
                 JSON: JSONResolver,
                 Long: GraphQLLong,
