@@ -519,9 +519,19 @@ $('body').on('click', '.js-goToExtraOrigins', function(e) {
  */
 $host = $_SERVER['HTTP_HOST'] ?? "unknown";
 $allowedOrigins = $mystatus['allowedOrigins'] ?? "";
+$extraOrigins = $myservers['api']['extraOrigins'] ?? "";
+
 $allowedOriginsArr = [];
-if (stripos($allowedOrigins.",", "/".$host.",") === false) {
+// if the current host is not in the allowed origins list and extra origins list, display a warning
+if (stripos($allowedOrigins.",", "/".$host.",") === false && stripos($extraOrigins.",", "/".$host.",") === false) {
   $allowedOriginsArr = explode(", ", $allowedOrigins);
+
+  if (strpos($extraOrigins, ",") !== false) { // check if the extra origins is a comma separated list of URLs
+    $extraOriginsArr = explode(",", $extraOrigins);
+    $allowedOriginsArr = array_merge($allowedOriginsArr, $extraOriginsArr);
+  } elseif ($extraOrigins) { // if the extra origins is not comma separated assume it's a single URL
+    $allowedOriginsArr[] = $extraOrigins;
+  }
   if ($allowedOriginsArr) {
     foreach($allowedOriginsArr as $key => $origin) {
       if ( (strpos($origin, "http") === false) || (strpos($origin, "localhost") !== false) ) {
