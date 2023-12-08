@@ -468,13 +468,46 @@ const isCommaSeparatedURLs = input =>
     .split(",")
     .every(value => /^(http|https):\/\/[^ "]+$/.test(value));
 
-$('body').on('change keyup', '.js-extraOrigins', function(data) {
-  console.debug('change keyup', data);
+// toggle extra origins apply button
+function extraOriginsValidateAndToggleDisabled() {
   validateExtraOrigins();
   if (!isExtraOriginsValid) {
     return $('.js-extraOriginsApply').prop("disabled",true);
-  }
+  }i
   return $('.js-extraOriginsApply').removeAttr('disabled');
+}
+
+$('body').on('change keyup', '.js-extraOrigins', function(data) {
+  console.debug('change keyup', data);
+  extraOriginsValidateAndToggleDisabled();
+});
+
+// Add the current URL to the Extra Origins setting on click then focus the input and automatically add the current window's origin
+$('body').on('click', '.js-goToExtraOrigins', function(e) {
+  e.preventDefault();
+  
+  $extraOriginsInput = $('.js-extraOrigins');
+
+  $('html, body').animate({
+    scrollTop: $extraOriginsInput.offset().top
+  }, 150);
+  
+  // if the curent window origin is already in the input, run the validation and enable the apply button
+  if ($extraOriginsInput.val().includes(window.location.origin)) {
+    return extraOriginsValidateAndToggleDisabled();
+  }
+
+  $extraOriginsInput.focus();
+
+  if ($extraOriginsInput.val().length > 0) {
+    // don't overwrite the value of the input, only add to it
+    $extraOriginsInput.val($extraOriginsInput.val() + ', ' + window.location.origin);
+  } else {
+    // ensure the current window.location.origin is not already in the input before adding it
+    $extraOriginsInput.val(window.location.origin);
+  }
+  // run the validation on the field and enable the apply button
+  extraOriginsValidateAndToggleDisabled();
 });
 </script>
 
@@ -504,8 +537,9 @@ if (stripos($allowedOrigins.",", "/".$host.",") === false) {
 <dl>
   <div style="margin-bottom: 2rem;">
     <span class="orange-text"><i class='fa fa-warning fa-fw'></i> <strong>_(Warning)_</strong></span> <?= sprintf(_('Your current url **%s** is not in the list of allowed origins for this server'), $host) ?>.
-    <br/>_(For best results, use one of these urls)_:
+    <br/>_(For best results, add the current url to extra origins setting field below)_: <a class="js-goToExtraOrigins" href="#extraOriginsSettings">_(Add the current URL to the Extra Origins setting)_</a>
     <dd>
+      <p>Allow Origins:</p>
       <ul>
         <? foreach($allowedOriginsArr as $origin): ?>
           <li><a href="<?= $origin ?>"><?= $origin ?></a></li>
