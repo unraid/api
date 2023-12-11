@@ -1,6 +1,6 @@
 import { pino } from 'pino';
 import { LOG_TRANSPORT, LOG_TYPE } from '@app/environment';
-
+import { createStream } from 'rotating-file-stream';
 import pretty from 'pino-pretty';
 
 export const levels = [
@@ -20,7 +20,14 @@ const level =
     ] ?? 'info';
 
 const logDestination =
-    LOG_TRANSPORT === 'file' ? pino.destination('/var/log/unraid-api/stdout.log') : 1;
+    LOG_TRANSPORT === 'file'
+        ? pino.destination(
+              createStream('/var/log/unraid-api.log', {
+                  size: '5M',
+                  maxFiles: 1,
+              })
+          )
+        : 1;
 
 const stream =
     LOG_TYPE === 'pretty'
@@ -77,7 +84,7 @@ export const loggers = [
     keyServerLogger,
     remoteAccessLogger,
     remoteQueryLogger,
-    apiLogger
+    apiLogger,
 ];
 
 // Send SIGUSR1 to increase log level
