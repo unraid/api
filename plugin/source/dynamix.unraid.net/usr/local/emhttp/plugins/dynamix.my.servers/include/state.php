@@ -20,6 +20,7 @@ require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
  *
  * Usage:
  * ```
+ * require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
  * $serverStateClass = new ServerState();
  *
  * $serverStateClass->getServerState();
@@ -32,13 +33,9 @@ class ServerState
     protected $webguiGlobals;
 
     private $var;
-    private $flashbackupIni;
-    private $flashbackupStatus;
-    private $nginx;
+    private $flashbackupCfg;
     private $connectPluginInstalled = '';
     private $connectPluginVersion;
-    private $myserversFlashCfgPath;
-    private $myservers;
     private $configErrorEnum = [
         "error" => 'UNKNOWN_ERROR',
         "invalid" => 'INVALID',
@@ -47,9 +44,20 @@ class ServerState
     ];
     private $osVersion;
     private $osVersionBranch;
-    private $registered;
     private $rebootDetails;
     private $caseModel = '';
+    private $keyfileBase64UrlSafe = '';
+
+    public $myServersFlashCfg = [];
+    public $myServersMemoryCfg = [];
+    public $host = 'unknown';
+    public $combinedKnownOrigins = [];
+ 
+    public $nginxCfg;
+    public $flashbackupStatus;
+    public $registered;
+    public $myServersMiniGraphConnected = false;
+    public $keyfileBase64 = '';
 
     /**
      * Constructor to initialize class properties and gather server information.
@@ -65,10 +73,10 @@ class ServerState
         // echo "<pre>" . json_encode($this->webguiGlobals, JSON_PRETTY_PRINT) . "</pre>";
 
         $this->var = (array)parse_ini_file('state/var.ini');
+        $this->nginxCfg = parse_ini_file('/var/local/emhttp/nginx.ini');
 
-        $this->flashbackupIni = '/var/local/emhttp/flashbackup.ini';
-        $this->flashbackupStatus = (file_exists($this->flashbackupIni)) ? @parse_ini_file($this->flashbackupIni) : [];
-        $this->nginx = parse_ini_file('/var/local/emhttp/nginx.ini');
+        $this->flashbackupCfg = '/var/local/emhttp/flashbackup.ini';
+        $this->flashbackupStatus = (file_exists($this->flashbackupCfg)) ? @parse_ini_file($this->flashbackupCfg) : [];
 
         if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) {
             $this->connectPluginInstalled = 'dynamix.unraid.net.plg';
@@ -90,17 +98,71 @@ class ServerState
          * - $myservers_memory_cfg_path ='/var/local/emhttp/myservers.cfg';
          * - $mystatus = (file_exists($myservers_memory_cfg_path)) ? @parse_ini_file($myservers_memory_cfg_path) : [];
          */
-        $this->myserversFlashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
-        $this->myservers = file_exists($this->myserversFlashCfgPath) ? @parse_ini_file($this->myserversFlashCfgPath, true) : [];
+        $flashCfgPath = '/boot/config/plugins/dynamix.my.servers/myservers.cfg';
+        $this->myServersFlashCfg = file_exists($flashCfgPath) ? @parse_ini_file($flashCfgPath, true) : [];
+        // ensure some vars are defined here so we don't have to test them later
+        if (empty($this->myServersFlashCfg['remote']['apikey'])) {
+            $this->myServersFlashCfg['remote']['apikey'] = "";
+        }
+        if (empty($this->myServersFlashCfg['remote']['wanaccess'])) {
+            $this->myServersFlashCfg['remote']['wanaccess'] = "no";
+        }
+        if (empty($this->myServersFlashCfg['remote']['wanport'])) {
+            $this->myServersFlashCfg['remote']['wanport'] = 33443;
+        }
+        if (empty($this->myServersFlashCfg['remote']['upnpEnabled'])) {
+            $this->myServersFlashCfg['remote']['upnpEnabled'] = "no";
+        }
+        if (empty($this->myServersFlashCfg['remote']['dynamicRemoteAccessType'])) {
+            $this->myServersFlashCfg['remote']['dynamicRemoteAccessType'] = "DISABLED";
+        }
 
         $this->osVersion = $this->var['version'];
         $this->osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
-        $this->registered = !empty($this->myservers['remote']['apikey']) && $this->connectPluginInstalled;
+        $this->registered = !empty($this->myServersFlashCfg['remote']['apikey']) && $this->connectPluginInstalled;
 
         $caseModelFile = '/boot/config/plugins/dynamix/case-model.cfg';
         $this->caseModel = file_exists($caseModelFile) ? file_get_contents($caseModelFile) : '';
 
         $this->rebootDetails = new RebootDetails();
+
+        /**
+         * Allowed origins warning displayed when the current webGUI URL is NOT included in the known lists of allowed origins.
+         * Include localhost in the test, but only display HTTP(S) URLs that do not include localhost.
+         */
+        $this->host = $_SERVER['HTTP_HOST'] ?? "unknown";
+        $memoryCfgPath = '/var/local/emhttp/myservers.cfg';
+        $this->myServersMemoryCfg = (file_exists($memoryCfgPath)) ? @parse_ini_file($memoryCfgPath) : [];
+        $this->myServersMiniGraphConnected = (($this->myServersMemoryCfg['minigraph']??'') === 'CONNECTED');
+
+        $allowedOrigins = $this->myServersMemoryCfg['allowedOrigins'] ?? "";
+        $extraOrigins = $this->myServersFlashCfg['api']['extraOrigins'] ?? "";
+
+        // if the current host is not in the allowed origins list and extra origins list, display a warning
+        if (stripos($allowedOrigins.",", "/".$this->host.",") === false && stripos($extraOrigins.",", "/".$this->host.",") === false) {
+            $this->combinedKnownOrigins = explode(", ", $allowedOrigins);
+
+            if (strpos($extraOrigins, ",") !== false) { // check if the extra origins is a comma separated list of URLs
+                $extraOriginsArr = explode(",", $extraOrigins);
+                $this->combinedKnownOrigins = array_merge($this->combinedKnownOrigins, $extraOriginsArr);
+            } elseif ($extraOrigins) { // if the extra origins is not comma separated assume it's a single URL
+                $this->combinedKnownOrigins[] = $extraOrigins;
+            }
+            if ($this->combinedKnownOrigins) {
+                foreach($this->combinedKnownOrigins as $key => $origin) {
+                    if ( (strpos($origin, "http") === false) || (strpos($origin, "localhost") !== false) ) {
+                        // clean up $this->combinedKnownOrigins, only display warning if origins still remain to display
+                        unset($this->combinedKnownOrigins[$key]);
+                    }
+                }
+            }
+        }
+
+        $this->keyfileBase64 = empty($this->var['regFILE']) ? null : @file_get_contents($this->var['regFILE']);
+        if ($this->keyfileBase64 !== false) {
+          $this->keyfileBase64 = @base64_encode($this->keyfileBase64);
+          $this->keyfileBase64UrlSafe = str_replace(['+', '/', '='], ['-', '_', ''], trim($this->keyfileBase64));
+        }
     }
 
     /**
@@ -109,7 +171,6 @@ class ServerState
     public function getWebguiGlobal(string $key) {
         return $this->webguiGlobals[$key];
     }
-
     /**
      * Retrieve the server information as an associative array
      *
@@ -118,9 +179,9 @@ class ServerState
     public function getServerState()
     {
         $serverState = [
-            "apiKey" => $this->myservers['upc']['apikey'] ?? '',
-            "apiVersion" => $this->myservers['api']['version'] ?? '',
-            "avatar" => (!empty($this->myservers['remote']['avatar']) && $this->connectPluginInstalled) ? $this->myservers['remote']['avatar'] : '',
+            "apiKey" => $this->myServersFlashCfg['upc']['apikey'] ?? '',
+            "apiVersion" => $this->myServersFlashCfg['api']['version'] ?? '',
+            "avatar" => (!empty($this->myServersFlashCfg['remote']['avatar']) && $this->connectPluginInstalled) ? $this->myServersFlashCfg['remote']['avatar'] : '',
             "caseModel" => $this->caseModel,
             "config" => [
                 'valid' => ($this->var['configValid'] === 'yes'),
@@ -135,21 +196,21 @@ class ServerState
             ],
             "description" => $this->var['COMMENT'] ? htmlspecialchars($this->var['COMMENT']) : '',
             "deviceCount" => $this->var['deviceCount'],
-            "email" => $this->myservers['remote']['email'] ?? '',
+            "email" => $this->myServersFlashCfg['remote']['email'] ?? '',
             "expireTime" => 1000 * (($this->var['regTy'] === 'Trial' || strstr($this->var['regTy'], 'expired')) ? $this->var['regTm2'] : 0),
-            "extraOrigins" => explode(',', $this->myservers['api']['extraOrigins'] ?? ''),
+            "extraOrigins" => explode(',', $this->myServersFlashCfg['api']['extraOrigins'] ?? ''),
             "flashProduct" => $this->var['flashProduct'],
             "flashVendor" => $this->var['flashVendor'],
             "flashBackupActivated" => empty($this->flashbackupStatus['activated']) ? '' : 'true',
             "guid" => $this->var['flashGUID'],
-            "hasRemoteApikey" => !empty($this->myservers['remote']['apikey']),
+            "hasRemoteApikey" => !empty($this->myServersFlashCfg['remote']['apikey']),
             "internalPort" => $_SERVER['SERVER_PORT'],
-            "keyfile" => empty($this->var['regFILE']) ? '' : str_replace(['+', '/', '='], ['-', '_', ''], trim(base64_encode(@file_get_contents($this->var['regFILE'])))),
+            "keyfile" => $this->keyfileBase64UrlSafe,
             "lanIp" => ipaddr(),
             "locale" => (!empty($_SESSION) && $_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
             "model" => $this->var['SYS_MODEL'],
             "name" => htmlspecialchars($this->var['NAME']),
-            "osVersion" => $this->var['version'],
+            "osVersion" => $this->osVersion,
             "osVersionBranch" => $this->osVersionBranch,
             "protocol" => $_SERVER['REQUEST_SCHEME'],
             "rebootType" => $this->rebootDetails->getRebootType(),
@@ -161,7 +222,7 @@ class ServerState
             "regTy" => @$this->var['regTy'] ?? '',
             "regExp" => $this->var['regExp'] ? @$this->var['regExp'] * 1000 : '', // JS expects milliseconds
             "registered" => $this->registered,
-            "registeredTime" => $this->myservers['remote']['regWizTime'] ?? '',
+            "registeredTime" => $this->myServersFlashCfg['remote']['regWizTime'] ?? '',
             "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
             "state" => strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']),
             "theme" => [
@@ -175,9 +236,13 @@ class ServerState
             ],
             "ts" => time(),
             "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
-            "username" => $this->myservers['remote']['username'] ?? '',
-            "wanFQDN" => $this->nginx['NGINX_WANFQDN'] ?? '',
+            "username" => $this->myServersFlashCfg['remote']['username'] ?? '',
+            "wanFQDN" => $this->nginxCfg['NGINX_WANFQDN'] ?? '',
         ];
+
+        if ($this->combinedKnownOrigins) {
+            $serverState['combinedKnownOrigins'] = $this->combinedKnownOrigins;
+        }
 
         return $serverState;
     }
