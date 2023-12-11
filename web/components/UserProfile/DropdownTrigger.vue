@@ -19,7 +19,7 @@ const props = defineProps<{ t: any; }>();
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
-const { state, stateData } = storeToRefs(useServerStore());
+const { connectPluginInstalled, registered, state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
 const { rebootType } = storeToRefs(useUpdateOsActionsStore());
 
@@ -27,6 +27,7 @@ const showErrorIcon = computed(() => errors.value.length || stateData.value.erro
 
 const text = computed((): string | undefined => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') { return props.t('Fix Error'); }
+  if (!registered.value && connectPluginInstalled.value) { return props.t('Sign In'); }
 });
 
 const title = computed((): string => {
