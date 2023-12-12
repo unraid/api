@@ -22,6 +22,11 @@ RolesBuilder {
           "*",
         ],
       },
+      "config": {
+        "update:own": [
+          "*",
+        ],
+      },
       "connect": {
         "read:own": [
           "*",
@@ -312,6 +317,9 @@ RolesBuilder {
       },
       "config": {
         "read:any": [
+          "*",
+        ],
+        "update:own": [
           "*",
         ],
       },
