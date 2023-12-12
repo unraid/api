@@ -196,6 +196,7 @@ const items = computed((): RegistrationItemProps[] => {
               :disabled="authAction?.disabled"
               :icon="authAction.icon"
               :text="t(authAction.text)"
+              :title="authAction.title ? t(authAction.title) : undefined"
               @click="authAction.click()"
             />
           </span>
