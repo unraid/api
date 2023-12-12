@@ -17,7 +17,7 @@ export interface TimeStringsObject {
 }
 
 const dateFormatOptions: DateFormatOption[] = [
-  { format: '%c', display: 'ddd, D MMMM YYYY' }, // aka "system settings"
+  { format: '%c', display: 'ddd, D MMMM YYYY' }, // aka "system settings" in the date time settings of the webgui
   { format: '%A, %Y %B %e', display: 'ddd, YYYY MMMM D' },
   { format: '%A, %e %B %Y', display: 'ddd, D MMMM YYYY' },
   { format: '%A, %B %e, %Y', display: 'ddd, MMMM D, YYYY' },
