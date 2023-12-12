@@ -17,6 +17,7 @@ export interface TimeStringsObject {
 }
 
 const dateFormatOptions: DateFormatOption[] = [
+  { format: '%c', display: 'ddd, D MMMM YYYY' }, // aka "system settings"
   { format: '%A, %Y %B %e', display: 'ddd, YYYY MMMM D' },
   { format: '%A, %e %B %Y', display: 'ddd, D MMMM YYYY' },
   { format: '%A, %B %e, %Y', display: 'ddd, MMMM D, YYYY' },
@@ -76,15 +77,19 @@ const useDateTimeHelper = (
     formats.find(formatOption => formatOption.format === selectedFormat);
 
   const dateFormat = findMatchingFormat(format?.date ?? dateFormatOptions[0].format, dateFormatOptions);
+  console.debug('[dateFormat]', dateFormat);
 
   let displayFormat = `${dateFormat?.display}`;
+  console.debug('[displayFormat]', displayFormat);
   if (!hideMinutesSeconds) {
     const timeFormat = findMatchingFormat(format?.time ?? timeFormatOptions[0].format, timeFormatOptions);
     displayFormat = `${displayFormat} ${timeFormat?.display}`;
+    console.debug('[displayFormat] with time', displayFormat);
   }
 
   const formatDate = (date: number): string =>
     dayjs(date).format(displayFormat);
+  console.debug('[formatDate]', formatDate(Date.now()));
 
   /**
  * Original meat and potatos from:
