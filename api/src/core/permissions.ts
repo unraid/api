@@ -1,3 +1,4 @@
+import { apiLogger } from '@app/core/log';
 import { RolesBuilder } from 'nest-access-control';
 
 export interface Permission {
@@ -179,7 +180,7 @@ export const setupPermissions = (): RolesBuilder => {
         }
     });
 
-    console.log(JSON.stringify(ac.getRoles()));
+    apiLogger.debug('Possible Roles: %o', ac.getRoles());
 
     return ac;
 };

@@ -10,11 +10,17 @@ import { ACGuard, AccessControlModule } from 'nest-access-control';
 import { LoggerModule } from 'nestjs-pino';
 
 @Module({
-    imports: [LoggerModule.forRoot({
-        pinoHttp: {
-            logger: apiLogger,
-        }
-    }), AccessControlModule.forRoles(setupPermissions()),AuthModule, GraphModule, RestModule],
+    imports: [
+        LoggerModule.forRoot({
+            pinoHttp: {
+                logger: apiLogger,
+            },
+        }),
+        AccessControlModule.forRoles(setupPermissions()),
+        AuthModule,
+        GraphModule,
+        RestModule,
+    ],
     controllers: [],
     providers: [
         {

@@ -19,21 +19,21 @@ test('Returns parsed state file', async () => {
 		    "id": "0",
 		    "name": "root",
 		    "password": true,
-		    "roles": "admin",
+		    "role": "admin",
 		  },
 		  {
 		    "description": "",
 		    "id": "1",
 		    "name": "xo",
 		    "password": true,
-		    "roles": "user",
+		    "role": "user",
 		  },
 		  {
 		    "description": "",
 		    "id": "2",
 		    "name": "test_user",
 		    "password": false,
-		    "roles": "user",
+		    "role": "user",
 		  },
 		]
 	`);

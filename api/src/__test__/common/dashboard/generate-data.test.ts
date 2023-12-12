@@ -64,7 +64,7 @@ test('Returns generated data', async () => {
 		    "case": {
 		      "base64": "",
 		      "error": "",
-		      "icon": "case-model.png",
+		      "icon": "",
 		      "url": "",
 		    },
 		  },
@@ -94,6 +94,8 @@ test('Returns generated data', async () => {
 		    "flashGuid": "0000-0000-0000-000000000000",
 		    "regState": "PRO",
 		    "regTy": "PRO",
+		    "serverDescription": "Dev Server",
+		    "serverName": "Tower",
 		  },
 		  "versions": {
 		    "unraid": "6.11.2",
