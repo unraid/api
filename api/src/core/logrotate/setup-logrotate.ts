@@ -1,17 +1,25 @@
-import { writeFile } from "fs/promises"
-import { fileExists } from "@app/core/utils/files/file-exists"
+import { writeFile } from 'fs/promises';
+import { fileExists } from '@app/core/utils/files/file-exists';
 
 export const setupLogRotation = async () => {
     if (await fileExists('/etc/logrotate.d/unraid-api')) {
-        return
+        return;
     } else {
-        await writeFile('/etc/logrotate.d/unraid-api', `
-            /var/log/unraid-api/*.log {
+        await writeFile(
+            '/etc/logrotate.d/unraid-api',
+            `
+            /var/log/unraid-api/stdout.log {
                 rotate 2
                 missingok
                 size 5M
             }
-        `);
-    }
 
-}
+            /var/log/unraid-api/stderr.log {
+                rotate 2
+                missingok
+                size 5M
+            }
+        `
+        );
+    }
+};
