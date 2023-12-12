@@ -1,0 +1,28 @@
+scalar JSON
+scalar Long
+scalar UUID
+scalar DateTime
+scalar Port
+
+type Welcome {
+    message: String!
+}
+
+type Query {
+    # This should always be available even for guest users
+    online: Boolean
+    info: Info
+}
+
+type Mutation {
+    login(username: String!, password: String!): String
+    sendNotification(notification: NotificationInput!): Notification
+    shutdown: String
+    reboot: String
+}
+
+type Subscription {
+    ping: String!
+    info: Info!
+    online: Boolean!
+}

@@ -39,7 +39,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
 });
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const getLocalServer = (getState = store.getState): Array<Server> => {
+export const getLocalServer = (getState = store.getState): Array<Server> => {
     const { emhttp, config, minigraph } = getState();
     const guid = emhttp.var.regGuid;
     const { name } = emhttp.var;
@@ -58,7 +58,7 @@ const getLocalServer = (getState = store.getState): Array<Server> => {
             },
             guid,
             apikey: config.remote.apikey ?? '',
-            name,
+            name: name ?? 'Local Server',
             status:
                 minigraph.status === MinigraphStatus.CONNECTED
                     ? ServerStatus.ONLINE

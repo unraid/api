@@ -15,9 +15,7 @@ export const loadState = <T extends Record<string, unknown>>(filePath: string): 
 			deep: true,
 		}) as T;
 
-		logger.addContext('config', config);
-		logger.trace('"%s" was loaded', filePath);
-		logger.removeContext('config');
+		logger.trace({ config }, '"%s" was loaded', filePath);
 
 		return config;
 	} catch (error: unknown) {

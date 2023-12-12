@@ -5,14 +5,14 @@ type Query {
 
 type Mutation {
     """Start array"""
-    startArray: Array @func(module: "updateArray", data: { state: "start" })
+    startArray: Array
     """Stop array"""
-    stopArray: Array @func(module: "updateArray", data: { state: "stop" })
+    stopArray: Array
 
     """Add new disk to array"""
-    addDiskToArray(input: arrayDiskInput): Array @func(module: "addDiskToArray")
+    addDiskToArray(input: arrayDiskInput): Array
     """Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error."""
-    removeDiskFromArray(input: arrayDiskInput): Array @func(module: "removeDiskFromArray")
+    removeDiskFromArray(input: arrayDiskInput): Array
 
     mountArrayDisk(id: ID!): Disk
     unmountArrayDisk(id: ID!): Disk

@@ -1,0 +1,17 @@
+type Query {
+    """Current user account"""
+    me: Me
+}
+
+"""The current user"""
+type Me implements UserAccount {
+    id: ID!
+    name: String!
+    description: String!
+    roles: String!
+    permissions: JSON
+}
+
+type Subscription {
+    me: Me
+}

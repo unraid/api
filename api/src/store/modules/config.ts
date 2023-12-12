@@ -21,9 +21,10 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { isEqual } from 'lodash';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -79,7 +80,7 @@ export const loginUser = createAsyncThunk<
         username: userInfo.username,
         avatar: userInfo.avatar,
     };
-    await pubsub.publish('owner', { owner });
+    await pubsub.publish(PUBSUB_CHANNEL.OWNER, { owner });
     return userInfo;
 });
 
@@ -92,7 +93,7 @@ export const logoutUser = createAsyncThunk<
     const { pubsub } = await import('@app/core/pubsub');
 
     // Publish to servers endpoint
-    await pubsub.publish('servers', {
+    await pubsub.publish(PUBSUB_CHANNEL.SERVERS, {
         servers: [],
     });
 
@@ -102,7 +103,7 @@ export const logoutUser = createAsyncThunk<
         avatar: '',
     };
     // Publish to owner endpoint
-    await pubsub.publish('owner', { owner });
+    await pubsub.publish(PUBSUB_CHANNEL.OWNER, { owner });
 });
 
 /**
@@ -324,6 +325,14 @@ export const config = createSlice({
 
         builder.addCase(setGraphqlConnectionStatus, (state, action) => {
             state.connectionStatus.minigraph = action.payload.status;
+        });
+
+        builder.addCase(setupRemoteAccessThunk.fulfilled, (state, action) => {
+            state.remote.wanaccess = action.payload.wanaccess;
+            state.remote.dynamicRemoteAccessType =
+                action.payload.dynamicRemoteAccessType;
+            state.remote.wanport = action.payload.wanport;
+            state.remote.upnpEnabled = action.payload.upnpEnabled;
         });
     },
 });

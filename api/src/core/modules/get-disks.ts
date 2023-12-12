@@ -86,18 +86,8 @@ const parseDisk = async (
  * Get all disks.
  */
 export const getDisks = async (
-    context: Context,
     options?: { temperature: boolean }
 ): Promise<Disk[]> => {
-    const { user } = context;
-
-    // Check permissions
-    ensurePermission(user, {
-        resource: 'disk',
-        action: 'read',
-        possession: 'any',
-    });
-
     // Return all fields but temperature
     if (options?.temperature === false) {
         const partitions = await blockDevices().then((devices) =>

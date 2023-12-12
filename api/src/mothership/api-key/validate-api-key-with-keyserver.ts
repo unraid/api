@@ -12,7 +12,7 @@ import { type Response } from 'got';
 export const validateApiKeyWithKeyServer = async ({ flashGuid, apiKey }: { flashGuid: string; apiKey: string }): Promise<API_KEY_STATUS> => {
 	// If we're still loading config state, just return the config is loading
 
-	ksLog.log('Validating API Key with KeyServer');
+	ksLog.info('Validating API Key with KeyServer');
 
 	// Send apiKey, etc. to key-server for verification
 	let response: Response<string>;
@@ -22,9 +22,7 @@ export const validateApiKeyWithKeyServer = async ({ flashGuid, apiKey }: { flash
 			apikey: apiKey,
 		});
 	} catch (error: unknown) {
-		ksLog.addContext('networkError', error);
-		ksLog.error('Caught error reaching Key Server');
-		ksLog.removeContext('networkError');
+		ksLog.error({ error }, 'Caught error reaching Key Server');
 
 		return API_KEY_STATUS.NETWORK_ERROR;
 	}  

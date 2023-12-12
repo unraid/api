@@ -16,32 +16,19 @@ vi.mock('@app/core/log', () => ({
 		error: vi.fn(),
 		debug: vi.fn(),
 		trace: vi.fn(),
-		addContext: vi.fn(),
-		removeContext: vi.fn(),
 	},
 	dashboardLogger: {
 		info: vi.fn(),
 		error: vi.fn((...input) => console.log(input)),
 		debug: vi.fn(),
 		trace: vi.fn(),
-		addContext: vi.fn(),
-		removeContext: vi.fn(),
 	},
 	emhttpLogger: {
 		info: vi.fn(),
 		error: vi.fn(),
 		debug: vi.fn(),
 		trace: vi.fn(),
-		addContext: vi.fn(),
-		removeContext: vi.fn(),
 	},
-}));
-
-vi.mock('@app/common/two-factor', () => ({
-	checkTwoFactorEnabled: vi.fn(() => ({
-		isRemoteEnabled: false,
-		isLocalEnabled: false,
-	})),
 }));
 
 vi.mock('@app/common/dashboard/boot-timestamp', () => ({
@@ -77,7 +64,7 @@ test('Returns generated data', async () => {
 		    "case": {
 		      "base64": "",
 		      "error": "",
-		      "icon": "case-model.png",
+		      "icon": "",
 		      "url": "",
 		    },
 		  },
@@ -107,6 +94,8 @@ test('Returns generated data', async () => {
 		    "flashGuid": "0000-0000-0000-000000000000",
 		    "regState": "PRO",
 		    "regTy": "PRO",
+		    "serverDescription": "Dev Server",
+		    "serverName": "Tower",
 		  },
 		  "versions": {
 		    "unraid": "6.11.2",

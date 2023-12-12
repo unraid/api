@@ -13,9 +13,7 @@ import { getters } from '@app/store/index';
 export const executeRemoteGraphQLQuery = async (
     data: RemoteGraphQLEventFragmentFragment['remoteGraphQLEventData']
 ) => {
-    remoteQueryLogger.addContext('data', data);
-    remoteQueryLogger.debug('Executing remote query');
-    remoteQueryLogger.removeContext('data');
+    remoteQueryLogger.debug({ query: data }, 'Executing remote query');
     const client = GraphQLClient.getInstance();
     const apiKey = getters.config().remote.apikey;
     const originalBody = data.body;
@@ -25,18 +23,14 @@ export const executeRemoteGraphQLQuery = async (
             upcApiKey: apiKey
         });
         if (ENVIRONMENT === 'development') {
-            remoteQueryLogger.addContext('query', parsedQuery.query);
-            remoteQueryLogger.debug('[DEVONLY] Running query');
-            remoteQueryLogger.removeContext('query');
+            remoteQueryLogger.debug({ query: parsedQuery.query }, '[DEVONLY] Running query');
         }
         const localResult = await localClient.query({
             query: parsedQuery.query,
             variables: parsedQuery.variables,
         });
         if (localResult.data) {
-            remoteQueryLogger.addContext('data', localResult.data);
-            remoteQueryLogger.trace('Got data from remoteQuery request', data.sha256);
-            remoteQueryLogger.removeContext('data')
+            remoteQueryLogger.trace({ data: localResult.data }, 'Got data from remoteQuery request', data.sha256);
 
             await client?.mutate({
                 mutation: SEND_REMOTE_QUERY_RESPONSE,
@@ -77,8 +71,6 @@ export const executeRemoteGraphQLQuery = async (
         } catch (error) {
             remoteQueryLogger.warn('Could not respond %o', error);
         }
-        remoteQueryLogger.addContext('error', err);
         remoteQueryLogger.error('Error executing remote query %s', err instanceof Error ? err.message: 'Unknown Error');
-        remoteQueryLogger.removeContext('error');
     }
 };

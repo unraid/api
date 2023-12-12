@@ -1,7 +1,6 @@
 import { ConnectListAllDomainsFlags } from '@vmngr/libvirt';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
-import { VmState, type VmDomain, type VmsResolvers } from '@app/graphql/generated/api/types';
+import { VmState, type VmDomain } from '@app/graphql/generated/api/types';
 import { GraphQLError } from 'graphql';
 
 const states = {
@@ -18,19 +17,7 @@ const states = {
 /**
  * Get vm domains.
  */
-export const domainResolver: VmsResolvers['domain'] = async (
-    _,
-    __,
-    context
-) => {
-    const { user } = context;
-
-    // Check permissions
-    ensurePermission(user, {
-        resource: 'vms/domain',
-        action: 'read',
-        possession: 'any',
-    });
+export const getDomains =async () => {
 
     try {
         const hypervisor = await getHypervisor();

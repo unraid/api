@@ -1,0 +1,403 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Returns default permissions 1`] = `
+RolesBuilder {
+  "_grants": {
+    "admin": {
+      "$extend": [
+        "guest",
+      ],
+      "apikey": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "array": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "cloud": {
+        "read:own": [
+          "*",
+        ],
+      },
+      "config": {
+        "update:own": [
+          "*",
+        ],
+      },
+      "connect": {
+        "read:own": [
+          "*",
+        ],
+        "update:own": [
+          "*",
+        ],
+      },
+      "cpu": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "crash-reporting-enabled": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "customizations": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "device": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "device/unassigned": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "disk": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "disk/settings": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "display": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "docker/container": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "docker/network": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "flash": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "info": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "license-key": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "logs": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "machine-id": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "memory": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "notifications": {
+        "create:any": [
+          "*",
+        ],
+        "read:any": [
+          "*",
+        ],
+      },
+      "online": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "os": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "owner": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "parity-history": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "permission": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "registration": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "servers": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "service": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "service/emhttpd": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "service/unraid-api": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "services": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "share": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "software-versions": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "unraid-version": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "uptime": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "user": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vars": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vms": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vms/domain": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vms/network": {
+        "read:any": [
+          "*",
+        ],
+      },
+    },
+    "guest": {
+      "me": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "welcome": {
+        "read:any": [
+          "*",
+        ],
+      },
+    },
+    "my_servers": {
+      "$extend": [
+        "guest",
+      ],
+      "array": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "customizations": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "dashboard": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "docker/container": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "docker/network": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "logs": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "notifications": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "unraid-version": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vms": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vms/domain": {
+        "read:any": [
+          "*",
+        ],
+      },
+    },
+    "notifier": {
+      "$extend": [
+        "guest",
+      ],
+      "notifications": {
+        "create:own": [
+          "*",
+        ],
+      },
+    },
+    "upc": {
+      "$extend": [
+        "guest",
+      ],
+      "apikey": {
+        "read:own": [
+          "*",
+        ],
+      },
+      "cloud": {
+        "read:own": [
+          "*",
+        ],
+      },
+      "config": {
+        "read:any": [
+          "*",
+        ],
+        "update:own": [
+          "*",
+        ],
+      },
+      "connect": {
+        "read:own": [
+          "*",
+        ],
+        "update:own": [
+          "*",
+        ],
+      },
+      "crash-reporting-enabled": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "customizations": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "disk": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "display": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "flash": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "info": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "logs": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "os": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "owner": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "permission": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "registration": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "servers": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vars": {
+        "read:any": [
+          "*",
+        ],
+      },
+    },
+  },
+  "_isLocked": false,
+}
+`;
