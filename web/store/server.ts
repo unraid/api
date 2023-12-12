@@ -117,6 +117,7 @@ export const useServerStore = defineStore('server', () => {
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
+  const combinedKnownOrigins = ref<string[]>([]);
 
   const apiServerStateRefresh = ref<any>(null);
   /**
@@ -274,75 +275,100 @@ export const useServerStore = defineStore('server', () => {
     return Object.fromEntries(Object.entries(payload).filter(([_, v]) => v !== null && v !== undefined && v !== ''));
   });
 
-  const purchaseAction: ServerStateDataAction = {
-    click: () => { purchaseStore.purchase(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'purchase',
-    text: 'Purchase Key',
-  };
-  const upgradeAction: ServerStateDataAction = {
-    click: () => { purchaseStore.upgrade(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'upgrade',
-    text: 'Upgrade Key',
-  };
-  const recoverAction: ServerStateDataAction = {
-    click: () => { accountStore.recover(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'recover',
-    text: 'Recover Key',
-  };
-  const redeemAction: ServerStateDataAction = {
-    click: () => { purchaseStore.redeem(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'redeem',
-    text: 'Redeem Activation Code',
-  };
-  const renewAction = ref<ServerStateDataAction>({
-    click: () => { purchaseStore.renew(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'renew',
-    text: 'Extend License to Enable OS Updates',
+  const serverActionsDisable = computed(() => {
+    const disable = !!(connectPluginInstalled.value && (unraidApiStore.unraidApiStatus !== 'online' || unraidApiStore.prioritizeCorsError));
+    return {
+      disable,
+      title: disable ? 'Requires the local unraid-api to be running successfully' : '',
+    };
   });
-  const replaceAction: ServerStateDataAction = {
-    click: () => { accountStore.replace(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'replace',
-    text: 'Replace Key',
-  };
-  /**
-   * The Sign In action is a computed property because it depends on the state of the unraid-api being online
-   */
+
+  const purchaseAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { purchaseStore.purchase(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'purchase',
+      text: 'Purchase Key',
+      title: serverActionsDisable.value.title,
+    };
+  });
+  const upgradeAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { purchaseStore.upgrade(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'upgrade',
+      text: 'Upgrade Key',
+      title: serverActionsDisable.value.title,
+    };
+  });
+  const recoverAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { accountStore.recover(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'recover',
+      text: 'Recover Key',
+      title: serverActionsDisable.value.title,
+    };
+  });
+  const redeemAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { purchaseStore.redeem(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'redeem',
+      text: 'Redeem Activation Code',
+      title: serverActionsDisable.value.title,
+    };
+  });
+  const renewAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { purchaseStore.renew(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'renew',
+      text: 'Extend License to Enable OS Updates',
+      title: serverActionsDisable.value.title,
+    };
+  });
+  const replaceAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { accountStore.replace(); },
+      external: true,
+      icon: KeyIcon,
+      name: 'replace',
+      text: 'Replace Key',
+    };
+  });
   const signInAction = computed((): ServerStateDataAction => {
-    const disabled = unraidApiStore.unraidApiStatus !== 'online';
-    const title = disabled ? 'Sign In requires the local unraid-api to be running' : '';
     return {
       click: () => { accountStore.signIn(); },
-      disabled,
+      disabled: serverActionsDisable.value.disable,
       external: true,
       icon: GlobeAltIcon,
       name: 'signIn',
       text: 'Sign In with Unraid.net Account',
-      title,
+      title: serverActionsDisable.value.title,
     };
   });
   /**
    * The Sign Out action is a computed property because it depends on the state of the keyfile & unraid-api being online
    */
   const signOutAction = computed((): ServerStateDataAction => {
-    const disabled: boolean = !keyfile.value || unraidApiStore.unraidApiStatus !== 'online';
+    const disabled: boolean = !keyfile.value || serverActionsDisable.value.disable;
     let title = '';
     if (!keyfile.value) {
       title = 'Sign Out requires a keyfile';
     }
-    if (unraidApiStore.unraidApiStatus !== 'online') {
-      title = 'Sign Out requires the local unraid-api to be running';
+    if (serverActionsDisable.value.disable) {
+      title = serverActionsDisable.value.title;
     }
     return {
       click: () => { accountStore.signOut(); },
@@ -354,20 +380,28 @@ export const useServerStore = defineStore('server', () => {
       title,
     };
   });
-  const trialExtendAction: ServerStateDataAction = {
-    click: () => { accountStore.trialExtend(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'trialExtend',
-    text: 'Extend Trial',
-  };
-  const trialStartAction: ServerStateDataAction = {
-    click: () => { accountStore.trialStart(); },
-    external: true,
-    icon: KeyIcon,
-    name: 'trialStart',
-    text: 'Start Free 30 Day Trial',
-  };
+  const trialExtendAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { accountStore.trialExtend(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'trialExtend',
+      text: 'Extend Trial',
+      title: serverActionsDisable.value.title,
+    };
+  });
+  const trialStartAction = computed((): ServerStateDataAction => {
+    return {
+      click: () => { accountStore.trialStart(); },
+      disabled: serverActionsDisable.value.disable,
+      external: true,
+      icon: KeyIcon,
+      name: 'trialStart',
+      text: 'Start Free 30 Day Trial',
+      title: serverActionsDisable.value.title,
+    };
+  });
 
   let messageEGUID = '';
   const stateData = computed(():ServerStateData => {
@@ -376,7 +410,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction, trialStartAction, recoverAction]),
+            ...([purchaseAction.value, redeemAction.value, trialStartAction.value, recoverAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'No Keyfile',
@@ -387,7 +421,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction]),
+            ...([purchaseAction.value, redeemAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Trial',
@@ -398,8 +432,8 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction]),
-            ...(trialExtensionEligible.value ? [trialExtendAction] : []),
+            ...([purchaseAction.value, redeemAction.value]),
+            ...(trialExtensionEligible.value ? [trialExtendAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
@@ -415,7 +449,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(state.value === 'STARTER' && regUpdatesExpired.value ? [renewAction.value] : []),
-            ...([upgradeAction]),
+            ...([upgradeAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: state.value === 'BASIC' ? 'Basic' : 'Starter',
@@ -430,7 +464,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([upgradeAction]),
+            ...([upgradeAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'Plus',
@@ -471,7 +505,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([replaceAction, purchaseAction, redeemAction]),
+            ...([replaceAction.value, purchaseAction.value, redeemAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
@@ -483,7 +517,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction]),
+            ...([purchaseAction.value, redeemAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
@@ -496,7 +530,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([recoverAction, purchaseAction, redeemAction]),
+            ...([recoverAction.value, purchaseAction.value, redeemAction.value]),
             ...(registered.value ? [signOutAction.value] : []),
           ],
           error: true,
@@ -510,7 +544,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction]),
+            ...([purchaseAction.value, redeemAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
@@ -522,7 +556,7 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction, redeemAction]),
+            ...([purchaseAction.value, redeemAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           error: true,
@@ -788,6 +822,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
     if (typeof data?.regTm !== 'undefined') { regTm.value = data.regTm; }
     if (typeof data?.regTo !== 'undefined') { regTo.value = data.regTo; }
+    if (typeof data?.combinedKnownOrigins !== 'undefined') { combinedKnownOrigins.value = data.combinedKnownOrigins; }
   };
 
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {

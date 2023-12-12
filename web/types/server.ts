@@ -55,6 +55,7 @@ export interface Server {
   avatar?: string;
   caseModel?: string;
   cloud?: PartialCloudFragment | undefined;
+  combinedKnownOrigins?: string[];
   config?: Config | undefined;
   connectPluginInstalled?: ServerconnectPluginInstalled;
   connectPluginVersion?: string;
