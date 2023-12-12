@@ -14,6 +14,7 @@ import { LoggerModule } from 'nestjs-pino';
         LoggerModule.forRoot({
             pinoHttp: {
                 logger: apiLogger,
+                autoLogging: false
             },
         }),
         AccessControlModule.forRoles(setupPermissions()),

@@ -1,6 +1,5 @@
 import { NestFactory } from '@nestjs/core';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
-import { Logger } from '@nestjs/common';
 import { AppModule } from './app/app.module';
 import Fastify from 'fastify';
 import {
@@ -20,12 +19,11 @@ import { apiLogger } from '@app/core/log';
 export const corsOptionsDelegate: CorsOptionsDelegate = async (
     origin: string | undefined
 ) => {
-    const logger = new Logger('corsOptionsDelegate');
     const allowedOrigins = getAllowedOrigins();
     if (origin && allowedOrigins.includes(origin)) {
         return true;
     } else {
-        logger.debug(`Origin not in allowed origins: ${origin}`);
+        apiLogger.debug(`Origin not in allowed origins: ${origin}`);
 
         if (BYPASS_PERMISSION_CHECKS) {
             return true;

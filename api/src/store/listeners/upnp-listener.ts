@@ -6,6 +6,7 @@ import { loadConfigFile } from '@app/store/modules/config';
 import { loadSingleStateFile, loadStateFiles } from '@app/store/modules/emhttp';
 import { FileLoadStatus } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 
 const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
 	if (state?.config.status !== FileLoadStatus.LOADED || state?.emhttp.status !== FileLoadStatus.LOADED) {
@@ -18,7 +19,7 @@ const shouldUpnpBeEnabled = (state: RootState | null): boolean => {
 	return useUpnp && upnpEnabled === 'yes' && wanaccess === 'yes';
 };
 
-const isStateOrConfigUpdate = isAnyOf(loadConfigFile.fulfilled, loadSingleStateFile.fulfilled, loadStateFiles.fulfilled);
+const isStateOrConfigUpdate = isAnyOf(loadConfigFile.fulfilled, loadSingleStateFile.fulfilled, loadStateFiles.fulfilled, setupRemoteAccessThunk.fulfilled);
 
 export const enableUpnpListener = () => startAppListening({
 	predicate(action, currentState, previousState) {

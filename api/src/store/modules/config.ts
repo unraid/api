@@ -24,6 +24,7 @@ import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-seria
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { isEqual } from 'lodash';
+import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -324,6 +325,14 @@ export const config = createSlice({
 
         builder.addCase(setGraphqlConnectionStatus, (state, action) => {
             state.connectionStatus.minigraph = action.payload.status;
+        });
+
+        builder.addCase(setupRemoteAccessThunk.fulfilled, (state, action) => {
+            state.remote.wanaccess = action.payload.wanaccess;
+            state.remote.dynamicRemoteAccessType =
+                action.payload.dynamicRemoteAccessType;
+            state.remote.wanport = action.payload.wanport;
+            state.remote.upnpEnabled = action.payload.upnpEnabled;
         });
     },
 });

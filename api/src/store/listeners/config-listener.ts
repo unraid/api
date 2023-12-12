@@ -71,7 +71,7 @@ export const enableConfigFileListener = (mode: ConfigType) => () =>
             const writeableConfig = getWriteableConfig(config, mode);
             const serializedConfig =
                 safelySerializeObjectToIni(writeableConfig);
-            logger.debug('Writing updated config to', pathToWrite);
+            logger.debug('Writing updated config to %s', pathToWrite);
             writeFileSync(pathToWrite, serializedConfig);
         },
     });
