@@ -25,6 +25,7 @@ import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
 import { bootstrapNestServer } from '@app/unraid-api/main';
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { type RawServerDefault}  from 'fastify';
+import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 let server: NestFastifyApplication<RawServerDefault>;
 
 const unlinkUnixPort = () => {
@@ -46,6 +47,8 @@ void am(
         // Start file <-> store sync
         // Must occur before config is loaded to ensure that the handler can fix broken configs
         await startStoreSync();
+
+        await setupLogRotation();
 
         // Load my servers config file into store
         await store.dispatch(loadConfigFile());
