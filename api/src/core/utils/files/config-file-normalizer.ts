@@ -65,12 +65,7 @@ export const getWriteableConfig = <T extends ConfigType>(
                           getAllowedOrigins().join(', ')
                   }
                 : {}),
-            ...(remote.dynamicRemoteAccessType ===
-            DynamicRemoteAccessType.DISABLED
-                ? {}
-                : {
-                      dynamicRemoteAccessType: remote.dynamicRemoteAccessType,
-                  }),
+            dynamicRemoteAccessType: remote.dynamicRemoteAccessType ?? DynamicRemoteAccessType.DISABLED,
         },
         upc: {
             apikey: upc.apikey ?? initialState.upc.apikey,
