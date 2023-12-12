@@ -58,7 +58,8 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     } else {
         server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
     }
-    
+
+    //await app.getHttpAdapter().listen(PORT);
     apiLogger.debug('Nest Server is now listening');
 
     return app;
