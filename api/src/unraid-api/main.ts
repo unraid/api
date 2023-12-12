@@ -1,5 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import { Logger as PinoLogger } from 'nestjs-pino';
+import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 import { Logger} from '@nestjs/common'
 import { AppModule } from './app/app.module';
 import Fastify from 'fastify';
@@ -44,8 +44,12 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         new FastifyAdapter(server),
         { cors: { origin: corsOptionsDelegate }, bufferLogs: false }
     );
-    app.useLogger(app.get(PinoLogger));
 
+    // Setup Nestjs Pino Logger
+    app.useLogger(app.get(PinoLogger));
+    app.useGlobalInterceptors(new LoggerErrorInterceptor());
+    app.flushLogs();
+    
     apiLogger.debug('Starting Nest Server on Port / Path: %s', PORT);
     app.useGlobalFilters(
         new GraphQLExceptionsFilter(),
