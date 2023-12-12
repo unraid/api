@@ -137,7 +137,6 @@ class ServerState
 
         $allowedOrigins = $this->myServersMemoryCfg['allowedOrigins'] ?? "";
         $extraOrigins = $this->myServersFlashCfg['api']['extraOrigins'] ?? "";
-
         // if the current host is not in the allowed origins list and extra origins list, display a warning
         if (stripos($allowedOrigins.",", "/".$this->host.",") === false && stripos($extraOrigins.",", "/".$this->host.",") === false) {
             $this->combinedKnownOrigins = explode(", ", $allowedOrigins);
@@ -154,6 +153,10 @@ class ServerState
                         // clean up $this->combinedKnownOrigins, only display warning if origins still remain to display
                         unset($this->combinedKnownOrigins[$key]);
                     }
+                }
+                // for some reason the unset creates an associative array, so reindex the array with just the values. Otherwise we get an object passed to the UPC JS instead of an array.
+                if ($this->combinedKnownOrigins) {
+                    $this->combinedKnownOrigins = array_values($this->combinedKnownOrigins);
                 }
             }
         }
