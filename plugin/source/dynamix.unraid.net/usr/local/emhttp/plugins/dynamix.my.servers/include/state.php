@@ -137,16 +137,12 @@ class ServerState
 
         $allowedOrigins = $this->myServersMemoryCfg['allowedOrigins'] ?? "";
         $extraOrigins = $this->myServersFlashCfg['api']['extraOrigins'] ?? "";
-        // if the current host is not in the allowed origins list and extra origins list, display a warning
-        if (stripos($allowedOrigins.",", "/".$this->host.",") === false && stripos($extraOrigins.",", "/".$this->host.",") === false) {
-            $this->combinedKnownOrigins = explode(", ", $allowedOrigins);
+        $combinedOrigins = $allowedOrigins . "," . $extraOrigins; // combine the two strings for easier searching
+        $combinedOrigins = str_replace(" ", "", $combinedOrigins); // replace any spaces with nothing
+        $hostNotKnown = stripos($combinedOrigins, $this->host) === false; // check if the current host is in the combined list of origins
+        if ($hostNotKnown) {
+            $this->combinedKnownOrigins = explode(",", $combinedOrigins);
 
-            if (strpos($extraOrigins, ",") !== false) { // check if the extra origins is a comma separated list of URLs
-                $extraOriginsArr = explode(",", $extraOrigins);
-                $this->combinedKnownOrigins = array_merge($this->combinedKnownOrigins, $extraOriginsArr);
-            } elseif ($extraOrigins) { // if the extra origins is not comma separated assume it's a single URL
-                $this->combinedKnownOrigins[] = $extraOrigins;
-            }
             if ($this->combinedKnownOrigins) {
                 foreach($this->combinedKnownOrigins as $key => $origin) {
                     if ( (strpos($origin, "http") === false) || (strpos($origin, "localhost") !== false) ) {
