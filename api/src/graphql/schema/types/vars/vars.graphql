@@ -1,5 +1,5 @@
 type Query {
-    vars: Vars @func(module: "getVars")
+    vars: Vars
 }
 
 type Subscription {

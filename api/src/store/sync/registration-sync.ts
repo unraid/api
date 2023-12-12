@@ -1,5 +1,5 @@
 import { logger } from '@app/core/log';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { store } from '@app/store';
 import { FileLoadStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import isEqual from 'lodash/isEqual';
@@ -54,7 +54,7 @@ export const syncRegistration: StoreSubscriptionHandler = async lastState => {
 		logger.debug('Registration was updated, publishing event');
 
 		// Publish to graphql
-		await pubsub.publish('registration', currentEvent);
+		await pubsub.publish(PUBSUB_CHANNEL.REGISTRATION, currentEvent);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) throw new Error(`Failed publishing registration event with unknown error "${String(error)}"`);
 		logger.error('Failed publishing registration event with "%s"', error.message);

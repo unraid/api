@@ -23,7 +23,6 @@ interface Context extends CoreContext {
  */
 export const addUser = async (context: Context): Promise<CoreResult> => {
 	const { data } = context;
-
 	// Check permissions
 	ensurePermission(context.user, {
 		resource: 'user',

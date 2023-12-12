@@ -9,6 +9,7 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
 	expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
+		    "extraOrigins": "",
 		    "version": "",
 		  },
 		  "local": {},
@@ -19,6 +20,7 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
 		    "accesstoken": "",
 		    "apikey": "",
 		    "avatar": "",
+		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
 		    "refreshtoken": "",
@@ -40,6 +42,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 	expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
+		    "extraOrigins": "",
 		    "version": "",
 		  },
 		  "connectionStatus": {
@@ -51,9 +54,10 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		  },
 		  "remote": {
 		    "accesstoken": "",
-		    "allowedOrigins": "",
+		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://staging.connect.myunraid.net, https://dev-my.myunraid.net:4000",
 		    "apikey": "",
 		    "avatar": "",
+		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
 		    "refreshtoken": "",
@@ -96,6 +100,7 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 		    "accesstoken": "",
 		    "apikey": "",
 		    "avatar": "",
+		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
 		    "refreshtoken": "",
@@ -141,9 +146,10 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		  "remote": {
 		    "2Fa": "yes",
 		    "accesstoken": "",
-		    "allowedOrigins": "",
+		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://staging.connect.myunraid.net, https://dev-my.myunraid.net:4000",
 		    "apikey": "",
 		    "avatar": "",
+		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
 		    "refreshtoken": "",

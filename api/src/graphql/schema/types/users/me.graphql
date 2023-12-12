@@ -1,6 +1,6 @@
 type Query {
     """Current user account"""
-    me: Me @func(module: "getMe")
+    me: Me
 }
 
 """The current user"""
@@ -8,7 +8,7 @@ type Me implements UserAccount {
     id: ID!
     name: String!
     description: String!
-    role: String!
+    roles: String!
     permissions: JSON
 }
 

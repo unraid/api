@@ -52,9 +52,7 @@ export const setupDockerWatch = async (): Promise<DockerEE> => {
             if (!watchedActions.includes(data.Action)) {
                 return;
             }
-            dockerLogger.addContext('data', data);
             dockerLogger.debug(`[${data.from}] ${data.Type}->${data.Action}`);
-            dockerLogger.removeContext('data');
             await debouncedContainerCacheUpdate();
         }
     );

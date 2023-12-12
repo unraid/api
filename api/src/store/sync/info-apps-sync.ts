@@ -1,5 +1,5 @@
 import { logger } from '@app/core/log';
-import { pubsub } from '@app/core/pubsub';
+import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { store } from '@app/store';
 import { DaemonConnectionStatus, type StoreSubscriptionHandler } from '@app/store/types';
 import { isEqual } from 'lodash';
@@ -40,5 +40,5 @@ export const syncInfoApps: StoreSubscriptionHandler = async lastState => {
 	logger.debug('Docker container count was updated, publishing event');
 
 	// Publish to graphql
-	await pubsub.publish('info', currentEvent);
+	await pubsub.publish(PUBSUB_CHANNEL.INFO, currentEvent);
 };

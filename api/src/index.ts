@@ -12,20 +12,23 @@ import { loadStateFiles } from '@app/store/modules/emhttp';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
-import { createApolloExpressServer } from '@app/server';
 import { unlinkSync } from 'fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
 import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
-import { type BaseContext, type ApolloServer } from '@apollo/server';
 import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
 import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
 import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
+import { bootstrapNestServer } from '@app/unraid-api/main';
+import { type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { type RawServerDefault } from 'fastify';
+import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
+import * as env from '@app/environment';
 
-let server: ApolloServer<BaseContext>;
+let server: NestFastifyApplication<RawServerDefault>;
 
 const unlinkUnixPort = () => {
     if (isNaN(parseInt(PORT, 10))) {
@@ -36,6 +39,9 @@ const unlinkUnixPort = () => {
 void am(
     async () => {
         environment.IS_MAIN_PROCESS = true;
+
+        logger.debug('ENV %o', env);
+
         const cacheable = new CacheableLookup();
 
         Object.assign(global, { WebSocket: require('ws') });
@@ -46,6 +52,8 @@ void am(
         // Start file <-> store sync
         // Must occur before config is loaded to ensure that the handler can fix broken configs
         await startStoreSync();
+
+        await setupLogRotation();
 
         // Load my servers config file into store
         await store.dispatch(loadConfigFile());
@@ -78,8 +86,7 @@ void am(
         unlinkUnixPort();
 
         // Start webserver
-        server = await createApolloExpressServer();
-
+        server = await bootstrapNestServer();
         PingTimeoutJobs.init();
 
         startMiddlewareListeners();
@@ -88,6 +95,7 @@ void am(
 
         // On process exit stop HTTP server - this says it supports async but it doesnt seem to
         exitHook(() => {
+            server?.close?.();
             // If port is unix socket, delete socket before exiting
             unlinkUnixPort();
 
@@ -96,14 +104,10 @@ void am(
         });
     },
     async (error: NodeJS.ErrnoException) => {
-        // Log error to syslog
-        logger.error('API-GLOBAL-ERROR', error);
+        logger.error('API-GLOBAL-ERROR %s %s', error.message, error.stack);
         shutdownApiEvent();
-
-        // Stop server
-        logger.debug('Stopping HTTP server');
         if (server) {
-            await server.stop();
+            await server?.close?.();
         }
 
         // Kill application

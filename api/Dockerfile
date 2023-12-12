@@ -1,18 +1,19 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM node:18.17.1-alpine As development
+FROM node:18.17.1-bookworm-slim As development
 
 # Install build tools and dependencies
-RUN apk add --no-cache \
+RUN apt-get update -y && apt-get install -y \
     bash \
     # Real PS Command (needed for some dependencies)
     procps \ 
-    alpine-sdk \
     python3 \
     libvirt-dev \
     jq \
-    zstd
+    zstd \
+    git \
+    build-essential
 
 RUN mkdir /var/log/unraid-api/
 
@@ -33,7 +34,7 @@ COPY package.json package-lock.json ./
 RUN npm i -g pkg zx
 
 # Install deps
-RUN npm ci
+RUN npm i
 
 EXPOSE 4000
 
