@@ -82,7 +82,7 @@ export class CloudResolver {
     public async setupRemoteAccess(
         @Args('input') input: SetupRemoteAccessInput
     ): Promise<boolean> {
-        await store.dispatch(setupRemoteAccessThunk(input));
+        await store.dispatch(setupRemoteAccessThunk(input)).unwrap();
         return true;
     }
 }
