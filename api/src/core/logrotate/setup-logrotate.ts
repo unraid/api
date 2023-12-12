@@ -8,18 +8,13 @@ export const setupLogRotation = async () => {
         await writeFile(
             '/etc/logrotate.d/unraid-api',
             `
-            /var/log/unraid-api/stdout.log {
+            /var/log/unraid-api/*.log {
                 rotate 2
                 missingok
                 size 5M
             }
-
-            /var/log/unraid-api/stderr.log {
-                rotate 2
-                missingok
-                size 5M
-            }
-        `
+        `,
+            { mode: '644' }
         );
     }
 };
