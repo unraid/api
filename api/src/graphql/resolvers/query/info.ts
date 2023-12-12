@@ -57,6 +57,7 @@ export const generateOs = async (): Promise<InfoOs> => {
 
     return {
         ...os,
+        hostname: getters.emhttp().var.name,
         uptime: bootTimestamp.toISOString(),
     };
 };

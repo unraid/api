@@ -24,8 +24,10 @@ import { startMiddlewareListeners } from '@app/store/listeners/listener-middlewa
 import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
 import { bootstrapNestServer } from '@app/unraid-api/main';
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { type RawServerDefault}  from 'fastify';
+import { type RawServerDefault } from 'fastify';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
+import * as env from '@app/environment';
+
 let server: NestFastifyApplication<RawServerDefault>;
 
 const unlinkUnixPort = () => {
@@ -37,6 +39,9 @@ const unlinkUnixPort = () => {
 void am(
     async () => {
         environment.IS_MAIN_PROCESS = true;
+
+        logger.debug('ENV %o', env);
+
         const cacheable = new CacheableLookup();
 
         Object.assign(global, { WebSocket: require('ws') });
@@ -93,7 +98,7 @@ void am(
             server?.close?.();
             // If port is unix socket, delete socket before exiting
             unlinkUnixPort();
-            
+
             shutdownApiEvent();
             process.exitCode = 0;
         });
@@ -101,7 +106,9 @@ void am(
     async (error: NodeJS.ErrnoException) => {
         logger.error('API-GLOBAL-ERROR %s %s', error.message, error.stack);
         shutdownApiEvent();
-        if (server) { await server?.close?.() }
+        if (server) {
+            await server?.close?.();
+        }
 
         // Kill application
         process.exitCode = 1;

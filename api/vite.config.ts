@@ -10,6 +10,7 @@ export default defineConfig(() => {
 
 		plugins: [tsconfigPaths()],
 		test: {
+			globals: true,
 			coverage: {
 				all: true,
 				include: ['src/**/*'],

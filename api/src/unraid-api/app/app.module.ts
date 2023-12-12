@@ -25,7 +25,10 @@ import { LoggerModule } from 'nestjs-pino';
     providers: [
         {
             provide: 'APP_GUARD',
-            useFactory: () => new GraphqlAuthGuard(new Reflector()),
+            useFactory: () =>
+                new GraphqlAuthGuard(
+                    new Reflector(),
+                ),
         },
         {
             provide: 'APP_GUARD',

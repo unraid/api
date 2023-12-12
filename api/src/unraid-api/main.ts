@@ -1,6 +1,6 @@
 import { NestFactory } from '@nestjs/core';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
-import { Logger} from '@nestjs/common'
+import { Logger } from '@nestjs/common';
 import { AppModule } from './app/app.module';
 import Fastify from 'fastify';
 import {
@@ -13,19 +13,24 @@ import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter';
 import { GraphQLError } from 'graphql';
 import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
-import { PORT } from '@app/environment';
+import { BYPASS_PERMISSION_CHECKS, PORT } from '@app/environment';
 import { type FastifyInstance } from 'fastify';
 import { type Server, type IncomingMessage, type ServerResponse } from 'http';
 import { apiLogger } from '@app/core/log';
 export const corsOptionsDelegate: CorsOptionsDelegate = async (
     origin: string | undefined
 ) => {
-    const logger = new Logger('corsOptionsDelegate')
+    const logger = new Logger('corsOptionsDelegate');
     const allowedOrigins = getAllowedOrigins();
     if (origin && allowedOrigins.includes(origin)) {
         return true;
     } else {
         logger.debug(`Origin not in allowed origins: ${origin}`);
+
+        if (BYPASS_PERMISSION_CHECKS) {
+            return true;
+        }
+
         throw new GraphQLError(
             'The CORS policy for this site does not allow access from the specified Origin.'
         );
@@ -33,7 +38,6 @@ export const corsOptionsDelegate: CorsOptionsDelegate = async (
 };
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-
     const server: FastifyInstance<Server, IncomingMessage, ServerResponse> =
         Fastify({
             logger: false,
@@ -42,14 +46,14 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     const app = await NestFactory.create<NestFastifyApplication>(
         AppModule,
         new FastifyAdapter(server),
-        { cors: { origin: corsOptionsDelegate }, bufferLogs: false }
+        { cors: { origin: corsOptionsDelegate }, bufferLogs: true }
     );
 
     // Setup Nestjs Pino Logger
     app.useLogger(app.get(PinoLogger));
     app.useGlobalInterceptors(new LoggerErrorInterceptor());
     app.flushLogs();
-    
+
     apiLogger.debug('Starting Nest Server on Port / Path: %s', PORT);
     app.useGlobalFilters(
         new GraphQLExceptionsFilter(),

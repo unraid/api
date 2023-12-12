@@ -5,7 +5,7 @@ import {
     UUIDResolver,
 } from 'graphql-scalars';
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
-
+import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin/landingPage/default';
 import { ApolloDriver, type ApolloDriverConfig } from '@nestjs/apollo';
 import { Module } from '@nestjs/common';
 import { GraphQLModule } from '@nestjs/graphql';
@@ -19,21 +19,20 @@ import { print } from 'graphql';
         ResolversModule,
         GraphQLModule.forRoot<ApolloDriverConfig>({
             driver: ApolloDriver,
-            playground: true,
             introspection: GRAPHQL_INTROSPECTION ? true : false,
             context: ({ req, connectionParams, extra }) => ({
                 req,
                 connectionParams,
                 extra,
             }),
-
+            playground: false,
+            plugins: GRAPHQL_INTROSPECTION
+                ? [ApolloServerPluginLandingPageLocalDefault()]
+                : [],
             subscriptions: {
                 'graphql-ws': {
                     path: '/graphql',
-                },
-                'subscriptions-transport-ws': {
-                    path: '/graphql',
-                },
+                }
             },
             path: '/graphql',
             typeDefs: print(typeDefs),

@@ -14,17 +14,15 @@ export class GraphQLExceptionsFilter<T extends GraphQLError>
         const ctx = host.switchToHttp();
         const response: FastifyReply<any> = ctx.getResponse<FastifyReply>();
 
-        response
-            .code(200)
-            .send({
-                data: null,
-                errors: [
-                    {
-                        message: exception.message,
-                        locations: exception.locations,
-                        path: exception.path,
-                    },
-                ],
-            });
+        response.code(200).send({
+            data: null,
+            errors: [
+                {
+                    message: exception.message,
+                    locations: exception.locations,
+                    path: exception.path,
+                },
+            ],
+        });
     }
 }

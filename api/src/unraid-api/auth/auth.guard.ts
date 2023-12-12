@@ -1,12 +1,12 @@
+import { apiLogger } from '@app/core/log';
+import { BYPASS_PERMISSION_CHECKS } from '@app/environment';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
 import { IS_PUBLIC_KEY } from '@app/unraid-api/auth/public.decorator';
 import {
     type ExecutionContext,
     Injectable,
-    Logger,
     type CanActivate,
     UnauthorizedException,
-    HttpException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql';
@@ -21,14 +21,13 @@ export class GraphqlAuthGuard
     constructor(private readonly reflector: Reflector) {
         super();
     }
-    private readonly logger = new Logger(GraphqlAuthGuard.name);
 
     handleRequest<UserAccount>(err, user: UserAccount | null, info, context) {
         if (!user) {
             if (context) {
                 const ctx = GqlExecutionContext.create(context);
                 const fullContext = ctx.getContext();
-                this.logger.error(
+                apiLogger.error(
                     'No user found in request - connection params: %o',
                     fullContext.connectionParams ?? {}
                 );
@@ -42,8 +41,8 @@ export class GraphqlAuthGuard
 
     /**
      * Helper to determine if this middleware should run activate. If the route is marked as public, then it will not run.
-     * @param context 
-     * @returns 
+     * @param context
+     * @returns
      */
     canActivate(
         context: ExecutionContext
