@@ -23,7 +23,6 @@ import { useServerStore } from '~/store/server';
 setActivePinia(createPinia());
 
 const ERROR_CORS_403 = 'The CORS policy for this site does not allow access from the specified Origin';
-let prioritizeCorsError = false; // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
@@ -45,6 +44,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
 
   // const unraidApiErrors = ref<any[]>([]);
   const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
+  const prioritizeCorsError = ref(false); // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
   const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
     const { connectPluginInstalled, stateDataError } = serverStore;
@@ -93,7 +93,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
             if (unraidApiRestartAction) { restartUnraidApiClient(); }
           }
           if (errorMsg && errorMsg.includes(ERROR_CORS_403)) {
-            prioritizeCorsError = true;
+            prioritizeCorsError.value = true;
             const msg = `<p>The CORS policy for the unraid-api does not allow access from the specified origin.</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
             errorsStore.setError({
               heading: 'Unraid API • CORS Error',
@@ -222,6 +222,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
   return {
     unraidApiClient,
     unraidApiStatus,
+    prioritizeCorsError,
     unraidApiRestartAction,
     createApolloClient,
     closeUnraidApiClient,
