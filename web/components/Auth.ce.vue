@@ -22,7 +22,9 @@ const { authAction, stateData } = storeToRefs(serverStore);
       <BrandButton
         :disabled="authAction?.disabled"
         :icon="authAction.icon"
+        size="12px"
         :text="t(authAction.text)"
+        :title="authAction?.title ? t(authAction?.title) : undefined"
         @click="authAction.click()"
       />
     </span>
