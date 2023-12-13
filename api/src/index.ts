@@ -105,11 +105,10 @@ void am(
     },
     async (error: NodeJS.ErrnoException) => {
         logger.error('API-GLOBAL-ERROR %s %s', error.message, error.stack);
-        shutdownApiEvent();
         if (server) {
             await server?.close?.();
         }
-
+        shutdownApiEvent();
         // Kill application
         process.exitCode = 1;
     }
