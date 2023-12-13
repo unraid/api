@@ -197,7 +197,7 @@ export const loadConfigFile = createAsyncThunk<
             }
             return newConfigFile;
         } catch (error: unknown) {
-            logger.warn('Config file is corrupted, recreating config', error);
+            logger.warn('Config file is corrupted with error: %o - recreating config', error);
             const config = getWriteableConfig(initialState, 'flash');
             const newConfig = generateApiKeysIfNotExistent(config);
             newConfig.remote.wanaccess = 'no';
