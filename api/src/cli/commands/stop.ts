@@ -9,7 +9,7 @@ import pRetry from 'p-retry';
  */
 
 export const stop = async () => {
-	setEnv('LOG_TYPE', 'raw');
+	setEnv('LOG_TRANSPORT', 'stdout');
 
 	try {
 		await pRetry(async (attempts) => {
