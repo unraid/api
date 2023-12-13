@@ -6,12 +6,15 @@ import { logToSyslog } from '@app/cli/log-to-syslog';
 import { getters } from '@app/store';
 import { getAllUnraidApiPids } from '@app/cli/get-unraid-api-pid';
 import { API_VERSION } from '@app/environment';
+import { setEnv } from '@app/cli/set-env';
 
 /**
  * Start a new API process.
  */
 export const start = async () => {
 	// Set process title
+	setEnv('LOG_TRANSPORT', 'stdout');
+
 	process.title = 'unraid-api';
 	const runningProcesses = await getAllUnraidApiPids();
 	if (runningProcesses.length > 0) {

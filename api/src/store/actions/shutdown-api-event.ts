@@ -1,4 +1,4 @@
-import { logger } from '@app/core/log';
+import { logDestination, logger } from '@app/core/log';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
@@ -18,4 +18,7 @@ export const shutdownApiEvent = () => {
 	logger.debug('Writing final configs');
 	writeConfigSync('flash');
 	writeConfigSync('memory');
+
+	logDestination.flushSync();
+    logDestination.destroy();
 };

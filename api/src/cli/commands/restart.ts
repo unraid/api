@@ -6,8 +6,7 @@ import { stop } from '@app/cli/commands/stop';
  * Stop a running API process and then start it again.
  */
 export const restart = async () => {
-	setEnv('LOG_TYPE', 'raw');
-
+	setEnv('LOG_TRANSPORT', 'stdout');
 	await stop();
 	await start();
 };

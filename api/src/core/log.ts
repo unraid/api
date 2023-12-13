@@ -19,8 +19,11 @@ const level =
         )
     ] ?? 'info';
 
-const logDestination =
-    LOG_TRANSPORT === 'file' ? pino.destination('/var/log/unraid-api/stdout.log') : 1;
+export const logDestination = pino.destination({
+    dest: LOG_TRANSPORT === 'file' ? '/var/log/unraid-api/stdout.log' : 1,
+    minLength: 1_024,
+    sync: false
+});
 
 const stream =
     LOG_TYPE === 'pretty'
@@ -31,7 +34,7 @@ const stream =
               ignore: 'time,hostname,pid',
               destination: logDestination,
           })
-        : pino.destination(logDestination);
+        : logDestination;
 
 export const logger = pino(
     {
@@ -77,7 +80,7 @@ export const loggers = [
     keyServerLogger,
     remoteAccessLogger,
     remoteQueryLogger,
-    apiLogger
+    apiLogger,
 ];
 
 // Send SIGUSR1 to increase log level
