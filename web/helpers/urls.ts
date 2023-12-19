@@ -20,11 +20,7 @@ const WEBGUI_TOOLS_DOWNGRADE = new URL('/Tools/Downgrade', WEBGUI);
 const WEBGUI_TOOLS_REGISTRATION = new URL('/Tools/Registration', WEBGUI);
 const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
-const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://stable.dl.unraid.net/releases-combined.json');
-const OS_RELEASES_NEXT = new URL(import.meta.env.VITE_OS_RELEASES_NEXT ?? 'https://next.dl.unraid.net/releases-combined.json');
-// @note we don't want PREVIEW / TEST used in the webgui, but they're here as a necessary evil for updateOs imports
-const OS_RELEASES_PREVIEW = '';
-const OS_RELEASES_TEST = '';
+const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://releases.unraid.net/os');
 
 const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
