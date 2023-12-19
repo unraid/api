@@ -4,7 +4,8 @@ import { addPreventClose, removePreventClose } from '~/composables/preventClose'
 import { useAccountStore } from '~/store/account';
 import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import {
   useCallbackStoreGeneric,
   type CallbackActionsStore,

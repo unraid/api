@@ -12,7 +12,8 @@ import '~/assets/main.css';
 
 import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 const { t } = useI18n();
 
@@ -20,9 +21,9 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { osVersion } = storeToRefs(serverStore);
+const { osVersion, rebootType } = storeToRefs(serverStore);
 const { available } = storeToRefs(updateOsStore);
-const { ineligibleText, rebootType, rebootTypeText } = storeToRefs(updateOsActionsStore);
+const { ineligibleText, rebootTypeText } = storeToRefs(updateOsActionsStore);
 
 const showUpdateAvailable = computed(() => !ineligibleText.value && available.value && rebootType.value === '');
 

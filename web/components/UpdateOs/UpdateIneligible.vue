@@ -13,7 +13,8 @@ import '~/assets/main.css';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
@@ -24,11 +25,11 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat, regTy, renewAction } = storeToRefs(serverStore);
+const { dateTimeFormat, regTy, renewAction, updateOsResponse } = storeToRefs(serverStore);
 const { availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText } = storeToRefs(updateOsActionsStore);
 
-const availableWithRenewalRelease = computed(() => updateOsStore.findRelease('version', availableWithRenewal.value) ?? undefined);
+const availableWithRenewalRelease = computed(() => availableWithRenewal.value ? updateOsResponse.value : undefined);
 const { outputDateTimeFormatted: formattedReleaseDate } = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(availableWithRenewalRelease.value?.date, 'YYYY-MM-DD').valueOf());
 
 const heading = computed((): string => {

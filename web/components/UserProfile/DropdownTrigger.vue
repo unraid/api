@@ -12,16 +12,15 @@ import {
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
 
 const props = defineProps<{ t: any; }>();
 
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
-const { connectPluginInstalled, registered, state, stateData } = storeToRefs(useServerStore());
+const { connectPluginInstalled, rebootType, registered, state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
-const { rebootType } = storeToRefs(useUpdateOsActionsStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 

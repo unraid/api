@@ -9,7 +9,6 @@ import { useDropdownStore } from '~/store/dropdown';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
-import { useUpdateOsStore } from '~/store/updateOsActions';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -25,7 +24,6 @@ const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
-const updateOsStore = useUpdateOsStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
@@ -35,8 +33,6 @@ const {
   guid,
   keyfile,
   lanIp,
-  osVersion,
-  osVersionBranch,
   state,
   connectPluginInstalled,
 } = storeToRefs(serverStore);
@@ -100,15 +96,6 @@ onBeforeMount(() => {
     }
     // automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys
     replaceRenewCheckStore.check();
-
-    // automatically check for OS updates for global notifications
-    updateOsStore.checkForUpdate({
-      cache: true,
-      guid: guid.value,
-      keyfile: keyfile.value,
-      osVersion: osVersion.value,
-      osVersionBranch: osVersionBranch.value, // if we're already on a non-stable release, include next
-    });
   } else {
     console.warn('A valid keyfile and USB Flash boot device are required to check for key renewals, key replacement eligibiliy, and OS update availability.');
   }
