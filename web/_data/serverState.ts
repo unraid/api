@@ -121,7 +121,7 @@ const mimicWebguiUnraidCheck = async (): Promise<ServerUpdateOsResponse | undefi
   } catch {
     return undefined;
   }
-}
+};
 
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
