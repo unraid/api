@@ -1,4 +1,15 @@
-import type { Server, ServerState } from '~/types/server';
+import dayjs, { extend } from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+import relativeTime from 'dayjs/plugin/relativeTime';
+import wretch from 'wretch';
+import QueryStringAddon from 'wretch/addons/queryString';
+
+import { OS_RELEASES } from '~/helpers/urls';
+import type { Server, ServerState, ServerUpdateOsResponse } from '~/types/server';
+
+// dayjs plugins
+extend(customParseFormat);
+extend(relativeTime);
 
 // function makeid(length: number) {
 //   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
@@ -17,6 +28,7 @@ const staticGuid = '1111-1111-5GDB-123412341234';
 // const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
+const twentyDaysAgo = Date.now() - 20 * 24 * 60 * 60 * 1000; // 20 days ago
 const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
 // const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
 const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
@@ -66,7 +78,7 @@ switch (state) {
     regDev = 4;
     // regExp = oneHourFromNow;
     // regExp = oneDayFromNow;
-    regExp = twoDaysAgo;
+    regExp = twentyDaysAgo;
     // regExp = uptime;
     // regExp = 1696363920000; // nori.local's expiration
   // @ts-ignore
@@ -85,6 +97,31 @@ switch (state) {
 
 const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
 // const connectPluginInstalled = '';
+
+const osVersion = '6.13.0-beta0.22';
+const osVersionBranch = 'preview';
+const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
+
+const mimicWebguiUnraidCheck = async (): Promise<ServerUpdateOsResponse | undefined> => {
+  try {
+    const response = await wretch()
+      .addon(QueryStringAddon)
+      .url(OS_RELEASES.toString())
+      .query({
+        ...(parsedRegExp ? { update_exp: parsedRegExp } : undefined),
+        ...(osVersion ? { current_version: osVersion } : undefined),
+        ...(osVersionBranch ? { branch: osVersionBranch } : undefined),
+      })
+      .get()
+      .json<ServerUpdateOsResponse>()
+      .catch((caughtError) => {
+        throw new Error(caughtError);
+      });
+    return response;
+  } catch {
+    return undefined;
+  }
+}
 
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
@@ -130,6 +167,7 @@ export const serverState: Server = {
     name: 'white',
     textColor: ''
   },
+  updateOsResponse: await mimicWebguiUnraidCheck(),
   uptime,
   username: 'zspearmint',
   wanFQDN: ''
