@@ -37,6 +37,7 @@ import type {
   ServerDateTimeFormat,
   ServerStateDataKeyActions,
   ServerOsVersionBranch,
+  ServerUpdateOsResponse,
 } from '~/types/server';
 
 /**
@@ -114,6 +115,7 @@ export const useServerStore = defineStore('server', () => {
   watch(theme, (newVal) => {
     if (newVal) { themeStore.setTheme(newVal); }
   });
+  const updateOsResponse = ref<ServerUpdateOsResponse>();
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
@@ -787,6 +789,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
     if (typeof data?.caseModel !== 'undefined') { caseModel.value = data.caseModel; }
     if (typeof data?.cloud !== 'undefined') { cloud.value = data.cloud; }
+    if (typeof data?.combinedKnownOrigins !== 'undefined') { combinedKnownOrigins.value = data.combinedKnownOrigins; }
     if (typeof data?.config !== 'undefined') { config.value = data.config; }
     if (typeof data?.connectPluginInstalled !== 'undefined') { connectPluginInstalled.value = data.connectPluginInstalled; }
     if (typeof data?.connectPluginVersion !== 'undefined') { connectPluginVersion.value = data.connectPluginVersion; }
@@ -817,12 +820,12 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.site !== 'undefined') { site.value = data.site; }
     if (typeof data?.state !== 'undefined') { state.value = data.state; }
     if (typeof data?.theme !== 'undefined') { theme.value = data.theme; }
+    if (typeof data?.updateOsResponse !== 'undefined') { updateOsResponse.value = data.updateOsResponse; }
     if (typeof data?.uptime !== 'undefined') { uptime.value = data.uptime; }
     if (typeof data?.username !== 'undefined') { username.value = data.username; }
     if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
     if (typeof data?.regTm !== 'undefined') { regTm.value = data.regTm; }
     if (typeof data?.regTo !== 'undefined') { regTo.value = data.regTo; }
-    if (typeof data?.combinedKnownOrigins !== 'undefined') { combinedKnownOrigins.value = data.combinedKnownOrigins; }
   };
 
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
@@ -986,6 +989,7 @@ export const useServerStore = defineStore('server', () => {
     site,
     state,
     theme,
+    updateOsResponse,
     uptime,
     username,
     refreshServerStateStatus,

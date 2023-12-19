@@ -49,6 +49,13 @@ export interface ServerDateTimeFormat {
   time: string;
 }
 
+export interface ServerUpdateOsResponse {
+  version: string; // "6.13.0-beta0.27"
+  name: string; // "Unraid 6.13.0-beta0.27"
+  date: string; // "2023-12-13"
+  isNewer: boolean; // false
+}
+
 export interface Server {
   apiKey?: string;
   apiVersion?: string;
@@ -91,6 +98,7 @@ export interface Server {
   site?: string;
   state?: ServerState;
   theme?: Theme | undefined;
+  updateOsResponse?: ServerUpdateOsResponse;
   uptime?: number;
   username?: string;
   wanFQDN?: string;
