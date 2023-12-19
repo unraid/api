@@ -1,6 +1,6 @@
 import { request } from '~/composables/services/request';
 
-import type { Release } from '~/store/updateOs';
+import type { Release } from '~/store/updateOsActions';
 
 const KeyServer = request.url('https://keys.lime-technology.com');
 

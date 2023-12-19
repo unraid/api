@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const serverStore = useServerStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
-const { rebootType } = storeToRefs(updateOsActionsStore);
+const { rebootType } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'downgrade') {
