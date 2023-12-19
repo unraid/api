@@ -47,7 +47,7 @@ class ServerState
     private $rebootDetails;
     private $caseModel = '';
     private $keyfileBase64UrlSafe = '';
-    private $updateOs;
+    private $updateOsResponse;
 
     public $myServersFlashCfg = [];
     public $myServersMemoryCfg = [];
@@ -165,9 +165,9 @@ class ServerState
         }
 
         /**
-         * updateOs response is provided by the unraidcheck script saving to /tmp/unraidcheck/response.json
+         * updateOsResponse is provided by the unraidcheck script saving to /tmp/unraidcheck/response.json
          */
-        $this->updateOs = @json_decode(@file_get_contents('/tmp/unraidcheck/response.json'), true);
+        $this->updateOsResponse = @json_decode(@file_get_contents('/tmp/unraidcheck/response.json'), true);
     }
 
     /**
@@ -249,8 +249,8 @@ class ServerState
             $serverState['combinedKnownOrigins'] = $this->combinedKnownOrigins;
         }
 
-        if ($this->updateOs) {
-            $serverState['updateOs'] = $this->updateOs;
+        if ($this->updateOsResponse) {
+            $serverState['updateOsResponse'] = $this->updateOsResponse;
         }
 
         return $serverState;
