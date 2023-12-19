@@ -21,7 +21,8 @@ import '~/assets/main.css';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
@@ -29,7 +30,7 @@ const props = defineProps<{
 }>();
 
 const serverStore = useServerStore();
-const { dateTimeFormat } = storeToRefs(serverStore);
+const { dateTimeFormat, updateOsResponse } = storeToRefs(serverStore);
 
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
@@ -37,10 +38,9 @@ const updateOsActionsStore = useUpdateOsActionsStore();
 const { connectPluginInstalled, flashBackupActivated } = storeToRefs(useServerStore());
 const { available } = storeToRefs(updateOsStore);
 
-const release = computed(() => updateOsStore.findRelease('version', available.value) ?? undefined);
 const {
   outputDateTimeFormatted: formattedReleaseDate,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(release.value?.date ?? '', 'YYYY-MM-DD').valueOf());
+} = useDateTimeHelper(dateTimeFormat.value, props.t, true, dayjs(updateOsResponse.value?.date ?? '', 'YYYY-MM-DD').valueOf());
 
 const updateButton = ref<UserProfileLink | undefined>();
 
@@ -140,7 +140,7 @@ watchEffect(() => {
               {{ heading }}
             </span>
             <span
-              v-if="release && formattedReleaseDate"
+              v-if="updateOsResponse && formattedReleaseDate"
               class="text-16px opacity-75 shrink"
             >
               {{ formattedReleaseDate }}

@@ -14,7 +14,8 @@ import {
 } from '~/helpers/urls';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{ t: any; }>();

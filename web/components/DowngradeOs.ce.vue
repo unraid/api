@@ -20,7 +20,6 @@ import { onBeforeMount } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -39,9 +38,8 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const serverStore = useServerStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { rebootType } = storeToRefs(updateOsActionsStore);
+const { rebootType } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'update') {

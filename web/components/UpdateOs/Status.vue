@@ -12,7 +12,8 @@ import { storeToRefs } from 'pinia';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsStore, useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
@@ -36,9 +37,9 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat, osVersion, rebootVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
-const { available, availableWithRenewal, parsedReleaseTimestamp } = storeToRefs(updateOsStore);
-const { ineligibleText, rebootType, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
+const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
+const { available, availableWithRenewal } = storeToRefs(updateOsStore);
+const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
 const {
   outputDateTimeReadableDiff: readableDiffRegExp,
@@ -118,7 +119,6 @@ const regExpOutput = computed(() => {
             v-if="rebootType === ''"
             :color="available || availableWithRenewal ? 'orange' : 'green'"
             :icon="available || availableWithRenewal ? BellAlertIcon : CheckCircleIcon"
-            :title="parsedReleaseTimestamp ? t('Last checked: {0}', [parsedReleaseTimestamp.relative]) : ''"
           >
             {{ (available
               ? t('Unraid {0} Available', [available])
