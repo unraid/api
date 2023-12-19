@@ -2,6 +2,7 @@ import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import wretch from 'wretch';
+// eslint-disable-next-line import/no-named-as-default
 import QueryStringAddon from 'wretch/addons/queryString';
 
 import { OS_RELEASES } from '~/helpers/urls';
