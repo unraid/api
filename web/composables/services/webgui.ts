@@ -36,6 +36,13 @@ export const WebguiUpdateDns = request.url('/webGui/include/UpdateDNS.php');
 */
 export const WebguiState = request.url('/plugins/dynamix.my.servers/data/server-state.php');
 /**
+ * @name WebguiCheckForOsUpdate
+ * @description used to check for OS updates in the background…will send a notification in unraid if an update is available
+ * @type GET
+ * @todo this doesn't seem to work…
+*/
+export const WebguiCheckForOsUpdate = request.url('/plugins/dynamix.plugin.manager/scripts/unraidcheck');
+/**
  * Run unraid-api command's via php requests
  */
 export interface WebguiUnraidApiCommandPayload {

@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+/**
+ * @todo run the unraidcheck when opening the changelog
+ */
 import {
   BellAlertIcon,
   ExclamationTriangleIcon,
@@ -10,6 +13,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
+// import { WebguiCheckForOsUpdate } from '~/composables/services/webgui';
 import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
@@ -36,6 +40,15 @@ const rebootRequiredLink = computed(() => {
   }
   return '';
 });
+
+const viewReleaseNotes = () => {
+  updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion.value]));
+  // try {
+  //   await WebguiCheckForOsUpdate.get();
+  // } catch (error) {
+  //   console.error('[WebguiCheckForOsUpdate] error', error);
+  // }
+};
 </script>
 
 <template>
@@ -43,7 +56,7 @@ const rebootRequiredLink = computed(() => {
     <button
       class="group leading-none"
       :title="t('View release notes')"
-      @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
+      @click="viewReleaseNotes"
     >
       <UiBadge
         color="custom"
