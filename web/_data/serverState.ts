@@ -1,6 +1,6 @@
-import dayjs, { extend } from 'dayjs';
-import customParseFormat from 'dayjs/plugin/customParseFormat';
-import relativeTime from 'dayjs/plugin/relativeTime';
+// import dayjs, { extend } from 'dayjs';
+// import customParseFormat from 'dayjs/plugin/customParseFormat';
+// import relativeTime from 'dayjs/plugin/relativeTime';
 // import wretch from 'wretch';
 // // eslint-disable-next-line import/no-named-as-default
 // import QueryStringAddon from 'wretch/addons/queryString';
@@ -13,8 +13,8 @@ import type {
 } from '~/types/server';
 
 // dayjs plugins
-extend(customParseFormat);
-extend(relativeTime);
+// extend(customParseFormat);
+// extend(relativeTime);
 
 // function makeid(length: number) {
 //   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
@@ -173,9 +173,9 @@ export const serverState: Server = {
     textColor: ''
   },
   updateOsResponse: {
-    version: "6.13.0-beta0.27",
-    name: "Unraid 6.13.0-beta0.27",
-    date: "2023-12-13",
+    version: '6.13.0-beta0.27',
+    name: 'Unraid 6.13.0-beta0.27',
+    date: '2023-12-13',
     isNewer: true,
   },
   uptime,
