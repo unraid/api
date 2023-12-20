@@ -60,7 +60,7 @@ const rebootRequiredLink = computed(() => {
       v-if="showUpdateAvailable"
       :href="WEBGUI_TOOLS_UPDATE.toString()"
       class="group"
-      :title="t('Go to Tools > Update')"
+      :title="t('Unraid OS {0} Update Available', [available])"
     >
       <UiBadge
         color="orange"
