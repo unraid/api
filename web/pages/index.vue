@@ -1,13 +1,18 @@
 <script lang="ts" setup>
 import AES from 'crypto-js/aes';
-import type { SendPayloads } from '~/store/callback';
 
-import { serverState } from '~/_data/serverState';
+import { getServerState } from '~/_data/serverState';
+import type { SendPayloads } from '~/store/callback';
+import type { Server } from '~/types/server';
+
+const serverData = ref<Server | undefined>(undefined);
 
 const nuxtApp = useNuxtApp();
-onBeforeMount(() => {
+onBeforeMount(async () => {
   // @ts-ignore
   nuxtApp.$customElements.registerEntry('UnraidComponents');
+
+  serverData.value = await getServerState();
 });
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
@@ -64,7 +69,7 @@ onMounted(() => {
             UserProfileCe
           </h3>
           <header class="bg-beta py-4">
-            <UserProfileCe :server="serverState" />
+            <UserProfileCe v-if="serverData" :server="serverData" />
           </header>
           <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">

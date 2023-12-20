@@ -1,10 +1,16 @@
 <script lang="ts" setup>
-import { serverState } from '~/_data/serverState';
+import { getServerState } from '~/_data/serverState';
+
+import type { Server } from '~/types/server';
+
+const serverData = ref<Server | undefined>(undefined);
 
 const nuxtApp = useNuxtApp();
-onBeforeMount(() => {
+onBeforeMount(async () => {
   // @ts-ignore
   nuxtApp.$customElements.registerEntry('UnraidComponents');
+
+  serverData.value = await getServerState();
 });
 </script>
 
@@ -18,7 +24,7 @@ onBeforeMount(() => {
         UserProfileCe
       </h3>
       <header class="bg-beta py-4">
-        <unraid-user-profile :server="JSON.stringify(serverState)" />
+        <unraid-user-profile v-if="serverData" :server="JSON.stringify(serverData)" />
       </header>
       <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
