@@ -1,0 +1,56 @@
+#!/usr/bin/php -q
+<?PHP
+/* Copyright 2005-2023, Lime Technology
+ * Copyright 2012-2023, Bergware International.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License version 2,
+ * as published by the Free Software Foundation.
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
+?>
+<?
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+require_once "$docroot/webGui/include/Wrappers.php";
+require_once "$docroot/plugins/dynamix.plugin.manager/include/PluginHelpers.php";
+
+// Multi-language support
+if (!function_exists('_')) {
+  function _($text) {return $text;}
+}
+
+extract(parse_plugin_cfg('dynamix', true));
+
+$var     = (array)@parse_ini_file('/var/local/emhttp/var.ini');
+$script  = '$docroot/webGui/scripts/notify';
+$server  = strtoupper(_var($var,'NAME','server'));
+$output  = _var($notify,'plugin');
+ 
+$plg      = '/var/log/plugins/unRAIDServer.plg';
+$category = plugin('category', $plg, 'stable');
+$curver   = plugin('version', $plg) ?: _var($var,'version');
+$regExp   =_var($var,'regExp') ? date('m-d-Y', _var($var,'regExp')*1) : false;
+
+$url_branch ='branch='.$category;
+$url_curver ='&current_version='.$curver;
+$url_exp    = $regExp ? '&update_exp=%22'.$regExp.'%22' : '';
+$url        = 'https://releases.unraid.net/os?'.$url_branch.$url_curver.$url_exp;
+
+$response = @file_get_contents($url);
+$json     = json_decode($response);
+
+// store response for UPC to read
+$file = '/tmp/unraidcheck/response.json';
+if (!is_dir(dirname($file))) mkdir(dirname($file));
+if (!$json) $response = ''; // store valid json or empty file
+file_put_contents($file, $response);
+
+// send notification if a newer version is available
+if ($json && property_exists($json,'isNewer') && $json->isNewer) {
+  $newver = (property_exists($json,'version') && $json->version) ? $json->version : 'unknown';
+  exec("$script -e ".escapeshellarg("System - Unraid [$newver]")." -s ".escapeshellarg("Notice [$server] - Version update $newver")." -d ".escapeshellarg("A new version of Unraid is available")." -i ".escapeshellarg("normal $output")." -l '/Tools/Update' -x");
+}
+exit(0);
+?>
