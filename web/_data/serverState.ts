@@ -1,12 +1,16 @@
 import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
-import wretch from 'wretch';
-// eslint-disable-next-line import/no-named-as-default
-import QueryStringAddon from 'wretch/addons/queryString';
+// import wretch from 'wretch';
+// // eslint-disable-next-line import/no-named-as-default
+// import QueryStringAddon from 'wretch/addons/queryString';
 
-import { OS_RELEASES } from '~/helpers/urls';
-import type { Server, ServerState, ServerUpdateOsResponse } from '~/types/server';
+// import { OS_RELEASES } from '~/helpers/urls';
+import type {
+  Server,
+  ServerState,
+  // ServerUpdateOsResponse,
+} from '~/types/server';
 
 // dayjs plugins
 extend(customParseFormat);
@@ -101,28 +105,28 @@ const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
 
 const osVersion = '6.13.0-beta0.22';
 const osVersionBranch = 'preview';
-const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
+// const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
 
-const mimicWebguiUnraidCheck = async (): Promise<ServerUpdateOsResponse | undefined> => {
-  try {
-    const response = await wretch()
-      .addon(QueryStringAddon)
-      .url(OS_RELEASES.toString())
-      .query({
-        ...(parsedRegExp ? { update_exp: parsedRegExp } : undefined),
-        ...(osVersion ? { current_version: osVersion } : undefined),
-        ...(osVersionBranch ? { branch: osVersionBranch } : undefined),
-      })
-      .get()
-      .json<ServerUpdateOsResponse>()
-      .catch((caughtError) => {
-        throw new Error(caughtError);
-      });
-    return response;
-  } catch {
-    return undefined;
-  }
-};
+// const mimicWebguiUnraidCheck = async (): Promise<ServerUpdateOsResponse | undefined> => {
+//   try {
+//     const response = await wretch()
+//       .addon(QueryStringAddon)
+//       .url(OS_RELEASES.toString())
+//       .query({
+//         ...(parsedRegExp ? { update_exp: parsedRegExp } : undefined),
+//         ...(osVersion ? { current_version: osVersion } : undefined),
+//         ...(osVersionBranch ? { branch: osVersionBranch } : undefined),
+//       })
+//       .get()
+//       .json<ServerUpdateOsResponse>()
+//       .catch((caughtError) => {
+//         throw new Error(caughtError);
+//       });
+//     return response;
+//   } catch {
+//     return undefined;
+//   }
+// };
 
 export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
@@ -147,8 +151,8 @@ export const serverState: Server = {
   license: '',
   locale: 'en_US', // en_US, ja
   name: 'dev-static',
-  osVersion: '6.13.0-beta0.22',
-  osVersionBranch: 'preview',
+  osVersion,
+  osVersionBranch,
   // registered: connectPluginInstalled ? true : false,
   registered: false,
   regGen: 0,
@@ -168,7 +172,12 @@ export const serverState: Server = {
     name: 'white',
     textColor: ''
   },
-  updateOsResponse: await mimicWebguiUnraidCheck(),
+  updateOsResponse: {
+    version: "6.13.0-beta0.27",
+    name: "Unraid 6.13.0-beta0.27",
+    date: "2023-12-13",
+    isNewer: true,
+  },
   uptime,
   username: 'zspearmint',
   wanFQDN: ''
