@@ -41,8 +41,8 @@ const rebootRequiredLink = computed(() => {
   return '';
 });
 
-const viewReleaseNotes = () => {
-  updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion.value]));
+const viewReleaseNotes = async () => {
+  await updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion.value]));
   // try {
   //   await WebguiCheckForOsUpdate.get();
   // } catch (error) {
