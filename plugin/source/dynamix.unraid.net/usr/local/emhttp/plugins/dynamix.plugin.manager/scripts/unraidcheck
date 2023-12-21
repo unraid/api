@@ -24,32 +24,48 @@ if (!function_exists('_')) {
 extract(parse_plugin_cfg('dynamix', true));
 
 $var     = (array)@parse_ini_file('/var/local/emhttp/var.ini');
-$script  = '$docroot/webGui/scripts/notify';
+$script  = "$docroot/webGui/scripts/notify";
 $server  = strtoupper(_var($var,'NAME','server'));
 $output  = _var($notify,'plugin');
- 
-$plg      = '/var/log/plugins/unRAIDServer.plg';
-$category = plugin('category', $plg, 'stable');
-$curver   = plugin('version', $plg) ?: _var($var,'version');
-$regExp   =_var($var,'regExp') ? date('m-d-Y', _var($var,'regExp')*1) : false;
+$plg     = '/var/log/plugins/unRAIDServer.plg';
 
-$url_branch ='branch='.$category;
-$url_curver ='&current_version='.$curver;
-$url_exp    = $regExp ? '&update_exp=%22'.$regExp.'%22' : '';
-$url        = 'https://releases.unraid.net/os?'.$url_branch.$url_curver.$url_exp;
+$params  = [];
+$params['branch']          = plugin('category', $plg, 'stable');
+$params['current_version'] = plugin('version', $plg) ?: _var($var,'version');
+if (_var($var,'regExp')) $params['update_exp'] = date('m-d-Y', _var($var,'regExp')*1);
+$urlbase = 'https://releases.unraid.net/os';
+$url     = $urlbase.'?'.http_build_query($params);
 
-$response = @file_get_contents($url);
-$json     = json_decode($response);
+$response = "";
+// use error handler to convert warnings from file_get_contents to errors so they can be captured
+function warning_as_error($severity, $message, $filename, $lineno) {
+  throw new ErrorException($message, 0, $severity, $filename, $lineno);
+}
+set_error_handler("warning_as_error");
+try {
+  $response = file_get_contents($url);
+} catch (Exception $e) {
+  $response = json_encode(array('error' => $e->getMessage()), JSON_PRETTY_PRINT);
+}
+restore_error_handler();
 
-// store response for UPC to read
-$file = '/tmp/unraidcheck/response.json';
+$json = json_decode($response, true);
+if (!$json) {
+  $response = json_encode(array('error' => 'Invalid response from '.$urlbase), JSON_PRETTY_PRINT);
+  $json = json_decode($response, true);
+}
+
+// add params that were sent to $urlbase
+$json['params']  = $params;
+
+// store locally for UPC to access
+$file = '/tmp/unraidcheck/result.json';
 if (!is_dir(dirname($file))) mkdir(dirname($file));
-if (!$json) $response = ''; // store valid json or empty file
-file_put_contents($file, $response);
+file_put_contents($file, json_encode($json, JSON_PRETTY_PRINT));
 
 // send notification if a newer version is available
-if ($json && property_exists($json,'isNewer') && $json->isNewer) {
-  $newver = (property_exists($json,'version') && $json->version) ? $json->version : 'unknown';
+if ($json && array_key_exists('isNewer',$json) && $json['isNewer']) {
+  $newver = (array_key_exists('version',$json) && $json['version']) ? $json['version'] : 'unknown';
   exec("$script -e ".escapeshellarg("System - Unraid [$newver]")." -s ".escapeshellarg("Notice [$server] - Version update $newver")." -d ".escapeshellarg("A new version of Unraid is available")." -i ".escapeshellarg("normal $output")." -l '/Tools/Update' -x");
 }
 exit(0);

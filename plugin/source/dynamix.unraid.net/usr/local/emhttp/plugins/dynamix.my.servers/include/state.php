@@ -165,9 +165,9 @@ class ServerState
         }
 
         /**
-         * updateOsResponse is provided by the unraidcheck script saving to /tmp/unraidcheck/response.json
+         * updateOsResponse is provided by the dynamix.plugin.manager/scripts/unraidcheck script saving to /tmp/unraidcheck/result.json
          */
-        $this->updateOsResponse = @json_decode(@file_get_contents('/tmp/unraidcheck/response.json'), true);
+        $this->updateOsResponse = @json_decode(@file_get_contents('/tmp/unraidcheck/result.json'), true);
     }
 
     /**
