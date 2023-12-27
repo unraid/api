@@ -13,7 +13,7 @@ import { useI18n } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 
-// import { WebguiCheckForOsUpdate } from '~/composables/services/webgui';
+import { WebguiCheckForOsUpdate } from '~/composables/services/webgui';
 import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
@@ -43,11 +43,11 @@ const rebootRequiredLink = computed(() => {
 
 const viewReleaseNotes = async () => {
   await updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion.value]));
-  // try {
-  //   await WebguiCheckForOsUpdate.get();
-  // } catch (error) {
-  //   console.error('[WebguiCheckForOsUpdate] error', error);
-  // }
+  try {
+    await WebguiCheckForOsUpdate.get();
+  } catch (error) {
+    console.error('[WebguiCheckForOsUpdate] error', error);
+  }
 };
 </script>
 
