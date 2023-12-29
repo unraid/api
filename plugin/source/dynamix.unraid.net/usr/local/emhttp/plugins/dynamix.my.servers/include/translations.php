@@ -25,8 +25,8 @@
  * 3a. This is done so that the translation is available to the rest of the Unraid webgui.
  * 3b. Unfortunately there are numerous "special characters" that aren't allowed in Unraid's translation keys as they're automatically stripped out.
  * 3c. This means that we have to create a new translation key that is a "safe" version of the translation key used in the web components.
- * 3d. Special characters that are not allowed are: . ( ) { } [ ] ; ' " < > * /
- * 3e. There are likely more but I'm unable to find the documentation PDF. Go figure.
+ * 3d. Special characters that are not allowed are: ? { } | & ~ ! [ ] ( ) / : * ^ . " '
+ * 3e. There are likely more but I'm unable to find the documentation PDF - updated list of invalid characters above as mentioned in the language guide document.
  *
  * Usage example:
  * ```
