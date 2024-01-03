@@ -11,11 +11,7 @@ export const main = async (...argv: string[]) => {
     cliLogger.debug(env, 'Loading env file');
 
     // Set envs
-    setEnv(
-        'LOG_TYPE',
-        process.env.LOG_TYPE ??
-            (command === 'start' || mainOptions.debug ? 'pretty' : 'raw')
-    );
+    setEnv('LOG_TYPE', 'pretty');
     cliLogger.debug({ paths: getters.paths() }, 'Starting CLI');
 
     setEnv('DEBUG', mainOptions.debug ?? false);
