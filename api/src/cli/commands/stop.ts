@@ -1,6 +1,5 @@
 import { cliLogger } from '@app/core/log';
 import { getAllUnraidApiPids } from '@app/cli/get-unraid-api-pid';
-import { setEnv } from '@app/cli/set-env';
 import { sleep } from '@app/core/utils/misc/sleep';
 import pRetry from 'p-retry';
 
@@ -9,8 +8,6 @@ import pRetry from 'p-retry';
  */
 
 export const stop = async () => {
-	setEnv('LOG_TRANSPORT', 'stdout');
-
 	try {
 		await pRetry(async (attempts) => {
 			const runningApis = await getAllUnraidApiPids();
