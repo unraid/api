@@ -36,7 +36,7 @@ const {
   state,
   connectPluginInstalled,
 } = storeToRefs(serverStore);
-const { bannerGradient, theme, altTheme } = storeToRefs(useThemeStore());
+const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 const hideDropdown = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 
@@ -105,11 +105,7 @@ onBeforeMount(() => {
 <template>
   <div
     id="UserProfile"
-    :class="{
-      'text-alpha': !altTheme,
-      'text-beta': altTheme,
-    }"
-    class="relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
+    class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
   >
     <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
 
