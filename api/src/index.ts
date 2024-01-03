@@ -38,15 +38,6 @@ const unlinkUnixPort = () => {
 // Boot app
 void am(
     async () => {
-        exitHook(() => {
-            server?.close?.();
-            // If port is unix socket, delete socket before exiting
-            unlinkUnixPort();
-
-            shutdownApiEvent();
-
-            process.exit(0);
-        });
         environment.IS_MAIN_PROCESS = true;
 
         logger.debug('ENV %o', env);
@@ -103,7 +94,15 @@ void am(
         await validateApiKeyIfPresent();
 
         // On process exit stop HTTP server - this says it supports async but it doesnt seem to
-        
+        exitHook(() => {
+            server?.close?.();
+            // If port is unix socket, delete socket before exiting
+            unlinkUnixPort();
+
+            shutdownApiEvent();
+
+            process.exit(0);
+        });
     },
     async (error: NodeJS.ErrnoException) => {
         logger.error('API-GLOBAL-ERROR %s %s', error.message, error.stack);
