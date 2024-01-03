@@ -15,8 +15,6 @@ RUN apt-get update -y && apt-get install -y \
     git \
     build-essential
 
-RUN mkdir /var/log/unraid-api/
-
 WORKDIR /app
 
 # Set app env
