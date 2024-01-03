@@ -100,7 +100,8 @@ void am(
             unlinkUnixPort();
 
             shutdownApiEvent();
-            process.exitCode = 0;
+
+            process.exit(0);
         });
     },
     async (error: NodeJS.ErrnoException) => {
@@ -110,6 +111,6 @@ void am(
         }
         shutdownApiEvent();
         // Kill application
-        process.exitCode = 1;
+        process.exit(1);
     }
 );
