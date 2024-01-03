@@ -15,7 +15,7 @@ export const stop = async () => {
 			if (runningApis.length > 0) {
 				cliLogger.info('Stopping %s unraid-api process(es)...', runningApis.length);
 				runningApis.forEach(pid => process.kill(pid, 'SIGTERM'));
-
+				await sleep(50);
 				const newPids = await getAllUnraidApiPids();
 
 				if (newPids.length > 0) {
@@ -28,7 +28,7 @@ export const stop = async () => {
 			return true;
 		}, {
 			retries: 2,
-			minTimeout: 2_000,
+			minTimeout: 1_000,
 			factor: 1,
 		});
 	} catch (error: unknown) {
