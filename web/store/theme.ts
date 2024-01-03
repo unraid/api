@@ -21,9 +21,8 @@ export const useThemeStore = defineStore('theme', () => {
   // State
   const theme = ref<Theme | undefined>();
   // Getters
-  const darkMode = computed(() => (theme.value?.name === 'black' || theme.value?.name === 'gray') ?? false);
+  const darkMode = computed(() => (theme.value?.name === 'black' || theme.value?.name === 'azure') ?? false);
   // used to swap the UPC text color when using the azure or gray theme
-  const altTheme = computed(() => (theme.value?.name === 'azure' || theme.value?.name === 'gray') ?? false);
   const bannerGradient = computed(() => {
     if (!theme.value?.banner || !theme.value?.bannerGradient) { return undefined; }
     const start = theme.value?.bgColor ? 'var(--color-customgradient-start)' : 'rgba(0, 0, 0, 0)';
@@ -75,7 +74,6 @@ export const useThemeStore = defineStore('theme', () => {
     // state
     bannerGradient,
     darkMode,
-    altTheme,
     theme,
     // actions
     setTheme,
