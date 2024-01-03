@@ -83,6 +83,7 @@ const downgradeButton = ref<UserProfileLink>({
       <div v-if="downgradeButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
         <BrandButton
           :btn-style="'underline'"
+          class="w-full"
           :icon="InformationCircleIcon"
           :text="t('{0} Release Notes', [version])"
           @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [version]), '/boot/previous/changes.txt')"
@@ -90,6 +91,7 @@ const downgradeButton = ref<UserProfileLink>({
         <BrandButton
           v-if="diagnosticsButton"
           :btn-style="'gray'"
+          class="w-full"
           :icon="diagnosticsButton.icon"
           :name="diagnosticsButton.name"
           :text="diagnosticsButton.text"
@@ -97,6 +99,7 @@ const downgradeButton = ref<UserProfileLink>({
         />
         <BrandButton
           :btn-style="'gray'"
+          class="w-full"
           :external="true"
           :href="FORUMS_BUG_REPORT.toString()"
           :icon="LifebuoyIcon"
@@ -104,6 +107,7 @@ const downgradeButton = ref<UserProfileLink>({
           :text="t('Open a bug report')"
         />
         <BrandButton
+          class="w-full"
           :external="downgradeButton?.external"
           :icon="ArrowUturnDownIcon"
           :name="downgradeButton?.name"
