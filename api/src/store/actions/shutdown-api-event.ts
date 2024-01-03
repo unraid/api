@@ -18,7 +18,7 @@ export const shutdownApiEvent = () => {
 	logger.debug('Writing final configs');
 	writeConfigSync('flash');
 	writeConfigSync('memory');
-
+	logger.debug('Shutting down log destination');
 	logDestination.flushSync();
-    logDestination.destroy();
+	logDestination.destroy();
 };

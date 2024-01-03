@@ -2,6 +2,20 @@ import { pino } from 'pino';
 import { LOG_TRANSPORT, LOG_TYPE } from '@app/environment';
 
 import pretty from 'pino-pretty';
+import { existsSync, mkdirSync } from 'node:fs';
+import { getters } from '@app/store/index';
+import { join } from 'node:path';
+
+const makeLoggingDirectoryIfNotExists = () => {
+    if (!existsSync(getters.paths()['log-base'])) {
+        console.log('Creating logging directory');
+        mkdirSync(getters.paths()['log-base']);
+    }
+};
+
+if (LOG_TRANSPORT === 'file') {
+    makeLoggingDirectoryIfNotExists();
+}
 
 export const levels = [
     'trace',
@@ -20,9 +34,9 @@ const level =
     ] ?? 'info';
 
 export const logDestination = pino.destination({
-    dest: LOG_TRANSPORT === 'file' ? '/var/log/unraid-api/stdout.log' : 1,
+    dest: LOG_TRANSPORT === 'file' ? join(getters.paths()['log-base'], 'stdout.log') : 1,
     minLength: 1_024,
-    sync: false
+    sync: false,
 });
 
 const stream =
