@@ -80,7 +80,7 @@ const downgradeButton = ref<UserProfileLink>({
         </div>
       </div>
 
-      <div v-if="downgradeButton" class="flex flex-col sm:flex-shrink-0 items-center gap-16px">
+      <div v-if="downgradeButton" class="flex flex-col flex-shrink-0 gap-16px flex-grow items-stretch">
         <BrandButton
           :btn-style="'underline'"
           :icon="InformationCircleIcon"
