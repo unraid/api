@@ -301,7 +301,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # stop flash backup
   /etc/rc.d/rc.flash_backup stop &>/dev/null
   # stop the api gracefully
-  /etc/rc.d/rc.unraid-api stop
+  /etc/rc.d/rc.unraid-api stop &>/dev/null
   # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
   # uninstall the api
