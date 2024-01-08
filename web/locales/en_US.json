@@ -328,12 +328,12 @@
   "Calculating OS Update Eligibility…": "Calculating OS Update Eligibility…",
   "Cancel": "Cancel",
   "Unknown error": "Unknown error",
-  "Installing Extended": "Installing Extended",
   "Please finish the initiated downgrade to enable updates.": "Please finish the initiated downgrade to enable updates.",
   "Please finish the initiated update to enable a downgrade.": "Please finish the initiated update to enable a downgrade.",
   "Download Diagnostics": "Download Diagnostics",
   "Requires the local unraid-api to be running successfully": "Requires the local unraid-api to be running successfully",
   "Sign In": "Sign In",
   "OS Update Eligibility Expired": "OS Update Eligibility Expired",
-  "Go to Tools > Registration to Learn More": "Go to Tools > Registration to Learn More"
+  "Go to Tools > Registration to Learn More": "Go to Tools > Registration to Learn More",
+  "Installing Extended": "Installing Extended"
 }
