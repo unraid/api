@@ -903,8 +903,11 @@ export const useServerStore = defineStore('server', () => {
     refreshCount++;
     refreshServerStateStatus.value = 'refreshing';
 
+    // Values to compare to response values should be set before the response is set
     const oldRegistered = registered.value;
     const oldState = state.value;
+    const oldRegExp = regExp.value;
+
     const fromApi = !!apiServerStateRefresh.value;
     // Fetch the server state from the API or PHP
     const response = fromApi
@@ -915,14 +918,18 @@ export const useServerStore = defineStore('server', () => {
         refreshServerState();
       }, refreshTimeout);
     }
+
     // Extract the new values from the response
     const newRegistered = fromApi && response?.data ? response.data.owner.username !== 'root' : response.registered;
     const newState = fromApi && response?.data ? response.data.vars.regState : response.state;
+    const newRegExp = fromApi && response?.data ? response.data.registration.expiration : response.regExp;
     // Compare the new values to the old values
     const registrationStatusChanged = oldRegistered !== newRegistered;
     const stateChanged = oldState !== newState;
+    const regExpChanged = newRegExp > oldRegExp;
+
     // If the registration status or state changed, stop refreshing
-    if (registrationStatusChanged || stateChanged) {
+    if (registrationStatusChanged || stateChanged || regExpChanged) {
       refreshServerStateStatus.value = 'done';
       return true;
     }
