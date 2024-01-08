@@ -170,7 +170,7 @@ jobs:
           echo "::set-output name=API_SHA256::${API_SHA256}"
 
       - name: Upload tgz to Github artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/release/*.tgz
@@ -210,7 +210,7 @@ jobs:
         run: npm run build
 
       - name: Upload build to Github artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unraid-web
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
@@ -242,7 +242,7 @@ jobs:
           bash ./pkg_build.sh s
           bash ./pkg_build.sh p
       - name: Upload binary txz and plg to Github artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: connect-files
           path: |
