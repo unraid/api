@@ -93,7 +93,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     }
   });
   /**
-   * onBeforeMount checks the timestamp of the validation response and purges it if it's too old
+   * validateCache checks the timestamp of the validation response and purges it if it's too old
    */
   const validationResponse = ref<CachedValidationResponse | undefined>(
     sessionStorage.getItem(REPLACE_CHECK_LOCAL_STORAGE_KEY)
@@ -101,9 +101,28 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       : undefined
   );
 
-  const purgeValidationResponse = () => {
+  const purgeValidationResponse = async () => {
     validationResponse.value = undefined;
-    sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+    await sessionStorage.removeItem(REPLACE_CHECK_LOCAL_STORAGE_KEY);
+  };
+
+  const validateCache = async () => {
+    if (!validationResponse.value) {
+      return;
+    }
+    // ensure the response timestamp is still valid and not old due to someone keeping their browser open
+    const currentTime = new Date().getTime();
+    const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
+
+    const cacheExpired = currentTime - validationResponse.value.timestamp > cacheDuration;
+    const cacheResponseNoKey = !validationResponse.value.key;
+    const cacheResponseKeyMismatch = validationResponse.value.key !== keyfileShort.value; // also checking if the keyfile is the same as the one we have in the store
+
+    const purgeCache = cacheExpired || cacheResponseNoKey || cacheResponseKeyMismatch;
+
+    if (purgeCache) {
+      await purgeValidationResponse();
+    }
   };
 
   const check = async () => {
@@ -117,6 +136,9 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     }
 
     try {
+      // validate the cache first - will purge if it's too old
+      await validateCache();
+
       setReplaceStatus('checking');
       error.value = null;
       /**
@@ -152,7 +174,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
 
         if (keyLatestResponse?.license) {
           callbackStore.send(
-            window.location.origin,
+            window.location.href,
             [{
               keyUrl: keyLatestResponse.license,
               type: 'renew',
@@ -188,25 +210,6 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       console.error('[ReplaceCheck.check]', catchError);
     }
   };
-
-  /**
-   * If we already have a validation response, set the status to eligible or ineligible
-   */
-  onBeforeMount(() => {
-    if (validationResponse.value) {
-      // ensure the response timestamp is still valid and not old due to someone keeping their browser open
-      const currentTime = new Date().getTime();
-      const cacheDuration = import.meta.env.DEV ? 30000 : 604800000; // 30 seconds for testing, 7 days for prod
-      // also checking if the keyfile is the same as the one we have in the store
-      if (currentTime - validationResponse.value.timestamp > cacheDuration || !validationResponse.value.key || validationResponse.value.key !== keyfileShort.value) {
-        // cache is expired, purge it
-        purgeValidationResponse();
-      } else {
-        // if the cache is valid return the existing response
-        setReplaceStatus(validationResponse.value?.replaceable ? 'eligible' : 'ineligible');
-      }
-    }
-  });
 
   return {
     // state
