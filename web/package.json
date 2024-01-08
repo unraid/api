@@ -4,9 +4,9 @@
   "scripts": {
     "build": "npm run type-check && nuxt build",
     "build:dev": "npm run lint && npm run type-check && nuxt build && npm run deploy-wc:dev",
-    "build:webgui": "npm run lint && npm run type-check && nuxt build && npm run copy-to-webgui",
+    "build:webgui": "npm run lint && npm run type-check && nuxt build && npm run copy-to-webgui-repo",
     "deploy-wc:dev": "./scripts/deploy-dev.sh",
-    "copy-to-webgui": "./scripts/copy-to-webgui-repo.sh",
+    "copy-to-webgui-repo": "./scripts/copy-to-webgui-repo.sh",
     "dev": "nuxt dev",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix",
     "generate": "nuxt generate",
@@ -15,7 +15,9 @@
     "serve": "serve dist/nuxt-custom-elements/unraid-components",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
-    "type-check": "nuxi typecheck"
+    "type-check": "nuxi typecheck",
+    "prebuild:webgui": "./scripts/prebuild-webgui-set-env.sh",
+    "postbuild:webgui": "./scripts/postbuild-webgui-restore-env.sh"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.0",
