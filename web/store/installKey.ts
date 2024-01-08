@@ -29,10 +29,14 @@ export const useInstallKeyStore = defineStore('installKey', () => {
   });
 
   const install = async (action: ExternalKeyActions) => {
+    console.log('[installKey.install]', action);
     keyInstallStatus.value = 'installing';
     keyAction.value = action;
 
-    if (!keyUrl.value) { return console.error('[install] no key to install'); }
+    if (!keyUrl.value) {
+      keyInstallStatus.value = 'failed';
+      return console.error('[install] no key to install');
+    }
 
     try {
       const installResponse = await WebguiInstallKey
