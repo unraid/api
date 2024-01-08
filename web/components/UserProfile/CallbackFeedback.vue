@@ -149,7 +149,7 @@ const keyInstallStatusCopy = computed((): { text: string; } => {
         text: props.t('{0} {1} Key…', [txt1, keyType.value]),
       };
     case 'success':
-      if (keyActionType.value === 'trialExtend') { txt2 = props.t('Extension Installed'); }
+      if (keyActionType.value === 'renew' || keyActionType.value === 'trialExtend') { txt2 = props.t('Extension Installed'); }
       if (keyActionType.value === 'recover') { txt2 = props.t('Recovered'); }
       if (keyActionType.value === 'replace') { txt2 = props.t('Replaced'); }
       return {
