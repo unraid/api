@@ -297,15 +297,6 @@ export enum ContainerState {
   Running = 'RUNNING'
 }
 
-export type Device = {
-  __typename?: 'Device';
-  device?: Maybe<Scalars['String']['output']>;
-  id: Scalars['ID']['output'];
-  sectorSize?: Maybe<Scalars['String']['output']>;
-  sectors?: Maybe<Scalars['String']['output']>;
-  tag?: Maybe<Scalars['String']['output']>;
-};
-
 export type Devices = {
   __typename?: 'Devices';
   gpu?: Maybe<Array<Maybe<Gpu>>>;
@@ -339,7 +330,8 @@ export type Disk = {
 export enum DiskFsType {
   Btrfs = 'btrfs',
   Vfat = 'vfat',
-  Xfs = 'xfs'
+  Xfs = 'xfs',
+  Zfs = 'zfs'
 }
 
 export enum DiskInterfaceType {
@@ -522,7 +514,7 @@ export type Me = UserAccount & {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions?: Maybe<Scalars['JSON']['output']>;
-  role: Scalars['String']['output'];
+  roles: Scalars['String']['output'];
 };
 
 export enum MemoryFormFactor {
@@ -579,10 +571,6 @@ export type Mutation = {
   addApikey?: Maybe<ApiKey>;
   /** Add new disk to array */
   addDiskToArray?: Maybe<ArrayType>;
-  /** Add a new permission scope */
-  addScope?: Maybe<Scope>;
-  /** Add a new permission scope to apiKey */
-  addScopeToApiKey?: Maybe<Scope>;
   /** Add a new user */
   addUser?: Maybe<User>;
   /** Cancel parity check */
@@ -627,16 +615,6 @@ export type MutationaddApikeyArgs = {
 
 export type MutationaddDiskToArrayArgs = {
   input?: InputMaybe<arrayDiskInput>;
-};
-
-
-export type MutationaddScopeArgs = {
-  input: addScopeInput;
-};
-
-
-export type MutationaddScopeToApiKeyArgs = {
-  input: addScopeToApiKeyInput;
 };
 
 
@@ -872,12 +850,6 @@ export type Pci = {
   vendorname?: Maybe<Scalars['String']['output']>;
 };
 
-export type Permissions = {
-  __typename?: 'Permissions';
-  grants?: Maybe<Scalars['JSON']['output']>;
-  scopes?: Maybe<Scalars['JSON']['output']>;
-};
-
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -894,9 +866,6 @@ export type Query = {
   array: ArrayType;
   cloud?: Maybe<Cloud>;
   config: Config;
-  crashReportingEnabled?: Maybe<Scalars['Boolean']['output']>;
-  device?: Maybe<Device>;
-  devices: Array<Maybe<Device>>;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */
@@ -916,29 +885,19 @@ export type Query = {
   online?: Maybe<Scalars['Boolean']['output']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
-  permissions?: Maybe<Permissions>;
   registration?: Maybe<Registration>;
   server?: Maybe<Server>;
   servers: Array<Server>;
   /** Network Shares */
   shares?: Maybe<Array<Maybe<Share>>>;
-  twoFactor?: Maybe<TwoFactorWithToken>;
   unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
   /** User account */
   user?: Maybe<User>;
   /** User accounts */
   users: Array<User>;
   vars?: Maybe<Vars>;
-  /** Virtual network for vms */
-  vmNetwork?: Maybe<Scalars['JSON']['output']>;
   /** Virtual machines */
   vms?: Maybe<Vms>;
-  welcome?: Maybe<Welcome>;
-};
-
-
-export type QuerydeviceArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -967,11 +926,6 @@ export type QuerynotificationsArgs = {
 };
 
 
-export type QueryserverArgs = {
-  name: Scalars['String']['input'];
-};
-
-
 export type QueryuserArgs = {
   id: Scalars['ID']['input'];
 };
@@ -981,11 +935,6 @@ export type QueryusersArgs = {
   input?: InputMaybe<usersInput>;
 };
 
-
-export type QueryvmNetworkArgs = {
-  name: Scalars['String']['input'];
-};
-
 export type Registration = {
   __typename?: 'Registration';
   expiration?: Maybe<Scalars['String']['output']>;
@@ -993,6 +942,7 @@ export type Registration = {
   keyFile?: Maybe<KeyFile>;
   state?: Maybe<RegistrationState>;
   type?: Maybe<registrationType>;
+  updateExpiration?: Maybe<Scalars['String']['output']>;
 };
 
 export enum RegistrationState {
@@ -1041,15 +991,6 @@ export type RelayResponse = {
   error?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   timeout?: Maybe<Scalars['String']['output']>;
-};
-
-/** A permission scope */
-export type Scope = {
-  __typename?: 'Scope';
-  /** A user friendly description */
-  description?: Maybe<Scalars['String']['output']>;
-  /** A unique name for the scope */
-  name?: Maybe<Scalars['String']['output']>;
 };
 
 export type Server = {
@@ -1117,9 +1058,6 @@ export type Subscription = {
   apikeys?: Maybe<Array<Maybe<ApiKey>>>;
   array: ArrayType;
   config: Config;
-  crashReportingEnabled: Scalars['Boolean']['output'];
-  device: Device;
-  devices?: Maybe<Array<Device>>;
   display?: Maybe<Display>;
   dockerContainer: DockerContainer;
   dockerContainers?: Maybe<Array<Maybe<DockerContainer>>>;
@@ -1134,23 +1072,15 @@ export type Subscription = {
   parityHistory: ParityCheck;
   ping: Scalars['String']['output'];
   registration: Registration;
-  server: Server;
-  servers?: Maybe<Array<Server>>;
+  server?: Maybe<Server>;
   service?: Maybe<Array<Service>>;
   share: Share;
   shares?: Maybe<Array<Share>>;
-  twoFactor?: Maybe<TwoFactorWithoutToken>;
   unassignedDevices?: Maybe<Array<UnassignedDevice>>;
   user: User;
   users: Array<Maybe<User>>;
   vars: Vars;
-  vmNetworks?: Maybe<Array<VmNetwork>>;
   vms?: Maybe<Vms>;
-};
-
-
-export type SubscriptiondeviceArgs = {
-  id: Scalars['ID']['input'];
 };
 
 
@@ -1161,11 +1091,6 @@ export type SubscriptiondockerContainerArgs = {
 
 export type SubscriptiondockerNetworkArgs = {
   id: Scalars['ID']['input'];
-};
-
-
-export type SubscriptionserverArgs = {
-  name: Scalars['String']['input'];
 };
 
 
@@ -1201,29 +1126,6 @@ export enum Temperature {
 export enum Theme {
   White = 'white'
 }
-
-export type TwoFactorLocal = {
-  __typename?: 'TwoFactorLocal';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type TwoFactorRemote = {
-  __typename?: 'TwoFactorRemote';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type TwoFactorWithToken = {
-  __typename?: 'TwoFactorWithToken';
-  local?: Maybe<TwoFactorLocal>;
-  remote?: Maybe<TwoFactorRemote>;
-  token?: Maybe<Scalars['String']['output']>;
-};
-
-export type TwoFactorWithoutToken = {
-  __typename?: 'TwoFactorWithoutToken';
-  local?: Maybe<TwoFactorLocal>;
-  remote?: Maybe<TwoFactorRemote>;
-};
 
 export type UnassignedDevice = {
   __typename?: 'UnassignedDevice';
@@ -1301,14 +1203,14 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
-  role: Scalars['String']['output'];
+  roles: Scalars['String']['output'];
 };
 
 export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  role: Scalars['String']['output'];
+  roles: Scalars['String']['output'];
 };
 
 export type Vars = {
@@ -1514,11 +1416,6 @@ export type VmDomain = {
   uuid: Scalars['ID']['output'];
 };
 
-export type VmNetwork = {
-  __typename?: 'VmNetwork';
-  _placeholderType?: Maybe<Scalars['String']['output']>;
-};
-
 export enum VmState {
   Crashed = 'CRASHED',
   Idle = 'IDLE',
@@ -1555,19 +1452,6 @@ export type addApiKeyInput = {
   key?: InputMaybe<Scalars['String']['input']>;
   name?: InputMaybe<Scalars['String']['input']>;
   userId?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type addScopeInput = {
-  /** Scope description */
-  description?: InputMaybe<Scalars['String']['input']>;
-  /** Scope name */
-  name: Scalars['String']['input'];
-};
-
-export type addScopeToApiKeyInput = {
-  apiKey: Scalars['String']['input'];
-  /** Scope name */
-  name: Scalars['String']['input'];
 };
 
 export type addUserInput = {
@@ -1636,9 +1520,9 @@ export type serverStateQueryVariables = Exact<{ [key: string]: never; }>;
 export type serverStateQuery = { __typename?: 'Query', cloud?: (
     { __typename?: 'Cloud' }
     & { ' $fragmentRefs'?: { 'PartialCloudFragment': PartialCloudFragment } }
-  ) | null, config: { __typename?: 'Config', error?: ConfigErrorState | null, valid?: boolean | null }, info?: { __typename?: 'Info', os?: { __typename?: 'Os', hostname?: string | null } | null } | null, owner?: { __typename?: 'Owner', avatar?: string | null, username?: string | null } | null, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars?: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } | null };
+  ) | null, config: { __typename?: 'Config', error?: ConfigErrorState | null, valid?: boolean | null }, info?: { __typename?: 'Info', os?: { __typename?: 'Os', hostname?: string | null } | null } | null, owner?: { __typename?: 'Owner', avatar?: string | null, username?: string | null } | null, registration?: { __typename?: 'Registration', state?: RegistrationState | null, expiration?: string | null, updateExpiration?: string | null, keyFile?: { __typename?: 'KeyFile', contents?: string | null } | null } | null, vars?: { __typename?: 'Vars', regGen?: string | null, regState?: RegistrationState | null, configError?: ConfigErrorState | null, configValid?: boolean | null } | null };
 
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
-export const serverStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<serverStateQuery, serverStateQueryVariables>;
+export const serverStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updateExpiration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<serverStateQuery, serverStateQueryVariables>;
