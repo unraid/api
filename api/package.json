@@ -49,6 +49,7 @@
     "start:report": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty NODE_ENV=development LOG_LEVEL=trace NODE_ENV=development LOG_CONTEXT=true tsup --config ./tsup.config.ts --watch --onSuccess 'DOTENV_CONFIG_PATH=./.env.development node -r dotenv/config dist/unraid-api.cjs report --debug'",
     "start:docker": "docker compose run --rm builder-interactive",
     "build:dev": "./scripts/dc.sh build dev",
+    "start:local": "./scripts/dc.sh run --rm --service-ports local",
     "docker:dev": "./scripts/dc.sh run --rm --service-ports dev",
     "docker:test": "./scripts/dc.sh run --rm builder npm run test"
   },
