@@ -327,7 +327,8 @@ export type Disk = {
 export enum DiskFsType {
   BTRFS = 'btrfs',
   VFAT = 'vfat',
-  XFS = 'xfs'
+  XFS = 'xfs',
+  ZFS = 'zfs'
 }
 
 export enum DiskInterfaceType {
@@ -938,6 +939,7 @@ export type Registration = {
   keyFile?: Maybe<KeyFile>;
   state?: Maybe<RegistrationState>;
   type?: Maybe<registrationType>;
+  updateExpiration?: Maybe<Scalars['String']['output']>;
 };
 
 export enum RegistrationState {
@@ -2334,6 +2336,7 @@ export type RegistrationResolvers<ContextType = Context, ParentType extends Reso
   keyFile?: Resolver<Maybe<ResolversTypes['KeyFile']>, ParentType, ContextType>;
   state?: Resolver<Maybe<ResolversTypes['RegistrationState']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['registrationType']>, ParentType, ContextType>;
+  updateExpiration?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

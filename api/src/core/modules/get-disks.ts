@@ -5,14 +5,12 @@ import {
     diskLayout,
 } from 'systeminformation';
 import { map as asyncMap } from 'p-iteration';
-import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
-import { type Context } from '@app/graphql/schema/utils';
 import {
     type Disk,
     DiskInterfaceType,
     DiskSmartStatus,
+    DiskFsType,
 } from '@app/graphql/generated/api/types';
-import { DiskFsType } from '@app/graphql/generated/api/types';
 import { graphqlLogger } from '@app/core/log';
 
 const getTemperature = async (

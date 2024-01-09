@@ -688,7 +688,8 @@ export function RegistrationSchema(): z.ZodObject<Properties<Registration>> {
     guid: z.string().nullish(),
     keyFile: KeyFileSchema().nullish(),
     state: RegistrationStateSchema.nullish(),
-    type: registrationTypeSchema.nullish()
+    type: registrationTypeSchema.nullish(),
+    updateExpiration: z.string().nullish()
   })
 }
 
