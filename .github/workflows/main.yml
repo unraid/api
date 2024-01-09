@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
       - name: Reconfigure git to use HTTP authenti:cation
@@ -69,7 +69,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           persist-credentials: false
 
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create env file
         run: |
@@ -130,7 +130,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Add SSH deploy key
         uses: shimataro/ssh-key-action@v2
@@ -185,7 +185,7 @@ jobs:
     needs: [lint-web]
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Create env file
         run: |
@@ -227,7 +227,7 @@ jobs:
         with:
           timezoneLinux: "America/Los_Angeles"
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download unraid web components
         uses: actions/download-artifact@v4
         with:
@@ -259,7 +259,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Make Staging Release Folder
         run: mkdir staging-release/
@@ -307,7 +307,7 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Download unraid-api binary tgz
         uses: actions/download-artifact@v4
