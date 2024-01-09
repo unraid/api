@@ -127,7 +127,7 @@ jobs:
           echo "::set-output name=API_SHA256::${API_SHA256}"
 
       - name: Upload tgz to Github artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/release/*.tgz
@@ -173,7 +173,7 @@ jobs:
           # escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"${RELEASE_NOTES}")
           # sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
       - name: Upload binary txz and plg to Github artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: connect-files
           path: |
