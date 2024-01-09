@@ -76,7 +76,7 @@ jobs:
         run: npm run build
 
       - name: Upload build to Github artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: unraid-web
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
