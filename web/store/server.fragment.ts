@@ -79,6 +79,7 @@ export const SERVER_STATE_QUERY = graphql(/* GraphQL */ `
       keyFile {
         contents
       }
+      updateExpiration
     }
     vars {
       regGen
