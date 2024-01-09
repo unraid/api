@@ -50,6 +50,24 @@ services:
     profiles:
       - builder
 
+  local:
+    networks:
+      - mothership_default
+    image: unraid-api:development
+    ports:
+      - "3001:3001"
+    build: 
+      context: .
+      target: development
+      dockerfile: Dockerfile
+    <<: *volumes
+    command: npm run start:dev
+    environment: 
+      - IS_DOCKER=true
+      - GIT_SHA=${GIT_SHA:?err}
+      - IS_TAGGED=${IS_TAGGED}
+    profiles:
+      - builder
 
   builder:
     image: unraid-api:builder
