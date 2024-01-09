@@ -856,6 +856,7 @@ export const useServerStore = defineStore('server', () => {
           },
       expireTime: (data.registration && data.registration.expiration) ? parseInt(data.registration.expiration) : 0,
       cloud: data.cloud ? useFragment(SERVER_CLOUD_FRAGMENT, data.cloud) : undefined,
+      regExp: (data.registration && data.registration.updateExpiration) ? Number(data.registration.updateExpiration) : undefined,
     };
     console.debug('mutatedData', mutatedData);
     return mutatedData;
@@ -922,7 +923,7 @@ export const useServerStore = defineStore('server', () => {
     // Extract the new values from the response
     const newRegistered = fromApi && response?.data ? response.data.owner.username !== 'root' : response.registered;
     const newState = fromApi && response?.data ? response.data.vars.regState : response.state;
-    const newRegExp = fromApi && response?.data ? response.data.registration.expiration : response.regExp;
+    const newRegExp = fromApi && response?.data ? Number(response.data.registration.updateExpiration ?? 0) : response.regExp;
     // Compare the new values to the old values
     const registrationStatusChanged = oldRegistered !== newRegistered;
     const stateChanged = oldState !== newState;
