@@ -113,8 +113,12 @@ export type Var = {
 	regFile: string;
 	regGen: string;
 	regGuid: string;
+	/** Registration time for key */
 	regTm: string;
+	/** Expiration of license for Trial Keys */
 	regTm2: string;
+	/** Expiration of Updates for non-legacy keys */
+	regExp: string | null;
 	/** Who the current Unraid key is registered to. */
 	regTo: string;
 	/** Which type of key this is. */

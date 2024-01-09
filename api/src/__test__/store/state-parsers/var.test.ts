@@ -103,6 +103,7 @@ test('Returns parsed state file', async () => {
 		  "porttelnet": 23,
 		  "queueDepth": "auto",
 		  "regCheck": "Valid",
+		  "regExp": "",
 		  "regFile": "/app/dev/Unraid.net/Pro.key",
 		  "regGen": "0",
 		  "regGuid": "13FE-4200-C300-58C372A52B19",

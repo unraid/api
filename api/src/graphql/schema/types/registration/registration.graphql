@@ -17,4 +17,5 @@ type Registration {
     keyFile: KeyFile
     state: RegistrationState
     expiration: String
+    updateExpiration: String
 }
