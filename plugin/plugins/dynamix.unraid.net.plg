@@ -315,6 +315,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -449,15 +450,18 @@ if [[ -n $LINENUM ]]; then
   mv -f "$FILE~" "$FILE"
 fi
 
-# patch showchanges script, starting with 6.11.0-rc1
+# patch: showchanges, starting with 6.11.0-rc1
+#        ShowChanges.php, in 6.10
 # search text:       $valid = ['/var/tmp/','/tmp/plugins/'];
 # replacement text:  $valid = ['/var/tmp/','/tmp/plugins/','/boot/previous'];
-FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges
-if test -f "${FILE}" && ! grep -q "'/boot/previous'" "${FILE}" &>/dev/null; then
-  # backup the file so it can be restored later
-  cp -f "$FILE" "$FILE-"
-  sed -i '/$valid = \[/c$valid = ['"'/var/tmp/'"','"'/tmp/plugins/'"','"'/boot/previous'"'];' "$FILE"
-fi
+FILES=(/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges /usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php)
+for FILE in "${FILES[@]}"; do
+  if test -f "${FILE}" && ! grep -q "'/boot/previous'" "${FILE}" &>/dev/null; then
+    # backup the file so it can be restored later
+    cp -f "$FILE" "$FILE-"
+    sed -i '/$valid = \[/c$valid = ['"'/var/tmp/'"','"'/tmp/plugins/'"','"'/boot/previous'"'];' "$FILE"
+  fi
+done
 
 # move settings on flash drive
 CFG_OLD=/boot/config/plugins/Unraid.net
