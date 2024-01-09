@@ -104,6 +104,7 @@ export type VarIni = {
     regGuid: string;
     regTm: string;
     regTm2: string;
+    regExp?: string;
     regTo: string;
     regTy: string;
     regState: string;
@@ -249,6 +250,7 @@ export const parse: StateFileToIniParserMap['var'] = (iniFile) => {
         regTy:
             registrationType[iniFile.regTy?.toUpperCase()] ??
             registrationType.INVALID,
+        regExp: iniFile.regExp  ?? null,
         // Make sure to use a || not a ?? as regCheck can be an empty string
         regState:
             RegistrationState[

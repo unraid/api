@@ -49,6 +49,7 @@ enum DiskFsType {
     xfs
     btrfs
     vfat
+    zfs
 }
 
 enum DiskInterfaceType {

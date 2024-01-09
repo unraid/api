@@ -34,6 +34,9 @@ export class RegistrationResolver {
             expiration: (
                 1_000 * (isTrial || isExpired ? Number(emhttp.var.regTm2) : 0)
             ).toString(),
+            updateExpiration: emhttp.var.regExp
+                ? (Number(emhttp.var.regExp) * 1_000).toString()
+                : null,
             keyFile: {
                 location: emhttp.var.regFile,
                 contents: await getKeyFile(),
