@@ -102,6 +102,7 @@ export const useServerStore = defineStore('server', () => {
   const regTo = ref<string>('');
   const regTy = ref<string>('');
   const regExp = ref<number>(0);
+  const parsedRegExp = computed(() => regExp.value ? dayjs(regExp.value).format('YYYY-MM-DD') : null);
   const regUpdatesExpired = computed(() => {
     if (!regExp.value || (state.value !== 'STARTER' && state.value !== 'UNLEASHED')) { return false; }
     const today = dayjs();
@@ -828,6 +829,10 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.regTo !== 'undefined') { regTo.value = data.regTo; }
   };
 
+  const setUpdateOsResponse = (response: ServerUpdateOsResponse) => {
+    updateOsResponse.value = response;
+  };
+
   const mutateServerStateFromApi = (data: serverStateQuery): Server => {
     console.debug('mutateServerStateFromApi', data);
     const mutatedData: Server = {
@@ -993,6 +998,7 @@ export const useServerStore = defineStore('server', () => {
     regTo,
     regTy,
     regExp,
+    parsedRegExp,
     regUpdatesExpired,
     site,
     state,
@@ -1019,6 +1025,7 @@ export const useServerStore = defineStore('server', () => {
     tooManyDevices,
     // actions
     setServer,
+    setUpdateOsResponse,
     fetchServerFromApi,
     refreshServerState,
     filteredKeyActions,
