@@ -8,17 +8,19 @@ import { Module } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ACGuard, AccessControlModule } from 'nest-access-control';
 import { LoggerModule } from 'nestjs-pino';
+import { CronModule } from '@app/unraid-api/cron/cron.module';
 
 @Module({
     imports: [
         LoggerModule.forRoot({
             pinoHttp: {
                 logger: apiLogger,
-                autoLogging: false
+                autoLogging: false,
             },
         }),
         AccessControlModule.forRoles(setupPermissions()),
         AuthModule,
+        CronModule,
         GraphModule,
         RestModule,
     ],
@@ -26,10 +28,7 @@ import { LoggerModule } from 'nestjs-pino';
     providers: [
         {
             provide: 'APP_GUARD',
-            useFactory: () =>
-                new GraphqlAuthGuard(
-                    new Reflector(),
-                ),
+            useFactory: () => new GraphqlAuthGuard(new Reflector()),
         },
         {
             provide: 'APP_GUARD',
