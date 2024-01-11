@@ -2,7 +2,7 @@ import { pino } from 'pino';
 import { LOG_TRANSPORT, LOG_TYPE } from '@app/environment';
 
 import pretty from 'pino-pretty';
-import { chmodSync, existsSync, mkdirSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, rmSync } from 'node:fs';
 import { getters } from '@app/store/index';
 import { join } from 'node:path';
 
@@ -13,6 +13,8 @@ const makeLoggingDirectoryIfNotExists = () => {
     }
 
     chmodSync(getters.paths()['log-base'], 0o644);
+
+    rmSync(`${getters.paths()['log-base']}/stdout.log.*`);
 };
 
 if (LOG_TRANSPORT === 'file') {
