@@ -6,7 +6,7 @@ import { execa } from 'execa';
 export class LogCleanupService {
     private readonly logger = new Logger(LogCleanupService.name);
 
-    @Cron('* * * * *')
+    @Cron('0 * * * *')
     async handleCron() {
         try {
             this.logger.debug('Running logrotate');
