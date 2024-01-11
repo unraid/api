@@ -9,7 +9,7 @@ export const setupLogRotation = async () => {
             '/etc/logrotate.d/unraid-api',
             `
             /var/log/unraid-api/*.log {
-                rotate 2
+                rotate 1
                 missingok
                 size 5M
             }
