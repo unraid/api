@@ -13,17 +13,16 @@ const makeLoggingDirectoryIfNotExists = () => {
     }
 
     chmodSync(getters.paths()['log-base'], 0o644);
-    console.log('here');
     if (
         existsSync(`${getters.paths()['log-base']}/stdout.log`) &&
-        statSync(`${getters.paths()['log-base']}/stdout.log`).size > 50_000
+        statSync(`${getters.paths()['log-base']}/stdout.log`).size > 5_000_000
     ) {
         rmSync(`${getters.paths()['log-base']}/stdout.log`);
     }
     try {
         rmSync(`${getters.paths()['log-base']}/stdout.log.*`);
     } catch (e) {
-        console.log('No old logs to remove');
+        // Ignore Error
     }
 };
 
