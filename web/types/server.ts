@@ -54,6 +54,8 @@ export interface ServerUpdateOsResponse {
   name: string; // "Unraid 6.13.0-beta0.27"
   date: string; // "2023-12-13"
   isNewer: boolean; // false
+  changelog?: string; // "https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/6.13.0-beta0.27.md"
+  sha256?: string;
 }
 
 export interface Server {
