@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.4.0](https://github.com/unraid/api/compare/v3.3.0...v3.4.0) (2024-01-11)
+
+
+### Features
+
+* add logrotate to cron in nestjs ([#839](https://github.com/unraid/api/issues/839)) ([5c91524](https://github.com/unraid/api/commit/5c91524d849147c0ac7925f3a2f1cce67ffe75de))
+
+
+### Bug Fixes
+
+* allow failure for log deletion ([eff3142](https://github.com/unraid/api/commit/eff31423927644be436a831126678719c2eb0621))
+* allowed origins check not working without spaces ([#838](https://github.com/unraid/api/issues/838)) ([b998b38](https://github.com/unraid/api/commit/b998b38355fab77ecc2f62bc64896766218db3d4))
+* excessive logging ([89cb254](https://github.com/unraid/api/commit/89cb2544ed0e0edd33b59f15d487487e22c0ae32))
+* run hourly ([0425794](https://github.com/unraid/api/commit/0425794356a01262222e7dff2645d3629e00d0f6))
+
 ## [3.3.0](https://github.com/unraid/api/compare/v3.2.3...v3.3.0) (2024-01-09)
 
 
