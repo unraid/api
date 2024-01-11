@@ -1,4 +1,6 @@
 import { request } from '~/composables/services/request';
+import { OS_RELEASES } from '~/helpers/urls';
+import type { ServerUpdateOsResponse } from '~/types/server';
 /**
  * @name WebguiInstallKey
  * @description used to auto install key urls
@@ -89,6 +91,30 @@ export const WebguiNotify = async (payload: NotifyPostParameters) => {
     return response;
   } catch (error) {
     console.error('[WebguiNotify] catch failed to execute Notify', error, payload);
+    return error;
+  }
+};
+
+export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
+  console.debug('[WebguiCheckForUpdate]');
+  try {
+    const response: ServerUpdateOsResponse = await request
+      .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php')
+      .query({
+        altUrl: OS_RELEASES.toString(),
+        json: true,
+      })
+      .get()
+      .json((json) => {
+        return json;
+      })
+      .catch((error) => {
+        console.error('[WebguiCheckForUpdate] catch failed to execute UpdateCheck', error);
+        return error;
+      });
+    return response;
+  } catch (error) {
+    console.error('[WebguiCheckForUpdate] catch failed to execute UpdateCheck', error);
     return error;
   }
 };
