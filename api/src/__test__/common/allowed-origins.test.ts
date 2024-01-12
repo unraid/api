@@ -36,7 +36,7 @@ test('Returns allowed origins', async () => {
 		  "https://google.com",
 		  "https://test.com",
 		  "https://connect.myunraid.net",
-		  "https://staging.connect.myunraid.net",
+		  "https://connect-staging.myunraid.net",
 		  "https://dev-my.myunraid.net:4000",
 		]
 	`);
