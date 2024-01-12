@@ -1,5 +1,5 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import type { ButtonProps } from '~/components/Brand/Button.vue';
+import type { ButtonProps } from '~/types/ui/button';
 
 import { OBJ_TO_STR } from '~/helpers/functions';
 
