@@ -1,5 +1,5 @@
 export interface ButtonProps {
-  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'white';
+  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'underline-hover-red' | 'white';
   btnType?: 'button' | 'submit' | 'reset';
   click?: () => void;
   disabled?: boolean;
