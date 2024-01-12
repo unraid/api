@@ -104,7 +104,6 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   });
 
   // Actions
-  
 
   const updateCallbackButton = (): UserProfileLink => {
     return {
