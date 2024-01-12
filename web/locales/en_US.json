@@ -206,7 +206,6 @@
   "Sign In requires the local unraid-api to be running": "Sign In requires the local unraid-api to be running",
   "Sign Out requires the local unraid-api to be running": "Sign Out requires the local unraid-api to be running",
   "Unraid OS {0} Released": "Unraid OS {0} Released",
-  "Unraid OS {0} Update Available": "Unraid OS {0} Update Available",
   "Unraid {0} Update Available": "Unraid {0} Update Available",
   "{0} Update Available": "{0} Update Available",
   "Unraid OS Update Available": "Unraid OS Update Available",
@@ -343,5 +342,6 @@
   "Fetching & parsing changelog…": "Fetching & parsing changelog…",
   "View Docs": "View Docs",
   "Extend Key to Update": "Extend Key to Update",
-  "Install Unraid OS {0}": "Install Unraid OS {0}"
+  "Install Unraid OS {0}": "Install Unraid OS {0}",
+  "View Changelog to Start Update": "View Changelog to Start Update"
 }
