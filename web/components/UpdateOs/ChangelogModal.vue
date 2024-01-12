@@ -42,6 +42,32 @@ const showExternalChangelogLink = computed(() => {
 const showExtendKeyButton = computed(() => {
   return availableWithRenewal.value;
 });
+
+// find all the links in the changelog and make them open in a new tab
+const changelogOutput = ref<HTMLElement | null>(null);
+const updateChangelogLinks = () => {
+  if (!changelogOutput.value) { return; }
+  const links = changelogOutput.value.querySelectorAll('a');
+  links.forEach((link) => {
+    link.setAttribute('target', '_blank');
+    link.setAttribute('rel', 'noopener noreferrer');
+    /** @todo what do we do with docusaurus based links? May also be broken on the account app. */
+    // if a link is a relative link or doesn't start with http but doesn't start with a # we need to prepend the base url of the changelog
+    // const linkIsRelative = link.getAttribute('href')?.startsWith('/') ?? false;
+    // const linkIsNotHttp = link.getAttribute('href')?.startsWith('http') === false;
+    // const linkIsNotHash = link.getAttribute('href')?.startsWith('#') === false;
+    // const linkIsNotAnchor = link.getAttribute('href')?.startsWith('mailto') === false;
+    // if (linkIsRelative || (linkIsNotHttp && linkIsNotHash && linkIsNotAnchor)) {
+    //   link.setAttribute('href', `${releaseForUpdate.value?.changelog}${link.getAttribute('href')}`);
+    // }
+  });
+};
+
+watchEffect(() => {
+  if (mutatedParsedChangelog.value) {
+    updateChangelogLinks();
+  }
+});
 </script>
 
 <template>
@@ -56,13 +82,14 @@ const showExtendKeyButton = computed(() => {
     <template #main>
       <div
         v-if="mutatedParsedChangelog"
-        class="prose dark:prose-invert prose-a:text-unraid-red hover:prose-a:no-underline hover:prose-a:text-unraid-red/60 dark:prose-a:text-orange hover:dark:prose-a:text-orange/60"
+        ref="changelogOutput"
+        class="text-18px prose prose-a:text-unraid-red hover:prose-a:no-underline hover:prose-a:text-unraid-red/60 dark:prose-a:text-orange hover:dark:prose-a:text-orange/60"
         v-html="mutatedParsedChangelog"
       />
 
       <div
         v-else-if="parseChangelogFailed"
-        class="text-center flex flex-col gap-4 prose dark:prose-invert"
+        class="text-center flex flex-col gap-4 prose"
       >
         <h2 class="text-lg text-unraid-red italic font-semibold">
           {{ props.t(`Error Parsing Changelog • {0}`, [parseChangelogFailed]) }}
