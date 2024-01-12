@@ -117,9 +117,9 @@ const disableCallbackButton = computed(() => !acknowledgeBackup.value || flashBa
 
 watchEffect(() => {
   if (available.value) {
-    updateButton.value = updateOsActionsStore.initUpdateOsCallback();
+    updateButton.value = updateOsActionsStore.updateCallbackButton();
   } else {
-    updateButton.value = updateOsActionsStore.initUpdateOsCallback();
+    updateButton.value = updateOsActionsStore.updateCallbackButton();
   }
   if (flashBackupBasicStatus.value === 'complete') {
     acknowledgeBackup.value = true; // auto check the box

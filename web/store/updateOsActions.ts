@@ -4,9 +4,9 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import useInstallPlugin from '~/composables/installPlugin';
 import { getOsReleaseBySha256 } from '~/composables/services/keyServer';
 
-import { ACCOUNT_CALLBACK, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
-import { useCallbackStore } from '~/store/callbackActions';
+import { useAccountStore } from '~/store/account';
 // import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
@@ -37,7 +37,7 @@ export interface Release {
 }
 
 export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
-  const callbackStore = useCallbackStore();
+  const accountStore = useAccountStore();
   // const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
   // in this instance we don't need to pass a payload because we're already in the store that would be passed to it
@@ -49,12 +49,10 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const updateAction = ref<ExternalUpdateOsAction | undefined>();
 
   const guid = computed(() => serverStore.guid);
-  const inIframe = computed(() => serverStore.inIframe);
   const keyfile = computed(() => serverStore.keyfile);
   const osVersion = computed(() => serverStore.osVersion);
   const osVersionBranch = computed(() => serverStore.osVersionBranch);
   const regUpdatesExpired = computed(() => serverStore.regUpdatesExpired);
-  const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
 
   const updateOsAvailable = computed(() => updateOsStore.available);
   /** used when coming back from callback, this will be the release to install */
@@ -106,41 +104,21 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   });
 
   // Actions
-  const initUpdateOsCallback = (): UserProfileLink => {
+  
+
+  const updateCallbackButton = (): UserProfileLink => {
     return {
       click: () => {
-        callbackStore.send(
-          ACCOUNT_CALLBACK.toString(),
-          [{
-            server: {
-              ...serverAccountPayload.value,
-            },
-            type: 'updateOs',
-          }],
-          inIframe.value ? 'newTab' : undefined,
-        );
+        accountStore.updateOs();
       },
       disabled: rebootType.value !== '',
       external: true,
       icon: updateOsAvailable.value ? BellAlertIcon : ArrowPathIcon,
       name: 'updateOs',
-      text: updateOsAvailable.value ? 'Unraid OS {0} Update Available' : 'Check for OS Updates',
+      text: updateOsAvailable.value ? 'Unraid OS {0} Update Available' : 'View Available Updates',
       textParams: [updateOsAvailable.value ?? ''],
       title: rebootType.value !== '' ? rebootTypeText.value : '',
     };
-  };
-
-  const executeUpdateOsCallback = async (autoRedirectReplace?: boolean) => {
-    await callbackStore.send(
-      ACCOUNT_CALLBACK.toString(),
-      [{
-        server: {
-          ...serverAccountPayload.value,
-        },
-        type: 'updateOs',
-      }],
-      inIframe.value ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
-    );
   };
 
   const setUpdateOsAction = (payload: ExternalUpdateOsAction | undefined) => (updateAction.value = payload);
@@ -238,8 +216,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     actOnUpdateOsAction,
     confirmUpdateOs,
     installOsUpdate,
-    initUpdateOsCallback,
-    executeUpdateOsCallback,
+    updateCallbackButton,
     rebootServer,
     setStatus,
     setUpdateOsAction,
