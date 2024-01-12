@@ -147,6 +147,7 @@ export default <Partial<Config>>{
             '--tw-prose-invert-quote-borders': theme('colors.alpha'),
             '--tw-prose-invert-captions': theme('colors.alpha'),
             '--tw-prose-invert-code': theme('colors.alpha'),
+            '--tw-prose-invert-code-bg': theme('colors.gamma-opaque'),
             '--tw-prose-invert-pre-code': theme('colors.alpha'),
             '--tw-prose-invert-pre-bg': theme('colors.beta'),
             '--tw-prose-invert-th-borders': theme('colors.alpha'),
