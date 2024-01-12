@@ -54,7 +54,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		  },
 		  "remote": {
 		    "accesstoken": "",
-		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://staging.connect.myunraid.net, https://dev-my.myunraid.net:4000",
+		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
 		    "apikey": "",
 		    "avatar": "",
 		    "dynamicRemoteAccessType": "DISABLED",
@@ -146,7 +146,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		  "remote": {
 		    "2Fa": "yes",
 		    "accesstoken": "",
-		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://staging.connect.myunraid.net, https://dev-my.myunraid.net:4000",
+		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
 		    "apikey": "",
 		    "avatar": "",
 		    "dynamicRemoteAccessType": "DISABLED",
