@@ -335,5 +335,13 @@
   "Sign In": "Sign In",
   "OS Update Eligibility Expired": "OS Update Eligibility Expired",
   "Go to Tools > Registration to Learn More": "Go to Tools > Registration to Learn More",
-  "Installing Extended": "Installing Extended"
+  "Installing Extended": "Installing Extended",
+  "Release requires verification to update": "Release requires verification to update",
+  "Error Parsing Changelog • {0}": "Error Parsing Changelog • {0}",
+  "It's highly recommended to review the changelog before continuing your update": "It's highly recommended to review the changelog before continuing your update",
+  "View Changelog on Docs": "View Changelog on Docs",
+  "Fetching & parsing changelog…": "Fetching & parsing changelog…",
+  "View Docs": "View Docs",
+  "Extend Key to Update": "Extend Key to Update",
+  "Install Unraid OS {0}": "Install Unraid OS {0}"
 }
