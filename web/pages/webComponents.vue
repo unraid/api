@@ -10,14 +10,20 @@ onBeforeMount(() => {
 
 <template>
   <client-only>
-    <unraid-i18n-host class="flex flex-col gap-6 p-6 max-w-5xl mx-auto text-black bg-white dark:text-white dark:bg-black">
+    <unraid-i18n-host class="flex flex-col gap-6 p-6 mx-auto text-black bg-white dark:text-white dark:bg-black">
       <h2 class="text-xl font-semibold font-mono">
         Web Components
       </h2>
       <h3 class="text-lg font-semibold font-mono">
         UserProfileCe
       </h3>
-      <header class="bg-beta py-4">
+      <header class="bg-beta py-4 flex flex-row justify-between items-center">
+        <div class="inline-flex flex-col gap-4 items-start px-4">
+          <a href="https://unraid.net" target="_blank">
+            <BrandLogo class="w-[100px] sm:w-[150px]" />
+          </a>
+          <HeaderOsVersionCe />
+        </div>
         <unraid-user-profile :server="JSON.stringify(serverState)" />
       </header>
       <hr class="border-black dark:border-white">
