@@ -1,24 +1,8 @@
 <script setup lang="ts">
-import {
-  computed,
-  type Component,
-} from 'vue';
+import { computed } from 'vue';
 
-export interface ButtonProps {
-  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'white';
-  btnType?: 'button' | 'submit' | 'reset';
-  click?: () => void;
-  disabled?: boolean;
-  download?: boolean;
-  external?: boolean;
-  href?: string;
-  icon?: Component;
-  iconRight?: Component;
-  iconRightHoverDisplay?: boolean;
-  // iconRightHoverAnimate?: boolean;
-  size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
-  text?: string;
-}
+import type { ButtonProps } from '~/types/ui/button';
+
 const props = withDefaults(defineProps<ButtonProps>(), {
   btnStyle: 'fill',
   btnType: 'button',
@@ -30,6 +14,7 @@ const props = withDefaults(defineProps<ButtonProps>(), {
   // iconRightHoverAnimate: true,
   size: '16px',
   text: '',
+  title: '',
 });
 
 defineEmits(['click']);
@@ -111,6 +96,7 @@ const classes = computed(() => {
     :target="external ? '_blank' : ''"
     :type="!href ? btnType : ''"
     :class="classes.button"
+    :title="title"
     @click="click ?? $emit('click')"
   >
     <div
