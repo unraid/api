@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
 import {
+  ArrowPathIcon,
   ArrowTopRightOnSquareIcon,
+  BellAlertIcon,
   CogIcon,
   KeyIcon,
 } from '@heroicons/vue/24/solid';
@@ -21,6 +23,7 @@ import type { UserProfileLink } from '~/types/userProfile';
 const props = defineProps<{ t: any; }>();
 
 const errorsStore = useErrorsStore();
+const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { errors } = storeToRefs(errorsStore);
@@ -32,7 +35,7 @@ const {
   stateData,
   stateDataError,
 } = storeToRefs(useServerStore());
-const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
+const { available: osUpdateAvailable } = storeToRefs(updateOsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -52,8 +55,32 @@ const links = computed(():UserProfileLink[] => {
           title: props.t('Go to Tools > Registration to Learn More'),
         }]
       : []),
-    // callback to account.unraid.net/server/update-os
-    updateOsActionsStore.initUpdateOsCallback(),
+    // @todo - conditional determine button here
+
+    // otherwise we should have a button to check for updates
+    ...(osUpdateAvailable.value
+      ? [
+          {
+            click: () => {
+              updateOsStore.setModalOpen(true);
+            },
+            emphasize: true,
+            icon: BellAlertIcon,
+            text: props.t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
+          },
+        ]
+      : [
+        // if available we should have a button to open the modal
+          {
+            click: () => {
+              updateOsStore.localCheckForUpdate();
+            },
+            icon: ArrowPathIcon,
+            text: props.t('Check for Update'),
+          },
+          // account callback button
+          updateOsActionsStore.updateCallbackButton(),
+        ]),
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value
       ? [
