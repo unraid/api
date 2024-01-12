@@ -1,4 +1,4 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { CloudResolver } from './cloud.resolver';
 
 describe('CloudResolver', () => {

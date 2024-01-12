@@ -1,5 +1,4 @@
 import { apiLogger } from '@app/core/log';
-import { BYPASS_PERMISSION_CHECKS } from '@app/environment';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
 import { IS_PUBLIC_KEY } from '@app/unraid-api/auth/public.decorator';
 import {
