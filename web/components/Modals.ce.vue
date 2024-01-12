@@ -7,11 +7,15 @@ import '~/assets/main.css';
 
 import { useCallbackActionsStore } from '~/store/callbackActions';
 import { useTrialStore } from '~/store/trial';
+import { useUpdateOsStore } from '~/store/updateOs';
+import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 const { t } = useI18n();
 
 const { callbackStatus } = storeToRefs(useCallbackActionsStore());
 const { trialModalVisible } = storeToRefs(useTrialStore());
+const { modalOpen: updateOsModalVisible } = storeToRefs(useUpdateOsStore());
+const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdateOsChangelogStore());
 // import { usePromoStore } from '~/store/promo';
 // const { promoVisible } = storeToRefs(usePromoStore());
 // <UpcPromo :t="t" :open="promoVisible" />
@@ -21,6 +25,8 @@ const { trialModalVisible } = storeToRefs(useTrialStore());
   <div class="relative z-[99999]">
     <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
     <UpcTrial :t="t" :open="trialModalVisible" />
+    <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
+    <UpdateOsChangelogModal :t="t" :open="updateOsChangelogModalVisible" />
   </div>
 </template>
 
