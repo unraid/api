@@ -54,7 +54,7 @@ onMounted(() => {
 
 <template>
   <div class="text-black bg-white dark:text-white dark:bg-black">
-    <div class="max-w-5xl pb-12 mx-auto">
+    <div class="pb-12 mx-auto">
       <client-only>
         <div class="flex flex-col gap-6 p-6">
           <h2 class="text-xl font-semibold font-mono">
