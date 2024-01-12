@@ -26,7 +26,7 @@ const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdat
     <UpcCallbackFeedback :t="t" :open="callbackStatus !== 'ready'" />
     <UpcTrial :t="t" :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
-    <UpdateOsChangelogModal :t="t" :open="updateOsChangelogModalVisible" />
+    <UpdateOsChangelogModal :t="t" :open="!!updateOsChangelogModalVisible" />
   </div>
 </template>
 
