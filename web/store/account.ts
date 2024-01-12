@@ -27,6 +27,9 @@ export const useAccountStore = defineStore('account', () => {
   const serverStore = useServerStore();
   const unraidApiStore = useUnraidApiStore();
 
+  const serverAccountPayload = computed(() => serverStore.serverAccountPayload);
+  const inIframe = computed(() => serverStore.inIframe);
+
   // State
   const accountAction = ref<ExternalSignIn | ExternalSignOut>();
   const accountActionHide = ref<boolean>(false);
@@ -74,11 +77,11 @@ export const useAccountStore = defineStore('account', () => {
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverAccountPayload,
+          ...serverAccountPayload.value,
         },
         type: 'recover',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
     );
   };
   const replace = () => {
@@ -86,11 +89,11 @@ export const useAccountStore = defineStore('account', () => {
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverAccountPayload,
+          ...serverAccountPayload.value,
         },
         type: 'replace',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
     );
   };
   const signIn = () => {
@@ -98,11 +101,11 @@ export const useAccountStore = defineStore('account', () => {
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverAccountPayload,
+          ...serverAccountPayload.value,
         },
         type: 'signIn',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
     );
   };
   const signOut = () => {
@@ -110,11 +113,11 @@ export const useAccountStore = defineStore('account', () => {
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverAccountPayload,
+          ...serverAccountPayload.value,
         },
         type: 'signOut',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
     );
   };
   const trialExtend = () => {
@@ -122,11 +125,11 @@ export const useAccountStore = defineStore('account', () => {
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverAccountPayload,
+          ...serverAccountPayload.value,
         },
         type: 'trialExtend',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
     );
   };
   const trialStart = () => {
@@ -134,11 +137,24 @@ export const useAccountStore = defineStore('account', () => {
       ACCOUNT_CALLBACK.toString(),
       [{
         server: {
-          ...serverStore.serverAccountPayload,
+          ...serverAccountPayload.value,
         },
         type: 'trialStart',
       }],
-      serverStore.inIframe ? 'newTab' : undefined,
+      inIframe.value ? 'newTab' : undefined,
+    );
+  };
+
+  const updateOs = async (autoRedirectReplace?: boolean) => {
+    await callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverAccountPayload.value,
+        },
+        type: 'updateOs',
+      }],
+      inIframe.value ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
     );
   };
 
@@ -245,6 +261,7 @@ export const useAccountStore = defineStore('account', () => {
     signOut,
     trialExtend,
     trialStart,
+    updateOs,
     setAccountAction,
     setConnectSignInPayload,
     setQueueConnectSignOut,
