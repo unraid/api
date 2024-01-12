@@ -19,8 +19,8 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
+import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -34,8 +34,8 @@ const props = withDefaults(defineProps<Props>(), {
   rebootVersion: '',
 });
 
+const accountStore = useAccountStore();
 const serverStore = useServerStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
 const { rebootType } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
@@ -50,7 +50,7 @@ const showLoader = computed(() => window.location.pathname === WEBGUI_TOOLS_UPDA
 
 onBeforeMount(() => {
   if (showLoader.value) {
-    updateOsActionsStore.executeUpdateOsCallback(true);
+    accountStore.updateOs(true);
   }
   serverStore.setRebootVersion(props.rebootVersion);
 });

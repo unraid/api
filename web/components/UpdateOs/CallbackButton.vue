@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import { useAccountStore } from '~/store/account';
 
 defineProps<{
   t: any;
 }>();
 
-const updateOsActionsStore = useUpdateOsActionsStore();
+const accountStore = useAccountStore();
 </script>
 
 <template>
@@ -17,7 +17,7 @@ const updateOsActionsStore = useUpdateOsActionsStore();
       :icon-right="ArrowTopRightOnSquareIcon"
       :text="t('Check for OS Updates')"
       class="flex-0"
-      @click="updateOsActionsStore.executeUpdateOsCallback()"
+      @click="accountStore.updateOs()"
     />
   </div>
 </template>
