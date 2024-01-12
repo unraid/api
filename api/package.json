@@ -123,7 +123,7 @@
     "passport-http-header-strategy": "^1.1.0",
     "pidusage": "^3.0.2",
     "pino": "^8.16.2",
-    "pino-http": "^8.5.1",
+    "pino-http": "^9.0.0",
     "pino-pretty": "^10.2.3",
     "reflect-metadata": "^0.1.13",
     "request": "^2.88.2",
