@@ -97,15 +97,18 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               </button>
             </div>
 
-            <header class="text-center">
+            <header
+              class="text-center"
+              :class="{
+                'mb-16px sm:mb-24px': !$slots['main']
+              }"
+            >
               <template v-if="!$slots['header']">
                 <h1 v-if="title" :id="ariaLablledById" class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">
                   {{ title }}
                   <slot name="headerTitle" />
                 </h1>
-                <h2 v-if="description" class="text-20px opacity-75">
-                  {{ description }}
-                </h2>
+                <h2 v-if="description" class="text-20px opacity-75" v-html="description" />
               </template>
               <slot name="header" />
             </header>
