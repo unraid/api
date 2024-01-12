@@ -566,7 +566,7 @@ if  [ "${PLGTYPE}" = "staging" ]; then
     CHANGED=yes
     [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-"
     OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
-    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
+    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect-staging.myunraid.net https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
     sed -i "s#${OLD}#${NEW}#" "${FILE}"
   fi
 fi

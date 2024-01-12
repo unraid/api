@@ -86,7 +86,7 @@ const getExtraOrigins = (): string[] => {
 
 const getConnectOrigins = (): string[] => {
     const connectMain = 'https://connect.myunraid.net';
-    const connectStaging = 'https://staging.connect.myunraid.net';
+    const connectStaging = 'https://connect-staging.myunraid.net';
     const connectDev = 'https://dev-my.myunraid.net:4000';
 
     return [connectMain, connectStaging, connectDev];
