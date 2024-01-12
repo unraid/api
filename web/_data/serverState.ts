@@ -103,8 +103,8 @@ switch (state) {
 const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
 // const connectPluginInstalled = '';
 
-const osVersion = '6.13.0-beta0.22';
-const osVersionBranch = 'preview';
+const osVersion = '6.12.5';
+const osVersionBranch = 'stable';
 // const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
 
 // const mimicWebguiUnraidCheck = async (): Promise<ServerUpdateOsResponse | undefined> => {
@@ -173,10 +173,12 @@ export const serverState: Server = {
     textColor: ''
   },
   updateOsResponse: {
-    version: '6.13.0-beta0.27',
-    name: 'Unraid 6.13.0-beta0.27',
+    version: '6.12.6',
+    name: 'Unraid 6.12.6',
     date: '2023-12-13',
     isNewer: true,
+    changelog: 'https://docs.unraid.net/unraid-os/release-notes/6.12.6/',
+    sha256: '2f5debaf80549029cf6dfab0db59180e7e3391c059e6521aace7971419c9c4bf',
   },
   uptime,
   username: 'zspearmint',
