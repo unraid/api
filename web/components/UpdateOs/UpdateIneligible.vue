@@ -47,9 +47,9 @@ const updateButton = ref<UserProfileLink | undefined>();
 
 watchEffect(() => {
   if (availableWithRenewal.value) {
-    updateButton.value = updateOsActionsStore.initUpdateOsCallback();
+    updateButton.value = updateOsActionsStore.updateCallbackButton();
   } else {
-    updateButton.value = updateOsActionsStore.initUpdateOsCallback();
+    updateButton.value = updateOsActionsStore.updateCallbackButton();
   }
 });
 </script>
