@@ -2,7 +2,6 @@ import dayjs, { extend } from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { computed } from 'vue';
 
 import { WebguiCheckForUpdate } from '~/composables/services/webgui';
@@ -12,19 +11,23 @@ import type { ServerUpdateOsResponse } from '~/types/server';
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
  */
-const pinia = createPinia();
-pinia.use(piniaPluginPersistedstate);
-setActivePinia(pinia);
+setActivePinia(createPinia());
 
 // dayjs plugins
 extend(customParseFormat);
 extend(relativeTime);
 
+const KEY_IGNORED_RELEASES = 'updateOsIgnoredReleases';
+
 export const useUpdateOsStore = defineStore('updateOs', () => {
   // state
   const checkForUpdatesLoading = ref<boolean>(false);
   const modalOpen = ref<boolean>(false);
-  const ignoredReleases = ref<string[]>([]);
+  const ignoredReleases = ref<string[]>(
+    localStorage.getItem(KEY_IGNORED_RELEASES)
+      ? (JSON.parse(localStorage.getItem(KEY_IGNORED_RELEASES) ?? '') ?? [])
+      : []
+  );
 
   // getters from other stores
   const serverStore = useServerStore();
@@ -80,7 +83,12 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     modalOpen.value = val;
   };
 
-  const ignoreRelease = (release: string) => ignoredReleases.value.push(release);
+  const ignoreRelease = (release: string) => {
+    ignoredReleases.value.push(release);
+    localStorage.setItem(KEY_IGNORED_RELEASES, JSON.stringify(ignoredReleases.value));
+    /** @todo submit to an endpoint on the server to save to a file */
+    /** @todo when update check modal is displayed and there's no available updates, allow users to remove ignored releases from the list */
+  };
 
   return {
     // state
@@ -88,6 +96,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     availableWithRenewal,
     checkForUpdatesLoading,
     modalOpen,
+    ignoredReleases,
     // getters
     availableReleaseDate,
     // actions
@@ -95,9 +104,4 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     setModalOpen,
     ignoreRelease,
   };
-}, {
-  persist: {
-    storage: localStorage,
-    paths: ['ignoredReleases'],
-  },
 });
