@@ -200,7 +200,7 @@
     "standard-version": "^9.5.0",
     "tsup": "^7.0.0",
     "typescript": "^4.9.4",
-    "typesync": "^0.11.0",
+    "typesync": "^0.12.0",
     "vite-tsconfig-paths": "^4.2.0",
     "vitest": "^0.34.0",
     "zx": "^7.2.1"
