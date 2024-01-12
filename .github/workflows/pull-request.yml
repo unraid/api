@@ -32,7 +32,7 @@ jobs:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: api
           target: builder
@@ -66,7 +66,7 @@ jobs:
           driver-opts: network=host
 
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: api
           target: builder
@@ -106,7 +106,7 @@ jobs:
           driver-opts: network=host
 
       - name: Build and push
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           context: api
           target: builder
