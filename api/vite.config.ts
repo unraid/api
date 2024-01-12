@@ -7,7 +7,6 @@ export default defineConfig(() => {
 	// Manually set NODE_ENV to make sure we always run tests in test mode
 	process.env.NODE_ENV = 'test';
 	return {
-
 		plugins: [tsconfigPaths()],
 		test: {
 			globals: true,

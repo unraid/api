@@ -95,20 +95,20 @@ test('Combine Ini and Multi-Ini to read and then write a file with quotes', asyn
 	const file = await readFile('/tmp/test.ini', 'utf-8');
 	expect(file).toMatchInlineSnapshot(`
 		"[root]
-		idx=\\"0\\"
-		name=\\"root\\"
-		desc=\\"Console and webGui login account\\"
-		passwd=\\"yes\\"
+		idx="0"
+		name="root"
+		desc="Console and webGui login account"
+		passwd="yes"
 		[xo]
-		idx=\\"1\\"
-		name=\\"xo\\"
-		desc=\\"\\"
-		passwd=\\"yes\\"
+		idx="1"
+		name="xo"
+		desc=""
+		passwd="yes"
 		[test_user]
-		idx=\\"2\\"
-		name=\\"test_user\\"
-		desc=\\"\\"
-		passwd=\\"no\\"
+		idx="2"
+		name="test_user"
+		desc=""
+		passwd="no"
 		"
 	`);
 });

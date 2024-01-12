@@ -25,7 +25,7 @@ test('MultiIni can safely serialize an object with a boolean inside', async () =
 	};
 	expect(safelySerializeObjectToIni(objectToSerialize)).toMatchInlineSnapshot(`
 		"[root]
-		anonMode=\\"false\\"
+		anonMode="false"
 		"
 	`);
 	const result = safelySerializeObjectToIni(objectToSerialize);
