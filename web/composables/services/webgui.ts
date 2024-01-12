@@ -98,7 +98,7 @@ export const WebguiNotify = async (payload: NotifyPostParameters) => {
 export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
   console.debug('[WebguiCheckForUpdate]');
   try {
-    const response: ServerUpdateOsResponse = await request
+    const response = await request
       .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php')
       .query({
         altUrl: OS_RELEASES.toString(),
@@ -106,15 +106,15 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
       })
       .get()
       .json((json) => {
-        return json;
+        return json as ServerUpdateOsResponse;
       })
       .catch((error) => {
         console.error('[WebguiCheckForUpdate] catch failed to execute UpdateCheck', error);
-        return error;
+        throw new Error('Error checking for updates');
       });
-    return response;
+    return response as ServerUpdateOsResponse;
   } catch (error) {
     console.error('[WebguiCheckForUpdate] catch failed to execute UpdateCheck', error);
-    return error;
+    throw new Error('Error checking for updates');
   }
 };
