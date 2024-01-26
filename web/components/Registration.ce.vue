@@ -75,6 +75,13 @@ const devicesAvailable = computed((): number => {
   }
 });
 
+const showTrialExpiration = computed((): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED');
+const showUpdateEligibility = computed((): boolean => !!(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED')));
+const keyInstalled = computed((): boolean => !!(!stateDataError.value && state.value !== 'ENOKEYFILE'));
+const showTransferStatus = computed((): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value));
+// filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
+const showFilteredKeyActions = computed((): boolean => !!(keyActions.value && keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0));
+
 const items = computed((): RegistrationItemProps[] => {
   return [
     ...(regTy.value
@@ -83,7 +90,7 @@ const items = computed((): RegistrationItemProps[] => {
           text: regTy.value,
         }]
       : []),
-    ...(state.value === 'TRIAL' || state.value === 'EEXPIRED'
+    ...(showTrialExpiration.value
       ? [{
           error: state.value === 'EEXPIRED',
           label: t('Trial expiration'),
@@ -102,13 +109,13 @@ const items = computed((): RegistrationItemProps[] => {
           text: regTo.value,
         }]
       : []),
-    ...(regTo.value && regTm.value
+    ...(regTo.value && regTm.value && formattedRegTm.value
       ? [{
           label: t('Registered on'),
           text: formattedRegTm.value,
         }]
       : []),
-    ...(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED')
+    ...(showUpdateEligibility.value
       ? [{
           label: t('OS Update Eligibility'),
           warning: regUpdatesExpired.value,
@@ -141,7 +148,7 @@ const items = computed((): RegistrationItemProps[] => {
           text: flashProduct.value,
         }]
       : []),
-    ...(!stateDataError.value
+    ...(keyInstalled.value
       ? [{
           error: deviceCount.value > devicesAvailable.value,
           label: t('Attached Storage Devices'),
@@ -150,17 +157,15 @@ const items = computed((): RegistrationItemProps[] => {
             : t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
         }]
       : []),
-    ...(!stateDataError.value && guid.value
+    ...(showTransferStatus.value
       ? [{
           label: t('Transfer License to New Flash'),
           component: RegistrationReplaceCheck,
           componentProps: { t },
         }]
       : []),
-    // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
-    ...(keyActions.value && keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0
+    ...(showFilteredKeyActions.value
       ? [{
-          label: t('License key actions'),
           component: KeyActions,
           componentProps: {
             filterOut: ['renew'],
