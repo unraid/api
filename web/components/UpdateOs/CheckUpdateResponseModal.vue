@@ -133,12 +133,13 @@ const renderMainSlot = computed(() => {
       <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto my-24px" />
       <div v-else-if="available || availableWithRenewal" class="mx-auto my-24px">
         <SwitchGroup>
-          <div class="flex items-center gap-8px p-8px bg-gamma-opaque rounded">
+          <div class="flex items-center gap-8px p-8px rounded">
             <Switch
               v-model="ignoreThisRelease"
-              :class="ignoreThisRelease ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-gray-200'"
-              class="relative inline-flex h-24px w-[48px] items-center rounded-full"
+              :class="ignoreThisRelease ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-transparent'"
+              class="relative inline-flex h-24px w-[48px] items-center rounded-full overflow-hidden"
             >
+              <span v-show="!ignoreThisRelease" class="absolute z-0 inset-0 opacity-10 bg-beta" />
               <span
                 :class="ignoreThisRelease ? 'translate-x-[26px]' : 'translate-x-[2px]'"
                 class="inline-block h-20px w-20px transform rounded-full bg-white transition"
