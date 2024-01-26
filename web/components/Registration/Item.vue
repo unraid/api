@@ -25,13 +25,16 @@ const evenBgColor = computed(() => {
       error && 'text-white bg-unraid-red',
       warning && 'text-black bg-yellow-100',
     ]"
-    class="text-16px p-12px grid grid-cols-1 gap-4px sm:px-20px sm:grid-cols-3 sm:gap-16px items-start rounded"
+    class="text-16px p-12px grid grid-cols-1 gap-4px sm:px-20px sm:grid-cols-5 sm:gap-16px items-start rounded"
   >
-    <dt class="font-semibold flex flex-row justify-start items-center gap-x-8px">
+    <dt v-if="label" class="font-semibold sm:col-span-2 flex flex-row justify-start items-center gap-x-8px">
       <ShieldExclamationIcon v-if="error" class="w-16px h-16px fill-current" />
-      <span>{{ label }}</span>
+      <span v-html="label" />
     </dt>
-    <dd class="leading-normal sm:col-span-2">
+    <dd
+      class="leading-normal sm:col-span-3"
+      :class="!label && 'sm:col-start-2'"
+    >
       <span v-if="text" class="select-all" :class="!error ? 'opacity-75' : ''">
         {{ text }}
       </span>
