@@ -27,7 +27,7 @@ const evenBgColor = computed(() => {
     ]"
     class="text-16px p-12px grid grid-cols-1 gap-4px sm:px-20px sm:grid-cols-5 sm:gap-16px items-start rounded"
   >
-    <dt v-if="label" class="font-semibold sm:col-span-2 flex flex-row justify-start items-center gap-x-8px">
+    <dt v-if="label" class="font-semibold sm:col-span-2 flex flex-row sm:justify-end sm:text-right items-center gap-x-8px">
       <ShieldExclamationIcon v-if="error" class="w-16px h-16px fill-current" />
       <span v-html="label" />
     </dt>
