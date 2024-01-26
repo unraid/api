@@ -78,8 +78,6 @@ const links = computed(():UserProfileLink[] => {
             icon: ArrowPathIcon,
             text: props.t('Check for Update'),
           },
-          // account callback button
-          updateOsActionsStore.updateCallbackButton(),
         ]),
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value
