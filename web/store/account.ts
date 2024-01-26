@@ -72,6 +72,18 @@ export const useAccountStore = defineStore('account', () => {
   const accountActionType = computed(() => accountAction.value?.type);
 
   // Actions
+  const manage = () => {
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverAccountPayload.value,
+        },
+        type: 'manage',
+      }],
+      inIframe.value ? 'newTab' : undefined,
+    );
+  };
   const recover = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
@@ -255,6 +267,7 @@ export const useAccountStore = defineStore('account', () => {
     // Getters
     accountActionType,
     // Actions
+    manage,
     recover,
     replace,
     signIn,
