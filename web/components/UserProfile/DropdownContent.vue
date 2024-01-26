@@ -6,25 +6,25 @@ import {
   BellAlertIcon,
   CogIcon,
   KeyIcon,
+  UserIcon,
 } from '@heroicons/vue/24/solid';
 
 import {
-  ACCOUNT,
   CONNECT_DASHBOARD,
   WEBGUI_CONNECT_SETTINGS,
   WEBGUI_TOOLS_REGISTRATION,
 } from '~/helpers/urls';
+import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{ t: any; }>();
 
+const accountStore = useAccountStore();
 const errorsStore = useErrorsStore();
 const updateOsStore = useUpdateOsStore();
-const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { errors } = storeToRefs(errorsStore);
 const {
@@ -44,6 +44,16 @@ const signOutAction = computed(() => stateData.value.actions?.filter((act: { nam
  * Filter out the renew action from the key actions so we can display it separately and link to the Tools > Registration page
  */
 const filteredKeyActions = computed(() => keyActions.value?.filter(action => !['renew'].includes(action.name)));
+
+const manageUnraidNetAccount = computed(() => {
+  return {
+    external: true,
+    click: () => { accountStore.manage(); },
+    icon: UserIcon,
+    text: props.t('Manage Unraid.net Account'),
+    title: props.t('Manage Unraid.net Account in new tab'),
+  };
+});
 
 const links = computed(():UserProfileLink[] => {
   return [
@@ -90,13 +100,7 @@ const links = computed(():UserProfileLink[] => {
             text: props.t('Go to Connect'),
             title: props.t('Opens Connect in new tab'),
           },
-          {
-            external: true,
-            href: ACCOUNT.toString(),
-            icon: ArrowTopRightOnSquareIcon,
-            text: props.t('Manage Unraid.net Account'),
-            title: props.t('Manage Unraid.net Account in new tab'),
-          },
+          ...([manageUnraidNetAccount.value]),
           {
             href: WEBGUI_CONNECT_SETTINGS.toString(),
             icon: CogIcon,
@@ -105,7 +109,9 @@ const links = computed(():UserProfileLink[] => {
           },
           ...(signOutAction.value),
         ]
-      : []
+      : [
+          ...([manageUnraidNetAccount.value]),
+        ]
     ),
   ];
 });
