@@ -88,8 +88,21 @@ if (array_key_exists('json',$_GET) && $_GET['json']) {
   exit(0);
 }
 
+// before sending a notification, check to see if the user requested to ignore the version
+$ignoredReleasesFile = '/tmp/unraidcheck/ignored.json';
+$ignoredReleasesResult = [];
+if (file_exists($ignoredReleasesFile)) {
+    $ignoredData = json_decode(file_get_contents($ignoredReleasesFile), true);
+    if (is_array($ignoredData) && array_key_exists('updateOsIgnoredReleases', $ignoredData)) {
+        $ignoredReleasesResult = $ignoredData['updateOsIgnoredReleases'];
+    }
+}
+
 // send notification if a newer version is available
-if ($json && array_key_exists('isNewer',$json) && $json['isNewer']) {
+$isNewerVersion = array_key_exists('isNewer',$json) ? $json['isNewer'] : false;
+$isReleaseIgnored = in_array($json['version'], $ignoredReleasesResult);
+
+if ($json && $isNewerVersion && !$isReleaseIgnored) {
   $newver = (array_key_exists('version',$json) && $json['version']) ? $json['version'] : 'unknown';
   exec("$script -e ".escapeshellarg("System - Unraid [$newver]")." -s ".escapeshellarg("Notice [$server] - Version update $newver")." -d ".escapeshellarg("A new version of Unraid is available")." -i ".escapeshellarg("normal $output")." -l '/Tools/Update' -x");
 }

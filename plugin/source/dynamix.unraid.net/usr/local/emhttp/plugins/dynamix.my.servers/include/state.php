@@ -48,6 +48,7 @@ class ServerState
     private $caseModel = '';
     private $keyfileBase64UrlSafe = '';
     private $updateOsResponse;
+    private $updateOsIgnoredReleases = [];
 
     public $myServersFlashCfg = [];
     public $myServersMemoryCfg = [];
@@ -168,6 +169,11 @@ class ServerState
          * updateOsResponse is provided by the dynamix.plugin.manager/scripts/unraidcheck script saving to /tmp/unraidcheck/result.json
          */
         $this->updateOsResponse = @json_decode(@file_get_contents('/tmp/unraidcheck/result.json'), true);
+
+        /**
+         * updateOsIgnoredReleases is set by the dynamix.plugin.manager/inclue/UnraidIgnore.php script saving to /tmp/unraidcheck/ignored.json
+         */
+        $this->updateOsIgnoredReleases = @json_decode(@file_get_contents('/tmp/unraidcheck/ignored.json'), true) ?? [];
     }
 
     /**
@@ -251,6 +257,10 @@ class ServerState
 
         if ($this->updateOsResponse) {
             $serverState['updateOsResponse'] = $this->updateOsResponse;
+        }
+
+        if ($this->updateOsIgnoredReleases) {
+            $serverState['updateOsIgnoredReleases'] = $this->updateOsIgnoredReleases;
         }
 
         return $serverState;
