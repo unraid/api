@@ -347,5 +347,6 @@
   "Unraid OS {0} Update Available": "Unraid OS {0} Update Available",
   "Remove": "Remove",
   "Remove from ignore list": "Remove from ignore list",
-  "Ignored Releases": "Ignored Releases"
+  "Ignored Releases": "Ignored Releases",
+  "Ignore this release until next reboot": "Ignore this release until next reboot"
 }

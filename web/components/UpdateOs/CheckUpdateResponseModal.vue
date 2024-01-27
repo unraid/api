@@ -143,7 +143,7 @@ const renderMainSlot = computed(() => {
                 class="inline-block h-20px w-20px transform rounded-full bg-white transition"
               />
             </Switch>
-            <SwitchLabel>{{ t('Ignore this release') }}</SwitchLabel>
+            <SwitchLabel>{{ t('Ignore this release until next reboot') }}</SwitchLabel>
           </div>
         </SwitchGroup>
       </div>
