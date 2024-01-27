@@ -16,7 +16,7 @@ import { useQuery } from '@vue/apollo-composable';
 
 import { SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import { WebguiState } from '~/composables/services/webgui';
+import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
 import { WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore, type Error } from '~/store/errors';
@@ -117,6 +117,7 @@ export const useServerStore = defineStore('server', () => {
     if (newVal) { themeStore.setTheme(newVal); }
   });
   const updateOsResponse = ref<ServerUpdateOsResponse>();
+  const updateOsIgnoredReleases = ref<string[]>([]);
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
@@ -822,6 +823,7 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.state !== 'undefined') { state.value = data.state; }
     if (typeof data?.theme !== 'undefined') { theme.value = data.theme; }
     if (typeof data?.updateOsResponse !== 'undefined') { updateOsResponse.value = data.updateOsResponse; }
+    if (typeof data?.updateOsIgnoredReleases !== 'undefined') { updateOsIgnoredReleases.value = data.updateOsIgnoredReleases; }
     if (typeof data?.uptime !== 'undefined') { uptime.value = data.uptime; }
     if (typeof data?.username !== 'undefined') { username.value = data.username; }
     if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
@@ -965,6 +967,31 @@ export const useServerStore = defineStore('server', () => {
     }
   });
 
+  const updateOsIgnoreRelease = (release: string) => {
+    updateOsIgnoredReleases.value.push(release);
+    const response = WebguiUpdateIgnore({
+      version: release,
+    });
+    console.debug('[updateOsIgnoreRelease] response', response);
+    /** @todo when update check modal is displayed and there's no available updates, allow users to remove ignored releases from the list */
+  };
+
+  const updateOsRemoveIgnoredRelease = (release: string) => {
+    updateOsIgnoredReleases.value = updateOsIgnoredReleases.value.filter(r => r !== release);
+    const response = WebguiUpdateIgnore({
+      removeVersion: release,
+    });
+    console.debug('[updateOsRemoveIgnoredRelease] response', response);
+  };
+
+  const updateOsRemoveAllIgnoredReleases = () => {
+    updateOsIgnoredReleases.value = [];
+    const response = WebguiUpdateIgnore({
+      removeAll: true,
+    });
+    console.debug('[updateOsRemoveAllIgnoredReleases] response', response);
+  };
+
   return {
     // state
     apiKey,
@@ -1003,6 +1030,7 @@ export const useServerStore = defineStore('server', () => {
     site,
     state,
     theme,
+    updateOsIgnoredReleases,
     updateOsResponse,
     uptime,
     username,
@@ -1030,5 +1058,8 @@ export const useServerStore = defineStore('server', () => {
     refreshServerState,
     filteredKeyActions,
     setRebootVersion,
+    updateOsIgnoreRelease,
+    updateOsRemoveIgnoredRelease,
+    updateOsRemoveAllIgnoredReleases,
   };
 });

@@ -101,6 +101,7 @@ export interface Server {
   state?: ServerState;
   theme?: Theme | undefined;
   updateOsResponse?: ServerUpdateOsResponse;
+  updateOsIgnoredReleases?: string[];
   uptime?: number;
   username?: string;
   wanFQDN?: string;
