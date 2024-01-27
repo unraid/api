@@ -118,3 +118,30 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
     throw new Error('Error checking for updates');
   }
 };
+
+export interface WebguiUpdateIgnorePayload {
+  removeAll?: boolean;
+  removeVersion?: string;
+  version?: string;
+}
+export const WebguiUpdateIgnore = async (payload: WebguiUpdateIgnorePayload): Promise<any | void> => {
+  console.debug('[WebguiUpdateIgnore] payload', payload);
+  try {
+    const response = await request
+      .url('/plugins/dynamix.plugin.manager/include/UnraidIgnore.php')
+      .query(payload)
+      .get()
+      .json((json) => {
+        console.debug('[WebguiUpdateIgnore] response', json);
+        return json;
+      })
+      .catch((error) => {
+        console.error('[WebguiUpdateIgnore] catch failed to execute UpdateIgnore', error);
+        throw new Error('Error ignoring update');
+      });
+    return response;
+  } catch (error) {
+    console.error('[WebguiUpdateIgnore] catch failed to execute UpdateIgnore', error);
+    throw new Error('Error ignoring update');
+  }
+};

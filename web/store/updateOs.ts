@@ -17,31 +17,24 @@ setActivePinia(createPinia());
 extend(customParseFormat);
 extend(relativeTime);
 
-const KEY_IGNORED_RELEASES = 'updateOsIgnoredReleases';
-
 export const useUpdateOsStore = defineStore('updateOs', () => {
   // state
   const checkForUpdatesLoading = ref<boolean>(false);
   const modalOpen = ref<boolean>(false);
-  const ignoredReleases = ref<string[]>(
-    localStorage.getItem(KEY_IGNORED_RELEASES)
-      ? (JSON.parse(localStorage.getItem(KEY_IGNORED_RELEASES) ?? '') ?? [])
-      : []
-  );
-
   // getters from other stores
   const serverStore = useServerStore();
 
   const regExp = computed(() => serverStore.regExp);
   const regUpdatesExpired = computed(() => serverStore.regUpdatesExpired);
   const updateOsResponse = computed(() => serverStore.updateOsResponse);
+  const updateOsIgnoredReleases = computed(() => serverStore.updateOsIgnoredReleases);
   // local getters
   const available = computed(() => {
     if (!updateOsResponse.value) {
       return undefined;
     }
-    // ignore any releases that are in the ignoredReleases array
-    if (ignoredReleases.value.includes(updateOsResponse.value.version)) {
+    // ignore any releases that are in the updateOsIgnoredReleases array
+    if (updateOsIgnoredReleases.value.includes(updateOsResponse.value.version)) {
       return undefined;
     }
     return updateOsResponse.value.isNewer ? updateOsResponse.value.version : undefined;
@@ -83,25 +76,17 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     modalOpen.value = val;
   };
 
-  const ignoreRelease = (release: string) => {
-    ignoredReleases.value.push(release);
-    localStorage.setItem(KEY_IGNORED_RELEASES, JSON.stringify(ignoredReleases.value));
-    /** @todo submit to an endpoint on the server to save to a file */
-    /** @todo when update check modal is displayed and there's no available updates, allow users to remove ignored releases from the list */
-  };
-
   return {
     // state
     available,
     availableWithRenewal,
     checkForUpdatesLoading,
     modalOpen,
-    ignoredReleases,
+    updateOsIgnoredReleases,
     // getters
     availableReleaseDate,
     // actions
     localCheckForUpdate,
     setModalOpen,
-    ignoreRelease,
   };
 });

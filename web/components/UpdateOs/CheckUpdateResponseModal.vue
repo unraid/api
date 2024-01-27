@@ -7,7 +7,6 @@ import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
-// import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 import type { ButtonProps } from '~/types/ui/button';
 
@@ -24,10 +23,9 @@ const accountStore = useAccountStore();
 const purchaseStore = usePurchaseStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
-// const updateOsActionsStore = useUpdateOsActionsStore();
 const updateOsChangelogStore = useUpdateOsChangelogStore();
 
-const { osVersionBranch, updateOsResponse } = storeToRefs(serverStore);
+const { osVersionBranch, updateOsResponse, updateOsIgnoredReleases } = storeToRefs(serverStore);
 const { available, availableWithRenewal, checkForUpdatesLoading } = storeToRefs(updateOsStore);
 
 interface ModalCopy {
@@ -109,13 +107,13 @@ const close = () => {
   // then ignore the release if applicable
   if (ignoreThisRelease.value && (availableWithRenewal.value || available.value)) {
     setTimeout(() => {
-      updateOsStore.ignoreRelease(availableWithRenewal.value ?? available.value ?? '');
+      serverStore.updateOsIgnoreRelease(availableWithRenewal.value ?? available.value ?? '');
     }, 500);
   }
 };
 
 const renderMainSlot = computed(() => {
-  return checkForUpdatesLoading.value || available.value || availableWithRenewal.value;
+  return checkForUpdatesLoading.value || available.value || availableWithRenewal.value || updateOsIgnoredReleases.value.length > 0;
 });
 </script>
 
@@ -145,9 +143,20 @@ const renderMainSlot = computed(() => {
                 class="inline-block h-20px w-20px transform rounded-full bg-white transition"
               />
             </Switch>
-            <SwitchLabel>Ignore this release</SwitchLabel>
+            <SwitchLabel>{{ t('Ignore this release') }}</SwitchLabel>
           </div>
         </SwitchGroup>
+      </div>
+      <div v-else-if="updateOsIgnoredReleases.length > 0" class="w-full flex flex-col gap-8px my-24px">
+        <h3 class="text-16px font-semibold italic">
+          {{ t('Ignored Releases') }}
+        </h3>
+        <UpdateOsIgnoredRelease
+          v-for="ignoredRelease in updateOsIgnoredReleases"
+          :key="ignoredRelease"
+          :label="ignoredRelease"
+          :t="t"
+        />
       </div>
     </template>
 
