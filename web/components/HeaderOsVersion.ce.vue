@@ -56,11 +56,11 @@ const rebootRequiredLink = computed(() => {
       </UiBadge>
     </button>
 
-    <a
+    <button
       v-if="showUpdateAvailable"
-      :href="WEBGUI_TOOLS_UPDATE.toString()"
       class="group"
       :title="t('Unraid OS {0} Update Available', [available])"
+      @click="updateOsStore.setModalOpen(true)"
     >
       <UiBadge
         color="orange"
@@ -69,7 +69,7 @@ const rebootRequiredLink = computed(() => {
       >
         {{ t('Update Available') }}
       </UiBadge>
-    </a>
+    </button>
     <a
       v-else-if="rebootRequiredLink"
       :href="rebootRequiredLink"
