@@ -22,19 +22,40 @@ const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
 const { osVersion, rebootType } = storeToRefs(serverStore);
-const { available } = storeToRefs(updateOsStore);
-const { ineligibleText, rebootTypeText } = storeToRefs(updateOsActionsStore);
+const { available, availableWithRenewal } = storeToRefs(updateOsStore);
+const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
-const showUpdateAvailable = computed(() => !ineligibleText.value && available.value && rebootType.value === '');
-
-const rebootRequiredLink = computed(() => {
+const updateOsStatus = computed(() => {
   if (rebootType.value === 'downgrade') {
-    return WEBGUI_TOOLS_DOWNGRADE.toString();
+    return {
+      badgeColor: 'yellow',
+      badgeIcon: ExclamationTriangleIcon,
+      href: WEBGUI_TOOLS_DOWNGRADE.toString(),
+      text: t(rebootTypeText.value),
+    };
   }
   if (rebootType.value === 'thirdPartyDriversDownloading' || rebootType.value === 'update') {
-    return WEBGUI_TOOLS_UPDATE.toString();
+    return {
+      badgeColor: 'yellow',
+      badgeIcon: ExclamationTriangleIcon,
+      href: WEBGUI_TOOLS_UPDATE.toString(),
+      text: t(rebootTypeText.value),
+    };
   }
-  return '';
+
+  if (availableWithRenewal.value || available.value) {
+    return {
+      click: () => { updateOsStore.setModalOpen(true); },
+      text: availableWithRenewal.value
+        ? t('Update Released')
+        : t('Update Available'),
+      title: availableWithRenewal.value
+        ? t('Unraid OS {0} Released', [availableWithRenewal.value])
+        : t('Unraid OS {0} Update Available', [available.value]),
+    };
+  }
+
+  return null;
 });
 </script>
 
@@ -56,33 +77,22 @@ const rebootRequiredLink = computed(() => {
       </UiBadge>
     </button>
 
-    <button
-      v-if="showUpdateAvailable"
+    <component
+      :is="updateOsStatus.href ? 'a' : 'button'"
+      v-if="updateOsStatus"
+      :href="updateOsStatus.href ?? undefined"
+      :title="updateOsStatus.title ?? undefined"
       class="group"
-      :title="t('Unraid OS {0} Update Available', [available])"
-      @click="updateOsStore.setModalOpen(true)"
+      @click="updateOsStatus.click ? updateOsStatus.click() : undefined"
     >
       <UiBadge
-        color="orange"
-        :icon="BellAlertIcon"
+        :color="updateOsStatus.badgeColor ?? 'orange'"
+        :icon="updateOsStatus.badgeIcon ?? BellAlertIcon"
         size="12px"
       >
-        {{ t('Update Available') }}
+        {{ updateOsStatus.text }}
       </UiBadge>
-    </button>
-    <a
-      v-else-if="rebootRequiredLink"
-      :href="rebootRequiredLink"
-      class="group"
-    >
-      <UiBadge
-        :color="'yellow'"
-        :icon="ExclamationTriangleIcon"
-        size="12px"
-      >
-        {{ t(rebootTypeText) }}
-      </UiBadge>
-    </a>
+    </component>
   </div>
 </template>
 
