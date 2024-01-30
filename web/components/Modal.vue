@@ -100,7 +100,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
             ]"
             class="text-16px text-beta bg-alpha text-left relative z-10 flex flex-col justify-around border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
-            <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden sm:block">
+            <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-4px pr-4px hidden sm:block">
               <button
                 class="rounded-md text-beta bg-transparent p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
                 type="button"
