@@ -58,7 +58,7 @@ describe('apiKeyCheckJob Tests', () => {
 		const validationSpy = vi.spyOn(apiKeyValidator, 'validateApiKeyWithKeyServer')
 			.mockResolvedValueOnce(API_KEY_STATUS.NETWORK_ERROR);
 
-		await expect(apiKeyCheckJobs.apiKeyCheckJob(getState, dispatch)).rejects.toThrowErrorMatchingInlineSnapshot('"Keyserver Failure, must retry"');
+		await expect(apiKeyCheckJobs.apiKeyCheckJob(getState, dispatch)).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Keyserver Failure, must retry]`);
 
 		expect(validationSpy).toHaveBeenCalledOnce();
 
@@ -80,7 +80,7 @@ describe('apiKeyCheckJob Tests', () => {
 		const validationSpy = vi.spyOn(apiKeyValidator, 'validateApiKeyWithKeyServer')
 			.mockResolvedValueOnce(API_KEY_STATUS.INVALID_KEYSERVER_RESPONSE);
 
-		await expect(apiKeyCheckJobs.apiKeyCheckJob(getState, dispatch)).rejects.toThrowErrorMatchingInlineSnapshot('"Keyserver Failure, must retry"');
+		await expect(apiKeyCheckJobs.apiKeyCheckJob(getState, dispatch)).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Keyserver Failure, must retry]`);
 
 		expect(validationSpy).toHaveBeenCalledOnce();
 

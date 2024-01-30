@@ -2,7 +2,7 @@ import { pino } from 'pino';
 import { LOG_TRANSPORT, LOG_TYPE } from '@app/environment';
 
 import pretty from 'pino-pretty';
-import { chmodSync, existsSync, mkdirSync } from 'node:fs';
+import { chmodSync, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
 import { getters } from '@app/store/index';
 import { join } from 'node:path';
 
@@ -13,6 +13,17 @@ const makeLoggingDirectoryIfNotExists = () => {
     }
 
     chmodSync(getters.paths()['log-base'], 0o644);
+    if (
+        existsSync(`${getters.paths()['log-base']}/stdout.log`) &&
+        statSync(`${getters.paths()['log-base']}/stdout.log`).size > 5_000_000
+    ) {
+        rmSync(`${getters.paths()['log-base']}/stdout.log`);
+    }
+    try {
+        rmSync(`${getters.paths()['log-base']}/stdout.log.*`);
+    } catch (e) {
+        // Ignore Error
+    }
 };
 
 if (LOG_TRANSPORT === 'file') {
@@ -36,7 +47,10 @@ const level =
     ] ?? 'info';
 
 export const logDestination = pino.destination({
-    dest: LOG_TRANSPORT === 'file' ? join(getters.paths()['log-base'], 'stdout.log') : 1,
+    dest:
+        LOG_TRANSPORT === 'file'
+            ? join(getters.paths()['log-base'], 'stdout.log')
+            : 1,
     minLength: 1_024,
     sync: false,
 });
