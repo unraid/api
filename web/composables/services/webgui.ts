@@ -95,15 +95,23 @@ export const WebguiNotify = async (payload: NotifyPostParameters) => {
   }
 };
 
+interface WebguiCheckForUpdatePayload {
+  json?: boolean;
+  altUrl?: string;
+}
 export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
   console.debug('[WebguiCheckForUpdate]');
   try {
+    const params: WebguiCheckForUpdatePayload = {
+      json: true,
+    };
+    // conditionally add altUrl if OS_RELEASES.toString() is not 'https://releases.unraid.net/os'
+    if (OS_RELEASES.toString() !== 'https://releases.unraid.net/os') {
+      params.altUrl = OS_RELEASES.toString();
+    }
     const response = await request
       .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php')
-      .query({
-        altUrl: OS_RELEASES.toString(),
-        json: true,
-      })
+      .query(params)
       .get()
       .json((json) => {
         return json as ServerUpdateOsResponse;
