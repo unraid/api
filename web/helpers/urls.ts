@@ -22,6 +22,7 @@ const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
 const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://releases.unraid.net/os');
 
+const DOCS_RELEASE_NOTES = new URL('/unraid-os/release-notes/', DOCS);
 const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
 
@@ -37,6 +38,8 @@ export {
   FORUMS_BUG_REPORT,
   PURCHASE_CALLBACK,
   OS_RELEASES,
+  DOCS,
+  DOCS_RELEASE_NOTES,
   DOCS_REGISTRATION_LICENSING,
   DOCS_REGISTRATION_REPLACE_KEY,
   WEBGUI,

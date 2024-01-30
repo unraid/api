@@ -31,49 +31,16 @@ const updateOsChangelogStore = useUpdateOsChangelogStore();
 
 const { availableWithRenewal } = storeToRefs(updateOsStore);
 const {
-  isReleaseForUpdateStable,
   releaseForUpdate,
   mutatedParsedChangelog,
   parseChangelogFailed,
   parsedChangelogTitle,
 } = storeToRefs(updateOsChangelogStore);
 
-const showExternalChangelogLink = computed(() => {
-  return (
-    releaseForUpdate.value &&
-    isReleaseForUpdateStable.value &&
-    (releaseForUpdate.value?.changelog)
-  );
-});
+const showExternalChangelogLink = computed(() => releaseForUpdate.value?.changelog_pretty);
 
 const showExtendKeyButton = computed(() => {
   return availableWithRenewal.value;
-});
-
-// find all the links in the changelog and make them open in a new tab
-const changelogOutput = ref<HTMLElement | null>(null);
-const updateChangelogLinks = () => {
-  if (!changelogOutput.value) { return; }
-  const links = changelogOutput.value.querySelectorAll('a');
-  links.forEach((link) => {
-    link.setAttribute('target', '_blank');
-    link.setAttribute('rel', 'noopener noreferrer');
-    /** @todo what do we do with docusaurus based links? May also be broken on the account app. */
-    // if a link is a relative link or doesn't start with http but doesn't start with a # we need to prepend the base url of the changelog
-    // const linkIsRelative = link.getAttribute('href')?.startsWith('/') ?? false;
-    // const linkIsNotHttp = link.getAttribute('href')?.startsWith('http') === false;
-    // const linkIsNotHash = link.getAttribute('href')?.startsWith('#') === false;
-    // const linkIsNotAnchor = link.getAttribute('href')?.startsWith('mailto') === false;
-    // if (linkIsRelative || (linkIsNotHttp && linkIsNotHash && linkIsNotAnchor)) {
-    //   link.setAttribute('href', `${releaseForUpdate.value?.changelog}${link.getAttribute('href')}`);
-    // }
-  });
-};
-
-watchEffect(() => {
-  if (mutatedParsedChangelog.value) {
-    updateChangelogLinks();
-  }
 });
 </script>
 
@@ -92,8 +59,7 @@ watchEffect(() => {
     <template #main>
       <div
         v-if="mutatedParsedChangelog"
-        ref="changelogOutput"
-        class="text-18px prose prose-a:text-unraid-red hover:prose-a:no-underline hover:prose-a:text-unraid-red/60 dark:prose-a:text-orange hover:dark:prose-a:text-orange/60"
+        class="text-16px sm:text-18px prose prose-a:text-unraid-red hover:prose-a:no-underline hover:prose-a:text-unraid-red/60 dark:prose-a:text-orange hover:dark:prose-a:text-orange/60"
         v-html="mutatedParsedChangelog"
       />
 
@@ -107,10 +73,12 @@ watchEffect(() => {
         <p>
           {{ props.t(`It's highly recommended to review the changelog before continuing your update`) }}
         </p>
-        <div class="flex self-center">
+        <div
+          v-if="releaseForUpdate?.changelog_pretty"
+          class="flex self-center"
+        >
           <BrandButton
-            v-if="releaseForUpdate?.changelog"
-            :href="releaseForUpdate?.changelog"
+            :href="releaseForUpdate?.changelog_pretty"
             btn-style="underline"
             :external="true"
             :icon-right="ArrowTopRightOnSquareIcon"
@@ -130,20 +98,8 @@ watchEffect(() => {
     </template>
 
     <template #footer>
-      <div class="flex flex-col-reverse gap-3 sm:gap-4 sm:flex-row sm:justify-between">
-        <div>
-          <BrandButton
-            v-if="showExternalChangelogLink"
-            btn-style="underline"
-            :external="true"
-            :href="releaseForUpdate?.changelog"
-            :icon="EyeIcon"
-            :icon-right="ArrowTopRightOnSquareIcon"
-          >
-            {{ props.t("View Docs") }}
-          </BrandButton>
-        </div>
-        <div class="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+      <div class="flex flex-col-reverse xs:flex-row justify-between gap-12px md:gap-16px">
+        <div class="flex flex-col-reverse xs:flex-row xs:justify-start gap-12px md:gap-16px">
           <BrandButton
             btn-style="underline-hover-red"
             :icon="XMarkIcon"
@@ -151,26 +107,34 @@ watchEffect(() => {
           >
             {{ props.t("Close") }}
           </BrandButton>
-          <template v-if="releaseForUpdate">
-            <BrandButton
-              v-if="showExtendKeyButton"
-              btn-style="fill"
-              :icon="KeyIcon"
-              :icon-right="ArrowTopRightOnSquareIcon"
-              @click="purchaseStore.renew()"
-            >
-              {{ props.t("Extend Key to Update") }}
-            </BrandButton>
-            <BrandButton
-              v-else-if="releaseForUpdate.sha256"
-              :icon="ServerStackIcon"
-              :icon-right="ArrowSmallRightIcon"
-              @click="updateOsChangelogStore.fetchAndConfirmInstall(releaseForUpdate.sha256)"
-            >
-              {{ props.t('Continue') }}
-            </BrandButton>
-          </template>
+          <BrandButton
+            v-if="releaseForUpdate?.changelog_pretty"
+            btn-style="underline"
+            :external="true"
+            :href="releaseForUpdate?.changelog_pretty"
+            :icon="EyeIcon"
+            :icon-right="ArrowTopRightOnSquareIcon"
+          >
+            {{ props.t("View on Docs") }}
+          </BrandButton>
         </div>
+        <BrandButton
+          v-if="showExtendKeyButton"
+          btn-style="fill"
+          :icon="KeyIcon"
+          :icon-right="ArrowTopRightOnSquareIcon"
+          @click="purchaseStore.renew()"
+        >
+          {{ props.t("Extend Key to Update") }}
+        </BrandButton>
+        <BrandButton
+          v-else-if="releaseForUpdate?.sha256"
+          :icon="ServerStackIcon"
+          :icon-right="ArrowSmallRightIcon"
+          @click="updateOsChangelogStore.fetchAndConfirmInstall(releaseForUpdate.sha256)"
+        >
+          {{ props.t('Continue') }}
+        </BrandButton>
       </div>
     </template>
   </Modal>
