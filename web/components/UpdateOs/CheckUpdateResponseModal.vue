@@ -72,7 +72,7 @@ const modalCopy = computed((): ModalCopy | null => {
       ? props.t('Ineligible for updates released after {0}', [formattedRegExp.value])
       : props.t('Eligible for updates until {0}', [formattedRegExp.value]);
     return {
-      title: props.t('Unraid OS {0} has been released', [availableWithRenewal.value]),
+      title: props.t('Unraid OS {0} Released', [availableWithRenewal.value]),
       description: `<p>${formattedReleaseDate}</p><p>${description}</p>`,
     };
   } else if (available.value) {
@@ -203,7 +203,7 @@ onBeforeMount(() => {
         </SwitchGroup>
       </div>
       <div v-else-if="updateOsIgnoredReleases.length > 0" class="w-full flex flex-col gap-8px">
-        <h3 class="text-16px font-semibold italic">
+        <h3 class="text-left text-16px font-semibold italic">
           {{ t('Ignored Releases') }}
         </h3>
         <UpdateOsIgnoredRelease
