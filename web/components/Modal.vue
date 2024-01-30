@@ -114,7 +114,6 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
             <header
               class="relative z-0 grid items-start gap-2 p-16px md:p-24px rounded-t"
               :class="{
-                'mb-16px md:mb-24px': !$slots['main'],
                 'sm:pr-40px': showCloseX,
                 'justify-between': $slots['header'],
                 'justify-center': !$slots['header'],
