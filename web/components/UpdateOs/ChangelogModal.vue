@@ -156,7 +156,7 @@ watchEffect(() => {
               :icon-right="ArrowSmallRightIcon"
               @click="updateOsChangelogStore.fetchAndConfirmInstall(releaseForUpdate.sha256)"
             >
-              {{ props.t('Confirm Install Unraid OS {0}', [available]) }}
+              {{ props.t('Continue') }}
             </BrandButton>
           </template>
         </div>
