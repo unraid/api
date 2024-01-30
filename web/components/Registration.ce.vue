@@ -55,7 +55,17 @@ const {
   stateDataError,
 } = storeToRefs(serverStore);
 
-const { outputDateTimeFormatted: formattedRegTm } = useDateTimeHelper(dateTimeFormat.value, t, false, regTm.value);
+const formattedRegTm = ref<any>();
+/**
+ * regTm may not have a value until we get a response from the refreshServerState action
+ * So we need to watch for this value to be able to format it based on the user's date time preferences.
+ */
+watch(regTm, (newV) => {
+  if (!newV) { return; }
+
+  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, false, regTm.value);
+  formattedRegTm.value = outputDateTimeFormatted.value;
+});
 
 const devicesAvailable = computed((): number => {
   switch (regTy.value) {
