@@ -176,15 +176,15 @@ onBeforeMount(() => {
     :open="open"
     :title="modalCopy?.title"
     :description="modalCopy?.description"
-    :show-close-x="true"
+    :show-close-x="!checkForUpdatesLoading"
     max-width="max-w-640px"
     @close="close"
   >
     <template v-if="renderMainSlot" #main>
-      <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto my-24px" />
-      <div v-else-if="available || availableWithRenewal" class="mx-auto my-24px">
+      <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
+      <div v-else-if="available || availableWithRenewal" class="mx-auto">
         <SwitchGroup>
-          <div class="flex items-center gap-8px p-8px rounded">
+          <div class="flex justify-center items-center gap-8px p-8px rounded">
             <Switch
               v-model="ignoreThisRelease"
               :class="ignoreThisRelease ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-transparent'"
@@ -200,7 +200,7 @@ onBeforeMount(() => {
           </div>
         </SwitchGroup>
       </div>
-      <div v-else-if="updateOsIgnoredReleases.length > 0" class="w-full flex flex-col gap-8px my-24px">
+      <div v-else-if="updateOsIgnoredReleases.length > 0" class="w-full flex flex-col gap-8px">
         <h3 class="text-16px font-semibold italic">
           {{ t('Ignored Releases') }}
         </h3>

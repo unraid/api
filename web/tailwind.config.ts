@@ -103,6 +103,7 @@ export default <Partial<Config>>{
       screens: {
         '2xs': '470px',
         xs: '530px',
+        tall: { raw: '(min-height: 700px)' },
       },
       /**
        * @todo modify prose classes to use pixels for webgui…sadge https://tailwindcss.com/docs/typography-plugin#customizing-the-default-theme

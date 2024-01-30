@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { ArrowTopRightOnSquareIcon, ArrowSmallRightIcon, KeyIcon, ServerStackIcon, XMarkIcon } from '@heroicons/vue/24/solid';
+import {
+  ArrowTopRightOnSquareIcon,
+  ArrowSmallRightIcon,
+  EyeIcon,
+  KeyIcon,
+  ServerStackIcon,
+  XMarkIcon,
+} from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
 
@@ -72,11 +79,14 @@ watchEffect(() => {
 
 <template>
   <Modal
+    :center-content="false"
     :error="!!parseChangelogFailed"
-    :open="!!releaseForUpdate"
-    :title="parsedChangelogTitle ?? undefined"
     max-width="max-w-800px"
+    :open="!!releaseForUpdate"
+    :show-close-x="true"
     :t="t"
+    :tall-content="true"
+    :title="parsedChangelogTitle ?? undefined"
     @close="updateOsChangelogStore.setReleaseForUpdate(null)"
   >
     <template #main>
@@ -120,19 +130,20 @@ watchEffect(() => {
     </template>
 
     <template #footer>
-      <div class="flex flex-col gap-3 sm:gap-4 sm:flex-row sm:justify-between">
+      <div class="flex flex-col-reverse gap-3 sm:gap-4 sm:flex-row sm:justify-between">
         <div>
           <BrandButton
             v-if="showExternalChangelogLink"
-            :href="releaseForUpdate?.changelog"
             btn-style="underline"
             :external="true"
+            :href="releaseForUpdate?.changelog"
+            :icon="EyeIcon"
             :icon-right="ArrowTopRightOnSquareIcon"
           >
             {{ props.t("View Docs") }}
           </BrandButton>
         </div>
-        <div class="flex flex-col sm:flex-row gap-3 sm:gap-4 sm:justify-end">
+        <div class="flex flex-col-reverse sm:flex-row gap-3 sm:gap-4 sm:justify-end">
           <BrandButton
             btn-style="underline-hover-red"
             :icon="XMarkIcon"
