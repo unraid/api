@@ -66,8 +66,7 @@ const setFormattedRegTm = () => {
   const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, true, regTm.value);
   formattedRegTm.value = outputDateTimeFormatted.value;
 };
-watch(regTm, (newV, oldV) => {
-  console.debug('[regTm.watch]', newV, oldV);
+watch(regTm, (_newV) => {
   setFormattedRegTm();
 });
 onBeforeMount(() => {
