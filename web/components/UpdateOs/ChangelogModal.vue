@@ -37,8 +37,6 @@ const {
   parsedChangelogTitle,
 } = storeToRefs(updateOsChangelogStore);
 
-const showExternalChangelogLink = computed(() => releaseForUpdate.value?.changelog_pretty);
-
 const showExtendKeyButton = computed(() => {
   return availableWithRenewal.value;
 });
