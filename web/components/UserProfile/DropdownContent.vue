@@ -30,12 +30,17 @@ const { errors } = storeToRefs(errorsStore);
 const {
   keyActions,
   connectPluginInstalled,
+  rebootType,
+  rebootVersion,
   registered,
   regUpdatesExpired,
   stateData,
   stateDataError,
 } = storeToRefs(useServerStore());
-const { available: osUpdateAvailable } = storeToRefs(updateOsStore);
+const {
+  available: osUpdateAvailable,
+  availableWithRenewal: osUpdateAvailableWithRenewal,
+} = storeToRefs(updateOsStore);
 
 const signInAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signIn') ?? []);
 const signOutAction = computed(() => stateData.value.actions?.filter((act: { name: string; }) => act.name === 'signOut') ?? []);
@@ -55,6 +60,48 @@ const manageUnraidNetAccount = computed(() => {
   };
 });
 
+const updateOsCheckForUpdatesButton = computed(() => {
+  return {
+    click: () => {
+      updateOsStore.localCheckForUpdate();
+    },
+    icon: ArrowPathIcon,
+    text: props.t('Check for Update'),
+  };
+});
+const updateOsResponseModalOpenButton = computed(() => {
+  return {
+    click: () => {
+      updateOsStore.setModalOpen(true);
+    },
+    emphasize: true,
+    icon: BellAlertIcon,
+    text: osUpdateAvailableWithRenewal.value
+      ? props.t('Unraid OS {0} Released', [osUpdateAvailableWithRenewal.value])
+      : props.t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
+  };
+});
+const updateOsToolsUpdatePageButton = computed(() => {
+  return {
+    external: true,
+    href: WEBGUI_TOOLS_REGISTRATION.toString(),
+    icon: KeyIcon,
+    text: rebootType.value === 'downgrade'
+      ? props.t('Reboot Now to Downgrade to {0}', [rebootVersion])
+      : props.t('Reboot Now to Update to {0}', [rebootVersion]),
+  };
+});
+
+const updateOsButton = computed(() => {
+  if (rebootType.value === 'downgrade' || rebootType.value === 'update') {
+    return updateOsToolsUpdatePageButton.value;
+  }
+  if (osUpdateAvailable.value) {
+    return updateOsResponseModalOpenButton.value;
+  }
+  return updateOsCheckForUpdatesButton.value;
+});
+
 const links = computed(():UserProfileLink[] => {
   return [
     ...(regUpdatesExpired.value
@@ -65,30 +112,9 @@ const links = computed(():UserProfileLink[] => {
           title: props.t('Go to Tools > Registration to Learn More'),
         }]
       : []),
-    // @todo - conditional determine button here
 
-    // otherwise we should have a button to check for updates
-    ...(osUpdateAvailable.value
-      ? [
-          {
-            click: () => {
-              updateOsStore.setModalOpen(true);
-            },
-            emphasize: true,
-            icon: BellAlertIcon,
-            text: props.t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
-          },
-        ]
-      : [
-        // if available we should have a button to open the modal
-          {
-            click: () => {
-              updateOsStore.localCheckForUpdate();
-            },
-            icon: ArrowPathIcon,
-            text: props.t('Check for Update'),
-          },
-        ]),
+    ...([updateOsButton.value]),
+
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value
       ? [
