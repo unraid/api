@@ -59,9 +59,9 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
       @keyup.esc="closeModal"
     >
       <div
-        class="fixed inset-0 flex min-h-screen w-screen justify-center p-16px sm:p-0 overflow-y-auto"
+        class="fixed inset-0 flex min-h-screen w-screen justify-center p-8px sm:p-16px overflow-y-auto"
         :class="{
-          'items-start tall:items-center': tallContent,
+          'items-start sm:items-center': tallContent,
           'items-center': !tallContent,
         }"
       >
@@ -98,7 +98,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               success ? 'shadow-green-600/30 border-green-600/10' : '',
               !error && !success ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-16px text-beta bg-alpha text-left relative z-10 flex flex-col justify-around mx-8px md:mx-16px border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
+            class="text-16px text-beta bg-alpha text-left relative z-10 flex flex-col justify-around border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden sm:block">
               <button
@@ -112,17 +112,17 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
             </div>
 
             <header
-              class="relative z-0 grid items-start gap-2 p-16px sm:p-24px rounded-t"
+              class="relative z-0 grid items-start gap-2 p-16px md:p-24px rounded-t"
               :class="{
-                'mb-16px sm:mb-24px': !$slots['main'],
-                'pr-40px': showCloseX,
+                'mb-16px md:mb-24px': !$slots['main'],
+                'sm:pr-40px': showCloseX,
                 'justify-between': $slots['header'],
                 'justify-center': !$slots['header'],
               }"
             >
               <div class="absolute -z-10 inset-0 opacity-10 bg-beta" />
               <template v-if="!$slots['header']">
-                <h1 v-if="title" :id="ariaLablledById" class="text-center text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
+                <h1 v-if="title" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
                   {{ title }}
                   <slot name="headerTitle" />
                 </h1>
@@ -132,16 +132,16 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
 
             <div
               v-if="$slots['main'] || description"
-              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px sm:p-24px overflow-y-auto shadow-inner"
+              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto shadow-inner"
               :class="centerContent && 'text-center'"
             >
-              <h2 v-if="description" class="text-20px opacity-75" v-html="description" />
+              <h2 v-if="description" class="text-18px sm:text-20px opacity-75" v-html="description" />
               <div v-if="$slots['main']">
                 <slot name="main" />
               </div>
             </div>
 
-            <footer v-if="$slots['footer']" class="text-14px relative p-16px sm:p-24px">
+            <footer v-if="$slots['footer']" class="text-14px relative p-16px md:p-24px">
               <div class="absolute z-0 inset-0 opacity-10 bg-beta" />
               <div class="relative z-10">
                 <slot name="footer" />

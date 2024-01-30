@@ -196,7 +196,9 @@ onBeforeMount(() => {
                 class="inline-block h-20px w-20px transform rounded-full bg-white transition"
               />
             </Switch>
-            <SwitchLabel>{{ t('Ignore this release until next reboot') }}</SwitchLabel>
+            <SwitchLabel class="text-16px">
+              {{ t('Ignore this release until next reboot') }}
+            </SwitchLabel>
           </div>
         </SwitchGroup>
       </div>
@@ -217,7 +219,7 @@ onBeforeMount(() => {
       <div
         class="w-full flex gap-8px mx-auto"
         :class="{
-          'flex-col-reverse sm:flex-row justify-between': actionButtons,
+          'flex-col-reverse xs:flex-row justify-between': actionButtons,
           'justify-center': !actionButtons,
         }"
       >
@@ -227,7 +229,7 @@ onBeforeMount(() => {
           :text="t('Close')"
           @click="close"
         />
-        <div v-if="actionButtons" class="flex flex-col sm:flex-row justify-end">
+        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end">
           <BrandButton
             v-for="item in actionButtons"
             :key="item.text"
