@@ -60,11 +60,20 @@ const formattedRegTm = ref<any>();
  * regTm may not have a value until we get a response from the refreshServerState action
  * So we need to watch for this value to be able to format it based on the user's date time preferences.
  */
-watch(regTm, (newV) => {
-  if (!newV) { return; }
+const setFormattedRegTm = () => {
+  if (!regTm.value) { return; }
 
-  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, false, regTm.value);
+  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, t, true, regTm.value);
   formattedRegTm.value = outputDateTimeFormatted.value;
+};
+watch(regTm, (newV, oldV) => {
+  console.debug('[regTm.watch]', newV, oldV);
+  setFormattedRegTm();
+});
+onBeforeMount(() => {
+  if (regTm.value) {
+    setFormattedRegTm();
+  }
 });
 
 const devicesAvailable = computed((): number => {
