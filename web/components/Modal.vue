@@ -4,6 +4,7 @@ import { XMarkIcon } from '@heroicons/vue/24/outline';
 import useFocusTrap from '~/composables/useFocusTrap';
 
 export interface Props {
+  centerContent?: boolean;
   description?: string;
   error?: boolean;
   maxWidth?: string;
@@ -11,15 +12,18 @@ export interface Props {
   showCloseX?: boolean;
   success?: boolean;
   t: any;
+  tallContent?: boolean;
   title?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
+  centerContent: true,
   description: '',
   error: false,
   maxWidth: 'sm:max-w-lg',
   open: false,
   showCloseX: false,
   success: false,
+  tallContent: false,
   title: '',
 });
 watchEffect(() => {
@@ -54,23 +58,29 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
       tabindex="-1"
       @keyup.esc="closeModal"
     >
-      <TransitionChild
-        appear
-        as="template"
-        enter="duration-300 ease-out"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="duration-200 ease-in"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
+      <div
+        class="fixed inset-0 flex min-h-screen w-screen justify-center p-16px sm:p-0 overflow-y-auto"
+        :class="{
+          'items-start tall:items-center': tallContent,
+          'items-center': !tallContent,
+        }"
       >
-        <div
-          class="fixed inset-0 z-0 bg-black bg-opacity-80 transition-opacity"
-          :title="t('Click to close modal')"
-          @click="closeModal"
-        />
-      </TransitionChild>
-      <div class="text-center flex min-h-full items-center justify-center p-4 md:p-0">
+        <TransitionChild
+          appear
+          as="template"
+          enter="duration-300 ease-out"
+          enter-from="opacity-0"
+          enter-to="opacity-100"
+          leave="duration-200 ease-in"
+          leave-from="opacity-100"
+          leave-to="opacity-0"
+        >
+          <div
+            class="fixed inset-0 z-0 bg-black bg-opacity-80 transition-opacity"
+            :title="t('Click to close modal')"
+            @click="closeModal"
+          />
+        </TransitionChild>
         <TransitionChild
           appear
           as="template"
@@ -88,33 +98,50 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               success ? 'shadow-green-600/30 border-green-600/10' : '',
               !error && !success ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-16px text-beta bg-alpha text-left relative flex flex-col justify-around p-16px my-24px sm:p-24px border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
+            class="text-16px text-beta bg-alpha text-left relative z-10 flex flex-col justify-around mx-8px md:mx-16px border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
-            <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden pt-2 pr-2 sm:block">
-              <button type="button" class="rounded-md text-beta bg-alpha p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2" @click="closeModal">
+            <div v-if="showCloseX" class="absolute z-20 right-0 top-0 hidden sm:block">
+              <button
+                class="rounded-md text-beta bg-transparent p-2 hover:text-white focus:text-white hover:bg-unraid-red focus:bg-unraid-red focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                type="button"
+                @click="closeModal"
+              >
                 <span class="sr-only">{{ t('Close') }}</span>
                 <XMarkIcon class="h-6 w-6" aria-hidden="true" />
               </button>
             </div>
 
             <header
-              class="text-center"
+              class="relative z-0 grid items-start gap-2 p-16px sm:p-24px rounded-t"
               :class="{
-                'mb-16px sm:mb-24px': !$slots['main']
+                'mb-16px sm:mb-24px': !$slots['main'],
+                'pr-40px': showCloseX,
+                'justify-between': $slots['header'],
+                'justify-center': !$slots['header'],
               }"
             >
+              <div class="absolute -z-10 inset-0 opacity-10 bg-beta" />
               <template v-if="!$slots['header']">
-                <h1 v-if="title" :id="ariaLablledById" class="text-24px font-semibold flex flex-wrap justify-center gap-x-1">
+                <h1 v-if="title" :id="ariaLablledById" class="text-center text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
                   {{ title }}
                   <slot name="headerTitle" />
                 </h1>
-                <h2 v-if="description" class="text-20px opacity-75" v-html="description" />
               </template>
               <slot name="header" />
             </header>
-            <slot name="main" />
 
-            <footer v-if="$slots['footer']" class="text-14px relative -mx-16px -mb-16px sm:-mx-24px sm:-mb-24px p-4 sm:p-6">
+            <div
+              v-if="$slots['main'] || description"
+              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px sm:p-24px overflow-y-auto shadow-inner"
+              :class="centerContent && 'text-center'"
+            >
+              <h2 v-if="description" class="text-20px opacity-75" v-html="description" />
+              <div v-if="$slots['main']">
+                <slot name="main" />
+              </div>
+            </div>
+
+            <footer v-if="$slots['footer']" class="text-14px relative p-16px sm:p-24px">
               <div class="absolute z-0 inset-0 opacity-10 bg-beta" />
               <div class="relative z-10">
                 <slot name="footer" />
