@@ -22,7 +22,7 @@ const updateOsStore = useUpdateOsStore();
 // const updateOsActionsStore = useUpdateOsActionsStore();
 const updateOsChangelogStore = useUpdateOsChangelogStore();
 
-const { available, availableWithRenewal } = storeToRefs(updateOsStore);
+const { availableWithRenewal } = storeToRefs(updateOsStore);
 const {
   isReleaseForUpdateStable,
   releaseForUpdate,
