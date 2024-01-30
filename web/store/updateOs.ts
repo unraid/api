@@ -51,6 +51,11 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
 
   const availableReleaseDate = computed(() => updateOsResponse.value?.date ? dayjs(updateOsResponse.value.date, 'YYYY-MM-DD') : undefined);
 
+  /**
+   * If the updateOsResponse does not have a sha256, then the user is required to authenticate to download the update
+   */
+  const availableRequiresAuth = computed((): boolean => !updateOsResponse.value?.sha256 ?? false);
+
   // actions
   const releaseDateGtRegExpDate = (releaseDate: number | string, regExpDate: number): boolean => {
     const parsedReleaseDate = dayjs(releaseDate, 'YYYY-MM-DD');
@@ -85,6 +90,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     updateOsIgnoredReleases,
     // getters
     availableReleaseDate,
+    availableRequiresAuth,
     // actions
     localCheckForUpdate,
     setModalOpen,

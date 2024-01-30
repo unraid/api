@@ -3,6 +3,7 @@ import { ArrowTopRightOnSquareIcon, EyeIcon, IdentificationIcon, KeyIcon, XMarkI
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 
+import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
 import { usePurchaseStore } from '~/store/purchase';
 import { useServerStore } from '~/store/server';
@@ -25,8 +26,28 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsChangelogStore = useUpdateOsChangelogStore();
 
-const { osVersionBranch, updateOsResponse, updateOsIgnoredReleases } = storeToRefs(serverStore);
-const { available, availableWithRenewal, checkForUpdatesLoading } = storeToRefs(updateOsStore);
+const {
+  dateTimeFormat,
+  updateOsResponse,
+  updateOsIgnoredReleases,
+  regExp,
+  regUpdatesExpired,
+} = storeToRefs(serverStore);
+const {
+  available,
+  availableWithRenewal,
+  availableReleaseDate,
+  availableRequiresAuth,
+  checkForUpdatesLoading,
+} = storeToRefs(updateOsStore);
+
+const {
+  outputDateTimeFormatted: formattedRegExp,
+} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+
+// @todo - if we don't get a sha256 we need to auth
+// @todo - when true change primary action button to be close and hide secondary button
+const ignoreThisRelease = ref(false);
 
 interface ModalCopy {
   title: string;
@@ -38,45 +59,59 @@ const modalCopy = computed((): ModalCopy | null => {
       title: props.t('Checking for OS updates...'),
     };
   }
-  if (available.value || availableWithRenewal.value) {
-    return {
-      title: props.t('Unraid OS {0} Update Available', [availableWithRenewal.value ?? available.value ?? '']),
-      description: osVersionBranch.value !== 'stable'
-        ? props.t('Release requires verification to update')
-        : undefined,
-    };
+
+  // Use the release date
+  let formattedReleaseDate = '';
+  if (availableReleaseDate.value) {
+    // build string with prefix
+    formattedReleaseDate = props.t('Release date {0}', [userFormattedReleaseDate.value]);
   }
-  if (!available.value && !availableWithRenewal.value) {
+
+  if (availableWithRenewal.value) {
+    const description = regUpdatesExpired.value
+      ? props.t('Ineligible for updates released after {0}', [formattedRegExp.value])
+      : props.t('Eligible for updates until {0}', [formattedRegExp.value]);
+    return {
+      title: props.t('Unraid OS {0} has been released', [availableWithRenewal.value]),
+      description: `<p>${formattedReleaseDate}</p><p>${description}</p>`,
+    };
+  } else if (available.value) {
+    const description = availableRequiresAuth.value
+      ? props.t('Release requires verification to update')
+      : undefined;
+    return {
+      title: props.t('Unraid OS {0} Update Available', [available.value]),
+      description: description ? `<p>${formattedReleaseDate}</p><p>${description}</p>` : formattedReleaseDate,
+    };
+  } else if (!available.value && !availableWithRenewal.value) {
+    /** @todo - conditionally show this description for when the setting isn't set */
     return {
       title: props.t('Unraid OS is up-to-date'),
       description: props.t('Go to Settings > Notifications to enable OS update notifications for future releases.'),
     };
   }
-  return {
-    title: props.t('Update OS Modal'),
-    description: props.t('This is a test'),
-  };
+  return null;
 });
 
 const actionButtons = computed((): ButtonProps[] | null => {
-  // update not available - no action button default closing
-  if (!available.value && !availableWithRenewal.value) { return null; }
+  // update not available or no action buttons default closing
+  if (!available.value || ignoreThisRelease.value) { return null; }
 
   const buttons: ButtonProps[] = [];
 
   // update available but not stable branch - should link out to account update callback
-  if (available.value && osVersionBranch.value !== 'stable') {
+  if (availableRequiresAuth.value) {
     buttons.push({
       click: async () => await accountStore.updateOs(),
       icon: IdentificationIcon,
-      text: props.t('Confirm Update Eligibility'),
+      text: props.t('Verify to Update'),
     });
 
     return buttons;
   }
 
   // update available and stable branch - open changelog to commence update
-  if (available.value && osVersionBranch.value === 'stable' && updateOsResponse.value) {
+  if (available.value) {
     buttons.push({
       click: async () => await updateOsChangelogStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
@@ -99,8 +134,6 @@ const actionButtons = computed((): ButtonProps[] | null => {
   return buttons;
 });
 
-const ignoreThisRelease = ref(false);
-
 const close = () => {
   // close it
   updateOsStore.setModalOpen(false);
@@ -114,6 +147,26 @@ const close = () => {
 
 const renderMainSlot = computed(() => {
   return checkForUpdatesLoading.value || available.value || availableWithRenewal.value || updateOsIgnoredReleases.value.length > 0;
+});
+
+const userFormattedReleaseDate = ref<any>();
+/**
+ * availableReleaseDate may not have a value until we get a release in the update os check response.
+ * So we need to watch for this value to be able to format it based on the user's date time preferences.
+ */
+const setUserFormattedReleaseDate = () => {
+  if (!availableReleaseDate.value) { return; }
+
+  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, props.t, true, availableReleaseDate.value.valueOf());
+  userFormattedReleaseDate.value = outputDateTimeFormatted.value;
+};
+watch(availableReleaseDate, (_newV) => {
+  setUserFormattedReleaseDate();
+});
+onBeforeMount(() => {
+  if (availableReleaseDate.value) {
+    setUserFormattedReleaseDate();
+  }
 });
 </script>
 
