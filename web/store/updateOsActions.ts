@@ -2,7 +2,7 @@ import { ArrowPathIcon, BellAlertIcon } from '@heroicons/vue/24/solid';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 
 import useInstallPlugin from '~/composables/installPlugin';
-import { getOsReleaseBySha256 } from '~/composables/services/keyServer';
+import { getOsReleaseBySha256, type GetOsReleaseBySha256Payload } from '~/composables/services/releases';
 
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 
@@ -124,13 +124,16 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   /**
    * @description When receiving the callback the Account update page we'll use the provided sha256 of the release to get the release from the keyserver
    */
-  const getReleaseFromKeyServer = async (sha256: string) => {
-    console.debug('[getReleaseFromKeyServer]', sha256);
-    if (!sha256) {
-      throw new Error('No sha256 provided');
+  const getReleaseFromKeyServer = async (payload: GetOsReleaseBySha256Payload) => {
+    console.debug('[getReleaseFromKeyServer]', payload);
+    if (!payload.keyfile) {
+      throw new Error('No payload.keyfile provided');
+    }
+    if (!payload.sha256) {
+      throw new Error('No payload.sha256 provided');
     }
     try {
-      const response = await getOsReleaseBySha256(sha256);
+      const response = await getOsReleaseBySha256(payload);
       console.debug('[getReleaseFromKeyServer]', response);
       return response;
     } catch (error) {
@@ -145,7 +148,10 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   };
 
   const actOnUpdateOsAction = async () => {
-    const foundRelease = await getReleaseFromKeyServer(updateAction.value?.sha256 ?? '');
+    const foundRelease = await getReleaseFromKeyServer({
+      keyfile: keyfile.value,
+      sha256: updateAction.value?.sha256 ?? '',
+    });
     console.debug('[redirectToCallbackType] updateOs foundRelease', foundRelease);
     if (!foundRelease) {
       throw new Error('Release not found');

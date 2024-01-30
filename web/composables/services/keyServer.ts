@@ -1,7 +1,5 @@
 import { request } from '~/composables/services/request';
 
-import type { Release } from '~/store/updateOsActions';
-
 const KeyServer = request.url('https://keys.lime-technology.com');
 
 export interface StartTrialPayload {
@@ -47,9 +45,4 @@ export const keyLatest = async (payload: KeyLatestPayload): Promise<KeyLatestRes
   .url('/key/latest')
   .formUrl(payload)
   .post()
-  .json();
-
-export const getOsReleaseBySha256 = async (sha256: string): Promise<Release> => await KeyServer
-  .url(`/versions/sha256/${sha256}`)
-  .get()
   .json();
