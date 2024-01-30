@@ -1,8 +1,10 @@
 import { marked } from 'marked';
+import { baseUrl } from 'marked-base-url';
 import { defineStore } from 'pinia';
 import prerelease from 'semver/functions/prerelease';
 import { computed, ref, watch } from 'vue';
 
+import { DOCS_RELEASE_NOTES } from '~/helpers/urls';
 import { request } from '~/composables/services/request';
 import { useCallbackStore } from '~/store/callbackActions';
 // import { useServerStore } from '~/store/server';
@@ -24,9 +26,10 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
   });
 
   const changelogUrl = computed((): string => {
-    if (!releaseForUpdate.value) { return ''; }
-    /** @todo have Eli provide the correct URL with changelog and changelog_pretty */
-    return `https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/${releaseForUpdate.value.version}.md`;
+    if (!releaseForUpdate.value || !releaseForUpdate.value?.changelog) {
+      return '';
+    }
+    return releaseForUpdate.value?.changelog ?? `https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/${releaseForUpdate.value.version}.md`;
   });
 
   const isReleaseForUpdateStable = computed(() => releaseForUpdate.value ? prerelease(releaseForUpdate.value.version) === null : false);
@@ -63,9 +66,32 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
     console.debug('[fetchAndParseChangelog]');
     try {
       const changelogMarkdownRaw = await request
-        .url(changelogUrl.value ?? releaseForUpdate.value?.changelog ?? '')
+        .url(changelogUrl.value ?? '')
         .get()
         .text();
+
+      // set base url for relative links
+      marked.use(baseUrl(DOCS_RELEASE_NOTES.toString()));
+
+      // open links in new tab & replace .md from links
+      const renderer = new marked.Renderer();
+      const anchorRender = {
+        options: {
+          sanitize: true,
+        },
+        render: marked.Renderer.prototype.link
+      };
+      renderer.link = function (href, title, text) {
+        const anchor = anchorRender.render(href, title, text);
+        return anchor
+          .replace('<a', '<a target=\'_blank\' ') // open links in new tab
+          .replace('.md', ''); // remove .md from links
+      };
+
+      marked.setOptions({
+        renderer
+      });
+
       parsedChangelog.value = await marked.parse(changelogMarkdownRaw);
     } catch (error: unknown) {
       const caughtError = error as Error;
