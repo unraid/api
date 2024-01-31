@@ -313,6 +313,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -499,6 +500,26 @@ FILE=/usr/local/emhttp/logging.htm
 if test -f "${FILE}" && grep -q "top.Shadowbox" "${FILE}" &>/dev/null; then
   cp -f "$FILE" "$FILE-"
   sed -i 's/top.Shadowbox/parent.Shadowbox/gm' "${FILE}"
+fi
+
+# ensure _var() is defined
+# brings older versions of Unraid in sync with 6.12.0
+FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php
+if test -f "${FILE}" && ! grep -q "_var" "${FILE}" &>/dev/null; then
+TEXT=$(
+cat <<'END_HEREDOC'
+function _var(&$name, $key=null, $default='') {
+  return is_null($key) ? ($name ?? $default) : ($name[$key] ?? $default);
+}
+?>
+END_HEREDOC
+)
+  cp -f "$FILE" "$FILE-"
+  # delete last line of the file if it contains `?>`
+  if test $( tail -n 1 "${FILE}" ) = '?>' ; then 
+    sed -i '$ d' "${FILE}"
+  fi
+  echo "${TEXT}" >>"${FILE}"
 fi
 
 # install the main txz
