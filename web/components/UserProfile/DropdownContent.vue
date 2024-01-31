@@ -113,7 +113,8 @@ const links = computed(():UserProfileLink[] => {
         }]
       : []),
 
-    ...([updateOsButton.value]),
+    // ensure we only show the update button when we don't have an error
+    ...(!stateDataError.value ? [updateOsButton.value] : []),
 
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value
