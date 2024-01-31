@@ -26,19 +26,13 @@ const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
 const updateOsStatus = computed(() => {
-  if (rebootType.value === 'downgrade') {
+  if (rebootTypeText.value) {
     return {
       badgeColor: 'yellow',
       badgeIcon: ExclamationTriangleIcon,
-      href: WEBGUI_TOOLS_DOWNGRADE.toString(),
-      text: t(rebootTypeText.value),
-    };
-  }
-  if (rebootType.value === 'thirdPartyDriversDownloading' || rebootType.value === 'update') {
-    return {
-      badgeColor: 'yellow',
-      badgeIcon: ExclamationTriangleIcon,
-      href: WEBGUI_TOOLS_UPDATE.toString(),
+      href: rebootType.value === 'downgrade'
+        ? WEBGUI_TOOLS_DOWNGRADE.toString()
+        : WEBGUI_TOOLS_UPDATE.toString(),
       text: t(rebootTypeText.value),
     };
   }
