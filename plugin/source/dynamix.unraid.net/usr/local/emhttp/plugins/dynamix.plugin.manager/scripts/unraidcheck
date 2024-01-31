@@ -14,3 +14,6 @@
 <?
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
+
+$unraidOsCheck = new UnraidOsCheck();
+$unraidOsCheck->checkForUpdate();
