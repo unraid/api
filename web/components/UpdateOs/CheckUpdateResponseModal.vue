@@ -110,12 +110,17 @@ const actionButtons = computed((): ButtonProps[] | null => {
     return buttons;
   }
 
-  // update available and stable branch - open changelog to commence update
+  // update available - open changelog to commence update
   if (available.value) {
     buttons.push({
+      btnStyle: availableWithRenewal.value
+        ? 'outline'
+        : undefined,
       click: async () => await updateOsChangelogStore.setReleaseForUpdate(updateOsResponse.value ?? null),
       icon: EyeIcon,
-      text: availableWithRenewal.value ? props.t('View Changelog') : props.t('View Changelog to Start Update'),
+      text: availableWithRenewal.value
+        ? props.t('View Changelog')
+        : props.t('View Changelog to Start Update'),
     });
   }
 
@@ -125,7 +130,7 @@ const actionButtons = computed((): ButtonProps[] | null => {
       click: async () => await purchaseStore.renew(),
       icon: KeyIcon,
       iconRight: ArrowTopRightOnSquareIcon,
-      iconRightHoverDisplay: true,
+      iconRightHoverDisplay: false,
       text: props.t('Extend Key'),
       title: props.t('Pay your annual fee to continue receiving OS updates.'),
     });
@@ -229,9 +234,10 @@ onBeforeMount(() => {
           :text="t('Close')"
           @click="close"
         />
-        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end">
+        <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-8px">
           <BrandButton
             v-for="item in actionButtons"
+            :btn-style="item.btnStyle ?? undefined"
             :key="item.text"
             :icon="item.icon"
             :icon-right="item.iconRight"
