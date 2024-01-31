@@ -15,6 +15,7 @@ $webguiGlobals = $GLOBALS;
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
+require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 /**
  * ServerState class encapsulates server-related information and settings.
  *
@@ -47,6 +48,7 @@ class ServerState
     private $rebootDetails;
     private $caseModel = '';
     private $keyfileBase64UrlSafe = '';
+    private $updateOsCheck;
     private $updateOsResponse;
     private $updateOsIgnoredReleases = [];
 
@@ -165,15 +167,9 @@ class ServerState
           $this->keyfileBase64UrlSafe = str_replace(['+', '/', '='], ['-', '_', ''], trim($this->keyfileBase64));
         }
 
-        /**
-         * updateOsResponse is provided by the dynamix.plugin.manager/scripts/unraidcheck script saving to /tmp/unraidcheck/result.json
-         */
-        $this->updateOsResponse = @json_decode(@file_get_contents('/tmp/unraidcheck/result.json'), true);
-
-        /**
-         * updateOsIgnoredReleases is set by the dynamix.plugin.manager/inclue/UnraidIgnore.php script saving to /tmp/unraidcheck/ignored.json
-         */
-        $this->updateOsIgnoredReleases = @json_decode(@file_get_contents('/tmp/unraidcheck/ignored.json'), true) ?? [];
+        $this->updateOsCheck = new UnraidOsCheck();
+        $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
+        $this->updateOsIgnoredReleases = $this->updateOsCheck->getIgnoredReleases();
     }
 
     /**
