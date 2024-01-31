@@ -236,7 +236,7 @@ class UnraidOsCheck
         if (!is_dir(dirname($file))) { // prevents errors when directory doesn't exist
             mkdir(dirname($file));
         }
-        file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT));
+        file_put_contents($file, json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES));
     }
 
     private function deleteJsonFile($file)
