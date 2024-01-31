@@ -27,7 +27,7 @@ export interface Release {
   date: string; // "2023-08-31"
   url: string; // "https://stable.dl.unraid.net/unRAIDServer-6.12.4-x86_64.zip"
   changelog: string; // "https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/6.12.4.md"
-  changelog_pretty: string; // "https://docs.unraid.net/unraid-os/release-notes/6.12.4/"
+  changelogPretty: string; // "https://docs.unraid.net/unraid-os/release-notes/6.12.4/"
   md5: string; // "df6e5859d28c14617efde36d59458206"
   size: string; // "439999418"
   sha256: string; // "5ad2d22e8c124e3b925c3bd05f1d782d8521965aabcbedd7dd782db76afd9ace"

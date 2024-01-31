@@ -39,12 +39,12 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     }
     return updateOsResponse.value.isNewer ? updateOsResponse.value.version : undefined;
   });
-  const availableWithRenewal = computed(() => {
+  const availableWithRenewal = computed((): string | undefined => {
     if (!available.value || !updateOsResponse.value || !regExp.value || !regUpdatesExpired.value) {
       return undefined;
     }
 
-    return updateOsResponse.value.isNewer && releaseDateGtRegExpDate(updateOsResponse.value.date, regExp.value)
+    return !updateOsResponse.value?.isEligible
       ? updateOsResponse.value.version
       : undefined;
   });
@@ -57,13 +57,6 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
   const availableRequiresAuth = computed((): boolean => !updateOsResponse.value?.sha256 ?? false);
 
   // actions
-  const releaseDateGtRegExpDate = (releaseDate: number | string, regExpDate: number): boolean => {
-    const parsedReleaseDate = dayjs(releaseDate, 'YYYY-MM-DD');
-    const parsedUpdateExpirationDate = dayjs(regExpDate ?? undefined);
-
-    return parsedReleaseDate.isAfter(parsedUpdateExpirationDate, 'day');
-  };
-
   const localCheckForUpdate = async (): Promise<void> => {
     checkForUpdatesLoading.value = true;
     setModalOpen(true);

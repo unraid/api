@@ -53,10 +53,10 @@ export interface ServerUpdateOsResponse {
   version: string; // "6.13.0-beta0.27"
   name: string; // "Unraid 6.13.0-beta0.27"
   date: string; // "2023-12-13"
+  isEligible: boolean; // false
   isNewer: boolean; // false
   changelog: string | null; // "https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/6.13.0-beta0.27.md"
-  /** @todo have Eli return this when applicable */
-  changelog_pretty?: string; // "https://docs.unraid.net/unraid-os/release-notes/6.12.6/"
+  changelogPretty?: string; // "https://docs.unraid.net/unraid-os/release-notes/6.12.6/"
   sha256: string | null;
 }
 
