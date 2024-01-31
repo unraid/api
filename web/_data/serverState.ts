@@ -178,6 +178,7 @@ export const serverState: Server = {
     name: 'Unraid 6.12.6',
     date: '2023-12-13',
     isNewer: true,
+    isEligible: false,
     changelog: 'https://docs.unraid.net/unraid-os/release-notes/6.12.6/',
     sha256: '2f5debaf80549029cf6dfab0db59180e7e3391c059e6521aace7971419c9c4bf',
   },

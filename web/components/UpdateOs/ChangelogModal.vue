@@ -72,11 +72,11 @@ const showExtendKeyButton = computed(() => {
           {{ props.t(`It's highly recommended to review the changelog before continuing your update`) }}
         </p>
         <div
-          v-if="releaseForUpdate?.changelog_pretty"
+          v-if="releaseForUpdate?.changelogPretty"
           class="flex self-center"
         >
           <BrandButton
-            :href="releaseForUpdate?.changelog_pretty"
+            :href="releaseForUpdate?.changelogPretty"
             btn-style="underline"
             :external="true"
             :icon-right="ArrowTopRightOnSquareIcon"
@@ -106,10 +106,10 @@ const showExtendKeyButton = computed(() => {
             {{ props.t("Close") }}
           </BrandButton>
           <BrandButton
-            v-if="releaseForUpdate?.changelog_pretty"
+            v-if="releaseForUpdate?.changelogPretty"
             btn-style="underline"
             :external="true"
-            :href="releaseForUpdate?.changelog_pretty"
+            :href="releaseForUpdate?.changelogPretty"
             :icon="EyeIcon"
             :icon-right="ArrowTopRightOnSquareIcon"
           >
