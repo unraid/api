@@ -104,7 +104,7 @@ export const useServerStore = defineStore('server', () => {
   const regExp = ref<number>(0);
   const parsedRegExp = computed(() => regExp.value ? dayjs(regExp.value).format('YYYY-MM-DD') : null);
   const regUpdatesExpired = computed(() => {
-    if (!regExp.value || (state.value !== 'STARTER' && state.value !== 'UNLEASHED')) { return false; }
+    if (!regExp.value) { return false; }
     const today = dayjs();
     const parsedUpdateExpirationDate = dayjs(regExp.value);
 
@@ -452,11 +452,11 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...(state.value === 'STARTER' && regUpdatesExpired.value ? [renewAction.value] : []),
+            ...(regUpdatesExpired.value ? [renewAction.value] : []),
             ...([upgradeAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: state.value === 'BASIC' ? 'Basic' : 'Starter',
+          humanReadable: 'Starter',
           heading: 'Thank you for choosing Unraid OS!',
           message: !registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
@@ -485,12 +485,10 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...(state.value === 'UNLEASHED' && regUpdatesExpired.value ? [renewAction.value] : []),
+            ...(regUpdatesExpired.value ? [renewAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: state.value === 'PRO'
-            ? 'Pro'
-            : (state.value === 'LIFETIME' ? 'Lifetime' : 'Unleashed'),
+          humanReadable: 'Unleashed',
           heading: 'Thank you for choosing Unraid OS!',
           message: !registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
