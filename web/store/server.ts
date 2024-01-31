@@ -970,6 +970,7 @@ export const useServerStore = defineStore('server', () => {
   const updateOsIgnoreRelease = (release: string) => {
     updateOsIgnoredReleases.value.push(release);
     const response = WebguiUpdateIgnore({
+      action: 'ignoreVersion',
       version: release,
     });
     console.debug('[updateOsIgnoreRelease] response', response);
@@ -979,7 +980,8 @@ export const useServerStore = defineStore('server', () => {
   const updateOsRemoveIgnoredRelease = (release: string) => {
     updateOsIgnoredReleases.value = updateOsIgnoredReleases.value.filter(r => r !== release);
     const response = WebguiUpdateIgnore({
-      removeVersion: release,
+      action: 'removeIgnoredVersion',
+      version: release,
     });
     console.debug('[updateOsRemoveIgnoredRelease] response', response);
   };
@@ -987,7 +989,7 @@ export const useServerStore = defineStore('server', () => {
   const updateOsRemoveAllIgnoredReleases = () => {
     updateOsIgnoredReleases.value = [];
     const response = WebguiUpdateIgnore({
-      removeAll: true,
+      action: 'removeAllIgnored',
     });
     console.debug('[updateOsRemoveAllIgnoredReleases] response', response);
   };
