@@ -118,6 +118,7 @@ export const useServerStore = defineStore('server', () => {
   });
   const updateOsResponse = ref<ServerUpdateOsResponse>();
   const updateOsIgnoredReleases = ref<string[]>([]);
+  const updateOsNotificationsEnabled = ref<boolean>(false);
   const uptime = ref<number>(0);
   const username = ref<string>(''); // @todo potentially move to a user store
   const wanFQDN = ref<string>('');
@@ -820,8 +821,9 @@ export const useServerStore = defineStore('server', () => {
     if (typeof data?.site !== 'undefined') { site.value = data.site; }
     if (typeof data?.state !== 'undefined') { state.value = data.state; }
     if (typeof data?.theme !== 'undefined') { theme.value = data.theme; }
-    if (typeof data?.updateOsResponse !== 'undefined') { updateOsResponse.value = data.updateOsResponse; }
     if (typeof data?.updateOsIgnoredReleases !== 'undefined') { updateOsIgnoredReleases.value = data.updateOsIgnoredReleases; }
+    if (typeof data?.updateOsNotificationsEnabled !== 'undefined') { updateOsNotificationsEnabled.value = data.updateOsNotificationsEnabled; }
+    if (typeof data?.updateOsResponse !== 'undefined') { updateOsResponse.value = data.updateOsResponse; }
     if (typeof data?.uptime !== 'undefined') { uptime.value = data.uptime; }
     if (typeof data?.username !== 'undefined') { username.value = data.username; }
     if (typeof data?.wanFQDN !== 'undefined') { wanFQDN.value = data.wanFQDN; }
@@ -1031,6 +1033,7 @@ export const useServerStore = defineStore('server', () => {
     state,
     theme,
     updateOsIgnoredReleases,
+    updateOsNotificationsEnabled,
     updateOsResponse,
     uptime,
     username,

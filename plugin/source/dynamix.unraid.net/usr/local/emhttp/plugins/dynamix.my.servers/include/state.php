@@ -49,6 +49,7 @@ class ServerState
     private $caseModel = '';
     private $keyfileBase64UrlSafe = '';
     private $updateOsCheck;
+    private $updateOsNotificationsEnabled = false;
     private $updateOsResponse;
     private $updateOsIgnoredReleases = [];
 
@@ -168,8 +169,9 @@ class ServerState
         }
 
         $this->updateOsCheck = new UnraidOsCheck();
-        $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
         $this->updateOsIgnoredReleases = $this->updateOsCheck->getIgnoredReleases();
+        $this->updateOsNotificationsEnabled = !empty(@$this->getWebguiGlobal('notify')['unraidos']);
+        $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
     }
 
     /**
@@ -251,12 +253,16 @@ class ServerState
             $serverState['combinedKnownOrigins'] = $this->combinedKnownOrigins;
         }
 
-        if ($this->updateOsResponse) {
-            $serverState['updateOsResponse'] = $this->updateOsResponse;
-        }
-
         if ($this->updateOsIgnoredReleases) {
             $serverState['updateOsIgnoredReleases'] = $this->updateOsIgnoredReleases;
+        }
+
+        if ($this->updateOsNotificationsEnabled) {
+            $serverState['updateOsNotificationsEnabled'] = $this->updateOsNotificationsEnabled;
+        }
+
+        if ($this->updateOsResponse) {
+            $serverState['updateOsResponse'] = $this->updateOsResponse;
         }
 
         return $serverState;
