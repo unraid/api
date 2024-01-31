@@ -92,7 +92,7 @@ const devicesAvailable = computed((): number => {
 });
 
 const showTrialExpiration = computed((): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED');
-const showUpdateEligibility = computed((): boolean => !!(regExp.value && (state.value === 'STARTER' || state.value === 'UNLEASHED')));
+const showUpdateEligibility = computed((): boolean => !!(regExp.value));
 const keyInstalled = computed((): boolean => !!(!stateDataError.value && state.value !== 'ENOKEYFILE'));
 const showTransferStatus = computed((): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value));
 // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
