@@ -177,9 +177,8 @@ class UnraidOsCheck
         if (file_exists(self::JSON_FILE_IGNORED)) {
             $this->deleteJsonFile(self::JSON_FILE_IGNORED);
             $this->respondWithSuccess([]);
-        } else {
-            $this->respondWithError(400, "No JSON file found");
         }
+        // fail silently if file doesn't exist
     }
 
     private function removeIgnoredVersion($removeVersion)
