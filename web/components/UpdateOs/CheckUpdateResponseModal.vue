@@ -237,8 +237,8 @@ onBeforeMount(() => {
         <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-8px">
           <BrandButton
             v-for="item in actionButtons"
-            :btn-style="item.btnStyle ?? undefined"
             :key="item.text"
+            :btn-style="item.btnStyle ?? undefined"
             :icon="item.icon"
             :icon-right="item.iconRight"
             :icon-right-hover-display="item.iconRightHoverDisplay"

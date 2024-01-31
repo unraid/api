@@ -33,7 +33,7 @@ const staticGuid = '1111-1111-5GDB-123412341234';
 // const blacklistedGuid = '154B-00EE-0700-9B50CF819816';
 
 const uptime = Date.now() - 60 * 60 * 1000; // 1 hour ago
-const twentyDaysAgo = Date.now() - 20 * 24 * 60 * 60 * 1000; // 20 days ago
+// const twentyDaysAgo = Date.now() - 20 * 24 * 60 * 60 * 1000; // 20 days ago
 const ninetyDaysAgo = Date.now() - 90 * 24 * 60 * 60 * 1000; // 90 days ago
 const twoDaysAgo = Date.now() - 2 * 24 * 60 * 60 * 1000; // 2 days ago
 // const oneDayAgo = Date.now() - 24 * 60 * 60 * 1000; // 1 day ago
