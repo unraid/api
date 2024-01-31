@@ -457,7 +457,7 @@ export const useServerStore = defineStore('server', () => {
             ...([upgradeAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'Starter',
+          humanReadable: state.value === 'BASIC' ? 'Basic' : 'Starter',
           heading: 'Thank you for choosing Unraid OS!',
           message: !registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
@@ -489,7 +489,9 @@ export const useServerStore = defineStore('server', () => {
             ...(regUpdatesExpired.value ? [renewAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
-          humanReadable: 'Unleashed',
+          humanReadable: state.value === 'PRO'
+            ? 'Pro'
+            : (state.value === 'LIFETIME' ? 'Lifetime' : 'Unleashed'),
           heading: 'Thank you for choosing Unraid OS!',
           message: !registered.value && connectPluginInstalled.value
             ? '<p>Register for Connect by signing in to your Unraid.net account</p>'
