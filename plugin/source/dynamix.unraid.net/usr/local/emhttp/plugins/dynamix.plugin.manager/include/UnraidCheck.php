@@ -100,6 +100,7 @@ class UnraidOsCheck
         return [];
     }
 
+    /** @todo clean up this method to be more extensible */
     public function checkForUpdate()
     {
         // Multi-language support
