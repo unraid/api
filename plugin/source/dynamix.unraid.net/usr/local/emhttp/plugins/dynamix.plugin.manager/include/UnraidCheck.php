@@ -41,9 +41,10 @@ class UnraidOsCheck
 
     public function __construct()
     {
+        $isGetRequest = !empty($_SERVER) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET';
         $getHasAction = $_GET !== null && !empty($_GET) && isset($_GET['action']);
 
-        if (!empty($_SERVER) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET' && $getHasAction) {
+        if ($isGetRequest && $getHasAction) {
             $this->handleGetRequestWithActions();
         }
     }
@@ -142,7 +143,7 @@ class UnraidOsCheck
             $responseMutated = json_decode($response, true);
         }
 
-        // add params that were sent to $urlbase
+        // add params that were used for debugging
         $responseMutated['params'] = $params;
 
         // store locally for UPC to access
@@ -257,8 +258,9 @@ class UnraidOsCheck
     }
 }
 
-// Instantiate and handle the request for GET requests with actions
-$getHasAction = $_GET !== null && !empty($_GET) && isset($_GET['action']); // duplicated from above on purpose
-if (!empty($_SERVER) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET' && $getHasAction) {
+// Instantiate and handle the request for GET requests with actions – vars are duplicated here for multi-use of this file
+$isGetRequest = !empty($_SERVER) && isset($_SERVER['REQUEST_METHOD']) && $_SERVER['REQUEST_METHOD'] === 'GET';
+$getHasAction = $_GET !== null && !empty($_GET) && isset($_GET['action']);
+if ($isGetRequest && $getHasAction) {
     new UnraidOsCheck();
 }
