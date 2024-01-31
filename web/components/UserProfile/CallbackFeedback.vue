@@ -199,6 +199,16 @@ const accountActionStatusCopy = computed((): { text: string; } => {
 });
 
 const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
+
+/**
+ * Ideally we'd show this based off of regExp.value, but we will not have that value yet.
+ * So we'll use the keyType.value that we get from the keyInstall store.
+ */
+const showUpdateEligibility = computed(() => {
+  // rather than specifically targeting 'Starter' and 'Unleashed' we'll target all keys that are not 'Basic', 'Plus', 'Pro', 'Lifetime', or 'Trial'
+  if (!keyType.value) { return false; }
+  return !['Basic', 'Plus', 'Pro', 'Lifetime', 'Trial'].includes(keyType.value);
+});
 </script>
 
 <template>
@@ -236,7 +246,7 @@ const { copy, copied, isSupported } = useClipboard({ source: keyUrl.value });
               {{ t('Calculating trial expiration…') }}
             </p>
           </div>
-          <div v-if="keyType === 'Starter' || keyType === 'Unleashed'" class="opacity-75 italic mt-4px">
+          <div v-if="showUpdateEligibility" class="opacity-75 italic mt-4px">
             <RegistrationUpdateExpiration
               v-if="refreshServerStateStatus === 'done'"
               :t="t"
