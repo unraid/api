@@ -21,11 +21,15 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { osVersion, rebootType } = storeToRefs(serverStore);
+const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
 const updateOsStatus = computed(() => {
+  if (stateDataError.value) { // only allowed to update when server is does not have a state error
+    return null;
+  }
+
   if (rebootTypeText.value) {
     return {
       badgeColor: 'yellow',
