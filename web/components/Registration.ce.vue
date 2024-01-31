@@ -70,9 +70,7 @@ watch(regTm, (_newV) => {
   setFormattedRegTm();
 });
 onBeforeMount(() => {
-  if (regTm.value) {
-    setFormattedRegTm();
-  }
+  setFormattedRegTm();
 });
 
 const devicesAvailable = computed((): number => {
