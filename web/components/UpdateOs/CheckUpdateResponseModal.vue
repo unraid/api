@@ -1,5 +1,12 @@
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon, EyeIcon, IdentificationIcon, KeyIcon, XMarkIcon } from '@heroicons/vue/24/solid';
+import {
+  ArrowTopRightOnSquareIcon,
+  CogIcon,
+  EyeIcon,
+  IdentificationIcon,
+  KeyIcon,
+  XMarkIcon,
+} from '@heroicons/vue/24/solid';
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
 
@@ -27,11 +34,12 @@ const updateOsStore = useUpdateOsStore();
 const updateOsChangelogStore = useUpdateOsChangelogStore();
 
 const {
-  dateTimeFormat,
-  updateOsResponse,
-  updateOsIgnoredReleases,
   regExp,
   regUpdatesExpired,
+  dateTimeFormat,
+  updateOsIgnoredReleases,
+  updateOsNotificationsEnabled,
+  updateOsResponse,
 } = storeToRefs(serverStore);
 const {
   available,
@@ -48,6 +56,12 @@ const {
 // @todo - if we don't get a sha256 we need to auth
 // @todo - when true change primary action button to be close and hide secondary button
 const ignoreThisRelease = ref(false);
+
+const notificationsSettings = computed(() => {
+  return !updateOsNotificationsEnabled.value
+    ? props.t('Go to Settings > Notifications to enable automatic OS update notifications for future releases.')
+    : undefined;
+});
 
 interface ModalCopy {
   title: string;
@@ -84,13 +98,33 @@ const modalCopy = computed((): ModalCopy | null => {
       description: description ? `<p>${formattedReleaseDate}</p><p>${description}</p>` : formattedReleaseDate,
     };
   } else if (!available.value && !availableWithRenewal.value) {
-    /** @todo - conditionally show this description for when the setting isn't set */
     return {
       title: props.t('Unraid OS is up-to-date'),
-      description: props.t('Go to Settings > Notifications to enable OS update notifications for future releases.'),
+      description: notificationsSettings.value ?? undefined,
     };
   }
   return null;
+});
+
+const showNotificationsSettingsLink = computed(() => {
+  return !updateOsNotificationsEnabled.value && !available.value && !availableWithRenewal.value;
+});
+
+const extraLinks = computed((): ButtonProps[] | null => {
+  if (!showNotificationsSettingsLink.value) { return null; }
+
+  const buttons: ButtonProps[] = [];
+
+  if (showNotificationsSettingsLink.value) {
+    buttons.push({
+      btnStyle: 'outline',
+      href: '/Settings/Notifications',
+      icon: CogIcon,
+      text: props.t('Enable update notifications'),
+    });
+  }
+
+  return buttons;
 });
 
 const actionButtons = computed((): ButtonProps[] | null => {
@@ -173,6 +207,13 @@ onBeforeMount(() => {
     setUserFormattedReleaseDate();
   }
 });
+
+const modalWidth = computed(() => {
+  if (availableWithRenewal.value) { // wider since we'll have four buttons
+    return 'max-w-800px';
+  }
+  return 'max-w-640px';
+});
 </script>
 
 <template>
@@ -182,41 +223,58 @@ onBeforeMount(() => {
     :title="modalCopy?.title"
     :description="modalCopy?.description"
     :show-close-x="!checkForUpdatesLoading"
-    max-width="max-w-640px"
+    :max-width="modalWidth"
     @close="close"
   >
     <template v-if="renderMainSlot" #main>
       <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
-      <div v-else-if="available || availableWithRenewal" class="mx-auto">
-        <SwitchGroup>
-          <div class="flex justify-center items-center gap-8px p-8px rounded">
-            <Switch
-              v-model="ignoreThisRelease"
-              :class="ignoreThisRelease ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-transparent'"
-              class="relative inline-flex h-24px w-[48px] items-center rounded-full overflow-hidden"
-            >
-              <span v-show="!ignoreThisRelease" class="absolute z-0 inset-0 opacity-10 bg-beta" />
-              <span
-                :class="ignoreThisRelease ? 'translate-x-[26px]' : 'translate-x-[2px]'"
-                class="inline-block h-20px w-20px transform rounded-full bg-white transition"
-              />
-            </Switch>
-            <SwitchLabel class="text-16px">
-              {{ t('Ignore this release until next reboot') }}
-            </SwitchLabel>
-          </div>
-        </SwitchGroup>
-      </div>
-      <div v-else-if="updateOsIgnoredReleases.length > 0" class="w-full flex flex-col gap-8px">
-        <h3 class="text-left text-16px font-semibold italic">
-          {{ t('Ignored Releases') }}
-        </h3>
-        <UpdateOsIgnoredRelease
-          v-for="ignoredRelease in updateOsIgnoredReleases"
-          :key="ignoredRelease"
-          :label="ignoredRelease"
-          :t="t"
-        />
+      <div v-else class="flex flex-col gap-y-16px">
+        <div v-if="extraLinks" class="flex flex-col xs:flex-row justify-center gap-8px">
+          <BrandButton
+            v-for="item in extraLinks"
+            :key="item.text"
+            :btn-style="item.btnStyle ?? undefined"
+            :href="item.href ?? undefined"
+            :icon="item.icon"
+            :icon-right="item.iconRight"
+            :icon-right-hover-display="item.iconRightHoverDisplay"
+            :text="t(item.text)"
+            :title="item.title ? t(item.title) : undefined"
+            @click="item.click ? item.click() : undefined"
+          />
+        </div>
+
+        <div v-if="available || availableWithRenewal" class="mx-auto">
+          <SwitchGroup>
+            <div class="flex justify-center items-center gap-8px p-8px rounded">
+              <Switch
+                v-model="ignoreThisRelease"
+                :class="ignoreThisRelease ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-transparent'"
+                class="relative inline-flex h-24px w-[48px] items-center rounded-full overflow-hidden"
+              >
+                <span v-show="!ignoreThisRelease" class="absolute z-0 inset-0 opacity-10 bg-beta" />
+                <span
+                  :class="ignoreThisRelease ? 'translate-x-[26px]' : 'translate-x-[2px]'"
+                  class="inline-block h-20px w-20px transform rounded-full bg-white transition"
+                />
+              </Switch>
+              <SwitchLabel class="text-16px">
+                {{ t('Ignore this release until next reboot') }}
+              </SwitchLabel>
+            </div>
+          </SwitchGroup>
+        </div>
+        <div v-else-if="updateOsIgnoredReleases.length > 0" class="w-full max-w-640px mx-auto flex flex-col gap-8px">
+          <h3 class="text-left text-16px font-semibold italic">
+            {{ t('Ignored Releases') }}
+          </h3>
+          <UpdateOsIgnoredRelease
+            v-for="ignoredRelease in updateOsIgnoredReleases"
+            :key="ignoredRelease"
+            :label="ignoredRelease"
+            :t="t"
+          />
+        </div>
       </div>
     </template>
 
@@ -228,12 +286,20 @@ onBeforeMount(() => {
           'justify-center': !actionButtons,
         }"
       >
-        <BrandButton
-          btn-style="underline-hover-red"
-          :icon="XMarkIcon"
-          :text="t('Close')"
-          @click="close"
-        />
+        <div class="flex flex-col xs:flex-row justify-start gap-8px">
+          <BrandButton
+            btn-style="underline"
+            :icon="ArrowTopRightOnSquareIcon"
+            :text="t('More options')"
+            @click="accountStore.updateOs()"
+          />
+          <BrandButton
+            btn-style="underline-hover-red"
+            :icon="XMarkIcon"
+            :text="t('Close')"
+            @click="close"
+          />
+        </div>
         <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-8px">
           <BrandButton
             v-for="item in actionButtons"

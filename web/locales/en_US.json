@@ -353,5 +353,9 @@
   "Continue": "Continue",
   "Verify to Update": "Verify to Update",
   "Release date {0}": "Release date {0}",
-  "Update Released": "Update Released"
+  "Update Released": "Update Released",
+  "Go to Tools > Update OS for more options.": "Go to Tools > Update OS for more options.",
+  "Go to Settings > Notifications to enable automatic OS update notifications for future releases.": "Go to Settings > Notifications to enable automatic OS update notifications for future releases.",
+  "More options": "More options",
+  "Extend Key": "Extend Key"
 }
