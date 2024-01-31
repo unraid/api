@@ -95,14 +95,18 @@ export const WebguiNotify = async (payload: NotifyPostParameters) => {
   }
 };
 
-interface WebguiCheckForUpdatePayload {
-  json?: boolean;
+interface WebguiUnraidCheckPayload {
+  action: 'check' | 'removeAllIgnored' | 'removeIgnoredVersion' | 'ignoreVersion';
   altUrl?: string;
+  json?: boolean;
+  version?: string;
 }
+
 export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
   console.debug('[WebguiCheckForUpdate]');
   try {
-    const params: WebguiCheckForUpdatePayload = {
+    const params: WebguiUnraidCheckPayload = {
+      action: 'check',
       json: true,
     };
     // conditionally add altUrl if OS_RELEASES.toString() is not 'https://releases.unraid.net/os'
@@ -127,16 +131,11 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
   }
 };
 
-export interface WebguiUpdateIgnorePayload {
-  removeAll?: boolean;
-  removeVersion?: string;
-  version?: string;
-}
-export const WebguiUpdateIgnore = async (payload: WebguiUpdateIgnorePayload): Promise<any | void> => {
+export const WebguiUpdateIgnore = async (payload: WebguiUnraidCheckPayload): Promise<any | void> => {
   console.debug('[WebguiUpdateIgnore] payload', payload);
   try {
     const response = await request
-      .url('/plugins/dynamix.plugin.manager/include/UnraidIgnore.php')
+      .url('/plugins/dynamix.plugin.manager/include/UnraidCheck.php')
       .query(payload)
       .get()
       .json((json) => {
