@@ -53,9 +53,13 @@ const {
   outputDateTimeFormatted: formattedRegExp,
 } = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
 
-// @todo - if we don't get a sha256 we need to auth
-// @todo - when true change primary action button to be close and hide secondary button
 const ignoreThisRelease = ref(false);
+// if we had a release ignored and now we don't set ignoreThisRelease to false
+watch(updateOsIgnoredReleases, (newVal, oldVal) => {
+  if (oldVal.length > 0 && newVal.length === 0) {
+    ignoreThisRelease.value = false;
+  }
+});
 
 const notificationsSettings = computed(() => {
   return !updateOsNotificationsEnabled.value
