@@ -123,7 +123,7 @@ const showExtendKeyButton = computed(() => {
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.renew()"
         >
-          {{ props.t("Extend Key to Update") }}
+          {{ props.t("Extend License to Update") }}
         </BrandButton>
         <BrandButton
           v-else-if="releaseForUpdate?.sha256"
