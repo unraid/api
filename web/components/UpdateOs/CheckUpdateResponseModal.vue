@@ -114,9 +114,7 @@ const showNotificationsSettingsLink = computed(() => {
   return !updateOsNotificationsEnabled.value && !available.value && !availableWithRenewal.value;
 });
 
-const extraLinks = computed((): ButtonProps[] | null => {
-  if (!showNotificationsSettingsLink.value) { return null; }
-
+const extraLinks = computed((): ButtonProps[] => {
   const buttons: ButtonProps[] = [];
 
   if (showNotificationsSettingsLink.value) {
@@ -189,7 +187,7 @@ const close = () => {
 };
 
 const renderMainSlot = computed(() => {
-  return checkForUpdatesLoading.value || available.value || availableWithRenewal.value || updateOsIgnoredReleases.value.length > 0;
+  return checkForUpdatesLoading.value || available.value || availableWithRenewal.value || extraLinks.value?.length > 0 || updateOsIgnoredReleases.value.length > 0;
 });
 
 const userFormattedReleaseDate = ref<any>();
@@ -233,7 +231,7 @@ const modalWidth = computed(() => {
     <template v-if="renderMainSlot" #main>
       <BrandLoading v-if="checkForUpdatesLoading" class="w-[150px] mx-auto" />
       <div v-else class="flex flex-col gap-y-16px">
-        <div v-if="extraLinks" class="flex flex-col xs:flex-row justify-center gap-8px">
+        <div v-if="extraLinks.length > 0" class="flex flex-col xs:flex-row justify-center gap-8px">
           <BrandButton
             v-for="item in extraLinks"
             :key="item.text"
