@@ -341,7 +341,7 @@
   "View Changelog on Docs": "View Changelog on Docs",
   "Fetching & parsing changelog…": "Fetching & parsing changelog…",
   "View on Docs": "View on Docs",
-  "Extend Key to Update": "Extend Key to Update",
+  "Extend License to Update": "Extend License to Update",
   "Install Unraid OS {0}": "Install Unraid OS {0}",
   "View Changelog to Start Update": "View Changelog to Start Update",
   "Unraid OS {0} Update Available": "Unraid OS {0} Update Available",
@@ -356,6 +356,5 @@
   "Update Released": "Update Released",
   "Go to Tools > Update OS for more options.": "Go to Tools > Update OS for more options.",
   "Go to Settings > Notifications to enable automatic OS update notifications for future releases.": "Go to Settings > Notifications to enable automatic OS update notifications for future releases.",
-  "More options": "More options",
-  "Extend Key": "Extend Key"
+  "More options": "More options"
 }

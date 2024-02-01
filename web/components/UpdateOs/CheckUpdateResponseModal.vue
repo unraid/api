@@ -162,14 +162,14 @@ const actionButtons = computed((): ButtonProps[] | null => {
     });
   }
 
-  // update available with renewal - open changelog and extend key options
+  // update available with renewal - open changelog and Extend License options
   if (availableWithRenewal.value) {
     buttons.push({
       click: async () => await purchaseStore.renew(),
       icon: KeyIcon,
       iconRight: ArrowTopRightOnSquareIcon,
       iconRightHoverDisplay: false,
-      text: props.t('Extend Key'),
+      text: props.t('Extend License'),
       title: props.t('Pay your annual fee to continue receiving OS updates.'),
     });
   }
