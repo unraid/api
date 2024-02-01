@@ -290,18 +290,18 @@ const modalWidth = computed(() => {
           'justify-center': !actionButtons,
         }"
       >
-        <div class="flex flex-col xs:flex-row justify-start gap-8px">
-          <BrandButton
-            btn-style="underline"
-            :icon="ArrowTopRightOnSquareIcon"
-            :text="t('More options')"
-            @click="accountStore.updateOs()"
-          />
+        <div class="flex flex-col-reverse xs:flex-row justify-start gap-8px">
           <BrandButton
             btn-style="underline-hover-red"
             :icon="XMarkIcon"
             :text="t('Close')"
             @click="close"
+          />
+          <BrandButton
+            btn-style="underline"
+            :icon="ArrowTopRightOnSquareIcon"
+            :text="t('More options')"
+            @click="accountStore.updateOs()"
           />
         </div>
         <div v-if="actionButtons" class="flex flex-col xs:flex-row justify-end gap-8px">
