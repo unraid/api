@@ -3,9 +3,12 @@
 // @todo with multiple actions of key install and update after successful key install, rather than showing default success message, show a message to have them confirm the update
 import { useClipboard } from '@vueuse/core';
 import {
+  CheckIcon,
   ChevronDoubleDownIcon,
   ClipboardIcon,
   CogIcon,
+  WrenchScrewdriverIcon,
+  XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import 'tailwindcss/tailwind.css';
@@ -326,6 +329,7 @@ const showUpdateEligibility = computed(() => {
         <template v-if="callbackStatus === 'success'">
           <BrandButton
             btn-style="underline"
+            :icon="XMarkIcon"
             :text="closeText"
             @click="close"
           />
@@ -333,17 +337,17 @@ const showUpdateEligibility = computed(() => {
           <template v-if="connectPluginInstalled && accountActionType === 'signIn'">
             <BrandButton
               v-if="isSettingsPage"
+              class="grow-0"
               :icon="CogIcon"
               :text="t('Configure Connect Features')"
-              class="grow-0"
               @click="close"
             />
             <BrandButton
               v-else
+              class="grow-0"
               :href="WEBGUI_CONNECT_SETTINGS.toString()"
               :icon="CogIcon"
               :text="t('Configure Connect Features')"
-              class="grow-0"
             />
           </template>
 
@@ -357,10 +361,12 @@ const showUpdateEligibility = computed(() => {
         <template v-if="updateOsStatus === 'confirming' && !stateDataError">
           <BrandButton
             btn-style="underline"
+            :icon="XMarkIcon"
             :text="t('Cancel')"
             @click="cancelUpdateOs"
           />
           <BrandButton
+            :icon="CheckIcon"
             :text="t('Confirm and start update')"
             @click="confirmUpdateOs"
           />
@@ -369,6 +375,7 @@ const showUpdateEligibility = computed(() => {
         <template v-if="stateDataError">
           <BrandButton
             :href="WEBGUI_TOOLS_REGISTRATION.toString()"
+            :icon="WrenchScrewdriverIcon"
             :text="t('Fix Error')"
           />
         </template>
