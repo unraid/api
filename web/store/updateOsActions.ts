@@ -133,6 +133,9 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
       throw new Error('No payload.sha256 provided');
     }
     try {
+      /**
+       * @todo correctly handle an error and show message to try again
+       */
       const response = await getOsReleaseBySha256(payload);
       console.debug('[getReleaseFromKeyServer]', response);
       return response;
