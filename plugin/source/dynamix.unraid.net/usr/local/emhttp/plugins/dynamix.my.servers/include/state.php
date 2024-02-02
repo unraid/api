@@ -170,15 +170,19 @@ class ServerState
 
         $this->updateOsCheck = new UnraidOsCheck();
         $this->updateOsIgnoredReleases = $this->updateOsCheck->getIgnoredReleases();
-        $this->updateOsNotificationsEnabled = !empty(@$this->getWebguiGlobal('notify')['unraidos']);
+        $this->updateOsNotificationsEnabled = !empty(@$this->getWebguiGlobal('notify', 'unraidos'));
         $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
     }
 
     /**
      * Retrieve the value of a webgui global setting.
      */
-    public function getWebguiGlobal(string $key) {
-        return $this->webguiGlobals[$key];
+    public function getWebguiGlobal(string $key, string $subkey = null) {
+        if (!$subkey) {
+            return _var($this->webguiGlobals, $key, []);
+        }
+        $keyArray = _var($this->webguiGlobals, $key, []);
+        return _var($keyArray, $subkey, '');
     }
     /**
      * Retrieve the server information as an associative array
@@ -200,8 +204,8 @@ class ServerState
             "connectPluginVersion" => $this->connectPluginVersion,
             "csrf" => $this->var['csrf_token'],
             "dateTimeFormat" => [
-                "date" => @$this->getWebguiGlobal('display')['date'] ?? '',
-                "time" => @$this->getWebguiGlobal('display')['time'] ?? '',
+                "date" => @$this->getWebguiGlobal('display', 'date') ?? '',
+                "time" => @$this->getWebguiGlobal('display', 'time') ?? '',
             ],
             "description" => $this->var['COMMENT'] ? htmlspecialchars($this->var['COMMENT']) : '',
             "deviceCount" => $this->var['deviceCount'],
@@ -235,13 +239,13 @@ class ServerState
             "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
             "state" => strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']),
             "theme" => [
-                "banner" => !empty($this->getWebguiGlobal('display')['banner']),
-                "bannerGradient" => $this->getWebguiGlobal('display')['showBannerGradient'] === 'yes' ?? false,
-                "bgColor" => ($this->getWebguiGlobal('display')['background']) ? '#' . $this->getWebguiGlobal('display')['background'] : '',
-                "descriptionShow" => (!empty($this->getWebguiGlobal('display')['headerdescription']) && $this->getWebguiGlobal('display')['headerdescription'] !== 'no'),
-                "metaColor" => ($this->getWebguiGlobal('display')['headermetacolor'] ?? '') ? '#' . $this->getWebguiGlobal('display')['headermetacolor'] : '',
-                "name" => $this->getWebguiGlobal('display')['theme'],
-                "textColor" => ($this->getWebguiGlobal('display')['header']) ? '#' . $this->getWebguiGlobal('display')['header'] : '',
+                "banner" => !empty($this->getWebguiGlobal('display', 'banner')),
+                "bannerGradient" => $this->getWebguiGlobal('display', 'showBannerGradient') === 'yes' ?? false,
+                "bgColor" => ($this->getWebguiGlobal('display', 'background')) ? '#' . $this->getWebguiGlobal('display', 'background') : '',
+                "descriptionShow" => (!empty($this->getWebguiGlobal('display', 'headerdescription')) && $this->getWebguiGlobal('display', 'headerdescription') !== 'no'),
+                "metaColor" => ($this->getWebguiGlobal('display', 'headermetacolor') ?? '') ? '#' . $this->getWebguiGlobal('display', 'headermetacolor') : '',
+                "name" => $this->getWebguiGlobal('display', 'theme'),
+                "textColor" => ($this->getWebguiGlobal('display', 'header')) ? '#' . $this->getWebguiGlobal('display', 'header') : '',
             ],
             "ts" => time(),
             "uptime" => 1000 * (time() - round(strtok(exec("cat /proc/uptime"), ' '))),
