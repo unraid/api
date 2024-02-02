@@ -13,12 +13,12 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import type { WretchError } from 'wretch';
 
 import {
-  keyLatest,
+  // keyLatest,
   validateGuid,
-  type KeyLatestResponse,
+  // type KeyLatestResponse,
   type ValidateGuidResponse,
 } from '~/composables/services/keyServer';
-import { useCallbackStore } from '~/store/callbackActions';
+// import { useCallbackStore } from '~/store/callbackActions';
 import { useServerStore } from '~/store/server';
 import type { UiBadgeProps } from '~/types/ui/badge';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
@@ -40,7 +40,7 @@ interface CachedValidationResponse extends ValidateGuidResponse {
 export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
-  const callbackStore = useCallbackStore();
+  // const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);
@@ -168,25 +168,25 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         }));
       }
 
-      if (response?.hasNewerKeyfile) {
-        setRenewStatus('checking');
+      // if (response?.hasNewerKeyfile) {
+      //   setRenewStatus('checking');
 
-        const keyLatestResponse: KeyLatestResponse = await keyLatest({
-          keyfile: keyfile.value,
-        });
+      //   const keyLatestResponse: KeyLatestResponse = await keyLatest({
+      //     keyfile: keyfile.value,
+      //   });
 
-        if (keyLatestResponse?.license) {
-          callbackStore.send(
-            window.location.href,
-            [{
-              keyUrl: keyLatestResponse.license,
-              type: 'renew',
-            }],
-            undefined,
-            'forUpc',
-          );
-        }
-      }
+      //   if (keyLatestResponse?.license) {
+      //     callbackStore.send(
+      //       window.location.href,
+      //       [{
+      //         keyUrl: keyLatestResponse.license,
+      //         type: 'renew',
+      //       }],
+      //       undefined,
+      //       'forUpc',
+      //     );
+      //   }
+      // }
     } catch (err) {
       const catchError = err as WretchError;
       setReplaceStatus('error');
