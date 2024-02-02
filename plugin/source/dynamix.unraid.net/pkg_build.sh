@@ -45,8 +45,8 @@ sudo rm -rf "${tmpdir}"
 cd "${DIR}" || exit 1
 
 # define vars for plg
-pluginURL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
-downloadserver="https://stable.dl.unraid.net"
+pluginURL="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/unraid-api/\&name;.plg"
+downloadserver="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com"
 js_dl_server="https://registration.unraid.net"
 if [[ "${env}" == "staging" ]]; then
   pluginURL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
