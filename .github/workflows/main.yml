@@ -302,7 +302,7 @@ jobs:
         uses: jakejarvis/s3-sync-action@v0.5.1
         env:
           AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
-          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET }}
+          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET_PREVIEW }}
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_REGION: 'auto'
