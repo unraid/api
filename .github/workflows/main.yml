@@ -298,6 +298,18 @@ jobs:
           source: staging-release
           out_dir: unraid-api
 
+      - name: Upload Staging Plugin to Cloudflare Bucket
+        uses: jakejarvis/s3-sync-action@v0.5.1
+        env:
+          AWS_S3_ENDPOINT: ${{ secrets.CF_ENDPOINT }}
+          AWS_S3_BUCKET: ${{ secrets.CF_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
+          AWS_REGION: 'auto'
+          SOURCE_DIR: staging-release
+          DEST_DIR: unraid-api
+        
+
   create-draft-release:
     # Only create new draft if this is a version tag
     if: |
