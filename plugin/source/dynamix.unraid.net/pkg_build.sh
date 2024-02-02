@@ -49,8 +49,8 @@ pluginURL="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com/unraid-api/\&name;.
 downloadserver="https://unraid-dl.sfo2.cdn.digitaloceanspaces.com"
 js_dl_server="https://registration.unraid.net"
 if [[ "${env}" == "staging" ]]; then
-  pluginURL="https://unraid-dl.sfo2.digitaloceanspaces.com/unraid-api/\&name;.plg"
-  downloadserver="https://unraid-dl.sfo2.digitaloceanspaces.com"
+  pluginURL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
+  downloadserver="https://preview.dl.unraid.net"
   js_dl_server="https://registration-dev.unraid.net"
 fi
 
