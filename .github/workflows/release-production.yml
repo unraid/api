@@ -53,5 +53,5 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.CF_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.CF_SECRET_ACCESS_KEY }}
           AWS_REGION: 'auto'
-          SOURCE_DIR: staging-release
+          SOURCE_DIR: "."
           DEST_DIR: unraid-api
