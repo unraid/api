@@ -6,7 +6,6 @@ import { useI18n } from 'vue-i18n';
 
 import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
-import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 import type { Server } from '~/types/server';
@@ -22,7 +21,6 @@ const { t } = useI18n();
 
 const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore();
-const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
@@ -94,8 +92,6 @@ onBeforeMount(() => {
     if (callbackData.value) {
       return console.debug('Renew callback detected, skipping auto check for key replacement, renewal eligibility, and OS Update.');
     }
-    // automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys
-    replaceRenewCheckStore.check();
   } else {
     console.warn('A valid keyfile and USB Flash boot device are required to check for key renewals, key replacement eligibiliy, and OS update availability.');
   }

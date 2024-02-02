@@ -1,3 +1,9 @@
+/**
+ * Change the trigger of this to happen on when on Tools > Registration
+ *
+ * New key replacement, should happen also on server side.
+ * Cron to run hourly, check on how many days are left until regExp…within X days then allow request to be done
+ */
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -12,9 +18,7 @@ import {
   type KeyLatestResponse,
   type ValidateGuidResponse,
 } from '~/composables/services/keyServer';
-// import { WebguiNotify } from '~/composables/services/webgui';
 import { useCallbackStore } from '~/store/callbackActions';
-// import { useInstallKeyStore } from '~/store/installKey';
 import { useServerStore } from '~/store/server';
 import type { UiBadgeProps } from '~/types/ui/badge';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
@@ -37,7 +41,6 @@ export const REPLACE_CHECK_LOCAL_STORAGE_KEY = 'unraidReplaceCheck';
 
 export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
   const callbackStore = useCallbackStore();
-  // const installKeyStore = useInstallKeyStore();
   const serverStore = useServerStore();
 
   const guid = computed(() => serverStore.guid);
@@ -182,25 +185,6 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
             undefined,
             'forUpc',
           );
-          // setRenewStatus('installing');
-
-          // await installKeyStore.install({
-          //   keyUrl: keyLatestResponse.license,
-          //   type: 'renew',
-          // }).then(() => {
-          //   setRenewStatus('installed');
-          //   // reset the validation response so we can check again on the subsequent page load. Will also prevent the keyfile from being installed again on page refresh.
-          //   purgeValidationResponse();
-          //   /** @todo this doesn't work */
-          //   WebguiNotify({
-          //       cmd: 'add',
-          //       csrf_token: serverStore.csrf,
-          //       e: 'Keyfile Renewed and Installed (event)',
-          //       s: 'Keyfile Renewed and Installed (subject)',
-          //       d: 'While license keys are perpetual, certain keyfiles are not. Your keyfile has automatically been renewed and installed in the background. Thanks for your support!',
-          //       m: 'Your keyfile has automatically been renewed and installed in the background. Thanks for your support!',
-          //     })
-          // });
         }
       }
     } catch (err) {

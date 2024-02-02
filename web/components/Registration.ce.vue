@@ -25,6 +25,7 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
+import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import type { RegistrationItemProps } from '~/types/registration';
 
@@ -35,6 +36,7 @@ import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 
 const { t } = useI18n();
 
+const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const {
   authAction,
@@ -44,6 +46,7 @@ const {
   flashVendor,
   flashProduct,
   keyActions,
+  keyfile,
   regGuid,
   regTm,
   regTo,
@@ -190,6 +193,13 @@ const items = computed((): RegistrationItemProps[] => {
         }]
       : []),
   ];
+});
+
+onBeforeMount(() => {
+  /** automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys */
+  if (guid.value && keyfile.value) {
+    replaceRenewCheckStore.check();
+  }
 });
 </script>
 
