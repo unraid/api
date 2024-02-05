@@ -217,7 +217,7 @@ class ServerState
             "flashBackupActivated" => empty($this->flashbackupStatus['activated']) ? '' : 'true',
             "guid" => $this->var['flashGUID'],
             "hasRemoteApikey" => !empty($this->myServersFlashCfg['remote']['apikey']),
-            "internalPort" => $_SERVER['SERVER_PORT'],
+            "internalPort" => _var($_SERVER, 'SERVER_PORT'),
             "keyfile" => $this->keyfileBase64UrlSafe,
             "lanIp" => ipaddr(),
             "locale" => (!empty($_SESSION) && $_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
@@ -225,7 +225,7 @@ class ServerState
             "name" => htmlspecialchars($this->var['NAME']),
             "osVersion" => $this->osVersion,
             "osVersionBranch" => $this->osVersionBranch,
-            "protocol" => $_SERVER['REQUEST_SCHEME'],
+            "protocol" => _var($_SERVER, 'REQUEST_SCHEME'),
             "rebootType" => $this->rebootDetails->getRebootType(),
             "regDev" => @(int)$this->var['regDev'] ?? 0,
             "regGen" => @(int)$this->var['regGen'],
@@ -236,7 +236,7 @@ class ServerState
             "regExp" => $this->var['regExp'] ? @$this->var['regExp'] * 1000 : '', // JS expects milliseconds
             "registered" => $this->registered,
             "registeredTime" => $this->myServersFlashCfg['remote']['regWizTime'] ?? '',
-            "site" => $_SERVER['REQUEST_SCHEME'] . "://" . $_SERVER['HTTP_HOST'],
+            "site" => _var($_SERVER, 'REQUEST_SCHEME') . "://" . _var($_SERVER, 'HTTP_HOST'),
             "state" => strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']),
             "theme" => [
                 "banner" => !empty($this->getWebguiGlobal('display', 'banner')),
