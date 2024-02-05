@@ -179,7 +179,7 @@ class ServerState
      */
     public function getWebguiGlobal(string $key, string $subkey = null) {
         if (!$subkey) {
-            return _var($this->webguiGlobals, $key, []);
+            return _var($this->webguiGlobals, $key, '');
         }
         $keyArray = _var($this->webguiGlobals, $key, []);
         return _var($keyArray, $subkey, '');
