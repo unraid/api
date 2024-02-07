@@ -2,6 +2,53 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.5.0](https://github.com/unraid/api/compare/v3.4.0...v3.5.0) (2024-02-07)
+
+
+### Features
+
+* add manage account link to all versions of upc dropdown ([678e620](https://github.com/unraid/api/commit/678e620c1902a376b1866265711d5722b4119d8e))
+* add new staging url for connect website ([#841](https://github.com/unraid/api/issues/841)) ([4cfc07b](https://github.com/unraid/api/commit/4cfc07b6763dbb79b68cf01f7eaf7cf33370d4db))
+* also ship to cloudflare ([#844](https://github.com/unraid/api/issues/844)) ([41c4210](https://github.com/unraid/api/commit/41c42103685209592b272f81a877702da04d0915))
+* button add underline-hover-red style option ([f2fa5fa](https://github.com/unraid/api/commit/f2fa5fa49675ef461330be7b7eb3e3e4106983b0))
+* changelog modal ([2ddbacd](https://github.com/unraid/api/commit/2ddbacd137cc5748244c3d25ac91f82e64d77f99))
+* check update response modal ([39678f0](https://github.com/unraid/api/commit/39678f0bb0ddc5f87ea7f5ed80a0472100ea8b5d))
+* create WebguiCheckForUpdate endpoint ([41d546e](https://github.com/unraid/api/commit/41d546eea5fcf6593d7b5047274c074bb89c1802))
+* getOsReleaseBySha256 cached endpoint with keyfile header ([cd2413a](https://github.com/unraid/api/commit/cd2413abe8c5baab40e4e5974e08a5d18dce8e0d))
+* new check update buttons in dropdown ([ef5fcb9](https://github.com/unraid/api/commit/ef5fcb96a324143da864df803acaa0da1cd00eb7))
+* ship preview to different bucket ([#845](https://github.com/unraid/api/issues/845)) ([8e5d247](https://github.com/unraid/api/commit/8e5d247bca83d9e50977c9b16b212841ac9f70ad))
+* ship production to different bucket ([#846](https://github.com/unraid/api/issues/846)) ([63c0875](https://github.com/unraid/api/commit/63c08758c76425e007b1779bb2f77b75bc45896e))
+* unraidcheck callable from webgui with altUrl & json output ([ba8a67e](https://github.com/unraid/api/commit/ba8a67edfa043f442b11724227129f8d3f6cae0a))
+* update modals ([8ad7d8b](https://github.com/unraid/api/commit/8ad7d8be9437e0caa0409da8f7322050919fbbaa))
+* update os ignore release ([1955eb2](https://github.com/unraid/api/commit/1955eb23a3cdc30f0a67bc5950a047f83a860d99))
+* update os notifications enabled usage + link to enable & more options to account app ([5c82aff](https://github.com/unraid/api/commit/5c82aff80dc7e6d8f4b23e52af29abc2b8576424))
+* updateOs check response determines if update auth is required ([a9816d9](https://github.com/unraid/api/commit/a9816d9ad48ff80d87b5aeb236ff60c4979ad298))
+* updateOs store call local server-side endpoint & add modal support ([be48447](https://github.com/unraid/api/commit/be48447f943828af281095c5a092ac686e729030))
+* upgrade a ton of dependencies ([#842](https://github.com/unraid/api/issues/842)) ([94c1746](https://github.com/unraid/api/commit/94c174620c2347a3cf3d100404635f99a5b47287))
+* WebguiCheckForUpdate using server-side check ([590deb1](https://github.com/unraid/api/commit/590deb130c301d4004fecdc211270583806b5593))
+
+
+### Bug Fixes
+
+* backport _var() PHP function to older versions of Unraid ([f53150e](https://github.com/unraid/api/commit/f53150e1fa33b3f45b66ad0dc5eaabc470564d45))
+* changlog relative links and external links ([a789e20](https://github.com/unraid/api/commit/a789e204ce7b966e6c935923626538ac344aeefe))
+* check update response modal expired key button styles ([92993e3](https://github.com/unraid/api/commit/92993e3e0b6240c83a6a64efedd8ddb3be3f9ef7))
+* **deps:** update dependency ws to v8.16.0 ([#815](https://github.com/unraid/api/issues/815)) ([212020e](https://github.com/unraid/api/commit/212020e78d4de0576137058a3374837b4a43e02d))
+* extraLinks when no updates available ([853a991](https://github.com/unraid/api/commit/853a9911e3fd7eec9bbc88468de78f87b448d477))
+* ignore release localStorage ([62c45ec](https://github.com/unraid/api/commit/62c45ec9d7c68498bbcfe933a5b63e4759c7129c))
+* lint ([83235f9](https://github.com/unraid/api/commit/83235f9db726f4582b9d353a66f2f5e8925b8e34))
+* lint unused value ([2c7e53b](https://github.com/unraid/api/commit/2c7e53bf67d1f214201624b39786bfb7de6aa520))
+* marked-base-url install ([416ba71](https://github.com/unraid/api/commit/416ba716aa750a094e8cd521a79f6deebcd37864))
+* missing translations ([faf17e4](https://github.com/unraid/api/commit/faf17e41e81c11443bc062d8ce35a33d9ae9ebbc))
+* regTm format after key install without page refresh ([f3ddb31](https://github.com/unraid/api/commit/f3ddb31f994de9192f7203698ecc5d7de673c6a3))
+* regTm format when already set ([5ad911f](https://github.com/unraid/api/commit/5ad911f8133daa60de53da738d41c6a59e2f02cc))
+* ServerUpdateOsResponse type ([78bdae8](https://github.com/unraid/api/commit/78bdae86c907142d3ee32d6715eaa8f5a974a1ed))
+* State Class usage in other files ([4ad7f53](https://github.com/unraid/api/commit/4ad7f53ec145b2e6d2895619523e90c1daa3f68f))
+* state data humanReadable switch fallthrus ([9144e39](https://github.com/unraid/api/commit/9144e39d39aa56af0ad897735d1a3545330920d0))
+* state php usage from cli ([46fd321](https://github.com/unraid/api/commit/46fd321707c14cd1f265ee806f673500d87132dd))
+* translations ([3fabd57](https://github.com/unraid/api/commit/3fabd5756674c06fa803729cf13d19c592d8d46a))
+* type issue with changlelog modal visibility ([e3c3f6b](https://github.com/unraid/api/commit/e3c3f6bf0f1882788291db17bd74865fefc3abf6))
+
 ## [3.4.0](https://github.com/unraid/api/compare/v3.3.0...v3.4.0) (2024-01-11)
 
 
