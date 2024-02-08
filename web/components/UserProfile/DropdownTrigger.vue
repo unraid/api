@@ -35,6 +35,8 @@ const title = computed((): string => {
   if (showErrorIcon.value) { return props.t('Learn more about the error'); }
   return dropdownVisible.value ? props.t('Close Dropdown') : props.t('Open Dropdown');
 });
+
+// const hideAvatar = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 </script>
 
 <template>
