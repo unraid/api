@@ -31,12 +31,8 @@ const {
   guid,
   keyfile,
   lanIp,
-  state,
-  connectPluginInstalled,
 } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
-
-const hideDropdown = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 
 /**
  * Close dropdown when clicking outside
@@ -129,14 +125,12 @@ onBeforeMount(() => {
         </span>
       </h1>
 
-      <template v-if="!hideDropdown">
-        <div class="block w-2px h-24px bg-gamma" />
+      <div class="block w-2px h-24px bg-gamma" />
 
-        <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
-          <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
-          <UpcDropdown ref="clickOutsideTarget" :t="t" />
-        </OnClickOutside>
-      </template>
+      <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
+        <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
+        <UpcDropdown ref="clickOutsideTarget" :t="t" />
+      </OnClickOutside>
     </div>
   </div>
 </template>
