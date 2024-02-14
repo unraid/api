@@ -87,8 +87,8 @@ const updateOsToolsUpdatePageButton = computed(() => {
     href: WEBGUI_TOOLS_REGISTRATION.toString(),
     icon: KeyIcon,
     text: rebootType.value === 'downgrade'
-      ? props.t('Reboot Now to Downgrade to {0}', [rebootVersion])
-      : props.t('Reboot Now to Update to {0}', [rebootVersion]),
+      ? props.t('Reboot Now to Downgrade to {0}', [rebootVersion.value])
+      : props.t('Reboot Now to Update to {0}', [rebootVersion.value]),
   };
 });
 
