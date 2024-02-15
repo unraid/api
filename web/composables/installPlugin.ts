@@ -15,7 +15,7 @@ const useInstallPlugin = () => {
         console.debug('[installPlugin]', { installString, plgUrl });
         // @ts-ignore
         openPlugin(
-          `plugin ${payload.update ? 'update' : 'install'} ${payload.pluginUrl}`, // command
+          `plugin ${payload.update ? 'update' : 'install'} ${payload.pluginUrl}${payload.update ? '' : ' forced'}`, // command – `forced` is used to bypass the strcmp check in the plugin manager script being wrong for OS versions
           payload.modalTitle, // title
           installString, // plg
           'refresh', // function defined in DefaultPageLayout.php
