@@ -250,7 +250,7 @@ class ServerState
                 "date" => @$this->getWebguiGlobal('display', 'date') ?? '',
                 "time" => @$this->getWebguiGlobal('display', 'time') ?? '',
             ],
-            "description" => $this->var['COMMENT'] ? htmlspecialchars($this->var['COMMENT']) : '',
+            "description" => $this->var['COMMENT'] ? htmlspecialchars($this->var['COMMENT'], ENT_HTML5) : '',
             "deviceCount" => $this->var['deviceCount'],
             "email" => $this->email,
             "expireTime" => 1000 * (($this->var['regTy'] === 'Trial' || strstr($this->var['regTy'], 'expired')) ? $this->var['regTm2'] : 0),
@@ -264,8 +264,8 @@ class ServerState
             "keyfile" => $this->keyfileBase64UrlSafe,
             "lanIp" => ipaddr(),
             "locale" => (!empty($_SESSION) && $_SESSION['locale']) ? $_SESSION['locale'] : 'en_US',
-            "model" => $this->var['SYS_MODEL'],
-            "name" => htmlspecialchars($this->var['NAME']),
+            "model" => $this->var['SYS_MODEL'] ? htmlspecialchars($this->var['SYS_MODEL'], ENT_HTML5) : '',
+            "name" => htmlspecialchars($this->var['NAME'], ENT_HTML5),
             "osVersion" => $this->osVersion,
             "osVersionBranch" => $this->osVersionBranch,
             "protocol" => _var($_SERVER, 'REQUEST_SCHEME'),
@@ -273,7 +273,7 @@ class ServerState
             "regDev" => @(int)$this->var['regDev'] ?? 0,
             "regGen" => @(int)$this->var['regGen'],
             "regGuid" => @$this->var['regGUID'] ?? '',
-            "regTo" => @htmlspecialchars($this->var['regTo']) ?? '',
+            "regTo" => @htmlspecialchars($this->var['regTo'], ENT_HTML5) ?? '',
             "regTm" => $this->var['regTm'] ? @$this->var['regTm'] * 1000 : '', // JS expects milliseconds
             "regTy" => @$this->var['regTy'] ?? '',
             "regExp" => $this->var['regExp'] ? @$this->var['regExp'] * 1000 : '', // JS expects milliseconds
