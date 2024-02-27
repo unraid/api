@@ -115,7 +115,7 @@ class UnraidOsCheck
         $params  = [];
         $params['branch']          = plugin('category', self::PLG_PATH, 'stable');
         $params['current_version'] = plugin('version', self::PLG_PATH) ?: _var($var,'version');
-        if (_var($var,'regExp')) $params['update_exp'] = date('m-d-Y', _var($var,'regExp')*1);
+        if (_var($var,'regExp')) $params['update_exp'] = date('Y-m-d', _var($var,'regExp')*1);
         $defaultUrl = self::BASE_RELEASES_URL;
         // pass a param of altUrl to use the provided url instead of the default
         $parsedAltUrl = (array_key_exists('altUrl',$_GET) && $_GET['altUrl']) ? $_GET['altUrl'] : null;
