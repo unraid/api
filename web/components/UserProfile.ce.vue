@@ -110,7 +110,7 @@ onBeforeMount(() => {
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
       <h1 class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0">
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-12px sm:text-18px hidden 2xs:block">{{ description }}</span>
+          <span class="text-right text-12px sm:text-18px hidden 2xs:block" v-html="description" />
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
         <button :title="t('Click to Copy LAN IP {0}', [lanIp])" class="opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity" @click="copyLanIp()">
