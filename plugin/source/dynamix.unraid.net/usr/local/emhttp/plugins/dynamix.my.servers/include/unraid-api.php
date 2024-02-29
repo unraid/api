@@ -49,7 +49,7 @@ if ($cli) {
   if ($argc > 2) $param1 = $argv[2];
 } else {
   $command = $_POST['command'];
-  $param1 = $_POST['param1'];
+  $param1 = $_POST['param1'] ?? '';
 }
 if (!in_array($command, $validCommands)) $command = 'none';
 
