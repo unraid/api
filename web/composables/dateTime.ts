@@ -33,6 +33,22 @@ const timeFormatOptions: TimeFormatOption[] = [
 ];
 
 /**
+ * the provided ref may not have a value until we get a response from the refreshServerState action
+ * So we need to watch for this value to be able to format it based on the user's date time preferences.
+ * @example below is how to use this composable
+ * const formattedRegExp = ref<any>();
+ * const setFormattedRegExp = () => { // ran in watch on regExp and onBeforeMount
+ * if (!regExp.value) { return; }
+ *   const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+ *   formattedRegExp.value = outputDateTimeFormatted.value;
+ * };
+ * watch(regExp, (_newV) => {
+ *   setFormattedRegExp();
+ * });
+ * onBeforeMount(() => {
+ *   setFormattedRegExp();
+ * });
+ *
  * @param format provided by Unraid server's state.php and set in the server store
  * @param t translations
  * @param hideMinutesSeconds true will hide minutes and seconds from the output

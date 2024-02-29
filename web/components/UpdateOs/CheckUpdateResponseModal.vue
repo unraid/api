@@ -49,9 +49,20 @@ const {
   checkForUpdatesLoading,
 } = storeToRefs(updateOsStore);
 
-const {
-  outputDateTimeFormatted: formattedRegExp,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+/**
+ * regExp may not have a value until we get a response from the refreshServerState action
+ * So we need to watch for this value to be able to format it based on the user's date time preferences.
+ */
+const formattedRegExp = ref<any>();
+const setFormattedRegExp = () => { // ran in watch on regExp and onBeforeMount
+  if (!regExp.value) { return; }
+
+  const { outputDateTimeFormatted } = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+  formattedRegExp.value = outputDateTimeFormatted.value;
+};
+watch(regExp, (_newV) => {
+  setFormattedRegExp();
+});
 
 const ignoreThisRelease = ref(false);
 // if we had a release ignored and now we don't set ignoreThisRelease to false
@@ -208,6 +219,7 @@ onBeforeMount(() => {
   if (availableReleaseDate.value) {
     setUserFormattedReleaseDate();
   }
+  setFormattedRegExp();
 });
 
 const modalWidth = computed(() => {
