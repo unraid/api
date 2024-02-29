@@ -147,7 +147,8 @@ const actionButtons = computed((): ButtonProps[] | null => {
   const buttons: ButtonProps[] = [];
 
   // update available but not stable branch - should link out to account update callback
-  if (availableRequiresAuth.value) {
+  // if availableWithRenewal.value is true, then we need to renew the license before we can update so don't show the verify button
+  if (availableRequiresAuth.value && !availableWithRenewal.value) {
     buttons.push({
       click: async () => await accountStore.updateOs(),
       icon: IdentificationIcon,
@@ -158,7 +159,7 @@ const actionButtons = computed((): ButtonProps[] | null => {
   }
 
   // update available - open changelog to commence update
-  if (available.value) {
+  if (available.value && updateOsResponse.value?.changelog) {
     buttons.push({
       btnStyle: availableWithRenewal.value
         ? 'outline'
