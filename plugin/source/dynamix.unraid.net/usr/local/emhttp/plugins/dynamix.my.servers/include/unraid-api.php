@@ -54,11 +54,15 @@ if ($cli) {
 if (!in_array($command, $validCommands)) $command = 'none';
 
 if (!file_exists('/usr/local/sbin/unraid-api') || !file_exists('/usr/local/bin/unraid-api/unraid-api')) {
-  response_complete(406, array('error' => 'Please reinstall the My Servers plugin'));
+  response_complete(406, array('error' => 'Please reinstall the Unraid Connect plugin'));
 }
+
+$output = [];
+$retval = null;
 
 switch ($command) {
   case 'start':
+    exec('unraid-api start 2>/dev/null', $output, $retval);
     $output = implode(PHP_EOL, $output);
     response_complete(200, array('result' => $output), $output);
     break;
