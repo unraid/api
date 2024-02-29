@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - uses: docker/setup-buildx-action@v2
+      - uses: docker/setup-buildx-action@v3
         with:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host
@@ -60,7 +60,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - uses: docker/setup-buildx-action@v2
+      - uses: docker/setup-buildx-action@v3
         with:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host
@@ -100,7 +100,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: true
-      - uses: docker/setup-buildx-action@v2
+      - uses: docker/setup-buildx-action@v3
         with:
           # network=host driver-opt needed to push to local registry
           driver-opts: network=host
