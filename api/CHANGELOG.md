@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.5.1](https://github.com/unraid/api/compare/v3.5.0...v3.5.1) (2024-02-29)
+
+
+### Bug Fixes
+
+* build docker command updated to use dc.sh script ([0b40886](https://github.com/unraid/api/commit/0b40886e84f27a94dbf67ef4ca0cd8539ef3913e))
+* date format in UnraidCheck.php ([#852](https://github.com/unraid/api/issues/852)) ([6465f2d](https://github.com/unraid/api/commit/6465f2d7b2394090f35e29cdd680d98ce37f3728))
+* **deps:** update dependency @apollo/client to v3.9.5 ([#785](https://github.com/unraid/api/issues/785)) ([75b98bc](https://github.com/unraid/api/commit/75b98bc1cbca5b66ae72f52a0b6f5f58230a2473))
+* **deps:** update dependency @heroicons/vue to v2.1.1 ([#804](https://github.com/unraid/api/issues/804)) ([a0eb7ee](https://github.com/unraid/api/commit/a0eb7ee3ec459dbe1992a7f85bf194da30395a74))
+* **deps:** update dependency focus-trap to v7.5.4 ([#788](https://github.com/unraid/api/issues/788)) ([fe000e8](https://github.com/unraid/api/commit/fe000e83825e82cac558d3277664a440e59c0e4a))
+* **deps:** update dependency graphql-ws to v5.15.0 ([#790](https://github.com/unraid/api/issues/790)) ([4773b13](https://github.com/unraid/api/commit/4773b132167d740d4c996efe22e0f1b99576fb9b))
+* display dropdown for pro key no connect installed ([#848](https://github.com/unraid/api/issues/848)) ([b559604](https://github.com/unraid/api/commit/b55960429895b46627f1cd3ed1683ee527e62944))
+* dropdown reboot link text ([#849](https://github.com/unraid/api/issues/849)) ([a8ed5e5](https://github.com/unraid/api/commit/a8ed5e5628bc71fb783a03c3db92d21805243738))
+* os updates rc to stable ([bf1bd88](https://github.com/unraid/api/commit/bf1bd887d60ac085bf4aeae90f11be3b45ee1182))
+* state connect values without connect installed ([e47de6c](https://github.com/unraid/api/commit/e47de6c2c5db7a2a1a9b24099feb02023b3a7bbf))
+* state php breaking with double quotes in server description ([c6e92aa](https://github.com/unraid/api/commit/c6e92aa3157c9fe9e7b83580881ebcc1cbd03658))
+* state php special chars for html attributes ([#853](https://github.com/unraid/api/issues/853)) ([dd4139c](https://github.com/unraid/api/commit/dd4139cf1a7ae5c6f9b00111c33ae124bb17e630))
+* unraid-api missing start command + var defaults ([ceb4c58](https://github.com/unraid/api/commit/ceb4c587d20c7527f2b36a3278c310b0e657bfba))
+* unraid-api.php $param1 fallback ([909c79c](https://github.com/unraid/api/commit/909c79c8c82500aea1a0d4d00766f788103c5fe3))
+
 ## [3.5.0](https://github.com/unraid/api/compare/v3.4.0...v3.5.0) (2024-02-07)
 
 
