@@ -415,12 +415,12 @@ export const useServerStore = defineStore('server', () => {
         return {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
-            ...([purchaseAction.value, redeemAction.value, trialStartAction.value, recoverAction.value]),
+            ...([trialStartAction.value, purchaseAction.value, redeemAction.value, recoverAction.value]),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: 'No Keyfile',
-          heading: 'Let\'s Unleash your Hardware!',
-          message: '<p>Your server will not be usable until you purchase a Registration key or install a free 30 day <em>Trial</em> key. A <em>Trial</em> key provides all the functionality of a Pro Registration key.</p><p>Registration keys are bound to your USB Flash boot device serial number (GUID). Please use a high quality name brand device at least 1GB in size.</p><p>Note: USB memory card readers are generally not supported because most do not present unique serial numbers.</p><p><strong>Important:</strong></p><ul class=\'list-disc pl-16px\'><li>Please make sure your server time is accurate to within 5 minutes</li><li>Please make sure there is a DNS server specified</li></ul>',
+          heading: 'Let\'s Unleash Your Hardware',
+          message: '<p>Choose an option below, then use our <a href="https://unraid.net/getting-started" target="_blank" rel="noreffer noopener">Getting Started Guide</a> to configure your array in less than 15 minutes.</p>',
         };
       case 'TRIAL':
         return {
