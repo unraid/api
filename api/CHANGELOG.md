@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.5.2](https://github.com/unraid/api/compare/v3.5.1...v3.5.2) (2024-03-06)
+
+
+### Bug Fixes
+
+* **deps:** update dependency vue-i18n to v9.10.1 ([#813](https://github.com/unraid/api/issues/813)) ([69b599c](https://github.com/unraid/api/commit/69b599c5ed8d44864201a32b4d952427d454dc74))
+* **deps:** update dependency wretch to v2.8.0 ([#814](https://github.com/unraid/api/issues/814)) ([66900b4](https://github.com/unraid/api/commit/66900b495b82b923264897d38b1529a22b10aa1c))
+* update os check modal button conditionals ([282a836](https://github.com/unraid/api/commit/282a83625f417ccefe090b65cc6b73a084727a87))
+* update os check modal ineligible date format ([83083de](https://github.com/unraid/api/commit/83083de1e698f73a35635ae6047dcf49fd4b8114))
+
 ### [3.5.1](https://github.com/unraid/api/compare/v3.5.0...v3.5.1) (2024-02-29)
 
 
