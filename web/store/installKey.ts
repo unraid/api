@@ -1,6 +1,6 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { delay } from 'wretch/middlewares';
-import { WebguiInstallKey, WebguiUpdateDns } from '~/composables/services/webgui';
+import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import type { ExternalKeyActions } from '~/store/callback';
@@ -45,18 +45,6 @@ export const useInstallKeyStore = defineStore('installKey', () => {
       console.log('[install] WebguiInstallKey installResponse', installResponse);
 
       keyInstallStatus.value = 'success';
-
-      try {
-        const updateDnsResponse = await WebguiUpdateDns
-          .middlewares([
-            delay(1500)
-          ])
-          .formUrl({ csrf_token: serverStore.csrf })
-          .post();
-        console.log('[install] WebguiUpdateDns updateDnsResponse', updateDnsResponse);
-      } catch (error) {
-        console.error('[install] WebguiUpdateDns error', error);
-      }
     } catch (error) {
       console.error('[install] WebguiInstallKey error', error);
       let errorMessage = 'Unknown error';
