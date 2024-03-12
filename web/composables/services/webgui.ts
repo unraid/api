@@ -22,16 +22,6 @@ export const WebguiInstallKey = request.url('/webGui/include/InstallKey.php');
  */
 export const WebguiUpdate = request.url('/update.php');
 /**
- * @name WebguiUpdateDns
- * @dataForm formUrl
- * @description Used after Sign In to ensure URLs will work correctly
- * @note this request is delayed by 500ms to allow server to process key install fully
- * @todo potentially remove delay
- * @param csrf_token
- * @type POST
- */
-export const WebguiUpdateDns = request.url('/webGui/include/UpdateDNS.php');
-/**
  * @name WebguiState
  * @description used to get current state of server via PHP rather than unraid-api
  * @type GET
