@@ -22,7 +22,8 @@ const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value ==
       <h2 class="text-24px text-center font-semibold" v-html="t(stateData.heading)" />
       <div
         class="text-center prose text-16px leading-relaxed whitespace-normal opacity-75 gap-y-8px"
-        v-html="t(stateData.message)" />
+        v-html="t(stateData.message)"
+      />
       <UpcUptimeExpire
         v-if="showExpireTime"
         class="text-center opacity-75 mt-12px"
