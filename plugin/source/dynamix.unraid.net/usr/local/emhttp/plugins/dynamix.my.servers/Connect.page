@@ -140,7 +140,7 @@ function registerServer(button) {
               button.form.submit();
             });
 <?else:?>
-      // give the unraid-api time to call rc.nginx and UpdateDNS before refreshing the page
+      // give the unraid-api time to call rc.nginx before refreshing the page
       const delay = 4000;
       setTimeout(function() {
         button.form.submit();
