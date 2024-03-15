@@ -487,6 +487,7 @@ export const useServerStore = defineStore('server', () => {
           actions: [
             ...(!registered.value && connectPluginInstalled.value ? [signInAction.value] : []),
             ...(regUpdatesExpired.value ? [renewAction.value] : []),
+            ...(state.value === 'UNLEASHED' ? [upgradeAction.value] : []),
             ...(registered.value && connectPluginInstalled.value ? [signOutAction.value] : []),
           ],
           humanReadable: state.value === 'PRO'
