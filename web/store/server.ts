@@ -95,7 +95,27 @@ export const useServerStore = defineStore('server', () => {
   const rebootType = ref<'thirdPartyDriversDownloading' | 'downgrade' | 'update' | ''>('');
   const rebootVersion = ref<string | undefined>();
   const registered = ref<boolean>();
-  const regDev = ref<number>(0);
+  const regDevs = ref<number>(0); // use computedRegDevs to ensure it includes Basic, Plus, and Pro
+  const computedRegDevs = computed(() => {
+    if (regDevs.value > 0) {
+      return regDevs.value;
+    }
+
+    switch (regTy.value) {
+      case 'Starter':
+      case 'Basic':
+        return 6;
+      case 'Plus':
+        return 12;
+      case 'Unleashed':
+      case 'Lifetime':
+      case 'Pro':
+      case 'Trial':
+        return -1; // unlimited
+      default:
+        return 0;
+    }
+  });
   const regGen = ref<number>(0);
   const regGuid = ref<string>('');
   const regTm = ref<number>(0);
@@ -164,7 +184,7 @@ export const useServerStore = defineStore('server', () => {
       osVersion: osVersion.value,
       osVersionBranch: osVersionBranch.value,
       registered: registered.value,
-      regDev: regDev.value,
+      regDevs: computedRegDevs.value,
       regGen: regGen.value,
       regGuid: regGuid.value,
       regExp: regExp.value,
@@ -663,7 +683,7 @@ export const useServerStore = defineStore('server', () => {
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
   const tooManyDevices = computed((): Error | undefined => {
-    if ((deviceCount.value !== 0 && regDev.value !== 0 && deviceCount.value > regDev.value) ||
+    if ((deviceCount.value !== 0 && computedRegDevs.value > 0 && deviceCount.value > computedRegDevs.value) ||
         (!config.value?.valid && config.value?.error === 'INVALID')) {
       return {
         heading: 'Too Many Devices',
@@ -1022,7 +1042,7 @@ export const useServerStore = defineStore('server', () => {
     rebootType,
     rebootVersion,
     registered,
-    regDev,
+    computedRegDevs,
     regGen,
     regGuid,
     regTm,

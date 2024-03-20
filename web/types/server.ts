@@ -91,7 +91,7 @@ export interface Server {
   rebootType?: ServerRebootType;
   rebootVersion?: string;
   registered?: boolean;
-  regDev?: number;
+  regDevs?: number;
   regGen?: number;
   regGuid?: string;
   regTm?: number;

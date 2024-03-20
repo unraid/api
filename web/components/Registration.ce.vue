@@ -47,6 +47,7 @@ const {
   flashProduct,
   keyActions,
   keyfile,
+  computedRegDevs,
   regGuid,
   regTm,
   regTo,
@@ -56,6 +57,7 @@ const {
   state,
   stateData,
   stateDataError,
+  tooManyDevices,
 } = storeToRefs(serverStore);
 
 const formattedRegTm = ref<any>();
@@ -74,24 +76,6 @@ watch(regTm, (_newV) => {
 });
 onBeforeMount(() => {
   setFormattedRegTm();
-});
-
-const devicesAvailable = computed((): number => {
-  switch (regTy.value) {
-    case 'Starter':
-      return 4;
-    case 'Basic':
-      return 6;
-    case 'Plus':
-      return 12;
-    case 'Unleashed':
-    case 'Lifetime':
-    case 'Pro':
-    case 'Trial':
-      return 9999;
-    default:
-      return 0;
-  }
 });
 
 const showTrialExpiration = computed((): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED');
@@ -169,11 +153,11 @@ const items = computed((): RegistrationItemProps[] => {
       : []),
     ...(keyInstalled.value
       ? [{
-          error: deviceCount.value > devicesAvailable.value,
+          error: !!tooManyDevices.value,
           label: t('Attached Storage Devices'),
-          text: deviceCount.value > devicesAvailable.value
-            ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value])
-            : t('{0} out of {1} devices', [deviceCount.value, devicesAvailable.value > 12 ? t('unlimited') : devicesAvailable.value]),
+          text: tooManyDevices.value
+            ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, computedRegDevs.value])
+            : t('{0} out of {1} devices', [deviceCount.value, computedRegDevs.value === -1 ? t('unlimited') : computedRegDevs.value]),
         }]
       : []),
     ...(showTransferStatus.value
