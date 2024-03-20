@@ -1,8 +1,6 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
-import { delay } from 'wretch/middlewares';
 import { WebguiInstallKey } from '~/composables/services/webgui';
 import { useErrorsStore } from '~/store/errors';
-import { useServerStore } from '~/store/server';
 import type { ExternalKeyActions } from '~/store/callback';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -12,7 +10,6 @@ setActivePinia(createPinia());
 
 export const useInstallKeyStore = defineStore('installKey', () => {
   const errorsStore = useErrorsStore();
-  const serverStore = useServerStore();
 
   const keyInstallStatus = ref<'failed' | 'installing' | 'ready' | 'success'>('ready');
 

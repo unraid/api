@@ -58,8 +58,8 @@ let regExp: number | undefined;
 // EBLACKLISTED1
 // EBLACKLISTED2
 // ENOCONN
-const state: ServerState = 'STARTER';
-let regDev = 0;
+const state: ServerState = 'TRIAL';
+let regDevs = 0;
 let regTy = '';
 switch (state) {
   // @ts-ignore
@@ -73,15 +73,15 @@ switch (state) {
     regTy = 'Trial';
   // @ts-ignore
   case 'BASIC':
-    regDev = 6;
+    regDevs = 6;
   // @ts-ignore
   case 'PLUS':
-    regDev = 12;
+    regDevs = 12;
   // @ts-ignore
   case 'PRO':
   // @ts-ignore
   case 'STARTER':
-    regDev = 4;
+    regDevs = 6;
     // regExp = oneHourFromNow;
     // regExp = oneDayFromNow;
     regExp = ninetyDaysAgo;
@@ -96,7 +96,7 @@ switch (state) {
     // regExp = 1696363920000; // nori.local's expiration
   // @ts-ignore
   case 'LIFETIME':
-    if (regDev === 0) { regDev = 99999; }
+    if (regDevs === 0) { regDevs = -1; }
     if (regTy === '') { regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); } // title case
     break;
 }
