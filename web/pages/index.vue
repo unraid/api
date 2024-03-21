@@ -72,6 +72,12 @@ onMounted(() => {
             <UserProfileCe :server="serverState" />
           </header>
           <hr class="border-black dark:border-white">
+
+          <h3 class="text-lg font-semibold font-mono">
+            ConnectSettingsCe
+          </h3>
+          <ConnectSettingsCe />
+          <hr class="border-black dark:border-white">
           <h3 class="text-lg font-semibold font-mono">
             DownloadApiLogsCe
           </h3>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { serverState } from '~/_data/serverState';
+import { serverState } from "~/_data/serverState";
 
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
@@ -9,13 +9,11 @@ onBeforeMount(() => {
 
 <template>
   <client-only>
-    <unraid-i18n-host class="flex flex-col gap-6 p-6 mx-auto text-black bg-white dark:text-white dark:bg-black">
-      <h2 class="text-xl font-semibold font-mono">
-        Web Components
-      </h2>
-      <h3 class="text-lg font-semibold font-mono">
-        UserProfileCe
-      </h3>
+    <unraid-i18n-host
+      class="flex flex-col gap-6 p-6 mx-auto text-black bg-white dark:text-white dark:bg-black"
+    >
+      <h2 class="text-xl font-semibold font-mono">Web Components</h2>
+      <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
       <header class="bg-beta py-4 flex flex-row justify-between items-center">
         <div class="inline-flex flex-col gap-4 items-start px-4">
           <a href="https://unraid.net" target="_blank">
@@ -25,45 +23,36 @@ onBeforeMount(() => {
         </div>
         <unraid-user-profile :server="JSON.stringify(serverState)" />
       </header>
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        DownloadApiLogsCe
-      </h3>
+      <hr class="border-black dark:border-white" >
+
+      <h3 class="text-lg font-semibold font-mono">ConnectSettingsCe</h3>
+      <ConnectSettingsCe />
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">DownloadApiLogsCe</h3>
       <unraid-download-api-logs />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        AuthCe
-      </h3>
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">AuthCe</h3>
       <unraid-auth />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        WanIpCheckCe
-      </h3>
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">WanIpCheckCe</h3>
       <unraid-wan-ip-check php-wan-ip="47.184.85.45" />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        HeaderOsVersion
-      </h3>
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">HeaderOsVersion</h3>
       <unraid-header-os-version />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        UpdateOsCe
-      </h3>
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">UpdateOsCe</h3>
       <unraid-update-os />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        DowngradeOsCe
-      </h3>
-      <unraid-downgrade-os restore-release-date="2022-10-10" restore-version="6.11.2" />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        RegistrationCe
-      </h3>
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">DowngradeOsCe</h3>
+      <unraid-downgrade-os
+        restore-release-date="2022-10-10"
+        restore-version="6.11.2"
+      />
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">RegistrationCe</h3>
       <unraid-registration />
-      <hr class="border-black dark:border-white">
-      <h3 class="text-lg font-semibold font-mono">
-        ModalsCe
-      </h3>
+      <hr class="border-black dark:border-white" >
+      <h3 class="text-lg font-semibold font-mono">ModalsCe</h3>
       <unraid-modals />
     </unraid-i18n-host>
   </client-only>

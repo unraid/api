@@ -9,7 +9,7 @@ import {
 import {
   type ApolloClient as ApolloClientType,
   type InMemoryCache as InMemoryCacheType,
-} from "@apollo/client/core";
+} from "@apollo/client";
 import { onError } from "@apollo/client/link/error";
 import { RetryLink } from "@apollo/client/link/retry";
 import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
@@ -190,13 +190,13 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
      */
     const additiveLink = from([errorLink, retryLink, splitLinks]);
 
-    const apolloClient = new ApolloClient({
+    const client: ApolloClientType<InMemoryCacheType> = new ApolloClient({
       link: additiveLink,
       cache: new InMemoryCache(),
-    }) as ApolloClientType<InMemoryCacheType>;
-    unraidApiClient.value = apolloClient;
+    });
+    unraidApiClient.value = client;
 
-    provideApolloClient(apolloClient);
+    provideApolloClient(client);
   };
   /**
    * Automatically called when an apiKey is unset in the serverStore
