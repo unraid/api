@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.5.3](https://github.com/unraid/api/compare/v3.5.2...v3.5.3) (2024-03-25)
+
+
+### Bug Fixes
+
+* regDevs usage to allow more flexibility for STARTER ([#860](https://github.com/unraid/api/issues/860)) ([92a9600](https://github.com/unraid/api/commit/92a9600f3a242c5f263f1672eab81054b9cf4fae))
+
 ### [3.5.2](https://github.com/unraid/api/compare/v3.5.1...v3.5.2) (2024-03-06)
 
 
