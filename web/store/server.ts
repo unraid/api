@@ -695,7 +695,7 @@ export const useServerStore = defineStore('server', () => {
           return {
             heading: 'Unknown Error',
             level: 'error',
-            message: 'An unknown internal s/w error occurred.',
+            message: 'An unknown internal error occurred.',
             ref: 'configError',
             type: 'server',
           };
@@ -707,7 +707,7 @@ export const useServerStore = defineStore('server', () => {
             actions: [{
               href: WEBGUI_TOOLS_REGISTRATION.toString(),
               icon: CogIcon,
-              text: 'Learn More',
+              text: 'Learn More at Tools > Registration',
             }],
             ref: 'configError',
             type: 'server',
@@ -716,7 +716,7 @@ export const useServerStore = defineStore('server', () => {
           return {
             heading: 'Too Many Devices',
             level: 'error',
-            message: 'You have exceeded the number of devices allowed for your license. Please remove a device before adding another.',
+            message: 'You have exceeded the number of devices allowed for your license. Please remove a device before adding another or upgrade your key to support more devices.',
             ref: 'configError',
             type: 'server',
           };
