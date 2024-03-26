@@ -691,14 +691,14 @@ export const useServerStore = defineStore('server', () => {
   const serverConfigError = computed((): Error | undefined => {
     if (!config.value?.valid && config.value?.error) {
       switch (config.value?.error) {
-        case 'UNKNOWN_ERROR':
-          return {
-            heading: 'Unknown Error',
-            level: 'error',
-            message: 'An unknown internal error occurred.',
-            ref: 'configError',
-            type: 'server',
-          };
+        // case 'UNKNOWN_ERROR':
+        //   return {
+        //     heading: 'Unknown Error',
+        //     level: 'error',
+        //     message: 'An unknown internal error occurred.',
+        //     ref: 'configError',
+        //     type: 'server',
+        //   };
         case 'INELIGIBLE':
           return {
             heading: 'Ineligible for OS Version',
@@ -716,7 +716,7 @@ export const useServerStore = defineStore('server', () => {
           return {
             heading: 'Too Many Devices',
             level: 'error',
-            message: 'You have exceeded the number of devices allowed for your license. Please remove a device before adding another or upgrade your key to support more devices.',
+            message: 'You have exceeded the number of devices allowed for your license. Please remove a device before starting the array or upgrade your key to support more devices.',
             ref: 'configError',
             type: 'server',
           };

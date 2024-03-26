@@ -47,8 +47,8 @@ import type {
 // '1111-1111-5GDB-123412341234' Starter.key = TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg
 
 const state: ServerState = 'STARTER';
-const currentFlashGuid = '1111-1111-SDFF-TEST1234ZACK'; // this is the flash drive that's been booted from
-const regGuid = '1111-1111-SDFF-TEST1234ZACK'; // this guid is registered in key server
+const currentFlashGuid = '1111-1111-SDDD-TEST1234ZACK '; // this is the flash drive that's been booted from
+const regGuid = '1111-1111-SDDD-TEST1234ZACK '; // this guid is registered in key server
 const keyfileBase64 = ''; // @todo raycast download key to base64
 
 // const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
@@ -145,7 +145,7 @@ export const serverState: Server = {
   },
   connectPluginInstalled,
   description: 'DevServer9000',
-  deviceCount: 8,
+  deviceCount: 4,
   expireTime,
   flashBackupActivated: !!connectPluginInstalled,
   flashProduct: 'SanDisk_3.2Gen1',
