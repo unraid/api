@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.6.0](https://github.com/unraid/api/compare/v3.5.3...v3.6.0) (2024-03-26)
+
+
+### Features
+
+* server config enum message w/ ineligible support ([#861](https://github.com/unraid/api/issues/861)) ([4d3a351](https://github.com/unraid/api/commit/4d3a3510777090788573f4cee83694a0dc6f8df5))
+
 ### [3.5.3](https://github.com/unraid/api/compare/v3.5.2...v3.5.3) (2024-03-25)
 
 
