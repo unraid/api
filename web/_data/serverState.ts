@@ -168,7 +168,7 @@ export const serverState: Server = {
   regTo: 'Zack Spear',
   regTy,
   regExp,
-  regGuid: regGuid,
+  regGuid,
   site: 'http://localhost:4321',
   state,
   theme: {
