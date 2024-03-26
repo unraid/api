@@ -24,8 +24,32 @@ import type {
 //   return result;
 // }
 
+// ENOKEYFILE
+// TRIAL
+// BASIC
+// PLUS
+// PRO
+// STARTER
+// UNLEASHED
+// LIFETIME
+// EEXPIRED
+// EGUID
+// EGUID1
+// ETRIAL
+// ENOKEYFILE2
+// ENOKEYFILE1
+// ENOFLASH
+// EBLACKLISTED
+// EBLACKLISTED1
+// EBLACKLISTED2
+// ENOCONN
+
 // '1111-1111-5GDB-123412341234' Starter.key = TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg
-const staticGuid = '1111-1111-5GDB-123412341234';
+
+const state: ServerState = 'TRIAL';
+const currentFlashGuid = '1111-1111-SDFF-TEST1234ZACK'; // this is the flash drive that's been booted from
+const regGuid = '1111-1111-SDFF-TEST1234ZACK'; // this guid is registered in key server
+const keyfileBase64 = ''; // @todo raycast download key to base64
 
 // const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
 // const newGuid = `1234-1234-${makeid(4)}-123412341234`; // this is a new USB, not registered
@@ -42,23 +66,6 @@ const oneHourFromNow = Date.now() + 60 * 60 * 1000; // 1 hour from now
 let expireTime = 0;
 let regExp: number | undefined;
 
-// ENOKEYFILE
-// TRIAL
-// BASIC
-// PLUS
-// PRO
-// EEXPIRED
-// EGUID
-// EGUID1
-// ETRIAL
-// ENOKEYFILE2
-// ENOKEYFILE1
-// ENOFLASH
-// EBLACKLISTED
-// EBLACKLISTED1
-// EBLACKLISTED2
-// ENOCONN
-const state: ServerState = 'TRIAL';
 let regDevs = 0;
 let regTy = '';
 switch (state) {
@@ -101,10 +108,10 @@ switch (state) {
     break;
 }
 
-const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
-// const connectPluginInstalled = '';
+// const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
+const connectPluginInstalled = '';
 
-const osVersion = '6.12.5';
+const osVersion = '6.12.8';
 const osVersionBranch = 'stable';
 // const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
 
@@ -138,16 +145,16 @@ export const serverState: Server = {
   },
   connectPluginInstalled,
   description: 'DevServer9000',
-  deviceCount: 3,
+  deviceCount: 8,
   expireTime,
   flashBackupActivated: !!connectPluginInstalled,
   flashProduct: 'SanDisk_3.2Gen1',
   flashVendor: 'USB',
-  guid: staticGuid,
+  guid: currentFlashGuid,
   // "guid": "0781-5583-8355-81071A2B0211",
   inIframe: false,
   // keyfile: 'DUMMY_KEYFILE',
-  keyfile: 'TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg',
+  keyfile: keyfileBase64,
   lanIp: '192.168.254.36',
   license: '',
   locale: 'en_US', // en_US, ja
@@ -161,7 +168,7 @@ export const serverState: Server = {
   regTo: 'Zack Spear',
   regTy,
   regExp,
-  // "regGuid": "0781-5583-8355-81071A2B0211",
+  regGuid: regGuid,
   site: 'http://localhost:4321',
   state,
   theme: {
