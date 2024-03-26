@@ -47,6 +47,7 @@ class ServerState
     private $connectPluginVersion;
     private $configErrorEnum = [
         "error" => 'UNKNOWN_ERROR',
+        "ineligible" => 'INELIGIBLE',
         "invalid" => 'INVALID',
         "nokeyserver" => 'NO_KEY_SERVER',
         "withdrawn" => 'WITHDRAWN',
@@ -241,7 +242,7 @@ class ServerState
             "caseModel" => $this->caseModel,
             "config" => [
                 'valid' => ($this->var['configValid'] === 'yes'),
-                'error' => isset($this->configErrorEnum[$this->var['configValid']]) ? $this->configErrorEnum[$this->var['configValid']] : 'UNKNOWN_ERROR',
+                'error' => isset($this->configErrorEnum[$this->var['configValid']]) ? $this->configErrorEnum[$this->var['configValid']] : null,
             ],
             "connectPluginInstalled" => $this->connectPluginInstalled,
             "connectPluginVersion" => $this->connectPluginVersion,

@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import prerelease from 'semver/functions/prerelease';
 import {
+  ArrowPathIcon,
   ArrowRightOnRectangleIcon,
   CogIcon,
   GlobeAltIcon,
@@ -17,7 +18,11 @@ import { useQuery } from '@vue/apollo-composable';
 import { SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from './server.fragment';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import { WebguiState, WebguiUpdateIgnore } from '~/composables/services/webgui';
-import { WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
+import {
+  WEBGUI_SETTINGS_MANAGMENT_ACCESS,
+  WEBGUI_TOOLS_REGISTRATION,
+  WEBGUI_TOOLS_UPDATE,
+} from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore, type Error } from '~/store/errors';
 import { usePurchaseStore } from '~/store/purchase';
@@ -683,22 +688,71 @@ export const useServerStore = defineStore('server', () => {
   });
   const trialExtensionEligible = computed(() => !regGen.value || regGen.value < 2);
 
-  const tooManyDevices = computed((): Error | undefined => {
-    if ((deviceCount.value !== 0 && computedRegDevs.value > 0 && deviceCount.value > computedRegDevs.value) ||
-        (!config.value?.valid && config.value?.error === 'INVALID')) {
-      return {
-        heading: 'Too Many Devices',
-        level: 'error',
-        message: 'You have exceeded the number of devices allowed for your license. Please remove a device before adding another.',
-        ref: 'tooManyDevices',
-        type: 'server',
-      };
+  const serverConfigError = computed((): Error | undefined => {
+    if (!config.value?.valid && config.value?.error) {
+      switch (config.value?.error) {
+        case 'UNKNOWN_ERROR':
+          return {
+            heading: 'Unknown Error',
+            level: 'error',
+            message: 'An unknown internal s/w error occurred.',
+            ref: 'configError',
+            type: 'server',
+          };
+        case 'INELIGIBLE':
+          return {
+            heading: 'Ineligible for OS Version',
+            level: 'error',
+            message: 'Your License Key does not support this OS Version. OS build date greater than key expiration.',
+            actions: [{
+              href: WEBGUI_TOOLS_REGISTRATION.toString(),
+              icon: CogIcon,
+              text: 'Learn More',
+            }],
+            ref: 'configError',
+            type: 'server',
+          };
+        case 'INVALID':
+          return {
+            heading: 'Too Many Devices',
+            level: 'error',
+            message: 'You have exceeded the number of devices allowed for your license. Please remove a device before adding another.',
+            ref: 'configError',
+            type: 'server',
+          };
+        case 'NO_KEY_SERVER':
+          return {
+            heading: 'Check Network Connection',
+            level: 'error',
+            message: 'Unable to validate your trial key. Please check your network connection.',
+            ref: 'configError',
+            type: 'server',
+          };
+        case 'WITHDRAWN':
+          return {
+            heading: 'OS Version Withdrawn',
+            level: 'error',
+            message: 'This OS release should not be run. OS Update Required.',
+            actions: [{
+              href: WEBGUI_TOOLS_UPDATE.toString(),
+              icon: ArrowPathIcon,
+              text: 'Check for Update',
+            }],
+            ref: 'configError',
+            type: 'server',
+          };
+      }
+      return undefined;
     }
-    return undefined;
   });
-  watch(tooManyDevices, (newVal, oldVal) => {
+  watch(serverConfigError, (newVal, oldVal) => {
     if (oldVal && oldVal.ref) { errorsStore.removeErrorByRef(oldVal.ref); }
     if (newVal) { errorsStore.setError(newVal); }
+  });
+
+  const tooManyDevices = computed((): boolean => {
+    return ((deviceCount.value !== 0 && computedRegDevs.value > 0 && deviceCount.value > computedRegDevs.value) ||
+        (!config.value?.valid && config.value?.error === 'INVALID'));
   });
 
   const pluginInstallFailed = computed((): Error | undefined => {
@@ -797,7 +851,7 @@ export const useServerStore = defineStore('server', () => {
   const serverErrors = computed(() => {
     return [
       stateDataError.value,
-      tooManyDevices.value,
+      serverConfigError.value,
       pluginInstallFailed.value,
       deprecatedUnraidSSL.value,
       cloudError.value,
@@ -1077,6 +1131,7 @@ export const useServerStore = defineStore('server', () => {
     stateDataError,
     serverErrors,
     tooManyDevices,
+    serverConfigError,
     // actions
     setServer,
     setUpdateOsResponse,

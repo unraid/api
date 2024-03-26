@@ -153,7 +153,7 @@ const items = computed((): RegistrationItemProps[] => {
       : []),
     ...(keyInstalled.value
       ? [{
-          error: !!tooManyDevices.value,
+          error: tooManyDevices.value,
           label: t('Attached Storage Devices'),
           text: tooManyDevices.value
             ? t('{0} out of {1} allowed devices – upgrade your key to support more devices', [deviceCount.value, computedRegDevs.value])

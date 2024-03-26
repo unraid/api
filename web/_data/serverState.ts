@@ -140,8 +140,8 @@ export const serverState: Server = {
   apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
   avatar: 'https://source.unsplash.com/300x300/?portrait',
   config: {
-    // error: 'INVALID',
-    valid: true,
+    error: 'WITHDRAWN',
+    valid: false,
   },
   connectPluginInstalled,
   description: 'DevServer9000',
@@ -180,15 +180,15 @@ export const serverState: Server = {
     name: 'white',
     textColor: ''
   },
-  updateOsResponse: {
-    version: '6.12.6',
-    name: 'Unraid 6.12.6',
-    date: '2023-12-13',
-    isNewer: true,
-    isEligible: false,
-    changelog: 'https://docs.unraid.net/unraid-os/release-notes/6.12.6/',
-    sha256: '2f5debaf80549029cf6dfab0db59180e7e3391c059e6521aace7971419c9c4bf',
-  },
+  // updateOsResponse: {
+  //   version: '6.12.6',
+  //   name: 'Unraid 6.12.6',
+  //   date: '2023-12-13',
+  //   isNewer: true,
+  //   isEligible: false,
+  //   changelog: 'https://docs.unraid.net/unraid-os/release-notes/6.12.6/',
+  //   sha256: '2f5debaf80549029cf6dfab0db59180e7e3391c059e6521aace7971419c9c4bf',
+  // },
   uptime,
   username: 'zspearmint',
   wanFQDN: ''
