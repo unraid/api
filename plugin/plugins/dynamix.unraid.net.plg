@@ -502,24 +502,94 @@ if test -f "${FILE}" && grep -q "top.Shadowbox" "${FILE}" &>/dev/null; then
   sed -i 's/top.Shadowbox/parent.Shadowbox/gm' "${FILE}"
 fi
 
-# ensure _var() is defined
-# brings older versions of Unraid in sync with 6.12.0
+# ensure _var() is defined, brings older versions of Unraid in sync with 6.12.0
 FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php
-if test -f "${FILE}" && ! grep -q "_var" "${FILE}" &>/dev/null; then
-TEXT=$(
+if test -f "${FILE}" && ! grep -q "function _var" "${FILE}" &>/dev/null; then
+ADDTEXT1=$(
 cat <<'END_HEREDOC'
+// backported by Unraid Connect
 function _var(&$name, $key=null, $default='') {
   return is_null($key) ? ($name ?? $default) : ($name[$key] ?? $default);
 }
-?>
 END_HEREDOC
 )
+fi
+# ensure my_logger() is defined, brings older versions of Unraid in sync with 6.13.0
+if test -f "${FILE}" && ! grep -q "function my_logger" "${FILE}" &>/dev/null; then
+ADDTEXT2=$(
+cat <<'END_HEREDOC'
+// backported by Unraid Connect
+// ensure params passed to logger are properly escaped
+function my_logger($message, $logger='webgui') {
+  exec('logger -t '.escapeshellarg($logger).' -- '.escapeshellarg($message));
+}
+END_HEREDOC
+)
+fi
+# ensure http_get_contents() is defined, brings older versions of Unraid in sync with 6.13.0
+if test -f "${FILE}" && ! grep -q "function http_get_contents" "${FILE}" &>/dev/null; then
+ADDTEXT3=$(
+cat <<'END_HEREDOC'
+// backported by Unraid Connect
+// Original PHP code by Chirp Internet: www.chirpinternet.eu
+// Please acknowledge use of this code by including this header.
+// https://www.the-art-of-web.com/php/http-get-contents/
+// Modified for Unraid
+/**
+ * Fetches URL and returns content
+ * @param string $url The URL to fetch
+ * @param array $opts Array of options to pass to curl_setopt()
+ * @param array $getinfo Empty array passed by reference, will contain results of curl_getinfo and curl_error
+ * @return string|false $out The fetched content
+ */
+function http_get_contents(string $url, array $opts = [], array &$getinfo = NULL) {
+  $ch = curl_init();
+  if(isset($getinfo)) {
+    curl_setopt($ch, CURLINFO_HEADER_OUT, TRUE);
+  }
+  curl_setopt($ch, CURLOPT_URL, $url);
+  curl_setopt($ch, CURLOPT_FRESH_CONNECT, true);
+  curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+  curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 15);
+  curl_setopt($ch, CURLOPT_TIMEOUT, 45);
+  curl_setopt($ch, CURLOPT_ENCODING, "");
+  curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+  curl_setopt($ch, CURLOPT_REFERER, "");
+  curl_setopt($ch, CURLOPT_FAILONERROR, true);
+  if(is_array($opts) && $opts) {
+    foreach($opts as $key => $val) {
+      curl_setopt($ch, $key, $val);
+    }
+  }
+  $out = curl_exec($ch);
+  if(isset($getinfo)) {
+    $getinfo = curl_getinfo($ch);
+  }
+  if (curl_errno($ch)) {
+    $msg = curl_error($ch) . " {$url}";
+    if(isset($getinfo)) {
+      $getinfo['error'] = $msg;
+    }
+    my_logger($msg, "http_get_contents");
+  }
+  return $out;
+}
+END_HEREDOC
+)
+fi
+if [[ -n "${ADDTEXT1}" || -n "${ADDTEXT2}" || -n "${ADDTEXT3}" ]]; then
+  TMP="$FILE.$RANDOM"
+  cp -f "$FILE" "$TMP"
   cp -f "$FILE" "$FILE-"
   # delete last line of the file if it contains `?>`
-  if test $( tail -n 1 "${FILE}" ) = '?>' ; then 
-    sed -i '$ d' "${FILE}"
+  if test $( tail -n 1 "${TMP}" ) = '?>' ; then 
+    sed -i '$ d' "${TMP}"
   fi
-  echo "${TEXT}" >>"${FILE}"
+  [[ -n "${ADDTEXT1}" ]] && echo "${ADDTEXT1}" >>"${TMP}"
+  [[ -n "${ADDTEXT2}" ]] && echo "${ADDTEXT2}" >>"${TMP}"
+  [[ -n "${ADDTEXT3}" ]] && echo "${ADDTEXT3}" >>"${TMP}"
+  echo "?>" >>"${TMP}"
+  mv "${TMP}" "${FILE}"
 fi
 
 # install the main txz

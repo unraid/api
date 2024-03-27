@@ -14,6 +14,7 @@ Tag="globe"
  * all copies or substantial portions of the Software.
  */
 require_once "$docroot/plugins/dynamix.my.servers/include/state.php";
+require_once "$docroot/webGui/include/Wrappers.php";
 $serverState = new ServerState();
 
 $keyfile = $serverState->keyfileBase64;
@@ -546,7 +547,7 @@ _(Allow Remote Access)_:
 <?endif?>
 
 &nbsp;
-: <unraid-i18n-host><unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check></unraid-i18n-host>
+: <unraid-i18n-host><unraid-wan-ip-check php-wan-ip="<?=http_get_contents('https://wanip4.unraid.net/')?>"></unraid-wan-ip-check></unraid-i18n-host>
 
 <div markdown="1" id="wanpanel" style="display:'none'">
 
