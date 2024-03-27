@@ -1,6 +1,6 @@
 <?php
-/* Copyright 2005-2023, Lime Technology
- * Copyright 2012-2023, Bergware International.
+/* Copyright 2005-2024, Lime Technology
+ * Copyright 2012-2024, Bergware International.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License version 2,
@@ -108,6 +108,7 @@ class UnraidOsCheck
             function _($text) {return $text;}
         }
 
+        // this command will set the $notify array
         extract(parse_plugin_cfg('dynamix', true));
 
         $var = (array)@parse_ini_file('/var/local/emhttp/var.ini');
@@ -123,21 +124,12 @@ class UnraidOsCheck
         if ($parsedAltUrl) $params['altUrl'] = $parsedAltUrl;
 
         $urlbase = $parsedAltUrl ?? $defaultUrl;
-        $url     = $urlbase.'?'.http_build_query($params);
-
-        $response = "";
-        // use error handler to convert warnings from file_get_contents to errors so they can be captured
-        function warning_as_error($severity, $message, $filename, $lineno) {
-            throw new ErrorException($message, 0, $severity, $filename, $lineno);
+        $url     = $urlbase.'?'.http_build_query($params);       
+        $curlinfo = [];
+        $response = http_get_contents($url,[],$curlinfo);
+        if (array_key_exists('error', $curlinfo)) {
+            $response = json_encode(array('error' => $curlinfo['error']), JSON_PRETTY_PRINT);
         }
-        set_error_handler("warning_as_error");
-        try {
-            $response = file_get_contents($url);
-        } catch (Exception $e) {
-            $response = json_encode(array('error' => $e->getMessage()), JSON_PRETTY_PRINT);
-        }
-        restore_error_handler();
-
         $responseMutated = json_decode($response, true);
         if (!$responseMutated) {
             $response = json_encode(array('error' => 'Invalid response from '.$urlbase), JSON_PRETTY_PRINT);
@@ -159,14 +151,17 @@ class UnraidOsCheck
 
         // send notification if a newer version is available and not ignored
         $isNewerVersion = array_key_exists('isNewer',$responseMutated) ? $responseMutated['isNewer'] : false;
-        $isReleaseIgnored = in_array($responseMutated['version'], $this->getIgnoredReleases());
+        $isReleaseIgnored = array_key_exists('version',$responseMutated) ? in_array($responseMutated['version'], $this->getIgnoredReleases()) : false;
 
         if ($responseMutated && $isNewerVersion && !$isReleaseIgnored) {
             $output  = _var($notify,'plugin');
             $server  = strtoupper(_var($var,'NAME','server'));
             $newver = (array_key_exists('version',$responseMutated) && $responseMutated['version']) ? $responseMutated['version'] : 'unknown';
             $script  = '/usr/local/emhttp/webGui/scripts/notify';
-            exec("$script -e ".escapeshellarg("System - Unraid [$newver]")." -s ".escapeshellarg("Notice [$server] - Version update $newver")." -d ".escapeshellarg("A new version of Unraid is available")." -i ".escapeshellarg("normal $output")." -l '/Tools/Update' -x");
+            $event = "System - Unraid [$newver]";
+            $subject = "Notice [$server] - Version update $newver";
+            $description = "A new version of Unraid is available";
+            exec("$script -e ".escapeshellarg($event)." -s ".escapeshellarg($subject)." -d ".escapeshellarg($description)." -i ".escapeshellarg("normal $output")." -l '/Tools/Update' -x");
         }
 
         exit(0);

@@ -11,6 +11,7 @@
 $cli = php_sapi_name() == 'cli';
 
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+require_once "$docroot/webGui/include/Wrappers.php";
 
 /**
  * @name response_complete
@@ -85,7 +86,7 @@ switch ($command) {
     response_complete(200, array('result' => $output), $output);
     break;
   case 'wanip':
-    $wanip = trim(@file_get_contents("https://wanip4.unraid.net/"));
+    $wanip = trim(http_get_contents("https://wanip4.unraid.net/"));
     response_complete(200, array('result' => $wanip), $wanip);
     break;
   case 'none':

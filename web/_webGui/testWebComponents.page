@@ -7,6 +7,8 @@ Tag="globe"
 /**
  * @todo create web component env switcher liker upcEnv(). If we utilize manifest.json then we'll be switching its path.
  */
+$docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+require_once "$docroot/webGui/include/Wrappers.php";
 $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
 // print_r($mystatus);
@@ -142,7 +144,7 @@ if ($display['theme'] === 'black' || $display['theme'] === 'azure') {
   <unraid-key-actions></connect-key-actions>
 </div>
 <div class="ComponentWrapper">
-  <unraid-wan-ip-check php-wan-ip="<?=@file_get_contents('https://wanip4.unraid.net/')?>"></connect-wan-ip-check>
+  <unraid-wan-ip-check php-wan-ip="<?=http_get_contents('https://wanip4.unraid.net/')?>"></connect-wan-ip-check>
 </div>
 
 <script>
