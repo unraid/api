@@ -456,7 +456,7 @@ export const useServerStore = defineStore('server', () => {
           ],
           humanReadable: 'Trial',
           heading: 'Thank you for choosing Unraid OS!',
-          message: '<p>Your <em>Trial</em> key includes all the functionality and device support of a <em>Unleashed</em> key.</p><p>After your <em>Trial</em> has reached expiration, your server <strong>still functions normally</strong> until the next time you Stop the array or reboot your server.</p><p>At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>',
+          message: '<p>Your <em>Trial</em> key includes all the functionality and device support of an <em>Unleashed</em> key.</p><p>After your <em>Trial</em> has reached expiration, your server <strong>still functions normally</strong> until the next time you Stop the array or reboot your server.</p><p>At that point you may either purchase a license key or request a <em>Trial</em> extension.</p>',
         };
       case 'EEXPIRED':
         return {
