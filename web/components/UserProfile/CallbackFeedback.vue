@@ -102,7 +102,7 @@ const subheading = computed(() => {
     if (keyActionType.value === 'purchase') { return props.t('Thank you for purchasing an Unraid {0} Key!', [keyType.value]); }
     if (keyActionType.value === 'replace') { return props.t('Your {0} Key has been replaced!', [keyType.value]); }
     if (keyActionType.value === 'trialExtend') { return props.t('Your Trial key has been extended!'); }
-    if (keyActionType.value === 'trialStart') { return props.t('Your free Trial key provides all the functionality of a Pro Registration key'); }
+    if (keyActionType.value === 'trialStart') { return props.t('Your free Trial key provides all the functionality of an Unleashed Registration key'); }
     if (keyActionType.value === 'upgrade') { return props.t('Thank you for upgrading to an Unraid {0} Key!', [keyType.value]); }
     return '';
   }
