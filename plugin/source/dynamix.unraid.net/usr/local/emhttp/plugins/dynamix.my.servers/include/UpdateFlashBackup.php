@@ -566,7 +566,7 @@ if ($command == 'activate') {
   exec_log('git -C /boot checkout -B master origin/master');
 
   // establish status
-  exec_log('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
+  exec_log('git -C /boot status --porcelain', $status_output, $return_var);
 
   if ($return_var != 0) {
     // detect git submodule
@@ -609,7 +609,7 @@ if ($command == 'activate') {
   }
 
   // detect corruption #1
-  exec_log('git -C /boot show --summary 2>&1', $show_output, $return_var);
+  exec_log('git -C /boot show --summary', $show_output, $return_var);
   if ($return_var != 0) {
     if (stripos(implode($show_output),'fatal: your current branch appears to be broken') !== false) {
       $arrState['error'] = 'Error: Backup corrupted';
