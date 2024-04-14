@@ -422,22 +422,24 @@ if (!file_exists('/boot/.git/info/exclude')) {
 }
 
 // setup a nice git description
+$gitdesc_text='Unraid flash drive for '.$var['NAME']."\n";
 $gitdesc_file='/boot/.git/description';
-if (!file_exists($gitdesc_file) || strpos(file_get_contents($gitdesc_file),$var['NAME']) === false) {
-  file_put_contents($gitdesc_file, 'Unraid flash drive for '.$var['NAME']."\n");
+if (!file_exists($gitdesc_file) || (file_get_contents($gitdesc_file) != $gitdesc_text)) {
+  file_put_contents($gitdesc_file, $gitdesc_text);
 }
 
 // configure git to use the noprivatekeys filter
 set_git_config('filter.noprivatekeys.clean', '/usr/local/emhttp/plugins/dynamix.my.servers/scripts/git-noprivatekeys-clean');
 
 // configure git to apply the noprivatekeys filter to wireguard config files
-$gitattributes_file='/boot/.gitattributes';
-if (!file_exists($gitattributes_file) || strpos(file_get_contents($gitattributes_file),'noprivatekeys') === false) {
-  file_put_contents($gitattributes_file, '# file managed by Unraid, do not modify
+$gitattributes_text='# file managed by Unraid, do not modify
 config/wireguard/*.cfg filter=noprivatekeys
 config/wireguard/*.conf filter=noprivatekeys
 config/wireguard/peers/*.conf filter=noprivatekeys
-');
+';
+$gitattributes_file='/boot/.gitattributes';
+if (!file_exists($gitattributes_file) || (file_get_contents($gitattributes_file) != $gitattributes_text)) {
+  file_put_contents($gitattributes_file, $gitattributes_text);
 }
 
 // setup master git exclude file to specify what to include/exclude from repo
