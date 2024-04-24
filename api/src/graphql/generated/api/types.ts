@@ -874,6 +874,7 @@ export type Query = {
   dockerNetwork: DockerNetwork;
   /** All Docker networks */
   dockerNetworks: Array<Maybe<DockerNetwork>>;
+  extraAllowedOrigins: Array<Scalars['String']['output']>;
   flash?: Maybe<Flash>;
   info?: Maybe<Info>;
   /** Current user account */
@@ -883,6 +884,7 @@ export type Query = {
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
   registration?: Maybe<Registration>;
+  remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
   servers: Array<Server>;
   /** Network Shares */
@@ -988,6 +990,13 @@ export type RelayResponse = {
   error?: Maybe<Scalars['String']['output']>;
   status: Scalars['String']['output'];
   timeout?: Maybe<Scalars['String']['output']>;
+};
+
+export type RemoteAccess = {
+  __typename?: 'RemoteAccess';
+  accessType: WAN_ACCESS_TYPE;
+  forwardType?: Maybe<WAN_FORWARD_TYPE>;
+  port?: Maybe<Scalars['Port']['output']>;
 };
 
 export type Server = {
@@ -1646,6 +1655,7 @@ export type ResolversTypes = ResolversObject<{
   Registration: ResolverTypeWrapper<Registration>;
   RegistrationState: RegistrationState;
   RelayResponse: ResolverTypeWrapper<RelayResponse>;
+  RemoteAccess: ResolverTypeWrapper<RemoteAccess>;
   Server: ResolverTypeWrapper<Server>;
   ServerStatus: ServerStatus;
   Service: ResolverTypeWrapper<Service>;
@@ -1739,6 +1749,7 @@ export type ResolversParentTypes = ResolversObject<{
   Query: {};
   Registration: Registration;
   RelayResponse: RelayResponse;
+  RemoteAccess: RemoteAccess;
   Server: Server;
   Service: Service;
   SetupRemoteAccessInput: SetupRemoteAccessInput;
@@ -2312,6 +2323,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   dockerContainers?: Resolver<Array<ResolversTypes['DockerContainer']>, ParentType, ContextType, Partial<QuerydockerContainersArgs>>;
   dockerNetwork?: Resolver<ResolversTypes['DockerNetwork'], ParentType, ContextType, RequireFields<QuerydockerNetworkArgs, 'id'>>;
   dockerNetworks?: Resolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, ParentType, ContextType, Partial<QuerydockerNetworksArgs>>;
+  extraAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;
   info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
@@ -2320,6 +2332,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;
   registration?: Resolver<Maybe<ResolversTypes['Registration']>, ParentType, ContextType>;
+  remoteAccess?: Resolver<ResolversTypes['RemoteAccess'], ParentType, ContextType>;
   server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType>;
   servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
@@ -2344,6 +2357,13 @@ export type RelayResponseResolvers<ContextType = Context, ParentType extends Res
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   status?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   timeout?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type RemoteAccessResolvers<ContextType = Context, ParentType extends ResolversParentTypes['RemoteAccess'] = ResolversParentTypes['RemoteAccess']> = ResolversObject<{
+  accessType?: Resolver<ResolversTypes['WAN_ACCESS_TYPE'], ParentType, ContextType>;
+  forwardType?: Resolver<Maybe<ResolversTypes['WAN_FORWARD_TYPE']>, ParentType, ContextType>;
+  port?: Resolver<Maybe<ResolversTypes['Port']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2755,6 +2775,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Query?: QueryResolvers<ContextType>;
   Registration?: RegistrationResolvers<ContextType>;
   RelayResponse?: RelayResponseResolvers<ContextType>;
+  RemoteAccess?: RemoteAccessResolvers<ContextType>;
   Server?: ServerResolvers<ContextType>;
   Service?: ServiceResolvers<ContextType>;
   Share?: ShareResolvers<ContextType>;

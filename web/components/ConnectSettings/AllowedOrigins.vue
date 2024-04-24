@@ -5,6 +5,13 @@ const apiSettingsStore = useUnraidApiSettingsStore();
 
 const originsText = ref<string>("");
 const errors = ref<string[]>([]);
+
+
+onMounted(async () => {
+  const allowedOriginsSettings = await apiSettingsStore.getAllowedOrigins();
+  originsText.value = allowedOriginsSettings.join(", ");
+});
+
 const origins = computed<string[]>(() => {
   console.log("originsText.value: " + originsText.value);
   const newOrigins: string[] = [];
