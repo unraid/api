@@ -70,8 +70,8 @@ function save_flash_backup_state($loading='') {
   rename($flashbackup_tmp, $flashbackup_ini);
 }
 
-function load_flash_backup_state() {
-  global $arrState,$flashbackup_ini,$isRegistered;
+function default_flash_backup_state() {
+  global $arrState;
 
   $arrState = [
     'activated' => 'no',
@@ -80,6 +80,12 @@ function load_flash_backup_state() {
     'error' => '',
     'remoteerror' => ''
   ];
+}
+
+function load_flash_backup_state() {
+  global $arrState,$flashbackup_ini,$isRegistered;
+
+  default_flash_backup_state();
 
   $arrNewState = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
   if ($arrNewState) {
@@ -277,7 +283,14 @@ if ($pgrep_output[0] != "0") {
 
 // check if signed-in
 if (!$isRegistered) {
+  default_flash_backup_state();
   response_complete(406,  array('error' => 'Must be signed in to Unraid Connect to use Flash Backup'));
+}
+
+// check if connected to Unraid Connect Cloud
+if (!$isConnected) {
+  default_flash_backup_state();
+  response_complete(406,  array('error' => 'Must be connected to Unraid Connect Cloud to use Flash Backup'));
 }
 
 // keyfile
