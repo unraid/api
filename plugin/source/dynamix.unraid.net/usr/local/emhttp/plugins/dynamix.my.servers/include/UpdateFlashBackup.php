@@ -422,29 +422,29 @@ if (!file_exists('/boot/.git/info/exclude')) {
 }
 
 // setup a nice git description
+$gitdesc_text='Unraid flash drive for '.$var['NAME']."\n";
 $gitdesc_file='/boot/.git/description';
-if (!file_exists($gitdesc_file) || strpos(file_get_contents($gitdesc_file),$var['NAME']) === false) {
-  file_put_contents($gitdesc_file, 'Unraid flash drive for '.$var['NAME']."\n");
+if (!file_exists($gitdesc_file) || (file_get_contents($gitdesc_file) != $gitdesc_text)) {
+  file_put_contents($gitdesc_file, $gitdesc_text);
 }
 
 // configure git to use the noprivatekeys filter
 set_git_config('filter.noprivatekeys.clean', '/usr/local/emhttp/plugins/dynamix.my.servers/scripts/git-noprivatekeys-clean');
 
 // configure git to apply the noprivatekeys filter to wireguard config files
-$gitattributes_file='/boot/.gitattributes';
-if (!file_exists($gitattributes_file) || strpos(file_get_contents($gitattributes_file),'noprivatekeys') === false) {
-  file_put_contents($gitattributes_file, '# file managed by Unraid, do not modify
+$gitattributes_text='# file managed by Unraid, do not modify
 config/wireguard/*.cfg filter=noprivatekeys
 config/wireguard/*.conf filter=noprivatekeys
 config/wireguard/peers/*.conf filter=noprivatekeys
-');
+';
+$gitattributes_file='/boot/.gitattributes';
+if (!file_exists($gitattributes_file) || (file_get_contents($gitattributes_file) != $gitattributes_text)) {
+  file_put_contents($gitattributes_file, $gitattributes_text);
 }
 
-// setup git ignore for files we dont need in the flash backup
-$gitexclude_file='/boot/.git/info/exclude';
-if (!file_exists($gitexclude_file) || strpos(file_get_contents($gitexclude_file),'# version 1.0') === false) {
-  file_put_contents($gitexclude_file, '# file managed by Unraid, do not modify
-# version 1.0
+// setup master git exclude file to specify what to include/exclude from repo
+$gitexclude_text = '# file managed by Unraid, do not modify
+# version 1.1
 
 # Blacklist everything
 /*
@@ -480,7 +480,18 @@ config/plugins-error
 config/plugins-old-versions
 config/plugins/dockerMan/images
 config/wireguard/peers/*.png
-');
+';
+
+// find large files to exclude from flash backup
+$oversize_files = $return_var = null;
+exec('find /boot/config -type f -size +30M 2>/dev/null | sed "s|^/boot/||g" 2>/dev/null', $oversize_files, $return_var);
+if ($oversize_files && is_array($oversize_files)) {
+  $gitexclude_text .= "\n# Blacklist large files on this system\n".implode("\n", $oversize_files)."\n";
+}
+
+$gitexclude_file='/boot/.git/info/exclude';
+if (!file_exists($gitexclude_file) || (file_get_contents($gitexclude_file) != $gitexclude_text)) {
+  file_put_contents($gitexclude_file, $gitexclude_text);
 }
 
 // ensure git user is configured
@@ -557,7 +568,7 @@ if ($command == 'activate') {
   exec_log('git -C /boot checkout -B master origin/master');
 
   // establish status
-  exec_log('git -C /boot status --porcelain 2>&1', $status_output, $return_var);
+  exec_log('git -C /boot status --porcelain', $status_output, $return_var);
 
   if ($return_var != 0) {
     // detect git submodule
@@ -600,7 +611,7 @@ if ($command == 'activate') {
   }
 
   // detect corruption #1
-  exec_log('git -C /boot show --summary 2>&1', $show_output, $return_var);
+  exec_log('git -C /boot show --summary', $show_output, $return_var);
   if ($return_var != 0) {
     if (stripos(implode($show_output),'fatal: your current branch appears to be broken') !== false) {
       $arrState['error'] = 'Error: Backup corrupted';
@@ -616,10 +627,20 @@ if ($command == 'activate') {
 } // end check for ($command == 'activate')
 
 if ($command == 'update' || $command == 'activate') {
-  
+
+  // note: this section only runs if there are changes detected  
   if ($arrState['uptodate'] == 'no') {
     // increment git commit counter
     appendToFile($commitCountFile, $time."\n");
+
+    // find files that are in repo but should not be, according to /boot/.git/info/exclude and various .gitignore files
+    $invalid_files = $return_var = null;
+    exec_log('git -C /boot ls-files --cached --ignored --exclude-standard', $invalid_files, $return_var);
+    foreach ((array) $invalid_files as $invalid_file) {
+      // remove each of these files from the repo
+      // this prevents future changes from being tracked but does not remove the file from history.
+      exec_log("git -C /boot rm --cached --ignore-unmatch '$invalid_file'");
+    }
 
     // add and commit all file changes
     exec_log('git -C /boot add -A');
