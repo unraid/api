@@ -1,9 +1,17 @@
 <script lang="ts" setup>
-    import AllowedOrigins from '~/components/ConnectSettings/AllowedOrigins.vue';
-    import RemoteAccess from '~/components/ConnectSettings/RemoteAccess.vue';
-</script> 
+import 'tailwindcss/tailwind.css';
+import '~/assets/main.css';
+
+// import { useI18n } from 'vue-i18n';
+
+// const { t } = useI18n();
+</script>
 
 <template>
-    <AllowedOrigins />
-    <RemoteAccess />
+  <AuthCe />
+  <!-- @todo: flashback up -->
+  <WanIpCheckCe />
+  <ConnectSettingsRemoteAccess />
+  <ConnectSettingsAllowedOrigins />
+  <DownloadApiLogsCe />
 </template>
