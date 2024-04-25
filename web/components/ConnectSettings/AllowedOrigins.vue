@@ -1,25 +1,24 @@
 <script lang="ts" setup>
-import { useUnraidApiSettingsStore } from "~/store/unraidApiSettings";
+import { useUnraidApiSettingsStore } from '~/store/unraidApiSettings';
 
 const apiSettingsStore = useUnraidApiSettingsStore();
 
-const originsText = ref<string>("");
+const originsText = ref<string>('');
 const errors = ref<string[]>([]);
-
 
 onMounted(async () => {
   const allowedOriginsSettings = await apiSettingsStore.getAllowedOrigins();
-  originsText.value = allowedOriginsSettings.join(", ");
+  originsText.value = allowedOriginsSettings.join(', ');
 });
 
 const origins = computed<string[]>(() => {
-  console.log("originsText.value: " + originsText.value);
+  console.log('originsText.value: ' + originsText.value);
   const newOrigins: string[] = [];
   if (originsText.value) {
-    originsText.value.split(",").forEach((origin) => {
+    originsText.value.split(',').forEach((origin) => {
       try {
-        new URL(origin.trim());
-        newOrigins.push(origin.trim());
+        const newUrl = new URL(origin.trim());
+        newOrigins.push(newUrl.toString());
       } catch (e) {
         errors.value.push(`Invalid origin: ${origin}`);
       }
@@ -37,12 +36,12 @@ const setAllowedOrigins = () => {
 <template>
   <div class="flex flex-col">
     <h2>Setup Allowed Origins</h2>
-    <input type="text" v-model="originsText" placeholder="Input Comma Separated List of URLs" />
+    <input v-model="originsText" type="text" placeholder="Input Comma Separated List of URLs">
     <button type="button" @click="setAllowedOrigins()">
       Set Allowed Origins
     </button>
-    <div v-for="error of errors">
-        <p>{{ error }}</p>
+    <div v-for="(error, index) of errors" :key="index">
+      <p>{{ error }}</p>
     </div>
   </div>
 </template>
