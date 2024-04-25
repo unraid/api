@@ -79,21 +79,21 @@ onMounted(() => {
           <ConnectSettingsCe />
           <hr class="border-black dark:border-white">
 
-          <h3 class="text-lg font-semibold font-mono">
+          <!-- <h3 class="text-lg font-semibold font-mono">
             DownloadApiLogsCe
           </h3>
           <DownloadApiLogsCe />
-          <hr class="border-black dark:border-white">
-          <h3 class="text-lg font-semibold font-mono">
+          <hr class="border-black dark:border-white"> -->
+          <!-- <h3 class="text-lg font-semibold font-mono">
             AuthCe
           </h3>
           <AuthCe />
-          <hr class="border-black dark:border-white">
-          <h3 class="text-lg font-semibold font-mono">
+          <hr class="border-black dark:border-white"> -->
+          <!-- <h3 class="text-lg font-semibold font-mono">
             WanIpCheckCe
           </h3>
           <WanIpCheckCe php-wan-ip="47.184.85.45" />
-          <hr class="border-black dark:border-white">
+          <hr class="border-black dark:border-white"> -->
           <h3 class="text-lg font-semibold font-mono">
             UpdateOsCe
           </h3>
