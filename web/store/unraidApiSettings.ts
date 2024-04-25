@@ -1,14 +1,14 @@
-import type { SetupRemoteAccessInput } from "~/composables/gql/graphql";
-import { useUnraidApiStore } from "~/store/unraidApi";
+import type { SetupRemoteAccessInput } from '~/composables/gql/graphql';
+import { useUnraidApiStore } from '~/store/unraidApi';
 import {
   GET_ALLOWED_ORIGINS,
   GET_REMOTE_ACCESS,
   SETUP_REMOTE_ACCESS,
   SET_ADDITIONAL_ALLOWED_ORIGINS,
-} from "~/store/unraidApiSettings.fragment";
+} from '~/store/unraidApiSettings.fragment';
 
 export const useUnraidApiSettingsStore = defineStore(
-  "unraidApiSettings",
+  'unraidApiSettings',
   () => {
     const { unraidApiClient } = toRefs(useUnraidApiStore());
 
@@ -18,7 +18,7 @@ export const useUnraidApiSettingsStore = defineStore(
       });
 
       return origins?.data?.extraAllowedOrigins ?? [];
-    }
+    };
 
     const setAllowedOrigins = async (origins: string[]) => {
       const newOrigins = await unraidApiClient.value?.mutate({
@@ -35,7 +35,7 @@ export const useUnraidApiSettingsStore = defineStore(
       });
 
       return remoteAccess?.data?.remoteAccess;
-    }
+    };
 
     const setupRemoteAccess = async (input: SetupRemoteAccessInput) => {
       const response = await unraidApiClient.value?.mutate({

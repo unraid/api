@@ -1,4 +1,4 @@
-import { graphql } from "~/composables/gql/gql";
+import { graphql } from '~/composables/gql/gql';
 
 export const GET_ALLOWED_ORIGINS = graphql(/* GraphQL */ `
   query getExtraAllowedOrigins {
