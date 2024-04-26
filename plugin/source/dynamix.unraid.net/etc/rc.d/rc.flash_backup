@@ -26,16 +26,16 @@ _waitforgitlog() {
   fi
 }
 status() {
-  _signedin && SIGNEDIN="system is signed in to Unraid.net." || SIGNEDIN="system is not signed in to Unraid.net."
+  _connected && CONNECTED="system is connected to Unraid Connect Cloud." || CONNECTED="system is not connected to Unraid Connect Cloud."
   if _watching; then
-    echo "flash backup monitor is running. ${SIGNEDIN}"
+    echo "flash backup monitor is running. ${CONNECTED}"
     _hasqueue && echo "changes detected, backup queued."
     exit 0
   else
     if _enabled; then
-      echo "flash backup is enabled but the monitor is not running. ${SIGNEDIN}"
+      echo "flash backup is enabled but the monitor is not running. ${CONNECTED}"
     else
-      echo "flash backup is disabled so the monitor is disabled. ${SIGNEDIN}"
+      echo "flash backup is disabled so the monitor is disabled. ${CONNECTED}"
     fi
     exit 1
   fi
@@ -99,8 +99,8 @@ _watch() {
   logger "start watching for file changes" --tag flash_backup
   # start watcher loop
   while true; do
-    # wait for system to sign in, then process flash backups
-    _signedin && _f1
+    # wait for system to be connected to Unraid Connect Cloud, then process flash backups
+    _connected && _f1
     sleep 60
   done
 }
@@ -151,12 +151,12 @@ _enabled() {
   fi
   return 1
 }
-_signedin() {
-  CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
+_connected() {
+  CFG=/var/local/emhttp/myservers.cfg
   [[ ! -f "${CFG}" ]] && return 1
   # shellcheck disable=SC1090
-  source <(sed -nr '/\[remote\]/,/\[/{/username/p}' "${CFG}" 2>/dev/null)
-  if [ -z "${username}" ]; then
+  source <(sed -nr '/\[connectionStatus\]/,/\[/{/minigraph/p}' "${CFG}" 2>/dev/null)
+  if [[ -z "${minigraph}" || "${minigraph}" != "CONNECTED" ]]; then
     return 1
   fi
   return 0

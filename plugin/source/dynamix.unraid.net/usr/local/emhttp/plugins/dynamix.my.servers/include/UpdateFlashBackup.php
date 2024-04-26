@@ -70,8 +70,8 @@ function save_flash_backup_state($loading='') {
   rename($flashbackup_tmp, $flashbackup_ini);
 }
 
-function load_flash_backup_state() {
-  global $arrState,$flashbackup_ini,$isRegistered;
+function default_flash_backup_state() {
+  global $arrState;
 
   $arrState = [
     'activated' => 'no',
@@ -80,6 +80,12 @@ function load_flash_backup_state() {
     'error' => '',
     'remoteerror' => ''
   ];
+}
+
+function load_flash_backup_state() {
+  global $arrState,$flashbackup_ini,$isRegistered;
+
+  default_flash_backup_state();
 
   $arrNewState = (file_exists($flashbackup_ini)) ? @parse_ini_file($flashbackup_ini) : [];
   if ($arrNewState) {
@@ -277,7 +283,14 @@ if ($pgrep_output[0] != "0") {
 
 // check if signed-in
 if (!$isRegistered) {
-  response_complete(406,  array('error' => 'Must be signed in to My Servers to use Flash Backup'));
+  default_flash_backup_state();
+  response_complete(406,  array('error' => 'Must be signed in to Unraid Connect to use Flash Backup'));
+}
+
+// check if connected to Unraid Connect Cloud
+if (!$isConnected) {
+  default_flash_backup_state();
+  response_complete(406,  array('error' => 'Must be connected to Unraid Connect Cloud to use Flash Backup'));
 }
 
 // keyfile
@@ -540,7 +553,7 @@ if (empty($SSH_PORT)) {
   } else {
     $arrState['loading'] = '';
     if (stripos(implode($ssh_output),'permission denied') !== false) {
-      $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+      $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to Unraid Connect Cloud';
     } else {
       $arrState['error'] = 'Unable to connect to backup.unraid.net:22';
     }
@@ -654,7 +667,7 @@ if ($command == 'update' || $command == 'activate') {
     if ($return_var != 0) {
       // check for permission denied
       if (stripos(implode($push_output),'permission denied') !== false) {
-        $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to My Servers Cloud';
+        $arrState['error'] = ($isConnected) ? 'Permission Denied' : 'Permission Denied, ensure you are connected to Unraid Connect Cloud';
       } elseif (stripos(implode($push_output),'fatal: loose object') !== false && stripos(implode($push_output),'is corrupt') !== false) {
         // detect corruption #2
         $arrState['error'] = 'Error: Backup corrupted';

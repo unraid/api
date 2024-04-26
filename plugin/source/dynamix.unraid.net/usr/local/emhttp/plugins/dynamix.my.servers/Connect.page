@@ -522,7 +522,7 @@ _(Allow Remote Access)_:
 <?if(!$isRegistered): // NOTE: manually added close tags so the next section would not be indented ?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span></dd></dl>
 <?elseif(!$isMiniGraphConnected && $myServersFlashCfg['remote']['wanaccess']!="yes"): // NOTE: manually added close tags so the next section would not be indented ?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span></dd></dl>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud - try reloading the page)_</span></dd></dl>
 <?elseif(!$hasMyUnraidNetCert): // NOTE: manually added close tags so the next section would not be indented ?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you Provision a myunraid.net SSL Cert)_</span><input type="hidden" id="wanport" value="0"></dd></dl>
 <?elseif(!$boolWebUIAuth): // NOTE: manually added close tags so the next section would not be indented ?>
@@ -627,8 +627,8 @@ _(Enable Transparent 2FA for Local Access)_<!-- do not index -->:
 _(Flash backup)_:
 <?if(!$isRegistered):?>
 : <span><i class="fa fa-warning icon warning"></i> _(Disabled until you have signed in)_</span>
-<?elseif(!$isMiniGraphConnected && empty($flashbackup_status['activated'])):?>
-: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud)_</span>
+<?elseif(!$isMiniGraphConnected):?>
+: <span><i class="fa fa-warning icon warning"></i> _(Disabled until connected to Unraid Connect Cloud - try reloading the page)_</span>
 <?else: // begin show flash backup form ?>
 : <span id='flashbackuptext'><span class='blue p0'>_(Loading)_ <i class="fa fa-spinner fa-spin" aria-hidden="true"></i></span></span>
 

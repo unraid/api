@@ -1,7 +1,7 @@
 #!/bin/bash
 # unraid-api-handler
 flash="/boot/config/plugins/dynamix.my.servers"
-[[ ! -d "${flash}" ]] && echo "Please reinstall the My Servers plugin" && exit 1
+[[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
 # define env to avoid shellcheck SC2154. Will be overridden by the source command below
 env=production
@@ -83,7 +83,7 @@ _install() {
   fi
 
   # Ensure installation tgz exists
-  [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the My Servers plugin" && exit 1
+  [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 
   # Stop old process
   [[ -f "${api_base_directory}/unraid-api/unraid-api" ]] && stop
