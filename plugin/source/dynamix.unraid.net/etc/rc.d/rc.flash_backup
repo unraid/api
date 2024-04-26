@@ -1,0 +1,205 @@
+#!/bin/bash
+# This file is /etc/rc.d/rc.flash_backup
+# use at queue "f" for flash backup
+QUEUE=" -q f "
+TASKNAME="/etc/rc.d/rc.flash_backup watch"
+TASKACTION="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/UpdateFlashBackup update"
+last=$(date +%s)
+# set GIT_OPTIONAL_LOCKS=0 globally to reduce/eliminate writes to /boot
+export GIT_OPTIONAL_LOCKS=0
+
+FAST=1  #  1 second delay when waiting for git
+SLOW=10 # 10 second delay when waiting for git
+# wait for existing git commands to complete
+# $1 is the time in seconds to sleep when waiting. SLOW or FAST
+_waitforgit() {
+  while [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; do
+    sleep "$1"
+  done
+}
+# log to syslog, then wait for existing git commands to complete
+# $1 is the time in seconds to sleep when waiting. SLOW or FAST
+_waitforgitlog() {
+  if [[ $(pgrep -f '^git -C /boot' -c) -ne 0 ]]; then
+    logger "waiting for current backup to complete" --tag flash_backup
+    _waitforgit "$1"
+  fi
+}
+status() {
+  _connected && CONNECTED="system is connected to Unraid Connect Cloud." || CONNECTED="system is not connected to Unraid Connect Cloud."
+  if _watching; then
+    echo "flash backup monitor is running. ${CONNECTED}"
+    _hasqueue && echo "changes detected, backup queued."
+    exit 0
+  else
+    if _enabled; then
+      echo "flash backup is enabled but the monitor is not running. ${CONNECTED}"
+    else
+      echo "flash backup is disabled so the monitor is disabled. ${CONNECTED}"
+    fi
+    exit 1
+  fi
+}
+start() {
+  _start
+  exit 0
+}
+stop() {
+  _stop
+  exit 0
+}
+reload() {
+  _start
+  sleep 1
+  status
+}
+_start() {
+  # Note: can start if not signed in, but watcher loop will not process until signed in
+  # only run if flash_backup is enabled
+  if ! _enabled; then
+    logger "flash backup disabled, exiting" --tag flash_backup
+    exit 1
+  fi
+  _stop
+  # start watcher loop as background process
+  exec ${TASKNAME} &>/dev/null &
+}
+_stop() {
+  if _watching; then
+    logger "stop watching for file changes" --tag flash_backup
+    # terminate watcher loop/process
+    pkill --full "${TASKNAME}" &>/dev/null
+  fi
+  # do not flush. better to have unsaved changes than to corrupt the backup during shutdown
+  # note that an existing git process could still be running
+}
+flush() {
+  # remove any queued jobs
+  _removequeue
+  # wait for existing git commands to finish before flushing
+  _waitforgitlog "${FAST}"
+  logger "flush: ${TASKACTION}" --tag flash_backup
+  # push any changes ad-hoc
+  # shellcheck disable=SC2086
+  echo "${TASKACTION}_nolimit &>/dev/null" | at ${QUEUE} -M now &>/dev/null
+}
+_watching() {
+  local flash_backup_pid
+  flash_backup_pid=$(pgrep --full "${TASKNAME}")
+  if [[ ${flash_backup_pid} ]]; then
+    return 0
+  fi
+  return 1
+}
+_watch() {
+  # safely clean up git *.lock files
+  _clearlocks
+  # flush: this will ensure we start with a clean repo
+  flush
+  logger "start watching for file changes" --tag flash_backup
+  # start watcher loop
+  while true; do
+    # wait for system to be connected to Unraid Connect Cloud, then process flash backups
+    _connected && _f1
+    sleep 60
+  done
+}
+_f1() {
+  # wait for existing git commands to finish before checking for updates
+  _waitforgit "${SLOW}"
+  if [ "$(git -C /boot status -s)" ]; then
+    _hasqueue || _f2
+  elif _haserror && _beenawhile; then
+    # we are in an error state and it has been 3 hours since we last tried submitting. run the task now.
+    _runtaskaction
+  fi
+}
+_f2() {
+  if ! _haserror || [[ $(($(date +"%M") % 10)) -eq 0 ]]; then
+    logger "adding task: ${TASKACTION}" --tag flash_backup
+  fi
+  sed -i "s@uptodate=yes@uptodate=no@" /var/local/emhttp/flashbackup.ini &>/dev/null
+  _runtaskaction
+}
+_hasqueue() {
+  # returns false if the queue is empty, true otherwise
+  # shellcheck disable=SC2086
+  if [ -z "$(atq ${QUEUE})" ]; then
+    return 1
+  fi
+  return 0
+}
+_removequeue() {
+  # delete any at jobs in queue f
+  # @TODO shellcheck SC2162
+  # shellcheck disable=SC2086
+  atq ${QUEUE} | while read line; do
+    id=$(echo ${line} | cut -d " " -f 1)
+    atrm ${id}
+  done
+}
+_runtaskaction() {
+  # shellcheck disable=SC2086
+  echo "${TASKACTION} &>/dev/null" | at ${QUEUE} -M now +1 minute &>/dev/null
+  last=$(date +%s)
+}
+_enabled() {
+  local output
+  output=$(git -C /boot config --get remote.origin.url 2>&1)
+  if [[ "${output}" == *"backup.unraid.net"* ]]; then
+    return 0
+  fi
+  return 1
+}
+_connected() {
+  CFG=/var/local/emhttp/myservers.cfg
+  [[ ! -f "${CFG}" ]] && return 1
+  # shellcheck disable=SC1090
+  source <(sed -nr '/\[connectionStatus\]/,/\[/{/minigraph/p}' "${CFG}" 2>/dev/null)
+  if [[ -z "${minigraph}" || "${minigraph}" != "CONNECTED" ]]; then
+    return 1
+  fi
+  return 0
+}
+_haserror() {
+  errorstring=$(awk -F "=" '/error/ {print $2}' /var/local/emhttp/flashbackup.ini 2>&1 || echo '')
+  if [ ${#errorstring} -le 2 ]; then
+    return 1
+  fi
+  return 0
+}
+_beenawhile() {
+  now=$(date +%s)
+  age=$((now - last))
+  maxage=$((3 * 60 * 60)) # three hours
+  [[ $age -gt $maxage ]] && return 0
+  return 1
+}
+# wait for git commands to end, then delete any stale lock files
+_clearlocks() {
+  _waitforgitlog "${FAST}"
+  find /boot/.git -type f -name '*.lock' -delete
+}
+case "$1" in
+'status')
+  status
+  ;;
+'start')
+  start
+  ;;
+'stop')
+  stop
+  ;;
+'reload')
+  reload
+  ;;
+'flush')
+  flush
+  ;;
+'watch')
+  _watch
+  ;;
+*)
+  echo "usage $0 status|start|stop|reload|flush"
+  ;;
+esac
