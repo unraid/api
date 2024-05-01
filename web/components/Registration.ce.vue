@@ -25,6 +25,7 @@ import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
+
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import type { RegistrationItemProps } from '~/types/registration';
@@ -55,6 +56,7 @@ const {
   regTy,
   regExp,
   regUpdatesExpired,
+  serverErrors,
   state,
   stateData,
   stateDataError,
@@ -77,6 +79,24 @@ watch(regTm, (_newV) => {
 });
 onBeforeMount(() => {
   setFormattedRegTm();
+  /** automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys */
+  if (guid.value && keyfile.value) {
+    replaceRenewCheckStore.check();
+  }
+});
+
+const headingIcon = computed(() => serverErrors.value.length ? ShieldExclamationIcon : ShieldCheckIcon);
+const heading = computed(() => {
+  if (serverErrors.value.length) { // It's rare to have multiple errors but for the time being only show the first error
+    return serverErrors.value[0]?.heading;
+  }
+  return stateData.value.heading;
+});
+const subheading = computed(() => {
+  if (serverErrors.value.length) { // It's rare to have multiple errors but for the time being only show the first error
+    return serverErrors.value[0]?.message;
+  }
+  return stateData.value.message;
 });
 
 const showTrialExpiration = computed((): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED');
@@ -185,13 +205,6 @@ const items = computed((): RegistrationItemProps[] => {
       : []),
   ];
 });
-
-onBeforeMount(() => {
-  /** automatically check for replacement and renewal eligibility…will prompt user if eligible for a renewal / key re-roll for legacy keys */
-  if (guid.value && keyfile.value) {
-    replaceRenewCheckStore.check();
-  }
-});
 </script>
 
 <template>
@@ -201,17 +214,17 @@ onBeforeMount(() => {
         <header class="flex flex-col gap-y-16px">
           <h3
             class="text-20px md:text-24px font-semibold leading-normal flex flex-row items-center gap-8px"
-            :class="stateDataError ? 'text-unraid-red' : 'text-green-500'"
+            :class="serverErrors.length  ? 'text-unraid-red' : 'text-green-500'"
           >
-            <component :is="stateDataError ? ShieldExclamationIcon : ShieldCheckIcon" class="w-24px h-24px" />
+            <component :is="headingIcon" class="w-24px h-24px" />
             <span>
-              {{ stateData.heading }}
+              {{ heading }}
             </span>
           </h3>
           <div
-            v-if="stateData.message"
+            v-if="subheading"
             class="prose text-16px leading-relaxed whitespace-normal opacity-75"
-            v-html="stateData.message"
+            v-html="subheading"
           />
           <span v-if="authAction" class="grow-0">
             <BrandButton
