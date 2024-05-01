@@ -214,7 +214,7 @@ const items = computed((): RegistrationItemProps[] => {
         <header class="flex flex-col gap-y-16px">
           <h3
             class="text-20px md:text-24px font-semibold leading-normal flex flex-row items-center gap-8px"
-            :class="serverErrors.length  ? 'text-unraid-red' : 'text-green-500'"
+            :class="serverErrors.length ? 'text-unraid-red' : 'text-green-500'"
           >
             <component :is="headingIcon" class="w-24px h-24px" />
             <span>
