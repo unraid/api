@@ -236,6 +236,10 @@ class ServerState
     public function getServerState()
     {
         $serverState = [
+            "array" => [
+                "state" => @$this->getWebguiGlobal('var', 'fsState'),
+                "progress" => @$this->getWebguiGlobal('var', 'fsProgress'),
+            ],
             "apiKey" => $this->apiKey,
             "apiVersion" => $this->apiVersion,
             "avatar" => $this->avatar,

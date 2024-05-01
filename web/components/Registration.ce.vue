@@ -39,6 +39,7 @@ const { t } = useI18n();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const {
+  array,
   authAction,
   dateTimeFormat,
   deviceCount,
@@ -87,6 +88,12 @@ const showFilteredKeyActions = computed((): boolean => !!(keyActions.value && ke
 
 const items = computed((): RegistrationItemProps[] => {
   return [
+    ...(array.value
+      ? [{
+          label: t('Array status'),
+          text: array.value.state,
+        }]
+      : []),
     ...(regTy.value
       ? [{
           label: t('License key type'),
