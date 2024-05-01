@@ -787,7 +787,7 @@ export const useServerStore = defineStore('server', () => {
    * Deprecation warning for [hash].unraid.net SSL certs. Deprecation started 2023-01-01
    */
   const deprecatedUnraidSSL = ref<Error | undefined>(
-    (window.location.hostname.includes('localhost')
+    (window.location.hostname.includes('localhost') && window.location.port !== '4321'
       ? {
           actions: [
             {
