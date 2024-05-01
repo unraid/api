@@ -9,7 +9,7 @@ const CONNECT_DOCS = new URL('category/unraid-connect', DOCS);
 const CONNECT_DASHBOARD = new URL(import.meta.env.VITE_CONNECT ?? 'https://connect.myunraid.net');
 const CONNECT_FORUMS = new URL('/forum/94-connect-plugin-support/', FORUMS);
 const CONTACT = new URL('/contact', UNRAID_NET);
-const DISCORD = new URL('https://discord.gg/unraid');
+const DISCORD = new URL('https://discord.unraid.net');
 const PURCHASE_CALLBACK = new URL('/c', UNRAID_NET);
 
 const WEBGUI = new URL(import.meta.env.VITE_WEBGUI ?? window.location.origin);
