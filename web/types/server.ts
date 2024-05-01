@@ -61,7 +61,7 @@ export interface ServerUpdateOsResponse {
 }
 
 export interface ServerStateArray {
-  state: 'Stopped' | 'Running' | 'Stopped. The Array will not start until the above issue is resolved.' | 'Running. If stopped, the Array will not restart until the above issue is resolved.';
+  state: 'Stopped' | 'Started' | 'Starting' | 'Stopping';
   progress: string;
 }
 
