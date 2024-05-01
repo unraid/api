@@ -72,6 +72,17 @@ export const useServerStore = defineStore('server', () => {
   });
   const apiVersion = ref<string>('');
   const array = ref<ServerStateArray | undefined>();
+  // helps to display warning next to array status
+  const arrayWarning = computed(() => !!(stateDataError.value || serverConfigError.value));
+  const computedArray = computed(() => {
+    if (arrayWarning.value) {
+      if (array.value?.state === 'Stopped') {
+        return 'Stopped. The Array will not start until the above issue is resolved.';
+      }
+      return 'Started. If stopped, the Array will not restart until the above issue is resolved.';
+    }
+    return array.value?.state;
+  });
   const avatar = ref<string>(''); // @todo potentially move to a user store
   const caseModel = ref<string>('');
   const cloud = ref<PartialCloudFragment | undefined>();
@@ -860,6 +871,7 @@ export const useServerStore = defineStore('server', () => {
       cloudError.value,
     ].filter(Boolean);
   });
+
   /**
    * Actions
    */
@@ -1137,6 +1149,8 @@ export const useServerStore = defineStore('server', () => {
     serverErrors,
     tooManyDevices,
     serverConfigError,
+    arrayWarning,
+    computedArray,
     // actions
     setServer,
     setUpdateOsResponse,
