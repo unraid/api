@@ -706,7 +706,7 @@ export const useServerStore = defineStore('server', () => {
           return {
             heading: 'Ineligible for OS Version',
             level: 'error',
-            message: 'Your License Key does not support this OS Version. OS build date greater than key expiration.',
+            message: 'Your License Key does not support this OS Version. OS build date greater than key expiration. Please consider extending your registration key.',
             actions: [{
               href: WEBGUI_TOOLS_REGISTRATION.toString(),
               icon: CogIcon,
