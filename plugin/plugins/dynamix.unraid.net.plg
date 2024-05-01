@@ -683,6 +683,28 @@ if [[ "${CHANGED}" == "yes" ]]; then
   fi
 fi
 
+plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
+
+# Function to extract "ts" value from JSON file
+extract_ts() {
+    local filepath="$1"
+    local ts_value=null
+    ts_value=$(jq -r '.ts' "$filepath" 2>/dev/null)
+    echo "$ts_value"
+}
+
+# Extract "ts" values from both files
+plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
+webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
+
+# Compare the "ts" values and return the file path of the higher value
+if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
+    rm -rf "$plgWebComponentPath"
+    mv "$backupWebComponentPath" "$plgWebComponentPath"
+    echo "♻️ Reverted to stock web components"
+fi
+
 # start background process to install/start the api and flash backup
 echo
 if [ -f /var/local/emhttp/var.ini ]; then
