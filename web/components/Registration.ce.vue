@@ -40,7 +40,8 @@ const { t } = useI18n();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 const {
-  array,
+  computedArray,
+  arrayWarning,
   authAction,
   dateTimeFormat,
   deviceCount,
@@ -108,10 +109,11 @@ const showFilteredKeyActions = computed((): boolean => !!(keyActions.value && ke
 
 const items = computed((): RegistrationItemProps[] => {
   return [
-    ...(array.value
+    ...(computedArray.value
       ? [{
           label: t('Array status'),
-          text: array.value.state,
+          text: computedArray.value,
+          warning: arrayWarning.value,
         }]
       : []),
     ...(regTy.value
@@ -194,6 +196,7 @@ const items = computed((): RegistrationItemProps[] => {
           componentProps: { t },
         }]
       : []),
+
     ...(showFilteredKeyActions.value
       ? [{
           component: KeyActions,
