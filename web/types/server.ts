@@ -60,9 +60,15 @@ export interface ServerUpdateOsResponse {
   sha256: string | null;
 }
 
+export interface ServerStateArray {
+  state: 'Stopped' | 'Running' | 'Stopped. The Array will not start until the above issue is resolved.' | 'Running. If stopped, the Array will not restart until the above issue is resolved.';
+  progress: string;
+}
+
 export interface Server {
   apiKey?: string;
   apiVersion?: string;
+  array?: ServerStateArray;
   avatar?: string;
   caseModel?: string;
   cloud?: PartialCloudFragment | undefined;

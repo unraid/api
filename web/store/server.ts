@@ -41,6 +41,7 @@ import type {
   ServerconnectPluginInstalled,
   ServerDateTimeFormat,
   ServerStateDataKeyActions,
+  ServerStateArray,
   ServerOsVersionBranch,
   ServerUpdateOsResponse,
 } from '~/types/server';
@@ -70,6 +71,7 @@ export const useServerStore = defineStore('server', () => {
     }
   });
   const apiVersion = ref<string>('');
+  const array = ref<ServerStateArray | undefined>();
   const avatar = ref<string>(''); // @todo potentially move to a user store
   const caseModel = ref<string>('');
   const cloud = ref<PartialCloudFragment | undefined>();
@@ -170,6 +172,7 @@ export const useServerStore = defineStore('server', () => {
     return {
       apiKey: apiKey.value,
       apiVersion: apiVersion.value,
+      array: array.value,
       avatar: avatar.value,
       connectPluginVersion: connectPluginVersion.value,
       connectPluginInstalled: connectPluginInstalled.value,
@@ -863,6 +866,7 @@ export const useServerStore = defineStore('server', () => {
   const setServer = (data: Server) => {
     console.debug('[setServer]', data);
     if (typeof data?.apiKey !== 'undefined') { apiKey.value = data.apiKey; }
+    if (typeof data?.array !== 'undefined') { array.value = data.array; }
     if (typeof data?.apiVersion !== 'undefined') { apiVersion.value = data.apiVersion; }
     if (typeof data?.avatar !== 'undefined') { avatar.value = data.avatar; }
     if (typeof data?.caseModel !== 'undefined') { caseModel.value = data.caseModel; }
@@ -1074,6 +1078,7 @@ export const useServerStore = defineStore('server', () => {
   return {
     // state
     apiKey,
+    array,
     avatar,
     cloud,
     config,
