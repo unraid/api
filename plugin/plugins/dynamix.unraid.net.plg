@@ -683,6 +683,7 @@ if [[ "${CHANGED}" == "yes" ]]; then
   fi
 fi
 
+# Prevent web component file downgrade if the webgui version is newer than the plugin version
 plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
 backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
 
