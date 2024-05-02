@@ -1,6 +1,7 @@
 export interface ButtonProps {
-  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'underline-hover-red' | 'white';
+  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'underline-hover-red' | 'white' | 'none';
   btnType?: 'button' | 'submit' | 'reset';
+  class?: string;
   click?: () => void;
   disabled?: boolean;
   download?: boolean;
@@ -10,6 +11,7 @@ export interface ButtonProps {
   iconRight?: Component;
   iconRightHoverDisplay?: boolean;
   // iconRightHoverAnimate?: boolean;
+  noPadding?: boolean;
   size?: '12px' | '14px' | '16px' | '18px' | '20px' | '24px';
   text?: string;
   title?: string;
