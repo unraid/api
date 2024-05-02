@@ -6,12 +6,14 @@ import type { ButtonProps } from '~/types/ui/button';
 const props = withDefaults(defineProps<ButtonProps>(), {
   btnStyle: 'fill',
   btnType: 'button',
+  class: undefined,
   click: undefined,
   href: undefined,
   icon: undefined,
   iconRight: undefined,
   iconRightHoverDisplay: false,
   // iconRightHoverAnimate: true,
+  noPadding: false,
   size: '16px',
   text: '',
   title: '',
@@ -58,33 +60,35 @@ const classes = computed(() => {
 
   switch (props.size) {
     case '12px':
-      buttonSize = 'text-12px p-8px gap-4px';
+      buttonSize = `text-12px  ${props.noPadding ? 'p-0' : 'p-8px'} gap-4px`;
       iconSize = 'w-12px';
       break;
     case '14px':
-      buttonSize = 'text-14px p-8px gap-8px';
+      buttonSize = `text-14px  ${props.noPadding ? 'p-0' : 'p-8px'} gap-8px`;
       iconSize = 'w-14px';
       break;
     case '16px':
-      buttonSize = 'text-16px p-12px gap-8px';
+      buttonSize = `text-16px  ${props.noPadding ? 'p-0' : 'p-12px'} gap-8px`;
       iconSize = 'w-16px';
       break;
     case '18px':
-      buttonSize = 'text-18px p-12px gap-8px';
+      buttonSize = `text-18px  ${props.noPadding ? 'p-0' : 'p-12px'} gap-8px`;
       iconSize = 'w-18px';
       break;
     case '20px':
-      buttonSize = 'text-20px p-16px gap-8px';
+      buttonSize = `text-20px  ${props.noPadding ? 'p-0' : 'p-16px'} gap-8px`;
       iconSize = 'w-20px';
       break;
     case '24px':
-      buttonSize = 'text-24px p-16px gap-8px';
+      buttonSize = `text-24px ${props.noPadding ? 'p-0' : 'p-16px'} gap-8px`;
       iconSize = 'w-24px';
       break;
   }
 
   return {
-    button: `${buttonSize} ${buttonColors} ${buttonDefaults}`,
+    button: props.btnStyle === 'none'
+      ? `${buttonSize} ${props.class}`
+      : `${buttonSize} ${buttonColors} ${buttonDefaults} ${props.class}`,
     icon: `${iconSize} fill-current flex-shrink-0`,
   };
 });
