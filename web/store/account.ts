@@ -303,8 +303,9 @@ export const useAccountStore = defineStore('account', () => {
     // Getters
     accountActionType,
     // Actions
-    linkKey,
     manage,
+    myKeys,
+    linkKey,
     recover,
     replace,
     signIn,

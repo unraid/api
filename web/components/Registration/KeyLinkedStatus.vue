@@ -66,7 +66,7 @@ defineProps<{
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
         class="text-14px"
-        @click="accountStore.manage"
+        @click="accountStore.myKeys"
       />
     </span>
   </div>
