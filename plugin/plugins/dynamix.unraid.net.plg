@@ -800,7 +800,7 @@ source /etc/unraid-version
 echo
 echo "✅ Uninstall is complete, it is safe to close this window"
 echo
-a
+
 exit 0
 ]]>
 </INLINE>
