@@ -6,6 +6,7 @@
  */
 import {
   CheckCircleIcon,
+  ExclamationCircleIcon,
   XCircleIcon,
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
@@ -53,6 +54,47 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     stack?: string | undefined;
     cause?: unknown;
   } | null>(null);
+
+  const keyLinkedStatus = ref<'checking' | 'linked' | 'notLinked' | 'error' | 'ready'>('ready');
+  const setKeyLinked = (value: typeof keyLinkedStatus.value) => {
+    keyLinkedStatus.value = value;
+  };
+  const keyLinkedOutput = computed((): UiBadgePropsExtended => {
+    // text values are translated in the component
+    switch (keyLinkedStatus.value) {
+      case 'checking':
+        return {
+          color: 'gamma',
+          icon: BrandLoadingWhite,
+          text: 'Checking...',
+        };
+      case 'linked':
+        return {
+          color: 'green',
+          icon: CheckCircleIcon,
+          text: 'Linked',
+        };
+      case 'notLinked':
+        return {
+          color: 'yellow',
+          icon: ExclamationCircleIcon,
+          text: 'Not Linked',
+        };
+      case 'error':
+        return {
+          color: 'red',
+          icon: ShieldExclamationIcon,
+          text: error.value?.message || 'Unknown error',
+        };
+      case 'ready':
+      default:
+        return {
+          color: 'gray',
+          icon: ExclamationCircleIcon,
+          text: 'Unknown',
+        };
+    }
+  });
 
   const renewStatus = ref<'checking' | 'error' | 'installing' | 'installed' | 'ready'>('ready');
   const setRenewStatus = (status: typeof renewStatus.value) => {
@@ -128,7 +170,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     }
   };
 
-  const check = async () => {
+  const check = async (skipCache: boolean = false) => {
     if (!guid.value) {
       setReplaceStatus('error');
       error.value = { name: 'Error', message: 'Flash GUID required to check replacement status' };
@@ -139,9 +181,14 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     }
 
     try {
-      // validate the cache first - will purge if it's too old
-      await validateCache();
+      if (skipCache) {
+        await purgeValidationResponse();
+      } else {
+        // validate the cache first - will purge if it's too old
+        await validateCache();
+      }
 
+      setKeyLinked('checking');
       setReplaceStatus('checking');
       error.value = null;
       /**
@@ -158,6 +205,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
       }
 
       setReplaceStatus(response?.replaceable ? 'eligible' : 'ineligible');
+      setKeyLinked(response?.linked ? 'linked' : 'notLinked');
 
       /** cache the response to prevent repeated POSTs in the session */
       if ((replaceStatus.value === 'eligible' || replaceStatus.value === 'ineligible') && !validationResponse.value) {
@@ -197,11 +245,14 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
 
   return {
     // state
+    keyLinkedStatus,
+    keyLinkedOutput,
     renewStatus,
     replaceStatus,
     replaceStatusOutput,
     // actions
     check,
+    purgeValidationResponse,
     setReplaceStatus,
     setRenewStatus,
   };

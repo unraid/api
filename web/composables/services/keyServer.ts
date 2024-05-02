@@ -18,6 +18,7 @@ export const startTrial = async (payload: StartTrialPayload): Promise<StartTrial
 
 export interface ValidateGuidResponse {
   hasNewerKeyfile : boolean;
+  linked: boolean;
   purchaseable: true;
   registered: false;
   replaceable: false;
