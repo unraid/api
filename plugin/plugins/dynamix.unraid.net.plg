@@ -735,8 +735,6 @@ preventDowngradeAction() {
     local path="$2"
     local preventType="$3" # preventDowngrade or skip
 
-    echo "Checking $path with action $action and preventType $preventType"
-
     # if skip, do nothing
     if [[ "$preventType" == "skip" ]]; then
         return
