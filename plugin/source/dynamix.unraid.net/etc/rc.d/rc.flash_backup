@@ -79,9 +79,11 @@ flush() {
   # wait for existing git commands to finish before flushing
   _waitforgitlog "${FAST}"
   logger "flush: ${TASKACTION}" --tag flash_backup
-  # push any changes ad-hoc
-  # shellcheck disable=SC2086
-  echo "${TASKACTION}_nolimit &>/dev/null" | at ${QUEUE} -M now &>/dev/null
+  # if _connected, push any changes ad-hoc
+  if _connected; then
+    # shellcheck disable=SC2086
+    echo "${TASKACTION}_nolimit &>/dev/null" | at ${QUEUE} -M now &>/dev/null
+  fi
 }
 _watching() {
   local flash_backup_pid
@@ -94,14 +96,28 @@ _watching() {
 _watch() {
   # safely clean up git *.lock files
   _clearlocks
-  # flush: this will ensure we start with a clean repo
+  # update a file in the repo to keep this repo alive
+  _keepalive
+  # flush: if connected, start the watch loop with a clean repo
   flush
+  # wait for flush to complete
+  sleep 3
+  _waitforgitlog "${FAST}"
   logger "start watching for file changes" --tag flash_backup
   # start watcher loop
+  timer=0
+  incr=60
+  max=$((60*60*24*7)) # one week
   while true; do
-    # wait for system to be connected to Unraid Connect Cloud, then process flash backups
+    # if system is connected to Unraid Connect Cloud, see if there are updates to process
     _connected && _f1
-    sleep 60
+    if ((timer>max)); then
+      # update a file in the repo once per max seconds to keep this repo alive
+      _keepalive
+      timer=0
+    fi
+    timer=$((timer+incr))
+    sleep $incr
   done
 }
 _f1() {
@@ -179,6 +195,15 @@ _beenawhile() {
 _clearlocks() {
   _waitforgitlog "${FAST}"
   find /boot/.git -type f -name '*.lock' -delete
+}
+# this function updates a file on the flash drive to trigger a git update
+# do this regardless of whether the system is _connected
+_keepalive() {
+  file=/boot/config/plugins/dynamix.my.servers/fb_keepalive
+  [[ ! -d "$(dirname "${file}")" ]] && return 1
+  logger "trigger flash backup keepalive" --tag flash_backup
+  date +'%s' > "${file}" 2>/dev/null
+  return 0
 }
 case "$1" in
 'status')
