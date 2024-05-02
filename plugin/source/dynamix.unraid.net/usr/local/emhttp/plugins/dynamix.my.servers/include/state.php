@@ -93,7 +93,7 @@ class ServerState
         $this->osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
 
         $caseModelFile = '/boot/config/plugins/dynamix/case-model.cfg';
-        $this->caseModel = file_exists($caseModelFile) ? file_get_contents($caseModelFile) : '';
+        $this->caseModel = file_exists($caseModelFile) ? htmlspecialchars(@file_get_contents($caseModelFile), ENT_HTML5, 'UTF-8') : '';
 
         $this->rebootDetails = new RebootDetails();
 
