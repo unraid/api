@@ -5,6 +5,7 @@ import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { CONNECT_SIGN_IN, CONNECT_SIGN_OUT } from './account.fragment';
 import { useCallbackStore } from '~/store/callbackActions';
 import { useErrorsStore } from '~/store/errors';
+import { useReplaceRenewStore } from '~/store/replaceRenew';
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { ACCOUNT_CALLBACK } from '~/helpers/urls';
@@ -24,6 +25,7 @@ export interface ConnectSignInMutationPayload {
 export const useAccountStore = defineStore('account', () => {
   const callbackStore = useCallbackStore();
   const errorsStore = useErrorsStore();
+  const replaceRenewStore = useReplaceRenewStore();
   const serverStore = useServerStore();
   const unraidApiStore = useUnraidApiStore();
 
@@ -80,6 +82,40 @@ export const useAccountStore = defineStore('account', () => {
           ...serverAccountPayload.value,
         },
         type: 'manage',
+      }],
+      inIframe.value ? 'newTab' : undefined,
+    );
+  };
+  const myKeys = async () => {
+    /**
+     * Purge the validation response so we can start fresh after the user has linked their key
+     */
+    await replaceRenewStore.purgeValidationResponse();
+
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverAccountPayload.value,
+        },
+        type: 'myKeys',
+      }],
+      inIframe.value ? 'newTab' : undefined,
+    );
+  };
+  const linkKey = async () => {
+    /**
+     * Purge the validation response so we can start fresh after the user has linked their key
+     */
+    await replaceRenewStore.purgeValidationResponse();
+
+    callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverAccountPayload.value,
+        },
+        type: 'linkKey',
       }],
       inIframe.value ? 'newTab' : undefined,
     );
@@ -267,6 +303,7 @@ export const useAccountStore = defineStore('account', () => {
     // Getters
     accountActionType,
     // Actions
+    linkKey,
     manage,
     recover,
     replace,

@@ -17,7 +17,7 @@ defineProps<{
 </script>
 
 <template>
-  <div class="flex flex-wrap items-start justify-between gap-8px">
+  <div class="flex flex-wrap items-center justify-between gap-8px">
     <BrandButton
       v-if="!replaceStatusOutput"
       :icon="KeyIcon"

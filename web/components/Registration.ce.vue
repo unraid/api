@@ -32,6 +32,7 @@ import type { RegistrationItemProps } from '~/types/registration';
 
 import KeyActions from '~/components/KeyActions.vue';
 import RegistrationReplaceCheck from '~/components/Registration/ReplaceCheck.vue';
+import RegistrationKeyLinkedStatus from '~/components/Registration/KeyLinkedStatus.vue';
 import RegistrationUpdateExpirationAction from '~/components/Registration/UpdateExpirationAction.vue';
 import UserProfileUptimeExpire from '~/components/UserProfile/UptimeExpire.vue';
 
@@ -39,6 +40,8 @@ const { t } = useI18n();
 
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
+
+const { keyLinkedStatus } = storeToRefs(replaceRenewCheckStore);
 const {
   computedArray,
   arrayWarning,
@@ -103,7 +106,7 @@ const subheading = computed(() => {
 const showTrialExpiration = computed((): boolean => state.value === 'TRIAL' || state.value === 'EEXPIRED');
 const showUpdateEligibility = computed((): boolean => !!(regExp.value));
 const keyInstalled = computed((): boolean => !!(!stateDataError.value && state.value !== 'ENOKEYFILE'));
-const showTransferStatus = computed((): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value));
+const showLinkedAndTransferStatus = computed((): boolean => !!(keyInstalled.value && guid.value && !showTrialExpiration.value));
 // filter out renew action and only display other key actions…renew is displayed in RegistrationUpdateExpirationAction
 const showFilteredKeyActions = computed((): boolean => !!(keyActions.value && keyActions.value?.filter(action => !['renew'].includes(action.name)).length > 0));
 
@@ -189,10 +192,17 @@ const items = computed((): RegistrationItemProps[] => {
             : t('{0} out of {1} devices', [deviceCount.value, computedRegDevs.value === -1 ? t('unlimited') : computedRegDevs.value]),
         }]
       : []),
-    ...(showTransferStatus.value
+    ...(showLinkedAndTransferStatus.value
       ? [{
           label: t('Transfer License to New Flash'),
           component: RegistrationReplaceCheck,
+          componentProps: { t },
+        }]
+      : []),
+    ...(regTo.value && showLinkedAndTransferStatus.value
+      ? [{
+          label: t('Linked to Unraid.net account'),
+          component: RegistrationKeyLinkedStatus,
           componentProps: { t },
         }]
       : []),
