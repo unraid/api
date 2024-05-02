@@ -269,7 +269,7 @@
   "License key actions": "License key actions",
   "License key type": "License key type",
   "OS Update Eligibility Expiration": "OS Update Eligibility Expiration",
-  "Ineligible for updates released after {0}": "Ineligible for updates released after {0}",
+  "Ineligible for feature updates released after {0}": "Ineligible for feature updates released after {0}",
   "Eligible for updates until {0}": "Eligible for updates until {0}",
   "Ineligible as of {0}": "Ineligible as of {0}",
   "Eligible for updates for {0}": "Eligible for updates for {0}",

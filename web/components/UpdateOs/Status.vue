@@ -52,7 +52,7 @@ const regExpOutput = computed(() => {
   }
   return {
     text: regUpdatesExpired.value
-      ? props.t('Ineligible for updates released after {0}', [formattedRegExp.value])
+      ? props.t('Ineligible for feature updates released after {0}', [formattedRegExp.value])
       : props.t('Eligible for updates until {0}', [formattedRegExp.value]),
     title: regUpdatesExpired.value
       ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
