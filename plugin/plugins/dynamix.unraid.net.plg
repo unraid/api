@@ -320,16 +320,24 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR-" ]] && mv -f "$DIR-" "$DIR"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+  # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
+  if [[ -d "$DIR" ]]; then
+    rm -rf "$DIR"
+  fi
+  if [[ -d "$DIR-" ]]; then
+    mv -f "$DIR-" "$DIR"
+  fi
   # delete plugin files from flash drive and OS
   rm -f /boot/config/plugins/dynamix.my.servers/.gitignore
   rm -f /etc/rc.d/rc.unraid-api
@@ -407,23 +415,53 @@ echo
 
 # NOTE: any 'exit 1' after this point will result in a broken install
 
-# Preserve in case plugin is removed
-FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/sbin/upgradepkg && [[ -f "$FILE" ]] && cp -f "$FILE" "$FILE-"
-DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components && [[ -d "$DIR" ]] && mv -f "$DIR" "$DIR-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
-FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE" ]] && mv -f "$FILE" "$FILE-"
+# Loop through the array of preserveFilesDirs and perform actions
+# string param format
+# "{move|copy|move_dir}:{path}:{preventDowngrade|skip}"
+# move: move the file to a backup file
+# copy: copy the file to a backup file
+# move_dir: move the directory to a backup directory
+# preventDowngrade: during plg install, if the file exists, do not overwrite it if the plg manifest version is less than the installed webgui version
+# skip: do not perform any action if there is a manifest version difference
+preserveFilesDirs=(
+  "move:/usr/local/emhttp/plugins/dynamix/Registration.page:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page:skip"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page:skip"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php:preventDowngrade"
+  "copy:/sbin/upgradepkg:skip"
+  "move_dir:/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components:move_dir:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php:preventDowngrade"
+  "move:/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php:preventDowngrade"
+)
+
+preserveAction() {
+    local action="$1"
+    local path="$2"
+
+    if [[ "$action" == "move" ]]; then
+        [[ -f "$path" ]] && mv -f "$path" "$path-"
+    elif [[ "$action" == "copy" ]]; then
+        [[ -f "$path" ]] && cp -f "$path" "$path-"
+    elif [[ "$action" == "move_dir" ]]; then
+        [[ -d "$path" ]] && mv -f "$path" "$path-"
+    fi
+}
+
+# Loop through the array of preserveFilesDirs and perform actions
+for obj in "${preserveFilesDirs[@]}"
+do
+    IFS=':' read -r action path preventType <<< "$obj"
+    preserveAction "$action" "$path" "$preventType"
+done
 
 # patch DefaultPageLayout.php
 # search text:       <?=_('Version')?>: <?=_var($var,'version','?')?><?=$notes?>
@@ -684,9 +722,6 @@ if [[ "${CHANGED}" == "yes" ]]; then
 fi
 
 # Prevent web component file downgrade if the webgui version is newer than the plugin version
-plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
-backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-
 # Function to extract "ts" value from JSON file
 extract_ts() {
     local filepath="$1"
@@ -695,15 +730,45 @@ extract_ts() {
     echo "$ts_value"
 }
 
+preventDowngradeAction() {
+    local action="$1"
+    local path="$2"
+    local preventType="$3" # preventDowngrade or skip
+
+    echo "Checking $path with action $action and preventType $preventType"
+
+    # if skip, do nothing
+    if [[ "$preventType" == "skip" ]]; then
+        return
+    fi
+
+    # restore the "backup" but keep the original backup for the uninstall plg script
+    # otherwise, the uninstall script will NOT be able to restore the original file
+    if [[ "$action" == "move" || "$action" == "copy" ]]; then
+        [[ -f "$path-" ]] && cp -f "$path-" "$path"
+    elif [[ "$action" == "move_dir" ]]; then
+        # if directory exists rm the original and copy the backup
+        # glob expansion via "$path-/"* …yes the * is necessary as we want to copy the contents of the directory
+        [[ -d "$path-" ]] && rm -rf "$path" && mkdir "$path" && cp -rf "$path-/"* "$path"
+    fi
+}
+
 # Extract "ts" values from both files
+plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
+
 plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
 webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
 
 # Compare the "ts" values and return the file path of the higher value
 if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
-    rm -rf "$plgWebComponentPath"
-    mv "$backupWebComponentPath" "$plgWebComponentPath"
-    echo "♻️ Reverted to stock web components"
+    # Loop through the array of preserveFilesDirs and perform actions
+    for obj in "${preserveFilesDirs[@]}"
+    do
+        IFS=':' read -r action path preventType <<< "$obj"
+        preventDowngradeAction "$action" "$path" "$preventType"
+    done
+    echo "♻️ Reverted to stock web component files"
 fi
 
 # start background process to install/start the api and flash backup
@@ -737,7 +802,7 @@ source /etc/unraid-version
 echo
 echo "✅ Uninstall is complete, it is safe to close this window"
 echo
-
+a
 exit 0
 ]]>
 </INLINE>
