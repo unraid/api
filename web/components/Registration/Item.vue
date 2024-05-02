@@ -35,7 +35,13 @@ const evenBgColor = computed(() => {
       class="leading-normal sm:col-span-3"
       :class="!label && 'sm:col-start-2'"
     >
-      <span v-if="text" class="select-all" :class="!error ? 'opacity-75' : ''">
+      <span
+        v-if="text"
+        class="select-all"
+        :class="{
+          'opacity-75': !error,
+        }"
+      >
         {{ text }}
       </span>
       <template v-if="$slots['right']">
