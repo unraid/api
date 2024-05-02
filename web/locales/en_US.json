@@ -356,5 +356,13 @@
   "Update Released": "Update Released",
   "Go to Tools > Update OS for more options.": "Go to Tools > Update OS for more options.",
   "Go to Settings > Notifications to enable automatic OS update notifications for future releases.": "Go to Settings > Notifications to enable automatic OS update notifications for future releases.",
-  "More options": "More options"
+  "More options": "More options",
+  "Unraid OS is up-to-date": "Unraid OS is up-to-date",
+  "Linked to Unraid.net account": "Linked to Unraid.net account",
+  "Refresh": "Refresh",
+  "Unknown": "Unknown",
+  "Enable update notifications": "Enable update notifications",
+  "Link Key": "Link Key",
+  "Not Linked": "Not Linked",
+  "Learn more and link your key to your account": "Learn more and link your key to your account"
 }
