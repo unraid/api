@@ -1,4 +1,4 @@
-import { ONE_DAY_MS, TEN_MINUTES_MS } from '@app/consts';
+import { ONE_DAY_MS, THIRTY_MINUTES_MS } from '@app/consts';
 import { sleep } from '@app/core/utils/misc/sleep';
 import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time';
 import { getters } from '@app/store/index';
@@ -14,7 +14,7 @@ export class WriteFlashFileService {
     public randomizeWriteTime = true;
     public writeNewTimestamp = async (): Promise<number> => {
         const wait = this.randomizeWriteTime
-            ? convertToFuzzyTime(0, TEN_MINUTES_MS)
+            ? convertToFuzzyTime(0, THIRTY_MINUTES_MS)
             : 0;
         await sleep(wait);
         const newDate = new Date();
