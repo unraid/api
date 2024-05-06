@@ -34,6 +34,7 @@ export const FIVE_MINUTES_MS = 5 * ONE_MINUTE;
 export const TEN_MINUTES_MS = 10 * ONE_MINUTE;
 export const THIRTY_MINUTES_MS = 30 * ONE_MINUTE;
 export const ONE_HOUR_MS = 60 * ONE_MINUTE;
+export const ONE_DAY_MS = ONE_HOUR_MS * 24;
 
 // Seconds
 export const ONE_HOUR_SECS = 60 * 60;

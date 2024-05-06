@@ -84,3 +84,5 @@ deploy/*
 .output
 .env*
 !.env.example
+
+fb_keepalive

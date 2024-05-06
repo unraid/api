@@ -20,6 +20,7 @@ test('Returns paths', async () => {
 		  "myservers-config",
 		  "myservers-config-states",
 		  "myservers-env",
+		  "myservers-keepalive",
 		  "keyfile-base",
 		  "machine-id",
 		  "log-base",
