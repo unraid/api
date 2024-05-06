@@ -41,7 +41,6 @@ const { t } = useI18n();
 const replaceRenewCheckStore = useReplaceRenewStore();
 const serverStore = useServerStore();
 
-const { keyLinkedStatus } = storeToRefs(replaceRenewCheckStore);
 const {
   computedArray,
   arrayWarning,
