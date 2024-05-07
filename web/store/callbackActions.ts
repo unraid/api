@@ -86,9 +86,9 @@ export const useCallbackActionsStore = defineStore('callbackActions', () => {
         await accountStore.setQueueConnectSignOut(true);
       }
 
-      if (action.type === 'updateOs') {
+      if (action.type === 'updateOs' || action.type === 'downgradeOs') {
         updateOsActionsStore.setUpdateOsAction(action as ExternalUpdateOsAction);
-        await updateOsActionsStore.actOnUpdateOsAction();
+        await updateOsActionsStore.actOnUpdateOsAction(action.type === 'downgradeOs');
 
         if (array.length === 1) { // only 1 action, skip refresh server state
           console.debug('[redirectToCallbackType] updateOs done');

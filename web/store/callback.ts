@@ -23,6 +23,7 @@ export type Redeem = 'redeem';
 export type Renew = 'renew';
 export type Upgrade = 'upgrade';
 export type UpdateOs = 'updateOs';
+export type DowngradeOs = 'downgradeOs';
 export type Manage = 'manage';
 export type MyKeys = 'myKeys';
 export type LinkKey = 'linkKey';
@@ -119,7 +120,7 @@ export interface ExternalKeyActions {
 }
 
 export interface ExternalUpdateOsAction {
-  type: UpdateOs;
+  type: DowngradeOs | UpdateOs;
   sha256: string;
 }
 
