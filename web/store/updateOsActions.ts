@@ -57,6 +57,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   const updateOsAvailable = computed(() => updateOsStore.available);
   /** used when coming back from callback, this will be the release to install */
   const status = ref<'confirming' | 'checking' | 'ineligible' | 'failed' | 'ready' | 'success' | 'updating' | 'downgrading'>('ready');
+  const callbackTypeDowngrade = ref<boolean>(false);
   const callbackUpdateRelease = ref<Release | null>(null);
   const rebootType = computed(() => serverStore.rebootType);
   const rebootTypeText = computed(() => {
@@ -150,11 +151,14 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
     setStatus('confirming');
   };
 
-  const actOnUpdateOsAction = async () => {
+  const actOnUpdateOsAction = async (downgrade: boolean = false) => {
     const foundRelease = await getReleaseFromKeyServer({
       keyfile: keyfile.value,
       sha256: updateAction.value?.sha256 ?? '',
     });
+    if (downgrade) {
+      callbackTypeDowngrade.value = true;
+    }
     console.debug('[redirectToCallbackType] updateOs foundRelease', foundRelease);
     if (!foundRelease) {
       throw new Error('Release not found');
@@ -172,7 +176,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
     setStatus('updating');
     installPlugin({
-      modalTitle: `${callbackUpdateRelease.value.name} Update`,
+      modalTitle: callbackTypeDowngrade.value ? `${callbackUpdateRelease.value.name} Downgrade` : `${callbackUpdateRelease.value.name} Update`,
       pluginUrl: callbackUpdateRelease.value.plugin_url,
       update: false,
     });
@@ -211,6 +215,7 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
 
   return {
     // State
+    callbackTypeDowngrade,
     callbackUpdateRelease,
     osVersion,
     osVersionBranch,
