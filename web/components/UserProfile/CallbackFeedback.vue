@@ -62,6 +62,7 @@ const {
 } = storeToRefs(serverStore);
 const {
   status: updateOsStatus,
+  callbackTypeDowngrade,
   callbackUpdateRelease,
 } = storeToRefs(updateOsActionStore);
 /**
@@ -78,7 +79,7 @@ const isSettingsPage = ref<boolean>(document.location.pathname === '/Settings/Ma
 
 const heading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
-    return props.t('Update Unraid OS confirmation required');
+    return callbackTypeDowngrade.value ? props.t('Downgrade Unraid OS confirmation required') : props.t('Update Unraid OS confirmation required');
   }
   switch (callbackStatus.value) {
     case 'error':
@@ -91,7 +92,7 @@ const heading = computed(() => {
 });
 const subheading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
-    return props.t('Please confirm the update details below');
+    return callbackTypeDowngrade.value ? props.t('Please confirm the downgrade details below') : props.t('Please confirm the update details below');
   }
   if (callbackStatus.value === 'error') {
     return props.t('Something went wrong'); /** @todo show actual error messages */
@@ -317,7 +318,7 @@ const showUpdateEligibility = computed(() => {
             </p>
 
             <p class="text-14px italic opacity-75">
-              {{ t('This update will require a reboot') }}
+              {{ callbackTypeDowngrade ? t('This downgrade will require a reboot') : t('This update will require a reboot') }}
             </p>
           </div>
         </div>
@@ -367,7 +368,7 @@ const showUpdateEligibility = computed(() => {
           />
           <BrandButton
             :icon="CheckIcon"
-            :text="t('Confirm and start update')"
+            :text="callbackTypeDowngrade ? t('Confirm and start downgrade') : t('Confirm and start update')"
             @click="confirmUpdateOs"
           />
         </template>
