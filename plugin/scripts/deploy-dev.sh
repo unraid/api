@@ -2,7 +2,7 @@
 
 # Arguments
 # $1: SSH server name
-# $2: --wc-deploy / deploy web components w/o prompt
+# $2: {--wc-deploy|--wc-build|--wc-skip} / deploy or build web components w/o prompt
 
 # Path to store the last used server name
 state_file="$HOME/.deploy_state"
@@ -45,6 +45,10 @@ exit_code=$?
 # if $2 is --wc-deploy, deploy the web components without prompting
 if [ "$2" = "--wc-deploy" ]; then
   deploy="yes"
+elif [ "$2" = "--wc-build" ]; then
+  deploy="build"
+elif [ "$2" = "--wc-skip" ]; then
+  deploy="no"
 fi
 
 # if not deploy yes then ask
