@@ -275,6 +275,7 @@ class ServerState
             "osVersionBranch" => $this->osVersionBranch,
             "protocol" => _var($_SERVER, 'REQUEST_SCHEME'),
             "rebootType" => $this->rebootDetails->rebootType,
+            "rebootVersion" => $this->rebootDetails->rebootVersion,
             "regDevs" => @(int)$this->var['regDevs'] ?? 0,
             "regGen" => @(int)$this->var['regGen'],
             "regGuid" => @$this->var['regGUID'] ?? '',
