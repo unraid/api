@@ -184,7 +184,7 @@
     "eslint-plugin-prettier": "^5.1.3",
     "eslint-plugin-unicorn": "^50.0.1",
     "eslint-plugin-unused-imports": "^3.0.0",
-    "execa": "^7.1.1",
+    "execa": "^8.0.0",
     "filter-obj": "^5.1.0",
     "got": "^13.0.0",
     "graphql-codegen-typescript-validation-schema": "^0.12.1",
