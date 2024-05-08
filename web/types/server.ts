@@ -134,6 +134,8 @@ export interface ServerAccountCallbackSendPayload {
   name?: string;
   osVersion?: string;
   osVersionBranch?: ServerOsVersionBranch;
+  rebootType?: ServerRebootType;
+  rebootVersion?: string;
   registered: boolean;
   regExp?: number;
   regGen?: number;
