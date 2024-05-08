@@ -76,14 +76,18 @@ class RebootDetails
         if ($this->currentVersion == '' || $this->rebootVersion == '') {
             return; // return to prevent potential incorrect outcome
         }
-        // use version_compare to determine if the reboot is a downgrade or update
-        if (version_compare($this->rebootVersion, $this->currentVersion, '<')) {
-            $this->setRebootType('downgrade');
-        } elseif (version_compare($this->rebootVersion, $this->currentVersion, '>')) {
-            $this->setRebootType('update');
-        } elseif (version_compare($this->rebootVersion, $this->currentVersion) === 0) {
-            // we should never get here, but if we do, then no reboot is required and just return
-            return;
+
+        $compareVersions = version_compare($this->rebootVersion, $this->currentVersion);
+        switch ($compareVersions) {
+            case -1:
+                $this->setRebootType('downgrade');
+                break;
+            case 0:
+                // we should never get here, but if we do, then no reboot is required and just return
+                return;
+            case 1:
+                $this->setRebootType('update');
+                break;
         }
 
         // Detect if third-party drivers were part of the update process
@@ -124,7 +128,7 @@ class RebootDetails
     }
 
     /**
-     * Sets the current version of the unRAID server for comparison with the reboot version.
+     * Sets the current version of the Unraid server for comparison with the reboot version.
      */
     private function setCurrentVersion() {
         // output ex: version="6.13.0-beta.2.1"
