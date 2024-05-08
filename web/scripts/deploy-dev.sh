@@ -22,8 +22,16 @@ fi
 # Save the current server name to the state file
 echo "$server_name" > "$state_file"
 
+# Source directory path
+source_directory=".nuxt/nuxt-custom-elements/dist/unraid-components"
+
+if [ ! -d "$source_directory" ]; then
+  echo "The web components directory does not exist."
+  exit 1
+fi
+
 # Replace the value inside the rsync command with the user's input
-rsync_command="rsync -avz -e ssh .nuxt/nuxt-custom-elements/dist/unraid-components root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers"
+rsync_command="rsync -avz -e ssh $source_directory root@${server_name}:/usr/local/emhttp/plugins/dynamix.my.servers"
 
 echo "Executing the following command:"
 echo "$rsync_command"

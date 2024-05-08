@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Arguments
+# $1: SSH server name
+# $2: --wc-deploy / deploy web components w/o prompt
+
 # Path to store the last used server name
 state_file="$HOME/.deploy_state"
 
@@ -37,6 +41,26 @@ echo "$rsync_command"
 # Execute the rsync command and capture the exit code
 eval "$rsync_command"
 exit_code=$?
+
+# if $2 is --wc-deploy, deploy the web components without prompting
+if [ "$2" = "--wc-deploy" ]; then
+  deploy="yes"
+fi
+
+# if not deploy yes then ask
+if [ -z "$deploy" ]; then
+  echo
+  echo
+  read -rp -e "Do you want to also deploy the built web components? (yes/no/build): " deploy
+fi
+
+if [ "$deploy" = "yes" ]; then
+  cd web || exit
+  npm run deploy-wc:dev
+elif [ "$deploy" = "build" ]; then
+  cd web || exit
+  npm run build:dev
+fi
 
 # Play built-in sound based on the operating system
 if [[ "$OSTYPE" == "darwin"* ]]; then
