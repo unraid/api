@@ -1,5 +1,6 @@
+export type ButtonStyle = 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'underline-hover-red' | 'white' | 'none';
 export interface ButtonProps {
-  btnStyle?: 'black' | 'fill' | 'gray' | 'outline' | 'outline-black' | 'outline-white' | 'underline' | 'underline-hover-red' | 'white' | 'none';
+  btnStyle?: ButtonStyle;
   btnType?: 'button' | 'submit' | 'reset';
   class?: string;
   click?: () => void;
