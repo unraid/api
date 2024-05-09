@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import {
   ArrowPathIcon,
-  ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
