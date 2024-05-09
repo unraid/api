@@ -14,6 +14,7 @@ import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import type { UserProfileLink } from '~/types/userProfile';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
@@ -41,6 +42,8 @@ const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdates
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
+const anyAvailable = computed(() => available.value || availableWithRenewal.value);
+
 const {
   outputDateTimeReadableDiff: readableDiffRegExp,
   outputDateTimeFormatted: formattedRegExp,
@@ -57,6 +60,30 @@ const regExpOutput = computed(() => {
     title: regUpdatesExpired.value
       ? props.t('Ineligible as of {0}', [readableDiffRegExp.value])
       : props.t('Eligible for free feature updates for {0}', [readableDiffRegExp.value]),
+  };
+});
+
+const showRebootButton = computed(() => rebootType.value === 'downgrade' || rebootType.value === 'update');
+
+const checkButton = computed((): UserProfileLink => {
+  if (!available.value && !availableWithRenewal.value) {
+    return {
+      click: () => {
+        updateOsStore.localCheckForUpdate();
+      },
+      icon: ArrowPathIcon,
+      text: props.t('Check for Update'),
+    };
+  }
+
+  return {
+    click: () => {
+      updateOsStore.setModalOpen(true);
+    },
+    icon: BellAlertIcon,
+    text: availableWithRenewal.value
+      ? props.t('Unraid OS {0} Released', [availableWithRenewal.value])
+      : props.t('Unraid OS {0} Update Available', [available.value]),
   };
 });
 </script>
@@ -117,8 +144,8 @@ const regExpOutput = computed(() => {
         <template v-else>
           <UiBadge
             v-if="rebootType === ''"
-            :color="available || availableWithRenewal ? 'orange' : 'green'"
-            :icon="available || availableWithRenewal ? BellAlertIcon : CheckCircleIcon"
+            :color="anyAvailable ? 'orange' : 'green'"
+            :icon="anyAvailable ? BellAlertIcon : CheckCircleIcon"
           >
             {{ (available
               ? t('Unraid {0} Available', [available])
@@ -145,17 +172,24 @@ const regExpOutput = computed(() => {
         </UiBadge>
       </div>
 
-      <div class="shrink-0">
-        <UpdateOsCallbackButton
-          v-if="showUpdateCheck && rebootType === ''"
-          :t="t"
-        />
-        <BrandButton
-          v-else-if="rebootType === 'downgrade' || rebootType === 'update'"
-          :icon="ArrowPathIcon"
-          :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade to {0}', [rebootVersion]) : t('Reboot Now to Update to {0}', [rebootVersion])"
-          @click="updateOsActionsStore.rebootServer()"
-        />
+      <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center">
+        <span v-if="showRebootButton">
+          <BrandButton
+            :btn-style="anyAvailable ? 'outline' : 'fill'"
+            :icon="ArrowPathIcon"
+            :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade to {0}', [rebootVersion]) : t('Reboot Now to Update to {0}', [rebootVersion])"
+            @click="updateOsActionsStore.rebootServer()"
+          />
+        </span>
+
+        <span>
+          <BrandButton
+            :btn-style="!anyAvailable ? 'outline' : 'fill'"
+            :icon="checkButton.icon"
+            :text="checkButton.text"
+            @click="checkButton.click()"
+          />
+        </span>
       </div>
     </div>
   </div>
