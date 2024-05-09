@@ -4,7 +4,10 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { computed } from 'vue';
 
-import { WebguiCheckForUpdate } from '~/composables/services/webgui';
+import {
+  WebguiCheckForUpdate,
+  WebguiUpdateCancel,
+} from '~/composables/services/webgui';
 import { useServerStore } from '~/store/server';
 import type { ServerUpdateOsResponse } from '~/types/server';
 /**
@@ -70,6 +73,18 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     }
   };
 
+  const cancelUpdate = async (): Promise<void> => {
+    try {
+      const response = await WebguiUpdateCancel();
+      if (!response.success) {
+        throw new Error('Unable to cancel update');
+      }
+      window.location.reload();
+    } catch (error) {
+      throw new Error('[cancelUpdate] Error cancelling update');
+    }
+  };
+
   const setModalOpen = (val: boolean) => {
     modalOpen.value = val;
   };
@@ -86,6 +101,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
     availableRequiresAuth,
     // actions
     localCheckForUpdate,
+    cancelUpdate,
     setModalOpen,
   };
 });
