@@ -34,7 +34,6 @@ const {
   keyActions,
   connectPluginInstalled,
   rebootType,
-  rebootVersion,
   registered,
   regUpdatesExpired,
   stateData,
