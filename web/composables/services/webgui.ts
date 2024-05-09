@@ -142,3 +142,25 @@ export const WebguiUpdateIgnore = async (payload: WebguiUnraidCheckPayload): Pro
     throw new Error('Error ignoring update');
   }
 };
+
+export interface WebguiUpdateCancelResponse {
+  message?: string;
+  success?: boolean;
+}
+export const WebguiUpdateCancel = async (): Promise<WebguiUpdateCancelResponse> => {
+  console.debug('[WebguiUpdateCancel]');
+  try {
+    const response = await request
+      .url('/plugins/dynamix.plugin.manager/include/UnraidUpdateCancel.php')
+      .get()
+      .json(json => json as WebguiUpdateCancelResponse)
+      .catch((error) => {
+        console.error('[WebguiUpdateCancel] catch failed to execute UpdateUpdateCancel', error);
+        throw new Error('Error attempting to revert OS files to cancel update');
+      });
+    return response as WebguiUpdateCancelResponse;
+  } catch (error) {
+    console.error('[WebguiUpdateCancel] catch failed to execute UpdateUpdateCancel', error);
+    throw new Error('Error attempting to revert OS files to cancel update');
+  }
+};

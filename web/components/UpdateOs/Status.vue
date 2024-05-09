@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {
   ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -11,10 +12,11 @@ import { storeToRefs } from 'pinia';
 
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import useDateTimeHelper from '~/composables/dateTime';
+import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
-import type { UserProfileLink } from '~/types/userProfile';
+import type { ButtonProps } from '~/types/ui/button';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
@@ -34,6 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
 });
 
+const accountStore = useAccountStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
@@ -65,7 +68,7 @@ const regExpOutput = computed(() => {
 
 const showRebootButton = computed(() => rebootType.value === 'downgrade' || rebootType.value === 'update');
 
-const checkButton = computed((): UserProfileLink => {
+const checkButton = computed((): ButtonProps => {
   if (!available.value && !availableWithRenewal.value) {
     return {
       click: () => {
@@ -187,7 +190,16 @@ const checkButton = computed((): UserProfileLink => {
             :btn-style="!anyAvailable ? 'outline' : 'fill'"
             :icon="checkButton.icon"
             :text="checkButton.text"
-            @click="checkButton.click()"
+            @click="checkButton.click"
+          />
+        </span>
+
+        <span v-if="rebootType !== ''">
+          <BrandButton
+            btn-style="outline"
+            :icon="XCircleIcon"
+            :text="t('Cancel {0}', [rebootType === 'downgrade' ? t('Downgrade') : t('Update')])"
+            @click="updateOsStore.cancelUpdate()"
           />
         </span>
       </div>
