@@ -8,21 +8,22 @@ class UnraidUpdateCancel
   private $USR_LOCAL_PLUGIN_UNRAID_PATH;
 
   public function __construct() {
-      $this->PLG_FILENAME = "unRAIDServer.plg";
-      $this->PLG_BOOT = "/boot/config/plugins/{$this->PLG_FILENAME}";
-      $this->PLG_VAR = "/var/log/plugins/{$this->PLG_FILENAME}";
-      $this->USR_LOCAL_PLUGIN_UNRAID_PATH = "/usr/local/emhttp/plugins/unRAIDServer";
+    $this->PLG_FILENAME = "unRAIDServer.plg";
+    $this->PLG_BOOT = "/boot/config/plugins/{$this->PLG_FILENAME}";
+    $this->PLG_VAR = "/var/log/plugins/{$this->PLG_FILENAME}";
+    $this->USR_LOCAL_PLUGIN_UNRAID_PATH = "/usr/local/emhttp/plugins/unRAIDServer";
 
-      // Handle the cancellation
-      $revertResult = $this->revertFiles();
-      // Return JSON response for front-end client
-      $statusCode = $revertResult['success'] ? 200 : 500;
-      http_response_code($statusCode);
-      header('Content-Type: application/json');
-      echo json_encode($revertResult);
+    // Handle the cancellation
+    $revertResult = $this->revertFiles();
+    // Return JSON response for front-end client
+    $statusCode = $revertResult['success'] ? 200 : 500;
+    http_response_code($statusCode);
+    header('Content-Type: application/json');
+    echo json_encode($revertResult);
   }
 
   public function revertFiles() {
+    try {
       $command = '/sbin/mount | grep -q "/boot/previous/bz"';
       exec($command, $output, $returnCode);
 
@@ -30,30 +31,29 @@ class UnraidUpdateCancel
         return ['success' => true]; // No upgrade needed
       }
 
-      try {
-        shell_exec("mv -f /boot/previous/* /boot");
+      shell_exec("mv -f /boot/previous/* /boot");
 
-        // Remove plugin boot file and update check result.json
-        unlink($this->PLG_BOOT);
-        unlink("/tmp/unraidcheck/result.json");
+      // Remove plugin boot file and update check result.json
+      unlink($this->PLG_BOOT);
+      unlink("/tmp/unraidcheck/result.json");
 
-        // Undo the symlink during upgrade process
-        unlink($this->PLG_VAR);
-        symlink("{$this->USR_LOCAL_PLUGIN_UNRAID_PATH}/{$this->PLG_FILENAME}", $this->PLG_VAR);
+      // Undo the symlink during upgrade process
+      unlink($this->PLG_VAR);
+      symlink("{$this->USR_LOCAL_PLUGIN_UNRAID_PATH}/{$this->PLG_FILENAME}", $this->PLG_VAR);
 
-        // Restore README.md by echoing the content into the file
-        $readmeFile = "{$this->USR_LOCAL_PLUGIN_UNRAID_PATH}/README.md";
-        $readmeContent = "**Unraid OS**\n\n";
-        $readmeContent .= "Unraid OS by [Lime Technology, Inc.](https://lime-technology.com).\n";
-        file_put_contents($readmeFile, $readmeContent);
+      // Restore README.md by echoing the content into the file
+      $readmeFile = "{$this->USR_LOCAL_PLUGIN_UNRAID_PATH}/README.md";
+      $readmeContent = "**Unraid OS**\n\n";
+      $readmeContent .= "Unraid OS by [Lime Technology, Inc.](https://lime-technology.com).\n";
+      file_put_contents($readmeFile, $readmeContent);
 
-        return ['success' => true]; // Upgrade handled successfully
-      } catch (\Throwable $th) {
-        return [
-          'success' => false,
-          'message' => $th->getMessage(),
-        ];
-      }
+      return ['success' => true]; // Upgrade handled successfully
+    } catch (\Throwable $th) {
+      return [
+        'success' => false,
+        'message' => $th->getMessage(),
+      ];
+    }
   }
 }
 
