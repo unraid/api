@@ -79,6 +79,13 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       if (!response.success) {
         throw new Error('Unable to cancel update');
       }
+      // if current path is /Tools/Update, then we should redirect to /Tools
+      // otherwise it will redirect to the account update os page.
+      if (window.location.pathname === '/Tools/Update') {
+        window.location.href = '/Tools';
+        return;
+      }
+      // otherwise refresh the page
       window.location.reload();
     } catch (error) {
       throw new Error('[cancelUpdate] Error cancelling update');
