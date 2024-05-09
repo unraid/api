@@ -55,7 +55,7 @@ fi
 if [ -z "$deploy" ]; then
   echo
   echo
-  read -rp -e "Do you want to also deploy the built web components? (yes/no/build): " deploy
+  read -rp "Do you want to also deploy the built web components? (yes/no/build): " deploy
 fi
 
 if [ "$deploy" = "yes" ]; then
