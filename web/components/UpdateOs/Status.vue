@@ -12,7 +12,6 @@ import { storeToRefs } from 'pinia';
 
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import useDateTimeHelper from '~/composables/dateTime';
-import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -36,7 +35,6 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
 });
 
-const accountStore = useAccountStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
