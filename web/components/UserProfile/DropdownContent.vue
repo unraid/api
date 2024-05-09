@@ -5,6 +5,7 @@ import {
   ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   CogIcon,
+  ExclamationTriangleIcon,
   KeyIcon,
   UserIcon,
 } from '@heroicons/vue/24/solid';
@@ -13,6 +14,8 @@ import {
   CONNECT_DASHBOARD,
   WEBGUI_CONNECT_SETTINGS,
   WEBGUI_TOOLS_REGISTRATION,
+  WEBGUI_TOOLS_DOWNGRADE,
+  WEBGUI_TOOLS_UPDATE,
 } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useErrorsStore } from '~/store/errors';
@@ -50,7 +53,7 @@ const signOutAction = computed(() => stateData.value.actions?.filter((act: { nam
  */
 const filteredKeyActions = computed(() => keyActions.value?.filter(action => !['renew'].includes(action.name)));
 
-const manageUnraidNetAccount = computed(() => {
+const manageUnraidNetAccount = computed((): UserProfileLink => {
   return {
     external: true,
     click: () => { accountStore.manage(); },
@@ -60,7 +63,7 @@ const manageUnraidNetAccount = computed(() => {
   };
 });
 
-const updateOsCheckForUpdatesButton = computed(() => {
+const updateOsCheckForUpdatesButton = computed((): UserProfileLink => {
   return {
     click: () => {
       updateOsStore.localCheckForUpdate();
@@ -69,7 +72,7 @@ const updateOsCheckForUpdatesButton = computed(() => {
     text: props.t('Check for Update'),
   };
 });
-const updateOsResponseModalOpenButton = computed(() => {
+const updateOsResponseModalOpenButton = computed((): UserProfileLink => {
   return {
     click: () => {
       updateOsStore.setModalOpen(true);
@@ -81,25 +84,29 @@ const updateOsResponseModalOpenButton = computed(() => {
       : props.t('Unraid OS {0} Update Available', [osUpdateAvailable.value]),
   };
 });
-const updateOsToolsUpdatePageButton = computed(() => {
+const rebootDetectedButton = computed((): UserProfileLink => {
   return {
-    external: true,
-    href: WEBGUI_TOOLS_REGISTRATION.toString(),
-    icon: KeyIcon,
+    href: rebootType.value === 'downgrade'
+      ? WEBGUI_TOOLS_DOWNGRADE.toString()
+      : WEBGUI_TOOLS_UPDATE.toString(),
+    icon: ExclamationTriangleIcon,
     text: rebootType.value === 'downgrade'
-      ? props.t('Reboot Now to Downgrade to {0}', [rebootVersion.value])
-      : props.t('Reboot Now to Update to {0}', [rebootVersion.value]),
+      ? props.t('Reboot Required for Downgrade')
+      : props.t('Reboot Required for Update'),
   };
 });
 
-const updateOsButton = computed(() => {
+const updateOsButtons = computed((): UserProfileLink[] => {
+  const btns = [];
   if (rebootType.value === 'downgrade' || rebootType.value === 'update') {
-    return updateOsToolsUpdatePageButton.value;
+    btns.push(rebootDetectedButton.value);
   }
   if (osUpdateAvailable.value) {
-    return updateOsResponseModalOpenButton.value;
+    btns.push(updateOsResponseModalOpenButton.value);
+  } else {
+    btns.push(updateOsCheckForUpdatesButton.value);
   }
-  return updateOsCheckForUpdatesButton.value;
+  return btns;
 });
 
 const links = computed(():UserProfileLink[] => {
@@ -114,7 +121,7 @@ const links = computed(():UserProfileLink[] => {
       : []),
 
     // ensure we only show the update button when we don't have an error
-    ...(!stateDataError.value ? [updateOsButton.value] : []),
+    ...(!stateDataError.value ? [...updateOsButtons.value] : []),
 
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value
