@@ -37,7 +37,7 @@ class UnraidOsCheck
     private const JSON_FILE_IGNORED = '/tmp/unraidcheck/ignored.json';
     private const JSON_FILE_IGNORED_KEY = 'updateOsIgnoredReleases';
     private const JSON_FILE_RESULT = '/tmp/unraidcheck/result.json';
-    private const PLG_PATH = '/var/log/plugins/unRAIDServer.plg';
+    private const PLG_PATH = '/usr/local/emhttp/plugins/unRAIDServer/unRAIDServer.plg';
 
     public function __construct()
     {
@@ -124,7 +124,7 @@ class UnraidOsCheck
         if ($parsedAltUrl) $params['altUrl'] = $parsedAltUrl;
 
         $urlbase = $parsedAltUrl ?? $defaultUrl;
-        $url     = $urlbase.'?'.http_build_query($params);       
+        $url     = $urlbase.'?'.http_build_query($params);
         $curlinfo = [];
         $response = http_get_contents($url,[],$curlinfo);
         if (array_key_exists('error', $curlinfo)) {
