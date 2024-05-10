@@ -42,7 +42,7 @@ const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdates
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
-const anyAvailable = computed(() => available.value || availableWithRenewal.value);
+const updateAvailable = computed(() => available.value || availableWithRenewal.value);
 
 const {
   outputDateTimeReadableDiff: readableDiffRegExp,
@@ -66,7 +66,7 @@ const regExpOutput = computed(() => {
 const showRebootButton = computed(() => rebootType.value === 'downgrade' || rebootType.value === 'update');
 
 const checkButton = computed((): ButtonProps => {
-  if (!available.value && !availableWithRenewal.value) {
+  if (!updateAvailable.value) {
     return {
       click: () => {
         updateOsStore.localCheckForUpdate();
@@ -144,8 +144,8 @@ const checkButton = computed((): ButtonProps => {
         <template v-else>
           <UiBadge
             v-if="rebootType === ''"
-            :color="anyAvailable ? 'orange' : 'green'"
-            :icon="anyAvailable ? BellAlertIcon : CheckCircleIcon"
+            :color="updateAvailable ? 'orange' : 'green'"
+            :icon="updateAvailable ? BellAlertIcon : CheckCircleIcon"
           >
             {{ (available
               ? t('Unraid {0} Available', [available])
@@ -175,7 +175,7 @@ const checkButton = computed((): ButtonProps => {
       <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center">
         <span v-if="showRebootButton">
           <BrandButton
-            :btn-style="anyAvailable ? 'outline' : 'fill'"
+            :btn-style="updateAvailable ? 'outline' : 'fill'"
             :icon="ArrowPathIcon"
             :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade to {0}', [rebootVersion]) : t('Reboot Now to Update to {0}', [rebootVersion])"
             @click="updateOsActionsStore.rebootServer()"
@@ -184,7 +184,7 @@ const checkButton = computed((): ButtonProps => {
 
         <span>
           <BrandButton
-            :btn-style="!anyAvailable ? 'outline' : 'fill'"
+            :btn-style="!updateAvailable ? 'outline' : 'fill'"
             :icon="checkButton.icon"
             :text="checkButton.text"
             @click="checkButton.click"
