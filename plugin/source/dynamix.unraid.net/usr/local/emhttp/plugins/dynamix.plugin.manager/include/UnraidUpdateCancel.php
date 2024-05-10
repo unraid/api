@@ -28,7 +28,7 @@ class UnraidUpdateCancel
       exec($command, $output, $returnCode);
 
       if ($returnCode !== 0) {
-        return ['success' => true]; // No upgrade needed
+        return ['success' => true]; // Nothing to revert
       }
 
       shell_exec("mv -f /boot/previous/* /boot");
