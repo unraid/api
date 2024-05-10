@@ -160,7 +160,14 @@ _connected() {
   CFG=/var/local/emhttp/myservers.cfg
   [[ ! -f "${CFG}" ]] && return 1
   # shellcheck disable=SC1090
+  source <(sed -nr '/\[remote\]/,/\[/{/username/p}' "${CFG}" 2>/dev/null)
+  # ensure signed in
+  if [ -z "${username}" ]; then
+    return 1
+  fi
+  # shellcheck disable=SC1090
   source <(sed -nr '/\[connectionStatus\]/,/\[/{/minigraph/p}' "${CFG}" 2>/dev/null)
+  # ensure connected
   if [[ -z "${minigraph}" || "${minigraph}" != "CONNECTED" ]]; then
     return 1
   fi
