@@ -31,13 +31,12 @@ class UnraidUpdateCancel
         return ['success' => true]; // Nothing to revert
       }
 
+      // Clear the results of previous unraidcheck run
+      @unlink("/tmp/unraidcheck/result.json");
+
+      // Revert changes made by unRAIDServer.plg
       shell_exec("mv -f /boot/previous/* /boot");
-
-      // Remove plugin boot file and update check result.json
       unlink($this->PLG_BOOT);
-      unlink("/tmp/unraidcheck/result.json");
-
-      // Undo the symlink during upgrade process
       unlink($this->PLG_VAR);
       symlink("{$this->USR_LOCAL_PLUGIN_UNRAID_PATH}/{$this->PLG_FILENAME}", $this->PLG_VAR);
 
