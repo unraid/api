@@ -311,6 +311,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # restore stock files
   FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix/include/.login.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -726,6 +727,17 @@ if [[ "${CHANGED}" == "yes" ]]; then
     echo "⚠️ Reloading Web Server. If this window stops updating for two minutes please close it."
     /etc/rc.d/rc.nginx reload &>/dev/null
   fi
+fi
+
+# Fix long standing bug in login script
+FILE=/usr/local/emhttp/plugins/dynamix/include/.login.php
+if test -f "${FILE}" && grep -q 'if (file_exists($file)) {' "${FILE}" &>/dev/null; then
+  cp "$FILE" "$FILE-"
+  # Find this text: if (file_exists($file)) {
+  OLD='if \(file_exists\(\$file\)\) \{'
+  # Replace with:   if (file_exists($file) && filesize($file) > 0) {
+  NEW='if \(file_exists\(\$file\) \&\& filesize\(\$file\) > 0\) \{'
+  sed -Ei "s#${OLD}#${NEW}#" "${FILE}"
 fi
 
 # Prevent web component file downgrade if the webgui version is newer than the plugin version
