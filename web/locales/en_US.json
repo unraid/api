@@ -183,7 +183,7 @@
   "On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.": "On January 1st, 2023 SSL certificates for unraid.net were deprecated. You MUST provision a new SSL certificate to use our new myunraid.net domain. You can do this on the Settings > Management Access page.",
   "Unraid Connect Error": "Unraid Connect Error",
   "Trial Key Creation Failed": "Trial Key Creation Failed",
-  "Error creatiing a trial key. Please try again later.": "Error creatiing a trial key. Please try again later.",
+  "Error creating a trial key. Please try again later.": "Error creating a trial key. Please try again later.",
   "Extending your free trial by 15 days": "Extending your free trial by 15 days",
   "Please keep this window open": "Please keep this window open",
   "Starting your free 30 day trial": "Starting your free 30 day trial",
