@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.7.0](https://github.com/unraid/api/compare/v3.6.0...v3.7.0) (2024-05-14)
+
+
+### Features
+
+* add a timestamp to flash backup ([#877](https://github.com/unraid/api/issues/877)) ([b868fd4](https://github.com/unraid/api/commit/b868fd46c3886b2182245a61f20be6df65e46abe))
+* add support for outgoing proxies ([#863](https://github.com/unraid/api/issues/863)) ([223693e](https://github.com/unraid/api/commit/223693e0981d5f2884a1f8b8baf03d4dc58e8cb2))
+* array state on registration page ([d36fef0](https://github.com/unraid/api/commit/d36fef0545ddb820e67e8bc6cb42ea3644021d66))
+* downgradeOs callback ([154a976](https://github.com/unraid/api/commit/154a976109f0a32653a2851988420707631327ca))
+* Flash Backup requires connection to mothership ([#868](https://github.com/unraid/api/issues/868)) ([d127208](https://github.com/unraid/api/commit/d127208b5e0f7f9991f515f95b0e266d38cf3287))
+* **plg:** install prevent downgrade of shared page & php files ([#873](https://github.com/unraid/api/issues/873)) ([4ac72b1](https://github.com/unraid/api/commit/4ac72b16692c4246c9d2c0b53b23d8b2d95f5de6))
+* **plg:** plg install prevent web component downgrade ([8703bd4](https://github.com/unraid/api/commit/8703bd498108f5c05562584a708bd2306e53f7a6))
+* postbuild script to add timestamp to web component manifest ([47f08ea](https://github.com/unraid/api/commit/47f08ea3594a91098f67718c0123110c7b5f86f7))
+* registration page server error heading + subheading ([6038ebd](https://github.com/unraid/api/commit/6038ebdf39bf47f2cb5c0b1de84764795374f018))
+* remove cron to download JS daily ([#864](https://github.com/unraid/api/issues/864)) ([33f6d6b](https://github.com/unraid/api/commit/33f6d6b343de07dbe70de863926906736d42f371)), closes [#529](https://github.com/unraid/api/issues/529)
+* ui to allow second update without reboot ([b0f2d10](https://github.com/unraid/api/commit/b0f2d102917f54ab33f0ad10863522b8ff8e3ce5))
+* UI Update OS Cancel ([7c02308](https://github.com/unraid/api/commit/7c02308964d5e21990427a2c626c9db2d9e1fed0))
+* UnraidUpdateCancel script ([b73bdc0](https://github.com/unraid/api/commit/b73bdc021764762ed12dca494e1345412a45c677))
+* **web:** callback types myKeys & linkKey ([c88ee01](https://github.com/unraid/api/commit/c88ee01827396c3fa8a30bb88c4be712c80b1f4f))
+* **web:** Registration key linked to account status ([8f6182d](https://github.com/unraid/api/commit/8f6182d426453b73aa19c5f0f59469fa07571694))
+* **web:** registration page array status messaging ([23ef5a9](https://github.com/unraid/api/commit/23ef5a975e0d5ff0c246c2df5e6c2cb38979d12a))
+
+
+### Bug Fixes
+
+* **api:** readme discord url ([ffd5c6a](https://github.com/unraid/api/commit/ffd5c6afb64956e76df22c77104a21bc22798008))
+* keep minor enhancements from [#872](https://github.com/unraid/api/issues/872) ([#878](https://github.com/unraid/api/issues/878)) ([94a5aa8](https://github.com/unraid/api/commit/94a5aa87b9979fe0f02f884ac61298473bb3271a))
+* plugin file deployment script ([780d87d](https://github.com/unraid/api/commit/780d87d6589a5469f47ac3fdfd50610ecfc394c8))
+* prevent corrupt case model in state.php ([#874](https://github.com/unraid/api/issues/874)) ([4ad31df](https://github.com/unraid/api/commit/4ad31dfea9192146dbd2c90bc64a913c696ab0b7))
+* prevent local dev from throwing ssl error ([051f647](https://github.com/unraid/api/commit/051f6474becf3b25b242cdc6ceee67247b79f8ba))
+* rc.flashbackup needs to check both signed in and connected ([#882](https://github.com/unraid/api/issues/882)) ([ac8068c](https://github.com/unraid/api/commit/ac8068c9b084622d46fe2c9cb320b793c9ea8c52))
+* update os cancel refresh on update page ([213c16b](https://github.com/unraid/api/commit/213c16ba3d5a84ebf4965f9d2f4024c66605a613))
+* **web:** discord url ([1a6f4c6](https://github.com/unraid/api/commit/1a6f4c6db4ef0e5eefac467ec6583b14cb3546c4))
+* **web:** lint unused rebootVersion ([e198ec9](https://github.com/unraid/api/commit/e198ec9d458e262c412c2dcb5a9d279238de1730))
+* **web:** registration component remove unused ref ([76f556b](https://github.com/unraid/api/commit/76f556bd64b95ba96af795c9edfa045ebdff4444))
+
 ## [3.6.0](https://github.com/unraid/api/compare/v3.5.3...v3.6.0) (2024-03-26)
 
 
