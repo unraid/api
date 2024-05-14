@@ -46,7 +46,7 @@
   "Calculating OS Update Eligibility…": "Calculating OS Update Eligibility…",
   "Calculating trial expiration…": "Calculating trial expiration…",
   "Callback redirect type not present or incorrect": "Callback redirect type not present or incorrect",
-  "Cancel {0}": "Cancel {0}"
+  "Cancel {0}": "Cancel {0}",
   "Cancel": "Cancel",
   "Cannot access your USB Flash boot device": "Cannot access your USB Flash boot device",
   "Cannot validate Unraid Trial key": "Cannot validate Unraid Trial key",
@@ -365,5 +365,5 @@
   "Your license key is not eligible for Unraid OS {0}": "Your license key is not eligible for Unraid OS {0}",
   "Your license key's OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.": "Your license key's OS update eligibility has expired. Please renew your license key to enable updates released after your expiration date.",
   "Your Trial has expired": "Your Trial has expired",
-  "Your Trial key has been extended!": "Your Trial key has been extended!",
+  "Your Trial key has been extended!": "Your Trial key has been extended!"
 }
