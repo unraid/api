@@ -95,11 +95,13 @@ const rebootDetectedButton = computed((): UserProfileLink => {
   };
 });
 
-const updateOsButtons = computed((): UserProfileLink[] => {
+const updateOsButton = computed((): UserProfileLink[] => {
   const btns = [];
   if (rebootType.value === 'downgrade' || rebootType.value === 'update') {
     btns.push(rebootDetectedButton.value);
+    return btns;
   }
+
   if (osUpdateAvailable.value) {
     btns.push(updateOsResponseModalOpenButton.value);
   } else {
@@ -120,7 +122,7 @@ const links = computed(():UserProfileLink[] => {
       : []),
 
     // ensure we only show the update button when we don't have an error
-    ...(!stateDataError.value ? [...updateOsButtons.value] : []),
+    ...(!stateDataError.value ? [...updateOsButton.value] : []),
 
     // connect plugin links
     ...(registered.value && connectPluginInstalled.value
