@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.7.1](https://github.com/unraid/api/compare/v3.7.0...v3.7.1) (2024-05-15)
+
+
+### Bug Fixes
+
+* reboot required and available edge case ([#885](https://github.com/unraid/api/issues/885)) ([76e9cdf](https://github.com/unraid/api/commit/76e9cdf81f06a19c2e4c9a40a4d8e062bad2a607))
+
 ## [3.7.0](https://github.com/unraid/api/compare/v3.6.0...v3.7.0) (2024-05-14)
 
 
