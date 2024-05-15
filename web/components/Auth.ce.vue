@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+// eslint-disable vue/no-v-html
 import { storeToRefs } from 'pinia';
 import { useI18n } from 'vue-i18n';
 

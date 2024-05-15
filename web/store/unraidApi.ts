@@ -1,4 +1,4 @@
-// @ts-expect-error
+// @ts-expect-error - ignore that it can't find any declarations
 import { from, ApolloClient, createHttpLink, InMemoryCache, split } from '@apollo/client/core/core.cjs';
 import { onError } from '@apollo/client/link/error';
 import { RetryLink } from '@apollo/client/link/retry';
@@ -30,7 +30,7 @@ const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
 export const useUnraidApiStore = defineStore('unraidApi', () => {
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
-
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const unraidApiClient = ref<ApolloClient<any>>();
   watch(unraidApiClient, (newVal) => {
     if (newVal) {
@@ -82,6 +82,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       }),
     );
 
+    // @typescript-eslint/no-explicit-any-disable-next-line
     const errorLink = onError(({ graphQLErrors, networkError }: any) => {
       if (graphQLErrors) {
         graphQLErrors.map((error: any) => {

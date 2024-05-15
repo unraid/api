@@ -17,6 +17,7 @@ let nonDefaultLocale = false;
  * Unfortunately, this was the only way I could get the data from PHP to vue-i18n :(
  * I tried using i18n.setLocaleMessage() but it didn't work no matter what I tried.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any - window.LOCALE_DATA is set in webgui PHP
 const windowLocaleData = (window as any).LOCALE_DATA || null;
 if (windowLocaleData) {
   try {

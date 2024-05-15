@@ -190,13 +190,13 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
    * By default this will display current version's release notes
    */
   const viewReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => {
-    // @ts-expect-error
+    // @ts-expect-error • global set in the webgui
     if (typeof openChanges === 'function') {
-      // @ts-expect-error
+      // @ts-expect-error • global set in the webgui
       openChanges(`showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle);
-      // @ts-expect-error
+      // @ts-expect-error • global set in the webgui
     } else if (typeof openBox === 'function') {
-      // @ts-expect-error
+      // @ts-expect-error • global set in the webgui
       openBox(`/plugins/dynamix.plugin.manager/include/ShowChanges.php?file=${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle, 600, 900);
     } else {
       alert('Unable to open release notes');

@@ -69,41 +69,48 @@ let regExp: number | undefined;
 let regDevs = 0;
 let regTy = '';
 switch (state) {
-  // @ts-expect-error
+  // @ts-expect-error - bro idk why…
   case 'EEXPIRED':
     expireTime = uptime; // 1 hour ago
-  // @ts-expect-error
+    break;
+  // @ts-expect-error - bro idk why…
   case 'ENOCONN':
-  // @ts-expect-error
+    break;
+  // @ts-expect-error - bro idk why…
   case 'TRIAL':
     expireTime = oneHourFromNow; // in 1 hour
     regTy = 'Trial';
+    break;
   case 'BASIC':
     regDevs = 6;
-  // @ts-expect-error
+    regTy = 'Basic';
+    break;
+  // @ts-expect-error - bro idk why…
   case 'PLUS':
     regDevs = 12;
-  // @ts-expect-error
+    regTy = 'Plus';
+    break;
+  // @ts-expect-error - bro idk why…
   case 'PRO':
-  // @ts-expect-error
+    regDevs = -1;
+    regTy = 'Pro';
+    break;
+  // @ts-expect-error - bro idk why…
   case 'STARTER':
     regDevs = 6;
-    // regExp = oneHourFromNow;
-    // regExp = oneDayFromNow;
     regExp = ninetyDaysAgo;
-    // regExp = uptime;
-    // regExp = 1696363920000; // nori.local's expiration
-  // @ts-expect-error
+    regTy = 'Starter';
+    break;
+  // @ts-expect-error - bro idk why…
   case 'UNLEASHED':
-    // regExp = oneHourFromNow;
-    // regExp = oneDayFromNow;
-    // regExp = oneDayAgo;
-    // regExp = uptime;
-    // regExp = 1696363920000; // nori.local's expiration
-  // @ts-expect-error
+    regDevs = -1;
+    regExp = ninetyDaysAgo;
+    regTy = 'Unleashed';
+    break;
+  // @ts-expect-error - bro idk why…
   case 'LIFETIME':
-    if (regDevs === 0) { regDevs = -1; }
-    if (regTy === '') { regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); } // title case
+    regDevs = -1;
+    regTy = 'Lifetime';
     break;
 }
 
@@ -166,6 +173,7 @@ export const serverState: Server = {
   regTm: twoDaysAgo,
   regTo: 'Zack Spear',
   regTy,
+  regDevs,
   regExp,
   regGuid,
   site: 'http://localhost:4321',
