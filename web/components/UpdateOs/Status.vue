@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import {
   ArrowPathIcon,
+  ArrowTopRightOnSquareIcon,
   BellAlertIcon,
   CheckCircleIcon,
   ExclamationTriangleIcon,
@@ -11,6 +12,7 @@ import { storeToRefs } from 'pinia';
 
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import useDateTimeHelper from '~/composables/dateTime';
+import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
@@ -34,6 +36,7 @@ const props = withDefaults(defineProps<Props>(), {
   subtitle: undefined,
 });
 
+const accountStore = useAccountStore();
 const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
@@ -66,8 +69,20 @@ const regExpOutput = computed(() => {
 const showRebootButton = computed(() => rebootType.value === 'downgrade' || rebootType.value === 'update');
 
 const checkButton = computed((): ButtonProps => {
+  if (showRebootButton.value) {
+    return {
+      btnStyle: 'outline',
+      click: () => {
+        accountStore.updateOs();
+      },
+      icon: ArrowTopRightOnSquareIcon,
+      text: props.t('More options'),
+    };
+  }
+
   if (!updateAvailable.value) {
     return {
+      btnStyle: 'outline',
       click: () => {
         updateOsStore.localCheckForUpdate();
       },
@@ -77,6 +92,7 @@ const checkButton = computed((): ButtonProps => {
   }
 
   return {
+    btnStyle: 'fill',
     click: () => {
       updateOsStore.setModalOpen(true);
     },
@@ -175,7 +191,7 @@ const checkButton = computed((): ButtonProps => {
       <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center">
         <span v-if="showRebootButton">
           <BrandButton
-            :btn-style="updateAvailable ? 'outline' : 'fill'"
+            btn-style="fill"
             :icon="ArrowPathIcon"
             :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade to {0}', [rebootVersion]) : t('Reboot Now to Update to {0}', [rebootVersion])"
             @click="updateOsActionsStore.rebootServer()"
@@ -184,7 +200,7 @@ const checkButton = computed((): ButtonProps => {
 
         <span>
           <BrandButton
-            :btn-style="!updateAvailable ? 'outline' : 'fill'"
+            :btn-style="checkButton.btnStyle"
             :icon="checkButton.icon"
             :text="checkButton.text"
             @click="checkButton.click"
