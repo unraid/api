@@ -1,5 +1,7 @@
 import dayjs, { extend } from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
+import type { ComposerTranslation } from 'vue-i18n';
+
 import type { DateFormatOption, ServerDateTimeFormat, TimeFormatOption } from '~/types/server';
 
 /** @see https://day.js.org/docs/en/display/format#localized-formats */
@@ -57,7 +59,7 @@ const timeFormatOptions: TimeFormatOption[] = [
  */
 const useDateTimeHelper = (
   format: ServerDateTimeFormat | undefined,
-  t: any,
+  t: ComposerTranslation,
   hideMinutesSeconds?: boolean,
   providedDateTime?: number | undefined,
   diffCountUp?: boolean,

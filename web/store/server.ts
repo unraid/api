@@ -29,6 +29,7 @@ import { usePurchaseStore } from '~/store/purchase';
 import { useThemeStore, type Theme } from '~/store/theme';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
+import type { ApolloQueryResult } from '@apollo/client/core/types';
 import type { Config, PartialCloudFragment, serverStateQuery } from '~/composables/gql/graphql';
 import type {
   Server,
@@ -162,7 +163,7 @@ export const useServerStore = defineStore('server', () => {
   const wanFQDN = ref<string>('');
   const combinedKnownOrigins = ref<string[]>([]);
 
-  const apiServerStateRefresh = ref<any>(null);
+  const apiServerStateRefresh = ref<(variables?: Record<string, never> | undefined) => Promise<ApolloQueryResult<serverStateQuery>> | undefined>();
   /**
    * Getters
    */
@@ -1015,10 +1016,10 @@ export const useServerStore = defineStore('server', () => {
     const oldState = state.value;
     const oldRegExp = regExp.value;
 
-    const fromApi = !!apiServerStateRefresh.value;
+    const fromApi = !!(apiServerStateRefresh && apiServerStateRefresh.value);
     // Fetch the server state from the API or PHP
     const response = fromApi
-      ? await apiServerStateRefresh.value()
+      ? await (apiServerStateRefresh && apiServerStateRefresh.value ? apiServerStateRefresh.value() : undefined)
       : await phpServerStateRefresh();
     if (!response) {
       return setTimeout(() => {
@@ -1027,13 +1028,13 @@ export const useServerStore = defineStore('server', () => {
     }
 
     // Extract the new values from the response
-    const newRegistered = fromApi && response?.data ? response.data.owner.username !== 'root' : response.registered;
-    const newState = fromApi && response?.data ? response.data.vars.regState : response.state;
-    const newRegExp = fromApi && response?.data ? Number(response.data.registration.updateExpiration ?? 0) : response.regExp;
+    const newRegistered = fromApi && 'data' in response ? (response.data.owner && response.data.owner.username !== 'root') : (response as Server).registered;
+    const newState = fromApi && 'data' in response ? response.data.vars?.regState : (response as Server).state;
+    const newRegExp = fromApi && 'data' in response ? Number(response.data.registration?.updateExpiration ?? 0) : (response as Server).regExp;
     // Compare the new values to the old values
     const registrationStatusChanged = oldRegistered !== newRegistered;
     const stateChanged = oldState !== newState;
-    const regExpChanged = newRegExp > oldRegExp;
+    const regExpChanged = newRegExp ?? 0 > oldRegExp;
 
     // If the registration status or state changed, stop refreshing
     if (registrationStatusChanged || stateChanged || regExpChanged) {

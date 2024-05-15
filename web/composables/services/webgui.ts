@@ -92,6 +92,10 @@ interface WebguiUnraidCheckPayload {
   version?: string;
 }
 
+interface WebguiUnraidCheckIgnoreResponse {
+  updateOsIgnoredReleases: string[];
+}
+
 export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | unknown> => {
   console.debug('[WebguiCheckForUpdate]');
   try {
@@ -121,7 +125,7 @@ export const WebguiCheckForUpdate = async (): Promise<ServerUpdateOsResponse | u
   }
 };
 
-export const WebguiUpdateIgnore = async (payload: WebguiUnraidCheckPayload): Promise<any | void> => {
+export const WebguiUpdateIgnore = async (payload: WebguiUnraidCheckPayload): Promise<WebguiUnraidCheckIgnoreResponse> => {
   console.debug('[WebguiUpdateIgnore] payload', payload);
   try {
     const response = await request
