@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import type { ServerStateDataAction } from '~/types/server';
@@ -10,7 +11,7 @@ const props = withDefaults(defineProps<{
   filterBy?: string[] | undefined;
   filterOut?: string[] | undefined;
   maxWidth?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }>(), {
   actions: undefined,
   filterBy: undefined,

@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { XMarkIcon } from '@heroicons/vue/24/solid';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 
 export interface Props {
   label: string;
-  t: any;
+  t: ComposerTranslation;
 }
 
 withDefaults(defineProps<Props>(), {

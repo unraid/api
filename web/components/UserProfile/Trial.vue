@@ -1,10 +1,12 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
+
 import { useTrialStore } from '~/store/trial';
 
 export interface Props {
   open?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {

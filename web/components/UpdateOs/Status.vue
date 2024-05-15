@@ -17,6 +17,7 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { ButtonProps } from '~/types/ui/button';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
@@ -24,7 +25,7 @@ export interface Props {
   downgradeNotAvailable?: boolean;
   restoreVersion?: string | undefined;
   showUpdateCheck?: boolean;
-  t: any;
+  t: ComposerTranslation;
   title?: string;
   subtitle?: string;
 }

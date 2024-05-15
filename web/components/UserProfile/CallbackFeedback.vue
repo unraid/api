@@ -11,6 +11,7 @@ import {
   XMarkIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
 import { WEBGUI_CONNECT_SETTINGS, WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
@@ -23,7 +24,7 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 export interface Props {
   open?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {

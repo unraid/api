@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ArrowPathIcon, ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useAccountStore } from '~/store/account';
 import type { ButtonStyle } from '~/types/ui/button';
 
 defineProps<{
   btnStyle?: ButtonStyle;
-  t: any;
+  t: ComposerTranslation;
 }>();
 
 const accountStore = useAccountStore();

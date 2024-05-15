@@ -4,6 +4,7 @@ import {
   KeyIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
@@ -12,7 +13,7 @@ const replaceRenewStore = useReplaceRenewStore();
 const { replaceStatusOutput } = storeToRefs(replaceRenewStore);
 
 defineProps<{
-  t: any;
+  t: ComposerTranslation;
 }>();
 </script>
 

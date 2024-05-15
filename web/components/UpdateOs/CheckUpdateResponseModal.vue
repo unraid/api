@@ -9,6 +9,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useAccountStore } from '~/store/account';
@@ -20,7 +21,7 @@ import type { ButtonProps } from '~/types/ui/button';
 
 export interface Props {
   open?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {

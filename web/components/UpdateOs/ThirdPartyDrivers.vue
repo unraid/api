@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 
 defineProps<{
-  t: any;
+  t: ComposerTranslation;
 }>();
 
 const { rebootTypeText } = storeToRefs(useUpdateOsActionsStore());
