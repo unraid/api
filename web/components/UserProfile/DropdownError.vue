@@ -1,12 +1,13 @@
 <script setup lang="ts">
 // eslint-disable vue/no-v-html
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useErrorsStore } from '~/store/errors';
 import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
-defineProps<{ t: any; }>();
+defineProps<{ t: ComposerTranslation; }>();
 
 const errorsStore = useErrorsStore();
 const { errors } = storeToRefs(errorsStore);

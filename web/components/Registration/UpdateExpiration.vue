@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import useDateTimeHelper from '~/composables/dateTime';
 import { useServerStore } from '~/store/server';
 
 export interface Props {
   componentIs?: string;
-  t: any;
+  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {

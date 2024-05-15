@@ -9,6 +9,7 @@ import {
 import dayjs from 'dayjs';
 import { storeToRefs } from 'pinia';
 import { ref } from 'vue';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
@@ -20,7 +21,7 @@ import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 
 const props = defineProps<{
-  t: any;
+  t: ComposerTranslation;
   releaseDate: string;
   version: string;
 }>();

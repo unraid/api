@@ -5,6 +5,7 @@ import {
   LinkIcon,
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useAccountStore } from '~/store/account';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
@@ -14,7 +15,7 @@ const replaceRenewStore = useReplaceRenewStore();
 const { keyLinkedStatus, keyLinkedOutput } = storeToRefs(replaceRenewStore);
 
 defineProps<{
-  t: any;
+  t: ComposerTranslation;
 }>();
 </script>
 

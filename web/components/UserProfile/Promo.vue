@@ -4,6 +4,7 @@
  */
 import { Switch, SwitchGroup, SwitchLabel } from '@headlessui/vue';
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import useInstallPlugin from '~/composables/installPlugin';
 import { CONNECT_DOCS } from '~/helpers/urls';
@@ -14,7 +15,7 @@ import '~/assets/main.css';
 
 export interface Props {
   open?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }
 
 withDefaults(defineProps<Props>(), {

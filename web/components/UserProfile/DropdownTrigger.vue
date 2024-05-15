@@ -8,13 +8,14 @@ import {
   InformationCircleIcon,
   ShieldExclamationIcon,
 } from '@heroicons/vue/24/solid';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useDropdownStore } from '~/store/dropdown';
 import { useErrorsStore } from '~/store/errors';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 
-const props = defineProps<{ t: any; }>();
+const props = defineProps<{ t: ComposerTranslation; }>();
 
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);

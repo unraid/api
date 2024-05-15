@@ -9,6 +9,7 @@ import {
 } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
 import { computed } from 'vue';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { usePurchaseStore } from '~/store/purchase';
 import { useUpdateOsStore } from '~/store/updateOs';
@@ -17,7 +18,7 @@ import { useUpdateOsChangelogStore } from '~/store/updateOsChangelog';
 
 export interface Props {
   open?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {
