@@ -23,7 +23,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
       <UpcServerStateBuy
         class="text-gamma"
         :title="t('Upgrade Key')"
-        @click="upgradeAction.click()"
+        @click="upgradeAction.click ? upgradeAction.click() : undefined"
       >
         <h5>Unraid OS <em><strong>{{ t(stateData.humanReadable) }}</strong></em></h5>
       </UpcServerStateBuy>
@@ -36,7 +36,7 @@ const upgradeAction = computed((): ServerStateDataAction | undefined => {
       <UpcServerStateBuy
         class="text-orange-dark relative top-[1px] hidden sm:block"
         :title="t('Purchase Key')"
-        @click="purchaseAction.click()"
+        @click="purchaseAction.click ? purchaseAction.click() : undefined"
       >{{ t('Purchase') }}</UpcServerStateBuy>
     </template>
   </span>

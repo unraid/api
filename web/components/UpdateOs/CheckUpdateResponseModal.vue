@@ -254,7 +254,7 @@ const modalWidth = computed(() => {
             :icon="item.icon"
             :icon-right="item.iconRight"
             :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="t(item.text)"
+            :text="t(item.text ?? '')"
             :title="item.title ? t(item.title) : undefined"
             @click="item.click ? item.click() : undefined"
           />
@@ -324,7 +324,7 @@ const modalWidth = computed(() => {
             :icon="item.icon"
             :icon-right="item.iconRight"
             :icon-right-hover-display="item.iconRightHoverDisplay"
-            :text="t(item.text)"
+            :text="t(item.text ?? '')"
             :title="item.title ? t(item.title) : undefined"
             @click="item.click ? item.click() : undefined"
           />

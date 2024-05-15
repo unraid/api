@@ -244,7 +244,7 @@ const items = computed((): RegistrationItemProps[] => {
               :icon="authAction.icon"
               :text="t(authAction.text)"
               :title="authAction.title ? t(authAction.title) : undefined"
-              @click="authAction.click()"
+              @click="authAction.click ? authAction.click() : undefined"
             />
           </span>
         </header>
