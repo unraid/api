@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
-import useFocusTrap from '~/composables/useFocusTrap';
 
 export interface Props {
   centerContent?: boolean;
@@ -28,17 +27,17 @@ const props = withDefaults(defineProps<Props>(), {
 });
 watchEffect(() => {
   // toggle body scrollability
-  return props.open
-    ? document.body.style.setProperty('overflow', 'hidden')
-    : document.body.style.removeProperty('overflow');
+  if (props.open) {
+    document.body.style.setProperty('overflow', 'hidden')
+  } else {
+    document.body.style.removeProperty('overflow');
+  }
 });
 
 const emit = defineEmits(['close']);
 const closeModal = () => {
   emit('close');
 };
-
-const { trapRef } = useFocusTrap();
 
 const ariaLablledById = computed((): string|undefined => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
 
@@ -50,7 +49,6 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
 <template>
   <TransitionRoot appear :show="open" as="template">
     <div
-      ref="trapRef"
       class="fixed inset-0 z-10 overflow-y-auto"
       role="dialog"
       aria-dialog="true"

@@ -1,4 +1,4 @@
-import { XCircleIcon } from '@heroicons/vue/24/solid';
+import type { XCircleIcon } from '@heroicons/vue/24/solid';
 import type { Component } from 'vue';
 
 export type UiBadgePropsColor = 'alpha' | 'beta' | 'gamma' | 'gray' | 'red' | 'yellow' | 'green' | 'blue' | 'indigo' | 'purple' | 'pink' | 'orange' | 'black' | 'white' | 'transparent' | 'current' | 'custom';

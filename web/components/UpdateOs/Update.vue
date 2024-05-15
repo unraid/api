@@ -82,10 +82,10 @@ const flashBackupBasicStatus = ref<'complete' | 'ready' | 'started'>('ready');
 const flashBackupText = computed(() => props.t('Create Flash Backup'));
 const startFlashBackup = () => {
   console.debug('[startFlashBackup]', Date.now());
-  // @ts-ignore – global function provided by the webgui on the update page
+  // @ts-expect-error – global function provided by the webgui on the update page
   if (typeof flashBackup === 'function') {
     flashBackupBasicStatus.value = 'started';
-    // @ts-ignore – global function provided by the webgui on the update page
+    // @ts-expect-error – global function provided by the webgui on the update page
     flashBackup();
     checkFlashBackupStatus();
   } else {

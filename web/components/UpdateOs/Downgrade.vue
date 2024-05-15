@@ -35,7 +35,7 @@ const {
 
 const diagnosticsButton = ref<UserProfileLink | undefined>({
   click: () => {
-    // @ts-ignore – global function provided by the webgui on the update page
+    // @ts-expect-error – global function provided by the webgui on the update page
     downloadDiagnostics();
   },
   icon: FolderArrowDownIcon,
@@ -45,7 +45,7 @@ const diagnosticsButton = ref<UserProfileLink | undefined>({
 
 const downgradeButton = ref<UserProfileLink>({
   click: () => {
-    // @ts-ignore – global function provided by the webgui on the update page
+    // @ts-expect-error – global function provided by the webgui on the update page
     confirmDowngrade();
   },
   name: 'downgrade',

@@ -1,6 +1,6 @@
 import { createI18n } from 'vue-i18n';
 
-import en_US from '@/locales/en_US.json'; // eslint-disable-line camelcase
+import en_US from '@/locales/en_US.json';  
 
 export default defineNuxtPlugin(({ vueApp }) => {
   const i18n = createI18n({
@@ -9,7 +9,7 @@ export default defineNuxtPlugin(({ vueApp }) => {
     locale: 'en_US',
     fallbackLocale: 'en_US',
     messages: {
-      en_US, // eslint-disable-line camelcase
+      en_US,  
     },
   });
 

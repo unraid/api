@@ -14,6 +14,8 @@ import { WEBGUI_TOOLS_DOWNGRADE, WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
+import type { UserProfileLink } from '~/types/userProfile';
+import type { UiBadgeProps, UiBadgePropsColor } from '~/types/ui/badge';
 
 const { t } = useI18n();
 
@@ -25,6 +27,9 @@ const { osVersion, rebootType, stateDataError } = storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { rebootTypeText } = storeToRefs(updateOsActionsStore);
 
+export interface UpdateOsStatus extends UserProfileLink {
+  badge: UiBadgeProps;
+}
 const updateOsStatus = computed(() => {
   if (stateDataError.value) { // only allowed to update when server is does not have a state error
     return null;
@@ -32,8 +37,10 @@ const updateOsStatus = computed(() => {
 
   if (rebootTypeText.value) {
     return {
-      badgeColor: 'yellow',
-      badgeIcon: ExclamationTriangleIcon,
+      badge: {
+        color: 'yellow' as UiBadgePropsColor,
+        icon: ExclamationTriangleIcon,
+      },
       href: rebootType.value === 'downgrade'
         ? WEBGUI_TOOLS_DOWNGRADE.toString()
         : WEBGUI_TOOLS_UPDATE.toString(),
@@ -43,6 +50,10 @@ const updateOsStatus = computed(() => {
 
   if (availableWithRenewal.value || available.value) {
     return {
+      badge: {
+        color: 'orange' as UiBadgePropsColor,
+        icon: BellAlertIcon,
+      },
       click: () => { updateOsStore.setModalOpen(true); },
       text: availableWithRenewal.value
         ? t('Update Released')
@@ -84,12 +95,16 @@ const updateOsStatus = computed(() => {
       @click="updateOsStatus.click ? updateOsStatus.click() : undefined"
     >
       <UiBadge
-        :color="updateOsStatus.badgeColor ?? 'orange'"
-        :icon="updateOsStatus.badgeIcon ?? BellAlertIcon"
+        v-if="updateOsStatus.badge"
+        :color="updateOsStatus.badge.color"
+        :icon="updateOsStatus.badge.icon"
         size="12px"
       >
         {{ updateOsStatus.text }}
       </UiBadge>
+      <template v-else>
+        {{ updateOsStatus.text }}
+      </template>
     </component>
   </div>
 </template>
