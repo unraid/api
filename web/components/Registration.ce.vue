@@ -66,7 +66,7 @@ const {
   tooManyDevices,
 } = storeToRefs(serverStore);
 
-const formattedRegTm = ref<any>();
+const formattedRegTm = ref<string>();
 /**
  * regTm may not have a value until we get a response from the refreshServerState action
  * So we need to watch for this value to be able to format it based on the user's date time preferences.
