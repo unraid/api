@@ -95,7 +95,7 @@ watchEffect(() => {
           :text="t('Extend License')"
           :title="t('Pay your annual fee to continue receiving OS updates.')"
           class="flex-grow"
-          @click="renewAction.click()"
+          @click="renewAction.click ? renewAction.click() : undefined"
         />
         <!-- <BrandButton
           btn-style="black"

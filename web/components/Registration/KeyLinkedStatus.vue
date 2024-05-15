@@ -36,7 +36,7 @@ defineProps<{
         :icon-right="ArrowPathIcon"
         size="16px"
       >
-        {{ t(keyLinkedOutput.text) }}
+        {{ t(keyLinkedOutput.text ?? 'Unknown') }}
       </UiBadge>
     </BrandButton>
     <UiBadge
@@ -45,7 +45,7 @@ defineProps<{
       :icon="keyLinkedOutput.icon"
       size="16px"
     >
-      {{ t(keyLinkedOutput.text) }}
+      {{ t(keyLinkedOutput.text ?? 'Unknown') }}
     </UiBadge>
 
     <span class="inline-flex flex-wrap-items-start gap-8px">
