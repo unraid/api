@@ -9,6 +9,7 @@ import {
   KeyIcon,
   UserIcon,
 } from '@heroicons/vue/24/solid';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import {
   CONNECT_DASHBOARD,
@@ -23,7 +24,7 @@ import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import type { UserProfileLink } from '~/types/userProfile';
 
-const props = defineProps<{ t: any; }>();
+const props = defineProps<{ t: ComposerTranslation; }>();
 
 const accountStore = useAccountStore();
 const errorsStore = useErrorsStore();

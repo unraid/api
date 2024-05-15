@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
+import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {
   centerContent?: boolean;
@@ -10,7 +11,7 @@ export interface Props {
   open?: boolean;
   showCloseX?: boolean;
   success?: boolean;
-  t: any;
+  t: ComposerTranslation;
   tallContent?: boolean;
   title?: string;
 }

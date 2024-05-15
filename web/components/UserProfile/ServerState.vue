@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useServerStore } from '~/store/server';
 import type { ServerStateDataAction } from '~/types/server';
 
-defineProps<{ t: any; }>();
+defineProps<{ t: ComposerTranslation; }>();
 
 const { state, stateData } = storeToRefs(useServerStore());
 

@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
+
 import { useServerStore } from '~/store/server';
 import { useUnraidApiStore } from '~/store/unraidApi';
 
@@ -8,7 +10,7 @@ import '~/assets/main.css';
 
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
-defineProps<{ t: any; }>();
+defineProps<{ t: ComposerTranslation; }>();
 
 const { expireTime, connectPluginInstalled, state, stateData } = storeToRefs(useServerStore());
 const { unraidApiStatus, unraidApiRestartAction } = storeToRefs(useUnraidApiStore());

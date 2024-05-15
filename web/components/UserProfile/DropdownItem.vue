@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
+import type { ComposerTranslation } from 'vue-i18n';
+
 import type { ServerStateDataAction } from '~/types/server';
 import type { UserProfileLink } from '~/types/userProfile';
 
 export interface Props {
   item: ServerStateDataAction | UserProfileLink;
   rounded?: boolean;
-  t: any;
+  t: ComposerTranslation;
 }
 
 const props = withDefaults(defineProps<Props>(), {

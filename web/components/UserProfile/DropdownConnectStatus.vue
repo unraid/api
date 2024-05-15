@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { ExclamationTriangleIcon, CheckCircleIcon, UserCircleIcon } from '@heroicons/vue/24/solid';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import BrandLoading from '~/components/Brand/Loading.vue';
 import { useUnraidApiStore } from '~/store/unraidApi';
 import { useServerStore } from '~/store/server';
 
-const props = defineProps<{ t: any; }>();
+const props = defineProps<{ t: ComposerTranslation; }>();
 
 const { username } = storeToRefs(useServerStore());
 
