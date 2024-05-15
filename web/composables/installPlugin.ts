@@ -8,12 +8,12 @@ const useInstallPlugin = () => {
   const install = (payload: InstallPluginPayload) => {
     console.debug('[installPlugin]', payload);
     try {
-      // @ts-expect-error – `openPlugin` will be included in 6.10.4+ DefaultPageLayout
+      // @ts-expect-error global function defined in the webgui's DefaultPageLayout.php
       if (typeof openPlugin === 'function') {
         const plgUrl = new URL(payload.pluginUrl);
         const installString = `${plgUrl.pathname.replace('.plg', '').substring(1)}:install`; // mimic what is done on the install plg page JS but without the regex that's hard to read
         console.debug('[installPlugin]', { installString, plgUrl });
-        // @ts-expect-error
+        // @ts-expect-error global function defined in the webgui's DefaultPageLayout.php
         openPlugin(
           `plugin ${payload.update ? 'update' : 'install'} ${payload.pluginUrl}${payload.update ? '' : ' forced'}`, // command – `forced` is used to bypass the strcmp check in the plugin manager script being wrong for OS versions
           payload.modalTitle, // title
@@ -23,8 +23,8 @@ const useInstallPlugin = () => {
           1, // hide close button
         );
       } else {
-        // `openBox()` is defined in the webgui's DefaultPageLayout.php and used when openPlugin is not available
-        // @ts-expect-error
+        // 
+        // @ts-expect-error openBox() is defined in the webgui's DefaultPageLayout.php and used when openPlugin is not available
         openBox(
           `/plugins/dynamix.plugin.manager/scripts/plugin&arg1=install&arg2=${payload.pluginUrl}`,
           payload.modalTitle,

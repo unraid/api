@@ -54,7 +54,7 @@ const {
  * regExp may not have a value until we get a response from the refreshServerState action
  * So we need to watch for this value to be able to format it based on the user's date time preferences.
  */
-const formattedRegExp = ref<any>();
+const formattedRegExp = ref<string>();
 const setFormattedRegExp = () => { // ran in watch on regExp and onBeforeMount
   if (!regExp.value) { return; }
 
@@ -200,10 +200,10 @@ const close = () => {
 };
 
 const renderMainSlot = computed(() => {
-  return checkForUpdatesLoading.value || available.value || availableWithRenewal.value || extraLinks.value?.length > 0 || updateOsIgnoredReleases.value.length > 0;
+  return !!(checkForUpdatesLoading.value || available.value || availableWithRenewal.value || extraLinks.value?.length > 0 || updateOsIgnoredReleases.value.length > 0);
 });
 
-const userFormattedReleaseDate = ref<any>();
+const userFormattedReleaseDate = ref<string>();
 /**
  * availableReleaseDate may not have a value until we get a release in the update os check response.
  * So we need to watch for this value to be able to format it based on the user's date time preferences.

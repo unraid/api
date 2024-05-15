@@ -90,6 +90,7 @@ const heading = computed(() => {
     case 'success':
       return props.t('Success!');
   }
+  return '';
 });
 const subheading = computed(() => {
   if (updateOsStatus.value === 'confirming') {
@@ -141,10 +142,6 @@ const keyInstallStatusCopy = computed((): { text: string; } => {
   let txt2 = props.t('Installed');
   let txt3 = props.t('Install');
   switch (keyInstallStatus.value) {
-    case 'ready':
-      return {
-        text: props.t('Ready to Install Key'),
-      };
     case 'installing':
       if (keyActionType.value === 'trialExtend') { txt1 = props.t('Installing Extended Trial'); }
       if (keyActionType.value === 'recover') { txt1 = props.t('Installing Recovered'); }
@@ -167,15 +164,16 @@ const keyInstallStatusCopy = computed((): { text: string; } => {
       return {
         text: props.t('Failed to {0} {1} Key', [txt3, keyType.value]),
       };
+    case 'ready':
+    default:
+      return {
+        text: props.t('Ready to Install Key'),
+      };
   }
 });
 
 const accountActionStatusCopy = computed((): { text: string; } => {
   switch (accountActionStatus.value) {
-    case 'ready':
-      return {
-        text: props.t('Ready to update Connect account configuration'),
-      };
     case 'waiting':
       return {
         text: accountAction.value?.type === 'signIn'
@@ -199,6 +197,11 @@ const accountActionStatusCopy = computed((): { text: string; } => {
         text: accountAction.value?.type === 'signIn'
           ? props.t('Sign In Failed')
           : props.t('Sign Out Failed'),
+      };
+    case 'ready':
+    default:
+      return {
+        text: props.t('Ready to update Connect account configuration'),
       };
   }
 });

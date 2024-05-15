@@ -18,12 +18,13 @@ const { t } = useI18n();
 const { isRemoteAccess } = storeToRefs(useServerStore());
 
 const wanIp = ref<string | null>();
-const fetchError = ref<any>();
+const fetchError = ref<string>('');
 const loading = ref(false);
 
-const computedError = computed(() => {
+const computedError = computed((): string => {
   if (!props.phpWanIp) { return t('DNS issue, unable to resolve wanip4.unraid.net'); }
   if (fetchError.value) { return fetchError.value; }
+  return '';
 });
 
 onBeforeMount(() => {
