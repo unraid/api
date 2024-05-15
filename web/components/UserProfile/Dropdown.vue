@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { TransitionRoot } from '@headlessui/vue';
 import { storeToRefs } from 'pinia';
+import type { ComposerTranslation } from 'vue-i18n';
 
 import { useDropdownStore } from '~/store/dropdown';
 import { useServerStore } from '~/store/server';
 
-defineProps<{ t: any; }>();
+defineProps<{ t: ComposerTranslation; }>();
 
 const dropdownStore = useDropdownStore();
 
