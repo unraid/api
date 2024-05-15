@@ -50,7 +50,7 @@ const filteredKeyActions = computed((): ServerStateDataAction[] | undefined => {
         :icon-right-hover-display="true"
         :text="t(action.text)"
         :title="action.title ? t(action.title) : undefined"
-        @click="action.click()"
+        @click="action.click ? action.click() : undefined"
       />
     </li>
   </ul>

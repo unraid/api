@@ -33,7 +33,7 @@ defineProps<{
       :icon="replaceStatusOutput.icon"
       size="16px"
     >
-      {{ t(replaceStatusOutput.text) }}
+      {{ t(replaceStatusOutput.text ?? 'Unknown') }}
     </UiBadge>
 
     <BrandButton
