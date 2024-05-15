@@ -111,7 +111,7 @@ export default <Partial<Config>>{
       /**
        * @todo modify prose classes to use pixels for webgui…sadge https://tailwindcss.com/docs/typography-plugin#customizing-the-default-theme
        */
-      // @ts-expect-error
+      // @ts-expect-error - because spending too much time here to figure this out would cost a lot of money
       typography: theme => ({
         DEFAULT: {
           css: {

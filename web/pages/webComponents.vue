@@ -3,7 +3,7 @@ import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
 onBeforeMount(() => {
-  // @ts-expect-error
+  // @ts-expect-error - customElements not providing types here
   nuxtApp.$customElements.registerEntry('UnraidComponents');
 });
 </script>
