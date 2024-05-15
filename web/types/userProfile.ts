@@ -1,8 +1,7 @@
 import type { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
 
 export interface UserProfileLink {
-  // void | Promise<void>
-  click?: any; // @todo be more specific
+  click?: () => void | Promise<void>;
   clickParams?: string[] | number[];
   disabled?: boolean;
   emphasize?: boolean;

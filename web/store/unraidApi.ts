@@ -82,9 +82,10 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       }),
     );
 
-    // @typescript-eslint/no-explicit-any-disable-next-line
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const errorLink = onError(({ graphQLErrors, networkError }: any) => {
       if (graphQLErrors) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         graphQLErrors.map((error: any) => {
           console.error('[GraphQL error]', error);
           const errorMsg = error.error && error.error.message ? error.error.message : error.message;
@@ -144,6 +145,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       operation?: string;
     };
     const splitLinks = split(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ query }: any) => {
         const definition: Definintion = getMainDefinition(query);
         return (

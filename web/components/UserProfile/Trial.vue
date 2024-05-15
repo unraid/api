@@ -43,6 +43,7 @@ const trialStatusCopy = computed((): TrialStatusCopy | null => {
         subheading: props.t('Please wait while the page reloads to install your trial key'),
       };
     case 'ready':
+    default:
       return null;
   }
 });
