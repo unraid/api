@@ -26,7 +26,7 @@ const { authAction, stateData } = storeToRefs(serverStore);
         size="12px"
         :text="t(authAction.text)"
         :title="authAction?.title ? t(authAction?.title) : undefined"
-        @click="authAction.click ? authAction.click() : undefined"
+        @click="authAction.click?.()"
       />
     </span>
   </div>
