@@ -10,7 +10,7 @@ import type {
   Server,
   ServerState,
   // ServerUpdateOsResponse,
-} from '~/types/server';
+} from "~/types/server";
 
 // dayjs plugins
 // extend(customParseFormat);
@@ -46,10 +46,10 @@ import type {
 
 // '1111-1111-5GDB-123412341234' Starter.key = TkJCrVyXMLWWGKZF6TCEvf0C86UYI9KfUDSOm7JoFP19tOMTMgLKcJ6QIOt9_9Psg_t0yF-ANmzSgZzCo94ljXoPm4BESFByR0K7nyY9KVvU8szLEUcBUT3xC2adxLrAXFNxiPeK-mZqt34n16uETKYvLKL_Sr5_JziG5L5lJFBqYZCPmfLMiguFo1vp0xL8pnBH7q8bYoBnePrAcAVb9mAGxFVPEInSPkMBfC67JLHz7XY1Y_K5bYIq3go9XPtLltJ53_U4BQiMHooXUBJCKXodpqoGxq0eV0IhNEYdauAhnTsG90qmGZig0hZalQ0soouc4JZEMiYEcZbn9mBxPg
 
-const state: ServerState = 'BASIC';
-const currentFlashGuid = '1111-1111-CFXF-TEST1234ZACK'; // this is the flash drive that's been booted from
-const regGuid = '1111-1111-CFXF-TEST1234ZACK'; // this guid is registered in key server
-const keyfileBase64 = 'asdf'; // @todo raycast download key to base64
+const state: ServerState = "BASIC" as ServerState;
+const currentFlashGuid = "1111-1111-CFXF-TEST1234ZACK"; // this is the flash drive that's been booted from
+const regGuid = "1111-1111-CFXF-TEST1234ZACK"; // this guid is registered in key server
+const keyfileBase64 = "asdf"; // @todo raycast download key to base64
 
 // const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
 // const newGuid = `1234-1234-${makeid(4)}-123412341234`; // this is a new USB, not registered
@@ -67,58 +67,50 @@ let expireTime = 0;
 let regExp: number | undefined;
 
 let regDevs = 0;
-let regTy = '';
+let regTy = "";
 switch (state) {
-  // @ts-expect-error - bro idk why…
-  case 'EEXPIRED':
+  case "EEXPIRED":
     expireTime = uptime; // 1 hour ago
     break;
-  // @ts-expect-error - bro idk why…
-  case 'ENOCONN':
+  case "ENOCONN":
     break;
-  // @ts-expect-error - bro idk why…
-  case 'TRIAL':
+  case "TRIAL":
     expireTime = oneHourFromNow; // in 1 hour
-    regTy = 'Trial';
+    regTy = "Trial";
     break;
-  case 'BASIC':
+  case "BASIC":
     regDevs = 6;
-    regTy = 'Basic';
+    regTy = "Basic";
     break;
-  // @ts-expect-error - bro idk why…
-  case 'PLUS':
+  case "PLUS":
     regDevs = 12;
-    regTy = 'Plus';
+    regTy = "Plus";
     break;
-  // @ts-expect-error - bro idk why…
-  case 'PRO':
+  case "PRO":
     regDevs = -1;
-    regTy = 'Pro';
+    regTy = "Pro";
     break;
-  // @ts-expect-error - bro idk why…
-  case 'STARTER':
+  case "STARTER":
     regDevs = 6;
     regExp = ninetyDaysAgo;
-    regTy = 'Starter';
+    regTy = "Starter";
     break;
-  // @ts-expect-error - bro idk why…
-  case 'UNLEASHED':
+  case "UNLEASHED":
     regDevs = -1;
     regExp = ninetyDaysAgo;
-    regTy = 'Unleashed';
+    regTy = "Unleashed";
     break;
-  // @ts-expect-error - bro idk why…
-  case 'LIFETIME':
+  case "LIFETIME":
     regDevs = -1;
-    regTy = 'Lifetime';
+    regTy = "Lifetime";
     break;
 }
 
 // const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
-const connectPluginInstalled = '';
+const connectPluginInstalled = "";
 
-const osVersion = '6.12.8';
-const osVersionBranch = 'stable';
+const osVersion = "6.12.8";
+const osVersionBranch = "stable";
 // const parsedRegExp = regExp ? dayjs(regExp).format('YYYY-MM-DD') : undefined;
 
 // const mimicWebguiUnraidCheck = async (): Promise<ServerUpdateOsResponse | undefined> => {
@@ -143,49 +135,49 @@ const osVersionBranch = 'stable';
 // };
 
 export const serverState: Server = {
-  apiKey: 'unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810',
-  avatar: 'https://source.unsplash.com/300x300/?portrait',
+  apiKey: "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
+  avatar: "https://source.unsplash.com/300x300/?portrait",
   config: {
     error: null,
     valid: false,
   },
   connectPluginInstalled,
-  description: 'DevServer9000',
+  description: "DevServer9000",
   deviceCount: 3,
   expireTime,
   flashBackupActivated: !!connectPluginInstalled,
-  flashProduct: 'SanDisk_3.2Gen1',
-  flashVendor: 'USB',
+  flashProduct: "SanDisk_3.2Gen1",
+  flashVendor: "USB",
   guid: currentFlashGuid,
   // "guid": "0781-5583-8355-81071A2B0211",
   inIframe: false,
   // keyfile: 'DUMMY_KEYFILE',
   keyfile: keyfileBase64,
-  lanIp: '192.168.254.36',
-  license: '',
-  locale: 'en_US', // en_US, ja
-  name: 'dev-static',
+  lanIp: "192.168.254.36",
+  license: "",
+  locale: "en_US", // en_US, ja
+  name: "dev-static",
   osVersion,
   osVersionBranch,
   // registered: connectPluginInstalled ? true : false,
   registered: false,
   regGen: 0,
   regTm: twoDaysAgo,
-  regTo: 'Zack Spear',
+  regTo: "Zack Spear",
   regTy,
   regDevs,
   regExp,
   regGuid,
-  site: 'http://localhost:4321',
+  site: "http://localhost:4321",
   state,
   theme: {
     banner: false,
     bannerGradient: false,
-    bgColor: '',
+    bgColor: "",
     descriptionShow: true,
-    metaColor: '',
-    name: 'white',
-    textColor: ''
+    metaColor: "",
+    name: "white",
+    textColor: "",
   },
   // updateOsResponse: {
   //   version: '6.12.6',
@@ -197,6 +189,6 @@ export const serverState: Server = {
   //   sha256: '2f5debaf80549029cf6dfab0db59180e7e3391c059e6521aace7971419c9c4bf',
   // },
   uptime,
-  username: 'zspearmint',
-  wanFQDN: ''
+  username: "zspearmint",
+  wanFQDN: "",
 };
