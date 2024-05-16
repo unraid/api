@@ -3,6 +3,8 @@
 import { storeToRefs } from 'pinia';
 
 import { useErrorsStore } from '~/store/errors';
+import type { ServerStateDataAction } from '~/types/server';
+import type { UserProfileLink } from '~/types/userProfile';
 
 defineProps<{ t: any; }>();
 
@@ -19,7 +21,7 @@ const { errors } = storeToRefs(errorsStore);
       <div class="text-14px px-12px flex flex-col gap-y-8px" :class="{ 'pb-8px': !error.actions }" v-html="t(error.message)" />
       <nav v-if="error.actions">
         <li v-for="(link, idx) in error.actions" :key="`link_${idx}`">
-          <UpcDropdownItem :item="link" :rounded="false" :t="t" />
+          <UpcDropdownItem :item="link as ServerStateDataAction | UserProfileLink" :rounded="false" :t="t" />
         </li>
       </nav>
     </li>

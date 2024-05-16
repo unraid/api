@@ -2,7 +2,6 @@
  * @see https://www.telerik.com/blogs/how-to-trap-focus-modal-vue-3
  */
 import { customRef } from 'vue';
-// eslint-disable-next-line import/named
 import { createFocusTrap } from 'focus-trap';
 
 const useFocusTrap = (focusTrapArgs) => {

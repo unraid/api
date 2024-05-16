@@ -183,20 +183,20 @@ export const useUpdateOsActionsStore = defineStore('updateOsActions', () => {
   };
 
   const rebootServer = () => {
-    // @ts-ignore • global set in the webgui
+    // @ts-expect-error • global set in the webgui
     document.rebootNow.submit();
   };
   /**
    * By default this will display current version's release notes
    */
   const viewReleaseNotes = (modalTitle:string, webguiFilePath?:string|undefined) => {
-    // @ts-ignore
+    // @ts-expect-error
     if (typeof openChanges === 'function') {
-      // @ts-ignore
+      // @ts-expect-error
       openChanges(`showchanges ${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle);
-      // @ts-ignore
+      // @ts-expect-error
     } else if (typeof openBox === 'function') {
-      // @ts-ignore
+      // @ts-expect-error
       openBox(`/plugins/dynamix.plugin.manager/include/ShowChanges.php?file=${webguiFilePath ?? '/var/tmp/unRAIDServer.txt'}`, modalTitle, 600, 900);
     } else {
       alert('Unable to open release notes');

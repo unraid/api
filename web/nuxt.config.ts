@@ -50,6 +50,7 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
     'nuxt-custom-elements',
+    "@nuxt/eslint"
   ],
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
@@ -76,7 +77,6 @@ export default defineNuxtConfig({
   },
   customElements: {
     entries: [
-      // @ts-ignore
       {
         name: 'UnraidComponents',
         tags: [

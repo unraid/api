@@ -53,7 +53,7 @@ export const useErrorsStore = defineStore('errors', () => {
 
   const openTroubleshoot = async (payload: TroubleshootPayload) => {
     try {
-      // @ts-ignore – `FeedbackButton` will be included in 6.10.4+ DefaultPageLayout
+      // @ts-expect-error – `FeedbackButton` will be included in 6.10.4+ DefaultPageLayout
       await FeedbackButton();
       // once the modal is visible we need to select the radio to correctly show the bug report form
       let $modal = document.querySelector('.sweet-alert.visible');
@@ -109,10 +109,10 @@ export const useErrorsStore = defineStore('errors', () => {
       }
       $panels.forEach(($panel: Element) => {
         if ($panel.id === 'troubleshoot_panel') {
-          // @ts-ignore
+          // @ts-expect-error
           $panel.style.display = 'block';
         } else {
-          // @ts-ignore
+          // @ts-expect-error
           $panel.style.display = 'none';
         }
       });
