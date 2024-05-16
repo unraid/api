@@ -2,7 +2,7 @@ export type ButtonStyle = 'black' | 'fill' | 'gray' | 'outline' | 'outline-black
 export interface ButtonProps {
   btnStyle?: ButtonStyle;
   btnType?: 'button' | 'submit' | 'reset';
-  class?: string;
+  class?: string | string[] | Record<string, boolean> | undefined;
   click?: () => void;
   disabled?: boolean;
   download?: boolean;

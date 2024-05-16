@@ -14,6 +14,9 @@ export default <Partial<Config>>{
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'sans': 'clear-sans,ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji',
+      },
       colors: {
         inherit: 'inherit',
         transparent: 'transparent',
@@ -108,7 +111,7 @@ export default <Partial<Config>>{
       /**
        * @todo modify prose classes to use pixels for webgui…sadge https://tailwindcss.com/docs/typography-plugin#customizing-the-default-theme
        */
-      // @ts-ignore
+      // @ts-expect-error
       typography: theme => ({
         DEFAULT: {
           css: {

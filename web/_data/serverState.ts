@@ -69,24 +69,23 @@ let regExp: number | undefined;
 let regDevs = 0;
 let regTy = '';
 switch (state) {
-  // @ts-ignore
+  // @ts-expect-error
   case 'EEXPIRED':
     expireTime = uptime; // 1 hour ago
-  // @ts-ignore
+  // @ts-expect-error
   case 'ENOCONN':
-  // @ts-ignore
+  // @ts-expect-error
   case 'TRIAL':
     expireTime = oneHourFromNow; // in 1 hour
     regTy = 'Trial';
-  // @ts-ignore
   case 'BASIC':
     regDevs = 6;
-  // @ts-ignore
+  // @ts-expect-error
   case 'PLUS':
     regDevs = 12;
-  // @ts-ignore
+  // @ts-expect-error
   case 'PRO':
-  // @ts-ignore
+  // @ts-expect-error
   case 'STARTER':
     regDevs = 6;
     // regExp = oneHourFromNow;
@@ -94,14 +93,14 @@ switch (state) {
     regExp = ninetyDaysAgo;
     // regExp = uptime;
     // regExp = 1696363920000; // nori.local's expiration
-  // @ts-ignore
+  // @ts-expect-error
   case 'UNLEASHED':
     // regExp = oneHourFromNow;
     // regExp = oneDayFromNow;
     // regExp = oneDayAgo;
     // regExp = uptime;
     // regExp = 1696363920000; // nori.local's expiration
-  // @ts-ignore
+  // @ts-expect-error
   case 'LIFETIME':
     if (regDevs === 0) { regDevs = -1; }
     if (regTy === '') { regTy = state.charAt(0).toUpperCase() + state.substring(1).toLowerCase(); } // title case

@@ -57,7 +57,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
   /**
    * If the updateOsResponse does not have a sha256, then the user is required to authenticate to download the update
    */
-  const availableRequiresAuth = computed((): boolean => !updateOsResponse.value?.sha256 ?? false);
+  const availableRequiresAuth = computed((): boolean => !updateOsResponse.value?.sha256);
 
   // actions
   const localCheckForUpdate = async (): Promise<void> => {

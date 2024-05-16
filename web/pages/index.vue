@@ -6,7 +6,7 @@ import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
 onBeforeMount(() => {
-  // @ts-ignore
+  // @ts-expect-error
   nuxtApp.$customElements.registerEntry('UnraidComponents');
 });
 
