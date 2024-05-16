@@ -1,10 +1,9 @@
 <script lang="ts" setup>
 import { serverState } from '~/_data/serverState';
 
-const nuxtApp = useNuxtApp();
+const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
-  // @ts-expect-error - customElements not providing types here
-  nuxtApp.$customElements.registerEntry('UnraidComponents');
+  registerEntry('UnraidComponents');
 });
 </script>
 
