@@ -210,7 +210,7 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
       unraidApiClient.value.stop();
       // (wsLink.value as any).subscriptionClient.close(); // needed if we start using subscriptions
     }
-    unraidApiClient.value = undefined;
+    unraidApiClient.value = null;
     unraidApiStatus.value = "offline";
   };
   /**
