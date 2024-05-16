@@ -109,10 +109,10 @@ export const useErrorsStore = defineStore('errors', () => {
       }
       $panels.forEach(($panel: Element) => {
         if ($panel.id === 'troubleshoot_panel') {
-          // @ts-expect-error - because the webgui is the wild wild west
+          // @ts-expect-error - the webgui feedback modal has different "panel" elements, so we'll automatically select the troubleshooting option for the user
           $panel.style.display = 'block';
         } else {
-          // @ts-expect-error - because the webgui is the wild wild west
+          // @ts-expect-error - the webgui feedback modal has different "panel" elements, so we'll automatically select the troubleshooting option for the user
           $panel.style.display = 'none';
         }
       });
