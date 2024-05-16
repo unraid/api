@@ -1,20 +1,33 @@
-// @ts-expect-error - ignore that it can't find any declarations
-import { from, ApolloClient, createHttpLink, InMemoryCache, split } from '@apollo/client/core/core.cjs';
-import { onError } from '@apollo/client/link/error';
-import { RetryLink } from '@apollo/client/link/retry';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
-import { getMainDefinition } from '@apollo/client/utilities';
-import { ArrowPathIcon, CogIcon } from '@heroicons/vue/24/solid';
-import { provideApolloClient } from '@vue/apollo-composable';
+import {
+  from,
+  ApolloClient,
+  createHttpLink,
+  InMemoryCache,
+  split,
+  // @ts-expect-error - CommonJS doesn't have type definitions
+} from "@apollo/client/core/core.cjs";
+import {
+  type ApolloClient as ApolloClientType,
+  type InMemoryCache as InMemoryCacheType,
+} from "@apollo/client/core";
+import { onError } from "@apollo/client/link/error";
+import { RetryLink } from "@apollo/client/link/retry";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
+import { getMainDefinition } from "@apollo/client/utilities";
+import { ArrowPathIcon, CogIcon } from "@heroicons/vue/24/solid";
+import { provideApolloClient } from "@vue/apollo-composable";
 // import { logErrorMessages } from '@vue/apollo-util';
-import { createClient } from 'graphql-ws';
-import { defineStore, createPinia, setActivePinia } from 'pinia';
-import type { UserProfileLink } from '~/types/userProfile';
+import { createClient } from "graphql-ws";
+import { defineStore, createPinia, setActivePinia } from "pinia";
+import type { UserProfileLink } from "~/types/userProfile";
 
-import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
-import { WEBGUI_GRAPHQL, WEBGUI_SETTINGS_MANAGMENT_ACCESS } from '~/helpers/urls';
-import { useErrorsStore } from '~/store/errors';
-import { useServerStore } from '~/store/server';
+import { WebguiUnraidApiCommand } from "~/composables/services/webgui";
+import {
+  WEBGUI_GRAPHQL,
+  WEBGUI_SETTINGS_MANAGMENT_ACCESS,
+} from "~/helpers/urls";
+import { useErrorsStore } from "~/store/errors";
+import { useServerStore } from "~/store/server";
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -22,40 +35,46 @@ import { useServerStore } from '~/store/server';
  */
 setActivePinia(createPinia());
 
-const ERROR_CORS_403 = 'The CORS policy for this site does not allow access from the specified Origin';
+const ERROR_CORS_403 =
+  "The CORS policy for this site does not allow access from the specified Origin";
 
 const httpEndpoint = WEBGUI_GRAPHQL;
-const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
+const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace("http", "ws"));
 
-export const useUnraidApiStore = defineStore('unraidApi', () => {
+export const useUnraidApiStore = defineStore("unraidApi", () => {
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const unraidApiClient = ref<ApolloClient<any>>();
+  const unraidApiClient = ref<ApolloClientType<InMemoryCacheType> | null>(null);
   watch(unraidApiClient, (newVal) => {
     if (newVal) {
       const apiResponse = serverStore.fetchServerFromApi();
       if (apiResponse) {
         // we have a response, so we're online
-        unraidApiStatus.value = 'online';
+        unraidApiStatus.value = "online";
       }
     }
   });
 
   // const unraidApiErrors = ref<any[]>([]);
-  const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
+  const unraidApiStatus = ref<
+    "connecting" | "offline" | "online" | "restarting"
+  >("offline");
   const prioritizeCorsError = ref(false); // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
   const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
     const { connectPluginInstalled, stateDataError } = serverStore;
-    if (unraidApiStatus.value !== 'offline' || !connectPluginInstalled || stateDataError) {
+    if (
+      unraidApiStatus.value !== "offline" ||
+      !connectPluginInstalled ||
+      stateDataError
+    ) {
       return undefined;
     }
     return {
       click: () => restartUnraidApiClient(),
       emphasize: true,
       icon: ArrowPathIcon,
-      text: 'Restart unraid-api',
+      text: "Restart unraid-api",
     };
   });
 
@@ -64,9 +83,9 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
    */
   const createApolloClient = () => {
     // return; // @todo remove
-    unraidApiStatus.value = 'connecting';
+    unraidApiStatus.value = "connecting";
 
-    const headers = { 'x-api-key': serverStore.apiKey };
+    const headers = { "x-api-key": serverStore.apiKey };
 
     const httpLink = createHttpLink({
       uri: httpEndpoint.toString(),
@@ -79,7 +98,7 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
         connectionParams: () => ({
           headers,
         }),
-      }),
+      })
     );
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -87,28 +106,33 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       if (graphQLErrors) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         graphQLErrors.map((error: any) => {
-          console.error('[GraphQL error]', error);
-          const errorMsg = error.error && error.error.message ? error.error.message : error.message;
-          if (errorMsg && errorMsg.includes('offline')) {
-            unraidApiStatus.value = 'offline';
+          console.error("[GraphQL error]", error);
+          const errorMsg =
+            error.error && error.error.message
+              ? error.error.message
+              : error.message;
+          if (errorMsg && errorMsg.includes("offline")) {
+            unraidApiStatus.value = "offline";
             // attempt to automatically restart the unraid-api
-            if (unraidApiRestartAction) { restartUnraidApiClient(); }
+            if (unraidApiRestartAction) {
+              restartUnraidApiClient();
+            }
           }
           if (errorMsg && errorMsg.includes(ERROR_CORS_403)) {
             prioritizeCorsError.value = true;
             const msg = `<p>The CORS policy for the unraid-api does not allow access from the specified origin.</p><p>If you are using a reverse proxy, you need to copy your origin <strong class="font-mono"><em>${window.location.origin}</em></strong> and paste it into the "Extra Origins" list in the Connect settings.</p>`;
             errorsStore.setError({
-              heading: 'Unraid API • CORS Error',
+              heading: "Unraid API • CORS Error",
               message: msg,
-              level: 'error',
-              ref: 'unraidApiCorsError',
-              type: 'unraidApiGQL',
+              level: "error",
+              ref: "unraidApiCorsError",
+              type: "unraidApiGQL",
               actions: [
                 {
                   href: `${WEBGUI_SETTINGS_MANAGMENT_ACCESS.toString()}#extraOriginsSettings`,
                   icon: CogIcon,
-                  text: 'Go to Connect Settings',
-                }
+                  text: "Go to Connect Settings",
+                },
               ],
             });
           }
@@ -119,8 +143,11 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       if (networkError && !prioritizeCorsError) {
         console.error(`[Network error]: ${networkError}`);
         const msg = networkError.message ? networkError.message : networkError;
-        if (typeof msg === 'string' && msg.includes('Unexpected token < in JSON at position 0')) {
-          return 'Unraid API • CORS Error';
+        if (
+          typeof msg === "string" &&
+          msg.includes("Unexpected token < in JSON at position 0")
+        ) {
+          return "Unraid API • CORS Error";
         }
         return msg;
       }
@@ -143,36 +170,33 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     interface Definintion {
       kind: string;
       operation?: string;
-    };
+    }
     const splitLinks = split(
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       ({ query }: any) => {
         const definition: Definintion = getMainDefinition(query);
         return (
-          definition.kind === 'OperationDefinition' &&
-          definition.operation === 'subscription'
+          definition.kind === "OperationDefinition" &&
+          definition.operation === "subscription"
         );
       },
       wsLink,
-      httpLink,
+      httpLink
     );
     /**
      * @todo as we add retries, determine which we'll need
      * https://www.apollographql.com/docs/react/api/link/introduction/#additive-composition
      * https://www.apollographql.com/docs/react/api/link/introduction/#directional-composition
      */
-    const additiveLink = from([
-      errorLink,
-      retryLink,
-      splitLinks,
-    ]);
+    const additiveLink = from([errorLink, retryLink, splitLinks]);
 
-    unraidApiClient.value = new ApolloClient({
+    const apolloClient = new ApolloClient({
       link: additiveLink,
       cache: new InMemoryCache(),
-    });
+    }) as ApolloClientType<InMemoryCacheType>;
+    unraidApiClient.value = apolloClient;
 
-    provideApolloClient(unraidApiClient.value);
+    provideApolloClient(apolloClient);
   };
   /**
    * Automatically called when an apiKey is unset in the serverStore
@@ -187,14 +211,14 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
       // (wsLink.value as any).subscriptionClient.close(); // needed if we start using subscriptions
     }
     unraidApiClient.value = undefined;
-    unraidApiStatus.value = 'offline';
+    unraidApiStatus.value = "offline";
   };
   /**
    * Can both start and restart the unraid-api depending on it's current status
    */
   const restartUnraidApiClient = async () => {
-    const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
-    unraidApiStatus.value = 'restarting';
+    const command = unraidApiStatus.value === "offline" ? "start" : "restart";
+    unraidApiStatus.value = "restarting";
     try {
       await WebguiUnraidApiCommand({
         csrf_token: serverStore.csrf,
@@ -206,18 +230,18 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
         }
       }, 5000);
     } catch (error) {
-      let errorMessage = 'Unknown error';
-      if (typeof error === 'string') {
+      let errorMessage = "Unknown error";
+      if (typeof error === "string") {
         errorMessage = error.toUpperCase();
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
       errorsStore.setError({
-        heading: 'Error: unraid-api restart',
+        heading: "Error: unraid-api restart",
         message: errorMessage,
-        level: 'error',
-        ref: 'restartUnraidApiClient',
-        type: 'request',
+        level: "error",
+        ref: "restartUnraidApiClient",
+        type: "request",
       });
     }
   };
