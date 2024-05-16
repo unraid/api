@@ -1016,10 +1016,10 @@ export const useServerStore = defineStore('server', () => {
     const oldState = state.value;
     const oldRegExp = regExp.value;
 
-    const fromApi = !!(apiServerStateRefresh && apiServerStateRefresh.value);
+    const fromApi = Boolean(apiServerStateRefresh?.value);
     // Fetch the server state from the API or PHP
     const response = fromApi
-      ? await (apiServerStateRefresh && apiServerStateRefresh.value ? apiServerStateRefresh.value() : undefined)
+      ? await apiServerStateRefresh?.value?.()
       : await phpServerStateRefresh();
     if (!response) {
       return setTimeout(() => {
@@ -1028,13 +1028,28 @@ export const useServerStore = defineStore('server', () => {
     }
 
     // Extract the new values from the response
-    const newRegistered = fromApi && 'data' in response ? (response.data.owner && response.data.owner.username !== 'root') : (response as Server).registered;
-    const newState = fromApi && 'data' in response ? response.data.vars?.regState : (response as Server).state;
-    const newRegExp = fromApi && 'data' in response ? Number(response.data.registration?.updateExpiration ?? 0) : (response as Server).regExp;
+    const output: {
+      newRegistered: boolean,
+      newState: ServerState | ServerState | null,
+      newRegExp: number | null,
+    } = {
+      newRegistered: false,
+      newState: null,
+      newRegExp: null,
+    }
+    if ('data' in response) {
+      output.newRegistered = Boolean(response.data.owner && response.data.owner.username !== 'root');
+      output.newState = response.data.vars?.regState ?? null;
+      output.newRegExp = Number(response.data.registration?.updateExpiration ?? 0);
+    } else {
+      output.newRegistered = Boolean(response.registered);
+      output.newState = response.state;
+      output.newRegExp = Number(response.regExp ?? 0);
+    }
     // Compare the new values to the old values
-    const registrationStatusChanged = oldRegistered !== newRegistered;
-    const stateChanged = oldState !== newState;
-    const regExpChanged = newRegExp ?? 0 > oldRegExp;
+    const registrationStatusChanged = output.newRegistered !== oldRegistered;
+    const stateChanged = output.newState !== oldState;
+    const regExpChanged = output.newRegExp ?? 0 > oldRegExp;
 
     // If the registration status or state changed, stop refreshing
     if (registrationStatusChanged || stateChanged || regExpChanged) {
