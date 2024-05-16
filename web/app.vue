@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 const nuxtApp = useNuxtApp();
+const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
-  // @ts-expect-error - becuase customElements is not a type in nuxtApp and is not provided by the nuxt plugin
-  nuxtApp.$customElements.registerEntry('UnraidComponents');
+  registerEntry('UnraidComponents');
 });
 </script>
 
