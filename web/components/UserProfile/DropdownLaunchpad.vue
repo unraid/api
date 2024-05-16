@@ -41,7 +41,7 @@ const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value ==
             :icon="unraidApiStatus === 'restarting' ? BrandLoadingWhite : unraidApiRestartAction?.icon"
             :text="unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')"
             :title="unraidApiStatus === 'restarting' ? t('Restarting unraid-api…') : t('Restart unraid-api')"
-            @click="unraidApiRestartAction?.click ? unraidApiRestartAction?.click() : undefined"
+            @click="unraidApiRestartAction?.click?.()"
           />
         </li>
       </ul>

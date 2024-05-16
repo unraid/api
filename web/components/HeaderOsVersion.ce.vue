@@ -92,7 +92,7 @@ const updateOsStatus = computed(() => {
       :href="updateOsStatus.href ?? undefined"
       :title="updateOsStatus.title ?? undefined"
       class="group"
-      @click="updateOsStatus.click ? updateOsStatus.click() : undefined"
+      @click="updateOsStatus.click?.()"
     >
       <UiBadge
         v-if="updateOsStatus.badge"
