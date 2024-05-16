@@ -4,8 +4,6 @@ import type { SendPayloads } from '~/store/callback';
 
 import { serverState } from '~/_data/serverState';
 
-const nuxtApp = useNuxtApp();
-
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
