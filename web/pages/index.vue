@@ -5,9 +5,10 @@ import type { SendPayloads } from '~/store/callback';
 import { serverState } from '~/_data/serverState';
 
 const nuxtApp = useNuxtApp();
+
+const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
-  // @ts-expect-error - customElements doesn't provide types
-  nuxtApp.$customElements.registerEntry('UnraidComponents');
+  registerEntry('UnraidComponents');
 });
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
