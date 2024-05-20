@@ -24,7 +24,6 @@ import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 export interface Props {
   downgradeNotAvailable?: boolean;
   restoreVersion?: string | undefined;
-  showUpdateCheck?: boolean;
   t: ComposerTranslation;
   title?: string;
   subtitle?: string;
@@ -32,7 +31,6 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   downgradeNotAvailable: false,
   restoreVersion: undefined,
-  showUpdateCheck: false,
   title: undefined,
   subtitle: undefined,
 });
@@ -189,7 +187,7 @@ const checkButton = computed((): ButtonProps => {
         </UiBadge>
       </div>
 
-      <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center">
+      <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center md:items-end">
         <span v-if="showRebootButton">
           <BrandButton
             btn-style="fill"
