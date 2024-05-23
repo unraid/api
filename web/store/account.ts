@@ -74,6 +74,19 @@ export const useAccountStore = defineStore('account', () => {
   const accountActionType = computed(() => accountAction.value?.type);
 
   // Actions
+  const downgradeOs = async (autoRedirectReplace?: boolean) => {
+    await callbackStore.send(
+      ACCOUNT_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverAccountPayload.value,
+        },
+        type: 'downgradeOs',
+      }],
+      inIframe.value ? 'newTab' : (autoRedirectReplace ? 'replace' : undefined),
+    );
+  };
+
   const manage = () => {
     callbackStore.send(
       ACCOUNT_CALLBACK.toString(),
@@ -303,6 +316,7 @@ export const useAccountStore = defineStore('account', () => {
     // Getters
     accountActionType,
     // Actions
+    downgradeOs,
     manage,
     myKeys,
     linkKey,

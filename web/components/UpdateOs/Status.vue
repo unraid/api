@@ -24,6 +24,7 @@ import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 export interface Props {
   downgradeNotAvailable?: boolean;
   restoreVersion?: string | undefined;
+  showExternalDowngrade?: boolean;
   t: ComposerTranslation;
   title?: string;
   subtitle?: string;
@@ -31,6 +32,7 @@ export interface Props {
 const props = withDefaults(defineProps<Props>(), {
   downgradeNotAvailable: false,
   restoreVersion: undefined,
+  showExternalDowngrade: false,
   title: undefined,
   subtitle: undefined,
 });
@@ -68,11 +70,13 @@ const regExpOutput = computed(() => {
 const showRebootButton = computed(() => rebootType.value === 'downgrade' || rebootType.value === 'update');
 
 const checkButton = computed((): ButtonProps => {
-  if (showRebootButton.value) {
+  if (showRebootButton.value || props.showExternalDowngrade) {
     return {
       btnStyle: 'outline',
       click: () => {
-        accountStore.updateOs();
+        props.showExternalDowngrade
+          ? accountStore.downgradeOs()
+          : accountStore.updateOs();
       },
       icon: ArrowTopRightOnSquareIcon,
       text: props.t('More options'),

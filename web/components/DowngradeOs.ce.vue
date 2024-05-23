@@ -39,7 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const serverStore = useServerStore();
 
-const { rebootType } = storeToRefs(serverStore);
+const { rebootType, osVersionBranch } = storeToRefs(serverStore);
 
 const subtitle = computed(() => {
   if (rebootType.value === 'update') {
@@ -47,6 +47,8 @@ const subtitle = computed(() => {
   }
   return '';
 });
+
+const showExternalDowngrade = computed(() => osVersionBranch.value !== 'stable');
 
 onBeforeMount(() => {
   serverStore.setRebootVersion(props.rebootVersion);
@@ -59,6 +61,7 @@ onBeforeMount(() => {
       :title="t('Downgrade Unraid OS')"
       :subtitle="subtitle"
       :downgrade-not-available="restoreVersion === '' && rebootType === ''"
+      :show-external-downgrade="showExternalDowngrade"
       :t="t"
     />
     <UpdateOsDowngrade
