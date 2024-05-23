@@ -28,7 +28,7 @@ export type Manage = 'manage';
 export type MyKeys = 'myKeys';
 export type LinkKey = 'linkKey';
 export type AccountActionTypes = Troubleshoot | SignIn | SignOut | OemSignOut | Manage | MyKeys | LinkKey;
-export type AccountKeyActionTypes = Recover | Replace | TrialExtend | TrialStart | UpdateOs;
+export type AccountKeyActionTypes = Recover | Replace | TrialExtend | TrialStart | UpdateOs | DowngradeOs;
 export type PurchaseActionTypes = Purchase | Redeem | Renew | Upgrade;
 
 export type ServerActionTypes = AccountActionTypes | AccountKeyActionTypes | PurchaseActionTypes;
