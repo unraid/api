@@ -1,7 +1,18 @@
 <script lang="ts" setup>
 /**
  * Add to webgui via DefaultPageLayout.php
- * Add to footer `echo "<unraid-theme-switcher current='$theme'></unraid-theme-switcher>";`
+ * Find the footer and the PHP that builds it. Search for `annotate('Footer');` for the start of the footer.
+ * 
+ * At the of the footer end replace this PHP
+ * ```
+ * echo "</span></div>";
+ * ```
+ * with the following PHP
+ * ```
+ * echo "</span>";
+ * echo "<unraid-theme-switcher current='$theme'></unraid-theme-switcher>";
+ * echo "</div>";
+ * ```
  */
 import { OnClickOutside } from '@vueuse/components';
 import { storeToRefs } from 'pinia';
