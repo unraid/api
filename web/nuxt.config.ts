@@ -120,6 +120,10 @@ export default defineNuxtConfig({
             name: 'UnraidWanIpCheck',
             path: '@/components/WanIpCheck.ce',
           },
+          {
+            name: 'UnraidThemeSwitcher',
+            path: '@/components/ThemeSwitcher.ce',
+          },
         ],
       },
     ],
