@@ -1,4 +1,8 @@
 <script lang="ts" setup>
+/**
+ * Add to webgui via DefaultPageLayout.php
+ * Add to footer `echo "<unraid-theme-switcher current='$theme'></unraid-theme-switcher>";`
+ */
 import { OnClickOutside } from '@vueuse/components';
 import { storeToRefs } from 'pinia';
 
