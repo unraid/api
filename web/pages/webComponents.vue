@@ -9,7 +9,9 @@ onBeforeMount(() => {
 
 <template>
   <client-only>
-    <unraid-i18n-host class="flex flex-col gap-6 p-6 mx-auto text-black bg-white dark:text-white dark:bg-black">
+    <unraid-i18n-host
+      class="flex flex-col gap-6 p-6 mx-auto text-black bg-white dark:text-white dark:bg-black"
+    >
       <h2 class="text-xl font-semibold font-mono">
         Web Components
       </h2>
@@ -25,6 +27,12 @@ onBeforeMount(() => {
         </div>
         <unraid-user-profile :server="JSON.stringify(serverState)" />
       </header>
+      <hr class="border-black dark:border-white" >
+
+      <h3 class="text-lg font-semibold font-mono">
+        ConnectSettingsCe
+      </h3>
+      <ConnectSettingsCe />
       <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         DownloadApiLogsCe
@@ -54,7 +62,10 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">
         DowngradeOsCe
       </h3>
-      <unraid-downgrade-os restore-release-date="2022-10-10" restore-version="6.11.2" />
+      <unraid-downgrade-os
+        restore-release-date="2022-10-10"
+        restore-version="6.11.2"
+      />
       <hr class="border-black dark:border-white">
       <h3 class="text-lg font-semibold font-mono">
         RegistrationCe

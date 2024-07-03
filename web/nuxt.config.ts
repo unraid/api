@@ -54,6 +54,7 @@ export default defineNuxtConfig({
   ],
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
+    { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
     { path: '~/components/Ui', prefix: 'Ui' },
     { path: '~/components/UserProfile', prefix: 'Upc' },
     { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
@@ -87,6 +88,10 @@ export default defineNuxtConfig({
           {
             name: 'UnraidAuth',
             path: '@/components/Auth.ce',
+          },
+          {
+            name: 'UnraidConnectSettings',
+            path: '@/components/ConnectSettings/ConnectSettings.ce',
           },
           {
             name: 'UnraidDownloadApiLogs',
