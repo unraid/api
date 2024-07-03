@@ -68,7 +68,7 @@ const getRemoteAccessUrlsForAllowedOrigins = (
     return [];
 };
 
-const getExtraOrigins = (): string[] => {
+export const getExtraOrigins = (): string[] => {
     const { extraOrigins } = getters.config().api;
     if (extraOrigins) {
         return extraOrigins

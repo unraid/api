@@ -27,10 +27,21 @@ enum WAN_FORWARD_TYPE {
     STATIC
 }
 
+type RemoteAccess {
+    accessType: WAN_ACCESS_TYPE!
+    forwardType: WAN_FORWARD_TYPE
+    port: Port
+}
+
 input SetupRemoteAccessInput {
     accessType: WAN_ACCESS_TYPE!
     forwardType: WAN_FORWARD_TYPE
     port: Port
+}
+
+type Query {
+    remoteAccess: RemoteAccess!
+    extraAllowedOrigins: [String!]!
 }
 
 type Mutation {

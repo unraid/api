@@ -1,15 +1,22 @@
-import { getAllowedOrigins } from '@app/common/allowed-origins';
 import {
+    getAllowedOrigins,
+    getExtraOrigins,
+} from '@app/common/allowed-origins';
+import {
+    WAN_ACCESS_TYPE,
+    WAN_FORWARD_TYPE,
     type ConnectSignInInput,
     type SetupRemoteAccessInput,
 } from '@app/graphql/generated/api/types';
-import type { Cloud } from '@app/graphql/generated/api/types';
+import type { Cloud, RemoteAccess } from '@app/graphql/generated/api/types';
+
 import { connectSignIn } from '@app/graphql/resolvers/mutation/connect/connect-sign-in';
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud';
 import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql';
+import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
-import { store } from '@app/store/index';
+import { getters, store } from '@app/store/index';
 import { logoutUser } from '@app/store/modules/config';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
@@ -43,6 +50,44 @@ export class CloudResolver {
                 }${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` ||
                 null,
         };
+    }
+
+    @Query()
+    @UseRoles({
+        resource: 'connect',
+        action: 'read',
+        possession: 'own',
+    })
+    public async remoteAccess(): Promise<RemoteAccess> {
+        const hasWanAccess = getters.config().remote.wanaccess === 'yes';
+        const dynamicRemoteAccessSettings: RemoteAccess = {
+            accessType: hasWanAccess
+                ? getters.config().remote.dynamicRemoteAccessType !==
+                  DynamicRemoteAccessType.DISABLED
+                    ? WAN_ACCESS_TYPE.DYNAMIC
+                    : WAN_ACCESS_TYPE.ALWAYS
+                : WAN_ACCESS_TYPE.DISABLED,
+            forwardType: getters.config().remote.upnpEnabled
+                ? WAN_FORWARD_TYPE.UPNP
+                : WAN_FORWARD_TYPE.STATIC,
+            port: getters.config().remote.wanport
+                ? Number(getters.config().remote.wanport)
+                : null,
+        };
+
+        return dynamicRemoteAccessSettings;
+    }
+
+    @Query()
+    @UseRoles({
+        resource: 'connect',
+        action: 'read',
+        possession: 'own',
+    })
+    public async extraAllowedOrigins(): Promise<Array<string>> {
+        const extraOrigins = getExtraOrigins();
+
+        return extraOrigins;
     }
 
     @Mutation()
