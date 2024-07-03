@@ -19,8 +19,8 @@ onMounted(async () => {
 const setRemoteAccess = () => {
   apiSettingsStore.setupRemoteAccess({
     accessType: accessType.value,
-    ...(forwardType ? { forwardType: forwardType.value } : {}),
-    ...(port ? { port: port.value } : {}),
+    ...(forwardType.value ? { forwardType: forwardType.value } : {}),
+    ...(port.value ? { port: port.value } : {}),
   });
 };
 
