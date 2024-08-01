@@ -199,6 +199,7 @@ function deleteLocalRepo() {
   if (is_dir($mainGitDir)) {
     rename($mainGitDir, $tmpGitDir);
     exec('echo "rm -rf '.$tmpGitDir.' &>/dev/null" | at -q f -M now &>/dev/null');
+    write_log("local repo deleted");
   }
 
   // reset state
@@ -207,6 +208,7 @@ function deleteLocalRepo() {
   $arrState['loading'] = '';
   $arrState['error'] = '';
   $arrState['remoteerror'] = '';
+  save_flash_backup_state();
 }
 
 $validCommands = [
@@ -331,6 +333,33 @@ if ($command == 'deactivate') {
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
   deleteLocalRepo();
   response_complete(200, '{}');
+}
+
+// determine size of local repo
+$maxRepoSize = 500 * 1000; // 500 MB, for comparison without output of 'du -s'
+$repoDelFlag = '/boot/config/plugins/dynamix.my.servers/repodeleted';
+$output = [];
+if (file_exists('/boot/.git')) exec('du -s /boot/.git/ | cut -f 1', $output);
+$repoSize = ($output && $output[0]) ? intval($output[0]) : 0;
+if ($repoSize > $maxRepoSize) {
+  if (file_exists($repoDelFlag)) {
+    // the local repo is too large, but we have already auto-deleted it in the past. Need to investigate.
+    $repoDelTime = date('Y-m-d', @file_get_contents($repoDelFlag));
+    write_log("local repo is too large ($repoSize > $maxRepoSize) but was previously auto-deleted on $repoDelTime");
+  } else {
+    // the local repo is too large, deactivate and delete it
+    write_log("local repo is too large ($repoSize > $maxRepoSize)");
+    file_put_contents($repoDelFlag, time());
+    exec_log('git -C /boot remote remove origin');
+    exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
+    deleteLocalRepo();
+    // change command to 'activate' and continue script
+    $command = 'activate';
+    $loadingMessage = 'Activating';
+    save_flash_backup_state($loadingMessage);
+  }
+} else {
+  write_log("local repo size is acceptable ($repoSize < $maxRepoSize)");
 }
 
 // build a list of sha256 hashes of the bzfiles
