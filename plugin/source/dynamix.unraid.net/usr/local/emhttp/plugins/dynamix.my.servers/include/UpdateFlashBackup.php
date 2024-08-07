@@ -329,7 +329,6 @@ if (!empty($loadingMessage)) {
 }
 
 if ($command == 'deactivate') {
-  exec_log('git -C /boot remote remove origin');
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
   deleteLocalRepo();
   response_complete(200, '{}');
@@ -359,7 +358,6 @@ if ($repoSize > $maxRepoSize) {
     // the local repo is too large, delete and reactivate it
     write_log("local repo is too large ($repoSize > $maxRepoSize), about to delete and reactivate");
     file_put_contents($repoDelFlag, time());
-    exec_log('git -C /boot remote remove origin');
     exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
     deleteLocalRepo();
     // change command to 'activate' and continue script
