@@ -7,12 +7,14 @@ Install the [production](https://unraid-dl.sfo2.digitaloceanspaces.com/unraid-ap
 ## Connecting to the API
 
 ### HTTP
+
 This can be accessed by default via `http://tower.local/graphql`.
 
-See https://graphql.org/learn/serving-over-http/#http-methods-headers-and-body
+See <https://graphql.org/learn/serving-over-http/#http-methods-headers-and-body>
 
 ### WS
-If you're using the ApolloClient please see https://github.com/apollographql/subscriptions-transport-ws#full-websocket-transport otherwise see https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md
+
+If you're using the ApolloClient please see <https://github.com/apollographql/subscriptions-transport-ws#full-websocket-transport> otherwise see <https://github.com/apollographql/subscriptions-transport-ws/blob/master/PROTOCOL.md>
 
 <br>
 <hr>
@@ -20,18 +22,17 @@ If you're using the ApolloClient please see https://github.com/apollographql/sub
 
 ## Building in Docker
 
-To get a development environment for testing start by running this docker command: 
+To get a development environment for testing start by running this docker command:
 
-``docker-compose run build-interactive``
+``docker compose run build-interactive``
 
 which will give you an interactive shell inside of the newly build linux container.
 
 To automatically build the plugin run the command below:
 
-``docker-compose run builder``
+``docker compose run builder``
 
-The builder command will build the plugin into deploy/release, and the interactive plugin lets you build the plugin or install node modules how you like. 
-
+The builder command will build the plugin into deploy/release, and the interactive plugin lets you build the plugin or install node modules how you like.
 
 ## Logs
 
@@ -50,13 +51,17 @@ Examples:
 * `LOG_LEVEL=trace LOG_CONTEXT=true LOG_TRANSPORT=file unraid-api start`
 
 Log levels can be increased without restarting the api by issuing this command:
+
 ```
 kill -s SIGUSR2 `pidof unraid-api`
 ```
+
 and decreased via:
+
 ```
 kill -s SIGUSR1 `pidof unraid-api`
 ```
+
 <br>
 <hr>
 <br>
@@ -66,9 +71,11 @@ kill -s SIGUSR1 `pidof unraid-api`
 If the environment variable `LOG_MOTHERSHIP_MESSAGES=true` exists, any data the unraid-api sends to mothership will be saved in clear text here: `/var/log/unraid-api/relay-messages.log`
 
 Examples:
+
 * `LOG_MOTHERSHIP_MESSAGES=true unraid-api start`
 * `LOG_MOTHERSHIP_MESSAGES=true LOG_LEVEL=debug unraid-api start --debug`
 <br>
+
 <hr>
 <br>
 
@@ -78,6 +85,7 @@ Debug mode can be enabled with the `-d` or `--debug` flag.
 This will enable the graphql playground and prevent the application starting as a daemon. Logs will be shown inline rather than saved to a file.
 
 Examples:
+
 * `unraid-api start --debug`
 * `LOG_LEVEL=debug unraid-api start --debug`
 
@@ -86,24 +94,27 @@ Examples:
 <br>
 
 ## Crash API On Demand
+
 The `PLEASE_SEGFAULT_FOR_ME` env var can be to used to make the api crash after 30 seconds:
 
-Examples: 
+Examples:
+
 * `PLEASE_SEGFAULT_FOR_ME=true LOG_LEVEL=debug unraid-api start --debug`
 * `PLEASE_SEGFAULT_FOR_ME=true unraid-api start`
 
 The crash log will be stored here:
+
 * `/var/log/unraid-api/crash.log`
 * `/var/log/unraid-api/crash.json`
 
 `crash.json` just includes the most recent crash, while the reports get appended to `crash.log`.
-
 
 <br>
 <hr>
 <br>
 
 ## Switching between staging and production environments
+
 1. Stop the api: `unraid-api stop`
 2. Switch environments: `unraid-api switch-env`
 3. Start the api: `unraid-api start`
@@ -125,6 +136,7 @@ To get your API key open a terminal on your server and run `cat /boot/config/plu
 ```
 
 Next add the query you want to run and hit the play icon.
+
 ```gql
 query welcome {
   welcome {
@@ -134,6 +146,7 @@ query welcome {
 ```
 
 You should get something like this back.
+
 ```json
 {
   "data": {
@@ -153,6 +166,7 @@ For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/
 <br>
 
 ## Running this locally
+
 ```bash
   MOTHERSHIP_RELAY_WS_LINK=ws://localhost:8000 \ # Switch to local copy of mothership
   PATHS_UNRAID_DATA=$(pwd)/dev/data \ # Where we store plugin data (e.g. permissions.json)
@@ -163,6 +177,7 @@ For exploring the schema visually I'd suggest using [Voyager](https://apis.guru/
   PORT=8500 \ # What port unraid-api should start on (e.g. /var/run/unraid-api.sock or 8000)
   node dist/cli.js --debug # Enable debug logging
 ```
+
 <br>
 <hr>
 <br>
@@ -179,29 +194,36 @@ Pushing to this repo will cause an automatic "rolling" release to be built which
 <br>
 
 ## Using a custom version (e.g. testing a new release)
+
 1. Install the staging or production plugin (links in the Installation section at the top of this file)
 2. Download or build the api tgz file you want
-  - Download from [the releases page](https://github.com/unraid/api/releases)
-  - Build it on your local machine (``docker-compose run builder``) and copy from the `deploy/release` folder
+
+    * Download from [the releases page](https://github.com/unraid/api/releases)
+    * Build it on your local machine (``docker compose run builder``) and copy from the `deploy/release` folder
+
 3. Copy the file to `/boot/config/plugins/dynamix.my.servers/unraid-api.tgz`.
 4. Install the new api: `/etc/rc.d/rc.unraid-api (install / _install)`
-    
-    - `_install` will no start the plugin for you after running, so you can make sure you launch in dev mode
-    -  `install` will start the plugin after install
+
+    * `_install` will no start the plugin for you after running, so you can make sure you launch in dev mode
+    * `install` will start the plugin after install
 5. Start the api: `unraid-api start`
 6. Confirm the version: `unraid-api report`
 
-
 ## Cloning Secrets from AWS
-1. Go here to create security credentials for your user [S3 Creds](https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1&skipRegion=true#/security_credentials)
-2. Export your AWS secrets OR run `aws configure` to setup your environment 
-```
-export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
-export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-export AWS_DEFAULT_REGION=us-east-1
 
-```
-4. Set variables for staging and production to the ARN of the secret you would like to clone:
-  - `STAGING_SECRET_ID`
-  - `PRODUCTION_SECRET_ID`
-3. Run `scripts/copy-env-from-aws.sh` to pull down the secrets into their respective files
+1. Go here to create security credentials for your user [S3 Creds](https://us-east-1.console.aws.amazon.com/iam/home?region=us-east-1&skipRegion=true#/security_credentials)
+2. Export your AWS secrets OR run `aws configure` to setup your environment
+
+    ```sh
+    export AWS_ACCESS_KEY_ID=AKIAIOSFODNN7EXAMPLE
+    export AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    export AWS_DEFAULT_REGION=us-east-1
+
+    ```
+
+3. Set variables for staging and production to the ARN of the secret you would like to clone:
+
+    * `STAGING_SECRET_ID`
+    * `PRODUCTION_SECRET_ID`
+
+4. Run `scripts/copy-env-from-aws.sh` to pull down the secrets into their respective files
