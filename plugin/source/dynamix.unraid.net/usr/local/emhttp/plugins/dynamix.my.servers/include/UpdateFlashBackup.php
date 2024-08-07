@@ -336,7 +336,7 @@ if ($command == 'deactivate') {
 }
 
 // determine size of local repo
-$maxRepoSize = 500 * 1000; // 500 MB, for comparison without output of 'du -s'
+$maxRepoSize = 100 * 1000; // 100 MB, for comparison without output of 'du -s'
 $repoDelFlag = '/boot/config/plugins/dynamix.my.servers/repodeleted';
 $output = [];
 if (file_exists('/boot/.git')) exec('du -s /boot/.git/ | cut -f 1', $output);
