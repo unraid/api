@@ -81,10 +81,10 @@ jobs:
       - name: Build Docker Compose
         run: |
           docker network create mothership_default
-          GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker-compose build builder
+          GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker compose build builder
 
       - name: Run Docker Compose
-        run: GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker-compose run builder npm run coverage
+        run: GIT_SHA=$(git rev-parse --short HEAD) IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') docker compose run builder npm run coverage
 
   lint-web:
     defaults:
