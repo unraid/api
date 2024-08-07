@@ -342,13 +342,22 @@ $output = [];
 if (file_exists('/boot/.git')) exec('du -s /boot/.git/ | cut -f 1', $output);
 $repoSize = ($output && $output[0]) ? intval($output[0]) : 0;
 if ($repoSize > $maxRepoSize) {
+  // the local repo is too large
+  $okToDelRepo = true;
   if (file_exists($repoDelFlag)) {
-    // the local repo is too large, but we have already auto-deleted it in the past. Need to investigate.
-    $repoDelTime = date('Y-m-d', @file_get_contents($repoDelFlag));
-    write_log("local repo is too large ($repoSize > $maxRepoSize) but was previously auto-deleted on $repoDelTime");
-  } else {
-    // the local repo is too large, deactivate and delete it
-    write_log("local repo is too large ($repoSize > $maxRepoSize)");
+    // the local repo is too large, but we have already auto-deleted it in the past. determine how long ago this happened
+    $repoDelTime = intval(@trim(@file_get_contents($repoDelFlag))); // epoch
+    $repoAge = round((time()-$repoDelTime)/(60*60*24)); // days
+    $repoMaxAge = 90; // days
+    if ($repoAge < $repoMaxAge) {
+      // the local repo was deleted and recreated less than repoMaxAge days ago, do not delete
+      write_log("local repo is too large ($repoSize > $maxRepoSize) but was auto-deleted recently ($repoAge < $repoMaxAge)");
+      $okToDelRepo = false;
+    }
+  }
+  if ($okToDelRepo) {
+    // the local repo is too large, delete and reactivate it
+    write_log("local repo is too large ($repoSize > $maxRepoSize), about to delete and reactivate");
     file_put_contents($repoDelFlag, time());
     exec_log('git -C /boot remote remove origin');
     exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
