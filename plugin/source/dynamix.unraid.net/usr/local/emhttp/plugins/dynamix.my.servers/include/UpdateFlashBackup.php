@@ -527,7 +527,7 @@ config/wireguard/peers/*.png
 
 // find large files to exclude from flash backup
 $oversize_files = $return_var = null;
-exec('find /boot/config -type f -size +30M 2>/dev/null | sed "s|^/boot/||g" 2>/dev/null', $oversize_files, $return_var);
+exec('find /boot/config -type f -size +10M 2>/dev/null | sed "s|^/boot/||g" 2>/dev/null', $oversize_files, $return_var);
 if ($oversize_files && is_array($oversize_files)) {
   $gitexclude_text .= "\n# Blacklist large files on this system\n".implode("\n", $oversize_files)."\n";
 }
