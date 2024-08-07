@@ -199,6 +199,7 @@ function deleteLocalRepo() {
   if (is_dir($mainGitDir)) {
     rename($mainGitDir, $tmpGitDir);
     exec('echo "rm -rf '.$tmpGitDir.' &>/dev/null" | at -q f -M now &>/dev/null');
+    write_log("local repo deleted");
   }
 
   // reset state
@@ -207,6 +208,7 @@ function deleteLocalRepo() {
   $arrState['loading'] = '';
   $arrState['error'] = '';
   $arrState['remoteerror'] = '';
+  save_flash_backup_state();
 }
 
 $validCommands = [
@@ -327,10 +329,44 @@ if (!empty($loadingMessage)) {
 }
 
 if ($command == 'deactivate') {
-  exec_log('git -C /boot remote remove origin');
   exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
   deleteLocalRepo();
   response_complete(200, '{}');
+}
+
+// determine size of local repo
+$maxRepoSize = 100 * 1000; // 100 MB, for comparison without output of 'du -s'
+$repoDelFlag = '/boot/config/plugins/dynamix.my.servers/repodeleted';
+$output = [];
+if (file_exists('/boot/.git')) exec('du -s /boot/.git/ | cut -f 1', $output);
+$repoSize = ($output && $output[0]) ? intval($output[0]) : 0;
+if ($repoSize > $maxRepoSize) {
+  // the local repo is too large
+  $okToDelRepo = true;
+  if (file_exists($repoDelFlag)) {
+    // the local repo is too large, but we have already auto-deleted it in the past. determine how long ago this happened
+    $repoDelTime = intval(@trim(@file_get_contents($repoDelFlag))); // epoch
+    $repoAge = round((time()-$repoDelTime)/(60*60*24)); // days
+    $repoMaxAge = 90; // days
+    if ($repoAge < $repoMaxAge) {
+      // the local repo was deleted and recreated less than repoMaxAge days ago, do not delete
+      write_log("local repo is too large ($repoSize > $maxRepoSize) but was auto-deleted recently ($repoAge < $repoMaxAge)");
+      $okToDelRepo = false;
+    }
+  }
+  if ($okToDelRepo) {
+    // the local repo is too large, delete and reactivate it
+    write_log("local repo is too large ($repoSize > $maxRepoSize), about to delete and reactivate");
+    file_put_contents($repoDelFlag, time());
+    exec('/etc/rc.d/rc.flash_backup stop &>/dev/null');
+    deleteLocalRepo();
+    // change command to 'activate' and continue script
+    $command = 'activate';
+    $loadingMessage = 'Activating';
+    save_flash_backup_state($loadingMessage);
+  }
+} else {
+  write_log("local repo size is acceptable ($repoSize < $maxRepoSize)");
 }
 
 // build a list of sha256 hashes of the bzfiles
@@ -457,7 +493,7 @@ if (!file_exists($gitattributes_file) || (file_get_contents($gitattributes_file)
 
 // setup master git exclude file to specify what to include/exclude from repo
 $gitexclude_text = '# file managed by Unraid, do not modify
-# version 1.1
+# version 1.2
 
 # Blacklist everything
 /*
@@ -492,12 +528,13 @@ config/plugins/**/*.tar.bz2
 config/plugins-error
 config/plugins-old-versions
 config/plugins/dockerMan/images
+config/plugins/dynamix.file.integrity/logs
 config/wireguard/peers/*.png
 ';
 
 // find large files to exclude from flash backup
 $oversize_files = $return_var = null;
-exec('find /boot/config -type f -size +30M 2>/dev/null | sed "s|^/boot/||g" 2>/dev/null', $oversize_files, $return_var);
+exec('find /boot/config -type f -size +10M 2>/dev/null | sed "s|^/boot/||g" 2>/dev/null', $oversize_files, $return_var);
 if ($oversize_files && is_array($oversize_files)) {
   $gitexclude_text .= "\n# Blacklist large files on this system\n".implode("\n", $oversize_files)."\n";
 }
