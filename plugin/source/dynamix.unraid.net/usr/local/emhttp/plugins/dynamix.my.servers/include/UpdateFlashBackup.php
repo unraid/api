@@ -486,7 +486,7 @@ if (!file_exists($gitattributes_file) || (file_get_contents($gitattributes_file)
 
 // setup master git exclude file to specify what to include/exclude from repo
 $gitexclude_text = '# file managed by Unraid, do not modify
-# version 1.1
+# version 1.2
 
 # Blacklist everything
 /*
@@ -521,6 +521,7 @@ config/plugins/**/*.tar.bz2
 config/plugins-error
 config/plugins-old-versions
 config/plugins/dockerMan/images
+config/plugins/dynamix.file.integrity/logs
 config/wireguard/peers/*.png
 ';
 
