@@ -5,7 +5,7 @@ const UNRAID_NET = new URL(sessionStorage.getItem('unraidPurchaseUrl') ?? import
 
 const ACCOUNT_CALLBACK = new URL('c', ACCOUNT);
 const FORUMS_BUG_REPORT = new URL('/bug-reports', FORUMS);
-const CONNECT_DOCS = new URL('category/unraid-connect', DOCS);
+const CONNECT_DOCS = new URL('/go/connect/', DOCS);
 const CONNECT_DASHBOARD = new URL(import.meta.env.VITE_CONNECT ?? 'https://connect.myunraid.net');
 const CONNECT_FORUMS = new URL('/forum/94-connect-plugin-support/', FORUMS);
 const CONTACT = new URL('/contact', UNRAID_NET);
@@ -22,9 +22,9 @@ const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 
 const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://releases.unraid.net/os');
 
-const DOCS_RELEASE_NOTES = new URL('/unraid-os/release-notes/', DOCS);
-const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
-const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
+const DOCS_RELEASE_NOTES = new URL('/go/release-notes/', DOCS);
+const DOCS_REGISTRATION_LICENSING = new URL('/go/faq-licensing/', DOCS);
+const DOCS_REGISTRATION_REPLACE_KEY = new URL('/go/changing-the-flash-device/', DOCS);
 
 export {
   ACCOUNT,
