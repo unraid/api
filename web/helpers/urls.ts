@@ -11,6 +11,7 @@ const CONNECT_FORUMS = new URL('/forum/94-connect-plugin-support/', FORUMS);
 const CONTACT = new URL('/contact', UNRAID_NET);
 const DISCORD = new URL('https://discord.unraid.net');
 const PURCHASE_CALLBACK = new URL('/c', UNRAID_NET);
+const UNRAID_NET_SUPPORT = new URL('/support', UNRAID_NET);
 
 const WEBGUI = new URL(import.meta.env.VITE_WEBGUI ?? window.location.origin);
 const WEBGUI_GRAPHQL = new URL('/graphql', WEBGUI);
@@ -25,6 +26,8 @@ const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://release
 const DOCS_RELEASE_NOTES = new URL('/unraid-os/release-notes/', DOCS);
 const DOCS_REGISTRATION_LICENSING = new URL('/unraid-os/faq/licensing-faq', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/unraid-os/manual/changing-the-flash-device', DOCS);
+
+const SUPPORT = new URL('https://unraid.net');
 
 export {
   ACCOUNT,
@@ -49,4 +52,6 @@ export {
   WEBGUI_TOOLS_DOWNGRADE,
   WEBGUI_TOOLS_REGISTRATION,
   WEBGUI_TOOLS_UPDATE,
+  SUPPORT,
+  UNRAID_NET_SUPPORT,
 };

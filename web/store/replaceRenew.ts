@@ -130,7 +130,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
         return {
           color: 'red',
           icon: XCircleIcon,
-          text: 'Ineligible',
+          text: 'Ineligible for self-replacement',
         };
       case 'ready':
       default:
