@@ -696,11 +696,8 @@ if ($command == 'update' || $command == 'activate') {
     exec_log('git -C /boot add -A');
     exec_log('git -C /boot commit -m ' . escapeshellarg($commitmsg));
 
-    // push changes upstream
-    exec_log('git -C /boot push --set-upstream origin master', $push_output, $return_var);
-    if ($return_var != 0) {
-      exec_log('git -C /boot push --force --set-upstream origin master', $push_output, $return_var);
-    }
+    // push changes upstream    
+    exec_log('git -C /boot push --force --set-upstream origin master', $push_output, $return_var);
     if ($return_var != 0) {
       // check for permission denied
       if (stripos(implode($push_output),'permission denied') !== false) {
