@@ -161,11 +161,8 @@ exit 0
 <?
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
 
-# for convenience, scan myservers.cfg for deleteOnUninstall="no" and if that exists,
-# then skip the rest of the cleanup.
-$deleteOnUninstall = ($msini === false || empty($msini['plugin']['deleteOnUninstall']) || $msini['plugin']['deleteOnUninstall'] == 'yes');
-
-if (!$deleteOnUninstall) {
+# if no_delete_on_uninstall exists on flash drive then skip the rest of the cleanup (useful when switching between staging and production)
+if (file_exists("/boot/config/plugins/dynamix.my.servers/no_delete_on_uninstall")) {
   exit(0);
 }
 
