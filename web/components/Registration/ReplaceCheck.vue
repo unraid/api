@@ -6,7 +6,7 @@ import {
 import { storeToRefs } from 'pinia';
 import type { ComposerTranslation } from 'vue-i18n';
 
-import { DOCS_REGISTRATION_REPLACE_KEY, UNRAID_NET_SUPPORT } from '~/helpers/urls';
+import { DOCS_REGISTRATION_REPLACE_KEY } from '~/helpers/urls';
 import { useReplaceRenewStore } from '~/store/replaceRenew';
 
 const replaceRenewStore = useReplaceRenewStore();
@@ -43,15 +43,6 @@ defineProps<{
         :href="DOCS_REGISTRATION_REPLACE_KEY.toString()"
         :icon-right="ArrowTopRightOnSquareIcon"
         :text="t('Learn More')"
-        class="text-14px"
-      />
-      <BrandButton
-        v-if="replaceStatusOutput?.text !== 'eligible' && replaceStatusOutput?.text !== 'checking'"
-        btn-style="underline"
-        :external="true"
-        :href="UNRAID_NET_SUPPORT.toString()"
-        :icon-right="ArrowTopRightOnSquareIcon"
-        :text="t('Contact Support')"
         class="text-14px"
       />
     </span>
