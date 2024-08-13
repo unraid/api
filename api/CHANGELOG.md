@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.8.0](https://github.com/unraid/api/compare/v3.7.1...v3.8.0) (2024-08-13)
+
+
+### Features
+
+* always force push ([662f3ce](https://github.com/unraid/api/commit/662f3ce440593e609c64364726f7da16dda0972b))
+* don't allow flash backup repos larger than 500MB ([#890](https://github.com/unraid/api/issues/890)) ([30a32f5](https://github.com/unraid/api/commit/30a32f5fe684bb32c084c4125aade5e63ffd788b))
+* downgradeOs callback for non stable osCurrentBranch ([17c4489](https://github.com/unraid/api/commit/17c4489e97bda504ca45e360591655ded166c355))
+* settings through the API ([#867](https://github.com/unraid/api/issues/867)) ([e73624b](https://github.com/unraid/api/commit/e73624be6be8bc2c70d898b8601a88cc8d20a3e4))
+* swap to docker compose from docker-compose ([ec16a6a](https://github.com/unraid/api/commit/ec16a6aab1a2d5c836387da438fbeade07d23425))
+
+
+### Bug Fixes
+
+* apolloClient types ([f14c767](https://github.com/unraid/api/commit/f14c7673735b92aa167e9e8dcb14a045bcfea994))
+* **deps:** update dependency @vue/apollo-composable to v4.0.2 ([#787](https://github.com/unraid/api/issues/787)) ([edfc846](https://github.com/unraid/api/commit/edfc8464b0e0c2f38003ae8420e81532fd18351f))
+* formattedRegTm type ([748906e](https://github.com/unraid/api/commit/748906e15d30c6162e2f08f28724c9104c81d123))
+* i18n t prop type ([96d519f](https://github.com/unraid/api/commit/96d519f3e6b96ea7c4dc60616522216de20ee140))
+* lint error for web components ([bc27b20](https://github.com/unraid/api/commit/bc27b20524934cf896efb84a131cd270431c508c))
+* lint issues ([853dc19](https://github.com/unraid/api/commit/853dc195b13fff29160afb44f9ff11d4dd6a3232))
+* swap undefined to null ([ebba976](https://github.com/unraid/api/commit/ebba9769873a6536e3fce65978e6475d93280560))
+* tailwind config types ([0f77e55](https://github.com/unraid/api/commit/0f77e5596db3356b5dc05129b3ce215a8809e1dc))
+* ts-expect-error unneeded ([ee4d4e9](https://github.com/unraid/api/commit/ee4d4e9f12b4488ff39445bc72c1b83a9d93e993))
+* type check ([606aad7](https://github.com/unraid/api/commit/606aad703d91b72a14e15da3100dfa355052ed58))
+* type errors round 1 ([977d5da](https://github.com/unraid/api/commit/977d5daf04012f16e7b6602167338f0bc363735a))
+* update status button alignment ([4f2deaf](https://github.com/unraid/api/commit/4f2deaf70e5caa9f29fc5b2974b278f80b7b3a8a))
+
 ### [3.7.1](https://github.com/unraid/api/compare/v3.7.0...v3.7.1) (2024-05-15)
 
 
