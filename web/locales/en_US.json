@@ -141,6 +141,7 @@
   "Ineligible for feature updates released after {0}": "Ineligible for feature updates released after {0}",
   "Ineligible for Unraid OS updates": "Ineligible for Unraid OS updates",
   "Ineligible": "Ineligible",
+  "Ineligible for self-replacement": "Ineligible for self-replacement",
   "Install Connect": "Install Connect",
   "Install Extended": "Install Extended",
   "Install Recovered": "Install Recovered",
