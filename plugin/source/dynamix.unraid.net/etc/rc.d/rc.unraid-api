@@ -47,7 +47,7 @@ status() {
   LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" status
 }
 start() {
-  LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" start 2>&1 | logger &
+  HTTP_PROXY=$http_proxy HTTPS_PROXY=$https_proxy NO_PROXY=$no_proxy LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" start 2>&1 | logger &
 }
 report() {
   LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" report "$1" "$2"
