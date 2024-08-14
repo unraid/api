@@ -97,6 +97,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "find-process": "^1.4.7",
+    "global-agent": "^3.0.0",
     "graphql": "^16.8.1",
     "graphql-fields": "^2.0.3",
     "graphql-scalars": "^1.23.0",
