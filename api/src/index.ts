@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import 'global-agent/bootstrap';
+
 import { am } from 'am';
 import http from 'http';
 import https from 'https';
