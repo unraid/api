@@ -268,6 +268,7 @@ export const useServerStore = defineStore('server', () => {
       connectPluginVersion: connectPluginVersion.value,
       description: description.value,
       expireTime: expireTime.value,
+      flashBackupActivated: flashBackupActivated.value,
       flashProduct: flashProduct.value,
       flashVendor: flashVendor.value,
       guid: guid.value,
