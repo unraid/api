@@ -124,6 +124,7 @@ export interface ServerAccountCallbackSendPayload {
   description?: string;
   deviceCount?: number;
   expireTime?: number;
+  flashBackupActivated?: boolean;
   flashProduct?: string;
   flashVendor?: string;
   guid?: string;
