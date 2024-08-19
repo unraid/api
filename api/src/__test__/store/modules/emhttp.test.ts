@@ -104,10 +104,82 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "certificateName": "*.thisisfourtyrandomcharacters012345678900.myunraid.net",
 		  "certificatePath": "/boot/config/ssl/certs/certificate_bundle.pem",
 		  "defaultUrl": "https://Tower.local:4443",
+		  "fqdnUrls": [
+		    {
+		      "fqdn": "192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net",
+		      "id": 0,
+		      "interface": "LAN",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "",
+		      "id": 0,
+		      "interface": "LAN",
+		      "isIpv6": true,
+		    },
+		    {
+		      "fqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
+		      "id": 0,
+		      "interface": "WAN",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "",
+		      "id": 0,
+		      "interface": "WAN",
+		      "isIpv6": true,
+		    },
+		    {
+		      "fqdn": "10-252-0-1.hash.myunraid.net",
+		      "id": 0,
+		      "interface": "WG",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-252-1-1.hash.myunraid.net",
+		      "id": 1,
+		      "interface": "WG",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-253-3-1.hash.myunraid.net",
+		      "id": 3,
+		      "interface": "WG",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-253-4-1.hash.myunraid.net",
+		      "id": 4,
+		      "interface": "WG",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-253-5-1.hash.myunraid.net",
+		      "id": 55,
+		      "interface": "WG",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-100-0-1.hash.myunraid.net",
+		      "id": 0,
+		      "interface": "TAILSCALE",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-123-1-2.hash.myunraid.net",
+		      "id": 0,
+		      "interface": "CUSTOM",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "221-123-121-112.hash.myunraid.net",
+		      "id": 0,
+		      "interface": "CUSTOM",
+		      "isIpv6": true,
+		    },
+		  ],
 		  "httpPort": 8080,
 		  "httpsPort": 4443,
-		  "lanFqdn": "192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		  "lanFqdn6": "",
 		  "lanIp": "192.168.1.150",
 		  "lanIp6": "",
 		  "lanMdns": "Tower.local",
@@ -115,31 +187,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "sslEnabled": true,
 		  "sslMode": "yes",
 		  "wanAccessEnabled": false,
-		  "wanFqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		  "wanFqdn6": "",
 		  "wanIp": "",
-		  "wgFqdns": [
-		    {
-		      "fqdn": "10-252-0-1.hash.myunraid.net",
-		      "id": 0,
-		    },
-		    {
-		      "fqdn": "10-252-1-1.hash.myunraid.net",
-		      "id": 1,
-		    },
-		    {
-		      "fqdn": "10-253-3-1.hash.myunraid.net",
-		      "id": 3,
-		    },
-		    {
-		      "fqdn": "10-253-4-1.hash.myunraid.net",
-		      "id": 4,
-		    },
-		    {
-		      "fqdn": "10-253-5-1.hash.myunraid.net",
-		      "id": 55,
-		    },
-		  ],
 		}
 	`);
 	expect(disks).toMatchInlineSnapshot(`

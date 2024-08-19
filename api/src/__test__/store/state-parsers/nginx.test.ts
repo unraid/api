@@ -12,48 +12,5 @@ test('Returns parsed state file', async () => {
 		filePath,
 		type: 'ini',
 	});
-
-	expect(parse(stateFile)).toMatchInlineSnapshot(`
-		{
-		  "certificateName": "*.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		  "certificatePath": "/boot/config/ssl/certs/certificate_bundle.pem",
-		  "defaultUrl": "https://Tower.local:4443",
-		  "httpPort": 8080,
-		  "httpsPort": 4443,
-		  "lanFqdn": "192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		  "lanFqdn6": "",
-		  "lanIp": "192.168.1.150",
-		  "lanIp6": "",
-		  "lanMdns": "Tower.local",
-		  "lanName": "Tower",
-		  "sslEnabled": true,
-		  "sslMode": "yes",
-		  "wanAccessEnabled": false,
-		  "wanFqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		  "wanFqdn6": "",
-		  "wanIp": "",
-		  "wgFqdns": [
-		    {
-		      "fqdn": "10-252-0-1.hash.myunraid.net",
-		      "id": 0,
-		    },
-		    {
-		      "fqdn": "10-252-1-1.hash.myunraid.net",
-		      "id": 1,
-		    },
-		    {
-		      "fqdn": "10-253-3-1.hash.myunraid.net",
-		      "id": 3,
-		    },
-		    {
-		      "fqdn": "10-253-4-1.hash.myunraid.net",
-		      "id": 4,
-		    },
-		    {
-		      "fqdn": "10-253-5-1.hash.myunraid.net",
-		      "id": 55,
-		    },
-		  ],
-		}
-	`);
+	expect(parse(stateFile)).toMatchSnapshot();
 });

@@ -72,10 +72,6 @@ export type NginxUrlFields = Extract<
     | 'lanIp6'
     | 'lanName'
     | 'lanMdns'
-    | 'lanFqdn'
-    | 'lanFqdn6'
-    | 'wanFqdn'
-    | 'wanFqdn6'
 >;
 
 /**
@@ -124,6 +120,19 @@ export const getUrlForServer = ({
             field
         )}`
     );
+};
+
+const getUrlTypeFromFqdn = (fqdnType: string): URL_TYPE => {
+    switch (fqdnType) {
+        case 'LAN':
+            return URL_TYPE.LAN;
+        case 'WAN':
+            return URL_TYPE.WAN;
+        case 'WG':
+            return URL_TYPE.WIREGUARD;
+        default:
+            return URL_TYPE.WIREGUARD;
+    }
 };
 
 // eslint-disable-next-line complexity
@@ -222,87 +231,22 @@ export const getServerIps = (
         }
     }
 
-    try {
-        // Lan FQDN URL
-        const lanFqdnUrl = getUrlForServer({ nginx, field: 'lanFqdn' });
-        urls.push({
-            name: 'LAN FQDN',
-            type: URL_TYPE.LAN,
-            ipv4: lanFqdnUrl,
-        });
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            errors.push(error);
-        } else {
-            logger.warn('Uncaught error in network resolver', error);
-        }
-    }
-
-    try {
-        // Lan FQDN6 URL
-        const lanFqdn6Url = getUrlForServer({ nginx, field: 'lanFqdn6' });
-        urls.push({
-            name: 'LAN FQDNv6',
-            type: URL_TYPE.LAN,
-            ipv6: lanFqdn6Url,
-        });
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            errors.push(error);
-        } else {
-            logger.warn('Uncaught error in network resolver', error);
-        }
-    }
-
-    try {
-        // WAN FQDN URL
-        const wanFqdnUrl = getUrlForField({
-            url: nginx.wanFqdn,
-            portSsl: Number(wanport || 443),
-        });
-        urls.push({
-            name: 'WAN FQDN',
-            type: URL_TYPE.WAN,
-            ipv4: wanFqdnUrl,
-        });
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            errors.push(error);
-        } else {
-            logger.warn('Uncaught error in network resolver', error);
-        }
-    }
-
-    try {
-        // WAN FQDN6 URL
-        const wanFqdn6Url = getUrlForField({
-            url: nginx.wanFqdn6,
-            portSsl: Number(wanport),
-        });
-        urls.push({
-            name: 'WAN FQDNv6',
-            type: URL_TYPE.WAN,
-            ipv6: wanFqdn6Url,
-        });
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            errors.push(error);
-        } else {
-            logger.warn('Uncaught error in network resolver', error);
-        }
-    }
-
-    for (const wgFqdn of nginx.wgFqdns) {
+    // Now Process the FQDN Urls
+    nginx.fqdnUrls.forEach((fqdnUrl) => {
         try {
-            // WG FQDN URL
-            const wgFqdnUrl = getUrlForField({
-                url: wgFqdn.fqdn,
-                portSsl: nginx.httpsPort,
+            const urlType = getUrlTypeFromFqdn(fqdnUrl.interface);
+            const fqdnUrlToUse = getUrlForField({
+                url: fqdnUrl.fqdn,
+                portSsl:
+                    urlType === URL_TYPE.WAN
+                        ? Number(wanport)
+                        : nginx.httpsPort,
             });
+
             urls.push({
-                name: `WG FQDN ${wgFqdn.id}`,
-                type: URL_TYPE.WIREGUARD,
-                ipv4: wgFqdnUrl,
+                name: `FQDN ${fqdnUrl.interface} ${fqdnUrl.id}`,
+                type: getUrlTypeFromFqdn(fqdnUrl.interface),
+                ipv4: fqdnUrlToUse,
             });
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -311,7 +255,7 @@ export const getServerIps = (
                 logger.warn('Uncaught error in network resolver', error);
             }
         }
-    }
+    });
 
     const safeUrls = urls
         .map((url) => AccessUrlInputSchema().safeParse(url))
@@ -381,8 +325,8 @@ export const publishNetwork = async () => {
         if (error instanceof ApolloError) {
             dashboardLogger.error(
                 'Failed publishing with GQL Errors: %s, \nClient Errors: %s',
-                error.graphQLErrors.map((error) => error.message).join(','),
-                error.clientErrors.join(', ')
+                (error as ApolloError).graphQLErrors.map((error) => error.message).join(','),
+                (error as ApolloError).clientErrors.join(', ')
             );
         } else {
             dashboardLogger.error(error);
