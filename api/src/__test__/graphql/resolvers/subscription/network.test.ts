@@ -153,47 +153,47 @@ test('integration test, loading nginx ini and generating all URLs', async () => 
 		  },
 		  {
 		    "ipv4": "https://10-252-0-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG",
+		    "name": "FQDN WG 0",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-252-1-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG",
+		    "name": "FQDN WG 1",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-253-3-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG",
+		    "name": "FQDN WG 2",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-253-4-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG",
+		    "name": "FQDN WG 3",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-253-5-1.hash.myunraid.net:4443/",
-		    "name": "FQDN WG",
+		    "name": "FQDN WG 4",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-100-0-1.hash.myunraid.net:4443/",
-		    "name": "FQDN TAILSCALE",
+		    "name": "FQDN TAILSCALE 0",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-100-0-2.hash.myunraid.net:4443/",
-		    "name": "FQDN TAILSCALE",
+		    "name": "FQDN TAILSCALE 1",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://10-123-1-2.hash.myunraid.net:4443/",
-		    "name": "FQDN CUSTOM",
+		    "name": "FQDN CUSTOM 0",
 		    "type": "WIREGUARD",
 		  },
 		  {
 		    "ipv4": "https://221-123-121-112.hash.myunraid.net:4443/",
-		    "name": "FQDN CUSTOM",
+		    "name": "FQDN CUSTOM 1",
 		    "type": "WIREGUARD",
 		  },
 		]

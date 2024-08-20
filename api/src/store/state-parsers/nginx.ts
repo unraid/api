@@ -46,7 +46,7 @@ export const parse: StateFileToIniParserMap['nginx'] = (state) => {
     }, []);
 
     fqdnUrls.forEach((fqdn) => {
-        if (interfaceId.get(fqdn.interface) ?? 0 <= 1 ) {
+        if ((interfaceId.get(fqdn.interface) || 0) <= 1 ) {
             fqdn.id = null;
         }
     });
