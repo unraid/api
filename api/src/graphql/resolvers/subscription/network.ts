@@ -1,21 +1,13 @@
-import { GraphQLClient } from '@app/mothership/graphql-client';
 import { type Nginx } from '@app/core/types/states/nginx';
-import { type RootState, store, getters } from '@app/store';
+import { type RootState, store } from '@app/store';
 import {
-    type NetworkInput,
     URL_TYPE,
     type AccessUrlInput,
 } from '@app/graphql/generated/client/graphql';
-import { dashboardLogger, logger } from '@app/core';
-import { isEqual } from 'lodash';
-import { SEND_NETWORK_MUTATION } from '@app/graphql/mothership/mutations';
-import { saveNetworkPacket } from '@app/store/modules/dashboard';
-import { ApolloError } from '@apollo/client/core/core.cjs';
+import { logger } from '@app/core';
 import {
     AccessUrlInputSchema,
-    NetworkInputSchema,
 } from '@app/graphql/generated/client/validators';
-import { ZodError } from 'zod';
 
 interface UrlForFieldInput {
     url: string;
@@ -270,67 +262,4 @@ export const getServerIps = (
         }, []);
 
     return { urls: safeUrls, errors };
-};
-
-export const publishNetwork = async () => {
-    try {
-        const client = GraphQLClient.getInstance();
-
-        const datapacket = getServerIps();
-        if (datapacket.errors) {
-            const zodErrors = datapacket.errors.filter(
-                (error) => error instanceof ZodError
-            );
-            if (zodErrors.length) {
-                dashboardLogger.warn(
-                    'Validation Errors Encountered with Network Payload: %s',
-                    zodErrors.map((error) => error.message).join(',')
-                );
-            }
-        }
-        const networkPacket: NetworkInput = { accessUrls: datapacket.urls };
-        const validatedNetwork = NetworkInputSchema().parse(networkPacket);
-
-        const { lastNetworkPacket } = getters.dashboard();
-        const { apikey: apiKey } = getters.config().remote;
-        if (
-            isEqual(
-                JSON.stringify(lastNetworkPacket),
-                JSON.stringify(validatedNetwork)
-            )
-        ) {
-            dashboardLogger.trace('[DASHBOARD] Skipping Update');
-        } else if (client) {
-            dashboardLogger.info(
-                { validatedNetwork },
-                'Sending data packet for network'
-            );
-            const result = await client.mutate({
-                mutation: SEND_NETWORK_MUTATION,
-                variables: {
-                    apiKey,
-                    data: validatedNetwork,
-                },
-            });
-            dashboardLogger.debug(
-                { result },
-                'Sent network mutation with %s urls',
-                datapacket.urls.length
-            );
-            store.dispatch(
-                saveNetworkPacket({ lastNetworkPacket: validatedNetwork })
-            );
-        }
-    } catch (error: unknown) {
-        dashboardLogger.trace('ERROR', error);
-        if (error instanceof ApolloError) {
-            dashboardLogger.error(
-                'Failed publishing with GQL Errors: %s, \nClient Errors: %s',
-                (error as ApolloError).graphQLErrors.map((error) => error.message).join(','),
-                (error as ApolloError).clientErrors.join(', ')
-            );
-        } else {
-            dashboardLogger.error(error);
-        }
-    }
 };

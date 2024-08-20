@@ -5,7 +5,6 @@ import { configReducer } from '@app/store/modules/config';
 import { emhttp } from '@app/store/modules/emhttp';
 import { registration } from '@app/store/modules/registration';
 import { cache } from '@app/store/modules/cache';
-import { dashboard } from '@app/store/modules/dashboard';
 import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
@@ -27,7 +26,6 @@ export const store = configureStore({
         remoteGraphQL: remoteGraphQLReducer,
         notifications: notificationReducer,
         cache: cache.reducer,
-        dashboard: dashboard.reducer,
         docker: docker.reducer,
         upnp: upnp.reducer,
         dynamix: dynamix.reducer,
@@ -45,7 +43,6 @@ export const getters = {
     apiKey: () => store.getState().apiKey,
     cache: () => store.getState().cache,
     config: () => store.getState().config,
-    dashboard: () => store.getState().dashboard,
     docker: () => store.getState().docker,
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
