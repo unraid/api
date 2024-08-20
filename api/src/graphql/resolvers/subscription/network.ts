@@ -244,7 +244,6 @@ export const getServerIps = (
                         : nginx.httpsPort,
             });
 
-            console.log(fqdnUrl);
             urls.push({
                 name: `FQDN ${fqdnUrl.interface}${fqdnUrl.id !== null ? ` ${fqdnUrl.id}` : ''}`,
                 type: getUrlTypeFromFqdn(fqdnUrl.interface),
