@@ -14,12 +14,14 @@ import { OwnerResolver } from './owner/owner.resolver';
 import { RegistrationResolver } from './registration/registration.resolver';
 import { ServerResolver } from './servers/server.resolver';
 import { VarsResolver } from './vars/vars.resolver';
+import { DashboardResolver } from './dashboard/dashboard.resolver';
 
 @Module({
     providers: [
         ArrayResolver,
         CloudResolver,
         ConfigResolver,
+        DashboardResolver,
         DisksResolver,
         DockerContainersResolver,
         DisplayResolver,

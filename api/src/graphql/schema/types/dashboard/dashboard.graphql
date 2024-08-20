@@ -1,0 +1,93 @@
+type DashboardApps {
+  installed: Int
+  started: Int
+}
+
+type DashboardVersions {
+  unraid: String
+}
+
+type DashboardOs {
+  hostname: String
+  uptime: DateTime
+}
+
+type DashboardVms {
+  installed: Int
+  started: Int
+}
+
+type ArrayCapacityBytes {
+  free: Long
+  used: Long
+  total: Long
+}
+
+type ArrayCapacity {
+  bytes: ArrayCapacityBytes
+}
+
+type DashboardArray {
+  """
+  Current array state
+  """
+  state: String
+  """
+  Current array capacity
+  """
+  capacity: ArrayCapacity
+}
+
+type DashboardCase {
+  icon: String
+  url: String
+  error: String
+  base64: String
+}
+
+type DashboardDisplay {
+  case: DashboardCase
+}
+
+type DashboardConfig {
+  valid: Boolean
+  error: String
+}
+
+type DashboardVars {
+  regState: String
+  regTy: String
+  flashGuid: String
+  serverName: String
+  serverDescription: String
+}
+
+type DashboardTwoFactorRemote {
+  enabled: Boolean
+}
+
+type DashboardTwoFactorLocal {
+  enabled: Boolean
+}
+
+type DashboardTwoFactor {
+  remote: DashboardTwoFactorRemote
+  local: DashboardTwoFactorLocal
+}
+
+type Dashboard {
+  id: ID!
+  lastPublish: DateTime
+  online: Boolean
+  apps: DashboardApps
+  versions: DashboardVersions
+  os: DashboardOs
+  vms: DashboardVms
+  array: DashboardArray
+  services: [DashboardService]
+  display: DashboardDisplay
+  config: DashboardConfig
+  vars: DashboardVars
+  twoFactor: DashboardTwoFactor
+  network: Network
+}
