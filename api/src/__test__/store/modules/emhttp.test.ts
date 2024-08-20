@@ -107,27 +107,15 @@ test('After init returns values from cfg file for all fields', async () => {
 		  "fqdnUrls": [
 		    {
 		      "fqdn": "192-168-1-150.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		      "id": 0,
+		      "id": null,
 		      "interface": "LAN",
 		      "isIpv6": false,
-		    },
-		    {
-		      "fqdn": "",
-		      "id": 1,
-		      "interface": "LAN",
-		      "isIpv6": true,
 		    },
 		    {
 		      "fqdn": "85-121-123-122.thisisfourtyrandomcharacters012345678900.myunraid.net",
-		      "id": 0,
+		      "id": null,
 		      "interface": "WAN",
 		      "isIpv6": false,
-		    },
-		    {
-		      "fqdn": "",
-		      "id": 1,
-		      "interface": "WAN",
-		      "isIpv6": true,
 		    },
 		    {
 		      "fqdn": "10-252-0-1.hash.myunraid.net",
