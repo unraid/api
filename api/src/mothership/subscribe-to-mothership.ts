@@ -2,10 +2,6 @@
 import { minigraphLogger, mothershipLogger } from '@app/core/log';
 import { GraphQLClient } from './graphql-client';
 import { store } from '@app/store';
-import {
-    startDashboardProducer,
-    stopDashboardProducer,
-} from '@app/store/modules/dashboard';
 
 import {
     EVENTS_SUBSCRIPTION,
@@ -57,15 +53,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                             }
                         }
 
-                        // Dashboard Connected to Mothership
-
-                        if (
-                            type === ClientType.DASHBOARD &&
-                            apiKey === eventApiKey
-                        ) {
-                            store.dispatch(startDashboardProducer());
-                        }
-
                         break;
                     }
 
@@ -78,15 +65,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                             if (eventApiKey === apiKey) {
                                 store.dispatch(setSelfDisconnected());
                             }
-                        }
-
-                        // The dashboard was closed or went idle
-
-                        if (
-                            type === ClientType.DASHBOARD &&
-                            apiKey === eventApiKey
-                        ) {
-                            store.dispatch(stopDashboardProducer());
                         }
 
                         break;

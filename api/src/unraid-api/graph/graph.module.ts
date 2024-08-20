@@ -2,6 +2,7 @@ import {
     DateTimeResolver,
     JSONResolver,
     PortResolver,
+    URLResolver,
     UUIDResolver,
 } from 'graphql-scalars';
 import { GraphQLLong } from '@app/graphql/resolvers/graphql-type-long';
@@ -42,6 +43,7 @@ import { print } from 'graphql';
                 UUID: UUIDResolver,
                 DateTime: DateTimeResolver,
                 Port: PortResolver,
+                URL: URLResolver
             },
             // schema: schema
         }),

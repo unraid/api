@@ -27,6 +27,7 @@ x-volumes: &volumes
 
 networks:
   mothership_default:
+    external: true
 services:
 
   dev:
