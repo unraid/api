@@ -113,7 +113,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		    },
 		    {
 		      "fqdn": "",
-		      "id": 0,
+		      "id": 1,
 		      "interface": "LAN",
 		      "isIpv6": true,
 		    },
@@ -125,7 +125,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		    },
 		    {
 		      "fqdn": "",
-		      "id": 0,
+		      "id": 1,
 		      "interface": "WAN",
 		      "isIpv6": true,
 		    },
@@ -143,25 +143,31 @@ test('After init returns values from cfg file for all fields', async () => {
 		    },
 		    {
 		      "fqdn": "10-253-3-1.hash.myunraid.net",
-		      "id": 3,
+		      "id": 2,
 		      "interface": "WG",
 		      "isIpv6": false,
 		    },
 		    {
 		      "fqdn": "10-253-4-1.hash.myunraid.net",
-		      "id": 4,
+		      "id": 3,
 		      "interface": "WG",
 		      "isIpv6": false,
 		    },
 		    {
 		      "fqdn": "10-253-5-1.hash.myunraid.net",
-		      "id": 55,
+		      "id": 4,
 		      "interface": "WG",
 		      "isIpv6": false,
 		    },
 		    {
 		      "fqdn": "10-100-0-1.hash.myunraid.net",
 		      "id": 0,
+		      "interface": "TAILSCALE",
+		      "isIpv6": false,
+		    },
+		    {
+		      "fqdn": "10-100-0-2.hash.myunraid.net",
+		      "id": 1,
 		      "interface": "TAILSCALE",
 		      "isIpv6": false,
 		    },
@@ -173,7 +179,7 @@ test('After init returns values from cfg file for all fields', async () => {
 		    },
 		    {
 		      "fqdn": "221-123-121-112.hash.myunraid.net",
-		      "id": 0,
+		      "id": 1,
 		      "interface": "CUSTOM",
 		      "isIpv6": true,
 		    },

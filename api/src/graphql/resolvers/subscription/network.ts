@@ -131,6 +131,7 @@ const getUrlTypeFromFqdn = (fqdnType: string): URL_TYPE => {
         case 'WG':
             return URL_TYPE.WIREGUARD;
         default:
+            // HACK: This should be added as a new type (e.g. OTHER or CUSTOM)
             return URL_TYPE.WIREGUARD;
     }
 };
@@ -243,8 +244,9 @@ export const getServerIps = (
                         : nginx.httpsPort,
             });
 
+            console.log(fqdnUrl);
             urls.push({
-                name: `FQDN ${fqdnUrl.interface} ${fqdnUrl.id}`,
+                name: `FQDN ${fqdnUrl.interface}${fqdnUrl.id !== null ? ` ${fqdnUrl.id}` : ''}`,
                 type: getUrlTypeFromFqdn(fqdnUrl.interface),
                 ipv4: fqdnUrlToUse,
             });

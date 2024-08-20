@@ -23,22 +23,33 @@ export type NginxIni = {
 
 export const parse: StateFileToIniParserMap['nginx'] = (state) => {
     const fqdnKeys = Object.keys(state).filter((key) => fqdnRegex.test(key));
+
+    const interfaceId = new Map<string, number>();
     const fqdnUrls: FqdnEntry[] = fqdnKeys.reduce<FqdnEntry[]>((acc, key) => {
         const match = fqdnRegex.exec(key);
-        if (match) {
+        if (match && state[key]) {
             // We need to pull the number from the interface to get it by itself
             const interfaceType = match[1].replace(/[0-9]/g, '').toUpperCase();
-            const id = Number(match[1].replace(/\D/g, ''));
+
+            // Count the number of interfaces we've already added to the list
             const isIPv6 = key.endsWith('6');
+            const currInterfaceId = interfaceId.get(interfaceType) || 0;
+            interfaceId.set(interfaceType, currInterfaceId + 1);
             acc.push({
                 interface: interfaceType,
-                id: id ?? null,
+                id: currInterfaceId,
                 fqdn: state[key],
                 isIpv6: isIPv6,
             });
         }
         return acc;
     }, []);
+
+    fqdnUrls.forEach((fqdn) => {
+        if (interfaceId.get(fqdn.interface) ?? 0 <= 1 ) {
+            fqdn.id = null;
+        }
+    });
 
     return {
         certificateName: state.nginxCertname,
