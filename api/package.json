@@ -50,7 +50,8 @@
     "build:dev": "./scripts/dc.sh build dev",
     "start:local": "./scripts/dc.sh run --rm --service-ports local",
     "start:ddev": "./scripts/dc.sh run --rm --service-ports dev",
-    "start:dtest": "./scripts/dc.sh run --rm builder npm run test"
+    "start:dtest": "./scripts/dc.sh run --rm builder npm run test",
+    "enter:ddev": "./scripts/dc.sh exec dev /bin/sh"
   },
   "files": [
     ".env.staging",

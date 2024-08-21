@@ -1,6 +1,8 @@
-export interface WireguardFqdn {
-	id: number;
+export interface FqdnEntry {
+	interface: string;
+	id: number | null;
 	fqdn: string;
+	isIpv6: boolean;
 }
 
 export interface Nginx {
@@ -9,8 +11,6 @@ export interface Nginx {
 	defaultUrl: string;
 	httpPort: number;
 	httpsPort: number;
-	lanFqdn: string;
-	lanFqdn6: string;
 	lanIp: string;
 	lanIp6: string;
 	lanMdns: string;
@@ -18,8 +18,6 @@ export interface Nginx {
 	sslEnabled: boolean;
 	sslMode: 'yes' | 'no' | 'auto';
 	wanAccessEnabled: boolean;
-	wanFqdn: string;
-	wanFqdn6: string;
 	wanIp: string;
-	wgFqdns: WireguardFqdn[];
+	fqdnUrls: FqdnEntry[];
 }
