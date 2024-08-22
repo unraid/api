@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types';
 
 import { z } from 'zod'
-import { AccessUrl, AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayCapacityBytes, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Dashboard, DashboardApps, DashboardArray, DashboardCase, DashboardConfig, DashboardDisplay, DashboardOs, DashboardService, DashboardServiceInput, DashboardServiceUptime, DashboardServiceUptimeInput, DashboardTwoFactor, DashboardTwoFactorLocal, DashboardTwoFactorRemote, DashboardVars, DashboardVersions, DashboardVms, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
+import { AccessUrl, AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -120,18 +120,8 @@ export function ArrayTypeSchema(): z.ZodObject<Properties<ArrayType>> {
 export function ArrayCapacitySchema(): z.ZodObject<Properties<ArrayCapacity>> {
   return z.object({
     __typename: z.literal('ArrayCapacity').optional(),
-    bytes: ArrayCapacityBytesSchema().nullish(),
     disks: CapacitySchema(),
     kilobytes: CapacitySchema()
-  })
-}
-
-export function ArrayCapacityBytesSchema(): z.ZodObject<Properties<ArrayCapacityBytes>> {
-  return z.object({
-    __typename: z.literal('ArrayCapacityBytes').optional(),
-    free: z.number().nullish(),
-    total: z.number().nullish(),
-    used: z.number().nullish()
   })
 }
 
@@ -268,155 +258,6 @@ export function ContainerPortSchema(): z.ZodObject<Properties<ContainerPort>> {
     privatePort: z.number().nullish(),
     publicPort: z.number().nullish(),
     type: ContainerPortTypeSchema.nullish()
-  })
-}
-
-export function DashboardSchema(): z.ZodObject<Properties<Dashboard>> {
-  return z.object({
-    __typename: z.literal('Dashboard').optional(),
-    apps: DashboardAppsSchema().nullish(),
-    array: DashboardArraySchema().nullish(),
-    config: DashboardConfigSchema().nullish(),
-    display: DashboardDisplaySchema().nullish(),
-    id: z.string(),
-    lastPublish: z.string().nullish(),
-    network: NetworkSchema().nullish(),
-    online: z.boolean().nullish(),
-    os: DashboardOsSchema().nullish(),
-    services: z.array(DashboardServiceSchema().nullable()).nullish(),
-    twoFactor: DashboardTwoFactorSchema().nullish(),
-    vars: DashboardVarsSchema().nullish(),
-    versions: DashboardVersionsSchema().nullish(),
-    vms: DashboardVmsSchema().nullish()
-  })
-}
-
-export function DashboardAppsSchema(): z.ZodObject<Properties<DashboardApps>> {
-  return z.object({
-    __typename: z.literal('DashboardApps').optional(),
-    installed: z.number().nullish(),
-    started: z.number().nullish()
-  })
-}
-
-export function DashboardArraySchema(): z.ZodObject<Properties<DashboardArray>> {
-  return z.object({
-    __typename: z.literal('DashboardArray').optional(),
-    capacity: ArrayCapacitySchema().nullish(),
-    state: z.string().nullish()
-  })
-}
-
-export function DashboardCaseSchema(): z.ZodObject<Properties<DashboardCase>> {
-  return z.object({
-    __typename: z.literal('DashboardCase').optional(),
-    base64: z.string().nullish(),
-    error: z.string().nullish(),
-    icon: z.string().nullish(),
-    url: z.string().nullish()
-  })
-}
-
-export function DashboardConfigSchema(): z.ZodObject<Properties<DashboardConfig>> {
-  return z.object({
-    __typename: z.literal('DashboardConfig').optional(),
-    error: z.string().nullish(),
-    valid: z.boolean().nullish()
-  })
-}
-
-export function DashboardDisplaySchema(): z.ZodObject<Properties<DashboardDisplay>> {
-  return z.object({
-    __typename: z.literal('DashboardDisplay').optional(),
-    case: DashboardCaseSchema().nullish()
-  })
-}
-
-export function DashboardOsSchema(): z.ZodObject<Properties<DashboardOs>> {
-  return z.object({
-    __typename: z.literal('DashboardOs').optional(),
-    hostname: z.string().nullish(),
-    uptime: z.string().nullish()
-  })
-}
-
-export function DashboardServiceSchema(): z.ZodObject<Properties<DashboardService>> {
-  return z.object({
-    __typename: z.literal('DashboardService').optional(),
-    name: z.string().nullish(),
-    online: z.boolean().nullish(),
-    uptime: DashboardServiceUptimeSchema().nullish(),
-    version: z.string().nullish()
-  })
-}
-
-export function DashboardServiceInputSchema(): z.ZodObject<Properties<DashboardServiceInput>> {
-  return z.object({
-    name: z.string(),
-    online: z.boolean(),
-    uptime: z.lazy(() => DashboardServiceUptimeInputSchema().nullish()),
-    version: z.string()
-  })
-}
-
-export function DashboardServiceUptimeSchema(): z.ZodObject<Properties<DashboardServiceUptime>> {
-  return z.object({
-    __typename: z.literal('DashboardServiceUptime').optional(),
-    timestamp: z.string().nullish()
-  })
-}
-
-export function DashboardServiceUptimeInputSchema(): z.ZodObject<Properties<DashboardServiceUptimeInput>> {
-  return z.object({
-    timestamp: z.string()
-  })
-}
-
-export function DashboardTwoFactorSchema(): z.ZodObject<Properties<DashboardTwoFactor>> {
-  return z.object({
-    __typename: z.literal('DashboardTwoFactor').optional(),
-    local: DashboardTwoFactorLocalSchema().nullish(),
-    remote: DashboardTwoFactorRemoteSchema().nullish()
-  })
-}
-
-export function DashboardTwoFactorLocalSchema(): z.ZodObject<Properties<DashboardTwoFactorLocal>> {
-  return z.object({
-    __typename: z.literal('DashboardTwoFactorLocal').optional(),
-    enabled: z.boolean().nullish()
-  })
-}
-
-export function DashboardTwoFactorRemoteSchema(): z.ZodObject<Properties<DashboardTwoFactorRemote>> {
-  return z.object({
-    __typename: z.literal('DashboardTwoFactorRemote').optional(),
-    enabled: z.boolean().nullish()
-  })
-}
-
-export function DashboardVarsSchema(): z.ZodObject<Properties<DashboardVars>> {
-  return z.object({
-    __typename: z.literal('DashboardVars').optional(),
-    flashGuid: z.string().nullish(),
-    regState: z.string().nullish(),
-    regTy: z.string().nullish(),
-    serverDescription: z.string().nullish(),
-    serverName: z.string().nullish()
-  })
-}
-
-export function DashboardVersionsSchema(): z.ZodObject<Properties<DashboardVersions>> {
-  return z.object({
-    __typename: z.literal('DashboardVersions').optional(),
-    unraid: z.string().nullish()
-  })
-}
-
-export function DashboardVmsSchema(): z.ZodObject<Properties<DashboardVms>> {
-  return z.object({
-    __typename: z.literal('DashboardVms').optional(),
-    installed: z.number().nullish(),
-    started: z.number().nullish()
   })
 }
 

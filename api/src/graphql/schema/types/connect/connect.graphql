@@ -42,8 +42,6 @@ input SetupRemoteAccessInput {
 type Query {
     remoteAccess: RemoteAccess!
     extraAllowedOrigins: [String!]!
-    """ Temporary Type to Enable Swapping Dashboard over in Connect without major changes """
-    serverDashboard: Dashboard!
 }
 
 type Mutation {

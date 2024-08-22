@@ -74,16 +74,8 @@ export type ArrayType = Node & {
 
 export type ArrayCapacity = {
   __typename?: 'ArrayCapacity';
-  bytes?: Maybe<ArrayCapacityBytes>;
   disks: Capacity;
   kilobytes: Capacity;
-};
-
-export type ArrayCapacityBytes = {
-  __typename?: 'ArrayCapacityBytes';
-  free?: Maybe<Scalars['Long']['output']>;
-  total?: Maybe<Scalars['Long']['output']>;
-  used?: Maybe<Scalars['Long']['output']>;
 };
 
 export type ArrayDisk = {
@@ -311,123 +303,6 @@ export enum ContainerState {
   EXITED = 'EXITED',
   RUNNING = 'RUNNING'
 }
-
-export type Dashboard = {
-  __typename?: 'Dashboard';
-  apps?: Maybe<DashboardApps>;
-  array?: Maybe<DashboardArray>;
-  config?: Maybe<DashboardConfig>;
-  display?: Maybe<DashboardDisplay>;
-  id: Scalars['ID']['output'];
-  lastPublish?: Maybe<Scalars['DateTime']['output']>;
-  network?: Maybe<Network>;
-  online?: Maybe<Scalars['Boolean']['output']>;
-  os?: Maybe<DashboardOs>;
-  services?: Maybe<Array<Maybe<DashboardService>>>;
-  twoFactor?: Maybe<DashboardTwoFactor>;
-  vars?: Maybe<DashboardVars>;
-  versions?: Maybe<DashboardVersions>;
-  vms?: Maybe<DashboardVms>;
-};
-
-export type DashboardApps = {
-  __typename?: 'DashboardApps';
-  installed?: Maybe<Scalars['Int']['output']>;
-  started?: Maybe<Scalars['Int']['output']>;
-};
-
-export type DashboardArray = {
-  __typename?: 'DashboardArray';
-  /** Current array capacity */
-  capacity?: Maybe<ArrayCapacity>;
-  /** Current array state */
-  state?: Maybe<Scalars['String']['output']>;
-};
-
-export type DashboardCase = {
-  __typename?: 'DashboardCase';
-  base64?: Maybe<Scalars['String']['output']>;
-  error?: Maybe<Scalars['String']['output']>;
-  icon?: Maybe<Scalars['String']['output']>;
-  url?: Maybe<Scalars['String']['output']>;
-};
-
-export type DashboardConfig = {
-  __typename?: 'DashboardConfig';
-  error?: Maybe<Scalars['String']['output']>;
-  valid?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type DashboardDisplay = {
-  __typename?: 'DashboardDisplay';
-  case?: Maybe<DashboardCase>;
-};
-
-export type DashboardOs = {
-  __typename?: 'DashboardOs';
-  hostname?: Maybe<Scalars['String']['output']>;
-  uptime?: Maybe<Scalars['DateTime']['output']>;
-};
-
-export type DashboardService = {
-  __typename?: 'DashboardService';
-  name?: Maybe<Scalars['String']['output']>;
-  online?: Maybe<Scalars['Boolean']['output']>;
-  uptime?: Maybe<DashboardServiceUptime>;
-  version?: Maybe<Scalars['String']['output']>;
-};
-
-export type DashboardServiceInput = {
-  name: Scalars['String']['input'];
-  online: Scalars['Boolean']['input'];
-  uptime?: InputMaybe<DashboardServiceUptimeInput>;
-  version: Scalars['String']['input'];
-};
-
-export type DashboardServiceUptime = {
-  __typename?: 'DashboardServiceUptime';
-  timestamp?: Maybe<Scalars['DateTime']['output']>;
-};
-
-export type DashboardServiceUptimeInput = {
-  timestamp: Scalars['DateTime']['input'];
-};
-
-export type DashboardTwoFactor = {
-  __typename?: 'DashboardTwoFactor';
-  local?: Maybe<DashboardTwoFactorLocal>;
-  remote?: Maybe<DashboardTwoFactorRemote>;
-};
-
-export type DashboardTwoFactorLocal = {
-  __typename?: 'DashboardTwoFactorLocal';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type DashboardTwoFactorRemote = {
-  __typename?: 'DashboardTwoFactorRemote';
-  enabled?: Maybe<Scalars['Boolean']['output']>;
-};
-
-export type DashboardVars = {
-  __typename?: 'DashboardVars';
-  flashGuid?: Maybe<Scalars['String']['output']>;
-  regState?: Maybe<Scalars['String']['output']>;
-  regTy?: Maybe<Scalars['String']['output']>;
-  serverDescription?: Maybe<Scalars['String']['output']>;
-  serverName?: Maybe<Scalars['String']['output']>;
-};
-
-export type DashboardVersions = {
-  __typename?: 'DashboardVersions';
-  unraid?: Maybe<Scalars['String']['output']>;
-};
-
-export type DashboardVms = {
-  __typename?: 'DashboardVms';
-  installed?: Maybe<Scalars['Int']['output']>;
-  started?: Maybe<Scalars['Int']['output']>;
-};
 
 export type Devices = {
   __typename?: 'Devices';
@@ -1031,8 +906,6 @@ export type Query = {
   registration?: Maybe<Registration>;
   remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
-  /**  Temporary Type to Enable Swapping Dashboard over in Connect without major changes  */
-  serverDashboard: Dashboard;
   servers: Array<Server>;
   services: Array<Service>;
   /** Network Shares */
@@ -1746,7 +1619,6 @@ export type ResolversTypes = ResolversObject<{
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
   Array: ResolverTypeWrapper<ArrayType>;
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
-  ArrayCapacityBytes: ResolverTypeWrapper<ArrayCapacityBytes>;
   ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
   ArrayDiskFsColor: ArrayDiskFsColor;
   ArrayDiskStatus: ArrayDiskStatus;
@@ -1768,23 +1640,6 @@ export type ResolversTypes = ResolversObject<{
   ContainerPort: ResolverTypeWrapper<ContainerPort>;
   ContainerPortType: ContainerPortType;
   ContainerState: ContainerState;
-  Dashboard: ResolverTypeWrapper<Dashboard>;
-  DashboardApps: ResolverTypeWrapper<DashboardApps>;
-  DashboardArray: ResolverTypeWrapper<DashboardArray>;
-  DashboardCase: ResolverTypeWrapper<DashboardCase>;
-  DashboardConfig: ResolverTypeWrapper<DashboardConfig>;
-  DashboardDisplay: ResolverTypeWrapper<DashboardDisplay>;
-  DashboardOs: ResolverTypeWrapper<DashboardOs>;
-  DashboardService: ResolverTypeWrapper<DashboardService>;
-  DashboardServiceInput: DashboardServiceInput;
-  DashboardServiceUptime: ResolverTypeWrapper<DashboardServiceUptime>;
-  DashboardServiceUptimeInput: DashboardServiceUptimeInput;
-  DashboardTwoFactor: ResolverTypeWrapper<DashboardTwoFactor>;
-  DashboardTwoFactorLocal: ResolverTypeWrapper<DashboardTwoFactorLocal>;
-  DashboardTwoFactorRemote: ResolverTypeWrapper<DashboardTwoFactorRemote>;
-  DashboardVars: ResolverTypeWrapper<DashboardVars>;
-  DashboardVersions: ResolverTypeWrapper<DashboardVersions>;
-  DashboardVms: ResolverTypeWrapper<DashboardVms>;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Devices: ResolverTypeWrapper<Devices>;
   Disk: ResolverTypeWrapper<Disk>;
@@ -1880,7 +1735,6 @@ export type ResolversParentTypes = ResolversObject<{
   ApiKeyResponse: ApiKeyResponse;
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
-  ArrayCapacityBytes: ArrayCapacityBytes;
   ArrayDisk: ArrayDisk;
   Baseboard: Baseboard;
   Boolean: Scalars['Boolean']['output'];
@@ -1894,23 +1748,6 @@ export type ResolversParentTypes = ResolversObject<{
   ContainerHostConfig: ContainerHostConfig;
   ContainerMount: ContainerMount;
   ContainerPort: ContainerPort;
-  Dashboard: Dashboard;
-  DashboardApps: DashboardApps;
-  DashboardArray: DashboardArray;
-  DashboardCase: DashboardCase;
-  DashboardConfig: DashboardConfig;
-  DashboardDisplay: DashboardDisplay;
-  DashboardOs: DashboardOs;
-  DashboardService: DashboardService;
-  DashboardServiceInput: DashboardServiceInput;
-  DashboardServiceUptime: DashboardServiceUptime;
-  DashboardServiceUptimeInput: DashboardServiceUptimeInput;
-  DashboardTwoFactor: DashboardTwoFactor;
-  DashboardTwoFactorLocal: DashboardTwoFactorLocal;
-  DashboardTwoFactorRemote: DashboardTwoFactorRemote;
-  DashboardVars: DashboardVars;
-  DashboardVersions: DashboardVersions;
-  DashboardVms: DashboardVms;
   DateTime: Scalars['DateTime']['output'];
   Devices: Devices;
   Disk: Disk;
@@ -2017,16 +1854,8 @@ export type ArrayResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type ArrayCapacityResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayCapacity'] = ResolversParentTypes['ArrayCapacity']> = ResolversObject<{
-  bytes?: Resolver<Maybe<ResolversTypes['ArrayCapacityBytes']>, ParentType, ContextType>;
   disks?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
   kilobytes?: Resolver<ResolversTypes['Capacity'], ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type ArrayCapacityBytesResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ArrayCapacityBytes'] = ResolversParentTypes['ArrayCapacityBytes']> = ResolversObject<{
-  free?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
-  total?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
-  used?: Resolver<Maybe<ResolversTypes['Long']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2125,110 +1954,6 @@ export type ContainerPortResolvers<ContextType = Context, ParentType extends Res
   privatePort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   publicPort?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['ContainerPortType']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Dashboard'] = ResolversParentTypes['Dashboard']> = ResolversObject<{
-  apps?: Resolver<Maybe<ResolversTypes['DashboardApps']>, ParentType, ContextType>;
-  array?: Resolver<Maybe<ResolversTypes['DashboardArray']>, ParentType, ContextType>;
-  config?: Resolver<Maybe<ResolversTypes['DashboardConfig']>, ParentType, ContextType>;
-  display?: Resolver<Maybe<ResolversTypes['DashboardDisplay']>, ParentType, ContextType>;
-  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  lastPublish?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  network?: Resolver<Maybe<ResolversTypes['Network']>, ParentType, ContextType>;
-  online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  os?: Resolver<Maybe<ResolversTypes['DashboardOs']>, ParentType, ContextType>;
-  services?: Resolver<Maybe<Array<Maybe<ResolversTypes['DashboardService']>>>, ParentType, ContextType>;
-  twoFactor?: Resolver<Maybe<ResolversTypes['DashboardTwoFactor']>, ParentType, ContextType>;
-  vars?: Resolver<Maybe<ResolversTypes['DashboardVars']>, ParentType, ContextType>;
-  versions?: Resolver<Maybe<ResolversTypes['DashboardVersions']>, ParentType, ContextType>;
-  vms?: Resolver<Maybe<ResolversTypes['DashboardVms']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardAppsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardApps'] = ResolversParentTypes['DashboardApps']> = ResolversObject<{
-  installed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  started?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardArrayResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardArray'] = ResolversParentTypes['DashboardArray']> = ResolversObject<{
-  capacity?: Resolver<Maybe<ResolversTypes['ArrayCapacity']>, ParentType, ContextType>;
-  state?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardCaseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardCase'] = ResolversParentTypes['DashboardCase']> = ResolversObject<{
-  base64?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  icon?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  url?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardConfigResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardConfig'] = ResolversParentTypes['DashboardConfig']> = ResolversObject<{
-  error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  valid?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardDisplayResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardDisplay'] = ResolversParentTypes['DashboardDisplay']> = ResolversObject<{
-  case?: Resolver<Maybe<ResolversTypes['DashboardCase']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardOsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardOs'] = ResolversParentTypes['DashboardOs']> = ResolversObject<{
-  hostname?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  uptime?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardServiceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardService'] = ResolversParentTypes['DashboardService']> = ResolversObject<{
-  name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  uptime?: Resolver<Maybe<ResolversTypes['DashboardServiceUptime']>, ParentType, ContextType>;
-  version?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardServiceUptimeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardServiceUptime'] = ResolversParentTypes['DashboardServiceUptime']> = ResolversObject<{
-  timestamp?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardTwoFactorResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardTwoFactor'] = ResolversParentTypes['DashboardTwoFactor']> = ResolversObject<{
-  local?: Resolver<Maybe<ResolversTypes['DashboardTwoFactorLocal']>, ParentType, ContextType>;
-  remote?: Resolver<Maybe<ResolversTypes['DashboardTwoFactorRemote']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardTwoFactorLocalResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardTwoFactorLocal'] = ResolversParentTypes['DashboardTwoFactorLocal']> = ResolversObject<{
-  enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardTwoFactorRemoteResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardTwoFactorRemote'] = ResolversParentTypes['DashboardTwoFactorRemote']> = ResolversObject<{
-  enabled?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardVarsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardVars'] = ResolversParentTypes['DashboardVars']> = ResolversObject<{
-  flashGuid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  regState?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  regTy?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  serverDescription?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  serverName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardVersionsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardVersions'] = ResolversParentTypes['DashboardVersions']> = ResolversObject<{
-  unraid?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
-}>;
-
-export type DashboardVmsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DashboardVms'] = ResolversParentTypes['DashboardVms']> = ResolversObject<{
-  installed?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
-  started?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2674,7 +2399,6 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   registration?: Resolver<Maybe<ResolversTypes['Registration']>, ParentType, ContextType>;
   remoteAccess?: Resolver<ResolversTypes['RemoteAccess'], ParentType, ContextType>;
   server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType>;
-  serverDashboard?: Resolver<ResolversTypes['Dashboard'], ParentType, ContextType>;
   servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
   services?: Resolver<Array<ResolversTypes['Service']>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
@@ -3079,7 +2803,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ApiKeyResponse?: ApiKeyResponseResolvers<ContextType>;
   Array?: ArrayResolvers<ContextType>;
   ArrayCapacity?: ArrayCapacityResolvers<ContextType>;
-  ArrayCapacityBytes?: ArrayCapacityBytesResolvers<ContextType>;
   ArrayDisk?: ArrayDiskResolvers<ContextType>;
   Baseboard?: BaseboardResolvers<ContextType>;
   Capacity?: CapacityResolvers<ContextType>;
@@ -3090,21 +2813,6 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   ContainerHostConfig?: ContainerHostConfigResolvers<ContextType>;
   ContainerMount?: ContainerMountResolvers<ContextType>;
   ContainerPort?: ContainerPortResolvers<ContextType>;
-  Dashboard?: DashboardResolvers<ContextType>;
-  DashboardApps?: DashboardAppsResolvers<ContextType>;
-  DashboardArray?: DashboardArrayResolvers<ContextType>;
-  DashboardCase?: DashboardCaseResolvers<ContextType>;
-  DashboardConfig?: DashboardConfigResolvers<ContextType>;
-  DashboardDisplay?: DashboardDisplayResolvers<ContextType>;
-  DashboardOs?: DashboardOsResolvers<ContextType>;
-  DashboardService?: DashboardServiceResolvers<ContextType>;
-  DashboardServiceUptime?: DashboardServiceUptimeResolvers<ContextType>;
-  DashboardTwoFactor?: DashboardTwoFactorResolvers<ContextType>;
-  DashboardTwoFactorLocal?: DashboardTwoFactorLocalResolvers<ContextType>;
-  DashboardTwoFactorRemote?: DashboardTwoFactorRemoteResolvers<ContextType>;
-  DashboardVars?: DashboardVarsResolvers<ContextType>;
-  DashboardVersions?: DashboardVersionsResolvers<ContextType>;
-  DashboardVms?: DashboardVmsResolvers<ContextType>;
   DateTime?: GraphQLScalarType;
   Devices?: DevicesResolvers<ContextType>;
   Disk?: DiskResolvers<ContextType>;
