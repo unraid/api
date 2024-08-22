@@ -1,0 +1,18 @@
+type Subscription {
+    service(name: String!): [Service!]
+}
+
+type Uptime {
+    timestamp: String
+}
+
+type Service {
+    name: String
+    online: Boolean
+    uptime: Uptime
+    version: String
+}
+
+type Query {
+    services: [Service!]!
+}

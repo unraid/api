@@ -25,6 +25,11 @@ export class InfoResolver {
         return {};
     }
 
+    @ResolveField('time')
+    public async now() {
+        return new Date().toISOString();
+    }
+
     @ResolveField('apps')
     public async apps() {
         return generateApps();

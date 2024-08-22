@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { DockerContainersResolver } from './docker-containers.resolver';
+import { DockerContainersResolver } from './docker.resolver';
 
 describe('DockerContainersResolver', () => {
   let resolver: DockerContainersResolver;
