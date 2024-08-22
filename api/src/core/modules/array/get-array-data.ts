@@ -1,3 +1,4 @@
+import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import {
     ArrayDiskType,
     type ArrayCapacity,
@@ -56,6 +57,7 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     };
 
     return {
+        id: getServerIdentifier('array'),
         state: emhttp.var.mdState,
         capacity,
         boot,

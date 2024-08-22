@@ -95,12 +95,17 @@ export const getArray = (): DashboardArray => {
     };
 };
 
-const getData = async (): Promise<Dashboard> => {
+/**
+ * Provides a way to get dashboard data from the GraphQL client without the need for publishing to mothership
+ * @returns Dashboard data
+ */
+export const dashboardDataServer = async (): Promise<Dashboard> => {
     const emhttp = getters.emhttp();
     const docker = getters.docker();
-
+    const config = getters.config()
     return {
-        id: hostname() ?? 'unraid',
+        id: `${config.remote.apikey ?? config.upc.apikey}-${hostname() ?? 'unknown-hostname'}`,
+        lastPublish: new Date().toISOString(),
         vars: {
             regState: emhttp.var.regState,
             regTy: emhttp.var.regTy,
@@ -143,12 +148,4 @@ const getData = async (): Promise<Dashboard> => {
                       }[emhttp.var.configState] ?? 'UNKNOWN_ERROR',
               },
     };
-};
-
-/**
- * Provides a way to get dashboard data from the GraphQL client without the need for publishing to mothership
- * @returns Dashboard data
- */
-export const dashboardDataServer = async (): Promise<Dashboard> => {
-    return await getData();
 };

@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types';
 
 import { z } from 'zod'
-import { AccessUrl, AccessUrlInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayCapacityBytes, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Dashboard, DashboardApps, DashboardArray, DashboardCase, DashboardConfig, DashboardDisplay, DashboardOs, DashboardService, DashboardServiceInput, DashboardServiceUptime, DashboardServiceUptimeInput, DashboardTwoFactor, DashboardTwoFactorLocal, DashboardTwoFactorRemote, DashboardVars, DashboardVersions, DashboardVms, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, NetworkInput, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
+import { AccessUrl, AllowedOriginInput, ApiKey, ApiKeyResponse, ArrayType, ArrayCapacity, ArrayCapacityBytes, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, Dashboard, DashboardApps, DashboardArray, DashboardCase, DashboardConfig, DashboardDisplay, DashboardOs, DashboardService, DashboardServiceInput, DashboardServiceUptime, DashboardServiceUptimeInput, DashboardTwoFactor, DashboardTwoFactorLocal, DashboardTwoFactorRemote, DashboardVars, DashboardVersions, DashboardVms, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationFilter, NotificationInput, NotificationType, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -77,15 +77,6 @@ export function AccessUrlSchema(): z.ZodObject<Properties<AccessUrl>> {
   })
 }
 
-export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> {
-  return z.object({
-    ipv4: definedNonNullAnySchema.nullish(),
-    ipv6: definedNonNullAnySchema.nullish(),
-    name: z.string().nullish(),
-    type: URL_TYPESchema
-  })
-}
-
 export function AllowedOriginInputSchema(): z.ZodObject<Properties<AllowedOriginInput>> {
   return z.object({
     origins: z.array(z.string())
@@ -118,6 +109,7 @@ export function ArrayTypeSchema(): z.ZodObject<Properties<ArrayType>> {
     caches: z.array(ArrayDiskSchema()),
     capacity: ArrayCapacitySchema(),
     disks: z.array(ArrayDiskSchema()),
+    id: z.string(),
     parities: z.array(ArrayDiskSchema()),
     pendingState: ArrayPendingStateSchema.nullish(),
     previousState: ArrayStateSchema.nullish(),
@@ -497,6 +489,15 @@ export function DisplaySchema(): z.ZodObject<Properties<Display>> {
   })
 }
 
+export function DockerSchema(): z.ZodObject<Properties<Docker>> {
+  return z.object({
+    __typename: z.literal('Docker').optional(),
+    containers: z.array(DockerContainerSchema()).nullish(),
+    id: z.string(),
+    networks: z.array(DockerNetworkSchema()).nullish()
+  })
+}
+
 export function DockerContainerSchema(): z.ZodObject<Properties<DockerContainer>> {
   return z.object({
     __typename: z.literal('DockerContainer').optional(),
@@ -573,6 +574,7 @@ export function InfoSchema(): z.ZodObject<Properties<Info>> {
     memory: InfoMemorySchema().nullish(),
     os: OsSchema().nullish(),
     system: SystemSchema().nullish(),
+    time: z.string(),
     versions: VersionsSchema().nullish()
   })
 }
@@ -686,6 +688,7 @@ export function NetworkSchema(): z.ZodObject<Properties<Network>> {
     accessUrls: z.array(AccessUrlSchema()).nullish(),
     carrierChanges: z.string().nullish(),
     duplex: z.string().nullish(),
+    id: z.string(),
     iface: z.string().nullish(),
     ifaceName: z.string().nullish(),
     internal: z.string().nullish(),
@@ -699,9 +702,9 @@ export function NetworkSchema(): z.ZodObject<Properties<Network>> {
   })
 }
 
-export function NetworkInputSchema(): z.ZodObject<Properties<NetworkInput>> {
+export function NodeSchema(): z.ZodObject<Properties<Node>> {
   return z.object({
-    accessUrls: z.array(z.lazy(() => AccessUrlInputSchema()))
+    id: z.string()
   })
 }
 

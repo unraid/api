@@ -31,7 +31,8 @@ input arrayDiskInput {
     slot: Int
 }
 
-type Array {
+type Array implements Node {
+    id: ID!
     """Array state before this query/mutation"""
     previousState: ArrayState
     """Array state after this query/mutation"""

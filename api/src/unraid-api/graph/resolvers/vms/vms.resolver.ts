@@ -11,9 +11,6 @@ export class VmsResolver {
         possession: 'any',
     })
     public async vms() {
-        /**
-         * @todo Method implemntation
-         */
         return {};
     }
 

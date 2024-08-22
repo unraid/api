@@ -14,6 +14,9 @@ import { ResolversModule } from './resolvers/resolvers.module';
 import { GRAPHQL_INTROSPECTION } from '@app/environment';
 import { typeDefs } from '@app/graphql/schema/index';
 import { print } from 'graphql';
+import { NetworkResolver } from './network/network.resolver';
+import { ServicesResolver } from './services/services.resolver';
+import { SharesResolver } from './shares/shares.resolver';
 
 @Module({
     imports: [
@@ -48,6 +51,6 @@ import { print } from 'graphql';
             // schema: schema
         }),
     ],
-    providers: [],
+    providers: [NetworkResolver, ServicesResolver, SharesResolver],
 })
 export class GraphModule {}
