@@ -8,6 +8,7 @@ import { logger } from '@app/core';
 import {
     AccessUrlInputSchema,
 } from '@app/graphql/generated/client/validators';
+import { AccessUrl } from '@app/graphql/generated/api/types';
 
 interface UrlForFieldInput {
     url: string;
@@ -131,7 +132,7 @@ const getUrlTypeFromFqdn = (fqdnType: string): URL_TYPE => {
 // eslint-disable-next-line complexity
 export const getServerIps = (
     state: RootState = store.getState()
-): { urls: AccessUrlInput[]; errors: Error[] } => {
+): { urls: AccessUrl[]; errors: Error[] } => {
     const { nginx } = state.emhttp;
     const {
         remote: { wanport },

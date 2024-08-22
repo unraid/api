@@ -11,7 +11,6 @@ export * from './users';
 export * from './vms';
 export * from './add-share';
 export * from './add-user';
-export * from './get-all-shares';
 export * from './get-apps';
 export * from './get-devices';
 export * from './get-disks';

@@ -32,13 +32,6 @@ export type AccessUrl = {
   type: URL_TYPE;
 };
 
-export type AccessUrlInput = {
-  ipv4?: InputMaybe<Scalars['URL']['input']>;
-  ipv6?: InputMaybe<Scalars['URL']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  type: URL_TYPE;
-};
-
 export type AllowedOriginInput = {
   origins: Array<Scalars['String']['input']>;
 };
@@ -58,7 +51,7 @@ export type ApiKeyResponse = {
   valid: Scalars['Boolean']['output'];
 };
 
-export type ArrayType = {
+export type ArrayType = Node & {
   __typename?: 'Array';
   /** Current boot disk */
   boot?: Maybe<ArrayDisk>;
@@ -68,6 +61,7 @@ export type ArrayType = {
   capacity: ArrayCapacity;
   /** Data disks in the current array */
   disks: Array<ArrayDisk>;
+  id: Scalars['ID']['output'];
   /** Parity disks in the current array */
   parities: Array<ArrayDisk>;
   /** Array state after this query/mutation */
@@ -516,6 +510,13 @@ export type Display = {
   wwn?: Maybe<Scalars['Boolean']['output']>;
 };
 
+export type Docker = Node & {
+  __typename?: 'Docker';
+  containers?: Maybe<Array<DockerContainer>>;
+  id: Scalars['ID']['output'];
+  networks?: Maybe<Array<DockerNetwork>>;
+};
+
 export type DockerContainer = {
   __typename?: 'DockerContainer';
   autoStart: Scalars['Boolean']['output'];
@@ -592,6 +593,7 @@ export type Info = {
   memory?: Maybe<InfoMemory>;
   os?: Maybe<Os>;
   system?: Maybe<System>;
+  time: Scalars['DateTime']['output'];
   versions?: Maybe<Versions>;
 };
 
@@ -741,7 +743,6 @@ export type Mutation = {
   unmountArrayDisk?: Maybe<Disk>;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
-  updateNetwork: Network;
 };
 
 
@@ -823,16 +824,12 @@ export type MutationupdateApikeyArgs = {
   name: Scalars['String']['input'];
 };
 
-
-export type MutationupdateNetworkArgs = {
-  data: NetworkInput;
-};
-
-export type Network = {
+export type Network = Node & {
   __typename?: 'Network';
   accessUrls?: Maybe<Array<AccessUrl>>;
   carrierChanges?: Maybe<Scalars['String']['output']>;
   duplex?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   iface?: Maybe<Scalars['String']['output']>;
   ifaceName?: Maybe<Scalars['String']['output']>;
   internal?: Maybe<Scalars['String']['output']>;
@@ -845,8 +842,8 @@ export type Network = {
   type?: Maybe<Scalars['String']['output']>;
 };
 
-export type NetworkInput = {
-  accessUrls: Array<AccessUrlInput>;
+export type Node = {
+  id: Scalars['ID']['output'];
 };
 
 export type Notification = {
@@ -1014,6 +1011,7 @@ export type Query = {
   /** Mulitiple disks */
   disks: Array<Maybe<Disk>>;
   display?: Maybe<Display>;
+  docker: Docker;
   /** All Docker containers */
   dockerContainers: Array<DockerContainer>;
   /** Docker network */
@@ -1025,6 +1023,7 @@ export type Query = {
   info?: Maybe<Info>;
   /** Current user account */
   me?: Maybe<Me>;
+  network?: Maybe<Network>;
   notifications: Array<Notification>;
   online?: Maybe<Scalars['Boolean']['output']>;
   owner?: Maybe<Owner>;
@@ -1035,6 +1034,7 @@ export type Query = {
   /**  Temporary Type to Enable Swapping Dashboard over in Connect without major changes  */
   serverDashboard: Dashboard;
   servers: Array<Server>;
+  services: Array<Service>;
   /** Network Shares */
   shares?: Maybe<Array<Maybe<Share>>>;
   unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
@@ -1285,6 +1285,7 @@ export enum URL_TYPE {
   DEFAULT = 'DEFAULT',
   LAN = 'LAN',
   MDNS = 'MDNS',
+  OTHER = 'OTHER',
   WAN = 'WAN',
   WIREGUARD = 'WIREGUARD'
 }
@@ -1733,13 +1734,13 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
+  Node: ( ArrayType ) | ( Docker ) | ( Network );
   UserAccount: ( Me ) | ( User );
 }>;
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   AccessUrl: ResolverTypeWrapper<AccessUrl>;
-  AccessUrlInput: AccessUrlInput;
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
@@ -1792,6 +1793,7 @@ export type ResolversTypes = ResolversObject<{
   DiskPartition: ResolverTypeWrapper<DiskPartition>;
   DiskSmartStatus: DiskSmartStatus;
   Display: ResolverTypeWrapper<Display>;
+  Docker: ResolverTypeWrapper<Docker>;
   DockerContainer: ResolverTypeWrapper<DockerContainer>;
   DockerNetwork: ResolverTypeWrapper<DockerNetwork>;
   Flash: ResolverTypeWrapper<Flash>;
@@ -1816,7 +1818,7 @@ export type ResolversTypes = ResolversObject<{
   Mount: ResolverTypeWrapper<Mount>;
   Mutation: ResolverTypeWrapper<{}>;
   Network: ResolverTypeWrapper<Network>;
-  NetworkInput: NetworkInput;
+  Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   Notification: ResolverTypeWrapper<Notification>;
   NotificationFilter: NotificationFilter;
   NotificationInput: NotificationInput;
@@ -1873,7 +1875,6 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   AccessUrl: AccessUrl;
-  AccessUrlInput: AccessUrlInput;
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
@@ -1915,6 +1916,7 @@ export type ResolversParentTypes = ResolversObject<{
   Disk: Disk;
   DiskPartition: DiskPartition;
   Display: Display;
+  Docker: Docker;
   DockerContainer: DockerContainer;
   DockerNetwork: DockerNetwork;
   Flash: Flash;
@@ -1935,7 +1937,7 @@ export type ResolversParentTypes = ResolversObject<{
   Mount: Mount;
   Mutation: {};
   Network: Network;
-  NetworkInput: NetworkInput;
+  Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   Notification: Notification;
   NotificationFilter: NotificationFilter;
   NotificationInput: NotificationInput;
@@ -2006,6 +2008,7 @@ export type ArrayResolvers<ContextType = Context, ParentType extends ResolversPa
   caches?: Resolver<Array<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
   capacity?: Resolver<ResolversTypes['ArrayCapacity'], ParentType, ContextType>;
   disks?: Resolver<Array<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   parities?: Resolver<Array<ResolversTypes['ArrayDisk']>, ParentType, ContextType>;
   pendingState?: Resolver<Maybe<ResolversTypes['ArrayPendingState']>, ParentType, ContextType>;
   previousState?: Resolver<Maybe<ResolversTypes['ArrayState']>, ParentType, ContextType>;
@@ -2294,6 +2297,13 @@ export type DisplayResolvers<ContextType = Context, ParentType extends Resolvers
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type DockerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Docker'] = ResolversParentTypes['Docker']> = ResolversObject<{
+  containers?: Resolver<Maybe<Array<ResolversTypes['DockerContainer']>>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  networks?: Resolver<Maybe<Array<ResolversTypes['DockerNetwork']>>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type DockerContainerResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DockerContainer'] = ResolversParentTypes['DockerContainer']> = ResolversObject<{
   autoStart?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   command?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
@@ -2360,6 +2370,7 @@ export type InfoResolvers<ContextType = Context, ParentType extends ResolversPar
   memory?: Resolver<Maybe<ResolversTypes['InfoMemory']>, ParentType, ContextType>;
   os?: Resolver<Maybe<ResolversTypes['Os']>, ParentType, ContextType>;
   system?: Resolver<Maybe<ResolversTypes['System']>, ParentType, ContextType>;
+  time?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   versions?: Resolver<Maybe<ResolversTypes['Versions']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2483,13 +2494,13 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   stopArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   updateApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationupdateApikeyArgs, 'name'>>;
-  updateNetwork?: Resolver<ResolversTypes['Network'], ParentType, ContextType, RequireFields<MutationupdateNetworkArgs, 'data'>>;
 }>;
 
 export type NetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Network'] = ResolversParentTypes['Network']> = ResolversObject<{
   accessUrls?: Resolver<Maybe<Array<ResolversTypes['AccessUrl']>>, ParentType, ContextType>;
   carrierChanges?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   duplex?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   iface?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   ifaceName?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   internal?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2501,6 +2512,11 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
   speed?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   type?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = ResolversObject<{
+  __resolveType: TypeResolveFn<'Array' | 'Docker' | 'Network', ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
 export type NotificationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = ResolversObject<{
@@ -2642,6 +2658,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
+  docker?: Resolver<ResolversTypes['Docker'], ParentType, ContextType>;
   dockerContainers?: Resolver<Array<ResolversTypes['DockerContainer']>, ParentType, ContextType, Partial<QuerydockerContainersArgs>>;
   dockerNetwork?: Resolver<ResolversTypes['DockerNetwork'], ParentType, ContextType, RequireFields<QuerydockerNetworkArgs, 'id'>>;
   dockerNetworks?: Resolver<Array<Maybe<ResolversTypes['DockerNetwork']>>, ParentType, ContextType, Partial<QuerydockerNetworksArgs>>;
@@ -2649,6 +2666,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   flash?: Resolver<Maybe<ResolversTypes['Flash']>, ParentType, ContextType>;
   info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
+  network?: Resolver<Maybe<ResolversTypes['Network']>, ParentType, ContextType>;
   notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QuerynotificationsArgs, 'filter'>>;
   online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
@@ -2658,6 +2676,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   server?: Resolver<Maybe<ResolversTypes['Server']>, ParentType, ContextType>;
   serverDashboard?: Resolver<ResolversTypes['Dashboard'], ParentType, ContextType>;
   servers?: Resolver<Array<ResolversTypes['Server']>, ParentType, ContextType>;
+  services?: Resolver<Array<ResolversTypes['Service']>, ParentType, ContextType>;
   shares?: Resolver<Maybe<Array<Maybe<ResolversTypes['Share']>>>, ParentType, ContextType>;
   unassignedDevices?: Resolver<Maybe<Array<Maybe<ResolversTypes['UnassignedDevice']>>>, ParentType, ContextType>;
   user?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<QueryuserArgs, 'id'>>;
@@ -3091,6 +3110,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Disk?: DiskResolvers<ContextType>;
   DiskPartition?: DiskPartitionResolvers<ContextType>;
   Display?: DisplayResolvers<ContextType>;
+  Docker?: DockerResolvers<ContextType>;
   DockerContainer?: DockerContainerResolvers<ContextType>;
   DockerNetwork?: DockerNetworkResolvers<ContextType>;
   Flash?: FlashResolvers<ContextType>;
@@ -3108,6 +3128,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Mount?: MountResolvers<ContextType>;
   Mutation?: MutationResolvers<ContextType>;
   Network?: NetworkResolvers<ContextType>;
+  Node?: NodeResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
   Os?: OsResolvers<ContextType>;
   Owner?: OwnerResolvers<ContextType>;

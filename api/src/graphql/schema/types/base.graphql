@@ -26,3 +26,8 @@ type Subscription {
     info: Info!
     online: Boolean!
 }
+
+# An object with a Globally Unique ID: see https://graphql.org/learn/global-object-identification/
+interface Node {
+    id: ID!
+}

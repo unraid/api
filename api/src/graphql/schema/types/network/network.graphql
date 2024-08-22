@@ -1,0 +1,24 @@
+enum URL_TYPE {
+  LAN
+  WIREGUARD
+  WAN
+  MDNS
+  OTHER
+  DEFAULT
+}
+
+type AccessUrl {
+  type: URL_TYPE!
+  name: String
+  ipv4: URL
+  ipv6: URL
+}
+
+type Query {
+  network: Network
+}
+
+type Network implements Node {
+  id: ID!
+  accessUrls: [AccessUrl!]
+}
