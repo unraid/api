@@ -255,17 +255,32 @@ RolesBuilder {
           "*",
         ],
       },
+      "display": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "docker": {
+        "read:any": [
+          "*",
+        ],
+      },
       "docker/container": {
         "read:any": [
           "*",
         ],
       },
-      "docker/network": {
+      "info": {
         "read:any": [
           "*",
         ],
       },
       "logs": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "network": {
         "read:any": [
           "*",
         ],
@@ -276,6 +291,11 @@ RolesBuilder {
         ],
       },
       "unraid-version": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "vars": {
         "read:any": [
           "*",
         ],

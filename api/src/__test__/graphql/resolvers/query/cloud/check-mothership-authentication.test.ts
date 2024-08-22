@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { checkMothershipAuthentication } from "@app/graphql/resolvers/query/cloud/check-mothership-authentication";
 import { expect, test } from "vitest";
 import packageJson from '@app/../package.json'
