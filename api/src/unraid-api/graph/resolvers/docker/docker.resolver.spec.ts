@@ -1,18 +1,18 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { DockerContainersResolver } from './docker.resolver';
+import { DockerResolver } from './docker.resolver';
 
-describe('DockerContainersResolver', () => {
-  let resolver: DockerContainersResolver;
+describe('DockerResolver', () => {
+    let resolver: DockerResolver;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [DockerContainersResolver],
-    }).compile();
+    beforeEach(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [DockerResolver],
+        }).compile();
 
-    resolver = module.get<DockerContainersResolver>(DockerContainersResolver);
-  });
+        resolver = module.get<DockerResolver>(DockerResolver);
+    });
 
-  it('should be defined', () => {
-    expect(resolver).toBeDefined();
-  });
+    it('should be defined', () => {
+        expect(resolver).toBeDefined();
+    });
 });

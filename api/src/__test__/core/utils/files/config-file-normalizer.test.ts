@@ -1,12 +1,14 @@
+import 'reflect-metadata';
+
 import { test, expect } from 'vitest';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { initialState } from '@app/store/modules/config';
 import { cloneDeep } from 'lodash';
 
 test('it creates a FLASH config with NO OPTIONAL values', () => {
-	const basicConfig = initialState;
-	const config = getWriteableConfig(basicConfig, 'flash');
-	expect(config).toMatchInlineSnapshot(`
+    const basicConfig = initialState;
+    const config = getWriteableConfig(basicConfig, 'flash');
+    expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
 		    "extraOrigins": "",
@@ -37,9 +39,9 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
 });
 
 test('it creates a MEMORY config with NO OPTIONAL values', () => {
-	const basicConfig = initialState;
-	const config = getWriteableConfig(basicConfig, 'memory');
-	expect(config).toMatchInlineSnapshot(`
+    const basicConfig = initialState;
+    const config = getWriteableConfig(basicConfig, 'memory');
+    expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
 		    "extraOrigins": "",
@@ -74,15 +76,15 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 });
 
 test('it creates a FLASH config with OPTIONAL values', () => {
-	const basicConfig = cloneDeep(initialState);
-	basicConfig.remote['2Fa'] = 'yes';
-	basicConfig.local['2Fa'] = 'yes';
-	basicConfig.local.showT2Fa = 'yes';
-	basicConfig.api.extraOrigins = 'myextra.origins';
-	basicConfig.remote.upnpEnabled = 'yes';
-	basicConfig.connectionStatus.upnpStatus = 'Turned On';
-	const config = getWriteableConfig(basicConfig, 'flash');
-	expect(config).toMatchInlineSnapshot(`
+    const basicConfig = cloneDeep(initialState);
+    basicConfig.remote['2Fa'] = 'yes';
+    basicConfig.local['2Fa'] = 'yes';
+    basicConfig.local.showT2Fa = 'yes';
+    basicConfig.api.extraOrigins = 'myextra.origins';
+    basicConfig.remote.upnpEnabled = 'yes';
+    basicConfig.connectionStatus.upnpStatus = 'Turned On';
+    const config = getWriteableConfig(basicConfig, 'flash');
+    expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
 		    "extraOrigins": "myextra.origins",
@@ -118,15 +120,15 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 });
 
 test('it creates a MEMORY config with OPTIONAL values', () => {
-	const basicConfig = cloneDeep(initialState);
-	basicConfig.remote['2Fa'] = 'yes';
-	basicConfig.local['2Fa'] = 'yes';
-	basicConfig.local.showT2Fa = 'yes';
-	basicConfig.api.extraOrigins = 'myextra.origins';
-	basicConfig.remote.upnpEnabled = 'yes';
-	basicConfig.connectionStatus.upnpStatus = 'Turned On';
-	const config = getWriteableConfig(basicConfig, 'memory');
-	expect(config).toMatchInlineSnapshot(`
+    const basicConfig = cloneDeep(initialState);
+    basicConfig.remote['2Fa'] = 'yes';
+    basicConfig.local['2Fa'] = 'yes';
+    basicConfig.local.showT2Fa = 'yes';
+    basicConfig.api.extraOrigins = 'myextra.origins';
+    basicConfig.remote.upnpEnabled = 'yes';
+    basicConfig.connectionStatus.upnpStatus = 'Turned On';
+    const config = getWriteableConfig(basicConfig, 'memory');
+    expect(config).toMatchInlineSnapshot(`
 		{
 		  "api": {
 		    "extraOrigins": "myextra.origins",
