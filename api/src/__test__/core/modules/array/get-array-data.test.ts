@@ -177,6 +177,7 @@ test('Creates an array event', async () => {
             "warning": null,
           },
         ],
+        "id": "array--d0cd1bf0f3b0",
         "parities": [
           {
             "comment": null,
