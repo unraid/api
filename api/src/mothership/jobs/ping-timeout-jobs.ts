@@ -1,8 +1,7 @@
-import { KEEP_ALIVE_INTERVAL_MS, TEN_MINUTES_MS } from '@app/consts';
+import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS, TEN_MINUTES_MS } from '@app/consts';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
-import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { store } from '@app/store/index';
 import { setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access';
@@ -78,8 +77,10 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
         }
 
         // Check for ping timeouts in remote access
-        if (state.dynamicRemoteAccess.lastPing && Date.now() - state.dynamicRemoteAccess.lastPing > TEN_MINUTES_MS) {
-            remoteAccessLogger.warn(`No pings received in ${TEN_MINUTES_MS / 1_000 / 60} minutes, stopping Dynamic Remote Access`);
+        if (state.dynamicRemoteAccess.lastPing && Date.now() - state.dynamicRemoteAccess.lastPing > ONE_MINUTE_MS) {
+            remoteAccessLogger.error(
+                `NO PINGS RECEIVED IN 1 MINUTE, REMOTE ACCESS MUST BE DISABLED`
+            );
             store.dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
             
         }

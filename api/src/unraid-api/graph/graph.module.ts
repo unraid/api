@@ -13,10 +13,12 @@ import { GraphQLModule } from '@nestjs/graphql';
 import { ResolversModule } from './resolvers/resolvers.module';
 import { GRAPHQL_INTROSPECTION } from '@app/environment';
 import { typeDefs } from '@app/graphql/schema/index';
-import { print } from 'graphql';
+import { NoUnusedVariablesRule, print } from 'graphql';
 import { NetworkResolver } from './network/network.resolver';
 import { ServicesResolver } from './services/services.resolver';
 import { SharesResolver } from './shares/shares.resolver';
+import { ConnectResolver } from './connect/connect.resolver';
+import { ConnectService } from './connect/connect.service';
 
 @Module({
     imports: [
@@ -36,7 +38,7 @@ import { SharesResolver } from './shares/shares.resolver';
             subscriptions: {
                 'graphql-ws': {
                     path: '/graphql',
-                }
+                },
             },
             path: '/graphql',
             typeDefs: print(typeDefs),
@@ -46,11 +48,20 @@ import { SharesResolver } from './shares/shares.resolver';
                 UUID: UUIDResolver,
                 DateTime: DateTimeResolver,
                 Port: PortResolver,
-                URL: URLResolver
+                URL: URLResolver,
             },
+            validationRules: [
+                NoUnusedVariablesRule
+            ]
             // schema: schema
         }),
     ],
-    providers: [NetworkResolver, ServicesResolver, SharesResolver],
+    providers: [
+        NetworkResolver,
+        ServicesResolver,
+        SharesResolver,
+        ConnectResolver,
+        ConnectService,
+    ],
 })
 export class GraphModule {}

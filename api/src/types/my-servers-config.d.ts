@@ -1,6 +1,5 @@
 import { type MinigraphStatus } from '@app/graphql/generated/api/types';
-import { type DynamicRemoteAccessType } from '@app/remoteAccess/types';
-
+import { type DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
 interface MyServersConfig extends Record<string, unknown> {
 	api: {
 		version: string;

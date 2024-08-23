@@ -1,7 +1,6 @@
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 import { API_VERSION } from '@app/environment';
-import { Service } from '@app/graphql/generated/api/types';
-import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
+import { DynamicRemoteAccessType, Service } from '@app/graphql/generated/api/types';
 import { store } from '@app/store/index';
 import { Query, Resolver } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';

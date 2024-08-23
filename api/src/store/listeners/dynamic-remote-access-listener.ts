@@ -4,8 +4,8 @@ import { remoteAccessLogger } from '@app/core/log';
 import { loadConfigFile } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
-import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
+import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
 
 const shouldDynamicRemoteAccessBeEnabled = (state: RootState | null): boolean => {
 	if (state?.config.status !== FileLoadStatus.LOADED || state?.emhttp.status !== FileLoadStatus.LOADED) {

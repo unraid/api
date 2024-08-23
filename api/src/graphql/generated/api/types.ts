@@ -32,6 +32,13 @@ export type AccessUrl = {
   type: URL_TYPE;
 };
 
+export type AccessUrlInput = {
+  ipv4?: InputMaybe<Scalars['URL']['input']>;
+  ipv6?: InputMaybe<Scalars['URL']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  type: URL_TYPE;
+};
+
 export type AllowedOriginInput = {
   origins: Array<Scalars['String']['input']>;
 };
@@ -255,6 +262,12 @@ export enum ConfigErrorState {
   WITHDRAWN = 'WITHDRAWN'
 }
 
+export type Connect = Node & {
+  __typename?: 'Connect';
+  dynamicRemoteAccess: DynamicRemoteAccessStatus;
+  id: Scalars['ID']['output'];
+};
+
 export type ConnectSignInInput = {
   accessToken?: InputMaybe<Scalars['String']['input']>;
   apiKey: Scalars['String']['input'];
@@ -431,6 +444,24 @@ export type DockerNetwork = {
   scope?: Maybe<Scalars['String']['output']>;
 };
 
+export type DynamicRemoteAccessStatus = {
+  __typename?: 'DynamicRemoteAccessStatus';
+  enabledType: DynamicRemoteAccessType;
+  error?: Maybe<Scalars['String']['output']>;
+  runningType: DynamicRemoteAccessType;
+};
+
+export enum DynamicRemoteAccessType {
+  DISABLED = 'DISABLED',
+  STATIC = 'STATIC',
+  UPNP = 'UPNP'
+}
+
+export type EnableDynamicRemoteAccessInput = {
+  enabled: Scalars['Boolean']['input'];
+  url: AccessUrlInput;
+};
+
 export type Flash = {
   __typename?: 'Flash';
   guid?: Maybe<Scalars['String']['output']>;
@@ -595,6 +626,7 @@ export type Mutation = {
   connectSignOut: Scalars['Boolean']['output'];
   /** Delete a user */
   deleteUser?: Maybe<User>;
+  enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Get an existing API key */
   getApiKey?: Maybe<ApiKey>;
   login?: Maybe<Scalars['String']['output']>;
@@ -649,6 +681,11 @@ export type MutationconnectSignInArgs = {
 
 export type MutationdeleteUserArgs = {
   input: deleteUserInput;
+};
+
+
+export type MutationenableDynamicRemoteAccessArgs = {
+  input: EnableDynamicRemoteAccessInput;
 };
 
 
@@ -881,6 +918,7 @@ export type Query = {
   array: ArrayType;
   cloud?: Maybe<Cloud>;
   config: Config;
+  connect: Connect;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */
@@ -1607,13 +1645,14 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
-  Node: ( ArrayType ) | ( Docker ) | ( Network );
+  Node: ( ArrayType ) | ( Connect ) | ( Docker ) | ( Network );
   UserAccount: ( Me ) | ( User );
 }>;
 
 /** Mapping between all available schema types and the resolvers types */
 export type ResolversTypes = ResolversObject<{
   AccessUrl: ResolverTypeWrapper<AccessUrl>;
+  AccessUrlInput: AccessUrlInput;
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
@@ -1633,6 +1672,7 @@ export type ResolversTypes = ResolversObject<{
   CloudResponse: ResolverTypeWrapper<CloudResponse>;
   Config: ResolverTypeWrapper<Config>;
   ConfigErrorState: ConfigErrorState;
+  Connect: ResolverTypeWrapper<Connect>;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ResolverTypeWrapper<ContainerHostConfig>;
@@ -1651,6 +1691,9 @@ export type ResolversTypes = ResolversObject<{
   Docker: ResolverTypeWrapper<Docker>;
   DockerContainer: ResolverTypeWrapper<DockerContainer>;
   DockerNetwork: ResolverTypeWrapper<DockerNetwork>;
+  DynamicRemoteAccessStatus: ResolverTypeWrapper<DynamicRemoteAccessStatus>;
+  DynamicRemoteAccessType: DynamicRemoteAccessType;
+  EnableDynamicRemoteAccessInput: EnableDynamicRemoteAccessInput;
   Flash: ResolverTypeWrapper<Flash>;
   Float: ResolverTypeWrapper<Scalars['Float']['output']>;
   Gpu: ResolverTypeWrapper<Gpu>;
@@ -1730,6 +1773,7 @@ export type ResolversTypes = ResolversObject<{
 /** Mapping between all available schema types and the resolvers parents */
 export type ResolversParentTypes = ResolversObject<{
   AccessUrl: AccessUrl;
+  AccessUrlInput: AccessUrlInput;
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
@@ -1743,6 +1787,7 @@ export type ResolversParentTypes = ResolversObject<{
   Cloud: Cloud;
   CloudResponse: CloudResponse;
   Config: Config;
+  Connect: Connect;
   ConnectSignInInput: ConnectSignInInput;
   ConnectUserInfoInput: ConnectUserInfoInput;
   ContainerHostConfig: ContainerHostConfig;
@@ -1756,6 +1801,8 @@ export type ResolversParentTypes = ResolversObject<{
   Docker: Docker;
   DockerContainer: DockerContainer;
   DockerNetwork: DockerNetwork;
+  DynamicRemoteAccessStatus: DynamicRemoteAccessStatus;
+  EnableDynamicRemoteAccessInput: EnableDynamicRemoteAccessInput;
   Flash: Flash;
   Float: Scalars['Float']['output'];
   Gpu: Gpu;
@@ -1932,6 +1979,12 @@ export type ConfigResolvers<ContextType = Context, ParentType extends ResolversP
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
+export type ConnectResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Connect'] = ResolversParentTypes['Connect']> = ResolversObject<{
+  dynamicRemoteAccess?: Resolver<ResolversTypes['DynamicRemoteAccessStatus'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
 export type ContainerHostConfigResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ContainerHostConfig'] = ResolversParentTypes['ContainerHostConfig']> = ResolversObject<{
   networkMode?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2064,6 +2117,13 @@ export type DockerNetworkResolvers<ContextType = Context, ParentType extends Res
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   options?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   scope?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type DynamicRemoteAccessStatusResolvers<ContextType = Context, ParentType extends ResolversParentTypes['DynamicRemoteAccessStatus'] = ResolversParentTypes['DynamicRemoteAccessStatus']> = ResolversObject<{
+  enabledType?: Resolver<ResolversTypes['DynamicRemoteAccessType'], ParentType, ContextType>;
+  error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  runningType?: Resolver<ResolversTypes['DynamicRemoteAccessType'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2204,6 +2264,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
+  enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;
   getApiKey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationgetApiKeyArgs, 'name'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationloginArgs, 'password' | 'username'>>;
   mountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationmountArrayDiskArgs, 'id'>>;
@@ -2240,7 +2301,7 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type NodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Array' | 'Docker' | 'Network', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Array' | 'Connect' | 'Docker' | 'Network', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
@@ -2380,6 +2441,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   array?: Resolver<ResolversTypes['Array'], ParentType, ContextType>;
   cloud?: Resolver<Maybe<ResolversTypes['Cloud']>, ParentType, ContextType>;
   config?: Resolver<ResolversTypes['Config'], ParentType, ContextType>;
+  connect?: Resolver<ResolversTypes['Connect'], ParentType, ContextType>;
   disk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<QuerydiskArgs, 'id'>>;
   disks?: Resolver<Array<Maybe<ResolversTypes['Disk']>>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
@@ -2810,6 +2872,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Cloud?: CloudResolvers<ContextType>;
   CloudResponse?: CloudResponseResolvers<ContextType>;
   Config?: ConfigResolvers<ContextType>;
+  Connect?: ConnectResolvers<ContextType>;
   ContainerHostConfig?: ContainerHostConfigResolvers<ContextType>;
   ContainerMount?: ContainerMountResolvers<ContextType>;
   ContainerPort?: ContainerPortResolvers<ContextType>;
@@ -2821,6 +2884,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Docker?: DockerResolvers<ContextType>;
   DockerContainer?: DockerContainerResolvers<ContextType>;
   DockerNetwork?: DockerNetworkResolvers<ContextType>;
+  DynamicRemoteAccessStatus?: DynamicRemoteAccessStatusResolvers<ContextType>;
   Flash?: FlashResolvers<ContextType>;
   Gpu?: GpuResolvers<ContextType>;
   Info?: InfoResolvers<ContextType>;

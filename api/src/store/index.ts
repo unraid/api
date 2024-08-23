@@ -44,6 +44,7 @@ export const getters = {
     cache: () => store.getState().cache,
     config: () => store.getState().config,
     docker: () => store.getState().docker,
+    dynamicRemoteAccess: () => store.getState().dynamicRemoteAccess,
     dynamix: () => store.getState().dynamix,
     emhttp: () => store.getState().emhttp,
     minigraph: () => store.getState().minigraph,
