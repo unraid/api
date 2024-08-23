@@ -1,5 +1,5 @@
 import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
+import { DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
 import {
     type SliceState as ConfigSliceState,
     initialState,

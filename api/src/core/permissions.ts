@@ -124,6 +124,17 @@ const roles: Record<string, Role> = {
         permissions: [
             { resource: 'array', action: 'read:any', attributes: '*' },
             { resource: 'config', action: 'read:any', attributes: '*' },
+            { resource: 'connect', action: 'read:any', attributes: '*' },
+            {
+                resource: 'connect/dynamic-remote-access',
+                action: 'read:any',
+                attributes: '*',
+            },
+            {
+                resource: 'connect/dynamic-remote-access',
+                action: 'update:own',
+                attributes: '*',
+            },
             { resource: 'customizations', action: 'read:any', attributes: '*' },
             { resource: 'dashboard', action: 'read:any', attributes: '*' },
             { resource: 'display', action: 'read:any', attributes: '*' },

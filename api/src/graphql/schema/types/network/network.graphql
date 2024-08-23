@@ -7,6 +7,14 @@ enum URL_TYPE {
   DEFAULT
 }
 
+
+input AccessUrlInput {
+    type: URL_TYPE!
+    name: String
+    ipv4: URL
+    ipv6: URL
+}
+
 type AccessUrl {
   type: URL_TYPE!
   name: String

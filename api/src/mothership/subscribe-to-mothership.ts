@@ -11,7 +11,6 @@ import {
 
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { notNull } from '@app/utils';
-import { handleRemoteAccessEvent } from '@app/store/actions/handle-remote-access-event';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
 import {
@@ -71,19 +70,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                     }
 
                     case 'RemoteAccessEvent': {
-                        const eventAsRemoteAccessEvent = useFragment(
-                            RemoteAccess_Fragment,
-                            event
-                        );
-
-                        if (eventAsRemoteAccessEvent.data.apiKey === apiKey) {
-                            void store.dispatch(
-                                handleRemoteAccessEvent(
-                                    eventAsRemoteAccessEvent
-                                )
-                            );
-                        }
-
                         break;
                     }
 
