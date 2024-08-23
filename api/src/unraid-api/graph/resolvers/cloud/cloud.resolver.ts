@@ -3,6 +3,7 @@ import {
     getExtraOrigins,
 } from '@app/common/allowed-origins';
 import {
+    DynamicRemoteAccessType,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
     type ConnectSignInInput,
@@ -14,11 +15,10 @@ import { connectSignIn } from '@app/graphql/resolvers/mutation/connect/connect-s
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud';
 import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minigraphql';
-import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 import { getters, store } from '@app/store/index';
 import { logoutUser } from '@app/store/modules/config';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 
 @Resolver('Cloud')

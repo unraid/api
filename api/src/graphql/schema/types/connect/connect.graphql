@@ -39,14 +39,40 @@ input SetupRemoteAccessInput {
     port: Port
 }
 
+
+
+input EnableDynamicRemoteAccessInput {
+    url: AccessUrlInput!
+    enabled: Boolean!
+}
+
+enum DynamicRemoteAccessType {
+    STATIC
+    UPNP
+    DISABLED
+}
+
+type DynamicRemoteAccessStatus {
+    enabledType: DynamicRemoteAccessType!
+    runningType: DynamicRemoteAccessType!
+    error: String
+}
+
+type Connect implements Node {
+    id: ID!
+    dynamicRemoteAccess: DynamicRemoteAccessStatus!
+}
+
 type Query {
     remoteAccess: RemoteAccess!
     extraAllowedOrigins: [String!]!
+    connect: Connect!
 }
 
 type Mutation {
     connectSignIn(input: ConnectSignInInput!): Boolean!
     connectSignOut: Boolean!
+    enableDynamicRemoteAccess(input: EnableDynamicRemoteAccessInput!): Boolean!
     setAdditionalAllowedOrigins(input: AllowedOriginInput!): [String!]!
     setupRemoteAccess(input: SetupRemoteAccessInput!): Boolean!
 }           

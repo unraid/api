@@ -13,7 +13,7 @@ import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
 import { F_OK } from 'constants';
 import { type RecursivePartial } from '@app/types';
-import { MinigraphStatus, type Owner } from '@app/graphql/generated/api/types';
+import { DynamicRemoteAccessType, MinigraphStatus, type Owner } from '@app/graphql/generated/api/types';
 import { type RootState } from '@app/store';
 import { randomBytes } from 'crypto';
 import { logger } from '@app/core/log';
@@ -22,7 +22,6 @@ import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
-import { DynamicRemoteAccessType } from '@app/remoteAccess/types';
 import { isEqual } from 'lodash';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 

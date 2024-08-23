@@ -13,7 +13,6 @@ import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
-    "\nmutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {\n\tremoteSession(remoteAccess: $remoteAccess)\n}\n": types.sendRemoteAccessMutationDocument,
     "\n    mutation sendRemoteGraphQLResponse($input: RemoteGraphQLServerInput!) {\n        remoteGraphQLResponse(input: $input)\n    }\n": types.sendRemoteGraphQLResponseDocument,
     "\n    fragment RemoteGraphQLEventFragment on RemoteGraphQLEvent {\n        remoteGraphQLEventData: data {\n                type\n                body\n                sha256\n        }\n    }\n": types.RemoteGraphQLEventFragmentFragmentDoc,
     "\n    fragment RemoteAccessEventFragment on RemoteAccessEvent {\n        type\n        data {\n            type\n            url {\n                type\n                name\n                ipv4\n                ipv6\n            }\n            apiKey\n        }\n    }\n": types.RemoteAccessEventFragmentFragmentDoc,
@@ -34,10 +33,6 @@ const documents = {
  */
 export function graphql(source: string): unknown;
 
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
-export function graphql(source: "\nmutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {\n\tremoteSession(remoteAccess: $remoteAccess)\n}\n"): (typeof documents)["\nmutation sendRemoteAccessMutation($remoteAccess: RemoteAccessInput!) {\n\tremoteSession(remoteAccess: $remoteAccess)\n}\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
