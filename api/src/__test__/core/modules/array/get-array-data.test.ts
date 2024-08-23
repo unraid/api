@@ -10,9 +10,11 @@ test('Creates an array event', async () => {
     );
     const { store } = await import('@app/store');
     const { loadStateFiles } = await import('@app/store/modules/emhttp');
-
+    const { loadConfigFile } = await import('@app/store/modules/config');
     // Load state files into store
     await store.dispatch(loadStateFiles());
+
+    await store.dispatch(loadConfigFile());
 
     const arrayEvent = getArrayData(store.getState);
     expect(arrayEvent).toMatchInlineSnapshot(`
@@ -177,7 +179,7 @@ test('Creates an array event', async () => {
             "warning": null,
           },
         ],
-        "id": "array--d0cd1bf0f3b0",
+        "id": "d49357cdb1b56dc334f9af7e7aa6f181873204f2a5b44f36779c1aae1c19886d",
         "parities": [
           {
             "comment": null,
