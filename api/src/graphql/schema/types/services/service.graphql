@@ -6,7 +6,8 @@ type Uptime {
     timestamp: String
 }
 
-type Service {
+type Service implements Node {
+    id: ID!
     name: String
     online: Boolean
     uptime: Uptime
