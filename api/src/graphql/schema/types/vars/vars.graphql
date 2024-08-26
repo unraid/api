@@ -13,7 +13,8 @@ enum ConfigErrorState {
     WITHDRAWN
 }
 
-type Vars {
+type Vars implements Node {
+    id: ID!
     """
     Unraid version
     """

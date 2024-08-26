@@ -219,6 +219,7 @@ export function ConfigSchema(): z.ZodObject<Properties<Config>> {
   return z.object({
     __typename: z.literal('Config').optional(),
     error: ConfigErrorStateSchema.nullish(),
+    id: z.string(),
     valid: z.boolean().nullish()
   })
 }
@@ -332,6 +333,7 @@ export function DisplaySchema(): z.ZodObject<Properties<Display>> {
     dashapps: z.string().nullish(),
     date: z.string().nullish(),
     hot: z.number().nullish(),
+    id: z.string(),
     locale: z.string().nullish(),
     max: z.number().nullish(),
     number: z.string().nullish(),
@@ -446,6 +448,7 @@ export function InfoSchema(): z.ZodObject<Properties<Info>> {
     cpu: InfoCpuSchema().nullish(),
     devices: DevicesSchema().nullish(),
     display: DisplaySchema().nullish(),
+    id: z.string(),
     machineId: z.string().nullish(),
     memory: InfoMemorySchema().nullish(),
     os: OsSchema().nullish(),
@@ -795,6 +798,7 @@ export function ServerSchema(): z.ZodObject<Properties<Server>> {
 export function ServiceSchema(): z.ZodObject<Properties<Service>> {
   return z.object({
     __typename: z.literal('Service').optional(),
+    id: z.string(),
     name: z.string().nullish(),
     online: z.boolean().nullish(),
     uptime: UptimeSchema().nullish(),
@@ -969,6 +973,7 @@ export function VarsSchema(): z.ZodObject<Properties<Vars>> {
     fuseRememberDefault: z.string().nullish(),
     fuseRememberStatus: z.string().nullish(),
     hideDotFiles: z.boolean().nullish(),
+    id: z.string(),
     joinStatus: z.string().nullish(),
     localMaster: z.boolean().nullish(),
     localTld: z.string().nullish(),

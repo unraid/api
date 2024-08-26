@@ -1,4 +1,5 @@
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
+import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { API_VERSION } from '@app/environment';
 import { DynamicRemoteAccessType, Service } from '@app/graphql/generated/api/types';
 import { store } from '@app/store/index';
@@ -14,6 +15,7 @@ export class ServicesResolver {
         const enabledStatus = config.remote.dynamicRemoteAccessType;
 
         return {
+            id: getServerIdentifier('service/dynamic-remote-access'),
             name: 'dynamic-remote-access',
             online: enabledStatus !== DynamicRemoteAccessType.DISABLED,
             version: dynamicRemoteAccess.runningType,
@@ -22,6 +24,18 @@ export class ServicesResolver {
             },
         };
     };
+
+    private getApiService = (): Service => {
+        return {
+            id: getServerIdentifier('service/unraid-api'),
+            name: 'unraid-api',
+            online: true,
+            uptime: {
+                timestamp: bootTimestamp.toISOString(),
+            },
+            version: API_VERSION,
+        };
+    }
 
     @Query('services')
     @UseRoles({
@@ -32,14 +46,7 @@ export class ServicesResolver {
     public services(): Service[] {
         const dynamicRemoteAccess = this.getDynamicRemoteAccessService();
         return [
-            {
-                name: 'unraid-api',
-                online: true,
-                uptime: {
-                    timestamp: bootTimestamp.toISOString(),
-                },
-                version: API_VERSION,
-            },
+            this.getApiService(),
             ...(dynamicRemoteAccess ? [dynamicRemoteAccess] : []),
         ];
     }

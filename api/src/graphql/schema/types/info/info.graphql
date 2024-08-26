@@ -1,0 +1,3 @@
+type Info implements Node {
+    id: ID!
+}

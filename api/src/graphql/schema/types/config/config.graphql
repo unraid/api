@@ -5,7 +5,8 @@ enum ConfigErrorState {
     WITHDRAWN
 }
 
-type Config {
+type Config implements Node {
+    id: ID!
     valid: Boolean
     error: ConfigErrorState
 }
