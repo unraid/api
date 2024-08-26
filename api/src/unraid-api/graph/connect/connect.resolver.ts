@@ -4,7 +4,13 @@ import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { UseRoles } from 'nest-access-control';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
-import { Connect, type DynamicRemoteAccessStatus, DynamicRemoteAccessType, type EnableDynamicRemoteAccessInput } from '@app/graphql/generated/api/types';
+import {
+    Connect,
+    ConnectResolvers,
+    type DynamicRemoteAccessStatus,
+    DynamicRemoteAccessType,
+    type EnableDynamicRemoteAccessInput,
+} from '@app/graphql/generated/api/types';
 import {
     setAllowedRemoteAccessUrl,
     setRemoteAccessRunningType,
@@ -12,18 +18,22 @@ import {
 import { getServerIdentifier } from '@app/core/utils/server-identifier';
 
 @Resolver('Connect')
-export class ConnectResolver {
+export class ConnectResolver implements ConnectResolvers {
     protected logger = new Logger(ConnectResolver.name);
-    @Query()
+
+    @Query('connect')
     @UseRoles({
         resource: 'connect/dynamic-remote-access',
         action: 'read',
         possession: 'own',
     })
     public connect() {
-        return {
-            id: getServerIdentifier('connect')
-        }
+        return {};
+    }
+
+    @ResolveField()
+    public id() {
+        return getServerIdentifier('connect');
     }
 
     @ResolveField()
@@ -59,15 +69,15 @@ export class ConnectResolver {
             });
         }
 
-        if (dynamicRemoteAccessInput.enabled === false) {
-            store.dispatch(
-                setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED)
-            );
-            return true;
-        }
-
         const controller = RemoteAccessController.instance;
-        if (
+
+        if (dynamicRemoteAccessInput.enabled === false) {
+            controller.stopRemoteAccess({
+                getState: store.getState,
+                dispatch: store.dispatch,
+            });
+            return true;
+        } else if (
             controller.getRunningRemoteAccessType() ===
             DynamicRemoteAccessType.DISABLED
         ) {

@@ -249,9 +249,10 @@ export type CloudResponse = {
   status: Scalars['String']['output'];
 };
 
-export type Config = {
+export type Config = Node & {
   __typename?: 'Config';
   error?: Maybe<ConfigErrorState>;
+  id: Scalars['ID']['output'];
   valid?: Maybe<Scalars['Boolean']['output']>;
 };
 
@@ -382,6 +383,7 @@ export type Display = {
   dashapps?: Maybe<Scalars['String']['output']>;
   date?: Maybe<Scalars['String']['output']>;
   hot?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
   locale?: Maybe<Scalars['String']['output']>;
   max?: Maybe<Scalars['Int']['output']>;
   number?: Maybe<Scalars['String']['output']>;
@@ -486,7 +488,7 @@ export enum Importance {
   WARNING = 'WARNING'
 }
 
-export type Info = {
+export type Info = Node & {
   __typename?: 'Info';
   /** Count of docker containers */
   apps?: Maybe<InfoApps>;
@@ -494,6 +496,7 @@ export type Info = {
   cpu?: Maybe<InfoCpu>;
   devices?: Maybe<Devices>;
   display?: Maybe<Display>;
+  id: Scalars['ID']['output'];
   /** Machine ID */
   machineId?: Maybe<Scalars['ID']['output']>;
   memory?: Maybe<InfoMemory>;
@@ -1077,8 +1080,9 @@ export enum ServerStatus {
   ONLINE = 'online'
 }
 
-export type Service = {
+export type Service = Node & {
   __typename?: 'Service';
+  id: Scalars['ID']['output'];
   name?: Maybe<Scalars['String']['output']>;
   online?: Maybe<Scalars['Boolean']['output']>;
   uptime?: Maybe<Uptime>;
@@ -1287,7 +1291,7 @@ export type UserAccount = {
   roles: Scalars['String']['output'];
 };
 
-export type Vars = {
+export type Vars = Node & {
   __typename?: 'Vars';
   bindMgt?: Maybe<Scalars['Boolean']['output']>;
   cacheNumDevices?: Maybe<Scalars['Int']['output']>;
@@ -1321,6 +1325,7 @@ export type Vars = {
   fuseRememberDefault?: Maybe<Scalars['String']['output']>;
   fuseRememberStatus?: Maybe<Scalars['String']['output']>;
   hideDotFiles?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['ID']['output'];
   joinStatus?: Maybe<Scalars['String']['output']>;
   localMaster?: Maybe<Scalars['Boolean']['output']>;
   localTld?: Maybe<Scalars['String']['output']>;
@@ -1645,7 +1650,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
-  Node: ( ArrayType ) | ( Connect ) | ( Docker ) | ( Network );
+  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( Docker ) | ( Info ) | ( Network ) | ( Service ) | ( Vars );
   UserAccount: ( Me ) | ( User );
 }>;
 
@@ -1975,6 +1980,7 @@ export type CloudResponseResolvers<ContextType = Context, ParentType extends Res
 
 export type ConfigResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Config'] = ResolversParentTypes['Config']> = ResolversObject<{
   error?: Resolver<Maybe<ResolversTypes['ConfigErrorState']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   valid?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
@@ -2058,6 +2064,7 @@ export type DisplayResolvers<ContextType = Context, ParentType extends Resolvers
   dashapps?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   date?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hot?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   locale?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   max?: Resolver<Maybe<ResolversTypes['Int']>, ParentType, ContextType>;
   number?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
@@ -2151,6 +2158,7 @@ export type InfoResolvers<ContextType = Context, ParentType extends ResolversPar
   cpu?: Resolver<Maybe<ResolversTypes['InfoCpu']>, ParentType, ContextType>;
   devices?: Resolver<Maybe<ResolversTypes['Devices']>, ParentType, ContextType>;
   display?: Resolver<Maybe<ResolversTypes['Display']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   machineId?: Resolver<Maybe<ResolversTypes['ID']>, ParentType, ContextType>;
   memory?: Resolver<Maybe<ResolversTypes['InfoMemory']>, ParentType, ContextType>;
   os?: Resolver<Maybe<ResolversTypes['Os']>, ParentType, ContextType>;
@@ -2301,7 +2309,7 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type NodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Array' | 'Connect' | 'Docker' | 'Network', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'Docker' | 'Info' | 'Network' | 'Service' | 'Vars', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
@@ -2509,6 +2517,7 @@ export type ServerResolvers<ContextType = Context, ParentType extends ResolversP
 }>;
 
 export type ServiceResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Service'] = ResolversParentTypes['Service']> = ResolversObject<{
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   uptime?: Resolver<Maybe<ResolversTypes['Uptime']>, ParentType, ContextType>;
@@ -2697,6 +2706,7 @@ export type VarsResolvers<ContextType = Context, ParentType extends ResolversPar
   fuseRememberDefault?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   fuseRememberStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   hideDotFiles?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   joinStatus?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   localMaster?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   localTld?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;

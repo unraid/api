@@ -1,5 +1,5 @@
 import { remoteAccessLogger } from '@app/core/log';
-import { AccessUrlInput, AccessUrl, DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
+import { AccessUrlInput, AccessUrl, DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface DynamicRemoteAccessState {
@@ -48,10 +48,12 @@ const dynamicRemoteAccess = createSlice({
             action: PayloadAction<AccessUrlInput | null>
         ) {
             if (action.payload) {
+                console.log(action.payload);
                 state.allowedUrl = {
                     ipv4: action.payload.ipv4,
                     ipv6: action.payload.ipv6,
-                    type: action.payload.type,
+                    type: action.payload.type ?? URL_TYPE.WAN,
+                    name: action.payload.name,
                 }
             }
         },

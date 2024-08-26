@@ -1,4 +1,5 @@
 import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
+import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { type Display } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
@@ -69,11 +70,14 @@ export class DisplayResolver {
          */
         const dynamixBasePath = getters.paths()['dynamix-base'];
         const configFilePath = join(dynamixBasePath, 'case-model.cfg');
+        const result = {
+            id: getServerIdentifier('display'),
+        }
 
         // If the config file doesn't exist then it's a new OS install
         // Default to "default"
         if (!existsSync(configFilePath)) {
-            return { case: states.default };
+            return { case: states.default, ...result };
         }
 
         // Attempt to get case from file
@@ -83,13 +87,14 @@ export class DisplayResolver {
 
         // Config file can't be read, maybe a permissions issue?
         if (serverCase === 'error_reading_config_file') {
-            return { case: states.couldNotReadConfigFile };
+            return { case: states.couldNotReadConfigFile, ...result };
         }
 
         // Blank cfg file?
         if (serverCase.trim().length === 0) {
             return {
                 case: states.default,
+                ...result
             };
         }
 
@@ -99,6 +104,7 @@ export class DisplayResolver {
                 ...states.default,
                 icon: serverCase,
             },
+            ...result
         };
     }
 

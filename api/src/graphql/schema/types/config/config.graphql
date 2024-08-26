@@ -1,0 +1,20 @@
+enum ConfigErrorState {
+    UNKNOWN_ERROR
+    INVALID
+    NO_KEY_SERVER
+    WITHDRAWN
+}
+
+type Config implements Node {
+    id: ID!
+    valid: Boolean
+    error: ConfigErrorState
+}
+
+type Query {
+    config: Config!
+}
+
+type Subscription {
+    config: Config!
+}
