@@ -1,5 +1,5 @@
 import type { IniStringBooleanOrAuto } from '@app/core/types/ini';
-import { FqdnEntry } from '@app/core/types/states/nginx';
+import { type FqdnEntry } from '@app/core/types/states/nginx';
 import type { StateFileToIniParserMap } from '@app/store/types';
 
 // Allow upper or lowercase FQDN6
