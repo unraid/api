@@ -245,6 +245,24 @@ RolesBuilder {
           "*",
         ],
       },
+      "config": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "connect": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "connect/dynamic-remote-access": {
+        "read:any": [
+          "*",
+        ],
+        "update:own": [
+          "*",
+        ],
+      },
       "customizations": {
         "read:any": [
           "*",
@@ -286,6 +304,11 @@ RolesBuilder {
         ],
       },
       "notifications": {
+        "read:any": [
+          "*",
+        ],
+      },
+      "services": {
         "read:any": [
           "*",
         ],
