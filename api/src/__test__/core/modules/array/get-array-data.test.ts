@@ -179,7 +179,7 @@ test('Creates an array event', async () => {
             "warning": null,
           },
         ],
-        "id": "d49357cdb1b56dc334f9af7e7aa6f181873204f2a5b44f36779c1aae1c19886d",
+        "id": "97bbe87602982688216c367801f7aa24ea57350b44b7523160d01a9d48d6fcb9",
         "parities": [
           {
             "comment": null,
