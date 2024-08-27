@@ -5,7 +5,6 @@ import { store } from '@app/store';
 
 import {
     EVENTS_SUBSCRIPTION,
-    RemoteAccess_Fragment,
     RemoteGraphQL_Fragment,
 } from '@app/graphql/mothership/subscriptions';
 
@@ -36,7 +35,10 @@ export const subscribeToEvents = async (apiKey: string) => {
                 errors.join(',')
             );
         } else if (data) {
-            mothershipLogger.trace({ events: data.events }, 'Got events from mothership');
+            mothershipLogger.trace(
+                { events: data.events },
+                'Got events from mothership'
+            );
 
             for (const event of data.events?.filter(notNull) ?? []) {
                 switch (event.__typename) {
@@ -69,10 +71,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                         break;
                     }
 
-                    case 'RemoteAccessEvent': {
-                        break;
-                    }
-
                     case 'RemoteGraphQLEvent': {
                         const eventAsRemoteGraphQLEvent = useFragment(
                             RemoteGraphQL_Fragment,
@@ -83,10 +81,6 @@ export const subscribeToEvents = async (apiKey: string) => {
                         void store.dispatch(
                             handleRemoteGraphQLEvent(eventAsRemoteGraphQLEvent)
                         );
-                        break;
-                    }
-
-                    case 'UpdateEvent': {
                         break;
                     }
 

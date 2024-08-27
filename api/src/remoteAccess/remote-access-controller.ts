@@ -1,6 +1,9 @@
 import { remoteAccessLogger } from '@app/core/log';
 import { UnraidLocalNotifier } from '@app/core/notifiers/unraid-local';
-import { AccessUrl, DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
+import {
+    type AccessUrl,
+    DynamicRemoteAccessType,
+} from '@app/graphql/generated/api/types';
 import { type IRemoteAccessController } from '@app/remoteAccess/handlers/remote-access-interface';
 import { StaticRemoteAccess } from '@app/remoteAccess/handlers/static-remote-access';
 import { UpnpRemoteAccess } from '@app/remoteAccess/handlers/upnp-remote-access';
@@ -52,7 +55,7 @@ export class RemoteAccessController implements IRemoteAccessController {
         const state = getState();
         const {
             config: {
-                remote: { dynamicRemoteAccessType, apikey },
+                remote: { dynamicRemoteAccessType },
             },
             dynamicRemoteAccess: { runningType },
         } = state;

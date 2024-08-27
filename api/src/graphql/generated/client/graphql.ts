@@ -468,6 +468,7 @@ export type Query = {
   ksServers: Array<KsServerDetails>;
   online?: Maybe<Scalars['Boolean']['output']>;
   remoteQuery: Scalars['String']['output'];
+  serverStatus: ServerStatusResponse;
   servers: Array<Maybe<Server>>;
   status?: Maybe<ServerStatus>;
 };
@@ -480,6 +481,11 @@ export type QuerydashboardArgs = {
 
 export type QueryremoteQueryArgs = {
   input: RemoteGraphQLClientInput;
+};
+
+
+export type QueryserverStatusArgs = {
+  apiKey: Scalars['String']['input'];
 };
 
 export enum RegistrationState {
@@ -554,6 +560,10 @@ export type RemoteAccessInput = {
 export type RemoteGraphQLClientInput = {
   apiKey: Scalars['String']['input'];
   body: Scalars['String']['input'];
+  /** Time in milliseconds to wait for a response from the remote server (defaults to 15000) */
+  timeout?: InputMaybe<Scalars['Int']['input']>;
+  /** How long mothership should cache the result of this query in seconds, only valid on queries */
+  ttl?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type RemoteGraphQLEvent = {
@@ -620,6 +630,13 @@ export enum ServerStatus {
   OFFLINE = 'offline',
   ONLINE = 'online'
 }
+
+export type ServerStatusResponse = {
+  __typename?: 'ServerStatusResponse';
+  id: Scalars['ID']['output'];
+  lastPublish?: Maybe<Scalars['String']['output']>;
+  online: Scalars['Boolean']['output'];
+};
 
 export type Service = {
   __typename?: 'Service';
@@ -718,20 +735,14 @@ export type sendRemoteGraphQLResponseMutation = { __typename?: 'Mutation', remot
 
 export type RemoteGraphQLEventFragmentFragment = { __typename?: 'RemoteGraphQLEvent', remoteGraphQLEventData: { __typename?: 'RemoteGraphQLEventData', type: RemoteGraphQLEventType, body: string, sha256: string } } & { ' $fragmentName'?: 'RemoteGraphQLEventFragmentFragment' };
 
-export type RemoteAccessEventFragmentFragment = { __typename?: 'RemoteAccessEvent', type: EventType, data: { __typename?: 'RemoteAccessEventData', type: RemoteAccessEventActionType, apiKey: string, url?: { __typename?: 'AccessUrl', type: URL_TYPE, name?: string | null, ipv4?: URL | null, ipv6?: URL | null } | null } } & { ' $fragmentName'?: 'RemoteAccessEventFragmentFragment' };
-
 export type eventsSubscriptionVariables = Exact<{ [key: string]: never; }>;
 
 
-export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientPingEvent' } | (
-    { __typename: 'RemoteAccessEvent' }
-    & { ' $fragmentRefs'?: { 'RemoteAccessEventFragmentFragment': RemoteAccessEventFragmentFragment } }
-  ) | (
+export type eventsSubscription = { __typename?: 'Subscription', events?: Array<{ __typename: 'ClientConnectedEvent', connectedEvent: EventType, connectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientDisconnectedEvent', disconnectedEvent: EventType, disconnectedData: { __typename?: 'ClientConnectionEventData', type: ClientType, version: string, apiKey: string } } | { __typename: 'ClientPingEvent' } | { __typename: 'RemoteAccessEvent' } | (
     { __typename: 'RemoteGraphQLEvent' }
     & { ' $fragmentRefs'?: { 'RemoteGraphQLEventFragmentFragment': RemoteGraphQLEventFragmentFragment } }
   ) | { __typename: 'UpdateEvent' }> | null };
 
 export const RemoteGraphQLEventFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteGraphQLEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteGraphQLEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"remoteGraphQLEventData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"sha256"}}]}}]}}]} as unknown as DocumentNode<RemoteGraphQLEventFragmentFragment, unknown>;
-export const RemoteAccessEventFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteAccessEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteAccessEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"url"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"ipv4"}},{"kind":"Field","name":{"kind":"Name","value":"ipv6"}}]}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}}]}}]} as unknown as DocumentNode<RemoteAccessEventFragmentFragment, unknown>;
 export const sendRemoteGraphQLResponseDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"sendRemoteGraphQLResponse"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteGraphQLServerInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"remoteGraphQLResponse"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<sendRemoteGraphQLResponseMutation, sendRemoteGraphQLResponseMutationVariables>;
-export const eventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"events"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientConnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"connectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"connectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientDisconnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"disconnectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"disconnectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"FragmentSpread","name":{"kind":"Name","value":"RemoteAccessEventFragment"}},{"kind":"FragmentSpread","name":{"kind":"Name","value":"RemoteGraphQLEventFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteAccessEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteAccessEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"url"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"name"}},{"kind":"Field","name":{"kind":"Name","value":"ipv4"}},{"kind":"Field","name":{"kind":"Name","value":"ipv6"}}]}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteGraphQLEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteGraphQLEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"remoteGraphQLEventData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"sha256"}}]}}]}}]} as unknown as DocumentNode<eventsSubscription, eventsSubscriptionVariables>;
+export const eventsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"subscription","name":{"kind":"Name","value":"events"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"events"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"__typename"}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientConnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"connectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"connectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"InlineFragment","typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"ClientDisconnectedEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"disconnectedData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"version"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"}}]}},{"kind":"Field","alias":{"kind":"Name","value":"disconnectedEvent"},"name":{"kind":"Name","value":"type"}}]}},{"kind":"FragmentSpread","name":{"kind":"Name","value":"RemoteGraphQLEventFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"RemoteGraphQLEventFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"RemoteGraphQLEvent"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","alias":{"kind":"Name","value":"remoteGraphQLEventData"},"name":{"kind":"Name","value":"data"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"body"}},{"kind":"Field","name":{"kind":"Name","value":"sha256"}}]}}]}}]} as unknown as DocumentNode<eventsSubscription, eventsSubscriptionVariables>;

@@ -1,4 +1,4 @@
-import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS, TEN_MINUTES_MS } from '@app/consts';
+import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS } from '@app/consts';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
 import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';

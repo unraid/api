@@ -10,22 +10,6 @@ export const RemoteGraphQL_Fragment = graphql(/* GraphQL */ `
     }
 `);
 
-export const RemoteAccess_Fragment = graphql(/* GraphQL */ `
-    fragment RemoteAccessEventFragment on RemoteAccessEvent {
-        type
-        data {
-            type
-            url {
-                type
-                name
-                ipv4
-                ipv6
-            }
-            apiKey
-        }
-    }
-`);
-
 export const EVENTS_SUBSCRIPTION = graphql(/* GraphQL */ `
     subscription events {
         events {
@@ -46,7 +30,6 @@ export const EVENTS_SUBSCRIPTION = graphql(/* GraphQL */ `
                 }
                 disconnectedEvent: type
             }
-            ...RemoteAccessEventFragment
             ...RemoteGraphQLEventFragment
         }
     }

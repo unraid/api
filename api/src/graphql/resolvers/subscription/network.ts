@@ -8,7 +8,7 @@ import { logger } from '@app/core';
 import {
     AccessUrlInputSchema,
 } from '@app/graphql/generated/client/validators';
-import { AccessUrl } from '@app/graphql/generated/api/types';
+import { type AccessUrl } from '@app/graphql/generated/api/types';
 
 interface UrlForFieldInput {
     url: string;
