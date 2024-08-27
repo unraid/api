@@ -3,7 +3,6 @@ import { getters } from '@app/store/index';
 import { Query, Resolver, Args, Subscription } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { UseRoles } from 'nest-access-control';
-import { Logger } from '@nestjs/common';
 import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 
 @Resolver()
