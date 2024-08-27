@@ -1,5 +1,5 @@
 import { remoteAccessLogger } from '@app/core/log';
-import { AccessUrl, DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
+import { type AccessUrl, DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
 import { getServerIps } from '@app/graphql/resolvers/subscription/network';
 
 import { type GenericRemoteAccess } from '@app/remoteAccess/handlers/remote-access-interface';

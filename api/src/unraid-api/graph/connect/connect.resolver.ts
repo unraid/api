@@ -5,7 +5,6 @@ import { GraphQLError } from 'graphql';
 import { UseRoles } from 'nest-access-control';
 import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
 import {
-    Connect,
     ConnectResolvers,
     type DynamicRemoteAccessStatus,
     DynamicRemoteAccessType,
@@ -13,7 +12,6 @@ import {
 } from '@app/graphql/generated/api/types';
 import {
     setAllowedRemoteAccessUrl,
-    setRemoteAccessRunningType,
 } from '@app/store/modules/dynamic-remote-access';
 import { getServerIdentifier } from '@app/core/utils/server-identifier';
 

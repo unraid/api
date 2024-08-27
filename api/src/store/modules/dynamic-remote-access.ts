@@ -1,5 +1,5 @@
 import { remoteAccessLogger } from '@app/core/log';
-import { AccessUrlInput, AccessUrl, DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
+import { type AccessUrlInput, type AccessUrl, DynamicRemoteAccessType, URL_TYPE } from '@app/graphql/generated/api/types';
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 
 interface DynamicRemoteAccessState {

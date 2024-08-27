@@ -18,7 +18,7 @@ import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minig
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 import { getters, store } from '@app/store/index';
 import { logoutUser } from '@app/store/modules/config';
-import { Args, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 
 @Resolver('Cloud')
