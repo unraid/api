@@ -3,5 +3,5 @@
         "api": {},
         "web": {}
     },
-    "separate-pull-requests": "false"
+    "separate-pull-requests": false
 }
