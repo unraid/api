@@ -1,0 +1,8 @@
+{
+    "packages": {
+        "api": {},
+        "web": {},
+        "plugin": {}
+    },
+    "separate-pull-requests": "false"
+}
