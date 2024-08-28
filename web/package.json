@@ -1,5 +1,6 @@
 {
   "name": "connect-components",
+  "version": "3.8.1",
   "private": true,
   "scripts": {
     "dev": "nuxt dev",
