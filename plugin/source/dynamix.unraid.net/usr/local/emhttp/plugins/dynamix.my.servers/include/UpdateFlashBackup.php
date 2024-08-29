@@ -295,6 +295,9 @@ if (!$isConnected) {
   response_complete(406,  array('error' => 'Must be connected to Unraid Connect Cloud to use Flash Backup'));
 }
 
+// ensure keys.lime-technology.com is not hard-coded in the hosts file
+exec('if grep -q "keys.lime-technology.com" /etc/hosts &>/dev/null; then sed -i "/keys.lime-technology.com/d" /etc/hosts &>/dev/null; fi');
+
 // keyfile
 if (!file_exists('/var/local/emhttp/var.ini')) {
   response_complete(406, array('error' => 'Machine still booting'));
