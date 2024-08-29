@@ -501,6 +501,11 @@ for FILE in "${FILES[@]}"; do
   fi
 done
 
+# remove keys.limetechnology.com from hosts file
+# brings older versions of Unraid in sync with 6.12.12
+# no need to restore original file on uninstall
+if grep -q "keys.lime-technology.com" /etc/hosts &>/dev/null; then sed -i "/keys.lime-technology.com/d" /etc/hosts &>/dev/null; fi
+
 # move settings on flash drive
 CFG_OLD=/boot/config/plugins/Unraid.net
 CFG_NEW=/boot/config/plugins/dynamix.my.servers
