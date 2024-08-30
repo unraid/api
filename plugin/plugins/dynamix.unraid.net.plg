@@ -227,7 +227,8 @@ $ver = @parse_ini_file('/etc/unraid-version', true)['version'];
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
 
 // exit this install block if NOT isUnsupportedVersion
-if (!( (substr($ver,0,3)=="6.9") || (substr($ver,0,7)=="6.10.0-") )) {
+// must be 6.12.0 or higher (not 6.12.0-[beta|rc])
+if (version_compare($ver,'6.12.0','>=')) {
   exit(0);
 }
 
@@ -387,7 +388,8 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 # exit this install block on isUnsupportedVersion
-if [[ "${version:0:3}" == "6.9" || "${version:0:7}" == "6.10.0-" ]]; then
+# must be 6.12.0 or higher (not 6.12.0-[beta|rc]x)
+if [[ "${version:0:3}" == "6.9" || "${version:0:4}" == "6.10" || "${version:0:4}" == "6.11" || "${version:0:7}" == "6.12.0-" ]]; then
   echo
   echo "⚠️ Please uninstall this plugin or upgrade to a newer version of Unraid to enjoy Unraid Connect"
   echo
