@@ -19,3 +19,6 @@ export const LOG_CORS = process.env.LOG_CORS === 'true';
 export const LOG_TYPE = process.env.LOG_TYPE as 'pretty' | 'raw'  ?? 'pretty';
 export const LOG_LEVEL = process.env.LOG_LEVEL as 'TRACE' | 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' | 'FATAL';
 export const LOG_TRANSPORT = process.env.LOG_TRANSPORT as 'file' | 'stdout';
+export const HTTP_PROXY = process.env.HTTP_PROXY;
+export const HTTPS_PROXY = process.env.HTTPS_PROXY;
+export const NO_PROXY = process.env.NO_PROXY;

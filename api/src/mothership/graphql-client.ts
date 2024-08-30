@@ -25,11 +25,13 @@ import { ErrorLink } from '@apollo/client/link/error';
 import { isApiKeyValid } from '@app/store/getters/index';
 import { buildDelayFunction } from '@app/mothership/utils/delay-function';
 import { WebSocket } from 'ws';
+import { ProxyAgent } from 'proxy-agent';
 
 const getWebsocketWithMothershipHeaders = () => {
     return class WebsocketWithMothershipHeaders extends WebSocket {
         constructor(address, protocols) {
             super(address, protocols, {
+                agent: new ProxyAgent(),
                 headers: getMothershipWebsocketHeaders(),
             });
         }

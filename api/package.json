@@ -131,6 +131,7 @@
     "pino": "^9.1.0",
     "pino-http": "^9.0.0",
     "pino-pretty": "^11.0.0",
+    "proxy-agent": "^6.4.0",
     "reflect-metadata": "^0.1.14",
     "request": "^2.88.2",
     "semver": "^7.6.2",
