@@ -2,6 +2,72 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.10.0](https://github.com/unraid/api/compare/v3.9.0...v3.10.0) (2024-09-03)
+
+
+### Features
+
+* add a timestamp to flash backup ([#877](https://github.com/unraid/api/issues/877)) ([b868fd4](https://github.com/unraid/api/commit/b868fd46c3886b2182245a61f20be6df65e46abe))
+* add environment to docker-compose ([2ee4683](https://github.com/unraid/api/commit/2ee46839095e3b8ee287cfe10f29ae9a39dcff68))
+* add global agent ([#897](https://github.com/unraid/api/issues/897)) ([8b0dc69](https://github.com/unraid/api/commit/8b0dc69f65bd3e280a21c50aab221334f7341b1c))
+* add logrotate to cron in nestjs ([#839](https://github.com/unraid/api/issues/839)) ([5c91524](https://github.com/unraid/api/commit/5c91524d849147c0ac7925f3a2f1cce67ffe75de))
+* add new staging url for connect website ([#841](https://github.com/unraid/api/issues/841)) ([4cfc07b](https://github.com/unraid/api/commit/4cfc07b6763dbb79b68cf01f7eaf7cf33370d4db))
+* add support for expiration in var.ini ([#833](https://github.com/unraid/api/issues/833)) ([0474c2e](https://github.com/unraid/api/commit/0474c2e14fa462d2e1ec6d9a7f974660385d073e))
+* always show DRA even if disabled ([ab708c0](https://github.com/unraid/api/commit/ab708c0df634e21bf81595412d7de0be3ff7c392))
+* close log on exit ([d6ede86](https://github.com/unraid/api/commit/d6ede86eca6301342cdf35bf1f9365896b5e5009))
+* create stable hash based on apikey rather than hostname ([ecf5554](https://github.com/unraid/api/commit/ecf5554e304cc7dee78cb1f206ef4e80222c3e64))
+* disable all legacy dashboard and network logic ([6784f4b](https://github.com/unraid/api/commit/6784f4b6e1a12b2f30bfa9ab4fe6310994bd18ae))
+* dynamic remote access using remote queries ([f7fc0c4](https://github.com/unraid/api/commit/f7fc0c431561978054d2ff37d1aa644865e846ec))
+* extraOrigins public, remove origin listener ([91f96ba](https://github.com/unraid/api/commit/91f96ba818773d6e71dde1ff52a4c8ec21ba6b5d))
+* fix codegen ([d0bf5bb](https://github.com/unraid/api/commit/d0bf5bb8197b11f7a250ca5392890184a1dbeff7))
+* fix exit hook and cleanup docker scripts ([#758](https://github.com/unraid/api/issues/758)) ([a9ff73e](https://github.com/unraid/api/commit/a9ff73e0a04c67e9ec9d5551cf0b1f124be6f381))
+* fix logging format on start and stop ([c6720c3](https://github.com/unraid/api/commit/c6720c331df055480d2d65b37290f4978fe429da))
+* local start command ([99b6007](https://github.com/unraid/api/commit/99b6007ba30353084a8bea54cc0e782fcc1bfea4))
+* log config recreation reason ([f36c72f](https://github.com/unraid/api/commit/f36c72f5ad44b7e41d1726fa181dc2b9f594c72c))
+* move dynamic remote access to be fully api controlled ([206eb6b](https://github.com/unraid/api/commit/206eb6b74aa83047237e5f6c94c46b08c6507168))
+* move FQDN urls to a generic parser ([#899](https://github.com/unraid/api/issues/899)) ([246595e](https://github.com/unraid/api/commit/246595ee7acd8370906a759cbe618def4f52c173))
+* nestjs initial query implementation ([#748](https://github.com/unraid/api/issues/748)) ([075d7f2](https://github.com/unraid/api/commit/075d7f25785bf686779b7fee1d5ea39f09ff3ea8))
+* new key types in API ([e42f9dc](https://github.com/unraid/api/commit/e42f9dc95be03e8389aac443f2147c07a316d48d))
+* regTy swapped ([564b25c](https://github.com/unraid/api/commit/564b25cf5ce0a62d40f8d63d44c81e9c8560e0be))
+* remove dashboard resolver completely in favor of direct field resolvers ([1cd1ee5](https://github.com/unraid/api/commit/1cd1ee534825ccf775208c438ae0bd777bbe4d39))
+* remove dashboard types ([2f0167d](https://github.com/unraid/api/commit/2f0167dc89835bcf8aa946425c5c6683221fd763))
+* run codegen and update build script ([07512ad](https://github.com/unraid/api/commit/07512adc13ee0d819db45ff6c5c5f58a0ba31141))
+* settings through the API ([#867](https://github.com/unraid/api/issues/867)) ([e73624b](https://github.com/unraid/api/commit/e73624be6be8bc2c70d898b8601a88cc8d20a3e4))
+* swap to docker compose from docker-compose ([ec16a6a](https://github.com/unraid/api/commit/ec16a6aab1a2d5c836387da438fbeade07d23425))
+* swap to fragement usage on webcomponent ([42733ab](https://github.com/unraid/api/commit/42733abf6e443516ff715569333422ce80d3b1d2))
+* update tests and snapshots ([c39aa17](https://github.com/unraid/api/commit/c39aa17e4302ed56b3097ab3244d840f11eb686b))
+* upgrade a ton of dependencies ([#842](https://github.com/unraid/api/issues/842)) ([94c1746](https://github.com/unraid/api/commit/94c174620c2347a3cf3d100404635f99a5b47287))
+
+
+### Bug Fixes
+
+* add serverName / description to dashboard payload ([9677aff](https://github.com/unraid/api/commit/9677aff1cd0942f36a2845f3f105601c494efd9e))
+* allow failure for log deletion ([eff3142](https://github.com/unraid/api/commit/eff31423927644be436a831126678719c2eb0621))
+* allowed origins check not working without spaces ([#838](https://github.com/unraid/api/issues/838)) ([b998b38](https://github.com/unraid/api/commit/b998b38355fab77ecc2f62bc64896766218db3d4))
+* **api:** readme discord url ([ffd5c6a](https://github.com/unraid/api/commit/ffd5c6afb64956e76df22c77104a21bc22798008))
+* build docker command updated to use dc.sh script ([0b40886](https://github.com/unraid/api/commit/0b40886e84f27a94dbf67ef4ca0cd8539ef3913e))
+* codegen on web run ([e2e67c2](https://github.com/unraid/api/commit/e2e67c21067a138d963f5f10760b84cf6a533542))
+* **deps:** update dependency @apollo/client to v3.9.5 ([#785](https://github.com/unraid/api/issues/785)) ([75b98bc](https://github.com/unraid/api/commit/75b98bc1cbca5b66ae72f52a0b6f5f58230a2473))
+* **deps:** update dependency graphql to v16.8.1 ([bff1b19](https://github.com/unraid/api/commit/bff1b19706bee1e3103e3a0a1d2fceb3154f9bba))
+* **deps:** update dependency graphql-ws to v5.15.0 ([#790](https://github.com/unraid/api/issues/790)) ([4773b13](https://github.com/unraid/api/commit/4773b132167d740d4c996efe22e0f1b99576fb9b))
+* **deps:** update dependency ws to v8.16.0 ([#815](https://github.com/unraid/api/issues/815)) ([212020e](https://github.com/unraid/api/commit/212020e78d4de0576137058a3374837b4a43e02d))
+* **deps:** update dependency wtfnode to v0.9.3 ([#901](https://github.com/unraid/api/issues/901)) ([a88482b](https://github.com/unraid/api/commit/a88482bfcbf134f55330f8728bc5c7f67c521773))
+* **deps:** update graphql-tools monorepo ([3447eb0](https://github.com/unraid/api/commit/3447eb047a1dcd575b88a96bbcef9946aca366a1))
+* **deps:** update graphql-tools monorepo (major) ([#693](https://github.com/unraid/api/issues/693)) ([3447eb0](https://github.com/unraid/api/commit/3447eb047a1dcd575b88a96bbcef9946aca366a1))
+* **deps:** update nest monorepo ([#816](https://github.com/unraid/api/issues/816)) ([4af3699](https://github.com/unraid/api/commit/4af36991b8b376f816ed51fd503a66e99675a3e7))
+* excessive logging ([89cb254](https://github.com/unraid/api/commit/89cb2544ed0e0edd33b59f15d487487e22c0ae32))
+* exit with process.exit not process.exitcode ([dcb6def](https://github.com/unraid/api/commit/dcb6def1cf3365dca819feed101160c8ad0125dc))
+* lint ([919873d](https://github.com/unraid/api/commit/919873d9edee304d99036a4a810db3789c734fbf))
+* local container startup commands cleaned up ([6c0ccb2](https://github.com/unraid/api/commit/6c0ccb2b24f98282be4db2e0b2e6362f4a187def))
+* logrotate not working due to invalid ownership of unraid-api folder ([ec0581a](https://github.com/unraid/api/commit/ec0581abf58a217f698d52d5337f2b312e5a645b))
+* optional check on api.version to allow fallback to save value ([0ac4455](https://github.com/unraid/api/commit/0ac4455f78407eca7aa1d6ee360830067a1c5c3e))
+* permission for dashboard payload ([704a530](https://github.com/unraid/api/commit/704a530653dac415766bded5e96f6060f931e591))
+* rearrange exit hook to try to fix closing ([843d3f4](https://github.com/unraid/api/commit/843d3f41162c5dbcfd7803912b1879d7a182231a))
+* revert myservers.cfg to fix test ([a7705be](https://github.com/unraid/api/commit/a7705beb0a5b32660367ad8de9b46b06f7a3bec7))
+* run hourly ([0425794](https://github.com/unraid/api/commit/0425794356a01262222e7dff2645d3629e00d0f6))
+* unused import ([065fe57](https://github.com/unraid/api/commit/065fe575f578a74d593805c3121dd7fbdfc3e5ae))
+* update snapshots ([c8a0a8e](https://github.com/unraid/api/commit/c8a0a8ec007abc0372464c7e2b44bd47b6babd94))
+
 ## [3.9.0](https://github.com/unraid/api/compare/api-v3.8.1...api-v3.9.0) (2024-09-03)
 
 
