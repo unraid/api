@@ -1,3 +1,4 @@
+import { rest } from 'lodash';
 import { test, expect, vi } from 'vitest';
 
 vi.mock('@app/core/pubsub', () => ({
