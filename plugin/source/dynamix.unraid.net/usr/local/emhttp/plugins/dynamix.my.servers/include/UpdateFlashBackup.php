@@ -321,14 +321,29 @@ if ($command != 'activate') {
   }
 }
 
+if (!empty($loadingMessage)) {
+  save_flash_backup_state($loadingMessage);
+}
+
+// check if being rate limited by keyserver
+$rateLimitFile = "/var/log/gitratelimit";
+if (file_exists($rateLimitFile)) {
+  $rateLimitRetryTimestamp = (int)@file_get_contents($rateLimitFile);
+  $rateLimitRetryAfter = $rateLimitRetryTimestamp - time();
+  if ($rateLimitRetryAfter > 0) { 
+    $msg = !empty($arrState['remoteerror']) ? $arrState['remoteerror'] : 'You are being rate limited - try again in '.$rateLimitRetryAfter.' seconds.';
+    response_complete(406,  array('error' => $msg));
+  } else {
+    unlink($rateLimitFile);
+    $arrState['remoteerror'] = "";
+    save_flash_backup_state();
+  }
+}
+
 // if flush command, invoke our background rc.flash_backup to flush
 if ($command == 'flush') {
   exec('/etc/rc.d/rc.flash_backup flush &>/dev/null');
   response_complete(200, '{}');
-}
-
-if (!empty($loadingMessage)) {
-  save_flash_backup_state($loadingMessage);
 }
 
 if ($command == 'deactivate') {
@@ -405,13 +420,28 @@ if ($result === false) {
 }
 
 $json = json_decode($result, true);
-if (empty($json) || empty($json['ssh_privkey']) || empty($json['ssh_pubkey'])) {
+
+if (empty($json)) {
   response_complete(406, $result);
 }
 
-// Show any warnings from the key-server
+// Show any warnings from keyserver
 if (!empty($json['warn'])) {
   $arrState['remoteerror'] = $json['warn'];
+}
+
+// check if being rate limited by keyserver
+if ($json['retry_after']) {
+  // add five minute margin to ensure remote rate limit is cleared
+  $rateLimitRetryAfter = $json['retry_after'] + 5*60;
+  $rateLimitRetryTimestamp = time() + $rateLimitRetryAfter;
+  file_put_contents($rateLimitFile, $rateLimitRetryTimestamp);
+  $msg = !empty($arrState['remoteerror']) ? $arrState['remoteerror'] : 'You are being rate limited - try again in '.$rateLimitRetryAfter.' seconds.';
+  response_complete(406,  array('error' => $msg));
+}
+
+if (empty($json['ssh_privkey']) || empty($json['ssh_pubkey'])) {
+  response_complete(406, $result);
 }
 
 // save the public and private keys
@@ -559,6 +589,7 @@ if (! checkdnsrr("backup.unraid.net","A") ) {
 }
 
 // bail if too many recent git updates. 
+// this is a client-side rate limit on git commits, unrelated to the keyserver rate limit
 $cooldown = 3 * 60 * 60; // 180 mins / 3 hours
 $maxCommitCount = 20;   // maxCommitCount per cooldown minutes
 $commitCountFile = "/var/log/gitcount";
