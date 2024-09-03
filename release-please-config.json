@@ -4,5 +4,6 @@
         "web": {}
     },
     "separate-pull-requests": false,
-    "include-component-in-tag": false
+    "include-component-in-tag": false,
+    "skip-github-release": true
 }
