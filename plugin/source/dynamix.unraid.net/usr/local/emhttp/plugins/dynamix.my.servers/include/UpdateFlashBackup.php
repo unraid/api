@@ -331,8 +331,10 @@ if (file_exists($rateLimitFile)) {
   $rateLimitRetryTimestamp = (int)@file_get_contents($rateLimitFile);
   $rateLimitRetryAfter = $rateLimitRetryTimestamp - time();
   if ($rateLimitRetryAfter > 0) { 
-    $msg = !empty($arrState['remoteerror']) ? $arrState['remoteerror'] : 'You are being rate limited - try again in '.$rateLimitRetryAfter.' seconds.';
-    response_complete(406,  array('error' => $msg));
+    if (empty($arrState['remoteerror'])) {
+      $arrState['remoteerror'] = 'You are being rate limited - try again in '.$rateLimitRetryAfter.' seconds.';
+    }
+    response_complete(406,  array('error' => $arrState['remoteerror']));
   } else {
     unlink($rateLimitFile);
     $arrState['remoteerror'] = "";
@@ -431,13 +433,15 @@ if (!empty($json['warn'])) {
 }
 
 // check if being rate limited by keyserver
-if ($json['retry_after']) {
+if (!empty($json['retry_after'])) {
   // add five minute margin to ensure remote rate limit is cleared
   $rateLimitRetryAfter = $json['retry_after'] + 5*60;
   $rateLimitRetryTimestamp = time() + $rateLimitRetryAfter;
   file_put_contents($rateLimitFile, $rateLimitRetryTimestamp);
-  $msg = !empty($arrState['remoteerror']) ? $arrState['remoteerror'] : 'You are being rate limited - try again in '.$rateLimitRetryAfter.' seconds.';
-  response_complete(406,  array('error' => $msg));
+  if (empty($arrState['remoteerror'])) {
+    $arrState['remoteerror'] = 'You are being rate limited - try again in '.$rateLimitRetryAfter.' seconds.';
+  }
+  response_complete(406,  array('error' => $arrState['remoteerror']));
 }
 
 if (empty($json['ssh_privkey']) || empty($json['ssh_pubkey'])) {
