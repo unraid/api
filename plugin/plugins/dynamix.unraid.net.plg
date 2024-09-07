@@ -310,6 +310,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILE=/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
   FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
@@ -508,6 +509,34 @@ done
 # brings older versions of Unraid in sync with 6.12.12
 # no need to restore original file on uninstall
 if grep -q "keys.lime-technology.com" /etc/hosts &>/dev/null; then sed -i "/keys.lime-technology.com/d" /etc/hosts &>/dev/null; fi
+
+# patch ProvisionCert.php
+# search text:       curl_init("https://keys.lime-technology.com/account/ssl/provisionwildcard")
+#                    curl_init("https://keys.lime-technology.com/account/ssl/$endpoint");
+# prepend text:      see $ADDTEXT4
+ADDTEXT4=$(
+cat <<'END_HEREDOC'
+// added by Unraid Connect
+// ensure keys.lime-technology.com is not hard-coded in the hosts file
+exec('if grep -q "keys.lime-technology.com" /etc/hosts &>/dev/null; then sed -i "/keys.lime-technology.com/d" /etc/hosts &>/dev/null; fi');
+END_HEREDOC
+)
+FILE=/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php
+# get line number matching the search text
+# shellcheck disable=SC2016
+LINENUM=$(grep -n 'curl_init("https://keys.lime-technology.com/account/ssl/provisionwildcard")' "$FILE" | cut -d : -f 1)
+[[ -z $LINENUM ]] && LINENUM=$(grep -n 'curl_init("https://keys.lime-technology.com/account/ssl/$endpoint")' "$FILE" | cut -d : -f 1)
+if [[ -n $LINENUM ]]; then
+  # backup the file so it can be restored later
+  cp -f "$FILE" "$FILE-"
+  # sed should work, but it is very difficult to escape
+  # instead, make a new file containing everything before LINENUM, then the new text, then everything including and after LINENUM
+  head -$((LINENUM-1)) "$FILE" > "$FILE~"
+  echo "$ADDTEXT4" >> "$FILE~"
+  echo "" >> "$FILE~"
+  tail +$LINENUM "$FILE" >> "$FILE~"
+  mv -f "$FILE~" "$FILE"
+fi
 
 # move settings on flash drive
 CFG_OLD=/boot/config/plugins/Unraid.net
