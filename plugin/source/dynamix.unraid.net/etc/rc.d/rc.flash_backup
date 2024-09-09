@@ -10,6 +10,7 @@ export GIT_OPTIONAL_LOCKS=0
 
 FAST=1  #  1 second delay when waiting for git
 SLOW=10 # 10 second delay when waiting for git
+THIRTYMINS=1800 # 30 minutes is 1800 seconds
 # wait for existing git commands to complete
 # $1 is the time in seconds to sleep when waiting. SLOW or FAST
 _waitforgit() {
@@ -101,12 +102,12 @@ _watch() {
   # wait for flush to complete
   sleep 3
   _waitforgitlog "${FAST}"
-  logger "start watching for file changes" --tag flash_backup
+  logger "checking for changes every $THIRTYMINS seconds" --tag flash_backup
   # start watcher loop
   while true; do
     # if system is connected to Unraid Connect Cloud, see if there are updates to process
     _connected && _f1
-    sleep 60
+    sleep "$THIRTYMINS"
   done
 }
 _f1() {
