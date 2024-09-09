@@ -17,6 +17,7 @@ putenv('GIT_OPTIONAL_LOCKS=0');
 $cli = php_sapi_name()=='cli';
 
 $docroot ??= ($_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp');
+require_once "$docroot/webGui/include/Wrappers.php";
 
 $myservers_flash_cfg_path='/boot/config/plugins/dynamix.my.servers/myservers.cfg';
 $myservers = file_exists($myservers_flash_cfg_path) ? @parse_ini_file($myservers_flash_cfg_path,true) : [];
@@ -408,7 +409,8 @@ $ch = curl_init('https://keys.lime-technology.com/backup/flash/activate');
 curl_setopt($ch, CURLOPT_POST, 1);
 curl_setopt($ch, CURLOPT_POSTFIELDS, [
   'keyfile' => $keyfile,
-  'version' => $var['version'],
+  'version' => _var($var,'version'),
+  'api_version' => _var($mystatus, 'version'),
   'bzfiles' => implode(',', $bzfilehashes)
 ]);
 curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -508,7 +510,7 @@ if (!file_exists('/boot/.git/info/exclude')) {
 }
 
 // setup a nice git description
-$gitdesc_text='Unraid flash drive for '.$var['NAME']."\n";
+$gitdesc_text='Unraid flash drive for '._var($var,'NAME')."\n";
 $gitdesc_file='/boot/.git/description';
 if (!file_exists($gitdesc_file) || (file_get_contents($gitdesc_file) != $gitdesc_text)) {
   file_put_contents($gitdesc_file, $gitdesc_text);
