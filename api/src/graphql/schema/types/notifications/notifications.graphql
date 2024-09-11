@@ -1,18 +1,6 @@
 enum NotificationType {
     UNREAD
-    ARCHIVED
-    RESTORED
-}
-
-input NotificationInput {
-    id: ID!
-    title: String!
-    subject: String!
-    description: String
-    importance: Importance!
-    link: String
-    type: NotificationType!
-    timestamp: String
+    ARCHIVE
 }
 
 input NotificationFilter {
@@ -46,4 +34,12 @@ type Notification {
     type: NotificationType!
     """ ISO Timestamp for when the notification occurred """
     timestamp: String
+}
+
+type NotificationOverview {
+    unread: Int!
+    archived: Int!
+    critical: Int!
+    warning: Int!
+    alert: Int!
 }

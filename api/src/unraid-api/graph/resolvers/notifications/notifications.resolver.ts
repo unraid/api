@@ -4,9 +4,12 @@ import { Query, Resolver, Args, Subscription } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
 import { UseRoles } from 'nest-access-control';
 import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
+import { NotificationsService } from './notifications.service';
 
 @Resolver()
 export class NotificationsResolver {
+    constructor(readonly notificationsService: NotificationsService) {}
+
     @Query()
     @UseRoles({
         resource: 'notifications',
@@ -17,26 +20,7 @@ export class NotificationsResolver {
         @Args('filter')
         { limit, importance, type, offset }: NotificationFilter
     ) {
-        if (limit > 50) {
-            throw new GraphQLError('Limit must be less than 50');
-        }
-        return Object.values(getters.notifications().notifications)
-            .filter((notification) => {
-                if (importance && importance !== notification.importance) {
-                    return false;
-                }
-                if (type && type !== notification.type) {
-                    return false;
-                }
-
-                return true;
-            })
-            .sort(
-                (a, b) =>
-                    new Date(b.timestamp ?? 0).getTime() -
-                    new Date(a.timestamp ?? 0).getTime()
-            )
-            .slice(offset, limit + offset);
+        return await this.notificationsService.getNotifications();
     }
 
     @Subscription('notificationAdded')
