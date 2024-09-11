@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.11.0](https://github.com/unraid/api/compare/v3.10.1...v3.11.0) (2024-09-11)
+
+
+### Features
+
+* reduce how often rc.flashbackup checks for changes ([793d368](https://github.com/unraid/api/commit/793d3681404018e0ae933df0ad111809220ad138))
+* send api_version to flash/activate endpoint ([d8ec20e](https://github.com/unraid/api/commit/d8ec20ea6aa35aa241abd8424c4d884bcbb8f590))
+* update ProvisionCert.php to clean hosts file when it runs ([fbe20c9](https://github.com/unraid/api/commit/fbe20c97b327849c15a4b34f5f53476edaefbeb6))
+
+
+### Bug Fixes
+
+* remove local flash backup ratelimit file on uninstall/update ([abf207b](https://github.com/unraid/api/commit/abf207b077861798c53739b1965207f87d5633b3))
+
 ### [3.10.1](https://github.com/unraid/api/compare/v3.10.0...v3.10.1) (2024-09-03)
 
 ## [3.10.0](https://github.com/unraid/api/compare/v3.9.0...v3.10.0) (2024-09-03)
