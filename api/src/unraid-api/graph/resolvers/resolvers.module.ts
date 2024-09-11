@@ -14,6 +14,7 @@ import { RegistrationResolver } from './registration/registration.resolver';
 import { ServerResolver } from './servers/server.resolver';
 import { VarsResolver } from './vars/vars.resolver';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver';
+import { NotificationsService } from './notifications/notifications.service';
 
 @Module({
     providers: [
@@ -32,6 +33,7 @@ import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.re
         ServerResolver,
         VarsResolver,
         VmsResolver,
+        NotificationsService,
     ],
 })
 export class ResolversModule {}
