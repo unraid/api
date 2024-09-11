@@ -781,20 +781,8 @@ export type NotificationFilter = {
   type?: InputMaybe<NotificationType>;
 };
 
-export type NotificationInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
-  importance: Importance;
-  link?: InputMaybe<Scalars['String']['input']>;
-  subject: Scalars['String']['input'];
-  timestamp?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-  type: NotificationType;
-};
-
 export enum NotificationType {
-  ARCHIVED = 'ARCHIVED',
-  RESTORED = 'RESTORED',
+  ARCHIVE = 'ARCHIVE',
   UNREAD = 'UNREAD'
 }
 
@@ -1724,7 +1712,6 @@ export type ResolversTypes = ResolversObject<{
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   Notification: ResolverTypeWrapper<Notification>;
   NotificationFilter: NotificationFilter;
-  NotificationInput: NotificationInput;
   NotificationType: NotificationType;
   Os: ResolverTypeWrapper<Os>;
   Owner: ResolverTypeWrapper<Owner>;
@@ -1829,7 +1816,6 @@ export type ResolversParentTypes = ResolversObject<{
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   Notification: Notification;
   NotificationFilter: NotificationFilter;
-  NotificationInput: NotificationInput;
   Os: Os;
   Owner: Owner;
   ParityCheck: ParityCheck;

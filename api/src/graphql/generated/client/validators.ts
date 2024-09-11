@@ -201,7 +201,9 @@ export function RemoteAccessInputSchema(): z.ZodObject<Properties<RemoteAccessIn
 export function RemoteGraphQLClientInputSchema(): z.ZodObject<Properties<RemoteGraphQLClientInput>> {
   return z.object({
     apiKey: z.string(),
-    body: z.string()
+    body: z.string(),
+    timeout: z.number().nullish(),
+    ttl: z.number().nullish()
   })
 }
 

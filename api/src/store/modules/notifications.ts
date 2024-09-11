@@ -14,6 +14,7 @@ import {
     createSlice,
 } from '@reduxjs/toolkit';
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
+import { NotificationIni } from '@app/core/types/states/notification';
 
 interface NotificationState {
     notifications: Record<string, Notification>;
@@ -22,15 +23,6 @@ interface NotificationState {
 const notificationInitialState: NotificationState = {
     notifications: {},
 };
-
-interface NotificationIni {
-    timestamp: string;
-    event: string;
-    subject: string;
-    description: string;
-    importance: 'normal' | 'alert' | 'warning';
-    link?: string;
-}
 
 const fileImportanceToGqlImportance = (
     importance: NotificationIni['importance']
@@ -64,7 +56,7 @@ export const loadNotification = createAsyncThunk<
         type: 'ini',
     });
 
-    const notification: NotificationInput = {
+    const notification: Notification = {
         id: path,
         title: notificationFile.event,
         subject: notificationFile.subject,
