@@ -77,3 +77,6 @@ deploy/*
 
 # pkg cache
 .pkg-cache
+
+# IDE Settings Files
+.idea

@@ -4,7 +4,6 @@ import {
     Importance,
     NotificationType,
     type Notification,
-    type NotificationInput,
 } from '@app/graphql/generated/api/types';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { type RootState, type AppDispatch } from '@app/store/index';
