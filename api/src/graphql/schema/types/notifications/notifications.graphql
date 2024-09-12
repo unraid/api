@@ -11,11 +11,12 @@ input NotificationFilter {
 }
 
 type Query {
-    notifications(filter: NotificationFilter!): [Notification!]!
+    notifications: Notifications!
 }
 
 type Subscription {
     notificationAdded: Notification!
+    notificationsOverview: NotificationOverview!
 }
 
 enum Importance {
@@ -24,7 +25,13 @@ enum Importance {
     WARNING
 }
 
-type Notification {
+type Notifications implements Node {
+    id: ID!
+    overview: NotificationOverview!
+    data(filter: NotificationFilter!): [Notification!]!
+}
+
+type Notification implements Node {
     id: ID!
     title: String!
     subject: String!
@@ -37,9 +44,13 @@ type Notification {
 }
 
 type NotificationOverview {
-    unread: Int!
-    archived: Int!
-    critical: Int!
+    unread: NotificationCounts!
+    archive: NotificationCounts!
+}
+
+type NotificationCounts {
+    info: Int!
     warning: Int!
     alert: Int!
+    total: Int!
 }
