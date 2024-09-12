@@ -1,7 +1,5 @@
 import { type NotificationFilter } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store/index';
 import { Query, Resolver, Args, Subscription } from '@nestjs/graphql';
-import { GraphQLError } from 'graphql';
 import { UseRoles } from 'nest-access-control';
 import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 import { NotificationsService } from './notifications.service';
@@ -18,9 +16,9 @@ export class NotificationsResolver {
     })
     public async notifications(
         @Args('filter')
-        { limit, importance, type, offset }: NotificationFilter
+        filters: NotificationFilter
     ) {
-        return await this.notificationsService.getNotifications();
+        await this.notificationsService.getNotifications(filters);
     }
 
     @Subscription('notificationAdded')

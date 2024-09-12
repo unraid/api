@@ -50,13 +50,11 @@ typings/
 .next
 
 # Visual Studio Code workspace
-.vscode/sftp.json
+.vscode/*
+!.vscode/extensions.json
 
 # OSX
 .DS_Store
-
-# Jetbrains Settings Files
-.idea
 
 # Temp dir for tests
 test/__temp__/*
@@ -80,12 +78,5 @@ deploy/*
 # pkg cache
 .pkg-cache
 
-*.log*
-.nuxt
-.nitro
-.cache
-.output
-.env*
-!.env.example
-
-fb_keepalive
+# IDE Settings Files
+.idea

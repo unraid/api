@@ -1,10 +1,10 @@
 import { NotificationIni } from '@app/core/types/states/notification';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { Importance, NotificationType, type Notification, } from '@app/graphql/generated/api/types';
+import {Importance, NotificationType, type Notification, NotificationFilter,} from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { Injectable } from '@nestjs/common';
-import { readdir, stat } from 'fs/promises';
+import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { Logger } from '@nestjs/common';
 import { isFulfilled, isRejected } from '@app/utils';
@@ -18,58 +18,59 @@ export class NotificationsService {
    *
    * @returns An array of all notifications in the system.
    */
-  public async getNotifications(): Promise<Notification[]> {
+  public async getNotifications(filters: NotificationFilter): Promise<Notification[]> {
     this.logger.debug('Getting Notifications');
-    const logErrors = (error: unknown) => this.logger.error(error);
 
     const notificationBasePath = getters.dynamix().notify!.path;
+    const unreadDirectoryPath = join(notificationBasePath, NotificationType.UNREAD.toLowerCase());
+    const archivedDirectoryPath = join(notificationBasePath, NotificationType.ARCHIVE.toLowerCase());
+    const directoryPath = filters.type === NotificationType.ARCHIVE ? archivedDirectoryPath : unreadDirectoryPath;
+    const unreadFiles = await this.getFilesInFolder(directoryPath);
+    const [notifications] = await this.getNotificationsFromPaths(unreadFiles, filters);
 
-    const [unreadNotifications, unreadNotificationErrors] = await this.getUnreadNotifications(notificationBasePath);
-
-    this.logger.debug(`${unreadNotifications.length} Unread Notifications`);
-    this.logger.debug(`${unreadNotificationErrors.length} Unread Notification Errors`);
-    unreadNotificationErrors.forEach(logErrors);
-
-    const [archivedNotifications, archivedNotificationErrors] = await this.getArchiveNotifications(notificationBasePath);
-
-    this.logger.debug(`${archivedNotifications.length} Archived Notifications`);
-    this.logger.debug(`${archivedNotificationErrors.length} Archived Notification Errors`);
-    archivedNotificationErrors.forEach(logErrors);
-
-    return [...unreadNotifications, ...archivedNotifications];
+    return notifications;
   }
 
-  private getUnreadNotifications(notificationsDirectory: string) {
-    const unreadsDirectoryPath = join(notificationsDirectory, NotificationType.UNREAD.toLowerCase());
-    return this.getNotificationsFromDirectory(unreadsDirectoryPath, NotificationType.UNREAD);
-  }
+  private async getFilesInFolder(folderPath: string): Promise<string[]> {
+    const contents = await readdir(folderPath);
 
-  private getArchiveNotifications(notificationsDirectory: string) {
-    const archivedDirectoryPath = join(notificationsDirectory, NotificationType.ARCHIVE.toLowerCase());
-    return this.getNotificationsFromDirectory(archivedDirectoryPath, NotificationType.ARCHIVE);
+    return contents.map((content) => join(folderPath, content));
   }
 
   /**
-   * Given a directory path, reads all the files in the directory,
+   * Given a an array of files, reads and filters all the files in the directory,
    * and attempts to parse each file as a Notification.
    * Returns an array of two elements:
-   * - the first element is an array of successfully parsed Notifications,
+   * - the first element is an array of successfully parsed and filtered Notifications,
    * - the second element is an array of errors for any files that failed parsing.
-   * @param containingDirectory the directory to read
-   * @param type the type of notification to load
+   * @param files the files to read
+   * @param filters the filters to apply to the notifications
    * @returns an array of two elements: [successes, errors/failures]
    */
-  private async getNotificationsFromDirectory(containingDirectory: string, type: NotificationType): Promise<[Notification[], unknown[]]> {
-    const loadNotification = (filePath: string) => this.loadNotificationFile(filePath, type);
+  private async getNotificationsFromPaths(files: string[], filters: NotificationFilter): Promise<[Notification[], unknown[]]> {
+    const { limit, importance, type, offset } = filters;
 
-    const contents = await readdir(containingDirectory);
-    const absolutePaths = contents.map((content) => join(containingDirectory, content));
-    const fileReads = absolutePaths.map(loadNotification);
+    const fileReads = files.slice(offset, limit + offset).map((file) => this.loadNotificationFile(file, type ?? NotificationType.UNREAD));
     const results = await Promise.allSettled(fileReads);
 
     return [
-      results.filter(isFulfilled).map((result) => result.value),
-      results.filter(isRejected).map((result) => result.reason),
+          results.filter(isFulfilled).map(result => result.value).filter((notification) => {
+            if (importance && importance !== notification.importance) {
+              return false;
+            }
+
+            if (type && type !== notification.type) {
+              return false;
+            }
+
+            return true;
+          })
+            .sort(
+                (a, b) =>
+                    new Date(b.timestamp ?? 0).getTime() -
+                    new Date(a.timestamp ?? 0).getTime()
+            ),
+          results.filter(isRejected).map((result) => result.reason),
     ];
   }
 
