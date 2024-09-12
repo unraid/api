@@ -1,17 +1,89 @@
 import { NotificationIni } from '@app/core/types/states/notification';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import {Importance, NotificationType, type Notification, NotificationFilter,} from '@app/graphql/generated/api/types';
+import { Importance, NotificationType, type Notification, NotificationFilter, NotificationOverview, } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { Injectable } from '@nestjs/common';
 import { readdir } from 'fs/promises';
 import { join } from 'path';
 import { Logger } from '@nestjs/common';
 import { isFulfilled, isRejected } from '@app/utils';
+import { FSWatcher, watch } from 'chokidar';
+import { FileLoadStatus } from '@app/store/types';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 
 @Injectable()
 export class NotificationsService {
   private logger = new Logger(NotificationsService.name);
+  private static watcher: FSWatcher | null = null;
+
+  private static overview: NotificationOverview = {
+    unread: {
+      alert: 0,
+      info: 0,
+      warning: 0,
+      total: 0,
+    },
+    archive: {
+      alert: 0,
+      info: 0,
+      warning: 0,
+      total: 0,
+    },
+  };
+
+  constructor() {
+    NotificationsService.watcher = this.getNotificationsWatcher();
+  }
+
+  private getNotificationsWatcher() {
+    const { notify, status } = getters.dynamix();
+    if (status === FileLoadStatus.LOADED && notify?.path) {
+      if (NotificationsService.watcher) {
+        return NotificationsService.watcher;
+      }
+
+      NotificationsService.watcher = watch(notify.path, {})
+        .on('add', (path) => {
+          void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+        })
+        // Do we even want to listen to removals?
+        .on('unlink', (path) => {
+          void this.handleNotificationRemoval(path).catch((e) => this.logger.error(e));
+        });
+
+      return NotificationsService.watcher;
+    }
+    return null;
+  }
+
+  private async handleNotificationAdd(path: string) {
+    // The path looks like /{notification base path}/{type}/{notification id}
+    const type = path.includes('/unread/') ? NotificationType.UNREAD : NotificationType.ARCHIVE;
+    this.logger.debug(`Adding ${type} Notification: ${path}`);
+    const notification = await this.loadNotificationFile(path, NotificationType[type]);
+
+    NotificationsService.overview[type.toLowerCase()][notification.importance.toLowerCase()] += 1;
+    NotificationsService.overview[type.toLowerCase()]['total'] += 1;
+
+    pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
+      notificationAdded: notification
+    });
+
+    pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
+      notificationsOverview: NotificationsService.overview
+    });
+  }
+
+  private async handleNotificationRemoval(path: string) {
+    pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
+      notificationsOverview: NotificationsService.overview
+    });
+  }
+
+  public async getOverview(): Promise<NotificationOverview> {
+    return NotificationsService.overview;
+  }
 
   /**
    * Retrieves all notifications from the file system.
@@ -54,23 +126,23 @@ export class NotificationsService {
     const results = await Promise.allSettled(fileReads);
 
     return [
-          results.filter(isFulfilled).map(result => result.value).filter((notification) => {
-            if (importance && importance !== notification.importance) {
-              return false;
-            }
+      results.filter(isFulfilled).map(result => result.value).filter((notification) => {
+        if (importance && importance !== notification.importance) {
+          return false;
+        }
 
-            if (type && type !== notification.type) {
-              return false;
-            }
+        if (type && type !== notification.type) {
+          return false;
+        }
 
-            return true;
-          })
-            .sort(
-                (a, b) =>
-                    new Date(b.timestamp ?? 0).getTime() -
-                    new Date(a.timestamp ?? 0).getTime()
-            ),
-          results.filter(isRejected).map((result) => result.reason),
+        return true;
+      })
+        .sort(
+          (a, b) =>
+            new Date(b.timestamp ?? 0).getTime() -
+            new Date(a.timestamp ?? 0).getTime()
+        ),
+      results.filter(isRejected).map((result) => result.reason),
     ];
   }
 
