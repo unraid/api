@@ -266,6 +266,7 @@ export const useServerStore = defineStore('server', () => {
       apiVersion: apiVersion.value,
       caseModel: caseModel.value,
       connectPluginVersion: connectPluginVersion.value,
+      deviceCount: deviceCount.value,
       description: description.value,
       expireTime: expireTime.value,
       flashBackupActivated: flashBackupActivated.value,
