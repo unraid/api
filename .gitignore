@@ -55,6 +55,9 @@ typings/
 # OSX
 .DS_Store
 
+# Jetbrains Settings Files
+.idea
+
 # Temp dir for tests
 test/__temp__/*
 
