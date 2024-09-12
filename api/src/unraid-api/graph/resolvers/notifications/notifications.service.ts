@@ -15,7 +15,7 @@ export class NotificationsService {
 
   /**
    * Retrieves all notifications from the file system.
-   *
+   * @param filters Filters to apply to the notifications
    * @returns An array of all notifications in the system.
    */
   public async getNotifications(filters: NotificationFilter): Promise<Notification[]> {
