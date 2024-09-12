@@ -294,7 +294,7 @@ const modalWidth = computed(() => {
       </div>
     </template>
 
-    <template v-if="!checkForUpdatesLoading" #footer>
+    <template #footer>
       <div
         class="w-full flex gap-8px mx-auto"
         :class="{
