@@ -19,6 +19,8 @@ import { ServicesResolver } from './services/services.resolver';
 import { SharesResolver } from './shares/shares.resolver';
 import { ConnectResolver } from './connect/connect.resolver';
 import { ConnectService } from './connect/connect.service';
+import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
+
 
 @Module({
     imports: [
@@ -33,8 +35,8 @@ import { ConnectService } from './connect/connect.service';
             }),
             playground: false,
             plugins: GRAPHQL_INTROSPECTION
-                ? [ApolloServerPluginLandingPageLocalDefault()]
-                : [],
+                ? [ApolloServerPluginLandingPageLocalDefault(), idPrefixPlugin]
+                : [idPrefixPlugin],
             subscriptions: {
                 'graphql-ws': {
                     path: '/graphql',
@@ -50,9 +52,7 @@ import { ConnectService } from './connect/connect.service';
                 Port: PortResolver,
                 URL: URLResolver,
             },
-            validationRules: [
-                NoUnusedVariablesRule
-            ]
+            validationRules: [NoUnusedVariablesRule],
             // schema: schema
         }),
     ],
