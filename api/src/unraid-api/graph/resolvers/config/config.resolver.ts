@@ -1,5 +1,4 @@
 import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { type AllowedOriginInput, Config, ConfigErrorState } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store/index';
 import { updateAllowedOrigins } from '@app/store/modules/config';
@@ -17,7 +16,7 @@ export class ConfigResolver {
     public async config(): Promise<Config> {
         const emhttp = getters.emhttp();
         return {
-            id: getServerIdentifier('config'),
+            id: 'config',
             valid: emhttp.var.configValid,
             error: emhttp.var.configValid
                 ? null

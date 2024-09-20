@@ -1,5 +1,4 @@
 import { getDockerContainers } from '@app/core/modules/index';
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 
@@ -13,7 +12,7 @@ export class DockerResolver {
     @Query()
     public docker() {
         return {
-            id: getServerIdentifier('docker'),
+            id: 'docker',
         };
     }
 

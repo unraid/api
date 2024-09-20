@@ -1,6 +1,5 @@
 import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id';
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import {
     generateApps,
     generateCpu,
@@ -24,7 +23,7 @@ export class InfoResolver {
     })
     public async info() {
         return {
-            id: getServerIdentifier('info')
+            id: 'info'
         };
     }
 
