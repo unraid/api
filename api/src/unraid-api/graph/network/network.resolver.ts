@@ -1,4 +1,3 @@
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { AccessUrl, Network } from '@app/graphql/generated/api/types';
 import { getServerIps } from '@app/graphql/resolvers/subscription/network';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
@@ -16,7 +15,7 @@ export class NetworkResolver {
     @Query('network')
     public async network(): Promise<Network> {
         return {
-            id: getServerIdentifier('network'),
+            id: 'network'
         };
     }
 
