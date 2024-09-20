@@ -15,7 +15,7 @@ const updateId = (obj: Record<string, unknown>) => {
 
         if (current && typeof current === 'object') {
             if ('id' in current && typeof current.id === 'string') {
-                current.id = `${serverId}-${current.id}`;
+                current.id = `${serverId}:${current.id}`;
             }
 
             for (const value of Object.values(current)) {
