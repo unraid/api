@@ -13,7 +13,6 @@ import {
 import {
     setAllowedRemoteAccessUrl,
 } from '@app/store/modules/dynamic-remote-access';
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {
@@ -31,7 +30,7 @@ export class ConnectResolver implements ConnectResolvers {
 
     @ResolveField()
     public id() {
-        return getServerIdentifier('connect');
+        return 'connect'
     }
 
     @ResolveField()

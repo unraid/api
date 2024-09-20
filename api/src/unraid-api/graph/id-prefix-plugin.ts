@@ -1,9 +1,12 @@
 import { ApolloServerPlugin } from "@apollo/server";
 import { getServerIdentifier } from "@app/core/utils/server-identifier";
 
-const serverId = getServerIdentifier();
-
-const updateId = (obj: any) => {
+/**
+ * Modify all ID fields in the GQL response object to include a prefix
+ * @param obj GQL response object, to be modified in place
+ */
+const updateId = (obj: Record<string, unknown>) => {
+    const serverId = getServerIdentifier();
     const stack = [obj];
     let iterations = 0;
     // Prevent infinite loops
@@ -17,7 +20,7 @@ const updateId = (obj: any) => {
 
             for (const value of Object.values(current)) {
                 if (value && typeof value === 'object') {
-                    stack.push(value);
+                    stack.push(value as Record<string, unknown>);
                 }
             }
         }

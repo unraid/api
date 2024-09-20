@@ -116,6 +116,7 @@
     "mustache": "^4.2.0",
     "nanobus": "^4.5.0",
     "nest-access-control": "^3.1.0",
+    "nest-authz": "^2.11.0",
     "nestjs-pino": "^4.0.0",
     "node-cache": "^5.1.2",
     "node-window-polyfill": "^1.0.2",

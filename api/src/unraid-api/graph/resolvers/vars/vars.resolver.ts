@@ -1,4 +1,3 @@
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { getters } from '@app/store/index';
 import { Query, Resolver } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
@@ -13,7 +12,7 @@ export class VarsResolver {
     })
     public async vars() {
         return {
-            id: getServerIdentifier('vars'),
+            id: 'vars',
             ...getters.emhttp().var ?? {},
         }
     }
