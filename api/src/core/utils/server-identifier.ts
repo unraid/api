@@ -8,3 +8,7 @@ export const getServerIdentifier = (): string => {
         .update(`${flashGuid}-${hostname()}`)
         .digest('hex');
 };
+
+export const serverIdentifierMatches = (serverIdentifier: string): boolean => {
+    return serverIdentifier === getServerIdentifier();
+}
