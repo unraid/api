@@ -26,7 +26,6 @@ export class NotificationsResolver {
         return await this.notificationsService.getOverview();
     }
 
-
     @ResolveField()
     public async data(
         @Args('filter')

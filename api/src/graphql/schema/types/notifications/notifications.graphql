@@ -14,6 +14,13 @@ type Query {
     notifications: Notifications!
 }
 
+type Mutation {
+    createNotification(input: NotificationData!): Notification!
+    deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
+    archiveNotification(id: String!): NotificationOverview!
+    unreadNotification(id: String!): NotificationOverview!
+}
+
 type Subscription {
     notificationAdded: Notification!
     notificationsOverview: NotificationOverview!
@@ -41,6 +48,14 @@ type Notification implements Node {
     type: NotificationType!
     """ ISO Timestamp for when the notification occurred """
     timestamp: String
+}
+
+input NotificationData {
+    title: String!
+    subject: String!
+    description: String!
+    importance: Importance!
+    link: String
 }
 
 type NotificationOverview {
