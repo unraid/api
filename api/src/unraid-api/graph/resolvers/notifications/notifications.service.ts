@@ -191,6 +191,21 @@ export class NotificationsService {
         const unreadPath = join(UNREAD, id);
         const archivePath = join(ARCHIVE, id);
 
+        /**-----------------------
+         *     Why we use a snapshot
+         *
+         * An implicit update to `overview` creates a race condition:
+         * it might be missing changes from the 'add' event (i.e. incrementing the notification's new category).
+         *
+         * So, we use & modify a snapshot of the overview to make sure we're returning accurate
+         * data to the client.
+         *------------------------**/
+
+        const archiveSnapshot = structuredClone(NotificationsService.overview.archive);
+
+        // We expect to only archive 'unread' notifications, but it's possible that the notification
+        // has already been archived or deleted (e.g. retry logic, spike in network latency).
+
         if (!(await fileExists(unreadPath))) {
             this.logger.warn(`[archiveNotification] Could not find notification in unreads: ${id}`);
             return NotificationsService.overview;
@@ -199,6 +214,8 @@ export class NotificationsService {
         const notification = await this.loadNotificationFile(unreadPath, NotificationType.UNREAD);
         await rename(unreadPath, archivePath);
         await this.removeFromOverview(notification);
+        archiveSnapshot.total += 1;
+        archiveSnapshot[notification.importance.toLowerCase()] += 1;
 
         /**-----------------------
          *     Event & PubSub logic
@@ -222,13 +239,20 @@ export class NotificationsService {
          *    to track other stats, we have to update them manually, prior to file deletion.
          *------------------------**/
 
-        return NotificationsService.overview;
+        return {
+            ...NotificationsService.overview,
+            archive: archiveSnapshot,
+        };
     }
 
-    public async markAsUnread({ id }: Pick<Notification, 'id'>) {
+    public async markAsUnread({ id }: Pick<Notification, 'id'>): Promise<NotificationOverview> {
         const { UNREAD, ARCHIVE } = this.paths();
         const unreadPath = join(UNREAD, id);
         const archivePath = join(ARCHIVE, id);
+
+        // see `archiveNotification` for why we use a snapshot
+        // it's b/c of a race condition
+        const unreadSnapshot = structuredClone(NotificationsService.overview.unread);
 
         if (!(await fileExists(archivePath))) {
             this.logger.warn(`[markAsUnread] Could not find notification in archive: ${id}`);
@@ -238,14 +262,16 @@ export class NotificationsService {
         const notification = await this.loadNotificationFile(archivePath, NotificationType.ARCHIVE);
         await rename(archivePath, unreadPath);
 
+        // see `archiveNotification` for why there are 2 ways of updating our overview state,
+        // and the implications it has for updating notifications.
         await this.removeFromOverview(notification);
+        unreadSnapshot.total += 1;
+        unreadSnapshot[notification.importance.toLowerCase()] += 1;
 
-        // @see `archiveNotification` for why this is commented out, and why there are 2
-        //   different ways of updating the overview & pubsub
-        //
-        // await this.addToOverview({ ...notification, type: NotificationType.UNREAD });
-
-        return NotificationsService.overview;
+        return {
+            ...NotificationsService.overview,
+            unread: unreadSnapshot,
+        };
     }
 
     /**------------------------------------------------------------------------
