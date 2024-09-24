@@ -46,7 +46,9 @@ type Notification implements Node {
     importance: Importance!
     link: String
     type: NotificationType!
-    """ ISO Timestamp for when the notification occurred """
+    """
+    ISO Timestamp for when the notification occurred
+    """
     timestamp: String
 }
 
