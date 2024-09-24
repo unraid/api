@@ -127,6 +127,8 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-gamma" />
 
+      <NotificationsOpenButton />
+
       <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
         <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
         <UpcDropdown ref="clickOutsideTarget" :t="t" />

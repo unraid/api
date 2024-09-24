@@ -55,6 +55,7 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
     { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
+    { path: '~/components/Notifications', prefix: 'Notifications' },
     { path: '~/components/Ui', prefix: 'Ui' },
     { path: '~/components/UserProfile', prefix: 'Upc' },
     { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
