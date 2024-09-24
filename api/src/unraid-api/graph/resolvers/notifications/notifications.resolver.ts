@@ -1,13 +1,21 @@
-import {type NotificationFilter} from '@app/graphql/generated/api/types';
-import {Args, Query, ResolveField, Resolver, Subscription} from '@nestjs/graphql';
-import {UseRoles} from 'nest-access-control';
-import {createSubscription, PUBSUB_CHANNEL} from '@app/core/pubsub';
-import {NotificationsService} from './notifications.service';
+import type {
+    NotificationData,
+    NotificationType,
+    NotificationFilter,
+} from '@app/graphql/generated/api/types';
+import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+import { UseRoles } from 'nest-access-control';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { NotificationsService } from './notifications.service';
 import { getServerIdentifier } from '@app/core/utils/server-identifier';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
     constructor(readonly notificationsService: NotificationsService) {}
+
+    /**============================================
+     *               Queries
+     *=============================================**/
 
     @Query()
     @UseRoles({
@@ -18,7 +26,7 @@ export class NotificationsResolver {
     public async notifications() {
         return {
             id: getServerIdentifier('notifications'),
-        }
+        };
     }
 
     @ResolveField()
@@ -33,6 +41,44 @@ export class NotificationsResolver {
     ) {
         return await this.notificationsService.getNotifications(filters);
     }
+
+    /**============================================
+     *               Mutations
+     *=============================================**/
+
+    /** Creates a new notification record */
+    @Mutation()
+    public createNotification(
+        @Args('input')
+        data: NotificationData
+    ) {
+        return this.notificationsService.createNotification(data);
+    }
+
+    @Mutation()
+    public async deleteNotification(
+        @Args('id')
+        id: string,
+        @Args('type')
+        type: NotificationType
+    ) {
+        const { overview } = await this.notificationsService.deleteNotification({ id, type });
+        return overview;
+    }
+
+    @Mutation()
+    public archiveNotification(@Args('id') id: string) {
+        return this.notificationsService.archiveNotification({ id });
+    }
+
+    @Mutation()
+    public unreadNotification(@Args('id') id: string) {
+        return this.notificationsService.markAsUnread({ id });
+    }
+
+    /**============================================
+     *               Subscriptions
+     *=============================================**/
 
     @Subscription()
     @UseRoles({

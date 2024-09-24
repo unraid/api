@@ -127,20 +127,40 @@ export class NotificationsService {
      *                           CRUD: Creating Notifications
      *------------------------------------------------------------------------**/
 
-    public async createNotification(data: NotificationData) {
-        const id: string = this.makeNotificationId();
+    public async createNotification(data: NotificationData): Promise<Notification> {
+        // const id: string = this.makeNotificationId();
+        const id: string = '_DEV_CUSTOM_NOTIFICATION_1234.notify'; // placeholder
         const path = join(this.paths().UNREAD, id);
-        const notification: Notification = {
-            ...data,
-            id,
-            type: NotificationType.UNREAD,
-            //? timestamp: new Date().toISOString(),
-        };
-        const ini = encodeIni(notification);
+
+        const fileData = this.makeNotificationFileData(data);
+        const ini = encodeIni(fileData);
+
         await writeFile(path, ini);
-        await this.addToOverview(notification);
+        // await this.addToOverview(notification);
         // make sure both NOTIFICATION_ADDED and NOTIFICATION_OVERVIEW are fired
-        return notification;
+        return { ...data, id, type: NotificationType.UNREAD, timestamp: fileData.timestamp };
+    }
+
+    private makeNotificationFileData(notification: NotificationData): NotificationIni {
+        const { title, subject, description, link, importance } = notification;
+        const secondsSinceUnixEpoch = Math.floor(Date.now() / 1_000);
+
+        const data: NotificationIni = {
+            timestamp: secondsSinceUnixEpoch.toString(),
+            event: title,
+            subject,
+            description,
+            importance: this.gqlImportanceToFileImportance(importance),
+        };
+
+        // HACK - the ini encoder stringifies all fields defined on the object, even if they're undefined.
+        // this results in a field like "link=undefined" in the resulting ini string.
+        // So, we only add a link if it's defined
+
+        if (link) {
+            data.link = link;
+        }
+        return data;
     }
 
     /**------------------------------------------------------------------------
@@ -166,7 +186,7 @@ export class NotificationsService {
      *                           CRUD: Updating Notifications
      *------------------------------------------------------------------------**/
 
-    public async archiveNotification({ id }: Pick<Notification, 'id'>) {
+    public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<NotificationOverview> {
         const { UNREAD, ARCHIVE } = this.paths();
         const unreadPath = join(UNREAD, id);
         const archivePath = join(ARCHIVE, id);
@@ -320,6 +340,10 @@ export class NotificationsService {
             type: 'ini',
         });
 
+        this.logger.debug(
+            `Loaded notification ini file from ${path}: ${JSON.stringify(notificationFile, null, 4)}`
+        );
+
         const notification: Notification = {
             id: path,
             title: notificationFile.event,
@@ -330,6 +354,9 @@ export class NotificationsService {
             timestamp: this.parseNotificationDateToIsoDate(notificationFile.timestamp),
             type,
         };
+
+        // The contents of the file, and therefore the notification, may not always be a valid notification.
+        // so we parse it through the schema to make sure it is
 
         return NotificationSchema().parse(notification);
     }
@@ -345,6 +372,17 @@ export class NotificationsService {
         }
     }
 
+    private gqlImportanceToFileImportance(importance: Importance): NotificationIni['importance'] {
+        switch (importance) {
+            case Importance.ALERT:
+                return 'alert';
+            case Importance.WARNING:
+                return 'warning';
+            default:
+                return 'normal';
+        }
+    }
+
     private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): string | null {
         if (unixStringSeconds && !isNaN(Number(unixStringSeconds))) {
             return new Date(Number(unixStringSeconds) * 1_000).toISOString();
@@ -354,7 +392,11 @@ export class NotificationsService {
 
     /**
      * Returns the paths to the notification directories.
-     * @returns an object with the base path, the path to the unread notifications, and the path to the archived notifications.
+     *
+     * @returns an object with the:
+     *          - base path,
+     *          - path to the unread notifications,
+     *          - path to the archived notifications
      */
     private paths(): Record<'basePath' | NotificationType, string> {
         const basePath = getters.dynamix().notify!.path;
