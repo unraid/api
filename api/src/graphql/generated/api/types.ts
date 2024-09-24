@@ -793,7 +793,7 @@ export type Notification = Node & {
   importance: Importance;
   link?: Maybe<Scalars['String']['output']>;
   subject: Scalars['String']['output'];
-  /**  ISO Timestamp for when the notification occurred  */
+  /** ISO Timestamp for when the notification occurred */
   timestamp?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   type: NotificationType;

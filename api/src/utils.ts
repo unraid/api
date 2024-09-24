@@ -1,5 +1,5 @@
 export function notNull<T>(value: T): value is NonNullable<T> {
-	return value !== null;
+    return value !== null;
 }
 
 /**
@@ -9,7 +9,7 @@ export function notNull<T>(value: T): value is NonNullable<T> {
  * @returns true if the result is fulfilled, false otherwise.
  */
 export function isFulfilled<T>(result: PromiseSettledResult<T>): result is PromiseFulfilledResult<T> {
-	return result.status === 'fulfilled';
+    return result.status === 'fulfilled';
 }
 
 /**
@@ -19,5 +19,5 @@ export function isFulfilled<T>(result: PromiseSettledResult<T>): result is Promi
  * @returns true if the result is rejected, false otherwise.
  */
 export function isRejected<T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult {
-	return result.status === 'rejected';
+    return result.status === 'rejected';
 }

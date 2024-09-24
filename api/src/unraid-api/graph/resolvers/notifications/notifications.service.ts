@@ -45,6 +45,24 @@ export class NotificationsService {
         NotificationsService.watcher = this.getNotificationsWatcher();
     }
 
+    /**
+     * Returns the paths to the notification directories.
+     *
+     * @returns an object with the:
+     *          - base path
+     *          - path to the unread notifications
+     *          - path to the archived notifications
+     */
+    private paths(): Record<'basePath' | NotificationType, string> {
+        const basePath = getters.dynamix().notify!.path;
+        const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
+        return {
+            basePath,
+            [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
+            [NotificationType.ARCHIVE]: makePath(NotificationType.ARCHIVE),
+        };
+    }
+
     /**------------------------------------------------------------------------
      *                           Subscription Events
      *
@@ -81,21 +99,6 @@ export class NotificationsService {
         const notification = await this.loadNotificationFile(path, NotificationType[type]);
 
         NotificationsService.overview[type.toLowerCase()][notification.importance.toLowerCase()] += 1;
-        NotificationsService.overview[type.toLowerCase()]['total'] += 1;
-
-        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
-            notificationAdded: notification,
-        });
-
-        pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW, {
-            notificationsOverview: NotificationsService.overview,
-        });
-    }
-
-    private async addToOverview(notification: Notification) {
-        const { type, importance } = notification;
-
-        NotificationsService.overview[type.toLowerCase()][importance.toLowerCase()] += 1;
         NotificationsService.overview[type.toLowerCase()]['total'] += 1;
 
         pubsub.publish(PUBSUB_CHANNEL.NOTIFICATION_ADDED, {
@@ -414,23 +417,5 @@ export class NotificationsService {
             return new Date(Number(unixStringSeconds) * 1_000).toISOString();
         }
         return null;
-    }
-
-    /**
-     * Returns the paths to the notification directories.
-     *
-     * @returns an object with the:
-     *          - base path,
-     *          - path to the unread notifications,
-     *          - path to the archived notifications
-     */
-    private paths(): Record<'basePath' | NotificationType, string> {
-        const basePath = getters.dynamix().notify!.path;
-        const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
-        return {
-            basePath,
-            [NotificationType.UNREAD]: makePath(NotificationType.UNREAD),
-            [NotificationType.ARCHIVE]: makePath(NotificationType.ARCHIVE),
-        };
     }
 }
