@@ -19,7 +19,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { FileLoadStatus } from '@app/store/types';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { fileExists } from '@app/core/utils/files/file-exists';
-import { encode as encodeIni } from 'ini';
+import { safelySerializeObjectToIni as encodeIni } from '@app/core/utils/files/safe-ini-serializer';
 
 @Injectable()
 export class NotificationsService {
