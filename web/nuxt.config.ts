@@ -50,7 +50,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
     'nuxt-custom-elements',
-    "@nuxt/eslint"
+    "@nuxt/eslint",
+    'shadcn-nuxt',
   ],
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
@@ -64,6 +65,10 @@ export default defineNuxtConfig({
   // typescript: {
   //   typeCheck: true
   // },
+  shadcn: {
+    prefix: '',
+    componentDir: './components/shadcn'
+  },
   vite: {
     build: {
       minify: 'terser',
