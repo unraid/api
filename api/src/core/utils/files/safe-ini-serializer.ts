@@ -15,7 +15,7 @@ const replacer = (_, value: unknown) => {
  * @param object Any object to serialize
  * @returns String converted to ini with multi-ini, with any booleans string escaped to prevent a crash
  */
-export const safelySerializeObjectToIni = (object: Record<string, unknown>): string => {
+export const safelySerializeObjectToIni = (object: object): string => {
 	const safeObject = JSON.parse(JSON.stringify(object, replacer));
 	return serializer.serialize(safeObject);
 };
