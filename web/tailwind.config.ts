@@ -5,8 +5,11 @@ import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
 const envConfig = parse(readFileSync('.env'));
 
+// @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
+  darkMode: ["class"],
   safelist: [
+    "dark",
     "DropdownWrapper_blip",
     "unraid_mark_1",
     "unraid_mark_2",
@@ -18,6 +21,13 @@ export default <Partial<Config>>{
     "unraid_mark_9",
   ],
   theme: {
+    container: {
+      center: true,
+      padding: "2rem",
+      screens: {
+        "2xl": "1400px",
+      },
+    },
     extend: {
       fontFamily: {
         sans: "clear-sans,ui-sans-serif,system-ui,sans-serif,Apple Color Emoji,Segoe UI Emoji,Segoe UI Symbol,Noto Color Emoji",
@@ -45,6 +55,41 @@ export default <Partial<Config>>{
         beta: "var(--color-beta)",
         gamma: "var(--color-gamma)",
         "gamma-opaque": "var(--color-gamma-opaque)",
+
+        // shadcn specific
+        border: "hsl(var(--border))",
+        input: "hsl(var(--input))",
+        ring: "hsl(var(--ring))",
+        background: "hsl(var(--background))",
+        foreground: "hsl(var(--foreground))",
+        primary: {
+          DEFAULT: "hsl(var(--primary))",
+          foreground: "hsl(var(--primary-foreground))",
+        },
+        secondary: {
+          DEFAULT: "hsl(var(--secondary))",
+          foreground: "hsl(var(--secondary-foreground))",
+        },
+        destructive: {
+          DEFAULT: "hsl(var(--destructive))",
+          foreground: "hsl(var(--destructive-foreground))",
+        },
+        muted: {
+          DEFAULT: "hsl(var(--muted))",
+          foreground: "hsl(var(--muted-foreground))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          foreground: "hsl(var(--accent-foreground))",
+        },
+        popover: {
+          DEFAULT: "hsl(var(--popover))",
+          foreground: "hsl(var(--popover-foreground))",
+        },
+        card: {
+          DEFAULT: "hsl(var(--card))",
+          foreground: "hsl(var(--card-foreground))",
+        },
       },
       // Unfortunately due to webGUI CSS setting base HTML font-size to .65% or something we must use pixel values for web components
       fontSize: {
@@ -112,6 +157,36 @@ export default <Partial<Config>>{
         "2xs": "470px",
         xs: "530px",
         tall: { raw: "(min-height: 700px)" },
+      },
+      borderRadius: {
+      	xl: "calc(var(--radius) + 4px)",
+        lg: "var(--radius)",
+        md: "calc(var(--radius) - 2px)",
+        sm: "calc(var(--radius) - 4px)",
+      },
+      keyframes: {
+        "accordion-down": {
+          from: { height: 0 },
+          to: { height: "var(--radix-accordion-content-height)" },
+        },
+        "accordion-up": {
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: 0 },
+        },
+        "collapsible-down": {
+          from: { height: 0 },
+          to: { height: 'var(--radix-collapsible-content-height)' },
+        },
+        "collapsible-up": {
+          from: { height: 'var(--radix-collapsible-content-height)' },
+          to: { height: 0 },
+        },
+      },
+      animation: {
+        "accordion-down": "accordion-down 0.2s ease-out",
+        "accordion-up": "accordion-up 0.2s ease-out",
+        "collapsible-down": "collapsible-down 0.2s ease-in-out",
+        "collapsible-up": "collapsible-up 0.2s ease-in-out",
       },
       /**
        * @todo modify prose classes to use pixels for webgui…sadge https://tailwindcss.com/docs/typography-plugin#customizing-the-default-theme
@@ -202,14 +277,18 @@ export default <Partial<Config>>{
       }),
     },
   },
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  plugins: [require("@tailwindcss/typography"), require('./utils/tailwind-rem-to-rem').default({
-    baseFontSize: 16,
-    /**
-     * The font size where the web components will rendered in production.
-     * Required due to the webgui using the 62.5% font-size "trick".
-     * Set an env to 16 for local development and 10 for everything else.
-     */
-    newFontSize: envConfig.VITE_TAILWIND_BASE_FONT_SIZE ?? 10,
-  })],
+  plugins: [
+    require("@tailwindcss/typography"),
+    require("tailwindcss-animate"),
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require('./utils/tailwind-rem-to-rem').default({
+      baseFontSize: 16,
+      /**
+       * The font size where the web components will be rendered in production.
+       * Required due to the webgui using the 62.5% font-size "trick".
+       * Set an env to 16 for local development and 10 for everything else.
+       */
+      newFontSize: envConfig.VITE_TAILWIND_BASE_FONT_SIZE ?? 10,
+    }),
+  ],
 };
