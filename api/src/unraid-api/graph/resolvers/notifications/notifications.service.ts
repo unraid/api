@@ -19,7 +19,9 @@ import { FSWatcher, watch } from 'chokidar';
 import { FileLoadStatus } from '@app/store/types';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { fileExists } from '@app/core/utils/files/file-exists';
-import { safelySerializeObjectToIni as encodeIni } from '@app/core/utils/files/safe-ini-serializer';
+// import { safelySerializeObjectToIni as encodeIni } from '@app/core/utils/files/safe-ini-serializer';
+import { encode as encodeIni } from 'ini';
+import { v7 as uuidv7 } from 'uuid';
 
 @Injectable()
 export class NotificationsService {
@@ -131,17 +133,41 @@ export class NotificationsService {
      *------------------------------------------------------------------------**/
 
     public async createNotification(data: NotificationData): Promise<Notification> {
-        // const id: string = this.makeNotificationId();
-        const id: string = '_DEV_CUSTOM_NOTIFICATION_1234.notify'; // placeholder
+        const id: string = await this.makeNotificationId(data.title);
         const path = join(this.paths().UNREAD, id);
 
         const fileData = this.makeNotificationFileData(data);
+        this.logger.debug(`[createNotification] FileData: ${JSON.stringify(fileData, null, 4)}`);
         const ini = encodeIni(fileData);
+        // this.logger.debug(`[createNotification] INI: ${ini}`);
 
         await writeFile(path, ini);
         // await this.addToOverview(notification);
         // make sure both NOTIFICATION_ADDED and NOTIFICATION_OVERVIEW are fired
         return { ...data, id, type: NotificationType.UNREAD, timestamp: fileData.timestamp };
+    }
+
+    private async makeNotificationId(eventTitle: string, replacement = '_'): Promise<string> {
+        const { default: filenamify } = await import('filenamify');
+        const allWhitespace = /\s+/g;
+        // replace symbols & whitespace with underscores
+        const prefix = filenamify(eventTitle, { replacement }).replace(allWhitespace, replacement);
+
+        /**-----------------------
+         *     Why UUIDv7?
+         *
+         *  So we can sort notifications chronologically
+         *  without having to read the contents of the files.
+         *
+         *  This makes it more annoying to manually distinguish id's because
+         *  the start of the uuid encodes the timestamp, and the random bits
+         *  are at the end, so the first few chars of each uuid might be relatively common.
+         *
+         *  See https://uuid7.com/ for an overview of UUIDv7
+         *  See https://park.is/blog_posts/20240803_extracting_timestamp_from_uuid_v7/ for how
+         *      timestamps are encoded
+         *------------------------**/
+        return `${prefix}_${uuidv7()}.notify`;
     }
 
     private makeNotificationFileData(notification: NotificationData): NotificationIni {
