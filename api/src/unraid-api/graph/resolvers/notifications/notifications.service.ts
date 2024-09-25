@@ -14,12 +14,11 @@ import { Injectable } from '@nestjs/common';
 import { readdir, rename, unlink, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { Logger } from '@nestjs/common';
-import { isFulfilled, isRejected } from '@app/utils';
+import { isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 import { FSWatcher, watch } from 'chokidar';
 import { FileLoadStatus } from '@app/store/types';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { fileExists } from '@app/core/utils/files/file-exists';
-// import { safelySerializeObjectToIni as encodeIni } from '@app/core/utils/files/safe-ini-serializer';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 
@@ -172,10 +171,9 @@ export class NotificationsService {
 
     private makeNotificationFileData(notification: NotificationData): NotificationIni {
         const { title, subject, description, link, importance } = notification;
-        const secondsSinceUnixEpoch = Math.floor(Date.now() / 1_000);
 
         const data: NotificationIni = {
-            timestamp: secondsSinceUnixEpoch.toString(),
+            timestamp: unraidTimestamp().toString(),
             event: title,
             subject,
             description,

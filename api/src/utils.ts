@@ -21,3 +21,16 @@ export function isFulfilled<T>(result: PromiseSettledResult<T>): result is Promi
 export function isRejected<T>(result: PromiseSettledResult<T>): result is PromiseRejectedResult {
     return result.status === 'rejected';
 }
+
+/**
+ * @returns the number of seconds since Unix Epoch
+ */
+export const secondsSinceUnixEpoch = (): number => Math.floor(Date.now() / 1_000);
+
+/**
+ * Helper to interop with Unraid, which communicates timestamps
+ * in seconds since Unix Epoch.
+ *
+ * @returns the number of seconds since Unix Epoch
+ */
+export const unraidTimestamp = secondsSinceUnixEpoch;
