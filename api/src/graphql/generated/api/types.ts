@@ -622,6 +622,7 @@ export type Mutation = {
   addDiskToArray?: Maybe<ArrayType>;
   /** Add a new user */
   addUser?: Maybe<User>;
+  /** Marks a notification as archived. */
   archiveNotification: NotificationOverview;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
@@ -654,6 +655,7 @@ export type Mutation = {
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
   unmountArrayDisk?: Maybe<Disk>;
+  /** Marks a notification as unread. */
   unreadNotification: NotificationOverview;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
@@ -795,6 +797,7 @@ export type Notification = Node & {
   subject: Scalars['String']['output'];
   /** ISO Timestamp for when the notification occurred */
   timestamp?: Maybe<Scalars['String']['output']>;
+  /** Also known as 'event' */
   title: Scalars['String']['output'];
   type: NotificationType;
 };
