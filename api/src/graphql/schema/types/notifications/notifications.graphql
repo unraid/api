@@ -1,18 +1,6 @@
 enum NotificationType {
     UNREAD
-    ARCHIVED
-    RESTORED
-}
-
-input NotificationInput {
-    id: ID!
-    title: String!
-    subject: String!
-    description: String
-    importance: Importance!
-    link: String
-    type: NotificationType!
-    timestamp: String
+    ARCHIVE
 }
 
 input NotificationFilter {
@@ -23,11 +11,19 @@ input NotificationFilter {
 }
 
 type Query {
-    notifications(filter: NotificationFilter!): [Notification!]!
+    notifications: Notifications!
+}
+
+type Mutation {
+    createNotification(input: NotificationData!): Notification!
+    deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
+    archiveNotification(id: String!): NotificationOverview!
+    unreadNotification(id: String!): NotificationOverview!
 }
 
 type Subscription {
     notificationAdded: Notification!
+    notificationsOverview: NotificationOverview!
 }
 
 enum Importance {
@@ -36,7 +32,13 @@ enum Importance {
     WARNING
 }
 
-type Notification {
+type Notifications implements Node {
+    id: ID!
+    overview: NotificationOverview!
+    data(filter: NotificationFilter!): [Notification!]!
+}
+
+type Notification implements Node {
     id: ID!
     title: String!
     subject: String!
@@ -44,6 +46,28 @@ type Notification {
     importance: Importance!
     link: String
     type: NotificationType!
-    """ ISO Timestamp for when the notification occurred """
+    """
+    ISO Timestamp for when the notification occurred
+    """
     timestamp: String
+}
+
+input NotificationData {
+    title: String!
+    subject: String!
+    description: String!
+    importance: Importance!
+    link: String
+}
+
+type NotificationOverview {
+    unread: NotificationCounts!
+    archive: NotificationCounts!
+}
+
+type NotificationCounts {
+    info: Int!
+    warning: Int!
+    alert: Int!
+    total: Int!
 }

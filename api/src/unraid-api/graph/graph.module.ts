@@ -20,6 +20,7 @@ import { SharesResolver } from './shares/shares.resolver';
 import { ConnectResolver } from './connect/connect.resolver';
 import { ConnectService } from './connect/connect.service';
 
+
 @Module({
     imports: [
         ResolversModule,

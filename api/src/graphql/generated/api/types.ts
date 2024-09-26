@@ -622,11 +622,14 @@ export type Mutation = {
   addDiskToArray?: Maybe<ArrayType>;
   /** Add a new user */
   addUser?: Maybe<User>;
+  archiveNotification: NotificationOverview;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createNotification: Notification;
+  deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
@@ -651,6 +654,7 @@ export type Mutation = {
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
   unmountArrayDisk?: Maybe<Disk>;
+  unreadNotification: NotificationOverview;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
 };
@@ -672,6 +676,11 @@ export type MutationaddUserArgs = {
 };
 
 
+export type MutationarchiveNotificationArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationclearArrayDiskStatisticsArgs = {
   id: Scalars['ID']['input'];
 };
@@ -679,6 +688,17 @@ export type MutationclearArrayDiskStatisticsArgs = {
 
 export type MutationconnectSignInArgs = {
   input: ConnectSignInInput;
+};
+
+
+export type MutationcreateNotificationArgs = {
+  input: NotificationData;
+};
+
+
+export type MutationdeleteNotificationArgs = {
+  id: Scalars['String']['input'];
+  type: NotificationType;
 };
 
 
@@ -734,6 +754,11 @@ export type MutationunmountArrayDiskArgs = {
 };
 
 
+export type MutationunreadNotificationArgs = {
+  id: Scalars['String']['input'];
+};
+
+
 export type MutationupdateApikeyArgs = {
   input?: InputMaybe<updateApikeyInput>;
   name: Scalars['String']['input'];
@@ -761,17 +786,33 @@ export type Node = {
   id: Scalars['ID']['output'];
 };
 
-export type Notification = {
+export type Notification = Node & {
   __typename?: 'Notification';
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   importance: Importance;
   link?: Maybe<Scalars['String']['output']>;
   subject: Scalars['String']['output'];
-  /**  ISO Timestamp for when the notification occurred  */
+  /** ISO Timestamp for when the notification occurred */
   timestamp?: Maybe<Scalars['String']['output']>;
   title: Scalars['String']['output'];
   type: NotificationType;
+};
+
+export type NotificationCounts = {
+  __typename?: 'NotificationCounts';
+  alert: Scalars['Int']['output'];
+  info: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+  warning: Scalars['Int']['output'];
+};
+
+export type NotificationData = {
+  description: Scalars['String']['input'];
+  importance: Importance;
+  link?: InputMaybe<Scalars['String']['input']>;
+  subject: Scalars['String']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type NotificationFilter = {
@@ -781,22 +822,28 @@ export type NotificationFilter = {
   type?: InputMaybe<NotificationType>;
 };
 
-export type NotificationInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
-  importance: Importance;
-  link?: InputMaybe<Scalars['String']['input']>;
-  subject: Scalars['String']['input'];
-  timestamp?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-  type: NotificationType;
+export type NotificationOverview = {
+  __typename?: 'NotificationOverview';
+  archive: NotificationCounts;
+  unread: NotificationCounts;
 };
 
 export enum NotificationType {
-  ARCHIVED = 'ARCHIVED',
-  RESTORED = 'RESTORED',
+  ARCHIVE = 'ARCHIVE',
   UNREAD = 'UNREAD'
 }
+
+export type Notifications = Node & {
+  __typename?: 'Notifications';
+  data: Array<Notification>;
+  id: Scalars['ID']['output'];
+  overview: NotificationOverview;
+};
+
+
+export type NotificationsdataArgs = {
+  filter: NotificationFilter;
+};
 
 export type Os = {
   __typename?: 'Os';
@@ -940,7 +987,7 @@ export type Query = {
   /** Current user account */
   me?: Maybe<Me>;
   network?: Maybe<Network>;
-  notifications: Array<Notification>;
+  notifications: Notifications;
   online?: Maybe<Scalars['Boolean']['output']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
@@ -979,11 +1026,6 @@ export type QuerydockerNetworkArgs = {
 
 export type QuerydockerNetworksArgs = {
   all?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-
-export type QuerynotificationsArgs = {
-  filter: NotificationFilter;
 };
 
 
@@ -1136,6 +1178,7 @@ export type Subscription = {
   info: Info;
   me?: Maybe<Me>;
   notificationAdded: Notification;
+  notificationsOverview: NotificationOverview;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: ParityCheck;
@@ -1650,7 +1693,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 /** Mapping of interface types */
 export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
-  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( Docker ) | ( Info ) | ( Network ) | ( Service ) | ( Vars );
+  Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( Docker ) | ( Info ) | ( Network ) | ( Notification ) | ( Notifications ) | ( Service ) | ( Vars );
   UserAccount: ( Me ) | ( User );
 }>;
 
@@ -1723,9 +1766,12 @@ export type ResolversTypes = ResolversObject<{
   Network: ResolverTypeWrapper<Network>;
   Node: ResolverTypeWrapper<ResolversInterfaceTypes<ResolversTypes>['Node']>;
   Notification: ResolverTypeWrapper<Notification>;
+  NotificationCounts: ResolverTypeWrapper<NotificationCounts>;
+  NotificationData: NotificationData;
   NotificationFilter: NotificationFilter;
-  NotificationInput: NotificationInput;
+  NotificationOverview: ResolverTypeWrapper<NotificationOverview>;
   NotificationType: NotificationType;
+  Notifications: ResolverTypeWrapper<Notifications>;
   Os: ResolverTypeWrapper<Os>;
   Owner: ResolverTypeWrapper<Owner>;
   ParityCheck: ResolverTypeWrapper<ParityCheck>;
@@ -1828,8 +1874,11 @@ export type ResolversParentTypes = ResolversObject<{
   Network: Network;
   Node: ResolversInterfaceTypes<ResolversParentTypes>['Node'];
   Notification: Notification;
+  NotificationCounts: NotificationCounts;
+  NotificationData: NotificationData;
   NotificationFilter: NotificationFilter;
-  NotificationInput: NotificationInput;
+  NotificationOverview: NotificationOverview;
+  Notifications: Notifications;
   Os: Os;
   Owner: Owner;
   ParityCheck: ParityCheck;
@@ -2267,10 +2316,13 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationaddApikeyArgs, 'name'>>;
   addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationaddDiskToArrayArgs>>;
   addUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationaddUserArgs, 'input'>>;
+  archiveNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationarchiveNotificationArgs, 'id'>>;
   cancelParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationcreateNotificationArgs, 'input'>>;
+  deleteNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationdeleteNotificationArgs, 'id' | 'type'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
   enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;
   getApiKey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationgetApiKeyArgs, 'name'>>;
@@ -2287,6 +2339,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   startParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, Partial<MutationstartParityCheckArgs>>;
   stopArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
+  unreadNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
   updateApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationupdateApikeyArgs, 'name'>>;
 }>;
 
@@ -2309,7 +2362,7 @@ export type NetworkResolvers<ContextType = Context, ParentType extends Resolvers
 }>;
 
 export type NodeResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Node'] = ResolversParentTypes['Node']> = ResolversObject<{
-  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'Docker' | 'Info' | 'Network' | 'Service' | 'Vars', ParentType, ContextType>;
+  __resolveType: TypeResolveFn<'Array' | 'Config' | 'Connect' | 'Docker' | 'Info' | 'Network' | 'Notification' | 'Notifications' | 'Service' | 'Vars', ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
 }>;
 
@@ -2322,6 +2375,27 @@ export type NotificationResolvers<ContextType = Context, ParentType extends Reso
   timestamp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   title?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   type?: Resolver<ResolversTypes['NotificationType'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NotificationCountsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['NotificationCounts'] = ResolversParentTypes['NotificationCounts']> = ResolversObject<{
+  alert?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  info?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  total?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  warning?: Resolver<ResolversTypes['Int'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NotificationOverviewResolvers<ContextType = Context, ParentType extends ResolversParentTypes['NotificationOverview'] = ResolversParentTypes['NotificationOverview']> = ResolversObject<{
+  archive?: Resolver<ResolversTypes['NotificationCounts'], ParentType, ContextType>;
+  unread?: Resolver<ResolversTypes['NotificationCounts'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type NotificationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notifications'] = ResolversParentTypes['Notifications']> = ResolversObject<{
+  data?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<NotificationsdataArgs, 'filter'>>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  overview?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2462,7 +2536,7 @@ export type QueryResolvers<ContextType = Context, ParentType extends ResolversPa
   info?: Resolver<Maybe<ResolversTypes['Info']>, ParentType, ContextType>;
   me?: Resolver<Maybe<ResolversTypes['Me']>, ParentType, ContextType>;
   network?: Resolver<Maybe<ResolversTypes['Network']>, ParentType, ContextType>;
-  notifications?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<QuerynotificationsArgs, 'filter'>>;
+  notifications?: Resolver<ResolversTypes['Notifications'], ParentType, ContextType>;
   online?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
   owner?: Resolver<Maybe<ResolversTypes['Owner']>, ParentType, ContextType>;
   parityHistory?: Resolver<Maybe<Array<Maybe<ResolversTypes['ParityCheck']>>>, ParentType, ContextType>;
@@ -2557,6 +2631,7 @@ export type SubscriptionResolvers<ContextType = Context, ParentType extends Reso
   info?: SubscriptionResolver<ResolversTypes['Info'], "info", ParentType, ContextType>;
   me?: SubscriptionResolver<Maybe<ResolversTypes['Me']>, "me", ParentType, ContextType>;
   notificationAdded?: SubscriptionResolver<ResolversTypes['Notification'], "notificationAdded", ParentType, ContextType>;
+  notificationsOverview?: SubscriptionResolver<ResolversTypes['NotificationOverview'], "notificationsOverview", ParentType, ContextType>;
   online?: SubscriptionResolver<ResolversTypes['Boolean'], "online", ParentType, ContextType>;
   owner?: SubscriptionResolver<ResolversTypes['Owner'], "owner", ParentType, ContextType>;
   parityHistory?: SubscriptionResolver<ResolversTypes['ParityCheck'], "parityHistory", ParentType, ContextType>;
@@ -2912,6 +2987,9 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   Network?: NetworkResolvers<ContextType>;
   Node?: NodeResolvers<ContextType>;
   Notification?: NotificationResolvers<ContextType>;
+  NotificationCounts?: NotificationCountsResolvers<ContextType>;
+  NotificationOverview?: NotificationOverviewResolvers<ContextType>;
+  Notifications?: NotificationsResolvers<ContextType>;
   Os?: OsResolvers<ContextType>;
   Owner?: OwnerResolvers<ContextType>;
   ParityCheck?: ParityCheckResolvers<ContextType>;
