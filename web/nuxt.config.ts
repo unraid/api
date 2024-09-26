@@ -18,7 +18,6 @@ console.log('\n');
  */
 function terserReservations (inputStr: string) {
   const combinations = ['ace', 'i'];
-  const combinations = ['ace', 'i'];
 
   // Add 1-character combinations
   for (let i = 0; i < inputStr.length; i++) {
