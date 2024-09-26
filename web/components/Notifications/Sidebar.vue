@@ -89,6 +89,7 @@ const archiveNotifications: NotificationItemProps[] = [
             />
           </TabsContent>
         </Tabs>
+
       </SheetHeader>
     </SheetContent>
   </Sheet>
