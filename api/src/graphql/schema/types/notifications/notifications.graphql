@@ -21,6 +21,10 @@ type Mutation {
     archiveNotification(id: String!): NotificationOverview!
     """Marks a notification as unread."""
     unreadNotification(id: String!): NotificationOverview!
+    archiveNotifications(ids: [String!]): NotificationOverview!
+    unarchiveNotifications(ids: [String!]): NotificationOverview!
+    archiveAll(importance: Importance): NotificationOverview!
+    unarchiveAll(importance: Importance): NotificationOverview!
 }
 
 type Subscription {

@@ -622,8 +622,10 @@ export type Mutation = {
   addDiskToArray?: Maybe<ArrayType>;
   /** Add a new user */
   addUser?: Maybe<User>;
+  archiveAll: NotificationOverview;
   /** Marks a notification as archived. */
   archiveNotification: NotificationOverview;
+  archiveNotifications: NotificationOverview;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
@@ -654,6 +656,8 @@ export type Mutation = {
   startParityCheck?: Maybe<Scalars['JSON']['output']>;
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
+  unarchiveAll: NotificationOverview;
+  unarchiveNotifications: NotificationOverview;
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: NotificationOverview;
@@ -678,8 +682,18 @@ export type MutationaddUserArgs = {
 };
 
 
+export type MutationarchiveAllArgs = {
+  importance?: InputMaybe<Importance>;
+};
+
+
 export type MutationarchiveNotificationArgs = {
   id: Scalars['String']['input'];
+};
+
+
+export type MutationarchiveNotificationsArgs = {
+  ids?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
@@ -748,6 +762,16 @@ export type MutationsetupRemoteAccessArgs = {
 
 export type MutationstartParityCheckArgs = {
   correct?: InputMaybe<Scalars['Boolean']['input']>;
+};
+
+
+export type MutationunarchiveAllArgs = {
+  importance?: InputMaybe<Importance>;
+};
+
+
+export type MutationunarchiveNotificationsArgs = {
+  ids?: InputMaybe<Array<Scalars['String']['input']>>;
 };
 
 
@@ -2319,7 +2343,9 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationaddApikeyArgs, 'name'>>;
   addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationaddDiskToArrayArgs>>;
   addUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationaddUserArgs, 'input'>>;
+  archiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveAllArgs>>;
   archiveNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationarchiveNotificationArgs, 'id'>>;
+  archiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveNotificationsArgs>>;
   cancelParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
@@ -2341,6 +2367,8 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   startArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
   startParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, Partial<MutationstartParityCheckArgs>>;
   stopArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType>;
+  unarchiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveAllArgs>>;
+  unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   unreadNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
   updateApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationupdateApikeyArgs, 'name'>>;

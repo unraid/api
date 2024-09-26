@@ -2,12 +2,14 @@ import type {
     NotificationData,
     NotificationType,
     NotificationFilter,
+    NotificationOverview,
 } from '@app/graphql/generated/api/types';
 import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 import { UseRoles } from 'nest-access-control';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { NotificationsService } from './notifications.service';
 import { getServerIdentifier } from '@app/core/utils/server-identifier';
+import { Importance } from '@app/graphql/generated/client/graphql';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
@@ -72,8 +74,32 @@ export class NotificationsResolver {
     }
 
     @Mutation()
+    public async archiveNotifications(@Args('ids') ids: string[]) {
+        await this.notificationsService.archiveIds(ids);
+        return this.notificationsService.getOverview();
+    }
+
+    @Mutation()
+    public async archiveAll(@Args('importance') importance?: Importance): Promise<NotificationOverview> {
+        const { overview } = await this.notificationsService.archiveAll(importance);
+        return overview;
+    }
+
+    @Mutation()
     public unreadNotification(@Args('id') id: string) {
         return this.notificationsService.markAsUnread({ id });
+    }
+
+    @Mutation()
+    public async unarchiveNotifications(@Args('ids') ids: string[]) {
+        await this.notificationsService.unarchiveIds(ids);
+        return this.notificationsService.getOverview();
+    }
+
+    @Mutation()
+    public async unarchiveAll(@Args('importance') importance?: Importance): Promise<NotificationOverview> {
+        const { overview } = await this.notificationsService.unarchiveAll(importance);
+        return overview;
     }
 
     /**============================================
