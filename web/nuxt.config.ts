@@ -17,7 +17,7 @@ console.log('\n');
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
  */
 function terserReservations (inputStr: string) {
-  const combinations = ['ace'];
+  const combinations = ['ace', 'i'];
 
   // Add 1-character combinations
   for (let i = 0; i < inputStr.length; i++) {
@@ -55,6 +55,7 @@ export default defineNuxtConfig({
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
     { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
+    { path: '~/components/Notifications', prefix: 'Notifications' },
     { path: '~/components/Ui', prefix: 'Ui' },
     { path: '~/components/UserProfile', prefix: 'Upc' },
     { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
@@ -67,12 +68,12 @@ export default defineNuxtConfig({
     build: {
       minify: 'terser',
       terserOptions: {
-        mangle: process.env.VITE_ALLOW_CONSOLE_LOGS
-          ? false
-          : {
-              reserved: terserReservations(charsToReserve),
-              toplevel: true,
-            },
+        mangle: process.env.VITE_ALLOW_CONSOLE_LOGS !== 'true'
+          ? {
+            reserved: terserReservations(charsToReserve),
+            toplevel: true,
+          }
+          : false,
       },
     },
   },
