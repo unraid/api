@@ -12,7 +12,7 @@ import {
 import { getters } from '@app/store';
 import { Injectable } from '@nestjs/common';
 import { readdir, rename, unlink, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { basename, join } from 'path';
 import { Logger } from '@nestjs/common';
 import { isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 import { FSWatcher, watch } from 'chokidar';
@@ -123,8 +123,16 @@ export class NotificationsService {
         });
     }
 
-    public async getOverview(): Promise<NotificationOverview> {
-        return NotificationsService.overview;
+    /**
+     * Returns a stable snapshot of the current notification overview.
+     *
+     * The notification overview is a dictionary that contains the total number of notifications
+     * of each importance level, as well as the total number of notifications.
+     *
+     * @returns A Promise that resolves to a NotificationOverview object.
+     */
+    public getOverview(): NotificationOverview {
+        return structuredClone(NotificationsService.overview);
     }
 
     /**------------------------------------------------------------------------
@@ -169,6 +177,7 @@ export class NotificationsService {
         return `${prefix}_${uuidv7()}.notify`;
     }
 
+    /** transforms gql compliant NotificationData to .notify compliant data*/
     private makeNotificationFileData(notification: NotificationData): NotificationIni {
         const { title, subject, description, link, importance } = notification;
 
@@ -228,7 +237,7 @@ export class NotificationsService {
          * data to the client.
          *------------------------**/
 
-        const archiveSnapshot = structuredClone(NotificationsService.overview.archive);
+        const archiveSnapshot = this.getOverview().archive;
 
         // We expect to only archive 'unread' notifications, but it's possible that the notification
         // has already been archived or deleted (e.g. retry logic, spike in network latency).
@@ -279,7 +288,7 @@ export class NotificationsService {
 
         // see `archiveNotification` for why we use a snapshot
         // it's b/c of a race condition
-        const unreadSnapshot = structuredClone(NotificationsService.overview.unread);
+        const unreadSnapshot = this.getOverview().unread;
 
         if (!(await fileExists(archivePath))) {
             this.logger.warn(`[markAsUnread] Could not find notification in archive: ${id}`);
@@ -301,6 +310,62 @@ export class NotificationsService {
         };
     }
 
+    public async archiveAll() {
+        const { UNREAD } = this.paths();
+        return readdir(UNREAD).then(this.archiveIds);
+    }
+
+    public async unarchiveAll() {
+        const { ARCHIVE } = this.paths();
+        return readdir(ARCHIVE).then(this.unarchiveIds);
+    }
+
+    /**
+     * Archives notifications with the given id's.
+     *
+     * A notification id looks like '{event_type}_{uuid}.notify'
+     * See `makeNotificationId` for more info.
+     *
+     * ID's are NOT full paths in this context
+     * @param ids a list of '*.notify' id's, which correspond to id files
+     * @returns
+     */
+    public archiveIds(ids: string[]) {
+        return this.updateMany(ids, (id) => this.archiveNotification({ id }));
+    }
+
+    /**
+     * Unarchives (marks as unread) notifications with the given id's.
+     *
+     * A notification id looks like '{event_type}_{uuid}.notify'
+     * See `makeNotificationId` for more info.
+     *
+     * ID's are NOT full paths in this context
+     * @param ids a list of '*.notify' id's, which correspond to id files
+     * @returns
+     */
+    public unarchiveIds(ids: string[]) {
+        return this.updateMany(ids, (id) => this.markAsUnread({ id }));
+    }
+
+    /**
+     * Wrapper for Promise-handling of batch operations based on
+     * notification ids.
+     *
+     * @param notificationIds
+     * @param action
+     * @returns
+     */
+    private async updateMany<T>(notificationIds: string[], action: (id: string) => Promise<T>) {
+        const processes = notificationIds.map(action);
+
+        const results = await Promise.allSettled(processes);
+        const succeeded = results.filter(isFulfilled).length;
+        const failed = results.filter(isRejected).map((result) => result.reason);
+
+        return { succeeded, failed, error: failed.length > 0 };
+    }
+
     /**------------------------------------------------------------------------
      *                           CRUD: Reading Notifications
      *------------------------------------------------------------------------**/
@@ -316,8 +381,8 @@ export class NotificationsService {
         const { ARCHIVE, UNREAD } = this.paths();
         const directoryPath = filters.type === NotificationType.ARCHIVE ? ARCHIVE : UNREAD;
 
-        const unreadFiles = await this.getFilesInFolder(directoryPath);
-        const [notifications] = await this.getNotificationsFromPaths(unreadFiles, filters);
+        const unreadFiles = await this.listFilesInFolder(directoryPath);
+        const [notifications] = await this.loadNotificationsFromPaths(unreadFiles, filters);
 
         return notifications;
     }
@@ -327,7 +392,7 @@ export class NotificationsService {
      * @param folderPath The path of the folder to read.
      * @returns A list of absolute paths of all the files and contents in the folder.
      */
-    private async getFilesInFolder(folderPath: string): Promise<string[]> {
+    private async listFilesInFolder(folderPath: string): Promise<string[]> {
         const contents = await readdir(folderPath);
 
         return contents.map((content) => join(folderPath, content));
@@ -345,7 +410,7 @@ export class NotificationsService {
      * @param filters the filters to apply to the notifications
      * @returns an array of two elements: [successes, errors/failures]
      */
-    private async getNotificationsFromPaths(
+    private async loadNotificationsFromPaths(
         files: string[],
         filters: NotificationFilter
     ): Promise<[Notification[], unknown[]]> {
@@ -356,24 +421,19 @@ export class NotificationsService {
             .map((file) => this.loadNotificationFile(file, type ?? NotificationType.UNREAD));
         const results = await Promise.allSettled(fileReads);
 
+        // if the filter is defined & truthy, tests if the actual value matches the filter
+        const passesFilter = <T>(actual: T, filter?: unknown) => !filter || actual === filter;
+
         return [
             results
                 .filter(isFulfilled)
                 .map((result) => result.value)
-                .filter((notification) => {
-                    if (importance && importance !== notification.importance) {
-                        return false;
-                    }
-
-                    if (type && type !== notification.type) {
-                        return false;
-                    }
-
-                    return true;
-                })
-                .sort(
-                    (a, b) => new Date(b.timestamp ?? 0).getTime() - new Date(a.timestamp ?? 0).getTime()
-                ),
+                .filter(
+                    (notification) =>
+                        passesFilter(notification.importance, importance) &&
+                        passesFilter(notification.type, type)
+                )
+                .sort(this.sortLatestFirst),
             results.filter(isRejected).map((result) => result.reason),
         ];
     }
@@ -398,7 +458,7 @@ export class NotificationsService {
         );
 
         const notification: Notification = {
-            id: path,
+            id: this.getIdFromPath(path),
             title: notificationFile.event,
             subject: notificationFile.subject,
             description: notificationFile.description ?? '',
@@ -412,6 +472,10 @@ export class NotificationsService {
         // so we parse it through the schema to make sure it is
 
         return NotificationSchema().parse(notification);
+    }
+
+    private getIdFromPath(path: string) {
+        return basename(path);
     }
 
     private fileImportanceToGqlImportance(importance: NotificationIni['importance']): Importance {
@@ -441,5 +505,14 @@ export class NotificationsService {
             return new Date(Number(unixStringSeconds) * 1_000).toISOString();
         }
         return null;
+    }
+
+    /**------------------------------------------------------------------------
+     *                           Helpers
+     *------------------------------------------------------------------------**/
+
+    private sortLatestFirst(a: Notification, b: Notification) {
+        const defaultTimestamp = 0;
+        return Number(b.timestamp ?? defaultTimestamp) - Number(a.timestamp ?? defaultTimestamp);
     }
 }
