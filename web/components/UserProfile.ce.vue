@@ -1,16 +1,16 @@
 <script lang="ts" setup>
-import { OnClickOutside } from '@vueuse/components';
-import { useClipboard } from '@vueuse/core';
-import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
+import { OnClickOutside } from "@vueuse/components";
+import { useClipboard } from "@vueuse/core";
+import { storeToRefs } from "pinia";
+import { useI18n } from "vue-i18n";
 
-import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
-import { useDropdownStore } from '~/store/dropdown';
-import { useServerStore } from '~/store/server';
-import { useThemeStore } from '~/store/theme';
-import type { Server } from '~/types/server';
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
+import { useCallbackStore, useCallbackActionsStore } from "~/store/callbackActions";
+import { useDropdownStore } from "~/store/dropdown";
+import { useServerStore } from "~/store/server";
+import { useThemeStore } from "~/store/theme";
+import type { Server } from "~/types/server";
+import "tailwindcss/tailwind.css";
+import "~/assets/main.css";
 
 export interface Props {
   server?: Server | string;
@@ -25,13 +25,7 @@ const serverStore = useServerStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
-const {
-  name,
-  description,
-  guid,
-  keyfile,
-  lanIp,
-} = storeToRefs(serverStore);
+const { name, description, guid, keyfile, lanIp } = storeToRefs(serverStore);
 const { bannerGradient, theme } = storeToRefs(useThemeStore());
 
 /**
@@ -41,21 +35,24 @@ const { bannerGradient, theme } = storeToRefs(useThemeStore());
 const clickOutsideTarget = ref();
 const clickOutsideIgnoreTarget = ref();
 const outsideDropdown = () => {
-  if (dropdownVisible.value) { return dropdownStore.dropdownToggle(); }
+  if (dropdownVisible.value) {
+    return dropdownStore.dropdownToggle();
+  }
 };
 
 /**
  * Copy LAN IP on server name click
  */
 let copyIpInterval: string | number | NodeJS.Timeout | undefined;
-const { copy, copied, isSupported } = useClipboard({ source: lanIp.value ?? '' });
+const { copy, copied, isSupported } = useClipboard({ source: lanIp.value ?? "" });
 const showCopyNotSupported = ref<boolean>(false);
-const copyLanIp = () => { // if http then clipboard is not supported
-  if (!isSupported || window.location.protocol === 'http:') {
+const copyLanIp = () => {
+  // if http then clipboard is not supported
+  if (!isSupported || window.location.protocol === "http:") {
     showCopyNotSupported.value = true;
     return;
   }
-  copy(lanIp.value ?? '');
+  copy(lanIp.value ?? "");
 };
 watch(showCopyNotSupported, (newVal, oldVal) => {
   if (newVal && oldVal === false) {
@@ -71,12 +68,14 @@ watch(showCopyNotSupported, (newVal, oldVal) => {
  */
 onBeforeMount(() => {
   if (!props.server) {
-    throw new Error('Server data not present');
+    throw new Error("Server data not present");
   }
 
-  if (typeof props.server === 'object') { // Handles the testing dev Vue component
+  if (typeof props.server === "object") {
+    // Handles the testing dev Vue component
     serverStore.setServer(props.server);
-  } else if (typeof props.server === 'string') { // Handle web component
+  } else if (typeof props.server === "string") {
+    // Handle web component
     const parsedServerProp = JSON.parse(props.server);
     serverStore.setServer(parsedServerProp);
   }
@@ -86,10 +85,14 @@ onBeforeMount(() => {
 
   if (guid.value && keyfile.value) {
     if (callbackData.value) {
-      return console.debug('Renew callback detected, skipping auto check for key replacement, renewal eligibility, and OS Update.');
+      return console.debug(
+        "Renew callback detected, skipping auto check for key replacement, renewal eligibility, and OS Update."
+      );
     }
   } else {
-    console.warn('A valid keyfile and USB Flash boot device are required to check for key renewals, key replacement eligibiliy, and OS update availability.');
+    console.warn(
+      "A valid keyfile and USB Flash boot device are required to check for key renewals, key replacement eligibiliy, and OS update availability."
+    );
   }
 });
 </script>
@@ -99,35 +102,56 @@ onBeforeMount(() => {
     id="UserProfile"
     class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
   >
-    <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
+    <div
+      v-if="bannerGradient"
+      class="absolute z-0 w-[125%] top-0 bottom-0 right-0"
+      :style="bannerGradient"
+    />
 
-    <div class="text-gamma text-10px xs:text-12px text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
+    <div
+      class="text-gamma text-10px xs:text-12px text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px"
+    >
       <UpcUptimeExpire :t="t" />
       <span class="hidden xs:block">&bull;</span>
       <UpcServerState :t="t" />
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
-      <h1 class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0">
+      <h1
+        class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0"
+      >
         <template v-if="description && theme?.descriptionShow">
-          <span class="text-right text-12px sm:text-18px hidden 2xs:block" v-html="description" />
+          <span
+            class="text-right text-12px sm:text-18px hidden 2xs:block"
+            v-html="description"
+          />
           <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
         </template>
-        <button :title="t('Click to Copy LAN IP {0}', [lanIp])" class="opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity" @click="copyLanIp()">
+        <button
+          :title="t('Click to Copy LAN IP {0}', [lanIp])"
+          class="opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity"
+          @click="copyLanIp()"
+        >
           {{ name }}
         </button>
         <span
           v-show="copied || showCopyNotSupported"
           class="text-white text-12px leading-none py-4px px-8px absolute top-full right-0 bg-gradient-to-r from-unraid-red to-orange text-center block rounded"
         >
-          <template v-if="copied">{{ t('LAN IP Copied') }}</template>
-          <template v-else>{{ t('LAN IP {0}', [lanIp]) }}</template>
+          <template v-if="copied">{{ t("LAN IP Copied") }}</template>
+          <template v-else>{{ t("LAN IP {0}", [lanIp]) }}</template>
         </span>
       </h1>
 
       <div class="block w-2px h-24px bg-gamma" />
 
-      <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
+      <NotificationsDrawer :t="t" />
+
+      <OnClickOutside
+        class="flex items-center justify-end h-full"
+        :options="{ ignore: [clickOutsideIgnoreTarget] }"
+        @trigger="outsideDropdown"
+      >
         <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
         <UpcDropdown ref="clickOutsideTarget" :t="t" />
       </OnClickOutside>
@@ -146,7 +170,7 @@ onBeforeMount(() => {
   &::before {
     @apply absolute z-20 block;
 
-    content: '';
+    content: "";
     width: 0;
     height: 0;
     top: -10px;
