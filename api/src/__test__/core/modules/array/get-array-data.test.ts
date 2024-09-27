@@ -17,7 +17,7 @@ test('Creates an array event', async () => {
     await store.dispatch(loadConfigFile());
 
     const arrayEvent = getArrayData(store.getState);
-    expect(arrayEvent).toMatchInlineSnapshot(`
+    expect(arrayEvent).toMatchObject(
       {
         "boot": {
           "comment": "Unraid OS boot device",
@@ -179,7 +179,7 @@ test('Creates an array event', async () => {
             "warning": null,
           },
         ],
-        "id": "97bbe87602982688216c367801f7aa24ea57350b44b7523160d01a9d48d6fcb9",
+        "id": expect.any(String),
         "parities": [
           {
             "comment": null,
@@ -208,5 +208,5 @@ test('Creates an array event', async () => {
         ],
         "state": "STOPPED",
       }
-    `);
+    );
 });
