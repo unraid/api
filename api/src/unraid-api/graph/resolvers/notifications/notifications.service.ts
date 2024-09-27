@@ -12,7 +12,7 @@ import {
 } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { Injectable } from '@nestjs/common';
-import { readdir, rename, unlink, writeFile } from 'fs/promises';
+import { mkdir, readdir, rename, rm, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import { Logger } from '@nestjs/common';
 import { isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
@@ -225,6 +225,37 @@ export class NotificationsService {
         // return both the overview & the deleted notification
         // this helps us reference the deleted notification in-memory if we want
         return { notification, overview: NotificationsService.overview };
+    }
+
+    /**
+     * Deletes all notifications from disk, but preserves
+     * notification directories.
+     *
+     * Resets the notification overview to all zeroes.
+     */
+    public async deleteAllNotifications() {
+        const { basePath, UNREAD, ARCHIVE } = this.paths();
+        // ensure the directory exists before deleting
+        await mkdir(basePath, { recursive: true });
+        await rm(basePath, { force: true, recursive: true });
+        // recreate each notification directory
+        await mkdir(UNREAD, { recursive: true });
+        await mkdir(ARCHIVE, { recursive: true });
+        NotificationsService.overview = {
+            unread: {
+                alert: 0,
+                info: 0,
+                warning: 0,
+                total: 0,
+            },
+            archive: {
+                alert: 0,
+                info: 0,
+                warning: 0,
+                total: 0,
+            },
+        };
+        return this.getOverview();
     }
 
     /**------------------------------------------------------------------------
