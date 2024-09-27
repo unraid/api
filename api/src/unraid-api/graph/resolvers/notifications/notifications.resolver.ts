@@ -27,13 +27,13 @@ export class NotificationsResolver {
     })
     public async notifications() {
         return {
-            id: getServerIdentifier('notifications'),
+            id: 'notifications',
         };
     }
 
     @ResolveField()
     public async overview() {
-        return await this.notificationsService.getOverview();
+        return this.notificationsService.getOverview();
     }
 
     @ResolveField()
