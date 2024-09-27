@@ -52,6 +52,9 @@ typings/
 # Visual Studio Code workspace
 .vscode/sftp.json
 
+# Jetbrains
+.idea
+
 # OSX
 .DS_Store
 

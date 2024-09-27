@@ -1,5 +1,6 @@
 import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
+import Aura from '@primevue/themes/aura';
 const envConfig = parse(readFileSync('.env'));
 console.log('\n');
 console.log('==============================');
@@ -50,7 +51,8 @@ export default defineNuxtConfig({
     '@pinia/nuxt',
     '@nuxtjs/tailwindcss',
     'nuxt-custom-elements',
-    "@nuxt/eslint"
+    "@nuxt/eslint",
+    '@primevue/nuxt-module'
   ],
   components: [
     { path: '~/components/Brand', prefix: 'Brand' },
@@ -58,6 +60,7 @@ export default defineNuxtConfig({
     { path: '~/components/Ui', prefix: 'Ui' },
     { path: '~/components/UserProfile', prefix: 'Upc' },
     { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
+    { path: '~/components/Notifications', prefix: 'Notifications' },
     '~/components',
   ],
   // typescript: {
@@ -75,6 +78,14 @@ export default defineNuxtConfig({
             },
       },
     },
+  },
+  primevue: {
+    /* Configuration */
+    options: {
+      theme: {
+        preset: Aura
+      }
+    }
   },
   customElements: {
     entries: [
