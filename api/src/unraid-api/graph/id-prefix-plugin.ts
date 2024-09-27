@@ -1,4 +1,4 @@
-import { ApolloServerPlugin } from "@apollo/server";
+import { type ApolloServerPlugin } from "@apollo/server";
 import { getServerIdentifier } from "@app/core/utils/server-identifier";
 
 /**
