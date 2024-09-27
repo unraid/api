@@ -55,7 +55,7 @@ export class NotificationsService {
      *          - path to the unread notifications
      *          - path to the archived notifications
      */
-    private paths(): Record<'basePath' | NotificationType, string> {
+    public paths(): Record<'basePath' | NotificationType, string> {
         const basePath = getters.dynamix().notify!.path;
         const makePath = (type: NotificationType) => join(basePath, type.toLowerCase());
         return {
@@ -160,7 +160,7 @@ export class NotificationsService {
         await writeFile(path, ini);
         // await this.addToOverview(notification);
         // make sure both NOTIFICATION_ADDED and NOTIFICATION_OVERVIEW are fired
-        return { ...data, id, type: NotificationType.UNREAD, timestamp: fileData.timestamp };
+        return this.notificationFileToGqlNotification({ id, type: NotificationType.UNREAD }, fileData);
     }
 
     private async makeNotificationId(eventTitle: string, replacement = '_'): Promise<string> {
@@ -541,20 +541,12 @@ export class NotificationsService {
             type: 'ini',
         });
 
-        this.logger.debug(
-            `Loaded notification ini file from ${path}: ${JSON.stringify(notificationFile, null, 4)}`
-        );
+        this.logger.debug(`Loaded notification ini file from ${path}}`);
 
-        const notification: Notification = {
-            id: this.getIdFromPath(path),
-            title: notificationFile.event,
-            subject: notificationFile.subject,
-            description: notificationFile.description ?? '',
-            importance: this.fileImportanceToGqlImportance(notificationFile.importance),
-            link: notificationFile.link,
-            timestamp: this.parseNotificationDateToIsoDate(notificationFile.timestamp),
-            type,
-        };
+        const notification: Notification = this.notificationFileToGqlNotification(
+            { id: this.getIdFromPath(path), type },
+            notificationFile
+        );
 
         // The contents of the file, and therefore the notification, may not always be a valid notification.
         // so we parse it through the schema to make sure it is
@@ -564,6 +556,32 @@ export class NotificationsService {
 
     private getIdFromPath(path: string) {
         return basename(path);
+    }
+
+    /**
+     * Takes a NotificationIni (ini file data) and a few details of a notification,
+     * and combines them into a Notification object.
+     *
+     * Does not validate the returned Notification object or the input file data.
+     * This simply encapsulates data transformation logic.
+     *
+     * @param details The 'id' and 'type' of the notification to be combined.
+     * @param fileData The NotificationIni data from the notification's ini file.
+     * @returns A full Notification object.
+     */
+    private notificationFileToGqlNotification(
+        details: Pick<Notification, 'id' | 'type'>,
+        fileData: NotificationIni
+    ): Notification {
+        const { importance, timestamp, event: title, description = '', ...passthroughData } = fileData;
+        return {
+            ...details,
+            ...passthroughData,
+            title,
+            description,
+            importance: this.fileImportanceToGqlImportance(importance),
+            timestamp: this.parseNotificationDateToIsoDate(timestamp),
+        };
     }
 
     private fileImportanceToGqlImportance(importance: NotificationIni['importance']): Importance {
