@@ -104,14 +104,6 @@ export class NotificationsService {
         });
     }
 
-    private async removeFromOverview(notification: Notification) {
-        const { type, id, importance } = notification;
-        this.logger.debug(`Removing ${type} Notification: ${id}`);
-
-        this.decrement(importance, NotificationsService.overview[type.toLowerCase()]);
-        return this.publishOverview();
-    }
-
     /**
      * Returns a stable snapshot of the current notification overview.
      *
@@ -216,7 +208,9 @@ export class NotificationsService {
 
         const notification = await this.loadNotificationFile(path, type);
         await unlink(path);
-        await this.removeFromOverview(notification);
+
+        this.decrement(notification.importance, NotificationsService.overview[type.toLowerCase()]);
+        await this.publishOverview();
 
         // return both the overview & the deleted notification
         // this helps us reference the deleted notification in-memory if we want
