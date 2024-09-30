@@ -46,10 +46,16 @@ $localManifest = json_decode(file_get_contents($localManifestFile), true);
 
 $searchText = 'unraid-components.client.mjs';
 $fileValue = null;
+$cssValues = [];
 
 foreach ($localManifest as $key => $value) {
     if (strpos($key, $searchText) !== false && isset($value["file"])) {
         $fileValue = $value["file"];
+        break;
+    }
+
+    if (strpos($key, $searchText) !== false && isset($value["css"])) {
+        $cssValues = $value["css"];
         break;
     }
 }
@@ -57,6 +63,8 @@ foreach ($localManifest as $key => $value) {
 if ($fileValue !== null) {
     $prefixedPath = '/plugins/dynamix.my.servers/unraid-components/';
     echo '<script src="' . $prefixedPath . $fileValue . '"></script>';
+
+    echo '<link rel="stylesheet" href="' . $prefixedPath . '_nuxt/unraid-components-DNhg-Rqp.css">' . PHP_EOL;
 } else {
     echo '<script>console.error("%cNo matching key containing \'' . $searchText . '\' found.", "font-weight: bold; color: white; background-color: red");</script>';
 }
