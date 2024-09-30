@@ -9,7 +9,9 @@ import {
     type Notification,
     type NotificationOverview,
     type NotificationCounts,
+    type NotificationFilter,
 } from '@app/graphql/generated/api/types';
+import { NotificationSchema } from '@app/graphql/generated/api/operations';
 
 // we run sequentially here because this module's state depends on external, shared systems
 // rn, it's complicated to make the tests atomic & isolated
@@ -63,7 +65,11 @@ describe.sequential('NotificationsService', () => {
         );
     }
 
+    // Some of these helpers accept `expect` implementations,
+    // which allows them to be used in concurrent tests
+    // e.g. doesExist(expect)(id, type)
     function doesExist(expectImplementation: typeof expect) {
+        /** Asserts & returns whether a notification with the given id and type exists. */
         return async (
             { id }: Pick<Notification, 'id'>,
             type: NotificationType = NotificationType.UNREAD
@@ -116,11 +122,30 @@ describe.sequential('NotificationsService', () => {
         );
     }
 
+    const makeExpectIn =
+        (expectImplementation: typeof expect) =>
+        /**
+         * Loads notifications from the service and asserts that the expected amount is returned.
+         *
+         * @param params
+         * @param amount
+         */
+        async (params: Partial<NotificationFilter> & { type: NotificationType }, amount: number) => {
+            const { limit = 50, offset = 0, importance, type } = params;
+            const loaded = await service.getNotifications({
+                type,
+                importance,
+                limit,
+                offset,
+            });
+            expectImplementation(loaded.length).toEqual(amount);
+        };
+
     /**------------------------------------------------------------------------
      *                           Sanity Tests
      *------------------------------------------------------------------------**/
 
-    it('NotificationsService test setup should be defined', ({ expect }) => {
+    it('test setup is correctly defined', ({ expect }) => {
         expect(service).toBeDefined();
         expect(service.paths()).toEqual(testPaths);
         const snapshot = service.getOverview();
@@ -150,6 +175,13 @@ describe.sequential('NotificationsService', () => {
         const loaded = await findById(created.id);
         expect(isISODate(created.timestamp ?? '')).toBeTruthy();
         expect(isISODate(loaded?.timestamp ?? '')).toBeTruthy();
+    });
+
+    it('generates gql-compatible notifications', async () => {
+        const created = await createNotification();
+        const loaded = await findById(created.id);
+        const { success } = NotificationSchema().safeParse(loaded);
+        expect(success).toBeTruthy();
     });
 
     /**========================================================================
@@ -186,6 +218,30 @@ describe.sequential('NotificationsService', () => {
         expect(deleted).toBeUndefined();
     });
 
+    it.each(notificationImportance)('loadNotifications respects %s filter', async (importance) => {
+        const notifications = await Promise.all([
+            createNotification({ importance: Importance.ALERT }),
+            createNotification({ importance: Importance.ALERT }),
+            createNotification({ importance: Importance.ALERT }),
+            createNotification({ importance: Importance.INFO }),
+            createNotification({ importance: Importance.INFO }),
+            createNotification({ importance: Importance.INFO }),
+            createNotification({ importance: Importance.WARNING }),
+            createNotification({ importance: Importance.WARNING }),
+            createNotification({ importance: Importance.WARNING }),
+        ]);
+        expect(notifications.length).toEqual(9);
+
+        // don't use the `expectIn` helper, just in case it changes
+        const loaded = await service.getNotifications({
+            type: NotificationType.UNREAD,
+            importance,
+            limit: 50,
+            offset: 0,
+        });
+        expect(loaded.length).toEqual(3);
+    });
+
     /**--------------------------------------------
      *               CRUD: Update Tests
      *---------------------------------------------**/
@@ -203,29 +259,8 @@ describe.sequential('NotificationsService', () => {
         });
     });
 
-    it('can archive & unarchive all', async ({ expect }) => {
-        await forEachImportance(async (importance) => {
-            const notifications = await Promise.all([
-                createNotification({ importance }),
-                createNotification({ importance }),
-                createNotification({ importance }),
-                createNotification({ importance }),
-                createNotification({ importance }),
-            ]);
-
-            expect(notifications.length).toEqual(5);
-            await service.archiveAll();
-            await service.unarchiveAll();
-            await service.archiveAll(importance);
-            await service.unarchiveAll(importance);
-        });
-    });
-
-    /**------------------------------------------------------------------------
-     *                           Filtering Tests
-     *------------------------------------------------------------------------**/
-
-    it.each(notificationImportance)('loadNotifications respects %s filter', async (importance) => {
+    it.each(notificationImportance)('can archiveAll & unarchiveAll %s', async (importance) => {
+        const expectIn = makeExpectIn(expect);
         const notifications = await Promise.all([
             createNotification({ importance: Importance.ALERT }),
             createNotification({ importance: Importance.ALERT }),
@@ -238,78 +273,30 @@ describe.sequential('NotificationsService', () => {
             createNotification({ importance: Importance.WARNING }),
         ]);
         expect(notifications.length).toEqual(9);
+        await expectIn({ type: NotificationType.UNREAD }, 9);
 
-        const loaded = await service.getNotifications({
-            type: NotificationType.UNREAD,
-            importance,
-            limit: 50,
-            offset: 0,
-        });
-        expect(loaded.length).toEqual(3);
-    });
+        await service.archiveAll();
+        await expectIn({ type: NotificationType.ARCHIVE }, 9);
 
-    it.each(notificationImportance)('archiveAll respects %s filter', async (importance) => {
-        const notifications = await Promise.all([
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
-        ]);
-        expect(notifications.length).toEqual(9);
+        await service.unarchiveAll();
+        await expectIn({ type: NotificationType.UNREAD }, 9);
 
         await service.archiveAll(importance);
-        const unreads = await service.getNotifications({
-            type: NotificationType.UNREAD,
-            importance,
-            limit: 50,
-            offset: 0,
-        });
-        const archives = await service.getNotifications({
-            type: NotificationType.ARCHIVE,
-            importance,
-            limit: 50,
-            offset: 0,
-        });
-        expect(unreads.length).toEqual(0);
-        expect(archives.length).toEqual(3);
-    });
+        await expectIn({ type: NotificationType.ARCHIVE }, 3);
+        await expectIn({ type: NotificationType.UNREAD }, 6);
 
-    it.each(notificationImportance)('unarchiveAll respects %s filter', async (importance) => {
-        const notifications = await Promise.all([
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.ALERT }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.INFO }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
-            createNotification({ importance: Importance.WARNING }),
-        ]);
-        expect(notifications.length).toEqual(9);
+        // archive another importance set, just to make sure unarchiveAll
+        // isn't just ignoring the filter, which would be possible if it only
+        // contained the stuff it was supposed to unarchive.
 
-        // test unarchive
-        await service.archiveAll();
+        const anotherImportance = importance === Importance.ALERT ? Importance.INFO : Importance.ALERT;
+        await service.archiveAll(anotherImportance);
+        await expectIn({ type: NotificationType.ARCHIVE }, 6);
+        await expectIn({ type: NotificationType.UNREAD }, 3);
+
         await service.unarchiveAll(importance);
-        const unreads = await service.getNotifications({
-            type: NotificationType.UNREAD,
-            importance,
-            limit: 50,
-            offset: 0,
-        });
-        const archives = await service.getNotifications({
-            type: NotificationType.ARCHIVE,
-            importance,
-            limit: 50,
-            offset: 0,
-        });
-        expect(unreads.length).toEqual(3);
-        expect(archives.length).toEqual(0);
+        await expectIn({ type: NotificationType.ARCHIVE }, 3);
+        await expectIn({ type: NotificationType.UNREAD }, 6);
     });
 
     /**========================================================================
