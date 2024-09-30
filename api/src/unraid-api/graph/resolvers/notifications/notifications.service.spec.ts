@@ -13,12 +13,15 @@ import {
 } from '@app/graphql/generated/api/types';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
 
+// defined outside `describe` so it's defined inside the `beforeAll`
+// needed to mock the dynamix import
+const basePath = '/tmp/test/notifications';
+
 // we run sequentially here because this module's state depends on external, shared systems
 // rn, it's complicated to make the tests atomic & isolated
 describe.sequential('NotificationsService', () => {
     const notificationImportance = Object.values(Importance);
     let service: NotificationsService;
-    const basePath = '/tmp/test/notifications';
     const testPaths = {
         basePath,
         UNREAD: `${basePath}/unread`,
@@ -30,6 +33,20 @@ describe.sequential('NotificationsService', () => {
      *------------------------------------------------------------------------**/
 
     beforeAll(async () => {
+        // need to mock the dynamix import bc the file watcher is init'ed in the service constructor
+        // i.e. before we can mock service.paths()
+        vi.mock(import('../../../../store'), async (importOriginal) => {
+            const mod = await importOriginal();
+            return {
+                ...mod,
+                getters: {
+                    dynamix: () => ({
+                        notify: { path: basePath },
+                    }),
+                },
+            } as typeof mod;
+        });
+
         const module: TestingModule = await Test.createTestingModule({
             providers: [NotificationsService],
         }).compile();
