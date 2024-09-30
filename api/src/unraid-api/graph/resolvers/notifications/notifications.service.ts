@@ -22,6 +22,7 @@ import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { fileExists } from '@app/core/utils/files/file-exists';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
+import { CHOKIDAR_USEPOLLING } from '@app/environment';
 
 @Injectable()
 export class NotificationsService {
@@ -73,25 +74,20 @@ export class NotificationsService {
      *------------------------------------------------------------------------**/
 
     private getNotificationsWatcher() {
-        const { notify, status } = getters.dynamix();
-        if (status === FileLoadStatus.LOADED && notify?.path) {
-            if (NotificationsService.watcher) {
-                return NotificationsService.watcher;
-            }
+        const { basePath } = this.paths();
 
-            NotificationsService.watcher = watch(notify.path, {}).on('add', (path) => {
-                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
-            });
-            // Do we even want to listen to removals?
-            // .on('unlink', (path) => {
-            //     void this.handleNotificationRemoval(path).catch((e) =>
-            //         this.logger.error(e)
-            //     );
-            // });
-
+        if (NotificationsService.watcher) {
             return NotificationsService.watcher;
         }
-        return null;
+
+        NotificationsService.watcher = watch(basePath, { usePolling: CHOKIDAR_USEPOLLING }).on(
+            'add',
+            (path) => {
+                void this.handleNotificationAdd(path).catch((e) => this.logger.error(e));
+            }
+        );
+
+        return NotificationsService.watcher;
     }
 
     private async handleNotificationAdd(path: string) {
