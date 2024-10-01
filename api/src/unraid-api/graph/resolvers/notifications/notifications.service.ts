@@ -15,7 +15,7 @@ import { Injectable } from '@nestjs/common';
 import { mkdir, readdir, rename, rm, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import { Logger } from '@nestjs/common';
-import { isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
+import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 import { FSWatcher, watch } from 'chokidar';
 import { FileLoadStatus } from '@app/store/types';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
@@ -384,7 +384,6 @@ export class NotificationsService {
         const { UNREAD } = this.paths();
 
         if (!importance) {
-            // use arrow function to preserve `this`
             await readdir(UNREAD).then((ids) => this.archiveIds(ids));
             return { overview: NotificationsService.overview };
         }
@@ -398,7 +397,7 @@ export class NotificationsService {
             snapshot: overviewSnapshot,
         });
 
-        const stats = await this.updateMany(notifications, archive);
+        const stats = await batchProcess(notifications, archive);
         return { ...stats, overview: overviewSnapshot };
     }
 
@@ -420,7 +419,7 @@ export class NotificationsService {
             snapshot: overviewSnapshot,
         });
 
-        const stats = await this.updateMany(notifications, unArchive);
+        const stats = await batchProcess(notifications, unArchive);
         return { ...stats, overview: overviewSnapshot };
     }
 
@@ -435,7 +434,7 @@ export class NotificationsService {
      * @returns
      */
     public archiveIds(ids: string[]) {
-        return this.updateMany(ids, (id) => this.archiveNotification({ id }));
+        return batchProcess(ids, (id) => this.archiveNotification({ id }));
     }
 
     /**
@@ -449,30 +448,7 @@ export class NotificationsService {
      * @returns
      */
     public unarchiveIds(ids: string[]) {
-        return this.updateMany(ids, (id) => this.markAsUnread({ id }));
-    }
-
-    /**
-     * Wrapper for Promise-handling of batch operations based on
-     * notification ids.
-     *
-     * @param notificationIds
-     * @param action
-     * @returns
-     */
-    private async updateMany<Input, T>(notificationIds: Input[], action: (id: Input) => Promise<T>) {
-        const processes = notificationIds.map(action);
-
-        const results = await Promise.allSettled(processes);
-        const successes = results.filter(isFulfilled);
-        const errors = results.filter(isRejected).map((result) => result.reason);
-
-        return {
-            data: successes,
-            successes: successes.length,
-            errors: errors,
-            errorOccured: errors.length > 0,
-        };
+        return batchProcess(ids, (id) => this.markAsUnread({ id }));
     }
 
     /**------------------------------------------------------------------------
@@ -583,7 +559,7 @@ export class NotificationsService {
      * Takes a NotificationIni (ini file data) and a few details of a notification,
      * and combines them into a Notification object.
      *
-     * Does not validate the returned Notification object or the input file data.
+     * Does *not* validate the returned Notification object or the input file data.
      * This simply encapsulates data transformation logic.
      *
      * @param details The 'id' and 'type' of the notification to be combined.
@@ -595,9 +571,11 @@ export class NotificationsService {
         fileData: NotificationIni
     ): Notification {
         const { importance, timestamp, event: title, description = '', ...passthroughData } = fileData;
+        const { type, id } = details;
         return {
-            ...details,
             ...passthroughData,
+            id,
+            type,
             title,
             description,
             importance: this.fileImportanceToGqlImportance(importance),
