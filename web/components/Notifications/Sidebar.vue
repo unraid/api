@@ -3,7 +3,7 @@ import { BellIcon } from "@heroicons/vue/24/solid";
 import {
   Sheet,
   SheetContent,
-  SheetDescription,
+  // SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -42,35 +42,35 @@ const unreadNotifications: NotificationItemProps[] = [
   },
 ];
 
-// const archiveNotifications: NotificationItemProps[] = [
-//   {
-//     date: '2024-09-30 15:30',
-//     event: 'Test Event Type',
-//     id: "1",
-//     message: "A new user has registered on your platform.",
-//     subject: "Archived New User Registration",
-//     type: "success",
-//     view: '#my-url',
-//   },
-//   {
-//     date: '2024-09-30 15:30',
-//     event: 'Test Event Type',
-//     id: "2",
-//     message: "Drive 1 has been detected as pre-failure.",
-//     subject: "Archived Drive Pre-Failure Detected",
-//     type: "alert",
-//     view: '#my-url',
-//   },
-//   {
-//     date: '2024-09-30 15:30',
-//     event: 'Test Event Type',
-//     id: "3",
-//     message: "Your server will be undergoing maintenance at 12:00 AM.",
-//     subject: "Archived Server Maintenance",
-//     type: "warning",
-//     view: '#my-url',
-//   },
-// ];
+const archiveNotifications: NotificationItemProps[] = [
+  {
+    date: '2024-09-30 15:30',
+    event: 'Test Event Type',
+    id: "1",
+    message: "A new user has registered on your platform.",
+    subject: "Archived New User Registration",
+    type: "success",
+    view: '#my-url',
+  },
+  {
+    date: '2024-09-30 15:30',
+    event: 'Test Event Type',
+    id: "2",
+    message: "Drive 1 has been detected as pre-failure.",
+    subject: "Archived Drive Pre-Failure Detected",
+    type: "alert",
+    view: '#my-url',
+  },
+  {
+    date: '2024-09-30 15:30',
+    event: 'Test Event Type',
+    id: "3",
+    message: "Your server will be undergoing maintenance at 12:00 AM.",
+    subject: "Archived Server Maintenance",
+    type: "warning",
+    view: '#my-url',
+  },
+];
 
 const teleportTarget = ref<string | HTMLElement | Element>("#modals");
 const determineTeleportTarget = () => {
@@ -98,19 +98,9 @@ onMounted(() => {
     <SheetContent :to="teleportTarget" class="w-full max-w-[400px] sm:max-w-[540px] bg-beta text-alpha">
       <SheetHeader>
         <SheetTitle>Notifications</SheetTitle>
-        <SheetDescription>What to do about a tab component? Two options break the webgui…</SheetDescription>
       </SheetHeader>
 
-      <div class="divide-y divide-gray-200">
-        <NotificationsItem
-          v-for="notification in unreadNotifications"
-          :key="notification.id"
-          v-bind="notification"
-        />
-      </div>
-
-      <!-- shadcn tabs break the webgui -->
-      <!-- <Tabs default-value="unread">
+      <Tabs default-value="unread">
         <TabsList>
           <TabsTrigger value="unread">
             Unread
@@ -134,33 +124,11 @@ onMounted(() => {
             v-bind="notification"
           />
         </TabsContent>
-      </Tabs> -->
+      </Tabs>
 
-      <!-- headless ui tabs also break the webgui -->
-      <!-- <TabGroup>
-        <TabList>
-          <Tab>Unread</Tab>
-          <Tab>Archived</Tab>
-        </TabList>
-        <TabPanels>
-          <TabPanel class="divide-y divide-gray-200">
-            <NotificationsItem
-              v-for="notification in unreadNotifications"
-              :key="notification.id"
-              v-bind="notification"
-            />
-          </TabPanel>
-          <TabPanel class="divide-y divide-gray-200">
-            <NotificationsItem
-              v-for="notification in archiveNotifications"
-              :key="notification.id"
-              v-bind="notification"
-            />
-          </TabPanel>
-        </TabPanels>
-      </TabGroup> -->
-
-      <SheetFooter />
+      <SheetFooter>
+        <p>Future pagination station</p>
+      </SheetFooter>
     </SheetContent>
   </Sheet>
 </template>
