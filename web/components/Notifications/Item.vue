@@ -6,6 +6,7 @@ import {
   ShieldExclamationIcon,
   CheckBadgeIcon,
   ExclamationTriangleIcon,
+  ChevronRightIcon,
 } from '@heroicons/vue/24/solid';
 
 import type { NotificationItemProps } from '~/types/ui/notification';
@@ -35,35 +36,43 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
 </script>
 
 <template>
-  <div class="w-full flex flex-row items-center justify-between py-4">
-    <header class="flex flex-col gap-2">
-      <h3 class="text-md font-semibold flex flex-row items-center gap-2">
-        <component :is="icon.component" v-if="icon" class="size-6" :class="icon.color" />
-        <span>{{ subject }}</span>
+  <div class="group/item relative w-full py-4 flex flex-col gap-2">
+    <header class="w-full flex flex-row items-start justify-between gap-2">
+      <h3 class="text-16px font-semibold leading-2 flex flex-row items-start gap-2">
+        <component :is="icon.component" v-if="icon" class="size-6 shrink-0" :class="icon.color" />
+        <span>{{ event }} • {{ subject }}</span>
       </h3>
-      <p>{{ message }}</p>
-    </header>
-    <footer>
-      <DropdownMenu>
-        <DropdownMenuTrigger>
-          <span class="sr-only">View Notification Actions</span>
-          <EllipsisVerticalIcon class="size-6" />
-        </DropdownMenuTrigger>
 
-        <DropdownMenuContent>
-          <!-- <DropdownMenuLabel>Actions</DropdownMenuLabel>
-          <DropdownMenuSeparator /> -->
-          <DropdownMenuItem class="flex flex-row justify-between items-center">
-            Archive
-            <ArchiveBoxIcon class="size-4" />
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem class="flex flex-row justify-between items-center">
-            Delete
-            <TrashIcon class="size-4" />
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    </footer>
+      <div class="shrink-0 flex flex-row items-center justify-end gap-2 mt-1">
+        <p class="text-12px opacity-75">{{ date }}</p>
+        <button class="relative z-20" title="Archive Notification">
+          <span class="sr-only">Archive Notification</span>
+          <ArchiveBoxIcon class="size-4" />
+        </button>
+        <!-- Tooltip breaks the webgui… -->
+        <!-- <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger as-child>
+              <button class="relative z-20">
+                <span class="sr-only">Archive</span>
+                <ArchiveBoxIcon class="size-4" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Archive</p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider> -->
+      </div>
+    </header>
+
+    <div class="w-full flex flex-row items-center justify-between gap-2 opacity-75 group-hover/item:opacity-100 group-focus/item:opacity-100">
+      <p>{{ message }}</p>
+      <ChevronRightIcon class="size-4" />
+    </div>
+
+    <a :href="view" class="absolute z-10 inset-0">
+      <span class="sr-only">Take me there</span>
+    </a>
   </div>
 </template>
