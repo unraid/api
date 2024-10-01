@@ -8,7 +8,6 @@ import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@ne
 import { UseRoles } from 'nest-access-control';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { NotificationsService } from './notifications.service';
-import { getServerIdentifier } from '@app/core/utils/server-identifier';
 import { Importance } from '@app/graphql/generated/client/graphql';
 
 @Resolver('Notifications')
@@ -37,7 +36,7 @@ export class NotificationsResolver {
     }
 
     @ResolveField()
-    public async data(
+    public async list(
         @Args('filter')
         filters: NotificationFilter
     ) {
