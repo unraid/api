@@ -12,6 +12,7 @@ import {
     type NotificationFilter,
 } from '@app/graphql/generated/api/types';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
+import { mkdir } from 'fs/promises';
 
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
@@ -33,6 +34,7 @@ describe.sequential('NotificationsService', () => {
      *------------------------------------------------------------------------**/
 
     beforeAll(async () => {
+        await mkdir(basePath, { recursive: true });
         // need to mock the dynamix import bc the file watcher is init'ed in the service constructor
         // i.e. before we can mock service.paths()
         vi.mock(import('../../../../store'), async (importOriginal) => {
@@ -228,6 +230,8 @@ describe.sequential('NotificationsService', () => {
         Object.entries(notificationData).forEach(([key, value]) => {
             expect(storedNotification[key]).toEqual(value);
         });
+
+        expect(service.getOverview().unread.total).toEqual(1);
 
         // notification was deleted
         await service.deleteNotification({ id: notification.id, type: NotificationType.UNREAD });

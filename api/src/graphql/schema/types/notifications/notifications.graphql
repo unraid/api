@@ -41,7 +41,7 @@ enum Importance {
 type Notifications implements Node {
     id: ID!
     overview: NotificationOverview!
-    data(filter: NotificationFilter!): [Notification!]!
+    list(filter: NotificationFilter!): [Notification!]!
 }
 
 type Notification implements Node {

@@ -862,13 +862,13 @@ export enum NotificationType {
 
 export type Notifications = Node & {
   __typename?: 'Notifications';
-  data: Array<Notification>;
   id: Scalars['ID']['output'];
+  list: Array<Notification>;
   overview: NotificationOverview;
 };
 
 
-export type NotificationsdataArgs = {
+export type NotificationslistArgs = {
   filter: NotificationFilter;
 };
 
@@ -2424,8 +2424,8 @@ export type NotificationOverviewResolvers<ContextType = Context, ParentType exte
 }>;
 
 export type NotificationsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notifications'] = ResolversParentTypes['Notifications']> = ResolversObject<{
-  data?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<NotificationsdataArgs, 'filter'>>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  list?: Resolver<Array<ResolversTypes['Notification']>, ParentType, ContextType, RequireFields<NotificationslistArgs, 'filter'>>;
   overview?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
