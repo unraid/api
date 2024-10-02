@@ -643,6 +643,8 @@ export type Mutation = {
   /** Pause parity check */
   pauseParityCheck?: Maybe<Scalars['JSON']['output']>;
   reboot?: Maybe<Scalars['String']['output']>;
+  /** Reads each notification to recompute & update the overview. */
+  recalculateOverview: NotificationOverview;
   /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
   removeDiskFromArray?: Maybe<ArrayType>;
   /** Resume parity check */
@@ -864,6 +866,7 @@ export type Notifications = Node & {
   __typename?: 'Notifications';
   id: Scalars['ID']['output'];
   list: Array<Notification>;
+  /** A cached overview of the notifications in the system & their severity. */
   overview: NotificationOverview;
 };
 
@@ -2359,6 +2362,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   mountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationmountArrayDiskArgs, 'id'>>;
   pauseParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   reboot?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  recalculateOverview?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   removeDiskFromArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationremoveDiskFromArrayArgs>>;
   resumeParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   setAdditionalAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationsetAdditionalAllowedOriginsArgs, 'input'>>;
