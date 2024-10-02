@@ -49,8 +49,7 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
           <span class="sr-only">Archive Notification</span>
           <ArchiveBoxIcon class="size-4" />
         </button>
-        <!-- Tooltip breaks the webgui… -->
-        <!-- <TooltipProvider>
+        <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
               <button class="relative z-20">
@@ -62,7 +61,7 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
               <p>Archive</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider> -->
+        </TooltipProvider>
       </div>
     </header>
 
