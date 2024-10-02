@@ -101,7 +101,7 @@ onBeforeMount(() => {
   >
     <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
 
-    <div class=" text-sm text-gamma text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
+    <div class="text-xs xs:text-sm text-gamma text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
       <UpcUptimeExpire :t="t" />
       <span class="hidden xs:block">&bull;</span>
       <UpcServerState :t="t" />
