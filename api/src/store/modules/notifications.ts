@@ -13,7 +13,7 @@ import {
     createSlice,
 } from '@reduxjs/toolkit';
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
-import { NotificationIni } from '@app/core/types/states/notification';
+import { type NotificationIni } from '@app/core/types/states/notification';
 
 interface NotificationState {
     notifications: Record<string, Notification>;
