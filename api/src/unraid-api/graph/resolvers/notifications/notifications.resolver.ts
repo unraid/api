@@ -9,6 +9,7 @@ import { UseRoles } from 'nest-access-control';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { NotificationsService } from './notifications.service';
 import { Importance } from '@app/graphql/generated/client/graphql';
+import { AppError } from '@app/core/errors/app-error';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
@@ -98,6 +99,15 @@ export class NotificationsResolver {
     @Mutation()
     public async unarchiveAll(@Args('importance') importance?: Importance): Promise<NotificationOverview> {
         const { overview } = await this.notificationsService.unarchiveAll(importance);
+        return overview;
+    }
+
+    @Mutation()
+    public async recalculateOverview() {
+        const { overview, error } = await this.notificationsService.recalculateOverview();
+        if (error) {
+            throw new AppError("Failed to refresh overview", 500);
+        }
         return overview;
     }
 

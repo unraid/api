@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { NotificationsService } from './notifications.service';
-import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterEach, assert } from 'vitest';
 import { existsSync } from 'fs';
 import {
     Importance,
@@ -216,6 +216,11 @@ describe.sequential('NotificationsService', () => {
         };
         const notification = await createNotification(notificationData);
 
+        // HACK: we brute-force re-calculate instead of using service.getOverview()
+        // because the file-system-watcher's test setup isn't working rn.
+        let { overview } = await service.recalculateOverview();
+        expect.soft(overview.unread.total).toEqual(1);
+
         // data in returned notification (from createNotification) matches?
         Object.entries(notificationData).forEach(([key, value]) => {
             expect(notification[key]).toEqual(value);
@@ -231,12 +236,13 @@ describe.sequential('NotificationsService', () => {
             expect(storedNotification[key]).toEqual(value);
         });
 
-        expect(service.getOverview().unread.total).toEqual(1);
-
         // notification was deleted
         await service.deleteNotification({ id: notification.id, type: NotificationType.UNREAD });
         const deleted = await findById(notification.id);
         expect(deleted).toBeUndefined();
+
+        ({ overview } = await service.recalculateOverview());
+        expect.soft(overview.unread.total).toEqual(0);
     });
 
     it.each(notificationImportance)('loadNotifications respects %s filter', async (importance) => {
@@ -251,7 +257,9 @@ describe.sequential('NotificationsService', () => {
             createNotification({ importance: Importance.WARNING }),
             createNotification({ importance: Importance.WARNING }),
         ]);
+        const { overview } = await service.recalculateOverview();
         expect(notifications.length).toEqual(9);
+        expect.soft(overview.unread.total).toEqual(9);
 
         // don't use the `expectIn` helper, just in case it changes
         const loaded = await service.getNotifications({
@@ -267,18 +275,29 @@ describe.sequential('NotificationsService', () => {
      *               CRUD: Update Tests
      *---------------------------------------------**/
 
-    it('can correctly archive and unarchive a notification', async ({ expect }) => {
-        await forEachImportance(async (importance) => {
+    it.for(notificationImportance.map((i) => [i]))(
+        'can correctly archive and unarchive a %s notification',
+        async ([importance], { expect }) => {
             const notification = await createNotification({ importance });
+            let { overview } = await service.recalculateOverview();
+            expect.soft(overview.unread.total).toEqual(1);
+            expect.soft(overview.archive.total).toEqual(0);
 
             await service.archiveNotification(notification);
             let exists = await doesExist(expect)(notification, NotificationType.ARCHIVE);
             if (!exists) return;
 
+            ({ overview } = await service.recalculateOverview());
+            expect.soft(overview.unread.total).toEqual(0);
+            expect.soft(overview.archive.total).toEqual(1);
+
             await service.markAsUnread(notification);
             exists = await doesExist(expect)(notification, NotificationType.UNREAD);
-        });
-    });
+            ({ overview } = await service.recalculateOverview());
+            expect.soft(overview.unread.total).toEqual(1);
+            expect.soft(overview.archive.total).toEqual(0);
+        }
+    );
 
     it.each(notificationImportance)('can archiveAll & unarchiveAll %s', async (importance) => {
         const expectIn = makeExpectIn(expect);
@@ -293,18 +312,34 @@ describe.sequential('NotificationsService', () => {
             createNotification({ importance: Importance.WARNING }),
             createNotification({ importance: Importance.WARNING }),
         ]);
+
         expect(notifications.length).toEqual(9);
         await expectIn({ type: NotificationType.UNREAD }, 9);
+        let { overview } = await service.recalculateOverview();
+        expect.soft(overview.unread.total).toEqual(9);
+        expect.soft(overview.archive.total).toEqual(0);
 
         await service.archiveAll();
         await expectIn({ type: NotificationType.ARCHIVE }, 9);
 
+        ({ overview } = await service.recalculateOverview());
+        expect.soft(overview.unread.total).toEqual(0);
+        expect.soft(overview.archive.total).toEqual(9);
+
         await service.unarchiveAll();
         await expectIn({ type: NotificationType.UNREAD }, 9);
+
+        ({ overview } = await service.recalculateOverview());
+        expect.soft(overview.unread.total).toEqual(9);
+        expect.soft(overview.archive.total).toEqual(0);
 
         await service.archiveAll(importance);
         await expectIn({ type: NotificationType.ARCHIVE }, 3);
         await expectIn({ type: NotificationType.UNREAD }, 6);
+
+        ({ overview } = await service.recalculateOverview());
+        expect.soft(overview.unread.total).toEqual(6);
+        expect.soft(overview.archive.total).toEqual(3);
 
         // archive another importance set, just to make sure unarchiveAll
         // isn't just ignoring the filter, which would be possible if it only
@@ -315,16 +350,16 @@ describe.sequential('NotificationsService', () => {
         await expectIn({ type: NotificationType.ARCHIVE }, 6);
         await expectIn({ type: NotificationType.UNREAD }, 3);
 
+        ({ overview } = await service.recalculateOverview());
+        expect.soft(overview.unread.total).toEqual(3);
+        expect.soft(overview.archive.total).toEqual(6);
+
         await service.unarchiveAll(importance);
         await expectIn({ type: NotificationType.ARCHIVE }, 3);
         await expectIn({ type: NotificationType.UNREAD }, 6);
-    });
 
-    /**========================================================================
-     *                           Overview (Notification Stats) State
-     *========================================================================**/
-
-    it.skip('calculates stats correctly', async () => {
-        // todo implement
+        ({ overview } = await service.recalculateOverview());
+        expect.soft(overview.unread.total).toEqual(6);
+        expect.soft(overview.archive.total).toEqual(3);
     });
 });
