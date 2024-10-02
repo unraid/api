@@ -17,7 +17,6 @@ import { basename, join } from 'path';
 import { Logger } from '@nestjs/common';
 import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 import { FSWatcher, watch } from 'chokidar';
-import { FileLoadStatus } from '@app/store/types';
 import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { fileExists } from '@app/core/utils/files/file-exists';
 import { encode as encodeIni } from 'ini';
