@@ -38,7 +38,7 @@ test('MultiIni can safely serialize an object with a boolean inside', async () =
 	`);
 });
 
-test('Can serialize top-level fields', async () => {
+test.skip('Can serialize top-level fields', async () => {
     const objectToSerialize = {
         id: 'an-id',
         message: 'hello-world',

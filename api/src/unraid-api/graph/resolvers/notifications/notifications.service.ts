@@ -338,9 +338,6 @@ export class NotificationsService {
              *  - Technical Limitations: By the time the unlink event fires, the notification file
              *    can no longer be read. This means we can only track overview totals accurately;
              *    to track other stats, we have to update them manually, prior to file deletion.
-             *
-             * Note: this introduces a pubsub race condition between this `decrement` and the `rename`.
-             * To ensure correctness, re-publish the overview stats after running this function.
              *------------------------**/
             this.decrement(notification.importance, NotificationsService.overview[fromStatKey]);
             try {
