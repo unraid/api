@@ -2,8 +2,8 @@
 
 # Prevent incorrect vars from being used when building for the webgui
 
-# Set the file paths
-env_production=".env.production"
+# Set the default file paths
+env_requested="${1:-.env.production}"
 env_backup=".env.backup"
 env=".env"
 
@@ -15,6 +15,11 @@ else
     echo "$env not found. Creating a new one."
 fi
 
-# Copy contents from .env.production to .env
-cp "$env_production" "$env"
-echo "Contents of $env_production copied to $env"
+# Copy contents from env_requested to .env
+if [ -f "$env_requested" ]; then
+    cp "$env_requested" "$env"
+    echo "Contents of $env_requested copied to $env"
+else
+    echo "Error: $env_requested not found."
+    exit 1
+fi
