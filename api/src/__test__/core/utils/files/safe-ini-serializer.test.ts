@@ -65,5 +65,5 @@ test('Can serialize top-level fields', async () => {
         .map((line) => line.trim())
         .join('\n');
 
-    expect(safelySerializeObjectToIni({ objectToSerialize })).toMatchInlineSnapshot(expected);
+    expect(safelySerializeObjectToIni(objectToSerialize)).toMatchInlineSnapshot(expected);
 });
