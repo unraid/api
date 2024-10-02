@@ -99,6 +99,7 @@
     "express": "^4.19.2",
     "filenamify": "^6.0.0",
     "find-process": "^1.4.7",
+    "fs-extra": "^11.2.0",
     "global-agent": "^3.0.0",
     "graphql": "^16.8.1",
     "graphql-fields": "^2.0.3",
