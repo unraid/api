@@ -12,7 +12,7 @@ import {
 } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { Injectable } from '@nestjs/common';
-import { mkdir, readdir, rename, rm, unlink, writeFile } from 'fs/promises';
+import { readdir, rename, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
 import { Logger } from '@nestjs/common';
 import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
@@ -22,6 +22,7 @@ import { fileExists } from '@app/core/utils/files/file-exists';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 import { CHOKIDAR_USEPOLLING } from '@app/environment';
+import { emptyDir } from 'fs-extra';
 
 @Injectable()
 export class NotificationsService {
@@ -263,13 +264,10 @@ export class NotificationsService {
      * Resets the notification overview to all zeroes.
      */
     public async deleteAllNotifications() {
-        const { basePath, UNREAD, ARCHIVE } = this.paths();
-        // ensure the directory exists before deleting
-        await mkdir(basePath, { recursive: true });
-        await rm(basePath, { force: true, recursive: true });
-        // recreate each notification directory
-        await mkdir(UNREAD, { recursive: true });
-        await mkdir(ARCHIVE, { recursive: true });
+        const { UNREAD, ARCHIVE } = this.paths();
+        // ensures the directory exists before deleting
+        await emptyDir(ARCHIVE);
+        await emptyDir(UNREAD);
         NotificationsService.overview = {
             unread: {
                 alert: 0,
