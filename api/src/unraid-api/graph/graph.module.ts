@@ -21,7 +21,6 @@ import { ConnectResolver } from './connect/connect.resolver';
 import { ConnectService } from './connect/connect.service';
 import { idPrefixPlugin } from '@app/unraid-api/graph/id-prefix-plugin';
 
-
 @Module({
     imports: [
         ResolversModule,

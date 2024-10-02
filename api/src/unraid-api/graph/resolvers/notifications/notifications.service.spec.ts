@@ -1,6 +1,6 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { Test, type TestingModule } from '@nestjs/testing';
 import { NotificationsService } from './notifications.service';
-import { describe, it, expect, vi, beforeAll, afterEach, assert } from 'vitest';
+import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
 import { existsSync } from 'fs';
 import {
     Importance,
