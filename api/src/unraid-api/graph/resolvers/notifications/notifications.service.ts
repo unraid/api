@@ -132,6 +132,46 @@ export class NotificationsService {
         collector['total'] -= 1;
     }
 
+    public async recalculateOverview() {
+        const overview: NotificationOverview = {
+            unread: {
+                alert: 0,
+                info: 0,
+                warning: 0,
+                total: 0,
+            },
+            archive: {
+                alert: 0,
+                info: 0,
+                warning: 0,
+                total: 0,
+            },
+        };
+
+        // todo - refactor this to be more memory efficient
+        // i.e. by using a lazy generator vs the current eager implementation
+        //
+        // recalculates stats for a particular notification type
+        const recalculate = async (type: NotificationType) => {
+            const ids = await this.listFilesInFolder(this.paths()[type]);
+            const [notifications] = await this.loadNotificationsFromPaths(ids, {});
+            notifications.forEach((n) => this.increment(n.importance, overview[type.toLowerCase()]));
+        };
+
+        const results = await batchProcess(
+            [NotificationType.ARCHIVE, NotificationType.UNREAD],
+            recalculate
+        );
+
+        if (results.errorOccured) {
+            results.errors.forEach((e) => this.logger.error('[recalculateOverview] ' + e));
+        }
+
+        NotificationsService.overview = overview;
+        void this.publishOverview();
+        return { error: results.errorOccured, overview: this.getOverview() };
+    }
+
     /**------------------------------------------------------------------------
      *                           CRUD: Creating Notifications
      *------------------------------------------------------------------------**/
@@ -538,7 +578,7 @@ export class NotificationsService {
             type: 'ini',
         });
 
-        this.logger.debug(`Loaded notification ini file from ${path}}`);
+        this.logger.verbose(`Loaded notification ini file from ${path}}`);
 
         const notification: Notification = this.notificationFileToGqlNotification(
             { id: this.getIdFromPath(path), type },
