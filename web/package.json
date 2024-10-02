@@ -7,10 +7,14 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "type-check": "nuxi typecheck",
-    "build:dev": "npm run type-check && nuxt build && npm run manifest-ts && npm run deploy-wc:dev",
+    "prebuild:dev": "./scripts/prebuild-webgui-set-env.sh .env.staging",
+    "build:dev": "npm run type-check && nuxt build && npm run manifest-ts && npm run deploy-to-unraid:dev",
+    "postbuild:dev": "./scripts/postbuild-webgui-restore-env.sh",
+    "prebuild:webgui": "./scripts/prebuild-webgui-set-env.sh",
     "build:webgui": "npm run type-check && nuxt build && npm run manifest-ts && npm run copy-to-webgui-repo",
+    "postbuild:webgui": "./scripts/postbuild-webgui-restore-env.sh",
     "build": "npm run type-check && nuxt build && npm run manifest-ts",
-    "deploy-wc:dev": "./scripts/deploy-dev.sh",
+    "deploy-to-unraid:dev": "./scripts/deploy-dev.sh",
     "copy-to-webgui-repo": "./scripts/copy-to-webgui-repo.sh",
     "manifest-ts": "node ./scripts/add-timestamp-webcomponent-manifest.js",
     "generate": "nuxt generate",
@@ -18,9 +22,7 @@
     "postinstall": "nuxt prepare",
     "serve": "serve dist/nuxt-custom-elements/unraid-components",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
-    "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
-    "prebuild:webgui": "./scripts/prebuild-webgui-set-env.sh",
-    "postbuild:webgui": "./scripts/postbuild-webgui-restore-env.sh"
+    "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",
