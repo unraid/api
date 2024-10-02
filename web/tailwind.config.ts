@@ -197,5 +197,9 @@ export default <Partial<Config>>{
       }),
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  plugins: [require("@tailwindcss/typography"), require('./utils/tailwind-rem-to-rem').default({
+    baseFontSize: 16,
+    newFontSize: 10
+  })],
 };
