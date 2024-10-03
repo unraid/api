@@ -106,8 +106,8 @@ switch (state) {
     break;
 }
 
-// const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
-const connectPluginInstalled = "";
+const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
+// const connectPluginInstalled = "";
 
 const osVersion = "6.12.8";
 const osVersionBranch = "stable";
@@ -159,8 +159,8 @@ export const serverState: Server = {
   name: "dev-static",
   osVersion,
   osVersionBranch,
-  // registered: connectPluginInstalled ? true : false,
-  registered: false,
+  registered: connectPluginInstalled ? true : false,
+  // registered: false,
   regGen: 0,
   regTm: twoDaysAgo,
   regTo: "Zack Spear",
