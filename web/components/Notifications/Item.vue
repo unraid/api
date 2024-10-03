@@ -45,10 +45,7 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
 
       <div class="shrink-0 flex flex-row items-center justify-end gap-2 mt-1">
         <p class="text-12px opacity-75">{{ date }}</p>
-        <button class="relative z-20" title="Archive Notification">
-          <span class="sr-only">Archive Notification</span>
-          <ArchiveBoxIcon class="size-4" />
-        </button>
+
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
