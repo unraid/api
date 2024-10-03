@@ -1,43 +1,65 @@
 # connect-components via Nuxt 3
 
-Look at the [Nuxt 3 documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
-
-## Setup
-
-Make sure to install the dependencies:
+## Install dependencies
 
 ```bash
-# npm
-npm install
+npm i
 ```
 
-## Development Server
+## Dev testing and builds with `.env` setup
 
-Start the development server on `http://localhost:4321`
+There's 3 version required for various types of development, testing builds in the Unraid webgui, and creating a prod build for the Unraid webgui.
+
+- `.env` for `npm run dev` local development
+- `.env.staging` for `npm run build:dev` which tests builds in the Unraid webgui
+- `.env.production` for `npm run build:webgui` which does a production build for the Unraid webgui
+
+For the URL values, you can use what you'd like. So if you're testing locally, you can use `http://localhost:5555` for the account app if you have a local version running. Alternatively you're free to use the staging or production URLs.
+
+For productions URLs you could ultimately not provide any value and the URL helpers will default to the production URLs. But for local dev and testing, it's usually easiest to keep the `.env` key value pairs so you don't forget about them.
+
+### `.env` for `npm run dev` local development
 
 ```bash
-npm run dev
+VITE_ACCOUNT=http://localhost:5555
+VITE_CONNECT=https://connect.myunraid.net
+VITE_UNRAID_NET=https://preview.unraid.net
+VITE_OS_RELEASES="https://releases.unraid.net/os"
+VITE_CALLBACK_KEY="FIND_IN_1PASSWORD"
+VITE_ALLOW_CONSOLE_LOGS=true
+VITE_TAILWIND_BASE_FONT_SIZE=16
 ```
 
-## Production
+## `.env.staging` for `npm run build:dev` which tests builds in the Unraid webgui
 
-Build the application for production:
+Please take a look at the `prebuild:dev` & `postbuild:dev` scripts in `package.json` to see how the `.env.staging` file is used.
 
 ```bash
-npm run build
+VITE_ACCOUNT=https://staging.account.unraid.net
+VITE_CONNECT=https://connect.myunraid.net
+VITE_UNRAID_NET=https://staging.unraid.net
+VITE_OS_RELEASES="https://releases.unraid.net/os"
+VITE_CALLBACK_KEY="FIND_IN_1PASSWORD"
+VITE_ALLOW_CONSOLE_LOGS=TRUE
 ```
 
-Locally preview production build:
+Notice how `VITE_TAILWIND_BASE_FONT_SIZE` is not set in the `.env.staging` file.
+This is because the Unraid webgui uses the `font-size: 62.5%` "trick".
+
+### `.env.production` for `npm run build:webgui` which does a production build for the Unraid webgui
+
+Please take a look at the `prebuild:webgui` & `postbuild:webgui` scripts in `package.json` to see how the `.env.production` file is used.
 
 ```bash
-npm run preview
+VITE_ACCOUNT=https://account.unraid.net
+VITE_CONNECT=https://connect.myunraid.net
+VITE_UNRAID_NET=https://unraid.net
+VITE_OS_RELEASES="https://releases.unraid.net/os"
+VITE_CALLBACK_KEY="FIND_IN_1PASSWORD"
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
-
-## Build for Unraid webgui [@TODO]
-Instructions to come
+Both `VITE_ALLOW_CONSOLE_LOGS` and `VITE_TAILWIND_BASE_FONT_SIZE` should never be set here.
 
 ## Interfacing with `unraid-api`
 
-@todo https://v4.apollo.vuejs.org/guide-composable/fragments.html#colocating-fragments
+@todo [Apollo VueJS Guide on Colocating Fragments](https://v4.apollo.vuejs.org/guide-composable/fragments.html#colocating-fragments)
