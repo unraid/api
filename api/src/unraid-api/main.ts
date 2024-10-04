@@ -12,7 +12,7 @@ import { getAllowedOrigins } from '@app/common/allowed-origins';
 import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter';
 import { GraphQLError } from 'graphql';
 import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
-import { BYPASS_PERMISSION_CHECKS, PORT } from '@app/environment';
+import { BYPASS_CORS_CHECKS, PORT } from '@app/environment';
 import { type FastifyInstance } from 'fastify';
 import { type Server, type IncomingMessage, type ServerResponse } from 'http';
 import { apiLogger } from '@app/core/log';
@@ -25,7 +25,7 @@ export const corsOptionsDelegate: CorsOptionsDelegate = async (
     } else {
         apiLogger.debug(`Origin not in allowed origins: ${origin}`);
 
-        if (BYPASS_PERMISSION_CHECKS) {
+        if (BYPASS_CORS_CHECKS) {
             return true;
         }
 
