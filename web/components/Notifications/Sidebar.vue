@@ -3,7 +3,6 @@ import { BellIcon } from "@heroicons/vue/24/solid";
 import {
   Sheet,
   SheetContent,
-  // SheetDescription,
   SheetFooter,
   SheetHeader,
   SheetTitle,
@@ -11,66 +10,47 @@ import {
 } from "@/components/shadcn/sheet";
 
 import type { NotificationItemProps } from "~/types/ui/notification";
+import { useUnraidApiStore } from "~/store/unraidApi";
+import gql from "graphql-tag";
 
-const unreadNotifications: NotificationItemProps[] = [
-  {
-    date: '2024-09-30 15:30',
-    event: 'Test Event Type',
-    id: "1",
-    message: "A new user has registered on your platform.",
-    subject: "New User Registration",
-    type: "success",
-    view: '#my-url',
-  },
-  {
-    date: '2024-09-30 15:30',
-    event: 'Test Event Type',
-    id: "2",
-    message: "Drive 1 has been detected as pre-failure.",
-    subject: "Drive Pre-Failure Detected",
-    type: "alert",
-    view: '#my-url',
-  },
-  {
-    date: '2024-09-30 15:30',
-    event: 'Test Event Type',
-    id: "3",
-    message: "Your server will be undergoing maintenance at 12:00 AM.",
-    subject: "Server Maintenance",
-    type: "warning",
-    view: '#my-url',
-  },
-];
+const getNotifications = gql`
+    query Notifications($filter: NotificationFilter!) {
+      notifications {
+        list(filter: $filter) {
+          id
+          title
+          subject
+          description
+          importance
+          link
+          type
+          timestamp
+        }
+      }
+    }
+`;
 
-const archiveNotifications: NotificationItemProps[] = [
-  {
-    date: '2024-09-30 15:30',
-    event: 'Test Event Type',
-    id: "1",
-    message: "A new user has registered on your platform.",
-    subject: "Archived New User Registration",
-    type: "success",
-    view: '#my-url',
-  },
-  {
-    date: '2024-09-30 15:30',
-    event: 'Test Event Type',
-    id: "2",
-    message: "Drive 1 has been detected as pre-failure.",
-    subject: "Archived Drive Pre-Failure Detected",
-    type: "alert",
-    view: '#my-url',
-  },
-  {
-    date: '2024-09-30 15:30',
-    event: 'Test Event Type',
-    id: "3",
-    message: "Your server will be undergoing maintenance at 12:00 AM.",
-    subject: "Archived Server Maintenance",
-    type: "warning",
-    view: '#my-url',
-  },
-];
+const notifications = ref<NotificationItemProps[]>([]);
+
+const { unraidApiClient } = storeToRefs(useUnraidApiStore());
+
+watch(unraidApiClient, async(newVal) => {
+  if (newVal) {
+    const apiResponse = await newVal.query({
+      query: getNotifications,
+      variables: {
+        filter: {
+          offset: 0,
+          limit: 10,
+          type: 'UNREAD',
+        },
+      },
+    });
+    console.log('[blah blah]', apiResponse);
+
+    notifications.value = apiResponse.data.notifications.list;
+  }
+});
 
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 </script>
@@ -99,7 +79,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 
         <TabsContent value="unread" class="divide-y divide-gray-200">
           <NotificationsItem
-            v-for="notification in unreadNotifications"
+            v-for="notification in notifications"
             :key="notification.id"
             v-bind="notification"
           />
