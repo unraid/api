@@ -51,7 +51,7 @@ export async function batchProcess<Input, T>(items: Input[], action: (id: Input)
     const processes = items.map(action);
 
     const results = await Promise.allSettled(processes);
-    const successes = results.filter(isFulfilled);
+    const successes = results.filter(isFulfilled).map((result) => result.value);
     const errors = results.filter(isRejected).map((result) => result.reason);
 
     return {
