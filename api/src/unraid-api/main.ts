@@ -2,10 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
 import { AppModule } from './app/app.module';
 import Fastify from 'fastify';
-import {
-    FastifyAdapter,
-    type NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { type CorsOptionsDelegate } from 'cors';
 
 import { getAllowedOrigins } from '@app/common/allowed-origins';
@@ -16,9 +13,9 @@ import { BYPASS_PERMISSION_CHECKS, PORT } from '@app/environment';
 import { type FastifyInstance } from 'fastify';
 import { type Server, type IncomingMessage, type ServerResponse } from 'http';
 import { apiLogger } from '@app/core/log';
-export const corsOptionsDelegate: CorsOptionsDelegate = async (
-    origin: string | undefined
-) => {
+import cookieParser from 'cookie-parser';
+
+export const corsOptionsDelegate: CorsOptionsDelegate = async (origin: string | undefined) => {
     const allowedOrigins = getAllowedOrigins();
     if (origin && allowedOrigins.includes(origin)) {
         return true;
@@ -36,16 +33,16 @@ export const corsOptionsDelegate: CorsOptionsDelegate = async (
 };
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    const server: FastifyInstance<Server, IncomingMessage, ServerResponse> =
-        Fastify({
-            logger: false,
-        });
+    const server: FastifyInstance<Server, IncomingMessage, ServerResponse> = Fastify({
+        logger: false,
+    });
 
-    const app = await NestFactory.create<NestFastifyApplication>(
-        AppModule,
-        new FastifyAdapter(server),
-        { cors: { origin: corsOptionsDelegate }, bufferLogs: true }
-    );
+    const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(server), {
+        cors: { origin: corsOptionsDelegate },
+        bufferLogs: true,
+    });
+
+    app.use(cookieParser());
 
     // Setup Nestjs Pino Logger
     app.useLogger(app.get(PinoLogger));
@@ -53,10 +50,7 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     app.flushLogs();
 
     apiLogger.debug('Starting Nest Server on Port / Path: %s', PORT);
-    app.useGlobalFilters(
-        new GraphQLExceptionsFilter(),
-        new HttpExceptionFilter()
-    );
+    app.useGlobalFilters(new GraphQLExceptionsFilter(), new HttpExceptionFilter());
 
     await app.init();
     if (Number.isNaN(parseInt(PORT))) {
