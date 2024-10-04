@@ -1,0 +1,78 @@
+import { type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { type CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
+import { apiLogger } from '@app/core/log';
+import { getAllowedOrigins } from '@app/common/allowed-origins';
+import { BYPASS_PERMISSION_CHECKS } from '@app/environment';
+import { GraphQLError } from 'graphql';
+import { CookieService } from '../auth/cookie.service';
+
+/**
+ * Returns whether the origin is allowed to access the API.
+ *
+ * @throws GraphQLError if the origin is not in the list of allowed origins
+ * and `BYPASS_PERMISSION_CHECKS` flag is not set.
+ */
+// note: don't make this function synchronous. throwing will then crash the server.
+export async function isOriginAllowed(origin: string | undefined) {
+    const allowedOrigins = getAllowedOrigins();
+    if (origin && allowedOrigins.includes(origin)) {
+        return true;
+    } else {
+        apiLogger.debug(`Origin not in allowed origins: ${origin}`);
+
+        if (BYPASS_PERMISSION_CHECKS) {
+            return true;
+        }
+
+        throw new GraphQLError(
+            'The CORS policy for this site does not allow access from the specified Origin.'
+        );
+    }
+}
+
+/**
+ * Dynamically determines the CORS config for a request.
+ *
+ * - Expects any cookies to be parsed & available on the `cookies` property of the request.
+ *
+ * If the request contains a valid unraid session cookie, it is allowed to access
+ * the API from any origin. Otherwise, the origin must be explicitly listed in
+ * the `allowedOrigins` config option, or the `BYPASS_PERMISSION_CHECKS` flag
+ * must be set.
+ *
+ * @param req the request object
+ * @param callback the callback to call with the CORS options
+ */
+function dynamicCors(req: any, callback: (error: Error | null, options: CorsOptions) => void) {
+    const { cookies } = req;
+    const service = new CookieService();
+    if (typeof cookies === 'object') {
+        service.hasValidAuthCookie(cookies).then((isValid) => {
+            if (isValid) {
+                callback(null, { origin: true });
+            } else {
+                callback(null, { origin: isOriginAllowed });
+            }
+        });
+    } else {
+        callback(null, { origin: isOriginAllowed });
+    }
+}
+
+/**------------------------------------------------------------------------
+ * ?                       Fastify Cors Config
+ *
+ *  The fastify cors configuration function is very different from express,
+ *  but Nest.js doesn't have clear docs or types describing this so I'm
+ *  documenting it here.
+ *
+ *  This takes a fastify app instance and returns a cors config function, instead
+ *  of just the cors config function (which is nest's default behavior).
+ *------------------------------------------------------------------------**/
+
+/** A wrapper function for the fastify CORS configuration. */
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function configureFastifyCors(app: NestFastifyApplication) {
+    return dynamicCors;
+}
