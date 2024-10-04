@@ -20,6 +20,7 @@ const roles: Record<string, Role> = {
             { resource: 'apikey', action: 'read:any', attributes: '*' },
             { resource: 'cloud', action: 'read:own', attributes: '*' },
             { resource: 'config', action: 'update:own', attributes: '*' },
+            { resource: 'config', action: 'read:any', attributes: '*' },
             { resource: 'connect', action: 'read:own', attributes: '*' },
             { resource: 'connect', action: 'update:own', attributes: '*' },
             { resource: 'customizations', action: 'read:any', attributes: '*' },
@@ -117,6 +118,8 @@ const roles: Record<string, Role> = {
             { resource: 'config', action: 'update:own', attributes: '*' },
             { resource: 'connect', action: 'read:own', attributes: '*' },
             { resource: 'connect', action: 'update:own', attributes: '*' },
+            { resource: 'notifications', action: 'read:any', attributes: '*' },
+            { resource: 'notifications', action: 'update:any', attributes: '*' },
         ],
     },
     my_servers: {
