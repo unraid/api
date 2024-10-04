@@ -1,9 +1,10 @@
 export interface NotificationItemProps {
   id: string;
-  event: string;
-  date: string;
+  title: string;
   subject: string;
-  message: string;
+  description: string;
+  importance: string;
+  link: string;
   type: 'success' | 'warning' | 'alert';
-  view: string;
+  timestamp: string;
 }
