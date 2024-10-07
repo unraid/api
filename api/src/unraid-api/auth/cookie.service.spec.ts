@@ -57,7 +57,7 @@ describe.concurrent('CookieService', () => {
     });
 
     it('can recognize session cookies', async ({ expect }) => {
-        const sessionId = '123abc';
+        const sessionId = '123abcF00';
         await makeSession(sessionId);
         expect(await service.hasValidAuthCookie({ unraid: sessionId })).toBe(false);
         expect(await service.hasValidAuthCookie({ unraid_: sessionId })).toBe(true);
