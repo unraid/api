@@ -1,5 +1,5 @@
 import { Test, type TestingModule } from '@nestjs/testing';
-import { CookieService, SESSION_COOKIE_OPTIONS } from './cookie.service';
+import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
 import { describe, it, beforeAll, afterAll } from 'vitest';
 import { emptyDir, ensureFile } from 'fs-extra';
 
@@ -17,7 +17,7 @@ describe.concurrent('CookieService', () => {
         const module: TestingModule = await Test.createTestingModule({
             providers: [
                 CookieService,
-                { provide: SESSION_COOKIE_OPTIONS, useValue: { namePrefix: 'unraid_', sessionDir } },
+                { provide: SESSION_COOKIE_CONFIG, useValue: { namePrefix: 'unraid_', sessionDir } },
             ],
         }).compile();
 

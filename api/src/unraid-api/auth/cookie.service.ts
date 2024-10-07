@@ -4,9 +4,9 @@ import { Injectable, Inject } from '@nestjs/common';
 import { join } from 'path';
 
 /** token for dependency injection of a session cookie options object */
-export const SESSION_COOKIE_OPTIONS = 'SESSION_COOKIE_OPTIONS';
+export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
 
-type SessionCookieOptions = {
+type SessionCookieConfig = {
     namePrefix: string;
     sessionDir: string;
 };
@@ -14,13 +14,13 @@ type SessionCookieOptions = {
 @Injectable()
 export class CookieService {
     constructor(
-        @Inject(SESSION_COOKIE_OPTIONS) readonly opts: SessionCookieOptions = CookieService.defaultOpts()
+        @Inject(SESSION_COOKIE_CONFIG) readonly opts: SessionCookieConfig = CookieService.defaultOpts()
     ) {}
 
     /**
      * @returns new SessionCookieOptions with `namePrefix: 'unraid_', sessionDir: '/var/lib/php'`
      */
-    static defaultOpts(): SessionCookieOptions {
+    static defaultOpts(): SessionCookieConfig {
         return { namePrefix: 'unraid_', sessionDir: '/var/lib/php' };
     }
 
