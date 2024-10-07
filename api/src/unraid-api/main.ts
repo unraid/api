@@ -12,6 +12,7 @@ import { type Server, type IncomingMessage, type ServerResponse } from 'http';
 import { apiLogger } from '@app/core/log';
 import fastifyCookie from '@fastify/cookie';
 import { configureFastifyCors } from './app/cors';
+import { CookieService } from './auth/cookie.service';
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     const server: FastifyInstance<Server, IncomingMessage, ServerResponse> = Fastify({
@@ -23,7 +24,9 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     });
 
     app.register(fastifyCookie); // parse cookies before cors
-    app.enableCors(configureFastifyCors);
+
+    const cookieService = app.get(CookieService);
+    app.enableCors(configureFastifyCors(cookieService));
 
     // Setup Nestjs Pino Logger
     app.useLogger(app.get(PinoLogger));
