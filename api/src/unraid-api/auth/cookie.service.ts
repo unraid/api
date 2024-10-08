@@ -1,4 +1,5 @@
 import { fileExists } from '@app/core/utils/files/file-exists';
+import { getters } from '@app/store';
 import { batchProcess } from '@app/utils';
 import { Injectable, Inject } from '@nestjs/common';
 import { join } from 'path';
@@ -21,7 +22,7 @@ export class CookieService {
      * @returns new SessionCookieOptions with `namePrefix: 'unraid_', sessionDir: '/var/lib/php'`
      */
     static defaultOpts(): SessionCookieConfig {
-        return { namePrefix: 'unraid_', sessionDir: '/var/lib/php' };
+        return { namePrefix: 'unraid_', sessionDir: getters.paths()['auth-sessions'] };
     }
 
     /**
