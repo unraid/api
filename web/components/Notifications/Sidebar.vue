@@ -31,6 +31,12 @@ const getNotifications = gql`
 `;
 
 const notifications = ref<NotificationItemProps[]>([]);
+watch(notifications, (newVal) => {
+  console.log('[notifications]', newVal);
+});
+
+const fetchType = ref<'UNREAD' | 'ARCHIVED'>('UNREAD');
+const setFetchType = (type: 'UNREAD' | 'ARCHIVED') => fetchType.value = type;
 
 const { unraidApiClient } = storeToRefs(useUnraidApiStore());
 
@@ -42,12 +48,10 @@ watch(unraidApiClient, async(newVal) => {
         filter: {
           offset: 0,
           limit: 10,
-          type: 'UNREAD',
+          type: fetchType.value,
         },
       },
     });
-    console.log('[blah blah]', apiResponse);
-
     notifications.value = apiResponse.data.notifications.list;
   }
 });
@@ -62,38 +66,55 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
       <BellIcon class="w-6 h-6" />
     </SheetTrigger>
 
-    <SheetContent :to="teleportTarget" class="w-full max-w-[400px] sm:max-w-[540px] bg-beta text-alpha">
+    <SheetContent :to="teleportTarget" class="w-full max-w-[400px] sm:max-w-[540px]">
       <SheetHeader>
         <SheetTitle>Notifications</SheetTitle>
       </SheetHeader>
 
-      <Tabs default-value="unread">
-        <TabsList>
-          <TabsTrigger value="unread">
-            Unread
-          </TabsTrigger>
-          <TabsTrigger value="archived">
-            Archived
-          </TabsTrigger>
-        </TabsList>
+      <div class="flex flex-row justify-between items-center">
+        <div class="w-auto flex flex-row justify-start items-center gap-1 p-2 rounded">
+          <Button
+            v-for="opt in ['Unread', 'Archived']"
+            :key="opt"
+            :variant="fetchType === opt ? 'secondary' : undefined"
+            class="py-2 px-4 text-left"
+            @click="setFetchType(opt.toUpperCase() as 'UNREAD' | 'ARCHIVED')"
+          >
+            {{ opt }}
+          </Button>
+        </div>
+        <div class="w-auto flex flex-row justify-start items-center gap-1 p-2 rounded">
+          <Button
+            variant="secondary"
+            class="py-2 px-4 text-left"
+          >
+            {{ `Archive All` }}
+          </Button>
+          <Select>
+            <SelectTrigger>
+              <SelectValue placeholder="Filter" />
+            </SelectTrigger>
+            <SelectContent :to="teleportTarget">
+              <SelectGroup>
+                <SelectLabel>Notification Types</SelectLabel>
+                <SelectItem value="alert">Alert</SelectItem>
+                <SelectItem value="info">Info</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-        <TabsContent value="unread" class="divide-y divide-gray-200">
-          <NotificationsItem
-            v-for="notification in notifications"
-            :key="notification.id"
-            v-bind="notification"
-          />
-        </TabsContent>
-        <TabsContent value="archived" class="divide-y divide-gray-200">
-          <NotificationsItem
-            v-for="notification in archiveNotifications"
-            :key="notification.id"
-            v-bind="notification"
-          />
-        </TabsContent>
-      </Tabs>
+      <div class="divide-y divide-gray-200">
+        <NotificationsItem
+          v-for="notification in notifications"
+          :key="notification.id"
+          v-bind="notification"
+        />
+      </div>
 
-      <SheetFooter>
+      <SheetFooter class="text-center">
         <p>Future pagination station</p>
       </SheetFooter>
     </SheetContent>
