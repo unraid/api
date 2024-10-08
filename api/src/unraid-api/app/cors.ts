@@ -9,7 +9,7 @@ import { type CookieService } from '../auth/cookie.service';
  * Returns whether the origin is allowed to access the API.
  *
  * @throws GraphQLError if the origin is not in the list of allowed origins
- * and `BYPASS_PERMISSION_CHECKS` flag is not set.
+ * and `BYPASS_CORS_CHECKS` flag is not set.
  */
 // note: don't make this function synchronous. throwing will then crash the server.
 export async function isOriginAllowed(origin: string | undefined) {
