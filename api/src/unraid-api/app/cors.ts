@@ -1,7 +1,7 @@
 import { type CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
 import { apiLogger } from '@app/core/log';
 import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { BYPASS_PERMISSION_CHECKS } from '@app/environment';
+import { BYPASS_CORS_CHECKS } from '@app/environment';
 import { GraphQLError } from 'graphql';
 import { type CookieService } from '../auth/cookie.service';
 
@@ -19,7 +19,7 @@ export async function isOriginAllowed(origin: string | undefined) {
     } else {
         apiLogger.debug(`Origin not in allowed origins: ${origin}`);
 
-        if (BYPASS_PERMISSION_CHECKS) {
+        if (BYPASS_CORS_CHECKS) {
             return true;
         }
 
