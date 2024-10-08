@@ -71,7 +71,7 @@ onMounted(() => {
             </div>
             <UserProfileCe :server="serverState" />
           </header>
-          <hr class="border-black dark:border-white">
+          <!-- <hr class="border-black dark:border-white"> -->
 
           <h3 class="text-lg font-semibold font-mono">
             ConnectSettingsCe
