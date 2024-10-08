@@ -25,6 +25,7 @@ test('Returns paths', async () => {
 		  "machine-id",
 		  "log-base",
 		  "var-run",
+		  "auth-sessions",
 		]
 	`);
 });
