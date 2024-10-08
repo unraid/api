@@ -23,7 +23,6 @@ const showExternalIconOnHover = computed(() => props.item?.external && props.ite
     :is="item?.click ? 'button' : 'a'"
     :disabled="item?.disabled"
     :href="item?.href ?? null"
-    :title="item?.title ? t(item?.title) : null"
     :target="item?.external ? '_blank' : null"
     :rel="item?.external ? 'noopener noreferrer' : null"
     class="text-left text-14px w-full flex flex-row items-center justify-between gap-x-8px px-8px py-8px cursor-pointer"
