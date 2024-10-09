@@ -23,6 +23,7 @@ import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 import { CHOKIDAR_USEPOLLING } from '@app/environment';
 import { emptyDir } from 'fs-extra';
+import { execa } from 'execa';
 
 @Injectable()
 export class NotificationsService {
@@ -178,17 +179,46 @@ export class NotificationsService {
 
     public async createNotification(data: NotificationData): Promise<Notification> {
         const id: string = await this.makeNotificationId(data.title);
-        const path = join(this.paths().UNREAD, id);
-
         const fileData = this.makeNotificationFileData(data);
-        this.logger.debug(`[createNotification] FileData: ${JSON.stringify(fileData, null, 4)}`);
-        const ini = encodeIni(fileData);
-        // this.logger.debug(`[createNotification] INI: ${ini}`);
 
-        await writeFile(path, ini);
-        // await this.addToOverview(notification);
-        // make sure both NOTIFICATION_ADDED and NOTIFICATION_OVERVIEW are fired
+        try {
+            const [command, args] = this.getLegacyScriptArgs(fileData);
+            await execa(command, args);
+        } catch (error) {
+            // manually write the file if the script fails
+            this.logger.debug(`[createNotification] legacy notifier failed: ${error}`);
+            this.logger.verbose(`[createNotification] Writing: ${JSON.stringify(fileData, null, 4)}`);
+
+            const path = join(this.paths().UNREAD, id);
+            const ini = encodeIni(fileData);
+            // this.logger.debug(`[createNotification] INI: ${ini}`);
+            await writeFile(path, ini);
+        }
+
         return this.notificationFileToGqlNotification({ id, type: NotificationType.UNREAD }, fileData);
+    }
+
+    /**
+     * Given a NotificationIni, returns a tuple containing the command and arguments to be
+     * passed to the legacy notifier script.
+     *
+     * The tuple represents a cli command to create an unraid notification.
+     *
+     * @param notification The notification to be converted to command line arguments.
+     * @returns A 2-element tuple containing the legacy notifier command and arguments.
+     */
+    public getLegacyScriptArgs(notification: NotificationIni): [string, string[]] {
+        const { event, subject, description, link, importance } = notification;
+        const args = [
+            ['-i', importance],
+            ['-e', event],
+            ['-s', subject],
+            ['-d', description],
+        ];
+        if (link) {
+            args.push(['-l', link]);
+        }
+        return ['/usr/local/emhttp/webGui/scripts/notify', args.flat()];
     }
 
     private async makeNotificationId(eventTitle: string, replacement = '_'): Promise<string> {
