@@ -14,6 +14,7 @@ import {
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { mkdir } from 'fs/promises';
 import { type NotificationIni } from '@app/core/types/states/notification';
+import { execa } from 'execa';
 
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
@@ -382,16 +383,16 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
 
     it.for([['normal'], ['warning'], ['alert']] as const)(
         'yields correct cli args for %ss',
-        ([importance], { expect }) => {
+        async ([importance], { expect }) => {
             const notification: NotificationIni = {
-                event: 'Test Notification',
-                subject: 'Test Subject',
-                description: 'Test Description',
+                event: 'Test Notification !@#$%^&*()_+={}[]|:;"\'<>,.?/~`',
+                subject: 'Test Subject \t\n🚀💻🛠️',
+                description: `Test Description with special characters \t\n©®™✓✓✓—“”‘’`,
                 importance,
-                link: 'https://unraid.net',
+                link: 'https://unraid.net/?query=param&special=💡🔥✨',
                 timestamp: new Date().toISOString(),
             };
-            const [, args] = service.getLegacyScriptArgs(notification);
+            const [cmd, args] = service.getLegacyScriptArgs(notification);
             expect(args).toContain('-i');
             expect(args).toContain('-e');
             expect(args).toContain('-s');
@@ -403,6 +404,9 @@ describe.concurrent('NotificationsService legacy script compatibility', () => {
             expect(args).toContain(notification.description);
             expect(args).toContain(importance);
             expect(args).toContain(notification.link);
+
+            const result = await execa(cmd, args, { reject: false });
+            expect.soft(result.escapedCommand).toMatchSnapshot();
         }
     );
 });

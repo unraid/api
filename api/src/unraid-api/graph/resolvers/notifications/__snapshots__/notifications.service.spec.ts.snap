@@ -1,0 +1,19 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`NotificationsService legacy script compatibility > yields correct cli args for alerts 1`] = `
+""/usr/local/emhttp/webGui/scripts/notify" -i alert -e "Test Notification !@#$%^&*()_+={}[]|:;\\"'<>,.?/~\`" -s "Test Subject 	
+🚀💻🛠️" -d "Test Description with special characters 	
+©®™✓✓✓—“”‘’" -l "https://unraid.net/?query=param&special=💡🔥✨""
+`;
+
+exports[`NotificationsService legacy script compatibility > yields correct cli args for normals 1`] = `
+""/usr/local/emhttp/webGui/scripts/notify" -i normal -e "Test Notification !@#$%^&*()_+={}[]|:;\\"'<>,.?/~\`" -s "Test Subject 	
+🚀💻🛠️" -d "Test Description with special characters 	
+©®™✓✓✓—“”‘’" -l "https://unraid.net/?query=param&special=💡🔥✨""
+`;
+
+exports[`NotificationsService legacy script compatibility > yields correct cli args for warnings 1`] = `
+""/usr/local/emhttp/webGui/scripts/notify" -i warning -e "Test Notification !@#$%^&*()_+={}[]|:;\\"'<>,.?/~\`" -s "Test Subject 	
+🚀💻🛠️" -d "Test Description with special characters 	
+©®™✓✓✓—“”‘’" -l "https://unraid.net/?query=param&special=💡🔥✨""
+`;
