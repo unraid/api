@@ -13,6 +13,7 @@ import {
 } from '@app/graphql/generated/api/types';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { mkdir } from 'fs/promises';
+import { type NotificationIni } from '@app/core/types/states/notification';
 
 // defined outside `describe` so it's defined inside the `beforeAll`
 // needed to mock the dynamix import
@@ -183,8 +184,12 @@ describe.sequential('NotificationsService', () => {
     });
 
     it('generates unique ids', async () => {
-        const notifications = await Promise.all([...new Array(100)].map(() => createNotification()));
-        const notificationIds = new Set(notifications.map((notification) => notification.id));
+        const notifications = await Promise.all(
+            // we break the "rules" here to speed up this test by ~450ms
+            // @ts-expect-error makeNotificationId is private
+            [...new Array(100)].map(() => service.makeNotificationId('test event'))
+        );
+        const notificationIds = new Set(notifications);
         expect(notificationIds.size).toEqual(notifications.length);
     });
 
@@ -362,4 +367,42 @@ describe.sequential('NotificationsService', () => {
         expect.soft(overview.unread.total).toEqual(6);
         expect.soft(overview.archive.total).toEqual(3);
     });
+});
+
+describe.concurrent('NotificationsService legacy script compatibility', () => {
+    let service: NotificationsService;
+
+    beforeAll(async () => {
+        const module: TestingModule = await Test.createTestingModule({
+            providers: [NotificationsService],
+        }).compile();
+
+        service = module.get<NotificationsService>(NotificationsService);
+    });
+
+    it.for([['normal'], ['warning'], ['alert']] as const)(
+        'yields correct cli args for %ss',
+        ([importance], { expect }) => {
+            const notification: NotificationIni = {
+                event: 'Test Notification',
+                subject: 'Test Subject',
+                description: 'Test Description',
+                importance,
+                link: 'https://unraid.net',
+                timestamp: new Date().toISOString(),
+            };
+            const [, args] = service.getLegacyScriptArgs(notification);
+            expect(args).toContain('-i');
+            expect(args).toContain('-e');
+            expect(args).toContain('-s');
+            expect(args).toContain('-d');
+            expect(args).toContain('-l');
+
+            expect(args).toContain(notification.event);
+            expect(args).toContain(notification.subject);
+            expect(args).toContain(notification.description);
+            expect(args).toContain(importance);
+            expect(args).toContain(notification.link);
+        }
+    );
 });
