@@ -21,7 +21,7 @@ export class UnraidLocalNotifier extends Notifier {
 	constructor(options: NotifierOptions = {}) {
 		super(options);
 
-		this.level = this.convertNotifierLevel(options.level ?? 'info');
+		this.level = options.importance ?? this.convertNotifierLevel(options.level ?? 'info');
 		this.template = options.template ?? '{{ message }}';
 	}
 
