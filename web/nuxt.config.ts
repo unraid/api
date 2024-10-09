@@ -1,5 +1,7 @@
 import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
+import strip from '@rollup/plugin-strip';
+
 const envConfig = parse(readFileSync('.env'));
 console.log('\n');
 console.log('==============================');
@@ -74,6 +76,13 @@ export default defineNuxtConfig({
               toplevel: true,
             },
       },
+      rollupOptions: {
+        plugins: [
+          strip({
+            functions: ['console.log', 'console.debug', 'console.info'],
+          })
+        ]
+      }
     },
   },
   customElements: {
