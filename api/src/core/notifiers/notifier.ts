@@ -1,10 +1,12 @@
 import Mustache from 'mustache';
 import { type LooseObject } from '@app/core/types';
+import { type NotificationIni } from '../types/states/notification';
 
 export type NotifierLevel = 'info' | 'warn' | 'error';
 
 export type NotifierOptions = Partial<{
 	level: NotifierLevel;
+	importance?: NotificationIni['importance'];
 	helpers?: Record<string, unknown>;
 	template?: string;
 }>;
