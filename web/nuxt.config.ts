@@ -69,7 +69,7 @@ export default defineNuxtConfig({
   vite: {
     plugins: [
       removeConsole({
-        includes: ["log", "warn", "error", "info", "debug"],
+        includes: process.env.VITE_ALLOW_CONSOLE_LOGS ? [] : ["log", "warn", "error", "info", "debug"],
       }),
     ],
     build: {
