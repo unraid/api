@@ -1,6 +1,8 @@
 import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
-import strip from '@rollup/plugin-strip';
+import removeConsole from "vite-plugin-remove-console";
+import type { ViteConfig } from 'nuxt/schema';
+
 
 const envConfig = parse(readFileSync('.env'));
 console.log('\n');
@@ -48,26 +50,31 @@ export default defineNuxtConfig({
     enabled: true,
   },
   modules: [
-    '@vueuse/nuxt',
-    '@pinia/nuxt',
-    '@nuxtjs/tailwindcss',
-    'nuxt-custom-elements',
-    "@nuxt/eslint"
+    "@vueuse/nuxt",
+    "@pinia/nuxt",
+    "@nuxtjs/tailwindcss",
+    "nuxt-custom-elements",
+    "@nuxt/eslint",
   ],
   components: [
-    { path: '~/components/Brand', prefix: 'Brand' },
-    { path: '~/components/ConnectSettings', prefix: 'ConnectSettings' },
-    { path: '~/components/Ui', prefix: 'Ui' },
-    { path: '~/components/UserProfile', prefix: 'Upc' },
-    { path: '~/components/UpdateOs', prefix: 'UpdateOs' },
-    '~/components',
+    { path: "~/components/Brand", prefix: "Brand" },
+    { path: "~/components/ConnectSettings", prefix: "ConnectSettings" },
+    { path: "~/components/Ui", prefix: "Ui" },
+    { path: "~/components/UserProfile", prefix: "Upc" },
+    { path: "~/components/UpdateOs", prefix: "UpdateOs" },
+    "~/components",
   ],
   // typescript: {
   //   typeCheck: true
   // },
   vite: {
+    plugins: [
+      removeConsole({
+        includes: ["log", "warn", "error", "info", "debug"],
+      }),
+    ],
     build: {
-      minify: 'terser',
+      minify: "terser",
       terserOptions: {
         mangle: process.env.VITE_ALLOW_CONSOLE_LOGS
           ? false
@@ -76,63 +83,56 @@ export default defineNuxtConfig({
               toplevel: true,
             },
       },
-      rollupOptions: {
-        plugins: [
-          strip({
-            functions: ['console.log', 'console.debug', 'console.info'],
-          })
-        ]
-      }
     },
   },
   customElements: {
     entries: [
       {
-        name: 'UnraidComponents',
+        name: "UnraidComponents",
         tags: [
           {
-            name: 'UnraidI18nHost',
-            path: '@/components/I18nHost.ce',
+            name: "UnraidI18nHost",
+            path: "@/components/I18nHost.ce",
           },
           {
-            name: 'UnraidAuth',
-            path: '@/components/Auth.ce',
+            name: "UnraidAuth",
+            path: "@/components/Auth.ce",
           },
           {
-            name: 'UnraidConnectSettings',
-            path: '@/components/ConnectSettings/ConnectSettings.ce',
+            name: "UnraidConnectSettings",
+            path: "@/components/ConnectSettings/ConnectSettings.ce",
           },
           {
-            name: 'UnraidDownloadApiLogs',
-            path: '@/components/DownloadApiLogs.ce',
+            name: "UnraidDownloadApiLogs",
+            path: "@/components/DownloadApiLogs.ce",
           },
           {
-            name: 'UnraidHeaderOsVersion',
-            path: '@/components/HeaderOsVersion.ce',
+            name: "UnraidHeaderOsVersion",
+            path: "@/components/HeaderOsVersion.ce",
           },
           {
-            name: 'UnraidModals',
-            path: '@/components/Modals.ce',
+            name: "UnraidModals",
+            path: "@/components/Modals.ce",
           },
           {
-            name: 'UnraidUserProfile',
-            path: '@/components/UserProfile.ce',
+            name: "UnraidUserProfile",
+            path: "@/components/UserProfile.ce",
           },
           {
-            name: 'UnraidUpdateOs',
-            path: '@/components/UpdateOs.ce',
+            name: "UnraidUpdateOs",
+            path: "@/components/UpdateOs.ce",
           },
           {
-            name: 'UnraidDowngradeOs',
-            path: '@/components/DowngradeOs.ce',
+            name: "UnraidDowngradeOs",
+            path: "@/components/DowngradeOs.ce",
           },
           {
-            name: 'UnraidRegistration',
-            path: '@/components/Registration.ce',
+            name: "UnraidRegistration",
+            path: "@/components/Registration.ce",
           },
           {
-            name: 'UnraidWanIpCheck',
-            path: '@/components/WanIpCheck.ce',
+            name: "UnraidWanIpCheck",
+            path: "@/components/WanIpCheck.ce",
           },
         ],
       },
