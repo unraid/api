@@ -1,7 +1,6 @@
 import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
 import removeConsole from "vite-plugin-remove-console";
-import type { ViteConfig } from 'nuxt/schema';
 
 
 const envConfig = parse(readFileSync('.env'));
