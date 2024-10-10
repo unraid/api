@@ -14,33 +14,33 @@ import { useUnraidApiStore } from "~/store/unraidApi";
 import gql from "graphql-tag";
 
 const getNotifications = gql`
-    query Notifications($filter: NotificationFilter!) {
-      notifications {
-        list(filter: $filter) {
-          id
-          title
-          subject
-          description
-          importance
-          link
-          type
-          timestamp
-        }
+  query Notifications($filter: NotificationFilter!) {
+    notifications {
+      list(filter: $filter) {
+        id
+        title
+        subject
+        description
+        importance
+        link
+        type
+        timestamp
       }
     }
+  }
 `;
 
 const notifications = ref<NotificationItemProps[]>([]);
 watch(notifications, (newVal) => {
-  console.log('[notifications]', newVal);
+  console.log("[notifications]", newVal);
 });
 
-const fetchType = ref<'UNREAD' | 'ARCHIVED'>('UNREAD');
-const setFetchType = (type: 'UNREAD' | 'ARCHIVED') => fetchType.value = type;
+const fetchType = ref<"UNREAD" | "ARCHIVED">("UNREAD");
+const setFetchType = (type: "UNREAD" | "ARCHIVED") => (fetchType.value = type);
 
 const { unraidApiClient } = storeToRefs(useUnraidApiStore());
 
-watch(unraidApiClient, async(newVal) => {
+watch(unraidApiClient, async (newVal) => {
   if (newVal) {
     const apiResponse = await newVal.query({
       query: getNotifications,
@@ -66,30 +66,41 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
       <BellIcon class="w-6 h-6" />
     </SheetTrigger>
 
-    <SheetContent :to="teleportTarget" class="w-full max-w-[400px] sm:max-w-[540px]">
+    <SheetContent
+      :to="teleportTarget"
+      class="w-full overflow-y-scroll max-w-[400px] sm:max-w-[540px]"
+    >
       <SheetHeader>
         <SheetTitle>Notifications</SheetTitle>
       </SheetHeader>
 
-      <div class="flex flex-row justify-between items-center">
-        <div class="w-auto flex flex-row justify-start items-center gap-1 p-2 rounded">
-          <Button
-            v-for="opt in ['Unread', 'Archived']"
-            :key="opt"
-            :variant="fetchType === opt ? 'secondary' : undefined"
-            class="py-2 px-4 text-left"
-            @click="setFetchType(opt.toUpperCase() as 'UNREAD' | 'ARCHIVED')"
-          >
-            {{ opt }}
-          </Button>
-        </div>
-        <div class="w-auto flex flex-row justify-start items-center gap-1 p-2 rounded">
+      <Tabs default-value="unread" class="">
+        <div class="flex flex-row justify-between items-center flex-wrap gap-2">
+          <TabsList class="ml-[1px]">
+            <TabsTrigger
+              class="text-[1rem] leading-[1.3rem]"
+              value="unread"
+              @click="setFetchType('UNREAD')"
+            >
+              Unread
+            </TabsTrigger>
+            <TabsTrigger
+              class="text-[1rem] leading-[1.3rem]"
+              value="archived"
+              @="setFetchType('ARCHIVED')"
+            >
+              Archived
+            </TabsTrigger>
+          </TabsList>
+
           <Button
             variant="secondary"
-            class="py-2 px-4 text-left"
+            size="sm"
+            class="text-[1rem] leading-[1.3rem]"
           >
             {{ `Archive All` }}
           </Button>
+
           <Select>
             <SelectTrigger>
               <SelectValue placeholder="Filter" />
@@ -104,15 +115,23 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
             </SelectContent>
           </Select>
         </div>
-      </div>
 
-      <div class="divide-y divide-gray-200">
-        <NotificationsItem
-          v-for="notification in notifications"
-          :key="notification.id"
-          v-bind="notification"
-        />
-      </div>
+        <TabsContent value="unread">
+          <ScrollArea>
+            <div class="divide-y divide-gray-200">
+              <NotificationsItem
+                v-for="notification in notifications"
+                :key="notification.id"
+                v-bind="notification"
+              />
+            </div>
+          </ScrollArea>
+        </TabsContent>
+
+        <TabsContent value="archived">
+          <p>Archived</p>
+        </TabsContent>
+      </Tabs>
 
       <SheetFooter class="text-center">
         <p>Future pagination station</p>
