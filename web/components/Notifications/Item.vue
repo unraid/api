@@ -34,7 +34,7 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
 </script>
 
 <template>
-  <div class="group/item relative w-full py-4 flex flex-col gap-2">
+  <div class="group/item relative w-full py-4 pl-1 flex flex-col gap-2">
     <header class="w-full flex flex-row items-start justify-between gap-2">
       <h3 class="text-16px font-semibold leading-2 flex flex-row items-start gap-2">
         <component :is="icon.component" v-if="icon" class="size-6 shrink-0" :class="icon.color" />
