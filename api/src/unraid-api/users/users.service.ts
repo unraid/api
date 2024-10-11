@@ -46,4 +46,19 @@ export class UsersService {
     findOne(apiKey: string): UserAccount | null {
         return this.apiKeyToUser(apiKey);
     }
+
+    /**
+     * Returns a user object representing a session.
+     * Note: Does NOT perform validation.
+     *
+     * @returns a service account that represents the user session (i.e. a webgui user).
+     */
+    getSessionUser(): UserAccount {
+        return {
+            id: '-1',
+            description: 'UPC service account',
+            name: 'upc',
+            roles: 'upc',
+        };
+    }
 }

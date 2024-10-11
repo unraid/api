@@ -38,11 +38,12 @@ watch(notifications, (newVal) => {
 const fetchType = ref<"UNREAD" | "ARCHIVED">("UNREAD");
 const setFetchType = (type: "UNREAD" | "ARCHIVED") => (fetchType.value = type);
 
-const { unraidApiClient } = storeToRefs(useUnraidApiStore());
+const { unraidApiClient: maybeApi } = storeToRefs(useUnraidApiStore());
 
-watch(unraidApiClient, async (newVal) => {
-  if (newVal) {
-    const apiResponse = await newVal.query({
+
+watch(maybeApi, async (apiClient) => {
+  if (apiClient) {
+    const apiResponse = await apiClient.query({
       query: getNotifications,
       variables: {
         filter: {
