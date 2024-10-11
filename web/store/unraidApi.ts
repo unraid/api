@@ -85,11 +85,13 @@ export const useUnraidApiStore = defineStore('unraidApi', () => {
     // return; // @todo remove
     unraidApiStatus.value = 'connecting';
 
-    const headers = { 'x-api-key': serverStore.apiKey };
+    // const headers = { 'x-api-key': serverStore.apiKey };
+    const headers = {};
 
     const httpLink = createHttpLink({
       uri: httpEndpoint.toString(),
       headers,
+      credentials: "include",
     });
 
     const wsLink = new GraphQLWsLink(

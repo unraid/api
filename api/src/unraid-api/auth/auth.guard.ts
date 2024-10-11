@@ -11,10 +11,11 @@ import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 import { type Observable } from 'rxjs';
+import { UserCookieStrategy } from './cookie.strategy';
 
 @Injectable()
 export class GraphqlAuthGuard
-    extends AuthGuard([ServerHeaderStrategy.key])
+    extends AuthGuard([ServerHeaderStrategy.key, UserCookieStrategy.key])
     implements CanActivate
 {
     constructor(private readonly reflector: Reflector) {
