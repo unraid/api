@@ -1,5 +1,9 @@
 {
     "imports": {
-        "@app/": "./src/"
-    }
+        "xml2js": "npm:xml2js",
+        "@app/": "./src/",
+        "@std/collections": "jsr:@std/collections@^1.0.8",
+        "@vmngr/libvirt": "https://cdn.jsdelivr.net/gh/elibosley/libvirt-deno@HEAD/lib/index.ts"
+    },
+    "nodeModulesDir": "auto"
 }

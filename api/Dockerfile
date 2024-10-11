@@ -35,6 +35,8 @@ COPY package.json package-lock.json ./
 # Install deps
 RUN npm i
 
+RUN npm i -g node-gyp
+
 RUN deno install --allow-read --allow-write --allow-env --allow-net --allow-run
 
 # Add zx and pkg to the path

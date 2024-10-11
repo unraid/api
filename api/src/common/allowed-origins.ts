@@ -1,5 +1,5 @@
 import { getters, type RootState, store } from '@app/store';
-import { uniq } from 'lodash';
+
 import {
     getServerIps,
     getUrlForField,
@@ -18,6 +18,8 @@ const getAllowedSocks = (): string[] => [
     // CLI
     '/var/run/unraid-cli.sock',
 ];
+
+
 
 const getLocalAccessUrlsForServer = (
     state: RootState = store.getState()
@@ -102,11 +104,12 @@ const getApolloSandbox = (): string[] => {
 export const getAllowedOrigins = (
     state: RootState = store.getState()
 ): string[] =>
-    uniq([
+    Array.from(new Set([
         ...getAllowedSocks(),
         ...getLocalAccessUrlsForServer(),
         ...getRemoteAccessUrlsForAllowedOrigins(state),
         ...getExtraOrigins(),
         ...getConnectOrigins(),
         ...getApolloSandbox(),
-    ]).map((url) => (url.endsWith('/') ? url.slice(0, -1) : url));
+    ]))
+    .map((url) => (url.endsWith('/') ? url.slice(0, -1) : url));

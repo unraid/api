@@ -1,12 +1,11 @@
 import { access } from 'node:fs/promises';
 import { constants } from 'node:fs';
 
-import { Hypervisor } from '@vmngr/libvirt';
 import { libvirtLogger } from '@app/core/log';
 
 const uri = process.env.LIBVIRT_URI ?? 'qemu:///system';
 
-let hypervisor: Hypervisor | null;
+let hypervisor: unknown | null;
 
 const libvirtPid = '/var/run/libvirt/libvirtd.pid';
 
@@ -19,7 +18,8 @@ const isLibvirtRunning = async (): Promise<boolean> => {
     }
 };
 
-export const getHypervisor = async (): Promise<Hypervisor> => {
+export const getHypervisor = async (): Promise<unknown> => {
+    /*
     // Return hypervisor if it's already connected
     const running = await isLibvirtRunning();
 
@@ -41,7 +41,7 @@ export const getHypervisor = async (): Promise<Hypervisor> => {
         );
 
         throw error;
-    });
-
+    });*/
+    const hypervisor = null;
     return hypervisor;
 };

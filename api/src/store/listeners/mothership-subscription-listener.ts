@@ -7,28 +7,42 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { minigraphLogger } from '@app/core/log';
 import { isEqual } from 'lodash';
 
-export const enableMothershipJobsListener = () => startAppListening({
-	predicate(action, currentState, previousState) {
-		// This event happens on first app load, or if a user signs out and signs back in, etc
-		if (!isEqual(getMothershipConnectionParams(currentState), getMothershipConnectionParams(previousState)) && getMothershipConnectionParams(currentState)?.apiKey) {
-			minigraphLogger.info('Connecting / Reconnecting Mothership Due to Changed Config File or First Load')
-			return true;
-		}
+export const enableMothershipJobsListener = () =>
+    startAppListening({
+        predicate(action, currentState, previousState) {
+            // This event happens on first app load, or if a user signs out and signs back in, etc
+            if (
+                !isEqual(
+                    getMothershipConnectionParams(currentState),
+                    getMothershipConnectionParams(previousState)
+                ) &&
+                getMothershipConnectionParams(currentState)?.apiKey
+            ) {
+                minigraphLogger.info(
+                    'Connecting / Reconnecting Mothership Due to Changed Config File or First Load'
+                );
+                return true;
+            }
 
-		if (setGraphqlConnectionStatus.match(action) && [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(action.payload.status)) {
-			minigraphLogger.info('Reconnecting Mothership - PING_FAILURE / PRE_INIT - SetGraphQLConnectionStatus Event')
-			return true;
-		}
+            if (
+                setGraphqlConnectionStatus.match(action) &&
+                [MinigraphStatus.PING_FAILURE, MinigraphStatus.PRE_INIT].includes(action.payload.status)
+            ) {
+                minigraphLogger.info(
+                    'Reconnecting Mothership - PING_FAILURE / PRE_INIT - SetGraphQLConnectionStatus Event'
+                );
+                return true;
+            }
 
-		return false;
-	}, async effect(_, { getState }) {
-		await GraphQLClient.clearInstance();
-		if (getMothershipConnectionParams(getState())?.apiKey) {
-			const client = GraphQLClient.createSingletonInstance();
-			if (client) {
-				await subscribeToEvents(getState().config.remote.apikey);
-			}
-
-		}
-	},
-});
+            return false;
+        },
+        async effect(_, { getState }) {
+            await GraphQLClient.clearInstance();
+            if (getMothershipConnectionParams(getState())?.apiKey) {
+                const client = GraphQLClient.createSingletonInstance();
+                if (client) {
+                    await subscribeToEvents(getState().config.remote.apikey);
+                }
+            }
+        },
+    });
