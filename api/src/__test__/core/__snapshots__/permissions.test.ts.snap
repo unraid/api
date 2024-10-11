@@ -23,6 +23,9 @@ RolesBuilder {
         ],
       },
       "config": {
+        "read:any": [
+          "*",
+        ],
         "update:own": [
           "*",
         ],
@@ -406,6 +409,14 @@ RolesBuilder {
       },
       "logs": {
         "read:any": [
+          "*",
+        ],
+      },
+      "notifications": {
+        "read:any": [
+          "*",
+        ],
+        "update:any": [
           "*",
         ],
       },
