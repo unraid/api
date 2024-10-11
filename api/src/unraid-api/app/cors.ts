@@ -69,12 +69,12 @@ export const configureFastifyCors =
         if (typeof cookies === 'object') {
             service.hasValidAuthCookie(cookies).then((isValid) => {
                 if (isValid) {
-                    callback(null, { origin: true });
+                    callback(null, { credentials: true, origin: true });
                 } else {
-                    callback(null, { origin: isOriginAllowed });
+                    callback(null, { credentials: true, origin: isOriginAllowed });
                 }
             });
         } else {
-            callback(null, { origin: isOriginAllowed });
+            callback(null, { credentials: true, origin: isOriginAllowed });
         }
     };
