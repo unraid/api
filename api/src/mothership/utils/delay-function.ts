@@ -1,4 +1,4 @@
-import { type DelayFunctionOptions } from '@apollo/client/link/retry/delayFunction';
+import { type DelayFunctionOptions } from '@apollo/client/link/retry/delayFunction.js';
 
 export function buildDelayFunction(
 	delayOptions?: DelayFunctionOptions,

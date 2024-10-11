@@ -1,4 +1,4 @@
-import { join } from 'path';
+import { join } from 'node:path';
 import { expect, test } from 'vitest';
 import { store } from '@app/store';
 import type { SlotsIni } from '@app/store/state-parsers/slots';

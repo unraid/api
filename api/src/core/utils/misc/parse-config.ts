@@ -3,10 +3,10 @@ import camelCaseKeys from 'camelcase-keys';
 import { includeKeys } from 'filter-obj';
 import mapObject from 'map-obj';
 import { AppError } from '@app/core/errors/app-error';
-import { accessSync, readFileSync } from 'fs';
-import { access } from 'fs/promises';
-import { F_OK } from 'constants';
-import { extname } from 'path';
+import { accessSync, readFileSync } from 'node:fs';
+import { access } from 'node:fs/promises';
+import { F_OK } from 'node:constants';
+import { extname } from 'node:path';
 
 type ConfigType = 'ini' | 'cfg';
 

@@ -1,4 +1,3 @@
-import { execSync } from 'child_process';
 import 'dotenv/config';
 import { defineConfig } from 'tsup';
 import { version } from './package.json';

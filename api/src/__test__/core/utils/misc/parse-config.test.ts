@@ -1,7 +1,7 @@
 import { test, expect } from 'vitest';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { Parser as MultiIniParser } from 'multi-ini';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { parse } from 'ini';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 

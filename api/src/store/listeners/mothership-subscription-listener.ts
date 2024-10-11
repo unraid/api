@@ -1,11 +1,11 @@
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { subscribeToEvents } from '@app/mothership/subscribe-to-mothership';
 import { getMothershipConnectionParams } from '@app/mothership/utils/get-mothership-websocket-headers';
-import isEqual from 'lodash/isEqual';
 import { GraphQLClient } from '@app/mothership/graphql-client';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { minigraphLogger } from '@app/core/log';
+import { isEqual } from 'lodash';
 
 export const enableMothershipJobsListener = () => startAppListening({
 	predicate(action, currentState, previousState) {

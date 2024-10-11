@@ -1,4 +1,4 @@
-import { format } from 'util';
+import { format } from 'node:util';
 import { AppError } from '@app/core/errors/app-error';
 
 /**

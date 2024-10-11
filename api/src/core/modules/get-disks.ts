@@ -4,7 +4,6 @@ import {
     blockDevices,
     diskLayout,
 } from 'systeminformation';
-import { map as asyncMap } from 'p-iteration';
 import {
     type Disk,
     DiskInterfaceType,
@@ -12,6 +11,13 @@ import {
     DiskFsType,
 } from '@app/graphql/generated/api/types';
 import { graphqlLogger } from '@app/core/log';
+
+const asyncMap = async <T, U>(
+    array: T[],
+    callback: (item: T, index: number, array: T[]) => Promise<U>
+): Promise<U[]> => {
+    return Promise.all(array.map(callback));
+};
 
 const getTemperature = async (
     disk: Systeminformation.DiskLayoutData

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { join, resolve as resolvePath } from 'path';
+import { join, resolve as resolvePath } from 'node:path';
 
 const initialState = {
     core: __dirname,

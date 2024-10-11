@@ -1,7 +1,7 @@
 import { FileLoadStatus, StateFileKey, type StateFileToIniParserMap } from '@app/store/types';
 import { createAsyncThunk, createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
-import { join } from 'path';
+import { merge } from 'lodash';
+import { join } from 'node:path';
 import { emhttpLogger } from '@app/core/log';
 import { parseConfig } from '@app/core/utils/misc/parse-config';
 import { type Devices } from '@app/core/types/states/devices';

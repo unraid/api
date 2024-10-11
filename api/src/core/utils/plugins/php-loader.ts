@@ -1,4 +1,4 @@
-import path from 'path';
+import path from 'node:path';
 import { execa } from 'execa';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
 import { type LooseObject, type LooseStringObject } from '@app/core/types';

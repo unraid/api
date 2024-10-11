@@ -1,5 +1,5 @@
 import { PubSub } from 'graphql-subscriptions';
-import EventEmitter from 'events';
+import EventEmitter from 'node:events';
 
 // Allow subscriptions to have 30 connections
 const eventEmitter = new EventEmitter();

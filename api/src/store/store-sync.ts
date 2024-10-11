@@ -5,9 +5,9 @@ import { syncRegistration } from '@app/store/sync/registration-sync';
 import { syncInfoApps } from '@app/store/sync/info-apps-sync';
 import { setupConfigPathWatch } from '@app/store/watch/config-watch';
 import { NODE_ENV } from '@app/environment';
-import { writeFileSync } from 'fs';
+import { writeFileSync } from 'node:fs';
 import { isEqual } from 'lodash';
-import { join } from 'path';
+import { join } from 'node:path';
 
 export const startStoreSync = async () => {
     // The last state is stored so we don't end up in a loop of writing -> reading -> writing

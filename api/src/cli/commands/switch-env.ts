@@ -1,5 +1,5 @@
-import { copyFile, readFile, writeFile } from 'fs/promises';
-import { join } from 'path';
+import { copyFile, readFile, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
 import { cliLogger } from '@app/core/log';
 import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
 import { setEnv } from '@app/cli/set-env';

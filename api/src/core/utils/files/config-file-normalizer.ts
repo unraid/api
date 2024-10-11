@@ -4,11 +4,11 @@ import {
     type SliceState as ConfigSliceState,
     initialState,
 } from '@app/store/modules/config';
-import { type RecursivePartial } from '@app/types';
+import type { RecursivePartial } from '@app/types/index.d.ts';
 import type {
     MyServersConfig,
     MyServersConfigMemory,
-} from '@app/types/my-servers-config';
+} from '@app/types/my-servers-config.d.ts';
 import { isEqual } from 'lodash';
 
 export type ConfigType = 'flash' | 'memory';

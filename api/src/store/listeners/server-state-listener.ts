@@ -4,8 +4,7 @@ import { getServers } from '@app/graphql/schema/utils';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { FileLoadStatus } from '@app/store/types';
-
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash';
 
 export const enableServerStateListener = () =>
     startAppListening({

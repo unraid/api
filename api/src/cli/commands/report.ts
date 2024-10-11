@@ -17,7 +17,7 @@ import {
     type ApolloQueryResult,
     type ApolloClient,
     type NormalizedCacheObject,
-} from '@apollo/client/core/core.cjs';
+} from '@apollo/client/core/index.js';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import { loadStateFiles } from '@app/store/modules/emhttp';

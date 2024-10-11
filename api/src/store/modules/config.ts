@@ -1,28 +1,27 @@
 import { parseConfig } from '@app/core/utils/misc/parse-config';
-import {
-    type MyServersConfig,
-    type MyServersConfigMemory,
-} from '@app/types/my-servers-config';
+import type {
+    MyServersConfig,
+    MyServersConfigMemory,
+} from '@app/types/my-servers-config.d.ts';
 import {
     createAsyncThunk,
     createSlice,
     type PayloadAction,
 } from '@reduxjs/toolkit';
-import { access } from 'fs/promises';
-import merge from 'lodash/merge';
+import { access } from 'node:fs/promises';
 import { FileLoadStatus } from '@app/store/types';
-import { F_OK } from 'constants';
-import { type RecursivePartial } from '@app/types';
+import { F_OK } from 'node:constants';
+import type { RecursivePartial } from '@app/types/index.d.ts';
 import { DynamicRemoteAccessType, MinigraphStatus, type Owner } from '@app/graphql/generated/api/types';
 import { type RootState } from '@app/store';
-import { randomBytes } from 'crypto';
+import { randomBytes } from 'node:crypto';
 import { logger } from '@app/core/log';
 import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-status';
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
-import { writeFileSync } from 'fs';
+import { writeFileSync } from 'node:fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
-import { isEqual } from 'lodash';
+import { isEqual, merge } from 'lodash';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 
 export type SliceState = {

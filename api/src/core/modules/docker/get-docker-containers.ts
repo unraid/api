@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs from 'node:fs';
 import camelCaseKeys from 'camelcase-keys';
 import { catchHandlers } from '@app/core/utils/misc/catch-handlers';
 import { getters, store } from '@app/store';

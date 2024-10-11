@@ -3,7 +3,7 @@ import { emhttpLogger } from '@app/core/log';
 import { watch, type FSWatcher, type WatchOptions } from 'chokidar';
 import { getters, store } from '@app/store';
 import { StateFileKey } from '@app/store/types';
-import { parse, join } from 'path';
+import { parse, join } from 'node:path';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
 import { CHOKIDAR_USEPOLLING } from '@app/environment';
 

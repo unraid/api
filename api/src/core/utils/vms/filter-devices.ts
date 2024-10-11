@@ -1,6 +1,13 @@
 import { execa } from 'execa';
-import { map as asyncMap } from 'p-iteration';
+
 import { sync as commandExistsSync } from 'command-exists';
+
+const asyncMap = async <T, U>(
+    array: T[],
+    callback: (item: T, index: number, array: T[]) => Promise<U>
+): Promise<U[]> => {
+    return Promise.all(array.map(callback));
+};
 
 interface Device {
 	id: string;

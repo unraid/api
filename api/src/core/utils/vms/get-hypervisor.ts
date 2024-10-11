@@ -1,5 +1,5 @@
-import { access } from 'fs/promises';
-import { constants } from 'fs';
+import { access } from 'node:fs/promises';
+import { constants } from 'node:fs';
 
 import { Hypervisor } from '@vmngr/libvirt';
 import { libvirtLogger } from '@app/core/log';

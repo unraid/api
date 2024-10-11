@@ -13,7 +13,11 @@ RUN apt-get update -y && apt-get install -y \
     jq \
     zstd \
     git \
-    build-essential
+    build-essential \
+    zip \
+    curl
+
+RUN curl -fsSL https://deno.land/install.sh | sh -s -- -y
 
 WORKDIR /app
 
@@ -28,11 +32,14 @@ COPY tsconfig.json tsup.config.ts .eslintrc.cjs .npmrc .env.production .env.stag
 
 COPY package.json package-lock.json ./
 
-# Install pkg
-RUN npm i -g pkg zx
-
 # Install deps
 RUN npm i
+
+RUN deno install --allow-read --allow-write --allow-env --allow-net --allow-run
+
+# Add zx and pkg to the path
+ENV PATH /root/.deno/bin:$PATH
+ENV PATH /app/node_modules/.bin:$PATH
 
 EXPOSE 4000
 

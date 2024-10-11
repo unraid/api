@@ -15,7 +15,7 @@ import { FileLoadStatus } from '@app/store/types';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { isFulfilled } from '@reduxjs/toolkit';
 import { environment } from '@app/environment';
-import { writeFileSync } from 'fs';
+import { writeFileSync } from 'node:fs';
 
 const actionIsLoginOrLogout = isFulfilled(logoutUser, loginUser);
 

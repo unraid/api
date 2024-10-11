@@ -2,11 +2,11 @@ import {
     createSlice,
     type PayloadAction,
 } from '@reduxjs/toolkit';
-import merge from 'lodash/merge';
 import { FileLoadStatus } from '@app/store/types';
-import { type RecursivePartial } from '@app/types';
+import type { RecursivePartial } from '@app/types/index.d.ts';
 import { type DynamixConfig } from '@app/core/types/ini';
 import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
+import { merge } from 'lodash';
 
 export type SliceState = {
     status: FileLoadStatus;

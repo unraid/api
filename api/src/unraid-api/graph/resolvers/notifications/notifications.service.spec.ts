@@ -1,7 +1,7 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { NotificationsService } from './notifications.service';
 import { describe, it, expect, vi, beforeAll, afterEach } from 'vitest';
-import { existsSync } from 'fs';
+import { existsSync } from 'node:fs';
 import {
     Importance,
     type NotificationData,
@@ -12,7 +12,7 @@ import {
     type NotificationFilter,
 } from '@app/graphql/generated/api/types';
 import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import { mkdir } from 'fs/promises';
+import { mkdir } from 'node:fs/promises';
 import { type NotificationIni } from '@app/core/types/states/notification';
 import { execa } from 'execa';
 

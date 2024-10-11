@@ -5,7 +5,7 @@ import {
     WAN_FORWARD_TYPE,
 } from '@app/graphql/generated/api/types';
 import { type AppDispatch, type RootState } from '@app/store/index';
-import { type MyServersConfig } from '@app/types/my-servers-config';
+import type { MyServersConfig } from '@app/types/my-servers-config.d.ts';
 import { createAsyncThunk } from '@reduxjs/toolkit';
 
 const getDynamicRemoteAccessType = (

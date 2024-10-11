@@ -7,7 +7,9 @@ import {
 import { store } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
 import { GraphQLError } from 'graphql';
-import sum from 'lodash/sum';
+
+// Utility function to sum an array of numbers
+const sum = (numbers: number[]): number => numbers.reduce((acc, num) => acc + num, 0);
 
 export const getArrayData = (getState = store.getState): ArrayType => {
     // Var state isn't loaded
@@ -35,9 +37,9 @@ export const getArrayData = (getState = store.getState): ArrayType => {
     const disks = allDisks.filter((disk) => disk.type === ArrayDiskType.DATA);
     const caches = allDisks.filter((disk) => disk.type === ArrayDiskType.CACHE);
     // Disk sizes
-    const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize));
-    const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree));
-    const disksUsedKBytes = sum(disks.map((disk) => disk.fsUsed));
+    const disksTotalKBytes = sum(disks.map((disk) => disk.fsSize).filter((size): size is number => size !== undefined));
+    const disksFreeKBytes = sum(disks.map((disk) => disk.fsFree).filter((free): free is number => free !== undefined));
+    const disksUsedKBytes = sum(disks.map((disk) => disk.fsUsed).filter((used): used is number => used !== undefined));
 
     // Max
     const maxDisks = emhttp.var.maxArraysz ?? disks.length;

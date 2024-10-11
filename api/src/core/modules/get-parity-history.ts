@@ -1,4 +1,4 @@
-import { promises as fs } from 'fs';
+import { promises as fs } from 'node:fs';
 import { type CoreResult, type CoreContext } from '@app/core/types';
 import { FileMissingError } from '@app/core/errors/file-missing-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';

@@ -1,6 +1,6 @@
 import { Test, type TestingModule } from '@nestjs/testing';
 import { WriteFlashFileService } from './write-flash-file.service';
-import { readFileSync, writeFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { getters } from '@app/store/index';
 
 describe('WriteFlashFileService', () => {

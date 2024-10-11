@@ -12,8 +12,8 @@ import {
 } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { Injectable } from '@nestjs/common';
-import { readdir, rename, unlink, writeFile } from 'fs/promises';
-import { basename, join } from 'path';
+import { readdir, rename, unlink, writeFile } from 'node:fs/promises';
+import { basename, join } from 'node:path';
 import { Logger } from '@nestjs/common';
 import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 import { FSWatcher, watch } from 'chokidar';

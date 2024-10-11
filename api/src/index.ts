@@ -1,7 +1,7 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap';
 
-import { am } from 'am';
+import { am } from '@app/am';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
@@ -14,7 +14,7 @@ import { loadStateFiles } from '@app/store/modules/emhttp';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { loadRegistrationKey } from '@app/store/modules/registration';
-import { unlinkSync } from 'fs';
+import { unlinkSync } from 'node:fs';
 import { fileExistsSync } from '@app/core/utils/files/file-exists';
 import { PORT, environment } from '@app/environment';
 import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';

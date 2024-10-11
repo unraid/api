@@ -1,5 +1,5 @@
-import { access } from 'fs/promises';
-import { accessSync } from 'fs';
+import { access } from 'node:fs/promises';
+import { accessSync } from 'node:fs';
 import { F_OK } from 'node:constants';
 
 export const fileExists = async (path: string) => access(path, F_OK).then(() => true).catch(() => false);

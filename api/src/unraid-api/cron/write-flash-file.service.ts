@@ -4,7 +4,7 @@ import { convertToFuzzyTime } from '@app/mothership/utils/convert-to-fuzzy-time'
 import { getters } from '@app/store/index';
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
-import { readFile, writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 
 @Injectable()
 export class WriteFlashFileService {

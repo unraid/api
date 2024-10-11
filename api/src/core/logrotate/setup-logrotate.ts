@@ -1,4 +1,4 @@
-import { writeFile } from 'fs/promises';
+import { writeFile } from 'node:fs/promises';
 import { fileExists } from '@app/core/utils/files/file-exists';
 
 export const setupLogRotation = async () => {

@@ -1,6 +1,7 @@
 import 'wtfnode';
 
-import { am } from 'am';
+import { am } from '@app/am';
+
 import { main } from '@app/cli/index';
 import { internalLogger } from '@app/core/log';
 

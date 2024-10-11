@@ -2,7 +2,7 @@ import { logger } from '@app/core/log';
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { store } from '@app/store';
 import { FileLoadStatus, type StoreSubscriptionHandler } from '@app/store/types';
-import isEqual from 'lodash/isEqual';
+import { isEqual } from 'lodash';
 
 export type RegistrationEvent = {
 	registration: {
