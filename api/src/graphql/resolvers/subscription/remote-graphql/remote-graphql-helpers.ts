@@ -1,5 +1,5 @@
-import { gql, type QueryOptions } from '@apollo/client/core/index.js';
-
+import { type QueryOptions } from '@apollo/client/core/index.js';
+import gql from 'graphql-tag';
 interface ParsedQuery {
     query?: string;
     variables?: Record<string, string>;
