@@ -4,7 +4,6 @@ import {
   ShieldExclamationIcon,
   CheckBadgeIcon,
   ExclamationTriangleIcon,
-  ChevronRightIcon,
   LinkIcon,
 } from '@heroicons/vue/24/solid';
 
