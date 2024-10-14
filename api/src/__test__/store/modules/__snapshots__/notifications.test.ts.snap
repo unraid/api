@@ -6,7 +6,7 @@ exports[`loads notifications properly 1`] = `
     "description": "Canceled",
     "id": "/app/dev/notifications/unread/Unraid_Parity_check_1683971161.notify",
     "importance": "WARNING",
-    "link": undefined,
+    "link": "/",
     "subject": "Notice [UNRAID] - Parity check finished (0 errors)",
     "timestamp": "2023-05-13T09:46:01.000Z",
     "title": "Unraid Parity check",
