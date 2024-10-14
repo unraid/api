@@ -36,13 +36,14 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
 
 <template>
   <div class="group/item relative w-full py-4 pl-1 flex flex-col gap-2">
-    <header class="w-full flex flex-row items-start justify-between gap-2">
-      <h3 class="text-muted-foreground text-[0.875rem] tracking-wide flex flex-row items-center gap-2 uppercase">
-        <component :is="icon.component" v-if="icon" class="size-6 shrink-0" :class="icon.color" />
+    <header class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1 group-hover/item:font-medium group-focus/item:font-medium">
+      <h3 class="text-muted-foreground text-[0.875rem] tracking-wide flex flex-row items-baseline gap-2 uppercase">
+        <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
+        <component :is="icon.component" v-if="icon" class="size-5 shrink-0 translate-y-1.5" :class="icon.color" />
         <span>{{ title }}</span>
       </h3>
 
-      <div class="shrink-0 flex flex-row items-center justify-end gap-2 mt-1">
+      <div class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1">
         <p class="text-12px opacity-75">{{ timestamp }}</p>
       </div>
     </header>
