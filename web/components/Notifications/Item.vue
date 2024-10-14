@@ -36,21 +36,34 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
 <template>
   <div class="group/item relative w-full py-4 pl-1 flex flex-col gap-2">
     <header class="w-full flex flex-row items-start justify-between gap-2">
-      <h3 class="text-16px font-semibold leading-2 flex flex-row items-start gap-2">
+      <h3 class="text-muted-foreground text-[0.875rem] tracking-wide flex flex-row items-center gap-2 uppercase">
         <component :is="icon.component" v-if="icon" class="size-6 shrink-0" :class="icon.color" />
-        <span>{{ title }} • {{ subject }}</span>
+        <span>{{ title }}</span>
       </h3>
 
       <div class="shrink-0 flex flex-row items-center justify-end gap-2 mt-1">
         <p class="text-12px opacity-75">{{ timestamp }}</p>
+      </div>
+    </header>
 
-        <TooltipProvider>
+    <h4 class="group-hover/item:font-medium group-focus/item:font-medium">{{ subject }}</h4>
+
+    <div class="w-full flex flex-row items-center justify-between gap-2 opacity-75 group-hover/item:opacity-100 group-focus/item:opacity-100">
+      <p class="text-secondary-foreground">{{ description }}</p>
+    </div>
+
+    <a :href="link" class="absolute z-10 inset-0">
+      <span class="sr-only">Take me there</span>
+    </a>
+
+    <div class="flex justify-end">
+      <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>
-              <button class="relative z-20">
-                <span class="sr-only">Archive</span>
-                <ArchiveBoxIcon class="size-4" />
-              </button>
+              <Button class="relative z-20 rounded" variant="secondary" size="xs">
+                <ArchiveBoxIcon class="size-3 text-muted-foreground/80 mr-1" />
+                <span class="text-[0.875rem] text-muted-foreground mt-0.5">Archive</span>
+              </Button>
             </TooltipTrigger>
             <TooltipContent>
               <p>Archive</p>
@@ -58,15 +71,5 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
           </Tooltip>
         </TooltipProvider>
       </div>
-    </header>
-
-    <div class="w-full flex flex-row items-center justify-between gap-2 opacity-75 group-hover/item:opacity-100 group-focus/item:opacity-100">
-      <p>{{ description }}</p>
-      <ChevronRightIcon class="size-4" />
-    </div>
-
-    <a :href="link" class="absolute z-10 inset-0">
-      <span class="sr-only">Take me there</span>
-    </a>
   </div>
 </template>
