@@ -95,16 +95,16 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           </TabsList>
 
           <Button
-            variant="secondary"
+            variant="link"
             size="sm"
-            class="text-[1rem] leading-[1.3rem]"
+            class="text-muted-foreground text-[1rem] leading-[1.3rem] p-0"
           >
             {{ `Archive All` }}
           </Button>
 
           <Select>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter" />
+            <SelectTrigger class="bg-secondary border-0 h-auto">
+              <SelectValue class="text-muted-foreground" placeholder="Filter" />
             </SelectTrigger>
             <SelectContent :to="teleportTarget">
               <SelectGroup>
