@@ -127,7 +127,8 @@ onBeforeMount(() => {
 
       <div class="block w-2px h-24px bg-gamma" />
 
-      <NotificationsSidebar />
+      <!-- Keep the sidebar out of staging/prod builds, but easily accessible for development -->
+      <!-- <NotificationsSidebar /> -->
 
       <OnClickOutside class="flex items-center justify-end h-full" :options="{ ignore: [clickOutsideIgnoreTarget] }" @trigger="outsideDropdown">
         <UpcDropdownTrigger ref="clickOutsideIgnoreTarget" :t="t" />
