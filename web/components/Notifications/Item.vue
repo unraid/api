@@ -5,6 +5,7 @@ import {
   CheckBadgeIcon,
   ExclamationTriangleIcon,
   ChevronRightIcon,
+  LinkIcon,
 } from '@heroicons/vue/24/solid';
 
 import type { NotificationItemProps } from '~/types/ui/notification';
@@ -52,11 +53,13 @@ const icon = computed<{ component: Component, color: string } | null>(() => {
       <p class="text-secondary-foreground">{{ description }}</p>
     </div>
 
-    <a :href="link" class="absolute z-10 inset-0">
-      <span class="sr-only">Take me there</span>
-    </a>
-
-    <div class="flex justify-end">
+    <div class="flex justify-end items-baseline gap-2">
+      <a v-if="link" :href="link">
+        <Button type="button" variant="outline" size="xs">
+          <LinkIcon class="size-3 mr-1 text-muted-foreground/80" />
+          <span class="text-[0.875rem] text-muted-foreground mt-0.5">View</span>
+        </Button>
+      </a>
       <TooltipProvider>
           <Tooltip>
             <TooltipTrigger as-child>

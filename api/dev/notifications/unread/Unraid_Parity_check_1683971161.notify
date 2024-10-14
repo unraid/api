@@ -3,3 +3,4 @@ event=Unraid Parity check
 subject=Notice [UNRAID] - Parity check finished (0 errors)
 description=Canceled
 importance=warning
+link=/
