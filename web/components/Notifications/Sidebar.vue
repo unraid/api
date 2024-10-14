@@ -69,7 +69,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 
     <SheetContent
       :to="teleportTarget"
-      class="w-full overflow-y-scroll max-w-[400px] sm:max-w-[540px]"
+      class="w-full overflow-y-scroll sm:max-w-[540px]"
     >
       <SheetHeader>
         <SheetTitle>Notifications</SheetTitle>
