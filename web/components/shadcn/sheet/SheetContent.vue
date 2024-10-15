@@ -39,7 +39,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
 
 <template>
-  <DialogPortal :disabled="disabled" :force-mount="forceMount" :to="to">
+  <DialogPortal :disabled="disabled" :force-mount="forceMount" :to="to as HTMLElement">
     <DialogOverlay
       class="fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
     />
