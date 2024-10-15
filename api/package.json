@@ -60,7 +60,7 @@
     "unraid-api"
   ],
   "dependencies": {
-    "@apollo/client": "^3.10.4",
+    "@apollo/client": "^3.11.8",
     "@apollo/server": "^4.10.4",
     "@as-integrations/fastify": "^2.1.1",
     "@fastify/cookie": "^9.4.0",
@@ -210,5 +210,10 @@
     "vite-tsconfig-paths": "^4.3.2",
     "vitest": "^2.1.1",
     "zx": "^7.2.3"
+  },
+  "overrides": {
+    "dependencies": {
+      "graphql-tag": "^2.12.6"
+    }
   }
 }

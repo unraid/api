@@ -1,7 +1,6 @@
 {
     "imports": {
         "lodash": "https://cdn.skypack.dev/lodash",
-        "graphql-tag": "https://cdn.skypack.dev/graphql-tag",
         "xml2js": "npm:xml2js",
         "@app/": "./src/",
         "@std/collections": "jsr:@std/collections@^1.0.8",
