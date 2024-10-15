@@ -10,13 +10,11 @@ export class UserCookieStrategy extends PassportStrategy(Strategy, strategyName)
     static key = strategyName;
     private readonly logger = new Logger(UserCookieStrategy.name);
 
-    constructor(
-        private readonly authService: AuthService,
-    ) {
+    constructor(private readonly authService: AuthService) {
         super();
     }
 
-    public validate = async (req: any): Promise<any> => {
+    public validate = async (req: { cookies: object }): Promise<any> => {
         return this.authService.validateCookies(req.cookies);
     };
 }

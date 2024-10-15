@@ -20,7 +20,7 @@ console.log('\n');
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
  */
 function terserReservations (inputStr: string) {
-  const combinations = ['ace', 'i'];
+  const combinations = ['ace'];
 
   // Add 1-character combinations
   for (let i = 0; i < inputStr.length; i++) {
