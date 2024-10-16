@@ -6,10 +6,9 @@ import {
   ExclamationTriangleIcon,
   LinkIcon,
 } from '@heroicons/vue/24/solid';
+import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 
-import type { NotificationItemProps } from '~/types/ui/notification';
-
-const props = defineProps<NotificationItemProps>();
+const props = defineProps<NotificationFragmentFragment>();
 
 const icon = computed<{ component: Component, color: string } | null>(() => {
   switch (props.importance) {

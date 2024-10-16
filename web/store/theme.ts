@@ -64,6 +64,7 @@ export const useThemeStore = defineStore('theme', () => {
     body.style.setProperty('--shadow-beta', `0 25px 50px -12px ${hexToRgba(beta, 0.15)}`);
     body.style.setProperty('--ring-offset-shadow', `0 0 ${beta}`);
     body.style.setProperty('--ring-shadow', `0 0 ${beta}`);
+    body.style.setProperty('--dev-test', `0 0 ${beta}`);
   };
 
   watch(theme, () => {

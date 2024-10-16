@@ -63,14 +63,6 @@ export const useServerStore = defineStore('server', () => {
    * State
    */
   const apiKey = ref<string>('');
-  watch(apiKey, (newVal, oldVal) => {
-    if (newVal) {
-      return unraidApiStore.createApolloClient();
-    }
-    if (oldVal) {
-      return unraidApiStore.closeUnraidApiClient();
-    }
-  });
   const apiVersion = ref<string>('');
   const array = ref<ServerStateArray | undefined>();
   // helps to display warning next to array status
@@ -958,8 +950,9 @@ export const useServerStore = defineStore('server', () => {
       regGen: data.vars && data.vars.regGen ? parseInt(data.vars.regGen) : undefined,
       state: data.vars && data.vars.regState ? data.vars.regState : undefined,
       config: data.config
-        ? data.config
+        ? { id: 'config', ...data.config }
         : {
+            id: 'config',
             error: data.vars && data.vars.configError ? data.vars.configError : undefined,
             valid: data.vars && data.vars.configValid ? data.vars.configValid : true,
           },
