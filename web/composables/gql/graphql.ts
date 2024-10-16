@@ -1,4 +1,4 @@
- 
+/* eslint-disable */
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -22,8 +22,25 @@ export type Scalars = {
   Long: { input: number; output: number; }
   /** A field whose value is a valid TCP port within the range of 0 to 65535: https://en.wikipedia.org/wiki/Transmission_Control_Protocol#TCP_ports */
   Port: { input: number; output: number; }
+  /** A field whose value conforms to the standard URL format as specified in RFC3986: https://www.ietf.org/rfc/rfc3986.txt. */
+  URL: { input: URL; output: URL; }
   /** A field whose value is a generic Universally Unique Identifier: https://en.wikipedia.org/wiki/Universally_unique_identifier. */
   UUID: { input: string; output: string; }
+};
+
+export type AccessUrl = {
+  __typename?: 'AccessUrl';
+  ipv4?: Maybe<Scalars['URL']['output']>;
+  ipv6?: Maybe<Scalars['URL']['output']>;
+  name?: Maybe<Scalars['String']['output']>;
+  type: URL_TYPE;
+};
+
+export type AccessUrlInput = {
+  ipv4?: InputMaybe<Scalars['URL']['input']>;
+  ipv6?: InputMaybe<Scalars['URL']['input']>;
+  name?: InputMaybe<Scalars['String']['input']>;
+  type: URL_TYPE;
 };
 
 export type AllowedOriginInput = {
@@ -45,7 +62,7 @@ export type ApiKeyResponse = {
   valid: Scalars['Boolean']['output'];
 };
 
-export type ArrayType = {
+export type ArrayType = Node & {
   __typename?: 'Array';
   /** Current boot disk */
   boot?: Maybe<ArrayDisk>;
@@ -55,6 +72,7 @@ export type ArrayType = {
   capacity: ArrayCapacity;
   /** Data disks in the current array */
   disks: Array<ArrayDisk>;
+  id: Scalars['ID']['output'];
   /** Parity disks in the current array */
   parities: Array<ArrayDisk>;
   /** Array state after this query/mutation */
@@ -235,19 +253,25 @@ export type CloudResponse = {
   status: Scalars['String']['output'];
 };
 
-export type Config = {
+export type Config = Node & {
   __typename?: 'Config';
   error?: Maybe<ConfigErrorState>;
+  id: Scalars['ID']['output'];
   valid?: Maybe<Scalars['Boolean']['output']>;
 };
 
 export enum ConfigErrorState {
-  Ineligible = 'INELIGIBLE',
   Invalid = 'INVALID',
   NoKeyServer = 'NO_KEY_SERVER',
   UnknownError = 'UNKNOWN_ERROR',
   Withdrawn = 'WITHDRAWN'
 }
+
+export type Connect = Node & {
+  __typename?: 'Connect';
+  dynamicRemoteAccess: DynamicRemoteAccessStatus;
+  id: Scalars['ID']['output'];
+};
 
 export type ConnectSignInInput = {
   accessToken?: InputMaybe<Scalars['String']['input']>;
@@ -363,6 +387,7 @@ export type Display = {
   dashapps?: Maybe<Scalars['String']['output']>;
   date?: Maybe<Scalars['String']['output']>;
   hot?: Maybe<Scalars['Int']['output']>;
+  id: Scalars['ID']['output'];
   locale?: Maybe<Scalars['String']['output']>;
   max?: Maybe<Scalars['Int']['output']>;
   number?: Maybe<Scalars['String']['output']>;
@@ -377,6 +402,13 @@ export type Display = {
   users?: Maybe<Scalars['String']['output']>;
   warning?: Maybe<Scalars['Int']['output']>;
   wwn?: Maybe<Scalars['Boolean']['output']>;
+};
+
+export type Docker = Node & {
+  __typename?: 'Docker';
+  containers?: Maybe<Array<DockerContainer>>;
+  id: Scalars['ID']['output'];
+  networks?: Maybe<Array<DockerNetwork>>;
 };
 
 export type DockerContainer = {
@@ -418,6 +450,24 @@ export type DockerNetwork = {
   scope?: Maybe<Scalars['String']['output']>;
 };
 
+export type DynamicRemoteAccessStatus = {
+  __typename?: 'DynamicRemoteAccessStatus';
+  enabledType: DynamicRemoteAccessType;
+  error?: Maybe<Scalars['String']['output']>;
+  runningType: DynamicRemoteAccessType;
+};
+
+export enum DynamicRemoteAccessType {
+  Disabled = 'DISABLED',
+  Static = 'STATIC',
+  Upnp = 'UPNP'
+}
+
+export type EnableDynamicRemoteAccessInput = {
+  enabled: Scalars['Boolean']['input'];
+  url: AccessUrlInput;
+};
+
 export type Flash = {
   __typename?: 'Flash';
   guid?: Maybe<Scalars['String']['output']>;
@@ -442,7 +492,7 @@ export enum Importance {
   Warning = 'WARNING'
 }
 
-export type Info = {
+export type Info = Node & {
   __typename?: 'Info';
   /** Count of docker containers */
   apps?: Maybe<InfoApps>;
@@ -450,11 +500,13 @@ export type Info = {
   cpu?: Maybe<InfoCpu>;
   devices?: Maybe<Devices>;
   display?: Maybe<Display>;
+  id: Scalars['ID']['output'];
   /** Machine ID */
   machineId?: Maybe<Scalars['ID']['output']>;
   memory?: Maybe<InfoMemory>;
   os?: Maybe<Os>;
   system?: Maybe<System>;
+  time: Scalars['DateTime']['output'];
   versions?: Maybe<Versions>;
 };
 
@@ -574,13 +626,20 @@ export type Mutation = {
   addDiskToArray?: Maybe<ArrayType>;
   /** Add a new user */
   addUser?: Maybe<User>;
+  archiveAll: NotificationOverview;
+  /** Marks a notification as archived. */
+  archiveNotification: NotificationOverview;
+  archiveNotifications: NotificationOverview;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createNotification: Notification;
+  deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
+  enableDynamicRemoteAccess: Scalars['Boolean']['output'];
   /** Get an existing API key */
   getApiKey?: Maybe<ApiKey>;
   login?: Maybe<Scalars['String']['output']>;
@@ -588,11 +647,12 @@ export type Mutation = {
   /** Pause parity check */
   pauseParityCheck?: Maybe<Scalars['JSON']['output']>;
   reboot?: Maybe<Scalars['String']['output']>;
+  /** Reads each notification to recompute & update the overview. */
+  recalculateOverview: NotificationOverview;
   /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
   removeDiskFromArray?: Maybe<ArrayType>;
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
-  sendNotification?: Maybe<Notification>;
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
   setupRemoteAccess: Scalars['Boolean']['output'];
   shutdown?: Maybe<Scalars['String']['output']>;
@@ -602,7 +662,11 @@ export type Mutation = {
   startParityCheck?: Maybe<Scalars['JSON']['output']>;
   /** Stop array */
   stopArray?: Maybe<ArrayType>;
+  unarchiveAll: NotificationOverview;
+  unarchiveNotifications: NotificationOverview;
   unmountArrayDisk?: Maybe<Disk>;
+  /** Marks a notification as unread. */
+  unreadNotification: NotificationOverview;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
 };
@@ -624,6 +688,21 @@ export type MutationaddUserArgs = {
 };
 
 
+export type MutationarchiveAllArgs = {
+  importance?: InputMaybe<Importance>;
+};
+
+
+export type MutationarchiveNotificationArgs = {
+  id: Scalars['String']['input'];
+};
+
+
+export type MutationarchiveNotificationsArgs = {
+  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
 export type MutationclearArrayDiskStatisticsArgs = {
   id: Scalars['ID']['input'];
 };
@@ -634,8 +713,24 @@ export type MutationconnectSignInArgs = {
 };
 
 
+export type MutationcreateNotificationArgs = {
+  input: NotificationData;
+};
+
+
+export type MutationdeleteNotificationArgs = {
+  id: Scalars['String']['input'];
+  type: NotificationType;
+};
+
+
 export type MutationdeleteUserArgs = {
   input: deleteUserInput;
+};
+
+
+export type MutationenableDynamicRemoteAccessArgs = {
+  input: EnableDynamicRemoteAccessInput;
 };
 
 
@@ -661,11 +756,6 @@ export type MutationremoveDiskFromArrayArgs = {
 };
 
 
-export type MutationsendNotificationArgs = {
-  notification: NotificationInput;
-};
-
-
 export type MutationsetAdditionalAllowedOriginsArgs = {
   input: AllowedOriginInput;
 };
@@ -681,8 +771,23 @@ export type MutationstartParityCheckArgs = {
 };
 
 
+export type MutationunarchiveAllArgs = {
+  importance?: InputMaybe<Importance>;
+};
+
+
+export type MutationunarchiveNotificationsArgs = {
+  ids?: InputMaybe<Array<Scalars['String']['input']>>;
+};
+
+
 export type MutationunmountArrayDiskArgs = {
   id: Scalars['ID']['input'];
+};
+
+
+export type MutationunreadNotificationArgs = {
+  id: Scalars['String']['input'];
 };
 
 
@@ -691,10 +796,12 @@ export type MutationupdateApikeyArgs = {
   name: Scalars['String']['input'];
 };
 
-export type Network = {
+export type Network = Node & {
   __typename?: 'Network';
+  accessUrls?: Maybe<Array<AccessUrl>>;
   carrierChanges?: Maybe<Scalars['String']['output']>;
   duplex?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
   iface?: Maybe<Scalars['String']['output']>;
   ifaceName?: Maybe<Scalars['String']['output']>;
   internal?: Maybe<Scalars['String']['output']>;
@@ -707,17 +814,38 @@ export type Network = {
   type?: Maybe<Scalars['String']['output']>;
 };
 
-export type Notification = {
+export type Node = {
+  id: Scalars['ID']['output'];
+};
+
+export type Notification = Node & {
   __typename?: 'Notification';
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   importance: Importance;
   link?: Maybe<Scalars['String']['output']>;
   subject: Scalars['String']['output'];
-  /**  ISO Timestamp for when the notification occurred  */
+  /** ISO Timestamp for when the notification occurred */
   timestamp?: Maybe<Scalars['String']['output']>;
+  /** Also known as 'event' */
   title: Scalars['String']['output'];
   type: NotificationType;
+};
+
+export type NotificationCounts = {
+  __typename?: 'NotificationCounts';
+  alert: Scalars['Int']['output'];
+  info: Scalars['Int']['output'];
+  total: Scalars['Int']['output'];
+  warning: Scalars['Int']['output'];
+};
+
+export type NotificationData = {
+  description: Scalars['String']['input'];
+  importance: Importance;
+  link?: InputMaybe<Scalars['String']['input']>;
+  subject: Scalars['String']['input'];
+  title: Scalars['String']['input'];
 };
 
 export type NotificationFilter = {
@@ -727,22 +855,29 @@ export type NotificationFilter = {
   type?: InputMaybe<NotificationType>;
 };
 
-export type NotificationInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  id: Scalars['ID']['input'];
-  importance: Importance;
-  link?: InputMaybe<Scalars['String']['input']>;
-  subject: Scalars['String']['input'];
-  timestamp?: InputMaybe<Scalars['String']['input']>;
-  title: Scalars['String']['input'];
-  type: NotificationType;
+export type NotificationOverview = {
+  __typename?: 'NotificationOverview';
+  archive: NotificationCounts;
+  unread: NotificationCounts;
 };
 
 export enum NotificationType {
-  Archived = 'ARCHIVED',
-  Restored = 'RESTORED',
+  Archive = 'ARCHIVE',
   Unread = 'UNREAD'
 }
+
+export type Notifications = Node & {
+  __typename?: 'Notifications';
+  id: Scalars['ID']['output'];
+  list: Array<Notification>;
+  /** A cached overview of the notifications in the system & their severity. */
+  overview: NotificationOverview;
+};
+
+
+export type NotificationslistArgs = {
+  filter: NotificationFilter;
+};
 
 export type Os = {
   __typename?: 'Os';
@@ -867,11 +1002,13 @@ export type Query = {
   array: ArrayType;
   cloud?: Maybe<Cloud>;
   config: Config;
+  connect: Connect;
   /** Single disk */
   disk?: Maybe<Disk>;
   /** Mulitiple disks */
   disks: Array<Maybe<Disk>>;
   display?: Maybe<Display>;
+  docker: Docker;
   /** All Docker containers */
   dockerContainers: Array<DockerContainer>;
   /** Docker network */
@@ -883,7 +1020,8 @@ export type Query = {
   info?: Maybe<Info>;
   /** Current user account */
   me?: Maybe<Me>;
-  notifications: Array<Notification>;
+  network?: Maybe<Network>;
+  notifications: Notifications;
   online?: Maybe<Scalars['Boolean']['output']>;
   owner?: Maybe<Owner>;
   parityHistory?: Maybe<Array<Maybe<ParityCheck>>>;
@@ -891,6 +1029,7 @@ export type Query = {
   remoteAccess: RemoteAccess;
   server?: Maybe<Server>;
   servers: Array<Server>;
+  services: Array<Service>;
   /** Network Shares */
   shares?: Maybe<Array<Maybe<Share>>>;
   unassignedDevices?: Maybe<Array<Maybe<UnassignedDevice>>>;
@@ -921,11 +1060,6 @@ export type QuerydockerNetworkArgs = {
 
 export type QuerydockerNetworksArgs = {
   all?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
-
-export type QuerynotificationsArgs = {
-  filter: NotificationFilter;
 };
 
 
@@ -1022,8 +1156,9 @@ export enum ServerStatus {
   Online = 'online'
 }
 
-export type Service = {
+export type Service = Node & {
   __typename?: 'Service';
+  id: Scalars['ID']['output'];
   name?: Maybe<Scalars['String']['output']>;
   online?: Maybe<Scalars['Boolean']['output']>;
   uptime?: Maybe<Uptime>;
@@ -1077,6 +1212,7 @@ export type Subscription = {
   info: Info;
   me?: Maybe<Me>;
   notificationAdded: Notification;
+  notificationsOverview: NotificationOverview;
   online: Scalars['Boolean']['output'];
   owner: Owner;
   parityHistory: ParityCheck;
@@ -1135,6 +1271,15 @@ export enum Temperature {
 
 export enum Theme {
   White = 'white'
+}
+
+export enum URL_TYPE {
+  Default = 'DEFAULT',
+  Lan = 'LAN',
+  Mdns = 'MDNS',
+  Other = 'OTHER',
+  Wan = 'WAN',
+  Wireguard = 'WIREGUARD'
 }
 
 export type UnassignedDevice = {
@@ -1223,7 +1368,7 @@ export type UserAccount = {
   roles: Scalars['String']['output'];
 };
 
-export type Vars = {
+export type Vars = Node & {
   __typename?: 'Vars';
   bindMgt?: Maybe<Scalars['Boolean']['output']>;
   cacheNumDevices?: Maybe<Scalars['Int']['output']>;
@@ -1257,6 +1402,7 @@ export type Vars = {
   fuseRememberDefault?: Maybe<Scalars['String']['output']>;
   fuseRememberStatus?: Maybe<Scalars['String']['output']>;
   hideDotFiles?: Maybe<Scalars['Boolean']['output']>;
+  id: Scalars['ID']['output'];
   joinStatus?: Maybe<Scalars['String']['output']>;
   localMaster?: Maybe<Scalars['Boolean']['output']>;
   localTld?: Maybe<Scalars['String']['output']>;
@@ -1510,6 +1656,18 @@ export type usersInput = {
   slim?: InputMaybe<Scalars['Boolean']['input']>;
 };
 
+export type NotificationFragmentFragment = { __typename?: 'Notification', id: string, title: string, subject: string, description: string, importance: Importance, link?: string | null, type: NotificationType, timestamp?: string | null } & { ' $fragmentName'?: 'NotificationFragmentFragment' };
+
+export type NotificationsQueryVariables = Exact<{
+  filter: NotificationFilter;
+}>;
+
+
+export type NotificationsQuery = { __typename?: 'Query', notifications: { __typename?: 'Notifications', id: string, list: Array<(
+      { __typename?: 'Notification' }
+      & { ' $fragmentRefs'?: { 'NotificationFragmentFragment': NotificationFragmentFragment } }
+    )> } };
+
 export type ConnectSignInMutationVariables = Exact<{
   input: ConnectSignInInput;
 }>;
@@ -1556,7 +1714,9 @@ export type setupRemoteAccessMutationVariables = Exact<{
 
 export type setupRemoteAccessMutation = { __typename?: 'Mutation', setupRemoteAccess: boolean };
 
+export const NotificationFragmentFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]} as unknown as DocumentNode<NotificationFragmentFragment, unknown>;
 export const PartialCloudFragmentDoc = {"kind":"Document","definitions":[{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<PartialCloudFragment, unknown>;
+export const NotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Notifications"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"filter"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationFilter"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"list"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"filter"},"value":{"kind":"Variable","name":{"kind":"Name","value":"filter"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}}]}}]} as unknown as DocumentNode<NotificationsQuery, NotificationsQueryVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
 export const serverStateDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"serverState"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"PartialCloud"}}]}},{"kind":"Field","name":{"kind":"Name","value":"config"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"valid"}}]}},{"kind":"Field","name":{"kind":"Name","value":"info"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"os"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"hostname"}}]}}]}},{"kind":"Field","name":{"kind":"Name","value":"owner"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"avatar"}},{"kind":"Field","name":{"kind":"Name","value":"username"}}]}},{"kind":"Field","name":{"kind":"Name","value":"registration"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"state"}},{"kind":"Field","name":{"kind":"Name","value":"expiration"}},{"kind":"Field","name":{"kind":"Name","value":"keyFile"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"contents"}}]}},{"kind":"Field","name":{"kind":"Name","value":"updateExpiration"}}]}},{"kind":"Field","name":{"kind":"Name","value":"vars"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"regGen"}},{"kind":"Field","name":{"kind":"Name","value":"regState"}},{"kind":"Field","name":{"kind":"Name","value":"configError"}},{"kind":"Field","name":{"kind":"Name","value":"configValid"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"PartialCloud"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Cloud"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"error"}},{"kind":"Field","name":{"kind":"Name","value":"apiKey"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"valid"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"cloud"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"minigraphql"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}},{"kind":"Field","name":{"kind":"Name","value":"relay"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"status"}},{"kind":"Field","name":{"kind":"Name","value":"error"}}]}}]}}]} as unknown as DocumentNode<serverStateQuery, serverStateQueryVariables>;
