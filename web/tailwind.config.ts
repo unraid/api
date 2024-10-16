@@ -159,12 +159,6 @@ export default <Partial<Config>>{
         xs: "530px",
         tall: { raw: "(min-height: 700px)" },
       },
-      borderRadius: {
-        xl: "calc(var(--radius) + 4px)",
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
-      },
       keyframes: {
         "accordion-down": {
           from: { height: 0 },
