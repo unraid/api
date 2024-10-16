@@ -1,9 +1,10 @@
 import type { Config } from "tailwindcss";
 import type { PluginAPI } from "tailwindcss/types/config";
 
-import { readFileSync } from 'fs';
-import { parse } from 'dotenv';
-const envConfig = parse(readFileSync('.env'));
+import { readFileSync } from "fs";
+import { parse } from "dotenv";
+const envConfig = parse(readFileSync(".env"));
+console.log("tailwind.env", envConfig);
 
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
@@ -57,38 +58,38 @@ export default <Partial<Config>>{
         "gamma-opaque": "var(--color-gamma-opaque)",
 
         // shadcn specific
-        border: "hsl(var(--border))",
-        input: "hsl(var(--input))",
-        ring: "hsl(var(--ring))",
-        background: "hsl(var(--background))",
-        foreground: "hsl(var(--foreground))",
+        border: "hsl(0 0% 89.8%)",
+        input: "hsl(0 0% 89.8%)",
+        ring: "hsl(0 0% 3.9%)",
+        background: "hsl(0 0% 100%)",
+        foreground: "hsl(0 0% 3.9%)",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
-          foreground: "hsl(var(--primary-foreground))",
+          DEFAULT: "hsl(0 0% 9%)",
+          foreground: "hsl(0 0% 98%)",
         },
         secondary: {
-          DEFAULT: "hsl(var(--secondary))",
-          foreground: "hsl(var(--secondary-foreground))",
+          DEFAULT: "hsl(0 0% 96.1%)",
+          foreground: "hsl(0 0% 9%)",
         },
         destructive: {
-          DEFAULT: "hsl(var(--destructive))",
-          foreground: "hsl(var(--destructive-foreground))",
+          DEFAULT: "hsl(0 84.2% 60.2%)",
+          foreground: "hsl(0 0% 98%)",
         },
         muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
+          DEFAULT: "hsl(0 0% 96.1%)",
+          foreground: "hsl(0 0% 45.1%)",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "hsl(0 0% 96.1%)",
+          foreground: "hsl(0 0% 9%)",
         },
         popover: {
-          DEFAULT: "hsl(var(--popover))",
-          foreground: "hsl(var(--popover-foreground))",
+          DEFAULT: "hsl(0 0% 100%)",
+          foreground: "hsl(0 0% 3.9%)",
         },
         card: {
-          DEFAULT: "hsl(var(--card))",
-          foreground: "hsl(var(--card-foreground))",
+          DEFAULT: "hsl(0 0% 100%)",
+          foreground: "hsl(0 0% 3.9%)",
         },
       },
       // Unfortunately due to webGUI CSS setting base HTML font-size to .65% or something we must use pixel values for web components
@@ -159,7 +160,7 @@ export default <Partial<Config>>{
         tall: { raw: "(min-height: 700px)" },
       },
       borderRadius: {
-      	xl: "calc(var(--radius) + 4px)",
+        xl: "calc(var(--radius) + 4px)",
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
@@ -175,10 +176,10 @@ export default <Partial<Config>>{
         },
         "collapsible-down": {
           from: { height: 0 },
-          to: { height: 'var(--radix-collapsible-content-height)' },
+          to: { height: "var(--radix-collapsible-content-height)" },
         },
         "collapsible-up": {
-          from: { height: 'var(--radix-collapsible-content-height)' },
+          from: { height: "var(--radix-collapsible-content-height)" },
           to: { height: 0 },
         },
       },
@@ -281,7 +282,7 @@ export default <Partial<Config>>{
     require("@tailwindcss/typography"),
     require("tailwindcss-animate"),
     // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('./utils/tailwind-rem-to-rem').default({
+    require("./utils/tailwind-rem-to-rem").default({
       baseFontSize: 16,
       /**
        * The font size where the web components will be rendered in production.
