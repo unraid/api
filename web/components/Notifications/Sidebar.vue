@@ -9,52 +9,39 @@ import {
   SheetTrigger,
 } from "@/components/shadcn/sheet";
 
-import type { NotificationItemProps } from "~/types/ui/notification";
-import { useUnraidApiStore } from "~/store/unraidApi";
-import gql from "graphql-tag";
+import {
+  getNotifications,
+  NOTIFICATION_FRAGMENT,
+} from "./graphql/notification.query";
+import {
+  NotificationType,
+} from "~/composables/gql/graphql";
+import { useFragment } from "~/composables/gql/fragment-masking";
+import { useQuery } from "@vue/apollo-composable";
 
-const getNotifications = gql`
-  query Notifications($filter: NotificationFilter!) {
-    notifications {
-      list(filter: $filter) {
-        id
-        title
-        subject
-        description
-        importance
-        link
-        type
-        timestamp
-      }
-    }
-  }
-`;
+// const notifications = ref<NotificationFragmentFragment[]>([]);
+// watch(notifications, (newVal) => {
+//   console.log("[notifications]", newVal);
+// });
 
-const notifications = ref<NotificationItemProps[]>([]);
-watch(notifications, (newVal) => {
-  console.log("[notifications]", newVal);
+const fetchType = ref<NotificationType>(NotificationType.Unread);
+const setFetchType = (type: NotificationType) => (fetchType.value = type);
+
+const { result, error } = useQuery(getNotifications, {
+  filter: {
+    offset: 0,
+    limit: 10,
+    type: fetchType.value,
+  },
 });
 
-const fetchType = ref<"UNREAD" | "ARCHIVED">("UNREAD");
-const setFetchType = (type: "UNREAD" | "ARCHIVED") => (fetchType.value = type);
+const notifications = computed(() => {
+  if (!result.value?.notifications.list) return [];
+  return useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
+});
 
-const { unraidApiClient: maybeApi } = storeToRefs(useUnraidApiStore());
-
-
-watch(maybeApi, async (apiClient) => {
-  if (apiClient) {
-    const apiResponse = await apiClient.query({
-      query: getNotifications,
-      variables: {
-        filter: {
-          offset: 0,
-          limit: 10,
-          type: fetchType.value,
-        },
-      },
-    });
-    notifications.value = apiResponse.data.notifications.list;
-  }
+watch(error, (newVal) => {
+  console.log("[sidebar error]", newVal);
 });
 
 const { teleportTarget, determineTeleportTarget } = useTeleport();
@@ -81,14 +68,14 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
             <TabsTrigger
               class="text-[1rem] leading-[1.3rem]"
               value="unread"
-              @click="setFetchType('UNREAD')"
+              @click="setFetchType(NotificationType.Unread)"
             >
               Unread
             </TabsTrigger>
             <TabsTrigger
               class="text-[1rem] leading-[1.3rem]"
               value="archived"
-              @="setFetchType('ARCHIVED')"
+              @="setFetchType(NotificationType.Archive)"
             >
               Archived
             </TabsTrigger>
@@ -97,7 +84,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           <Button
             variant="link"
             size="sm"
-            class="text-muted-foreground text-[1rem] leading-[1.3rem] p-0"
+            class="text-muted-foreground text-sm p-0"
           >
             {{ `Archive All` }}
           </Button>
@@ -119,7 +106,10 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 
         <TabsContent value="unread">
           <ScrollArea>
-            <div class="divide-y divide-gray-200">
+            <div
+              v-if="notifications?.length > 0"
+              class="divide-y divide-gray-200"
+            >
               <NotificationsItem
                 v-for="notification in notifications"
                 :key="notification.id"
