@@ -10,6 +10,7 @@ import {
 } from "@/components/shadcn/sheet";
 
 import {
+archiveAllNotifications,
   getNotifications,
   NOTIFICATION_FRAGMENT,
 } from "./graphql/notification.query";
@@ -17,7 +18,7 @@ import {
   NotificationType,
 } from "~/composables/gql/graphql";
 import { useFragment } from "~/composables/gql/fragment-masking";
-import { useQuery } from "@vue/apollo-composable";
+import { useQuery, useMutation } from "@vue/apollo-composable";
 
 // const notifications = ref<NotificationFragmentFragment[]>([]);
 // watch(notifications, (newVal) => {
@@ -39,6 +40,8 @@ const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
   return useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
 });
+
+const { mutate:archiveAll, loading: archivingAll } = useMutation(archiveAllNotifications);
 
 watch(error, (newVal) => {
   console.log("[sidebar error]", newVal);
@@ -82,9 +85,11 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           </TabsList>
 
           <Button
+            :disabled="archivingAll"
             variant="link"
             size="sm"
             class="text-muted-foreground text-base p-0"
+            @click="archiveAll"
           >
             {{ `Archive All` }}
           </Button>
