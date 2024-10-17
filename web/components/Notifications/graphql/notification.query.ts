@@ -24,3 +24,37 @@ export const getNotifications = graphql(/* GraphQL */ `
   }
 `);
 
+export const archiveNotification = graphql(/* GraphQL */ `
+  mutation ArchiveNotification($id: String!) {
+    archiveNotification(id: $id) {
+      archive {
+        info
+        warning
+        alert
+        total
+      }
+      unread {
+        info
+        warning
+        alert
+        total
+      }
+    }
+  }
+`);
+
+export const archiveAllNotifications = graphql(/* GraphQL */ `
+  mutation ArchiveAllNotifications {
+    archiveAll {
+      unread {
+        total
+      }
+      archive {
+        info
+        warning
+        alert
+        total
+      }
+    }
+  }
+`);
