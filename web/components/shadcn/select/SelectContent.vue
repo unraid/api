@@ -24,6 +24,8 @@ const props = withDefaults(
 }>(),
   {
     position: 'popper',
+    class: undefined,
+    to: "#modals",
   },
 )
 const emits = defineEmits<SelectContentEmits>()
