@@ -87,8 +87,8 @@ const { mutate: archive, loading } = useMutation(archiveMutation, {
             size="xs"
             @click="archive"
             >
-              <ArchiveBoxIcon class="size-3 text-muted-foreground/80 mr-1" />
-              <span class="text-sm text-muted-foreground mt-0.5">Archive</span>
+              <ArchiveBoxIcon class="size-3 mr-1" />
+              <span class="text-sm mt-0.5">Archive</span>
             </Button>
           </TooltipTrigger>
           <TooltipContent>

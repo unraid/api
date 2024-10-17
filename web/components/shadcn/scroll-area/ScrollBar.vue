@@ -5,6 +5,7 @@ import { cn } from '@/helpers/utils'
 
 const props = withDefaults(defineProps<ScrollAreaScrollbarProps & { class?: HTMLAttributes['class'] }>(), {
   orientation: 'vertical',
+  class: undefined,
 })
 
 const delegatedProps = computed(() => {
