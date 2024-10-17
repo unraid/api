@@ -56,7 +56,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 
     <SheetContent
       :to="teleportTarget"
-      class="w-full overflow-y-scroll sm:max-w-[540px]"
+      class="w-full overflow-y-scroll sm:max-w-[540px] space-y-3"
     >
       <SheetHeader>
         <SheetTitle>Notifications</SheetTitle>
@@ -66,14 +66,14 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
           <TabsList class="ml-[1px]">
             <TabsTrigger
-              class="text-[1rem] leading-[1.3rem]"
+              class=""
               value="unread"
               @click="setFetchType(NotificationType.Unread)"
             >
               Unread
             </TabsTrigger>
             <TabsTrigger
-              class="text-[1rem] leading-[1.3rem]"
+              class=""
               value="archived"
               @="setFetchType(NotificationType.Archive)"
             >
@@ -84,7 +84,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           <Button
             variant="link"
             size="sm"
-            class="text-muted-foreground text-sm p-0"
+            class="text-muted-foreground text-base p-0"
           >
             {{ `Archive All` }}
           </Button>
@@ -104,9 +104,8 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           </Select>
         </div>
 
-        <TabsContent value="unread">
-          <ScrollArea>
-            <div
+        <TabsContent class="mt-3" value="unread">
+          <div
               v-if="notifications?.length > 0"
               class="divide-y divide-gray-200"
             >
@@ -116,7 +115,6 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
                 v-bind="notification"
               />
             </div>
-          </ScrollArea>
         </TabsContent>
 
         <TabsContent value="archived">
