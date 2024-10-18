@@ -2,6 +2,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { Injectable, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import type { CustomRequest } from '../types/request';
 
 const strategyName = 'user-cookie';
 
@@ -14,7 +15,7 @@ export class UserCookieStrategy extends PassportStrategy(Strategy, strategyName)
         super();
     }
 
-    public validate = async (req: { cookies: object }): Promise<any> => {
+    public validate = async (req: CustomRequest): Promise<any> => {
         return this.authService.validateCookies(req.cookies);
     };
 }
