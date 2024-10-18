@@ -114,7 +114,7 @@ describe.sequential('NotificationsService', () => {
     }
 
     // currently unused b/c of difficulty implementing NotificationOverview tests
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     async function forAllTypesAndImportances(
         action: (type: NotificationType, importance: Importance) => Promise<void>
     ) {
@@ -134,7 +134,7 @@ describe.sequential('NotificationsService', () => {
     }
 
     // currently unused b/c of difficulty implementing NotificationOverview tests
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+     
     function diffOverview(current: NotificationOverview, previous: NotificationOverview) {
         return Object.fromEntries(
             Object.entries(current).map(([key]) => {

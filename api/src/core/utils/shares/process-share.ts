@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getters } from '@app/store';
 import type { DiskShare, Share, UserShare } from '@app/core/types/states/share';
 import { type ArrayDisk } from '@app/graphql/generated/api/types';
