@@ -13,14 +13,10 @@ import {
     type getServersQuery,
     type getCloudQuery,
 } from '../../graphql/generated/api/operations';
-import {
-    type ApolloQueryResult,
-    type ApolloClient,
-    type NormalizedCacheObject,
-} from '@apollo/client/core/core.cjs';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import { loadStateFiles } from '@app/store/modules/emhttp';
+import { ApolloClient, ApolloQueryResult, NormalizedCacheObject } from '@apollo/client/core';
 
 type CloudQueryResult = NonNullable<
     ApolloQueryResult<getCloudQuery>['data']['cloud']

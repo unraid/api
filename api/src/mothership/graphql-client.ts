@@ -11,7 +11,7 @@ import {
     ApolloClient,
     InMemoryCache,
     type NormalizedCacheObject,
-} from '@apollo/client/core/core.cjs';
+} from '@apollo/client/core';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';

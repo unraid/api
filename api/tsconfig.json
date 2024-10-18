@@ -38,6 +38,7 @@
 		], /* List of folders to include type definitions from. */
 		"esModuleInterop": true, /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
 		"forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
-		"resolveJsonModule": false
+		"resolveJsonModule": false,
+		"allowImportingTsExtensions": true
 	}
 }
