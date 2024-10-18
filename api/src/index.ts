@@ -28,6 +28,7 @@ import { bootstrapNestServer } from '@app/unraid-api/main';
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { type RawServerDefault } from 'fastify';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
+import { WebSocket } from 'ws';
 import * as env from '@app/environment';
 
 let server: NestFastifyApplication<RawServerDefault>;
@@ -46,7 +47,8 @@ void am(
 
         const cacheable = new CacheableLookup();
 
-        Object.assign(global, { WebSocket: require('ws') });
+
+        Object.assign(global, { WebSocket });
         // Ensure all DNS lookups are cached for their TTL
         cacheable.install(http.globalAgent);
         cacheable.install(https.globalAgent);

@@ -40,16 +40,23 @@ export const phpLoader = async (options: Options) => {
 		encodeParameters(body),
 	];
 
-	return execa('php', options_, { cwd: __dirname })
-		.then(({ stdout }) => {
-			// Missing php file
-			if (stdout.includes(`Warning: include(${file}): failed to open stream: No such file or directory in ${path.join(__dirname, '/wrapper.php')}`)) {
-				throw new FileMissingError(file);
-			}
+	return execa('php', options_, { cwd: import.meta.dirname })
+        .then(({ stdout }) => {
+            // Missing php file
+            if (
+                stdout.includes(
+                    `Warning: include(${file}): failed to open stream: No such file or directory in ${path.join(
+                        import.meta.dirname,
+                        '/wrapper.php'
+                    )}`
+                )
+            ) {
+                throw new FileMissingError(file);
+            }
 
-			return stdout;
-		})
-		.catch(error => {
-			throw new PhpError(error);
-		});
+            return stdout;
+        })
+        .catch((error) => {
+            throw new PhpError(error);
+        });
 };

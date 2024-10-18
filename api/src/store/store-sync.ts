@@ -6,7 +6,7 @@ import { syncInfoApps } from '@app/store/sync/info-apps-sync';
 import { setupConfigPathWatch } from '@app/store/watch/config-watch';
 import { NODE_ENV } from '@app/environment';
 import { writeFileSync } from 'fs';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 import { join } from 'path';
 
 export const startStoreSync = async () => {

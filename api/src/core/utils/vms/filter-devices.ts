@@ -1,5 +1,4 @@
 import { execa } from 'execa';
-import { map as asyncMap } from 'p-iteration';
 import { sync as commandExistsSync } from 'command-exists';
 
 interface Device {
@@ -13,9 +12,9 @@ interface Device {
  * @param devices Devices to be checked.
  * @returns Processed devices.
  */
-export const filterDevices = async (devices: Device[]): Promise<Device[]> => asyncMap(devices, async (device: Device) => {
+export const filterDevices = async (devices: Device[]): Promise<Device[]> => {
 	// Don't run if we don't have the udevadm command available
-	if (!commandExistsSync('udevadm')) return device;
+	if (!commandExistsSync('udevadm')) return devices;
 
 	const networkDeviceIds = await execa('udevadm', 'info -q path -p /sys/class/net/eth0'.split(' '))
 		.then(({ stdout }) => {
@@ -25,7 +24,11 @@ export const filterDevices = async (devices: Device[]): Promise<Device[]> => asy
 		.catch(() => []);
 
 	const allowed = new Set(networkDeviceIds);
-	device.allowed = allowed.has(device.id);
 
-	return device;
-});
+	const processedDevices = devices.map((device: Device) => {
+		device.allowed = allowed.has(device.id);
+		return device;
+	});
+
+	return processedDevices;
+};
