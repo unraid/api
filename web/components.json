@@ -12,6 +12,6 @@
   "framework": "nuxt",
   "aliases": {
     "components": "@/components",
-    "utils": "@/helpers/utils"
+    "utils": "@/components/shadcn/utils"
   }
 }
