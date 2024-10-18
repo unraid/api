@@ -12,7 +12,6 @@ import { API_VERSION } from '@app/environment';
  */
 export const start = async () => {
     // Set process title
-
     process.title = 'unraid-api';
     const runningProcesses = await getAllUnraidApiPids();
     if (runningProcesses.length > 0) {
@@ -24,8 +23,6 @@ export const start = async () => {
     // Start API
     cliLogger.info('Starting unraid-api@v%s', API_VERSION);
 
-    // If we're in debug mode or we're NOT
-    console.log(mainOptions);
     // in debug but ARE in the child process
     if (mainOptions.debug || process.env._DAEMONIZE_PROCESS) {
         // Log when the API exits
@@ -52,10 +49,10 @@ export const start = async () => {
         logToSyslog('✔️ UNRAID API started successfully!');
     }
 
-    console.log(mainOptions);
+    await import ('@app/index.ts');
 
-	await import ('@app/index.ts');
     if (!mainOptions.debug) {
+        console.log('Daemonizing process. %s %o', process.execPath, process.argv);
         if ('_DAEMONIZE_PROCESS' in process.env) {
             // In the child, clean up the tracking environment variable
             delete process.env._DAEMONIZE_PROCESS;
