@@ -22,7 +22,7 @@ import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer
 import { writeFileSync } from 'fs';
 import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 
 export type SliceState = {

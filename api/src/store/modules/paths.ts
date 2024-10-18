@@ -2,7 +2,7 @@ import { createSlice } from '@reduxjs/toolkit';
 import { join, resolve as resolvePath } from 'path';
 
 const initialState = {
-    core: __dirname,
+    core: import.meta.dirname,
     'unraid-api-base': '/usr/local/bin/unraid-api/' as const,
     'unraid-data': resolvePath(
         process.env.PATHS_UNRAID_DATA ?? ('/boot/config/plugins/dynamix.my.servers/data/' as const)

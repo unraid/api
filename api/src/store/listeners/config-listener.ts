@@ -1,6 +1,6 @@
 import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { getDiff } from 'json-difference';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 import { logger } from '@app/core/log';
 import {
     type ConfigType,

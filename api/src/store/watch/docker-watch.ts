@@ -4,7 +4,7 @@ import { updateDockerState } from '@app/store/modules/docker';
 import { getDockerContainers } from '@app/core/modules/index';
 import { docker } from '@app/core/utils/index';
 import DockerEE from 'docker-event-emitter';
-import { debounce } from 'lodash';
+import { debounce } from 'lodash-es';
 
 const updateContainerCache = async () => {
     try {

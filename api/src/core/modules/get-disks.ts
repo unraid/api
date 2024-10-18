@@ -4,7 +4,6 @@ import {
     blockDevices,
     diskLayout,
 } from 'systeminformation';
-import { map as asyncMap } from 'p-iteration';
 import {
     type Disk,
     DiskInterfaceType,
@@ -91,8 +90,9 @@ export const getDisks = async (
         const partitions = await blockDevices().then((devices) =>
             devices.filter((device) => device.type === 'part')
         );
-        const disks = await asyncMap(await diskLayout(), async (disk) =>
-            parseDisk(disk, partitions)
+        const diskLayoutData = await diskLayout();
+        const disks = await Promise.all(
+            diskLayoutData.map((disk) => parseDisk(disk, partitions))
         );
 
         return disks;

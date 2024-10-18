@@ -10,14 +10,14 @@ import path from 'node:path';
 const spawnUnraidApiTestDaemon = (difficulty: 'easy' | 'hard') => {
 	const pathToJsFile = difficulty === 'easy' ? '../../setup/child-process-easy-to-kill.js' : '../../setup/child-process-hard-to-kill.js';
 	// Spawn child
-	console.log('Spawning child process at', path.join(__dirname, pathToJsFile));
-	const child = spawn('node', [path.join(__dirname, pathToJsFile)], {
-		// In the parent set the tracking environment variable
-		env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
+	console.log('Spawning child process at', path.join(import.meta.dirname, pathToJsFile));
+	const child = spawn('node', [path.join(import.meta.dirname, pathToJsFile)], {
+        // In the parent set the tracking environment variable
+        env: Object.assign(process.env, { _DAEMONIZE_PROCESS: '1' }),
 
-		stdio: 'ignore',
-		detached: true,
-	});
+        stdio: 'ignore',
+        detached: true,
+    });
 
 	// Convert process into daemon
 	child.unref();
