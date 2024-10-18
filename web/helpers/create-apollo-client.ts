@@ -1,9 +1,3 @@
-import type {
-  split as SplitType,
-  ApolloClient as ApolloClientType,
-  NormalizedCacheObject,
-} from "@apollo/client";
-
 import {
   from,
   ApolloClient,
@@ -85,7 +79,7 @@ const retryLink = new RetryLink({
   },
 });
 
-const splitLinks = (split as typeof SplitType)(
+const splitLinks = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
     return (
@@ -103,7 +97,7 @@ const splitLinks = (split as typeof SplitType)(
  */
 const additiveLink = from([errorLink, retryLink, splitLinks]);
 
-const client: ApolloClientType<NormalizedCacheObject> = new ApolloClient({
+const client = new ApolloClient({
   link: additiveLink,
   cache: createApolloCache(),
 });
