@@ -11,7 +11,7 @@ import {
 } from 'radix-vue'
 import { X } from 'lucide-vue-next'
 import { type SheetVariants, sheetVariants } from '.'
-import { cn } from '@/helpers/utils'
+import { cn } from '~/components/shadcn/utils'
 
 interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes['class']
