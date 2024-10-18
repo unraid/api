@@ -8,7 +8,7 @@ import {
   useForwardProps,
 } from 'radix-vue'
 import { Check } from 'lucide-vue-next'
-import { cn } from '@/helpers/utils'
+import { cn } from '~/components/shadcn/utils'
 
 const props = defineProps<SelectItemProps & { class?: HTMLAttributes['class'] }>()
 
