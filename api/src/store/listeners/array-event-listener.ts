@@ -5,7 +5,7 @@ import { startAppListening } from '@app/store/listeners/listener-middleware';
 import { loadSingleStateFile } from '@app/store/modules/emhttp';
 import { StateFileKey } from '@app/store/types';
 import { isAnyOf } from '@reduxjs/toolkit';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 
 export const enableArrayEventListener = () =>
     startAppListening({

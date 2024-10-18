@@ -9,7 +9,7 @@ import type {
     MyServersConfig,
     MyServersConfigMemory,
 } from '@app/types/my-servers-config';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 
 export type ConfigType = 'flash' | 'memory';
 type ConfigObject<T> = T extends 'flash'

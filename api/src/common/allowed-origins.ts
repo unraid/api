@@ -1,5 +1,5 @@
 import { getters, type RootState, store } from '@app/store';
-import { uniq } from 'lodash';
+import uniq from 'lodash/uniq';
 import {
     getServerIps,
     getUrlForField,
