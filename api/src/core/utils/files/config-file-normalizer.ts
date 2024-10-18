@@ -23,7 +23,7 @@ type ConfigObject<T> = T extends 'flash'
  * @param mode 'flash' or 'memory', changes what fields are included in the writeable payload
  * @returns
  */
-// eslint-disable-next-line complexity
+ 
 export const getWriteableConfig = <T extends ConfigType>(
     config: ConfigSliceState,
     mode: T
@@ -32,7 +32,7 @@ export const getWriteableConfig = <T extends ConfigType>(
     const { api, local, notifier, remote, upc, connectionStatus } = config;
 
     // Create new state
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+     
     const newState: ConfigObject<T> = {
         api: {
             version: api?.version ?? initialState.api.version,

@@ -32,8 +32,6 @@ export const getWsConnectionCount = () => Object.values(subscriptions).filter(su
  */
 export const getWsConnectionCountInChannel = (channel: string) => Object.values(subscriptions).filter(subscription => subscription.channels.includes(channel)).length;
 
-
-
 export const hasSubscribedToChannel = (id: string, channel: string) => {
 
     graphqlLogger.debug('Subscribing to %s', channel);
@@ -50,7 +48,6 @@ export const hasSubscribedToChannel = (id: string, channel: string) => {
     subscriptions[id].total++;
     subscriptions[id].channels.push(channel);
 };
-
 
 /**
  * Create a pubsub subscription.
@@ -74,8 +71,7 @@ export const createSubscription = (channel: string, resource?: string) => ({
         return pubsub.asyncIterator(channel);
     },
 });
-
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+ 
 export const getLocalServer = (getState = store.getState): Array<Server> => {
     const { emhttp, config, minigraph } = getState();
     const guid = emhttp.var.regGuid;

@@ -1,10 +1,7 @@
-/* eslint-disable new-cap */
 import { Cron, Expression, Initializer } from '@reflet/cron';
 import { store } from '@app/store';
 import { enableUpnp } from '@app/store/modules/upnp';
 import { upnpLogger } from '@app/core/log';
-
-let upnpJobs: ReturnType<typeof UPNPJobManager.init<UPNPJobManager>> | null = null;
 
 export class UPNPJobManager extends Initializer<typeof UPNPJobManager> {
 	@Cron.PreventOverlap
@@ -29,3 +26,5 @@ export const stopUpnpJobs = (): boolean => {
 	upnpJobs?.get('renewUpnpLeaseJob').stop();
 	return upnpJobs?.get('renewUpnpLeaseJob').running ?? false;
 };
+
+let upnpJobs: ReturnType<typeof UPNPJobManager.init<UPNPJobManager>> | null = null;

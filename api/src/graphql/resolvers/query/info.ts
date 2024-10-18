@@ -281,7 +281,7 @@ export const generateDevices = async (): Promise<Devices> => {
             const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true })
                 .then(({ stdout }) =>
                     stdout.split('\n').map((line) => {
-                        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+                         
                         const [, id] = line.match(/usb:v(\w{9})/) ?? [];
                         return id.replace('p', ':');
                     })
@@ -316,7 +316,7 @@ export const generateDevices = async (): Promise<Devices> => {
 
                 // Parse the line
                 const [, _] = line.split(/[ \t]{2,}/).filter(Boolean);
-                // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+                 
                 const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
 
                 // If there's no match return nothing

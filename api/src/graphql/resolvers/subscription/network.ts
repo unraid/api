@@ -128,8 +128,7 @@ const getUrlTypeFromFqdn = (fqdnType: string): URL_TYPE => {
             return URL_TYPE.WIREGUARD;
     }
 };
-
-// eslint-disable-next-line complexity
+ 
 export const getServerIps = (
     state: RootState = store.getState()
 ): { urls: AccessUrl[]; errors: Error[] } => {

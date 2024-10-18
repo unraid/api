@@ -18,8 +18,7 @@ export class RemoteAccessController implements IRemoteAccessController {
     static _instance: RemoteAccessController | null = null;
     activeRemoteAccess: UpnpRemoteAccess | StaticRemoteAccess | null = null;
     notifier: UnraidLocalNotifier = new UnraidLocalNotifier({ level: 'info' });
-
-    // eslint-disable-next-line @typescript-eslint/no-useless-constructor, @typescript-eslint/no-empty-function
+     
     constructor() {}
 
     public static get instance(): RemoteAccessController {
