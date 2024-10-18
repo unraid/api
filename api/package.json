@@ -213,12 +213,15 @@
     "vitest": "^2.1.1",
     "zx": "^7.2.3"
   },
-  "optionalDependencies": {
-    "@vmngr/libvirt": "github:unraid/libvirt"
+  "overrides": {
+    "rollup": "npm:@rollup/wasm-node"
   },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
+  "optionalDependencies": {
+  "@vmngr/libvirt": "github:unraid/libvirt"
+},
+"config": {
+  "commitizen": {
+    "path": "./node_modules/cz-conventional-changelog"
   }
+}
 }
