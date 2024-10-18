@@ -16,9 +16,33 @@ const initialState = {
     'dynamix-base': resolvePath(
         process.env.PATHS_DYNAMIX_BASE ?? ('/boot/config/plugins/dynamix/' as const)
     ),
-    'dynamix-config': resolvePath(
-        process.env.PATHS_DYNAMIX_CONFIG ?? ('/boot/config/plugins/dynamix/dynamix.cfg' as const)
-    ),
+
+    /**------------------------------------------------------------------------
+     *                             Resolving Plugin Configs
+     *
+     *  Plugins have a default config and, optionally, a user-customized config.
+     *  You have to merge them to resolve a the correct config.
+     *
+     * i.e. the plugin author can update or change defaults without breaking user configs
+     *
+     * Thus, we've described this plugin's config paths as a list. The order matters!
+     * Config data in earlier paths will be overwritten by configs from later paths.
+     *
+     * See [the original PHP implementation.](https://github.com/unraid/webgui/blob/95c6913c62e64314b985e08222feb3543113b2ec/emhttp/plugins/dynamix/include/Wrappers.php#L42)
+     *
+     * Here, the first path in the list is the default config.
+     * The second is the user-customized config.
+     *
+     *------------------------------------------------------------------------**/
+    'dynamix-config': [
+        resolvePath(
+            process.env.PATHS_DYNAMIX_CONFIG_DEFAULT ??
+                ('/usr/local/emhttp/plugins/dynamix/default.cfg' as const)
+        ),
+        resolvePath(
+            process.env.PATHS_DYNAMIX_CONFIG ?? ('/boot/config/plugins/dynamix/dynamix.cfg' as const)
+        ),
+    ],
     'myservers-base': '/boot/config/plugins/dynamix.my.servers/' as const,
     'myservers-config': resolvePath(
         process.env.PATHS_MY_SERVERS_CONFIG ??
