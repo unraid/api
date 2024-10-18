@@ -1,4 +1,3 @@
-/* eslint-disable */
 import { z } from 'zod'
 import { AccessUrlInput, ArrayCapacityBytesInput, ArrayCapacityInput, ClientType, ConfigErrorState, DashboardAppsInput, DashboardArrayInput, DashboardCaseInput, DashboardConfigInput, DashboardDisplayInput, DashboardInput, DashboardOsInput, DashboardServiceInput, DashboardServiceUptimeInput, DashboardTwoFactorInput, DashboardTwoFactorLocalInput, DashboardTwoFactorRemoteInput, DashboardVarsInput, DashboardVersionsInput, DashboardVmsInput, EventType, Importance, NetworkInput, NotificationInput, NotificationStatus, PingEventSource, RegistrationState, RemoteAccessEventActionType, RemoteAccessInput, RemoteGraphQLClientInput, RemoteGraphQLEventType, RemoteGraphQLServerInput, ServerStatus, URL_TYPE, UpdateType } from '@app/graphql/generated/client/graphql'
 

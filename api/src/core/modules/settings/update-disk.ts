@@ -78,7 +78,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		7: '7 hours',
 		8: '8 hours',
 		9: '9 hours',
-		/* eslint-enable @typescript-eslint/naming-convention */
+		 
 	});
 
 	// Defines the type of partition layout to create when formatting hard drives 2TB in size and smaller **only**. (All devices larger then 2TB are always set up with GPT partition tables.)
@@ -89,7 +89,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 
 		1: 'MBR: unaligned',
 		2: 'MBR: 4K-aligned',
-		/* eslint-enable @typescript-eslint/naming-convention */
+		 
 	});
 
 	// Selects the method to employ when writing to enabled disk in parity protected array.
@@ -98,7 +98,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 
 		0: 'read/modify/write',
 		1: 'reconstruct write',
-		/* eslint-enable @typescript-eslint/naming-convention */
+		 
 	});
 
 	// Defines the default file system type to create when an * unmountable * array device is formatted.
@@ -111,7 +111,7 @@ export const updateDisk = async (context: Context): Promise<Result> => {
 		'luks:xfs': 'xfs - encrypted',
 		'luks:btrfs': 'btrfs - encrypted',
 		'luks:reiserfs': 'reiserfs - encrypted',
-		/* eslint-enable @typescript-eslint/naming-convention */
+		 
 	});
 
 	const {

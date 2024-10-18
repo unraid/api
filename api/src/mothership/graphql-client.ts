@@ -56,12 +56,11 @@ export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
         Boolean(emhttp.var.version)
     );
 };
-
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+ 
 export class GraphQLClient {
     public static instance: ApolloClient<NormalizedCacheObject> | null = null;
     public static client: Client | null = null;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+     
     private constructor() {}
 
     /**

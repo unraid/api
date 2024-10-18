@@ -8,8 +8,7 @@ export type Options = NotifierOptions
  */
 export class HttpNotifier extends Notifier {
 	readonly $http = got;
-
-	// eslint-disable-next-line @typescript-eslint/no-useless-constructor
+	 
 	constructor(options: Options) {
 		super(options);
 	}

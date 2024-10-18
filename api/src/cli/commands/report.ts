@@ -258,8 +258,7 @@ const getVerbosity = (argv: string[]): Verbosity => {
 
     return '';
 };
-
-// eslint-disable-next-line complexity
+ 
 export const report = async (...argv: string[]) => {
     // Check if the user has raw output enabled
     const rawOutput = argv.includes('--raw');
