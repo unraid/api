@@ -624,7 +624,7 @@ export type Mutation = {
   addUser?: Maybe<User>;
   archiveAll: NotificationOverview;
   /** Marks a notification as archived. */
-  archiveNotification: NotificationOverview;
+  archiveNotification: Notification;
   archiveNotifications: NotificationOverview;
   /** Cancel parity check */
   cancelParityCheck?: Maybe<Scalars['JSON']['output']>;
@@ -662,7 +662,7 @@ export type Mutation = {
   unarchiveNotifications: NotificationOverview;
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
-  unreadNotification: NotificationOverview;
+  unreadNotification: Notification;
   /** Update an existing API key */
   updateApikey?: Maybe<ApiKey>;
 };
@@ -2347,7 +2347,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationaddDiskToArrayArgs>>;
   addUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationaddUserArgs, 'input'>>;
   archiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveAllArgs>>;
-  archiveNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationarchiveNotificationArgs, 'id'>>;
+  archiveNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationarchiveNotificationArgs, 'id'>>;
   archiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveNotificationsArgs>>;
   cancelParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
@@ -2374,7 +2374,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   unarchiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveAllArgs>>;
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
-  unreadNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
+  unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
   updateApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationupdateApikeyArgs, 'name'>>;
 }>;
 
