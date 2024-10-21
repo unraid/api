@@ -24,6 +24,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { CHOKIDAR_USEPOLLING } from '@app/environment';
 import { emptyDir } from 'fs-extra';
 import { execa } from 'execa';
+import { AppError } from '@app/core/errors/app-error';
 
 @Injectable()
 export class NotificationsService {
@@ -385,14 +386,14 @@ export class NotificationsService {
         };
     }
 
-    public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<NotificationOverview> {
+    public async archiveNotification({ id }: Pick<Notification, 'id'>): Promise<Notification> {
         const unreadPath = join(this.paths().UNREAD, id);
 
         // We expect to only archive 'unread' notifications, but it's possible that the notification
         // has already been archived or deleted (e.g. retry logic, spike in network latency).
         if (!(await fileExists(unreadPath))) {
             this.logger.warn(`[archiveNotification] Could not find notification in unreads: ${id}`);
-            return NotificationsService.overview;
+            throw new AppError(`Could not find notification in unreads: ${id}`, 404);
         }
 
         /**-----------------------
@@ -414,17 +415,17 @@ export class NotificationsService {
         await moveToArchive(notification);
 
         return {
-            ...NotificationsService.overview,
-            archive: snapshot.archive,
+            ...notification,
+            type: NotificationType.ARCHIVE,
         };
     }
 
-    public async markAsUnread({ id }: Pick<Notification, 'id'>): Promise<NotificationOverview> {
+    public async markAsUnread({ id }: Pick<Notification, 'id'>): Promise<Notification> {
         const archivePath = join(this.paths().ARCHIVE, id);
         // the target notification might not be in the archive!
         if (!(await fileExists(archivePath))) {
             this.logger.warn(`[markAsUnread] Could not find notification in archive: ${id}`);
-            return NotificationsService.overview;
+            throw new AppError(`Could not find notification in archive: ${id}`, 404);
         }
 
         // we use a snapshot to provide an accurate overview update
@@ -439,8 +440,8 @@ export class NotificationsService {
 
         await moveToUnread(notification);
         return {
-            ...NotificationsService.overview,
-            unread: snapshot.unread,
+            ...notification,
+            type: NotificationType.UNREAD,
         };
     }
 

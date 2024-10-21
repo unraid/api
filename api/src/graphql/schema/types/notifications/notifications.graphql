@@ -18,9 +18,9 @@ type Mutation {
     createNotification(input: NotificationData!): Notification!
     deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
     """Marks a notification as archived."""
-    archiveNotification(id: String!): NotificationOverview!
+    archiveNotification(id: String!): Notification!
     """Marks a notification as unread."""
-    unreadNotification(id: String!): NotificationOverview!
+    unreadNotification(id: String!): Notification!
     archiveNotifications(ids: [String!]): NotificationOverview!
     unarchiveNotifications(ids: [String!]): NotificationOverview!
     archiveAll(importance: Importance): NotificationOverview!
