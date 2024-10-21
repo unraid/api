@@ -52,8 +52,7 @@ export const idPrefixPlugin: ApolloServerPlugin = {
         return {
             async didResolveOperation({ request }) {
                 if (request.variables) {
-                    updateObject(request.variables, stripServerPrefixFromIds)
-                    stripServerPrefixFromIds(request.variables);
+                    updateObject(request.variables, stripServerPrefixFromIds);
                 }
             },
             async willSendResponse({ response }) {
