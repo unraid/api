@@ -10,13 +10,11 @@ import {
 } from "@/components/shadcn/sheet";
 
 import {
-archiveAllNotifications,
+  archiveAllNotifications,
   getNotifications,
   NOTIFICATION_FRAGMENT,
 } from "./graphql/notification.query";
-import {
-  NotificationType,
-} from "~/composables/gql/graphql";
+import { NotificationType } from "~/composables/gql/graphql";
 import { useFragment } from "~/composables/gql/fragment-masking";
 import { useQuery, useMutation } from "@vue/apollo-composable";
 
@@ -25,23 +23,34 @@ import { useQuery, useMutation } from "@vue/apollo-composable";
 //   console.log("[notifications]", newVal);
 // });
 
-const fetchType = ref<NotificationType>(NotificationType.Unread);
-const setFetchType = (type: NotificationType) => (fetchType.value = type);
-
-const { result, error } = useQuery(getNotifications, {
+const { result, error, variables } = useQuery(getNotifications, {
   filter: {
     offset: 0,
     limit: 10,
-    type: fetchType.value,
+    type: NotificationType.Unread,
   },
 });
+
+const setFetchType = (type: NotificationType) => {
+  if (variables.value) {
+    variables.value.filter.type = type;
+  }
+};
 
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
   return useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
 });
 
-const { mutate:archiveAll, loading: archivingAll } = useMutation(archiveAllNotifications);
+const { mutate: archiveAll, loading: archivingAll } = useMutation(
+  archiveAllNotifications,
+  {
+    update: (cache) => {
+      cache.evict({ fieldName: "notifications" });
+      cache.gc();
+    },
+  }
+);
 
 watch(error, (newVal) => {
   console.log("[sidebar error]", newVal);
@@ -78,7 +87,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
             <TabsTrigger
               class=""
               value="archived"
-              @="setFetchType(NotificationType.Archive)"
+              @click="setFetchType(NotificationType.Archive)"
             >
               Archived
             </TabsTrigger>
@@ -111,19 +120,32 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 
         <TabsContent class="mt-3" value="unread">
           <div
-              v-if="notifications?.length > 0"
-              class="divide-y divide-gray-200"
-            >
-              <NotificationsItem
-                v-for="notification in notifications"
-                :key="notification.id"
-                v-bind="notification"
-              />
-            </div>
+            v-if="notifications?.length > 0"
+            class="divide-y divide-gray-200"
+          >
+            <NotificationsItem
+              v-for="notification in notifications.filter(
+                (n) => n.type === NotificationType.Unread
+              )"
+              :key="notification.id"
+              v-bind="notification"
+            />
+          </div>
         </TabsContent>
 
         <TabsContent value="archived">
-          <p>Archived</p>
+          <div
+            v-if="notifications?.length > 0"
+            class="divide-y divide-gray-200"
+          >
+            <NotificationsItem
+              v-for="notification in notifications.filter(
+                (n) => n.type === NotificationType.Archive
+              )"
+              :key="notification.id"
+              v-bind="notification"
+            />
+          </div>
         </TabsContent>
       </Tabs>
 
