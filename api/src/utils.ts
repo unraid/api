@@ -61,3 +61,34 @@ export async function batchProcess<Input, T>(items: Input[], action: (id: Input)
         errorOccured: errors.length > 0,
     };
 }
+
+/**
+ * Traverses an object and its nested objects, passing each one to a callback function.
+ *
+ * This function iterates over the input object, using a stack to keep track of nested objects,
+ * and applies the given modifier function to each object it encounters.
+ * It prevents infinite loops by limiting the number of iterations.
+ *
+ * @param obj - The object to be traversed and modified.
+ * @param modifier - A callback function, taking an object. Modifications should happen in place.
+ */
+export function updateObject(obj: object, modifier: (currentObj: object) => void) {
+    const stack = [obj];
+    let iterations = 0;
+    // Prevent infinite loops
+    while (stack.length > 0 && iterations < 100) {
+        const current = stack.pop();
+
+        if (current && typeof current === 'object') {
+            modifier(current);
+
+            for (const value of Object.values(current)) {
+                if (value && typeof value === 'object') {
+                    stack.push(value);
+                }
+            }
+        }
+
+        iterations++;
+    }
+}
