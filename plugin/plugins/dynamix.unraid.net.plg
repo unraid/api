@@ -81,7 +81,6 @@ DNSERR=no
 
 echo "Checking DNS..."
 #dnscheck "${DLHOST}"
-#dnscheck "${NODEHOST}"
 dnscheck "mothership.unraid.net"
 #dnscheck "wanip4.unraid.net"
 #dnscheck "backup.unraid.net"
