@@ -109,7 +109,7 @@ exit 0
 </FILE>
 
 <!-- download node -->
-<FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE;" Run="upgradepkg --install-new">
+<FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
   <URL>https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/&NODE;</URL>
   <SHA256>&NODE_SHA256;</SHA256>
 </FILE>
