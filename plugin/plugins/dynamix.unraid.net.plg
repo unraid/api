@@ -8,11 +8,11 @@
 <!ENTITY version                "">
 <!ENTITY pluginURL              "">
 <!ENTITY source                 "/boot/config/plugins/dynamix.my.servers/&name;">
-<!ENTITY MD5                    "">
 <!ENTITY SHA256                 "">
 <!ENTITY API_version            "">
-<!ENTITY API_MD5                "">
 <!ENTITY API_SHA256             "">
+<!ENTITY NODE                   "nodejs-20.18.0-x86_64-1.txz">
+<!ENTITY NODE_SHA256            "332f22a2a6722e9fad92b8d1eeaded228a6499b7335b2b54ee99c55b4fe49742">
 <!ENTITY downloadserver         "">
 ]>
 
@@ -58,13 +58,6 @@ source /etc/unraid-version
 if [ ! -x /bin/gzip ] || ! /bin/gzip -V &>/dev/null; then
   echo "⚠️ Unable to install as gzip is not available on this system. For help, post your diagnostics.zip to a new support thread in the forum."
   exit 1
-fi
-
-# Check if node is installed in Unraid and install it if not 
-if [ ! -f /boot/extra/nodejs-20.18.0-x86_64-1.txz ]; then
-  echo "Downloading nodejs-20.18.0-x86_64-1.txz package"
-  mkdir -p /boot/extra wget https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/nodejs-20.18.0-x86_64-1.txz -O /boot/extra/nodejs-20.18.0-x86_64-1.txz
-  upgradepkg --install-new /boot/extra/nodejs-20.18.0-x86_64-1.txz
 fi
 
 dnscheck() {
@@ -115,17 +108,21 @@ exit 0
 </INLINE>
 </FILE>
 
+<!-- download node -->
+<FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE;" Run="upgradepkg --install-new">
+  <URL>https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/&NODE;</URL>
+  <SHA256>&NODE_SHA256;</SHA256>
+</FILE>
+
 <!-- download main txz -->
 <FILE Name="&source;.txz">
 <URL>&downloadserver;/unraid-api/&name;-&version;.txz</URL>
-<MD5>&MD5;</MD5>
 <SHA256>&SHA256;</SHA256>
 </FILE>
 
 <!-- download unraid-api -->
 <FILE Name="/boot/config/plugins/dynamix.my.servers/unraid-api.tgz">
 <URL>&downloadserver;/unraid-api/unraid-api-&API_version;.tgz</URL>
-<MD5>&API_MD5;</MD5>
 <SHA256>&API_SHA256;</SHA256>
 </FILE>
 
