@@ -47,11 +47,11 @@ cd "${DIR}" || exit 1
 # define vars for plg
 pluginURL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 downloadserver="https://stable.dl.unraid.net"
-js_dl_server="https://registration.unraid.net"
+node_dl_server="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/nodejs-20.18.0-x86_64-1.txz"
 if [[ "${env}" == "staging" ]]; then
   pluginURL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   downloadserver="https://preview.dl.unraid.net"
-  js_dl_server="https://registration-dev.unraid.net"
+  node_dl_server="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/nodejs-20.18.0-x86_64-1.txz"
 fi
 
 # update plg file
@@ -62,7 +62,7 @@ sed -i -E "s#(ENTITY pluginURL\s*)\".*\"#\1\"${pluginURL}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MD5\s*)\".*\"#\1\"${md5}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY downloadserver\s*)\".*\"#\1\"${downloadserver}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY js_dl_server\s*)\".*\"#\1\"${js_dl_server}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY node_dl_server\s*)\".*\"#\1\"${node_dl_server}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
