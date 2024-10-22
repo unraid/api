@@ -49,7 +49,6 @@ exit 0
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
 DLHOST=$(echo "&downloadserver;" | awk -F/ '{print $3}')
-NODEHOST=$(echo "&node_dl_server;" | awk -F/ '{print $3}')
 <![CDATA[
 version=
 # shellcheck disable=SC1091
