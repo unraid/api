@@ -9,45 +9,13 @@ import {
   SheetTrigger,
 } from "@/components/shadcn/sheet";
 
-import {
-  archiveAllNotifications,
-  getNotifications,
-  NOTIFICATION_FRAGMENT,
-} from "./graphql/notification.query";
+import { archiveAllNotifications } from "./graphql/notification.query";
 import { NotificationType } from "~/composables/gql/graphql";
-import { useFragment } from "~/composables/gql/fragment-masking";
-import { useQuery, useMutation } from "@vue/apollo-composable";
+import { useMutation } from "@vue/apollo-composable";
 
-// const notifications = ref<NotificationFragmentFragment[]>([]);
-// watch(notifications, (newVal) => {
-//   console.log("[notifications]", newVal);
-// });
-
-const { result, error, variables } = useQuery(getNotifications, {
-  filter: {
-    offset: 0,
-    limit: 10,
-    type: NotificationType.Unread,
-  },
-});
-
-const setFetchType = (type: NotificationType) => {
-  if (variables.value) {
-    variables.value.filter.type = type;
-  }
-};
-
-const notifications = computed(() => {
-  if (!result.value?.notifications.list) return [];
-  return useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
-});
-
-const { mutate: archiveAll, loading: archivingAll } = useMutation(archiveAllNotifications);
-
-watch(error, (newVal) => {
-  console.log("[sidebar error]", newVal);
-});
-
+const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(
+  archiveAllNotifications
+);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 </script>
 
@@ -69,24 +37,12 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
       <Tabs default-value="unread" class="">
         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
           <TabsList class="ml-[1px]">
-            <TabsTrigger
-              class=""
-              value="unread"
-              @click="setFetchType(NotificationType.Unread)"
-            >
-              Unread
-            </TabsTrigger>
-            <TabsTrigger
-              class=""
-              value="archived"
-              @click="setFetchType(NotificationType.Archive)"
-            >
-              Archived
-            </TabsTrigger>
+            <TabsTrigger value="unread"> Unread </TabsTrigger>
+            <TabsTrigger value="archived"> Archived </TabsTrigger>
           </TabsList>
 
           <Button
-            :disabled="archivingAll"
+            :disabled="loadingArchiveAll"
             variant="link"
             size="sm"
             class="text-muted-foreground text-base p-0"
@@ -110,34 +66,12 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           </Select>
         </div>
 
-        <TabsContent class="mt-3" value="unread">
-          <div
-            v-if="notifications?.length > 0"
-            class="divide-y divide-gray-200"
-          >
-            <NotificationsItem
-              v-for="notification in notifications.filter(
-                (n) => n.type === NotificationType.Unread
-              )"
-              :key="notification.id"
-              v-bind="notification"
-            />
-          </div>
+        <TabsContent value="unread">
+          <NotificationsList :type="NotificationType.Unread" />
         </TabsContent>
 
         <TabsContent value="archived">
-          <div
-            v-if="notifications?.length > 0"
-            class="divide-y divide-gray-200"
-          >
-            <NotificationsItem
-              v-for="notification in notifications.filter(
-                (n) => n.type === NotificationType.Archive
-              )"
-              :key="notification.id"
-              v-bind="notification"
-            />
-          </div>
+          <NotificationsList :type="NotificationType.Archive" />
         </TabsContent>
       </Tabs>
 
