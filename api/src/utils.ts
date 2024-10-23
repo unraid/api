@@ -62,6 +62,10 @@ export async function batchProcess<Input, T>(items: Input[], action: (id: Input)
     };
 }
 
+type IterationOptions = {
+    maxIterations?: number;
+};
+
 /**
  * Traverses an object and its nested objects, passing each one to a callback function.
  *
@@ -72,11 +76,16 @@ export async function batchProcess<Input, T>(items: Input[], action: (id: Input)
  * @param obj - The object to be traversed and modified.
  * @param modifier - A callback function, taking an object. Modifications should happen in place.
  */
-export function updateObject(obj: object, modifier: (currentObj: object) => void) {
+export function updateObject(
+    obj: object,
+    modifier: (currentObj: object) => void,
+    opts: IterationOptions = {}
+) {
     const stack = [obj];
     let iterations = 0;
+    const { maxIterations = 100 } = opts;
     // Prevent infinite loops
-    while (stack.length > 0 && iterations < 100) {
+    while (stack.length > 0 && iterations < maxIterations) {
         const current = stack.pop();
 
         if (current && typeof current === 'object') {
