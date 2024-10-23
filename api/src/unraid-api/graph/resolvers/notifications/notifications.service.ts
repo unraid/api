@@ -550,9 +550,9 @@ export class NotificationsService {
     private async listFilesInFolder(folderPath: string, sortFn?: SortFn<Stats>): Promise<string[]> {
         sortFn ??= (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs; // latest first
         const contents = await readdir(folderPath);
-        // pre-map each file's stats to avoid excess calls during sorting
         return contents
             .map((content) => {
+                // pre-map each file's stats to avoid excess calls during sorting
                 const path = join(folderPath, content);
                 return { path, stats: statSync(path) };
             })
