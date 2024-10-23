@@ -5,7 +5,13 @@
             "script": "npm",
             "args": "run boot:unraid",
             "log": "/var/log/unraid-api/unraid-api.log",
-            "exec_mode": "fork"
+            "exec_mode": "fork",
+            "ignore_watch": [
+                "node_modules",
+                "src",
+                ".env.*",
+                "myservers.cfg"
+            ]
         }
     ]
 }
