@@ -1,17 +1,15 @@
 import type {
   split as SplitType,
   ApolloClient as ApolloClientType,
-  InMemoryCache as InMemoryCacheType,
+  NormalizedCacheObject,
 } from "@apollo/client";
 
 import {
   from,
   ApolloClient,
   createHttpLink,
-  InMemoryCache,
   split,
-  // @ts-expect-error - CommonJS doesn't have type definitions
-} from "@apollo/client/core/core.cjs";
+} from "@apollo/client/core";
 
 import { onError } from "@apollo/client/link/error";
 import { RetryLink } from "@apollo/client/link/retry";
@@ -20,6 +18,7 @@ import { getMainDefinition } from "@apollo/client/utilities";
 import { provideApolloClient } from "@vue/apollo-composable";
 import { createClient } from "graphql-ws";
 import { WEBGUI_GRAPHQL } from "./urls";
+import { createApolloCache } from "./apollo-cache";
 
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace("http", "ws"));
@@ -104,9 +103,9 @@ const splitLinks = (split as typeof SplitType)(
  */
 const additiveLink = from([errorLink, retryLink, splitLinks]);
 
-const client: ApolloClientType<InMemoryCacheType> = new ApolloClient({
+const client: ApolloClientType<NormalizedCacheObject> = new ApolloClient({
   link: additiveLink,
-  cache: new InMemoryCache(),
+  cache: createApolloCache(),
 });
 
 provideApolloClient(client);
