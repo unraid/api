@@ -1,7 +1,7 @@
 ###########################################################
 # Development/Build Image
 ###########################################################
-FROM node:22-bookworm-slim As development
+FROM node:20-bookworm-slim As development
 
 # Install build tools and dependencies
 RUN apt-get update -y && apt-get install -y \
@@ -24,12 +24,9 @@ ENV NODE_ENV=development
 ENV PKG_CACHE_PATH /app/.pkg-cache
 RUN mkdir -p ${PKG_CACHE_PATH}
 
-COPY tsconfig.json tsup.config.ts .eslintrc.cjs .npmrc .env.production .env.staging ./
+COPY tsconfig.json .eslintrc.ts .npmrc .env.production .env.staging ./
 
 COPY package.json package-lock.json ./
-
-# Install pkg
-RUN npm i -g pkg zx
 
 # Install deps
 RUN npm i

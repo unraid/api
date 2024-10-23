@@ -26,6 +26,8 @@ const makeLoggingDirectoryIfNotExists = () => {
     }
 };
 
+console.log(LOG_TRANSPORT);
+
 if (LOG_TRANSPORT === 'file') {
     makeLoggingDirectoryIfNotExists();
 }

@@ -1,0 +1,10 @@
+{
+    "apps": [
+        {
+            "name": "unraid-api",
+            "script": "npm",
+            "args": "run tsx:unraid -- boot",
+            "instances": 1
+        }
+    ]
+}
