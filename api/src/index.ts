@@ -27,7 +27,7 @@ import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { type RawServerDefault } from 'fastify';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 import { WebSocket } from 'ws';
-import exitHook from 'async-exit-hook';
+import exitHook from 'exit-hook';
 import * as env from '@app/environment';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
@@ -94,7 +94,7 @@ try {
 
     await validateApiKeyIfPresent();
 
-    // On process exit stop HTTP server - this says it supports async but it doesnt seem to
+    // On process exit stop HTTP server
     exitHook(() => {
         console.log('exithook');
         server?.close?.();
