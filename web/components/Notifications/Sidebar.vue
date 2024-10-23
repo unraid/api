@@ -42,15 +42,7 @@ const notifications = computed(() => {
   return useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
 });
 
-const { mutate: archiveAll, loading: archivingAll } = useMutation(
-  archiveAllNotifications,
-  {
-    update: (cache) => {
-      cache.evict({ fieldName: "notifications" });
-      cache.gc();
-    },
-  }
-);
+const { mutate: archiveAll, loading: archivingAll } = useMutation(archiveAllNotifications);
 
 watch(error, (newVal) => {
   console.log("[sidebar error]", newVal);
