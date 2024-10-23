@@ -27,6 +27,7 @@ import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { type RawServerDefault } from 'fastify';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 import { WebSocket } from 'ws';
+import exitHook from 'async-exit-hook';
 import * as env from '@app/environment';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
@@ -36,86 +37,86 @@ const unlinkUnixPort = () => {
         if (fileExistsSync(PORT)) unlinkSync(PORT);
     }
 };
-try {
-    environment.IS_MAIN_PROCESS = true;
 
-    logger.debug('ENV %o', env);
+export const startApp = async () => {
+    try {
+        environment.IS_MAIN_PROCESS = true;
 
-    const cacheable = new CacheableLookup();
+        logger.debug('ENV %o', env);
 
-    Object.assign(global, { WebSocket });
-    // Ensure all DNS lookups are cached for their TTL
-    cacheable.install(http.globalAgent);
-    cacheable.install(https.globalAgent);
+        const cacheable = new CacheableLookup();
 
-    // Start file <-> store sync
-    // Must occur before config is loaded to ensure that the handler can fix broken configs
-    await startStoreSync();
+        Object.assign(global, { WebSocket });
+        // Ensure all DNS lookups are cached for their TTL
+        cacheable.install(http.globalAgent);
+        cacheable.install(https.globalAgent);
 
-    await setupLogRotation();
+        // Start file <-> store sync
+        // Must occur before config is loaded to ensure that the handler can fix broken configs
+        await startStoreSync();
 
-    // Load my servers config file into store
-    await store.dispatch(loadConfigFile());
+        await setupLogRotation();
 
-    // Load emhttp state into store
-    await store.dispatch(loadStateFiles());
+        // Load my servers config file into store
+        await store.dispatch(loadConfigFile());
 
-    // Load initial registration key into store
-    await store.dispatch(loadRegistrationKey());
+        // Load emhttp state into store
+        await store.dispatch(loadStateFiles());
 
-    // Load my dynamix config file into store
-    await store.dispatch(loadDynamixConfigFile());
+        // Load initial registration key into store
+        await store.dispatch(loadRegistrationKey());
 
-    // Start listening to file updates
-    StateManager.getInstance();
+        // Load my dynamix config file into store
+        await store.dispatch(loadDynamixConfigFile());
 
-    // Start listening to key file changes
-    setupRegistrationKeyWatch();
+        // Start listening to file updates
+        StateManager.getInstance();
 
-    // Start listening to docker events
-    setupVarRunWatch();
+        // Start listening to key file changes
+        setupRegistrationKeyWatch();
 
-    // Start listening to dynamix config file changes
-    setupDynamixConfigWatch();
+        // Start listening to docker events
+        setupVarRunWatch();
 
-    // Disabled until we need the access token to work
-    // TokenRefresh.init();
+        // Start listening to dynamix config file changes
+        setupDynamixConfigWatch();
 
-    // If port is unix socket, delete old socket before starting http server
-    unlinkUnixPort();
+        // Disabled until we need the access token to work
+        // TokenRefresh.init();
 
-    // Start webserver
-    server = await bootstrapNestServer();
-    PingTimeoutJobs.init();
-
-    startMiddlewareListeners();
-
-    await validateApiKeyIfPresent();
-
-    console.log('Started')
-    // On process exit stop HTTP server - this says it supports async but it doesnt seem to
-    /*
-    exitHook(() => {
-        console.log('exithook');
-        server?.close?.();
-        // If port is unix socket, delete socket before exiting
+        // If port is unix socket, delete old socket before starting http server
         unlinkUnixPort();
 
+        // Start webserver
+        server = await bootstrapNestServer();
+        PingTimeoutJobs.init();
+
+        startMiddlewareListeners();
+
+        await validateApiKeyIfPresent();
+
+        // On process exit stop HTTP server - this says it supports async but it doesnt seem to
+        exitHook(() => {
+            console.log('exithook');
+            server?.close?.();
+            // If port is unix socket, delete socket before exiting
+            unlinkUnixPort();
+
+            shutdownApiEvent();
+
+            process.exit(0);
+        });
+        // Start a loop to run the app
+        await new Promise(() => {});
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            logger.error('API-ERROR %s %s', error.message, error.stack);
+        }
+        if (server) {
+            await server?.close?.();
+        }
         shutdownApiEvent();
-
-        process.exit(0);
-    }); */
-
-    console.log('Stopped')
-} catch (error: unknown) {
-    console.log('exit');
-    if (error instanceof Error) {
-        logger.error('API-ERROR %s %s', error.message, error.stack);
+        // Kill application
+        process.exit(1);
     }
-    if (server) {
-        await server?.close?.();
-    }
-    shutdownApiEvent();
-    // Kill application
-    process.exit(1);
-}
+};
