@@ -1,7 +1,6 @@
 import { copyFile, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { cliLogger } from '@app/core/log';
-import { setEnv } from '@app/cli/set-env';
 import { getters } from '@app/store';
 import { start } from '@app/cli/commands/start';
 import { stop } from '@app/cli/commands/stop';
