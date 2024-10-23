@@ -22,9 +22,11 @@ import { fileExists } from '@app/core/utils/files/file-exists';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
 import { CHOKIDAR_USEPOLLING } from '@app/environment';
-import { emptyDir } from 'fs-extra';
+import { emptyDir, statSync } from 'fs-extra';
 import { execa } from 'execa';
 import { AppError } from '@app/core/errors/app-error';
+import { SortFn } from '@app/unraid-api/types/util';
+import type { Stats } from 'fs';
 
 @Injectable()
 export class NotificationsService {
@@ -539,13 +541,23 @@ export class NotificationsService {
 
     /**
      * Given a path to a folder, returns the full (absolute) paths of the folder's top-level contents.
+     * Sorted latest-first by default.
+     *
      * @param folderPath The path of the folder to read.
+     * @param sortFn An optional function to sort folder contents. Defaults to descending birth time.
      * @returns A list of absolute paths of all the files and contents in the folder.
      */
-    private async listFilesInFolder(folderPath: string): Promise<string[]> {
+    private async listFilesInFolder(folderPath: string, sortFn?: SortFn<Stats>): Promise<string[]> {
+        sortFn ??= (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs; // latest first
         const contents = await readdir(folderPath);
-
-        return contents.map((content) => join(folderPath, content));
+        // pre-map each file's stats to avoid excess calls during sorting
+        return contents
+            .map((content) => {
+                const path = join(folderPath, content);
+                return { path, stats: statSync(path) };
+            })
+            .sort((fileA, fileB) => sortFn(fileA.stats, fileB.stats))
+            .map(({ path }) => path);
     }
 
     /**
