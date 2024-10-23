@@ -3,7 +3,7 @@
 		"src/**/*",
 		".eslintrc.ts",
 		"vite.config.ts"
-	],
+, "unraid-api-cli.js"	],
 	"exclude": [
 		"node_modules",
 		"vite.config.ts"
@@ -39,6 +39,5 @@
 		"esModuleInterop": true, /* Enables emit interoperability between CommonJS and ES Modules via creation of namespace objects for all imports. Implies 'allowSyntheticDefaultImports'. */
 		"forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */,
 		"resolveJsonModule": false,
-		"allowImportingTsExtensions": true
 	}
 }

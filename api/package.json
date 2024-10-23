@@ -1,33 +1,14 @@
 {
   "name": "@unraid/api",
   "version": "3.11.0",
-  "main": "dist/index.js",
-  "bin": "dist/unraid-api.cjs",
+  "main": "src/cli/index.ts",
   "type": "module",
   "repository": "git@github.com:unraid/api.git",
-  "author": "Alexis Tyler <xo@wvvw.me> (https://wvvw.me/)",
+  "author": "Lime Technology, Inc. <unraid.net>",
   "license": "UNLICENSED",
-  "engines": {
-    "node": ">=16.5.0"
-  },
-  "pkg": {
-    "assets": [
-      "dist/index.cjs",
-      "node_modules/@vmngr/libvirt/build/Release",
-      "node_modules/ts-invariant/",
-      "src/**/*.graphql"
-    ],
-    "targets": [
-      "node18-linux-x64"
-    ],
-    "outputPath": "dist"
-  },
   "scripts": {
-    "compile": "tsup --config ./tsup.config.ts",
-    "bundle": "pkg . --public",
-    "build": "npm run compile && npm run bundle",
     "build:docker": "./scripts/dc.sh run --rm builder",
-    "build-pkg": "./scripts/build.mjs",
+    "build:pack": "./scripts/build.mjs",
     "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
     "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen --config codegen.yml --watch -r dotenv/config",
     "codegen:local": "NODE_TLS_REJECT_UNAUTHORIZED=0  MOTHERSHIP_GRAPHQL_LINK='https://mothership.localhost/ws' graphql-codegen-esm --config codegen.yml --watch",
@@ -41,6 +22,7 @@
     "release": "standard-version",
     "typesync": "typesync",
     "install:unraid": "./scripts/install-in-unraid.sh",
+    "tsx:unraid": "tsx -r dotenv/config src/cli.ts",
     "start:plugin": "INTROSPECTION=true LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
     "start:plugin-verbose": "LOG_CONTEXT=true LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
     "run:tsx": "LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace DOTENV_CONFIG_PATH=./.env.development tsx -r dotenv/config src/cli.ts",
@@ -58,9 +40,13 @@
   "files": [
     ".env.staging",
     ".env.production",
-    "dist",
-    "unraid-api"
+    "README.md",
+    "src",
+    "node_modules/"
   ],
+  "bin": {
+    "unraid-api": "unraid-api.js"
+  },
   "dependencies": {
     "@apollo/client": "^3.10.4",
     "@apollo/server": "^4.10.4",
@@ -132,6 +118,7 @@
     "pino": "^9.1.0",
     "pino-http": "^9.0.0",
     "pino-pretty": "^11.0.0",
+    "pm2": "^5.4.2",
     "reflect-metadata": "^0.1.14",
     "request": "^2.88.2",
     "semver": "^7.6.2",
@@ -206,11 +193,6 @@
   },
   "optionalDependencies": {
     "@vmngr/libvirt": "github:unraid/libvirt"
-  },
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
   },
   "overrides": {
     "eslint": {

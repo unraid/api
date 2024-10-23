@@ -17,10 +17,7 @@ export const main = async (...argv: string[]) => {
     setEnv('DEBUG', mainOptions.debug ?? false);
     setEnv('ENVIRONMENT', process.env.ENVIRONMENT ?? 'production');
     setEnv('PORT', process.env.PORT ?? mainOptions.port ?? '9000');
-    setEnv(
-        'LOG_LEVEL',
-        process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'INFO'
-    );
+    setEnv('LOG_LEVEL', process.env.LOG_LEVEL ?? mainOptions['log-level'] ?? 'INFO');
     if (!process.env.LOG_TRANSPORT) {
         if (process.env.ENVIRONMENT === 'production' && !mainOptions.debug) {
             setEnv('LOG_TRANSPORT', 'file');
@@ -48,16 +45,13 @@ export const main = async (...argv: string[]) => {
     const commands = {
         start: import('@app/cli/commands/start').then((pkg) => pkg.start),
         stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop),
+        boot: import('@app/cli/commands/boot').then((pkg) => pkg.boot),
         restart: import('@app/cli/commands/restart').then((pkg) => pkg.restart),
-        'switch-env': import('@app/cli/commands/switch-env').then(
-            (pkg) => pkg.switchEnv
-        ),
+        'switch-env': import('@app/cli/commands/switch-env').then((pkg) => pkg.switchEnv),
         version: import('@app/cli/commands/version').then((pkg) => pkg.version),
         status: import('@app/cli/commands/status').then((pkg) => pkg.status),
         report: import('@app/cli/commands/report').then((pkg) => pkg.report),
-        'validate-token': import('@app/cli/commands/validate-token').then(
-            (pkg) => pkg.validateToken
-        ),
+        'validate-token': import('@app/cli/commands/validate-token').then((pkg) => pkg.validateToken),
     };
 
     // Unknown command

@@ -4,7 +4,6 @@ import 'global-agent/bootstrap';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
-import exitHook from 'async-exit-hook';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
@@ -93,8 +92,11 @@ try {
 
     await validateApiKeyIfPresent();
 
+    console.log('Started')
     // On process exit stop HTTP server - this says it supports async but it doesnt seem to
+    /*
     exitHook(() => {
+        console.log('exithook');
         server?.close?.();
         // If port is unix socket, delete socket before exiting
         unlinkUnixPort();
@@ -102,8 +104,11 @@ try {
         shutdownApiEvent();
 
         process.exit(0);
-    });
+    }); */
+
+    console.log('Stopped')
 } catch (error: unknown) {
+    console.log('exit');
     if (error instanceof Error) {
         logger.error('API-ERROR %s %s', error.message, error.stack);
     }

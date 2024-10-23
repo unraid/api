@@ -1,3 +1,4 @@
+/* eslint-disable */
 import * as types from './graphql.js';
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
