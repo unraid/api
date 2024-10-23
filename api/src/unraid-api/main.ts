@@ -37,14 +37,15 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     app.useGlobalFilters(new GraphQLExceptionsFilter(), new HttpExceptionFilter());
 
     await app.init();
-    if (Number.isNaN(parseInt(PORT))) {
-        server.listen({ path: '/var/run/unraid-api.sock' });
-    } else {
-        server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
-    }
 
+    if (Number.isNaN(parseInt(PORT))) {
+        await server.listen({ path: '/var/run/unraid-api.sock' });
+    } else {
+        await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
+    }
     //await app.getHttpAdapter().listen(PORT);
     apiLogger.debug('Nest Server is now listening');
 
+    app.flushLogs();
     return app;
 }

@@ -23,6 +23,8 @@ x-volumes: &volumes
   - ./codegen.yml:/app/codegen.yml
   - ./fix-array-type.cjs:/app/fix-array-type.cjs
   - /var/run/docker.sock:/var/run/docker.sock
+  - ./unraid-api.js:/app/unraid-api.js
+  - ./ecosystem.config.json:/app/ecosystem.config.json
 
 services:
 

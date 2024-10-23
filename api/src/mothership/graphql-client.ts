@@ -187,6 +187,9 @@ export class GraphQLClient {
                 MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws')
             );
         });
+        GraphQLClient.client.on('error', (err) => {
+            console.log('error', err);
+        })
         GraphQLClient.client.on('connected', () => {
             store.dispatch(
                 setGraphqlConnectionStatus({
