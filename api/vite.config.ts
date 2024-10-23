@@ -18,7 +18,8 @@ export default defineConfig(() => {
 			clearMocks: true,
 			setupFiles: [
 				'src/__test__/setup/keyserver-mock.ts'
-			]
+			],
+			exclude: ['deploy/', 'node_modules/'],
 		},
 	};
 });
