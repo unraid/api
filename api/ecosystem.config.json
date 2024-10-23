@@ -3,8 +3,9 @@
         {
             "name": "unraid-api",
             "script": "npm",
-            "args": "run tsx:unraid -- boot",
-            "instances": 1
+            "args": "run boot:unraid",
+            "log": "/var/log/unraid-api/unraid-api.log",
+            "exec_mode": "fork"
         }
     ]
 }

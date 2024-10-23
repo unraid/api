@@ -22,6 +22,7 @@
     "release": "standard-version",
     "typesync": "typesync",
     "install:unraid": "./scripts/install-in-unraid.sh",
+    "boot:unraid": "tsx -r dotenv/config src/index.ts",
     "tsx:unraid": "tsx -r dotenv/config src/cli.ts",
     "start:plugin": "INTROSPECTION=true LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
     "start:plugin-verbose": "LOG_CONTEXT=true LOG_MOTHERSHIP_MESSAGES=true LOG_TYPE=pretty LOG_LEVEL=trace unraid-api start --debug",
@@ -35,7 +36,7 @@
     "start:local": "./scripts/dc.sh run --rm --service-ports local",
     "start:ddev": "./scripts/dc.sh run --rm --service-ports dev",
     "start:dtest": "./scripts/dc.sh run --rm builder npm run test",
-    "enter:ddev": "./scripts/dc.sh exec dev /bin/sh"
+    "enter:ddev": "./scripts/dc.sh exec dev /bin/bash"
   },
   "files": [
     ".env.staging",
