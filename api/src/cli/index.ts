@@ -45,7 +45,6 @@ export const main = async (...argv: string[]) => {
     const commands = {
         start: import('@app/cli/commands/start').then((pkg) => pkg.start),
         stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop),
-        boot: import('@app/cli/commands/boot').then((pkg) => pkg.boot),
         restart: import('@app/cli/commands/restart').then((pkg) => pkg.restart),
         'switch-env': import('@app/cli/commands/switch-env').then((pkg) => pkg.switchEnv),
         version: import('@app/cli/commands/version').then((pkg) => pkg.version),
