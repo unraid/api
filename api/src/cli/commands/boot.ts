@@ -1,7 +1,5 @@
 import { internalLogger } from '@app/core/index';
-import {startApp} from '@app/index';
+import { startApp } from '@app/index';
+await startApp();
 
-export const boot = async () => {
-    internalLogger.info('Booting Unraid API');
-    await startApp();
-}
+
