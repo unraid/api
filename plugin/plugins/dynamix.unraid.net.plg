@@ -13,8 +13,8 @@
 <!ENTITY API_SHA256             "">
 <!ENTITY NODE                   "nodejs-20.18.0-x86_64-1.txz">
 <!ENTITY NODE_SHA256            "332f22a2a6722e9fad92b8d1eeaded228a6499b7335b2b54ee99c55b4fe49742">
-<!ENTITY NGHTTP3                "nghttp3-1.6.0.tar.xz">
-<!ENTITY NGHTTP3_SHA256         "eaa901954bc494034d3738ef19130de69387d6a3da029044c60d9dae91792a8d">
+<!ENTITY NGHTTP3                "nghttp3-1.6.0-x86_64.txz">
+<!ENTITY NGHTTP3_SHA256         "936c40071a99745efa35b1b8c9252b6d25b54e264cfafafca15b3f41d65ab8a6">
 <!ENTITY downloadserver         "">
 ]>
 
@@ -118,7 +118,7 @@ exit 0
 
 <!-- download nghttp3 -->
 <FILE name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
-  <URL>https://mirrors.slackware.com/slackware/slackware64-current/source/n/&NGHTTP3;</URL>
+  <URL>https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/&NGHTTP3;</URL>
   <SHA256>&NGHTTP3_SHA256;</SHA256>
 </FILE>
 
