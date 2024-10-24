@@ -49,6 +49,7 @@ jobs:
         run: docker buildx build -t builder -f ./Dockerfile .
 
   lint-api:
+    needs: [build-register-container]
     continue-on-error: false
     defaults:
       run:
@@ -73,6 +74,7 @@ jobs:
           docker run --rm builder npm run lint
 
   test-api:
+    needs: [build-register-container]
     continue-on-error: false
     defaults:
       run:
@@ -126,6 +128,7 @@ jobs:
         run: npm run lint
 
   build-api:
+    needs: [build-register-container]
     defaults:
       run:
         working-directory: api
