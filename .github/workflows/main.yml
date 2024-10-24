@@ -100,6 +100,8 @@ jobs:
 
   build-web:
     name: Build Web App
+    environment:
+      name: production
     defaults:
       run:
         working-directory: web
