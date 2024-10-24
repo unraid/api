@@ -77,9 +77,9 @@ jobs:
         run: |
           docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release builder npm run build-and-pack
         env:
-          GIT_SHA=${{ steps.vars.outputs.GIT_SHA }}
-          API_VERSION=${{ steps.vars.outputs.API_VERSION }}
-          IS_TAGGED=${{ steps.vars.outputs.IS_TAGGED }}
+          GIT_SHA: ${{ steps.vars.outputs.GIT_SHA }}
+          API_VERSION: ${{ steps.vars.outputs.API_VERSION }}
+          IS_TAGGED: ${{ steps.vars.outputs.IS_TAGGED }}
 
       - name: Set Hashes
         id: set-hashes
