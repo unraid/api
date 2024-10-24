@@ -19,8 +19,6 @@ try {
     await $`rm -rf ./deploy/release/*`;
     await $`rm -rf ./deploy/pre-pack/*`;
 
-	await $`npm install -g npm-pack-all`;
-
     // Build Generated Types
     await $`npm run codegen`;
 
@@ -54,7 +52,9 @@ try {
 	// Install production dependencies
     cd('./deploy/pre-pack');
     await $`npm install --omit=dev`;
-    await $`npm-pack-all`;
+
+    // Now we'll pack everything in the pre-pack directory
+    await $`tar -czf unraid-api-${deploymentVersion}.tgz .`;
 
     // Move unraid-api.tgz to release directory
     await $`mv unraid-api-${deploymentVersion}.tgz ../release`;
