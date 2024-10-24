@@ -24,6 +24,6 @@ export const getDeploymentVersion = (env = process.env, packageVersion) => {
             console.error('Failed to get git short SHA');
             process.exit(1);
         }
-        return isCommitTagged ? packageVersion : `${packageVersion}+${gitShaShort}`;
+        return isCommitTagged ? packageVersion : `${packageVersion}+${gitShortSHA}`;
     }
 };
