@@ -20,10 +20,6 @@ WORKDIR /app
 # Set app env
 ENV NODE_ENV=development
 
-# Setup cache for pkg
-ENV PKG_CACHE_PATH /app/.pkg-cache
-RUN mkdir -p ${PKG_CACHE_PATH}
-
 COPY tsconfig.json .eslintrc.ts .npmrc .env.production .env.staging ./
 
 COPY package.json package-lock.json ./
@@ -41,4 +37,4 @@ FROM development AS builder
 
 COPY . .
 
-CMD ["npm", "run", "build-pkg"]
+CMD ["npm", "run", "build-and-pack"]
