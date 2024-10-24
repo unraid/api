@@ -75,11 +75,7 @@ jobs:
       - name: Build inside of the docker container
         id: build-pack-binary
         run: |
-          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release builder npm run build-and-pack
-        env:
-          GIT_SHA: ${{ steps.vars.outputs.GIT_SHA }}
-          API_VERSION: ${{ steps.vars.outputs.API_VERSION }}
-          IS_TAGGED: ${{ steps.vars.outputs.IS_TAGGED }}
+          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release -e GIT_SHA=${{ steps.vars.outputs.GIT_SHA }} -e API_VERSION=${{ steps.vars.outputs.API_VERSION }} -e IS_TAGGED=${{ steps.vars.outputs.IS_TAGGED }} builder npm run build-and-pack
 
       - name: Set Hashes
         id: set-hashes
