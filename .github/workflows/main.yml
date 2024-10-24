@@ -70,7 +70,7 @@ jobs:
         run: |
           echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "API_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
-          echo "IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '') >> $GITHUB_OUTPUT
+          echo "IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')" >> $GITHUB_OUTPUT
           echo "::set-output name=API_VERSION::${API_VERSION}"
       - name: Build inside of the docker container
         id: build-pack-binary
