@@ -5,6 +5,9 @@
 [[ "$1" == "p" ]] && env=production
 [[ -z "${env}" ]] && echo "usage: [s|p]" && exit 1
 
+# If we have a second parameter, it's the PR number (for Pull request builds)
+[[ -n "$2" ]] && PR="$2" || PR=""
+
 DIR=$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")
 MAINDIR=$(dirname "$(dirname "${DIR}")")
 tmpdir=/tmp/tmp.$((RANDOM * 19318203981230 + 40))
@@ -46,10 +49,18 @@ cd "${DIR}" || exit 1
 
 # define vars for plg
 pluginURL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
-downloadserver="https://stable.dl.unraid.net"
+MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin};-${version}.txz"
+API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
+# Check if PR is set, use a different path if so
+if [[ -n "${PR}" ]]; then
+  MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin};-${version}.txz"
+  API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
+  pluginURL="https://preview.dl.unraid.net/unraid-api/pr/${PR}\&name;.plg"
+fi
 if [[ "${env}" == "staging" ]]; then
   pluginURL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
-  downloadserver="https://preview.dl.unraid.net"
+  MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin};-${version}.txz"
+  API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 fi
 
 # update plg file
@@ -58,7 +69,8 @@ sed -i -E "s#(ENTITY env\s*)\".*\"#\1\"${env}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY version\s*)\".*\"#\1\"${version}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY pluginURL\s*)\".*\"#\1\"${pluginURL}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY downloadserver\s*)\".*\"#\1\"${downloadserver}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
