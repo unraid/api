@@ -7,7 +7,7 @@ env=production
 # shellcheck disable=SC1091
 source "${flash}/env"
 # Install the API to /usr/local/unraid-api
-api_base_directory="/usr/local/"
+api_base_directory="/usr/local/unraid-api"
 
 restart() {
   "${api_base_directory}/unraid-api" restart
@@ -17,7 +17,7 @@ install() {
   [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 
   # Stop old process
-  [[ -f "${api_base_directory}nraid-api" ]] && stop
+  [[ -f "${api_base_directory}/unraid-api" ]] && stop
 
   # Install unraid-api
   rm -rf "${api_base_directory}"
