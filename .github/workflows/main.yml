@@ -48,9 +48,14 @@ jobs:
         with:
           install: true
           platforms: linux/amd64
-      - name: Build Builder Image
-        run: docker buildx build --cache-from=type=gha --cache-to=type=gha,mode=max --load -t builder -f ./Dockerfile .
-
+      - name: Build Builder
+        uses: docker/build-push-action@v6
+        with:
+          push: false
+          tags: builder:latest
+          cache-from: type=gha,mode=max,ref=builder
+          cache-to: type=gha,mode=max,ref=builder
+          load: true
       - name: Lint inside of the docker container
         continue-on-error: true
         run: |
