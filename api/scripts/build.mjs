@@ -50,11 +50,10 @@ try {
 
     // # Create final tgz
     await $`cp ./README.md ./deploy/pre-pack/`;
-    cd('./deploy/pre-pack');
 
 	// Install production dependencies
-    await $`cp -r ../../node_modules ./node_modules`;
-    await $`npm prune --omit=dev`;
+    cd('./deploy/pre-pack');
+    await $`npm install --omit=dev`;
     await $`npm-pack-all`;
 
     // Move unraid-api.tgz to release directory
