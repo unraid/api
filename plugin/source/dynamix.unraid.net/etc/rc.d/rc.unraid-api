@@ -3,101 +3,29 @@
 flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
-# define env to avoid shellcheck SC2154. Will be overridden by the source command below
 env=production
 # shellcheck disable=SC1091
 source "${flash}/env"
-api_base_directory="/usr/local/bin"
+# Install the API to /usr/local/unraid-api
+api_base_directory="/usr/local/"
 
-# Only allow specific envs
-if [ "${env}" != "staging" ] && [ "${env}" != "production" ]; then
-  echo "\"${env}\" is an unsupported env. Please use \"staging\" or \"production\"."
-  exit 1
-fi
-
-switchenv() {
-  stop
-  # Get current environment from file
-  local envFile="${flash}/env"
-  local currentEnv
-  currentEnv=$(
-    # shellcheck disable=SC1090
-    source "${envFile}"
-    echo "${env}"
-  )
-
-  if [[ "${currentEnv}" = "production" ]]; then
-    echo "Switching from production to staging"
-    echo 'env="staging"' >"${envFile}"
-    cp "${api_base_directory}/unraid-api/.env.staging" "${api_base_directory}/unraid-api/.env"
-  elif [[ "${currentEnv}" = "staging" ]]; then
-    echo "Switching from staging to production"
-    echo 'env="production"' >"${envFile}"
-    cp "${api_base_directory}/unraid-api/.env.production" "${api_base_directory}/unraid-api/.env"
-  fi
-  echo "Run \"unraid-api start\" to start the API."
-}
-raiseloglevel() {
-  kill -s SIGUSR2 "$(pidof unraid-api)"
-}
-lowerloglevel() {
-  kill -s SIGUSR1 "$(pidof unraid-api)"
-}
-status() {
-  LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" status
-}
-start() {
-  HTTP_PROXY=$http_proxy HTTPS_PROXY=$https_proxy NO_PROXY=$no_proxy LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" start 2>&1 | logger &
-}
-report() {
-  LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" report "$1" "$2"
-}
-startdebug() {
-  LOG_CONTEXT=true LOG_STACKTRACE=true LOG_TRACING=true LOG_LEVEL=debug "${api_base_directory}/unraid-api/unraid-api" start --debug
-}
-stop() {
-  LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" stop 2>/dev/null
-}
 reload() {
-  LOG_TYPE=raw "${api_base_directory}/unraid-api/unraid-api" restart
+  "${api_base_directory}/unraid-api" restart
 }
-_install() {
-  # process file from commandline
-  if [[ -n "$1" ]]; then
-    file=$(realpath "${flash}/$1")
-    if [[ "${file}" == "${flash}"* ]] && [[ "${file}" == *".tgz" || "${file}" == *".zip" ]] && [[ -f "${file}" ]]; then
-      [[ "${file}" == *".tgz" ]] && ext=tgz || ext=zip
-      echo "installing $1"
-      cp "${file}" "${flash}/unraid-api.${ext}"
-    else
-      echo "invalid installation file: $1"
-      exit 1
-    fi
-  fi
-
-  # If this was downloaded from a Github action it'll be a zip with a tgz inside
-  # Let's extract the tgz and rename it for the next step
-  if [[ -f "${flash}/unraid-api.zip" ]]; then
-    for f in ${flash}/unraid-api.zip; do unzip -p "${f}" >"${flash}/${f%.zip}.tgz"; done
-    rm -f "${flash}/unraid-api.zip"
-  fi
-
-  # Ensure installation tgz exists
+install() {
+# Ensure installation tgz exists
   [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 
   # Stop old process
-  [[ -f "${api_base_directory}/unraid-api/unraid-api" ]] && stop
+  [[ -f "${api_base_directory}nraid-api" ]] && stop
 
   # Install unraid-api
-  rm -rf "${api_base_directory}/unraid-api"
-  mkdir -p "${api_base_directory}/unraid-api"
-  tar -C "${api_base_directory}/unraid-api" -xzf "${flash}/unraid-api.tgz" --strip 1
-
-  # Reset permissions
-  rm -f "${flash}/data/permissions.json"
+  rm -rf "${api_base_directory}"
+  mkdir -p "${api_base_directory}"
+  tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 
   # Copy env file
-  cp "${api_base_directory}/unraid-api/.env.${env}" "${api_base_directory}/unraid-api/.env"
+  cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
 
   # Copy wc files from flash
   if [ -f "${flash}/webComps/unraid.min.js" ]; then
@@ -109,12 +37,9 @@ _install() {
     echo "Note: ${flash}/webComps/unraid.min.js is missing"
   fi
 
+  cd "${api_base_directory}" && npm link
   # bail if expected file does not exist
-  [[ ! -f "${api_base_directory}/unraid-api/unraid-api" ]] && echo "unraid-api install failed" && exit 1
-}
-install() {
-  # Install the files
-  _install "$1"
+  [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
   # if nginx is running, start the api. if not, it will be started by rc.nginx
   if /etc/rc.d/rc.nginx status &>/dev/null; then 
@@ -130,12 +55,13 @@ install() {
 }
 uninstall() {
   # Stop old process
-  [[ -f "${api_base_directory}/unraid-api/unraid-api" ]] && stop
+  [[ -f "${api_base_directory}/unraid-api" ]] && stop
 
   # Remove all unraid-api files
-  rm -rf "${api_base_directory}/unraid-api"
+  rm -rf "${api_base_directory}"
   rm -f /var/run/unraid-api.sock
 }
+
 case "$1" in
 'status')
   status
@@ -143,23 +69,8 @@ case "$1" in
 'start')
   start
   ;;
-'report')
-  report "$2" "$3"
-  ;;
-'switch-env')
-  switchenv
-  ;;
-'start-debug')
-  startdebug
-  ;;
-'raise-log-level')
-  raiseloglevel
-  ;;
-'lower-log-level')
-  lowerloglevel
-  ;;
-'stop')
-  stop
+'install')
+  install "$2"
   ;;
 'reload')
   reload
@@ -167,16 +78,11 @@ case "$1" in
 'restart')
   reload
   ;;
-'install')
-  install "$2"
-  ;;
-'_install')
-  _install "$2"
-  ;;
 'uninstall')
   uninstall
   ;;
 *)
-  echo "usage $0 status|start|report|switch-env|start-debug|raise-log-level|lower-log-level|stop|reload|install|uninstall"
+  # Pass all other commands to unraid-api
+  "${api_base_directory}/unraid-api" "$@"
   ;;
 esac
