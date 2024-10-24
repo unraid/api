@@ -49,7 +49,7 @@ jobs:
           install: true
           platforms: linux/amd64
       - name: Build Builder Image
-        run: docker buildx build --cache-from=type=gha --cache-to=type=gha,mode=max -t builder -f ./Dockerfile .
+        run: docker buildx build --cache-from=type=gha --cache-to=type=gha,mode=max --load -t builder -f ./Dockerfile .
 
       - name: Lint inside of the docker container
         run: |
