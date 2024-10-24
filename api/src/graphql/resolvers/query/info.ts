@@ -22,7 +22,6 @@ import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { AppError } from '@app/core/errors/app-error';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
 import { execaCommandSync, execa } from 'execa';
-import { pathExists } from 'path-exists';
 import { isSymlink } from 'path-type';
 import type { PciDevice } from '@app/core/types';
 import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
@@ -31,6 +30,7 @@ import { filterDevices } from '@app/core/utils/vms/filter-devices';
 import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
 import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
+import { access } from 'fs/promises';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -201,11 +201,12 @@ export const generateDevices = async (): Promise<Devices> => {
 
         // Remove devices with no IOMMU support
         const filteredDevices = await Promise.all(
-            devices.map((device: Readonly<PciDevice>) =>
-                pathExists(`${basePath}${device.id}/iommu_group/`).then((exists) =>
-                    exists ? device : null
-                )
-            )
+            devices.map(async (device: Readonly<PciDevice>) => {
+                const exists = await access(`${basePath}${device.id}/iommu_group/`)
+                    .then(() => true)
+                    .catch(() => false);
+                return exists ? device : null;
+            })
         ).then((devices) => devices.filter((device) => device !== null));
 
         /**
@@ -281,7 +282,6 @@ export const generateDevices = async (): Promise<Devices> => {
             const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true })
                 .then(({ stdout }) =>
                     stdout.split('\n').map((line) => {
-                         
                         const [, id] = line.match(/usb:v(\w{9})/) ?? [];
                         return id.replace('p', ':');
                     })
@@ -316,7 +316,7 @@ export const generateDevices = async (): Promise<Devices> => {
 
                 // Parse the line
                 const [, _] = line.split(/[ \t]{2,}/).filter(Boolean);
-                 
+
                 const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
 
                 // If there's no match return nothing

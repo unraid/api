@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
-import prettyBytes from 'pretty-bytes';
 import { logger } from '@app/core/log';
+import convert from 'convert';
 
 const writeFile = async (filePath: string, fileContents: string | Buffer) => {
-	logger.debug(`Writing ${prettyBytes(fileContents.length)} to ${filePath}`);
+	logger.debug(`Writing ${convert(fileContents.length, 'bytes').to('kilobytes')} to ${filePath}`);
 	await fs.promises.writeFile(filePath, fileContents);
 };
 
