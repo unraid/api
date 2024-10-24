@@ -114,7 +114,7 @@ export function formatTimestamp(timestamp: string | number | null | undefined): 
 
     try {
         // Convert Unix timestamp (seconds) to milliseconds if needed
-        const date = typeof timestamp === 'number' ? new Date(timestamp * 1000) : new Date(timestamp);
+        const date = typeof timestamp === 'number' ? new Date(timestamp * 1_000) : new Date(timestamp);
 
         if (isNaN(date.getTime())) return null;
 
