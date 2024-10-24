@@ -49,15 +49,18 @@ try {
     // # Create final tgz
     await $`cp ./README.md ./deploy/pre-pack/`;
 
+    await $`cp -r ./node_modules ./deploy/pre-pack/node_modules`;
 	// Install production dependencies
     cd('./deploy/pre-pack');
+
+    await $`npm prune --omit=dev`;
     await $`npm install --omit=dev`;
 
     // Now we'll pack everything in the pre-pack directory
-    await $`tar -czf unraid-api-${deploymentVersion}.tgz .`;
+    await $`tar -czf ../unraid-api-${deploymentVersion}.tgz .`;
 
     // Move unraid-api.tgz to release directory
-    await $`mv unraid-api-${deploymentVersion}.tgz ../release`;
+    await $`mv ../unraid-api-${deploymentVersion}.tgz ../release`;
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {
