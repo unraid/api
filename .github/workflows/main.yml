@@ -68,7 +68,7 @@ jobs:
       - name: Build inside of the docker container
         id: build-pack-binary
         run: |
-          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release builder npm run build-and-pack
+          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release -v ${{ github.workspace}}/.git:/app/.git builder npm run build-and-pack
           API_VERSION=$(cat package.json | jq -r '.version')
           echo "::set-output name=API_VERSION::${API_VERSION}"
 
