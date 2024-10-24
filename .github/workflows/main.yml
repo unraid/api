@@ -72,23 +72,20 @@ jobs:
           echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
           echo "API_VERSION=$(cat package.json | jq -r '.version')" >> $GITHUB_OUTPUT
           echo "IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')" >> $GITHUB_OUTPUT
-          echo "::set-output name=API_VERSION::${API_VERSION}"
       - name: Build inside of the docker container
         id: build-pack-binary
         run: |
           docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release builder npm run build-and-pack
         env:
-          GIT_SHA=${{ steps.vars.outputs.sha_short }}
+          GIT_SHA=${{ steps.vars.outputs.GIT_SHA }}
           API_VERSION=${{ steps.vars.outputs.API_VERSION }}
           IS_TAGGED=${{ steps.vars.outputs.IS_TAGGED }}
 
       - name: Set Hashes
         id: set-hashes
         run: |
-          API_MD5=$(md5sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')
-          API_SHA256=$(sha256sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')
-          echo "::set-output name=API_MD5::${API_MD5}"
-          echo "::set-output name=API_SHA256::${API_SHA256}"
+          echo "API_MD5=$(md5sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')" >> $GITHUB_OUTPUT
+          echo "API_SHA256=$(sha256sum ${{ github.workspace }}/api/deploy/release/*.tgz | awk '{ print $1 }')" >> $GITHUB_OUTPUT
 
       - name: Upload tgz to Github artifacts
         uses: actions/upload-artifact@v4
@@ -159,9 +156,9 @@ jobs:
       - name: Build Plugin
         run: |
           cd source/dynamix.unraid.net
-          export API_VERSION=${{needs.build-api.outputs.API_VERSION}}
-          export API_MD5=${{needs.build-api.outputs.API_MD5}}
-          export API_SHA256=${{needs.build-api.outputs.API_SHA256}}
+          export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
+          export API_MD5=${{needs.build-test-api.outputs.API_MD5}}
+          export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
           bash ./pkg_build.sh s
           bash ./pkg_build.sh p
       - name: Upload binary txz and plg to Github artifacts
