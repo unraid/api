@@ -1,4 +1,3 @@
-import pProps from 'p-props';
 import { type Domain } from '@app/core/types';
 import { getHypervisor } from '@app/core/utils/vms/get-hypervisor';
 
@@ -27,24 +26,34 @@ export const parseDomain = async (type: DomainLookupType, id: string): Promise<D
 	const domain = await client[method](id);
 	const info = await domain.getInfoAsync();
 
-	const results = await pProps({
-		uuid: domain.getUUIDAsync(),
-		osType: domain.getOSTypeAsync(),
-		autostart: domain.getAutostartAsync(),
-		maxMemory: domain.getMaxMemoryAsync(),
-		schedulerType: domain.getSchedulerTypeAsync(),
-		schedulerParameters: domain.getSchedulerParametersAsync(),
-		securityLabel: domain.getSecurityLabelAsync(),
-		name: domain.getNameAsync(),
+	const [uuid, osType, autostart, maxMemory, schedulerType, schedulerParameters, securityLabel, name] = await Promise.all([
+		domain.getUUIDAsync(),
+		domain.getOSTypeAsync(),
+		domain.getAutostartAsync(),
+		domain.getMaxMemoryAsync(),
+		domain.getSchedulerTypeAsync(),
+		domain.getSchedulerParametersAsync(),
+		domain.getSecurityLabelAsync(),
+		domain.getNameAsync(),
+	]);
+
+	const results = {
+		uuid,
+		osType,
+		autostart,
+		maxMemory,
+		schedulerType,
+		schedulerParameters,
+		securityLabel,
+		name,
 		...info,
 		state: info.state.replace(' ', '_'),
-	});
+	};
 
 	if (info.state === 'running') {
 		results.vcpus = await domain.getVcpusAsync();
 		results.memoryStats = await domain.getMemoryStatsAsync();
 	}
 
-	// @ts-expect-error fix pProps inferred type
 	return results;
 };
