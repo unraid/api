@@ -1,11 +1,11 @@
 import type { CoreContext, CoreResult } from '@app/core/types';
-import { bus } from '@app/core/bus';
 import { AppError } from '@app/core/errors/app-error';
 import { ensurePermission } from '@app/core/utils/permissions/ensure-permission';
 import { hasFields } from '@app/core/utils/validation/has-fields';
 import { FieldMissingError } from '@app/core/errors/field-missing-error';
 import { emcmd } from '@app/core/utils/clients/emcmd';
 import { getters } from '@app/store';
+import { pubsub } from '@app/core/pubsub';
 
 interface Context extends CoreContext {
 	readonly data: {
@@ -61,7 +61,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	}
 
 	// Update users channel with new user
-	bus.emit('users', {
+	pubsub.publish('users', {
 		users: {
 			mutation: 'CREATED',
 			node: [user],
@@ -69,7 +69,7 @@ export const addUser = async (context: Context): Promise<CoreResult> => {
 	});
 
 	// Update user channel with new user
-	bus.emit('user', {
+	pubsub.publish('user', {
 		user: {
 			mutation: 'CREATED',
 			node: user,
