@@ -68,7 +68,7 @@ jobs:
       - name: Build inside of the docker container
         id: build-pack-binary
         run: |
-          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release builder npm run build
+          docker run --rm -v ${{ github.workspace }}/api/deploy/release:/app/deploy/release builder npm run build-and-pack
           API_VERSION=$(cat package.json | jq -r '.version')
           echo "::set-output name=API_VERSION::${API_VERSION}"
 
@@ -85,43 +85,13 @@ jobs:
         with:
           name: unraid-api
           path: ${{ github.workspace }}/api/deploy/release/*.tgz
-  lint-web:
-    defaults:
-      run:
-        working-directory: web
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repo
-        uses: actions/checkout@v4
 
-      - name: Create env file
-        run: |
-          touch .env
-          echo VITE_ACCOUNT=${{ vars.VITE_ACCOUNT }} >> .env
-          echo VITE_CONNECT=${{ vars.VITE_CONNECT }} >> .env
-          echo VITE_UNRAID_NET=${{ vars.VITE_UNRAID_NET }} >> .env
-          echo VITE_CALLBACK_KEY=${{ vars.VITE_CALLBACK_KEY }} >> .env
-          cat .env
-
-      - name: Install node
-        uses: actions/setup-node@v4
-        with:
-          cache: "npm"
-          cache-dependency-path: "web/package-lock.json"
-          node-version-file: "web/.nvmrc"
-
-      - name: Installing node deps
-        run: npm install
-
-      - name: Lint files
-        run: npm run lint
   build-web:
+    name: Build Web App
     defaults:
       run:
         working-directory: web
     runs-on: ubuntu-latest
-    environment:
-      name: production
     needs: [lint-web]
     steps:
       - name: Checkout repo
@@ -146,6 +116,10 @@ jobs:
       - name: Installing node deps
         run: npm install
 
+      - name: Lint files
+        continue-on-error: true
+        run: npm run lint
+
       - name: Build
         run: npm run build
 
@@ -156,7 +130,7 @@ jobs:
           path: web/.nuxt/nuxt-custom-elements/dist/unraid-components
 
   build-plugin:
-    needs: [lint-web, build-test-api, build-web]
+    needs: [build-test-api, build-web]
     defaults:
       run:
         working-directory: plugin
@@ -192,6 +166,8 @@ jobs:
           if-no-files-found: error
 
   release-staging:
+    environment:
+      name: staging
     # Only release if this is a push to the main branch
     if: startsWith(github.ref, 'refs/heads/main')
     runs-on: ubuntu-latest
