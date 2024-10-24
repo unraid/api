@@ -48,17 +48,16 @@ sudo rm -rf "${tmpdir}"
 cd "${DIR}" || exit 1
 
 # define vars for plg
-pluginURL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
+PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin};-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin};-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
-  pluginURL="https://preview.dl.unraid.net/unraid-api/pr/${PR}\&name;.plg"
-fi
-if [[ "${env}" == "staging" ]]; then
-  pluginURL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
+  PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}\&name;.plg"
+elif [[ "${env}" == "staging" ]]; then
+  PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin};-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 fi
@@ -67,7 +66,7 @@ fi
 sed -i -E "s#(ENTITY name\s*)\".*\"#\1\"${plugin}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY env\s*)\".*\"#\1\"${env}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY version\s*)\".*\"#\1\"${version}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY pluginURL\s*)\".*\"#\1\"${pluginURL}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY pluginURL\s*)\".*\"#\1\"${PLUGIN_URL}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
@@ -80,7 +79,7 @@ sed -i -E "s#(ENTITY API_SHA256\s*)\".*\"#\1\"${API_SHA256}\"#g" "${plgfile}"
 # sed -i "/<CHANGES>/a ###${version}\n" ${plgfile}
 
 echo
-grep -E "ENTITY (name|pluginURL|env|version|MD5|SHA256|node_api_version)" "${plgfile}"
+grep -E "ENTITY (name|PLUGIN_URL|env|version|MD5|SHA256|node_api_version|MAIN_TXZ|API_TGZ)" "${plgfile}"
 echo
 echo "${env} plugin: ${plgfile}"
 echo "${env} txz:    ${txzfile}"

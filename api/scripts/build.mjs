@@ -53,7 +53,8 @@ try {
     cd('./deploy/pre-pack');
 
 	// Install production dependencies
-	await $`npm i --omit=dev`;
+    await $`cp ../../node_modules ./node_modules`;
+    await $`npm prune --omit=dev`;
     await $`npm-pack-all`;
 
     // Move unraid-api.tgz to release directory
