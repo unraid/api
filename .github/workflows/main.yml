@@ -69,9 +69,12 @@ jobs:
       - name: Get Git Short Sha and API version
         id: vars
         run: |
-          echo "GIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
-          echo "IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')" >> $GITHUB_OUTPUT
-          echo "PACKAGE_LOCK_VERSION=$(jq -r '.version' package-lock.json)" >> $GITHUB_OUTPUT
+          GIT_SHA=$(git rev-parse --short HEAD)
+          IS_TAGGED=$(git describe --tags --abbrev=0 --exact-match || echo '')
+          PACKAGE_LOCK_VERSION=$(jq -r '.version' package-lock.json)
+          echo "GIT_SHA=$GIT_SHA" >> $GITHUB_OUTPUT
+          echo "IS_TAGGED=$IS_TAGGED" >> $GITHUB_OUTPUT
+          echo "PACKAGE_LOCK_VERSION=$PACKAGE_LOCK_VERSION" >> $GITHUB_OUTPUT
           echo "API_VERSION=$([[ -n "$IS_TAGGED" ]] && echo "$PACKAGE_LOCK_VERSION" || echo "${PACKAGE_LOCK_VERSION}+${GIT_SHA}")" >> $GITHUB_OUTPUT
       - name: Build inside of the docker container
         id: build-pack-binary
