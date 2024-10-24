@@ -53,7 +53,7 @@ try {
     cd('./deploy/pre-pack');
 
 	// Install production dependencies
-    await $`cp ../../node_modules ./node_modules`;
+    await $`mv ../../node_modules ./node_modules`;
     await $`npm prune --omit=dev`;
     await $`npm-pack-all`;
 
