@@ -2,7 +2,7 @@
 import { exit } from 'process';
 import { cd, $ } from 'zx';
 
-import getTags, { getDeploymentVersion } from './get-deployment-version.mjs';
+import { getDeploymentVersion } from './get-deployment-version.mjs';
 
 try {
     // Enable colours in output
