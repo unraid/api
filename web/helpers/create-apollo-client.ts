@@ -3,6 +3,7 @@ import {
   ApolloClient,
   createHttpLink,
   split,
+  type NormalizedCacheObject,
 } from "@apollo/client/core";
 
 import { onError } from "@apollo/client/link/error";
