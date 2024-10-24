@@ -22,7 +22,8 @@ const getTags = (env = process.env) => {
         const isCommitTagged = runCommand('git describe --tags --abbrev=0 --exact-match') !== undefined;
         console.log('gitShortSHA', gitShortSHA, 'isCommitTagged', isCommitTagged);
         if (!gitShortSHA) {
-            throw new Error('Failing build due to missing SHA');
+            console.error('Failed to get git short SHA');
+            process.exit(1);
         }
         return {
             shortSha: gitShortSHA,
