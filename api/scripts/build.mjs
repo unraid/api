@@ -31,6 +31,7 @@ try {
     await $`cp ./tsconfig.json ./deploy/pre-pack/tsconfig.json`;
     await $`cp ./unraid-api.js ./deploy/pre-pack/unraid-api.js`;
     await $`cp ./codegen.yml ./deploy/pre-pack/codegen.yml`;
+    await $`cp ./ecosystem.config.json ./deploy/pre-pack/ecosystem.config.json`;
 
     // Get package details
     const { name, version, ...rest } = await import('../package.json', {
