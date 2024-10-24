@@ -103,7 +103,7 @@ export function updateObject(
 }
 
 /**
- * Formats a timestamp into a human readable format: "MMM D, YYYY"
+ * Formats a timestamp into a human-readable format: "MMM D, YYYY"
  * Example: "Oct 24, 2024"
  *
  * @param timestamp - ISO date string or Unix timestamp in seconds

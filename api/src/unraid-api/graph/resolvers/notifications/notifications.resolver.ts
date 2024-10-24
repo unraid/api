@@ -45,7 +45,7 @@ export class NotificationsResolver {
         const notifications = await this.notificationsService.getNotifications(filters);
         return notifications.map((notification) => ({
             ...notification,
-            timestamp: formatTimestamp(notification.timestamp),
+            formattedTimestamp: formatTimestamp(notification.timestamp),
         }));
     }
 
