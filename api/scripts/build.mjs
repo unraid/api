@@ -21,9 +21,6 @@ try {
 
 	await $`npm install -g npm-pack-all`;
 
-    // Ensure all deps are installed
-    await $`npm i`;
-
     // Build Generated Types
     await $`npm run codegen`;
 
