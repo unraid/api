@@ -64,7 +64,7 @@ jobs:
 
       - name: Test inside of the docker container
         run: |
-          git diff --name-only ${{ github.sha }}^ ${{ github.sha }} | grep -q '^api/' || exit 0
+          git diff --name-only HEAD^ HEAD | grep -q '^api/' || exit 0
           docker run --rm builder npm run coverage
       - name: Get Git Short Sha and API version
         id: vars
