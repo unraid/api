@@ -28,13 +28,13 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 
     <SheetContent
       :to="teleportTarget"
-      class="w-full overflow-y-scroll sm:max-w-[540px] space-y-3"
+      class="w-full sm:max-w-[540px] space-y-3 h-screen"
     >
       <SheetHeader>
         <SheetTitle>Notifications</SheetTitle>
       </SheetHeader>
 
-      <Tabs default-value="unread" class="">
+      <Tabs default-value="unread" class="h-full">
         <div class="flex flex-row justify-between items-center flex-wrap gap-2">
           <TabsList class="ml-[1px]">
             <TabsTrigger value="unread"> Unread </TabsTrigger>
@@ -66,7 +66,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           </Select>
         </div>
 
-        <TabsContent value="unread">
+        <TabsContent value="unread" class="h-[92%]">
           <NotificationsList :type="NotificationType.Unread" />
         </TabsContent>
 
@@ -75,9 +75,6 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
         </TabsContent>
       </Tabs>
 
-      <SheetFooter class="text-center">
-        <p>Future pagination station</p>
-      </SheetFooter>
     </SheetContent>
   </Sheet>
 </template>
