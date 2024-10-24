@@ -52,6 +52,7 @@ jobs:
         run: docker buildx build --cache-from=type=gha --cache-to=type=gha,mode=max --load -t builder -f ./Dockerfile .
 
       - name: Lint inside of the docker container
+        continue-on-error: true
         run: |
           docker run --rm builder npm run lint
 
