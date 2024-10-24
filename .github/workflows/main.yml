@@ -51,10 +51,11 @@ jobs:
       - name: Build Builder
         uses: docker/build-push-action@v6
         with:
+          context: ./api
           push: false
           tags: builder:latest
-          cache-from: type=gha,mode=max,ref=builder
-          cache-to: type=gha,mode=max,ref=builder
+          cache-from: type=gha,ref=builder:latest
+          cache-to: type=gha,mode=max,ref=builder:latest
           load: true
       - name: Lint inside of the docker container
         continue-on-error: true
