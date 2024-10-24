@@ -164,7 +164,8 @@ jobs:
           export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
           export API_MD5=${{needs.build-test-api.outputs.API_MD5}}
           export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          bash ./pkg_build.sh s
+
+          bash ./pkg_build.sh s ${{github.event.pull_request.number}}
           bash ./pkg_build.sh p
       - name: Upload binary txz and plg to Github artifacts
         uses: actions/upload-artifact@v4
@@ -199,7 +200,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: connect-files
-      
+
       - name: Copy other release files to pr-release
         run: |
           cp archive/dynamix.unraid.net.staging-*.txz pr-release/
