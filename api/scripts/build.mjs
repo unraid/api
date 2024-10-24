@@ -12,7 +12,10 @@ try {
     process.env.WORKDIR = process.env.WORKDIR ?? process.env.PWD;
     cd(process.env.WORKDIR);
 
-    // Clean up last deploy
+    // Create deployment directories - ignore if they already exist
+    await $`mkdir -p ./deploy/release`;
+    await $`mkdir -p ./deploy/pre-pack`;
+
     await $`rm -r ./deploy/release/*`;
     await $`rm -r ./deploy/pre-pack/*`;
 
