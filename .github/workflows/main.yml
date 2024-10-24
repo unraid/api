@@ -92,7 +92,6 @@ jobs:
       run:
         working-directory: web
     runs-on: ubuntu-latest
-    needs: [lint-web]
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
