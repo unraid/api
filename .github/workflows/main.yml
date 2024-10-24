@@ -200,7 +200,6 @@ jobs:
         run: |
           cp archive/dynamix.unraid.net.staging-*.txz pr-release/
           cp plugins/dynamix.unraid.net.staging.plg pr-release/
-          ls -al staging-release
 
       - name: Upload to Cloudflare
         uses: jakejarvis/s3-sync-action@v0.5.1
