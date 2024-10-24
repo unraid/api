@@ -3,7 +3,6 @@ import { BellIcon } from "@heroicons/vue/24/solid";
 import {
   Sheet,
   SheetContent,
-  SheetFooter,
   SheetHeader,
   SheetTitle,
   SheetTrigger,
@@ -70,11 +69,10 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
           <NotificationsList :type="NotificationType.Unread" />
         </TabsContent>
 
-        <TabsContent value="archived">
+        <TabsContent value="archived" class="h-[92%]">
           <NotificationsList :type="NotificationType.Archive" />
         </TabsContent>
       </Tabs>
-
     </SheetContent>
   </Sheet>
 </template>
