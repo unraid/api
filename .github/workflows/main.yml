@@ -40,6 +40,10 @@ jobs:
     defaults:
       run:
         working-directory: api
+    outputs:
+      API_VERSION: ${{ steps.vars.outputs.API_VERSION }}
+      API_MD5: ${{ steps.set-hashes.outputs.API_MD5 }}
+      API_SHA256: ${{ steps.set-hashes.outputs.API_SHA256 }}
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
