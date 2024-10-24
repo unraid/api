@@ -6,10 +6,7 @@ import {
 import type { NotificationType } from "~/composables/gql/graphql";
 import { useFragment } from "~/composables/gql/fragment-masking";
 import { useQuery } from "@vue/apollo-composable";
-// import { useInfiniteScroll } from "@vueuse/core";
 import { vInfiniteScroll } from "@vueuse/components";
-
-const element = ref<HTMLElement | null>(null);
 
 /**
  * Page size is the max amount of items fetched from the api in a single request.
@@ -20,7 +17,7 @@ const props = withDefaults(
     pageSize?: number;
   }>(),
   {
-    pageSize: 25,
+    pageSize: 15,
   }
 );
 
@@ -49,20 +46,16 @@ const notifications = computed(() => {
 
 async function onLoadMore() {
   console.log("[getNotifications] onLoadMore");
-  // void fetchMore({
-  //   variables: {
-  //     filter: {
-  //       offset: notifications.value.length,
-  //       limit: props.pageSize,
-  //       type: props.type,
-  //     },
-  //   },
-  // });
+  void fetchMore({
+    variables: {
+      filter: {
+        offset: notifications.value.length,
+        limit: props.pageSize,
+        type: props.type,
+      },
+    },
+  });
 }
-
-// const { isLoading } = useInfiniteScroll(element, onLoadMore, {
-//   distance: 25,
-// });
 </script>
 
 <template>

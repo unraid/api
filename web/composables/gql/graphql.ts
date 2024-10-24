@@ -636,7 +636,7 @@ export type Mutation = {
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createNotification: Notification;
-  deleteNotification: Notification;
+  deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
