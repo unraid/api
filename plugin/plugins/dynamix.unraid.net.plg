@@ -15,7 +15,8 @@
 <!ENTITY NODE_SHA256            "332f22a2a6722e9fad92b8d1eeaded228a6499b7335b2b54ee99c55b4fe49742">
 <!ENTITY NGHTTP3                "nghttp3-1.6.0-x86_64.txz">
 <!ENTITY NGHTTP3_SHA256         "936c40071a99745efa35b1b8c9252b6d25b54e264cfafafca15b3f41d65ab8a6">
-<!ENTITY downloadserver         "">
+<!ENTITY MAIN_TXZ                "">
+<!ENTITY API_TGZ                 "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
@@ -50,7 +51,6 @@ exit 0
 <!-- gzip check, DNS check, then validate files before doing anything destructive -->
 <FILE Run="/bin/bash" Method="install">
 <INLINE>
-DLHOST=$(echo "&downloadserver;" | awk -F/ '{print $3}')
 <![CDATA[
 version=
 # shellcheck disable=SC1091
@@ -75,7 +75,6 @@ source <(grep "DNS_SERVER1" /usr/local/emhttp/state/network.ini 2>/dev/null)
 DNSERR=no
 
 echo "Checking DNS..."
-#dnscheck "${DLHOST}"
 dnscheck "mothership.unraid.net"
 #dnscheck "wanip4.unraid.net"
 #dnscheck "backup.unraid.net"
@@ -124,13 +123,13 @@ exit 0
 
 <!-- download main txz -->
 <FILE Name="&source;.txz">
-<URL>&downloadserver;/unraid-api/&name;-&version;.txz</URL>
+<URL>&MAIN_TXZ;</URL>
 <SHA256>&SHA256;</SHA256>
 </FILE>
 
 <!-- download unraid-api -->
 <FILE Name="/boot/config/plugins/dynamix.my.servers/unraid-api.tgz">
-<URL>&downloadserver;/unraid-api/unraid-api-&API_version;.tgz</URL>
+<URL>&API_TGZ;</URL>
 <SHA256>&API_SHA256;</SHA256>
 </FILE>
 
