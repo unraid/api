@@ -2,7 +2,7 @@
 import { exit } from 'process';
 import { cd, $ } from 'zx';
 
-import getTags from './get-tags.mjs';
+import getTags, { getDeploymentVersion } from './get-deployment-version.mjs';
 
 try {
     // Enable colours in output
@@ -39,19 +39,13 @@ try {
         assert: { type: 'json' },
     }).then((pkg) => pkg.default);
 
-    const tags = getTags(process.env);
-
-    // Decide whether to use full version or just tag
-    const isTaggedRelease = tags.isTagged;
-    const gitShaShort = tags.shortSha;
-
-    const deploymentVersion = isTaggedRelease ? version : `${version}+${gitShaShort}`;
+    const deploymentVersion = getDeploymentVersion(process.env, version);
 
     // Create deployment package.json
     await $`echo ${JSON.stringify({
+        ...rest,
         name,
         version: deploymentVersion,
-        ...rest,
     })} > ./deploy/pre-pack/package.json`;
 
     // # Create final tgz
@@ -64,9 +58,6 @@ try {
 
     // Move unraid-api.tgz to release directory
     await $`mv unraid-api-${deploymentVersion}.tgz ../release`;
-
-    // Set API_VERSION output based on this command
-    await $`echo "::set-output name=API_VERSION::${deploymentVersion}"`;
 } catch (error) {
     // Error with a command
     if (Object.keys(error).includes('stderr')) {
