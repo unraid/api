@@ -9,7 +9,7 @@ source "${flash}/env"
 # Install the API to /usr/local/unraid-api
 api_base_directory="/usr/local/"
 
-reload() {
+restart() {
   "${api_base_directory}/unraid-api" restart
 }
 install() {
@@ -63,20 +63,11 @@ uninstall() {
 }
 
 case "$1" in
-'status')
-  status
-  ;;
-'start')
-  start
-  ;;
 'install')
   install "$2"
   ;;
 'reload')
-  reload
-  ;;
-'restart')
-  reload
+  restart
   ;;
 'uninstall')
   uninstall
