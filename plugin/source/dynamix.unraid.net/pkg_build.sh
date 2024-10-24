@@ -49,7 +49,7 @@ cd "${DIR}" || exit 1
 
 # define vars for plg
 PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
-MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin};-${version}.txz"
+MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
@@ -58,7 +58,7 @@ if [[ -n "${PR}" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}.plg"
 elif [[ "${env}" == "staging" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
-  MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin};-${version}.txz"
+  MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 fi
 
