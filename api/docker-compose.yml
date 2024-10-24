@@ -4,11 +4,9 @@ x-volumes: &volumes
   volumes:
   - ./dev:/app/dev
   - ./src:/app/src
-  - ./patches:/app/patches
   - ./package.json:/app/package.json
   - ./package-lock.json:/app/package-lock.json
   - ./tsconfig.json:/app/tsconfig.json
-  - ./tsup.config.ts:/app/tsup.config.ts
   - ./vite.config.ts:/app/vite.config.ts
   - ./dist/:/app/dist/
   - ./deploy/:/app/deploy/
@@ -19,7 +17,6 @@ x-volumes: &volumes
   - ./.env.staging:/app/.env.staging
   - ./.env.test:/app/.env.test
   - ./.env.development:/app/.env.development
-  - ./.pkg-cache:/app/.pkg-cache
   - ./codegen.yml:/app/codegen.yml
   - ./fix-array-type.cjs:/app/fix-array-type.cjs
   - /var/run/docker.sock:/var/run/docker.sock
