@@ -8,7 +8,7 @@
   "license": "UNLICENSED",
   "scripts": {
     "build:docker": "./scripts/dc.sh run --rm builder",
-    "build:pack": "./scripts/build.mjs",
+    "build-and-pack": "./scripts/build.mjs",
     "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
     "codegen:watch": "DOTENV_CONFIG_PATH='./.env.staging' graphql-codegen --config codegen.yml --watch -r dotenv/config",
     "codegen:local": "NODE_TLS_REJECT_UNAUTHORIZED=0  MOTHERSHIP_GRAPHQL_LINK='https://mothership.localhost/ws' graphql-codegen-esm --config codegen.yml --watch",
@@ -18,7 +18,6 @@
     "test:watch": "vitest --pool=forks",
     "test": "vitest run --pool=forks",
     "coverage": "vitest run --coverage",
-    "patch:subscriptions-transport-ws": "node ./.scripts/patches/subscriptions-transport-ws.cjs",
     "release": "standard-version",
     "install:unraid": "./scripts/install-in-unraid.sh",
     "boot:unraid": "tsx -r dotenv/config src/index.ts",
