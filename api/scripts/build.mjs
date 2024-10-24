@@ -16,8 +16,8 @@ try {
     await $`mkdir -p ./deploy/release`;
     await $`mkdir -p ./deploy/pre-pack`;
 
-    await $`rm -r ./deploy/release/*`;
-    await $`rm -r ./deploy/pre-pack/*`;
+    await $`rm -rf ./deploy/release/*`;
+    await $`rm -rf ./deploy/pre-pack/*`;
 
 	await $`npm install -g npm-pack-all`;
 
