@@ -1,8 +1,3 @@
-/*!
- * Copyright 2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { logger } from '@app/core/log';
 import { getters } from '@app/store';
 import { type ApiKeyResponse } from '@app/graphql/generated/api/types';

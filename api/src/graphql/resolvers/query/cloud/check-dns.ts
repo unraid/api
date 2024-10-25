@@ -1,8 +1,3 @@
-/*!
- * Copyright 2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
 import { store } from '@app/store';
 import { getDnsCache } from '@app/store/getters';
