@@ -105,7 +105,7 @@ switch (state) {
 }
 
 // const connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
-const connectPluginInstalled = "";
+const connectPluginInstalled = "dynamix.unraid.net.staging.plg";
 
 const osVersion = "7.0.0-beta.2.10";
 const osVersionBranch = "stable";

@@ -6,6 +6,8 @@ import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class UsersService {
+    constructor() {}
+
     private logger = new Logger(UsersService.name);
     apiKeyToUser(apiKey: string): UserAccount | null {
         const config = getters.config();
@@ -56,7 +58,7 @@ export class UsersService {
     getSessionUser(): UserAccount {
         return {
             id: '-1',
-            description: 'UPC service account',
+            description: 'UPC Cookie-Based Service Account',
             name: 'upc',
             roles: 'upc',
         };
