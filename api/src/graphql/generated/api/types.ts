@@ -817,6 +817,7 @@ export type Node = {
 export type Notification = Node & {
   __typename?: 'Notification';
   description: Scalars['String']['output'];
+  formattedTimestamp?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   importance: Importance;
   link?: Maybe<Scalars['String']['output']>;
@@ -2403,6 +2404,7 @@ export type NodeResolvers<ContextType = Context, ParentType extends ResolversPar
 
 export type NotificationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Notification'] = ResolversParentTypes['Notification']> = ResolversObject<{
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  formattedTimestamp?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   importance?: Resolver<ResolversTypes['Importance'], ParentType, ContextType>;
   link?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
