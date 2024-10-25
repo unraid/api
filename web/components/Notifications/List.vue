@@ -59,15 +59,16 @@ async function onLoadMore() {
 </script>
 
 <template>
-    <div
-      v-if="notifications?.length > 0"
-      v-infinite-scroll="onLoadMore"
-      class="divide-y divide-gray-200 overflow-y-auto pl-7 pr-4 h-full"
-    >
-      <NotificationsItem
-        v-for="notification in notifications"
-        :key="notification.id"
-        v-bind="notification"
-      />
-    </div>
+  <!-- The horizontal padding here adjusts for the scrollbar offset -->
+  <div
+    v-if="notifications?.length > 0"
+    v-infinite-scroll="onLoadMore"
+    class="divide-y divide-gray-200 overflow-y-auto pl-7 pr-4 h-full"
+  >
+    <NotificationsItem
+      v-for="notification in notifications"
+      :key="notification.id"
+      v-bind="notification"
+    />
+  </div>
 </template>
