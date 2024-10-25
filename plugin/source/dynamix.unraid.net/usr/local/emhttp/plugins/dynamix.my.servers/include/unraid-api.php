@@ -54,7 +54,7 @@ if ($cli) {
 }
 if (!in_array($command, $validCommands)) $command = 'none';
 
-if (!file_exists('/usr/local/sbin/unraid-api') || !file_exists('/usr/local/bin/unraid-api/unraid-api')) {
+if (!file_exists('/usr/bin/unraid-api')) {
   response_complete(406, array('error' => 'Please reinstall the Unraid Connect plugin'));
 }
 
