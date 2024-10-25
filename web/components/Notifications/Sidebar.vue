@@ -25,12 +25,19 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
       <BellIcon class="w-6 h-6" />
     </SheetTrigger>
 
-    <SheetContent :to="teleportTarget" class="w-full sm:max-w-[540px] h-screen px-0">
+    <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
+    <SheetContent
+      :to="teleportTarget"
+      class="w-full sm:max-w-[540px] h-screen px-0"
+    >
       <div class="flex flex-col h-full gap-3">
         <SheetHeader class="ml-1 px-6">
           <SheetTitle>Notifications</SheetTitle>
         </SheetHeader>
 
+        <!-- min-h-0 prevents the flex container from expanding beyond its containing bounds. -->
+        <!-- this is necessary because flex items have a default min-height: auto, -->
+        <!-- which means they won't shrink below the height of their content, even if you use flex-1 or other flex properties. -->
         <Tabs default-value="unread" class="flex-1 flex flex-col min-h-0">
           <div
             class="flex flex-row justify-between items-center flex-wrap gap-2 px-6"
