@@ -129,7 +129,7 @@ class ServerState
         if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) {
             $this->connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
         }
-        if ($this->connectPluginInstalled && !file_exists('/usr/local/bin/unraid-api')) {
+        if ($this->connectPluginInstalled && !file_exists('/usr/bin/unraid-api')) {
             $this->connectPluginInstalled .= '_installFailed';
         }
 
