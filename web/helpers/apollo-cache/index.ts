@@ -1,4 +1,5 @@
 import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core";
+import { mergeAndDedup } from "./merge";
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies
@@ -37,8 +38,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
           keyArgs: ["filter", ["type", "importance"]],
 
           /**
-           * Merges incoming data into the correct offset position. copied from
-           * [Apollo Docs](https://www.apollographql.com/docs/react/pagination/core-api#improving-the-merge-function).
+           * Merges incoming data into the correct offset position.
            *
            * This lets paginated results live as a single list in the cache,
            * which simplifies our client code.
@@ -50,12 +50,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(existing = [], incoming, { args }) {
             const offset = args?.filter?.offset ?? 0;
-            const merged = existing.slice(0);
-
-            for (let i = 0; i < incoming.length; ++i) {
-              merged[offset + i] = incoming[i];
-            }
-            return merged;
+            return mergeAndDedup(existing, incoming, (item) => item.__ref, { offset });
           },
         },
       },
@@ -75,10 +70,8 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(_, incoming, { cache }) {
             cache.evict({ fieldName: "notifications" });
-            // Run garbage collection to clean up evicted references
-            cache.gc();
-            // Return the incoming data to ensure Apollo knows the result of the mutation
-            return incoming;
+            cache.gc(); // Run garbage collection to prevent orphans & incorrect cache state
+            return incoming; // Return the incoming data so Apollo knows the result of the mutation
           },
         },
       },
