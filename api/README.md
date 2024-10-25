@@ -31,7 +31,7 @@ Options:
   --environment production/staging/development                 Set the working environment. 
   --log-level ALL/TRACE/DEBUG/INFO/WARN/ERROR/FATAL/MARK/OFF   Set the log level.           
 
-  Copyright © 2022 Lime Technology, Inc.
+  Copyright © 2024 Lime Technology, Inc.
 
 ```
 
@@ -55,4 +55,4 @@ unraid-api report -vv
 If you found this file you're likely a developer. If you'd like to know more about the API and when it's available please join [our discord](https://discord.unraid.net/).
 
 ## License
-Copyright 2019-2022 Lime Technology Inc. All rights reserved.
+Copyright Lime Technology Inc. All rights reserved.

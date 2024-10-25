@@ -1,8 +1,3 @@
-/*!
- * Copyright 2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
 import { FIVE_DAYS_SECS, MOTHERSHIP_GRAPHQL_LINK, ONE_DAY_SECS } from '@app/consts';
 import { logger } from '@app/core/log';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';

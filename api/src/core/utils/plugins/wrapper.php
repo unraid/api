@@ -1,9 +1,4 @@
 <?php
-	/*
-	 * Copyright 2019 Lime Technology Inc. All rights reserved.
-	 * Written by: Alexis Tyler
-	 */
-
 	// Borrowed with love from https://b3z13r.wordpress.com/2011/05/16/passing-values-from-the-commandline-to-php-by-getpost-method/
 	// e.g. `./wrapper.php GET /tmp/random_file.php?arg1=true&arg2=a-really-long-string` { "username": "root" }
 	$method = $argv[1];
