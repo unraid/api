@@ -591,6 +591,7 @@ export function NotificationSchema(): z.ZodObject<Properties<Notification>> {
   return z.object({
     __typename: z.literal('Notification').optional(),
     description: z.string(),
+    formattedTimestamp: z.string().nullish(),
     id: z.string(),
     importance: ImportanceSchema,
     link: z.string().nullish(),

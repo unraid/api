@@ -10,6 +10,7 @@ import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { NotificationsService } from './notifications.service';
 import { Importance } from '@app/graphql/generated/client/graphql';
 import { AppError } from '@app/core/errors/app-error';
+import { formatTimestamp } from '@app/utils';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
@@ -41,7 +42,11 @@ export class NotificationsResolver {
         @Args('filter')
         filters: NotificationFilter
     ) {
-        return await this.notificationsService.getNotifications(filters);
+        const notifications = await this.notificationsService.getNotifications(filters);
+        return notifications.map((notification) => ({
+            ...notification,
+            formattedTimestamp: formatTimestamp(notification.timestamp),
+        }));
     }
 
     /**============================================
@@ -97,7 +102,9 @@ export class NotificationsResolver {
     }
 
     @Mutation()
-    public async unarchiveAll(@Args('importance') importance?: Importance): Promise<NotificationOverview> {
+    public async unarchiveAll(
+        @Args('importance') importance?: Importance
+    ): Promise<NotificationOverview> {
         const { overview } = await this.notificationsService.unarchiveAll(importance);
         return overview;
     }
@@ -106,7 +113,7 @@ export class NotificationsResolver {
     public async recalculateOverview() {
         const { overview, error } = await this.notificationsService.recalculateOverview();
         if (error) {
-            throw new AppError("Failed to refresh overview", 500);
+            throw new AppError('Failed to refresh overview', 500);
         }
         return overview;
     }

@@ -101,3 +101,29 @@ export function updateObject(
         iterations++;
     }
 }
+
+/**
+ * Formats a timestamp into a human-readable format: "MMM D, YYYY"
+ * Example: "Oct 24, 2024"
+ *
+ * @param timestamp - ISO date string or Unix timestamp in seconds
+ * @returns Formatted date string or null if timestamp is invalid
+ */
+export function formatTimestamp(timestamp: string | number | null | undefined): string | null {
+    if (!timestamp) return null;
+
+    try {
+        // Convert Unix timestamp (seconds) to milliseconds if needed
+        const date = typeof timestamp === 'number' ? new Date(timestamp * 1_000) : new Date(timestamp);
+
+        if (isNaN(date.getTime())) return null;
+
+        return date.toLocaleDateString('en-US', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+        });
+    } catch {
+        return null;
+    }
+}
