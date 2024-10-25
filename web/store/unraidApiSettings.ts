@@ -1,47 +1,43 @@
-import type { SetupRemoteAccessInput } from '~/composables/gql/graphql';
-import { useUnraidApiStore } from '~/store/unraidApi';
+import { useLazyQuery, useMutation } from "@vue/apollo-composable";
+import type { SetupRemoteAccessInput } from "~/composables/gql/graphql";
 import {
   GET_ALLOWED_ORIGINS,
   GET_REMOTE_ACCESS,
   SETUP_REMOTE_ACCESS,
   SET_ADDITIONAL_ALLOWED_ORIGINS,
-} from '~/store/unraidApiSettings.fragment';
+} from "~/store/unraidApiSettings.fragment";
 
 export const useUnraidApiSettingsStore = defineStore(
-  'unraidApiSettings',
+  "unraidApiSettings",
   () => {
-    const { unraidApiClient } = toRefs(useUnraidApiStore());
+    const { load: loadOrigins, result: origins } =
+      useLazyQuery(GET_ALLOWED_ORIGINS);
 
+    const { mutate: mutateOrigins } = useMutation(
+      SET_ADDITIONAL_ALLOWED_ORIGINS
+    );
+    const { load: loadRemoteAccess, result: remoteAccessResult } =
+      useLazyQuery(GET_REMOTE_ACCESS);
+
+    const { mutate: setupRemoteAccessMutation } =
+      useMutation(SETUP_REMOTE_ACCESS);
     const getAllowedOrigins = async () => {
-      const origins = await unraidApiClient.value?.query({
-        query: GET_ALLOWED_ORIGINS,
-      });
-
-      return origins?.data?.extraAllowedOrigins ?? [];
+      await loadOrigins();
+      return origins?.value?.extraAllowedOrigins ?? [];
     };
 
     const setAllowedOrigins = async (origins: string[]) => {
-      const newOrigins = await unraidApiClient.value?.mutate({
-        mutation: SET_ADDITIONAL_ALLOWED_ORIGINS,
-        variables: { input: { origins } },
-      });
-
-      return newOrigins?.data?.setAdditionalAllowedOrigins;
+      const result = await mutateOrigins({ input: { origins } });
+      return result?.data?.setAdditionalAllowedOrigins;
     };
 
     const getRemoteAccess = async () => {
-      const remoteAccess = await unraidApiClient.value?.query({
-        query: GET_REMOTE_ACCESS,
-      });
-
-      return remoteAccess?.data?.remoteAccess;
+      await loadRemoteAccess();
+      return remoteAccessResult?.value?.remoteAccess;
     };
 
     const setupRemoteAccess = async (input: SetupRemoteAccessInput) => {
-      const response = await unraidApiClient.value?.mutate({
-        mutation: SETUP_REMOTE_ACCESS,
-        variables: { input },
-      });
+      const response = await setupRemoteAccessMutation({ input });
       return response?.data?.setupRemoteAccess;
     };
 

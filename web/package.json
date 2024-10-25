@@ -42,7 +42,7 @@
     "@vueuse/nuxt": "^10.9.0",
     "lodash-es": "^4.17.21",
     "nuxt": "^3.11.2",
-    "nuxt-custom-elements": "^2.0.0-beta.18",
+    "nuxt-custom-elements": "2.0.0-beta.18",
     "shadcn-nuxt": "^0.10.4",
     "tailwindcss-animate": "^1.0.7",
     "terser": "^5.31.0",
