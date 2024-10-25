@@ -218,10 +218,12 @@ jobs:
           AWS_REGION: "auto"
           SOURCE_DIR: pr-release
           DEST_DIR: unraid-api/pr/${{ github.event.pull_request.number }}
-      - name: Print Path to Plugin Install
-        run: |
-          echo "Use the following URL to install the plugin on your Unraid server"
-          echo "https://${{ secrets.CF_BUCKET_PREVIEW }}.${{ secrets.CF_ENDPOINT }}/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.txz"
+      - name: Comment URL
+        uses: thollander/actions-comment-pull-request@v3
+        with:
+          message: |
+            This plugin has been deployed to Cloudflare R2 and is available for testing.
+            Download it at this URL: [https://${{ secrets.CF_BUCKET_PREVIEW }}.${{ secrets.CF_ENDPOINT }}/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.txz](https://${{ secrets.CF_BUCKET_PREVIEW }}.${{ secrets.CF_ENDPOINT }}/unraid-api/pr/${{ github.event.pull_request.number }}/dynamix.unraid.net.staging.txz)
 
   release-staging:
     environment:
