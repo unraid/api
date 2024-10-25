@@ -12,9 +12,6 @@ import {
 import { X } from "lucide-vue-next";
 import { type SheetVariants, sheetVariants } from ".";
 import { cn } from "~/components/shadcn/utils";
-import { vInfiniteScroll } from "@vueuse/components";
-
-type ScrollLoader = Parameters<typeof useInfiniteScroll>[1];
 
 interface SheetContentProps extends DialogContentProps {
   class?: HTMLAttributes["class"];
@@ -31,13 +28,10 @@ defineOptions({
 
 const props = defineProps<SheetContentProps>();
 
-const emits = defineEmits<
-  DialogContentEmits & { loadMore: Parameters<ScrollLoader> }
->();
+const emits = defineEmits<DialogContentEmits>();
 
 const delegatedProps = computed(() => {
   const { class: _, side, padding, ...delegated } = props;
-  console.log("[SheetContent] delegatedProps", delegated);
   return delegated;
 });
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
@@ -55,7 +49,6 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits);
     <DialogContent
       :class="cn(sheetVariants({ side, padding }), props.class)"
       v-bind="{ ...forwarded, ...$attrs }"
-      v-infinite-scroll="(state) => $emit('loadMore', state)"
     >
       <slot />
 
