@@ -6,6 +6,7 @@ import {
     Injectable,
     type CanActivate,
     UnauthorizedException,
+    Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql';
@@ -18,11 +19,16 @@ export class GraphqlAuthGuard
     extends AuthGuard([ServerHeaderStrategy.key, UserCookieStrategy.key])
     implements CanActivate
 {
-    constructor(private readonly reflector: Reflector) {
+    protected logger = new Logger(GraphqlAuthGuard.name);
+    constructor() {
         super();
     }
 
     handleRequest<UserAccount>(err, user: UserAccount | null, info, context) {
+        if (err) {
+            console.log('Error in handleRequest', err);
+            throw err;
+        }
         if (!user) {
             if (context) {
                 const ctx = GqlExecutionContext.create(context);
@@ -32,7 +38,6 @@ export class GraphqlAuthGuard
                     fullContext.connectionParams ?? {}
                 );
             }
-
             throw new UnauthorizedException('User not found');
         }
 
@@ -44,18 +49,7 @@ export class GraphqlAuthGuard
      * @param context
      * @returns
      */
-    canActivate(
-        context: ExecutionContext
-    ): boolean | Promise<boolean> | Observable<boolean> {
-        const isPublic = this.reflector.getAllAndOverride<boolean>(
-            IS_PUBLIC_KEY,
-            [context.getHandler(), context.getClass()]
-        );
-
-        if (isPublic) {
-            return true;
-        }
-
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
         return super.canActivate(context);
     }
 
@@ -65,8 +59,7 @@ export class GraphqlAuthGuard
             const ctx = GqlExecutionContext.create(context);
             const fullContext = ctx.getContext<any>();
             const request = fullContext.req ?? {};
-            const additionalConnectionParamHeaders =
-                fullContext.connectionParams ?? {};
+            const additionalConnectionParamHeaders = fullContext.connectionParams ?? {};
             request.headers = {
                 ...(request.headers ?? {}),
                 ...additionalConnectionParamHeaders,

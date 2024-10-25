@@ -14,6 +14,11 @@ import { provideApolloClient } from "@vue/apollo-composable";
 import { createClient } from "graphql-ws";
 import { WEBGUI_GRAPHQL } from "./urls";
 import { createApolloCache } from "./apollo-cache";
+import { ApolloLink, Observable } from "@apollo/client/core";
+import fs from "fs";
+import path from "path";
+import { useServerStore } from "~/store/server";
+import { connect } from "http2";
 
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace("http", "ws"));
@@ -80,6 +85,19 @@ const retryLink = new RetryLink({
   },
 });
 
+const disableClientLink = new ApolloLink((operation, forward) => {
+  const serverStore = useServerStore();
+  const { connectPluginInstalled, guid} = toRefs(serverStore);
+  console.log("serverStore.connectPluginInstalled", connectPluginInstalled.value, guid.value);
+  if (!connectPluginInstalled.value) {
+    return new Observable((observer) => {
+      console.warn("connectPluginInstalled is false, aborting request");
+      observer.complete();
+    });
+  }
+  return forward(operation);
+});
+
 const splitLinks = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
@@ -96,9 +114,9 @@ const splitLinks = split(
  * https://www.apollographql.com/docs/react/api/link/introduction/#additive-composition
  * https://www.apollographql.com/docs/react/api/link/introduction/#directional-composition
  */
-const additiveLink = from([errorLink, retryLink, splitLinks]);
+const additiveLink = from([disableClientLink, errorLink, retryLink, splitLinks]);
 
-const client = new ApolloClient({
+export const client = new ApolloClient({
   link: additiveLink,
   cache: createApolloCache(),
 });
