@@ -54,7 +54,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
               class="text-muted-foreground text-base p-0"
               @click="archiveAll"
             >
-              {{ `Archive All` }}
+              Archive All
             </Button>
 
             <Select>
