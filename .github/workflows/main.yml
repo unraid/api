@@ -205,12 +205,12 @@ jobs:
 
       - name: Write Changelog to Plugin XML
         run: |
-          notes=$(cat << EOF
+          notes=$(cat <<EOF
             Pull Request Build: ${{ github.event.pull_request.number }}
             $(git log -1 --pretty=%B)        
-            EOF
+          EOF
           )
-          escapedNotes=$(sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//' <<<"$notes")
+          escapedNotes=$(echo "$notes" | sed -e 's/[&\\/]/\\&/g; s/$/\\/' -e '$s/\\$//')
           sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${escapedNotes}\n<\/CHANGES>/g" "dynamix.unraid.net.staging.plg"
 
       - name: Copy other release files to pr-release
