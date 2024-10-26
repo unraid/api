@@ -1,6 +1,6 @@
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-http-header-strategy';
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 @Injectable()
@@ -8,9 +8,7 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
     static key = 'server-http-header';
     private readonly logger = new Logger(ServerHeaderStrategy.name);
 
-    constructor(
-        private readonly authService: AuthService,
-    ) {
+    constructor(@Inject(AuthService) private readonly authService: AuthService) {
         super({ header: 'x-api-key', passReqToCallback: false });
     }
 

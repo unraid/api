@@ -72,5 +72,6 @@ export const executeRemoteGraphQLQuery = async (
             remoteQueryLogger.warn('Could not respond %o', error);
         }
         remoteQueryLogger.error('Error executing remote query %s', err instanceof Error ? err.message: 'Unknown Error');
+        remoteQueryLogger.trace(err);
     }
 };
