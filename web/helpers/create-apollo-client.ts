@@ -15,10 +15,7 @@ import { createClient } from "graphql-ws";
 import { WEBGUI_GRAPHQL } from "./urls";
 import { createApolloCache } from "./apollo-cache";
 import { ApolloLink, Observable } from "@apollo/client/core";
-import fs from "fs";
-import path from "path";
 import { useServerStore } from "~/store/server";
-import { connect } from "http2";
 
 const httpEndpoint = WEBGUI_GRAPHQL;
 const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace("http", "ws"));
@@ -88,8 +85,8 @@ const retryLink = new RetryLink({
 const disableClientLink = new ApolloLink((operation, forward) => {
   const serverStore = useServerStore();
   const { connectPluginInstalled, guid} = toRefs(serverStore);
-  console.log("serverStore.connectPluginInstalled", connectPluginInstalled.value, guid.value);
-  if (!connectPluginInstalled.value) {
+  console.log("serverStore.connectPluginInstalled", connectPluginInstalled?.value, guid?.value);
+  if (!connectPluginInstalled?.value) {
     return new Observable((observer) => {
       console.warn("connectPluginInstalled is false, aborting request");
       observer.complete();
