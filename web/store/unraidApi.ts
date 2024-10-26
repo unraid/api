@@ -26,20 +26,6 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
     client
   );
 
-  watch(
-    serverStore,
-    async (newVal) => {
-      if (!newVal.fetchServerFromApi) {
-        return;
-      }
-      const apiResponse = await newVal.fetchServerFromApi();
-      if (apiResponse) {
-        // we have a response, so we're online
-        unraidApiStatus.value = "online";
-      }
-    },
-    { immediate: true }
-  );
   // const unraidApiErrors = ref<any[]>([]);
   const unraidApiStatus = ref<
     "connecting" | "offline" | "online" | "restarting"
