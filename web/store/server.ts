@@ -13,7 +13,7 @@ import {
   KeyIcon,
   QuestionMarkCircleIcon,
 } from "@heroicons/vue/24/solid";
-import { useLazyQuery, useQuery } from "@vue/apollo-composable";
+import { useLazyQuery } from "@vue/apollo-composable";
 
 import { SERVER_CLOUD_FRAGMENT, SERVER_STATE_QUERY } from "./server.fragment";
 import { useFragment } from "~/composables/gql/fragment-masking";

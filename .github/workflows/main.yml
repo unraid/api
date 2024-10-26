@@ -69,8 +69,11 @@ jobs:
       - name: Test inside of the docker container
         run: |
           git fetch --depth=2 origin main
-          git diff --name-only HEAD~1 HEAD | grep -q '^api/' || exit 0
-          docker run --rm builder npm run coverage
+          if git diff --name-only --relative=api origin/main HEAD | grep -q '.'; then
+            docker run --rm builder npm run coverage
+          else
+            echo "No changes in /api folder, skipping coverage."
+          fi
       - name: Get Git Short Sha and API version
         id: vars
         run: |
@@ -215,7 +218,7 @@ jobs:
                   sed -e 's/[&\\/]/\\&/g')
 
           # Replace <CHANGES> tag content in the file
-          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${notes}\n<\/CHANGES>/g" "dynamix.unraid.net.staging.plg"
+          sed -i -z -E "s/<CHANGES>(.*)<\/CHANGES>/<CHANGES>\n${notes}\n<\/CHANGES>/g" "plugins/dynamix.unraid.net.staging.plg"
 
       - name: Copy other release files to pr-release
         run: |
