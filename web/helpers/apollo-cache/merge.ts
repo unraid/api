@@ -22,17 +22,12 @@ export function mergeAndDedup<T = ApolloCacheItem, Id = string>(
   incoming: T[] = [],
   getRef: (item: T) => Id,
   { offset }: { offset: number } = { offset: 0 }
-) {
+): T[] {
   const incomingRefs = new Set(incoming.map((item) => getRef(item)));
   // Set duplicated items in `existing` to `undefined`
   //   This allows us to keep the incoming insertion/merge logic simple by retaining item positions.
   //   We can easily remove duplicates later by filtering out `undefined` values.
-  const merged = existing.map((item) => {
-    if (incomingRefs.has(getRef(item))) {
-      return;
-    }
-    return item;
-  });
+  const merged = existing.map((item) => incomingRefs.has(getRef(item)) ? undefined : item);
 
   // Merges incoming data into the correct offset position. Adapted from:
   // [Apollo Docs](https://www.apollographql.com/docs/react/pagination/core-api#improving-the-merge-function).
