@@ -15,10 +15,14 @@ import { ServerResolver } from './servers/server.resolver';
 import { VarsResolver } from './vars/vars.resolver';
 import { DockerResolver } from '@app/unraid-api/graph/resolvers/docker/docker.resolver';
 import { NotificationsService } from './notifications/notifications.service';
+import { AuthResolver } from './auth/auth.resolver';
+import { AuthModule } from '@app/unraid-api/auth/auth.module';
 
 @Module({
+    imports: [AuthModule],
     providers: [
         ArrayResolver,
+        AuthResolver,
         CloudResolver,
         ConfigResolver,
         DisksResolver,

@@ -1,0 +1,49 @@
+type ApiKey {
+    id: String!
+    key: String!
+    name: String!
+    description: String
+    roles: [String!]!
+    createdAt: DateTime!
+    lastUsed: DateTime
+}
+
+input CreateApiKeyInput {
+    name: String!
+    description: String
+    roles: [String!]!
+}
+
+input AddPermissionInput {
+    role: String!
+    resource: String!
+    action: String!
+}
+
+input AddRoleForUserInput {
+    userId: String!
+    role: String!
+}
+
+input AddRoleForApiKeyInput {
+    apiKeyId: String!
+    role: String!
+}
+
+input RemoveRoleFromApiKeyInput {
+    apiKeyId: String!
+    role: String!
+}
+
+type Mutation {
+    createApiKey(input: CreateApiKeyInput!): ApiKey!
+    addPermission(input: AddPermissionInput!): Boolean!
+    addRoleForUser(input: AddRoleForUserInput!): Boolean!
+    addRoleForApiKey(input: AddRoleForApiKeyInput!): Boolean!
+    removeRoleFromApiKey(input: RemoveRoleFromApiKeyInput!): Boolean!
+}
+
+type Query {
+    apiKeys: [ApiKey!]!
+    apiKey(id: String!): ApiKey
+}
