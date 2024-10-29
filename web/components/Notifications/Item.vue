@@ -5,10 +5,16 @@ import {
   CheckBadgeIcon,
   ExclamationTriangleIcon,
   LinkIcon,
+  TrashIcon,
 } from "@heroicons/vue/24/solid";
 import { useMutation } from "@vue/apollo-composable";
 import type { NotificationFragmentFragment } from "~/composables/gql/graphql";
-import { archiveNotification as archiveMutation } from "./graphql/notification.query";
+
+import { NotificationType } from "~/composables/gql/graphql";
+import {
+  archiveNotification as archiveMutation,
+  deleteNotification,
+} from "./graphql/notification.query";
 
 const props = defineProps<NotificationFragmentFragment>();
 
@@ -33,9 +39,19 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
   return null;
 });
 
-const { mutate: archive, loading } = useMutation(archiveMutation, {
-  variables: { id: props.id },
-});
+const { mutate: archive, loading: archiveInProgress } = useMutation(
+  archiveMutation,
+  {
+    variables: { id: props.id },
+  }
+);
+
+const { mutate: deleteFromServer, loading: deleting } = useMutation(
+  deleteNotification,
+  {
+    variables: { id: props.id, type: props.type },
+  }
+);
 </script>
 
 <template>
@@ -78,24 +94,26 @@ const { mutate: archive, loading } = useMutation(archiveMutation, {
           <span class="text-sm text-muted-foreground mt-0.5">View</span>
         </Button>
       </a>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger as-child>
-            <Button
-            :disabled="loading"
-            class="relative z-20 rounded"
-            size="xs"
-            @click="archive"
-            >
-              <ArchiveBoxIcon class="size-3 mr-1" />
-              <span class="text-sm mt-0.5">Archive</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>
-            <p>Archive</p>
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button
+        v-if="type === NotificationType.Unread"
+        :disabled="archiveInProgress"
+        class="relative z-20 rounded"
+        size="xs"
+        @click="archive"
+      >
+        <ArchiveBoxIcon class="size-3 mr-1" />
+        <span class="text-sm mt-0.5">Archive</span>
+      </Button>
+      <Button
+        v-if="type === NotificationType.Archive"
+        :disabled="deleting"
+        class="relative z-20 rounded"
+        size="xs"
+        @click="deleteFromServer"
+      >
+        <TrashIcon class="size-3 mr-1" />
+        <span class="text-sm mt-0.5">Delete</span>
+      </Button>
     </div>
   </div>
 </template>
