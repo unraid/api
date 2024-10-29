@@ -47,3 +47,13 @@ export const archiveAllNotifications = graphql(/* GraphQL */ `
     }
   }
 `);
+
+export const deleteNotification = graphql(/* GraphQL */ `
+  mutation DeleteNotification($id: String!, $type: NotificationType!) {
+    deleteNotification(id: $id, type: $type) {
+      archive {
+        total
+      }
+    }
+  }
+`);
