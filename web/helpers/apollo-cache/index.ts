@@ -1,5 +1,6 @@
 import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core";
 import { mergeAndDedup } from "./merge";
+import { NOTIFICATION_CACHE_PREFIX } from "./prefixes";
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies
@@ -89,9 +90,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(_, incoming, { cache, args }) {
             if (args?.id) {
-              // The magic 'Notification:' prefix comes from inspecting the apollo cache
-              // I think it comes from the __typename when apollo caches an object (by default)
-              cache.evict({ id: `Notification:${args.id}` });
+              cache.evict({ id: `${NOTIFICATION_CACHE_PREFIX}:${args.id}` });
             }
             // Removes references to evicted notification, preventing dangling references
             cache.gc();
