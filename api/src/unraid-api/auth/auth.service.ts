@@ -4,7 +4,6 @@ import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 import { ApiKeyService } from './api-key.service';
 import { AuthZService } from 'nest-authz';
 import { CookieService } from './cookie.service';
-import { UsersService } from '@app/unraid-api/users/users.service';
 
 @Injectable()
 export class AuthService {

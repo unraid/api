@@ -7,9 +7,9 @@ import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
 import { CASBIN_MODEL, BASE_POLICY } from './casbin';
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
-import { UsersModule } from '../users/users.module';
 import { ServerHeaderStrategy } from './header.strategy';
 import { UserCookieStrategy } from './cookie.strategy';
+import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [
