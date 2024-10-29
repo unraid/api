@@ -1,11 +1,10 @@
 import { type UserAccount } from '@app/graphql/generated/api/types';
-import { UsersService } from '@app/unraid-api/users/users.service';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 
 import { ApiKeyService } from './api-key.service';
 import { AuthZService } from 'nest-authz';
 import { CookieService } from './cookie.service';
-import { getters } from '@app/store';
+import { UsersService } from '@app/unraid-api/users/users.service';
 
 @Injectable()
 export class AuthService {

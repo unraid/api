@@ -43,7 +43,9 @@ const initialState = {
             process.env.PATHS_DYNAMIX_CONFIG ?? ('/boot/config/plugins/dynamix/dynamix.cfg' as const)
         ),
     ],
-    'myservers-base': '/boot/config/plugins/dynamix.my.servers/' as const,
+    'myservers-base': [
+        resolvePath(process.env.PATHS_AUTH_KEY ?? ('/boot/config/plugins/dynamix.my.servers/' as const)),
+    ],
     'myservers-config': resolvePath(
         process.env.PATHS_MY_SERVERS_CONFIG ??
             ('/boot/config/plugins/dynamix.my.servers/myservers.cfg' as const)

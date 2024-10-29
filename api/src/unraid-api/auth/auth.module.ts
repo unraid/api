@@ -1,7 +1,6 @@
-import { AuthZModule } from 'nest-authz';
+import { AuthZModule, AUTHZ_ENFORCER } from 'nest-authz';
 import { Module, forwardRef } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { AUTHZ_ENFORCER } from 'nest-authz';
 import { newEnforcer, Model as CasbinModel, StringAdapter } from 'casbin';
 
 import { ApiKeyService } from './api-key.service';
