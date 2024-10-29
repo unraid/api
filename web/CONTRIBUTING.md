@@ -60,7 +60,34 @@ export const archiveNotification = graphql(/* GraphQL */ `
 ```
 
 Note the `/* GraphQL */` pragma. This enables syntax highlighting & type-sense for
-graphql stuff.
+graphql stuff. It also helps the `codegen` and `codegen:watch` npm scripts validate mutations,
+queries, etc against the graphql schema.
 
 You should define graphql-related snippets outside of your Vue components, so they're
-easier to re-use and independently validate.
+easier to re-use and independently validate. We recommend placing them in the same
+component folder.
+
+### Fragments
+
+Graphql fragments help keep your graphql requests simpler and more maintainable, but they
+also make responses type-safe. Here's an example.
+
+```ts
+const { result } = useQuery(getNotifications);
+
+const notifications = computed(() => {
+  if (!result.value?.notifications.list) return [];
+
+  const list = useFragment(
+    NOTIFICATION_FRAGMENT,
+    result.value?.notifications.list
+  );
+
+  return list;
+});
+```
+
+Through `useFragment`, `list` will always be the correct type: a list of notification fragments.
+
+Since the `codegen` npm scripts keep our types and schemas synced with the api, breaking
+changes will cause a type-error that can easily be caught during development, testing, and CI.
