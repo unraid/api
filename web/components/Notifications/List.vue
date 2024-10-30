@@ -3,7 +3,7 @@ import {
   getNotifications,
   NOTIFICATION_FRAGMENT,
 } from "./graphql/notification.query";
-import type { NotificationType } from "~/composables/gql/graphql";
+import type { Importance, NotificationType } from "~/composables/gql/graphql";
 import { useFragment } from "~/composables/gql/fragment-masking";
 import { useQuery } from "@vue/apollo-composable";
 import { vInfiniteScroll } from "@vueuse/components";
@@ -15,19 +15,22 @@ const props = withDefaults(
   defineProps<{
     type: NotificationType;
     pageSize?: number;
+    importance?: Importance;
   }>(),
   {
     pageSize: 15,
+    importance: undefined,
   }
 );
 
-const { result, error, fetchMore } = useQuery(getNotifications, {
+const { result, error, fetchMore } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
     limit: props.pageSize,
     type: props.type,
+    importance: props.importance,
   },
-});
+}));
 
 watch(error, (newVal) => {
   console.log("[getNotifications] error:", newVal);
@@ -52,6 +55,7 @@ async function onLoadMore() {
         offset: notifications.value.length,
         limit: props.pageSize,
         type: props.type,
+        importance: props.importance,
       },
     },
   });
