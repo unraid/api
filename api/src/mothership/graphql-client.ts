@@ -11,8 +11,8 @@ import {
     ApolloClient,
     InMemoryCache,
     type NormalizedCacheObject,
-} from '@apollo/client/core';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+} from '@apollo/client/core/index.js';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import {
@@ -20,8 +20,8 @@ import {
     setMothershipTimeout,
 } from '@app/store/modules/minigraph';
 import { logoutUser } from '@app/store/modules/config';
-import { RetryLink } from '@apollo/client/link/retry';
-import { ErrorLink } from '@apollo/client/link/error';
+import { RetryLink } from '@apollo/client/link/retry/index.js';
+import { ErrorLink } from '@apollo/client/link/error/index.js';
 import { isApiKeyValid } from '@app/store/getters/index';
 import { buildDelayFunction } from '@app/mothership/utils/delay-function';
 import { WebSocket } from 'ws';

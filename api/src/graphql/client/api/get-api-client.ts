@@ -3,14 +3,14 @@ import {
     HttpLink,
     InMemoryCache,
     split,
-} from '@apollo/client/core';
-import { onError } from '@apollo/client/link/error';
+} from '@apollo/client/core/index.js';
+import { onError } from '@apollo/client/link/error/index.js';
 import { getInternalApiAddress } from '@app/consts';
 import WebSocket from 'ws';
 import { fetch } from 'cross-fetch';
-import { getMainDefinition } from '@apollo/client/utilities';
+import { getMainDefinition } from '@apollo/client/utilities/index.js';
 import { graphqlLogger } from '@app/core/log';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { createClient } from 'graphql-ws';
 import { getters } from '@app/store/index';
 
