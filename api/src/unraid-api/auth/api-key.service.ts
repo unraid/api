@@ -11,7 +11,12 @@ export class ApiKeyService {
     private readonly logger = new Logger(ApiKeyService.name);
 
     public paths() {
-        const basePath = getters.paths()['myservers-base'][0];
+        const basePath = getters.paths()['auth-keys'];
+
+        if (!fs.existsSync(basePath)) {
+            this.logger.verbose(`Creating API key directory: ${basePath}`);
+            fs.mkdirSync(basePath, { recursive: true });
+        }
 
         this.logger.verbose(`Using API key base path: ${basePath}`);
 
@@ -24,7 +29,7 @@ export class ApiKeyService {
     async create(name: string, description: string, roles: string[]): Promise<ApiKey> {
         const apiKey: ApiKey = {
             id: uuidv4(), // Just using UUIDs for now while testing
-            key: uuidv4(),
+            key: uuidv4(), // TODO: Generate a key that is not a UUID
             name,
             description,
             roles,
@@ -43,6 +48,7 @@ export class ApiKeyService {
         for (const file of files) {
             if (file.endsWith('.json')) {
                 const content = await fs.promises.readFile(join(this.paths().basePath, file), 'utf8');
+
                 apiKeys.push(JSON.parse(content) as ApiKey);
             }
         }

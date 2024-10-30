@@ -33,8 +33,8 @@ import { UsersModule } from '../users/users.module';
                 const request = ctx.switchToHttp().getRequest();
                 return (
                     request.user && {
-                        username: request.user.username,
-                        isAdmin: request.user.isAdmin,
+                        id: request.user.id,
+                        roles: request.user.roles,
                     }
                 );
             },

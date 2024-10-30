@@ -13,7 +13,7 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private cookieService: CookieService,
-        private apiKeyService: ApiKeyService,
+        public apiKeyService: ApiKeyService,
         private authzService: AuthZService
     ) {}
 
@@ -40,25 +40,18 @@ export class AuthService {
      *------------------------------------------------------------------------**/
 
     async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
-        // Bypass variable check for development
-        if (process.env.BYPASS_PERMISSION_CHECKS === 'true') {
-            this.logger.warn('BYPASSING_PERMISSION_CHECK');
-
-            return {
-                id: '-1',
-                name: 'BYPASS_PERMISSION_CHECK',
-                description: 'BYPASS_PERMISSION_CHECK',
-                roles: 'admin',
-            };
-        }
-
         const apiKeyEntity = await this.apiKeyService.findByKey(apiKey);
-
         if (!apiKeyEntity) {
             throw new UnauthorizedException('Invalid API key');
         }
 
         await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
+
+        this.logger.debug(
+            `Validating API key with roles: ${JSON.stringify(
+                await this.authzService.getRolesForUser(apiKeyEntity.id)
+            )}`
+        );
 
         return {
             id: apiKeyEntity.id,
@@ -70,7 +63,7 @@ export class AuthService {
 
     async validateCookiesCasbin(cookies: object): Promise<UserAccount> {
         if (await this.cookieService.hasValidAuthCookie(cookies)) {
-            const user = await this.usersService.getSessionUser();
+            const user = this.usersService.getSessionUser();
 
             await this.ensureUserRoles(user.id);
 

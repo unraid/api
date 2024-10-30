@@ -64,6 +64,9 @@ const initialState = {
     'var-run': '/var/run' as const,
     // contains sess_ files that correspond to authenticated user sessions
     'auth-sessions': '/var/lib/php' as const,
+    'auth-keys': resolvePath(
+        process.env.PATHS_AUTH_KEY ?? ('/boot/config/plugins/dynamix.my.servers/keys' as const)
+    ),
 };
 
 export const paths = createSlice({

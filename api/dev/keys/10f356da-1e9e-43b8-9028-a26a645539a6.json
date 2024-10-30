@@ -1,11 +1,8 @@
 {
-  "id": "10f356da-1e9e-43b8-9028-a26a645539a6",
-  "key": "73717ca0-8c15-40b9-bcca-8d85656d1438",
-  "name": "Test API Key",
-  "description": "Testing API key creation",
-  "roles": [
-    "guest",
-    "my_servers"
-  ],
-  "createdAt": "2024-10-29T19:59:12.569Z"
+    "id": "10f356da-1e9e-43b8-9028-a26a645539a6",
+    "key": "73717ca0-8c15-40b9-bcca-8d85656d1438",
+    "name": "Test API Key",
+    "description": "Testing API key creation",
+    "roles": ["guest", "upc"],
+    "createdAt": "2024-10-29T19:59:12.569Z"
 }

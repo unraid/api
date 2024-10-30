@@ -1,23 +1,27 @@
+import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-http-header-strategy';
-import { Injectable, Logger } from '@nestjs/common';
+import { Strategy } from 'passport-custom';
 import { AuthService } from './auth.service';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
-export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
-    static key = 'server-http-header';
+export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-header') {
     private readonly logger = new Logger(ServerHeaderStrategy.name);
+    static readonly key = 'server-header';
 
-    constructor(
-        private readonly authService: AuthService,
-    ) {
-        super({ header: 'x-api-key', passReqToCallback: false });
+    constructor(private authService: AuthService) {
+        super();
     }
 
-    public validate = async (apiKey: string): Promise<any> => {
+    async validate(request: Request): Promise<any> {
         this.logger.debug('Validating API key');
-        const user = await this.authService.validateUser(apiKey);
 
-        return user;
-    };
+        const apiKey = request.headers?.['x-api-key'];
+
+        if (!apiKey) {
+            return null;
+        }
+
+        return this.authService.validateApiKeyCasbin(apiKey);
+    }
 }

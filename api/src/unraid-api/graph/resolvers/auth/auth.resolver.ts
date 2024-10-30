@@ -1,5 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { UsePermissions } from 'nest-authz';
 
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
@@ -14,16 +15,28 @@ export class AuthResolver {
     ) {}
 
     @Query()
+    @UsePermissions({
+        action: 'read',
+        resource: 'apikey',
+    })
     async apiKeys() {
         return this.apiKeyService.findAll();
     }
 
     @Query()
+    @UsePermissions({
+        action: 'read',
+        resource: 'apikey',
+    })
     async apiKey(@Args('id') id: string) {
         return this.apiKeyService.findById(id);
     }
 
     @Mutation()
+    @UsePermissions({
+        action: 'create',
+        resource: 'apikey',
+    })
     async createApiKey(
         @Args('input')
         input: {
@@ -33,14 +46,15 @@ export class AuthResolver {
         }
     ) {
         const apiKey = await this.apiKeyService.create(input.name, input.description, input.roles);
-
-        // Sync the roles with Casbin when creating
         await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
-
         return apiKey;
     }
 
     @Mutation()
+    @UsePermissions({
+        action: 'create',
+        resource: 'permission',
+    })
     async addPermission(
         @Args('input')
         input: {
@@ -50,11 +64,14 @@ export class AuthResolver {
         }
     ) {
         await this.authService.addPermission(input.role, input.resource, input.action);
-
         return true;
     }
 
     @Mutation()
+    @UsePermissions({
+        action: 'create',
+        resource: 'permission',
+    })
     async addRoleForUser(
         @Args('input')
         input: {
@@ -66,6 +83,10 @@ export class AuthResolver {
     }
 
     @Mutation()
+    @UsePermissions({
+        action: 'update',
+        resource: 'apikey',
+    })
     async addRoleForApiKey(
         @Args('input')
         input: {
@@ -77,6 +98,10 @@ export class AuthResolver {
     }
 
     @Mutation()
+    @UsePermissions({
+        action: 'update',
+        resource: 'apikey',
+    })
     async removeRoleFromApiKey(
         @Args('input')
         input: {

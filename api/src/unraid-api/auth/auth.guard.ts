@@ -44,13 +44,11 @@ export class GraphqlAuthGuard
      * @param context
      * @returns
      */
-    canActivate(
-        context: ExecutionContext
-    ): boolean | Promise<boolean> | Observable<boolean> {
-        const isPublic = this.reflector.getAllAndOverride<boolean>(
-            IS_PUBLIC_KEY,
-            [context.getHandler(), context.getClass()]
-        );
+    canActivate(context: ExecutionContext): boolean | Promise<boolean> | Observable<boolean> {
+        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
 
         if (isPublic) {
             return true;
@@ -65,8 +63,7 @@ export class GraphqlAuthGuard
             const ctx = GqlExecutionContext.create(context);
             const fullContext = ctx.getContext<any>();
             const request = fullContext.req ?? {};
-            const additionalConnectionParamHeaders =
-                fullContext.connectionParams ?? {};
+            const additionalConnectionParamHeaders = fullContext.connectionParams ?? {};
             request.headers = {
                 ...(request.headers ?? {}),
                 ...additionalConnectionParamHeaders,
