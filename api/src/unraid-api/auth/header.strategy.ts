@@ -10,7 +10,7 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
     static readonly key = 'server-http-header';
 
     constructor(private authService: AuthService) {
-        super({ header: 'x-api-key', passReqToCallback: false });
+        super();
     }
 
     async validate(request: Request): Promise<any> {
