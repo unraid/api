@@ -9,6 +9,7 @@ import {
 } from "@/components/shadcn/sheet";
 
 import { archiveAllNotifications } from "./graphql/notification.query";
+import type { Importance} from "~/composables/gql/graphql";
 import { NotificationType } from "~/composables/gql/graphql";
 import { useMutation } from "@vue/apollo-composable";
 
@@ -16,6 +17,7 @@ const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(
   archiveAllNotifications
 );
 const { teleportTarget, determineTeleportTarget } = useTeleport();
+const importance = ref<Importance | undefined>(undefined);
 </script>
 
 <template>
@@ -57,7 +59,9 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
               Archive All
             </Button>
 
-            <Select>
+            <Select
+              @update:model-value="(val) => {importance = val as Importance}"
+            >
               <SelectTrigger class="bg-secondary border-0 h-auto">
                 <SelectValue
                   class="text-muted-foreground"
@@ -67,20 +71,26 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
               <SelectContent :to="teleportTarget">
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
-                  <SelectItem value="alert">Alert</SelectItem>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
+                  <SelectItem :value="Importance.Alert">Alert</SelectItem>
+                  <SelectItem :value="Importance.Info">Info</SelectItem>
+                  <SelectItem :value="Importance.Warning">Warning</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
           </div>
 
           <TabsContent value="unread" class="flex-1 min-h-0 mt-3">
-            <NotificationsList :type="NotificationType.Unread" />
+            <NotificationsList
+              :importance="importance"
+              :type="NotificationType.Unread"
+            />
           </TabsContent>
 
           <TabsContent value="archived" class="flex-1 min-h-0 mt-3">
-            <NotificationsList :type="NotificationType.Archive" />
+            <NotificationsList
+              :importance="importance"
+              :type="NotificationType.Archive"
+            />
           </TabsContent>
         </Tabs>
       </div>

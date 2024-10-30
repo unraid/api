@@ -1,4 +1,4 @@
-/* eslint-disable */
+ 
 import type { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 export type Maybe<T> = T | null;
 export type InputMaybe<T> = Maybe<T>;
@@ -821,6 +821,7 @@ export type Node = {
 export type Notification = Node & {
   __typename?: 'Notification';
   description: Scalars['String']['output'];
+  formattedTimestamp?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   importance: Importance;
   link?: Maybe<Scalars['String']['output']>;
