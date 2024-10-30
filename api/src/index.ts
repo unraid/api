@@ -1,5 +1,5 @@
 import 'reflect-metadata';
-import 'global-agent/bootstrap';
+import 'global-agent/bootstrap.js';
 
 import http from 'http';
 import https from 'https';

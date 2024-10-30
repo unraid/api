@@ -3,7 +3,7 @@
         {
             "name": "unraid-api",
             "script": "npm",
-            "args": "run boot:unraid",
+            "args": "run dist/main.js",
             "log": "/var/log/unraid-api/unraid-api.log",
             "exec_mode": "fork",
             "ignore_watch": [
