@@ -2,7 +2,11 @@
 
 ## Installation
 
-Install the production plugin via the apps tab (search for "my servers") on Unraid 6.9.2 or later.
+Install the production plugin via the apps tab (search for "Unraid Connect")
+
+Manual install can be done with the following routes:
+[production](https://stable.dl.unraid.net/unraid-api/dynamix.unraid.net.plg)
+[staging](https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.staging.plg)
 
 ## CLI
 
