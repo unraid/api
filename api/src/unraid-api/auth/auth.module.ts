@@ -1,5 +1,5 @@
 import { AuthZModule, AUTHZ_ENFORCER } from 'nest-authz';
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 import { newEnforcer, Model as CasbinModel, StringAdapter } from 'casbin';
 
@@ -13,7 +13,7 @@ import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [
-        forwardRef(() => UsersModule),
+        UsersModule,
         PassportModule.register({
             defaultStrategy: [ServerHeaderStrategy.key, UserCookieStrategy.key],
         }),

@@ -1,17 +1,15 @@
-import { BYPASS_PERMISSION_CHECKS } from '@app/environment';
 import { type UserAccount } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store/index';
-import { Injectable, Inject, forwardRef } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
+
 import { ApiKeyService } from '../auth/api-key.service';
+import { BYPASS_PERMISSION_CHECKS } from '@app/environment';
+import { getters } from '@app/store/index';
 
 @Injectable()
 export class UsersService {
     private logger = new Logger(UsersService.name);
-    constructor(
-        @Inject(forwardRef(() => ApiKeyService))
-        private apiKeyService: ApiKeyService
-    ) {}
+    constructor(private apiKeyService: ApiKeyService) {}
 
     apiKeyToUser(apiKey: string): UserAccount | null {
         const config = getters.config();
