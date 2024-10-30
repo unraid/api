@@ -9,8 +9,8 @@ import {
 } from "@/components/shadcn/sheet";
 
 import { archiveAllNotifications } from "./graphql/notification.query";
-import type { Importance} from "~/composables/gql/graphql";
-import { NotificationType } from "~/composables/gql/graphql";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
+import { Importance, NotificationType } from "~/composables/gql/graphql";
 import { useMutation } from "@vue/apollo-composable";
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(
