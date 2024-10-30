@@ -22,16 +22,23 @@ try {
     // Build Generated Types
     await $`npm run codegen`;
 
+    await $`npm run build`;
     // Copy app files to plugin directory
     await $`cp -r ./src/ ./deploy/pre-pack/src/`;
+    await $`cp -r ./dist/ ./deploy/pre-pack/dist/`;
 
     // Copy environment to deployment directory
-    await $`cp ./.env.production ./deploy/pre-pack/.env.production`;
-    await $`cp ./.env.staging ./deploy/pre-pack/.env.staging`;
-    await $`cp ./tsconfig.json ./deploy/pre-pack/tsconfig.json`;
-    await $`cp ./unraid-api.js ./deploy/pre-pack/unraid-api.js`;
-    await $`cp ./codegen.yml ./deploy/pre-pack/codegen.yml`;
-    await $`cp ./ecosystem.config.json ./deploy/pre-pack/ecosystem.config.json`;
+    const files = [
+        '.env.production',
+        '.env.staging',
+        'tsconfig.json',
+        'codegen.yml',
+        'ecosystem.config.json'
+    ]
+
+    for (const file of files) {
+        await $`cp ./${file} ./deploy/pre-pack/${file}`;
+    }
 
     // Get package details
     const { name, version, ...rest } = await import('../package.json', {

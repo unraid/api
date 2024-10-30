@@ -3,18 +3,16 @@ import {
   ApolloClient,
   createHttpLink,
   split,
-  type NormalizedCacheObject,
-} from "@apollo/client/core";
+ ApolloLink, Observable } from "@apollo/client/core/index.js";
 
-import { onError } from "@apollo/client/link/error";
-import { RetryLink } from "@apollo/client/link/retry";
-import { GraphQLWsLink } from "@apollo/client/link/subscriptions";
-import { getMainDefinition } from "@apollo/client/utilities";
+import { onError } from "@apollo/client/link/error/index.js";
+import { RetryLink } from "@apollo/client/link/retry/index.js";
+import { GraphQLWsLink } from "@apollo/client/link/subscriptions/index.js";
+import { getMainDefinition } from "@apollo/client/utilities/index.js";
 import { provideApolloClient } from "@vue/apollo-composable";
 import { createClient } from "graphql-ws";
 import { WEBGUI_GRAPHQL } from "./urls";
 import { createApolloCache } from "./apollo-cache";
-import { ApolloLink, Observable } from "@apollo/client/core";
 import { useServerStore } from "~/store/server";
 
 const httpEndpoint = WEBGUI_GRAPHQL;

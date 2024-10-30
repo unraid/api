@@ -1,4 +1,4 @@
-import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core";
+import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core/index.js";
 import { mergeAndDedup } from "./merge";
 import { NotificationType } from "../../composables/gql/typename";
 

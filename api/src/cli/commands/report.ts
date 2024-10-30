@@ -16,7 +16,7 @@ import {
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import { loadStateFiles } from '@app/store/modules/emhttp';
-import { ApolloClient, ApolloQueryResult, NormalizedCacheObject } from '@apollo/client/core';
+import { ApolloClient, ApolloQueryResult, NormalizedCacheObject } from '@apollo/client/core/index.js';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
