@@ -29,7 +29,7 @@ import { usePurchaseStore } from "~/store/purchase";
 import { useThemeStore, type Theme } from "~/store/theme";
 import { useUnraidApiStore } from "~/store/unraidApi";
 
-import type { ApolloQueryResult } from "@apollo/client/core/types";
+import type { ApolloQueryResult } from "@apollo/client/core/index.js/types";
 import type {
   Config,
   PartialCloudFragment,
