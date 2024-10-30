@@ -7,6 +7,7 @@ import type { Importance, NotificationType } from "~/composables/gql/graphql";
 import { useFragment } from "~/composables/gql/fragment-masking";
 import { useQuery } from "@vue/apollo-composable";
 import { vInfiniteScroll } from "@vueuse/components";
+import { CheckIcon } from "@heroicons/vue/24/solid";
 
 /**
  * Page size is the max amount of items fetched from the api in a single request.
@@ -63,6 +64,13 @@ async function onLoadMore() {
 </script>
 
 <template>
+  <div
+    v-if="notifications?.length === 0"
+    class="h-full flex flex-col items-center justify-center gap-3"
+  >
+  <CheckIcon class="h-10 text-green-600" />
+    No notifications to see here!
+  </div>
   <!-- The horizontal padding here adjusts for the scrollbar offset -->
   <div
     v-if="notifications?.length > 0"
