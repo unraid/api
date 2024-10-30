@@ -87,6 +87,5 @@ deploy/*
 .output
 .env*
 !.env.example
-!web/.env.staging
 
 fb_keepalive
