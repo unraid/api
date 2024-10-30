@@ -5,12 +5,12 @@ import { AuthService } from './auth.service';
 import { Logger } from '@nestjs/common';
 
 @Injectable()
-export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-header') {
+export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
     private readonly logger = new Logger(ServerHeaderStrategy.name);
-    static readonly key = 'server-header';
+    static readonly key = 'server-http-header';
 
     constructor(private authService: AuthService) {
-        super();
+        super({ header: 'x-api-key', passReqToCallback: false });
     }
 
     async validate(request: Request): Promise<any> {
