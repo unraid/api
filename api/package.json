@@ -124,7 +124,6 @@
     "stoppable": "^1.1.0",
     "systeminformation": "^5.22.9",
     "ts-command-line-args": "^2.5.1",
-    "tsx": "^4.19.1",
     "uuid": "^10.0.0",
     "ws": "^8.17.0",
     "xhr2": "^0.2.1",
