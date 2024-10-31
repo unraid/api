@@ -68,8 +68,10 @@ async function onLoadMore() {
     v-if="notifications?.length === 0"
     class="h-full flex flex-col items-center justify-center gap-3"
   >
-  <CheckIcon class="h-10 text-green-600" />
-    No notifications to see here!
+    <CheckIcon class="h-10 text-green-600" />
+    {{
+      `No ${props.importance?.toLowerCase() ?? ""} notifications to see here!`
+    }}
   </div>
   <!-- The horizontal padding here adjusts for the scrollbar offset -->
   <div
