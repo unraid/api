@@ -6,13 +6,25 @@ import {
 import type { NotificationType } from "~/composables/gql/graphql";
 import { useFragment } from "~/composables/gql/fragment-masking";
 import { useQuery } from "@vue/apollo-composable";
+import { vInfiniteScroll } from "@vueuse/components";
 
-const props = defineProps<{ type: NotificationType }>();
+/**
+ * Page size is the max amount of items fetched from the api in a single request.
+ */
+const props = withDefaults(
+  defineProps<{
+    type: NotificationType;
+    pageSize?: number;
+  }>(),
+  {
+    pageSize: 15,
+  }
+);
 
-const { result, error } = useQuery(getNotifications, {
+const { result, error, fetchMore } = useQuery(getNotifications, {
   filter: {
     offset: 0,
-    limit: 10,
+    limit: props.pageSize,
     type: props.type,
   },
 });
@@ -31,10 +43,28 @@ const notifications = computed(() => {
   // and we don't want to display them in the wrong list client-side.
   return list.filter((n) => n.type === props.type);
 });
+
+async function onLoadMore() {
+  console.log("[getNotifications] onLoadMore");
+  void fetchMore({
+    variables: {
+      filter: {
+        offset: notifications.value.length,
+        limit: props.pageSize,
+        type: props.type,
+      },
+    },
+  });
+}
 </script>
 
 <template>
-  <div v-if="notifications?.length > 0" class="divide-y divide-gray-200">
+  <!-- The horizontal padding here adjusts for the scrollbar offset -->
+  <div
+    v-if="notifications?.length > 0"
+    v-infinite-scroll="onLoadMore"
+    class="divide-y divide-gray-200 overflow-y-auto pl-7 pr-4 h-full"
+  >
     <NotificationsItem
       v-for="notification in notifications"
       :key="notification.id"
