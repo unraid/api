@@ -13,7 +13,7 @@ export class AuthService {
     constructor(
         private usersService: UsersService,
         private cookieService: CookieService,
-        public apiKeyService: ApiKeyService,
+        private apiKeyService: ApiKeyService,
         private authzService: AuthZService
     ) {}
 
