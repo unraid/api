@@ -45,8 +45,11 @@ export class AuthService {
             throw new UnauthorizedException('Invalid API key');
         }
 
-        await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
+        if (!apiKeyEntity.roles) {
+            apiKeyEntity.roles = [];
+        }
 
+        await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
         this.logger.debug(
             `Validating API key with roles: ${JSON.stringify(
                 await this.authzService.getRolesForUser(apiKeyEntity.id)
