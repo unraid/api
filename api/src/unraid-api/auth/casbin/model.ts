@@ -12,5 +12,8 @@ g = _, _
 e = some(where (p.eft == allow))
 
 [matchers]
-m = g(r.sub, p.sub) && keyMatch2(r.obj, p.obj) && (r.act == p.act || p.act == '*') && (r.possession == p.possession || p.possession == '*')
+m = g(r.sub, p.sub) && \
+    keyMatch2(r.obj, p.obj) && \
+    (r.act == p.act || p.act == '*') && \
+    (r.possession == p.possession || p.possession == '*')
 `;

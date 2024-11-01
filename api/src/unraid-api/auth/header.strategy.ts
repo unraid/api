@@ -1,8 +1,11 @@
 import { Injectable } from '@nestjs/common';
-import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-custom';
-import { AuthService } from './auth.service';
 import { Logger } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Request } from 'express';
+import { Strategy } from 'passport-custom';
+
+import { AuthService } from './auth.service';
+import { User } from '@app/graphql/generated/api/types';
 
 @Injectable()
 export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
@@ -13,15 +16,27 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
         super();
     }
 
-    async validate(request: Request): Promise<any> {
+    async validate(request: Request): Promise<User | null> {
         this.logger.debug('Validating API key');
-
-        const apiKey = request.headers?.['x-api-key'];
+        const apiKey = (request.headers?.['x-api-key'] || request.headers?.['X-API-KEY']) as
+            | string
+            | undefined;
 
         if (!apiKey) {
+            this.logger.debug('No API key provided');
             return null;
         }
 
-        return this.authService.validateApiKeyCasbin(apiKey);
+        if (!/^[a-zA-Z0-9-_]+$/.test(apiKey)) {
+            this.logger.warn('Invalid API key format');
+            return null;
+        }
+
+        try {
+            return this.authService.validateApiKeyCasbin(apiKey);
+        } catch (error) {
+            this.logger.error('API key validation failed', error);
+            return null;
+        }
     }
 }
