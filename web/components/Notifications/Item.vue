@@ -13,7 +13,7 @@ import type { NotificationFragmentFragment } from "~/composables/gql/graphql";
 import { NotificationType } from "~/composables/gql/graphql";
 import {
   archiveNotification as archiveMutation,
-  deleteNotification,
+  deleteNotification as deleteMutation,
 } from "./graphql/notification.query";
 
 const props = defineProps<NotificationFragmentFragment>();
@@ -39,19 +39,13 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
   return null;
 });
 
-const { mutate: archive, loading: archiveInProgress } = useMutation(
-  archiveMutation,
-  {
-    variables: { id: props.id },
-  }
-);
+const archive = useMutation(archiveMutation, {
+  variables: { id: props.id },
+});
 
-const { mutate: deleteFromServer, loading: deleting } = useMutation(
-  deleteNotification,
-  {
-    variables: { id: props.id, type: props.type },
-  }
-);
+const deleteNotification = useMutation(deleteMutation, {
+  variables: { id: props.id, type: props.type },
+});
 </script>
 
 <template>
@@ -96,20 +90,20 @@ const { mutate: deleteFromServer, loading: deleting } = useMutation(
       </a>
       <Button
         v-if="type === NotificationType.Unread"
-        :disabled="archiveInProgress"
+        :disabled="archive.loading"
         class="relative z-20 rounded"
         size="xs"
-        @click="archive"
+        @click="archive.mutate"
       >
         <ArchiveBoxIcon class="size-3 mr-1" />
         <span class="text-sm mt-0.5">Archive</span>
       </Button>
       <Button
         v-if="type === NotificationType.Archive"
-        :disabled="deleting"
+        :disabled="deleteNotification.loading"
         class="relative z-20 rounded"
         size="xs"
-        @click="deleteFromServer"
+        @click="deleteNotification.mutate"
       >
         <TrashIcon class="size-3 mr-1" />
         <span class="text-sm mt-0.5">Delete</span>
