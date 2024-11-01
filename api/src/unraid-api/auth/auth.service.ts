@@ -65,6 +65,10 @@ export class AuthService {
         if (await this.cookieService.hasValidAuthCookie(cookies)) {
             const user = this.usersService.getSessionUser();
 
+            if (!user) {
+                throw new UnauthorizedException('Invalid user session');
+            }
+
             await this.ensureUserRoles(user.id);
 
             return user;
