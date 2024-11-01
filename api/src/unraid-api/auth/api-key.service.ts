@@ -40,6 +40,7 @@ export class ApiKeyService {
         };
 
         await this.saveApiKey(apiKey);
+
         return apiKey;
     }
 
@@ -69,19 +70,34 @@ export class ApiKeyService {
     }
 
     async findByKey(key: string): Promise<ApiKey | null> {
-        const files = await fs.promises.readdir(this.paths().basePath);
+        try {
+            const files = await fs.promises.readdir(this.paths().basePath);
 
-        for (const file of files) {
-            if (file.endsWith('.json')) {
-                const content = await fs.promises.readFile(join(this.paths().basePath, file), 'utf8');
-                const apiKey = JSON.parse(content) as ApiKey;
+            for (const file of files) {
+                if (file.endsWith('.json')) {
+                    try {
+                        const content = await fs.promises.readFile(
+                            join(this.paths().basePath, file),
+                            'utf8'
+                        );
+                        const apiKey = JSON.parse(content) as ApiKey;
 
-                if (apiKey.key === key) {
-                    return apiKey;
+                        if (apiKey.key === key) {
+                            return apiKey;
+                        }
+                    } catch (error) {
+                        this.logger.warn(`Error reading API key file ${file}: ${error}`);
+                        continue;
+                    }
                 }
             }
+
+            return null;
+        } catch (error) {
+            this.logger.error(`Error reading API key directory: ${error}`);
+
+            return null;
         }
-        return null;
     }
 
     public async saveApiKey(apiKey: ApiKey): Promise<void> {
