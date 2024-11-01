@@ -2,7 +2,6 @@ import { AuthZService } from 'nest-authz';
 import { type ApiKey } from '@app/graphql/generated/api/types';
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { newEnforcer } from 'casbin';
-import { Test, TestingModule } from '@nestjs/testing';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { AuthResolver } from './auth.resolver';
@@ -41,23 +40,6 @@ describe('AuthResolver', () => {
         authService = new AuthService(usersService, cookieService, apiKeyService, authzService);
 
         resolver = new AuthResolver(authService, apiKeyService);
-
-        const module: TestingModule = await Test.createTestingModule({
-            providers: [
-                {
-                    provide: AuthResolver,
-                    useValue: resolver,
-                },
-                {
-                    provide: AuthService,
-                    useValue: authService,
-                },
-                {
-                    provide: ApiKeyService,
-                    useValue: apiKeyService,
-                },
-            ],
-        }).compile();
     });
 
     describe('apiKeys', () => {
