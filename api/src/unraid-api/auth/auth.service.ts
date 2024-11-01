@@ -41,6 +41,7 @@ export class AuthService {
 
     async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
         const apiKeyEntity = await this.apiKeyService.findByKey(apiKey);
+
         if (!apiKeyEntity) {
             throw new UnauthorizedException('Invalid API key');
         }
@@ -81,16 +82,23 @@ export class AuthService {
     }
 
     public async syncApiKeyRoles(apiKeyId: string, roles: string[]): Promise<void> {
-        // Remove existing roles
-        const existingRoles = await this.authzService.getRolesForUser(apiKeyId);
+        try {
+            // Remove existing roles
+            const existingRoles = await this.authzService.getRolesForUser(apiKeyId);
 
-        for (const role of existingRoles) {
-            await this.authzService.deleteRoleForUser(apiKeyId, role);
-        }
+            for (const role of existingRoles) {
+                await this.authzService.deleteRoleForUser(apiKeyId, role);
+            }
 
-        // Add current roles
-        for (const role of roles) {
-            await this.authzService.addRoleForUser(apiKeyId, role);
+            // Add current roles
+            for (const role of roles) {
+                await this.authzService.addRoleForUser(apiKeyId, role);
+            }
+        } catch (error: unknown) {
+            this.logger.error(`Failed to sync roles for API key ${apiKeyId}`, error);
+            throw new Error(
+                `Failed to sync roles: ${error instanceof Error ? error.message : String(error)}`
+            );
         }
     }
 
