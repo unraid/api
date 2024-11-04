@@ -177,13 +177,13 @@ export class AuthService {
             throw new Error('API key ID and role are required');
         }
 
+        const apiKey = await this.apiKeyService.findById(apiKeyId);
+
+        if (!apiKey) {
+            throw new UnauthorizedException('API key not found');
+        }
+
         try {
-            const apiKey = await this.apiKeyService.findById(apiKeyId);
-
-            if (!apiKey) {
-                throw new UnauthorizedException('API key not found');
-            }
-
             if (!apiKey.roles.includes(role)) {
                 apiKey.roles.push(role);
                 await this.apiKeyService.saveApiKey(apiKey);
@@ -193,9 +193,6 @@ export class AuthService {
             return true;
         } catch (error: unknown) {
             this.logger.error(`Failed to add role ${role} to API key ${apiKeyId}`, error);
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
             throw new Error(
                 `Failed to add role: ${error instanceof Error ? error.message : String(error)}`
             );
@@ -207,13 +204,13 @@ export class AuthService {
             throw new Error('API key ID and role are required');
         }
 
+        const apiKey = await this.apiKeyService.findById(apiKeyId);
+
+        if (!apiKey) {
+            throw new UnauthorizedException('API key not found');
+        }
+
         try {
-            const apiKey = await this.apiKeyService.findById(apiKeyId);
-
-            if (!apiKey) {
-                throw new UnauthorizedException('API key not found');
-            }
-
             apiKey.roles = apiKey.roles.filter((r) => r !== role);
             await this.apiKeyService.saveApiKey(apiKey);
             await this.authzService.deleteRoleForUser(apiKeyId, role);
@@ -221,9 +218,6 @@ export class AuthService {
             return true;
         } catch (error: unknown) {
             this.logger.error(`Failed to remove role ${role} from API key ${apiKeyId}`, error);
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
             throw new Error(
                 `Failed to remove role: ${error instanceof Error ? error.message : String(error)}`
             );
