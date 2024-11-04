@@ -176,10 +176,18 @@ export class AuthService {
     }
 
     private async ensureUserRoles(userId: string): Promise<void> {
-        const existingRoles = await this.authzService.getRolesForUser(userId);
+        try {
+            const existingRoles = await this.authzService.getRolesForUser(userId);
 
-        if (existingRoles.length === 0) {
-            await this.authzService.addRoleForUser(userId, 'guest');
+            if (existingRoles.length === 0) {
+                await this.authzService.addRoleForUser(userId, 'guest');
+                this.logger.debug(`Added default 'guest' role to user ${userId}`);
+            }
+        } catch (error: unknown) {
+            this.logger.error(`Failed to ensure roles for user ${userId}`, error);
+            throw new Error(
+                `Failed to ensure user roles: ${error instanceof Error ? error.message : String(error)}`
+            );
         }
     }
 }
