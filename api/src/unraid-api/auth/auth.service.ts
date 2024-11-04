@@ -115,6 +115,10 @@ export class AuthService {
     }
 
     public async addRoleToApiKey(apiKeyId: string, role: string): Promise<boolean> {
+        if (!apiKeyId || !role) {
+            throw new Error('API key ID and role are required');
+        }
+
         const apiKey = await this.apiKeyService.findById(apiKeyId);
 
         if (!apiKey) {
@@ -131,6 +135,10 @@ export class AuthService {
     }
 
     public async removeRoleFromApiKey(apiKeyId: string, role: string): Promise<boolean> {
+        if (!apiKeyId || !role) {
+            throw new Error('API key ID and role are required');
+        }
+
         const apiKey = await this.apiKeyService.findById(apiKeyId);
 
         if (!apiKey) {
