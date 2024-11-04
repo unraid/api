@@ -3,7 +3,7 @@ import { version } from 'package.json';
 export const API_VERSION =
     process.env.npm_package_version ?? version ?? new Error('API_VERSION not set');
 
-export const NODE_ENV = process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production';
+export const NODE_ENV = process.env.NODE_ENV as 'development' | 'test' | 'staging' | 'production' ?? 'production';
 export const environment = {
     IS_MAIN_PROCESS: false,
 };
