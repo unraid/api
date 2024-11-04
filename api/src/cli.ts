@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { main } from '@app/cli/index';
 import { internalLogger } from '@app/core/log';
 
