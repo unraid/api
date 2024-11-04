@@ -39,12 +39,20 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
   return null;
 });
 
-const archive = useMutation(archiveMutation, {
-  variables: { id: props.id },
-});
+const archive = reactive(
+  useMutation(archiveMutation, {
+    variables: { id: props.id },
+  })
+);
 
-const deleteNotification = useMutation(deleteMutation, {
-  variables: { id: props.id, type: props.type },
+const deleteNotification = reactive(
+  useMutation(deleteMutation, {
+    variables: { id: props.id, type: props.type },
+  })
+);
+
+const mutationError = computed(() => {
+  return archive.error?.message ?? deleteNotification.error?.message;
 });
 </script>
 
@@ -80,6 +88,8 @@ const deleteNotification = useMutation(deleteMutation, {
     >
       <p class="text-secondary-foreground">{{ description }}</p>
     </div>
+
+    <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>
 
     <div class="flex justify-end items-baseline gap-2">
       <a v-if="link" :href="link">
