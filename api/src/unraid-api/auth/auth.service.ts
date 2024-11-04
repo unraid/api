@@ -61,7 +61,7 @@ export class AuthService {
             id: apiKeyEntity.id,
             name: apiKeyEntity.name,
             description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
-            roles: apiKeyEntity.roles.join(','),
+            roles: apiKeyEntity.roles ? apiKeyEntity.roles.join(',') : '',
         };
     }
 
