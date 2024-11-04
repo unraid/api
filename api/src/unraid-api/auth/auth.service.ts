@@ -109,9 +109,24 @@ export class AuthService {
     }
 
     public async addRoleToUser(userId: string, role: string): Promise<boolean> {
-        await this.authzService.addRoleForUser(userId, role);
+        if (!userId || !role) {
+            throw new Error('User ID and role are required');
+        }
 
-        return true;
+        try {
+            const hasRole = await this.authzService.hasRoleForUser(userId, role);
+
+            if (hasRole) {
+                return true;
+            }
+
+            await this.authzService.addRoleForUser(userId, role);
+
+            return true;
+        } catch (error: unknown) {
+            this.logger.error(`Failed to check if user ${userId} has role ${role}`, error);
+            throw error;
+        }
     }
 
     public async addRoleToApiKey(apiKeyId: string, role: string): Promise<boolean> {
