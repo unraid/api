@@ -2,11 +2,23 @@ import { defineConfig } from 'vitest/config';
 import tsconfigPaths from 'vite-tsconfig-paths';
 import nodeExternals from 'rollup-plugin-node-externals';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
 
 export default defineConfig(() => {
     return {
-        plugins: [tsconfigPaths(), nodeExternals(), viteCommonjs()],
+        plugins: [
+            tsconfigPaths(),
+            nodeExternals(),
+            viteCommonjs(),
+            viteStaticCopy({
+                targets: [{ src: 'src/graphql/schema/types', dest: '' }],
+            }),
+        ],
+        define: {
+            'process.env': 'process.env',
+        },
         build: {
+            sourcemap: true,
             outDir: 'dist',
             rollupOptions: {
                 input: {
@@ -19,7 +31,7 @@ export default defineConfig(() => {
             },
             modulePreload: false,
             minify: false,
-            target: 'esnext',
+            target: 'node20',
         },
         test: {
             globals: true,
@@ -34,4 +46,3 @@ export default defineConfig(() => {
         },
     };
 });
-

@@ -1,4 +1,4 @@
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
 import { store } from '@app/store';
 import { getDnsCache } from '@app/store/getters';
 import { setDNSCheck } from '@app/store/modules/cache';

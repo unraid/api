@@ -2,8 +2,8 @@
     "apps": [
         {
             "name": "unraid-api",
-            "script": "npm",
-            "args": "run dist/main.js",
+            "script": "node",
+            "args": "dist/main.js",
             "log": "/var/log/unraid-api/unraid-api.log",
             "exec_mode": "fork",
             "ignore_watch": [

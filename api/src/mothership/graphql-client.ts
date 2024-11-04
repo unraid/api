@@ -1,4 +1,4 @@
-import { FIVE_MINUTES_MS, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { FIVE_MINUTES_MS } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import {
     getMothershipConnectionParams,
@@ -14,7 +14,7 @@ import {
 } from '@apollo/client/core/index.js';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { API_VERSION } from '@app/environment';
+import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
 import {
     receivedMothershipPing,
     setMothershipTimeout,
