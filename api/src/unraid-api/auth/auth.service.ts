@@ -40,33 +40,49 @@ export class AuthService {
      *------------------------------------------------------------------------**/
 
     async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
-        const apiKeyEntity = await this.apiKeyService.findByKey(apiKey);
+        try {
+            const apiKeyEntity = await this.apiKeyService.findByKey(apiKey);
 
-        if (!apiKeyEntity) {
-            throw new UnauthorizedException('Invalid API key');
+            if (!apiKeyEntity) {
+                throw new UnauthorizedException('Invalid API key');
+            }
+
+            if (!apiKeyEntity.roles) {
+                apiKeyEntity.roles = [];
+            }
+
+            await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
+            this.logger.debug(
+                `Validating API key with roles: ${JSON.stringify(
+                    await this.authzService.getRolesForUser(apiKeyEntity.id)
+                )}`
+            );
+
+            return {
+                id: apiKeyEntity.id,
+                name: apiKeyEntity.name,
+                description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
+                roles: apiKeyEntity.roles ? apiKeyEntity.roles.join(',') : '',
+            };
+        } catch (error: unknown) {
+            this.logger.error('Failed to validate API key with Casbin', error);
+
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
+
+            throw new Error(
+                `Failed to validate API key: ${error instanceof Error ? error.message : String(error)}`
+            );
         }
-
-        if (!apiKeyEntity.roles) {
-            apiKeyEntity.roles = [];
-        }
-
-        await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
-        this.logger.debug(
-            `Validating API key with roles: ${JSON.stringify(
-                await this.authzService.getRolesForUser(apiKeyEntity.id)
-            )}`
-        );
-
-        return {
-            id: apiKeyEntity.id,
-            name: apiKeyEntity.name,
-            description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
-            roles: apiKeyEntity.roles ? apiKeyEntity.roles.join(',') : '',
-        };
     }
 
     async validateCookiesCasbin(cookies: object): Promise<UserAccount> {
-        if (await this.cookieService.hasValidAuthCookie(cookies)) {
+        try {
+            if (!(await this.cookieService.hasValidAuthCookie(cookies))) {
+                throw new UnauthorizedException('No user session found');
+            }
+
             const user = this.usersService.getSessionUser();
 
             if (!user) {
@@ -76,9 +92,16 @@ export class AuthService {
             await this.ensureUserRoles(user.id);
 
             return user;
-        }
+        } catch (error: unknown) {
+            this.logger.error('Failed to validate cookies with Casbin', error);
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
 
-        throw new UnauthorizedException('No user session found');
+            throw new Error(
+                `Failed to validate session: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
     }
 
     public async syncApiKeyRoles(apiKeyId: string, roles: string[]): Promise<void> {
@@ -107,13 +130,25 @@ export class AuthService {
             throw new Error('Role, resource, and action are required');
         }
 
-        const exists = await this.authzService.hasPolicy(role, resource, action);
-        if (exists) {
-            return true;
-        }
+        try {
+            const exists = await this.authzService.hasPolicy(role, resource, action);
 
-        await this.authzService.addPolicy(role, resource, action);
-        return true;
+            if (exists) {
+                return true;
+            }
+
+            await this.authzService.addPolicy(role, resource, action);
+
+            return true;
+        } catch (error: unknown) {
+            this.logger.error(
+                `Failed to add permission: role=${role}, resource=${resource}, action=${action}`,
+                error
+            );
+            throw new Error(
+                `Failed to add permission: ${error instanceof Error ? error.message : String(error)}`
+            );
+        }
     }
 
     public async addRoleToUser(userId: string, role: string): Promise<boolean> {
@@ -142,19 +177,26 @@ export class AuthService {
             throw new Error('API key ID and role are required');
         }
 
-        const apiKey = await this.apiKeyService.findById(apiKeyId);
+        try {
+            const apiKey = await this.apiKeyService.findById(apiKeyId);
 
-        if (!apiKey) {
-            throw new UnauthorizedException('API key not found');
+            if (!apiKey) {
+                throw new UnauthorizedException('API key not found');
+            }
+
+            if (!apiKey.roles.includes(role)) {
+                apiKey.roles.push(role);
+                await this.apiKeyService.saveApiKey(apiKey);
+                await this.authzService.addRoleForUser(apiKeyId, role);
+            }
+
+            return true;
+        } catch (error: unknown) {
+            this.logger.error(`Failed to add role ${role} to API key ${apiKeyId}`, error);
+            throw new Error(
+                `Failed to add role: ${error instanceof Error ? error.message : String(error)}`
+            );
         }
-
-        if (!apiKey.roles.includes(role)) {
-            apiKey.roles.push(role);
-            await this.apiKeyService.saveApiKey(apiKey);
-            await this.authzService.addRoleForUser(apiKeyId, role);
-        }
-
-        return true;
     }
 
     public async removeRoleFromApiKey(apiKeyId: string, role: string): Promise<boolean> {
@@ -162,17 +204,24 @@ export class AuthService {
             throw new Error('API key ID and role are required');
         }
 
-        const apiKey = await this.apiKeyService.findById(apiKeyId);
+        try {
+            const apiKey = await this.apiKeyService.findById(apiKeyId);
 
-        if (!apiKey) {
-            throw new UnauthorizedException('API key not found');
+            if (!apiKey) {
+                throw new UnauthorizedException('API key not found');
+            }
+
+            apiKey.roles = apiKey.roles.filter((r) => r !== role);
+            await this.apiKeyService.saveApiKey(apiKey);
+            await this.authzService.deleteRoleForUser(apiKeyId, role);
+
+            return true;
+        } catch (error: unknown) {
+            this.logger.error(`Failed to remove role ${role} from API key ${apiKeyId}`, error);
+            throw new Error(
+                `Failed to remove role: ${error instanceof Error ? error.message : String(error)}`
+            );
         }
-
-        apiKey.roles = apiKey.roles.filter((r) => r !== role);
-        await this.apiKeyService.saveApiKey(apiKey);
-        await this.authzService.deleteRoleForUser(apiKeyId, role);
-
-        return true;
     }
 
     private async ensureUserRoles(userId: string): Promise<void> {
