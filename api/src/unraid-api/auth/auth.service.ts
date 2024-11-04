@@ -193,6 +193,9 @@ export class AuthService {
             return true;
         } catch (error: unknown) {
             this.logger.error(`Failed to add role ${role} to API key ${apiKeyId}`, error);
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
             throw new Error(
                 `Failed to add role: ${error instanceof Error ? error.message : String(error)}`
             );
@@ -218,6 +221,9 @@ export class AuthService {
             return true;
         } catch (error: unknown) {
             this.logger.error(`Failed to remove role ${role} from API key ${apiKeyId}`, error);
+            if (error instanceof UnauthorizedException) {
+                throw error;
+            }
             throw new Error(
                 `Failed to remove role: ${error instanceof Error ? error.message : String(error)}`
             );
