@@ -1,6 +1,7 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
-
+// Configure dotenv
+import 'dotenv/config';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
@@ -28,7 +29,7 @@ import { type RawServerDefault } from 'fastify';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
 import { WebSocket } from 'ws';
 import exitHook from 'exit-hook';
-import * as env from '@app/environment';
+import * as envVars from '@app/environment';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 
@@ -41,7 +42,8 @@ const unlinkUnixPort = () => {
 try {
     environment.IS_MAIN_PROCESS = true;
 
-    logger.debug('ENV %o', env);
+    logger.info('ENV %o', envVars);
+    logger.info('PATHS %o', store.getState().paths);
 
     const cacheable = new CacheableLookup();
 
