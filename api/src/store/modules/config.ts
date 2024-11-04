@@ -24,6 +24,7 @@ import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-seria
 import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { isEqual } from 'lodash-es';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
+import { NODE_ENV } from '@app/environment';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -32,7 +33,7 @@ export type SliceState = {
 
 export const initialState: SliceState = {
     status: FileLoadStatus.UNLOADED,
-    nodeEnv: process.env.NODE_ENV ?? 'production',
+    nodeEnv: NODE_ENV,
     remote: {
         '2Fa': '',
         wanaccess: '',

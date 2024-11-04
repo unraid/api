@@ -1,5 +1,6 @@
+import { PM2_PATH } from '@app/consts';
 import { execSync } from 'child_process';
 
 export const stop = async () => {
-    execSync('pm2 stop unraid-api', { stdio: 'inherit' });
+    execSync(`${PM2_PATH} stop unraid-api`, { stdio: 'inherit' });
 };
