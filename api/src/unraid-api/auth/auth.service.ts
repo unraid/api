@@ -103,8 +103,16 @@ export class AuthService {
     }
 
     public async addPermission(role: string, resource: string, action: string): Promise<boolean> {
-        await this.authzService.addPolicy(role, resource, action);
+        if (!role || !resource || !action) {
+            throw new Error('Role, resource, and action are required');
+        }
 
+        const exists = await this.authzService.hasPolicy(role, resource, action);
+        if (exists) {
+            return true;
+        }
+
+        await this.authzService.addPolicy(role, resource, action);
         return true;
     }
 
