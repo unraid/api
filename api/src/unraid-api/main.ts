@@ -13,7 +13,6 @@ import { apiLogger } from '@app/core/log';
 import fastifyCookie from '@fastify/cookie';
 import { configureFastifyCors } from './app/cors';
 import { CookieService } from './auth/cookie.service';
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     const server: FastifyInstance<Server, IncomingMessage, ServerResponse> = Fastify({
