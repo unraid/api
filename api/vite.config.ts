@@ -66,8 +66,11 @@ export default defineConfig(({ mode }) => {
                 reporter: ['text', 'json', 'html'],
             },
             clearMocks: true,
-            setupFiles: ['src/__test__/setup/keyserver-mock.ts', 'dotenv/config'],
+            setupFiles: ['src/__test__/setup/env-setup.ts', 'src/__test__/setup/keyserver-mock.ts',],
             exclude: ['deploy/', 'node_modules/'],
+            env: {
+                NODE_ENV: 'test',
+            }
         },
     };
 });
