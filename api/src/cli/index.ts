@@ -2,18 +2,16 @@ import { parse } from 'ts-command-line-args';
 import { cliLogger } from '@app/core/log';
 import { type Flags, mainOptions, options, args } from '@app/cli/options';
 import { setEnv } from '@app/cli/set-env';
-import { env } from '@app/dotenv';
 import { getters } from '@app/store';
 import { execSync } from 'child_process';
 import { PM2_PATH } from '@app/consts';
+import * as ENVIRONMENT from '@app/environment';
 
 const command = mainOptions.command as unknown as string;
 
 export const main = async (...argv: string[]) => {
-    cliLogger.debug(env, 'Loading env file');
-
     // Set envs
-    cliLogger.debug({ paths: getters.paths() }, 'Starting CLI');
+    cliLogger.debug({ paths: getters.paths(), environment: ENVIRONMENT }, 'Starting CLI');
 
     setEnv('PORT', process.env.PORT ?? mainOptions.port ?? '9000');
 
