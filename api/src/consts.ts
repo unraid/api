@@ -48,7 +48,6 @@ export const KEEP_ALIVE_INTERVAL_MS = THREE_MINUTES_MS; // This is set to 45 sec
  * Graphql link.
  */
 
-
 export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = {
     keys: [
         {
