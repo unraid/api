@@ -199,7 +199,7 @@
     "ip-regex": "^5.0.0",
     "json-difference": "^1.16.1",
     "map-obj": "^5.0.2",
-    "p-props": "^5.0.0",
+    "p-props": "^6.0.0",
     "path-exists": "^5.0.0",
     "path-type": "^5.0.0",
     "pkg": "^5.8.1",
