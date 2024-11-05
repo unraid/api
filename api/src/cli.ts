@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import '@app/dotenv';
 
 import { main } from '@app/cli/index';
 import { internalLogger } from '@app/core/log';
