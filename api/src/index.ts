@@ -1,5 +1,6 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
+import '@app/dotenv';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
