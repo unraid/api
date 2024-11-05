@@ -13,6 +13,7 @@ unraid_binary_path="/usr/local/bin/unraid-api"
 restart() {
   "${unraid_binary_path}" restart
 }
+
 install() {
 # Ensure installation tgz exists
   [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
@@ -45,7 +46,7 @@ install() {
   # if nginx is running, start the api. if not, it will be started by rc.nginx
   if /etc/rc.d/rc.nginx status &>/dev/null; then 
     # Start new process
-    start
+    ${unraid_binary_path} start
     # Note: do not run another unraid-api command until you see "UNRAID API started successfully!" in syslog
     sleep 3
     echo "unraid-api installed and started"
@@ -56,7 +57,7 @@ install() {
 }
 uninstall() {
   # Stop old process
-  [[ -f "${unraid_binary_path}" ]] && stop
+  [[ -f "${unraid_binary_path}" ]] && ${unraid_binary_path} stop
 
   # Remove all unraid-api files
   rm -rf "${api_base_directory}"
