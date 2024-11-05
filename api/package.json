@@ -7,8 +7,9 @@
   "author": "Lime Technology, Inc. <unraid.net>",
   "license": "UNLICENSED",
   "scripts": {
+    "start": "node dist/main.js",
     "build:docker": "./scripts/dc.sh run --rm builder",
-    "build": "vite build",
+    "build": "vite build --mode=production",
     "postbuild": "chmod +x dist/main.js && chmod +x dist/cli.js",
     "build-and-pack": "./scripts/build.mjs",
     "codegen": "MOTHERSHIP_GRAPHQL_LINK='https://staging.mothership.unraid.net/ws' graphql-codegen --config codegen.yml -r dotenv/config './.env.staging'",
