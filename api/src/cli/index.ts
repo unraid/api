@@ -5,6 +5,7 @@ import { setEnv } from '@app/cli/set-env';
 import { env } from '@app/dotenv';
 import { getters } from '@app/store';
 import { execSync } from 'child_process';
+import { PM2_PATH } from '@app/consts';
 
 const command = mainOptions.command as unknown as string;
 
@@ -31,7 +32,7 @@ export const main = async (...argv: string[]) => {
         start: import('@app/cli/commands/start').then((pkg) => pkg.start),
         stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop),
         restart: import('@app/cli/commands/restart').then((pkg) => pkg.restart),
-        logs: async () => execSync('pm2 logs unraid-api --lines 200', { stdio: 'inherit' }),
+        logs: async () => execSync(`${PM2_PATH} logs unraid-api --lines 200`, { stdio: 'inherit' }),
         'switch-env': import('@app/cli/commands/switch-env').then((pkg) => pkg.switchEnv),
         version: import('@app/cli/commands/version').then((pkg) => pkg.version),
         status: import('@app/cli/commands/status').then((pkg) => pkg.status),
