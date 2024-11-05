@@ -54,15 +54,13 @@ Examples:
 - `LOG_MOTHERSHIP_MESSAGES=true unraid-api start`
 - `LOG_MOTHERSHIP_MESSAGES=true LOG_LEVEL=debug unraid-api start --debug`
 
-## Debug mode
+## Debug Logging
 
-Debug mode can be enabled with the `-d` or `--debug` flag.
-This will enable the graphql playground and prevent the application starting as a daemon. Logs will be shown inline rather than saved to a file.
-
+To view debug logs, change the log level when starting the API. Then type unraid-api logs to trail the logs.
 Examples:
 
-- `unraid-api start --debug`
-- `LOG_LEVEL=debug unraid-api start --debug`
+- `LOG_LEVEL=debug unraid-api start`
+- `unraid-api logs`
 
 ## Switching between staging and production environments
 

@@ -28,6 +28,7 @@ export default defineConfig(({ mode }) => {
                 : []),
         ],
         define: {
+            // Allows vite to preserve process.env variables and not hardcode them
             'process.env': 'process.env',
         },
         optimizeDeps: {
