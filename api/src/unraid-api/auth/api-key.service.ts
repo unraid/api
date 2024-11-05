@@ -1,4 +1,4 @@
-import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common';
+import { GraphQLError, Injectable, Logger } from '@nestjs/common';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
@@ -114,9 +114,9 @@ export class ApiKeyService {
             await fs.writeFile(keyFile(apiKey.id), JSON.stringify(apiKey, null, 2));
         } catch (error: unknown) {
             if (error instanceof Error) {
-                throw new InternalServerErrorException(`Failed to save API key: ${error.message}`);
+                throw new GraphQLError(`Failed to save API key: ${error.message}`);
             } else {
-                throw new InternalServerErrorException('Failed to save API key: Unknown error');
+                throw new GraphQLError('Failed to save API key: Unknown error');
             }
         }
     }
