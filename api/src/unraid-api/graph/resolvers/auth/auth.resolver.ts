@@ -5,6 +5,15 @@ import { UsePermissions } from 'nest-authz';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
+import {
+    AddPermissionInput,
+    AddRoleForApiKeyInput,
+    AddRoleForUserInput,
+    ApiKey,
+    ApiKeyWithSecret,
+    CreateApiKeyInput,
+    RemoveRoleFromApiKeyInput,
+} from '@app/graphql/generated/api/types';
 
 @Resolver('Auth')
 @UseGuards(GraphqlAuthGuard)
@@ -19,7 +28,7 @@ export class AuthResolver {
         action: 'read',
         resource: 'apikey',
     })
-    async apiKeys() {
+    async apiKeys(): Promise<ApiKey[]> {
         return this.apiKeyService.findAll();
     }
 
@@ -28,7 +37,7 @@ export class AuthResolver {
         action: 'read',
         resource: 'apikey',
     })
-    async apiKey(@Args('id') id: string) {
+    async apiKey(@Args('id') id: string): Promise<ApiKey | null> {
         return this.apiKeyService.findById(id);
     }
 
@@ -39,14 +48,16 @@ export class AuthResolver {
     })
     async createApiKey(
         @Args('input')
-        input: {
-            name: string;
-            description: string;
-            roles: string[];
-        }
-    ) {
-        const apiKey = await this.apiKeyService.create(input.name, input.description, input.roles);
+        input: CreateApiKeyInput
+    ): Promise<ApiKeyWithSecret> {
+        const apiKey = await this.apiKeyService.create(
+            input.name,
+            input.description ?? undefined,
+            input.roles
+        );
+
         await this.authService.syncApiKeyRoles(apiKey.id, apiKey.roles);
+
         return apiKey;
     }
 
@@ -57,13 +68,10 @@ export class AuthResolver {
     })
     async addPermission(
         @Args('input')
-        input: {
-            role: string;
-            resource: string;
-            action: string;
-        }
-    ) {
+        input: AddPermissionInput
+    ): Promise<boolean> {
         await this.authService.addPermission(input.role, input.resource, input.action);
+
         return true;
     }
 
@@ -74,11 +82,8 @@ export class AuthResolver {
     })
     async addRoleForUser(
         @Args('input')
-        input: {
-            userId: string;
-            role: string;
-        }
-    ) {
+        input: AddRoleForUserInput
+    ): Promise<boolean> {
         return this.authService.addRoleToUser(input.userId, input.role);
     }
 
@@ -89,11 +94,8 @@ export class AuthResolver {
     })
     async addRoleForApiKey(
         @Args('input')
-        input: {
-            apiKeyId: string;
-            role: string;
-        }
-    ) {
+        input: AddRoleForApiKeyInput
+    ): Promise<boolean> {
         return this.authService.addRoleToApiKey(input.apiKeyId, input.role);
     }
 
@@ -104,11 +106,8 @@ export class AuthResolver {
     })
     async removeRoleFromApiKey(
         @Args('input')
-        input: {
-            apiKeyId: string;
-            role: string;
-        }
-    ) {
+        input: RemoveRoleFromApiKeyInput
+    ): Promise<boolean> {
         return this.authService.removeRoleFromApiKey(input.apiKeyId, input.role);
     }
 }

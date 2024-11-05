@@ -32,10 +32,11 @@ import { UsersModule } from '../users/users.module';
             userFromContext: (ctx) => {
                 const request = ctx.switchToHttp().getRequest();
                 return (
-                    request.user && {
+                    (request.user && {
                         id: request.user.id,
                         roles: request.user.roles,
-                    }
+                    }) ||
+                    null
                 );
             },
         }),

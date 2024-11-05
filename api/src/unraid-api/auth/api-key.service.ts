@@ -2,7 +2,7 @@ import { Injectable, InternalServerErrorException, Logger } from '@nestjs/common
 import * as fs from 'fs';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { type ApiKey } from '@app/graphql/generated/api/types';
+import { ApiKeyWithSecret, type ApiKey } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
 @Injectable()
@@ -25,17 +25,18 @@ export class ApiKeyService {
         };
     }
 
-    async create(name: string, description: string, roles: string[]): Promise<ApiKey> {
-        const apiKey: ApiKey = {
-            __typename: 'ApiKey',
+    async create(
+        name: string,
+        description: string | undefined,
+        roles: string[]
+    ): Promise<ApiKeyWithSecret> {
+        const apiKey: ApiKeyWithSecret = {
             id: uuidv4(),
             key: uuidv4(),
             name,
             description,
             roles,
             createdAt: new Date().toISOString(),
-            expiresAt: 0,
-            scopes: {},
             lastUsed: null,
         };
 
@@ -100,7 +101,7 @@ export class ApiKeyService {
         }
     }
 
-    public async saveApiKey(apiKey: ApiKey): Promise<void> {
+    public async saveApiKey(apiKey: ApiKey | ApiKeyWithSecret): Promise<void> {
         try {
             await fs.promises.writeFile(
                 this.paths().keyFile(apiKey.id),

@@ -78,6 +78,17 @@ export type ApiKeyResponse = {
   valid: Scalars['Boolean']['output'];
 };
 
+export type ApiKeyWithSecret = {
+  __typename?: 'ApiKeyWithSecret';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  key: Scalars['String']['output'];
+  lastUsed?: Maybe<Scalars['DateTime']['output']>;
+  name: Scalars['String']['output'];
+  roles: Array<Scalars['String']['output']>;
+};
+
 export type ArrayType = Node & {
   __typename?: 'Array';
   /** Current boot disk */
@@ -660,7 +671,7 @@ export type Mutation = {
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
-  createApiKey: ApiKey;
+  createApiKey: ApiKeyWithSecret;
   createNotification: Notification;
   deleteNotification: NotificationOverview;
   /** Delete a user */
@@ -1805,6 +1816,7 @@ export type ResolversTypes = ResolversObject<{
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
+  ApiKeyWithSecret: ResolverTypeWrapper<ApiKeyWithSecret>;
   Array: ResolverTypeWrapper<ArrayType>;
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
   ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
@@ -1934,6 +1946,7 @@ export type ResolversParentTypes = ResolversObject<{
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
+  ApiKeyWithSecret: ApiKeyWithSecret;
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
   ArrayDisk: ArrayDisk;
@@ -2050,6 +2063,17 @@ export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversP
 export type ApiKeyResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKeyResponse'] = ResolversParentTypes['ApiKeyResponse']> = ResolversObject<{
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   valid?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ApiKeyWithSecretResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKeyWithSecret'] = ResolversParentTypes['ApiKeyWithSecret']> = ResolversObject<{
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  lastUsed?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2438,7 +2462,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
-  createApiKey?: Resolver<ResolversTypes['ApiKey'], ParentType, ContextType, RequireFields<MutationcreateApiKeyArgs, 'input'>>;
+  createApiKey?: Resolver<ResolversTypes['ApiKeyWithSecret'], ParentType, ContextType, RequireFields<MutationcreateApiKeyArgs, 'input'>>;
   createNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationcreateNotificationArgs, 'input'>>;
   deleteNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationdeleteNotificationArgs, 'id' | 'type'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
@@ -3072,6 +3096,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   AccessUrl?: AccessUrlResolvers<ContextType>;
   ApiKey?: ApiKeyResolvers<ContextType>;
   ApiKeyResponse?: ApiKeyResponseResolvers<ContextType>;
+  ApiKeyWithSecret?: ApiKeyWithSecretResolvers<ContextType>;
   Array?: ArrayResolvers<ContextType>;
   ArrayCapacity?: ArrayCapacityResolvers<ContextType>;
   ArrayDisk?: ArrayDiskResolvers<ContextType>;

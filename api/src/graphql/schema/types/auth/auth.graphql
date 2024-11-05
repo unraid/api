@@ -1,5 +1,14 @@
 type ApiKey {
     id: String!
+    name: String!
+    description: String
+    roles: [String!]!
+    createdAt: DateTime!
+    lastUsed: DateTime
+}
+
+type ApiKeyWithSecret {
+    id: ID!
     key: String!
     name: String!
     description: String
@@ -36,7 +45,7 @@ input RemoveRoleFromApiKeyInput {
 }
 
 type Mutation {
-    createApiKey(input: CreateApiKeyInput!): ApiKey!
+    createApiKey(input: CreateApiKeyInput!): ApiKeyWithSecret!
     addPermission(input: AddPermissionInput!): Boolean!
     addRoleForUser(input: AddRoleForUserInput!): Boolean!
     addRoleForApiKey(input: AddRoleForApiKeyInput!): Boolean!
