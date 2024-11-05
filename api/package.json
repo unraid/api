@@ -35,6 +35,7 @@
   "files": [
     ".env.staging",
     ".env.production",
+    "ecosystem.config.json",
     "README.md",
     "src",
     "node_modules/"
