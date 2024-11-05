@@ -1,6 +1,6 @@
 import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core";
 import { mergeAndDedup } from "./merge";
-import { NOTIFICATION_CACHE_PREFIX } from "./prefixes";
+import { NotificationType } from "../../composables/gql/typename";
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies
@@ -90,7 +90,11 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(_, incoming, { cache, args }) {
             if (args?.id) {
-              cache.evict({ id: `${NOTIFICATION_CACHE_PREFIX}:${args.id}` });
+              const id = cache.identify({
+                id: args.id,
+                __typename: NotificationType,
+              });
+              cache.evict({ id });
             }
             // Removes references to evicted notification, preventing dangling references
             cache.gc();
