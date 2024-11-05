@@ -2,8 +2,9 @@
 	"include": [
 		"src/**/*",
 		".eslintrc.ts",
-		"vite.config.ts"
-, "unraid-api-cli.js"	],
+		"vite.config.ts",
+		"unraid-api-cli.js"
+	],
 	"exclude": [
 		"node_modules",
 		"vite.config.ts"
