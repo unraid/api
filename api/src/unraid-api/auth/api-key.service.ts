@@ -46,14 +46,24 @@ export class ApiKeyService {
     }
 
     async findAll(): Promise<ApiKey[]> {
-        const files = await fs.promises.readdir(this.paths().basePath);
+        let files: string[] = [];
+        try {
+            files = await fs.promises.readdir(this.paths().basePath);
+        } catch (error) {
+            this.logger.error(`Error reading API key directory: ${error}`);
+            return [];
+        }
         const apiKeys: ApiKey[] = [];
 
         for (const file of files) {
             if (file.endsWith('.json')) {
-                const content = await fs.promises.readFile(join(this.paths().basePath, file), 'utf8');
-
-                apiKeys.push(JSON.parse(content) as ApiKey);
+                try {
+                    const content = await fs.promises.readFile(join(this.paths().basePath, file), 'utf8');
+                    apiKeys.push(JSON.parse(content) as ApiKey);
+                } catch (error) {
+                    this.logger.error(`Error reading or parsing API key file ${file}: ${error}`);
+                    continue;
+                }
             }
         }
 
