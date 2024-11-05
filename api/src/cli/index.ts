@@ -27,8 +27,8 @@ export const main = async (...argv: string[]) => {
 
     // Only import the command we need when we use it
     const commands = {
-        start: import('@app/cli/commands/start').then((pkg) => pkg.start),
-        stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop),
+        start: import('@app/cli/commands/start').then((pkg) => pkg.start(true)),
+        stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop(true)),
         restart: import('@app/cli/commands/restart').then((pkg) => pkg.restart),
         logs: async () => execSync(`${PM2_PATH} logs unraid-api --lines 200`, { stdio: 'inherit' }),
         'switch-env': import('@app/cli/commands/switch-env').then((pkg) => pkg.switchEnv),
