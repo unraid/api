@@ -26,18 +26,22 @@ import { UsersModule } from '../users/users.module';
 
                     model.loadModelFromText(CASBIN_MODEL);
 
-                    return await newEnforcer(model, policy);
+                    try {
+                        return await newEnforcer(model, policy);
+                    } catch (error: unknown) {
+                        throw new Error(`Failed to create Casbin enforcer: ${error}`);
+                    }
                 },
             },
             userFromContext: (ctx) => {
                 const request = ctx.switchToHttp().getRequest();
-                return (
-                    (request.user && {
-                        id: request.user.id,
-                        roles: request.user.roles,
-                    }) ||
-                    null
-                );
+
+                return request.user
+                    ? {
+                          id: request.user.id,
+                          roles: request.user.roles,
+                      }
+                    : '';
             },
         }),
     ],
