@@ -1,4 +1,5 @@
-import { GraphQLError, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { GraphQLError } from 'graphql';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { promises as fs } from 'fs';
