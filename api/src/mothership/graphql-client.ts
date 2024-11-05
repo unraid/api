@@ -188,7 +188,7 @@ export class GraphQLClient {
             );
         });
         GraphQLClient.client.on('error', (err) => {
-            console.log('error', err);
+            minigraphLogger.error('GraphQL Client Error: %o', err);
         })
         GraphQLClient.client.on('connected', () => {
             store.dispatch(
