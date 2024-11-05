@@ -6,8 +6,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import { VitePluginNode } from 'vite-plugin-node';
 
-
-export default defineConfig(() => {
+export default defineConfig(({ mode }) => {
     return {
         plugins: [
             tsconfigPaths(),
@@ -17,14 +16,16 @@ export default defineConfig(() => {
             viteStaticCopy({
                 targets: [{ src: 'src/graphql/schema/types', dest: '' }],
             }),
-            ...VitePluginNode({
-                adapter: ({ app, req, res }) => {
-                    // Example adapter code to run src/index.ts with VitePluginNode
-                    app(req, res);
-                },
-                appPath: 'src/index.ts',
-                initAppOnBoot: true,
-            })
+            ...(mode === 'development'
+                ? VitePluginNode({
+                      adapter: ({ app, req, res }) => {
+                          // Example adapter code to run src/index.ts with VitePluginNode
+                          app(req, res);
+                      },
+                      appPath: 'src/index.ts',
+                      initAppOnBoot: true,
+                  })
+                : []),
         ],
         define: {
             'process.env': 'process.env',
@@ -36,8 +37,8 @@ export default defineConfig(() => {
                 'pty.js',
                 'term.js',
                 'class-transformer/storage',
-                'unicorn-magic'
-            ]
+                'unicorn-magic',
+            ],
         },
         build: {
             sourcemap: true,
@@ -49,6 +50,7 @@ export default defineConfig(() => {
                 },
                 output: {
                     entryFileNames: '[name].js',
+                    format: 'es', // Change the format to 'es' to support top-level await
                 },
             },
             modulePreload: false,
