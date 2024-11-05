@@ -9,7 +9,7 @@ try {
     process.env.FORCE_COLOR = '1';
 
     // Ensure we have the correct working directory
-    process.env.WORKDIR = process.env.WORKDIR ?? process.env.PWD;
+    process.env.WORKDIR ??= process.env.PWD;
     cd(process.env.WORKDIR);
 
     // Create deployment directories - ignore if they already exist
