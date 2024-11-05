@@ -35,6 +35,8 @@ EXPOSE 4000
 
 FROM development AS builder
 
+ENV NODE_ENV=production
+
 COPY . .
 
 CMD ["npm", "run", "build-and-pack"]
