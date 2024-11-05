@@ -8,16 +8,17 @@ env=production
 source "${flash}/env"
 # Install the API to /usr/local/unraid-api
 api_base_directory="/usr/local/unraid-api"
+unraid_binary_path="/usr/local/bin/unraid-api"
 
 restart() {
-  "${api_base_directory}/unraid-api" restart
+  "${unraid_binary_path}" restart
 }
 install() {
 # Ensure installation tgz exists
   [[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 
   # Stop old process
-  [[ -f "${api_base_directory}/unraid-api" ]] && stop
+  [[ -f "${unraid_binary_path}" ]] && stop
 
   # Install unraid-api
   rm -rf "${api_base_directory}"
@@ -55,7 +56,7 @@ install() {
 }
 uninstall() {
   # Stop old process
-  [[ -f "${api_base_directory}/unraid-api" ]] && stop
+  [[ -f "${unraid_binary_path}" ]] && stop
 
   # Remove all unraid-api files
   rm -rf "${api_base_directory}"
@@ -74,6 +75,6 @@ case "$1" in
   ;;
 *)
   # Pass all other commands to unraid-api
-  "${api_base_directory}/unraid-api" "$@"
+  "${unraid_binary_path}" "$@"
   ;;
 esac
