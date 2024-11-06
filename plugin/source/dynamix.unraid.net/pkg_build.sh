@@ -62,6 +62,28 @@ elif [[ "${env}" == "staging" ]]; then
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 fi
 
+# Get latest node version (based on main_node_version) from slackware
+main_node_version=$(find "${MAINDIR}/../.." -type f -path "*/api/.nvmrc" -exec sed 's/^v//' {} \;)
+base_node_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/"
+latest_nodejs=$(wget -q -O- "${base_node_url}" | grep -o "nodejs-${main_node_version}\.[0-9.]*-x86_64-[0-9]*\.txz" | tail -n 1)
+if [[ -z "${latest_nodejs}" ]]; then
+  echo "Error: Failed to fetch the latest nodejs version."
+  exit 1
+fi
+node_download_url="${base_node_url}${latest_nodejs}"
+wget -q "${node_download_url}" -O "/tmp/${latest_nodejs}"
+node_sha256=$(sha256sum "/tmp/${latest_nodejs}" | cut -f 1 -d ' ')
+
+rm "/tmp/${latest_nodejs}"
+
+# Get latest nghttp3 version
+base_nghttp3_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/"
+latest_nghttp3=$(wget -q -O- "${base_nghttp3_url}" | grep -o "nghttp3-[0-9.]*-x86_64-[0-9]*\.txz" | tail -n 1)
+nghttp3_download_url="${base_nghttp3_url}${latest_nghttp3}"
+wget -q "${nghttp3_download_url}" -O "/tmp/${latest_nghttp3}"
+nghttp3_sha256=$(sha256sum "/tmp/${latest_nghttp3}" | cut -f 1 -d ' ')
+rm "/tmp/${latest_nghttp3}"
+
 # update plg file
 sed -i -E "s#(ENTITY name\s*)\".*\"#\1\"${plugin}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY env\s*)\".*\"#\1\"${env}\"#g" "${plgfile}"
@@ -70,6 +92,16 @@ sed -i -E "s#(ENTITY pluginURL\s*)\".*\"#\1\"${PLUGIN_URL}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
+
+# update node versions
+sed -i -E "s#(ENTITY NODE\s*)\".*\"#\1\"${latest_nodejs}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NODE_SHA256\s*)\".*\"#\1\"${node_sha256}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NODE_TXZ\s*)\".*\"#\1\"${node_download_url}\"#g" "${plgfile}"
+
+# update nghttp3 versions
+sed -i -E "s#(ENTITY NGHTTP3\s*)\".*\"#\1\"${latest_nghttp3}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NGHTTP3_SHA256\s*)\".*\"#\1\"${nghttp3_sha256}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${nghttp3_download_url}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
