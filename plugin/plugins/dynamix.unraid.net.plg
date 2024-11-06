@@ -11,29 +11,28 @@
 <!ENTITY SHA256                 "">
 <!ENTITY API_version            "">
 <!ENTITY API_SHA256             "">
-<!ENTITY NODE                   "nodejs-20.18.0-x86_64-1.txz">
-<!ENTITY NODE_SHA256            "332f22a2a6722e9fad92b8d1eeaded228a6499b7335b2b54ee99c55b4fe49742">
-<!ENTITY NGHTTP3                "nghttp3-1.6.0-x86_64.txz">
-<!ENTITY NGHTTP3_SHA256         "936c40071a99745efa35b1b8c9252b6d25b54e264cfafafca15b3f41d65ab8a6">
+<!ENTITY NODE                   "">
+<!ENTITY NODE_SHA256            "">
+<!ENTITY NODE_TXZ               "">
+<!ENTITY NGHTTP3                "">
+<!ENTITY NGHTTP3_TXZ            "">
+<!ENTITY NGHTTP3_SHA256         "">
 <!ENTITY MAIN_TXZ                "">
 <!ENTITY API_TGZ                 "">
 ]>
 
 <PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
 
-<CHANGES>
+  <CHANGES>
 ##a long time ago in a galaxy far far away
 - initial release
-</CHANGES>
+  </CHANGES>
 
-<!-- prevent prod plugin from installing when staging already installed, and vice versa -->
-<FILE Run="/bin/bash" Method="install">
-<INLINE>
-name="&name;"
-version="&version;"
-API_version="&API_version;"
-PLGTYPE="&env;"
-<![CDATA[
+  <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
+      <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [ "${PLGTYPE}" = "production" ] && [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
   echo "⚠️ Please uninstall the Unraid Connect staging plugin before installing the production version"
@@ -45,13 +44,13 @@ if [ "${PLGTYPE}" = "staging" ] && [ -f /boot/config/plugins/dynamix.unraid.net.
 fi
 exit 0
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<!-- gzip check, DNS check, then validate files before doing anything destructive -->
-<FILE Run="/bin/bash" Method="install">
-<INLINE>
-<![CDATA[
+  <!-- gzip check, DNS check, then validate files before doing anything destructive -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      <![CDATA[
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -65,8 +64,7 @@ fi
 dnscheck() {
   HOST=$1
   if [ -x /usr/bin/host ] && ! /usr/bin/host -W 10 "${HOST}" &>/dev/null; then
-    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'"
-    DNSERR=yes
+    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'" DNSERR=yes
   fi
 }
 
@@ -92,8 +90,7 @@ sha256check() {
   FILE=$1
   EXPECTED=$2
   if [[ -f "${FILE}" ]]; then
-    echo -n "Validating ${FILE}... "
-    ACTUAL=$(sha256sum "${FILE}" 2>/dev/null | grep -Po '^\S+')
+    echo -n "Validating ${FILE}... " ACTUAL=$(sha256sum "${FILE}" 2>/dev/null | grep -Po '^\S+')
     if [[ "$EXPECTED" != "$ACTUAL" ]]; then
       rm "${FILE}"
       echo " old. Deleted file."
@@ -106,48 +103,48 @@ sha256check() {
 sha256check "&source;.txz" "&SHA256;"
 sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
 exit 0
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<!-- download node -->
-<FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
-  <URL>https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/&NODE;</URL>
-  <SHA256>&NODE_SHA256;</SHA256>
-</FILE>
+  <!-- download node -->
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
+    <URL>&NODE_TXZ;</URL>
+    <SHA256>&NODE_SHA256;</SHA256>
+  </FILE>
 
-<!-- download nghttp3 -->
-<FILE name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
-  <URL>https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/&NGHTTP3;</URL>
-  <SHA256>&NGHTTP3_SHA256;</SHA256>
-</FILE>
+  <!-- download nghttp3 -->
+  <FILE name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
+    <URL>&NGHTTP3_TXZ;</URL>
+    <SHA256>&NGHTTP3_SHA256;</SHA256>
+  </FILE>
 
-<!-- download main txz -->
-<FILE Name="&source;.txz">
-<URL>&MAIN_TXZ;</URL>
-<SHA256>&SHA256;</SHA256>
-</FILE>
+  <!-- download main txz -->
+  <FILE Name="&source;.txz">
+    <URL>&MAIN_TXZ;</URL>
+    <SHA256>&SHA256;</SHA256>
+  </FILE>
 
-<!-- download unraid-api -->
-<FILE Name="/boot/config/plugins/dynamix.my.servers/unraid-api.tgz">
-<URL>&API_TGZ;</URL>
-<SHA256>&API_SHA256;</SHA256>
-</FILE>
+  <!-- download unraid-api -->
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/unraid-api.tgz">
+    <URL>&API_TGZ;</URL>
+    <SHA256>&API_SHA256;</SHA256>
+  </FILE>
 
-<FILE Run="/bin/bash" Method="install">
-<INLINE>
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
 MAINTXZ="&source;.txz"
-<![CDATA[
+      <![CDATA[
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 FILE=/boot/config/plugins/dynamix.my.servers/unraid-api.tgz && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 exit 0
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<FILE Run="/bin/bash" Method="remove">
-<INLINE>
-<![CDATA[
+  <FILE Run="/bin/bash" Method="remove">
+    <INLINE>
+      <![CDATA[
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -158,14 +155,14 @@ echo
 
 exit 0
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<!-- disable features on uninstall -->
-<!-- NOTE: this script is PHP not bash -->
-<FILE Run="/usr/bin/php" Method="remove">
-<INLINE>
-<![CDATA[
+  <!-- disable features on uninstall -->
+  <!-- NOTE: this script is PHP not bash -->
+  <FILE Run="/usr/bin/php" Method="remove">
+    <INLINE>
+      <![CDATA[
 <?
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
 
@@ -221,15 +218,15 @@ if ($msini !== false) {
 }
 exit(0);
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<!-- disable features when upgrading on unsupported OS versions -->
-<!-- duplicated from above because the script can't distinguish between install and remove -->
-<!-- NOTE: this script is PHP not bash -->
-<FILE Run="/usr/bin/php" Method="install">
-<INLINE>
-<![CDATA[
+  <!-- disable features when upgrading on unsupported OS versions -->
+  <!-- duplicated from above because the script can't distinguish between install and remove -->
+  <!-- NOTE: this script is PHP not bash -->
+  <FILE Run="/usr/bin/php" Method="install">
+    <INLINE>
+      <![CDATA[
 <?
 $ver = @parse_ini_file('/etc/unraid-version', true)['version'];
 $msini = @parse_ini_file('/boot/config/plugins/dynamix.my.servers/myservers.cfg', true);
@@ -287,14 +284,14 @@ if ($msini !== false) {
 }
 exit(0);
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<!-- uninstall existing plugin during update or removal -->
-<FILE Run="/bin/bash" Method="install remove">
-<INLINE>
+  <!-- uninstall existing plugin during update or removal -->
+  <FILE Run="/bin/bash" Method="install remove">
+    <INLINE>
 MAINNAME="&name;"
-<![CDATA[
+      <![CDATA[
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -315,29 +312,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
-  FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
+  FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/sbin/upgradepkg && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE" DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
   # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
   if [[ -d "$DIR" ]]; then
     rm -rf "$DIR"
@@ -377,20 +352,18 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
 fi
 exit 0
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<!-- install all the things -->
-<FILE Run="/bin/bash" Method="install">
-<INLINE>
-PLGTYPE="&env;"
-MAINTXZ="&source;.txz"
-<![CDATA[
+  <!-- install all the things -->
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+PLGTYPE="&env;" MAINTXZ="&source;.txz"
+      <![CDATA[
 appendTextIfMissing() {
-  FILE="$1"
-  TEXT="$2"
+  FILE="$1" TEXT="$2"
   if test -f "${FILE}" && ! grep -q "${TEXT}" "${FILE}" &>/dev/null; then
-    echo "${TEXT}" >>"${FILE}"
+    echo "${TEXT}">>"${FILE}"
   fi
 }
 
@@ -487,9 +460,9 @@ if [[ -n $LINENUM ]]; then
   cp -f "$FILE" "$FILE-"
   # sed should work, but it is very difficult to escape the search text
   # instead, make a new file containing everything before LINENUM, then the replacement text, then everything after LINENUM
-  head -$((LINENUM-1)) "$FILE" > "$FILE~"
+  head -$((LINENUM-1)) "$FILE"> "$FILE~"
   echo '<unraid-i18n-host><unraid-header-os-version></unraid-header-os-version></unraid-i18n-host>' >> "$FILE~"
-  tail +$((LINENUM+1)) "$FILE" >> "$FILE~"
+  tail +$((LINENUM+1)) "$FILE">> "$FILE~"
 
   # disable these lines: <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)?:''?>
   #                      <?$readme = @file_get_contents("$docroot/plugins/unRAIDServer/README.md",false,null,0,20)??'';?>
@@ -539,10 +512,10 @@ if [[ -n $LINENUM ]]; then
   cp -f "$FILE" "$FILE-"
   # sed should work, but it is very difficult to escape
   # instead, make a new file containing everything before LINENUM, then the new text, then everything including and after LINENUM
-  head -$((LINENUM-1)) "$FILE" > "$FILE~"
-  echo "$ADDTEXT4" >> "$FILE~"
-  echo "" >> "$FILE~"
-  tail +$LINENUM "$FILE" >> "$FILE~"
+  head -$((LINENUM-1)) "$FILE"> "$FILE~"
+  echo "$ADDTEXT4">> "$FILE~"
+  echo "">> "$FILE~"
+  tail +$LINENUM "$FILE">> "$FILE~"
   mv -f "$FILE~" "$FILE"
 fi
 
@@ -672,10 +645,10 @@ if [[ -n "${ADDTEXT1}" || -n "${ADDTEXT2}" || -n "${ADDTEXT3}" ]]; then
   if test $( tail -n 1 "${TMP}" ) = '?>' ; then 
     sed -i '$ d' "${TMP}"
   fi
-  [[ -n "${ADDTEXT1}" ]] && echo "${ADDTEXT1}" >>"${TMP}"
-  [[ -n "${ADDTEXT2}" ]] && echo "${ADDTEXT2}" >>"${TMP}"
-  [[ -n "${ADDTEXT3}" ]] && echo "${ADDTEXT3}" >>"${TMP}"
-  echo "?>" >>"${TMP}"
+  [[ -n "${ADDTEXT1}" ]] && echo "${ADDTEXT1}">>"${TMP}"
+  [[ -n "${ADDTEXT2}" ]] && echo "${ADDTEXT2}">>"${TMP}"
+  [[ -n "${ADDTEXT3}" ]] && echo "${ADDTEXT3}">>"${TMP}"
+  echo "?>">>"${TMP}"
   mv "${TMP}" "${FILE}"
 fi
 
@@ -692,7 +665,7 @@ echo
 
 # setup env
 if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.servers/env ]; then
-  echo "env=\"${PLGTYPE}\"" >/boot/config/plugins/dynamix.my.servers/env
+  echo "env=\"${PLGTYPE}\"">/boot/config/plugins/dynamix.my.servers/env
 fi
 
 echo
@@ -711,8 +684,7 @@ if ([[ -n "${email}" && (-z "${apikey}" || "${#apikey}" -ne "64") ]]); then
   if($0 ~ /\[remote\]/){output="off"; next}
   if($0 ~ /\[/){output="on"; print; next}
   if(output == "on"){print}
-  }' "${CFG}" >"${CFG}-new" && mv "${CFG}-new" "${CFG}"
-  CFG_CLEANED=1
+  }' "${CFG}">"${CFG}-new" && mv "${CFG}-new" "${CFG}" CFG_CLEANED=1
   echo "⚠️ Automatically signed out of Unraid.net"
 fi
 # if there wasn't an email or the CFG was cleaned
@@ -736,18 +708,14 @@ FILE=/etc/nginx/nginx.conf
 # brings older versions of Unraid in sync with 6.12.0
 if grep -q "SAMEORIGIN" "${FILE}"; then
   CHANGED=yes
-  cp "$FILE" "$FILE-"
-  OLD="add_header X-Frame-Options 'SAMEORIGIN';"
-  NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
+  cp "$FILE" "$FILE-" OLD="add_header X-Frame-Options 'SAMEORIGIN';" NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
   sed -i "s#${OLD}#${NEW}#" "${FILE}"
 fi
 if  [ "${PLGTYPE}" = "staging" ]; then
   # staging plugin allows an additional origin
   if ! grep -q "dev-my.myunraid.net:4000" "${FILE}"; then
     CHANGED=yes
-    [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-"
-    OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";"
-    NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect-staging.myunraid.net https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
+    [[ ! -f "$FILE-" ]] && cp "$FILE" "$FILE-" OLD="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect.myunraid.net/\";" NEW="add_header Content-Security-Policy \"frame-ancestors 'self' https://connect-staging.myunraid.net https://connect.myunraid.net/ https://dev-my.myunraid.net:4000/\";"
     sed -i "s#${OLD}#${NEW}#" "${FILE}"
   fi
 fi
@@ -755,8 +723,7 @@ FILE=/etc/rc.d/rc.nginx
 # brings older versions of Unraid in sync with 6.12.0
 if ! grep -q "#robots.txt any origin" "${FILE}"; then
   CHANGED=yes
-  cp "$FILE" "$FILE-"
-  FIND="location = \/robots.txt {"
+  cp "$FILE" "$FILE-" FIND="location = \/robots.txt {"
   # escape tabs and spaces
   ADD="\	\ \ \ \ add_header Access-Control-Allow-Origin *; #robots.txt any origin"
   sed -i "/${FIND}/a ${ADD}" "${FILE}"
@@ -802,10 +769,7 @@ preventDowngradeAction() {
 }
 
 # Extract "ts" values from both files
-plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
-backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-
-plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
+plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components" backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-" plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
 webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
 
 # Compare the "ts" values and return the file path of the higher value
@@ -837,12 +801,12 @@ echo
 
 exit 0
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
-<FILE Run="/bin/bash" Method="remove">
-<INLINE>
-<![CDATA[
+  <FILE Run="/bin/bash" Method="remove">
+    <INLINE>
+      <![CDATA[
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -853,7 +817,7 @@ echo
 
 exit 0
 ]]>
-</INLINE>
-</FILE>
+    </INLINE>
+  </FILE>
 
 </PLUGIN>
