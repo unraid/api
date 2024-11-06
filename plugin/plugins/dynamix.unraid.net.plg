@@ -773,7 +773,9 @@ preventDowngradeAction() {
 }
 
 # Extract "ts" values from both files
-plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components" backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-" plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
+    plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+    backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
+    plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
 webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
 
 # Compare the "ts" values and return the file path of the higher value
