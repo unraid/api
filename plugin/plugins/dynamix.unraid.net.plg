@@ -442,6 +442,12 @@ preserveAction() {
     fi
 }
 
+# Check if upgradepkg does not exist and copy upgradepkg- to the path if it does not
+if [[ ! -f /sbin/upgradepkg ]]; then
+  echo "upgradepkg not found, restoring from backup"
+  cp -f /sbin/upgradepkg- /sbin/upgradepkg
+fi
+
 # Loop through the array of preserveFilesDirs and perform actions
 for obj in "${preserveFilesDirs[@]}"
 do
