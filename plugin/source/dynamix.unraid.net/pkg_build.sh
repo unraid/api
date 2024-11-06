@@ -51,20 +51,20 @@ cd "${DIR}" || exit 1
 PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
-NODE_TXZ="https://stable.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
+NODEJS_TXZ="https://stable.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
 NGHTTP3_TGZ="https://stable.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}.plg"
-  NODE_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NODEJS_FILENAME}"
+  NODEJS_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NODEJS_FILENAME}"
   NGHTTP3_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NGHTTP3_FILENAME}"
 elif [[ "${env}" == "staging" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
-  NODE_TXZ="https://preview.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
+  NODEJS_TXZ="https://preview.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
   NGHTTP3_TGZ="https://preview.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 fi
 
@@ -82,7 +82,7 @@ sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
 # update node versions
 sed -i -E "s#(ENTITY NODEJS_FILENAME\s*)\".*\"#\1\"${NODEJS_FILENAME}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY NODEJS_SHA256\s*)\".*\"#\1\"${NODEJS_SHA256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODE_TXZ\s*)\".*\"#\1\"${NODE_TXZ}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NODEJS_TXZ\s*)\".*\"#\1\"${NODEJS_TXZ}\"#g" "${plgfile}"
 
 # update nghttp3 versions
 sed -i -E "s#(ENTITY NGHTTP3_FILENAME\s*)\".*\"#\1\"${NGHTTP3_FILENAME}\"#g" "${plgfile}"
@@ -94,7 +94,7 @@ sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_SHA256\s*)\".*\"#\1\"${API_SHA256}\"#g" "${plgfile}"
 
 # validate that all ENTITY values were replaced
-required_entities=("name" "env" "version" "pluginURL" "SHA256" "MAIN_TXZ" "API_TGZ" "NODEJS_FILENAME" "NODEJS_SHA256" "NODE_TXZ" "NGHTTP3_FILENAME" "NGHTTP3_SHA256" "NGHTTP3_TXZ" "API_version" "API_SHA256")
+required_entities=("name" "env" "version" "pluginURL" "SHA256" "MAIN_TXZ" "API_TGZ" "NODEJS_FILENAME" "NODEJS_SHA256" "NODEJS_TXZ" "NGHTTP3_FILENAME" "NGHTTP3_SHA256" "NGHTTP3_TXZ" "API_version" "API_SHA256")
 for entity in "${required_entities[@]}"; do
   if ! grep -q "ENTITY ${entity} \"[^\"]*\"" "${plgfile}"; then
     echo "Error: ENTITY ${entity} was not replaced correctly in ${plgfile}"
