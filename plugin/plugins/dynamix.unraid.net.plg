@@ -1,38 +1,38 @@
 <?xml version='1.0' standalone='yes'?>
-
 <!DOCTYPE PLUGIN [
-<!ENTITY name                   "">
-<!ENTITY launch                 "Connect">
-<!ENTITY author                 "limetech">
-<!ENTITY env                    "">
-<!ENTITY version                "">
-<!ENTITY pluginURL              "">
-<!ENTITY source                 "/boot/config/plugins/dynamix.my.servers/&name;">
-<!ENTITY SHA256                 "">
-<!ENTITY API_version            "">
-<!ENTITY API_SHA256             "">
-<!ENTITY NODE                   "">
-<!ENTITY NODE_SHA256            "">
-<!ENTITY NODE_TXZ               "">
-<!ENTITY NGHTTP3                "">
-<!ENTITY NGHTTP3_TXZ            "">
-<!ENTITY NGHTTP3_SHA256         "">
-<!ENTITY MAIN_TXZ                "">
-<!ENTITY API_TGZ                 "">
+  <!ENTITY name "">
+  <!ENTITY launch "Connect">
+  <!ENTITY author "limetech">
+  <!ENTITY env "">
+  <!ENTITY version "">
+  <!ENTITY pluginURL "">
+  <!ENTITY source "/boot/config/plugins/dynamix.my.servers/&name;">
+  <!ENTITY SHA256 "">
+  <!ENTITY API_version "">
+  <!ENTITY API_SHA256 "">
+  <!ENTITY NODEJS_FILENAME "">
+  <!ENTITY NODEJS_SHA256 "">
+  <!ENTITY NODEJS_TXZ "">
+  <!ENTITY NGHTTP3_FILENAME "">
+  <!ENTITY NGHTTP3_TXZ "">
+  <!ENTITY NGHTTP3_SHA256 "">
+  <!ENTITY MAIN_TXZ "">
+  <!ENTITY API_TGZ "">
 ]>
 
-<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;" launch="&launch;" min="6.9.0-rc1" icon="globe">
+<PLUGIN name="&name;" author="&author;" version="&version;" pluginURL="&pluginURL;"
+  launch="&launch;" min="6.9.0-rc1" icon="globe">
 
   <CHANGES>
-##a long time ago in a galaxy far far away
-- initial release
+    ##a long time ago in a galaxy far far away
+    - initial release
   </CHANGES>
 
   <!-- prevent prod plugin from installing when staging already installed, and vice versa -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
-      <![CDATA[
+      name="&name;" version="&version;" API_version="&API_version;" PLGTYPE="&env;"
+    <![CDATA[
 echo "Installing ${name}.plg ${version} with Unraid API ${API_version}"
 if [ "${PLGTYPE}" = "production" ] && [ -f /boot/config/plugins/dynamix.unraid.net.staging.plg ]; then
   echo "⚠️ Please uninstall the Unraid Connect staging plugin before installing the production version"
@@ -64,7 +64,7 @@ fi
 dnscheck() {
   HOST=$1
   if [ -x /usr/bin/host ] && ! /usr/bin/host -W 10 "${HOST}" &>/dev/null; then
-    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'"
+    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'" 
     DNSERR=yes
   fi
 }
@@ -91,7 +91,8 @@ sha256check() {
   FILE=$1
   EXPECTED=$2
   if [[ -f "${FILE}" ]]; then
-    echo -n "Validating ${FILE}... " ACTUAL=$(sha256sum "${FILE}" 2>/dev/null | grep -Po '^\S+')
+    echo -n "Validating ${FILE}... "
+    ACTUAL=$(sha256sum "${FILE}" 2>/dev/null | grep -Po '^\S+')
     if [[ "$EXPECTED" != "$ACTUAL" ]]; then
       rm "${FILE}"
       echo " old. Deleted file."
@@ -101,20 +102,22 @@ sha256check() {
   fi
 }
 ]]>
-sha256check "&source;.txz" "&SHA256;"
-sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
-exit 0
+      sha256check "&source;.txz" "&SHA256;"
+      sha256check "/boot/config/plugins/dynamix.my.servers/unraid-api.tgz" "&API_SHA256;"
+      exit 0
     </INLINE>
   </FILE>
 
   <!-- download node -->
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
-    <URL>&NODE_TXZ;</URL>
-    <SHA256>&NODE_SHA256;</SHA256>
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;" Run="upgradepkg --install-new"
+    max="7.0.0-beta.5">
+    <URL>&NODEJS_TXZ;</URL>
+    <SHA256>&NODEJS_SHA256;</SHA256>
   </FILE>
 
   <!-- download nghttp3 -->
-  <FILE name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3;" Run="upgradepkg --install-new" max="7.0.0-beta.5">
+  <FILE name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3_FILENAME;" Run="upgradepkg --install-new"
+    max="7.0.0-beta.5">
     <URL>&NGHTTP3_TXZ;</URL>
     <SHA256>&NGHTTP3_SHA256;</SHA256>
   </FILE>
@@ -133,8 +136,8 @@ exit 0
 
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-MAINTXZ="&source;.txz"
-      <![CDATA[
+      MAINTXZ="&source;.txz"
+    <![CDATA[
 # before proceeding with install, doubly confirm downloaded files exist. just being pedantic.
 FILE=${MAINTXZ} && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
 FILE=/boot/config/plugins/dynamix.my.servers/unraid-api.tgz && [[ ! -f "$FILE" ]] && echo "⚠️ file missing - $FILE" && exit 1
@@ -291,8 +294,8 @@ exit(0);
   <!-- uninstall existing plugin during update or removal -->
   <FILE Run="/bin/bash" Method="install remove">
     <INLINE>
-MAINNAME="&name;"
-      <![CDATA[
+      MAINNAME="&name;"
+    <![CDATA[
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
@@ -359,8 +362,8 @@ exit 0
   <!-- install all the things -->
   <FILE Run="/bin/bash" Method="install">
     <INLINE>
-PLGTYPE="&env;" MAINTXZ="&source;.txz"
-      <![CDATA[
+      PLGTYPE="&env;" MAINTXZ="&source;.txz"
+    <![CDATA[
 appendTextIfMissing() {
   FILE="$1" TEXT="$2"
   if test -f "${FILE}" && ! grep -q "${TEXT}" "${FILE}" &>/dev/null; then
