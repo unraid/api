@@ -11,5 +11,6 @@ export const start = async () => {
     execSync(`${PM2_PATH} start ${join(import.meta.dirname, '../../', 'ecosystem.config.json')} --update-env`, {
         env: process.env,
         stdio: 'inherit',
+        cwd: process.cwd()
     });
 };
