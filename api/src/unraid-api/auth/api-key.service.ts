@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { GraphQLError } from 'graphql';
 import { join } from 'path';
 import { v4 as uuidv4 } from 'uuid';
-import { promises as fs } from 'fs';
+import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
 import crypto from 'crypto';
 
 import { ApiKeyWithSecret, type ApiKey } from '@app/graphql/generated/api/types';
@@ -16,10 +16,10 @@ export class ApiKeyService {
         const basePath = getters.paths()['auth-keys'];
 
         try {
-            await fs.access(basePath);
+            await access(basePath);
         } catch {
             this.logger.verbose(`Creating API key directory: ${basePath}`);
-            await fs.mkdir(basePath, { recursive: true });
+            await mkdir(basePath, { recursive: true });
         }
 
         this.logger.verbose(`Using API key base path: ${basePath}`);
@@ -52,12 +52,12 @@ export class ApiKeyService {
 
     async findAll(): Promise<ApiKey[]> {
         const { basePath } = await this.paths();
-        const files = await fs.readdir(basePath);
+        const files = await readdir(basePath);
         const apiKeys: ApiKey[] = [];
 
         for (const file of files) {
             if (file.endsWith('.json')) {
-                const content = await fs.readFile(join(basePath, file), 'utf8');
+                const content = await readFile(join(basePath, file), 'utf8');
 
                 apiKeys.push(JSON.parse(content) as ApiKey);
             }
@@ -69,7 +69,7 @@ export class ApiKeyService {
     async findById(id: string): Promise<ApiKey | null> {
         try {
             const { keyFile } = await this.paths();
-            const content = await fs.readFile(keyFile(id), 'utf8');
+            const content = await readFile(keyFile(id), 'utf8');
 
             return JSON.parse(content) as ApiKey;
         } catch (error) {
@@ -80,12 +80,12 @@ export class ApiKeyService {
     async findByKey(key: string): Promise<ApiKey | null> {
         try {
             const { basePath } = await this.paths();
-            const files = await fs.readdir(basePath);
+            const files = await readdir(basePath);
 
             for (const file of files) {
                 if (file.endsWith('.json')) {
                     try {
-                        const content = await fs.readFile(join(basePath, file), 'utf8');
+                        const content = await readFile(join(basePath, file), 'utf8');
                         const apiKey = JSON.parse(content) as ApiKey;
 
                         if (apiKey.key === key) {
@@ -112,7 +112,7 @@ export class ApiKeyService {
     public async saveApiKey(apiKey: ApiKey | ApiKeyWithSecret): Promise<void> {
         try {
             const { keyFile } = await this.paths();
-            await fs.writeFile(keyFile(apiKey.id), JSON.stringify(apiKey, null, 2));
+            await writeFile(keyFile(apiKey.id), JSON.stringify(apiKey, null, 2));
         } catch (error: unknown) {
             if (error instanceof Error) {
                 throw new GraphQLError(`Failed to save API key: ${error.message}`);
