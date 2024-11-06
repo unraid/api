@@ -52,14 +52,26 @@ export class ApiKeyService {
 
     async findAll(): Promise<ApiKey[]> {
         const { basePath } = await this.paths();
-        const files = await readdir(basePath);
+        let files: string[];
+
+        try {
+            files = await readdir(basePath);
+        } catch (error) {
+            this.logger.error(`Failed to read API key directory: ${error}`);
+            throw new GraphQLError('Failed to list API keys');
+        }
+
         const apiKeys: ApiKey[] = [];
 
         for (const file of files) {
             if (file.endsWith('.json')) {
-                const content = await readFile(join(basePath, file), 'utf8');
+                try {
+                    const content = await readFile(join(basePath, file), 'utf8');
 
-                apiKeys.push(JSON.parse(content) as ApiKey);
+                    apiKeys.push(JSON.parse(content) as ApiKey);
+                } catch (error) {
+                    this.logger.warn(`Error reading API key file ${file}: ${error}`);
+                }
             }
         }
 

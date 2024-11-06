@@ -9,6 +9,7 @@ import { Reflector } from '@nestjs/core';
 import { ACGuard, AccessControlModule } from 'nest-access-control';
 import { LoggerModule } from 'nestjs-pino';
 import { CronModule } from '@app/unraid-api/cron/cron.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
     imports: [
@@ -23,6 +24,12 @@ import { CronModule } from '@app/unraid-api/cron/cron.module';
         CronModule,
         GraphModule,
         RestModule,
+        ThrottlerModule.forRoot([
+            {
+                ttl: 60000,
+                limit: 20,
+            },
+        ]),
     ],
     controllers: [],
     providers: [
