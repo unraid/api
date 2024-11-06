@@ -106,17 +106,18 @@ export class AuthService {
 
     public async syncApiKeyRoles(apiKeyId: string, roles: string[]): Promise<void> {
         try {
-            // Remove existing roles
+            // Get existing roles
             const existingRoles = await this.authzService.getRolesForUser(apiKeyId);
 
-            for (const role of existingRoles) {
-                await this.authzService.deleteRoleForUser(apiKeyId, role);
-            }
+            // Calculate roles to add and remove
+            const rolesToAdd = roles.filter((role) => !existingRoles.includes(role));
+            const rolesToRemove = existingRoles.filter((role) => !roles.includes(role));
 
-            // Add current roles
-            for (const role of roles) {
-                await this.authzService.addRoleForUser(apiKeyId, role);
-            }
+            // Perform role updates
+            await Promise.all([
+                ...rolesToAdd.map((role) => this.authzService.addRoleForUser(apiKeyId, role)),
+                ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(apiKeyId, role)),
+            ]);
         } catch (error: unknown) {
             this.logger.error(`Failed to sync roles for API key ${apiKeyId}`, error);
             throw new Error(
