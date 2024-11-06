@@ -52,20 +52,20 @@ PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
 NODEJS_TXZ="https://stable.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
-NGHTTP3_TGZ="https://stable.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
+NGHTTP3_TXZ="https://stable.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}.plg"
   NODEJS_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NODEJS_FILENAME}"
-  NGHTTP3_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NGHTTP3_FILENAME}"
+  NGHTTP3_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NGHTTP3_FILENAME}"
 elif [[ "${env}" == "staging" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
   NODEJS_TXZ="https://preview.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
-  NGHTTP3_TGZ="https://preview.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
+  NGHTTP3_TXZ="https://preview.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 fi
 
 
@@ -87,7 +87,7 @@ sed -i -E "s#(ENTITY NODEJS_TXZ\s*)\".*\"#\1\"${NODEJS_TXZ}\"#g" "${plgfile}"
 # update nghttp3 versions
 sed -i -E "s#(ENTITY NGHTTP3_FILENAME\s*)\".*\"#\1\"${NGHTTP3_FILENAME}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY NGHTTP3_SHA256\s*)\".*\"#\1\"${NGHTTP3_SHA256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${NGHTTP3_TGZ}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${NGHTTP3_TXZ}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
