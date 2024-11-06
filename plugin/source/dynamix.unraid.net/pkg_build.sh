@@ -51,44 +51,24 @@ cd "${DIR}" || exit 1
 PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
+NODE_TGZ="https://stable.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
+NGHTTP3_TGZ="https://stable.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}.plg"
+  NODE_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NODEJS_FILENAME}"
+  NGHTTP3_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NGHTTP3_FILENAME}"
 elif [[ "${env}" == "staging" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
+  NODE_TGZ="https://preview.dl.unraid.net/unraid-api/${NODEJS_FILENAME}"
+  NGHTTP3_TGZ="https://preview.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 fi
 
-# Get latest node version (based on main_node_version) from slackware
-main_node_version=$(find "${MAINDIR}/../.." -type f -path "*/api/.nvmrc" -exec sed 's/^v//' {} \;)
-base_node_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/"
-latest_nodejs=$(wget -q -O- "${base_node_url}" | grep -o "nodejs-${main_node_version}\.[0-9.]*-x86_64-[0-9]*\.txz" | sort -V | tail -n 1)
-if [[ -z "${latest_nodejs}" ]]; then
-  echo "Error: Failed to fetch the latest nodejs version."
-  exit 1
-fi
-node_download_url="${base_node_url}${latest_nodejs}"
-if ! wget -q "${node_download_url}" -O "/tmp/${latest_nodejs}"; then
-  echo "Error: Failed to download nodejs package."
-  exit 1
-fi
-node_sha256=$(sha256sum "/tmp/${latest_nodejs}" | cut -f 1 -d ' ')
 
-rm "/tmp/${latest_nodejs}"
-
-# Get latest nghttp3 version
-base_nghttp3_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/"
-latest_nghttp3=$(wget -q -O- "${base_nghttp3_url}" | grep -o "nghttp3-[0-9.]*-x86_64-[0-9]*\.txz" | sort -V | tail -n 1)
-nghttp3_download_url="${base_nghttp3_url}${latest_nghttp3}"
-if ! wget -q "${nghttp3_download_url}" -O "/tmp/${latest_nghttp3}"; then
-  echo "Error: Failed to download nghttp3 package."
-  exit 1
-fi
-nghttp3_sha256=$(sha256sum "/tmp/${latest_nghttp3}" | cut -f 1 -d ' ')
-rm "/tmp/${latest_nghttp3}"
 
 # update plg file
 sed -i -E "s#(ENTITY name\s*)\".*\"#\1\"${plugin}\"#g" "${plgfile}"
@@ -100,14 +80,14 @@ sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
 
 # update node versions
-sed -i -E "s#(ENTITY NODE\s*)\".*\"#\1\"${latest_nodejs}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODE_SHA256\s*)\".*\"#\1\"${node_sha256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODE_TXZ\s*)\".*\"#\1\"${node_download_url}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NODE\s*)\".*\"#\1\"${NODEJS_FILENAME}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NODE_SHA256\s*)\".*\"#\1\"${NODEJS_SHA256}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NODE_TXZ\s*)\".*\"#\1\"${NODE_TGZ}\"#g" "${plgfile}"
 
 # update nghttp3 versions
-sed -i -E "s#(ENTITY NGHTTP3\s*)\".*\"#\1\"${latest_nghttp3}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_SHA256\s*)\".*\"#\1\"${nghttp3_sha256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${nghttp3_download_url}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NGHTTP3\s*)\".*\"#\1\"${NGHTTP3_FILENAME}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NGHTTP3_SHA256\s*)\".*\"#\1\"${NGHTTP3_SHA256}\"#g" "${plgfile}"
+sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${NGHTTP3_TGZ}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
