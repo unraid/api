@@ -72,8 +72,13 @@ export class ApiKeyService {
             const content = await readFile(keyFile(id), 'utf8');
 
             return JSON.parse(content) as ApiKey;
-        } catch (error) {
-            return null;
+        } catch (error: unknown) {
+            if (error instanceof Error && error.message.includes('ENOENT')) {
+                return null;
+            } else {
+                this.logger.error(`Error reading API key file for ID ${id}: ${error}`);
+                throw new GraphQLError(`Failed to read API key: ${error}`);
+            }
         }
     }
 

@@ -108,20 +108,23 @@ describe('ApiKeyService', () => {
             expect(result).toEqual(mockApiKey);
         });
 
-        it('should return null if API key not found', async () => {
-            vi.mocked(readFile).mockRejectedValue(new Error('File not found'));
+        it('should return null if API key not found (ENOENT error)', async () => {
+            const error = new Error('File not found');
+
+            error.message = 'ENOENT';
+            vi.mocked(readFile).mockRejectedValue(error);
 
             const result = await apiKeyService.findById('non-existent-id');
 
             expect(result).toBeNull();
         });
 
-        it('should return null if file content is invalid JSON', async () => {
+        it('should throw GraphQLError if JSON parsing fails', async () => {
             vi.mocked(readFile).mockResolvedValue('invalid json');
 
-            const result = await apiKeyService.findById(mockApiKey.id);
-
-            expect(result).toBeNull();
+            await expect(apiKeyService.findById(mockApiKey.id)).rejects.toThrow(
+                'Failed to read API key'
+            );
         });
     });
 
