@@ -27,8 +27,8 @@ export const main = async (...argv: string[]) => {
 
     // Only import the command we need when we use it
     const commands = {
-        start: import('@app/cli/commands/start').then((pkg) => pkg.start(true)),
-        stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop(true)),
+        start: import('@app/cli/commands/start').then((pkg) => pkg.start),
+        stop: import('@app/cli/commands/stop').then((pkg) => pkg.stop),
         restart: import('@app/cli/commands/restart').then((pkg) => pkg.restart),
         logs: async () => execSync(`${PM2_PATH} logs unraid-api --lines 200`, { stdio: 'inherit' }),
         'switch-env': import('@app/cli/commands/switch-env').then((pkg) => pkg.switchEnv),
@@ -49,10 +49,5 @@ export const main = async (...argv: string[]) => {
     // Run the command
     await commandMethod(...argv);
 
-    // Allow the process to exit
-    // Don't exit when we start though
-    if (!['start', 'restart'].includes(command)) {
-        // Ensure process is exited
-        process.exit(0);
-    }
+    process.exit(0);
 };

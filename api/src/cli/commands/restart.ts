@@ -7,6 +7,4 @@ import { stop } from '@app/cli/commands/stop';
 export const restart = async () => {
 	await stop();
 	await start();
-
-	process.exit(0);
 };
