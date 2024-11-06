@@ -116,7 +116,7 @@ sha256check() {
   </FILE>
 
   <!-- download nghttp3 -->
-  <FILE name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3_FILENAME;" Run="upgradepkg --install-new"
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3_FILENAME;" Run="upgradepkg --install-new"
     max="7.0.0-beta.5">
     <URL>&NGHTTP3_TXZ;</URL>
     <SHA256>&NGHTTP3_SHA256;</SHA256>
