@@ -163,7 +163,8 @@ jobs:
         with:
           name: unraid-web
           path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-      - name: Download Node.js From Slackbuilds
+      - name: Download Node.js From Slackbuilds (skipped due to node.js issues)
+        if: false
         id: download-nodejs
         run: |
           # Get latest node version (based on main_node_version) from slackware
@@ -202,15 +203,11 @@ jobs:
           export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
           export API_MD5=${{needs.build-test-api.outputs.API_MD5}}
           export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          export NODEJS_FILENAME=${{ steps.download-nodejs.outputs.NODEJS_FILENAME }}
-          export NODEJS_SHA256=${{ steps.download-nodejs.outputs.NODEJS_SHA256 }}
           export NGHTTP3_FILENAME=${{ steps.download-nghttp3.outputs.NGHTTP3_FILENAME }}
           export NGHTTP3_SHA256=${{ steps.download-nghttp3.outputs.NGHTTP3_SHA256 }}
           if [ -z "${API_VERSION}" ] || 
             [ -z "${API_MD5}" ] || 
             [ -z "${API_SHA256}" ] || 
-            [ -z "${NODEJS_FILENAME}" ] || 
-            [ -z "${NODEJS_SHA256}" ] || 
             [ -z "${NGHTTP3_FILENAME}" ] || 
             [ -z "${NGHTTP3_SHA256}" ]; then
             echo "Error: One or more required variables are not set."
