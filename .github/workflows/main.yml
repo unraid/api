@@ -205,6 +205,7 @@ jobs:
           export NODEJS_FILENAME=${{ steps.download-nodejs.outputs.NODEJS_FILENAME }}
           export NODEJS_SHA256=${{ steps.download-nodejs.outputs.NODEJS_SHA256 }}
           export NGHTTP3_FILENAME=${{ steps.download-nghttp3.outputs.NGHTTP3_FILENAME }}
+          export NGHTTP3_SHA256=${{ steps.download-nghttp3.outputs.NGHTTP3_SHA256 }}
           if [ -z "${API_VERSION}" ] || 
             [ -z "${API_MD5}" ] || 
             [ -z "${API_SHA256}" ] || 
