@@ -6,7 +6,13 @@ import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
 import { ApiKeyService } from './api-key.service';
 import { getters } from '@app/store';
 
-vi.mock('fs');
+vi.mock('fs/promises', async () => ({
+    access: vi.fn(),
+    mkdir: vi.fn(),
+    readdir: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+}));
 vi.mock('@app/store');
 
 describe('ApiKeyService', () => {
