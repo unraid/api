@@ -164,6 +164,7 @@ jobs:
           name: unraid-web
           path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
       - name: Download Node.js From Slackbuilds
+        id: download-nodejs
         run: |
           # Get latest node version (based on main_node_version) from slackware
           main_node_version=$(sed 's/^v//' ../api/.nvmrc)
@@ -179,7 +180,10 @@ jobs:
             exit 1
           fi
           node_sha256=$(sha256sum "${{ github.workspace }}/plugin/archive/${latest_nodejs}" | cut -f 1 -d ' ')
+          echo "NODEJS_FILENAME=${latest_nodejs}" >> $GITHUB_OUTPUT
+          echo "NODEJS_SHA256=${node_sha256}" >> $GITHUB_OUTPUT
       - name: Download nghttp3
+        id: download-nghttp3
         run: |
           # Get latest nghttp3 version
           base_nghttp3_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/"
@@ -190,16 +194,18 @@ jobs:
             exit 1
           fi
           nghttp3_sha256=$(sha256sum "${{ github.workspace }}/plugin/archive/${latest_nghttp3}" | cut -f 1 -d ' ')
+          echo "NGHTTP3_FILENAME=${latest_nghttp3}" >> $GITHUB_OUTPUT
+          echo "NGHTTP3_SHA256=${nghttp3_sha256}" >> $GITHUB_OUTPUT
       - name: Build Plugin
         run: |
           cd source/dynamix.unraid.net
           export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
           export API_MD5=${{needs.build-test-api.outputs.API_MD5}}
           export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          export NODEJS_FILENAME=${latest_nodejs}
-          export NODEJS_SHA256=${node_sha256}
-          export NGHTTP3_FILENAME=${latest_nghttp3}
-          export NGHTTP3_SHA256=${nghttp3_sha256}
+          export NODEJS_FILENAME=${{ steps.download-nodejs.outputs.NODEJS_FILENAME }}
+          export NODEJS_SHA256=${{ steps.download-nodejs.outputs.NODEJS_SHA256 }}
+          export NGHTTP3_FILENAME=${{ steps.download-nghttp3.outputs.NGHTTP3_FILENAME }}
+          export NGHTTP3_SHA256=${{ steps.download-nghttp3.outputs.NGHTTP3_SHA256 }}
           bash ./pkg_build.sh s ${{github.event.pull_request.number}}
           bash ./pkg_build.sh p
       - name: Upload binary txz and plg to Github artifacts
