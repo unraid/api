@@ -64,7 +64,8 @@ fi
 dnscheck() {
   HOST=$1
   if [ -x /usr/bin/host ] && ! /usr/bin/host -W 10 "${HOST}" &>/dev/null; then
-    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'" DNSERR=yes
+    echo "⚠️ Warning: Your DNS server (${DNS_SERVER1}) is unable to resolve '${HOST}'"
+    DNSERR=yes
   fi
 }
 
