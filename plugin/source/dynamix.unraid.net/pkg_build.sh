@@ -78,9 +78,13 @@ rm "/tmp/${latest_nodejs}"
 
 # Get latest nghttp3 version
 base_nghttp3_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/"
-latest_nghttp3=$(wget -q -O- "${base_nghttp3_url}" | grep -o "nghttp3-[0-9.]*-x86_64-[0-9]*\.txz" | tail -n 1)
+latest_nghttp3=$(wget -q -O- "${base_nghttp3_url}" | grep -o "nghttp3-[0-9.]*-x86_64-[0-9]*\.txz" | sort -V | tail -n 1)
 nghttp3_download_url="${base_nghttp3_url}${latest_nghttp3}"
 wget -q "${nghttp3_download_url}" -O "/tmp/${latest_nghttp3}"
+if [[ $? -ne 0 ]]; then
+  echo "Error: Failed to download nghttp3 package."
+  exit 1
+fi
 nghttp3_sha256=$(sha256sum "/tmp/${latest_nghttp3}" | cut -f 1 -d ' ')
 rm "/tmp/${latest_nghttp3}"
 
