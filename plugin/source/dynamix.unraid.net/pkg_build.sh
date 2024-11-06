@@ -65,7 +65,7 @@ fi
 # Get latest node version (based on main_node_version) from slackware
 main_node_version=$(find "${MAINDIR}/../.." -type f -path "*/api/.nvmrc" -exec sed 's/^v//' {} \;)
 base_node_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/"
-latest_nodejs=$(wget -q -O- "${base_node_url}" | grep -o "nodejs-${main_node_version}\.[0-9.]*-x86_64-[0-9]*\.txz" | tail -n 1)
+latest_nodejs=$(wget -q -O- "${base_node_url}" | grep -o "nodejs-${main_node_version}\.[0-9.]*-x86_64-[0-9]*\.txz" | sort -V | tail -n 1)
 if [[ -z "${latest_nodejs}" ]]; then
   echo "Error: Failed to fetch the latest nodejs version."
   exit 1
