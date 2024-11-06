@@ -97,6 +97,15 @@ describe('ApiKeyService', () => {
             expect(result[0]).toEqual(mockApiKey);
             expect(result[1]).toEqual(mockApiKey);
         });
+
+        it('should handle file read errors gracefully', async () => {
+            vi.mocked(readdir).mockResolvedValue(['key1.json', 'key2.json'] as any);
+            vi.mocked(readFile).mockRejectedValue(new Error('Read error'));
+
+            const result = await apiKeyService.findAll();
+
+            expect(result).toHaveLength(0);
+        });
     });
 
     describe('findById', () => {
@@ -109,9 +118,7 @@ describe('ApiKeyService', () => {
         });
 
         it('should return null if API key not found (ENOENT error)', async () => {
-            const error = new Error('File not found');
-
-            error.message = 'ENOENT';
+            const error = new Error('ENOENT');
             vi.mocked(readFile).mockRejectedValue(error);
 
             const result = await apiKeyService.findById('non-existent-id');
@@ -164,6 +171,14 @@ describe('ApiKeyService', () => {
             expect(result).toEqual(mockApiKey);
             expect(readFile).toHaveBeenCalledTimes(2);
         });
+
+        it('should return null if directory read fails', async () => {
+            vi.mocked(readdir).mockRejectedValue(new Error('Directory read error'));
+
+            const result = await apiKeyService.findByKey(mockApiKey.key);
+
+            expect(result).toBeNull();
+        });
     });
 
     describe('saveApiKey', () => {
@@ -178,7 +193,7 @@ describe('ApiKeyService', () => {
             );
         });
 
-        it('should throw InternalServerErrorException on write error', async () => {
+        it('should throw GraphQLError on write error', async () => {
             vi.mocked(writeFile).mockRejectedValue(new Error('Write failed'));
 
             await expect(apiKeyService.saveApiKey(mockApiKey)).rejects.toThrow(

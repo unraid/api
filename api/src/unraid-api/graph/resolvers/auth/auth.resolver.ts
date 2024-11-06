@@ -1,5 +1,6 @@
-import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { GraphQLError } from 'graphql';
+import { UseGuards } from '@nestjs/common';
 import { UsePermissions } from 'nest-authz';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
@@ -71,9 +72,13 @@ export class AuthResolver {
         @Args('input')
         input: AddPermissionInput
     ): Promise<boolean> {
-        await this.authService.addPermission(input.role, input.resource, input.action);
+        try {
+            await this.authService.addPermission(input.role, input.resource, input.action);
 
-        return true;
+            return true;
+        } catch (error) {
+            throw new GraphQLError('Failed to add permission');
+        }
     }
 
     @Mutation()
