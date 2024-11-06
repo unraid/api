@@ -71,7 +71,10 @@ if [[ -z "${latest_nodejs}" ]]; then
   exit 1
 fi
 node_download_url="${base_node_url}${latest_nodejs}"
-wget -q "${node_download_url}" -O "/tmp/${latest_nodejs}"
+if ! wget -q "${node_download_url}" -O "/tmp/${latest_nodejs}"; then
+  echo "Error: Failed to download nodejs package."
+  exit 1
+fi
 node_sha256=$(sha256sum "/tmp/${latest_nodejs}" | cut -f 1 -d ' ')
 
 rm "/tmp/${latest_nodejs}"
