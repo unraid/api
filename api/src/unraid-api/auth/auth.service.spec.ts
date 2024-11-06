@@ -1,5 +1,5 @@
 import { AuthService } from './auth.service';
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { UsersService } from '../users/users.service';
 import { CookieService } from './cookie.service';
 import { ApiKeyService } from './api-key.service';
@@ -35,7 +35,7 @@ describe('AuthService', () => {
         roles: 'guest,admin',
     };
 
-    beforeAll(async () => {
+    beforeEach(async () => {
         const enforcer = await newEnforcer();
 
         apiKeyService = new ApiKeyService();
@@ -43,6 +43,10 @@ describe('AuthService', () => {
         usersService = new UsersService(apiKeyService);
         cookieService = new CookieService();
         authService = new AuthService(usersService, cookieService, apiKeyService, authzService);
+    });
+
+    afterEach(() => {
+        vi.clearAllMocks();
     });
 
     describe('validateUser', () => {
