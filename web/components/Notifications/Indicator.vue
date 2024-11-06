@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useSubscription } from "@vue/apollo-composable";
+import { useQuery } from "@vue/apollo-composable";
 import {
   NOTIFICATION_COUNT_FRAGMENT,
-  unreadsSubscription,
+  unreadOverview,
 } from "./graphql/notification.query";
 import { useFragment } from "~/composables/gql";
 import { Importance } from "~/composables/gql/graphql";
@@ -12,13 +12,19 @@ import {
   ShieldExclamationIcon,
 } from "@heroicons/vue/24/solid";
 import { cn } from "../shadcn/utils";
-const { result } = useSubscription(unreadsSubscription);
+// const { result } = useSubscription(unreadsSubscription);
+
+const { result } = useQuery(unreadOverview, null, {
+  pollInterval: 1_000, // 1 second
+});
 
 const overview = computed(() => {
-  return useFragment(
-    NOTIFICATION_COUNT_FRAGMENT,
-    result.value?.notificationsOverview.unread
-  );
+  if (!result.value) {
+    // console.log("no overview:", result.value);
+    return;
+  }
+  // console.log("overview", result.value);
+  return result.value.notifications.overview.unread;
 });
 
 const indicatorState = computed(() => {

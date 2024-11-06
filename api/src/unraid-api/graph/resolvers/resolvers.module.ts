@@ -33,7 +33,7 @@ import { NotificationsService } from './notifications/notifications.service';
         ServerResolver,
         VarsResolver,
         VmsResolver,
-        NotificationsService,
+        { provide: 'NOTIFICATIONS_SERVICE', useClass: NotificationsService },
     ],
 })
 export class ResolversModule {}

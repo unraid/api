@@ -67,11 +67,16 @@ export const deleteNotification = graphql(/* GraphQL */ `
   }
 `);
 
-export const unreadsSubscription = graphql(/* GraphQL */ `
-  subscription unreadNotificationsOverview {
-    notificationsOverview {
-      unread {
-        ...NotificationCountFragment
+export const unreadOverview = graphql(/* GraphQL */ `
+  query Overview {
+    notifications {
+      overview {
+        unread {
+          info
+          warning
+          alert
+          total
+        }
       }
     }
   }
