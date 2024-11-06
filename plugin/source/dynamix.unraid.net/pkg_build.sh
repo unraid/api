@@ -95,12 +95,25 @@ sed -i -E "s#(ENTITY API_SHA256\s*)\".*\"#\1\"${API_SHA256}\"#g" "${plgfile}"
 
 # validate that all ENTITY values were replaced
 required_entities=("name" "env" "version" "pluginURL" "SHA256" "MAIN_TXZ" "API_TGZ" "NODEJS_FILENAME" "NODEJS_SHA256" "NODEJS_TXZ" "NGHTTP3_FILENAME" "NGHTTP3_SHA256" "NGHTTP3_TXZ" "API_version" "API_SHA256")
+validation_failed=false
 for entity in "${required_entities[@]}"; do
-  if ! grep -q "ENTITY ${entity} \"[^\"]*\"" "${plgfile}"; then
+  entity_value=$(grep -oP "ENTITY ${entity} \"\K[^\"]*" "${plgfile}" || echo "")
+  if [[ -z "${entity_value}" ]]; then
     echo "Error: ENTITY ${entity} was not replaced correctly in ${plgfile}"
-    exit 1
+    validation_failed=true
+  elif [[ "${entity_value}" =~ ^[[:space:]]*$ ]]; then
+    echo "Error: ENTITY ${entity} has an empty value in ${plgfile}"
+    validation_failed=true
   fi
 done
+
+if [[ "${validation_failed}" == "true" ]]; then
+  if [[ -f "${plgfile}.bak" ]]; then
+    echo "Restoring backup due to validation failure"
+    mv "${plgfile}.bak" "${plgfile}"
+  fi
+  exit 1
+fi
 
 # add changelog for major versions
 # sed -i "/<CHANGES>/a ###${version}\n" ${plgfile}
