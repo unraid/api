@@ -11,10 +11,11 @@ import { NotificationsService } from './notifications.service';
 import { Importance } from '@app/graphql/generated/client/graphql';
 import { AppError } from '@app/core/errors/app-error';
 import { formatTimestamp } from '@app/utils';
+import {Inject} from "@nestjs/common";
 
 @Resolver('Notifications')
 export class NotificationsResolver {
-    constructor(readonly notificationsService: NotificationsService) {}
+    constructor(@Inject('NOTIFICATIONS_SERVICE') readonly notificationsService: NotificationsService) {}
 
     /**============================================
      *               Queries
