@@ -84,7 +84,7 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: 'create',
+        action: 'update',
         resource: 'permission',
     })
     async addRoleForUser(
