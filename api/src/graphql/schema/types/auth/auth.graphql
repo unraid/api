@@ -35,24 +35,24 @@ input CreateApiKeyInput {
 }
 
 input AddPermissionInput {
-    role: String!
+    role: Role!
     resource: String!
     action: String!
 }
 
 input AddRoleForUserInput {
     userId: String!
-    role: String!
+    role: Role!
 }
 
 input AddRoleForApiKeyInput {
     apiKeyId: String!
-    role: String!
+    role: Role!
 }
 
 input RemoveRoleFromApiKeyInput {
     apiKeyId: String!
-    role: String!
+    role: Role!
 }
 
 type Mutation {
@@ -65,5 +65,5 @@ type Mutation {
 
 type Query {
     apiKeys: [ApiKey!]!
-    apiKey(id: String!): ApiKey
+    apiKey(id: ID!): ApiKey
 }

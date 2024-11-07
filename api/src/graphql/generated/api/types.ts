@@ -42,16 +42,16 @@ export type AccessUrlInput = {
 export type AddPermissionInput = {
   action: Scalars['String']['input'];
   resource: Scalars['String']['input'];
-  role: Scalars['String']['input'];
+  role: Role;
 };
 
 export type AddRoleForApiKeyInput = {
   apiKeyId: Scalars['String']['input'];
-  role: Scalars['String']['input'];
+  role: Role;
 };
 
 export type AddRoleForUserInput = {
-  role: Scalars['String']['input'];
+  role: Role;
   userId: Scalars['String']['input'];
 };
 
@@ -1081,7 +1081,7 @@ export type Query = {
 
 
 export type QueryapiKeyArgs = {
-  id: Scalars['String']['input'];
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1181,7 +1181,7 @@ export type RemoteAccess = {
 
 export type RemoveRoleFromApiKeyInput = {
   apiKeyId: Scalars['String']['input'];
-  role: Scalars['String']['input'];
+  role: Role;
 };
 
 /** Available roles for API keys and users */

@@ -94,20 +94,20 @@ export function AddPermissionInputSchema(): z.ZodObject<Properties<AddPermission
   return z.object({
     action: z.string(),
     resource: z.string(),
-    role: z.string()
+    role: RoleSchema
   })
 }
 
 export function AddRoleForApiKeyInputSchema(): z.ZodObject<Properties<AddRoleForApiKeyInput>> {
   return z.object({
     apiKeyId: z.string(),
-    role: z.string()
+    role: RoleSchema
   })
 }
 
 export function AddRoleForUserInputSchema(): z.ZodObject<Properties<AddRoleForUserInput>> {
   return z.object({
-    role: z.string(),
+    role: RoleSchema,
     userId: z.string()
   })
 }
@@ -860,7 +860,7 @@ export function RemoteAccessSchema(): z.ZodObject<Properties<RemoteAccess>> {
 export function RemoveRoleFromApiKeyInputSchema(): z.ZodObject<Properties<RemoveRoleFromApiKeyInput>> {
   return z.object({
     apiKeyId: z.string(),
-    role: z.string()
+    role: RoleSchema
   })
 }
 
