@@ -23,7 +23,7 @@ describe('ApiKeyService', () => {
         id: 'test-api-id',
         name: 'Test API Key',
         description: 'Test API Key Description',
-        roles: ['guest' as Role],
+        roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
         lastUsed: null,
     };
@@ -33,7 +33,7 @@ describe('ApiKeyService', () => {
         key: 'test-api-key',
         name: 'Test API Key',
         description: 'Test API Key Description',
-        roles: ['guest' as Role],
+        roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
         lastUsed: null,
     };

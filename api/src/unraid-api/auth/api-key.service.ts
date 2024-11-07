@@ -43,7 +43,7 @@ export class ApiKeyService {
             throw new GraphQLError('At least one role must be specified');
         }
 
-        const validRoles = Object.values(Role).map((role) => role.toLowerCase());
+        const validRoles = Object.values(Role);
 
         if (roles.some((role) => !validRoles.includes(role))) {
             throw new GraphQLError('Invalid role specified');
@@ -106,29 +106,33 @@ export class ApiKeyService {
     }
 
     async findByKey(key: string): Promise<ApiKeyWithSecret | null> {
+        if (!key) return null;
+
         try {
             const { basePath } = await this.paths();
             const files = await readdir(basePath);
 
             for (const file of files) {
-                if (file.endsWith('.json')) {
-                    try {
-                        const content = await readFile(join(basePath, file), 'utf8');
-                        const apiKey = JSON.parse(content) as ApiKeyWithSecret;
+                if (!file.endsWith('.json')) continue;
 
-                        if (apiKey.key === key) {
-                            return apiKey;
-                        }
-                    } catch (error) {
-                        this.logger.warn(`Error reading API key file ${file}: ${error}`);
+                try {
+                    const content = await readFile(join(basePath, file), 'utf8');
+                    const apiKey = JSON.parse(content) as ApiKeyWithSecret;
+
+                    if (apiKey.key === key) {
+                        apiKey.roles = apiKey.roles.map(
+                            (role) => Role[role.toUpperCase() as keyof typeof Role] || Role.GUEST
+                        );
+                        return apiKey;
                     }
+                } catch (error) {
+                    this.logger.warn(`Error processing API key file ${file}: ${error}`);
                 }
             }
 
             return null;
         } catch (error) {
             this.logger.error(`Error reading API key directory: ${error}`);
-
             return null;
         }
     }
