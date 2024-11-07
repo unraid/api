@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BellIcon } from "@heroicons/vue/24/solid";
 import {
   Sheet,
   SheetContent,
@@ -24,7 +23,7 @@ const importance = ref<Importance | undefined>(undefined);
   <Sheet>
     <SheetTrigger @click="determineTeleportTarget">
       <span class="sr-only">Notifications</span>
-      <BellIcon class="w-6 h-6" />
+      <NotificationsIndicator />
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
