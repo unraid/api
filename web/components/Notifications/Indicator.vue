@@ -7,10 +7,11 @@ import {
   ExclamationTriangleIcon,
   ShieldExclamationIcon,
 } from "@heroicons/vue/24/solid";
-import { cn } from "../shadcn/utils";
+import { cn } from '~/components/shadcn/utils'
+import { onWatcherCleanup } from "vue";
 
 const { result } = useQuery(unreadOverview, null, {
-  pollInterval: 1_000, // 1 second
+  pollInterval: 2_000, // 2 seconds
 });
 
 const overview = computed(() => {
@@ -51,6 +52,22 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
   }
   return null;
 });
+
+/** whether new notifications ocurred */
+const hasNewNotifications = ref(false);
+// watch for new notifications, set a temporary indicator when they're reveived
+watch(overview, (newVal, oldVal) => {
+  if (!newVal || !oldVal) {
+    return;
+  }
+  hasNewNotifications.value = newVal.total > oldVal.total;
+  // lifetime of 'new notification' state
+  const msToLive = 30_000;
+  const timeout = setTimeout(() => {
+    hasNewNotifications.value = false;
+  }, msToLive);
+  onWatcherCleanup(() => clearTimeout(timeout));
+});
 </script>
 
 <template>
@@ -68,7 +85,7 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
         "
       />
       <div
-        v-if="indicatorLevel === Importance.Alert"
+        v-if="hasNewNotifications || indicatorLevel === Importance.Alert"
         class="absolute top-0 right-0 size-2.5 rounded-full bg-unraid-red animate-ping"
       />
     </div>
