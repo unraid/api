@@ -93,11 +93,11 @@ export class ApiKeyService {
 
             return JSON.parse(content) as ApiKey;
         } catch (error: unknown) {
-            if (error instanceof Error && error.message.includes('ENOENT')) {
+            if (error instanceof Error && 'code' in error && error.code === 'ENOENT') {
                 return null;
             } else {
                 this.logger.error(`Error reading API key file for ID ${id}: ${error}`);
-                throw new GraphQLError(`Failed to read API key: ${error}`);
+                throw new GraphQLError(`Failed to read API key: ${error instanceof Error ? error.message : String(error)}`);
             }
         }
     }
