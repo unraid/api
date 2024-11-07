@@ -2,7 +2,7 @@
 import * as Types from '@app/graphql/generated/api/types';
 
 import { z } from 'zod'
-import { AccessUrl, AccessUrlInput, AddPermissionInput, AddRoleForApiKeyInput, AddRoleForUserInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ApiKeyWithSecret, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, Connect, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, CreateApiKeyInput, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, DynamicRemoteAccessStatus, DynamicRemoteAccessType, EnableDynamicRemoteAccessInput, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationCounts, NotificationData, NotificationFilter, NotificationOverview, NotificationType, Notifications, NotificationslistArgs, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, RemoveRoleFromApiKeyInput, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addApiKeyInput, addUserInput, arrayDiskInput, authenticateInput, deleteUserInput, mdState, registrationType, updateApikeyInput, usersInput } from '@app/graphql/generated/api/types'
+import { AccessUrl, AccessUrlInput, AddPermissionInput, AddRoleForApiKeyInput, AddRoleForUserInput, AllowedOriginInput, ApiKey, ApiKeyResponse, ApiKeyWithSecret, ArrayType, ArrayCapacity, ArrayDisk, ArrayDiskFsColor, ArrayDiskStatus, ArrayDiskType, ArrayPendingState, ArrayState, Baseboard, Capacity, Case, Cloud, CloudResponse, Config, ConfigErrorState, Connect, ConnectSignInInput, ConnectUserInfoInput, ContainerHostConfig, ContainerMount, ContainerPort, ContainerPortType, ContainerState, CreateApiKeyInput, Devices, Disk, DiskFsType, DiskInterfaceType, DiskPartition, DiskSmartStatus, Display, Docker, DockerContainer, DockerNetwork, DynamicRemoteAccessStatus, DynamicRemoteAccessType, EnableDynamicRemoteAccessInput, Flash, Gpu, Importance, Info, InfoApps, InfoCpu, InfoMemory, KeyFile, Me, MemoryFormFactor, MemoryLayout, MemoryType, MinigraphStatus, MinigraphqlResponse, Mount, Network, Node, Notification, NotificationCounts, NotificationData, NotificationFilter, NotificationOverview, NotificationType, Notifications, NotificationslistArgs, Os, Owner, ParityCheck, Partition, Pci, ProfileModel, Registration, RegistrationState, RelayResponse, RemoteAccess, RemoveRoleFromApiKeyInput, Server, ServerStatus, Service, SetupRemoteAccessInput, Share, System, Temperature, Theme, URL_TYPE, UnassignedDevice, Uptime, Usb, User, UserAccount, Vars, Versions, VmDomain, VmState, Vms, WAN_ACCESS_TYPE, WAN_FORWARD_TYPE, Welcome, addUserInput, arrayDiskInput, deleteUserInput, mdState, registrationType, usersInput } from '@app/graphql/generated/api/types'
 import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/core';
 
 type Properties<T> = Required<{
@@ -121,13 +121,10 @@ export function ApiKeySchema(): z.ZodObject<Properties<ApiKey>> {
     __typename: z.literal('ApiKey').optional(),
     createdAt: z.string(),
     description: z.string().nullish(),
-    expiresAt: z.number(),
     id: z.string(),
-    key: z.string(),
     lastUsed: z.string().nullish(),
     name: z.string(),
-    roles: z.array(z.string()),
-    scopes: definedNonNullAnySchema
+    roles: z.array(z.string())
   })
 }
 
@@ -568,7 +565,7 @@ export function MeSchema(): z.ZodObject<Properties<Me>> {
     id: z.string(),
     name: z.string(),
     permissions: definedNonNullAnySchema.nullish(),
-    roles: z.string()
+    roles: z.array(z.string())
   })
 }
 
@@ -1012,7 +1009,7 @@ export function UserSchema(): z.ZodObject<Properties<User>> {
     id: z.string(),
     name: z.string(),
     password: z.boolean().nullish(),
-    roles: z.string()
+    roles: z.array(z.string())
   })
 }
 
@@ -1021,7 +1018,7 @@ export function UserAccountSchema(): z.ZodObject<Properties<UserAccount>> {
     description: z.string(),
     id: z.string(),
     name: z.string(),
-    roles: z.string()
+    roles: z.array(z.string())
   })
 }
 
@@ -1229,14 +1226,6 @@ export function WelcomeSchema(): z.ZodObject<Properties<Welcome>> {
   })
 }
 
-export function addApiKeyInputSchema(): z.ZodObject<Properties<addApiKeyInput>> {
-  return z.object({
-    key: z.string().nullish(),
-    name: z.string().nullish(),
-    userId: z.string().nullish()
-  })
-}
-
 export function addUserInputSchema(): z.ZodObject<Properties<addUserInput>> {
   return z.object({
     description: z.string().nullish(),
@@ -1252,22 +1241,9 @@ export function arrayDiskInputSchema(): z.ZodObject<Properties<arrayDiskInput>> 
   })
 }
 
-export function authenticateInputSchema(): z.ZodObject<Properties<authenticateInput>> {
-  return z.object({
-    password: z.string()
-  })
-}
-
 export function deleteUserInputSchema(): z.ZodObject<Properties<deleteUserInput>> {
   return z.object({
     name: z.string()
-  })
-}
-
-export function updateApikeyInputSchema(): z.ZodObject<Properties<updateApikeyInput>> {
-  return z.object({
-    description: z.string().nullish(),
-    expiresAt: z.number()
   })
 }
 

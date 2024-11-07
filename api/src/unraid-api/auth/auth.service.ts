@@ -17,24 +17,6 @@ export class AuthService {
         private authzService: AuthZService
     ) {}
 
-    async validateUser(apiKey: string): Promise<UserAccount> {
-        const user = this.usersService.findOne(apiKey);
-
-        if (user) {
-            return user;
-        }
-
-        throw new UnauthorizedException('Invalid API key');
-    }
-
-    async validateCookies(cookies: object): Promise<UserAccount> {
-        if (await this.cookieService.hasValidAuthCookie(cookies)) {
-            return this.usersService.getSessionUser();
-        }
-
-        throw new UnauthorizedException('No user session found');
-    }
-
     /**------------------------------------------------------------------------
      *                      AuthZService based methods
      *------------------------------------------------------------------------**/
@@ -62,7 +44,7 @@ export class AuthService {
                 id: apiKeyEntity.id,
                 name: apiKeyEntity.name,
                 description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
-                roles: apiKeyEntity.roles ? apiKeyEntity.roles.join(',') : '',
+                roles: apiKeyEntity.roles,
             };
         } catch (error: unknown) {
             this.logger.error('Failed to validate API key with Casbin', error);

@@ -35,6 +35,14 @@ export class ApiKeyService {
         description: string | undefined,
         roles: string[]
     ): Promise<ApiKeyWithSecret> {
+        if (!name?.trim()) {
+            throw new GraphQLError('API key name is required');
+        }
+
+        if (!roles?.length) {
+            throw new GraphQLError('At least one role must be specified');
+        }
+
         const apiKey: ApiKeyWithSecret = {
             id: uuidv4(),
             key: this.generateApiKey(),
@@ -94,7 +102,7 @@ export class ApiKeyService {
         }
     }
 
-    async findByKey(key: string): Promise<ApiKey | null> {
+    async findByKey(key: string): Promise<ApiKeyWithSecret | null> {
         try {
             const { basePath } = await this.paths();
             const files = await readdir(basePath);
@@ -103,7 +111,7 @@ export class ApiKeyService {
                 if (file.endsWith('.json')) {
                     try {
                         const content = await readFile(join(basePath, file), 'utf8');
-                        const apiKey = JSON.parse(content) as ApiKey;
+                        const apiKey = JSON.parse(content) as ApiKeyWithSecret;
 
                         if (apiKey.key === key) {
                             return apiKey;
@@ -129,6 +137,7 @@ export class ApiKeyService {
     public async saveApiKey(apiKey: ApiKey | ApiKeyWithSecret): Promise<void> {
         try {
             const { keyFile } = await this.paths();
+
             await writeFile(keyFile(apiKey.id), JSON.stringify(apiKey, null, 2));
         } catch (error: unknown) {
             if (error instanceof Error) {

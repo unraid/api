@@ -2,7 +2,7 @@ interface UserAccount {
     id: ID!
     name: String!
     description: String!
-    roles: String!
+    roles: [String!]!
 }
 
 input usersInput {
@@ -10,9 +10,13 @@ input usersInput {
 }
 
 type Query {
-    """User account"""
+    """
+    User account
+    """
     user(id: ID!): User
-    """User accounts"""
+    """
+    User accounts
+    """
     users(input: usersInput): [User!]!
 }
 
@@ -27,9 +31,13 @@ input deleteUserInput {
 }
 
 type Mutation {
-    """Add a new user"""
+    """
+    Add a new user
+    """
     addUser(input: addUserInput!): User
-    """Delete a user"""
+    """
+    Delete a user
+    """
     deleteUser(input: deleteUserInput!): User
 }
 
@@ -38,13 +46,19 @@ type Subscription {
     users: [User]!
 }
 
-"""A local user account"""
+"""
+A local user account
+"""
 type User implements UserAccount {
     id: ID!
-    """A unique name for the user"""
+    """
+    A unique name for the user
+    """
     name: String!
     description: String!
-    roles: String!
-    """If the account has a password set"""
+    roles: [String!]!
+    """
+    If the account has a password set
+    """
     password: Boolean
 }

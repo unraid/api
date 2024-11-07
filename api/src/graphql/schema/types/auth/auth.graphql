@@ -8,7 +8,7 @@ type ApiKey {
 }
 
 type ApiKeyWithSecret {
-    id: ID!
+    id: String!
     key: String!
     name: String!
     description: String

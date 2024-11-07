@@ -18,13 +18,10 @@ describe('AuthService', () => {
     const mockApiKey: ApiKey = {
         __typename: 'ApiKey',
         id: '10f356da-1e9e-43b8-9028-a26a645539a6',
-        key: '73717ca0-8c15-40b9-bcca-8d85656d1438',
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: ['guest', 'upc'],
         createdAt: new Date().toISOString(),
-        expiresAt: 0,
-        scopes: {},
         lastUsed: null,
     };
 
@@ -32,7 +29,7 @@ describe('AuthService', () => {
         id: '-1',
         description: 'Test User',
         name: 'test_user',
-        roles: 'guest,admin',
+        roles: ['guest', 'upc'],
     };
 
     beforeEach(async () => {
@@ -47,39 +44,6 @@ describe('AuthService', () => {
 
     afterEach(() => {
         vi.clearAllMocks();
-    });
-
-    describe('validateUser', () => {
-        it('should validate a valid user', async () => {
-            vi.spyOn(usersService, 'findOne').mockReturnValue(mockUser);
-
-            const result = await authService.validateUser('valid-key');
-
-            expect(result).toEqual(mockUser);
-        });
-
-        it('should throw UnauthorizedException for invalid user', async () => {
-            vi.spyOn(usersService, 'findOne').mockReturnValue(null);
-
-            await expect(authService.validateUser('invalid-key')).rejects.toThrow(UnauthorizedException);
-        });
-    });
-
-    describe('validateCookies', () => {
-        it('should validate valid cookies', async () => {
-            vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
-            vi.spyOn(usersService, 'getSessionUser').mockReturnValue(mockUser);
-
-            const result = await authService.validateCookies({});
-
-            expect(result).toEqual(mockUser);
-        });
-
-        it('should throw UnauthorizedException for invalid cookies', async () => {
-            vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(false);
-
-            await expect(authService.validateCookies({})).rejects.toThrow(UnauthorizedException);
-        });
     });
 
     describe('validateCookiesCasbin', () => {

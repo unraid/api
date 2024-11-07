@@ -1,7 +1,8 @@
-import { type ApiKey } from '@app/graphql/generated/api/types';
+import { type ApiKey, type ApiKeyWithSecret } from '@app/graphql/generated/api/types';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
 import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
+import crypto from 'crypto';
 
 import { ApiKeyService } from './api-key.service';
 import { getters } from '@app/store';
@@ -20,15 +21,21 @@ describe('ApiKeyService', () => {
     const mockBasePath = '/mock/path/to/keys';
 
     const mockApiKey: ApiKey = {
-        __typename: 'ApiKey',
-        id: '10f356da-1e9e-43b8-9028-a26a645539a6',
-        key: '73717ca0-8c15-40b9-bcca-8d85656d1438',
+        id: 'test-api-id',
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: ['guest'],
         createdAt: new Date().toISOString(),
-        expiresAt: 0,
-        scopes: {},
+        lastUsed: null,
+    };
+
+    const mockApiKeyWithSecret: ApiKeyWithSecret = {
+        id: 'test-api-id',
+        key: 'test-api-key',
+        name: 'Test API Key',
+        description: 'Test API Key Description',
+        roles: ['guest'],
+        createdAt: new Date().toISOString(),
         lastUsed: null,
     };
 
@@ -45,6 +52,11 @@ describe('ApiKeyService', () => {
         vi.mocked(mkdir).mockResolvedValue(undefined);
 
         apiKeyService = new ApiKeyService();
+
+        vi.spyOn(apiKeyService as any, 'generateApiKey').mockReturnValue('test-api-key');
+        vi.mock('uuid', () => ({
+            v4: () => 'test-api-id',
+        }));
     });
 
     afterEach(() => {
@@ -73,16 +85,23 @@ describe('ApiKeyService', () => {
     });
 
     describe('create', () => {
-        it('should create and save a new API key', async () => {
+        it('should create ApiKeyWithSecret with generated key', async () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            const result = await apiKeyService.create('Test Key', 'Test Description', ['guest']);
+            const { key, id, name, description, roles } = mockApiKeyWithSecret;
+
+            const result = await apiKeyService.create(name, description ?? '', roles);
 
             expect(result).toMatchObject({
-                name: 'Test Key',
-                description: 'Test Description',
-                roles: ['guest'],
+                id,
+                key,
+                name,
+                description,
+                roles,
+                createdAt: expect.any(String),
+                lastUsed: null,
             });
-            expect(saveSpy).toHaveBeenCalled();
+
+            expect(saveSpy).toHaveBeenCalledWith(result);
         });
     });
 
