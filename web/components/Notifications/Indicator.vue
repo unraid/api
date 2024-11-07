@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { useQuery } from "@vue/apollo-composable";
-import {
-  NOTIFICATION_COUNT_FRAGMENT,
-  unreadOverview,
-} from "./graphql/notification.query";
-import { useFragment } from "~/composables/gql";
+import { unreadOverview } from "./graphql/notification.query";
 import { Importance } from "~/composables/gql/graphql";
 import {
   BellIcon,
@@ -12,7 +8,6 @@ import {
   ShieldExclamationIcon,
 } from "@heroicons/vue/24/solid";
 import { cn } from "../shadcn/utils";
-// const { result } = useSubscription(unreadsSubscription);
 
 const { result } = useQuery(unreadOverview, null, {
   pollInterval: 1_000, // 1 second
@@ -20,14 +15,12 @@ const { result } = useQuery(unreadOverview, null, {
 
 const overview = computed(() => {
   if (!result.value) {
-    // console.log("no overview:", result.value);
     return;
   }
-  // console.log("overview", result.value);
   return result.value.notifications.overview.unread;
 });
 
-const indicatorState = computed(() => {
+const indicatorLevel = computed(() => {
   if (!overview.value) {
     return undefined;
   }
@@ -44,7 +37,7 @@ const indicatorState = computed(() => {
 });
 
 const icon = computed<{ component: Component; color: string } | null>(() => {
-  switch (indicatorState.value) {
+  switch (indicatorLevel.value) {
     case Importance.Warning:
       return {
         component: ExclamationTriangleIcon,
@@ -65,17 +58,17 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
     <div class="relative">
       <BellIcon class="w-6 h-6" />
       <div
-        v-if="indicatorState"
+        v-if="indicatorLevel"
         :class="
           cn('absolute top-0 right-0 size-2.5 rounded-full', {
-            'bg-unraid-red': indicatorState === Importance.Alert,
-            'bg-yellow-500': indicatorState === Importance.Warning,
-            'bg-green-500': indicatorState === 'UNREAD',
+            'bg-unraid-red': indicatorLevel === Importance.Alert,
+            'bg-yellow-500': indicatorLevel === Importance.Warning,
+            'bg-green-500': indicatorLevel === 'UNREAD',
           })
         "
       />
       <div
-        v-if="indicatorState === Importance.Alert"
+        v-if="indicatorLevel === Importance.Alert"
         class="absolute top-0 right-0 size-2.5 rounded-full bg-unraid-red animate-ping"
       />
     </div>
