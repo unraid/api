@@ -62,7 +62,7 @@
     "btoa": "^1.2.1",
     "bycontract": "^2.0.11",
     "bytes": "^3.1.2",
-    "cacheable-lookup": "^6.1.0",
+    "cacheable-lookup": "^7.0.0",
     "camelcase-keys": "^9.1.3",
     "catch-exit": "^1.2.2",
     "chokidar": "^3.6.0",
