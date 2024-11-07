@@ -66,7 +66,7 @@ export type ApiKey = {
   id: Scalars['String']['output'];
   lastUsed?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
-  roles: Array<Scalars['String']['output']>;
+  roles: Array<Role>;
 };
 
 export type ApiKeyResponse = {
@@ -83,7 +83,7 @@ export type ApiKeyWithSecret = {
   key: Scalars['String']['output'];
   lastUsed?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
-  roles: Array<Scalars['String']['output']>;
+  roles: Array<Role>;
 };
 
 export type ArrayType = Node & {
@@ -349,7 +349,7 @@ export enum ContainerState {
 export type CreateApiKeyInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
-  roles: Array<Scalars['String']['input']>;
+  roles: Array<Role>;
 };
 
 export type Devices = {
@@ -1184,6 +1184,15 @@ export type RemoveRoleFromApiKeyInput = {
   role: Scalars['String']['input'];
 };
 
+/** Available roles for API keys and users */
+export enum Role {
+  ADMIN = 'ADMIN',
+  GUEST = 'GUEST',
+  MY_SERVERS = 'MY_SERVERS',
+  NOTIFIER = 'NOTIFIER',
+  UPC = 'UPC'
+}
+
 export type Server = {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
@@ -1855,6 +1864,7 @@ export type ResolversTypes = ResolversObject<{
   RelayResponse: ResolverTypeWrapper<RelayResponse>;
   RemoteAccess: ResolverTypeWrapper<RemoteAccess>;
   RemoveRoleFromApiKeyInput: RemoveRoleFromApiKeyInput;
+  Role: Role;
   Server: ResolverTypeWrapper<Server>;
   ServerStatus: ServerStatus;
   Service: ResolverTypeWrapper<Service>;
@@ -2003,7 +2013,7 @@ export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversP
   id?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   lastUsed?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  roles?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2020,7 +2030,7 @@ export type ApiKeyWithSecretResolvers<ContextType = Context, ParentType extends 
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   lastUsed?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  roles?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 

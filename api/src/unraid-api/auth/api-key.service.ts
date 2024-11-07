@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
 import crypto from 'crypto';
 
-import { ApiKeyWithSecret, type ApiKey } from '@app/graphql/generated/api/types';
+import { ApiKeyWithSecret, type ApiKey, Role } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
 @Injectable()
@@ -33,7 +33,7 @@ export class ApiKeyService {
     async create(
         name: string,
         description: string | undefined,
-        roles: string[]
+        roles: Role[]
     ): Promise<ApiKeyWithSecret> {
         if (!name?.trim()) {
             throw new GraphQLError('API key name is required');
@@ -41,6 +41,12 @@ export class ApiKeyService {
 
         if (!roles?.length) {
             throw new GraphQLError('At least one role must be specified');
+        }
+
+        const validRoles = Object.values(Role).map((role) => role.toLowerCase());
+
+        if (roles.some((role) => !validRoles.includes(role))) {
+            throw new GraphQLError('Invalid role specified');
         }
 
         const apiKey: ApiKeyWithSecret = {
@@ -59,31 +65,28 @@ export class ApiKeyService {
     }
 
     async findAll(): Promise<ApiKey[]> {
-        const { basePath } = await this.paths();
-        let files: string[];
-
         try {
-            files = await readdir(basePath);
+            const { basePath } = await this.paths();
+            const files = await readdir(basePath);
+            const apiKeys: ApiKey[] = [];
+
+            for (const file of files) {
+                if (file.endsWith('.json')) {
+                    try {
+                        const content = await readFile(join(basePath, file), 'utf8');
+
+                        apiKeys.push(JSON.parse(content) as ApiKey);
+                    } catch (error) {
+                        this.logger.warn(`Error reading API key file ${file}: ${error}`);
+                    }
+                }
+            }
+
+            return apiKeys;
         } catch (error) {
             this.logger.error(`Failed to read API key directory: ${error}`);
             throw new GraphQLError('Failed to list API keys');
         }
-
-        const apiKeys: ApiKey[] = [];
-
-        for (const file of files) {
-            if (file.endsWith('.json')) {
-                try {
-                    const content = await readFile(join(basePath, file), 'utf8');
-
-                    apiKeys.push(JSON.parse(content) as ApiKey);
-                } catch (error) {
-                    this.logger.warn(`Error reading API key file ${file}: ${error}`);
-                }
-            }
-        }
-
-        return apiKeys;
     }
 
     async findById(id: string): Promise<ApiKey | null> {

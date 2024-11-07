@@ -1,11 +1,10 @@
-import { type ApiKey, type ApiKeyWithSecret } from '@app/graphql/generated/api/types';
+import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { join } from 'path';
-import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
-import crypto from 'crypto';
 
 import { ApiKeyService } from './api-key.service';
 import { getters } from '@app/store';
+import { Role, type ApiKey, type ApiKeyWithSecret } from '@app/graphql/generated/api/types';
 
 vi.mock('fs/promises', async () => ({
     access: vi.fn(),
@@ -24,7 +23,7 @@ describe('ApiKeyService', () => {
         id: 'test-api-id',
         name: 'Test API Key',
         description: 'Test API Key Description',
-        roles: ['guest'],
+        roles: ['guest' as Role],
         createdAt: new Date().toISOString(),
         lastUsed: null,
     };
@@ -34,7 +33,7 @@ describe('ApiKeyService', () => {
         key: 'test-api-key',
         name: 'Test API Key',
         description: 'Test API Key Description',
-        roles: ['guest'],
+        roles: ['guest' as Role],
         createdAt: new Date().toISOString(),
         lastUsed: null,
     };
@@ -103,6 +102,24 @@ describe('ApiKeyService', () => {
 
             expect(saveSpy).toHaveBeenCalledWith(result);
         });
+
+        it('should validate input parameters', async () => {
+            const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey');
+
+            await expect(apiKeyService.create('', 'desc', [Role.GUEST])).rejects.toThrow(
+                'API key name is required'
+            );
+
+            await expect(apiKeyService.create('name', 'desc', [])).rejects.toThrow(
+                'At least one role must be specified'
+            );
+
+            await expect(apiKeyService.create('name', 'desc', ['invalid_role' as Role])).rejects.toThrow(
+                'Invalid role specified'
+            );
+
+            expect(saveSpy).not.toHaveBeenCalled();
+        });
     });
 
     describe('findAll', () => {
@@ -158,20 +175,24 @@ describe('ApiKeyService', () => {
         it('should return API key by key value when multiple keys exist', async () => {
             vi.mocked(readdir).mockResolvedValue(['key1.json', 'key2.json'] as any);
             vi.mocked(readFile)
-                .mockResolvedValueOnce(JSON.stringify({ ...mockApiKey, key: 'different-key' }))
-                .mockResolvedValueOnce(JSON.stringify(mockApiKey));
+                .mockResolvedValueOnce(JSON.stringify({ ...mockApiKeyWithSecret, key: 'different-key' }))
+                .mockResolvedValueOnce(JSON.stringify(mockApiKeyWithSecret));
 
-            const result = await apiKeyService.findByKey(mockApiKey.key);
+            const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
 
-            expect(result).toEqual(mockApiKey);
+            expect(result).toEqual(mockApiKeyWithSecret);
             expect(readFile).toHaveBeenCalledTimes(2);
         });
 
         it('should return null if key not found in any file', async () => {
             vi.mocked(readdir).mockResolvedValue(['key1.json', 'key2.json'] as any);
             vi.mocked(readFile)
-                .mockResolvedValueOnce(JSON.stringify({ ...mockApiKey, key: 'different-key-1' }))
-                .mockResolvedValueOnce(JSON.stringify({ ...mockApiKey, key: 'different-key-2' }));
+                .mockResolvedValueOnce(
+                    JSON.stringify({ ...mockApiKeyWithSecret, key: 'different-key-1' })
+                )
+                .mockResolvedValueOnce(
+                    JSON.stringify({ ...mockApiKeyWithSecret, key: 'different-key-2' })
+                );
 
             const result = await apiKeyService.findByKey('non-existent-key');
 
@@ -183,18 +204,18 @@ describe('ApiKeyService', () => {
             vi.mocked(readdir).mockResolvedValue(['key1.json', 'key2.json'] as any);
             vi.mocked(readFile)
                 .mockRejectedValueOnce(new Error('Read error'))
-                .mockResolvedValueOnce(JSON.stringify(mockApiKey));
+                .mockResolvedValueOnce(JSON.stringify(mockApiKeyWithSecret));
 
-            const result = await apiKeyService.findByKey(mockApiKey.key);
+            const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
 
-            expect(result).toEqual(mockApiKey);
+            expect(result).toEqual(mockApiKeyWithSecret);
             expect(readFile).toHaveBeenCalledTimes(2);
         });
 
         it('should return null if directory read fails', async () => {
             vi.mocked(readdir).mockRejectedValue(new Error('Directory read error'));
 
-            const result = await apiKeyService.findByKey(mockApiKey.key);
+            const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
 
             expect(result).toBeNull();
         });

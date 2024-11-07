@@ -1,8 +1,19 @@
+"""
+Available roles for API keys and users
+"""
+enum Role {
+    ADMIN
+    UPC
+    MY_SERVERS
+    NOTIFIER
+    GUEST
+}
+
 type ApiKey {
     id: String!
     name: String!
     description: String
-    roles: [String!]!
+    roles: [Role!]!
     createdAt: DateTime!
     lastUsed: DateTime
 }
@@ -12,7 +23,7 @@ type ApiKeyWithSecret {
     key: String!
     name: String!
     description: String
-    roles: [String!]!
+    roles: [Role!]!
     createdAt: DateTime!
     lastUsed: DateTime
 }
@@ -20,7 +31,7 @@ type ApiKeyWithSecret {
 input CreateApiKeyInput {
     name: String!
     description: String
-    roles: [String!]!
+    roles: [Role!]!
 }
 
 input AddPermissionInput {
