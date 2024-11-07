@@ -154,7 +154,9 @@ describe('ApiKeyService', () => {
         });
 
         it('should return null if API key not found (ENOENT error)', async () => {
-            const error = new Error('ENOENT');
+            const error = new Error('ENOENT') as NodeJS.ErrnoException;
+
+            error.code = 'ENOENT';
             vi.mocked(readFile).mockRejectedValue(error);
 
             const result = await apiKeyService.findById('non-existent-id');
@@ -216,6 +218,54 @@ describe('ApiKeyService', () => {
             vi.mocked(readdir).mockRejectedValue(new Error('Directory read error'));
 
             const result = await apiKeyService.findByKey(mockApiKeyWithSecret.key);
+
+            expect(result).toBeNull();
+        });
+    });
+
+    describe('findOneByKey', () => {
+        it('should return UserAccount when API key exists', async () => {
+            const findByKeySpy = vi
+                .spyOn(apiKeyService, 'findByKey')
+                .mockResolvedValue(mockApiKeyWithSecret);
+
+            const result = await apiKeyService.findOneByKey('test-api-key');
+
+            expect(result).toEqual({
+                id: mockApiKeyWithSecret.id,
+                name: mockApiKeyWithSecret.name,
+                description: mockApiKeyWithSecret.description,
+                roles: mockApiKeyWithSecret.roles,
+            });
+            expect(findByKeySpy).toHaveBeenCalledWith('test-api-key');
+        });
+
+        it('should use default description when none provided', async () => {
+            const keyWithoutDesc = { ...mockApiKeyWithSecret, description: null };
+            vi.spyOn(apiKeyService, 'findByKey').mockResolvedValue(keyWithoutDesc);
+
+            const result = await apiKeyService.findOneByKey('test-api-key');
+
+            expect(result).toEqual({
+                id: keyWithoutDesc.id,
+                name: keyWithoutDesc.name,
+                description: `API Key ${keyWithoutDesc.name}`,
+                roles: keyWithoutDesc.roles,
+            });
+        });
+
+        it('should return null when API key not found', async () => {
+            vi.spyOn(apiKeyService, 'findByKey').mockResolvedValue(null);
+
+            const result = await apiKeyService.findOneByKey('non-existent-key');
+
+            expect(result).toBeNull();
+        });
+
+        it('should return null when error occurs', async () => {
+            vi.spyOn(apiKeyService, 'findByKey').mockRejectedValue(new Error('Test error'));
+
+            const result = await apiKeyService.findOneByKey('test-api-key');
 
             expect(result).toBeNull();
         });

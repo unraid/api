@@ -15,6 +15,7 @@ import {
     type ApiKeyWithSecret,
     type CreateApiKeyInput,
     type RemoveRoleFromApiKeyInput,
+    Role,
 } from '@app/graphql/generated/api/types';
 
 @Resolver('Auth')
@@ -73,7 +74,7 @@ export class AuthResolver {
         input: AddPermissionInput
     ): Promise<boolean> {
         try {
-            await this.authService.addPermission(input.role, input.resource, input.action);
+            await this.authService.addPermission(Role[input.role], input.resource, input.action);
 
             return true;
         } catch (error) {
@@ -90,7 +91,7 @@ export class AuthResolver {
         @Args('input')
         input: AddRoleForUserInput
     ): Promise<boolean> {
-        return this.authService.addRoleToUser(input.userId, input.role);
+        return this.authService.addRoleToUser(input.userId, Role[input.role]);
     }
 
     @Mutation()
@@ -102,7 +103,7 @@ export class AuthResolver {
         @Args('input')
         input: AddRoleForApiKeyInput
     ): Promise<boolean> {
-        return this.authService.addRoleToApiKey(input.apiKeyId, input.role);
+        return this.authService.addRoleToApiKey(input.apiKeyId, Role[input.role]);
     }
 
     @Mutation()
@@ -114,6 +115,6 @@ export class AuthResolver {
         @Args('input')
         input: RemoveRoleFromApiKeyInput
     ): Promise<boolean> {
-        return this.authService.removeRoleFromApiKey(input.apiKeyId, input.role);
+        return this.authService.removeRoleFromApiKey(input.apiKeyId, Role[input.role]);
     }
 }

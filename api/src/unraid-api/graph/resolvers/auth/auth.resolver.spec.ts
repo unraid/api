@@ -1,44 +1,48 @@
 import { AuthZService } from 'nest-authz';
-import { type ApiKey } from '@app/graphql/generated/api/types';
-import { describe, it, expect, vi, beforeAll } from 'vitest';
+import { ApiKeyWithSecret, Role, type ApiKey } from '@app/graphql/generated/api/types';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { newEnforcer } from 'casbin';
 
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { AuthResolver } from './auth.resolver';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { CookieService } from '@app/unraid-api/auth/cookie.service';
-import { UsersService } from '@app/unraid-api/users/users.service';
 
 describe('AuthResolver', () => {
     let resolver: AuthResolver;
     let authService: AuthService;
     let apiKeyService: ApiKeyService;
     let authzService: AuthZService;
-    let usersService: UsersService;
     let cookieService: CookieService;
 
     const mockApiKey: ApiKey = {
-        __typename: 'ApiKey',
-        id: '10f356da-1e9e-43b8-9028-a26a645539a6',
-        key: '73717ca0-8c15-40b9-bcca-8d85656d1438',
+        id: 'test-api-id',
         name: 'Test API Key',
         description: 'Test API Key Description',
-        roles: ['guest', 'upc'],
+        roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
-        expiresAt: 0,
-        scopes: {},
         lastUsed: null,
     };
 
-    beforeAll(async () => {
+    const mockApiKeyWithSecret: ApiKeyWithSecret = {
+        id: 'test-api-id',
+        key: 'test-api-key',
+        name: 'Test API Key',
+        description: 'Test API Key Description',
+        roles: [Role.GUEST],
+        createdAt: new Date().toISOString(),
+        lastUsed: null,
+    };
+
+    beforeEach(async () => {
+        vi.resetAllMocks();
+
         const enforcer = await newEnforcer();
 
         apiKeyService = new ApiKeyService();
         authzService = new AuthZService(enforcer);
-        usersService = new UsersService(apiKeyService);
         cookieService = new CookieService();
-        authService = new AuthService(usersService, cookieService, apiKeyService, authzService);
-
+        authService = new AuthService(cookieService, apiKeyService, authzService);
         resolver = new AuthResolver(authService, apiKeyService);
     });
 
@@ -79,15 +83,15 @@ describe('AuthResolver', () => {
             const input = {
                 name: 'New API Key',
                 description: 'New API Key Description',
-                roles: ['guest'],
+                roles: [Role.GUEST],
             };
 
-            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKey);
+            vi.spyOn(apiKeyService, 'create').mockResolvedValue(mockApiKeyWithSecret);
             vi.spyOn(authService, 'syncApiKeyRoles').mockResolvedValue();
 
             const result = await resolver.createApiKey(input);
 
-            expect(result).toEqual(mockApiKey);
+            expect(result).toEqual(mockApiKeyWithSecret);
             expect(apiKeyService.create).toHaveBeenCalledWith(
                 input.name,
                 input.description,
@@ -100,7 +104,7 @@ describe('AuthResolver', () => {
     describe('addPermission', () => {
         it('should add permission', async () => {
             const input = {
-                role: 'admin',
+                role: Role.ADMIN,
                 resource: 'apikey',
                 action: 'read',
             };
@@ -111,7 +115,7 @@ describe('AuthResolver', () => {
 
             expect(result).toBe(true);
             expect(authService.addPermission).toHaveBeenCalledWith(
-                input.role,
+                Role[input.role],
                 input.resource,
                 input.action
             );
@@ -122,7 +126,7 @@ describe('AuthResolver', () => {
         it('should add role to user', async () => {
             const input = {
                 userId: 'user-1',
-                role: 'admin',
+                role: Role.ADMIN,
             };
 
             vi.spyOn(authService, 'addRoleToUser').mockResolvedValue(true);
@@ -130,7 +134,7 @@ describe('AuthResolver', () => {
             const result = await resolver.addRoleForUser(input);
 
             expect(result).toBe(true);
-            expect(authService.addRoleToUser).toHaveBeenCalledWith(input.userId, input.role);
+            expect(authService.addRoleToUser).toHaveBeenCalledWith(input.userId, Role[input.role]);
         });
     });
 
@@ -138,7 +142,7 @@ describe('AuthResolver', () => {
         it('should add role to API key', async () => {
             const input = {
                 apiKeyId: mockApiKey.id,
-                role: 'admin',
+                role: Role.ADMIN,
             };
 
             vi.spyOn(authService, 'addRoleToApiKey').mockResolvedValue(true);
@@ -146,7 +150,7 @@ describe('AuthResolver', () => {
             const result = await resolver.addRoleForApiKey(input);
 
             expect(result).toBe(true);
-            expect(authService.addRoleToApiKey).toHaveBeenCalledWith(input.apiKeyId, input.role);
+            expect(authService.addRoleToApiKey).toHaveBeenCalledWith(input.apiKeyId, Role[input.role]);
         });
     });
 
@@ -154,7 +158,7 @@ describe('AuthResolver', () => {
         it('should remove role from API key', async () => {
             const input = {
                 apiKeyId: mockApiKey.id,
-                role: 'admin',
+                role: Role.ADMIN,
             };
 
             vi.spyOn(authService, 'removeRoleFromApiKey').mockResolvedValue(true);
@@ -162,7 +166,10 @@ describe('AuthResolver', () => {
             const result = await resolver.removeRoleFromApiKey(input);
 
             expect(result).toBe(true);
-            expect(authService.removeRoleFromApiKey).toHaveBeenCalledWith(input.apiKeyId, input.role);
+            expect(authService.removeRoleFromApiKey).toHaveBeenCalledWith(
+                input.apiKeyId,
+                Role[input.role]
+            );
         });
     });
 });

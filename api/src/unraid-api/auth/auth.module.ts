@@ -9,11 +9,9 @@ import { CASBIN_MODEL, BASE_POLICY } from './casbin';
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
 import { ServerHeaderStrategy } from './header.strategy';
 import { UserCookieStrategy } from './cookie.strategy';
-import { UsersModule } from '../users/users.module';
 
 @Module({
     imports: [
-        UsersModule,
         PassportModule.register({
             defaultStrategy: [ServerHeaderStrategy.key, UserCookieStrategy.key],
         }),

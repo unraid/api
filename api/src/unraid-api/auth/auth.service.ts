@@ -1,17 +1,15 @@
-import { type UserAccount } from '@app/graphql/generated/api/types';
+import { Role, type UserAccount } from '@app/graphql/generated/api/types';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 
 import { ApiKeyService } from './api-key.service';
 import { AuthZService } from 'nest-authz';
 import { CookieService } from './cookie.service';
-import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
 
     constructor(
-        private usersService: UsersService,
         private cookieService: CookieService,
         private apiKeyService: ApiKeyService,
         private authzService: AuthZService
@@ -65,7 +63,7 @@ export class AuthService {
                 throw new UnauthorizedException('No user session found');
             }
 
-            const user = this.usersService.getSessionUser();
+            const user = this.getSessionUser();
 
             if (!user) {
                 throw new UnauthorizedException('Invalid user session');
@@ -108,7 +106,7 @@ export class AuthService {
         }
     }
 
-    public async addPermission(role: string, resource: string, action: string): Promise<boolean> {
+    public async addPermission(role: Role, resource: string, action: string): Promise<boolean> {
         if (!role || !resource || !action) {
             throw new Error('Role, resource, and action are required');
         }
@@ -134,7 +132,7 @@ export class AuthService {
         }
     }
 
-    public async addRoleToUser(userId: string, role: string): Promise<boolean> {
+    public async addRoleToUser(userId: string, role: Role): Promise<boolean> {
         if (!userId || !role) {
             throw new Error('User ID and role are required');
         }
@@ -155,7 +153,7 @@ export class AuthService {
         }
     }
 
-    public async addRoleToApiKey(apiKeyId: string, role: string): Promise<boolean> {
+    public async addRoleToApiKey(apiKeyId: string, role: Role): Promise<boolean> {
         if (!apiKeyId || !role) {
             throw new Error('API key ID and role are required');
         }
@@ -182,7 +180,7 @@ export class AuthService {
         }
     }
 
-    public async removeRoleFromApiKey(apiKeyId: string, role: string): Promise<boolean> {
+    public async removeRoleFromApiKey(apiKeyId: string, role: Role): Promise<boolean> {
         if (!apiKeyId || !role) {
             throw new Error('API key ID and role are required');
         }
@@ -221,5 +219,20 @@ export class AuthService {
                 `Failed to ensure user roles: ${error instanceof Error ? error.message : String(error)}`
             );
         }
+    }
+
+    /**
+     * Returns a user object representing a session.
+     * Note: Does NOT perform validation.
+     *
+     * @returns a service account that represents the user session (i.e. a webgui user).
+     */
+    getSessionUser(): UserAccount {
+        return {
+            id: '-1',
+            description: 'UPC service account',
+            name: 'upc',
+            roles: [Role.UPC],
+        };
     }
 }

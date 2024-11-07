@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
 import crypto from 'crypto';
 
-import { ApiKeyWithSecret, type ApiKey, Role } from '@app/graphql/generated/api/types';
+import { ApiKeyWithSecret, type ApiKey, Role, UserAccount } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
 @Injectable()
@@ -100,7 +100,9 @@ export class ApiKeyService {
                 return null;
             } else {
                 this.logger.error(`Error reading API key file for ID ${id}: ${error}`);
-                throw new GraphQLError(`Failed to read API key: ${error instanceof Error ? error.message : String(error)}`);
+                throw new GraphQLError(
+                    `Failed to read API key: ${error instanceof Error ? error.message : String(error)}`
+                );
             }
         }
     }
@@ -133,6 +135,24 @@ export class ApiKeyService {
             return null;
         } catch (error) {
             this.logger.error(`Error reading API key directory: ${error}`);
+            return null;
+        }
+    }
+
+    async findOneByKey(apiKey: string): Promise<UserAccount | null> {
+        try {
+            const key = await this.findByKey(apiKey);
+
+            if (!key) return null;
+
+            return {
+                id: key.id,
+                description: key.description ?? `API Key ${key.name}`,
+                name: key.name,
+                roles: key.roles,
+            };
+        } catch (error) {
+            this.logger.error(`Error finding user by key: ${error}`);
             return null;
         }
     }
