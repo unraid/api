@@ -54,7 +54,7 @@ describe('AuthService', () => {
     describe('validateCookiesCasbin', () => {
         it('should validate cookies and ensure user roles', async () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
-            vi.spyOn(authService, 'getSessionUser').mockReturnValue(mockUser);
+            vi.spyOn(authService, 'getSessionUser').mockResolvedValue(mockUser);
             vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([Role.ADMIN]);
 
             const result = await authService.validateCookiesCasbin({});
