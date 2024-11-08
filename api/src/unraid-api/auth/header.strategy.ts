@@ -8,10 +8,10 @@ import { User } from '@app/graphql/generated/api/types';
 
 @Injectable()
 export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
+    static key = 'server-http-header';
     private readonly logger = new Logger(ServerHeaderStrategy.name);
-    static readonly key = 'server-http-header';
-    
-    constructor(private authService: AuthService) {
+
+    constructor(private readonly authService: AuthService) {
         super({
             header: 'x-api-key',
             passReqToCallback: false,
@@ -34,7 +34,11 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
         try {
             return this.authService.validateApiKeyCasbin(apiKey);
         } catch (error) {
-            this.logger.error('API key validation failed', error);
+            this.logger.error('API key validation failed', {
+                error: 'Authorization failed',
+                timestamp: new Date().toISOString(),
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+            });
             return null;
         }
     }
