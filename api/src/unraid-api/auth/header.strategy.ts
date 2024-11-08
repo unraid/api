@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Request } from 'express';
-import { Strategy } from 'passport-custom';
+import { Strategy } from 'passport-http-header-strategy';
 
 import { AuthService } from './auth.service';
 import { User } from '@app/graphql/generated/api/types';
@@ -13,14 +12,14 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
     static readonly key = 'server-http-header';
     
     constructor(private authService: AuthService) {
-        super();
+        super({
+            header: 'x-api-key',
+            passReqToCallback: false,
+        });
     }
 
-    async validate(request: Request): Promise<User | null> {
+    async validate(apiKey: string): Promise<User | null> {
         this.logger.debug('Validating API key');
-        const apiKey = (request.headers?.['x-api-key'] || request.headers?.['X-API-KEY']) as
-            | string
-            | undefined;
 
         if (!apiKey) {
             this.logger.debug('No API key provided');
