@@ -4,9 +4,6 @@ import { UseGuards } from '@nestjs/common';
 import { UsePermissions } from 'nest-authz';
 import { ThrottlerGuard } from '@nestjs/throttler';
 
-import { AuthService } from '@app/unraid-api/auth/auth.service';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import {
     type AddPermissionInput,
     type AddRoleForApiKeyInput,
@@ -15,8 +12,13 @@ import {
     type ApiKeyWithSecret,
     type CreateApiKeyInput,
     type RemoveRoleFromApiKeyInput,
+    Action,
+    Resource,
     Role,
 } from '@app/graphql/generated/api/types';
+import { AuthService } from '@app/unraid-api/auth/auth.service';
+import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 
 @Resolver('Auth')
 @UseGuards(GraphqlAuthGuard, ThrottlerGuard)
@@ -28,8 +30,8 @@ export class AuthResolver {
 
     @Query()
     @UsePermissions({
-        action: 'read',
-        resource: 'apikey',
+        action: Action.READ,
+        resource: Resource.API_KEY,
     })
     async apiKeys(): Promise<ApiKey[]> {
         return this.apiKeyService.findAll();
@@ -37,8 +39,8 @@ export class AuthResolver {
 
     @Query()
     @UsePermissions({
-        action: 'read',
-        resource: 'apikey',
+        action: Action.READ,
+        resource: Resource.API_KEY,
     })
     async apiKey(@Args('id') id: string): Promise<ApiKey | null> {
         return this.apiKeyService.findById(id);
@@ -46,8 +48,8 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: 'create',
-        resource: 'apikey',
+        action: Action.CREATE,
+        resource: Resource.API_KEY,
     })
     async createApiKey(
         @Args('input')
@@ -66,15 +68,19 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: 'create',
-        resource: 'permission',
+        action: Action.CREATE,
+        resource: Resource.PERMISSION,
     })
     async addPermission(
         @Args('input')
         input: AddPermissionInput
     ): Promise<boolean> {
         try {
-            await this.authService.addPermission(Role[input.role], input.resource, input.action);
+            await this.authService.addPermission(
+                Role[input.role],
+                Resource[input.resource],
+                Action[input.action]
+            );
 
             return true;
         } catch (error) {
@@ -84,8 +90,8 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: 'update',
-        resource: 'permission',
+        action: Action.UPDATE,
+        resource: Resource.PERMISSION,
     })
     async addRoleForUser(
         @Args('input')
@@ -96,8 +102,8 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: 'update',
-        resource: 'apikey',
+        action: Action.UPDATE,
+        resource: Resource.API_KEY,
     })
     async addRoleForApiKey(
         @Args('input')
@@ -108,8 +114,8 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: 'update',
-        resource: 'apikey',
+        action: Action.UPDATE,
+        resource: Resource.API_KEY,
     })
     async removeRoleFromApiKey(
         @Args('input')

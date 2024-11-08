@@ -1,4 +1,46 @@
 """
+Available actions for permissions
+"""
+enum Action {
+    CREATE
+    READ
+    UPDATE
+    DELETE
+}
+
+"""
+Available resources for permissions
+"""
+enum Resource {
+    API_KEY
+    CLOUD
+    CONFIG
+    CRASH_REPORTING_ENABLED
+    CUSTOMIZATIONS
+    DISK
+    DISPLAY
+    FLASH
+    INFO
+    LOGS
+    OS
+    OWNER
+    PERMISSION
+    REGISTRATION
+    SERVERS
+    VARS
+    CONNECT
+    NOTIFICATIONS
+    ARRAY
+    DASHBOARD
+    DOCKER
+    NETWORK
+    SERVICES
+    VMS
+    ME
+    WELCOME
+}
+
+"""
 Available roles for API keys and users
 """
 enum Role {
@@ -7,6 +49,14 @@ enum Role {
     MY_SERVERS
     NOTIFIER
     GUEST
+}
+
+"""
+Available possession types for permissions
+"""
+enum Possession {
+    ANY
+    OWN
 }
 
 type ApiKey {
@@ -36,8 +86,9 @@ input CreateApiKeyInput {
 
 input AddPermissionInput {
     role: Role!
-    resource: String!
+    resource: Resource!
     action: String!
+    possession: Possession = ANY
 }
 
 input AddRoleForUserInput {

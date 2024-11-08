@@ -1,66 +1,63 @@
 export const BASE_POLICY = `
 # Admin permissions
-p, admin, *, *, *
+p, ADMIN, *, *, *
 
 # UPC permissions for API keys
-p, upc, apikey, read, any
-p, upc, apikey, list, any
-p, upc, apikey, create, any
-p, upc, apikey, update, any
-p, upc, permission, create, any
+p, UPC, API_KEY, CREATE, ANY
+p, UPC, API_KEY, UPDATE, ANY
 
 # UPC permissions
-p, upc, cloud, read, own
-p, upc, config, read, any
-p, upc, crash-reporting-enabled, read, any
-p, upc, customizations, read, any
-p, upc, disk, read, any
-p, upc, display, read, any
-p, upc, flash, read, any
-p, upc, info, read, any
-p, upc, logs, read, any
-p, upc, os, read, any
-p, upc, owner, read, any
-p, upc, registration, read, any
-p, upc, servers, read, any
-p, upc, vars, read, any
-p, upc, config, update, own
-p, upc, connect, read, own
-p, upc, connect, update, own
-p, upc, notifications, read, any
-p, upc, notifications, update, any
+p, UPC, CLOUD, READ, OWN
+p, UPC, CONFIG, READ, ANY
+p, UPC, crash-reporting-enabled, READ, ANY
+p, UPC, CUSTOMIZATIONS, READ, ANY
+p, UPC, DISK, READ, ANY
+p, UPC, DISPLAY, READ, ANY
+p, UPC, FLASH, READ, ANY
+p, UPC, INFO, READ, ANY
+p, UPC, LOGS, READ, ANY
+p, UPC, OS, READ, ANY
+p, UPC, OWNER, READ, ANY
+p, UPC, REGISTRATION, READ, ANY
+p, UPC, SERVERS, READ, ANY
+p, UPC, VARS, READ, ANY
+p, UPC, CONFIG, UPDATE, OWN
+p, UPC, CONNECT, READ, OWN
+p, UPC, CONNECT, UPDATE, OWN
+p, UPC, NOTIFICATIONS, READ, ANY
+p, UPC, NOTIFICATIONS, UPDATE, ANY
 
 # My Servers permissions
-p, my_servers, array, read, any
-p, my_servers, config, read, any
-p, my_servers, connect, read, any
-p, my_servers, connect/dynamic-remote-access, read, any
-p, my_servers, connect/dynamic-remote-access, update, own
-p, my_servers, customizations, read, any
-p, my_servers, dashboard, read, any
-p, my_servers, display, read, any
-p, my_servers, docker/container, read, any
-p, my_servers, docker, read, any
-p, my_servers, info, read, any
-p, my_servers, logs, read, any
-p, my_servers, network, read, any
-p, my_servers, notifications, read, any
-p, my_servers, services, read, any
-p, my_servers, vars, read, any
-p, my_servers, vms, read, any
-p, my_servers, vms/domain, read, any
-p, my_servers, unraid-version, read, any
+p, MY_SERVERS, ARRAY, READ, ANY
+p, MY_SERVERS, CONFIG, READ, ANY
+p, MY_SERVERS, CONNECT, READ, ANY
+p, MY_SERVERS, connect/dynamic-remote-access, READ, ANY
+p, MY_SERVERS, connect/dynamic-remote-access, UPDATE, OWN
+p, MY_SERVERS, CUSTOMIZATIONS, READ, ANY
+p, MY_SERVERS, DASHBOARD, READ, ANY
+p, MY_SERVERS, DISPLAY, READ, ANY
+p, MY_SERVERS, docker/container, READ, ANY
+p, MY_SERVERS, DOCKER, READ, ANY
+p, MY_SERVERS, INFO, READ, ANY
+p, MY_SERVERS, LOGS, READ, ANY
+p, MY_SERVERS, NETWORK, READ, ANY
+p, MY_SERVERS, NOTIFICATIONS, READ, ANY
+p, MY_SERVERS, SERVICES, READ, ANY
+p, MY_SERVERS, VARS, READ, ANY
+p, MY_SERVERS, VMS, READ, ANY
+p, MY_SERVERS, vms/domain, READ, ANY
+p, MY_SERVERS, unraid-version, READ, ANY
 
 # Notifier permissions
-p, notifier, notifications, create, own
+p, NOTIFIER, NOTIFICATIONS, CREATE, OWN
 
 # Guest permissions
-p, guest, me, read, any
-p, guest, welcome, read, any
+p, GUEST, ME, READ, ANY
+p, GUEST, WELCOME, READ, ANY
 
 # Role inheritance
-g, admin, guest
-g, upc, guest
-g, my_servers, guest
-g, notifier, guest
+g, ADMIN, GUEST
+g, UPC, GUEST
+g, MY_SERVERS, GUEST
+g, NOTIFIER, GUEST
 `;

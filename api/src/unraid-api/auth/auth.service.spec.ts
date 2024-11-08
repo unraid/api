@@ -1,11 +1,19 @@
+import { AuthZService } from 'nest-authz';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { newEnforcer } from 'casbin';
+import { UnauthorizedException } from '@nestjs/common';
+
+import {
+    Action,
+    Possession,
+    Resource,
+    Role,
+    type ApiKey,
+    type UserAccount,
+} from '@app/graphql/generated/api/types';
+import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
 import { CookieService } from './cookie.service';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ApiKeyService } from './api-key.service';
-import { AuthZService } from 'nest-authz';
-import { UnauthorizedException } from '@nestjs/common';
-import { Role, type ApiKey, type UserAccount } from '@app/graphql/generated/api/types';
-import { newEnforcer } from 'casbin';
 
 describe('AuthService', () => {
     let authService: AuthService;
@@ -47,7 +55,7 @@ describe('AuthService', () => {
         it('should validate cookies and ensure user roles', async () => {
             vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
             vi.spyOn(authService, 'getSessionUser').mockReturnValue(mockUser);
-            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue(['admin']);
+            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([Role.ADMIN]);
 
             const result = await authService.validateCookiesCasbin({});
 
@@ -72,9 +80,14 @@ describe('AuthService', () => {
     describe('addPermission', () => {
         it('should add permission successfully', async () => {
             const addPolicySpy = vi.spyOn(authzService, 'addPolicy');
-            const result = await authService.addPermission(Role.ADMIN, 'resource', 'read');
+            const result = await authService.addPermission(Role.ADMIN, Resource.API_KEY, Action.READ);
 
-            expect(addPolicySpy).toHaveBeenCalledWith(Role.ADMIN, 'resource', 'read');
+            expect(addPolicySpy).toHaveBeenCalledWith(
+                Role.ADMIN,
+                Resource.API_KEY,
+                Action.READ,
+                Possession.ANY
+            );
             expect(result).toBe(true);
         });
     });

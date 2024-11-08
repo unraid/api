@@ -1,8 +1,8 @@
-import { Role, type UserAccount } from '@app/graphql/generated/api/types';
+import { AuthZService } from 'nest-authz';
 import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
 
+import { Action, Possession, Resource, Role, type UserAccount } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from './api-key.service';
-import { AuthZService } from 'nest-authz';
 import { CookieService } from './cookie.service';
 
 @Injectable()
@@ -14,10 +14,6 @@ export class AuthService {
         private apiKeyService: ApiKeyService,
         private authzService: AuthZService
     ) {}
-
-    /**------------------------------------------------------------------------
-     *                      AuthZService based methods
-     *------------------------------------------------------------------------**/
 
     async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
         try {
@@ -106,19 +102,19 @@ export class AuthService {
         }
     }
 
-    public async addPermission(role: Role, resource: string, action: string): Promise<boolean> {
+    public async addPermission(role: Role, resource: Resource, action: Action): Promise<boolean> {
         if (!role || !resource || !action) {
             throw new Error('Role, resource, and action are required');
         }
 
         try {
-            const exists = await this.authzService.hasPolicy(role, resource, action);
+            const exists = await this.authzService.hasPolicy(role, resource, action, Possession.ANY);
 
             if (exists) {
                 return true;
             }
 
-            await this.authzService.addPolicy(role, resource, action);
+            await this.authzService.addPolicy(role, resource, action, Possession.ANY);
 
             return true;
         } catch (error: unknown) {

@@ -39,9 +39,18 @@ export type AccessUrlInput = {
   type: URL_TYPE;
 };
 
+/** Available actions for permissions */
+export enum Action {
+  CREATE = 'CREATE',
+  DELETE = 'DELETE',
+  READ = 'READ',
+  UPDATE = 'UPDATE'
+}
+
 export type AddPermissionInput = {
   action: Scalars['String']['input'];
-  resource: Scalars['String']['input'];
+  possession?: InputMaybe<Possession>;
+  resource: Resource;
   role: Role;
 };
 
@@ -1023,6 +1032,12 @@ export type Pci = {
   vendorname?: Maybe<Scalars['String']['output']>;
 };
 
+/** Available possession types for permissions */
+export enum Possession {
+  ANY = 'ANY',
+  OWN = 'OWN'
+}
+
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -1183,6 +1198,36 @@ export type RemoveRoleFromApiKeyInput = {
   apiKeyId: Scalars['String']['input'];
   role: Role;
 };
+
+/** Available resources for permissions */
+export enum Resource {
+  API_KEY = 'API_KEY',
+  ARRAY = 'ARRAY',
+  CLOUD = 'CLOUD',
+  CONFIG = 'CONFIG',
+  CONNECT = 'CONNECT',
+  CRASH_REPORTING_ENABLED = 'CRASH_REPORTING_ENABLED',
+  CUSTOMIZATIONS = 'CUSTOMIZATIONS',
+  DASHBOARD = 'DASHBOARD',
+  DISK = 'DISK',
+  DISPLAY = 'DISPLAY',
+  DOCKER = 'DOCKER',
+  FLASH = 'FLASH',
+  INFO = 'INFO',
+  LOGS = 'LOGS',
+  ME = 'ME',
+  NETWORK = 'NETWORK',
+  NOTIFICATIONS = 'NOTIFICATIONS',
+  OS = 'OS',
+  OWNER = 'OWNER',
+  PERMISSION = 'PERMISSION',
+  REGISTRATION = 'REGISTRATION',
+  SERVERS = 'SERVERS',
+  SERVICES = 'SERVICES',
+  VARS = 'VARS',
+  VMS = 'VMS',
+  WELCOME = 'WELCOME'
+}
 
 /** Available roles for API keys and users */
 export enum Role {
@@ -1775,6 +1820,7 @@ export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = R
 export type ResolversTypes = ResolversObject<{
   AccessUrl: ResolverTypeWrapper<AccessUrl>;
   AccessUrlInput: AccessUrlInput;
+  Action: Action;
   AddPermissionInput: AddPermissionInput;
   AddRoleForApiKeyInput: AddRoleForApiKeyInput;
   AddRoleForUserInput: AddRoleForUserInput;
@@ -1857,6 +1903,7 @@ export type ResolversTypes = ResolversObject<{
   Partition: ResolverTypeWrapper<Partition>;
   Pci: ResolverTypeWrapper<Pci>;
   Port: ResolverTypeWrapper<Scalars['Port']['output']>;
+  Possession: Possession;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
@@ -1864,6 +1911,7 @@ export type ResolversTypes = ResolversObject<{
   RelayResponse: ResolverTypeWrapper<RelayResponse>;
   RemoteAccess: ResolverTypeWrapper<RemoteAccess>;
   RemoveRoleFromApiKeyInput: RemoveRoleFromApiKeyInput;
+  Resource: Resource;
   Role: Role;
   Server: ResolverTypeWrapper<Server>;
   ServerStatus: ServerStatus;

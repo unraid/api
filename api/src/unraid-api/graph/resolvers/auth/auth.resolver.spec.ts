@@ -1,8 +1,8 @@
 import { AuthZService } from 'nest-authz';
-import { ApiKeyWithSecret, Role, type ApiKey } from '@app/graphql/generated/api/types';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { newEnforcer } from 'casbin';
 
+import { Action, ApiKeyWithSecret, Resource, Role, type ApiKey } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { AuthResolver } from './auth.resolver';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
@@ -105,8 +105,8 @@ describe('AuthResolver', () => {
         it('should add permission', async () => {
             const input = {
                 role: Role.ADMIN,
-                resource: 'apikey',
-                action: 'read',
+                resource: Resource.API_KEY,
+                action: Action.READ,
             };
 
             vi.spyOn(authService, 'addPermission').mockResolvedValue(true);
@@ -116,8 +116,8 @@ describe('AuthResolver', () => {
             expect(result).toBe(true);
             expect(authService.addPermission).toHaveBeenCalledWith(
                 Role[input.role],
-                input.resource,
-                input.action
+                Resource[input.resource],
+                Action[input.action]
             );
         });
     });
