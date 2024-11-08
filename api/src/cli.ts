@@ -1,11 +1,16 @@
-import 'wtfnode';
+#!/usr/bin/env node
+import '@app/dotenv';
 
-import { am } from 'am';
 import { main } from '@app/cli/index';
 import { internalLogger } from '@app/core/log';
 
-void am(main, (error: unknown) => {
-	internalLogger.fatal((error as Error).message);
-	// Ensure process is exited
-	process.exit(1);
-});
+try {
+    await main();
+} catch (error) {
+    console.log(error);
+    internalLogger.error({
+        message: 'Failed to start unraid-api',
+        error,
+    });
+    process.exit(1);
+}

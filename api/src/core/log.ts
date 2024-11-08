@@ -1,34 +1,7 @@
 import { pino } from 'pino';
-import { LOG_TRANSPORT, LOG_TYPE } from '@app/environment';
+import { LOG_TYPE } from '@app/environment';
 
 import pretty from 'pino-pretty';
-import { chmodSync, existsSync, mkdirSync, rmSync, statSync } from 'node:fs';
-import { getters } from '@app/store/index';
-import { join } from 'node:path';
-
-const makeLoggingDirectoryIfNotExists = () => {
-    if (!existsSync(getters.paths()['log-base'])) {
-        console.log('Creating logging directory');
-        mkdirSync(getters.paths()['log-base']);
-    }
-
-    chmodSync(getters.paths()['log-base'], 0o644);
-    if (
-        existsSync(`${getters.paths()['log-base']}/stdout.log`) &&
-        statSync(`${getters.paths()['log-base']}/stdout.log`).size > 5_000_000
-    ) {
-        rmSync(`${getters.paths()['log-base']}/stdout.log`);
-    }
-    try {
-        rmSync(`${getters.paths()['log-base']}/stdout.log.*`);
-    } catch (e) {
-        // Ignore Error
-    }
-};
-
-if (LOG_TRANSPORT === 'file') {
-    makeLoggingDirectoryIfNotExists();
-}
 
 export const levels = [
     'trace',
@@ -47,12 +20,8 @@ const level =
     ] ?? 'info';
 
 export const logDestination = pino.destination({
-    dest:
-        LOG_TRANSPORT === 'file'
-            ? join(getters.paths()['log-base'], 'stdout.log')
-            : 1,
     minLength: 1_024,
-    sync: false,
+    sync: true,
 });
 
 const stream =
@@ -112,30 +81,3 @@ export const loggers = [
     remoteQueryLogger,
     apiLogger,
 ];
-
-// Send SIGUSR1 to increase log level
-process.on('SIGUSR1', () => {
-    const level = logger.level;
-    const nextLevel =
-        levels[levels.findIndex((_level) => _level === level) + 1] ?? levels[0];
-    loggers.forEach((logger) => {
-        logger.level = nextLevel;
-    });
-    internalLogger.info({
-        message: `Log level changed from ${level} to ${nextLevel}`,
-    });
-});
-
-// Send SIGUSR1 to decrease log level
-process.on('SIGUSR2', () => {
-    const level = logger.level;
-    const nextLevel =
-        levels[levels.findIndex((_level) => _level === level) - 1] ??
-        levels[levels.length - 1];
-    loggers.forEach((logger) => {
-        logger.level = nextLevel;
-    });
-    internalLogger.info({
-        message: `Log level changed from ${level} to ${nextLevel}`,
-    });
-});

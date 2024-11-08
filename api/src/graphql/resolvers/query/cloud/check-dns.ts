@@ -1,14 +1,9 @@
-/*!
- * Copyright 2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
-import { MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
 import { store } from '@app/store';
 import { getDnsCache } from '@app/store/getters';
 import { setDNSCheck } from '@app/store/modules/cache';
 import { lookup as lookupDNS, resolve as resolveDNS } from 'dns';
-import { isPrivate as isPrivateIP } from 'ip';
+import ip from 'ip';
 import { promisify } from 'util';
 
 const msHostname = new URL(MOTHERSHIP_GRAPHQL_LINK).host;
@@ -45,7 +40,7 @@ export const checkDNS = async (hostname = msHostname): Promise<{ cloudIp: string
 		if (!local.includes(network)) throw new Error(`Local and network resolvers showing different IP for "${hostname}". [local="${local ?? 'NOT FOUND'}"] [network="${network ?? 'NOT FOUND'}"]`);
 
 		// The user likely has a PI-hole or something similar running.
-		if (isPrivateIP(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local ?? 'NOT FOUND'}]`);
+		if (ip.isPrivate(local)) throw new Error(`"${hostname}" is being resolved to a private IP. [IP=${local ?? 'NOT FOUND'}]`);
 	} catch (error: unknown) {
 		if (!(error instanceof Error)) {
 			throw error;

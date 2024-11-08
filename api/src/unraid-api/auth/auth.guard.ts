@@ -6,6 +6,7 @@ import {
     Injectable,
     type CanActivate,
     UnauthorizedException,
+    Logger,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql';
@@ -18,11 +19,16 @@ export class GraphqlAuthGuard
     extends AuthGuard([ServerHeaderStrategy.key, UserCookieStrategy.key])
     implements CanActivate
 {
-    constructor(private readonly reflector: Reflector) {
+    protected logger = new Logger(GraphqlAuthGuard.name);
+    constructor() {
         super();
     }
 
     handleRequest<UserAccount>(err, user: UserAccount | null, info, context) {
+        if (err) {
+            console.log('Error in handleRequest', err);
+            throw err;
+        }
         if (!user) {
             if (context) {
                 const ctx = GqlExecutionContext.create(context);
@@ -32,7 +38,6 @@ export class GraphqlAuthGuard
                     fullContext.connectionParams ?? {}
                 );
             }
-
             throw new UnauthorizedException('User not found');
         }
 

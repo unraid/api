@@ -11,7 +11,7 @@ import { User } from '@app/graphql/generated/api/types';
 export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
     private readonly logger = new Logger(ServerHeaderStrategy.name);
     static readonly key = 'server-http-header';
-
+    
     constructor(private authService: AuthService) {
         super();
     }

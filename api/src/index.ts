@@ -1,11 +1,9 @@
 import 'reflect-metadata';
-import 'global-agent/bootstrap';
-
-import { am } from 'am';
+import 'global-agent/bootstrap.js';
+import '@app/dotenv';
 import http from 'http';
 import https from 'https';
 import CacheableLookup from 'cacheable-lookup';
-import exitHook from 'async-exit-hook';
 import { store } from '@app/store';
 import { loadConfigFile } from '@app/store/modules/config';
 import { logger } from '@app/core/log';
@@ -28,91 +26,96 @@ import { bootstrapNestServer } from '@app/unraid-api/main';
 import { type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { type RawServerDefault } from 'fastify';
 import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
-import * as env from '@app/environment';
+import { WebSocket } from 'ws';
+import exitHook from 'exit-hook';
+import * as envVars from '@app/environment';
 
-let server: NestFastifyApplication<RawServerDefault>;
+let server: NestFastifyApplication<RawServerDefault> | null = null;
 
 const unlinkUnixPort = () => {
     if (isNaN(parseInt(PORT, 10))) {
         if (fileExistsSync(PORT)) unlinkSync(PORT);
     }
 };
-// Boot app
-void am(
-    async () => {
-        environment.IS_MAIN_PROCESS = true;
 
-        logger.debug('ENV %o', env);
+try {
+    environment.IS_MAIN_PROCESS = true;
 
-        const cacheable = new CacheableLookup();
+    logger.info('ENV %o', envVars);
+    logger.info('PATHS %o', store.getState().paths);
 
-        Object.assign(global, { WebSocket: require('ws') });
-        // Ensure all DNS lookups are cached for their TTL
-        cacheable.install(http.globalAgent);
-        cacheable.install(https.globalAgent);
+    const cacheable = new CacheableLookup();
 
-        // Start file <-> store sync
-        // Must occur before config is loaded to ensure that the handler can fix broken configs
-        await startStoreSync();
+    Object.assign(global, { WebSocket });
+    // Ensure all DNS lookups are cached for their TTL
+    cacheable.install(http.globalAgent);
+    cacheable.install(https.globalAgent);
 
-        await setupLogRotation();
+    // Start file <-> store sync
+    // Must occur before config is loaded to ensure that the handler can fix broken configs
+    await startStoreSync();
 
-        // Load my servers config file into store
-        await store.dispatch(loadConfigFile());
+    await setupLogRotation();
 
-        // Load emhttp state into store
-        await store.dispatch(loadStateFiles());
+    // Load my servers config file into store
+    await store.dispatch(loadConfigFile());
 
-        // Load initial registration key into store
-        await store.dispatch(loadRegistrationKey());
+    // Load emhttp state into store
+    await store.dispatch(loadStateFiles());
 
-        // Load my dynamix config file into store
-        await store.dispatch(loadDynamixConfigFile());
+    // Load initial registration key into store
+    await store.dispatch(loadRegistrationKey());
 
-        // Start listening to file updates
-        StateManager.getInstance();
+    // Load my dynamix config file into store
+    await store.dispatch(loadDynamixConfigFile());
 
-        // Start listening to key file changes
-        setupRegistrationKeyWatch();
+    // Start listening to file updates
+    StateManager.getInstance();
 
-        // Start listening to docker events
-        setupVarRunWatch();
+    // Start listening to key file changes
+    setupRegistrationKeyWatch();
 
-        // Start listening to dynamix config file changes
-        setupDynamixConfigWatch();
+    // Start listening to docker events
+    setupVarRunWatch();
 
-        // Disabled until we need the access token to work
-        // TokenRefresh.init();
+    // Start listening to dynamix config file changes
+    setupDynamixConfigWatch();
 
-        // If port is unix socket, delete old socket before starting http server
+    // Disabled until we need the access token to work
+    // TokenRefresh.init();
+
+    // If port is unix socket, delete old socket before starting http server
+    unlinkUnixPort();
+
+    // Start webserver
+    server = await bootstrapNestServer();
+    PingTimeoutJobs.init();
+
+    startMiddlewareListeners();
+
+    await validateApiKeyIfPresent();
+
+    // On process exit stop HTTP server
+    exitHook(() => {
+        console.log('exithook');
+        server?.close?.();
+        // If port is unix socket, delete socket before exiting
         unlinkUnixPort();
 
-        // Start webserver
-        server = await bootstrapNestServer();
-        PingTimeoutJobs.init();
-
-        startMiddlewareListeners();
-
-        await validateApiKeyIfPresent();
-
-        // On process exit stop HTTP server - this says it supports async but it doesnt seem to
-        exitHook(() => {
-            server?.close?.();
-            // If port is unix socket, delete socket before exiting
-            unlinkUnixPort();
-
-            shutdownApiEvent();
-
-            process.exit(0);
-        });
-    },
-    async (error: NodeJS.ErrnoException) => {
-        logger.error('API-GLOBAL-ERROR %s %s', error.message, error.stack);
-        if (server) {
-            await server?.close?.();
-        }
         shutdownApiEvent();
-        // Kill application
-        process.exit(1);
+
+        process.exit(0);
+    });
+    // Start a loop to run the app
+    await new Promise(() => {});
+} catch (error: unknown) {
+    if (error instanceof Error) {
+        logger.error('API-ERROR %s %s', error.message, error.stack);
     }
-);
+    if (server) {
+        await server?.close?.();
+    }
+    shutdownApiEvent();
+    // Kill application
+    process.exit(1);
+}

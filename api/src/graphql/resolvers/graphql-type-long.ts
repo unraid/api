@@ -1,5 +1,5 @@
 import { GraphQLScalarType, type ASTNode } from 'graphql';
-import { Kind } from 'graphql/language';
+import { Kind } from 'graphql/language/index.js';
 
 const MAX_LONG = Number.MAX_SAFE_INTEGER;
 const MIN_LONG = Number.MIN_SAFE_INTEGER;

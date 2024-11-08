@@ -1,7 +1,7 @@
 import ipRegex from 'ip-regex';
 import readLine from 'readline';
 import { setEnv } from '@app/cli/set-env';
-import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
+import { isUnraidApiRunning } from '@app/core/utils/pm2/unraid-api-running';
 import { cliLogger } from '@app/core/log';
 import { getters, store } from '@app/store';
 import { stdout } from 'process';
@@ -13,21 +13,13 @@ import {
     type getServersQuery,
     type getCloudQuery,
 } from '../../graphql/generated/api/operations';
-import {
-    type ApolloQueryResult,
-    type ApolloClient,
-    type NormalizedCacheObject,
-} from '@apollo/client/core/core.cjs';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
 import { API_VERSION } from '@app/environment';
 import { loadStateFiles } from '@app/store/modules/emhttp';
+import { ApolloClient, ApolloQueryResult, NormalizedCacheObject } from '@apollo/client/core/index.js';
 
-type CloudQueryResult = NonNullable<
-    ApolloQueryResult<getCloudQuery>['data']['cloud']
->;
-type ServersQueryResultServer = NonNullable<
-    ApolloQueryResult<getServersQuery>['data']['servers']
->[0];
+type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
+type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
 
 type Verbosity = '' | '-v' | '-vv';
 
@@ -132,8 +124,7 @@ export const getServersData = async ({
 const hashUrlRegex = () => /(.*)([a-z0-9]{40})(.*)/g;
 
 export const anonymiseOrigins = (origins?: string[]): string[] => {
-    const originsWithoutSocks =
-        origins?.filter((url) => !url.endsWith('.sock')) ?? [];
+    const originsWithoutSocks = origins?.filter((url) => !url.endsWith('.sock')) ?? [];
     return originsWithoutSocks
         .map((origin) =>
             origin
@@ -142,29 +133,17 @@ export const anonymiseOrigins = (origins?: string[]): string[] => {
                 // Replace ipv4 address using . separator with "IPV4ADDRESS"
                 .replace(ipRegex(), 'IPV4ADDRESS')
                 // Replace ipv4 address using - separator with "IPV4ADDRESS"
-                .replace(
-                    new RegExp(ipRegex().toString().replace('\\.', '-')),
-                    '/IPV4ADDRESS'
-                )
+                .replace(new RegExp(ipRegex().toString().replace('\\.', '-')), '/IPV4ADDRESS')
                 // Report WAN port
-                .replace(
-                    `:${getters.config().remote.wanport || 443}`,
-                    ':WANPORT'
-                )
+                .replace(`:${getters.config().remote.wanport || 443}`, ':WANPORT')
         )
         .filter(Boolean);
 };
 
-const getAllowedOrigins = (
-    cloud: CloudQueryResult | null,
-    v: Verbosity
-): string[] | null => {
+const getAllowedOrigins = (cloud: CloudQueryResult | null, v: Verbosity): string[] | null => {
     switch (v) {
         case '-vv':
-            return (
-                cloud?.allowedOrigins.filter((url) => !url.endsWith('.sock')) ??
-                []
-            );
+            return cloud?.allowedOrigins.filter((url) => !url.endsWith('.sock')) ?? [];
         case '-v':
             return anonymiseOrigins(cloud?.allowedOrigins ?? []);
         default:
@@ -172,37 +151,23 @@ const getAllowedOrigins = (
     }
 };
 
-const getReadableCloudDetails = (
-    reportObject: ReportObject,
-    v: Verbosity
-): string => {
-    const error = reportObject.cloud.error
-        ? `\n	ERROR [${reportObject.cloud.error}]`
-        : '';
-    const status = reportObject.cloud.status
-        ? reportObject.cloud.status
-        : 'disconnected';
-    const ip =
-        reportObject.cloud.ip && v !== ''
-            ? `\n	IP: [${reportObject.cloud.ip}]`
-            : '';
+const getReadableCloudDetails = (reportObject: ReportObject, v: Verbosity): string => {
+    const error = reportObject.cloud.error ? `\n	ERROR [${reportObject.cloud.error}]` : '';
+    const status = reportObject.cloud.status ? reportObject.cloud.status : 'disconnected';
+    const ip = reportObject.cloud.ip && v !== '' ? `\n	IP: [${reportObject.cloud.ip}]` : '';
     return `
 	STATUS: [${status}] ${ip} ${error}`;
 };
 
 const getReadableMinigraphDetails = (reportObject: ReportObject): string => {
     const statusLine = `STATUS: [${reportObject.minigraph.status}]`;
-    const errorLine = reportObject.minigraph.error
-        ? `	ERROR: [${reportObject.minigraph.error}]`
-        : null;
+    const errorLine = reportObject.minigraph.error ? `	ERROR: [${reportObject.minigraph.error}]` : null;
     const timeoutLine = reportObject.minigraph.timeout
         ? `	TIMEOUT: [${(reportObject.minigraph.timeout || 1) / 1_000}s]`
         : null; // 1 in case of divide by zero
 
     return `
-	${statusLine}${errorLine ? `\n${errorLine}` : ''}${
-        timeoutLine ? `\n${timeoutLine}` : ''
-    }`;
+	${statusLine}${errorLine ? `\n${errorLine}` : ''}${timeoutLine ? `\n${timeoutLine}` : ''}`;
 };
 
 // Convert server to string output
@@ -215,10 +180,7 @@ const serverToString = (v: Verbosity) => (server: ServersQueryResultServer) =>
             : ''
     }`;
 
-const getReadableServerDetails = (
-    reportObject: ReportObject,
-    v: Verbosity
-): string => {
+const getReadableServerDetails = (reportObject: ReportObject, v: Verbosity): string => {
     if (!reportObject.servers) {
         return '';
     }
@@ -236,9 +198,7 @@ const getReadableServerDetails = (
     return `
 SERVERS:
 	ONLINE: ${reportObject.servers.online.map(serverToString(v)).join(',')}
-	OFFLINE: ${reportObject.servers.offline
-        .map(serverToString(v))
-        .join(',')}${invalid}`;
+	OFFLINE: ${reportObject.servers.offline.map(serverToString(v)).join(',')}${invalid}`;
 };
 
 const getReadableAllowedOrigins = (reportObject: ReportObject): string => {
@@ -263,7 +223,6 @@ const getVerbosity = (argv: string[]): Verbosity => {
     return '';
 };
 
-// eslint-disable-next-line complexity
 export const report = async (...argv: string[]) => {
     // Check if the user has raw output enabled
     const rawOutput = argv.includes('--raw');
@@ -295,7 +254,7 @@ export const report = async (...argv: string[]) => {
         const v = getVerbosity(argv);
 
         // Find all processes called "unraid-api" which aren't this process
-        const unraidApiPid = await getUnraidApiPid();
+        const unraidApiRunning = await isUnraidApiRunning();
 
         // Load my servers config file into store
         await store.dispatch(loadConfigFile());
@@ -321,43 +280,37 @@ export const report = async (...argv: string[]) => {
         const reportObject: ReportObject = {
             os: {
                 serverName: emhttp.var.name,
-                version: emhttp.var.version
+                version: emhttp.var.version,
             },
             api: {
                 version: API_VERSION,
-                status: unraidApiPid ? 'running' : 'stopped',
-                environment:
-                    process.env.ENVIRONMENT ??
-                    'THIS_WILL_BE_REPLACED_WHEN_BUILT',
+                status: unraidApiRunning ? 'running' : 'stopped',
+                environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
                 nodeVersion: process.version,
             },
             apiKey: isApiKeyValid ? 'valid' : cloud?.apiKey.error ?? 'invalid',
             ...(servers ? { servers } : {}),
             myServers: {
-                status: config?.remote?.username
-                    ? 'authenticated'
-                    : 'signed out',
+                status: config?.remote?.username ? 'authenticated' : 'signed out',
                 ...(config?.remote?.username
-                    ? { myServersUsername: config?.remote?.username?.includes('@') ? 'REDACTED' : config?.remote.username }
+                    ? {
+                          myServersUsername: config?.remote?.username?.includes('@')
+                              ? 'REDACTED'
+                              : config?.remote.username,
+                      }
                     : {}),
             },
             minigraph: {
                 status: cloud?.minigraphql.status ?? MinigraphStatus.PRE_INIT,
                 timeout: cloud?.minigraphql.timeout ?? null,
                 error:
-                    cloud?.minigraphql.error ?? !cloud?.minigraphql.status
-                        ? 'API Disconnected'
-                        : null,
+                    cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected' : null,
             },
             cloud: {
                 status: cloud?.cloud.status ?? 'error',
                 ...(cloud?.cloud.error ? { error: cloud.cloud.error } : {}),
-                ...(cloud?.cloud.status === 'ok'
-                    ? { ip: cloud.cloud.ip ?? 'NO_IP' }
-                    : {}),
-                ...(getAllowedOrigins(cloud, v)
-                    ? { allowedOrigins: getAllowedOrigins(cloud, v) }
-                    : {}),
+                ...(cloud?.cloud.status === 'ok' ? { ip: cloud.cloud.ip ?? 'NO_IP' } : {}),
+                ...(getAllowedOrigins(cloud, v) ? { allowedOrigins: getAllowedOrigins(cloud, v) } : {}),
             },
         };
 
@@ -370,8 +323,8 @@ export const report = async (...argv: string[]) => {
 
         if (jsonReport) {
             stdout.write(JSON.stringify(reportObject) + '\n');
-			stdoutLogger.close();
-			return reportObject;
+            stdoutLogger.close();
+            return reportObject;
         } else {
             // Generate the actual report
             const report = `
@@ -388,9 +341,7 @@ MY_SERVERS: ${reportObject.myServers.status}${
                     : ''
             }
 CLOUD: ${getReadableCloudDetails(reportObject, v)}
-MINI-GRAPH: ${getReadableMinigraphDetails(
-                reportObject
-            )}${getReadableServerDetails(
+MINI-GRAPH: ${getReadableMinigraphDetails(reportObject)}${getReadableServerDetails(
                 reportObject,
                 v
             )}${getReadableAllowedOrigins(reportObject)}
@@ -405,9 +356,7 @@ MINI-GRAPH: ${getReadableMinigraphDetails(
         console.log({ error });
         if (error instanceof Error) {
             cliLogger.trace(error);
-            stdoutLogger.write(
-                `\nFailed generating report with "${error.message}"\n`
-            );
+            stdoutLogger.write(`\nFailed generating report with "${error.message}"\n`);
             return;
         }
 

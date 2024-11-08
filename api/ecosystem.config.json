@@ -1,0 +1,18 @@
+{
+    "apps": [
+        {
+            "name": "unraid-api",
+            "script": "npm",
+            "args": "start",
+            "cwd": "/usr/local/unraid-api",
+            "log": "/var/log/unraid-api/unraid-api.log",
+            "exec_mode": "fork",
+            "ignore_watch": [
+                "node_modules",
+                "src",
+                ".env.*",
+                "myservers.cfg"
+            ]
+        }
+    ]
+}

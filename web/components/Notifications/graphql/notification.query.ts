@@ -13,6 +13,15 @@ export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
   }
 `);
 
+export const NOTIFICATION_COUNT_FRAGMENT = graphql(/* GraphQL */ `
+  fragment NotificationCountFragment on NotificationCounts {
+    total
+    info
+    warning
+    alert
+  }
+`);
+
 export const getNotifications = graphql(/* GraphQL */ `
   query Notifications($filter: NotificationFilter!) {
     notifications {
@@ -43,6 +52,31 @@ export const archiveAllNotifications = graphql(/* GraphQL */ `
         warning
         alert
         total
+      }
+    }
+  }
+`);
+
+export const deleteNotification = graphql(/* GraphQL */ `
+  mutation DeleteNotification($id: String!, $type: NotificationType!) {
+    deleteNotification(id: $id, type: $type) {
+      archive {
+        total
+      }
+    }
+  }
+`);
+
+export const unreadOverview = graphql(/* GraphQL */ `
+  query Overview {
+    notifications {
+      overview {
+        unread {
+          info
+          warning
+          alert
+          total
+        }
       }
     }
   }

@@ -1,3 +1,4 @@
+import { logger } from '@app/core/log';
 import { API_VERSION } from '@app/environment';
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
@@ -25,6 +26,7 @@ export const getMothershipWebsocketHeaders = (state = store.getState()): Mothers
 			'x-unraid-server-version': emhttp.var.version,
 			'User-Agent': `unraid-api/${API_VERSION}`
 		};
+		logger.debug('Mothership websocket headers: %o', headers);
 		return headers;
 	}
 

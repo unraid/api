@@ -125,7 +125,7 @@ describe('AuthService', () => {
             const saveApiKeySpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
             const deleteRoleSpy = vi.spyOn(authzService, 'deleteRoleForUser');
             const result = await authService.removeRoleFromApiKey(apiKey.id, Role.ADMIN);
-
+            
             expect(saveApiKeySpy).toHaveBeenCalled();
             expect(deleteRoleSpy).toHaveBeenCalledWith(apiKey.id, Role.ADMIN);
             expect(result).toBe(true);

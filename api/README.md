@@ -2,7 +2,11 @@
 
 ## Installation
 
-Install the production plugin via the apps tab (search for "my servers") on Unraid 6.9.2 or later.
+Install the production plugin via the apps tab (search for "Unraid Connect")
+
+Manual install can be done with the following routes:
+[production](https://stable.dl.unraid.net/unraid-api/dynamix.unraid.net.plg)
+[staging](https://preview.dl.unraid.net/unraid-api/dynamix.unraid.net.staging.plg)
 
 ## CLI
 
@@ -31,7 +35,7 @@ Options:
   --environment production/staging/development                 Set the working environment. 
   --log-level ALL/TRACE/DEBUG/INFO/WARN/ERROR/FATAL/MARK/OFF   Set the log level.           
 
-  Copyright © 2022 Lime Technology, Inc.
+  Copyright © 2024 Lime Technology, Inc.
 
 ```
 
@@ -55,4 +59,4 @@ unraid-api report -vv
 If you found this file you're likely a developer. If you'd like to know more about the API and when it's available please join [our discord](https://discord.unraid.net/).
 
 ## License
-Copyright 2019-2022 Lime Technology Inc. All rights reserved.
+Copyright Lime Technology Inc. All rights reserved.

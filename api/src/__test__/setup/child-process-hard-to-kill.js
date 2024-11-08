@@ -1,3 +1,4 @@
+/* eslint-disable */
 process.title = 'unraid-api';
 setInterval(() => {
 	console.log('I NEED TO DIE (but i am very hard to kill)');

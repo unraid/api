@@ -1,4 +1,4 @@
-import { gql, type QueryOptions } from '@apollo/client/core/core.cjs';
+import { gql, QueryOptions } from "@apollo/client/core/index.js";
 
 interface ParsedQuery {
     query?: string;

@@ -1,5 +1,6 @@
-import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core";
+import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core/index.js";
 import { mergeAndDedup } from "./merge";
+import { NotificationType } from "../../composables/gql/typename";
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies
@@ -50,7 +51,9 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(existing = [], incoming, { args }) {
             const offset = args?.filter?.offset ?? 0;
-            return mergeAndDedup(existing, incoming, (item) => item.__ref, { offset });
+            return mergeAndDedup(existing, incoming, (item) => item.__ref, {
+              offset,
+            });
           },
         },
       },
@@ -72,6 +75,30 @@ const defaultCacheConfig: InMemoryCacheConfig = {
             cache.evict({ fieldName: "notifications" });
             cache.gc(); // Run garbage collection to prevent orphans & incorrect cache state
             return incoming; // Return the incoming data so Apollo knows the result of the mutation
+          },
+        },
+        deleteNotification: {
+          /**
+           * Ensures that a deleted notification is removed from the cache +
+           * any cached items that reference it
+           *
+           * @param _ - Unused parameter representing the existing cache value.
+           * @param incoming - The result from the server after the mutation.
+           * @param cache - The Apollo cache instance.
+           * @param args - Arguments passed to the mutation, expected to contain the `id` of the notification to evict.
+           * @returns The incoming result to be cached.
+           */
+          merge(_, incoming, { cache, args }) {
+            if (args?.id) {
+              const id = cache.identify({
+                id: args.id,
+                __typename: NotificationType,
+              });
+              cache.evict({ id });
+            }
+            // Removes references to evicted notification, preventing dangling references
+            cache.gc();
+            return incoming;
           },
         },
       },

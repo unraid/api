@@ -19,8 +19,10 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
         logger: false,
     });
 
+    apiLogger.debug('Creating Nest Server');
+
     const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter(server), {
-        bufferLogs: true,
+        bufferLogs: false,
     });
 
     app.register(fastifyCookie); // parse cookies before cors
@@ -33,18 +35,19 @@ export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
     app.useGlobalInterceptors(new LoggerErrorInterceptor());
     app.flushLogs();
 
-    apiLogger.debug('Starting Nest Server on Port / Path: %s', PORT);
+    apiLogger.info('Starting Nest Server on Port / Path: %s', PORT);
     app.useGlobalFilters(new GraphQLExceptionsFilter(), new HttpExceptionFilter());
-
     await app.init();
+
     if (Number.isNaN(parseInt(PORT))) {
-        server.listen({ path: '/var/run/unraid-api.sock' });
+        const result = await server.listen({ path: '/var/run/unraid-api.sock' });
+        console.log('Server listening on %s', result);
     } else {
-        server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
+        const result = await server.listen({ port: parseInt(PORT), host: '0.0.0.0' });
+        console.log('Server listening on %s', result);
     }
 
-    //await app.getHttpAdapter().listen(PORT);
-    apiLogger.debug('Nest Server is now listening');
+    apiLogger.info('Nest Server is now listening');
 
     return app;
 }

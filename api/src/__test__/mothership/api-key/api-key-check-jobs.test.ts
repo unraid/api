@@ -4,7 +4,6 @@ import * as apiKeyValidator from '@app/mothership/api-key/validate-api-key-with-
 import { describe, expect, it, vi } from 'vitest';
 import { type RecursivePartial } from '@app/types/index';
 import { type RootState } from '@app/store/index';
-import { logoutUser } from '@app/store/modules/config';
 
 describe('apiKeyCheckJob Tests', () => {
 	it('API Check Job (with success)', async () => {

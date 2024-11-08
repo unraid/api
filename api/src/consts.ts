@@ -1,5 +1,6 @@
 import { PORT } from '@app/environment';
 import { type JSONWebKeySet } from 'jose';
+import { join } from 'path';
 
 export const getInternalApiAddress = (isHttp = true, nginxPort = 80) => {
     const envPort = PORT;
@@ -46,11 +47,6 @@ export const KEEP_ALIVE_INTERVAL_MS = THREE_MINUTES_MS; // This is set to 45 sec
 /**
  * Graphql link.
  */
-export const MOTHERSHIP_GRAPHQL_LINK =
-    process.env.MOTHERSHIP_GRAPHQL_LINK ??
-    (process.env.ENVIRONMENT === 'staging'
-        ? 'https://staging.mothership.unraid.net/ws'
-        : 'https://mothership.unraid.net/ws');
 
 export const JWKS_LOCAL_PAYLOAD: JSONWebKeySet = {
     keys: [
@@ -84,3 +80,5 @@ export const KEYSERVER_VALIDATION_ENDPOINT =
 
 /** Set the max retries for the GraphQL Client */
 export const MAX_RETRIES_FOR_LINEAR_BACKOFF = 100;
+
+export const PM2_PATH = join(import.meta.dirname, '../../', 'node_modules', '.bin', 'pm2');

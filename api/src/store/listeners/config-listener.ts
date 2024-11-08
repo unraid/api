@@ -1,6 +1,5 @@
 import { startAppListening } from '@app/store/listeners/listener-middleware';
-import { getDiff } from 'json-difference';
-import { isEqual } from 'lodash';
+import { isEqual } from 'lodash-es';
 import { logger } from '@app/core/log';
 import {
     type ConfigType,
@@ -40,15 +39,6 @@ export const enableConfigFileListener = (mode: ConfigType) => () =>
                     action.type !== loadConfigFile.fulfilled.type &&
                     action.type !== loadConfigFile.rejected.type
                 ) {
-                    logger.trace(
-                        {
-                            diff: getDiff(oldFlashConfig ?? {}, newFlashConfig),
-                        },
-                        `${mode} Config Changed!`,
-                        'Action:',
-                        action.type
-                    );
-
                     return true;
                 }
 

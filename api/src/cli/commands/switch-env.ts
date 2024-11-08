@@ -1,27 +1,17 @@
 import { copyFile, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { cliLogger } from '@app/core/log';
-import { getUnraidApiPid } from '@app/cli/get-unraid-api-pid';
-import { setEnv } from '@app/cli/set-env';
 import { getters } from '@app/store';
 import { start } from '@app/cli/commands/start';
 import { stop } from '@app/cli/commands/stop';
 
 export const switchEnv = async () => {
-    setEnv('LOG_TYPE', 'raw');
-
     const paths = getters.paths();
     const basePath = paths['unraid-api-base'];
     const envFlashFilePath = paths['myservers-env'];
     const envFile = await readFile(envFlashFilePath, 'utf-8').catch(() => '');
 
-	let shouldStartAfterRunning = false;
-	if (await getUnraidApiPid()) {
-        cliLogger.info('unraid-api is running, stopping...');
-        // Stop Running Process
-        await stop();
-		shouldStartAfterRunning = true;
-    }
+	await stop();
 
     cliLogger.debug(
         'Checking %s for current ENV, found %s',
@@ -70,11 +60,5 @@ export const switchEnv = async () => {
     await copyFile(source, destination);
 
     cliLogger.info('Now using %s', newEnv);
-    if (shouldStartAfterRunning) {
-        cliLogger.debug('Restarting unraid-api');
-        // Start Process
-        await start();
-    } else {
-        cliLogger.info('Run "unraid-api start" to start the API.');
-    }
+    await start();
 };

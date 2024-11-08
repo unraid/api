@@ -64,7 +64,7 @@ if (!file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net') && !file_exist
   if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net')) $connectPluginInstalled = 'dynamix.unraid.net.plg';
   if (file_exists('/var/lib/pkgtools/packages/dynamix.unraid.net.staging')) $connectPluginInstalled = 'dynamix.unraid.net.staging.plg';
   // plugin install failed • append failure detected so we can show warning about failed install via UPC
-  if (!file_exists('/usr/local/sbin/unraid-api')) $connectPluginInstalled = $connectPluginInstalled . '_installFailed';
+  if (!file_exists('/usr/bin/unraid-api')) $connectPluginInstalled = $connectPluginInstalled . '_installFailed';
 }
 
 $serverData = [

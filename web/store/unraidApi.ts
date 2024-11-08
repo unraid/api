@@ -1,6 +1,6 @@
 import {
   type ApolloClient as ApolloClientType,
-  type InMemoryCache as InMemoryCacheType,
+  type NormalizedCacheObject,
 } from "@apollo/client";
 import { ArrowPathIcon } from "@heroicons/vue/24/solid";
 // import { logErrorMessages } from '@vue/apollo-util';
@@ -11,7 +11,7 @@ import { WebguiUnraidApiCommand } from "~/composables/services/webgui";
 import { useErrorsStore } from "~/store/errors";
 import { useServerStore } from "~/store/server";
 
-import "~/helpers/create-apollo-client";
+import { client } from "~/helpers/create-apollo-client";
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -22,16 +22,9 @@ setActivePinia(createPinia());
 export const useUnraidApiStore = defineStore("unraidApi", () => {
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
-  const unraidApiClient = ref<ApolloClientType<InMemoryCacheType> | null>(null);
-  watch(unraidApiClient, (newVal) => {
-    if (newVal) {
-      const apiResponse = serverStore.fetchServerFromApi();
-      if (apiResponse) {
-        // we have a response, so we're online
-        unraidApiStatus.value = "online";
-      }
-    }
-  });
+  const unraidApiClient = ref<ApolloClientType<NormalizedCacheObject> | null>(
+    client
+  );
 
   // const unraidApiErrors = ref<any[]>([]);
   const unraidApiStatus = ref<

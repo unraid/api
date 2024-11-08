@@ -1,4 +1,4 @@
-import { FIVE_MINUTES_MS, MOTHERSHIP_GRAPHQL_LINK } from '@app/consts';
+import { FIVE_MINUTES_MS } from '@app/consts';
 import { minigraphLogger } from '@app/core/log';
 import {
     getMothershipConnectionParams,
@@ -11,17 +11,17 @@ import {
     ApolloClient,
     InMemoryCache,
     type NormalizedCacheObject,
-} from '@apollo/client/core/core.cjs';
-import { GraphQLWsLink } from '@apollo/client/link/subscriptions';
+} from '@apollo/client/core/index.js';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
 import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { API_VERSION } from '@app/environment';
+import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
 import {
     receivedMothershipPing,
     setMothershipTimeout,
 } from '@app/store/modules/minigraph';
 import { logoutUser } from '@app/store/modules/config';
-import { RetryLink } from '@apollo/client/link/retry';
-import { ErrorLink } from '@apollo/client/link/error';
+import { RetryLink } from '@apollo/client/link/retry/index.js';
+import { ErrorLink } from '@apollo/client/link/error/index.js';
 import { isApiKeyValid } from '@app/store/getters/index';
 import { buildDelayFunction } from '@app/mothership/utils/delay-function';
 import { WebSocket } from 'ws';
@@ -56,12 +56,11 @@ export const isAPIStateDataFullyLoaded = (state = store.getState()) => {
         Boolean(emhttp.var.version)
     );
 };
-
-// eslint-disable-next-line @typescript-eslint/no-extraneous-class
+ 
 export class GraphQLClient {
     public static instance: ApolloClient<NormalizedCacheObject> | null = null;
     public static client: Client | null = null;
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
+     
     private constructor() {}
 
     /**
@@ -188,6 +187,9 @@ export class GraphQLClient {
                 MOTHERSHIP_GRAPHQL_LINK.replace('http', 'ws')
             );
         });
+        GraphQLClient.client.on('error', (err) => {
+            minigraphLogger.error('GraphQL Client Error: %o', err);
+        })
         GraphQLClient.client.on('connected', () => {
             store.dispatch(
                 setGraphqlConnectionStatus({

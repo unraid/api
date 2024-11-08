@@ -1,9 +1,4 @@
-/*!
- * Copyright 2022 Lime Technology Inc. All rights reserved.
- * Written by: Alexis Tyler
- */
-
-import { FIVE_DAYS_SECS, MOTHERSHIP_GRAPHQL_LINK, ONE_DAY_SECS } from '@app/consts';
+import { FIVE_DAYS_SECS, ONE_DAY_SECS } from '@app/consts';
 import { logger } from '@app/core/log';
 import { checkDNS } from '@app/graphql/resolvers/query/cloud/check-dns';
 import { checkMothershipAuthentication } from '@app/graphql/resolvers/query/cloud/check-mothership-authentication';
@@ -12,7 +7,7 @@ import { getCloudCache, getDnsCache } from '@app/store/getters';
 import { setCloudCheck, setDNSCheck } from '@app/store/modules/cache';
 import { got } from 'got';
 import { type CloudResponse, MinigraphStatus } from '@app/graphql/generated/api/types';
-import { API_VERSION } from '@app/environment';
+import { API_VERSION, MOTHERSHIP_GRAPHQL_LINK } from '@app/environment';
 
 const mothershipBaseUrl = new URL(MOTHERSHIP_GRAPHQL_LINK).origin;
 

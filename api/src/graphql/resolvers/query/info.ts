@@ -1,11 +1,4 @@
-import {
-    cpu,
-    cpuFlags,
-    mem,
-    memLayout,
-    osInfo,
-    versions,
-} from 'systeminformation';
+import { cpu, cpuFlags, mem, memLayout, osInfo, versions } from 'systeminformation';
 import { docker } from '@app/core/utils/clients/docker';
 import {
     type InfoApps,
@@ -29,8 +22,6 @@ import { getUnraidVersion } from '@app/common/dashboard/get-unraid-version';
 import { AppError } from '@app/core/errors/app-error';
 import { cleanStdout } from '@app/core/utils/misc/clean-stdout';
 import { execaCommandSync, execa } from 'execa';
-import { pathExists } from 'path-exists';
-import { filter as asyncFilter } from 'p-iteration';
 import { isSymlink } from 'path-type';
 import type { PciDevice } from '@app/core/types';
 import { vmRegExps } from '@app/core/utils/vms/domain/vm-regexps';
@@ -39,6 +30,7 @@ import { filterDevices } from '@app/core/utils/vms/filter-devices';
 import { sanitizeVendor } from '@app/core/utils/vms/domain/sanitize-vendor';
 import { sanitizeProduct } from '@app/core/utils/vms/domain/sanitize-product';
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
+import { access } from 'fs/promises';
 
 export const generateApps = async (): Promise<InfoApps> => {
     const installed = await docker
@@ -63,8 +55,7 @@ export const generateOs = async (): Promise<InfoOs> => {
 };
 
 export const generateCpu = async (): Promise<InfoCpu> => {
-    const { cores, physicalCores, speedMin, speedMax, stepping, ...rest } =
-        await cpu();
+    const { cores, physicalCores, speedMin, speedMax, stepping, ...rest } = await cpu();
     const flags = await cpuFlags()
         .then((flags) => flags.split(' '))
         .catch(() => []);
@@ -118,9 +109,9 @@ export const generateVersions = async (): Promise<Versions> => {
 };
 
 export const generateMemory = async (): Promise<InfoMemory> => {
-    const layout = await memLayout().then((dims) =>
-        dims.map((dim) => dim as MemoryLayout)
-    ).catch(() => []);
+    const layout = await memLayout()
+        .then((dims) => dims.map((dim) => dim as MemoryLayout))
+        .catch(() => []);
     const info = await mem();
     let max = info.total;
 
@@ -136,14 +127,10 @@ export const generateMemory = async (): Promise<InfoMemory> => {
                 throw error;
             });
         const lines = memoryInfo.split('\n');
-        const header = lines.find((line) =>
-            line.startsWith('Physical Memory Array')
-        );
+        const header = lines.find((line) => line.startsWith('Physical Memory Array'));
         if (header) {
             const start = lines.indexOf(header);
-            const nextHeaders = lines
-                .slice(start, -1)
-                .find((line) => line.startsWith('Handle '));
+            const nextHeaders = lines.slice(start, -1).find((line) => line.startsWith('Handle '));
 
             if (nextHeaders) {
                 const end = lines.indexOf(nextHeaders);
@@ -151,9 +138,7 @@ export const generateMemory = async (): Promise<InfoMemory> => {
 
                 max = toBytes(
                     fields
-                        ?.find((line) =>
-                            line.trim().startsWith('Maximum Capacity')
-                        )
+                        ?.find((line) => line.trim().startsWith('Maximum Capacity'))
                         ?.trim()
                         ?.split(': ')[1] ?? '0'
                 );
@@ -215,11 +200,14 @@ export const generateDevices = async (): Promise<Devices> => {
         const basePath = '/sys/bus/pci/devices/0000:';
 
         // Remove devices with no IOMMU support
-        const filteredDevices = await asyncFilter(
-            devices,
-            async (device: Readonly<PciDevice>) =>
-                pathExists(`${basePath}${device.id}/iommu_group/`)
-        );
+        const filteredDevices = await Promise.all(
+            devices.map(async (device: Readonly<PciDevice>) => {
+                const exists = await access(`${basePath}${device.id}/iommu_group/`)
+                    .then(() => true)
+                    .catch(() => false);
+                return exists ? device : null;
+            })
+        ).then((devices) => devices.filter((device) => device !== null));
 
         /**
          * Run device cleanup
@@ -230,36 +218,29 @@ export const generateDevices = async (): Promise<Devices> => {
          * - Add whether kernel-bound driver exists
          * - Cleanup device vendor/product names
          */
-        const processedDevices = await filterDevices(filteredDevices).then(
-            async (devices) =>
-                Promise.all(
-                    devices
-                        // @ts-expect-error - Device is not PciDevice
-                        .map((device) => addDeviceClass(device))
-                        .map(async (device) => {
-                            // Attempt to get the current kernel-bound driver for this pci device
-                            await isSymlink(
-                                `${basePath}${device.id}/driver`
-                            ).then((symlink) => {
-                                if (symlink) {
-                                    // $strLink = @readlink('/sys/bus/pci/devices/0000:'.$arrMatch['id']. '/driver');
-                                    // if (!empty($strLink)) {
-                                    // 	$strDriver = basename($strLink);
-                                    // }
-                                }
-                            });
+        const processedDevices = await filterDevices(filteredDevices).then(async (devices) =>
+            Promise.all(
+                devices
+                    // @ts-expect-error - Device is not PciDevice
+                    .map((device) => addDeviceClass(device))
+                    .map(async (device) => {
+                        // Attempt to get the current kernel-bound driver for this pci device
+                        await isSymlink(`${basePath}${device.id}/driver`).then((symlink) => {
+                            if (symlink) {
+                                // $strLink = @readlink('/sys/bus/pci/devices/0000:'.$arrMatch['id']. '/driver');
+                                // if (!empty($strLink)) {
+                                // 	$strDriver = basename($strLink);
+                                // }
+                            }
+                        });
 
-                            // Clean up the vendor and product name
-                            device.vendorname = sanitizeVendor(
-                                device.vendorname
-                            );
-                            device.productname = sanitizeProduct(
-                                device.productname
-                            );
+                        // Clean up the vendor and product name
+                        device.vendorname = sanitizeVendor(device.vendorname);
+                        device.productname = sanitizeProduct(device.productname);
 
-                            return device;
-                        })
-                )
+                        return device;
+                    })
+            )
         );
 
         return processedDevices;
@@ -298,13 +279,9 @@ export const generateDevices = async (): Promise<Devices> => {
     const getSystemUSBDevices = async () => {
         try {
             // Get a list of all usb hubs so we can filter the allowed/disallowed
-            const usbHubs = await execa(
-                'cat /sys/bus/usb/drivers/hub/*/modalias',
-                { shell: true }
-            )
+            const usbHubs = await execa('cat /sys/bus/usb/drivers/hub/*/modalias', { shell: true })
                 .then(({ stdout }) =>
                     stdout.split('\n').map((line) => {
-                        // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
                         const [, id] = line.match(/usb:v(\w{9})/) ?? [];
                         return id.replace('p', ':');
                     })
@@ -318,8 +295,7 @@ export const generateDevices = async (): Promise<Devices> => {
                 emhttp.var.flashGuid !== device.guid;
 
             // Remove usb hubs
-            const filterUsbHubs = (device: Readonly<PciDevice>): boolean =>
-                !usbHubs.includes(device.id);
+            const filterUsbHubs = (device: Readonly<PciDevice>): boolean => !usbHubs.includes(device.id);
 
             // Clean up the name
             const sanitizeVendorName = (device: Readonly<PciDevice>) => {
@@ -330,9 +306,7 @@ export const generateDevices = async (): Promise<Devices> => {
                 };
             };
 
-            const parseDeviceLine = (
-                line: Readonly<string>
-            ): { value: string; string: string } => {
+            const parseDeviceLine = (line: Readonly<string>): { value: string; string: string } => {
                 const emptyLine = { value: '', string: '' };
 
                 // If the line is blank return nothing
@@ -342,7 +316,7 @@ export const generateDevices = async (): Promise<Devices> => {
 
                 // Parse the line
                 const [, _] = line.split(/[ \t]{2,}/).filter(Boolean);
-                // eslint-disable-next-line @typescript-eslint/prefer-regexp-exec
+
                 const match = _.match(/^(\S+)\s(.*)/)?.slice(1);
 
                 // If there's no match return nothing
@@ -361,31 +335,19 @@ export const generateDevices = async (): Promise<Devices> => {
                 const modifiedDevice: PciDevice = {
                     ...device,
                 };
-                const info = execaCommandSync(
-                    `lsusb -d ${device.id} -v`
-                ).stdout.split('\n');
+                const info = execaCommandSync(`lsusb -d ${device.id} -v`).stdout.split('\n');
                 const deviceName = device.name.trim();
-                const iSerial = parseDeviceLine(
-                    info.filter((line) => line.includes('iSerial'))[0]
-                );
-                const iProduct = parseDeviceLine(
-                    info.filter((line) => line.includes('iProduct'))[0]
-                );
+                const iSerial = parseDeviceLine(info.filter((line) => line.includes('iSerial'))[0]);
+                const iProduct = parseDeviceLine(info.filter((line) => line.includes('iProduct'))[0]);
                 const iManufacturer = parseDeviceLine(
                     info.filter((line) => line.includes('iManufacturer'))[0]
                 );
-                const idProduct = parseDeviceLine(
-                    info.filter((line) => line.includes('idProduct'))[0]
-                );
-                const idVendor = parseDeviceLine(
-                    info.filter((line) => line.includes('idVendor'))[0]
-                );
-                const serial = `${iSerial.string
+                const idProduct = parseDeviceLine(info.filter((line) => line.includes('idProduct'))[0]);
+                const idVendor = parseDeviceLine(info.filter((line) => line.includes('idVendor'))[0]);
+                const serial = `${iSerial.string.slice(8).slice(0, 4)}-${iSerial.string
                     .slice(8)
-                    .slice(0, 4)}-${iSerial.string.slice(8).slice(4)}`;
-                const guid = `${idVendor.value.slice(
-                    2
-                )}-${idProduct.value.slice(2)}-${serial}`;
+                    .slice(4)}`;
+                const guid = `${idVendor.value.slice(2)}-${idProduct.value.slice(2)}-${serial}`;
 
                 modifiedDevice.serial = iSerial.string;
                 modifiedDevice.product = iProduct.string;
@@ -394,8 +356,7 @@ export const generateDevices = async (): Promise<Devices> => {
 
                 // Set name if missing
                 if (deviceName === '') {
-                    modifiedDevice.name =
-                        `${iProduct.string} ${iManufacturer.string}`.trim();
+                    modifiedDevice.name = `${iProduct.string} ${iManufacturer.string}`.trim();
                 }
 
                 // Name still blank? Replace using fallback default

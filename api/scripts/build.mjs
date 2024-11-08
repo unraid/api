@@ -2,71 +2,83 @@
 import { exit } from 'process';
 import { cd, $ } from 'zx';
 
-import getTags from './get-tags.mjs'
+import { getDeploymentVersion } from './get-deployment-version.mjs';
 
 try {
-	// Enable colours in output
-	process.env.FORCE_COLOR = '1';
+    // Enable colours in output
+    process.env.FORCE_COLOR = '1';
 
-	// Ensure we have the correct working directory
-	process.env.WORKDIR = process.env.WORKDIR ?? process.env.PWD;
-	cd(process.env.WORKDIR);
+    // Ensure we have the correct working directory
+    process.env.WORKDIR ??= process.env.PWD;
+    cd(process.env.WORKDIR);
 
-	// Clean up last deploy
-	await $`rm -rf ./deploy/release`;
-	await $`rm -rf ./deploy/pre-pack`;
-	await $`mkdir -p ./deploy/release/`;
-	await $`mkdir -p ./deploy/pre-pack/`;
+    // Create deployment directories - ignore if they already exist
+    await $`mkdir -p ./deploy/release`;
+    await $`mkdir -p ./deploy/pre-pack`;
 
-	// Ensure all deps are installed
-	await $`npm i`;
+    await $`rm -rf ./deploy/release/*`;
+    await $`rm -rf ./deploy/pre-pack/*`;
 
-	// Build Generated Types
-	await $`npm run codegen`;
-	// Build binary
-	await $`npm run build`;
+    // Build Generated Types
+    await $`npm run codegen`;
 
-	// Copy binary + extra files to deployment directory
-	await $`cp ./dist/api ./deploy/pre-pack/unraid-api`;
-	await $`cp ./.env.production ./deploy/pre-pack/.env.production`;
-	await $`cp ./.env.staging ./deploy/pre-pack/.env.staging`;
+    await $`npm run build`;
+    // Copy app files to plugin directory
+    await $`cp -r ./src/ ./deploy/pre-pack/src/`;
+    await $`cp -r ./dist/ ./deploy/pre-pack/dist/`;
 
-	// Get package details
-	const { name, version } = await import('../package.json', {
-		assert: { type: 'json' },
-	}).then(pkg => pkg.default);
+    // Copy environment to deployment directory
+    const files = [
+        '.env.production',
+        '.env.staging',
+        'tsconfig.json',
+        'codegen.yml',
+        'ecosystem.config.json'
+    ]
 
-	const tags = getTags(process.env);
-	
-	// Decide whether to use full version or just tag
-	const isTaggedRelease = tags.isTagged;
-	const gitShaShort = tags.shortSha;
-	
-	const deploymentVersion = isTaggedRelease ? version : `${version}+${gitShaShort}`;
+    for (const file of files) {
+        await $`cp ./${file} ./deploy/pre-pack/${file}`;
+    }
 
-	// Create deployment package.json
-	await $`echo ${JSON.stringify({ name, version: deploymentVersion })} > ./deploy/pre-pack/package.json`;
+    // Get package details
+    const { name, version, ...rest } = await import('../package.json', {
+        assert: { type: 'json' },
+    }).then((pkg) => pkg.default);
 
-	// # Create final tgz
-	await $`cp ./README.md ./deploy/pre-pack/`;
-	cd('./deploy/pre-pack');
-	await $`npm pack`;
+    const deploymentVersion = getDeploymentVersion(process.env, version);
 
-	// Move unraid-api.tgz to release directory
-	await $`mv unraid-api-${deploymentVersion}.tgz ../release`;
+    // Create deployment package.json
+    await $`echo ${JSON.stringify({
+        ...rest,
+        name,
+        version: deploymentVersion,
+    })} > ./deploy/pre-pack/package.json`;
 
-	// Set API_VERSION output based on this command
-	await $`echo "::set-output name=API_VERSION::${deploymentVersion}"`;
+    // # Create final tgz
+    await $`cp ./README.md ./deploy/pre-pack/`;
+
+    await $`cp -r ./node_modules ./deploy/pre-pack/node_modules`;
+	// Install production dependencies
+    cd('./deploy/pre-pack');
+
+    await $`npm prune --omit=dev`;
+    await $`npm install --omit=dev`;
+
+    // Now we'll pack everything in the pre-pack directory
+    await $`tar -czf ../unraid-api-${deploymentVersion}.tgz .`;
+
+    // Move unraid-api.tgz to release directory
+    await $`mv ../unraid-api-${deploymentVersion}.tgz ../release`;
 } catch (error) {
-	// Error with a command
-	if (Object.keys(error).includes('stderr')) {
-		console.log(`Failed building package. Exit code: ${error.exitCode}`);
-		console.log(`Error: ${error.stderr}`);
-	} else {
-		// Normal js error
-		console.log('Failed building package.');
-		console.log(`Error: ${error.message}`);
-	}
+    // Error with a command
+    if (Object.keys(error).includes('stderr')) {
+        console.log(`Failed building package. Exit code: ${error.exitCode}`);
+        console.log(`Error: ${error.stderr}`);
+    } else {
+        // Normal js error
+        console.log('Failed building package.');
+        console.log(`Error: ${error.message}`);
+    }
 
-	exit(error.exitCode);
+    exit(error.exitCode);
 }

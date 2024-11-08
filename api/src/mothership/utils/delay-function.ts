@@ -11,12 +11,12 @@ export function buildDelayFunction(
 	const baseDelay = jitter ? initial : initial / 2;
 
 	return (count: number) => {
-		// eslint-disable-next-line no-mixed-operators
+		 
 		let delay = Math.min(max, baseDelay * 2 ** count);
 		if (jitter) {
 			// We opt for a full jitter approach for a mostly uniform distribution,
 			// but bound it within initialDelay and delay for everyone's sanity.
-			// eslint-disable-next-line operator-assignment
+			 
 			delay = Math.random() * delay;
 		}
 

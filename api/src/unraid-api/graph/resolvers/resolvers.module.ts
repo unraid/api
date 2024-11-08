@@ -37,7 +37,7 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module';
         ServerResolver,
         VarsResolver,
         VmsResolver,
-        NotificationsService,
+        { provide: 'NOTIFICATIONS_SERVICE', useClass: NotificationsService },
     ],
 })
 export class ResolversModule {}

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { BellIcon } from "@heroicons/vue/24/solid";
 import {
   Sheet,
   SheetContent,
@@ -9,20 +8,22 @@ import {
 } from "@/components/shadcn/sheet";
 
 import { archiveAllNotifications } from "./graphql/notification.query";
-import { NotificationType } from "~/composables/gql/graphql";
+// eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
+import { Importance, NotificationType } from "~/composables/gql/graphql";
 import { useMutation } from "@vue/apollo-composable";
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(
   archiveAllNotifications
 );
 const { teleportTarget, determineTeleportTarget } = useTeleport();
+const importance = ref<Importance | undefined>(undefined);
 </script>
 
 <template>
   <Sheet>
     <SheetTrigger @click="determineTeleportTarget">
       <span class="sr-only">Notifications</span>
-      <BellIcon class="w-6 h-6" />
+      <NotificationsIndicator />
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
@@ -57,7 +58,9 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
               Archive All
             </Button>
 
-            <Select>
+            <Select
+              @update:model-value="(val) => {importance = val as Importance}"
+            >
               <SelectTrigger class="bg-secondary border-0 h-auto">
                 <SelectValue
                   class="text-muted-foreground"
@@ -67,20 +70,26 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
               <SelectContent :to="teleportTarget">
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
-                  <SelectItem value="alert">Alert</SelectItem>
-                  <SelectItem value="info">Info</SelectItem>
-                  <SelectItem value="warning">Warning</SelectItem>
+                  <SelectItem :value="Importance.Alert">Alert</SelectItem>
+                  <SelectItem :value="Importance.Info">Info</SelectItem>
+                  <SelectItem :value="Importance.Warning">Warning</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>
           </div>
 
           <TabsContent value="unread" class="flex-1 min-h-0 mt-3">
-            <NotificationsList :type="NotificationType.Unread" />
+            <NotificationsList
+              :importance="importance"
+              :type="NotificationType.Unread"
+            />
           </TabsContent>
 
           <TabsContent value="archived" class="flex-1 min-h-0 mt-3">
-            <NotificationsList :type="NotificationType.Archive" />
+            <NotificationsList
+              :importance="importance"
+              :type="NotificationType.Archive"
+            />
           </TabsContent>
         </Tabs>
       </div>
