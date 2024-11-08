@@ -48,7 +48,7 @@ export enum Action {
 }
 
 export type AddPermissionInput = {
-  action: Scalars['String']['input'];
+  action: Action;
   possession?: InputMaybe<Possession>;
   resource: Resource;
   role: Role;

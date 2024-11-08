@@ -87,7 +87,7 @@ input CreateApiKeyInput {
 input AddPermissionInput {
     role: Role!
     resource: Resource!
-    action: String!
+    action: Action!
     possession: Possession = ANY
 }
 

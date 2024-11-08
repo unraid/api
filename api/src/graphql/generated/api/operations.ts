@@ -98,7 +98,7 @@ export function AccessUrlInputSchema(): z.ZodObject<Properties<AccessUrlInput>> 
 
 export function AddPermissionInputSchema(): z.ZodObject<Properties<AddPermissionInput>> {
   return z.object({
-    action: z.string(),
+    action: ActionSchema,
     possession: PossessionSchema.default("ANY").nullish(),
     resource: ResourceSchema,
     role: RoleSchema
