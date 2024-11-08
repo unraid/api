@@ -1,17 +1,20 @@
+import { Inject } from '@nestjs/common';
+import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+
+import { UseRoles } from 'nest-access-control';
+
 import type {
     NotificationData,
-    NotificationType,
     NotificationFilter,
     NotificationOverview,
+    NotificationType,
 } from '@app/graphql/generated/api/types';
-import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { NotificationsService } from './notifications.service';
-import { Importance } from '@app/graphql/generated/client/graphql';
 import { AppError } from '@app/core/errors/app-error';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { Importance } from '@app/graphql/generated/client/graphql';
 import { formatTimestamp } from '@app/utils';
-import {Inject} from "@nestjs/common";
+
+import { NotificationsService } from './notifications.service';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
