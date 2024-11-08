@@ -60,7 +60,7 @@ enum Possession {
 }
 
 type ApiKey {
-    id: String!
+    id: ID!
     name: String!
     description: String
     roles: [Role!]!
@@ -69,7 +69,7 @@ type ApiKey {
 }
 
 type ApiKeyWithSecret {
-    id: String!
+    id: ID!
     key: String!
     name: String!
     description: String

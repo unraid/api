@@ -14,6 +14,11 @@ export class ApiKeyService {
 
     public async paths() {
         const basePath = getters.paths()['auth-keys'];
+        const normalizedPath = join(basePath);
+
+        if (!normalizedPath.startsWith(basePath) || normalizedPath.includes('..')) {
+            throw new GraphQLError('Invalid API key storage path');
+        }
 
         try {
             await access(basePath);
@@ -121,7 +126,13 @@ export class ApiKeyService {
                     const content = await readFile(join(basePath, file), 'utf8');
                     const apiKey = JSON.parse(content) as ApiKeyWithSecret;
 
-                    if (apiKey.key === key) {
+                    const keyBuffer1 = Buffer.from(key);
+                    const keyBuffer2 = Buffer.from(apiKey.key);
+
+                    if (
+                        keyBuffer1.length === keyBuffer2.length &&
+                        crypto.timingSafeEqual(keyBuffer1, keyBuffer2)
+                    ) {
                         apiKey.roles = apiKey.roles.map(
                             (role) => Role[role.toUpperCase() as keyof typeof Role] || Role.GUEST
                         );
