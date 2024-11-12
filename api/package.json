@@ -131,6 +131,7 @@
     "@graphql-codegen/typescript-operations": "^4.3.1",
     "@graphql-codegen/typescript-resolvers": "4.4.0",
     "@graphql-typed-document-node/core": "^3.2.0",
+    "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
     "@nestjs/testing": "^10.4.7",
     "@originjs/vite-plugin-commonjs": "^1.0.3",
     "@rollup/plugin-node-resolve": "^15.3.0",
