@@ -1,16 +1,17 @@
-import { AuthZModule, AUTHZ_ENFORCER } from 'nest-authz';
 import { Module } from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
-import { newEnforcer, Model as CasbinModel, StringAdapter } from 'casbin';
+
+import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
+import { AUTHZ_ENFORCER, AuthZModule } from 'nest-authz';
+
+import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 
 import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
-import { CASBIN_MODEL, BASE_POLICY } from './casbin';
+import { BASE_POLICY, CASBIN_MODEL } from './casbin';
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
-import { ServerHeaderStrategy } from './header.strategy';
 import { UserCookieStrategy } from './cookie.strategy';
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
-import { ACGuard } from 'nest-access-control';
+import { ServerHeaderStrategy } from './header.strategy';
 
 @Module({
     imports: [
@@ -56,10 +57,6 @@ import { ACGuard } from 'nest-access-control';
             useValue: CookieService.defaultOpts(),
         },
         { provide: 'APP_GUARD', useClass: GraphqlAuthGuard },
-        {
-            provide: 'APP_GUARD',
-            useClass: ACGuard,
-        },
     ],
     exports: [
         AuthService,

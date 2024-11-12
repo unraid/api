@@ -1,6 +1,5 @@
 import { apiLogger } from '@app/core/log';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
-import { IS_PUBLIC_KEY } from '@app/unraid-api/auth/public.decorator';
 import {
     type ExecutionContext,
     Injectable,
@@ -8,7 +7,6 @@ import {
     UnauthorizedException,
     Logger,
 } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 import { type Observable } from 'rxjs';
