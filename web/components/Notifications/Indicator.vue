@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { useQuery } from "@vue/apollo-composable";
-import { unreadOverview } from "./graphql/notification.query";
-import { Importance } from "~/composables/gql/graphql";
-import {
-  BellIcon,
-  ExclamationTriangleIcon,
-  ShieldExclamationIcon,
-} from "@heroicons/vue/24/solid";
-import { cn } from '~/components/shadcn/utils'
-import { onWatcherCleanup } from "vue";
+import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
+import { useQuery } from '@vue/apollo-composable';
+import { cn } from '~/components/shadcn/utils';
+import { Importance } from '~/composables/gql/graphql';
+import { onWatcherCleanup } from 'vue';
+import { unreadOverview } from './graphql/notification.query';
 
 const { result } = useQuery(unreadOverview, null, {
   pollInterval: 2_000, // 2 seconds
@@ -31,7 +27,7 @@ const indicatorLevel = computed(() => {
     case overview.value.warning > 0:
       return Importance.Warning;
     case overview.value.total > 0:
-      return "UNREAD";
+      return 'UNREAD';
     default:
       return undefined;
   }
@@ -42,12 +38,12 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
     case Importance.Warning:
       return {
         component: ExclamationTriangleIcon,
-        color: "text-yellow-500 translate-y-0.5",
+        color: 'text-yellow-500 translate-y-0.5',
       };
     case Importance.Alert:
       return {
         component: ShieldExclamationIcon,
-        color: "text-red-500",
+        color: 'text-red-500',
       };
   }
   return null;
@@ -89,10 +85,6 @@ watch(overview, (newVal, oldVal) => {
         class="absolute top-0 right-0 size-2.5 rounded-full bg-unraid-red animate-ping"
       />
     </div>
-    <component
-      :is="icon.component"
-      v-if="icon"
-      :class="cn('size-6', icon.color)"
-    />
+    <component :is="icon.component" v-if="icon" :class="cn('size-6', icon.color)" />
   </div>
 </template>
