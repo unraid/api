@@ -1811,7 +1811,7 @@ export type DirectiveResolverFn<TResult = {}, TParent = {}, TContext = {}, TArgs
 
 
 /** Mapping of interface types */
-export type ResolversInterfaceTypes<RefType extends Record<string, unknown>> = ResolversObject<{
+export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = ResolversObject<{
   Node: ( ArrayType ) | ( Config ) | ( Connect ) | ( Docker ) | ( Info ) | ( Network ) | ( Notification ) | ( Notifications ) | ( Service ) | ( Vars );
   UserAccount: ( Me ) | ( User );
 }>;
