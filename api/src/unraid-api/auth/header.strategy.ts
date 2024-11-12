@@ -1,10 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+
 import { Strategy } from 'passport-http-header-strategy';
 
-import { AuthService } from './auth.service';
 import { User } from '@app/graphql/generated/api/types';
+
+import { AuthService } from './auth.service';
 
 @Injectable()
 export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-http-header') {
@@ -23,12 +24,12 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
 
         if (!apiKey) {
             this.logger.debug('No API key provided');
-            return null;
+            throw new UnauthorizedException('No API key provided');
         }
 
         if (!/^[a-zA-Z0-9-_]+$/.test(apiKey)) {
             this.logger.warn('Invalid API key format');
-            return null;
+            throw new UnauthorizedException('Invalid API key format');
         }
 
         try {
@@ -39,7 +40,7 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
                 timestamp: new Date().toISOString(),
                 errorType: error instanceof Error ? error.constructor.name : 'Unknown',
             });
-            return null;
+            throw new UnauthorizedException('API key validation failed');
         }
     }
 }
