@@ -1,33 +1,33 @@
-import { NotificationIni } from '@app/core/types/states/notification';
-import { parseConfig } from '@app/core/utils/misc/parse-config';
-import { NotificationSchema } from '@app/graphql/generated/api/operations';
-import {
-    Importance,
-    NotificationType,
-    type Notification,
-    type NotificationFilter,
-    type NotificationOverview,
-    type NotificationData,
-    type NotificationCounts,
-} from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
+import { statSync } from 'fs';
 import { readdir, rename, unlink, writeFile } from 'fs/promises';
 import { basename, join } from 'path';
-import { Logger } from '@nestjs/common';
-import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
+
+import type { Stats } from 'fs';
 import { FSWatcher, watch } from 'chokidar';
-import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { fileExists } from '@app/core/utils/files/file-exists';
+import { execa } from 'execa';
+import { emptyDir } from 'fs-extra';
 import { encode as encodeIni } from 'ini';
 import { v7 as uuidv7 } from 'uuid';
-import { CHOKIDAR_USEPOLLING } from '@app/environment';
-import { emptyDir } from 'fs-extra';
-import { statSync } from 'fs';
-import { execa } from 'execa';
+
+import type {
+    Notification,
+    NotificationCounts,
+    NotificationData,
+    NotificationFilter,
+    NotificationOverview,
+} from '@app/graphql/generated/api/types';
 import { AppError } from '@app/core/errors/app-error';
+import { pubsub, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { NotificationIni } from '@app/core/types/states/notification';
+import { fileExists } from '@app/core/utils/files/file-exists';
+import { parseConfig } from '@app/core/utils/misc/parse-config';
+import { CHOKIDAR_USEPOLLING } from '@app/environment';
+import { NotificationSchema } from '@app/graphql/generated/api/operations';
+import { Importance, NotificationType } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store';
 import { SortFn } from '@app/unraid-api/types/util';
-import type { Stats } from 'fs';
+import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 
 @Injectable()
 export class NotificationsService {
