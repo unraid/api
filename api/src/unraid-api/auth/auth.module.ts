@@ -9,6 +9,8 @@ import { CASBIN_MODEL, BASE_POLICY } from './casbin';
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
 import { ServerHeaderStrategy } from './header.strategy';
 import { UserCookieStrategy } from './cookie.strategy';
+import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
+import { ACGuard } from 'nest-access-control';
 
 @Module({
     imports: [
@@ -52,6 +54,11 @@ import { UserCookieStrategy } from './cookie.strategy';
         {
             provide: SESSION_COOKIE_CONFIG,
             useValue: CookieService.defaultOpts(),
+        },
+        { provide: 'APP_GUARD', useClass: GraphqlAuthGuard },
+        {
+            provide: 'APP_GUARD',
+            useClass: ACGuard,
         },
     ],
     exports: [

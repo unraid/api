@@ -1,8 +1,6 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { GraphQLError } from 'graphql';
-import { UseGuards } from '@nestjs/common';
 import { UsePermissions } from 'nest-authz';
-import { ThrottlerGuard } from '@nestjs/throttler';
 
 import {
     type AddPermissionInput,
@@ -18,10 +16,8 @@ import {
 } from '@app/graphql/generated/api/types';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 
 @Resolver('Auth')
-@UseGuards(GraphqlAuthGuard, ThrottlerGuard)
 export class AuthResolver {
     constructor(
         private authService: AuthService,

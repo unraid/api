@@ -6,6 +6,7 @@ import { Module } from '@nestjs/common';
 import { LoggerModule } from 'nestjs-pino';
 import { CronModule } from '@app/unraid-api/cron/cron.module';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
 
 @Module({
     imports: [
@@ -29,16 +30,8 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
     controllers: [],
     providers: [
         {
-            provide: 'APP_GUARD',
+            provide: APP_GUARD,
             useClass: ThrottlerGuard,
-        },
-        {
-            provide: 'APP_GUARD',
-            useFactory: () => new GraphqlAuthGuard(new Reflector()),
-        },
-        {
-            provide: 'APP_GUARD',
-            useClass: ACGuard,
         },
     ],
 })
