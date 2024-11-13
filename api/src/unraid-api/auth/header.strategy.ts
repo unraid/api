@@ -15,30 +15,36 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
     constructor(private readonly authService: AuthService) {
         super({
             header: 'x-api-key',
-            passReqToCallback: false,
+            passReqToCallback: true,
         });
     }
 
-    async validate(apiKey: string): Promise<User | null> {
-        this.logger.debug('Validating API key');
+    async validate(req: any): Promise<User | null> {
+        const request = req.req || req;
+        const key = request.headers?.['x-api-key'];
 
-        if (!apiKey) {
+        if (!key) {
             this.logger.debug('No API key provided');
             throw new UnauthorizedException('No API key provided');
         }
 
-        if (!/^[a-zA-Z0-9-_]+$/.test(apiKey)) {
+        if (!/^[a-zA-Z0-9-_]+$/.test(key)) {
             this.logger.warn('Invalid API key format');
             throw new UnauthorizedException('Invalid API key format');
         }
 
         try {
-            return this.authService.validateApiKeyCasbin(apiKey);
+            const user = await this.authService.validateApiKeyCasbin(key);
+            this.logger.debug('API key validation successful', {
+                userId: user?.id,
+                roles: user?.roles,
+            });
+
+            return user;
         } catch (error) {
             this.logger.error('API key validation failed', {
-                error: 'Authorization failed',
-                timestamp: new Date().toISOString(),
                 errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+                message: error instanceof Error ? error.message : 'Unknown error',
             });
             throw new UnauthorizedException('API key validation failed');
         }

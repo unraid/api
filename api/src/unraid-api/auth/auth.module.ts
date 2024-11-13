@@ -33,14 +33,12 @@ import { ServerHeaderStrategy } from './header.strategy';
                 },
             },
             userFromContext: (ctx) => {
-                const request = ctx.switchToHttp().getRequest();
+                const request =
+                    ctx.getType() === 'http'
+                        ? ctx.switchToHttp().getRequest()
+                        : ctx.getArgByIndex(2).req;
 
-                return request.user
-                    ? {
-                          id: request.user.id,
-                          roles: request.user.roles,
-                      }
-                    : '';
+                return request?.user?.roles?.join(',') || '';
             },
         }),
     ],

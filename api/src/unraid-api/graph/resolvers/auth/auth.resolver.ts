@@ -1,3 +1,4 @@
+import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { GraphQLError } from 'graphql';
@@ -14,9 +15,11 @@ import type {
 } from '@app/graphql/generated/api/types';
 import { Action, Resource, Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 
 @Resolver('Auth')
+@UseGuards(GraphqlAuthGuard)
 export class AuthResolver {
     constructor(
         private authService: AuthService,
