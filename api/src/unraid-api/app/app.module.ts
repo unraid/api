@@ -1,12 +1,16 @@
+import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+
+import { LoggerModule } from 'nestjs-pino';
+
 import { apiLogger } from '@app/core/log';
 import { AuthModule } from '@app/unraid-api/auth/auth.module';
+import { CronModule } from '@app/unraid-api/cron/cron.module';
 import { GraphModule } from '@app/unraid-api/graph/graph.module';
 import { RestModule } from '@app/unraid-api/rest/rest.module';
-import { Module } from '@nestjs/common';
-import { LoggerModule } from 'nestjs-pino';
-import { CronModule } from '@app/unraid-api/cron/cron.module';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
-import { APP_GUARD } from '@nestjs/core';
+
+import { FastifyThrottlerGuard } from '../auth/fastify-throttler.guard';
 
 @Module({
     imports: [
@@ -31,7 +35,7 @@ import { APP_GUARD } from '@nestjs/core';
     providers: [
         {
             provide: APP_GUARD,
-            useClass: ThrottlerGuard,
+            useClass: FastifyThrottlerGuard,
         },
     ],
 })
