@@ -1,11 +1,12 @@
-import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
-import crypto from 'crypto';
 import { Injectable, Logger } from '@nestjs/common';
-import { GraphQLError } from 'graphql';
+import crypto from 'crypto';
+import { access, mkdir, readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
+
+import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ApiKeyWithSecret, type ApiKey, Role, UserAccount } from '@app/graphql/generated/api/types';
+import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
 @Injectable()

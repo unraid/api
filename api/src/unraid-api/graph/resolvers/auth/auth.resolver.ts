@@ -1,21 +1,20 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+
 import { GraphQLError } from 'graphql';
 import { UsePermissions } from 'nest-authz';
 
-import {
-    type AddPermissionInput,
-    type AddRoleForApiKeyInput,
-    type AddRoleForUserInput,
-    type ApiKey,
-    type ApiKeyWithSecret,
-    type CreateApiKeyInput,
-    type RemoveRoleFromApiKeyInput,
-    Action,
-    Resource,
-    Role,
+import type {
+    AddPermissionInput,
+    AddRoleForApiKeyInput,
+    AddRoleForUserInput,
+    ApiKey,
+    ApiKeyWithSecret,
+    CreateApiKeyInput,
+    RemoveRoleFromApiKeyInput,
 } from '@app/graphql/generated/api/types';
-import { AuthService } from '@app/unraid-api/auth/auth.service';
+import { Action, Resource, Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { AuthService } from '@app/unraid-api/auth/auth.service';
 
 @Resolver('Auth')
 export class AuthResolver {

@@ -18,7 +18,7 @@ import { NotificationsService } from './notifications.service';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
-    constructor(@Inject('NOTIFICATIONS_SERVICE') readonly notificationsService: NotificationsService) {}
+    constructor(readonly notificationsService: NotificationsService) {}
 
     /**============================================
      *               Queries

@@ -1,8 +1,10 @@
+import { Controller, Get, Logger, Param, Res } from '@nestjs/common';
+
+import { UseRoles } from 'nest-access-control';
+
+import type { FastifyReply } from '@app/types/fastify';
 import { Public } from '@app/unraid-api/auth/public.decorator';
 import { RestService } from '@app/unraid-api/rest/rest.service';
-import { Controller, Get, Res, Logger, Param } from '@nestjs/common';
-import { FastifyReply } from 'fastify';
-import { UseRoles } from 'nest-access-control';
 
 @Controller()
 export class RestController {
@@ -37,10 +39,7 @@ export class RestController {
         action: 'read',
         possession: 'any',
     })
-    async getCustomizations(
-        @Param('type') type: string,
-        @Res() res: FastifyReply
-    ) {
+    async getCustomizations(@Param('type') type: string, @Res() res: FastifyReply) {
         if (type !== 'banner' && type !== 'case') {
             throw new Error('Invalid Customization Type');
         }

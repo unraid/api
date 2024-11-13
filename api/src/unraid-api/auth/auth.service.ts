@@ -1,7 +1,10 @@
-import { AuthZService } from 'nest-authz';
-import { Injectable, UnauthorizedException, Logger } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
-import { Action, Possession, Resource, Role, type UserAccount } from '@app/graphql/generated/api/types';
+import { AuthZService } from 'nest-authz';
+
+import type { UserAccount } from '@app/graphql/generated/api/types';
+import { Action, Possession, Resource, Role } from '@app/graphql/generated/api/types';
+
 import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
 

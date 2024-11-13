@@ -4,8 +4,6 @@ import { PassportModule } from '@nestjs/passport';
 import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
 import { AUTHZ_ENFORCER, AuthZModule } from 'nest-authz';
 
-import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
-
 import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
 import { BASE_POLICY, CASBIN_MODEL } from './casbin';
@@ -56,7 +54,6 @@ import { ServerHeaderStrategy } from './header.strategy';
             provide: SESSION_COOKIE_CONFIG,
             useValue: CookieService.defaultOpts(),
         },
-        { provide: 'APP_GUARD', useClass: GraphqlAuthGuard },
     ],
     exports: [
         AuthService,
