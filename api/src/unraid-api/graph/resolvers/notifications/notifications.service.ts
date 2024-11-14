@@ -529,14 +529,25 @@ export class NotificationsService {
      * @returns An array of all notifications in the system.
      */
     public async getNotifications(filters: NotificationFilter): Promise<Notification[]> {
-        this.logger.debug('Getting Notifications');
+        this.logger.verbose('Getting Notifications');
 
+        const { type = NotificationType.UNREAD } = filters;
         const { ARCHIVE, UNREAD } = this.paths();
-        const directoryPath = filters.type === NotificationType.ARCHIVE ? ARCHIVE : UNREAD;
+        let files: string[];
 
-        const unreadFiles = await this.listFilesInFolder(directoryPath);
-        const [notifications] = await this.loadNotificationsFromPaths(unreadFiles, filters);
+        if (type === NotificationType.UNREAD) {
+            files = await this.listFilesInFolder(UNREAD);
+        } else {
+            // Exclude notifications present in both unread & archive from archive.
+            //* this is necessary because the legacy script writes new notifications to both places.
+            //* this should be a temporary measure.
+            const unreads = new Set(await readdir(UNREAD));
+            files = await this.listFilesInFolder(ARCHIVE, (archives) => {
+                return archives.filter((file) => !unreads.has(file));
+            });
+        }
 
+        const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
     }
 
@@ -545,12 +556,16 @@ export class NotificationsService {
      * Sorted latest-first by default.
      *
      * @param folderPath The path of the folder to read.
+     * @param narrowContent Returns which files from `folderPath` to include. Defaults to all.
      * @param sortFn An optional function to sort folder contents. Defaults to descending birth time.
      * @returns A list of absolute paths of all the files and contents in the folder.
      */
-    private async listFilesInFolder(folderPath: string, sortFn?: SortFn<Stats>): Promise<string[]> {
-        sortFn ??= (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs; // latest first
-        const contents = await readdir(folderPath);
+    private async listFilesInFolder(
+        folderPath: string,
+        narrowContent: (contents: string[]) => string[] = (contents) => contents,
+        sortFn: SortFn<Stats> = (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs // latest first
+    ): Promise<string[]> {
+        const contents = narrowContent(await readdir(folderPath));
         return contents
             .map((content) => {
                 // pre-map each file's stats to avoid excess calls during sorting
