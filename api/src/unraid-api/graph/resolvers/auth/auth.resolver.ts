@@ -77,17 +77,12 @@ export class AuthResolver {
         @Args('input')
         input: AddPermissionInput
     ): Promise<boolean> {
-        try {
-            await this.authService.addPermission(
-                Role[input.role],
-                Resource[input.resource],
-                Action[input.action]
-            );
-
-            return true;
-        } catch (error) {
-            throw new GraphQLError('Failed to add permission');
-        }
+        await this.authService.addPermission(
+            Role[input.role],
+            Resource[input.resource],
+            Action[input.action]
+        );
+        return true;
     }
 
     @Mutation()
