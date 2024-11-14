@@ -2,7 +2,7 @@ import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
 import { GraphQLError } from 'graphql';
-import { UsePermissions } from 'nest-authz';
+import { AuthPossession, UsePermissions } from 'nest-authz';
 
 import type {
     AddPermissionInput,
@@ -30,6 +30,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.READ,
         resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
     })
     async apiKeys(): Promise<ApiKey[]> {
         return this.apiKeyService.findAll();
@@ -39,6 +40,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.READ,
         resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
     })
     async apiKey(@Args('id') id: string): Promise<ApiKey | null> {
         return this.apiKeyService.findById(id);
@@ -48,6 +50,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.CREATE,
         resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
     })
     async createApiKey(
         @Args('input')
@@ -68,6 +71,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.CREATE,
         resource: Resource.PERMISSION,
+        possession: AuthPossession.ANY,
     })
     async addPermission(
         @Args('input')
@@ -90,6 +94,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.UPDATE,
         resource: Resource.PERMISSION,
+        possession: AuthPossession.ANY,
     })
     async addRoleForUser(
         @Args('input')
@@ -102,6 +107,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.UPDATE,
         resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
     })
     async addRoleForApiKey(
         @Args('input')
@@ -114,6 +120,7 @@ export class AuthResolver {
     @UsePermissions({
         action: Action.UPDATE,
         resource: Resource.API_KEY,
+        possession: AuthPossession.ANY,
     })
     async removeRoleFromApiKey(
         @Args('input')
