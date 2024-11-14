@@ -43,8 +43,8 @@ const errorLink = onError(({ graphQLErrors, networkError }: any) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     graphQLErrors.map((error: any) => {
       console.error('[GraphQL error]', error);
-      const errorMsg = error.error && error.error.message ? error.error.message : error.message;
-      if (errorMsg && errorMsg.includes('offline')) {
+      const errorMsg = error.error?.message ?? error.message;
+      if (errorMsg?.includes('offline')) {
         // @todo restart the api
       }
       return error.message;
