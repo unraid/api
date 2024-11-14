@@ -45,7 +45,7 @@ const notifications = computed(() => {
 
 async function onLoadMore() {
   console.log('[getNotifications] onLoadMore');
-  const a = await fetchMore({
+  const incoming = await fetchMore({
     variables: {
       filter: {
         offset: notifications.value.length,
@@ -55,7 +55,7 @@ async function onLoadMore() {
       },
     },
   });
-  const incomingCount = a?.data.notifications.list.length ?? 0;
+  const incomingCount = incoming?.data.notifications.list.length ?? 0;
   if (incomingCount === 0) {
     canLoadMore.value = false;
   }
