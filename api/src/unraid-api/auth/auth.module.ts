@@ -59,13 +59,28 @@ import { ServerHeaderStrategy } from './header.strategy';
                 },
             },
             userFromContext: (ctx) => {
-                const request =
-                    ctx.getType() === 'http'
-                        ? ctx.switchToHttp().getRequest()
-                        : ctx.getArgByIndex(2).req;
-                const roles = request?.user?.roles || '';
+                try {
+                    const request =
+                        ctx.getType() === 'http'
+                            ? ctx.switchToHttp().getRequest()
+                            : ctx.getType() === 'graphql'
+                                ? ctx.getArgByIndex(2)?.req
+                                : null;
 
-                return roles?.join(',') || '';
+                    if (!request) {
+                        throw new Error(`Unsupported execution context type: ${ctx.getType()}`);
+                    }
+
+                    const roles = request?.user?.roles || '';
+                    if (roles && !Array.isArray(roles)) {
+                        throw new Error('User roles must be an array');
+                    }
+
+                    return roles?.join(',') || '';
+                } catch (error) {
+                    console.error('Failed to extract user context:', error);
+                    return '';  // Return empty string as fallback for Casbin
+                }
             },
         }),
     ],
