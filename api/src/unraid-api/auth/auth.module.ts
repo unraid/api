@@ -22,11 +22,37 @@ import { ServerHeaderStrategy } from './header.strategy';
                 useFactory: async () => {
                     const model = new CasbinModel();
                     const policy = new StringAdapter(BASE_POLICY);
-
                     model.loadModelFromText(CASBIN_MODEL);
 
                     try {
-                        return await newEnforcer(model, policy);
+                        const enforcer = await newEnforcer(model, policy);
+                        enforcer.enableLog(true);
+
+                        // Handle combined action:possession format so we can use seperate enums in the policy
+                        const originalEnforce = enforcer.enforce.bind(enforcer);
+                        enforcer.enforce = async (...args: any[]) => {
+                            if (args.length === 3) {
+                                const [sub, obj, actPoss] = args;
+                                const [action, possession] = actPoss.split(':');
+
+                                const roles = sub.split(',');
+                                for (const role of roles) {
+                                    const allowed = await originalEnforce(
+                                        role.trim(),
+                                        obj,
+                                        action.toUpperCase(),
+                                        possession.toUpperCase()
+                                    );
+                                    if (allowed) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            }
+                            return originalEnforce(...args);
+                        };
+
+                        return enforcer;
                     } catch (error: unknown) {
                         throw new Error(`Failed to create Casbin enforcer: ${error}`);
                     }
@@ -37,8 +63,9 @@ import { ServerHeaderStrategy } from './header.strategy';
                     ctx.getType() === 'http'
                         ? ctx.switchToHttp().getRequest()
                         : ctx.getArgByIndex(2).req;
+                const roles = request?.user?.roles || '';
 
-                return request?.user?.roles?.join(',') || '';
+                return roles?.join(',') || '';
             },
         }),
     ],

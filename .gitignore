@@ -51,6 +51,7 @@ typings/
 
 # Visual Studio Code workspace
 .vscode/sftp.json
+.history/
 
 # OSX
 .DS_Store
