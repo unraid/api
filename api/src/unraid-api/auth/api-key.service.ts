@@ -41,7 +41,9 @@ export class ApiKeyService {
         description: string | undefined,
         roles: Role[]
     ): Promise<ApiKeyWithSecret> {
-        if (!name?.trim()) {
+        const trimmedName = name?.trim();
+
+        if (!trimmedName) {
             throw new GraphQLError('API key name is required');
         }
 
@@ -58,7 +60,7 @@ export class ApiKeyService {
         const apiKey: ApiKeyWithSecret = {
             id: uuidv4(),
             key: this.generateApiKey(),
-            name,
+            name: trimmedName,
             description,
             roles,
             createdAt: new Date().toISOString(),
