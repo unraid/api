@@ -9,6 +9,22 @@ const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAl
 const { mutate: deleteAll, loading: loadingDeleteAll } = useMutation(deleteAllNotifications);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
+
+const confirmAndArchiveAll = async () => {
+  if (
+    confirm('This will archive all notifications on your Unraid server. Continue?')
+  ) {
+    await archiveAll();
+  }
+};
+
+const confirmAndDeleteAll = async () => {
+  if (
+    confirm('This will permanently delete all notifications currently on your Unraid server. Continue?')
+  ) {
+    await deleteAll();
+  }
+};
 </script>
 
 <template>
@@ -45,7 +61,7 @@ const importance = ref<Importance | undefined>(undefined);
                 variant="link"
                 size="sm"
                 class="text-muted-foreground text-base p-0"
-                @click="archiveAll"
+                @click="confirmAndArchiveAll"
               >
                 Archive All
               </Button>
@@ -56,7 +72,7 @@ const importance = ref<Importance | undefined>(undefined);
                 variant="link"
                 size="sm"
                 class="text-muted-foreground text-base p-0"
-                @click="deleteAll"
+                @click="confirmAndDeleteAll"
               >
                 Delete All
               </Button>
