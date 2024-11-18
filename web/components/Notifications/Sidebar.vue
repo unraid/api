@@ -3,9 +3,10 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/co
 import { useMutation } from '@vue/apollo-composable';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
-import { archiveAllNotifications } from './graphql/notification.query';
+import { archiveAllNotifications, deleteAllNotifications } from './graphql/notification.query';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
+const { mutate: deleteAll, loading: loadingDeleteAll } = useMutation(deleteAllNotifications);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 </script>
@@ -51,9 +52,11 @@ const importance = ref<Importance | undefined>(undefined);
             </TabsContent>
             <TabsContent value="archived">
               <Button
+                :disabled="loadingDeleteAll"
                 variant="link"
                 size="sm"
                 class="text-muted-foreground text-base p-0"
+                @click="deleteAll"
               >
                 Delete All
               </Button>
