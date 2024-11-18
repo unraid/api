@@ -9,6 +9,7 @@ import { request } from '~/composables/services/request';
 import { useCallbackStore } from '~/store/callbackActions';
 // import { useServerStore } from '~/store/server';
 import type { ServerUpdateOsResponse } from '~/types/server';
+import { safeParseMarkdown } from '~/helpers/markdown';
 
 export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => {
   const callbackStore = useCallbackStore();
@@ -92,7 +93,7 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
         renderer
       });
 
-      parsedChangelog.value = await marked.parse(changelogMarkdownRaw);
+      parsedChangelog.value = await safeParseMarkdown(changelogMarkdownRaw);
     } catch (error: unknown) {
       const caughtError = error as Error;
       parseChangelogFailed.value =
