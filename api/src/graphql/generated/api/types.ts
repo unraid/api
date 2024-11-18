@@ -39,17 +39,9 @@ export type AccessUrlInput = {
   type: URL_TYPE;
 };
 
-/** Available actions for permissions */
-export enum Action {
-  CREATE = 'CREATE',
-  DELETE = 'DELETE',
-  READ = 'READ',
-  UPDATE = 'UPDATE'
-}
-
 export type AddPermissionInput = {
-  action: Action;
-  possession?: InputMaybe<Possession>;
+  action: Scalars['String']['input'];
+  possession: Scalars['String']['input'];
   resource: Resource;
   role: Role;
 };
@@ -73,7 +65,6 @@ export type ApiKey = {
   createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
-  lastUsed?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
   roles: Array<Role>;
 };
@@ -90,7 +81,6 @@ export type ApiKeyWithSecret = {
   description?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   key: Scalars['String']['output'];
-  lastUsed?: Maybe<Scalars['DateTime']['output']>;
   name: Scalars['String']['output'];
   roles: Array<Role>;
 };
@@ -1032,12 +1022,6 @@ export type Pci = {
   vendorname?: Maybe<Scalars['String']['output']>;
 };
 
-/** Available possession types for permissions */
-export enum Possession {
-  ANY = 'ANY',
-  OWN = 'OWN'
-}
-
 export type ProfileModel = {
   __typename?: 'ProfileModel';
   avatar?: Maybe<Scalars['String']['output']>;
@@ -1201,41 +1185,41 @@ export type RemoveRoleFromApiKeyInput = {
 
 /** Available resources for permissions */
 export enum Resource {
-  API_KEY = 'API_KEY',
-  ARRAY = 'ARRAY',
-  CLOUD = 'CLOUD',
-  CONFIG = 'CONFIG',
-  CONNECT = 'CONNECT',
-  CRASH_REPORTING_ENABLED = 'CRASH_REPORTING_ENABLED',
-  CUSTOMIZATIONS = 'CUSTOMIZATIONS',
-  DASHBOARD = 'DASHBOARD',
-  DISK = 'DISK',
-  DISPLAY = 'DISPLAY',
-  DOCKER = 'DOCKER',
-  FLASH = 'FLASH',
-  INFO = 'INFO',
-  LOGS = 'LOGS',
-  ME = 'ME',
-  NETWORK = 'NETWORK',
-  NOTIFICATIONS = 'NOTIFICATIONS',
-  OS = 'OS',
-  OWNER = 'OWNER',
-  PERMISSION = 'PERMISSION',
-  REGISTRATION = 'REGISTRATION',
-  SERVERS = 'SERVERS',
-  SERVICES = 'SERVICES',
-  VARS = 'VARS',
-  VMS = 'VMS',
-  WELCOME = 'WELCOME'
+  API_KEY = 'api_key',
+  ARRAY = 'array',
+  CLOUD = 'cloud',
+  CONFIG = 'config',
+  CONNECT = 'connect',
+  CRASH_REPORTING_ENABLED = 'crash_reporting_enabled',
+  CUSTOMIZATIONS = 'customizations',
+  DASHBOARD = 'dashboard',
+  DISK = 'disk',
+  DISPLAY = 'display',
+  DOCKER = 'docker',
+  FLASH = 'flash',
+  INFO = 'info',
+  LOGS = 'logs',
+  ME = 'me',
+  NETWORK = 'network',
+  NOTIFICATIONS = 'notifications',
+  OS = 'os',
+  OWNER = 'owner',
+  PERMISSION = 'permission',
+  REGISTRATION = 'registration',
+  SERVERS = 'servers',
+  SERVICES = 'services',
+  VARS = 'vars',
+  VMS = 'vms',
+  WELCOME = 'welcome'
 }
 
 /** Available roles for API keys and users */
 export enum Role {
-  ADMIN = 'ADMIN',
-  GUEST = 'GUEST',
-  MY_SERVERS = 'MY_SERVERS',
-  NOTIFIER = 'NOTIFIER',
-  UPC = 'UPC'
+  ADMIN = 'admin',
+  GUEST = 'guest',
+  MY_SERVERS = 'my_servers',
+  NOTIFIER = 'notifier',
+  UPC = 'upc'
 }
 
 export type Server = {
@@ -1820,7 +1804,6 @@ export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = 
 export type ResolversTypes = ResolversObject<{
   AccessUrl: ResolverTypeWrapper<AccessUrl>;
   AccessUrlInput: AccessUrlInput;
-  Action: Action;
   AddPermissionInput: AddPermissionInput;
   AddRoleForApiKeyInput: AddRoleForApiKeyInput;
   AddRoleForUserInput: AddRoleForUserInput;
@@ -1903,7 +1886,6 @@ export type ResolversTypes = ResolversObject<{
   Partition: ResolverTypeWrapper<Partition>;
   Pci: ResolverTypeWrapper<Pci>;
   Port: ResolverTypeWrapper<Scalars['Port']['output']>;
-  Possession: Possession;
   ProfileModel: ResolverTypeWrapper<ProfileModel>;
   Query: ResolverTypeWrapper<{}>;
   Registration: ResolverTypeWrapper<Registration>;
@@ -2059,7 +2041,6 @@ export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversP
   createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
-  lastUsed?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
@@ -2076,7 +2057,6 @@ export type ApiKeyWithSecretResolvers<ContextType = Context, ParentType extends 
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  lastUsed?: Resolver<Maybe<ResolversTypes['DateTime']>, ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;

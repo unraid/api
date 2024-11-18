@@ -1,12 +1,14 @@
-import { AuthZService } from 'nest-authz';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { newEnforcer } from 'casbin';
+import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { Action, ApiKeyWithSecret, Resource, Role, type ApiKey } from '@app/graphql/generated/api/types';
+import type { ApiKey } from '@app/graphql/generated/api/types';
+import { ApiKeyWithSecret, Resource, Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
-import { AuthResolver } from './auth.resolver';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { CookieService } from '@app/unraid-api/auth/cookie.service';
+
+import { AuthResolver } from './auth.resolver';
 
 describe('AuthResolver', () => {
     let resolver: AuthResolver;
@@ -21,7 +23,6 @@ describe('AuthResolver', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
-        lastUsed: null,
     };
 
     const mockApiKeyWithSecret: ApiKeyWithSecret = {
@@ -31,7 +32,6 @@ describe('AuthResolver', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
-        lastUsed: null,
     };
 
     beforeEach(async () => {
@@ -104,9 +104,10 @@ describe('AuthResolver', () => {
     describe('addPermission', () => {
         it('should add permission', async () => {
             const input = {
+                action: AuthActionVerb.READ,
+                possession: AuthPossession.ANY,
                 role: Role.ADMIN,
                 resource: Resource.API_KEY,
-                action: Action.READ,
             };
 
             vi.spyOn(authService, 'addPermission').mockResolvedValue(true);
@@ -115,9 +116,10 @@ describe('AuthResolver', () => {
 
             expect(result).toBe(true);
             expect(authService.addPermission).toHaveBeenCalledWith(
-                Role[input.role],
+                AuthActionVerb[input.action],
+                AuthPossession[input.possession],
                 Resource[input.resource],
-                Action[input.action]
+                Role[input.role]
             );
         });
     });

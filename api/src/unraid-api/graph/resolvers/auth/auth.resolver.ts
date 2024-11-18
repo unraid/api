@@ -1,8 +1,7 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 
-import { GraphQLError } from 'graphql';
-import { AuthPossession, UsePermissions } from 'nest-authz';
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type {
     AddPermissionInput,
@@ -13,7 +12,7 @@ import type {
     CreateApiKeyInput,
     RemoveRoleFromApiKeyInput,
 } from '@app/graphql/generated/api/types';
-import { Action, Resource, Role } from '@app/graphql/generated/api/types';
+import { Resource, Role } from '@app/graphql/generated/api/types';
 import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
@@ -28,7 +27,7 @@ export class AuthResolver {
 
     @Query()
     @UsePermissions({
-        action: Action.READ,
+        action: AuthActionVerb.READ,
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
@@ -38,7 +37,7 @@ export class AuthResolver {
 
     @Query()
     @UsePermissions({
-        action: Action.READ,
+        action: AuthActionVerb.READ,
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
@@ -48,7 +47,7 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: Action.CREATE,
+        action: AuthActionVerb.CREATE,
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
@@ -69,7 +68,7 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: Action.CREATE,
+        action: AuthActionVerb.CREATE,
         resource: Resource.PERMISSION,
         possession: AuthPossession.ANY,
     })
@@ -78,16 +77,17 @@ export class AuthResolver {
         input: AddPermissionInput
     ): Promise<boolean> {
         await this.authService.addPermission(
-            Role[input.role],
+            AuthActionVerb[input.action],
+            AuthPossession[input.possession],
             Resource[input.resource],
-            Action[input.action]
+            Role[input.role]
         );
         return true;
     }
 
     @Mutation()
     @UsePermissions({
-        action: Action.UPDATE,
+        action: AuthActionVerb.UPDATE,
         resource: Resource.PERMISSION,
         possession: AuthPossession.ANY,
     })
@@ -100,7 +100,7 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: Action.UPDATE,
+        action: AuthActionVerb.UPDATE,
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
@@ -113,7 +113,7 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: Action.UPDATE,
+        action: AuthActionVerb.UPDATE,
         resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })

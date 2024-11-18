@@ -1,16 +1,12 @@
-import { AuthZService } from 'nest-authz';
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { newEnforcer } from 'casbin';
 import { UnauthorizedException } from '@nestjs/common';
 
-import {
-    Action,
-    Possession,
-    Resource,
-    Role,
-    type ApiKey,
-    type UserAccount,
-} from '@app/graphql/generated/api/types';
+import { newEnforcer } from 'casbin';
+import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
+import type { ApiKey, UserAccount } from '@app/graphql/generated/api/types';
+import { Resource, Role } from '@app/graphql/generated/api/types';
+
 import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
 import { CookieService } from './cookie.service';
@@ -28,7 +24,6 @@ describe('AuthService', () => {
         description: 'Test API Key Description',
         roles: [Role.GUEST, Role.UPC],
         createdAt: new Date().toISOString(),
-        lastUsed: null,
     };
 
     const mockUser: UserAccount = {
@@ -80,13 +75,18 @@ describe('AuthService', () => {
     describe('addPermission', () => {
         it('should add permission successfully', async () => {
             const addPolicySpy = vi.spyOn(authzService, 'addPolicy');
-            const result = await authService.addPermission(Role.ADMIN, Resource.API_KEY, Action.READ);
+            const result = await authService.addPermission(
+                AuthActionVerb.READ,
+                AuthPossession.ANY,
+                Resource.API_KEY,
+                Role.ADMIN
+            );
 
             expect(addPolicySpy).toHaveBeenCalledWith(
                 Role.ADMIN,
                 Resource.API_KEY,
-                Action.READ,
-                Possession.ANY
+                AuthActionVerb.READ,
+                AuthPossession.ANY
             );
             expect(result).toBe(true);
         });
@@ -125,7 +125,7 @@ describe('AuthService', () => {
             const saveApiKeySpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
             const deleteRoleSpy = vi.spyOn(authzService, 'deleteRoleForUser');
             const result = await authService.removeRoleFromApiKey(apiKey.id, Role.ADMIN);
-            
+
             expect(saveApiKeySpy).toHaveBeenCalled();
             expect(deleteRoleSpy).toHaveBeenCalledWith(apiKey.id, Role.ADMIN);
             expect(result).toBe(true);

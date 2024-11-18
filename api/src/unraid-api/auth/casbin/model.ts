@@ -1,9 +1,9 @@
 export const CASBIN_MODEL = `
 [request_definition]
-r = sub, obj, act, poss
+r = sub, obj, act
 
 [policy_definition]
-p = sub, obj, act, poss
+p = sub, obj, act
 
 [role_definition]
 g = _, _
@@ -12,8 +12,7 @@ g = _, _
 e = some(where (p.eft == allow))
 
 [matchers]
-m = g(r.sub, p.sub) && \
+m = (regexMatch(r.sub, p.sub) || g(r.sub, p.sub)) && \
     keyMatch2(r.obj, p.obj) && \
-    (r.act == p.act || p.act == '*') && \
-    (upper(r.poss) == upper(p.poss) || p.poss == '*')
+    (r.act == p.act || p.act == '*')
 `;

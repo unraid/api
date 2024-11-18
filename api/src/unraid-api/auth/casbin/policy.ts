@@ -1,63 +1,68 @@
+import { AuthAction } from 'nest-authz';
+
+import { Resource, Role } from '@app/graphql/generated/api/types';
+
 export const BASE_POLICY = `
 # Admin permissions
-p, ADMIN, *, *, *
+p, ${Role.ADMIN}, *, *, *
 
 # UPC permissions for API keys
-p, UPC, API_KEY, CREATE, ANY
-p, UPC, API_KEY, UPDATE, ANY
+p, ${Role.UPC}, ${Resource.API_KEY}, ${AuthAction.CREATE_ANY}
+p, ${Role.UPC}, ${Resource.API_KEY}, ${AuthAction.UPDATE_ANY}
+p, ${Role.UPC}, ${Resource.API_KEY}, ${AuthAction.READ_ANY}
 
 # UPC permissions
-p, UPC, CLOUD, READ, OWN
-p, UPC, CONFIG, READ, ANY
-p, UPC, crash-reporting-enabled, READ, ANY
-p, UPC, CUSTOMIZATIONS, READ, ANY
-p, UPC, DISK, READ, ANY
-p, UPC, DISPLAY, READ, ANY
-p, UPC, FLASH, READ, ANY
-p, UPC, INFO, READ, ANY
-p, UPC, LOGS, READ, ANY
-p, UPC, OS, READ, ANY
-p, UPC, OWNER, READ, ANY
-p, UPC, REGISTRATION, READ, ANY
-p, UPC, SERVERS, READ, ANY
-p, UPC, VARS, READ, ANY
-p, UPC, CONFIG, UPDATE, OWN
-p, UPC, CONNECT, READ, OWN
-p, UPC, CONNECT, UPDATE, OWN
-p, UPC, NOTIFICATIONS, READ, ANY
-p, UPC, NOTIFICATIONS, UPDATE, ANY
+p, ${Role.UPC}, ${Resource.CLOUD}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.CONFIG}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, crash-reporting-enabled, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.CUSTOMIZATIONS}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.DISK}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.DISPLAY}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.FLASH}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.INFO}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.LOGS}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.OS}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.OWNER}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.REGISTRATION}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.SERVERS}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.VARS}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.CONFIG}, ${AuthAction.UPDATE_ANY}
+p, ${Role.UPC}, ${Resource.CONNECT}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.CONNECT}, ${AuthAction.UPDATE_ANY}
+p, ${Role.UPC}, ${Resource.NOTIFICATIONS}, ${AuthAction.READ_ANY}
+p, ${Role.UPC}, ${Resource.NOTIFICATIONS}, ${AuthAction.UPDATE_ANY}
 
 # My Servers permissions
-p, MY_SERVERS, ARRAY, READ, ANY
-p, MY_SERVERS, CONFIG, READ, ANY
-p, MY_SERVERS, CONNECT, READ, ANY
-p, MY_SERVERS, connect/dynamic-remote-access, READ, ANY
-p, MY_SERVERS, connect/dynamic-remote-access, UPDATE, OWN
-p, MY_SERVERS, CUSTOMIZATIONS, READ, ANY
-p, MY_SERVERS, DASHBOARD, READ, ANY
-p, MY_SERVERS, DISPLAY, READ, ANY
-p, MY_SERVERS, docker/container, READ, ANY
-p, MY_SERVERS, DOCKER, READ, ANY
-p, MY_SERVERS, INFO, READ, ANY
-p, MY_SERVERS, LOGS, READ, ANY
-p, MY_SERVERS, NETWORK, READ, ANY
-p, MY_SERVERS, NOTIFICATIONS, READ, ANY
-p, MY_SERVERS, SERVICES, READ, ANY
-p, MY_SERVERS, VARS, READ, ANY
-p, MY_SERVERS, VMS, READ, ANY
-p, MY_SERVERS, vms/domain, READ, ANY
-p, MY_SERVERS, unraid-version, READ, ANY
+p, ${Role.MY_SERVERS}, ${Resource.ARRAY}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.CONFIG}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.CONNECT}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, connect/dynamic-remote-access, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, connect/dynamic-remote-access, ${AuthAction.UPDATE_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.CUSTOMIZATIONS}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.DASHBOARD}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.DISPLAY}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, docker/container, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.DOCKER}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.INFO}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.LOGS}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.NETWORK}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.NOTIFICATIONS}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.SERVICES}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.VARS}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, ${Resource.VMS}, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, vms/domain, ${AuthAction.READ_ANY}
+p, ${Role.MY_SERVERS}, unraid-version, ${AuthAction.READ_ANY}
 
 # Notifier permissions
-p, NOTIFIER, NOTIFICATIONS, CREATE, OWN
+p, ${Role.NOTIFIER}, ${Resource.NOTIFICATIONS}, ${AuthAction.CREATE_OWN}
 
 # Guest permissions
-p, GUEST, ME, READ, ANY
-p, GUEST, WELCOME, READ, ANY
+p, ${Role.GUEST}, ${Resource.ME}, ${AuthAction.READ_ANY}
+p, ${Role.GUEST}, ${Resource.WELCOME}, ${AuthAction.READ_ANY}
 
 # Role inheritance
-g, ADMIN, GUEST
-g, UPC, GUEST
-g, MY_SERVERS, GUEST
-g, NOTIFIER, GUEST
+g, ${Role.ADMIN}, ${Role.GUEST}
+g, ${Role.UPC}, ${Role.GUEST}
+g, ${Role.MY_SERVERS}, ${Role.GUEST}
+g, ${Role.NOTIFIER}, ${Role.GUEST}
 `;

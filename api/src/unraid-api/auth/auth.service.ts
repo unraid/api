@@ -1,9 +1,9 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 
-import { AuthZService } from 'nest-authz';
+import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
 
 import type { UserAccount } from '@app/graphql/generated/api/types';
-import { Action, Possession, Resource, Role } from '@app/graphql/generated/api/types';
+import { Resource, Role } from '@app/graphql/generated/api/types';
 
 import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
@@ -105,24 +105,29 @@ export class AuthService {
         }
     }
 
-    public async addPermission(role: Role, resource: Resource, action: Action): Promise<boolean> {
-        if (!role || !resource || !action) {
-            throw new Error('Role, resource, and action are required');
+    public async addPermission(
+        action: AuthActionVerb,
+        possession: AuthPossession,
+        resource: Resource,
+        role: Role
+    ): Promise<boolean> {
+        if (!role || !resource || !action || !possession) {
+            throw new Error('Role, resource, action, and possession are required');
         }
 
         try {
-            const exists = await this.authzService.hasPolicy(role, resource, action, Possession.ANY);
+            const exists = await this.authzService.hasPolicy(role, resource, action, possession);
 
             if (exists) {
                 return true;
             }
 
-            await this.authzService.addPolicy(role, resource, action, Possession.ANY);
+            await this.authzService.addPolicy(role, resource, action, possession);
 
             return true;
         } catch (error: unknown) {
             this.logger.error(
-                `Failed to add permission: role=${role}, resource=${resource}, action=${action}`,
+                `Failed to add permission: role=${role}, resource=${resource}, action=${action}, possession=${possession}`,
                 error
             );
             throw new Error(

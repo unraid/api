@@ -1,62 +1,44 @@
 """
-Available actions for permissions
-"""
-enum Action {
-    CREATE
-    READ
-    UPDATE
-    DELETE
-}
-
-"""
 Available resources for permissions
 """
 enum Resource {
-    API_KEY
-    CLOUD
-    CONFIG
-    CRASH_REPORTING_ENABLED
-    CUSTOMIZATIONS
-    DISK
-    DISPLAY
-    FLASH
-    INFO
-    LOGS
-    OS
-    OWNER
-    PERMISSION
-    REGISTRATION
-    SERVERS
-    VARS
-    CONNECT
-    NOTIFICATIONS
-    ARRAY
-    DASHBOARD
-    DOCKER
-    NETWORK
-    SERVICES
-    VMS
-    ME
-    WELCOME
+    api_key
+    cloud
+    config
+    crash_reporting_enabled
+    customizations
+    disk
+    display
+    flash
+    info
+    logs
+    os
+    owner
+    permission
+    registration
+    servers
+    vars
+    connect
+    notifications
+    array
+    dashboard
+    docker
+    network
+    services
+    vms
+    me
+    welcome
 }
 
 """
 Available roles for API keys and users
 """
 enum Role {
-    ADMIN
-    UPC
-    MY_SERVERS
-    NOTIFIER
-    GUEST
-}
-
-"""
-Available possession types for permissions
-"""
-enum Possession {
-    ANY
-    OWN
+    admin
+    upc
+    my_servers
+    notifier
+    guest
 }
 
 type ApiKey {
@@ -65,7 +47,6 @@ type ApiKey {
     description: String
     roles: [Role!]!
     createdAt: DateTime!
-    lastUsed: DateTime
 }
 
 type ApiKeyWithSecret {
@@ -75,7 +56,6 @@ type ApiKeyWithSecret {
     description: String
     roles: [Role!]!
     createdAt: DateTime!
-    lastUsed: DateTime
 }
 
 input CreateApiKeyInput {
@@ -87,8 +67,8 @@ input CreateApiKeyInput {
 input AddPermissionInput {
     role: Role!
     resource: Resource!
-    action: Action!
-    possession: Possession = ANY
+    action: String!
+    possession: String!
 }
 
 input AddRoleForUserInput {
