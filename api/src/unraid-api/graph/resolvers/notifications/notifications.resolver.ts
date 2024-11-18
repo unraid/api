@@ -78,6 +78,11 @@ export class NotificationsResolver {
     }
 
     @Mutation()
+    public async deleteAllNotifications(): Promise<NotificationOverview> {
+        return this.notificationsService.deleteAllNotifications();
+    }
+
+    @Mutation()
     public archiveNotification(@Args('id') id: string) {
         return this.notificationsService.archiveNotification({ id });
     }

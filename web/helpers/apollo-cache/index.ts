@@ -1,6 +1,6 @@
-import { InMemoryCache, type InMemoryCacheConfig } from "@apollo/client/core/index.js";
-import { mergeAndDedup } from "./merge";
-import { NotificationType } from "../../composables/gql/typename";
+import { InMemoryCache, type InMemoryCacheConfig } from '@apollo/client/core/index.js';
+import { NotificationType } from '../../composables/gql/typename';
+import { mergeAndDedup } from './merge';
 
 /**------------------------------------------------------------------------
  * !                    Understanding Cache Type Policies
@@ -36,7 +36,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            * i.e. this means [filter.type, filter.importance],
            * not [filter, type, importance]
            *---------------------------------------------**/
-          keyArgs: ["filter", ["type", "importance"]],
+          keyArgs: ['filter', ['type', 'importance']],
 
           /**
            * Merges incoming data into the correct offset position.
@@ -72,7 +72,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            * @returns the value to cache for this operation
            */
           merge(_, incoming, { cache }) {
-            cache.evict({ fieldName: "notifications" });
+            cache.evict({ fieldName: 'notifications' });
             cache.gc(); // Run garbage collection to prevent orphans & incorrect cache state
             return incoming; // Return the incoming data so Apollo knows the result of the mutation
           },
@@ -97,6 +97,13 @@ const defaultCacheConfig: InMemoryCacheConfig = {
               cache.evict({ id });
             }
             // Removes references to evicted notification, preventing dangling references
+            cache.gc();
+            return incoming;
+          },
+        },
+        deleteAllNotifications: {
+          merge(_, incoming, { cache }) {
+            cache.evict({ fieldName: 'notifications' });
             cache.gc();
             return incoming;
           },
