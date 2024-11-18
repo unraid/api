@@ -20,8 +20,13 @@ const importance = ref<Importance | undefined>(undefined);
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
     <SheetContent :to="teleportTarget" class="w-full sm:max-w-[540px] h-screen px-0">
       <div class="flex flex-col h-full gap-3">
-        <SheetHeader class="ml-1 px-6">
-          <SheetTitle>Notifications</SheetTitle>
+        <SheetHeader class="ml-1 px-6 flex items-baseline gap-0">
+          <SheetTitle class="text-2xl">Notifications</SheetTitle>
+          <a href="/Settings/Notifications">
+            <Button variant="link" size="sm" class="text-muted-foreground text-base p-0">
+              Edit Settings
+            </Button>
+          </a>
         </SheetHeader>
 
         <!-- min-h-0 prevents the flex container from expanding beyond its containing bounds. -->
@@ -33,16 +38,26 @@ const importance = ref<Importance | undefined>(undefined);
               <TabsTrigger value="unread"> Unread </TabsTrigger>
               <TabsTrigger value="archived"> Archived </TabsTrigger>
             </TabsList>
-
-            <Button
-              :disabled="loadingArchiveAll"
-              variant="link"
-              size="sm"
-              class="text-muted-foreground text-base p-0"
-              @click="archiveAll"
-            >
-              Archive All
-            </Button>
+            <TabsContent value="unread">
+              <Button
+                :disabled="loadingArchiveAll"
+                variant="link"
+                size="sm"
+                class="text-muted-foreground text-base p-0"
+                @click="archiveAll"
+              >
+                Archive All
+              </Button>
+            </TabsContent>
+            <TabsContent value="archived">
+              <Button
+                variant="link"
+                size="sm"
+                class="text-muted-foreground text-base p-0"
+              >
+                Delete All
+              </Button>
+            </TabsContent>
 
             <Select
               @update:model-value="
