@@ -1,39 +1,47 @@
 <script setup lang="ts">
 import {
   ArchiveBoxIcon,
-  ShieldExclamationIcon,
   CheckBadgeIcon,
   ExclamationTriangleIcon,
   LinkIcon,
+  ShieldExclamationIcon,
   TrashIcon,
-} from "@heroicons/vue/24/solid";
-import { useMutation } from "@vue/apollo-composable";
-import type { NotificationFragmentFragment } from "~/composables/gql/graphql";
-
-import { NotificationType } from "~/composables/gql/graphql";
+} from '@heroicons/vue/24/solid';
+import { useMutation } from '@vue/apollo-composable';
+import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
+import { NotificationType } from '~/composables/gql/graphql';
+import { safeParseMarkdown } from '~/helpers/markdown';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
-} from "./graphql/notification.query";
+} from './graphql/notification.query';
 
 const props = defineProps<NotificationFragmentFragment>();
 
+const descriptionMarkup = computedAsync(async () => {
+  try {
+    return await safeParseMarkdown(props.description);
+  } catch (e) {
+    return props.description;
+  }
+}, '');
+
 const icon = computed<{ component: Component; color: string } | null>(() => {
   switch (props.importance) {
-    case "INFO":
+    case 'INFO':
       return {
         component: CheckBadgeIcon,
-        color: "text-green-500",
+        color: 'text-green-500',
       };
-    case "WARNING":
+    case 'WARNING':
       return {
         component: ExclamationTriangleIcon,
-        color: "text-yellow-500",
+        color: 'text-yellow-500',
       };
-    case "ALERT":
+    case 'ALERT':
       return {
         component: ShieldExclamationIcon,
-        color: "text-red-500",
+        color: 'text-red-500',
       };
   }
   return null;
@@ -86,7 +94,7 @@ const mutationError = computed(() => {
     <div
       class="w-full flex flex-row items-center justify-between gap-2 opacity-75 group-hover/item:opacity-100 group-focus/item:opacity-100"
     >
-      <p class="text-secondary-foreground">{{ description }}</p>
+      <div class="text-secondary-foreground" v-html="descriptionMarkup" />
     </div>
 
     <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>
