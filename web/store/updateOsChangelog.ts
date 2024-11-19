@@ -4,7 +4,6 @@ import { DOCS_RELEASE_NOTES } from '~/helpers/urls';
 import { useCallbackStore } from '~/store/callbackActions';
 // import { useServerStore } from '~/store/server';
 import type { ServerUpdateOsResponse } from '~/types/server';
-import { Marked } from 'marked';
 import { baseUrl } from 'marked-base-url';
 import { defineStore } from 'pinia';
 import prerelease from 'semver/functions/prerelease';
