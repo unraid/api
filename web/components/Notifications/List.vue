@@ -56,7 +56,7 @@ async function onLoadMore() {
     },
   });
   const incomingCount = incoming?.data.notifications.list.length ?? 0;
-  if (incomingCount === 0) {
+  if (incomingCount === 0 || incomingCount < props.pageSize) {
     canLoadMore.value = false;
   }
 }
