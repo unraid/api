@@ -10,18 +10,19 @@ import {
 import { useMutation } from '@vue/apollo-composable';
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 import { NotificationType } from '~/composables/gql/graphql';
-import { safeParseMarkdown } from '~/helpers/markdown';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
 } from './graphql/notification.query';
+import { Markdown } from '@/helpers/markdown';
 
 const props = defineProps<NotificationFragmentFragment>();
 
 const descriptionMarkup = computedAsync(async () => {
   try {
-    return await safeParseMarkdown(props.description);
+    return await Markdown.parse(props.description);
   } catch (e) {
+    console.error(e)
     return props.description;
   }
 }, '');
