@@ -11,9 +11,7 @@ const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
 const confirmAndArchiveAll = async () => {
-  if (
-    confirm('This will archive all notifications on your Unraid server. Continue?')
-  ) {
+  if (confirm('This will archive all notifications on your Unraid server. Continue?')) {
     await archiveAll();
   }
 };
@@ -81,7 +79,7 @@ const confirmAndDeleteAll = async () => {
             <Select
               @update:model-value="
                 (val) => {
-                  importance = val as Importance;
+                  importance = val === 'all' ? undefined : (val as Importance);
                 }
               "
             >
@@ -91,7 +89,8 @@ const confirmAndDeleteAll = async () => {
               <SelectContent :to="teleportTarget">
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
-                  <SelectItem :value="Importance.Alert">Alert</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem :value="Importance.Alert"> Alert </SelectItem>
                   <SelectItem :value="Importance.Info">Info</SelectItem>
                   <SelectItem :value="Importance.Warning">Warning</SelectItem>
                 </SelectGroup>
