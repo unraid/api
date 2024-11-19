@@ -23,7 +23,8 @@
     "serve": "serve dist/nuxt-custom-elements/unraid-components",
     "codegen": "graphql-codegen --config codegen.ts -r dotenv/config",
     "codegen:watch": "graphql-codegen --config codegen.ts --watch -r dotenv/config",
-    "test": "vitest"
+    "test": "vitest",
+    "test:ci": "vitest run"
   },
   "devDependencies": {
     "@graphql-codegen/cli": "^5.0.2",
