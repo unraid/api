@@ -4,7 +4,7 @@ import { newEnforcer } from 'casbin';
 import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { ApiKey, UserAccount } from '@app/graphql/generated/api/types';
+import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types';
 import { Resource, Role } from '@app/graphql/generated/api/types';
 
 import { ApiKeyService } from './api-key.service';
@@ -23,6 +23,15 @@ describe('AuthService', () => {
         name: 'Test API Key',
         description: 'Test API Key Description',
         roles: [Role.GUEST, Role.UPC],
+        createdAt: new Date().toISOString(),
+    };
+
+    const mockApiKeyWithSecret: ApiKeyWithSecret = {
+        id: 'test-api-id',
+        key: 'test-api-key',
+        name: 'Test API Key',
+        description: 'Test API Key Description',
+        roles: [Role.GUEST],
         createdAt: new Date().toISOString(),
     };
 
@@ -94,17 +103,32 @@ describe('AuthService', () => {
 
     describe('addRoleToApiKey', () => {
         it('should add role to API key', async () => {
-            const apiKey = { ...mockApiKey, roles: [Role.GUEST] };
+            const apiKeyId = 'test-id';
+            const role = Role.GUEST;
 
-            vi.spyOn(apiKeyService, 'findById').mockResolvedValue(apiKey);
+            const mockApiKeyWithoutRole = {
+                ...mockApiKey,
+                roles: [Role.UPC],
+            };
 
-            const saveApiKeySpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            const addRoleSpy = vi.spyOn(authzService, 'addRoleForUser');
-            const result = await authService.addRoleToApiKey(apiKey.id, Role.ADMIN);
+            vi.spyOn(apiKeyService, 'findById').mockResolvedValue(mockApiKeyWithoutRole);
+            vi.spyOn(apiKeyService, 'findByIdWithSecret').mockResolvedValue({
+                ...mockApiKeyWithSecret,
+                roles: [Role.UPC],
+            });
+            vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
+            vi.spyOn(authzService, 'addRoleForUser').mockResolvedValue(true);
 
-            expect(saveApiKeySpy).toHaveBeenCalled();
-            expect(addRoleSpy).toHaveBeenCalledWith(apiKey.id, Role.ADMIN);
+            const result = await authService.addRoleToApiKey(apiKeyId, role);
+
             expect(result).toBe(true);
+            expect(apiKeyService.findById).toHaveBeenCalledWith(apiKeyId);
+            expect(apiKeyService.findByIdWithSecret).toHaveBeenCalledWith(apiKeyId);
+            expect(apiKeyService.saveApiKey).toHaveBeenCalledWith({
+                ...mockApiKeyWithSecret,
+                roles: [Role.UPC, role],
+            });
+            expect(authzService.addRoleForUser).toHaveBeenCalledWith(apiKeyId, role);
         });
 
         it('should throw UnauthorizedException for invalid API key', async () => {
@@ -119,16 +143,26 @@ describe('AuthService', () => {
     describe('removeRoleFromApiKey', () => {
         it('should remove role from API key', async () => {
             const apiKey = { ...mockApiKey, roles: [Role.ADMIN, Role.GUEST] };
+            const apiKeyWithSecret = {
+                ...mockApiKeyWithSecret,
+                roles: [Role.ADMIN, Role.GUEST],
+            };
 
             vi.spyOn(apiKeyService, 'findById').mockResolvedValue(apiKey);
+            vi.spyOn(apiKeyService, 'findByIdWithSecret').mockResolvedValue(apiKeyWithSecret);
+            vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
+            vi.spyOn(authzService, 'deleteRoleForUser').mockResolvedValue(true);
 
-            const saveApiKeySpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            const deleteRoleSpy = vi.spyOn(authzService, 'deleteRoleForUser');
             const result = await authService.removeRoleFromApiKey(apiKey.id, Role.ADMIN);
 
-            expect(saveApiKeySpy).toHaveBeenCalled();
-            expect(deleteRoleSpy).toHaveBeenCalledWith(apiKey.id, Role.ADMIN);
             expect(result).toBe(true);
+            expect(apiKeyService.findById).toHaveBeenCalledWith(apiKey.id);
+            expect(apiKeyService.findByIdWithSecret).toHaveBeenCalledWith(apiKey.id);
+            expect(apiKeyService.saveApiKey).toHaveBeenCalledWith({
+                ...apiKeyWithSecret,
+                roles: [Role.GUEST],
+            });
+            expect(authzService.deleteRoleForUser).toHaveBeenCalledWith(apiKey.id, Role.ADMIN);
         });
 
         it('should throw UnauthorizedException for invalid API key', async () => {

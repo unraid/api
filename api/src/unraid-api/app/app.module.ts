@@ -26,12 +26,6 @@ import { FastifyThrottlerGuard } from '../auth/fastify-throttler.guard';
         CronModule,
         GraphModule,
         RestModule,
-        ThrottlerModule.forRoot([
-            {
-                ttl: 60000,
-                limit: 100,
-            },
-        ]),
     ],
     controllers: [],
     providers: [

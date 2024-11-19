@@ -47,13 +47,13 @@ export type AddPermissionInput = {
 };
 
 export type AddRoleForApiKeyInput = {
-  apiKeyId: Scalars['String']['input'];
+  apiKeyId: Scalars['ID']['input'];
   role: Role;
 };
 
 export type AddRoleForUserInput = {
   role: Role;
-  userId: Scalars['String']['input'];
+  userId: Scalars['ID']['input'];
 };
 
 export type AllowedOriginInput = {
@@ -1179,7 +1179,7 @@ export type RemoteAccess = {
 };
 
 export type RemoveRoleFromApiKeyInput = {
-  apiKeyId: Scalars['String']['input'];
+  apiKeyId: Scalars['ID']['input'];
   role: Role;
 };
 

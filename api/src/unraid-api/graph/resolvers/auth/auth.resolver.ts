@@ -1,5 +1,6 @@
 import { UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Throttle } from '@nestjs/throttler';
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
@@ -19,6 +20,7 @@ import { AuthService } from '@app/unraid-api/auth/auth.service';
 
 @Resolver('Auth')
 @UseGuards(GraphqlAuthGuard)
+@Throttle({ default: { limit: 100, ttl: 60000 } })
 export class AuthResolver {
     constructor(
         private authService: AuthService,
@@ -69,7 +71,7 @@ export class AuthResolver {
     @Mutation()
     @UsePermissions({
         action: AuthActionVerb.CREATE,
-        resource: Resource.PERMISSION,
+        resource: Resource.API_KEY,
         possession: AuthPossession.ANY,
     })
     async addPermission(

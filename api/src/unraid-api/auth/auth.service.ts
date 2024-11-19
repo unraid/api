@@ -26,9 +26,7 @@ export class AuthService {
                 throw new UnauthorizedException('Invalid API key');
             }
 
-            if (!apiKeyEntity.roles) {
-                apiKeyEntity.roles = [];
-            }
+            apiKeyEntity.roles ??= [];
 
             await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
             this.logger.debug(
@@ -50,9 +48,9 @@ export class AuthService {
                 throw error;
             }
 
-            throw new Error(
-                `Failed to validate API key: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to validate API key: ${errorMessage}`);
         }
     }
 
@@ -73,24 +71,28 @@ export class AuthService {
             return user;
         } catch (error: unknown) {
             this.logger.error('Failed to validate cookies with Casbin', error);
+
             if (error instanceof UnauthorizedException) {
                 throw error;
             }
 
-            throw new Error(
-                `Failed to validate session: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to validate session: ${errorMessage}`);
         }
     }
 
     public async syncApiKeyRoles(apiKeyId: string, roles: string[]): Promise<void> {
         try {
-            // Get existing roles
-            const existingRoles = await this.authzService.getRolesForUser(apiKeyId);
+            // Get existing roles and convert to Set
+            const existingRolesSet = new Set(await this.authzService.getRolesForUser(apiKeyId));
+            const newRolesSet = new Set(roles);
 
-            // Calculate roles to add and remove
-            const rolesToAdd = roles.filter((role) => !existingRoles.includes(role));
-            const rolesToRemove = existingRoles.filter((role) => !roles.includes(role));
+            // Calculate roles to add (in new roles but not in existing)
+            const rolesToAdd = roles.filter((role) => !existingRolesSet.has(role));
+
+            // Calculate roles to remove (in existing but not in new)
+            const rolesToRemove = Array.from(existingRolesSet).filter((role) => !newRolesSet.has(role));
 
             // Perform role updates
             await Promise.all([
@@ -99,9 +101,9 @@ export class AuthService {
             ]);
         } catch (error: unknown) {
             this.logger.error(`Failed to sync roles for API key ${apiKeyId}`, error);
-            throw new Error(
-                `Failed to sync roles: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to sync roles: ${errorMessage}`);
         }
     }
 
@@ -112,7 +114,7 @@ export class AuthService {
         role: Role
     ): Promise<boolean> {
         if (!role || !resource || !action || !possession) {
-            throw new Error('Role, resource, action, and possession are required');
+            throw new UnauthorizedException('Role, resource, action, and possession are required');
         }
 
         try {
@@ -130,15 +132,15 @@ export class AuthService {
                 `Failed to add permission: role=${role}, resource=${resource}, action=${action}, possession=${possession}`,
                 error
             );
-            throw new Error(
-                `Failed to add permission: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to add permission: ${errorMessage}`);
         }
     }
 
     public async addRoleToUser(userId: string, role: Role): Promise<boolean> {
         if (!userId || !role) {
-            throw new Error('User ID and role are required');
+            throw new UnauthorizedException('User ID and role are required');
         }
 
         try {
@@ -152,14 +154,16 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            this.logger.error(`Failed to check if user ${userId} has role ${role}`, error);
-            throw error;
+            this.logger.error(`Failed to add role ${role} to user ${userId}`, error);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to add role to user: ${errorMessage}`);
         }
     }
 
     public async addRoleToApiKey(apiKeyId: string, role: Role): Promise<boolean> {
         if (!apiKeyId || !role) {
-            throw new Error('API key ID and role are required');
+            throw new UnauthorizedException('API key ID and role are required');
         }
 
         const apiKey = await this.apiKeyService.findById(apiKeyId);
@@ -170,23 +174,28 @@ export class AuthService {
 
         try {
             if (!apiKey.roles.includes(role)) {
-                apiKey.roles.push(role);
-                await this.apiKeyService.saveApiKey(apiKey);
+                const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
+                if (!apiKeyWithSecret) {
+                    throw new UnauthorizedException('API key not found with secret');
+                }
+
+                apiKeyWithSecret.roles.push(role);
+                await this.apiKeyService.saveApiKey(apiKeyWithSecret);
                 await this.authzService.addRoleForUser(apiKeyId, role);
             }
 
             return true;
         } catch (error: unknown) {
             this.logger.error(`Failed to add role ${role} to API key ${apiKeyId}`, error);
-            throw new Error(
-                `Failed to add role: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to add role to API key: ${errorMessage}`);
         }
     }
 
     public async removeRoleFromApiKey(apiKeyId: string, role: Role): Promise<boolean> {
         if (!apiKeyId || !role) {
-            throw new Error('API key ID and role are required');
+            throw new UnauthorizedException('API key ID and role are required');
         }
 
         const apiKey = await this.apiKeyService.findById(apiKeyId);
@@ -196,16 +205,20 @@ export class AuthService {
         }
 
         try {
-            apiKey.roles = apiKey.roles.filter((r) => r !== role);
-            await this.apiKeyService.saveApiKey(apiKey);
+            const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
+            if (!apiKeyWithSecret) {
+                throw new UnauthorizedException('API key not found with secret');
+            }
+
+            apiKeyWithSecret.roles = apiKeyWithSecret.roles.filter((r) => r !== role);
+            await this.apiKeyService.saveApiKey(apiKeyWithSecret);
             await this.authzService.deleteRoleForUser(apiKeyId, role);
 
             return true;
         } catch (error: unknown) {
             this.logger.error(`Failed to remove role ${role} from API key ${apiKeyId}`, error);
-            throw new Error(
-                `Failed to remove role: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            throw new UnauthorizedException(`Failed to remove role from API key: ${errorMessage}`);
         }
     }
 
@@ -219,9 +232,9 @@ export class AuthService {
             }
         } catch (error: unknown) {
             this.logger.error(`Failed to ensure roles for user ${userId}`, error);
-            throw new Error(
-                `Failed to ensure user roles: ${error instanceof Error ? error.message : String(error)}`
-            );
+            const errorMessage = error instanceof Error ? error.message : String(error);
+
+            throw new UnauthorizedException(`Failed to ensure user roles: ${errorMessage}`);
         }
     }
 

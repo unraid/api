@@ -72,17 +72,17 @@ input AddPermissionInput {
 }
 
 input AddRoleForUserInput {
-    userId: String!
+    userId: ID!
     role: Role!
 }
 
 input AddRoleForApiKeyInput {
-    apiKeyId: String!
+    apiKeyId: ID!
     role: Role!
 }
 
 input RemoveRoleFromApiKeyInput {
-    apiKeyId: String!
+    apiKeyId: ID!
     role: Role!
 }
 
