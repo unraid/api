@@ -1,4 +1,4 @@
-import DOMPurify from 'dompurify';
+import DOMPurify from 'isomorphic-dompurify';
 import { Marked, type MarkedExtension } from 'marked';
 
 const defaultMarkedExtension: MarkedExtension = {
