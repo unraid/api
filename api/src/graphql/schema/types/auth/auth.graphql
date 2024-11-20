@@ -12,11 +12,13 @@ enum Resource {
     flash
     info
     logs
+    online
     os
     owner
     permission
     registration
     servers
+    share
     vars
     connect
     notifications

@@ -1,8 +1,9 @@
 import { Controller, Get, Logger, Param, Res } from '@nestjs/common';
 
-import { UseRoles } from 'nest-access-control';
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type { FastifyReply } from '@app/types/fastify';
+import { Resource } from '@app/graphql/generated/api/types';
 import { Public } from '@app/unraid-api/auth/public.decorator';
 import { RestService } from '@app/unraid-api/rest/rest.service';
 
@@ -18,10 +19,10 @@ export class RestController {
     }
 
     @Get('/graphql/api/logs')
-    @UseRoles({
-        resource: 'logs',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.LOGS,
+        possession: AuthPossession.ANY,
     })
     async getLogs(@Res() res: FastifyReply) {
         try {
@@ -34,10 +35,10 @@ export class RestController {
     }
 
     @Get('/graphql/api/customizations/:type')
-    @UseRoles({
-        resource: 'customizations',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.CUSTOMIZATIONS,
+        possession: AuthPossession.ANY,
     })
     async getCustomizations(@Param('type') type: string, @Res() res: FastifyReply) {
         if (type !== 'banner' && type !== 'case') {

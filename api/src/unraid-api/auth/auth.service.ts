@@ -206,6 +206,7 @@ export class AuthService {
 
         try {
             const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
+
             if (!apiKeyWithSecret) {
                 throw new UnauthorizedException('API key not found with secret');
             }
@@ -218,6 +219,7 @@ export class AuthService {
         } catch (error: unknown) {
             this.logger.error(`Failed to remove role ${role} from API key ${apiKeyId}`, error);
             const errorMessage = error instanceof Error ? error.message : String(error);
+
             throw new UnauthorizedException(`Failed to remove role from API key: ${errorMessage}`);
         }
     }

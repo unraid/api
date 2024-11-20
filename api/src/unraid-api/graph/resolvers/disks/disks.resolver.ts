@@ -1,14 +1,17 @@
-import { getDisks } from '@app/core/modules/get-disks';
 import { Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { getDisks } from '@app/core/modules/get-disks';
+import { Resource } from '@app/graphql/generated/api/types';
 
 @Resolver('Disks')
 export class DisksResolver {
     @Query()
-    @UseRoles({
-        resource: 'disks',
-        action: 'read',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DISK,
+        possession: AuthPossession.ANY,
     })
     public async disks() {
         const disks = await getDisks({

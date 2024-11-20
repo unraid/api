@@ -1,13 +1,16 @@
-import { getDockerContainers } from '@app/core/modules/index';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { getDockerContainers } from '@app/core/modules/index';
+import { Resource } from '@app/graphql/generated/api/types';
 
 @Resolver('Docker')
 export class DockerResolver {
-    @UseRoles({
-        resource: 'docker',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DOCKER,
+        possession: AuthPossession.ANY,
     })
     @Query()
     public docker() {
@@ -16,10 +19,10 @@ export class DockerResolver {
         };
     }
 
-    @UseRoles({
+    @UsePermissions({
+        action: AuthActionVerb.READ,
         resource: 'docker/container',
-        action: 'read',
-        possession: 'any',
+        possession: AuthPossession.ANY,
     })
     @ResolveField()
     public async containers() {

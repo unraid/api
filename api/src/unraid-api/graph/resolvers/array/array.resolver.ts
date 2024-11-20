@@ -1,26 +1,29 @@
+import { Query, Resolver, Subscription } from '@nestjs/graphql';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
 import { getArrayData } from '@app/core/modules/array/get-array-data';
-import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { Resource } from '@app/graphql/generated/api/types';
 import { store } from '@app/store/index';
-import { Resolver, Query, Subscription } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
 
 @Resolver('Array')
 export class ArrayResolver {
     @Query()
-    @UseRoles({
-        resource: 'array',
-        action: 'read',
-        possession: 'own'
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.ARRAY,
+        possession: AuthPossession.OWN,
     })
     public async array() {
         return getArrayData(store.getState);
     }
 
     @Subscription('array')
-    @UseRoles({
-        resource: 'array',
-        action: 'read',
-        possession: 'own'
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.ARRAY,
+        possession: AuthPossession.OWN,
     })
     public async arraySubscription() {
         return createSubscription(PUBSUB_CHANNEL.ARRAY);

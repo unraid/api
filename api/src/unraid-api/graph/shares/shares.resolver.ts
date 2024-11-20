@@ -1,17 +1,20 @@
-import { getShares } from '@app/core/utils/index';
 import { Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { getShares } from '@app/core/utils/index';
+import { Resource } from '@app/graphql/generated/api/types';
 
 @Resolver('Shares')
 export class SharesResolver {
     constructor() {}
 
-    @UseRoles({
-        resource: 'shares',
-        action: 'read',
-        possession: 'any',
-    })
     @Query('shares')
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.SHARE,
+        possession: AuthPossession.ANY,
+    })
     public async shares() {
         const userShares = getShares('users');
         const diskShares = getShares('disks');
