@@ -21,7 +21,13 @@ const props = withDefaults(
   }
 );
 
+/** whether we should continue trying to load more notifications */
 const canLoadMore = ref(true);
+/** reset custom state when props (e.g. props.type filter) change*/
+watch(props, () => {
+  canLoadMore.value = true;
+});
+
 const { result, error, fetchMore } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
