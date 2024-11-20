@@ -23,6 +23,10 @@ const props = withDefaults(
 
 /** whether we should load more notifications */
 const canLoadMore = ref(true);
+/** reset when props (e.g. props.type filter) change*/
+watch(props, () => {
+  canLoadMore.value = true;
+});
 
 const { result, error, fetchMore } = useQuery(getNotifications, () => ({
   filter: {
