@@ -3,7 +3,7 @@ import { CheckIcon } from '@heroicons/vue/24/solid';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useFragment } from '~/composables/gql/fragment-masking';
-import type { Importance, NotificationType } from '~/composables/gql/graphql';
+import { type Importance, type NotificationType } from '~/composables/gql/graphql';
 import { getNotifications, NOTIFICATION_FRAGMENT } from './graphql/notification.query';
 
 /**
@@ -21,7 +21,9 @@ const props = withDefaults(
   }
 );
 
+/** whether we should load more notifications */
 const canLoadMore = ref(true);
+
 const { result, error, fetchMore } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
@@ -32,7 +34,7 @@ const { result, error, fetchMore } = useQuery(getNotifications, () => ({
 }));
 
 watch(error, (newVal) => {
-  console.log('[getNotifications] error:', newVal);
+  console.log('[NotificationsList] getNotifications error:', newVal);
 });
 
 const notifications = computed(() => {
@@ -43,8 +45,13 @@ const notifications = computed(() => {
   return list.filter((n) => n.type === props.type);
 });
 
+/** notifications grouped by importance/severity */
+const notificationGroups = computed(() => {
+  return Object.groupBy(notifications.value, ({ importance }) => importance);
+});
+
 async function onLoadMore() {
-  console.log('[getNotifications] onLoadMore');
+  console.log('[NotificationsList] onLoadMore');
   const incoming = await fetchMore({
     variables: {
       filter: {
@@ -74,7 +81,17 @@ async function onLoadMore() {
     class="divide-y divide-gray-200 overflow-y-auto pl-7 pr-4 h-full"
   >
     <NotificationsItem
-      v-for="notification in notifications"
+      v-for="notification in notificationGroups.ALERT"
+      :key="notification.id"
+      v-bind="notification"
+    />
+    <NotificationsItem
+      v-for="notification in notificationGroups.WARNING"
+      :key="notification.id"
+      v-bind="notification"
+    />
+    <NotificationsItem
+      v-for="notification in notificationGroups.INFO"
       :key="notification.id"
       v-bind="notification"
     />
