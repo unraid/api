@@ -84,7 +84,7 @@ const mutationError = computed(() => {
       </h3>
 
       <div class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1">
-        <p class="text-12px opacity-75">{{ timestamp }}</p>
+        <p class="text-12px opacity-75">{{ formattedTimestamp }}</p>
       </div>
     </header>
 

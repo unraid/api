@@ -8,6 +8,7 @@ import { FSWatcher, watch } from 'chokidar';
 import { execa } from 'execa';
 import { emptyDir } from 'fs-extra';
 import { encode as encodeIni } from 'ini';
+import strftime from 'strftime';
 import { v7 as uuidv7 } from 'uuid';
 
 import type {
@@ -672,7 +673,8 @@ export class NotificationsService {
             title,
             description,
             importance: this.fileImportanceToGqlImportance(importance),
-            timestamp: this.parseNotificationDateToIsoDate(timestamp),
+            timestamp: this.parseNotificationDateToIsoDate(timestamp)?.toISOString(),
+            formattedTimestamp: this.formatTimestamp(timestamp),
         };
     }
 
@@ -698,11 +700,28 @@ export class NotificationsService {
         }
     }
 
-    private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): string | null {
+    private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): Date | null {
         if (unixStringSeconds && !isNaN(Number(unixStringSeconds))) {
-            return new Date(Number(unixStringSeconds) * 1_000).toISOString();
+            return new Date(Number(unixStringSeconds) * 1_000);
         }
         return null;
+    }
+
+    private formatTimestamp(timestamp: string) {
+        const { display: settings } = getters.dynamix();
+        const date = this.parseNotificationDateToIsoDate(timestamp);
+
+        if (!settings) {
+            this.logger.warn(
+                '[formatTimestamp] Dynamix display settings not found. Cannot apply user settings.'
+            );
+            return timestamp;
+        } else if (!date) {
+            this.logger.warn(`[formatTimestamp] Could not parse date from timestamp: ${date}`);
+            return timestamp;
+        }
+        this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
+        return strftime(settings.date, date);
     }
 
     /**------------------------------------------------------------------------
