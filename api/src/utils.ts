@@ -1,4 +1,4 @@
-import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 import { UserAccount } from './graphql/generated/api/types';
@@ -155,4 +155,31 @@ export function getRequest(ctx: ExecutionContext) {
     }
 
     return request;
+}
+
+/**
+ * Standardized error handler for auth operations that converts any error
+ * into an UnauthorizedException with proper logging.
+ *
+ * @param logger - Logger instance to use for error logging
+ * @param operation - Description of the operation that failed
+ * @param error - The caught error
+ * @param context - Additional context information (e.g., user ID, API key)
+ * @throws UnauthorizedException
+ */
+export function handleAuthError(
+    logger: Logger,
+    operation: string,
+    error: unknown,
+    context?: Record<string, string>
+): never {
+    const contextStr = context ? ` ${JSON.stringify(context)}` : '';
+    logger.error(`Failed to ${operation}${contextStr}`, error);
+
+    if (error instanceof UnauthorizedException) {
+        throw error;
+    }
+
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    throw new UnauthorizedException(`Failed to ${operation}: ${errorMessage}`);
 }

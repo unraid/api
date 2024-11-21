@@ -1,13 +1,10 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
-import { appendFile } from 'fs/promises';
-import { join } from 'path';
 
-import { ensureDir } from 'fs-extra';
-import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
+import { AuthZService } from 'nest-authz';
 
 import type { UserAccount } from '@app/graphql/generated/api/types';
-import { Resource, Role } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store';
+import { Role } from '@app/graphql/generated/api/types';
+import { handleAuthError } from '@app/utils';
 
 import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
@@ -15,21 +12,12 @@ import { CookieService } from './cookie.service';
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
-    private readonly policyPath: string;
-    private readonly policyFile: string;
 
     constructor(
         private cookieService: CookieService,
         private apiKeyService: ApiKeyService,
         private authzService: AuthZService
-    ) {
-        this.policyPath = getters.paths()['auth-policies'];
-        this.policyFile = join(this.policyPath, 'policies.csv');
-    }
-
-    async onModuleInit() {
-        await ensureDir(this.policyPath);
-    }
+    ) {}
 
     async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
         try {
@@ -55,15 +43,7 @@ export class AuthService {
                 roles: apiKeyEntity.roles,
             };
         } catch (error: unknown) {
-            this.logger.error('Failed to validate API key with Casbin', error);
-
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
-
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to validate API key: ${errorMessage}`);
+            handleAuthError(this.logger, 'validate API key', error);
         }
     }
 
@@ -83,15 +63,7 @@ export class AuthService {
 
             return user;
         } catch (error: unknown) {
-            this.logger.error('Failed to validate cookies with Casbin', error);
-
-            if (error instanceof UnauthorizedException) {
-                throw error;
-            }
-
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to validate session: ${errorMessage}`);
+            handleAuthError(this.logger, 'validate session', error);
         }
     }
 
@@ -113,10 +85,7 @@ export class AuthService {
                 ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(apiKeyId, role)),
             ]);
         } catch (error: unknown) {
-            this.logger.error(`Failed to sync roles for API key ${apiKeyId}`, error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to sync roles: ${errorMessage}`);
+            handleAuthError(this.logger, 'sync roles for API key', error, { apiKeyId });
         }
     }
 
@@ -136,10 +105,7 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            this.logger.error(`Failed to add role ${role} to user ${userId}`, error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to add role to user: ${errorMessage}`);
+            handleAuthError(this.logger, 'add role to user', error, { userId, role });
         }
     }
 
@@ -157,6 +123,7 @@ export class AuthService {
         try {
             if (!apiKey.roles.includes(role)) {
                 const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
+
                 if (!apiKeyWithSecret) {
                     throw new UnauthorizedException('API key not found with secret');
                 }
@@ -168,10 +135,7 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            this.logger.error(`Failed to add role ${role} to API key ${apiKeyId}`, error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to add role to API key: ${errorMessage}`);
+            handleAuthError(this.logger, 'add role to API key', error, { apiKeyId, role });
         }
     }
 
@@ -199,10 +163,7 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            this.logger.error(`Failed to remove role ${role} from API key ${apiKeyId}`, error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to remove role from API key: ${errorMessage}`);
+            handleAuthError(this.logger, 'remove role from API key', error, { apiKeyId, role });
         }
     }
 
@@ -215,10 +176,7 @@ export class AuthService {
                 this.logger.debug(`Added default 'guest' role to user ${userId}`);
             }
         } catch (error: unknown) {
-            this.logger.error(`Failed to ensure roles for user ${userId}`, error);
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to ensure user roles: ${errorMessage}`);
+            handleAuthError(this.logger, 'ensure roles for user', error, { userId });
         }
     }
 
