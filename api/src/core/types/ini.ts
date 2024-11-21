@@ -29,6 +29,10 @@ interface Display {
 	locale: string;
 }
 
+/** 
+ * Represents [Notification Settings](http://tower.local/Settings/Notifications),
+ * which live in `/boot/config/plugins/dynamix/dynamix.cfg` under the `[notify]` section.
+ */
 interface Notify {
     entity: string;
     normal: string;
@@ -37,12 +41,23 @@ interface Notify {
     plugin: string;
     docker_notify: string;
     report: string;
-    date: string;
-    time: string;
+	/** Date format: DD-MM-YYYY, MM-DD-YYY, or YYYY-MM-DD */
+    date: 'd-m-Y' | 'm-d-Y' | 'Y-m-d';
+	/**
+	 * Time format:
+	 * - `hi: A` => 12 hr
+	 * - `H:i`   => 24 hr (default)
+	 */
+    time: 'h:i A' | 'H:i';
     position: string;
     /** path for notifications (defaults to '/tmp/notifications') */
     path: string;
-    display: string;
+	/**
+	 * The 'Notifications Display' field:
+	 * - 0 => Detailed (default)
+	 * - 1 => Summarized
+	 */
+    display: '0' | '1';
     system: string;
     version: string;
     docker_update: string;
