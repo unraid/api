@@ -1,5 +1,6 @@
-import { createSlice } from '@reduxjs/toolkit';
 import { join, resolve as resolvePath } from 'path';
+
+import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
     core: import.meta.dirname,

@@ -170,6 +170,7 @@ export class ApiKeyService implements OnModuleInit {
                         if (error instanceof SyntaxError) {
                             throw new GraphQLError('Authentication system error: Corrupted key file');
                         }
+
                         throw error;
                     }
 
@@ -180,15 +181,15 @@ export class ApiKeyService implements OnModuleInit {
                         keyBuffer1.length === keyBuffer2.length &&
                         crypto.timingSafeEqual(keyBuffer1, keyBuffer2)
                     ) {
-                        apiKey.roles = apiKey.roles.map(
-                            (role) => Role[role.toUpperCase() as keyof typeof Role] || Role.GUEST
-                        );
+                        apiKey.roles = apiKey.roles.map((role) => role || Role.GUEST);
+
                         return apiKey;
                     }
                 } catch (error) {
                     if (error instanceof GraphQLError) {
                         throw error;
                     }
+
                     this.logger.error(`Error processing API key file ${file}: ${error}`);
                     throw new GraphQLError('Authentication system error');
                 }
@@ -221,6 +222,7 @@ export class ApiKeyService implements OnModuleInit {
             };
         } catch (error) {
             this.logger.error(`Error finding user by key: ${error}`);
+
             if (error instanceof GraphQLError) {
                 throw error;
             }

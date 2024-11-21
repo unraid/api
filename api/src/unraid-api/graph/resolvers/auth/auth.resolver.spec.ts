@@ -101,29 +101,6 @@ describe('AuthResolver', () => {
         });
     });
 
-    describe('addPermission', () => {
-        it('should add permission', async () => {
-            const input = {
-                action: AuthActionVerb.READ,
-                possession: AuthPossession.ANY,
-                role: Role.ADMIN,
-                resource: Resource.API_KEY,
-            };
-
-            vi.spyOn(authService, 'addPermission').mockResolvedValue(true);
-
-            const result = await resolver.addPermission(input);
-
-            expect(result).toBe(true);
-            expect(authService.addPermission).toHaveBeenCalledWith(
-                AuthActionVerb[input.action],
-                AuthPossession[input.possession],
-                Resource[input.resource],
-                Role[input.role]
-            );
-        });
-    });
-
     describe('addRoleForUser', () => {
         it('should add role to user', async () => {
             const input = {

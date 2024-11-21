@@ -12,7 +12,6 @@ import { GraphModule } from '@app/unraid-api/graph/graph.module';
 import { RestModule } from '@app/unraid-api/rest/rest.module';
 
 import { GraphqlAuthGuard } from '../auth/auth.guard';
-import { FastifyThrottlerGuard } from '../auth/fastify-throttler.guard';
 
 @Module({
     imports: [
@@ -26,13 +25,15 @@ import { FastifyThrottlerGuard } from '../auth/fastify-throttler.guard';
         CronModule,
         GraphModule,
         RestModule,
+        ThrottlerModule.forRoot([
+            {
+                ttl: 60000,
+                limit: 500,
+            },
+        ]),
     ],
     controllers: [],
     providers: [
-        {
-            provide: APP_GUARD,
-            useClass: FastifyThrottlerGuard,
-        },
         {
             provide: APP_GUARD,
             useClass: GraphqlAuthGuard,

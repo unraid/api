@@ -1,13 +1,15 @@
 import { ExecutionContext, Logger, Module, UnauthorizedException } from '@nestjs/common';
-import { GqlExecutionContext } from '@nestjs/graphql';
 import { PassportModule } from '@nestjs/passport';
 
-import { Model as CasbinModel, newEnforcer, StringAdapter } from 'casbin';
 import { AUTHZ_ENFORCER, AuthZModule } from 'nest-authz';
+
+import { getRequest } from '@app/utils';
 
 import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
 import { BASE_POLICY, CASBIN_MODEL } from './casbin';
+import { CasbinModule } from './casbin/casbin.module';
+import { CasbinService } from './casbin/casbin.service';
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
 import { UserCookieStrategy } from './cookie.strategy';
 import { ServerHeaderStrategy } from './header.strategy';
@@ -17,53 +19,31 @@ import { ServerHeaderStrategy } from './header.strategy';
         PassportModule.register({
             defaultStrategy: [ServerHeaderStrategy.key, UserCookieStrategy.key],
         }),
+        CasbinModule,
         AuthZModule.register({
+            imports: [CasbinModule],
             enforcerProvider: {
                 provide: AUTHZ_ENFORCER,
-                useFactory: async () => {
-                    const model = new CasbinModel();
-                    const policy = new StringAdapter(BASE_POLICY);
-                    model.loadModelFromText(CASBIN_MODEL);
-
-                    try {
-                        const enforcer = await newEnforcer(model, policy);
-                        enforcer.enableLog(true);
-
-                        return enforcer;
-                    } catch (error: unknown) {
-                        throw new Error(`Failed to create Casbin enforcer: ${error}`);
-                    }
+                useFactory: async (casbinService: CasbinService) => {
+                    return casbinService.initializeEnforcer(CASBIN_MODEL, BASE_POLICY);
                 },
+                inject: [CasbinService],
             },
             userFromContext: (ctx: ExecutionContext) => {
                 const logger = new Logger('AuthZModule');
 
                 try {
-                    const contextType = ctx.getType<'http' | 'graphql' | 'rpc'>();
-                    const request =
-                        contextType === 'http'
-                            ? ctx.switchToHttp().getRequest()
-                            : contextType === 'graphql'
-                              ? GqlExecutionContext.create(ctx).getContext().req
-                              : null;
-
-                    if (!request) {
-                        throw new UnauthorizedException(
-                            `Unsupported execution context type: ${contextType}`
-                        );
-                    }
-
+                    const request = getRequest(ctx);
                     const roles = request?.user?.roles || [];
 
                     if (!Array.isArray(roles)) {
                         throw new UnauthorizedException('User roles must be an array');
                     }
 
-                    return roles.map((role) => role.toLowerCase()).join(',');
+                    return roles.join(',');
                 } catch (error) {
                     logger.error('Failed to extract user context', error);
-
-                    return '';
+                    throw new UnauthorizedException('Failed to authenticate user');
                 }
             },
         }),
@@ -86,6 +66,7 @@ import { ServerHeaderStrategy } from './header.strategy';
         ServerHeaderStrategy,
         UserCookieStrategy,
         CookieService,
+        AuthZModule,
     ],
 })
 export class AuthModule {}

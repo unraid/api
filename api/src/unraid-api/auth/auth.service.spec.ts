@@ -1,11 +1,11 @@
 import { UnauthorizedException } from '@nestjs/common';
 
 import { newEnforcer } from 'casbin';
-import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
+import { AuthZService } from 'nest-authz';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types';
-import { Resource, Role } from '@app/graphql/generated/api/types';
+import { Role } from '@app/graphql/generated/api/types';
 
 import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
@@ -78,26 +78,6 @@ describe('AuthService', () => {
 
             expect(deleteRoleSpy).toHaveBeenCalledWith('test-id', 'old-role');
             expect(addRoleSpy).toHaveBeenCalledWith('test-id', 'new-role');
-        });
-    });
-
-    describe('addPermission', () => {
-        it('should add permission successfully', async () => {
-            const addPolicySpy = vi.spyOn(authzService, 'addPolicy');
-            const result = await authService.addPermission(
-                AuthActionVerb.READ,
-                AuthPossession.ANY,
-                Resource.API_KEY,
-                Role.ADMIN
-            );
-
-            expect(addPolicySpy).toHaveBeenCalledWith(
-                Role.ADMIN,
-                Resource.API_KEY,
-                AuthActionVerb.READ,
-                AuthPossession.ANY
-            );
-            expect(result).toBe(true);
         });
     });
 

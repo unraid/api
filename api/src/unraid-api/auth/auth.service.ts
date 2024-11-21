@@ -1,9 +1,13 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { appendFile } from 'fs/promises';
+import { join } from 'path';
 
+import { ensureDir } from 'fs-extra';
 import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
 
 import type { UserAccount } from '@app/graphql/generated/api/types';
 import { Resource, Role } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store';
 
 import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
@@ -11,12 +15,21 @@ import { CookieService } from './cookie.service';
 @Injectable()
 export class AuthService {
     private readonly logger = new Logger(AuthService.name);
+    private readonly policyPath: string;
+    private readonly policyFile: string;
 
     constructor(
         private cookieService: CookieService,
         private apiKeyService: ApiKeyService,
         private authzService: AuthZService
-    ) {}
+    ) {
+        this.policyPath = getters.paths()['auth-policies'];
+        this.policyFile = join(this.policyPath, 'policies.csv');
+    }
+
+    async onModuleInit() {
+        await ensureDir(this.policyPath);
+    }
 
     async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
         try {
@@ -104,37 +117,6 @@ export class AuthService {
             const errorMessage = error instanceof Error ? error.message : String(error);
 
             throw new UnauthorizedException(`Failed to sync roles: ${errorMessage}`);
-        }
-    }
-
-    public async addPermission(
-        action: AuthActionVerb,
-        possession: AuthPossession,
-        resource: Resource,
-        role: Role
-    ): Promise<boolean> {
-        if (!role || !resource || !action || !possession) {
-            throw new UnauthorizedException('Role, resource, action, and possession are required');
-        }
-
-        try {
-            const exists = await this.authzService.hasPolicy(role, resource, action, possession);
-
-            if (exists) {
-                return true;
-            }
-
-            await this.authzService.addPolicy(role, resource, action, possession);
-
-            return true;
-        } catch (error: unknown) {
-            this.logger.error(
-                `Failed to add permission: role=${role}, resource=${resource}, action=${action}, possession=${possession}`,
-                error
-            );
-            const errorMessage = error instanceof Error ? error.message : String(error);
-
-            throw new UnauthorizedException(`Failed to add permission: ${errorMessage}`);
         }
     }
 

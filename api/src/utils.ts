@@ -1,3 +1,9 @@
+import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
+
+import { UserAccount } from './graphql/generated/api/types';
+import { FastifyRequest } from './types/fastify';
+
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
 }
@@ -126,4 +132,27 @@ export function formatTimestamp(timestamp: string | number | null | undefined): 
     } catch {
         return null;
     }
+}
+
+/**
+ * Retrieves the request object from the execution context.
+ *
+ * @param ctx - Execution context
+ * @returns Request object
+ */
+export function getRequest(ctx: ExecutionContext) {
+    const contextType = ctx.getType<'http' | 'graphql' | 'rpc'>();
+    let request: (FastifyRequest & { user?: UserAccount }) | null = null;
+
+    if (contextType === 'http') {
+        request = ctx.switchToHttp().getRequest();
+    } else if (contextType === 'graphql') {
+        request = GqlExecutionContext.create(ctx).getContext().req;
+    }
+
+    if (!request) {
+        throw new UnauthorizedException(`Unsupported execution context type: ${contextType}`);
+    }
+
+    return request;
 }

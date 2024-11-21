@@ -70,25 +70,6 @@ export class AuthResolver {
 
     @Mutation()
     @UsePermissions({
-        action: AuthActionVerb.CREATE,
-        resource: Resource.API_KEY,
-        possession: AuthPossession.ANY,
-    })
-    async addPermission(
-        @Args('input')
-        input: AddPermissionInput
-    ): Promise<boolean> {
-        await this.authService.addPermission(
-            AuthActionVerb[input.action],
-            AuthPossession[input.possession],
-            Resource[input.resource],
-            Role[input.role]
-        );
-        return true;
-    }
-
-    @Mutation()
-    @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.PERMISSION,
         possession: AuthPossession.ANY,
