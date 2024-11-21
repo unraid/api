@@ -10,6 +10,7 @@ export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
     link
     type
     timestamp
+    formattedTimestamp
   }
 `);
 
