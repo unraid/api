@@ -12,6 +12,7 @@ interface Display {
 	custom: string;
 	dashapps: string;
 	date: string;
+	time: string;
 	hot: string;
 	max: string;
 	number: string;
