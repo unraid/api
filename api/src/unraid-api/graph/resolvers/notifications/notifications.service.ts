@@ -721,7 +721,14 @@ export class NotificationsService {
             return timestamp;
         }
         this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
-        return strftime(settings.date, date);
+
+        let formatted = strftime(settings.date, date);
+        // %c represents System Time (i.e. the system's default date-time format).
+        // This seems to include time, so we shouldn't append time if %c is the format setting.
+        if (settings.date !== '%c') {
+            formatted += " " + strftime(settings.time ?? "%I:%M %p", date);
+        }
+        return formatted;
     }
 
     /**------------------------------------------------------------------------
