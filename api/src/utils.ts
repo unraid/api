@@ -151,7 +151,9 @@ export function getRequest(ctx: ExecutionContext) {
     }
 
     if (!request) {
-        throw new UnauthorizedException(`Unsupported execution context type: ${contextType}`);
+        throw new UnauthorizedException(
+            `Unsupported execution context type: ${contextType}. Only HTTP and GraphQL contexts are supported.`
+        );
     }
 
     return request;

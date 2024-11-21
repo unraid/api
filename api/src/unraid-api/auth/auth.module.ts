@@ -1,4 +1,10 @@
-import { ExecutionContext, Logger, Module, UnauthorizedException } from '@nestjs/common';
+import {
+    ExecutionContext,
+    InternalServerErrorException,
+    Logger,
+    Module,
+    UnauthorizedException,
+} from '@nestjs/common';
 import { PassportModule } from '@nestjs/passport';
 
 import { AUTHZ_ENFORCER, AuthZModule } from 'nest-authz';
@@ -25,7 +31,17 @@ import { ServerHeaderStrategy } from './header.strategy';
             enforcerProvider: {
                 provide: AUTHZ_ENFORCER,
                 useFactory: async (casbinService: CasbinService) => {
-                    return casbinService.initializeEnforcer(CASBIN_MODEL, BASE_POLICY);
+                    const logger = new Logger('AuthZModule');
+                    try {
+                        return casbinService.initializeEnforcer(CASBIN_MODEL, BASE_POLICY);
+                    } catch (error: unknown) {
+                        logger.error('Failed to initialize Casbin enforcer', error);
+                        const errorMessage = error instanceof Error ? error.message : String(error);
+
+                        throw new InternalServerErrorException(
+                            `Enforcer initialization failed: ${errorMessage}`
+                        );
+                    }
                 },
                 inject: [CasbinService],
             },
