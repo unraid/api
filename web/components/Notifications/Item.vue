@@ -32,17 +32,17 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
     case 'INFO':
       return {
         component: CheckBadgeIcon,
-        color: 'text-green-500',
+        color: 'text-lime',
       };
     case 'WARNING':
       return {
         component: ExclamationTriangleIcon,
-        color: 'text-yellow-500',
+        color: 'text-yellow-accent',
       };
     case 'ALERT':
       return {
         component: ShieldExclamationIcon,
-        color: 'text-red-500',
+        color: 'text-unraid-red',
       };
   }
   return null;

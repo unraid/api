@@ -45,6 +45,9 @@ export default <Partial<Config>>{
         'grey-lightest': '#f2f2f2',
         white: '#ffffff',
 
+        // unraid colors
+        'yellow-accent': '#E9BF41',
+        lime: '#63A659',
         'orange-dark': '#f15a2c',
         orange: '#ff8c2f',
         'unraid-red': '#E22828',

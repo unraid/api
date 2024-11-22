@@ -43,7 +43,7 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
     case Importance.Alert:
       return {
         component: ShieldExclamationIcon,
-        color: 'text-red-500',
+        color: 'text-unraid-red',
       };
   }
   return null;
@@ -73,10 +73,10 @@ watch(overview, (newVal, oldVal) => {
       <div
         v-if="indicatorLevel"
         :class="
-          cn('absolute top-0 right-0 size-2.5 rounded-full', {
+          cn('absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800', {
             'bg-unraid-red': indicatorLevel === Importance.Alert,
-            'bg-yellow-500': indicatorLevel === Importance.Warning,
-            'bg-green-500': indicatorLevel === 'UNREAD',
+            'bg-yellow-accent': indicatorLevel === Importance.Warning,
+            'bg-lime': indicatorLevel === 'UNREAD',
           })
         "
       />
