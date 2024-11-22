@@ -8,7 +8,6 @@ import { FSWatcher, watch } from 'chokidar';
 import { execa } from 'execa';
 import { emptyDir } from 'fs-extra';
 import { encode as encodeIni } from 'ini';
-import strftime from 'strftime';
 import { v7 as uuidv7 } from 'uuid';
 
 import type {
@@ -28,7 +27,7 @@ import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { Importance, NotificationType } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { SortFn } from '@app/unraid-api/types/util';
-import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
+import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 
 @Injectable()
 export class NotificationsService {
@@ -721,14 +720,11 @@ export class NotificationsService {
             return timestamp;
         }
         this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
-
-        let formatted = strftime(settings.date, date);
-        // %c represents System Time (i.e. the system's default date-time format).
-        // This seems to include time, so we shouldn't append time if %c is the format setting.
-        if (settings.date !== '%c') {
-            formatted += " " + strftime(settings.time ?? "%I:%M %p", date);
-        }
-        return formatted;
+        return formatDatetime(date, {
+            dateFormat: settings.date,
+            timeFormat: settings.time,
+            omitTimezone: true,
+        });
     }
 
     /**------------------------------------------------------------------------

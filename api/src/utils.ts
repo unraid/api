@@ -1,4 +1,4 @@
-import { DynamixConfig } from './core/types/ini';
+import strftime from 'strftime';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
@@ -102,4 +102,71 @@ export function updateObject(
 
         iterations++;
     }
+}
+
+/**
+ * Formats a date and time according to specified `strftime` format strings.
+ *
+ * This function takes a Date object and formats it using strftime patterns.
+ * It handles special cases for system time format `%c` by optionally removing timezone info.
+ * For non-system time formats, it appends the time to the formatted date.
+ *
+ * @param date - The Date object to format
+ * @param options - Formatting options
+ * @param options.dateFormat - strftime format string for the date portion (default: '%c')
+ * @param options.timeFormat - strftime format string for the time portion (default: '%I:%M %p')
+ * @param options.omitTimezone - Whether to remove timezone from system time format (default: true)
+ * @returns A formatted date-time string
+ *
+ * @example
+ * // With system time format
+ * formatDatetime(new Date()) // 'Wed 20 Nov 2024 06:39:39 AM'
+ *
+ * // With custom format
+ * formatDatetime(new Date(), {
+ *   dateFormat: '%Y-%m-%d',
+ *   timeFormat: '%H:%M'
+ * }) // '2024-11-20 06:39'
+ */
+
+export function formatDatetime(
+    date: Date,
+    options: Partial<{ dateFormat: string; timeFormat: string; omitTimezone?: boolean }> = {}
+): string {
+    const { dateFormat = '%c', timeFormat = '%I:%M %p', omitTimezone = true } = options;
+    let formatted = strftime(dateFormat, date);
+    if (dateFormat === '%c') {
+        /**----------------------------------------------
+         *                Omit Timezone
+         *
+         *  we omit trailing tz by only keeping the first 6 parts
+         *  of sys time (can't omit last x parts bc tz isn't always 3 words).
+         *
+         *  the magic number 6 comes from the sys time string, which
+         *  looks like 'Wed 20 Nov 2024 06:39:39 AM Pacific Standard Time'
+         *
+         *  note: this may not work with right-to-left locales
+         *        (where tz may be in first 6 parts)
+         *---------------------------------------------**/
+        if (omitTimezone) {
+            formatted = formatted.split(' ').slice(0, 6).join(' ');
+        }
+    } else {
+        /**----------------------------------------------
+         *                Append Time
+         *
+         *  although system time (%c) includes a timestamp,
+         *  other formats exposed by unraid don't, so we
+         *  add it to the end.
+         *
+         *  You can find Unraid's datetime options under
+         *  `Settings > Date and Time` and by inspecting either:
+         *
+         *  the date and time select dropdowns in your browser's devtools, or
+         *  the `[display]` section of the dynamix config file
+         *  located at /boot/config/plugins/dynamix/dynamix.cfg
+         *---------------------------------------------**/
+        formatted += ' ' + strftime(timeFormat, date);
+    }
+    return formatted;
 }
