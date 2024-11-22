@@ -700,9 +700,11 @@ export class NotificationsService {
     }
 
     private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): Date | null {
-        if (unixStringSeconds && !isNaN(Number(unixStringSeconds))) {
-            return new Date(Number(unixStringSeconds) * 1_000);
+        const timeStamp = Number(unixStringSeconds)
+        if (unixStringSeconds && !Number.isNaN(timeStamp)) {
+            return new Date(timeStamp * 1_000);
         }
+        // i.e. if unixStringSeconds is an empty string or represents a non-numberS
         return null;
     }
 
