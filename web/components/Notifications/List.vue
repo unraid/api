@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import {
-  getNotifications,
-  NOTIFICATION_FRAGMENT,
-} from "./graphql/notification.query";
-import type { Importance, NotificationType } from "~/composables/gql/graphql";
-import { useFragment } from "~/composables/gql/fragment-masking";
-import { useQuery } from "@vue/apollo-composable";
-import { vInfiniteScroll } from "@vueuse/components";
-import { CheckIcon } from "@heroicons/vue/24/solid";
+import { CheckIcon } from '@heroicons/vue/24/solid';
+import { useQuery } from '@vue/apollo-composable';
+import { vInfiniteScroll } from '@vueuse/components';
+import { useFragment } from '~/composables/gql/fragment-masking';
+import type { Importance, NotificationType } from '~/composables/gql/graphql';
+import { getNotifications, NOTIFICATION_FRAGMENT } from './graphql/notification.query';
 
 /**
  * Page size is the max amount of items fetched from the api in a single request.
@@ -24,6 +21,13 @@ const props = withDefaults(
   }
 );
 
+/** whether we should continue trying to load more notifications */
+const canLoadMore = ref(true);
+/** reset custom state when props (e.g. props.type filter) change*/
+watch(props, () => {
+  canLoadMore.value = true;
+});
+
 const { result, error, fetchMore } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
@@ -34,23 +38,20 @@ const { result, error, fetchMore } = useQuery(getNotifications, () => ({
 }));
 
 watch(error, (newVal) => {
-  console.log("[getNotifications] error:", newVal);
+  console.log('[getNotifications] error:', newVal);
 });
 
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
-  const list = useFragment(
-    NOTIFICATION_FRAGMENT,
-    result.value?.notifications.list
-  );
+  const list = useFragment(NOTIFICATION_FRAGMENT, result.value?.notifications.list);
   // necessary because some items in this list may change their type (e.g. archival)
   // and we don't want to display them in the wrong list client-side.
   return list.filter((n) => n.type === props.type);
 });
 
 async function onLoadMore() {
-  console.log("[getNotifications] onLoadMore");
-  void fetchMore({
+  console.log('[getNotifications] onLoadMore');
+  const incoming = await fetchMore({
     variables: {
       filter: {
         offset: notifications.value.length,
@@ -60,23 +61,22 @@ async function onLoadMore() {
       },
     },
   });
+  const incomingCount = incoming?.data.notifications.list.length ?? 0;
+  if (incomingCount === 0 || incomingCount < props.pageSize) {
+    canLoadMore.value = false;
+  }
 }
 </script>
 
 <template>
-  <div
-    v-if="notifications?.length === 0"
-    class="h-full flex flex-col items-center justify-center gap-3"
-  >
+  <div v-if="notifications?.length === 0" class="h-full flex flex-col items-center justify-center gap-3">
     <CheckIcon class="h-10 text-green-600" />
-    {{
-      `No ${props.importance?.toLowerCase() ?? ""} notifications to see here!`
-    }}
+    {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}
   </div>
   <!-- The horizontal padding here adjusts for the scrollbar offset -->
   <div
     v-if="notifications?.length > 0"
-    v-infinite-scroll="onLoadMore"
+    v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
     class="divide-y divide-gray-200 overflow-y-auto pl-7 pr-4 h-full"
   >
     <NotificationsItem

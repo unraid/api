@@ -12,7 +12,6 @@ import { AppError } from '@app/core/errors/app-error';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { Resource } from '@app/graphql/generated/api/types';
 import { Importance } from '@app/graphql/generated/client/graphql';
-import { formatTimestamp } from '@app/utils';
 
 import { NotificationsService } from './notifications.service';
 
@@ -46,11 +45,7 @@ export class NotificationsResolver {
         @Args('filter')
         filters: NotificationFilter
     ) {
-        const notifications = await this.notificationsService.getNotifications(filters);
-        return notifications.map((notification) => ({
-            ...notification,
-            formattedTimestamp: formatTimestamp(notification.timestamp),
-        }));
+        return await this.notificationsService.getNotifications(filters);
     }
 
     /**============================================
@@ -75,6 +70,11 @@ export class NotificationsResolver {
     ) {
         const { overview } = await this.notificationsService.deleteNotification({ id, type });
         return overview;
+    }
+
+    @Mutation()
+    public async deleteAllNotifications(): Promise<NotificationOverview> {
+        return this.notificationsService.deleteAllNotifications();
     }
 
     @Mutation()

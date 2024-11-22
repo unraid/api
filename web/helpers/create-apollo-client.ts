@@ -1,22 +1,23 @@
 import {
-  from,
   ApolloClient,
+  ApolloLink,
   createHttpLink,
+  from,
+  Observable,
   split,
- ApolloLink, Observable } from "@apollo/client/core/index.js";
-
-import { onError } from "@apollo/client/link/error/index.js";
-import { RetryLink } from "@apollo/client/link/retry/index.js";
-import { GraphQLWsLink } from "@apollo/client/link/subscriptions/index.js";
-import { getMainDefinition } from "@apollo/client/utilities/index.js";
-import { provideApolloClient } from "@vue/apollo-composable";
-import { createClient } from "graphql-ws";
-import { WEBGUI_GRAPHQL } from "./urls";
-import { createApolloCache } from "./apollo-cache";
-import { useServerStore } from "~/store/server";
+} from '@apollo/client/core/index.js';
+import { onError } from '@apollo/client/link/error/index.js';
+import { RetryLink } from '@apollo/client/link/retry/index.js';
+import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
+import { getMainDefinition } from '@apollo/client/utilities/index.js';
+import { provideApolloClient } from '@vue/apollo-composable';
+import { useServerStore } from '~/store/server';
+import { createClient } from 'graphql-ws';
+import { createApolloCache } from './apollo-cache';
+import { WEBGUI_GRAPHQL } from './urls';
 
 const httpEndpoint = WEBGUI_GRAPHQL;
-const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace("http", "ws"));
+const wsEndpoint = new URL(WEBGUI_GRAPHQL.toString().replace('http', 'ws'));
 
 // const headers = { 'x-api-key': serverStore.apiKey };
 const headers = {};
@@ -24,7 +25,7 @@ const headers = {};
 const httpLink = createHttpLink({
   uri: httpEndpoint.toString(),
   headers,
-  credentials: "include",
+  credentials: 'include',
 });
 
 const wsLink = new GraphQLWsLink(
@@ -41,12 +42,9 @@ const errorLink = onError(({ graphQLErrors, networkError }: any) => {
   if (graphQLErrors) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     graphQLErrors.map((error: any) => {
-      console.error("[GraphQL error]", error);
-      const errorMsg =
-        error.error && error.error.message
-          ? error.error.message
-          : error.message;
-      if (errorMsg && errorMsg.includes("offline")) {
+      console.error('[GraphQL error]', error);
+      const errorMsg = error.error?.message ?? error.message;
+      if (errorMsg?.includes('offline')) {
         // @todo restart the api
       }
       return error.message;
@@ -56,11 +54,8 @@ const errorLink = onError(({ graphQLErrors, networkError }: any) => {
   if (networkError) {
     console.error(`[Network error]: ${networkError}`);
     const msg = networkError.message ? networkError.message : networkError;
-    if (
-      typeof msg === "string" &&
-      msg.includes("Unexpected token < in JSON at position 0")
-    ) {
-      return "Unraid API • CORS Error";
+    if (typeof msg === 'string' && msg.includes('Unexpected token < in JSON at position 0')) {
+      return 'Unraid API • CORS Error';
     }
     return msg;
   }
@@ -82,11 +77,10 @@ const retryLink = new RetryLink({
 
 const disableClientLink = new ApolloLink((operation, forward) => {
   const serverStore = useServerStore();
-  const { connectPluginInstalled, guid} = toRefs(serverStore);
-  console.log("serverStore.connectPluginInstalled", connectPluginInstalled?.value, guid?.value);
+  const { connectPluginInstalled } = toRefs(serverStore);
   if (!connectPluginInstalled?.value) {
     return new Observable((observer) => {
-      console.warn("connectPluginInstalled is false, aborting request");
+      console.warn('connectPluginInstalled is false, aborting request');
       observer.complete();
     });
   }
@@ -96,10 +90,7 @@ const disableClientLink = new ApolloLink((operation, forward) => {
 const splitLinks = split(
   ({ query }) => {
     const definition = getMainDefinition(query);
-    return (
-      definition.kind === "OperationDefinition" &&
-      definition.operation === "subscription"
-    );
+    return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
   },
   wsLink,
   httpLink

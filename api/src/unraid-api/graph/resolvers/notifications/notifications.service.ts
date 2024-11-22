@@ -27,7 +27,7 @@ import { NotificationSchema } from '@app/graphql/generated/api/operations';
 import { Importance, NotificationType } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 import { SortFn } from '@app/unraid-api/types/util';
-import { batchProcess, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
+import { batchProcess, formatDatetime, isFulfilled, isRejected, unraidTimestamp } from '@app/utils';
 
 @Injectable()
 export class NotificationsService {
@@ -529,14 +529,25 @@ export class NotificationsService {
      * @returns An array of all notifications in the system.
      */
     public async getNotifications(filters: NotificationFilter): Promise<Notification[]> {
-        this.logger.debug('Getting Notifications');
+        this.logger.verbose('Getting Notifications');
 
+        const { type = NotificationType.UNREAD } = filters;
         const { ARCHIVE, UNREAD } = this.paths();
-        const directoryPath = filters.type === NotificationType.ARCHIVE ? ARCHIVE : UNREAD;
+        let files: string[];
 
-        const unreadFiles = await this.listFilesInFolder(directoryPath);
-        const [notifications] = await this.loadNotificationsFromPaths(unreadFiles, filters);
+        if (type === NotificationType.UNREAD) {
+            files = await this.listFilesInFolder(UNREAD);
+        } else {
+            // Exclude notifications present in both unread & archive from archive.
+            //* this is necessary because the legacy script writes new notifications to both places.
+            //* this should be a temporary measure.
+            const unreads = new Set(await readdir(UNREAD));
+            files = await this.listFilesInFolder(ARCHIVE, (archives) => {
+                return archives.filter((file) => !unreads.has(file));
+            });
+        }
 
+        const [notifications] = await this.loadNotificationsFromPaths(files, filters);
         return notifications;
     }
 
@@ -545,12 +556,16 @@ export class NotificationsService {
      * Sorted latest-first by default.
      *
      * @param folderPath The path of the folder to read.
+     * @param narrowContent Returns which files from `folderPath` to include. Defaults to all.
      * @param sortFn An optional function to sort folder contents. Defaults to descending birth time.
      * @returns A list of absolute paths of all the files and contents in the folder.
      */
-    private async listFilesInFolder(folderPath: string, sortFn?: SortFn<Stats>): Promise<string[]> {
-        sortFn ??= (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs; // latest first
-        const contents = await readdir(folderPath);
+    private async listFilesInFolder(
+        folderPath: string,
+        narrowContent: (contents: string[]) => string[] = (contents) => contents,
+        sortFn: SortFn<Stats> = (fileA, fileB) => fileB.birthtimeMs - fileA.birthtimeMs // latest first
+    ): Promise<string[]> {
+        const contents = narrowContent(await readdir(folderPath));
         return contents
             .map((content) => {
                 // pre-map each file's stats to avoid excess calls during sorting
@@ -657,7 +672,8 @@ export class NotificationsService {
             title,
             description,
             importance: this.fileImportanceToGqlImportance(importance),
-            timestamp: this.parseNotificationDateToIsoDate(timestamp),
+            timestamp: this.parseNotificationDateToIsoDate(timestamp)?.toISOString(),
+            formattedTimestamp: this.formatTimestamp(timestamp),
         };
     }
 
@@ -683,11 +699,34 @@ export class NotificationsService {
         }
     }
 
-    private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): string | null {
-        if (unixStringSeconds && !isNaN(Number(unixStringSeconds))) {
-            return new Date(Number(unixStringSeconds) * 1_000).toISOString();
+    private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): Date | null {
+        const timeStamp = Number(unixStringSeconds)
+        if (unixStringSeconds && !Number.isNaN(timeStamp)) {
+            return new Date(timeStamp * 1_000);
         }
+        // i.e. if unixStringSeconds is an empty string or represents a non-numberS
         return null;
+    }
+
+    private formatTimestamp(timestamp: string) {
+        const { display: settings } = getters.dynamix();
+        const date = this.parseNotificationDateToIsoDate(timestamp);
+
+        if (!settings) {
+            this.logger.warn(
+                '[formatTimestamp] Dynamix display settings not found. Cannot apply user settings.'
+            );
+            return timestamp;
+        } else if (!date) {
+            this.logger.warn(`[formatTimestamp] Could not parse date from timestamp: ${date}`);
+            return timestamp;
+        }
+        this.logger.debug(`[formatTimestamp] ${settings.date} :: ${settings.time} :: ${date}`);
+        return formatDatetime(date, {
+            dateFormat: settings.date,
+            timeFormat: settings.time,
+            omitTimezone: true,
+        });
     }
 
     /**------------------------------------------------------------------------

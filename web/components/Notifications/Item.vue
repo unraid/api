@@ -1,39 +1,48 @@
 <script setup lang="ts">
 import {
   ArchiveBoxIcon,
-  ShieldExclamationIcon,
   CheckBadgeIcon,
   ExclamationTriangleIcon,
   LinkIcon,
+  ShieldExclamationIcon,
   TrashIcon,
-} from "@heroicons/vue/24/solid";
-import { useMutation } from "@vue/apollo-composable";
-import type { NotificationFragmentFragment } from "~/composables/gql/graphql";
-
-import { NotificationType } from "~/composables/gql/graphql";
+} from '@heroicons/vue/24/solid';
+import { useMutation } from '@vue/apollo-composable';
+import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
+import { NotificationType } from '~/composables/gql/graphql';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
-} from "./graphql/notification.query";
+} from './graphql/notification.query';
+import { Markdown } from '@/helpers/markdown';
 
 const props = defineProps<NotificationFragmentFragment>();
 
+const descriptionMarkup = computedAsync(async () => {
+  try {
+    return await Markdown.parse(props.description);
+  } catch (e) {
+    console.error(e)
+    return props.description;
+  }
+}, '');
+
 const icon = computed<{ component: Component; color: string } | null>(() => {
   switch (props.importance) {
-    case "INFO":
+    case 'INFO':
       return {
         component: CheckBadgeIcon,
-        color: "text-green-500",
+        color: 'text-green-500',
       };
-    case "WARNING":
+    case 'WARNING':
       return {
         component: ExclamationTriangleIcon,
-        color: "text-yellow-500",
+        color: 'text-yellow-500',
       };
-    case "ALERT":
+    case 'ALERT':
       return {
         component: ShieldExclamationIcon,
-        color: "text-red-500",
+        color: 'text-red-500',
       };
   }
   return null;
@@ -75,7 +84,7 @@ const mutationError = computed(() => {
       </h3>
 
       <div class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1">
-        <p class="text-12px opacity-75">{{ timestamp }}</p>
+        <p class="text-12px opacity-75">{{ formattedTimestamp }}</p>
       </div>
     </header>
 
@@ -86,7 +95,7 @@ const mutationError = computed(() => {
     <div
       class="w-full flex flex-row items-center justify-between gap-2 opacity-75 group-hover/item:opacity-100 group-focus/item:opacity-100"
     >
-      <p class="text-secondary-foreground">{{ description }}</p>
+      <div class="text-secondary-foreground" v-html="descriptionMarkup" />
     </div>
 
     <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>

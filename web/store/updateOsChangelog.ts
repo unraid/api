@@ -1,14 +1,13 @@
-import { marked } from 'marked';
+import { Markdown } from '@/helpers/markdown';
+import { request } from '~/composables/services/request';
+import { DOCS_RELEASE_NOTES } from '~/helpers/urls';
+import { useCallbackStore } from '~/store/callbackActions';
+// import { useServerStore } from '~/store/server';
+import type { ServerUpdateOsResponse } from '~/types/server';
 import { baseUrl } from 'marked-base-url';
 import { defineStore } from 'pinia';
 import prerelease from 'semver/functions/prerelease';
 import { computed, ref, watch } from 'vue';
-
-import { DOCS_RELEASE_NOTES } from '~/helpers/urls';
-import { request } from '~/composables/services/request';
-import { useCallbackStore } from '~/store/callbackActions';
-// import { useServerStore } from '~/store/server';
-import type { ServerUpdateOsResponse } from '~/types/server';
 
 export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => {
   const callbackStore = useCallbackStore();
@@ -29,10 +28,15 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
     if (!releaseForUpdate.value || !releaseForUpdate.value?.changelog) {
       return '';
     }
-    return releaseForUpdate.value?.changelog ?? `https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/${releaseForUpdate.value.version}.md`;
+    return (
+      releaseForUpdate.value?.changelog ??
+      `https://raw.githubusercontent.com/unraid/docs/main/docs/unraid-os/release-notes/${releaseForUpdate.value.version}.md`
+    );
   });
 
-  const isReleaseForUpdateStable = computed(() => releaseForUpdate.value ? prerelease(releaseForUpdate.value.version) === null : false);
+  const isReleaseForUpdateStable = computed(() =>
+    releaseForUpdate.value ? prerelease(releaseForUpdate.value.version) === null : false
+  );
   const parsedChangelog = ref<string>('');
   const parseChangelogFailed = ref<string>('');
   // used to remove the first <h1></h1> and it's contents from the parsedChangelog
@@ -48,7 +52,10 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
       return parseChangelogFailed.value;
     }
     if (parsedChangelog.value) {
-      return parsedChangelog.value.match(/<h1>(.*?)<\/h1>/)?.[1] ?? `Version ${releaseForUpdate.value?.version} ${releaseForUpdate.value?.date}`;
+      return (
+        parsedChangelog.value.match(/<h1>(.*?)<\/h1>/)?.[1] ??
+        `Version ${releaseForUpdate.value?.version} ${releaseForUpdate.value?.date}`
+      );
     }
     return '';
   });
@@ -71,7 +78,7 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
         .text();
 
       // set base url for relative links
-      marked.use(baseUrl(DOCS_RELEASE_NOTES.toString()));
+      const marked = Markdown.create(baseUrl(DOCS_RELEASE_NOTES.toString()));
 
       // open links in new tab & replace .md from links
       const renderer = new marked.Renderer();
@@ -79,17 +86,17 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
         options: {
           sanitize: true,
         },
-        render: marked.Renderer.prototype.link
+        render: marked.Renderer.prototype.link,
       };
       renderer.link = function (href, title, text) {
         const anchor = anchorRender.render(href, title, text);
         return anchor
-          .replace('<a', '<a target=\'_blank\' ') // open links in new tab
+          .replace('<a', "<a target='_blank' ") // open links in new tab
           .replace('.md', ''); // remove .md from links
       };
 
       marked.setOptions({
-        renderer
+        renderer,
       });
 
       parsedChangelog.value = await marked.parse(changelogMarkdownRaw);
@@ -105,12 +112,14 @@ export const useUpdateOsChangelogStore = defineStore('updateOsChangelog', () => 
   const fetchAndConfirmInstall = (sha256: string) => {
     callbackStore.send(
       window.location.href,
-      [{
-        sha256,
-        type: 'updateOs',
-      }],
+      [
+        {
+          sha256,
+          type: 'updateOs',
+        },
+      ],
       undefined,
-      'forUpc',
+      'forUpc'
     );
   };
 

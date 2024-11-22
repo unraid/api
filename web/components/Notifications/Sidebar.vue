@@ -1,22 +1,28 @@
 <script setup lang="ts">
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/shadcn/sheet";
-
-import { archiveAllNotifications } from "./graphql/notification.query";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
+import { useMutation } from '@vue/apollo-composable';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
-import { Importance, NotificationType } from "~/composables/gql/graphql";
-import { useMutation } from "@vue/apollo-composable";
+import { Importance, NotificationType } from '~/composables/gql/graphql';
+import { archiveAllNotifications, deleteAllNotifications } from './graphql/notification.query';
 
-const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(
-  archiveAllNotifications
-);
+const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
+const { mutate: deleteAll, loading: loadingDeleteAll } = useMutation(deleteAllNotifications);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
+
+const confirmAndArchiveAll = async () => {
+  if (confirm('This will archive all notifications on your Unraid server. Continue?')) {
+    await archiveAll();
+  }
+};
+
+const confirmAndDeleteAll = async () => {
+  if (
+    confirm('This will permanently delete all notifications currently on your Unraid server. Continue?')
+  ) {
+    await deleteAll();
+  }
+};
 </script>
 
 <template>
@@ -27,50 +33,64 @@ const importance = ref<Importance | undefined>(undefined);
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
-    <SheetContent
-      :to="teleportTarget"
-      class="w-full sm:max-w-[540px] h-screen px-0"
-    >
+    <SheetContent :to="teleportTarget" class="w-full sm:max-w-[540px] h-screen px-0">
       <div class="flex flex-col h-full gap-3">
-        <SheetHeader class="ml-1 px-6">
-          <SheetTitle>Notifications</SheetTitle>
+        <SheetHeader class="ml-1 px-6 flex items-baseline gap-0">
+          <SheetTitle class="text-2xl">Notifications</SheetTitle>
+          <a href="/Settings/Notifications">
+            <Button variant="link" size="sm" class="text-muted-foreground text-base p-0">
+              Edit Settings
+            </Button>
+          </a>
         </SheetHeader>
 
         <!-- min-h-0 prevents the flex container from expanding beyond its containing bounds. -->
         <!-- this is necessary because flex items have a default min-height: auto, -->
         <!-- which means they won't shrink below the height of their content, even if you use flex-1 or other flex properties. -->
-        <Tabs default-value="unread" class="flex-1 flex flex-col min-h-0">
-          <div
-            class="flex flex-row justify-between items-center flex-wrap gap-2 px-6"
-          >
+        <Tabs default-value="unread" class="flex-1 flex flex-col min-h-0" activation-mode="manual">
+          <div class="flex flex-row justify-between items-center flex-wrap gap-2 px-6">
             <TabsList class="ml-[1px]">
               <TabsTrigger value="unread"> Unread </TabsTrigger>
               <TabsTrigger value="archived"> Archived </TabsTrigger>
             </TabsList>
-
-            <Button
-              :disabled="loadingArchiveAll"
-              variant="link"
-              size="sm"
-              class="text-muted-foreground text-base p-0"
-              @click="archiveAll"
-            >
-              Archive All
-            </Button>
+            <TabsContent value="unread">
+              <Button
+                :disabled="loadingArchiveAll"
+                variant="link"
+                size="sm"
+                class="text-muted-foreground text-base p-0"
+                @click="confirmAndArchiveAll"
+              >
+                Archive All
+              </Button>
+            </TabsContent>
+            <TabsContent value="archived">
+              <Button
+                :disabled="loadingDeleteAll"
+                variant="link"
+                size="sm"
+                class="text-muted-foreground text-base p-0"
+                @click="confirmAndDeleteAll"
+              >
+                Delete All
+              </Button>
+            </TabsContent>
 
             <Select
-              @update:model-value="(val) => {importance = val as Importance}"
+              @update:model-value="
+                (val) => {
+                  importance = val === 'all' ? undefined : (val as Importance);
+                }
+              "
             >
               <SelectTrigger class="bg-secondary border-0 h-auto">
-                <SelectValue
-                  class="text-muted-foreground"
-                  placeholder="Filter"
-                />
+                <SelectValue class="text-muted-foreground" placeholder="Filter" />
               </SelectTrigger>
               <SelectContent :to="teleportTarget">
                 <SelectGroup>
                   <SelectLabel>Notification Types</SelectLabel>
-                  <SelectItem :value="Importance.Alert">Alert</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
+                  <SelectItem :value="Importance.Alert"> Alert </SelectItem>
                   <SelectItem :value="Importance.Info">Info</SelectItem>
                   <SelectItem :value="Importance.Warning">Warning</SelectItem>
                 </SelectGroup>
@@ -79,17 +99,11 @@ const importance = ref<Importance | undefined>(undefined);
           </div>
 
           <TabsContent value="unread" class="flex-1 min-h-0 mt-3">
-            <NotificationsList
-              :importance="importance"
-              :type="NotificationType.Unread"
-            />
+            <NotificationsList :importance="importance" :type="NotificationType.Unread" />
           </TabsContent>
 
           <TabsContent value="archived" class="flex-1 min-h-0 mt-3">
-            <NotificationsList
-              :importance="importance"
-              :type="NotificationType.Archive"
-            />
+            <NotificationsList :importance="importance" :type="NotificationType.Archive" />
           </TabsContent>
         </Tabs>
       </div>

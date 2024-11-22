@@ -10,6 +10,7 @@ export const NOTIFICATION_FRAGMENT = graphql(/* GraphQL */ `
     link
     type
     timestamp
+    formattedTimestamp
   }
 `);
 
@@ -61,6 +62,19 @@ export const deleteNotification = graphql(/* GraphQL */ `
   mutation DeleteNotification($id: String!, $type: NotificationType!) {
     deleteNotification(id: $id, type: $type) {
       archive {
+        total
+      }
+    }
+  }
+`);
+
+export const deleteAllNotifications = graphql(/* GraphQL */ `
+  mutation DeleteAllNotifications {
+    deleteAllNotifications {
+      archive {
+        total
+      }
+      unread {
         total
       }
     }

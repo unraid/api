@@ -4,6 +4,9 @@ import { GqlExecutionContext } from '@nestjs/graphql';
 import { UserAccount } from './graphql/generated/api/types';
 import { FastifyRequest } from './types/fastify';
 
+import strftime from 'strftime';
+
+
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
 }
@@ -109,29 +112,68 @@ export function updateObject(
 }
 
 /**
- * Formats a timestamp into a human-readable format: "MMM D, YYYY"
- * Example: "Oct 24, 2024"
+ * Formats a date and time according to specified `strftime` format strings.
  *
- * @param timestamp - ISO date string or Unix timestamp in seconds
- * @returns Formatted date string or null if timestamp is invalid
+ * This function takes a Date object and formats it using strftime patterns.
+ * It handles special cases for system time format `%c` by optionally removing timezone info.
+ * For non-system time formats, it appends the time to the formatted date.
+ *
+ * @param date - The Date object to format
+ * @param options - Formatting options
+ * @param options.dateFormat - strftime format string for the date portion (default: '%c')
+ * @param options.timeFormat - strftime format string for the time portion (default: '%I:%M %p')
+ * @param options.omitTimezone - Whether to remove timezone from system time format (default: true)
+ * @returns A formatted date-time string
+ *
+ * @example
+ * // With system time format
+ * formatDatetime(new Date()) // 'Wed 20 Nov 2024 06:39:39 AM'
+ *
+ * // With custom format
+ * formatDatetime(new Date(), {
+ *   dateFormat: '%Y-%m-%d',
+ *   timeFormat: '%H:%M'
+ * }) // '2024-11-20 06:39'
  */
-export function formatTimestamp(timestamp: string | number | null | undefined): string | null {
-    if (!timestamp) return null;
 
-    try {
-        // Convert Unix timestamp (seconds) to milliseconds if needed
-        const date = typeof timestamp === 'number' ? new Date(timestamp * 1_000) : new Date(timestamp);
+export function formatDatetime(
+    date: Date,
+    options: Partial<{ dateFormat: string; timeFormat: string; omitTimezone?: boolean }> = {}
+): string {
+    const { dateFormat = '%c', timeFormat = '%I:%M %p', omitTimezone = true } = options;
+    let formatted = strftime(dateFormat, date);
+    if (dateFormat === '%c') {
+        /**----------------------------------------------
+         *                Omit Timezone
 
-        if (isNaN(date.getTime())) return null;
-
-        return date.toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-        });
-    } catch {
-        return null;
+         *  We omit the trailing tz `%Z` from systime's format
+         *  which expands to '%a %d %b %Y %X %Z' in strftime's
+         *  implementation. For reference, sys time looks like
+         *  'Wed 20 Nov 2024 06:39:39 AM Pacific Standard Time'
+         * 
+         *---------------------------------------------**/
+        if (omitTimezone) {
+            const timezoneFreeFormat = '%a %d %b %Y %I:%M:%S %p';
+            formatted = strftime(timezoneFreeFormat, date);
+        }
+    } else {
+        /**----------------------------------------------
+         *                Append Time
+         *
+         *  although system time (%c) includes a timestamp,
+         *  other formats exposed by unraid don't, so we
+         *  add it to the end.
+         *
+         *  You can find Unraid's datetime options under
+         *  `Settings > Date and Time` and by inspecting either:
+         *
+         *  the date and time select dropdowns in your browser's devtools, or
+         *  the `[display]` section of the dynamix config file
+         *  located at /boot/config/plugins/dynamix/dynamix.cfg
+         *---------------------------------------------**/
+        formatted += ' ' + strftime(timeFormat, date);
     }
+    return formatted;
 }
 
 /**

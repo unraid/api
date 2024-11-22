@@ -667,6 +667,7 @@ export type Mutation = {
   connectSignOut: Scalars['Boolean']['output'];
   createApiKey: ApiKeyWithSecret;
   createNotification: Notification;
+  deleteAllNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
@@ -2450,6 +2451,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createApiKey?: Resolver<ResolversTypes['ApiKeyWithSecret'], ParentType, ContextType, RequireFields<MutationcreateApiKeyArgs, 'input'>>;
   createNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationcreateNotificationArgs, 'input'>>;
+  deleteAllNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   deleteNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationdeleteNotificationArgs, 'id' | 'type'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
   enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;
