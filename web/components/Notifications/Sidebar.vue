@@ -33,12 +33,12 @@ const confirmAndDeleteAll = async () => {
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
-    <SheetContent :to="teleportTarget" class="w-full sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]">
-      <div class="flex flex-col h-full gap-3">
-        <SheetHeader class="ml-1 px-6 flex items-baseline gap-0">
+    <SheetContent :to="teleportTarget" class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]">
+      <div class="flex flex-col h-full gap-5">
+        <SheetHeader class="ml-1 px-6 flex items-baseline gap-1">
           <SheetTitle class="text-2xl">Notifications</SheetTitle>
           <a href="/Settings/Notifications">
-            <Button variant="link" size="sm" class="p-0">
+            <Button variant="link" size="sm" class="p-0 h-auto">
               Edit Settings
             </Button>
           </a>
@@ -48,7 +48,7 @@ const confirmAndDeleteAll = async () => {
         <!-- this is necessary because flex items have a default min-height: auto, -->
         <!-- which means they won't shrink below the height of their content, even if you use flex-1 or other flex properties. -->
         <Tabs default-value="unread" class="flex-1 flex flex-col min-h-0" activation-mode="manual">
-          <div class="flex flex-row justify-between items-center flex-wrap gap-2 px-6">
+          <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
             <TabsList class="ml-[1px]">
               <TabsTrigger value="unread"> Unread </TabsTrigger>
               <TabsTrigger value="archived"> Archived </TabsTrigger>
@@ -98,7 +98,7 @@ const confirmAndDeleteAll = async () => {
             </Select>
           </div>
 
-          <TabsContent value="unread" class="flex-1 min-h-0 mt-3">
+          <TabsContent value="unread" class="flex-1 min-h-0 mt-5">
             <NotificationsList :importance="importance" :type="NotificationType.Unread" />
           </TabsContent>
 
