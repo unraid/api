@@ -33,14 +33,15 @@ const confirmAndDeleteAll = async () => {
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
-    <SheetContent :to="teleportTarget" class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]">
+    <SheetContent
+      :to="teleportTarget"
+      class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]"
+    >
       <div class="flex flex-col h-full gap-5">
         <SheetHeader class="ml-1 px-6 flex items-baseline gap-1">
           <SheetTitle class="text-2xl">Notifications</SheetTitle>
           <a href="/Settings/Notifications">
-            <Button variant="link" size="sm" class="p-0 h-auto">
-              Edit Settings
-            </Button>
+            <Button variant="link" size="sm" class="p-0 h-auto"> Edit Settings </Button>
           </a>
         </SheetHeader>
 
@@ -58,7 +59,7 @@ const confirmAndDeleteAll = async () => {
                 :disabled="loadingArchiveAll"
                 variant="link"
                 size="sm"
-                class="text-foreground"
+                class="text-foreground hover:text-destructive transition-none"
                 @click="confirmAndArchiveAll"
               >
                 Archive All
@@ -69,7 +70,7 @@ const confirmAndDeleteAll = async () => {
                 :disabled="loadingDeleteAll"
                 variant="link"
                 size="sm"
-                class="text-foreground"
+                class="text-foreground hover:text-destructive transition-none"
                 @click="confirmAndDeleteAll"
               >
                 Delete All
@@ -102,7 +103,7 @@ const confirmAndDeleteAll = async () => {
             <NotificationsList :importance="importance" :type="NotificationType.Unread" />
           </TabsContent>
 
-          <TabsContent value="archived" class="flex-1 min-h-0 mt-3">
+          <TabsContent value="archived" class="flex-1 min-h-0 mt-5">
             <NotificationsList :importance="importance" :type="NotificationType.Archive" />
           </TabsContent>
         </Tabs>
