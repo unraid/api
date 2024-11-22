@@ -96,30 +96,28 @@ const mutationError = computed(() => {
 
     <div class="flex justify-end items-baseline gap-2">
       <a v-if="link" :href="link">
-        <Button type="button" variant="outline" size="xs">
-          <LinkIcon class="size-3 mr-1 text-muted-foreground/80" />
-          <span class="text-sm text-muted-foreground mt-0.5">View</span>
+        <Button type="button" variant="outline">
+          <LinkIcon class="size-4 mr-2" />
+          <span class="text-sm">View</span>
         </Button>
       </a>
       <Button
         v-if="type === NotificationType.Unread"
         :disabled="archive.loading"
         class="relative z-20 rounded"
-        size="xs"
         @click="archive.mutate"
       >
-        <ArchiveBoxIcon class="size-3 mr-1" />
-        <span class="text-sm mt-0.5">Archive</span>
+        <ArchiveBoxIcon class="size-4 mr-2" />
+        <span class="text-sm">Archive</span>
       </Button>
       <Button
         v-if="type === NotificationType.Archive"
         :disabled="deleteNotification.loading"
         class="relative z-20 rounded"
-        size="xs"
         @click="deleteNotification.mutate"
       >
-        <TrashIcon class="size-3 mr-1" />
-        <span class="text-sm mt-0.5">Delete</span>
+        <TrashIcon class="size-4 mr-2" />
+        <span class="text-sm">Delete</span>
       </Button>
     </div>
   </div>
