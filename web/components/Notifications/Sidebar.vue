@@ -38,7 +38,7 @@ const confirmAndDeleteAll = async () => {
         <SheetHeader class="ml-1 px-6 flex items-baseline gap-0">
           <SheetTitle class="text-2xl">Notifications</SheetTitle>
           <a href="/Settings/Notifications">
-            <Button variant="link" size="sm" class="text-muted-foreground text-base p-0">
+            <Button variant="link" size="sm" class="p-0">
               Edit Settings
             </Button>
           </a>
@@ -58,7 +58,7 @@ const confirmAndDeleteAll = async () => {
                 :disabled="loadingArchiveAll"
                 variant="link"
                 size="sm"
-                class="text-muted-foreground text-base p-0"
+                class="text-foreground"
                 @click="confirmAndArchiveAll"
               >
                 Archive All
@@ -69,7 +69,7 @@ const confirmAndDeleteAll = async () => {
                 :disabled="loadingDeleteAll"
                 variant="link"
                 size="sm"
-                class="text-muted-foreground text-base p-0"
+                class="text-foreground"
                 @click="confirmAndDeleteAll"
               >
                 Delete All
