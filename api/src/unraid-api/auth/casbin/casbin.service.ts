@@ -22,13 +22,10 @@ export class CasbinService {
 
             return enforcer;
         } catch (error: unknown) {
-            throw new Error(`Failed to create Casbin enforcer: ${error}`);
-        }
-    }
-    catch(error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Failed to create Casbin enforcer: ${errorMessage}`);
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            this.logger.error(`Failed to create Casbin enforcer: ${errorMessage}`);
 
-        throw new InternalServerErrorException(`Failed to create Casbin enforcer: ${errorMessage}`);
+            throw new InternalServerErrorException(`Failed to create Casbin enforcer: ${errorMessage}`);
+        }
     }
 }
