@@ -138,18 +138,16 @@ export function formatDatetime(
     if (dateFormat === '%c') {
         /**----------------------------------------------
          *                Omit Timezone
-         *
-         *  we omit trailing tz by only keeping the first 6 parts
-         *  of sys time (can't omit last x parts bc tz isn't always 3 words).
-         *
-         *  the magic number 6 comes from the sys time string, which
-         *  looks like 'Wed 20 Nov 2024 06:39:39 AM Pacific Standard Time'
-         *
-         *  note: this may not work with right-to-left locales
-         *        (where tz may be in first 6 parts)
+
+         *  We omit the trailing tz `%Z` from systime's format
+         *  which expands to '%a %d %b %Y %X %Z' in strftime's
+         *  implementation. For reference, sys time looks like
+         *  'Wed 20 Nov 2024 06:39:39 AM Pacific Standard Time'
+         * 
          *---------------------------------------------**/
         if (omitTimezone) {
-            formatted = formatted.split(' ').slice(0, 6).join(' ');
+            const timezoneFreeFormat = '%a %d %b %Y %I:%M:%S %p';
+            formatted = strftime(timezoneFreeFormat, date);
         }
     } else {
         /**----------------------------------------------
