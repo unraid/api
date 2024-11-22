@@ -104,6 +104,7 @@ export default <Partial<Config>>{
         '30px': '30px',
       },
       spacing: {
+        '4.5': '1.125rem',
         '-8px': '-8px',
         '2px': '2px',
         '4px': '4px',

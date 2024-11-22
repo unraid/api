@@ -68,7 +68,7 @@ const mutationError = computed(() => {
 <template>
   <div class="group/item relative w-full py-4 pl-1 flex flex-col gap-2 text-base">
     <header class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1">
-      <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-medium">
+      <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold">
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
           :is="icon.component"
@@ -84,7 +84,7 @@ const mutationError = computed(() => {
       </div>
     </header>
 
-    <h4 class="font-medium">
+    <h4 class="font-bold">
       {{ subject }}
     </h4>
 

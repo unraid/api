@@ -33,7 +33,7 @@ const confirmAndDeleteAll = async () => {
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
-    <SheetContent :to="teleportTarget" class="w-full sm:max-w-[540px] h-screen px-0">
+    <SheetContent :to="teleportTarget" class="w-full sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]">
       <div class="flex flex-col h-full gap-3">
         <SheetHeader class="ml-1 px-6 flex items-baseline gap-0">
           <SheetTitle class="text-2xl">Notifications</SheetTitle>
@@ -83,8 +83,8 @@ const confirmAndDeleteAll = async () => {
                 }
               "
             >
-              <SelectTrigger class="bg-secondary border-0 h-auto">
-                <SelectValue class="text-muted-foreground" placeholder="Filter" />
+              <SelectTrigger class="h-auto">
+                <SelectValue class="text-gray-400 leading-6" placeholder="Filter By" />
               </SelectTrigger>
               <SelectContent :to="teleportTarget">
                 <SelectGroup>
