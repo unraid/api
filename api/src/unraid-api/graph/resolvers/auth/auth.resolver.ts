@@ -20,7 +20,7 @@ import { AuthService } from '@app/unraid-api/auth/auth.service';
 
 @Resolver('Auth')
 @UseGuards(GraphqlAuthGuard)
-@Throttle({ default: { limit: 100, ttl: 60000 } })
+@Throttle({ default: { limit: 100, ttl: 60000 } }) // 100 requests per minute
 export class AuthResolver {
     constructor(
         private authService: AuthService,

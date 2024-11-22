@@ -161,7 +161,7 @@ export function getRequest(ctx: ExecutionContext) {
 
 /**
  * Standardized error handler for auth operations that converts any error
- * into an UnauthorizedException with proper logging.
+ * into an UnauthorizedException with proper logging and redacts API keys.
  *
  * @param logger - Logger instance to use for error logging
  * @param operation - Description of the operation that failed
@@ -175,13 +175,26 @@ export function handleAuthError(
     error: unknown,
     context?: Record<string, string>
 ): never {
-    const contextStr = context ? ` ${JSON.stringify(context)}` : '';
-    logger.error(`Failed to ${operation}${contextStr}`, error);
+    // Sanitize context before logging
+    const sanitizedContext = context
+        ? Object.fromEntries(
+              Object.entries(context).map(([k, v]) => [
+                  k,
+                  k.toLowerCase().includes('key') ? '[REDACTED]' : v,
+              ])
+          )
+        : {};
+    const contextStr = Object.keys(sanitizedContext).length
+        ? ` ${JSON.stringify(sanitizedContext)}`
+        : '';
+
+    logger.error(`${operation} ${contextStr}`, error);
 
     if (error instanceof UnauthorizedException) {
         throw error;
     }
+    // Use generic message for unknown errors to prevent information leakage
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
 
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    throw new UnauthorizedException(`Failed to ${operation}: ${errorMessage}`);
+    throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }

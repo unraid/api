@@ -43,7 +43,7 @@ export class AuthService {
                 roles: apiKeyEntity.roles,
             };
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'validate API key', error);
+            handleAuthError(this.logger, 'Failed to validate API key', error);
         }
     }
 
@@ -63,7 +63,7 @@ export class AuthService {
 
             return user;
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'validate session', error);
+            handleAuthError(this.logger, 'Failed to validate session', error);
         }
     }
 
@@ -85,7 +85,7 @@ export class AuthService {
                 ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(apiKeyId, role)),
             ]);
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'sync roles for API key', error, { apiKeyId });
+            handleAuthError(this.logger, 'Failed to sync roles for API key', error, { apiKeyId });
         }
     }
 
@@ -105,7 +105,7 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'add role to user', error, { userId, role });
+            handleAuthError(this.logger, 'Failed to add role to user', error, { userId, role });
         }
     }
 
@@ -135,7 +135,7 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'add role to API key', error, { apiKeyId, role });
+            handleAuthError(this.logger, 'Failed to add role to API key', error, { apiKeyId, role });
         }
     }
 
@@ -163,7 +163,10 @@ export class AuthService {
 
             return true;
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'remove role from API key', error, { apiKeyId, role });
+            handleAuthError(this.logger, 'Failed to remove role from API key', error, {
+                apiKeyId,
+                role,
+            });
         }
     }
 
@@ -176,7 +179,7 @@ export class AuthService {
                 this.logger.debug(`Added default 'guest' role to user ${userId}`);
             }
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'ensure roles for user', error, { userId });
+            handleAuthError(this.logger, 'Failed to ensure roles for user', error, { userId });
         }
     }
 

@@ -27,8 +27,8 @@ import { GraphqlAuthGuard } from '../auth/auth.guard';
         RestModule,
         ThrottlerModule.forRoot([
             {
-                ttl: 60000,
-                limit: 500,
+                ttl: 60000, // 1 minute
+                limit: 500, // 500 requests per minute
             },
         ]),
     ],
