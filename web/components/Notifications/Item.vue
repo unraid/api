@@ -104,7 +104,6 @@ const mutationError = computed(() => {
       <Button
         v-if="type === NotificationType.Unread"
         :disabled="archive.loading"
-        class="relative z-20 rounded"
         @click="archive.mutate"
       >
         <ArchiveBoxIcon class="size-4 mr-2" />
@@ -113,7 +112,6 @@ const mutationError = computed(() => {
       <Button
         v-if="type === NotificationType.Archive"
         :disabled="deleteNotification.loading"
-        class="relative z-20 rounded"
         @click="deleteNotification.mutate"
       >
         <TrashIcon class="size-4 mr-2" />
