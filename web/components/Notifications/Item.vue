@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Markdown } from '@/helpers/markdown';
 import {
   ArchiveBoxIcon,
   CheckBadgeIcon,
@@ -14,7 +15,6 @@ import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
 } from './graphql/notification.query';
-import { Markdown } from '@/helpers/markdown';
 
 const props = defineProps<NotificationFragmentFragment>();
 
@@ -22,7 +22,7 @@ const descriptionMarkup = computedAsync(async () => {
   try {
     return await Markdown.parse(props.description);
   } catch (e) {
-    console.error(e)
+    console.error(e);
     return props.description;
   }
 }, '');
@@ -32,17 +32,17 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
     case 'INFO':
       return {
         component: CheckBadgeIcon,
-        color: 'text-green-500',
+        color: 'text-unraid-green',
       };
     case 'WARNING':
       return {
         component: ExclamationTriangleIcon,
-        color: 'text-yellow-500',
+        color: 'text-yellow-accent',
       };
     case 'ALERT':
       return {
         component: ShieldExclamationIcon,
-        color: 'text-red-500',
+        color: 'text-unraid-red',
       };
   }
   return null;
@@ -66,66 +66,57 @@ const mutationError = computed(() => {
 </script>
 
 <template>
-  <div class="group/item relative w-full py-4 pl-1 flex flex-col gap-2">
-    <header
-      class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1 group-hover/item:font-medium group-focus/item:font-medium"
-    >
-      <h3
-        class="text-muted-foreground text-[0.875rem] tracking-wide flex flex-row items-baseline gap-2 uppercase"
-      >
+  <!-- fixed width hack ensures alignment with other elements regardless of scrollbar presence or width -->
+  <div class="group/item relative py-5 flex flex-col gap-2 text-base w-[487px]">
+    <header class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1">
+      <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold">
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
           :is="icon.component"
           v-if="icon"
-          class="size-5 shrink-0 translate-y-1.5"
+          class="size-5 shrink-0 translate-y-1"
           :class="icon.color"
         />
         <span>{{ title }}</span>
       </h3>
 
       <div class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1">
-        <p class="text-12px opacity-75">{{ formattedTimestamp }}</p>
+        <p class="text-gray-500 text-sm">{{ formattedTimestamp }}</p>
       </div>
     </header>
 
-    <h4 class="group-hover/item:font-medium group-focus/item:font-medium">
+    <h4 class="font-bold">
       {{ subject }}
     </h4>
 
-    <div
-      class="w-full flex flex-row items-center justify-between gap-2 opacity-75 group-hover/item:opacity-100 group-focus/item:opacity-100"
-    >
-      <div class="text-secondary-foreground" v-html="descriptionMarkup" />
+    <div class="w-full flex flex-row items-center justify-between gap-2">
+      <div class="" v-html="descriptionMarkup" />
     </div>
 
     <p v-if="mutationError" class="text-red-600">Error: {{ mutationError }}</p>
 
-    <div class="flex justify-end items-baseline gap-2">
+    <div class="flex justify-end items-baseline gap-4">
       <a v-if="link" :href="link">
-        <Button type="button" variant="outline" size="xs">
-          <LinkIcon class="size-3 mr-1 text-muted-foreground/80" />
-          <span class="text-sm text-muted-foreground mt-0.5">View</span>
+        <Button type="button" variant="outline">
+          <LinkIcon class="size-4 mr-2" />
+          <span class="text-sm">View</span>
         </Button>
       </a>
       <Button
         v-if="type === NotificationType.Unread"
         :disabled="archive.loading"
-        class="relative z-20 rounded"
-        size="xs"
         @click="archive.mutate"
       >
-        <ArchiveBoxIcon class="size-3 mr-1" />
-        <span class="text-sm mt-0.5">Archive</span>
+        <ArchiveBoxIcon class="size-4 mr-2" />
+        <span class="text-sm">Archive</span>
       </Button>
       <Button
         v-if="type === NotificationType.Archive"
         :disabled="deleteNotification.loading"
-        class="relative z-20 rounded"
-        size="xs"
         @click="deleteNotification.mutate"
       >
-        <TrashIcon class="size-3 mr-1" />
-        <span class="text-sm mt-0.5">Delete</span>
+        <TrashIcon class="size-4 mr-2" />
+        <span class="text-sm">Delete</span>
       </Button>
     </div>
   </div>

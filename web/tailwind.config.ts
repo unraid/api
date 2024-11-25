@@ -2,7 +2,6 @@ import 'dotenv/config';
 import type { Config } from 'tailwindcss';
 import type { PluginAPI } from 'tailwindcss/types/config';
 
-
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
   darkMode: ['class'],
@@ -45,9 +44,40 @@ export default <Partial<Config>>{
         'grey-lightest': '#f2f2f2',
         white: '#ffffff',
 
+        // unraid colors
+        'yellow-accent': '#E9BF41',
         'orange-dark': '#f15a2c',
         orange: '#ff8c2f',
-        'unraid-red': '#E22828',
+        // palettes generated from https://uicolors.app/create
+        'unraid-red': {
+          DEFAULT: '#E22828',
+          '50': '#fef2f2',
+          '100': '#ffe1e1',
+          '200': '#ffc9c9',
+          '300': '#fea3a3',
+          '400': '#fc6d6d',
+          '500': '#f43f3f',
+          '600': '#e22828',
+          '700': '#bd1818',
+          '800': '#9c1818',
+          '900': '#821a1a',
+          '950': '#470808',
+        },
+
+        'unraid-green': {
+          DEFAULT: '#63A659',
+          '50': '#f5f9f4',
+          '100': '#e7f3e5',
+          '200': '#d0e6cc',
+          '300': '#aad1a4',
+          '400': '#7db474',
+          '500': '#63a659',
+          '600': '#457b3e',
+          '700': '#396134',
+          '800': '#314e2d',
+          '900': '#284126',
+          '950': '#122211',
+        },
 
         alpha: 'var(--color-alpha)',
         beta: 'var(--color-beta)',
@@ -101,6 +131,7 @@ export default <Partial<Config>>{
         '30px': '30px',
       },
       spacing: {
+        '4.5': '1.125rem',
         '-8px': '-8px',
         '2px': '2px',
         '4px': '4px',
