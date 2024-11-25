@@ -76,7 +76,7 @@ watch(overview, (newVal, oldVal) => {
           cn('absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800', {
             'bg-unraid-red': indicatorLevel === Importance.Alert,
             'bg-yellow-accent': indicatorLevel === Importance.Warning,
-            'bg-lime': indicatorLevel === 'UNREAD',
+            'bg-unraid-green': indicatorLevel === 'UNREAD',
           })
         "
       />

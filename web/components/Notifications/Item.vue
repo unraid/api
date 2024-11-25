@@ -32,7 +32,7 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
     case 'INFO':
       return {
         component: CheckBadgeIcon,
-        color: 'text-lime',
+        color: 'text-unraid-green',
       };
     case 'WARNING':
       return {
@@ -66,7 +66,8 @@ const mutationError = computed(() => {
 </script>
 
 <template>
-  <div class="group/item relative w-full py-5 flex flex-col gap-2 text-base">
+  <!-- fixed width hack ensures alignment with other elements regardless of scrollbar presence or width -->
+  <div class="group/item relative py-5 flex flex-col gap-2 text-base w-[487px]">
     <header class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1">
       <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold">
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
