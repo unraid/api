@@ -66,7 +66,7 @@ const mutationError = computed(() => {
 </script>
 
 <template>
-  <div class="group/item relative w-full py-5 pl-1 flex flex-col gap-2 text-base">
+  <div class="group/item relative w-full py-5 flex flex-col gap-2 text-base">
     <header class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1">
       <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold">
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
