@@ -1,0 +1,9 @@
+set fallback
+
+default:
+    @just --list --justfile {{justfile()}} --list-heading $'\nAPI project recipes:\n'
+    @just list-commands
+
+setup:
+    npm install
+    npm run container:build
