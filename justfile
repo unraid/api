@@ -21,7 +21,14 @@ setup:
 [group('git')]
 [no-cd]
 ignore +files:
-    for file in {{ files }}; do git update-index --skip-worktree $file; done
+    #!/usr/bin/env bash
+    for file in {{ files }}; do
+        if [ ! -f "$file" ]; then
+            echo "Warning: $file does not exist"
+            continue
+        fi
+        git update-index --skip-worktree "$file"
+    done
 
 # resumes normal tracking of an ignored tracked file.
 [group('git')]
