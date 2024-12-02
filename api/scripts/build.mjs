@@ -1,8 +1,14 @@
 #!/usr/bin/env zx
 import { exit } from 'process';
-import { cd, $ } from 'zx';
+
+
+
+import { $, cd } from 'zx';
+
+
 
 import { getDeploymentVersion } from './get-deployment-version.mjs';
+
 
 try {
     // Enable colours in output
@@ -15,6 +21,7 @@ try {
     // Create deployment directories - ignore if they already exist
     await $`mkdir -p ./deploy/release`;
     await $`mkdir -p ./deploy/pre-pack`;
+    await $`mkdir -p ./deploy/pre-pack/.configs`;
 
     await $`rm -rf ./deploy/release/*`;
     await $`rm -rf ./deploy/pre-pack/*`;
@@ -28,22 +35,22 @@ try {
     await $`cp -r ./dist/ ./deploy/pre-pack/dist/`;
 
     // Copy environment to deployment directory
-    const files = [
-        '.env.production',
-        '.env.staging',
-        'tsconfig.json',
-        'codegen.yml',
-        'ecosystem.config.json'
-    ]
+    const files = ['.env.production', '.env.staging', 'tsconfig.json'];
 
     for (const file of files) {
+        console.info(`Copying ${file} to deployment directory`);
         await $`cp ./${file} ./deploy/pre-pack/${file}`;
     }
+
+    await $`cp ./configs/codegen.yml ./deploy/pre-pack/codegen.yml`;
+    await $`cp ./configs/ecosystem.config.json ./deploy/pre-pack/ecosystem.config.json`;
 
     // Get package details
     const { name, version, ...rest } = await import('../package.json', {
         assert: { type: 'json' },
     }).then((pkg) => pkg.default);
+
+    console.info(`Building package ${name} v${version}`);
 
     const deploymentVersion = getDeploymentVersion(process.env, version);
 
@@ -58,7 +65,14 @@ try {
     await $`cp ./README.md ./deploy/pre-pack/`;
 
     await $`cp -r ./node_modules ./deploy/pre-pack/node_modules`;
-	// Install production dependencies
+
+    // Bundle and Pack for Legacy OS Versions
+    console.info('Bundling app with esbuild');
+    await $`npm run bundle`;
+    console.info('Packing app with pkg');
+    await $`npm run build:binary`;
+
+    // Install production dependencies
     cd('./deploy/pre-pack');
 
     await $`npm prune --omit=dev`;

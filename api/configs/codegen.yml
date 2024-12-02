@@ -5,7 +5,7 @@ require:
   - ts-node/register
 config:
   namingConvention: 
-    typeNames: './fix-array-type.cjs'
+    typeNames: './configs/fix-array-type.cjs'
     enumValues: 'change-case#upperCase'
     useTypeImports: true
   scalars:

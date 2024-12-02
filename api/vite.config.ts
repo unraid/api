@@ -1,14 +1,18 @@
-import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
-import nodeExternals from 'rollup-plugin-node-externals';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 import nodeResolve from '@rollup/plugin-node-resolve';
+import nodeExternals from 'rollup-plugin-node-externals';
+import native from 'vite-plugin-native';
 import { VitePluginNode } from 'vite-plugin-node';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import topLevelAwait from "vite-plugin-top-level-await";
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
     return {
         plugins: [
+            native({}),
+            topLevelAwait(),
             tsconfigPaths(),
             nodeExternals(),
             nodeResolve(),
@@ -51,7 +55,7 @@ export default defineConfig(({ mode }) => {
                 },
                 output: {
                     entryFileNames: '[name].js',
-                    format: 'es', // Change the format to 'es' to support top-level await
+                    format: 'es',
                 },
             },
             modulePreload: false,

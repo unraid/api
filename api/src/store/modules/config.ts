@@ -90,7 +90,6 @@ export const logoutUser = createAsyncThunk<
     { state: RootState }
 >('config/logout-user', async ({ reason }) => {
     logger.info('Logging out user: %s', reason ?? 'No reason provided');
-    const { pubsub } = await import('@app/core/pubsub');
 
     // Publish to servers endpoint
     await pubsub.publish(PUBSUB_CHANNEL.SERVERS, {
