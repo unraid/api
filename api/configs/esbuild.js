@@ -82,6 +82,9 @@ async function main() {
     const outfile = `${outputDir}/index.js`;
 
     const externals = [
+        '@fastify/static',
+        '@fastify/view',
+        '@apollo/gateway',
         '@nestjs/websockets/socket-module',
         '@nestjs/microservices/microservices-module',
         '@nestjs/microservices',
@@ -98,36 +101,29 @@ async function main() {
 
     /** @type { import('esbuild').BuildOptions } */
     const config = {
-        entryPoints: ['dist/cli.js'],
+        entryPoints: ['dist/cli.js', 'dist/main.js'],
+        
         logLevel: 'error',
         plugins: [nativeNodeModulesPlugin],
         bundle: true,
         platform: 'node',
         target: 'node20',
         sourcemap: true,
-        outfile,
+        outdir: outputDir,
         // suppress direct-eval warning
         logOverride: {
             'direct-eval': 'silent',
         },
+        format: 'esm',
         treeShaking: false,
-
         external: externals,
-
         // Prevent esbuild from adding a "2" to the names of CC classes for some reason.
         keepNames: true,
-
-        // Fix import.meta.url in CJS output
-        define: {
-            'import.meta.url': '__import_meta_url',
-        },
-        inject: ['configs/esbuild-shims.js'],
     };
 
     await esbuild.build(config);
 
     console.log(`Build took ${Date.now() - start}ms`);
-    await printSize(outfile);
 
     /* const content = (await readFile(outfile, 'utf-8'))
         .replace(/__dirname, "\.\.\/"/g, '__dirname, "./node_modules/@serialport/bindings-cpp"')
@@ -135,20 +131,6 @@ async function main() {
 
     // await writeFile(outfile, content);
 
-    if (process.argv.includes('--minify')) {
-        // minify the file
-        await esbuild.build({
-            ...config,
-            entryPoints: [outfile],
-            minify: true,
-            keepNames: true, // needed for zwave-js as it relies on class names
-            allowOverwrite: true,
-            outfile,
-        });
-
-        console.log(`Minify took ${Date.now() - start}ms`);
-        await printSize(outfile);
-    }
 
     // copy assets to build folder
     for (const ext of externals) {
