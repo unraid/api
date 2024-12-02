@@ -98,7 +98,7 @@ export class CloudResolver {
         /**
          * @todo Move to service
          */
-        return connectSignIn(input);
+        return await connectSignIn(input);
     }
 
     @Mutation()

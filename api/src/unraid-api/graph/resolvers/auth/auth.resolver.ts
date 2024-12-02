@@ -5,7 +5,6 @@ import { Throttle } from '@nestjs/throttler';
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import type {
-    AddPermissionInput,
     AddRoleForApiKeyInput,
     AddRoleForUserInput,
     ApiKey,

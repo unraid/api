@@ -82,7 +82,8 @@ export class ApiKeyService implements OnModuleInit {
                     } catch (error) {
                         if (error instanceof ZodError) {
                             this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
-                            continue; // Skip invalid keys but continue processing others
+
+                            continue;
                         }
                         this.logger.warn(`Error reading API key file ${file}: ${error}`);
                     }
