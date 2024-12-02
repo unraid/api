@@ -4,8 +4,8 @@
         "src/**/*.graphql"
     ],
     "targets": [
-        "node18-linux-arm64",
-        "node18-linux-x64"
+        "node20-linux-arm64",
+        "node20-linux-x64"
     ],
     "bin": "deploy/esbuild/index.js",
     "outputPath": "./deploy/pre-pack"
