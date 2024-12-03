@@ -1,4 +1,5 @@
-import { test, expect } from 'vitest';
+import { expect, test } from 'vitest';
+
 import { store } from '@app/store';
 
 test('Before init returns default values for all fields', async () => {
@@ -30,6 +31,7 @@ test('Before init returns default values for all fields', async () => {
 		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
+		    "localApiKey": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
 		    "upnpEnabled": "",
@@ -96,9 +98,7 @@ test('After init returns values from cfg file for all fields', async () => {
 });
 
 test('updateUserConfig merges in changes to current state', async () => {
-    const { loadConfigFile, updateUserConfig } = await import(
-        '@app/store/modules/config'
-    );
+    const { loadConfigFile, updateUserConfig } = await import('@app/store/modules/config');
 
     // Load cfg into store
     await store.dispatch(loadConfigFile());

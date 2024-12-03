@@ -1,9 +1,10 @@
 import 'reflect-metadata';
 
-import { test, expect } from 'vitest';
+import { cloneDeep } from 'lodash-es';
+import { expect, test } from 'vitest';
+
 import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
 import { initialState } from '@app/store/modules/config';
-import { cloneDeep } from 'lodash-es';
 
 test('it creates a FLASH config with NO OPTIONAL values', () => {
     const basicConfig = initialState;
@@ -25,6 +26,7 @@ test('it creates a FLASH config with NO OPTIONAL values', () => {
 		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
+		    "localApiKey": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
 		    "username": "",
@@ -62,6 +64,7 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
+		    "localApiKey": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
 		    "username": "",
@@ -105,6 +108,7 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
+		    "localApiKey": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
 		    "upnpEnabled": "yes",
@@ -154,6 +158,7 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		    "dynamicRemoteAccessType": "DISABLED",
 		    "email": "",
 		    "idtoken": "",
+		    "localApiKey": "",
 		    "refreshtoken": "",
 		    "regWizTime": "",
 		    "upnpEnabled": "yes",
