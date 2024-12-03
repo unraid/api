@@ -9,7 +9,6 @@ p, ${Role.ADMIN}, *, *, *
 # UPC permissions for API keys
 p, ${Role.UPC}, ${Resource.API_KEY}, ${AuthAction.CREATE_ANY}
 p, ${Role.UPC}, ${Resource.API_KEY}, ${AuthAction.UPDATE_ANY}
-p, ${Role.UPC}, ${Resource.API_KEY}, ${AuthAction.READ_ANY}
 
 # UPC permissions
 p, ${Role.UPC}, ${Resource.CLOUD}, ${AuthAction.READ_ANY}
@@ -29,6 +28,7 @@ p, ${Role.UPC}, ${Resource.VARS}, ${AuthAction.READ_ANY}
 p, ${Role.UPC}, ${Resource.CONFIG}, ${AuthAction.UPDATE_ANY}
 p, ${Role.UPC}, ${Resource.CONNECT}, ${AuthAction.READ_ANY}
 p, ${Role.UPC}, ${Resource.CONNECT}, ${AuthAction.UPDATE_ANY}
+p, ${Role.UPC}, ${Resource.CONNECT}, ${AuthAction.UPDATE_OWN} 
 p, ${Role.UPC}, ${Resource.NOTIFICATIONS}, ${AuthAction.READ_ANY}
 p, ${Role.UPC}, ${Resource.NOTIFICATIONS}, ${AuthAction.UPDATE_ANY}
 
