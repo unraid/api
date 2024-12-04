@@ -324,27 +324,33 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
-  FILE=/usr/local/emhttp/plugins/dynamix/DisplaySettings.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix/include/Wrappers.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
-  FILE=/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php && [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  FILES_TO_RESTORE=(
+    "/usr/local/emhttp/plugins/dynamix/DisplaySettings.page"
+    "/usr/local/emhttp/plugins/dynamix/Registration.page"
+    "/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+    "/usr/local/emhttp/plugins/dynamix/include/ProvisionCert.php"
+    "/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php"
+    "/usr/local/emhttp/plugins/dynamix/include/Wrappers.php"
+    "/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page"
+    "/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page"
+    "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/ShowChanges.php"
+    "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/showchanges"
+    "/usr/local/emhttp/plugins/dynamix.plugin.manager/scripts/unraidcheck"
+    "/usr/local/emhttp/plugins/dynamix.plugin.manager/include/UnraidCheck.php"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/MyServers.page"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/Registration.page"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers1.php"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/include/myservers2.php"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/data/server-state.php"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/include/reboot-details.php"
+    "/usr/local/emhttp/plugins/dynamix.my.servers/include/translations.php"
+  )
+
+  for FILE in "${FILES_TO_RESTORE[@]}"; do
+    [[ -f "$FILE-" ]] && mv -f "$FILE-" "$FILE"
+  done
   
   DIR=/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
   # certain instances where the directory is not present and others where it is, ensure we delete it before we restore it
