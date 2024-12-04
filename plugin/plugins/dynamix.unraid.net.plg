@@ -114,9 +114,18 @@ sha256check() {
       NODE_FILE="&NODEJS_FILENAME;"
       <![CDATA[
         if [[ -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
-          tar --strip-components=1 -xf /boot/config/plugins/dynamix.my.servers/${NODE_FILE} -C /usr/local/;
+          TEMP_DIR=$(mktemp -d)
+          tar -xf /boot/config/plugins/dynamix.my.servers/${NODE_FILE} -C ${TEMP_DIR};
+          if cp -rf "${TEMP_DIR}"/bin/* /usr/local/bin/ && \
+            cp -rf "${TEMP_DIR}"/lib/* /usr/local/lib/ && \
+            cp -rf "${TEMP_DIR}"/include/* /usr/local/include/ && \
+            cp -rf "${TEMP_DIR}"/share/* /usr/local/share/ then
+            echo "Node.js installation successful"
+          else
+            echo "Failed to copy Node.js files"
+            exit 1
+          fi
         fi
-
         exit 0;
       ]]>
     </INLINE>
