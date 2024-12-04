@@ -13,6 +13,9 @@
   <!ENTITY NODEJS_FILENAME "">
   <!ENTITY NODEJS_SHA256 "">
   <!ENTITY NODEJS_TXZ "">
+  <!ENTITY NODE_612_FILENAME "node-v20.18.1-linux-x64.tar.xz">
+  <!ENTITY NODE_612_SHA256 "c6fa75c841cbffac851678a472f2a5bd612fff8308ef39236190e1f8dbb0e567">
+  <!ENTITY NODE_612_TXZ "https://nodejs.org/dist/v20.18.1/node-v20.18.1-linux-x64.tar.xz">
   <!ENTITY NGHTTP3_FILENAME "">
   <!ENTITY NGHTTP3_TXZ "">
   <!ENTITY NGHTTP3_SHA256 "">
@@ -110,11 +113,16 @@ sha256check() {
 
   <!-- download node -->
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;" Run="upgradepkg --install-new"
-    max="7.0.0-beta.5">
+    max="7.0.0-beta.5" min="7.0.0-beta.0">
     <URL>&NODEJS_TXZ;</URL>
     <SHA256>&NODEJS_SHA256;</SHA256>
   </FILE>
-
+  <!-- download node - older OS releases -->
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE_612_FILENAME;" Run="tar -xvf &NODE_612_FILENAME; mv &NODE_612_FILENAME; /usr/local/bin/"
+    max="6.12.40">
+    <URL>&NODE_612_TXZ;</URL>
+    <SHA256>&NODE_612_SHA256;</SHA256>
+  </FILE>
   <!-- download nghttp3 -->
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3_FILENAME;" Run="upgradepkg --install-new"
     max="7.0.0-beta.5">
