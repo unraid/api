@@ -110,16 +110,9 @@ sha256check() {
       exit 0
     </INLINE>
   </FILE>
-
-  <!-- download node -->
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODEJS_FILENAME;" Run="upgradepkg --install-new"
-    max="7.0.0-beta.5" min="7.0.0-beta.0">
-    <URL>&NODEJS_TXZ;</URL>
-    <SHA256>&NODEJS_SHA256;</SHA256>
-  </FILE>
   <!-- download node - older OS releases -->
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE_612_FILENAME;"
-    max="6.12.40">
+    max="7.0.0-beta.5">
     <URL>&NODE_612_TXZ;</URL>
     <SHA256>&NODE_612_SHA256;</SHA256>
   </FILE>
@@ -127,7 +120,11 @@ sha256check() {
     <INLINE>
       NODE_UNRIAD_612_TXZ="&NODE_612_FILENAME;"
       <![CDATA[
-        tar -xvf /boot/config/plugins/dynamix.my.servers/${NODE_UNRIAD_612_TXZ} -C /usr/local/bin/;
+        if [[ -f "/boot/config/plugins/dynamix.my.servers/${NODE_UNRIAD_612_TXZ}" ]]; then
+          tar --strip-components=1 -xf /boot/config/plugins/dynamix.my.servers/${NODE_UNRIAD_612_TXZ} -C /usr/local/;
+        fi
+
+        exit 0;
       ]]>
     </INLINE>
   </FILE>
