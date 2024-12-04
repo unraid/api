@@ -13,7 +13,14 @@ RUN apt-get update -y && apt-get install -y \
     jq \
     zstd \
     git \
-    build-essential
+    build-essential \
+    curl
+
+# Install rust toolchain
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+RUN cargo install --locked watchexec-cli
 
 WORKDIR /app
 

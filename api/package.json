@@ -22,7 +22,7 @@
     "test": "vitest run --pool=forks",
     "coverage": "vitest run --pool=forks --coverage",
     "release": "standard-version",
-    "dev": "vite",
+    "dev": "watchexec -r --stop-signal SIGKILL --exts ts,gql -i \"{node_modules,dist,dev}/**\" vite",
     "container:build": "./scripts/dc.sh build dev",
     "container:start": "./scripts/dc.sh run --rm --service-ports dev",
     "container:test": "./scripts/dc.sh run --rm builder npm run test",
