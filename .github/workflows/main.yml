@@ -166,53 +166,15 @@ jobs:
         with:
           name: unraid-web
           path: ./plugin/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components
-      - name: Download Node.js From Slackbuilds (skipped due to node.js issues)
-        if: false
-        id: download-nodejs
-        run: |
-          # Get latest node version (based on main_node_version) from slackware
-          main_node_version=$(sed 's/^v//' ../api/.nvmrc)
-          base_node_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/l/"
-          latest_nodejs=$(wget -q -O- "${base_node_url}" | grep -o "nodejs-${main_node_version}\.[0-9.]*-x86_64-[0-9]*\.txz" | sort -V | tail -n 1)
-          if [[ -z "${latest_nodejs}" ]]; then
-            echo "Error: Failed to fetch the latest nodejs version."
-            exit 1
-          fi
-          node_download_url="${base_node_url}${latest_nodejs}"
-          if ! wget -q "${node_download_url}" -O "${{ github.workspace }}/plugin/archive/${latest_nodejs}"; then
-            echo "Error: Failed to download nodejs package."
-            exit 1
-          fi
-          node_sha256=$(sha256sum "${{ github.workspace }}/plugin/archive/${latest_nodejs}" | cut -f 1 -d ' ')
-          echo "NODEJS_FILENAME=${latest_nodejs}" >> $GITHUB_OUTPUT
-          echo "NODEJS_SHA256=${node_sha256}" >> $GITHUB_OUTPUT
-      - name: Download nghttp3
-        id: download-nghttp3
-        run: |
-          # Get latest nghttp3 version
-          base_nghttp3_url="https://mirrors.slackware.com/slackware/slackware64-current/slackware64/n/"
-          latest_nghttp3=$(wget -q -O- "${base_nghttp3_url}" | grep -o "nghttp3-[0-9.]*-x86_64-[0-9]*\.txz" | sort -V | tail -n 1)
-          nghttp3_download_url="${base_nghttp3_url}${latest_nghttp3}"
-          if ! wget -q "${nghttp3_download_url}" -O "${{ github.workspace }}/plugin/archive/${latest_nghttp3}"; then
-            echo "Error: Failed to download nghttp3 package."
-            exit 1
-          fi
-          nghttp3_sha256=$(sha256sum "${{ github.workspace }}/plugin/archive/${latest_nghttp3}" | cut -f 1 -d ' ')
-          echo "NGHTTP3_FILENAME=${latest_nghttp3}" >> $GITHUB_OUTPUT
-          echo "NGHTTP3_SHA256=${nghttp3_sha256}" >> $GITHUB_OUTPUT
       - name: Build Plugin
         run: |
           cd source/dynamix.unraid.net
           export API_VERSION=${{needs.build-test-api.outputs.API_VERSION}}
           export API_MD5=${{needs.build-test-api.outputs.API_MD5}}
           export API_SHA256=${{needs.build-test-api.outputs.API_SHA256}}
-          export NGHTTP3_FILENAME=${{ steps.download-nghttp3.outputs.NGHTTP3_FILENAME }}
-          export NGHTTP3_SHA256=${{ steps.download-nghttp3.outputs.NGHTTP3_SHA256 }}
           if [ -z "${API_VERSION}" ] || 
             [ -z "${API_MD5}" ] || 
-            [ -z "${API_SHA256}" ] || 
-            [ -z "${NGHTTP3_FILENAME}" ] || 
-            [ -z "${NGHTTP3_SHA256}" ]; then
+            [ -z "${API_SHA256}" ]; then
             echo "Error: One or more required variables are not set."
             exit 1
           fi
