@@ -13,15 +13,7 @@ RUN apt-get update -y && apt-get install -y \
     jq \
     zstd \
     git \
-    build-essential \
-    curl
-
-# Install rust toolchain
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-# Install cargo binstall for installing binaries quickly
-RUN curl -L --proto '=https' --tlsv1.2 -sSf https://raw.githubusercontent.com/cargo-bins/cargo-binstall/main/install-from-binstall-release.sh | sh && \
-    cargo binstall watchexec-cli
+    build-essential
 
 WORKDIR /app
 
