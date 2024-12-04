@@ -118,11 +118,20 @@ sha256check() {
     <SHA256>&NODEJS_SHA256;</SHA256>
   </FILE>
   <!-- download node - older OS releases -->
-  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE_612_FILENAME;" Run="tar -xvf -C /usr/local/bin/"
+  <FILE Name="/boot/config/plugins/dynamix.my.servers/&NODE_612_FILENAME;"
     max="6.12.40">
     <URL>&NODE_612_TXZ;</URL>
     <SHA256>&NODE_612_SHA256;</SHA256>
   </FILE>
+  <FILE Run="/bin/bash" Method="install">
+    <INLINE>
+      NODE_UNRIAD_612_TXZ="&NODE_612_FILENAME;"
+      <![CDATA[
+        tar -xvf /boot/config/plugins/dynamix.my.servers/${NODE_UNRIAD_612_TXZ} -C /usr/local/bin/;
+      ]]>
+    </INLINE>
+  </FILE>
+
   <!-- download nghttp3 -->
   <FILE Name="/boot/config/plugins/dynamix.my.servers/&NGHTTP3_FILENAME;" Run="upgradepkg --install-new"
     max="7.0.0-beta.5">
