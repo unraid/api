@@ -1,11 +1,10 @@
 import { ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
-import { UserAccount } from './graphql/generated/api/types';
-import { FastifyRequest } from './types/fastify';
-
 import strftime from 'strftime';
 
+import { UserAccount } from './graphql/generated/api/types';
+import { FastifyRequest } from './types/fastify';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
@@ -217,16 +216,20 @@ export function handleAuthError(
     error: unknown,
     context?: Record<string, string>
 ): never {
-    // Sanitize context before logging
-    const sanitizedContext = context
-        ? Object.fromEntries(
-              Object.entries(context).map(([k, v]) => [
-                  k,
-                  k.toLowerCase().includes('key') ? '[REDACTED]' : v,
-              ])
-          )
-        : {};
-    const contextStr = Object.keys(sanitizedContext).length
+    // Sanitize context by redacting sensitive fields
+    const sanitizedContext = { ...context };
+
+    if (sanitizedContext) {
+        updateObject(sanitizedContext, (obj) => {
+            for (const [key, value] of Object.entries(obj)) {
+                if (typeof value === 'string' && key.toLowerCase().includes('key')) {
+                    (obj as any)[key] = '[REDACTED]';
+                }
+            }
+        });
+    }
+
+    const contextStr = Object.keys(sanitizedContext || {}).length
         ? ` ${JSON.stringify(sanitizedContext)}`
         : '';
 
