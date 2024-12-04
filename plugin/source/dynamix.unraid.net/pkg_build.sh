@@ -51,24 +51,16 @@ cd "${DIR}" || exit 1
 PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
-NGHTTP3_TXZ="https://stable.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}.plg"
-  NGHTTP3_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NGHTTP3_FILENAME}"
 elif [[ "${env}" == "staging" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
-  NGHTTP3_TXZ="https://preview.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 fi
-
-# Hardcoded to deal with the new -2 release breaking legacy Unraid versions
-NODEJS_FILENAME="nodejs-20.18.0-x86_64-1.txz"
-NODEJS_TXZ="https://stable.dl.unraid.net/unraid-api/dependencies/${NODEJS_FILENAME}"
-NODEJS_SHA256="332f22a2a6722e9fad92b8d1eeaded228a6499b7335b2b54ee99c55b4fe49742"
 
 # update plg file
 sed -i -E "s#(ENTITY name\s*)\".*\"#\1\"${plugin}\"#g" "${plgfile}"
@@ -79,15 +71,6 @@ sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
 
-# update node versions
-sed -i -E "s#(ENTITY NODEJS_FILENAME\s*)\".*\"#\1\"${NODEJS_FILENAME}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODEJS_SHA256\s*)\".*\"#\1\"${NODEJS_SHA256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODEJS_TXZ\s*)\".*\"#\1\"${NODEJS_TXZ}\"#g" "${plgfile}"
-
-# update nghttp3 versions
-sed -i -E "s#(ENTITY NGHTTP3_FILENAME\s*)\".*\"#\1\"${NGHTTP3_FILENAME}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_SHA256\s*)\".*\"#\1\"${NGHTTP3_SHA256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${NGHTTP3_TXZ}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
