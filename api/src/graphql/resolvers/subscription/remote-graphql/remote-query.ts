@@ -12,7 +12,11 @@ export const executeRemoteGraphQLQuery = async (
 ) => {
     remoteQueryLogger.debug({ query: data }, 'Executing remote query');
     const client = GraphQLClient.getInstance();
-    const apiKey = getters.config().remote.localApiKey || '';
+    const localApiKey = getters.config().remote.localApiKey;
+    if (!localApiKey) {
+        throw new Error('Local API key is missing');
+    }
+    const apiKey = localApiKey;
     const originalBody = data.body;
     try {
         const parsedQuery = parseGraphQLQuery(originalBody);
