@@ -119,7 +119,7 @@ sha256check() {
           if cp -rf "${TEMP_DIR}"/bin/* /usr/local/bin/ && \
             cp -rf "${TEMP_DIR}"/lib/* /usr/local/lib/ && \
             cp -rf "${TEMP_DIR}"/include/* /usr/local/include/ && \
-            cp -rf "${TEMP_DIR}"/share/* /usr/local/share/ then
+            cp -rf "${TEMP_DIR}"/share/* /usr/local/share/; then
             echo "Node.js installation successful"
           else
             echo "Failed to copy Node.js files"
