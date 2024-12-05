@@ -35,7 +35,7 @@ const confirmAndDeleteAll = async () => {
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
     <SheetContent
       :to="teleportTarget"
-      class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]"
+      class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0"
     >
       <div class="flex flex-col h-full gap-5">
         <SheetHeader class="ml-1 px-6 flex items-baseline gap-1">
