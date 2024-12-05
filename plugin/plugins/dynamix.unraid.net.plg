@@ -115,7 +115,7 @@ sha256check() {
       <![CDATA[
         if [[ -f "/boot/config/plugins/dynamix.my.servers/${NODE_FILE}" ]]; then
           TEMP_DIR=$(mktemp -d)
-          tar -xf /boot/config/plugins/dynamix.my.servers/${NODE_FILE} -C ${TEMP_DIR};
+          tar --strip-components=1 -xf /boot/config/plugins/dynamix.my.servers/${NODE_FILE} -C ${TEMP_DIR};
           if cp -rf "${TEMP_DIR}"/bin/* /usr/local/bin/ && \
             cp -rf "${TEMP_DIR}"/lib/* /usr/local/lib/ && \
             cp -rf "${TEMP_DIR}"/include/* /usr/local/include/ && \
