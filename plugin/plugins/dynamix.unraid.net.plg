@@ -125,6 +125,9 @@ sha256check() {
             echo "Failed to copy Node.js files"
             exit 1
           fi
+        else
+          echo "Node.js download failed"
+          exit 1
         fi
         exit 0;
       ]]>
