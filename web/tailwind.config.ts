@@ -4,7 +4,7 @@ import type { PluginAPI } from 'tailwindcss/types/config';
 
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
-  darkMode: ['class'],
+  darkMode: ['selector'],
   safelist: [
     'dark',
     'DropdownWrapper_blip',
@@ -43,6 +43,11 @@ export default <Partial<Config>>{
         'grey-lighter': '#f1f5f8',
         'grey-lightest': '#f2f2f2',
         white: '#ffffff',
+
+
+        // New Color Palette
+        'sidebar': '#f2f2f2',
+        'sidebar-dark': '#1c1b1b',
 
         // unraid colors
         'yellow-accent': '#E9BF41',
