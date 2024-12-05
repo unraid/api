@@ -34,12 +34,17 @@ export class ApiKeyService implements OnModuleInit {
         await this.initialize();
     }
 
+    private sanitizeName(name: string): string {
+        return name.replace(/[^a-zA-Z0-9-_]/g, '_');
+    }
+
     async create(
         name: string,
         description: string | undefined,
         roles: Role[]
     ): Promise<ApiKeyWithSecret> {
         const trimmedName = name?.trim();
+        const sanitizedName = this.sanitizeName(trimmedName);
 
         if (!trimmedName) {
             throw new GraphQLError('API key name is required');
@@ -56,7 +61,7 @@ export class ApiKeyService implements OnModuleInit {
         const apiKey: ApiKeyWithSecret = {
             id: uuidv4(),
             key: this.generateApiKey(),
-            name: trimmedName,
+            name: sanitizedName,
             description,
             roles,
             createdAt: new Date().toISOString(),
