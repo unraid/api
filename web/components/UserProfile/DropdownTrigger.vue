@@ -40,7 +40,7 @@ const title = computed((): string => {
 
 <template>
   <button
-    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity"
+    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity text-header-text-primary"
     :title="title"
     @click="dropdownStore.dropdownToggle()"
   >
@@ -49,7 +49,7 @@ const title = computed((): string => {
       <ExclamationTriangleIcon v-if="errors[0].level === 'warning'" class="text-unraid-red fill-current relative w-24px h-24px" />
       <ShieldExclamationIcon v-if="errors[0].level === 'error'" class="text-unraid-red fill-current relative w-24px h-24px" />
     </template>
-    <span v-if="text" class="relative leading-none">
+    <span v-if="text" class="relative leading-none ">
       <span>{{ text }}</span>
       <span class="absolute bottom-[-3px] inset-x-0 h-2px w-full bg-gradient-to-r from-unraid-red to-orange rounded opacity-0 group-hover:opacity-100 group-focus:opacity-100 transition-opacity" />
     </span>
