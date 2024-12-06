@@ -15,6 +15,7 @@ $webguiGlobals = $GLOBALS;
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/oem-data-extractor.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 /**
  * ServerState class encapsulates server-related information and settings.
@@ -72,6 +73,7 @@ class ServerState
     public $registered = false;
     public $myServersMiniGraphConnected = false;
     public $keyfileBase64 = '';
+    public $oemData = [];
 
     /**
      * Constructor to initialize class properties and gather server information.
@@ -109,6 +111,7 @@ class ServerState
         $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
 
         $this->setConnectValues();
+        $this->detectOem();
     }
 
     /**
@@ -228,6 +231,17 @@ class ServerState
         }
     }
 
+    private function detectOem() {
+        $oem = new OemDataExtractor();
+        $data = $oem->getData();
+
+        if (empty($data)) {
+            return;
+        }
+
+        $this->oemData = $data;
+    }
+
     /**
      * Retrieve the server information as an associative array
      *
@@ -316,6 +330,10 @@ class ServerState
 
         if ($this->updateOsResponse) {
             $serverState['updateOsResponse'] = $this->updateOsResponse;
+        }
+
+        if ($this->oemData) {
+            $serverState['oemData'] = $this->oemData;
         }
 
         return $serverState;
