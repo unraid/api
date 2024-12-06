@@ -18,7 +18,7 @@ onBeforeMount(() => {
       <h3 class="text-lg font-semibold font-mono">
         UserProfileCe
       </h3>
-      <header class="bg-beta py-4 flex flex-row justify-between items-center">
+      <header class="bg-header-background-color py-4 flex flex-row justify-between items-center">
         <div class="inline-flex flex-col gap-4 items-start px-4">
           <a href="https://unraid.net" target="_blank">
             <BrandLogo class="w-[100px] sm:w-[150px]" />
