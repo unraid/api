@@ -39,16 +39,24 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
 </script>
 
 <template>
-  <div class="relative">
-    <BellIcon class="w-6 h-6" />
-    <div
-      v-if="indicatorLevel === 'UNREAD'"
-      class="absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800 bg-unraid-green"
-    />
-    <component
-      :is="icon.component"
-      v-else-if="icon && indicatorLevel"
-      :class="cn('absolute -top-1 -right-1 size-4 rounded-full', icon.color)"
-    />
+  <div class="flex items-end gap-1 text-header-text-primary">
+    <div class="relative">
+      <BellIcon class="w-6 h-6" />
+      <div
+        v-if="indicatorLevel"
+        :class="
+          cn('absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800', {
+            'bg-unraid-red': indicatorLevel === Importance.Alert,
+            'bg-yellow-accent': indicatorLevel === Importance.Warning,
+            'bg-unraid-green': indicatorLevel === 'UNREAD',
+          })
+        "
+      />
+      <div
+        v-if="hasNewNotifications || indicatorLevel === Importance.Alert"
+        class="absolute top-0 right-0 size-2.5 rounded-full bg-unraid-red animate-ping"
+      />
+    </div>
+    <component :is="icon.component" v-if="icon" :class="cn('size-6', icon.color)" />
   </div>
 </template>

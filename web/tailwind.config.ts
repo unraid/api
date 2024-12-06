@@ -2,6 +2,7 @@ import 'dotenv/config';
 import type { Config } from 'tailwindcss';
 import type { PluginAPI } from 'tailwindcss/types/config';
 
+
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
   darkMode: ['selector'],
@@ -44,11 +45,6 @@ export default <Partial<Config>>{
         'grey-lightest': '#f2f2f2',
         white: '#ffffff',
 
-
-        // New Color Palette
-        'sidebar': '#f2f2f2',
-        'sidebar-dark': '#1c1b1b',
-
         // unraid colors
         'yellow-accent': '#E9BF41',
         'orange-dark': '#f15a2c',
@@ -88,40 +84,42 @@ export default <Partial<Config>>{
         beta: 'var(--color-beta)',
         gamma: 'var(--color-gamma)',
         'gamma-opaque': 'var(--color-gamma-opaque)',
-
-        // shadcn specific
-        border: 'hsl(0 0% 89.8%)',
-        input: 'hsl(0 0% 89.8%)',
-        ring: 'hsl(0 0% 3.9%)',
-        background: 'hsl(0 0% 100%)',
-        foreground: 'hsl(0 0% 3.9%)',
+        'header-text-primary': 'var(--header-text-primary)',
+        'header-text-secondary': 'var(--header-text-secondary)',
+        'header-background-color': 'var(--header-background-color)',
+        // ShadCN
+        border: 'hsl(var(--border))',
+        input: 'hsl(var(--input))',
+        ring: 'hsl(var(--ring))',
+        background: 'hsl(var(--background))',
+        foreground: 'hsl(var(--foreground))',
         primary: {
-          DEFAULT: 'hsl(0 0% 9%)',
-          foreground: 'hsl(0 0% 98%)',
+          DEFAULT: 'hsl(var(--primary))',
+          foreground: 'hsl(var(--primary-foreground))',
         },
         secondary: {
-          DEFAULT: 'hsl(0 0% 96.1%)',
-          foreground: 'hsl(0 0% 9%)',
+          DEFAULT: 'hsl(var(--secondary))',
+          foreground: 'hsl(var(--secondary-foreground))',
         },
         destructive: {
-          DEFAULT: 'hsl(0 84.2% 60.2%)',
-          foreground: 'hsl(0 0% 98%)',
+          DEFAULT: 'hsl(var(--destructive))',
+          foreground: 'hsl(var(--destructive-foreground))',
         },
         muted: {
-          DEFAULT: 'hsl(0 0% 96.1%)',
-          foreground: 'hsl(0 0% 45.1%)',
+          DEFAULT: 'hsl(var(--muted))',
+          foreground: 'hsl(var(--muted-foreground))',
         },
         accent: {
-          DEFAULT: 'hsl(0 0% 96.1%)',
-          foreground: 'hsl(0 0% 9%)',
+          DEFAULT: 'hsl(var(--accent))',
+          foreground: 'hsl(var(--accent-foreground))',
         },
         popover: {
-          DEFAULT: 'hsl(0 0% 100%)',
-          foreground: 'hsl(0 0% 3.9%)',
+          DEFAULT: 'hsl(var(--popover))',
+          foreground: 'hsl(var(--popover-foreground))',
         },
         card: {
-          DEFAULT: 'hsl(0 0% 100%)',
-          foreground: 'hsl(0 0% 3.9%)',
+          DEFAULT: 'hsl(var(--card))',
+          foreground: 'hsl(var(--card-foreground))',
         },
       },
       // Unfortunately due to webGUI CSS setting base HTML font-size to .65% or something we must use pixel values for web components

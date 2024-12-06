@@ -97,21 +97,21 @@ onBeforeMount(() => {
 <template>
   <div
     id="UserProfile"
-    class="text-alpha relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
+    class="text-primary relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
   >
     <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
 
-    <div class="text-xs text-gamma text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
+    <div class="text-xs text-header-text-secondary text-right font-semibold leading-normal relative z-10 flex flex-col items-end justify-end gap-x-4px xs:flex-row xs:items-baseline xs:gap-x-12px">
       <UpcUptimeExpire :t="t" />
       <span class="hidden xs:block">&bull;</span>
       <UpcServerState :t="t" />
     </div>
 
     <div class="relative z-10 flex flex-row items-center justify-end gap-x-16px h-full">
-      <h1 class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0">
+      <h1 class="text-14px sm:text-18px relative flex flex-col-reverse items-end md:flex-row border-0 text-header-text-primary">
         <template v-if="description && theme?.descriptionShow">
           <span class="text-right text-12px sm:text-18px hidden 2xs:block" v-html="description" />
-          <span class="text-gamma hidden md:inline-block px-8px">&bull;</span>
+          <span class="text-header-text-secondary hidden md:inline-block px-8px">&bull;</span>
         </template>
         <button :title="t('Click to Copy LAN IP {0}', [lanIp])" class="opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity" @click="copyLanIp()">
           {{ name }}
@@ -155,7 +155,7 @@ onBeforeMount(() => {
     top: -10px;
     right: 42px;
     border-right: 11px solid transparent;
-    border-bottom: 11px solid var(--color-alpha);
+    border-bottom: 11px solid var(--color-headerTextPrimary);
     border-left: 11px solid transparent;
   }
 }
