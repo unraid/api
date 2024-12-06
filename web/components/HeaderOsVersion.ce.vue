@@ -16,7 +16,6 @@ import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { UserProfileLink } from '~/types/userProfile';
 import type { UiBadgeProps, UiBadgePropsColor } from '~/types/ui/badge';
-import { useThemeStore } from '~/store/theme';
 
 const { t } = useI18n();
 
@@ -67,16 +66,6 @@ const updateOsStatus = computed(() => {
 
   return null;
 });
-
-
-const themeStore = useThemeStore();
-const { darkMode, theme } = toRefs(themeStore);
-const toggleDarkMode = () => {
-  const themeNameToSet = darkMode.value ? 'light' : 'black';
-  if (theme.value) {
-    themeStore.setTheme({ ...theme.value, name: themeNameToSet });
-  }
-};
 </script>
 
 <template>
@@ -89,17 +78,13 @@ const toggleDarkMode = () => {
       <UiBadge
         color="custom"
         :icon="InformationCircleIcon"
-        icon-styles="text-gamma"
+        icon-styles="text-header-text-secondary"
         size="14px"
-        class="text-gamma group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
+        class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
       >
         {{ osVersion }}
       </UiBadge>
     </button>
-    <button @click="toggleDarkMode">
-            Toggle Dark / Light Theme - Current is: {{ darkMode ? 'Dark' : 'Light' }}
-    </button>
-
     <component
       :is="updateOsStatus.href ? 'a' : 'button'"
       v-if="updateOsStatus"

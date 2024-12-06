@@ -69,7 +69,7 @@ export const useUpdateOsStore = defineStore('updateOs', () => {
       serverStore.setUpdateOsResponse(response as ServerUpdateOsResponse);
       checkForUpdatesLoading.value = false;
     } catch (error) {
-      throw new Error('[localCheckForUpdate] Error checking for updates');
+      throw new Error("[localCheckForUpdate] Error checking for updates\n" + JSON.stringify(error));
     }
   };
 

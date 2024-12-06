@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { serverState } from '~/_data/serverState';
 import type { SendPayloads } from '~/store/callback';
-import { useThemeStore, type Theme } from '~/store/theme';
 import AES from 'crypto-js/aes';
 
 const { registerEntry } = useCustomElements();
@@ -49,16 +48,7 @@ onMounted(() => {
   );
 });
 
-const isDarkMode = ref(false);
 
-const themeStore = useThemeStore();
-const { darkMode, theme } = toRefs(themeStore);
-const toggleDarkMode = () => {
-  const themeNameToSet = darkMode.value ? 'light' : 'black';
-  if (theme.value) {
-    themeStore.setTheme({ ...theme.value, name: themeNameToSet });
-  }
-};
 </script>
 
 <template>
@@ -66,12 +56,10 @@ const toggleDarkMode = () => {
     <div class="pb-12 mx-auto">
       <client-only>
         <div class="flex flex-col gap-6 p-6">
-          <button @click="toggleDarkMode">
-            Toggle Dark / Light Theme - Current is: {{ darkMode ? 'Dark' : 'Light' }}
-          </button>
+          <ColorSwitcherCe />
           <h2 class="text-xl font-semibold font-mono">Vue Components</h2>
           <h3 class="text-lg font-semibold font-mono">UserProfileCe</h3>
-          <header class="bg-gray py-4 flex flex-row justify-between items-center">
+          <header class="bg-header-background-color py-4 flex flex-row justify-between items-center">
             <div class="inline-flex flex-col gap-4 items-start px-4">
               <a href="https://unraid.net" target="_blank">
                 <BrandLogo class="w-[100px] sm:w-[150px]" />
