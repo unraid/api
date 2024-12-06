@@ -24,6 +24,7 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
         }
 
         const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
+
         if (
             !userInfo ||
             !userInfo.preferred_username ||
@@ -38,9 +39,9 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
             const apiKeyService = new ApiKeyService();
             // Create local API key
             const localApiKey = await apiKeyService.create(
-                `Local Key - ${userInfo.preferred_username}`,
+                `LOCAL_KEY_${userInfo.preferred_username.toUpperCase()}`,
                 `Local API key for Connect user ${userInfo.email}`,
-                [Role.GUEST, Role.ADMIN]
+                [Role.ADMIN]
             );
 
             if (!localApiKey?.key) {
@@ -59,7 +60,7 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
 
             return true;
         } catch (error) {
-            throw new Error(`Failed to create local API key: ${error}`);
+            throw new Error(`Failed to login user: ${error}`);
         }
     } else {
         return false;

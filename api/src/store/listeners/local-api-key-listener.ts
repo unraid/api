@@ -1,8 +1,4 @@
-import { writeFileSync } from 'fs';
-
 import { logger } from '@app/core/log';
-import { getWriteableConfig } from '@app/core/utils/files/config-file-normalizer';
-import { safelySerializeObjectToIni } from '@app/core/utils/files/safe-ini-serializer';
 import { Role } from '@app/graphql/generated/api/types';
 import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
 import { validateApiKeyWithKeyServer } from '@app/mothership/api-key/validate-api-key-with-keyserver';
@@ -21,15 +17,12 @@ export const enableLocalApiKeyListener = () =>
                 currentState.config.remote.localApiKey === ''
             );
         },
-        async effect(_, { dispatch, getState }) {
+        async effect(_, { dispatch }) {
             try {
-                const currentState = getState();
-                const apiKey = currentState.config.remote.apikey;
-                const username = currentState.config.remote.username;
-
+                const { apiKey, username } = getters.config();
                 // Validate the API key with the key server
                 const validationResult = await validateApiKeyWithKeyServer({
-                    apiKey,
+                    apiKey: apiKey as string,
                     flashGuid: getters.emhttp().var.flashGuid,
                 });
 
@@ -40,26 +33,12 @@ export const enableLocalApiKeyListener = () =>
                 const apiKeyService = new ApiKeyService();
                 // Create local API key
                 const localApiKey = await apiKeyService.create(
-                    `Local Key - ${username}`,
+                    `LOCAL_KEY_${(username as string).toUpperCase()}`,
                     `Local API key for Connect user ${username}`,
-                    [Role.GUEST, Role.ADMIN]
+                    [Role.ADMIN]
                 );
 
                 if (localApiKey?.key) {
-                    const { paths, config } = getState();
-                    const writeableConfig = getWriteableConfig(config, 'flash');
-
-                    writeableConfig.remote.localApiKey = localApiKey.key;
-
-                    const serializedConfig = safelySerializeObjectToIni(writeableConfig);
-
-                    logger.debug(
-                        'Writing updated config with local API key to %s',
-                        paths['myservers-config']
-                    );
-
-                    writeFileSync(paths['myservers-config'], serializedConfig);
-
                     dispatch(
                         updateUserConfig({
                             remote: {

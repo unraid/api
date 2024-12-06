@@ -23,7 +23,12 @@ export const addRemoteSubscription = createAsyncThunk<
     const { config } = getState();
 
     remoteQueryLogger.debug('Creating subscription for %o', data);
-    const apiKey = config.remote.localApiKey || '';
+    const apiKey = config.remote.localApiKey;
+
+    if (!apiKey) {
+        throw new Error('Local API key is missing');
+    }
+
     const body = parseGraphQLQuery(data.body);
     const client = getApiApolloClient({
         localApiKey: apiKey,

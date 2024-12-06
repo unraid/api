@@ -65,6 +65,31 @@ describe('AuthService', () => {
 
             expect(result).toEqual(mockUser);
         });
+
+        it('should throw UnauthorizedException when auth cookie is invalid', async () => {
+            vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(false);
+
+            await expect(authService.validateCookiesCasbin({})).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should throw UnauthorizedException when session user is missing', async () => {
+            vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
+            vi.spyOn(authService, 'getSessionUser').mockResolvedValue(null);
+
+            await expect(authService.validateCookiesCasbin({})).rejects.toThrow(UnauthorizedException);
+        });
+
+        it('should add guest role when user has no roles', async () => {
+            vi.spyOn(cookieService, 'hasValidAuthCookie').mockResolvedValue(true);
+            vi.spyOn(authService, 'getSessionUser').mockResolvedValue(mockUser);
+            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue([]);
+
+            const addRoleSpy = vi.spyOn(authzService, 'addRoleForUser');
+            const result = await authService.validateCookiesCasbin({});
+
+            expect(result).toEqual(mockUser);
+            expect(addRoleSpy).toHaveBeenCalledWith(mockUser.id, 'guest');
+        });
     });
 
     describe('syncApiKeyRoles', () => {
@@ -78,6 +103,27 @@ describe('AuthService', () => {
 
             expect(deleteRoleSpy).toHaveBeenCalledWith('test-id', 'old-role');
             expect(addRoleSpy).toHaveBeenCalledWith('test-id', 'new-role');
+        });
+
+        it('should handle failed role deletion', async () => {
+            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue(['old-role']);
+            vi.spyOn(authzService, 'deleteRoleForUser').mockRejectedValue(
+                new Error('Failed to delete role')
+            );
+
+            await expect(authService.syncApiKeyRoles('test-id', ['new-role'])).rejects.toThrow(
+                'Failed to delete role'
+            );
+        });
+
+        it('should handle failed role addition', async () => {
+            vi.spyOn(authzService, 'getRolesForUser').mockResolvedValue(['old-role']);
+            vi.spyOn(authzService, 'deleteRoleForUser').mockResolvedValue(true);
+            vi.spyOn(authzService, 'addRoleForUser').mockRejectedValue(new Error('Failed to add role'));
+
+            await expect(authService.syncApiKeyRoles('test-id', ['new-role'])).rejects.toThrow(
+                'Failed to add role'
+            );
         });
     });
 

@@ -26,7 +26,13 @@ export class ApiKeyService implements OnModuleInit {
 
     public async initialize(): Promise<void> {
         this.logger.verbose(`Ensuring API key directory exists: ${this.basePath}`);
-        await ensureDir(this.basePath);
+
+        try {
+            await ensureDir(this.basePath);
+        } catch (error) {
+            this.logger.error(`Failed to create API key directory: ${error}`);
+            throw new GraphQLError('Failed to initialize API key storage');
+        }
         this.logger.verbose(`Using API key base path: ${this.basePath}`);
     }
 
@@ -35,7 +41,7 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     private sanitizeName(name: string): string {
-        return name.replace(/[^a-zA-Z0-9-_]/g, '_');
+        return name.replace(/[^a-zA-Z0-9-_]/g, '_').toUpperCase();
     }
 
     async create(
@@ -122,7 +128,7 @@ export class ApiKeyService implements OnModuleInit {
             if (error instanceof GraphQLError) {
                 throw error;
             }
-            if (error instanceof Error && error.message.includes('ENOENT')) {
+            if (error instanceof Error && (error as NodeJS.ErrnoException).code === 'ENOENT') {
                 this.logger.warn(`API key file not found for ID ${id}`);
 
                 return null;

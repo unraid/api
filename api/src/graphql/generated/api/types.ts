@@ -596,7 +596,7 @@ export type Me = UserAccount & {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions?: Maybe<Scalars['JSON']['output']>;
-  roles: Array<Scalars['String']['output']>;
+  roles: Array<Role>;
 };
 
 export enum MemoryFormFactor {
@@ -1445,14 +1445,14 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
-  roles: Array<Scalars['String']['output']>;
+  roles: Array<Role>;
 };
 
 export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  roles: Array<Scalars['String']['output']>;
+  roles: Array<Role>;
 };
 
 export type Vars = Node & {
@@ -2402,7 +2402,7 @@ export type MeResolvers<ContextType = Context, ParentType extends ResolversParen
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   permissions?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  roles?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2871,7 +2871,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   password?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  roles?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2880,7 +2880,7 @@ export type UserAccountResolvers<ContextType = Context, ParentType extends Resol
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  roles?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
 }>;
 
 export type VarsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vars'] = ResolversParentTypes['Vars']> = ResolversObject<{

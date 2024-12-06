@@ -182,7 +182,7 @@ export function formatDatetime(
  * @returns Request object
  */
 export function getRequest(ctx: ExecutionContext) {
-    const contextType = ctx.getType<'http' | 'graphql' | 'rpc'>();
+    const contextType = ctx.getType<'http' | 'graphql'>();
     let request: (FastifyRequest & { user?: UserAccount }) | null = null;
 
     if (contextType === 'http') {

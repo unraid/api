@@ -12,7 +12,7 @@ type Me implements UserAccount {
     id: ID!
     name: String!
     description: String!
-    roles: [String!]!
+    roles: [Role!]!
     permissions: JSON
 }
 

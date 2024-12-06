@@ -126,14 +126,16 @@ describe('ApiKeyService', () => {
     describe('create', () => {
         it('should create ApiKeyWithSecret with generated key', async () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey').mockResolvedValue();
-            const { key, id, name, description, roles } = mockApiKeyWithSecret;
+            const { key, id, description, roles } = mockApiKeyWithSecret;
+            const inputName = 'Test API Key';
+            const expectedName = 'TEST_API_KEY';
 
-            const result = await apiKeyService.create(name, description ?? '', roles);
+            const result = await apiKeyService.create(inputName, description ?? '', roles);
 
             expect(result).toMatchObject({
                 id,
                 key,
-                name,
+                name: expectedName,
                 description,
                 roles,
                 createdAt: expect.any(String),

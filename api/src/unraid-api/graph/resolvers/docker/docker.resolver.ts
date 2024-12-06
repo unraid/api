@@ -21,7 +21,7 @@ export class DockerResolver {
 
     @UsePermissions({
         action: AuthActionVerb.READ,
-        resource: 'docker/container',
+        resource: Resource.DOCKER,
         possession: AuthPossession.ANY,
     })
     @ResolveField()

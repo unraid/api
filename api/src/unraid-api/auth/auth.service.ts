@@ -53,7 +53,7 @@ export class AuthService {
                 throw new UnauthorizedException('No user session found');
             }
 
-            const user = this.getSessionUser();
+            const user = await this.getSessionUser();
 
             if (!user) {
                 throw new UnauthorizedException('Invalid user session');
@@ -189,7 +189,7 @@ export class AuthService {
      *
      * @returns a service account that represents the user session (i.e. a webgui user).
      */
-    getSessionUser(): UserAccount {
+    async getSessionUser(): Promise<UserAccount> {
         return {
             id: '-1',
             description: 'UPC service account',

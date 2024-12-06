@@ -568,7 +568,7 @@ export function MeSchema(): z.ZodObject<Properties<Me>> {
     id: z.string(),
     name: z.string(),
     permissions: definedNonNullAnySchema.nullish(),
-    roles: z.array(z.string())
+    roles: z.array(RoleSchema)
   })
 }
 
@@ -1012,7 +1012,7 @@ export function UserSchema(): z.ZodObject<Properties<User>> {
     id: z.string(),
     name: z.string(),
     password: z.boolean().nullish(),
-    roles: z.array(z.string())
+    roles: z.array(RoleSchema)
   })
 }
 
@@ -1021,7 +1021,7 @@ export function UserAccountSchema(): z.ZodObject<Properties<UserAccount>> {
     description: z.string(),
     id: z.string(),
     name: z.string(),
-    roles: z.array(z.string())
+    roles: z.array(RoleSchema)
   })
 }
 

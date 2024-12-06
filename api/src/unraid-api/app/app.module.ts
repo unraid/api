@@ -6,12 +6,11 @@ import { AuthZGuard } from 'nest-authz';
 import { LoggerModule } from 'nestjs-pino';
 
 import { apiLogger } from '@app/core/log';
+import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import { AuthModule } from '@app/unraid-api/auth/auth.module';
 import { CronModule } from '@app/unraid-api/cron/cron.module';
 import { GraphModule } from '@app/unraid-api/graph/graph.module';
 import { RestModule } from '@app/unraid-api/rest/rest.module';
-
-import { GraphqlAuthGuard } from '../auth/auth.guard';
 
 @Module({
     imports: [
@@ -27,8 +26,8 @@ import { GraphqlAuthGuard } from '../auth/auth.guard';
         RestModule,
         ThrottlerModule.forRoot([
             {
-                ttl: 60000, // 1 minute
-                limit: 500, // 500 requests per minute
+                ttl: 10000, // 10 seconds
+                limit: 100, // 100 requests per 10 seconds
             },
         ]),
     ],
