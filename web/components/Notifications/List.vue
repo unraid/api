@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CheckIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
+import { CheckIcon } from '@heroicons/vue/24/solid';
 import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useFragment } from '~/composables/gql/fragment-masking';
@@ -28,7 +28,7 @@ watch(props, () => {
   canLoadMore.value = true;
 });
 
-const { result, error, loading, fetchMore } = useQuery(getNotifications, () => ({
+const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
     limit: props.pageSize,
@@ -85,24 +85,10 @@ async function onLoadMore() {
     </div>
   </div>
 
-  <div v-else class="h-full flex flex-col items-center justify-center gap-3">
-    <!-- Loading State -->
-    <div v-if="loading" class="contents">
-      <LoadingSpinner />
-      <p>Loading Notifications...</p>
-    </div>
-    <!-- Error State -->
-    <div v-else-if="error" class="flex gap-3">
-      <ShieldExclamationIcon class="h-10 text-unraid-red translate-y-1" />
-      <div>
-        <h3 class="font-bold">{{ `Error` }}</h3>
-        <p>{{ error.message }}</p>
-      </div>
-    </div>
-    <!-- Empty State -->
-    <div v-else-if="notifications?.length === 0" class="contents">
+  <LoadingError v-else :loading="loading" :error="error" @retry="refetch">
+    <div v-if="notifications?.length === 0" class="contents">
       <CheckIcon class="h-10 text-green-600 translate-y-3" />
       {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}
     </div>
-  </div>
+  </LoadingError>
 </template>
