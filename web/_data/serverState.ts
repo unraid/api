@@ -45,8 +45,8 @@ import type {
 // ENOCONN
 
 const state: ServerState = "ENOKEYFILE" as ServerState;
-const currentFlashGuid = "4444-1111-FOUR-999900008888"; // this is the flash drive that's been booted from
-const regGuid = "4444-1111-FOUR-999900008888"; // this guid is registered in key server
+const currentFlashGuid = "1111-1111-YIJD-ZACK1234TEST"; // this is the flash drive that's been booted from
+const regGuid = "1111-1111-YIJD-ZACK1234TEST"; // this guid is registered in key server
 const keyfileBase64 = "";
 
 // const randomGuid = `1111-1111-${makeid(4)}-123412341234`; // this guid is registered in key server
@@ -133,6 +133,11 @@ const osVersionBranch = "stable";
 // };
 
 export const serverState: Server = {
+  activationCodeData: {
+    "code": "4YCW3VJAYF",
+    "partnerName": "Partner Name Goes Here",
+    "partnerUrl": "https://example.com",
+  },
   apiKey: "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
   avatar: "https://source.unsplash.com/300x300/?portrait",
   config: {
@@ -156,18 +161,6 @@ export const serverState: Server = {
   license: "",
   locale: "en_US", // en_US, ja
   name: "dev-static",
-  oemData: {
-    "code": "ABCDE12345",
-    "oemName": "OEM Name Goes Here",
-    "oemUrl": "https://example.com",
-    "colors": {
-      "primary": "#004225",
-      "secondary": "#94958B",
-      "three": "#B7B6C1",
-      "four": "#D5CFE1",
-      "five": "EDDFEF",
-    },
-  },
   osVersion,
   osVersionBranch,
   registered: connectPluginInstalled ? true : false,

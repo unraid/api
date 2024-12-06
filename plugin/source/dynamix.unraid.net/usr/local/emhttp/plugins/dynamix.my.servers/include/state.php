@@ -14,8 +14,8 @@
 $webguiGlobals = $GLOBALS;
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
+require_once "$docroot/plugins/dynamix.my.servers/include/activation-code-extractor.php";
 require_once "$docroot/plugins/dynamix.my.servers/include/reboot-details.php";
-require_once "$docroot/plugins/dynamix.my.servers/include/oem-data-extractor.php";
 require_once "$docroot/plugins/dynamix.plugin.manager/include/UnraidCheck.php";
 /**
  * ServerState class encapsulates server-related information and settings.
@@ -73,7 +73,8 @@ class ServerState
     public $registered = false;
     public $myServersMiniGraphConnected = false;
     public $keyfileBase64 = '';
-    public $oemData = [];
+    public $activationCodeData = [];
+    public $state = 'UNKNOWN';
 
     /**
      * Constructor to initialize class properties and gather server information.
@@ -91,6 +92,7 @@ class ServerState
         $this->var = (array)parse_ini_file('state/var.ini');
         $this->nginxCfg = @parse_ini_file('/var/local/emhttp/nginx.ini') ?? [];
 
+        $this->state = strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']);
         $this->osVersion = $this->var['version'];
         $this->osVersionBranch = trim(@exec('plugin category /var/log/plugins/unRAIDServer.plg') ?? 'stable');
 
@@ -111,7 +113,7 @@ class ServerState
         $this->updateOsResponse = $this->updateOsCheck->getUnraidOSCheckResult();
 
         $this->setConnectValues();
-        $this->detectOem();
+        $this->detectActivationCode();
     }
 
     /**
@@ -231,15 +233,20 @@ class ServerState
         }
     }
 
-    private function detectOem() {
-        $oem = new OemDataExtractor();
-        $data = $oem->getData();
+    private function detectActivationCode() {
+        // Fresh server and we're not loading with a callback param to install
+        if ($this->state !== 'ENOKEYFILE' || !empty($_GET['c'])) {
+            return;
+        }
+
+        $activationCodeData = new ActivationCodeExtractor();
+        $data = $activationCodeData->getData();
 
         if (empty($data)) {
             return;
         }
 
-        $this->oemData = $data;
+        $this->activationCodeData = $data;
     }
 
     /**
@@ -300,7 +307,7 @@ class ServerState
             "registered" => $this->registered,
             "registeredTime" => $this->registeredTime,
             "site" => _var($_SERVER, 'REQUEST_SCHEME') . "://" . _var($_SERVER, 'HTTP_HOST'),
-            "state" => strtoupper(empty($this->var['regCheck']) ? $this->var['regTy'] : $this->var['regCheck']),
+            "state" => $this->state,
             "theme" => [
                 "banner" => !empty($this->getWebguiGlobal('display', 'banner')),
                 "bannerGradient" => $this->getWebguiGlobal('display', 'showBannerGradient') === 'yes' ?? false,
@@ -332,8 +339,8 @@ class ServerState
             $serverState['updateOsResponse'] = $this->updateOsResponse;
         }
 
-        if ($this->oemData) {
-            $serverState['oemData'] = $this->oemData;
+        if ($this->activationCodeData) {
+            $serverState['activationCodeData'] = $this->activationCodeData;
         }
 
         return $serverState;

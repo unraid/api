@@ -27,7 +27,7 @@ const { releaseForUpdate: updateOsChangelogModalVisible } = storeToRefs(useUpdat
     <UpcTrial :t="t" :open="trialModalVisible" />
     <UpdateOsCheckUpdateResponseModal :t="t" :open="updateOsModalVisible" />
     <UpdateOsChangelogModal :t="t" :open="!!updateOsChangelogModalVisible" />
-    <OemActivateModal :t="t" />
+    <ActivationModal :t="t" />
   </div>
 </template>
 

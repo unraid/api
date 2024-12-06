@@ -14,10 +14,10 @@ $var = (array)parse_ini_file('state/var.ini');
 require_once "$docroot/webGui/include/Wrappers.php";
 require_once "$docroot/webGui/include/Helpers.php";
 extract(parse_plugin_cfg('dynamix',true));
-require_once "$docroot/plugins/dynamix.my.servers/include/oem-data-extractor.php";
+require_once "$docroot/plugins/dynamix.my.servers/include/activation-code-extractor.php";
 
-$oemDataExtractor = new OemDataExtractor();
+$activationCodeExtractor = new ActivationCodeExtractor();
 
 header('Content-type: application/json');
 
-echo json_encode($oemDataExtractor->getData());
+echo json_encode($activationCodeExtractor->getData());

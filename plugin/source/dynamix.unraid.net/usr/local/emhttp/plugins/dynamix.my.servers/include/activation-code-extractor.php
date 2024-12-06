@@ -10,9 +10,9 @@
  */
 $docroot = $docroot ?? $_SERVER['DOCUMENT_ROOT'] ?: '/usr/local/emhttp';
 
-class OemDataExtractor {
-    public const OEM_DIR = '/boot/config/oem';
-    public const OEM_FILE_PATTERN = '/activation_code_([A-Za-z0-9]+)\.activationcode/';
+class ActivationCodeExtractor {
+    public const DIR = '/boot/config/activation';
+    public const FILE_PATTERN = '/activation_code_([A-Za-z0-9]+)\.activationcode/';
 
     private array $data = [];
 
@@ -31,20 +31,20 @@ class OemDataExtractor {
     private function fetchJsonData(): array {
         $data = [];
 
-        if (!is_dir(self::OEM_DIR)) {
+        if (!is_dir(self::DIR)) {
             return $data;
         }
 
-        $files = scandir(self::OEM_DIR);
+        $files = scandir(self::DIR);
 
         if ($files === false || count($files) === 0) {
             return $data;
         }
 
         foreach ($files as $file) {
-            $filePath = self::OEM_DIR . DIRECTORY_SEPARATOR . $file;
+            $filePath = self::DIR . DIRECTORY_SEPARATOR . $file;
 
-            if (preg_match(self::OEM_FILE_PATTERN, $file, $matches)) {
+            if (preg_match(self::FILE_PATTERN, $file, $matches)) {
                 // $activationCode = $matches[1];
                 $fileContent = file_get_contents($filePath);
                 $jsonData = json_decode($fileContent, true);

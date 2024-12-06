@@ -24,6 +24,7 @@ import {
   WEBGUI_TOOLS_UPDATE,
 } from "~/helpers/urls";
 import { useAccountStore } from "~/store/account";
+import { useActivationCodeStore } from "~/store/activationCode";
 import { useErrorsStore, type Error } from "~/store/errors";
 import { usePurchaseStore } from "~/store/purchase";
 import { useThemeStore, type Theme } from "~/store/theme";
@@ -258,7 +259,12 @@ export const useServerStore = defineStore("server", () => {
           keyTypeForPurchase = "Unleashed";
           break;
       }
+      const { code, partnerName } = storeToRefs(useActivationCodeStore());
       const server = {
+        activationCodeData: {
+          code: code.value,
+          partnerName: partnerName.value,
+        },
         apiVersion: apiVersion.value,
         connectPluginVersion: connectPluginVersion.value,
         deviceCount: deviceCount.value,

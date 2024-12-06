@@ -2,7 +2,8 @@
 import { storeToRefs } from 'pinia';
 import type { ComposerTranslation } from 'vue-i18n';
 
-import { useOemStore } from '~/store/oem';
+import { useActivationCodeStore } from '~/store/activationCode';
+import { usePurchaseStore } from '~/store/purchase';
 
 export interface Props {
   t: ComposerTranslation;
@@ -10,16 +11,17 @@ export interface Props {
 
 defineProps<Props>();
 
-const { oemName, showActivationModal } = storeToRefs(useOemStore());
+const { partnerName, showModal } = storeToRefs(useActivationCodeStore());
+const purchaseStore = usePurchaseStore();
 </script>
 
 <template>
   <Modal
-    v-if="showActivationModal"
+    v-if="showModal"
     :t="t"
-    :open="showActivationModal"
+    :open="showModal"
     :show-close-x="false"
-    :title="`Activate your ${oemName} powered by Unraid license!`"
+    :title="`Activate your ${partnerName} powered by Unraid license!`"
     :description="'Blurb about how Unraid licensing works and that they will be prompted to create an Unraid.net account to activate their license.'"
     max-width="max-w-800px"
   >
@@ -30,7 +32,7 @@ const { oemName, showActivationModal } = storeToRefs(useOemStore());
       <div class="w-full flex gap-8px justify-center mx-auto">
         <BrandButton
           :text="'Activate Now'"
-          @click="console.log('Activate Now')"
+          @click="purchaseStore.activate"
         />
       </div>
     </template>

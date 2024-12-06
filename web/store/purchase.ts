@@ -14,6 +14,18 @@ export const usePurchaseStore = defineStore('purchase', () => {
   const callbackStore = useCallbackStore();
   const serverStore = useServerStore();
 
+  const activate = () => {
+    callbackStore.send(
+      PURCHASE_CALLBACK.toString(),
+      [{
+        server: {
+          ...serverStore.serverPurchasePayload,
+        },
+        type: 'activate',
+      }],
+      serverStore.inIframe ? 'newTab' : undefined,
+    );
+  };
   const redeem = () => {
     callbackStore.send(
       PURCHASE_CALLBACK.toString(),
@@ -64,6 +76,7 @@ export const usePurchaseStore = defineStore('purchase', () => {
   };
 
   return {
+    activate,
     redeem,
     purchase,
     upgrade,
