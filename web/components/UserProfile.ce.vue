@@ -6,6 +6,7 @@ import { useI18n } from 'vue-i18n';
 
 import { useCallbackStore, useCallbackActionsStore } from '~/store/callbackActions';
 import { useDropdownStore } from '~/store/dropdown';
+import { useOemStore } from '~/store/oem';
 import { useServerStore } from '~/store/server';
 import { useThemeStore } from '~/store/theme';
 import type { Server } from '~/types/server';
@@ -22,6 +23,7 @@ const { t } = useI18n();
 const callbackStore = useCallbackStore();
 const dropdownStore = useDropdownStore();
 const serverStore = useServerStore();
+const oemStore = useOemStore();
 
 const { callbackData } = storeToRefs(useCallbackActionsStore());
 const { dropdownVisible } = storeToRefs(dropdownStore);
@@ -76,6 +78,10 @@ onBeforeMount(() => {
 
   if (typeof props.server === 'object') { // Handles the testing dev Vue component
     serverStore.setServer(props.server);
+
+    if (props.server.oemData) {
+      oemStore.setData(props.server.oemData);
+    }
   } else if (typeof props.server === 'string') { // Handle web component
     const parsedServerProp = JSON.parse(props.server);
     serverStore.setServer(parsedServerProp);

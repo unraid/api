@@ -1,6 +1,7 @@
 import { useToggle } from '@vueuse/core';
 import { defineStore, createPinia, setActivePinia } from 'pinia';
 import { useServerStore } from './server';
+import { useOemStore } from './oem';
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
  * @see https://github.com/vuejs/pinia/discussions/1085
@@ -8,20 +9,24 @@ import { useServerStore } from './server';
 setActivePinia(createPinia());
 
 export const useDropdownStore = defineStore('dropdown', () => {
-  const serverStore = useServerStore();
-
   const dropdownVisible = ref<boolean>(false);
 
   const dropdownHide = () => { dropdownVisible.value = false; };
   const dropdownShow = () => { dropdownVisible.value = true; };
   const dropdownToggle = useToggle(dropdownVisible);
 
+
   /**
    * Automatically open the user dropdown on first page load when ENOKEYFILE aka a new server
    */
-  const serverStateEnokeyfile = computed(() => serverStore.state === 'ENOKEYFILE');
-  watch(serverStateEnokeyfile, (newVal) => {
-    const autoOpenSessionStorage = `unraid_${serverStore.guid.slice(-12) ?? 'NO_GUID'}_ENOKEYFILE`;
+  const serverStore = useServerStore();
+  const oemStore = useOemStore();
+  const { guid, state } = storeToRefs(serverStore);
+  const { showActivationModal } = storeToRefs(oemStore);
+  const autoShowDropdown = computed(() => state.value === 'ENOKEYFILE' && !showActivationModal.value);
+
+  watch(autoShowDropdown, (newVal) => {
+    const autoOpenSessionStorage = `unraid_${guid.value.slice(-12) ?? 'NO_GUID'}_ENOKEYFILE`;
     if (newVal && !sessionStorage.getItem(autoOpenSessionStorage)) {
       sessionStorage.setItem(autoOpenSessionStorage, 'true');
       dropdownShow();

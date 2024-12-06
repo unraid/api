@@ -1,6 +1,7 @@
 import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
 import type { Theme } from '~/store/theme';
 import type { UserProfileLink } from '~/types/userProfile';
+import type { OemData } from '~/store/oem';
 
 export type ServerState = 'BASIC'
   | 'PLUS'
@@ -92,6 +93,7 @@ export interface Server {
   license?: string;
   locale?: string;
   name?: string;
+  oemData?: OemData;
   osVersion?: string;
   osVersionBranch?: ServerOsVersionBranch;
   rebootType?: ServerRebootType;

@@ -44,7 +44,7 @@ import type {
 // EBLACKLISTED2
 // ENOCONN
 
-const state: ServerState = "ENOKEYFILE2" as ServerState;
+const state: ServerState = "ENOKEYFILE" as ServerState;
 const currentFlashGuid = "4444-1111-FOUR-999900008888"; // this is the flash drive that's been booted from
 const regGuid = "4444-1111-FOUR-999900008888"; // this guid is registered in key server
 const keyfileBase64 = "";
@@ -156,6 +156,18 @@ export const serverState: Server = {
   license: "",
   locale: "en_US", // en_US, ja
   name: "dev-static",
+  oemData: {
+    "code": "ABCDE12345",
+    "oemName": "OEM Name Goes Here",
+    "oemUrl": "https://example.com",
+    "colors": {
+      "primary": "#004225",
+      "secondary": "#94958B",
+      "three": "#B7B6C1",
+      "four": "#D5CFE1",
+      "five": "EDDFEF",
+    },
+  },
   osVersion,
   osVersionBranch,
   registered: connectPluginInstalled ? true : false,
