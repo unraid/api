@@ -21,24 +21,15 @@ interface ColorMode {
   headerTextPrimary: string;
   headerTextSecondary: string;
   headerBackgroundColor: string;
-  alpha: string;
-  beta: string;
-  gamma: string;
 }
 
 export const defaultColors: Record<string, ColorMode> = {
   dark: {
-    alpha: '#1c1c1c', // previously header custom text color
-    beta: '#f2f2f2', // previously header background color
-    gamma: '#999999', // previously header custom secondary text color
     headerTextPrimary: '#1c1c1c',
     headerBackgroundColor: '#f2f2f2',
     headerTextSecondary: '#999999',
   },
   light: {
-    alpha: '#f2f2f2', // previously header custom text color
-    beta: '#1c1b1b', // previously header background color
-    gamma: '#999999', // previously header custom secondary text color
     headerTextPrimary: '#f2f2f2',
     headerBackgroundColor: '#1c1b1b',
     headerTextSecondary: '#999999',
@@ -68,32 +59,34 @@ export const useThemeStore = defineStore('theme', () => {
   const setCssVars = () => {
     const body = document.body;
 
-    let { alpha, beta, gamma, headerTextPrimary, headerTextSecondary, headerBackgroundColor } =
-      darkMode.value ? defaultColors.dark : defaultColors.light;
+    let { headerTextPrimary, headerTextSecondary, headerBackgroundColor } = darkMode.value
+      ? defaultColors.dark
+      : defaultColors.light;
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value?.textColor) {
       headerTextPrimary = theme.value?.textColor;
     }
     if (theme.value?.bgColor) {
       headerBackgroundColor = theme.value.bgColor;
-      body.style.setProperty('--color-customgradient-start', hexToRgba(beta, 0));
-      body.style.setProperty('--color-customgradient-end', hexToRgba(beta, 0.7));
+      body.style.setProperty('--color-customgradient-start', hexToRgba(headerBackgroundColor, 0));
+      body.style.setProperty('--color-customgradient-end', hexToRgba(headerBackgroundColor, 0.7));
     }
     if (theme.value?.metaColor) {
       headerTextSecondary = theme.value?.metaColor;
     }
-    body.style.setProperty('--color-alpha', alpha);
-    body.style.setProperty('--color-beta', beta);
-    body.style.setProperty('--color-gamma', gamma);
+
     body.style.setProperty('--header-text-primary', headerTextPrimary);
     body.style.setProperty('--header-text-secondary', headerTextSecondary);
     body.style.setProperty('--header-background-color', headerBackgroundColor);
-    body.style.setProperty('--color-gamma-opaque', hexToRgba(gamma, 0.25));
+    body.style.setProperty('--color-gamma-opaque', hexToRgba(headerTextSecondary, 0.25));
     // box shadow
-    body.style.setProperty('--shadow-beta', `0 25px 50px -12px ${hexToRgba(beta, 0.15)}`);
-    body.style.setProperty('--ring-offset-shadow', `0 0 ${beta}`);
-    body.style.setProperty('--ring-shadow', `0 0 ${beta}`);
-    body.style.setProperty('--dev-test', `0 0 ${beta}`);
+    body.style.setProperty(
+      '--shadow-beta',
+      `0 25px 50px -12px ${hexToRgba(headerBackgroundColor, 0.15)}`
+    );
+    body.style.setProperty('--ring-offset-shadow', `0 0 ${headerBackgroundColor}`);
+    body.style.setProperty('--ring-shadow', `0 0 ${headerBackgroundColor}`);
+    body.style.setProperty('--dev-test', `0 0 ${headerBackgroundColor}`);
 
     if (darkMode.value) {
       document.body.classList.add('dark');
