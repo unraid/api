@@ -67,7 +67,7 @@ watch(overview, (newVal, oldVal) => {
 </script>
 
 <template>
-  <div class="flex items-end gap-1">
+  <div class="flex items-end gap-1 text-header-text-primary">
     <div class="relative">
       <BellIcon class="w-6 h-6" />
       <div

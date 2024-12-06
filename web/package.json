@@ -8,7 +8,7 @@
     "lint:fix": "eslint . --fix",
     "type-check": "nuxi typecheck",
     "prebuild:dev": "./scripts/prebuild-webgui-set-env.sh .env.staging",
-    "build:dev": "npm run type-check && nuxt build && npm run manifest-ts && npm run deploy-to-unraid:dev",
+    "build:dev": "nuxt build && npm run manifest-ts && npm run deploy-to-unraid:dev",
     "postbuild:dev": "./scripts/postbuild-webgui-restore-env.sh",
     "prebuild:webgui": "./scripts/prebuild-webgui-set-env.sh",
     "build:webgui": "npm run type-check && nuxt build && npm run manifest-ts && npm run copy-to-webgui-repo",
