@@ -97,7 +97,7 @@ onBeforeMount(() => {
 <template>
   <div
     id="UserProfile"
-    class="text-primary relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
+    class="text-foreground relative z-20 flex flex-col h-full gap-y-4px pt-4px pr-16px pl-40px"
   >
     <div v-if="bannerGradient" class="absolute z-0 w-[125%] top-0 bottom-0 right-0" :style="bannerGradient" />
 
