@@ -14,6 +14,8 @@ export interface Props {
   t: ComposerTranslation;
   tallContent?: boolean;
   title?: string;
+  titleInMain?: boolean;
+  headerJustifyCenter?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   centerContent: true,
@@ -25,6 +27,8 @@ const props = withDefaults(defineProps<Props>(), {
   success: false,
   tallContent: false,
   title: '',
+  titleInMain: false,
+  headerJustifyCenter: true,
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -111,13 +115,13 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               class="relative z-0 grid items-start gap-2 p-16px md:p-24px rounded-t"
               :class="{
                 'sm:pr-40px': showCloseX,
-                'justify-between': $slots['header'],
-                'justify-center': !$slots['header'],
+                'justify-between': !headerJustifyCenter,
+                'justify-center': headerJustifyCenter,
               }"
             >
               <div class="absolute -z-10 inset-0 opacity-10 bg-card" />
               <template v-if="!$slots['header']">
-                <h1 v-if="title" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
+                <h1 v-if="title && !titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
                   {{ title }}
                   <slot name="headerTitle" />
                 </h1>
@@ -130,7 +134,13 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto shadow-inner"
               :class="centerContent && 'text-center'"
             >
-              <h2 v-if="description" class="text-18px sm:text-20px opacity-75" v-html="description" />
+              <div class="flex flex-col gap-y-8px">
+                <h1 v-if="title && titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
+                    {{ title }}
+                    <slot name="headerTitle" />
+                </h1>
+                <h2 v-if="description" class="text-18px sm:text-20px opacity-75" v-html="description" />
+              </div>
               <div v-if="$slots['main']">
                 <slot name="main" />
               </div>
