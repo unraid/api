@@ -135,7 +135,7 @@ const osVersionBranch = "stable";
 export const serverState: Server = {
   activationCodeData: {
     "code": "4YCW3VJAYF",
-    "partnerName": "Partner Name Goes Here",
+    "partnerName": "Partner Name",
     "partnerUrl": "https://example.com",
   },
   apiKey: "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
