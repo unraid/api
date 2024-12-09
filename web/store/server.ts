@@ -259,12 +259,7 @@ export const useServerStore = defineStore("server", () => {
           keyTypeForPurchase = "Unleashed";
           break;
       }
-      const { code, partnerName } = storeToRefs(useActivationCodeStore());
-      const server = {
-        activationCodeData: {
-          code: code.value,
-          partnerName: partnerName.value,
-        },
+      const server: ServerPurchaseCallbackSendPayload = {
         apiVersion: apiVersion.value,
         connectPluginVersion: connectPluginVersion.value,
         deviceCount: deviceCount.value,
@@ -282,8 +277,19 @@ export const useServerStore = defineStore("server", () => {
         state: state.value,
         site: site.value,
       };
+
+      const { code, partnerName } = storeToRefs(useActivationCodeStore());
+      if (code.value) {
+        server['activationCodeData'] = {
+          code: code.value,
+        };
+        if (partnerName.value) {
+          server['activationCodeData']['partnerName'] = partnerName.value;
+        }
+      }
       return server;
     }
+    
   );
 
   const serverAccountPayload = computed(

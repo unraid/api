@@ -166,6 +166,7 @@ export interface ServerPurchaseCallbackSendPayload {
   osVersionBranch?: ServerOsVersionBranch;
   registered: boolean;
   regExp?: number;
+  regTy?: string;
   regUpdatesExpired?: boolean;
   state: ServerState;
   site: string;

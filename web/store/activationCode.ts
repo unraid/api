@@ -5,7 +5,7 @@ setActivePinia(createPinia()); /** required in web component context */
 
 export interface ActivationCodeData {
   code: string;
-  partnerName: string;
+  partnerName?: string;
   partnerUrl?: string;
 }
 
