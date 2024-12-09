@@ -134,7 +134,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto shadow-inner"
               :class="centerContent && 'text-center'"
             >
-              <div class="flex flex-col gap-y-8px">
+              <div class="flex flex-col gap-y-12px">
                 <h1 v-if="title && titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
                     {{ title }}
                     <slot name="headerTitle" />
