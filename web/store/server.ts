@@ -24,7 +24,7 @@ import {
   WEBGUI_TOOLS_UPDATE,
 } from "~/helpers/urls";
 import { useAccountStore } from "~/store/account";
-import { useActivationCodeStore } from "~/store/activationCode";
+import { useActivationCodeStore } from '~/store/activationCode';
 import { useErrorsStore, type Error } from "~/store/errors";
 import { usePurchaseStore } from "~/store/purchase";
 import { useThemeStore, type Theme } from "~/store/theme";
@@ -1206,6 +1206,11 @@ export const useServerStore = defineStore("server", () => {
     }
     if (typeof data?.regTo !== "undefined") {
       regTo.value = data.regTo;
+    }
+
+    if (typeof data.activationCodeData !== "undefined") {
+      const activationCodeStore = useActivationCodeStore();
+      activationCodeStore.setData(data.activationCodeData);
     }
   };
 
