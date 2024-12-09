@@ -11,13 +11,13 @@ export interface Props {
   t: ComposerTranslation;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
 
 const { partnerName, showModal } = storeToRefs(useActivationCodeStore());
 const purchaseStore = usePurchaseStore();
 
-const title = computed<string>(() => partnerName.value ? `Welcome to your new ${partnerName.value} system, powered by Unraid!` : 'Welcome to Unraid!');
-const description = computed<string>(() => `To get started, let's activate your license and create an unraid.net account to provide access to account features like key management and support.`);
+const title = computed<string>(() => partnerName.value ? props.t(`Welcome to your new ${0} system, powered by Unraid!`, partnerName.value) : props.t('Welcome to Unraid!'));
+const description = computed<string>(() => props.t(`To get started, let's activate your license and create an unraid.net account to provide access to account features like key management and support.`));
 const docsButtons = computed<ButtonProps[]>(() => {
   return [
     {
@@ -26,7 +26,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
       href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: 'More about Licensing',
+      text: props.t('More about Licensing'),
     },
     {
       btnStyle: 'underline',
@@ -34,7 +34,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
       href: 'https://docs.unraid.net/account/',
       iconRight: ArrowTopRightOnSquareIcon,
       size: '14px',
-      text: 'More about Unraid.net Accounts',
+      text: props.t('More about Unraid.net Accounts'),
     },
   ];
 });
@@ -66,7 +66,7 @@ const docsButtons = computed<ButtonProps[]>(() => {
     <template #footer>
       <div class="w-full flex gap-8px justify-center mx-auto">
         <BrandButton
-          :text="'Activate Now'"
+          :text="t('Activate Now')"
           :icon-right="ArrowTopRightOnSquareIcon"
           @click="purchaseStore.activate"
         />
