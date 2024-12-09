@@ -172,7 +172,7 @@ export interface ServerPurchaseCallbackSendPayload {
   site: string;
 }
 
-export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'renew' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
+export type ServerStateDataKeyActions = 'activate' | 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'renew' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
 
 export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
 

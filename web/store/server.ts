@@ -422,15 +422,16 @@ export const useServerStore = defineStore("server", () => {
     };
   });
   const redeemAction = computed((): ServerStateDataAction => {
+    const { code } = storeToRefs(useActivationCodeStore());
     return {
       click: () => {
-        purchaseStore.redeem();
+        code.value ? purchaseStore.activate() : purchaseStore.redeem();
       },
       disabled: serverActionsDisable.value.disable,
       external: true,
       icon: KeyIcon,
-      name: "redeem",
-      text: "Redeem Activation Code",
+      name: code.value ? "activate" : "redeem",
+      text: code.value ? "Activate Now" : "Redeem Activation Code",
       title: serverActionsDisable.value.title,
     };
   });
