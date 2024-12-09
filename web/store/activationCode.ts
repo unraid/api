@@ -22,8 +22,18 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
   const partnerName = computed<string | null>(() => data.value?.partnerName || null);
   const partnerUrl = computed<string | null>(() => data.value?.partnerName || null);
 
+  const sessionKey = 'activationCodeModalHidden';
+  const modalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');
+  const setModalHidden = (value: boolean) => modalHidden.value = value;
+  watch(modalHidden, (newVal) => {
+    return newVal ? sessionStorage.setItem(sessionKey, 'true') : sessionStorage.removeItem(sessionKey);
+  });
   /**
-   * Should only see this if fresh server install where no keyfile has been present before AND there's not callback data.
+   * Should only see this if
+   * 1. fresh server install where no keyfile has been present before
+   * 2. there's not callback data
+   * 3. we're not on the registration page
+   * 4. it's not been manually hidden
    */
   const showModal = computed<boolean>(() => {
     if (!data.value) {
@@ -33,7 +43,12 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
     const { callbackData } = storeToRefs(useCallbackActionsStore());
     const { state } = storeToRefs(useServerStore());
 
-    return state.value === 'ENOKEYFILE' && !callbackData.value;
+    const isFreshInstall = state.value === 'ENOKEYFILE';
+    const noCallbackData = !callbackData.value;
+    const notRegistrationPage = !window.location.pathname.includes('/Tools/Registration');
+    console.debug('[useActivationCodeStore] showModal', { isFreshInstall, noCallbackData, notRegistrationPage });
+
+    return isFreshInstall && noCallbackData && notRegistrationPage && !modalHidden.value;
   });
 
   return {
@@ -42,5 +57,6 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
     partnerUrl,
     showModal,
     setData,
+    setModalHidden,
   };
 });

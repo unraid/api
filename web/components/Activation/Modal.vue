@@ -13,7 +13,8 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const { partnerName, showModal } = storeToRefs(useActivationCodeStore());
+const activationCodeStore = useActivationCodeStore()
+const { partnerName, showModal } = storeToRefs(activationCodeStore);
 const purchaseStore = usePurchaseStore();
 
 const title = computed<string>(() => partnerName.value ? props.t(`Welcome to your new ${0} system, powered by Unraid!`, partnerName.value) : props.t('Welcome to Unraid!'));
@@ -37,6 +38,32 @@ const docsButtons = computed<ButtonProps[]>(() => {
       text: props.t('More about Unraid.net Accounts'),
     },
   ];
+});
+
+/**
+ * Listen for a key sequence to close the modal
+ * @todo - temporary solution until we have a better way to handle this
+ */
+onMounted(() => {
+  const keySequence = ['Escape', 'h'];
+  let sequenceIndex = 0;
+
+  window.addEventListener('keydown', (event) => {
+    if (event.key === keySequence[sequenceIndex]) {
+      sequenceIndex++;
+    } else {
+      sequenceIndex = 0;
+    }
+
+    if (sequenceIndex === keySequence.length) {
+      activationCodeStore.setModalHidden(true);
+      window.location.href = '/Tools/Registration';
+    }
+  });
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', () => {});
 });
 </script>
 
