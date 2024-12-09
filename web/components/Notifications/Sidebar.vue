@@ -50,10 +50,7 @@ const confirmAndDeleteAll = async () => {
         <!-- which means they won't shrink below the height of their content, even if you use flex-1 or other flex properties. -->
         <Tabs default-value="unread" class="flex-1 flex flex-col min-h-0" activation-mode="manual">
           <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
-            <TabsList class="ml-[1px]">
-              <TabsTrigger value="unread"> Unread </TabsTrigger>
-              <TabsTrigger value="archived"> Archived </TabsTrigger>
-            </TabsList>
+            <NotificationsTabList />
             <TabsContent value="unread">
               <Button
                 :disabled="loadingArchiveAll"
