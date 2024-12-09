@@ -16,6 +16,9 @@ setup:
     just api/setup
     just web/setup
 
+# restore notification files under api/dev
+restore-notifications:
+    git checkout ./api/dev/notifications
 
 # starts ignoring a file already tracked by git. (gitignore will not apply to these files)
 [group('git')]
