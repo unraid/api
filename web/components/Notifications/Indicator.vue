@@ -4,9 +4,9 @@ import { useQuery } from '@vue/apollo-composable';
 import { cn } from '~/components/shadcn/utils';
 import { Importance } from '~/composables/gql/graphql';
 import { onWatcherCleanup } from 'vue';
-import { unreadOverview } from './graphql/notification.query';
+import { notificationsOverview } from './graphql/notification.query';
 
-const { result } = useQuery(unreadOverview, null, {
+const { result } = useQuery(notificationsOverview, null, {
   pollInterval: 2_000, // 2 seconds
 });
 
