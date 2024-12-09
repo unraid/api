@@ -4,7 +4,7 @@ import Label from '~/components/shadcn/label/Label.vue';
 import { defaultColors, useThemeStore, type Theme } from '~/store/theme';
 
 const themeStore = useThemeStore();
-const { darkMode, theme } = toRefs(themeStore);
+const { darkMode } = toRefs(themeStore);
 
 const setDarkMode = ref<boolean>(false);
 const setGradient = ref<boolean>(false);
