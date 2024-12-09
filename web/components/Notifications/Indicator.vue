@@ -1,32 +1,21 @@
 <script setup lang="ts">
 import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
-import { useQuery } from '@vue/apollo-composable';
 import { cn } from '~/components/shadcn/utils';
-import { Importance } from '~/composables/gql/graphql';
+import { Importance, type OverviewQuery } from '~/composables/gql/graphql';
 import { onWatcherCleanup } from 'vue';
-import { notificationsOverview } from './graphql/notification.query';
 
-const { result } = useQuery(notificationsOverview, null, {
-  pollInterval: 2_000, // 2 seconds
-});
-
-const overview = computed(() => {
-  if (!result.value) {
-    return;
-  }
-  return result.value.notifications.overview.unread;
-});
+const props = defineProps<{ overview?: OverviewQuery['notifications']['overview'] }>();
 
 const indicatorLevel = computed(() => {
-  if (!overview.value) {
+  if (!props.overview?.unread) {
     return undefined;
   }
   switch (true) {
-    case overview.value.alert > 0:
+    case props.overview.unread.alert > 0:
       return Importance.Alert;
-    case overview.value.warning > 0:
+    case props.overview.unread.warning > 0:
       return Importance.Warning;
-    case overview.value.total > 0:
+    case props.overview.unread.total > 0:
       return 'UNREAD';
     default:
       return undefined;
@@ -52,18 +41,21 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
 /** whether new notifications ocurred */
 const hasNewNotifications = ref(false);
 // watch for new notifications, set a temporary indicator when they're reveived
-watch(overview, (newVal, oldVal) => {
-  if (!newVal || !oldVal) {
-    return;
+watch(
+  () => props.overview?.unread,
+  (newVal, oldVal) => {
+    if (!newVal || !oldVal) {
+      return;
+    }
+    hasNewNotifications.value = newVal.total > oldVal.total;
+    // lifetime of 'new notification' state
+    const msToLive = 30_000;
+    const timeout = setTimeout(() => {
+      hasNewNotifications.value = false;
+    }, msToLive);
+    onWatcherCleanup(() => clearTimeout(timeout));
   }
-  hasNewNotifications.value = newVal.total > oldVal.total;
-  // lifetime of 'new notification' state
-  const msToLive = 30_000;
-  const timeout = setTimeout(() => {
-    hasNewNotifications.value = false;
-  }, msToLive);
-  onWatcherCleanup(() => clearTimeout(timeout));
-});
+);
 </script>
 
 <template>
