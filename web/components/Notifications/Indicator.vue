@@ -2,7 +2,6 @@
 import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroicons/vue/24/solid';
 import { cn } from '~/components/shadcn/utils';
 import { Importance, type OverviewQuery } from '~/composables/gql/graphql';
-import { onWatcherCleanup } from 'vue';
 
 const props = defineProps<{ overview?: OverviewQuery['notifications']['overview'] }>();
 
@@ -37,25 +36,6 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
   }
   return null;
 });
-
-/** whether new notifications ocurred */
-const hasNewNotifications = ref(false);
-// watch for new notifications, set a temporary indicator when they're reveived
-watch(
-  () => props.overview?.unread,
-  (newVal, oldVal) => {
-    if (!newVal || !oldVal) {
-      return;
-    }
-    hasNewNotifications.value = newVal.total > oldVal.total;
-    // lifetime of 'new notification' state
-    const msToLive = 30_000;
-    const timeout = setTimeout(() => {
-      hasNewNotifications.value = false;
-    }, msToLive);
-    onWatcherCleanup(() => clearTimeout(timeout));
-  }
-);
 </script>
 
 <template>
