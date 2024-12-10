@@ -280,5 +280,4 @@ export default <Partial<Config>>{
       newFontSize: process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10,
     }),
   ],
-  //presets: [require('../unraid-ui/tailwind.config.js')],
 };
