@@ -1,4 +1,5 @@
 import { InMemoryCache, type InMemoryCacheConfig } from '@apollo/client/core/index.js';
+import type { NotificationOverview } from '~/composables/gql/graphql';
 import { NotificationType } from '../../composables/gql/typename';
 import { mergeAndDedup } from './merge';
 
@@ -54,6 +55,34 @@ const defaultCacheConfig: InMemoryCacheConfig = {
             return mergeAndDedup(existing, incoming, (item) => item.__ref, {
               offset,
             });
+          },
+        },
+        overview: {
+          /**
+           * Busts notification cache when new unread notifications are detected.
+           * 
+           * This allows incoming notifications to appear in the sidebar without reloading the page.
+           * 
+           * @param existing - Existing overview data in cache
+           * @param incoming - New overview data from server
+           * @param context - Apollo context containing cache instance
+           * @returns The overview data to be cached
+           */
+          merge(
+            existing: Partial<NotificationOverview> | undefined,
+            incoming: Partial<NotificationOverview> | undefined,
+            { cache }
+          ) {
+            const hasNewUnreads =
+              isDefined(existing?.unread?.total) &&
+              isDefined(incoming?.unread?.total) &&
+              existing.unread.total < incoming.unread.total;
+
+            if (hasNewUnreads) {
+              cache.evict({ fieldName: 'notifications' });
+              cache.gc();
+            }
+            return incoming;
           },
         },
       },
