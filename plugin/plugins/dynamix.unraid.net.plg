@@ -829,10 +829,19 @@ PARTNER_ASSETS_DIR="/boot/config/activation/assets"
 PARTNER_BANNER="$PARTNER_ASSETS_DIR/banner.png"
 WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
 WEBGUI_BANNER="$WEBGUI_IMAGES_DIR/banner.png"
+UPDATE_ENDPOINT="/usr/local/emhttp/update.php"
+
+CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
+CONFIG_SECTION="display"
+CONFIG_KEY="banner"
+CONFIG_NEW_VALUE="image"
 
 if [[ -f "$PARTNER_BANNER" ]]; then
   cp -f "$WEBGUI_BANNER" "$WEBGUI_BANNER-" # backup the original banner
   cp -f "$PARTNER_BANNER" "$WEBGUI_BANNER" # replace the original banner with the OEM banner
+  sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
+    /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
+  }" "$CONFIG_FILE" # update the config file to enable the partner banner
 fi
 
 # start background process to install/start the api and flash backup
@@ -866,9 +875,25 @@ source /etc/unraid-version
 # undo partner banner
 WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
 WEBGUI_BANNER="$WEBGUI_IMAGES_DIR/banner.png"
+
 if [[ -f "$WEBGUI_BANNER-" ]]; then
   cp -f "$WEBGUI_BANNER-" "$WEBGUI_BANNER"
   rm -f "$WEBGUI_BANNER-"
+fi
+
+# if there's not a custom banner, set display banner to no aka empty string
+# otherwise leave this display setting alone to keep the user's custom banner
+CUSTOM_BANNER="/boot/config/plugins/dynamix/banner.png"
+
+if [[ ! -f "$CUSTOM_BANNER" ]]; then
+  CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
+  CONFIG_SECTION="display"
+  CONFIG_KEY="banner"
+  CONFIG_NEW_VALUE=""
+
+  sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
+    /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
+  }" "$CONFIG_FILE"
 fi
 
 echo
