@@ -891,9 +891,7 @@ if [[ ! -f "$CUSTOM_BANNER" ]]; then
   CONFIG_KEY="banner"
   CONFIG_NEW_VALUE=""
 
-  sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
-    /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
-  }" "$CONFIG_FILE"
+  sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/" "$CONFIG_FILE"
 fi
 
 echo
