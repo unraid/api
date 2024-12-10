@@ -824,6 +824,17 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
+# partner banner • check for banner.png in /boot/config/activation/assets, then backup the original banner and then replace /usr/local/emhttp/webGui/images/banner.png
+PARTNER_ASSETS_DIR="/boot/config/activation/assets"
+PARTNER_BANNER="$PARTNER_ASSETS_DIR/banner.png"
+WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
+WEBGUI_BANNER="$WEBGUI_IMAGES_DIR/banner.png"
+
+if [[ -f "$PARTNER_BANNER" ]]; then
+  cp -f "$WEBGUI_BANNER" "$WEBGUI_BANNER-" # backup the original banner
+  cp -f "$PARTNER_BANNER" "$WEBGUI_BANNER" # replace the original banner with the OEM banner
+fi
+
 # start background process to install/start the api and flash backup
 echo
 if [ -f /var/local/emhttp/var.ini ]; then
@@ -851,6 +862,14 @@ exit 0
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
+
+# undo partner banner
+WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
+WEBGUI_BANNER="$WEBGUI_IMAGES_DIR/banner.png"
+if [[ -f "$WEBGUI_BANNER-" ]]; then
+  cp -f "$WEBGUI_BANNER-" "$WEBGUI_BANNER"
+  rm -f "$WEBGUI_BANNER-"
+fi
 
 echo
 echo "✅ Uninstall is complete, it is safe to close this window"
