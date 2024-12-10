@@ -24,6 +24,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+unraid-ui/node_modules/
 
 # TypeScript v1 declaration files
 typings/
@@ -51,6 +52,7 @@ typings/
 
 # Visual Studio Code workspace
 .vscode/sftp.json
+.history/
 
 # OSX
 .DS_Store
@@ -73,7 +75,7 @@ typescript
 # Github actions
 RELEASE_NOTES.md
 
-# Docker Deploy Folder 
+# Docker Deploy Folder
 deploy/*
 !deploy/.gitkeep
 

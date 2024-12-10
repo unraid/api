@@ -1,0 +1,16 @@
+{
+  "extends": "./tsconfig.app.json",
+  "compilerOptions": {
+    "composite": true,
+    "emitDeclarationOnly": true,
+    "outDir": "./dist/test",
+    "types": [
+      "node",
+      "happy-dom",
+      "vitest/globals",
+      "@vue/test-utils",
+      "@testing-library/vue"
+    ]
+  },
+  "include": ["src/**/*.test.ts", "src/**/*.vue", "src/**/*.ts", "test/**/*.ts"]
+}
