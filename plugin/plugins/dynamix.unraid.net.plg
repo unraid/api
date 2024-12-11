@@ -824,34 +824,35 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-# if partner banner exists and there's not a webgui banner backup file that exists on the system
-# then backup the original banner and replace the original banner with the included partner banner
-PARTNER_BANNER="/boot/config/activation/assets/banner.png"
-WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
-WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
+# Activation and partner setup
+ACTIVATION_DIR="/boot/config/activation"
+ACTIVATION_JSON_EXTENSION=".activationcode"
+# get the first file in the dir that matches the extension, later parsed as JSON for specific values
+ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
 
-if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
-  CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
-  CONFIG_SECTION="display"
-  CONFIG_KEY="banner"
-  CONFIG_NEW_VALUE="image"
+if [[ -f "$ACTIVATION_JSON" ]]; then
+  # if partner banner exists and there's not a webgui banner backup file that exists on the system
+  # then backup the original banner and replace the original banner with the included partner banner
+  PARTNER_BANNER="/boot/config/activation/assets/banner.png"
+  WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
+  WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-  cp -f $WEBGUI_BANNER_OG $WEBGUI_BANNER_BK # backup the original banner
-  cp -f $PARTNER_BANNER $WEBGUI_BANNER_OG # replace the original banner with the partner banner
-  sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
-    /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
-  }" "$CONFIG_FILE" # updates the config file to enable the partner banner
-fi
+  if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
+    CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
+    CONFIG_SECTION="display"
+    CONFIG_KEY="banner"
+    CONFIG_NEW_VALUE="image"
 
-# If there's not a set system modal, we'll attempt to set it from activation json
-CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
-if [[ -z "$CURRENT_SYS_MODEL" ]]; then
-  ACTIVATION_DIR="/boot/config/activation"
-  ACTIVATION_JSON_EXTENSION=".activationcode"
-  # get the first file in the dir that matches the extension and parse the JSON to see if there's a sys_model key with a value
-  ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
+    cp -f $WEBGUI_BANNER_OG $WEBGUI_BANNER_BK # backup the original banner
+    cp -f $PARTNER_BANNER $WEBGUI_BANNER_OG # replace the original banner with the partner banner
+    sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
+      /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
+    }" "$CONFIG_FILE" # updates the config file to enable the partner banner
+  fi
 
-  if [[ -f "$ACTIVATION_JSON" ]]; then
+  # If there's not a set system modal, we'll attempt to set it from activation json
+  CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
+  if [[ -z "$CURRENT_SYS_MODEL" ]]; then
     PARTNER_SYS_MODEL=$(jq -r '.sysModel' "$ACTIVATION_JSON" 2>/dev/null || true)
     PARTNER_SYS_MODEL=$(echo "$PARTNER_SYS_MODEL" | sed 's/["\\]//g') # remove quotes and backslashes
 
