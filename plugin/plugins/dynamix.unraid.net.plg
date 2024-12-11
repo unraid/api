@@ -850,6 +850,25 @@ if [[ -f "$ACTIVATION_JSON" ]]; then
     }" "$CONFIG_FILE" # updates the config file to enable the partner banner
   fi
 
+  # Set the case model icon
+  # if the system has a custom icon set, skip this step
+  # First preference is to use a custom icon, if it exists
+  # Second preference is to use an included icon with the system that's been specified
+  CURRENT_CASE_MODEL=$(cat /boot/config/plugins/dynamix/case-model.cfg 2>/dev/null || true)
+  # If CURRENT_CASE_MODEL === "case-model.png" then a custom icon has already been set and we should skip this step
+  if [[ -n "$CURRENT_CASE_MODEL" && "$CURRENT_CASE_MODEL" != "case-model.png" ]]; then
+    PARTNER_CASE_MODEL="/boot/config/activation/assets/case-model.png" # for custom image
+    PARTNER_CASE_ICON=$(jq -r '.caseIcon' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
+    if [[ -f "$PARTNER_CASE_MODEL" ]]; then
+      cp -f "$PARTNER_CASE_MODEL" "/usr/local/emhttp/webGui/images/case-model.png"
+      echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg
+    elif [[ -n "$PARTNER_CASE_ICON" ]]; then
+      echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg
+    fi
+  fi
+
+  # @todo: set the custom header logo
+
   # If there's not a set system modal, we'll attempt to set it from activation json
   CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
   if [[ -z "$CURRENT_SYS_MODEL" ]]; then
