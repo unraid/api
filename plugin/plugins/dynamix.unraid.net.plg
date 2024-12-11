@@ -836,18 +836,17 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
 
   if [[ -f "$ACTIVATION_JSON" ]]; then
     echo "🔌 Partner details found"
-    jq . "$ACTIVATION_JSON" || echo "Error: Invalid Activation JSON"
     # create the setup flag file to prevent re-running this setup
     touch "$ACTIVATION_SETUP_FLAG"
+
     # if partner banner exists and there's not a webgui banner backup file that exists on the system
     # then backup the original banner and replace the original banner with the included partner banner
     PARTNER_BANNER="/boot/config/activation/assets/banner.png"
     WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
     WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-    # check if the activation flag contains the string "banner"
-
-    if ! grep -q "banner" "$ACTIVATION_SETUP_FLAG"; then
+    # On uninstall of the PLG this the default banner is reverted. So we won't rely on the setup flag. Instead whether the backup file doesn't exist.
+    if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
       echo "🎨 Setting up partner banner"
       cp -f "$WEBGUI_BANNER_OG" "$WEBGUI_BANNER_BK" 2>/dev/null
       if [[ $? -ne 0 ]]; then
@@ -862,7 +861,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       CONFIG_SECTION="display"
       CONFIG_KEY="banner"
       CONFIG_NEW_VALUE="\"image\""
-      # updates the config file to enable the partner banner
+      # updates the config file to enable the partner "default" banner
       sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
         /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
       }" "$CONFIG_FILE"
@@ -871,12 +870,12 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       echo "banner" >> "$ACTIVATION_SETUP_FLAG"
     fi
 
-    # Set the case model icon, if we haven't done it yet
+    # Set the case model icon, if we haven't done it once already
     if ! grep -q "case" "$ACTIVATION_SETUP_FLAG"; then
       echo "🖼️ Setting up case model icon"
-      # if the system has a custom icon set, skip this step
-      # First preference is to use a custom icon, if it exists
-      # Second preference is to use an included icon with the system that's been specified
+      # if the system has a custom icon already set, we need to skip this step
+      # First preference is to use a custom icon, if it exists in the activation/assets dir
+      # Second preference is to use an included icon with the system that's been specified in the activation json
       CURRENT_CASE_MODEL=$(cat /boot/config/plugins/dynamix/case-model.cfg 2>/dev/null || true)
       echo "Current case model: $CURRENT_CASE_MODEL"
       # If CURRENT_CASE_MODEL === "case-model.png" then a custom icon has already been set and we should skip this step
@@ -891,16 +890,12 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           if [[ $? -ne 0 ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
           fi
-          echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg
-          # add what changed to the .setup flag file
-          echo >> "$ACTIVATION_SETUP_FLAG"
-          echo "case: case-model.png" >> "$ACTIVATION_SETUP_FLAG"
+          echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg # set the custom icon in the config file
+          echo "case: case-model.png" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo "🖼️ Setting up included case model icon"
-          echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg
-          # add what changed to the .setup flag file
-          echo >> "$ACTIVATION_SETUP_FLAG"
-          echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG"
+          echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg # set the parsed icon name in the config file
+          echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
         fi
       fi
     fi
@@ -909,6 +904,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     # @todo: set the custom header logo
     #
 
+    # Set the server model and description if we haven't already done it once
     if ! grep -q "identity" "$ACTIVATION_SETUP_FLAG"; then
       echo "🔍 Setting up system identification"
       # If there's not a set system model or comment (aka description), we'll attempt to set it from activation json
@@ -941,7 +937,6 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           emcmd "$EM_CMD&changeNames=Apply"
           echo "✅ Identification updated with parameters: $EM_CMD"
           # add what changed to the .setup flag file
-          echo >> "$ACTIVATION_SETUP_FLAG"
           echo "identity: $EM_CMD" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
