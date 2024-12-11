@@ -1,10 +1,7 @@
 import { InMemoryCache, type InMemoryCacheConfig } from '@apollo/client/core/index.js';
-import {
-  getNotifications,
-  NOTIFICATION_FRAGMENT,
-} from '~/components/Notifications/graphql/notification.query';
+import { getNotifications } from '~/components/Notifications/graphql/notification.query';
 import { NotificationType, type NotificationOverview } from '~/composables/gql/graphql';
-import { NotificationType as NotificationCacheType } from '../../composables/gql/typename';
+import { NotificationType as NotificationCacheType } from '~/composables/gql/typename';
 import { mergeAndDedup } from './merge';
 
 /**------------------------------------------------------------------------
@@ -112,47 +109,46 @@ const defaultCacheConfig: InMemoryCacheConfig = {
         },
         archiveNotification: {
           /**
-           * Ensures newly archived notifications appear in the archive list immediately.
+           * Ensures newly archived notifications appear in the archive list without a page reload.
            *
-           * When a notification is archived, we need to manually prepend it to the archive list
-           * in the cache if that list has already been queried. Otherwise, the archived notification
-           * won't appear until the next refetch (usually a page refresh).
-           * Note: the prepended notification may not be in the correct order. This is probably ok.
+           * When a notification is archived, we need to evict the cached archive list to force a refetch.
+           * This ensures the archived notification appears in the correct sorted position.
+           *
+           * If the archive list is empty, we evict the entire notifications cache since evicting an empty
+           * list has no effect. This forces a full refetch of all notification data.
+           * Note: This may cause temporary jitter with infinite scroll.
            *
            * This function:
-           * 1. Gets the archived notification's data from the cache using its ID
-           * 2. If the archive list exists in the cache, adds the notification to the beginning of that list
-           * 3. Returns the original mutation result
+           * 1. Checks if the cache has an archive list. If not, this function is a no-op.
+           * 2. If the list has items, evicts just the archive list
+           * 3. If it is empty, evicts the entire notifications cache
+           * 4. Runs garbage collection to clean up orphaned references
+           * 5. Returns the original mutation result
            *
            * @param _ - Existing cache value (unused)
            * @param incoming - Result (i.e. the archived notification) from the server after archiving
            * @param cache - Apollo cache instance
-           * @param args - Mutation arguments containing the notification ID
            * @returns The incoming result to be cached
            */
-          merge(_, incoming, { cache, args }) {
-            if (!args?.id) return incoming;
-            const id = cache.identify({ id: args.id, __typename: NotificationCacheType });
-            if (!id) return incoming;
+          merge(_, incoming, { cache }) {
+            const archiveQuery = cache.readQuery({
+              query: getNotifications,
+              // @ts-expect-error the cache only uses the filter type; the limit & offset are superfluous.
+              variables: { filter: { type: NotificationType.Archive } },
+            });
+            if (!archiveQuery) return incoming;
 
-            const notification = cache.readFragment({ id, fragment: NOTIFICATION_FRAGMENT });
-            if (!notification) return incoming;
+            if (archiveQuery.notifications.list.length === 0) {
+              cache.evict({ fieldName: 'notifications' });
+            } else {
+              cache.evict({
+                id: archiveQuery.notifications.id,
+                fieldName: 'list',
+                args: { filter: { type: NotificationType.Archive } },
+              });
+            }
 
-            cache.updateQuery(
-              {
-                query: getNotifications,
-                // @ts-expect-error the cache only uses the filter type; the limit & offset are superfluous.
-                variables: { filter: { type: NotificationType.Archive } },
-              },
-              (data) => {
-                // no data means the archive hasn't been queried yet, in which case this operation is unnecessary
-                if (!data) return;
-                const updated = structuredClone(data);
-                updated.notifications.list.unshift(notification);
-                return updated;
-              }
-            );
-
+            cache.gc();
             return incoming;
           },
         },
