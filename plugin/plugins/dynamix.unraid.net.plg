@@ -826,61 +826,114 @@ fi
 
 # Activation and partner setup
 ACTIVATION_DIR="/boot/config/activation"
-ACTIVATION_JSON_EXTENSION=".activationcode"
-# get the first file in the dir that matches the extension, later parsed as JSON for specific values
-ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
+# if the dir exists but the setup flag does not, proceed with setup
+if [[ -d "$ACTIVATION_DIR" ]]; then
+  echo "🔌 Checking for partner details"
+  ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"
+  ACTIVATION_JSON_EXTENSION=".activationcode"
+  # get the first file in the dir that matches the extension, later parsed as JSON for specific values
+  ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
 
-if [[ -f "$ACTIVATION_JSON" ]]; then
-  # if partner banner exists and there's not a webgui banner backup file that exists on the system
-  # then backup the original banner and replace the original banner with the included partner banner
-  PARTNER_BANNER="/boot/config/activation/assets/banner.png"
-  WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
-  WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
+  if [[ -f "$ACTIVATION_JSON" ]]; then
+    echo "🔌 Partner details found"
+    # if partner banner exists and there's not a webgui banner backup file that exists on the system
+    # then backup the original banner and replace the original banner with the included partner banner
+    PARTNER_BANNER="/boot/config/activation/assets/banner.png"
+    WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
+    WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-  if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
-    CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
-    CONFIG_SECTION="display"
-    CONFIG_KEY="banner"
-    CONFIG_NEW_VALUE="image"
+    if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
+      echo "🎨 Setting up partner banner"
+      cp -f "$WEBGUI_BANNER_OG" "$WEBGUI_BANNER_BK" 2>/dev/null
+      if [[ $? -ne 0 ]]; then
+        echo "⚠️ Warning: Failed to back up the original banner."
+      fi
+      cp -f "$PARTNER_BANNER" "$WEBGUI_BANNER_OG" 2>/dev/null
+      if [[ $? -ne 0 ]]; then
+        echo "⚠️ Warning: Failed to replace the original banner with the partner banner."
+      fi
 
-    cp -f $WEBGUI_BANNER_OG $WEBGUI_BANNER_BK # backup the original banner
-    cp -f $PARTNER_BANNER $WEBGUI_BANNER_OG # replace the original banner with the partner banner
-    sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
-      /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
-    }" "$CONFIG_FILE" # updates the config file to enable the partner banner
-  fi
-
-  # Set the case model icon
-  # if the system has a custom icon set, skip this step
-  # First preference is to use a custom icon, if it exists
-  # Second preference is to use an included icon with the system that's been specified
-  CURRENT_CASE_MODEL=$(cat /boot/config/plugins/dynamix/case-model.cfg 2>/dev/null || true)
-  # If CURRENT_CASE_MODEL === "case-model.png" then a custom icon has already been set and we should skip this step
-  if [[ -n "$CURRENT_CASE_MODEL" && "$CURRENT_CASE_MODEL" != "case-model.png" ]]; then
-    PARTNER_CASE_MODEL="/boot/config/activation/assets/case-model.png" # for custom image
-    PARTNER_CASE_ICON=$(jq -r '.caseIcon' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
-    if [[ -f "$PARTNER_CASE_MODEL" ]]; then
-      cp -f "$PARTNER_CASE_MODEL" "/usr/local/emhttp/webGui/images/case-model.png"
-      echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg
-    elif [[ -n "$PARTNER_CASE_ICON" ]]; then
-      echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg
+      CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
+      CONFIG_SECTION="display"
+      CONFIG_KEY="banner"
+      CONFIG_NEW_VALUE="\"image\""
+      # updates the config file to enable the partner banner
+      sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
+        /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
+      }" "$CONFIG_FILE"
     fi
-  fi
 
-  # @todo: set the custom header logo
-
-  # If there's not a set system modal, we'll attempt to set it from activation json
-  CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
-  if [[ -z "$CURRENT_SYS_MODEL" ]]; then
-    PARTNER_SYS_MODEL=$(jq -r '.sysModel' "$ACTIVATION_JSON" 2>/dev/null || true)
-    PARTNER_SYS_MODEL=$(echo "$PARTNER_SYS_MODEL" | sed 's/["\\]//g') # remove quotes and backslashes
-
-    if [[ -n "$PARTNER_SYS_MODEL" ]]; then
-      echo "⏳ Please wait...Setting > Identification > Model"
-      emcmd "SYS_MODEL=$PARTNER_SYS_MODEL&changeNames=Apply"
-      echo "✅ Identification > Model set: $PARTNER_SYS_MODEL"
+    # Set the case model icon, if we haven't done it yet
+    if [[ ! -f "$ACTIVATION_SETUP_FLAG" ]]; then
+      echo "🖼️ Setting up case model icon"
+      # if the system has a custom icon set, skip this step
+      # First preference is to use a custom icon, if it exists
+      # Second preference is to use an included icon with the system that's been specified
+      CURRENT_CASE_MODEL=$(cat /boot/config/plugins/dynamix/case-model.cfg 2>/dev/null || true)
+      echo "Current case model: $CURRENT_CASE_MODEL"
+      # If CURRENT_CASE_MODEL === "case-model.png" then a custom icon has already been set and we should skip this step
+      if [[ -n "$CURRENT_CASE_MODEL" && "$CURRENT_CASE_MODEL" != "case-model.png" ]]; then
+        PARTNER_CASE_MODEL="/boot/config/activation/assets/case-model.png" # for custom image
+        PARTNER_CASE_ICON=$(jq -r '.caseIcon // empty' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
+        echo "Partner case model icon: $PARTNER_CASE_MODEL"
+        echo "Partner case icon: $PARTNER_CASE_ICON"
+        if [[ -f "$PARTNER_CASE_MODEL" ]]; then
+          echo "🖼️ Setting up custom case model icon"
+          cp -f "$PARTNER_CASE_MODEL" "/usr/local/emhttp/webGui/images/case-model.png"
+          if [[ $? -ne 0 ]]; then
+            echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
+          fi
+          echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg
+        elif [[ -n "$PARTNER_CASE_ICON" ]]; then
+          echo "🖼️ Setting up included case model icon"
+          echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg
+        fi
+      fi
     fi
+
+    #
+    # @todo: set the custom header logo
+    #
+
+    if [[ ! -f "$ACTIVATION_SETUP_FLAG" ]]; then
+      echo "🔍 Setting up system identification"
+      # If there's not a set system model or comment (aka description), we'll attempt to set it from activation json
+      CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
+      CURRENT_COMMENT=$(awk -F "=" '/COMMENT/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
+      echo "Current system model: $CURRENT_SYS_MODEL"
+      echo "Current system comment: $CURRENT_COMMENT"
+
+      if [[ -z "$CURRENT_SYS_MODEL" || -z "$CURRENT_COMMENT" ]]; then
+        PARTNER_SYS_MODEL=$(jq -r '.sysModel // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+        PARTNER_COMMENT=$(jq -r '.comment // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+        # Sanitize strings to remove quotes and backslashes
+        PARTNER_SYS_MODEL=$(echo "$PARTNER_SYS_MODEL" | sed 's/["\\]//g')
+        PARTNER_COMMENT=$(echo "$PARTNER_COMMENT" | sed 's/["\\]//g')
+
+        echo "Partner system model: $PARTNER_SYS_MODEL"
+        echo "Partner system comment: $PARTNER_COMMENT"
+
+        declare -a EM_PARAMS
+        if [[ -n "$PARTNER_SYS_MODEL" ]]; then
+          EM_PARAMS+=("SYS_MODEL=$PARTNER_SYS_MODEL")
+        fi
+        if [[ -n "$PARTNER_COMMENT" ]]; then
+          EM_PARAMS+=("COMMENT=$PARTNER_COMMENT")
+        fi
+
+        if [[ ${#EM_PARAMS[@]} -gt 0 ]]; then
+          echo "⏳ Please wait...updating system identification"
+          EM_CMD=$(IFS="&"; echo "${EM_PARAMS[*]}")
+          emcmd "$EM_CMD&changeNames=Apply"
+          echo "✅ Identification updated with parameters: $EM_CMD"
+        fi
+      fi
+    fi
+
   fi
+
+  # create the setup flag file to prevent re-running this setup
+  touch "$ACTIVATION_SETUP_FLAG"
 fi
 
 # start background process to install/start the api and flash backup
@@ -917,7 +970,7 @@ WEBGUI_BANNER_OG="$WEBGUI_IMAGES_DIR/banner.png"
 WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
 if [[ -f $WEBGUI_BANNER_BK ]]; then
-  cp -f $WEBGUI_BANNER_BK $WEBGUI_BANNER_OG
+  cp -f "$WEBGUI_BANNER_BK" "$WEBGUI_BANNER_OG"
   rm -f $WEBGUI_BANNER_BK
 
   # if there's not a custom banner, set display banner to no aka empty string
