@@ -836,6 +836,8 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
 
   if [[ -f "$ACTIVATION_JSON" ]]; then
     echo "🔌 Partner details found"
+    # create the setup flag file to prevent re-running this setup
+    touch "$ACTIVATION_SETUP_FLAG"
     # if partner banner exists and there's not a webgui banner backup file that exists on the system
     # then backup the original banner and replace the original banner with the included partner banner
     PARTNER_BANNER="/boot/config/activation/assets/banner.png"
@@ -861,6 +863,9 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
         /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
       }" "$CONFIG_FILE"
+
+      # add what changed to the .setup flag file
+      echo "banner" >> "$ACTIVATION_SETUP_FLAG"
     fi
 
     # Set the case model icon, if we haven't done it yet
@@ -884,9 +889,15 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
           fi
           echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg
+          # add what changed to the .setup flag file
+          echo >> "$ACTIVATION_SETUP_FLAG"
+          echo "set case: case-model.png" >> "$ACTIVATION_SETUP_FLAG"
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo "🖼️ Setting up included case model icon"
           echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg
+          # add what changed to the .setup flag file
+          echo >> "$ACTIVATION_SETUP_FLAG"
+          echo "set case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
     fi
@@ -926,14 +937,14 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           EM_CMD=$(IFS="&"; echo "${EM_PARAMS[*]}")
           emcmd "$EM_CMD&changeNames=Apply"
           echo "✅ Identification updated with parameters: $EM_CMD"
+          # add what changed to the .setup flag file
+          echo >> "$ACTIVATION_SETUP_FLAG"
+          echo "set system identity: $EM_CMD" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
     fi
 
   fi
-
-  # create the setup flag file to prevent re-running this setup
-  touch "$ACTIVATION_SETUP_FLAG"
 fi
 
 # start background process to install/start the api and flash backup
