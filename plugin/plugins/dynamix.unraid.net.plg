@@ -844,7 +844,10 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
     WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-    if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
+    # check if the activation flag contains the string "banner"
+
+
+    if [[ ! grep -q "banner" "$ACTIVATION_SETUP_FLAG" ]]; then
       echo "🎨 Setting up partner banner"
       cp -f "$WEBGUI_BANNER_OG" "$WEBGUI_BANNER_BK" 2>/dev/null
       if [[ $? -ne 0 ]]; then
@@ -869,7 +872,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     fi
 
     # Set the case model icon, if we haven't done it yet
-    if [[ ! -f "$ACTIVATION_SETUP_FLAG" ]]; then
+    if [[ ! grep -q "case" "$ACTIVATION_SETUP_FLAG" ]]; then
       echo "🖼️ Setting up case model icon"
       # if the system has a custom icon set, skip this step
       # First preference is to use a custom icon, if it exists
@@ -891,13 +894,13 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg
           # add what changed to the .setup flag file
           echo >> "$ACTIVATION_SETUP_FLAG"
-          echo "set case: case-model.png" >> "$ACTIVATION_SETUP_FLAG"
+          echo "case: case-model.png" >> "$ACTIVATION_SETUP_FLAG"
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo "🖼️ Setting up included case model icon"
           echo "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg
           # add what changed to the .setup flag file
           echo >> "$ACTIVATION_SETUP_FLAG"
-          echo "set case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG"
+          echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
     fi
@@ -906,7 +909,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     # @todo: set the custom header logo
     #
 
-    if [[ ! -f "$ACTIVATION_SETUP_FLAG" ]]; then
+    if [[ ! grep -q "identity" "$ACTIVATION_SETUP_FLAG" ]]; then
       echo "🔍 Setting up system identification"
       # If there's not a set system model or comment (aka description), we'll attempt to set it from activation json
       CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
@@ -939,7 +942,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           echo "✅ Identification updated with parameters: $EM_CMD"
           # add what changed to the .setup flag file
           echo >> "$ACTIVATION_SETUP_FLAG"
-          echo "set system identity: $EM_CMD" >> "$ACTIVATION_SETUP_FLAG"
+          echo "identity: $EM_CMD" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
     fi
