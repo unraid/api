@@ -1,5 +1,5 @@
 // Components
-export * from "@/components/common/Button";
+export * from "@/components/common/button";
 
 // Utils
 export * from "@/lib/utils";

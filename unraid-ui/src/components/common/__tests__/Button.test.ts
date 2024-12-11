@@ -2,7 +2,7 @@
 import { describe, it, expect } from "vitest";
 import type { mount as _mount } from "@vue/test-utils";
 import { mount } from "@vue/test-utils";
-import Button from "../Button/Button.vue";
+import Button from "../button/Button.vue";
 
 describe("Button", () => {
   it("renders correctly", () => {
