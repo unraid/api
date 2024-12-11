@@ -808,9 +808,9 @@ preventDowngradeAction() {
 }
 
 # Extract "ts" values from both files
-    plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
-    backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-    plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
+plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
+plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
 webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
 
 # Compare the "ts" values and return the file path of the higher value
@@ -824,24 +824,43 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-# partner banner • check for banner.png in /boot/config/activation/assets, then backup the original banner and then replace /usr/local/emhttp/webGui/images/banner.png
-PARTNER_ASSETS_DIR="/boot/config/activation/assets"
-PARTNER_BANNER="$PARTNER_ASSETS_DIR/banner.png"
-WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
-WEBGUI_BANNER="$WEBGUI_IMAGES_DIR/banner.png"
-UPDATE_ENDPOINT="/usr/local/emhttp/update.php"
+# if partner banner exists and there's not a webgui banner backup file that exists on the system
+# then backup the original banner and replace the original banner with the included partner banner
+PARTNER_BANNER="/boot/config/activation/assets/banner.png"
+WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
+WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
-CONFIG_SECTION="display"
-CONFIG_KEY="banner"
-CONFIG_NEW_VALUE="image"
+if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
+  CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
+  CONFIG_SECTION="display"
+  CONFIG_KEY="banner"
+  CONFIG_NEW_VALUE="image"
 
-if [[ -f "$PARTNER_BANNER" ]]; then
-  cp -f "$WEBGUI_BANNER" "$WEBGUI_BANNER-" # backup the original banner
-  cp -f "$PARTNER_BANNER" "$WEBGUI_BANNER" # replace the original banner with the OEM banner
+  cp -f $WEBGUI_BANNER_OG $WEBGUI_BANNER_BK # backup the original banner
+  cp -f $PARTNER_BANNER $WEBGUI_BANNER_OG # replace the original banner with the partner banner
   sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
     /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
-  }" "$CONFIG_FILE" # update the config file to enable the partner banner
+  }" "$CONFIG_FILE" # updates the config file to enable the partner banner
+fi
+
+# If there's not a set system modal, we'll attempt to set it from activation json
+CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
+if [[ -z "$CURRENT_SYS_MODEL" ]]; then
+  ACTIVATION_DIR="/boot/config/activation"
+  ACTIVATION_JSON_EXTENSION=".activationcode"
+  # get the first file in the dir that matches the extension and parse the JSON to see if there's a sys_model key with a value
+  ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
+
+  if [[ -f "$ACTIVATION_JSON" ]]; then
+    PARTNER_SYS_MODEL=$(jq -r '.sysModel' "$ACTIVATION_JSON" 2>/dev/null || true)
+    PARTNER_SYS_MODEL=$(echo "$PARTNER_SYS_MODEL" | sed 's/["\\]//g') # remove quotes and backslashes
+
+    if [[ -n "$PARTNER_SYS_MODEL" ]]; then
+      echo "⏳ Please wait...Setting > Identification > Model"
+      emcmd "SYS_MODEL=$PARTNER_SYS_MODEL&changeNames=Apply"
+      echo "✅ Identification > Model set: $PARTNER_SYS_MODEL"
+    fi
+  fi
 fi
 
 # start background process to install/start the api and flash backup
@@ -872,26 +891,27 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
-# undo partner banner
+# restores the original webgui banner if it was replaced by the partner banner
 WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
-WEBGUI_BANNER="$WEBGUI_IMAGES_DIR/banner.png"
+WEBGUI_BANNER_OG="$WEBGUI_IMAGES_DIR/banner.png"
+WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-if [[ -f "$WEBGUI_BANNER-" ]]; then
-  cp -f "$WEBGUI_BANNER-" "$WEBGUI_BANNER"
-  rm -f "$WEBGUI_BANNER-"
-fi
+if [[ -f $WEBGUI_BANNER_BK ]]; then
+  cp -f $WEBGUI_BANNER_BK $WEBGUI_BANNER_OG
+  rm -f $WEBGUI_BANNER_BK
 
-# if there's not a custom banner, set display banner to no aka empty string
-# otherwise leave this display setting alone to keep the user's custom banner
-CUSTOM_BANNER="/boot/config/plugins/dynamix/banner.png"
+  # if there's not a custom banner, set display banner to no aka empty string
+  # otherwise leave this display setting alone to keep the user's custom banner
+  CUSTOM_BANNER="/boot/config/plugins/dynamix/banner.png"
 
-if [[ ! -f "$CUSTOM_BANNER" ]]; then
-  CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
-  CONFIG_SECTION="display"
-  CONFIG_KEY="banner"
-  CONFIG_NEW_VALUE=""
+  if [[ ! -f "$CUSTOM_BANNER" ]]; then
+    CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
+    CONFIG_SECTION="display"
+    CONFIG_KEY="banner"
+    CONFIG_NEW_VALUE=""
 
-  sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/" "$CONFIG_FILE"
+    sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/" "$CONFIG_FILE"
+  fi
 fi
 
 echo
