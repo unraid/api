@@ -27,7 +27,6 @@ const showErrorIcon = computed(() => errors.value.length || stateData.value.erro
 
 const text = computed((): string => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') { return props.t('Fix Error'); }
-  if (!registered.value && connectPluginInstalled.value) { return props.t('Sign In'); }
   return '';
 });
 
