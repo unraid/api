@@ -890,7 +890,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           if [[ $? -ne 0 ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
           fi
-          echo "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg # set the custom icon in the config file
+          echo -n "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg # set the custom icon in the config file, -n to avoid newline which would break the parsing of the file in DashStats.page in the webgui
           echo "case: case-model.png" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo "🖼️ Setting up included case model icon"
