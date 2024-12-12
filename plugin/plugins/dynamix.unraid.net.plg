@@ -520,7 +520,7 @@ fi
 # This effectively removes the old notification bell from the webgui (via DefaultPageLayout.php).
 TMP_FILE=$(mktemp)
 grep -v "id='bell'\|#bell" "$FILE" > "$TMP_FILE"
-mv "$TMP_FILE" "$FILE_PATH"
+mv "$TMP_FILE" "$FILE"
 echo "Removed notification-bell-related lines from $FILE"
 
 # patch: showchanges, starting with 6.11.0-rc1
