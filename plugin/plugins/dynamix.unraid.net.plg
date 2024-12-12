@@ -695,6 +695,11 @@ if [[ -n "${ADDTEXT1}" || -n "${ADDTEXT2}" || -n "${ADDTEXT3}" ]]; then
   mv "${TMP}" "${FILE}"
 fi
 
+# Restore the upgradepkg binary if it exists and the original does not
+if [[ -f /sbin/upgradepkg- && ! -f /sbin/upgradepkg ]]; then
+  cp -f /sbin/upgradepkg- /sbin/upgradepkg
+fi
+
 # install the main txz
 upgradepkg --install-new --reinstall "${MAINTXZ}"
 
