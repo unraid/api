@@ -76,6 +76,7 @@ onUnmounted(() => {
     :title="title"
     :title-in-main="true"
     :description="description"
+    overlay-opacity="bg-opacity-90"
     max-width="max-w-640px"
   >
     <template #header>

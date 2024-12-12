@@ -16,6 +16,7 @@ export interface Props {
   title?: string;
   titleInMain?: boolean;
   headerJustifyCenter?: boolean;
+  overlayOpacity?: string;
 }
 const props = withDefaults(defineProps<Props>(), {
   centerContent: true,
@@ -29,6 +30,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: '',
   titleInMain: false,
   headerJustifyCenter: true,
+  overlayOpacity: 'bg-opacity-80',
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -76,7 +78,8 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           leave-to="opacity-0"
         >
           <div
-            class="fixed inset-0 z-0 bg-black bg-opacity-80 transition-opacity"
+            class="fixed inset-0 z-0 bg-black transition-opacity"
+            :class="overlayOpacity"
             :title="t('Click to close modal')"
             @click="closeModal"
           />
