@@ -22,7 +22,6 @@ import { cn } from '~/components/shadcn/utils';
 const props = withDefaults(
   defineProps<{
     class?: string;
-    /** hasdfsa */
     loading: boolean;
     error: Error | null | undefined;
   }>(),

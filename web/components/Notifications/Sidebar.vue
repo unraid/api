@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
-import { useMutation } from '@vue/apollo-composable';
+import { useMutation, useQuery } from '@vue/apollo-composable';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
-import { archiveAllNotifications, deleteAllNotifications } from './graphql/notification.query';
+import {
+  archiveAllNotifications,
+  deleteAllNotifications,
+  notificationsOverview,
+} from './graphql/notification.query';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
 const { mutate: deleteAll, loading: loadingDeleteAll } = useMutation(deleteAllNotifications);
@@ -23,13 +27,24 @@ const confirmAndDeleteAll = async () => {
     await deleteAll();
   }
 };
+
+const { result } = useQuery(notificationsOverview, null, {
+  pollInterval: 2_000, // 2 seconds
+});
+
+const overview = computed(() => {
+  if (!result.value) {
+    return;
+  }
+  return result.value.notifications.overview;
+});
 </script>
 
 <template>
   <Sheet>
     <SheetTrigger @click="determineTeleportTarget">
       <span class="sr-only">Notifications</span>
-      <NotificationsIndicator />
+      <NotificationsIndicator :overview="overview" />
     </SheetTrigger>
 
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
@@ -51,8 +66,12 @@ const confirmAndDeleteAll = async () => {
         <Tabs default-value="unread" class="flex-1 flex flex-col min-h-0" activation-mode="manual">
           <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
             <TabsList class="ml-[1px]">
-              <TabsTrigger value="unread"> Unread </TabsTrigger>
-              <TabsTrigger value="archived"> Archived </TabsTrigger>
+              <TabsTrigger value="unread">
+                Unread <span v-if="overview">({{ overview.unread.total }})</span>
+              </TabsTrigger>
+              <TabsTrigger value="archived">
+                Archived <span v-if="overview">({{ overview.archive.total }})</span>
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="unread">
               <Button
