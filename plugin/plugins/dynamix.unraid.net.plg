@@ -516,6 +516,13 @@ if [[ -n $LINENUM ]]; then
   mv -f "$FILE~" "$FILE"
 fi
 
+# Remove lines containing id='bell' or #bell and write to intermediate temporary file.
+# This effectively removes the old notification bell from the webgui (via DefaultPageLayout.php).
+TMP_FILE=$(mktemp)
+grep -v "id='bell'\|#bell" "$FILE" > "$TMP_FILE"
+mv "$TMP_FILE" "$FILE_PATH"
+echo "Removed notification-bell-related lines from $FILE"
+
 # patch: showchanges, starting with 6.11.0-rc1
 #        ShowChanges.php, in 6.10
 # search text:       $valid = ['/var/tmp/','/tmp/plugins/'];
