@@ -5,19 +5,19 @@ import { cn } from "@/lib/utils";
 
 interface Props {
   variant?:
-    | "default"
+    | "primary"
     | "destructive"
     | "outline"
     | "secondary"
     | "ghost"
     | "link";
-  size?: "default" | "sm" | "lg" | "icon";
+  size?: "sm" | "md" | "lg" | "icon";
   class?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  variant: "default",
-  size: "default",
+  variant: "primary",
+  size: "md",
 });
 
 const buttonClass = computed(() => {
