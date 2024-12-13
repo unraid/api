@@ -318,7 +318,7 @@ class WebComponentTranslations
             'Then go to Tools > Registration to manually install it' => _('Then go to Tools > Registration to manually install it'),
             'This may indicate a complex network that will not work with this Remote Access solution.' => _('This may indicate a complex network that will not work with this Remote Access solution.'),
             'This update will require a reboot' => _('This update will require a reboot'),
-            'To get started, let\'s activate your license and create an unraid.net account to provide access to account features like key management and support.' => _('To get started, lets activate your license and create an unraid.net account to provide access to account features like key management and support.'),
+            'To get started, let\'s activate your license and create an Unraid.net Account to provide access to account features like key management and support.' => _('To get started, lets activate your license and create an Unraid.net Account to provide access to account features like key management and support.'),
             'Toggle on/off server accessibility with dynamic remote access. Automatically turn on UPnP and open a random WAN port on your router at the click of a button and close off access in seconds.' => _('Toggle on/off server accessibility with dynamic remote access.') . ' ' . _('Automatically turn on UPnP and open a random WAN port on your router at the click of a button and close off access in seconds.'),
             'Too Many Devices' => _('Too Many Devices'),
             'Transfer License to New Flash' => _('Transfer License to New Flash'),
