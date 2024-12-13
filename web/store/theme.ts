@@ -78,16 +78,7 @@ export const useThemeStore = defineStore('theme', () => {
     body.style.setProperty('--header-text-primary', headerTextPrimary);
     body.style.setProperty('--header-text-secondary', headerTextSecondary);
     body.style.setProperty('--header-background-color', headerBackgroundColor);
-    body.style.setProperty('--color-gamma-opaque', hexToRgba(headerTextSecondary, 0.25));
-    // box shadow
-    body.style.setProperty(
-      '--shadow-beta',
-      `0 25px 50px -12px ${hexToRgba(headerBackgroundColor, 0.15)}`
-    );
-    body.style.setProperty('--ring-offset-shadow', `0 0 ${headerBackgroundColor}`);
-    body.style.setProperty('--ring-shadow', `0 0 ${headerBackgroundColor}`);
-    body.style.setProperty('--dev-test', `0 0 ${headerBackgroundColor}`);
-
+    
     if (darkMode.value) {
       document.body.classList.add('dark');
     } else {

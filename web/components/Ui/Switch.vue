@@ -22,7 +22,7 @@ const checked = ref(false);
         :class="checked ? 'bg-gradient-to-r from-unraid-red to-orange' : 'bg-transparent'"
         class="relative inline-flex h-24px w-[48px] items-center rounded-full overflow-hidden"
       >
-        <span v-show="!checked" class="absolute z-0 inset-0 opacity-10 bg-beta" />
+        <span v-show="!checked" class="absolute z-0 inset-0 opacity-10 bg-primary" />
         <span
           :class="checked ? 'translate-x-[26px]' : 'translate-x-[2px]'"
           class="inline-block h-20px w-20px transform rounded-full bg-white transition"

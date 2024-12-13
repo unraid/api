@@ -174,7 +174,7 @@ const unraidConnectWelcome = computed(() => {
   <div class="flex flex-col gap-y-8px min-w-300px max-w-350px">
     <header v-if="connectPluginInstalled" class="flex flex-col items-start justify-between mt-8px mx-8px">
       <h2 class="text-18px leading-none flex flex-row gap-x-4px items-center justify-between">
-        <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-beta w-[120px]" />
+        <BrandLogoConnect gradient-start="currentcolor" gradient-stop="currentcolor" class="text-foreground w-[120px]" />
         <UpcBeta />
       </h2>
       <template v-if="unraidConnectWelcome">
