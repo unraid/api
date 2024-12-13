@@ -185,7 +185,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
             return incoming;
           },
         },
-        deleteAllNotifications: {
+        deleteArchivedNotifications: {
           merge(_, incoming, { cache }) {
             cache.evict({ fieldName: 'notifications' });
             cache.gc();

@@ -632,7 +632,8 @@ export type Mutation = {
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createNotification: Notification;
-  deleteAllNotifications: NotificationOverview;
+  /** Deletes all archived notifications on server. */
+  deleteArchivedNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
@@ -2356,7 +2357,7 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
   createNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationcreateNotificationArgs, 'input'>>;
-  deleteAllNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
+  deleteArchivedNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   deleteNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationdeleteNotificationArgs, 'id' | 'type'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
   enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;

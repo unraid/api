@@ -3,14 +3,14 @@ import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@ne
 
 import { UseRoles } from 'nest-access-control';
 
-import type {
+import { AppError } from '@app/core/errors/app-error';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
     NotificationType,
 } from '@app/graphql/generated/api/types';
-import { AppError } from '@app/core/errors/app-error';
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { Importance } from '@app/graphql/generated/client/graphql';
 
 import { NotificationsService } from './notifications.service';
@@ -73,8 +73,8 @@ export class NotificationsResolver {
     }
 
     @Mutation()
-    public async deleteAllNotifications(): Promise<NotificationOverview> {
-        return this.notificationsService.deleteAllNotifications();
+    public async deleteArchivedNotifications(): Promise<NotificationOverview> {
+        return this.notificationsService.deleteNotifications(NotificationType.ARCHIVE);
     }
 
     @Mutation()
