@@ -48,7 +48,7 @@ const classes = computed(() => {
       buttonColors = 'text-white bg-transparent border-white hover:text-black focus:text-black hover:bg-white focus:bg-white';
       break;
     case 'underline':
-      buttonColors = 'opacity-75 underline border-transparent transition hover:text-alpha hover:bg-beta hover:border-beta focus:text-alpha focus:bg-beta focus:border-beta hover:opacity-100 focus:opacity-100';
+      buttonColors = 'opacity-75 underline border-transparent transition hover:text-primary hover:bg-muted hover:border-muted focus:text-primary focus:bg-muted focus:border-muted hover:opacity-100 focus:opacity-100';
       break;
     case 'underline-hover-red':
       buttonColors = 'opacity-75 underline border-transparent transition hover:text-white hover:bg-unraid-red hover:border-unraid-red focus:text-white focus:bg-unraid-red focus:border-unraid-red hover:opacity-100 focus:opacity-100';

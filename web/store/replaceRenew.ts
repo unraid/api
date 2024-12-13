@@ -64,7 +64,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     switch (keyLinkedStatus.value) {
       case 'checking':
         return {
-          color: 'gamma',
+          color: 'gray',
           icon: BrandLoadingWhite,
           text: 'Checking...',
         };
@@ -110,7 +110,7 @@ export const useReplaceRenewStore = defineStore('replaceRenewCheck', () => {
     switch (replaceStatus.value) {
       case 'checking':
         return {
-          color: 'gamma',
+          color: 'gray',
           icon: BrandLoadingWhite,
           text: 'Checking...',
         };

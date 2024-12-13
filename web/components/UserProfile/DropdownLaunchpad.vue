@@ -56,7 +56,7 @@ const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value ==
 @tailwind utilities;
 
 .DropdownWrapper_blip {
-  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-beta);
+  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-foreground);
 
   &::before {
     @apply absolute z-20 block;
@@ -67,7 +67,7 @@ const showExpireTime = computed(() => (state.value === 'TRIAL' || state.value ==
     top: -10px;
     right: 42px;
     border-right: 11px solid transparent;
-    border-bottom: 11px solid var(--color-alpha);
+    border-bottom: 11px solid var(--color-popover);
     border-left: 11px solid transparent;
   }
 }
