@@ -73,7 +73,7 @@ export class NotificationsResolver {
     }
 
     @Mutation()
-    public async deleteAllNotifications(): Promise<NotificationOverview> {
+    public async deleteArchivedNotifications(): Promise<NotificationOverview> {
         return this.notificationsService.deleteNotifications(NotificationType.ARCHIVE);
     }
 

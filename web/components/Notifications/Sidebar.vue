@@ -5,12 +5,12 @@ import { useMutation, useQuery } from '@vue/apollo-composable';
 import { Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
-  deleteAllNotifications,
+  deleteArchivedNotifications,
   notificationsOverview,
 } from './graphql/notification.query';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
-const { mutate: deleteAll, loading: loadingDeleteAll } = useMutation(deleteAllNotifications);
+const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
@@ -20,11 +20,11 @@ const confirmAndArchiveAll = async () => {
   }
 };
 
-const confirmAndDeleteAll = async () => {
+const confirmAndDeleteArchives = async () => {
   if (
     confirm('This will permanently delete all archived notifications currently on your Unraid server. Continue?')
   ) {
-    await deleteAll();
+    await deleteArchives();
   }
 };
 
@@ -90,7 +90,7 @@ const overview = computed(() => {
                 variant="link"
                 size="sm"
                 class="text-foreground hover:text-destructive transition-none"
-                @click="confirmAndDeleteAll"
+                @click="confirmAndDeleteArchives"
               >
                 Delete All
               </Button>

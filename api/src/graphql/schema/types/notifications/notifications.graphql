@@ -20,7 +20,7 @@ type Mutation {
     """
     Deletes all archived notifications on server.
     """
-    deleteAllNotifications: NotificationOverview!
+    deleteArchivedNotifications: NotificationOverview!
     """
     Marks a notification as archived.
     """
