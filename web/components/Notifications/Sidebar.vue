@@ -22,7 +22,7 @@ const confirmAndArchiveAll = async () => {
 
 const confirmAndDeleteAll = async () => {
   if (
-    confirm('This will permanently delete all notifications currently on your Unraid server. Continue?')
+    confirm('This will permanently delete all archived notifications currently on your Unraid server. Continue?')
   ) {
     await deleteAll();
   }

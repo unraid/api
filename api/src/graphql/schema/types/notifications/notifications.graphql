@@ -17,6 +17,9 @@ type Query {
 type Mutation {
     createNotification(input: NotificationData!): Notification!
     deleteNotification(id: String!, type: NotificationType!): NotificationOverview!
+    """
+    Deletes all archived notifications on server.
+    """
     deleteAllNotifications: NotificationOverview!
     """
     Marks a notification as archived.

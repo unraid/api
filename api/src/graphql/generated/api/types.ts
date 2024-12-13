@@ -632,6 +632,7 @@ export type Mutation = {
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
   createNotification: Notification;
+  /** Deletes all archived notifications on server. */
   deleteAllNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
   /** Delete a user */
