@@ -77,7 +77,7 @@ onUnmounted(() => {
     :title-in-main="true"
     :description="description"
     overlay-opacity="bg-opacity-90"
-    max-width="max-w-640px"
+    max-width="max-w-800px"
   >
     <template #header>
       <img src="https://placehold.co/300x100/004225/white?text=Gridstack+powered+by+Unraid" class="max-w-[175px]">
