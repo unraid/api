@@ -36,14 +36,7 @@ install() {
     echo "Note: ${flash}/webComps/unraid.min.js is missing"
   fi
 
-  cd "${api_base_directory}" && npm link
-
-  [[ ! -f "${unraid_binary_path}" ]] && echo "unraid-api install failed with missing executable" && exit 1
-
-  # link the executable in sbin and bin
-  ln -sf "${unraid_binary_path}" /usr/sbin/unraid-api
-  ln -sf "${unraid_binary_path}" /usr/bin/unraid-api
-
+  cd "${api_base_directory}" && npm link --force
   # bail if expected file does not exist
   [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
