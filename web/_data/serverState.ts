@@ -134,9 +134,19 @@ const osVersionBranch = "stable";
 
 export const serverState: Server = {
   activationCodeData: {
-    "code": "4YCW3VJAYF",
-    "partnerName": "Partner Name",
-    "partnerUrl": "https://example.com",
+    "code": "CC2KP3TDRF",
+    "partnerName": "OEM Partner",
+    "partnerUrl": "https://unraid.net/OEM+Partner",
+    "sysModel": "OEM Partner v1",
+    "comment": "OEM Partner NAS",
+    "caseIcon": "case-model.png",
+    "header": "#ffffff",
+    "headermetacolor": "#eeeeee",
+    "background": "#000000",
+    "showBannerGradient": "yes",
+    "partnerCaseIconPath": "/boot/config/activation/assets/case-model.png",
+    "paertnerBannerPath": "/boot/config/activation/assets/banner.png",
+    "partnerLogoPath": "/boot/config/activation/assets/logo.png"
   },
   apiKey: "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
   avatar: "https://source.unsplash.com/300x300/?portrait",
