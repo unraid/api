@@ -854,14 +854,32 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         echo "⚠️ Warning: Failed to replace the original banner with the partner banner."
       fi
 
+      HEADER_TEXT_COLOR=$(jq -r '.header // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+      HEADER_META_COLOR=$(jq -r '.headermetacolor // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+      HEADER_BG_COLOR=$(jq -r '.background // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+      HEADER_SHOW_BANNER_GRADIENT=$(jq -r '.showBannerGradient // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+
+      # Initialize array for parameters
+      declare -A params
+
+      # Check if variables have values and add them to the array, while stripping any leading # from the color values
+      [[ -n $HEADER_TEXT_COLOR ]] && params["header"]=${HEADER_TEXT_COLOR//\#/}
+      [[ -n $HEADER_META_COLOR ]] && params["headermetacolor"]=${HEADER_META_COLOR//\#/}
+      [[ -n $HEADER_BG_COLOR ]] && params["background"]=${HEADER_BG_COLOR//\#/}
+      [[ -n $HEADER_SHOW_BANNER_GRADIENT ]] && params["showBannerGradient"]=$HEADER_SHOW_BANNER_GRADIENT
+      params["banner"]="image"
+
       CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
       CONFIG_SECTION="display"
-      CONFIG_KEY="banner"
-      CONFIG_NEW_VALUE="\"image\""
-      # updates the config file to enable the partner "default" banner
-      sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
-        /$CONFIG_KEY=\"?(image)\"?/! s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/
-      }" "$CONFIG_FILE"
+      # Iterate over the params array and update the config file
+      for key in "${!params[@]}"; do
+        value=${params[$key]}
+        sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
+          s/^($key=).*/\1\"$value\"/
+          t
+          a$key=\"$value\"
+        }" "$CONFIG_FILE"
+      done
     fi
 
     # Set the case model icon, if we haven't done it once already
