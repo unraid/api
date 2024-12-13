@@ -14,7 +14,9 @@ export interface Props {
 const props = defineProps<Props>();
 
 const activationCodeStore = useActivationCodeStore();
-const { partnerName, partnerLogoPath, showModal } = storeToRefs(activationCodeStore);
+const { partnerLogoPath, partnerName, partnerUrl, showModal } = storeToRefs(
+  activationCodeStore
+);
 const purchaseStore = usePurchaseStore();
 
 const title = computed<string>(() =>
@@ -88,8 +90,12 @@ onUnmounted(() => {
     max-width="max-w-800px"
   >
     <template v-if="partnerLogoPath" #header>
-      <img :src="partnerLogoPath" class="w-full max-h-8" />
+      <a v-if="partnerUrl" :href="partnerUrl">
+        <img :src="partnerLogoPath" class="w-full max-h-8" />
+      </a>
+      <img v-else :src="partnerLogoPath" class="w-full max-h-8" />
     </template>
+
     <template #main>
       <div class="flex justify-center gap-4 mx-auto w-full">
         <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
