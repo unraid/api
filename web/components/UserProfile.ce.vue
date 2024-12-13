@@ -125,7 +125,7 @@ onBeforeMount(() => {
         </span>
       </h1>
 
-      <div class="block w-2px h-24px bg-gamma" />
+      <div class="block w-2px h-24px bg-popover" />
 
       <!-- Keep the sidebar out of staging/prod builds, but easily accessible for development -->
       <NotificationsSidebar />
@@ -144,7 +144,7 @@ onBeforeMount(() => {
 @tailwind utilities;
 
 .DropdownWrapper_blip {
-  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-beta);
+  box-shadow: var(--ring-offset-shadow), var(--ring-shadow), var(--shadow-popover-foreground);
 
   &::before {
     @apply absolute z-20 block;
