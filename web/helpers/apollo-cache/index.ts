@@ -1,6 +1,10 @@
 import { InMemoryCache, type InMemoryCacheConfig } from '@apollo/client/core/index.js';
-import type { NotificationOverview } from '~/composables/gql/graphql';
-import { NotificationType } from '../../composables/gql/typename';
+import {
+  getNotifications,
+  notificationsOverview,
+} from '~/components/Notifications/graphql/notification.query';
+import { NotificationType, type NotificationOverview } from '~/composables/gql/graphql';
+import { NotificationType as NotificationCacheType } from '~/composables/gql/typename';
 import { mergeAndDedup } from './merge';
 
 /**------------------------------------------------------------------------
@@ -60,9 +64,9 @@ const defaultCacheConfig: InMemoryCacheConfig = {
         overview: {
           /**
            * Busts notification cache when new unread notifications are detected.
-           * 
+           *
            * This allows incoming notifications to appear in the sidebar without reloading the page.
-           * 
+           *
            * @param existing - Existing overview data in cache
            * @param incoming - New overview data from server
            * @param context - Apollo context containing cache instance
@@ -106,6 +110,60 @@ const defaultCacheConfig: InMemoryCacheConfig = {
             return incoming; // Return the incoming data so Apollo knows the result of the mutation
           },
         },
+        archiveNotification: {
+          /**
+           * Optimistically decrements unread total from overview &
+           * Ensures newly archived notifications appear in the archive list without a page reload.
+           *
+           * When a notification is archived, we need to evict the cached archive list to force a refetch.
+           * This ensures the archived notification appears in the correct sorted position.
+           *
+           * If the archive list is empty, we evict the entire notifications cache since evicting an empty
+           * list has no effect. This forces a full refetch of all notification data.
+           * Note: This may cause temporary jitter with infinite scroll.
+           *
+           * This function:
+           * 
+           * 1. Optimistically updates notification overview
+           * 2. Checks if the cache has an archive list. If not, this function is a no-op.
+           * 3. If the list has items, evicts just the archive list
+           * 4. If it is empty, evicts the entire notifications cache
+           * 5. Runs garbage collection to clean up orphaned references
+           * 6. Returns the original mutation result
+           *
+           * @param _ - Existing cache value (unused)
+           * @param incoming - Result (i.e. the archived notification) from the server after archiving
+           * @param cache - Apollo cache instance
+           * @returns The incoming result to be cached
+           */
+          merge(_, incoming, { cache }) {
+            cache.updateQuery({ query: notificationsOverview }, (data) => {
+              if (!data) return;
+              const update = structuredClone(data);
+              update.notifications.overview.unread.total--;
+              return update;
+            });
+
+            const archiveQuery = cache.readQuery({
+              query: getNotifications,
+              // @ts-expect-error the cache only uses the filter type; the limit & offset are superfluous.
+              variables: { filter: { type: NotificationType.Archive } },
+            });
+            if (!archiveQuery) return incoming;
+
+            if (archiveQuery.notifications.list.length === 0) {
+              cache.evict({ fieldName: 'notifications' });
+            } else {
+              cache.evict({
+                id: archiveQuery.notifications.id,
+                fieldName: 'list',
+                args: { filter: { type: NotificationType.Archive } },
+              });
+            }
+            cache.gc();
+            return incoming;
+          },
+        },
         deleteNotification: {
           /**
            * Ensures that a deleted notification is removed from the cache +
@@ -119,10 +177,7 @@ const defaultCacheConfig: InMemoryCacheConfig = {
            */
           merge(_, incoming, { cache, args }) {
             if (args?.id) {
-              const id = cache.identify({
-                id: args.id,
-                __typename: NotificationType,
-              });
+              const id = cache.identify({ id: args.id, __typename: NotificationCacheType });
               cache.evict({ id });
             }
             // Removes references to evicted notification, preventing dangling references

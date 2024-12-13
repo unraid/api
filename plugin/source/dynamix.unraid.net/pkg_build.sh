@@ -24,12 +24,18 @@ mkdir -p "${tmpdir}"
 # shellcheck disable=SC2046
 cp --parents -f $(find . -type f ! \( -iname ".DS_Store" -o -iname "pkg_build.sh" -o -iname "makepkg" -o -iname "explodepkg" -o -iname "sftp-config.json" \)) "${tmpdir}/"
 cd "${tmpdir}" || exit 1
+if [[ -n "${PR}" ]]; then
+  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect (PR #${PR})\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
+elif [[ "${env}" == "staging" ]]; then
+  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
+fi
+
 if [[ "${env}" == "staging" ]]; then
   # create README.md for staging plugin
   mv "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging"
-  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
   sed -i "s@dynamix.unraid.net.plg@dynamix.unraid.net.staging.plg@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
 fi
+
 chmod 0755 -R .
 sudo chown root:root -R .
 sudo "${MAINDIR}/source/dynamix.unraid.net/makepkg" -l y -c y "${txzfile}"
