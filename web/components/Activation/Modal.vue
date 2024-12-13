@@ -1,11 +1,11 @@
 <script lang="ts" setup>
-import { ArrowTopRightOnSquareIcon } from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
-import type { ComposerTranslation } from 'vue-i18n';
+import { ArrowTopRightOnSquareIcon } from "@heroicons/vue/24/solid";
+import { storeToRefs } from "pinia";
+import type { ComposerTranslation } from "vue-i18n";
 
-import { useActivationCodeStore } from '~/store/activationCode';
-import { usePurchaseStore } from '~/store/purchase';
-import type { ButtonProps } from '~/types/ui/button';
+import { useActivationCodeStore } from "~/store/activationCode";
+import { usePurchaseStore } from "~/store/purchase";
+import type { ButtonProps } from "~/types/ui/button";
 
 export interface Props {
   t: ComposerTranslation;
@@ -13,29 +13,37 @@ export interface Props {
 
 const props = defineProps<Props>();
 
-const activationCodeStore = useActivationCodeStore()
-const { partnerName, showModal } = storeToRefs(activationCodeStore);
+const activationCodeStore = useActivationCodeStore();
+const { partnerName, partnerLogoPath, showModal } = storeToRefs(activationCodeStore);
 const purchaseStore = usePurchaseStore();
 
-const title = computed<string>(() => partnerName.value ? props.t(`Welcome to your new ${0} system, powered by Unraid!`, partnerName.value) : props.t('Welcome to Unraid!'));
-const description = computed<string>(() => props.t(`To get started, let's activate your license and create an unraid.net account to provide access to account features like key management and support.`));
+const title = computed<string>(() =>
+  partnerName.value
+    ? props.t(`Welcome to your new {0} system, powered by Unraid!`, [partnerName.value])
+    : props.t("Welcome to Unraid!")
+);
+const description = computed<string>(() =>
+  props.t(
+    `To get started, let's activate your license and create an Unraid.net Account to provide access to account features like key management and support.`
+  )
+);
 const docsButtons = computed<ButtonProps[]>(() => {
   return [
     {
-      btnStyle: 'underline',
+      btnStyle: "underline",
       external: true,
-      href: 'https://docs.unraid.net/unraid-os/faq/licensing-faq/',
+      href: "https://docs.unraid.net/unraid-os/faq/licensing-faq/",
       iconRight: ArrowTopRightOnSquareIcon,
-      size: '14px',
-      text: props.t('More about Licensing'),
+      size: "14px",
+      text: props.t("More about Licensing"),
     },
     {
-      btnStyle: 'underline',
+      btnStyle: "underline",
       external: true,
-      href: 'https://docs.unraid.net/account/',
+      href: "https://docs.unraid.net/account/",
       iconRight: ArrowTopRightOnSquareIcon,
-      size: '14px',
-      text: props.t('More about Unraid.net Accounts'),
+      size: "14px",
+      text: props.t("More about Unraid.net Accounts"),
     },
   ];
 });
@@ -45,10 +53,10 @@ const docsButtons = computed<ButtonProps[]>(() => {
  * @todo - temporary solution until we have a better way to handle this
  */
 onMounted(() => {
-  const keySequence = ['Escape', 'h'];
+  const keySequence = ["Escape", "h"];
   let sequenceIndex = 0;
 
-  window.addEventListener('keydown', (event) => {
+  window.addEventListener("keydown", (event) => {
     if (event.key === keySequence[sequenceIndex]) {
       sequenceIndex++;
     } else {
@@ -57,13 +65,13 @@ onMounted(() => {
 
     if (sequenceIndex === keySequence.length) {
       activationCodeStore.setModalHidden(true);
-      window.location.href = '/Tools/Registration';
+      window.location.href = "/Tools/Registration";
     }
   });
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', () => {});
+  window.removeEventListener("keydown", () => {});
 });
 </script>
 
@@ -74,21 +82,17 @@ onUnmounted(() => {
     :open="showModal"
     :show-close-x="false"
     :title="title"
-    :title-in-main="true"
+    :title-in-main="partnerLogoPath"
     :description="description"
     overlay-opacity="bg-opacity-90"
     max-width="max-w-800px"
   >
-    <template #header>
-      <img src="https://placehold.co/300x100/004225/white?text=Gridstack+powered+by+Unraid" class="max-w-[175px]">
+    <template v-if="partnerLogoPath" #header>
+      <img :src="partnerLogoPath" class="w-full max-h-8" />
     </template>
     <template #main>
       <div class="flex justify-center gap-4 mx-auto w-full">
-        <BrandButton
-          v-for="button in docsButtons"
-          :key="button.text"
-          v-bind="button"
-        />
+        <BrandButton v-for="button in docsButtons" :key="button.text" v-bind="button" />
       </div>
     </template>
     <template #footer>
