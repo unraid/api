@@ -137,7 +137,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
             </div>
 
             <footer v-if="$slots['footer']" class="text-14px relative p-16px md:p-24px">
-              <div class="absolute z-0 inset-0 opacity-10 bg-beta" />
+              <div class="absolute z-0 inset-0 opacity-10 bg-popover" />
               <div class="relative z-10">
                 <slot name="footer" />
               </div>
