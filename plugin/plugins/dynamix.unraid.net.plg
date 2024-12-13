@@ -826,7 +826,7 @@ fi
 
 # Activation and partner setup
 ACTIVATION_DIR="/boot/config/activation"
-# if the dir exists but the setup flag does not, proceed with setup
+
 if [[ -d "$ACTIVATION_DIR" ]]; then
   ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"
   ACTIVATION_JSON_EXTENSION=".activationcode"
@@ -843,7 +843,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
     WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-    # On uninstall of the PLG this the default banner is reverted. So we won't rely on the setup flag. Instead whether the backup file doesn't exist.
+    # On uninstall of the PLG the default banner is reverted. So we won't rely on the setup flag. Instead whether the backup file doesn't exist.
     if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
       cp -f "$WEBGUI_BANNER_OG" "$WEBGUI_BANNER_BK" 2>/dev/null
       if [[ $? -ne 0 ]]; then
@@ -862,7 +862,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       # Initialize array for parameters
       declare -A params
 
-      # Check if variables have values and add them to the array, while stripping any leading # from the color values
+      # Check if variables have values and add them to the array, while stripping any leading # from the color values b/c the settings config doesn't use them
       [[ -n $HEADER_TEXT_COLOR ]] && params["header"]=${HEADER_TEXT_COLOR//\#/}
       [[ -n $HEADER_META_COLOR ]] && params["headermetacolor"]=${HEADER_META_COLOR//\#/}
       [[ -n $HEADER_BG_COLOR ]] && params["background"]=${HEADER_BG_COLOR//\#/}
@@ -882,6 +882,10 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       done
     fi
 
+    #
+    # @todo: set the custom header logo
+    #
+
     # Set the case model icon, if we haven't done it once already
     if ! grep -q "case" "$ACTIVATION_SETUP_FLAG"; then
       # if the system has a custom icon already set, we need to skip this step
@@ -896,19 +900,16 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           cp -f "$PARTNER_CASE_MODEL" "/usr/local/emhttp/webGui/images/case-model.png"
           if [[ $? -ne 0 ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
+          else
+            echo -n "$PARTNER_CASE_MODEL" > /boot/config/plugins/dynamix/case-model.cfg # set the custom icon in the config file
+            echo "case: $PARTNER_CASE_MODEL" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
           fi
-          echo -n "case-model.png" > /boot/config/plugins/dynamix/case-model.cfg # set the custom icon in the config file, -n to avoid newline which would break the parsing of the file in DashStats.page in the webgui
-          echo "case: case-model.png" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo -n "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg # set the parsed icon name in the config file
           echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
         fi
       fi
     fi
-
-    #
-    # @todo: set the custom header logo
-    #
 
     # Set the server model and description if we haven't already done it once
     if ! grep -q "identity" "$ACTIVATION_SETUP_FLAG"; then
