@@ -27,7 +27,7 @@ const showLaunchpad = computed(() => state.value === 'ENOKEYFILE');
     leave-from="opacity-100"
     leave-to="opacity-0 translate-y-[16px]"
   >
-    <UpcDropdownWrapper class="DropdownWrapper_blip text-beta absolute z-30 top-full right-0 transition-all">
+    <UpcDropdownWrapper class="DropdownWrapper_blip text-foreground absolute z-30 top-full right-0 transition-all">
       <UpcDropdownLaunchpad v-if="showLaunchpad" :t="t" />
       <UpcDropdownContent v-else :t="t" />
     </UpcDropdownWrapper>

@@ -23,7 +23,7 @@ withDefaults(defineProps<{
       hover && 'hover:shadow-orange/50 transition-all',
       error && 'text-white bg-unraid-red border-unraid-red',
       warning && 'text-black bg-yellow-100 border-yellow-100',
-      !error && !warning && 'text-beta bg-alpha border-gamma-opaque',
+      !error && !warning && 'text-foreground bg-background border-muted',
     ]"
   >
     <slot />
