@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
+import { Button } from '@/components/shadcn/button';
 import { useMutation } from '@vue/apollo-composable';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';

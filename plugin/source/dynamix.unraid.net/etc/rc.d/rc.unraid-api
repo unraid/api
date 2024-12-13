@@ -39,7 +39,7 @@ install() {
     echo "Note: ${flash}/webComps/unraid.min.js is missing"
   fi
 
-  cd "${api_base_directory}" && npm link
+  cd "${api_base_directory}" && npm link --force
   # bail if expected file does not exist
   [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
