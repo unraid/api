@@ -29,7 +29,7 @@ export class CloudResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.CLOUD,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async cloud(): Promise<Cloud> {
         const minigraphql = checkMinigraphql();
@@ -57,7 +57,7 @@ export class CloudResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.CONNECT,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async remoteAccess(): Promise<RemoteAccess> {
         const hasWanAccess = getters.config().remote.wanaccess === 'yes';
@@ -80,7 +80,7 @@ export class CloudResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.CONNECT,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async extraAllowedOrigins(): Promise<Array<string>> {
         const extraOrigins = getExtraOrigins();
@@ -92,7 +92,7 @@ export class CloudResolver {
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.CONNECT,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async connectSignIn(@Args('input') input: ConnectSignInInput): Promise<boolean> {
         /**
@@ -105,7 +105,7 @@ export class CloudResolver {
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.CONNECT,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async connectSignOut() {
         await store.dispatch(logoutUser({ reason: 'Manual Sign Out Using API' }));
@@ -116,7 +116,7 @@ export class CloudResolver {
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.CONNECT,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async setupRemoteAccess(@Args('input') input: SetupRemoteAccessInput): Promise<boolean> {
         await store.dispatch(setupRemoteAccessThunk(input)).unwrap();

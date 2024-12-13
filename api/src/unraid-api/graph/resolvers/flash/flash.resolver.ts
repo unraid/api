@@ -11,7 +11,7 @@ export class FlashResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.FLASH,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async flash() {
         const emhttp = getters.emhttp();

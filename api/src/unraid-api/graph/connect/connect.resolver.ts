@@ -21,7 +21,7 @@ export class ConnectResolver implements ConnectResolvers {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: 'connect/dynamic-remote-access',
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public connect() {
         return {};
@@ -47,7 +47,7 @@ export class ConnectResolver implements ConnectResolvers {
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: 'connect/dynamic-remote-access',
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async enableDynamicRemoteAccess(
         @Args('input') dynamicRemoteAccessInput: EnableDynamicRemoteAccessInput

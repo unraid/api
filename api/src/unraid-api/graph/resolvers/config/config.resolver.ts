@@ -31,7 +31,7 @@ export class ConfigResolver {
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
         resource: Resource.CONFIG,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async setAdditionalAllowedOrigins(@Args('input') input: AllowedOriginInput) {
         await store.dispatch(updateAllowedOrigins(input.origins));

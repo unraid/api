@@ -13,7 +13,7 @@ export class ArrayResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ARRAY,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async array() {
         return getArrayData(store.getState);
@@ -23,7 +23,7 @@ export class ArrayResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.ARRAY,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async arraySubscription() {
         return createSubscription(PUBSUB_CHANNEL.ARRAY);

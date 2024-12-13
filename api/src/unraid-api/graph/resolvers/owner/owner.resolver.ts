@@ -12,7 +12,7 @@ export class OwnerResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.OWNER,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public async owner() {
         const { remote } = getters.config();
@@ -35,7 +35,7 @@ export class OwnerResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.OWNER,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public ownerSubscription() {
         return createSubscription(PUBSUB_CHANNEL.OWNER);

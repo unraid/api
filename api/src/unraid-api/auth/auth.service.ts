@@ -59,7 +59,12 @@ export class AuthService {
                 throw new UnauthorizedException('Invalid user session');
             }
 
-            await this.ensureUserRoles(user.id);
+            // Sync the user's roles before checking them
+            await this.syncUserRoles(user.id, user.roles);
+
+            // Now get the updated roles
+            const existingRoles = await this.authzService.getRolesForUser(user.id);
+            this.logger.debug(`User ${user.id} has roles: ${existingRoles}`);
 
             return user;
         } catch (error: unknown) {
@@ -170,16 +175,33 @@ export class AuthService {
         }
     }
 
-    private async ensureUserRoles(userId: string): Promise<void> {
+    private async syncUserRoles(userId: string, roles: Role[]): Promise<void> {
         try {
-            const existingRoles = await this.authzService.getRolesForUser(userId);
+            // Get existing roles and convert to Set
+            const existingRolesSet = new Set(
+                (await this.authzService.getRolesForUser(userId)).map((role) => role as Role)
+            );
+            const newRolesSet = new Set(roles);
 
-            if (existingRoles.length === 0) {
-                await this.authzService.addRoleForUser(userId, 'guest');
-                this.logger.debug(`Added default 'guest' role to user ${userId}`);
-            }
+            // Calculate roles to add (in new roles but not in existing)
+            const rolesToAdd = roles.filter((role) => !existingRolesSet.has(role));
+
+            // Calculate roles to remove (in existing but not in new)
+            const rolesToRemove = Array.from(existingRolesSet).filter((role) => !newRolesSet.has(role));
+
+            // Perform role updates
+            await Promise.all([
+                ...rolesToAdd.map((role) => this.authzService.addRoleForUser(userId, role)),
+                ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(userId, role)),
+            ]);
+
+            this.logger.debug(
+                `Synced roles for user ${userId}. Added: ${rolesToAdd.join(
+                    ','
+                )}, Removed: ${rolesToRemove.join(',')}`
+            );
         } catch (error: unknown) {
-            handleAuthError(this.logger, 'Failed to ensure roles for user', error, { userId });
+            handleAuthError(this.logger, 'Failed to sync roles for user', error, { userId });
         }
     }
 
@@ -190,6 +212,7 @@ export class AuthService {
      * @returns a service account that represents the user session (i.e. a webgui user).
      */
     async getSessionUser(): Promise<UserAccount> {
+        this.logger.debug('getSessionUser called!');
         return {
             id: '-1',
             description: 'UPC service account',

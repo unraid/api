@@ -42,7 +42,7 @@ export class ServicesResolver {
     @UsePermissions({
         action: AuthActionVerb.READ,
         resource: Resource.SERVICES,
-        possession: AuthPossession.OWN,
+        possession: AuthPossession.ANY,
     })
     public services(): Service[] {
         const dynamicRemoteAccess = this.getDynamicRemoteAccessService();
