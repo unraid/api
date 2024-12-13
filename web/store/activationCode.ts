@@ -5,9 +5,19 @@ import { useCallbackActionsStore } from '~/store/callbackActions';
 setActivePinia(createPinia()); /** required in web component context */
 
 export interface ActivationCodeData {
+  background?: string;
+  caseIcon?: string;
   code: string;
+  comment?: string;
+  header?: string;
+  headermetacolor?: string;
+  paertnerBannerPath?: string;
+  partnerCaseIconPath?: string;
+  partnerLogoPath?: string;
   partnerName?: string;
   partnerUrl?: string;
+  showBannerGradient?: 'yes' | 'no';
+  sysModel?: string;
 }
 
 export const useActivationCodeStore = defineStore('activationCode', () => {
@@ -20,7 +30,8 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
 
   const code = computed<string | null>(() => data.value?.code || null);
   const partnerName = computed<string | null>(() => data.value?.partnerName || null);
-  const partnerUrl = computed<string | null>(() => data.value?.partnerName || null);
+  const partnerUrl = computed<string | null>(() => data.value?.partnerUrl || null);
+  const partnerLogoPath = computed<string | null>(() => data.value?.partnerLogoPath || null);
 
   const sessionKey = 'activationCodeModalHidden';
   const modalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');
@@ -54,6 +65,7 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
     code,
     partnerName,
     partnerUrl,
+    partnerLogoPath,
     showModal,
     setData,
     setModalHidden,
