@@ -895,8 +895,6 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       done
     fi
 
-    # @todo: set the custom header logo
-
     # Set the case model icon, if we haven't done it once already
     if ! grep -q "case" "$ACTIVATION_SETUP_FLAG"; then
       # if the system has a custom icon already set, we need to skip this step
