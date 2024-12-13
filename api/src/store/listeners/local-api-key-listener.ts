@@ -1,4 +1,5 @@
 import { logger } from '@app/core/log';
+import { NODE_ENV } from '@app/environment';
 import { Role } from '@app/graphql/generated/api/types';
 import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
 import { validateApiKeyWithKeyServer } from '@app/mothership/api-key/validate-api-key-with-keyserver';
@@ -19,12 +20,16 @@ export const enableLocalApiKeyListener = () =>
         },
         async effect(_, { dispatch }) {
             try {
-                const { apiKey, username } = getters.config();
+                const { remote } = getters.config();
+                const { apikey, username } = remote;
                 // Validate the API key with the key server
-                const validationResult = await validateApiKeyWithKeyServer({
-                    apiKey: apiKey as string,
-                    flashGuid: getters.emhttp().var.flashGuid,
-                });
+                const validationResult =
+                    NODE_ENV === 'development'
+                        ? API_KEY_STATUS.API_KEY_VALID
+                        : await validateApiKeyWithKeyServer({
+                              apiKey: apikey as string,
+                              flashGuid: getters.emhttp().var.flashGuid,
+                          });
 
                 if (validationResult !== API_KEY_STATUS.API_KEY_VALID) {
                     throw new Error('API key validation failed');
