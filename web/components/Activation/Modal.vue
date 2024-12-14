@@ -14,7 +14,7 @@ export interface Props {
 const props = defineProps<Props>();
 
 const activationCodeStore = useActivationCodeStore();
-const { partnerLogoPath, partnerName, partnerUrl, showModal } = storeToRefs(
+const { partnerLogo, partnerName, partnerUrl, showModal } = storeToRefs(
   activationCodeStore
 );
 const purchaseStore = usePurchaseStore();
@@ -55,7 +55,18 @@ const docsButtons = computed<ButtonProps[]>(() => {
  * @todo - temporary solution until we have a better way to handle this
  */
 onMounted(() => {
-  const keySequence = ["Escape", "h"];
+  const keySequence = [
+    "ArrowUp",
+    "ArrowUp",
+    "ArrowDown",
+    "ArrowDown",
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowLeft",
+    "ArrowRight",
+    "b",
+    "a",
+  ];
   let sequenceIndex = 0;
 
   window.addEventListener("keydown", (event) => {
@@ -84,16 +95,16 @@ onUnmounted(() => {
     :open="showModal"
     :show-close-x="false"
     :title="title"
-    :title-in-main="partnerLogoPath"
+    :title-in-main="!!partnerLogo"
     :description="description"
     overlay-opacity="bg-opacity-90"
     max-width="max-w-800px"
   >
-    <template v-if="partnerLogoPath" #header>
+    <template v-if="partnerLogo" #header>
       <a v-if="partnerUrl" :href="partnerUrl">
-        <img :src="partnerLogoPath" class="w-full max-h-8" />
+        <img :src="partnerLogo" class="w-full max-h-8" />
       </a>
-      <img v-else :src="partnerLogoPath" class="w-full max-h-8" />
+      <img v-else :src="partnerLogo" class="w-full max-h-8" />
     </template>
 
     <template #main>

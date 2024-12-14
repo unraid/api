@@ -144,9 +144,7 @@ export const serverState: Server = {
     "headermetacolor": "#eeeeee",
     "background": "#000000",
     "showBannerGradient": "yes",
-    "partnerCaseIconPath": "/boot/config/activation/assets/case-model.png",
-    "paertnerBannerPath": "/boot/config/activation/assets/banner.png",
-    "partnerLogoPath": "https://placehold.co/300x100/004225/white?text=Gridstack+powered+by+Unraid", // in dev only it's easiest to use a placeholder image
+    "partnerLogoFileType": "png", // in dev only it's easiest to use a placeholder image
     // "partnerLogoPath": "/boot/config/activation/assets/logo.png" // on the actual server this value will be an absolute path to the logo file
   },
   apiKey: "unupc_fab6ff6ffe51040595c6d9ffb63a353ba16cc2ad7d93f813a2e80a5810",
