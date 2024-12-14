@@ -56,7 +56,6 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
 
     const isFreshInstall = state.value === 'ENOKEYFILE';
     const noCallbackData = !callbackData.value;
-    console.debug('[useActivationCodeStore] showModal', { isFreshInstall, noCallbackData });
 
     return isFreshInstall && noCallbackData && !modalHidden.value;
   });
