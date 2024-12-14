@@ -30,7 +30,6 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
   const partnerName = computed<string | null>(() => data.value?.partnerName || null);
   const partnerUrl = computed<string | null>(() => data.value?.partnerUrl || null);
   const partnerLogo = computed<string | null>(() => data.value?.partnerLogoFileType ? `/webGui/images/partner-logo.${data.value.partnerLogoFileType}` : null);
-  watch(partnerLogo, (newVal) => console.debug('[useActivationCodeStore] partnerLogo', newVal));
 
   const sessionKey = 'activationCodeModalHidden';
   const modalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');
