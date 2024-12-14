@@ -60,6 +60,8 @@ export default defineNuxtConfig({
    "shadcn-nuxt",
  ],
 
+ ignore: ['/webGui/images'],
+
  components: [
    { path: "~/components/Brand", prefix: "Brand" },
    { path: "~/components/ConnectSettings", prefix: "ConnectSettings" },
