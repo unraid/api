@@ -845,15 +845,26 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
   ACTIVATION_JSON_EXTENSION=".activationcode"
   # get the first file in the dir that matches the extension, later parsed as JSON for specific values
   ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
+  PARTNER_ASSETS_DIR="$ACTIVATION_DIR/assets"
+  WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
 
   if [[ -f "$ACTIVATION_JSON" ]]; then
     # create the setup flag file to prevent re-running this setup
     touch "$ACTIVATION_SETUP_FLAG"
 
+    # copy the logo into a location that the webgui can access
+    PARTNER_LOGO=$(find "$PARTNER_ASSETS_DIR" -type f \( -name "logo.png" -o -name "logo.svg" \) -print -quit)
+    if [[ -n "$PARTNER_LOGO" ]]; then
+      # Extract the file extension from the found logo
+      EXTENSION="${PARTNER_LOGO##*.}"
+      # symlink the file to the correct destination with the correct extension
+      ln -sf "$PARTNER_LOGO" "$WEBGUI_IMAGES_DIR/partner-logo.$EXTENSION"
+    fi
+
     # if partner banner exists and there's not a webgui banner backup file that exists on the system
     # then backup the original banner and replace the original banner with the included partner banner
-    PARTNER_BANNER="/boot/config/activation/assets/banner.png"
-    WEBGUI_BANNER_OG="/usr/local/emhttp/webGui/images/banner.png"
+    PARTNER_BANNER="$PARTNER_ASSETS_DIR/banner.png"
+    WEBGUI_BANNER_OG="$WEBGUI_IMAGES_DIR/banner.png"
     WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
     # On uninstall of the PLG the default banner is reverted. So we won't rely on the setup flag. Instead whether the backup file doesn't exist.
@@ -897,24 +908,25 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
 
     # Set the case model icon, if we haven't done it once already
     if ! grep -q "case" "$ACTIVATION_SETUP_FLAG"; then
+      CASE_MODEL_CFG="/boot/config/plugins/dynamix/case-model.cfg"
       # if the system has a custom icon already set, we need to skip this step
       # First preference is to use a custom icon, if it exists in the activation/assets dir
       # Second preference is to use an included icon with the system that's been specified in the activation json
-      CURRENT_CASE_MODEL=$(cat /boot/config/plugins/dynamix/case-model.cfg 2>/dev/null || true)
+      CURRENT_CASE_MODEL=$(cat $CASE_MODEL_CFG 2>/dev/null || true)
       # If CURRENT_CASE_MODEL === "case-model.png" then a custom icon has already been set and we should skip this step
       if [[ -n "$CURRENT_CASE_MODEL" && "$CURRENT_CASE_MODEL" != "case-model.png" ]]; then
-        PARTNER_CASE_MODEL="/boot/config/activation/assets/case-model.png" # for custom image
+        PARTNER_CASE_MODEL="$PARTNER_ASSETS_DIR/case-model.png" # for custom image
         PARTNER_CASE_ICON=$(jq -r '.caseIcon // empty' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
         if [[ -f "$PARTNER_CASE_MODEL" ]]; then
-          cp -f "$PARTNER_CASE_MODEL" "/usr/local/emhttp/webGui/images/case-model.png"
+          cp -f "$PARTNER_CASE_MODEL" "$WEBGUI_IMAGES_DIR/case-model.png"
           if [[ $? -ne 0 ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
           else
-            echo -n "$PARTNER_CASE_MODEL" > /boot/config/plugins/dynamix/case-model.cfg # set the custom icon in the config file
+            echo -n "$PARTNER_CASE_MODEL" > $CASE_MODEL_CFG # set the custom icon in the config file
             echo "case: $PARTNER_CASE_MODEL" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
           fi
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
-          echo -n "$PARTNER_CASE_ICON" > /boot/config/plugins/dynamix/case-model.cfg # set the parsed icon name in the config file
+          echo -n "$PARTNER_CASE_ICON" > $CASE_MODEL_CFG # set the parsed icon name in the config file
           echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
         fi
       fi
@@ -922,9 +934,10 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
 
     # Set the server model and description if we haven't already done it once
     if ! grep -q "identity" "$ACTIVATION_SETUP_FLAG"; then
+      VAR_INI="/usr/local/emhttp/state/var.ini"
       # If there's not a set system model or comment (aka description), we'll attempt to set it from activation json
-      CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
-      CURRENT_COMMENT=$(awk -F "=" '/COMMENT/ {print $2}' /usr/local/emhttp/state/var.ini 2>/dev/null | tr -d '"')
+      CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
+      CURRENT_COMMENT=$(awk -F "=" '/COMMENT/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
 
       if [[ -z "$CURRENT_SYS_MODEL" || -z "$CURRENT_COMMENT" ]]; then
         PARTNER_SYS_MODEL=$(jq -r '.sysModel // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
@@ -983,8 +996,15 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
-# restores the original webgui banner if it was replaced by the partner banner
+# Undo some activation / partner setup
 WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
+
+PARTNER_LOGO=$(find "$WEBGUI_IMAGES_DIR" -type l -name "partner-logo.*" -print -quit)
+if [[ -L $PARTNER_LOGO ]]; then
+  rm -f "$PARTNER_LOGO"
+fi
+
+# restores the original webgui banner if it was replaced by the partner banner
 WEBGUI_BANNER_OG="$WEBGUI_IMAGES_DIR/banner.png"
 WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
