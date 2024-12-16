@@ -36,16 +36,25 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
         }
 
         try {
-            const apiKeyService = new ApiKeyService();
-            // Create local API key
-            const localApiKey = await apiKeyService.create(
-                `LOCAL_KEY_${userInfo.preferred_username.toUpperCase()}`,
-                `Local API key for Connect user ${userInfo.email}`,
-                [Role.ADMIN]
-            );
+            const { remote } = getters.config();
+            const { localApiKey: localApiKeyFromConfig } = remote;
 
-            if (!localApiKey?.key) {
-                throw new Error('Failed to create local API key');
+            let localApiKeyToUse = localApiKeyFromConfig;
+
+            if (localApiKeyFromConfig == '') {
+                const apiKeyService = new ApiKeyService();
+                // Create local API key
+                const localApiKey = await apiKeyService.create(
+                    `LOCAL_KEY_${userInfo.preferred_username.toUpperCase()}`,
+                    `Local API key for Connect user ${userInfo.email}`,
+                    [Role.ADMIN]
+                );
+
+                if (!localApiKey?.key) {
+                    throw new Error('Failed to create local API key');
+                }
+
+                localApiKeyToUse = localApiKey.key;
             }
 
             await store.dispatch(
@@ -54,7 +63,7 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
                     username: userInfo.preferred_username,
                     email: userInfo.email,
                     apikey: input.apiKey,
-                    localApiKey: localApiKey.key,
+                    localApiKey: localApiKeyToUse,
                 })
             );
 
