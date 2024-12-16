@@ -4,6 +4,7 @@ import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import type { Importance, NotificationType } from '~/composables/gql/graphql';
+import { useUnraidApiStore } from '~/store/unraidApi';
 import { getNotifications, NOTIFICATION_FRAGMENT } from './graphql/notification.query';
 
 /**
@@ -21,6 +22,7 @@ const props = withDefaults(
   }
 );
 
+const { unraidApiStatus } = useUnraidApiStore();
 /** whether we should continue trying to load more notifications */
 const canLoadMore = ref(true);
 /** reset custom state when props (e.g. props.type filter) change*/
@@ -37,9 +39,12 @@ const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications
   },
 }));
 
-watch(error, (newVal) => {
-  console.log('[getNotifications] error:', newVal);
-});
+const apiError = computed(() => {
+  if (unraidApiStatus === 'offline') {
+    return new Error('The Unraid API is currently offline.')
+  }
+  return error.value;
+})
 
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
@@ -85,7 +90,7 @@ async function onLoadMore() {
     </div>
   </div>
 
-  <LoadingError v-else :loading="loading" :error="error" @retry="refetch">
+  <LoadingError v-else :loading="loading" :error="apiError" @retry="refetch">
     <div v-if="notifications?.length === 0" class="contents">
       <CheckIcon class="h-10 text-green-600 translate-y-3" />
       {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}
