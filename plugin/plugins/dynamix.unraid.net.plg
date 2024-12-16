@@ -884,20 +884,20 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       HEADER_SHOW_BANNER_GRADIENT=$(jq -r '.showBannerGradient // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
 
       # Initialize array for parameters
-      declare -A params
+      declare -A DISPLAY_PARAMS
 
       # Check if variables have values and add them to the array, while stripping any leading # from the color values b/c the settings config doesn't use them
-      [[ -n $HEADER_TEXT_COLOR ]] && params["header"]=${HEADER_TEXT_COLOR//\#/}
-      [[ -n $HEADER_META_COLOR ]] && params["headermetacolor"]=${HEADER_META_COLOR//\#/}
-      [[ -n $HEADER_BG_COLOR ]] && params["background"]=${HEADER_BG_COLOR//\#/}
-      [[ -n $HEADER_SHOW_BANNER_GRADIENT ]] && params["showBannerGradient"]=$HEADER_SHOW_BANNER_GRADIENT
-      params["banner"]="image"
+      [[ -n $HEADER_TEXT_COLOR ]] && DISPLAY_PARAMS["header"]=${HEADER_TEXT_COLOR//\#/}
+      [[ -n $HEADER_META_COLOR ]] && DISPLAY_PARAMS["headermetacolor"]=${HEADER_META_COLOR//\#/}
+      [[ -n $HEADER_BG_COLOR ]] && DISPLAY_PARAMS["background"]=${HEADER_BG_COLOR//\#/}
+      [[ -n $HEADER_SHOW_BANNER_GRADIENT ]] && DISPLAY_PARAMS["showBannerGradient"]=$HEADER_SHOW_BANNER_GRADIENT
+      DISPLAY_PARAMS["banner"]="image"
 
       CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
       CONFIG_SECTION="display"
-      # Iterate over the params array and update the config file
-      for key in "${!params[@]}"; do
-        value=${params[$key]}
+      # Iterate over the DISPLAY_PARAMS array and update the config file
+      for key in "${!DISPLAY_PARAMS[@]}"; do
+        value=${DISPLAY_PARAMS[$key]}
         sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
           s/^($key=).*/\1\"$value\"/
           t
@@ -946,20 +946,34 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         PARTNER_SYS_MODEL=$(echo "$PARTNER_SYS_MODEL" | sed 's/["\\]//g')
         PARTNER_COMMENT=$(echo "$PARTNER_COMMENT" | sed 's/["\\]//g')
 
-        declare -a EM_PARAMS
+        declare -A IDENT_PARAMS
+
         if [[ -n "$PARTNER_SYS_MODEL" ]]; then
-          EM_PARAMS+=("SYS_MODEL=$PARTNER_SYS_MODEL")
+          IDENT_PARAMS["SYS_MODEL"]=$PARTNER_SYS_MODEL
         fi
         if [[ -n "$PARTNER_COMMENT" ]]; then
-          EM_PARAMS+=("COMMENT=$PARTNER_COMMENT")
+          IDENT_PARAMS["COMMENT"]=$PARTNER_COMMENT
         fi
 
-        if [[ ${#EM_PARAMS[@]} -gt 0 ]]; then
+        if [[ ${#IDENT_PARAMS[@]} -gt 0 ]]; then
           echo "⏳ Please wait...updating system identification"
-          EM_CMD=$(IFS="&"; echo "${EM_PARAMS[*]}")
+
+          for key in "${!IDENT_PARAMS[@]}"; do
+            value=${IDENT_PARAMS[$key]}
+            CONFIG_FILE="/boot/config/ident.cfg"
+            sed -i -E "
+              s/^($key=).*/\1\"$value\"/
+              t
+              a$key=\"$value\"
+            " "$CONFIG_FILE"
+          done
+
+          EM_CMD=$(IFS="&"; for key in "${!IDENT_PARAMS[@]}"; do echo "$key=${IDENT_PARAMS[$key]}"; done | paste -sd '&')
+
           emcmd "$EM_CMD&changeNames=Apply"
           echo "✅ Identification updated: $EM_CMD"
-          # add what changed to the .setup flag file
+
+          # Add what changed to the .setup flag file
           echo "identity: $EM_CMD" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
