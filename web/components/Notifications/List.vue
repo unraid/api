@@ -22,7 +22,6 @@ const props = withDefaults(
   }
 );
 
-const { unraidApiStatus } = useUnraidApiStore();
 /** whether we should continue trying to load more notifications */
 const canLoadMore = ref(true);
 /** reset custom state when props (e.g. props.type filter) change*/
@@ -30,6 +29,7 @@ watch(props, () => {
   canLoadMore.value = true;
 });
 
+const { offlineError } = useUnraidApiStore();
 const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
@@ -38,13 +38,6 @@ const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications
     importance: props.importance,
   },
 }));
-
-const apiError = computed(() => {
-  if (unraidApiStatus === 'offline') {
-    return new Error('The Unraid API is currently offline.')
-  }
-  return error.value;
-})
 
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
@@ -90,7 +83,7 @@ async function onLoadMore() {
     </div>
   </div>
 
-  <LoadingError v-else :loading="loading" :error="apiError" @retry="refetch">
+  <LoadingError v-else :loading="loading" :error="offlineError ?? error" @retry="refetch">
     <div v-if="notifications?.length === 0" class="contents">
       <CheckIcon class="h-10 text-green-600 translate-y-3" />
       {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}

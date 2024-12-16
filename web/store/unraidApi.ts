@@ -32,6 +32,12 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
   >("offline");
   const prioritizeCorsError = ref(false); // Ensures we don't overwrite this specific error message with a non-descriptive network error message
 
+  const offlineError = computed(() => {
+    if (unraidApiStatus.value === 'offline') {
+      return new Error('The Unraid API is currently offline.');
+    }
+  });
+
   const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
     const { connectPluginInstalled, stateDataError } = serverStore;
     if (
@@ -95,6 +101,7 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
   return {
     unraidApiClient,
     unraidApiStatus,
+    offlineError,
     prioritizeCorsError,
     unraidApiRestartAction,
     closeUnraidApiClient,
