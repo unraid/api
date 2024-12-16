@@ -12,6 +12,8 @@ import { serverState } from '~/_data/serverState';
 import type { SendPayloads } from '~/store/callback';
 import AES from 'crypto-js/aes';
 import BrandButton from '~/components/Brand/Button.vue';
+import type { ButtonStyle } from '~/types/ui/button';
+import type { UiBadgePropsColor } from '~/types/ui/badge';
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
@@ -131,14 +133,14 @@ onMounted(() => {
           <hr class="border-black dark:border-white" />
           <h2 class="text-xl font-semibold font-mono">Legacy Badge Components</h2>
             <template v-for="color in ['black', 'white', 'red', 'yellow', 'green', 'blue', 'indigo', 'purple', 'pink', 'orange', 'transparent', 'current', 'gray', 'custom']" :key="color">
-              <UiBadge size="14px" :icon="ExclamationTriangleIcon" :color="color">{{ color }}</UiBadge>
+              <UiBadge size="14px" :icon="ExclamationTriangleIcon" :color="color as UiBadgePropsColor">{{ color }}</UiBadge>
             </template>
           </div>
            <div class="bg-background">
           <hr class="border-black dark:border-white" />
           <h2 class="text-xl font-semibold font-mono">Legacy Button Components</h2>
             <template v-for="color in ['black', 'fill', 'gray', 'outline', 'outline-black', 'outline-white', 'underline', 'underline-hover-red', 'white',]" :key="color">
-              <BrandButton type="button" size="14px" :icon="ExclamationTriangleIcon" :btn-style="color">{{ color }}</BrandButton>
+              <BrandButton type="button" size="14px" :icon="ExclamationTriangleIcon" :btn-style="color as ButtonStyle">{{ color }}</BrandButton>
             </template>
           </div>
         </div>
