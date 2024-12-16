@@ -67,11 +67,10 @@ async function onLoadMore() {
 </script>
 
 <template>
-  <!-- The horizontal padding here adjusts for the scrollbar offset -->
   <div
     v-if="notifications?.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
-    class="divide-y divide-gray-200 overflow-y-auto h-full pl-7"
+    class="divide-y divide-gray-200 px-7 flex flex-col overflow-y-scroll flex-1 min-h-0"
   >
     <NotificationsItem
       v-for="notification in notifications"
@@ -80,6 +79,9 @@ async function onLoadMore() {
     />
     <div v-if="loading" class="py-5 grid place-content-center">
       <LoadingSpinner />
+    </div>
+    <div v-if="!canLoadMore" class="py-5 grid place-content-center text-gray-500">
+      You've reached the end...
     </div>
   </div>
 

@@ -11,6 +11,8 @@ import {
 import { useMutation } from '@vue/apollo-composable';
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 import { NotificationType } from '~/composables/gql/graphql';
+import { format } from 'date-fns';
+import { enGB, enUS } from 'date-fns/locale';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
@@ -63,13 +65,26 @@ const deleteNotification = reactive(
 const mutationError = computed(() => {
   return archive.error?.message ?? deleteNotification.error?.message;
 });
+
+const reformattedTimestamp = computed(() => {
+  const userLocale = navigator.language ?? 'en-US'; // Get the user's browser language (e.g., 'en-US', 'fr-FR')
+
+  const reformattedDate = new Intl.DateTimeFormat(userLocale, {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12:
+      ['AM', 'PM'].includes(props.formattedTimestamp ?? 'AM')
+  }).format(new Date(props.timestamp ?? new Date()));
+  return reformattedDate;
+});
 </script>
 
 <template>
-  <!-- fixed width hack ensures alignment with other elements regardless of scrollbar presence or width -->
-  <div class="group/item relative py-5 flex flex-col gap-2 text-base w-[487px]">
-    <header class="w-full flex flex-row items-baseline justify-between gap-2 -translate-y-1">
-      <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold">
+  <div class="group/item relative py-5 flex flex-col gap-2 text-base">
+    <header class="flex flex-row items-baseline justify-between gap-2 -translate-y-1">
+      <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold overflow-x-hidden">
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
           :is="icon.component"
@@ -77,11 +92,14 @@ const mutationError = computed(() => {
           class="size-5 shrink-0 translate-y-1"
           :class="icon.color"
         />
-        <span>{{ title }}</span>
+        <span class="truncate flex-1" :title="title">{{ title }}</span>
       </h3>
 
-      <div class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1">
-        <p class="text-gray-500 text-sm">{{ formattedTimestamp }}</p>
+      <div
+        class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1"
+        :title="formattedTimestamp ?? reformattedTimestamp"
+      >
+        <p class="text-gray-500 text-sm">{{ reformattedTimestamp }}</p>
       </div>
     </header>
 
@@ -89,7 +107,7 @@ const mutationError = computed(() => {
       {{ subject }}
     </h4>
 
-    <div class="w-full flex flex-row items-center justify-between gap-2">
+    <div class="flex flex-row items-center justify-between gap-2">
       <div class="" v-html="descriptionMarkup" />
     </div>
 

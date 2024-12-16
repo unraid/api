@@ -13,6 +13,13 @@ onBeforeMount(() => {
   registerEntry('UnraidComponents');
 });
 
+useHead({
+  meta: [
+    { name: 'viewport',
+    content: 'width=1300', }
+]
+})
+
 const valueToMakeCallback = ref<SendPayloads | undefined>();
 const callbackDestination = ref<string>('');
 
