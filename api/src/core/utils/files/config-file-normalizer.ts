@@ -51,6 +51,7 @@ export const getWriteableConfig = <T extends ConfigType>(
             wanport: remote.wanport ?? initialState.remote.wanport,
             ...(remote.upnpEnabled ? { upnpEnabled: remote.upnpEnabled } : {}),
             apikey: remote.apikey ?? initialState.remote.apikey,
+            localApiKey: remote.localApiKey ?? initialState.remote.localApiKey,
             email: remote.email ?? initialState.remote.email,
             username: remote.username ?? initialState.remote.username,
             avatar: remote.avatar ?? initialState.remote.avatar,

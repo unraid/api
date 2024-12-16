@@ -1,7 +1,6 @@
-import { Inject } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
 
-import { UseRoles } from 'nest-access-control';
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
 import { AppError } from '@app/core/errors/app-error';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
@@ -10,6 +9,7 @@ import {
     NotificationFilter,
     NotificationOverview,
     NotificationType,
+    Resource,
 } from '@app/graphql/generated/api/types';
 import { Importance } from '@app/graphql/generated/client/graphql';
 
@@ -17,17 +17,17 @@ import { NotificationsService } from './notifications.service';
 
 @Resolver('Notifications')
 export class NotificationsResolver {
-    constructor(@Inject('NOTIFICATIONS_SERVICE') readonly notificationsService: NotificationsService) {}
+    constructor(readonly notificationsService: NotificationsService) {}
 
     /**============================================
      *               Queries
      *=============================================**/
 
     @Query()
-    @UseRoles({
-        resource: 'notifications',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.NOTIFICATIONS,
+        possession: AuthPossession.ANY,
     })
     public async notifications() {
         return {
@@ -127,20 +127,20 @@ export class NotificationsResolver {
      *=============================================**/
 
     @Subscription()
-    @UseRoles({
-        resource: 'notifications',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.NOTIFICATIONS,
+        possession: AuthPossession.ANY,
     })
     async notificationAdded() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_ADDED);
     }
 
     @Subscription()
-    @UseRoles({
-        resource: 'notifications',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.NOTIFICATIONS,
+        possession: AuthPossession.ANY,
     })
     async notificationsOverview() {
         return createSubscription(PUBSUB_CHANNEL.NOTIFICATION_OVERVIEW);

@@ -1,6 +1,10 @@
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
+
 import { Strategy } from 'passport-http-header-strategy';
-import { Inject, Injectable, Logger } from '@nestjs/common';
+
+import { User } from '@app/graphql/generated/api/types';
+
 import { AuthService } from './auth.service';
 
 @Injectable()
@@ -8,14 +12,41 @@ export class ServerHeaderStrategy extends PassportStrategy(Strategy, 'server-htt
     static key = 'server-http-header';
     private readonly logger = new Logger(ServerHeaderStrategy.name);
 
-    constructor(@Inject(AuthService) private readonly authService: AuthService) {
-        super({ header: 'x-api-key', passReqToCallback: false });
+    constructor(private readonly authService: AuthService) {
+        super({
+            header: 'x-api-key',
+            passReqToCallback: true,
+        });
     }
 
-    public validate = async (apiKey: string): Promise<any> => {
-        this.logger.debug('Validating API key');
-        const user = await this.authService.validateUser(apiKey);
+    async validate(req: any): Promise<User | null> {
+        const request = req.req || req;
+        const key = request.headers?.['x-api-key'];
 
-        return user;
-    };
+        if (!key) {
+            this.logger.debug('No API key provided');
+            throw new UnauthorizedException('No API key provided');
+        }
+
+        if (!/^[a-zA-Z0-9-_]+$/.test(key)) {
+            this.logger.warn('Invalid API key format');
+            throw new UnauthorizedException('Invalid API key format');
+        }
+
+        try {
+            const user = await this.authService.validateApiKeyCasbin(key);
+            this.logger.debug('API key validation successful', {
+                userId: user?.id,
+                roles: user?.roles,
+            });
+
+            return user;
+        } catch (error) {
+            this.logger.error('API key validation failed', {
+                errorType: error instanceof Error ? error.constructor.name : 'Unknown',
+                message: error instanceof Error ? error.message : 'Unknown error',
+            });
+            throw new UnauthorizedException('API key validation failed');
+        }
+    }
 }

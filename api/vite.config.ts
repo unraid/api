@@ -1,28 +1,31 @@
-import { defineConfig } from 'vitest/config';
-import tsconfigPaths from 'vite-tsconfig-paths';
-import nodeExternals from 'rollup-plugin-node-externals';
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
-import { viteStaticCopy } from 'vite-plugin-static-copy';
 import nodeResolve from '@rollup/plugin-node-resolve';
+import nodeExternals from 'rollup-plugin-node-externals';
 import { VitePluginNode } from 'vite-plugin-node';
+import { viteStaticCopy } from 'vite-plugin-static-copy';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import { defineConfig } from 'vitest/config';
 
 export default defineConfig(({ mode }) => {
     return {
         plugins: [
             tsconfigPaths(),
             nodeExternals(),
-            nodeResolve(),
-            viteCommonjs(),
+            nodeResolve({
+                preferBuiltins: true,
+                exportConditions: ['node'],
+            }),
+            viteCommonjs({
+                include: ['@fastify/type-provider-typebox', 'node_modules/**'],
+            }),
             viteStaticCopy({
                 targets: [{ src: 'src/graphql/schema/types', dest: '' }],
             }),
             ...(mode === 'development'
                 ? VitePluginNode({
-                      adapter: ({ app, req, res }) => {
-                          // Example adapter code to run src/index.ts with VitePluginNode
-                          app(req, res);
-                      },
+                      adapter: 'nest',
                       appPath: 'src/index.ts',
+                      tsCompiler: 'swc',
                       initAppOnBoot: true,
                   })
                 : []),
@@ -40,6 +43,7 @@ export default defineConfig(({ mode }) => {
                 'class-transformer/storage',
                 'unicorn-magic',
             ],
+            include: ['@nestjs/common', '@nestjs/core', 'reflect-metadata', 'fastify'],
         },
         build: {
             sourcemap: true,
@@ -53,10 +57,22 @@ export default defineConfig(({ mode }) => {
                     entryFileNames: '[name].js',
                     format: 'es', // Change the format to 'es' to support top-level await
                 },
+                preserveEntrySignatures: 'strict',
             },
             modulePreload: false,
             minify: false,
             target: 'node20',
+            commonjsOptions: {
+                transformMixedEsModules: true,
+                include: [/node_modules/, /fastify/],
+                exclude: ['cpu-features'],
+            },
+        },
+        server: {
+            hmr: true,
+            watch: {
+                usePolling: true,
+            },
         },
         test: {
             globals: true,

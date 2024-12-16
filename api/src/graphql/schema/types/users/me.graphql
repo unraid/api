@@ -1,14 +1,18 @@
 type Query {
-    """Current user account"""
+    """
+    Current user account
+    """
     me: Me
 }
 
-"""The current user"""
+"""
+The current user
+"""
 type Me implements UserAccount {
     id: ID!
     name: String!
     description: String!
-    roles: String!
+    roles: [Role!]!
     permissions: JSON
 }
 

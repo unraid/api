@@ -1,5 +1,12 @@
-import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
+import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
+
+import { UseRoles } from 'nest-access-control';
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+import { baseboard, system } from 'systeminformation';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { getMachineId } from '@app/core/utils/misc/get-machine-id';
+import { Resource } from '@app/graphql/generated/api/types';
 import {
     generateApps,
     generateCpu,
@@ -9,21 +16,18 @@ import {
     generateOs,
     generateVersions,
 } from '@app/graphql/resolvers/query/info';
-import { Query, ResolveField, Resolver, Subscription } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
-import { baseboard, system } from 'systeminformation';
 
 @Resolver('Info')
 export class InfoResolver {
     @Query()
-    @UseRoles({
-        resource: 'info',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.INFO,
+        possession: AuthPossession.ANY,
     })
     public async info() {
         return {
-            id: 'info'
+            id: 'info',
         };
     }
 
@@ -82,10 +86,10 @@ export class InfoResolver {
     }
 
     @Subscription('info')
-    @UseRoles({
-        resource: 'info',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.INFO,
+        possession: AuthPossession.ANY,
     })
     public async infoSubscription() {
         return createSubscription(PUBSUB_CHANNEL.INFO);

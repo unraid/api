@@ -1,11 +1,14 @@
-import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
-import { type Display } from '@app/graphql/generated/api/types';
-import { getters } from '@app/store/index';
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
 import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import type { Display } from '@app/graphql/generated/api/types';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { Resource } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store/index';
 
 const states = {
     // Success
@@ -58,10 +61,10 @@ const states = {
 @Resolver()
 export class DisplayResolver {
     @Query()
-    @UseRoles({
-        resource: 'display',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DISPLAY,
+        possession: AuthPossession.ANY,
     })
     public async display(): Promise<Display> {
         /**
@@ -70,8 +73,8 @@ export class DisplayResolver {
         const dynamixBasePath = getters.paths()['dynamix-base'];
         const configFilePath = join(dynamixBasePath, 'case-model.cfg');
         const result = {
-            id: 'display'
-        }
+            id: 'display',
+        };
 
         // If the config file doesn't exist then it's a new OS install
         // Default to "default"
@@ -93,7 +96,7 @@ export class DisplayResolver {
         if (serverCase.trim().length === 0) {
             return {
                 case: states.default,
-                ...result
+                ...result,
             };
         }
 
@@ -103,15 +106,15 @@ export class DisplayResolver {
                 ...states.default,
                 icon: serverCase,
             },
-            ...result
+            ...result,
         };
     }
 
     @Subscription('display')
-    @UseRoles({
-        resource: 'display',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.DISPLAY,
+        possession: AuthPossession.ANY,
     })
     public async displaySubscription() {
         return createSubscription(PUBSUB_CHANNEL.DISPLAY);

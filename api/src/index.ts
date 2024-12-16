@@ -1,34 +1,37 @@
 import 'reflect-metadata';
 import 'global-agent/bootstrap.js';
 import '@app/dotenv';
+
+import { type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { unlinkSync } from 'fs';
 import http from 'http';
 import https from 'https';
+
+import type { RawServerDefault } from 'fastify';
 import CacheableLookup from 'cacheable-lookup';
-import { store } from '@app/store';
-import { loadConfigFile } from '@app/store/modules/config';
-import { logger } from '@app/core/log';
-import { startStoreSync } from '@app/store/store-sync';
-import { loadStateFiles } from '@app/store/modules/emhttp';
-import { StateManager } from '@app/store/watch/state-watch';
-import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
-import { loadRegistrationKey } from '@app/store/modules/registration';
-import { unlinkSync } from 'fs';
-import { fileExistsSync } from '@app/core/utils/files/file-exists';
-import { PORT, environment } from '@app/environment';
-import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
-import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
-import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
-import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
-import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
-import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
-import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
-import { bootstrapNestServer } from '@app/unraid-api/main';
-import { type NestFastifyApplication } from '@nestjs/platform-fastify';
-import { type RawServerDefault } from 'fastify';
-import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
-import { WebSocket } from 'ws';
 import exitHook from 'exit-hook';
+import { WebSocket } from 'ws';
+
+import { logger } from '@app/core/log';
+import { setupLogRotation } from '@app/core/logrotate/setup-logrotate';
+import { fileExistsSync } from '@app/core/utils/files/file-exists';
+import { environment, PORT } from '@app/environment';
 import * as envVars from '@app/environment';
+import { PingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
+import { store } from '@app/store';
+import { loadDynamixConfigFile } from '@app/store/actions/load-dynamix-config-file';
+import { shutdownApiEvent } from '@app/store/actions/shutdown-api-event';
+import { validateApiKeyIfPresent } from '@app/store/listeners/api-key-listener';
+import { startMiddlewareListeners } from '@app/store/listeners/listener-middleware';
+import { loadConfigFile } from '@app/store/modules/config';
+import { loadStateFiles } from '@app/store/modules/emhttp';
+import { loadRegistrationKey } from '@app/store/modules/registration';
+import { startStoreSync } from '@app/store/store-sync';
+import { setupDynamixConfigWatch } from '@app/store/watch/dynamix-config-watch';
+import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
+import { StateManager } from '@app/store/watch/state-watch';
+import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
+import { bootstrapNestServer } from '@app/unraid-api/main';
 
 let server: NestFastifyApplication<RawServerDefault> | null = null;
 

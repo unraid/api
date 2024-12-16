@@ -1,21 +1,23 @@
-import { AccessUrl, Network } from '@app/graphql/generated/api/types';
-import { getServerIps } from '@app/graphql/resolvers/subscription/network';
 import { Query, ResolveField, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { AccessUrl, Network, Resource } from '@app/graphql/generated/api/types';
+import { getServerIps } from '@app/graphql/resolvers/subscription/network';
 
 @Resolver('Network')
 export class NetworkResolver {
     constructor() {}
 
-    @UseRoles({
-        resource: 'network',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.NETWORK,
+        possession: AuthPossession.ANY,
     })
     @Query('network')
     public async network(): Promise<Network> {
         return {
-            id: 'network'
+            id: 'network',
         };
     }
 

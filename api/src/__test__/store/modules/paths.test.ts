@@ -2,8 +2,8 @@ import { expect, test } from 'vitest';
 import { store } from '@app/store';
 
 test('Returns paths', async () => {
-	const { paths } = store.getState();
-	expect(Object.keys(paths)).toMatchInlineSnapshot(`
+    const { paths } = store.getState();
+    expect(Object.keys(paths)).toMatchInlineSnapshot(`
 		[
 		  "core",
 		  "unraid-api-base",
@@ -26,6 +26,7 @@ test('Returns paths', async () => {
 		  "log-base",
 		  "var-run",
 		  "auth-sessions",
+		  "auth-keys",
 		]
 	`);
 });
