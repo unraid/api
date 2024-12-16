@@ -9,10 +9,8 @@ import {
     NotificationFilter,
     NotificationOverview,
     NotificationType,
+    Resource,
 } from '@app/graphql/generated/api/types';
-import { AppError } from '@app/core/errors/app-error';
-import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
-import { Resource } from '@app/graphql/generated/api/types';
 import { Importance } from '@app/graphql/generated/client/graphql';
 
 import { NotificationsService } from './notifications.service';
