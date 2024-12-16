@@ -1,4 +1,4 @@
-import { ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 import strftime from 'strftime';
@@ -192,7 +192,7 @@ export function getRequest(ctx: ExecutionContext) {
     }
 
     if (!request) {
-        throw new UnauthorizedException(
+        throw new BadRequestException(
             `Unsupported execution context type: ${contextType}. Only HTTP and GraphQL contexts are supported.`
         );
     }
@@ -216,8 +216,8 @@ export function handleAuthError(
     error: unknown,
     context?: Record<string, string>
 ): never {
-    // Sanitize context by redacting sensitive fields
-    const sanitizedContext = { ...context };
+    // Sanitize context by creating a deep clone
+    const sanitizedContext = context ? structuredClone(context) : {};
 
     if (sanitizedContext) {
         updateObject(sanitizedContext, (obj) => {
