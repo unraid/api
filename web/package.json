@@ -71,7 +71,6 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "crypto-js": "^4.2.0",
-    "date-fns": "^4.1.0",
     "dayjs": "^1.11.13",
     "focus-trap": "^7.6.2",
     "graphql": "^16.9.0",
