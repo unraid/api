@@ -24,12 +24,18 @@ mkdir -p "${tmpdir}"
 # shellcheck disable=SC2046
 cp --parents -f $(find . -type f ! \( -iname ".DS_Store" -o -iname "pkg_build.sh" -o -iname "makepkg" -o -iname "explodepkg" -o -iname "sftp-config.json" \)) "${tmpdir}/"
 cd "${tmpdir}" || exit 1
+if [[ -n "${PR}" ]]; then
+  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect (PR #${PR})\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
+elif [[ "${env}" == "staging" ]]; then
+  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
+fi
+
 if [[ "${env}" == "staging" ]]; then
   # create README.md for staging plugin
   mv "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging"
-  sed -i "s@\*\*Unraid Connect\*\*@\*\*Unraid Connect \(staging\)\*\*@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.unraid.net.staging/README.md"
   sed -i "s@dynamix.unraid.net.plg@dynamix.unraid.net.staging.plg@" "${tmpdir}/usr/local/emhttp/plugins/dynamix.my.servers/Connect.page"
 fi
+
 chmod 0755 -R .
 sudo chown root:root -R .
 sudo "${MAINDIR}/source/dynamix.unraid.net/makepkg" -l y -c y "${txzfile}"
@@ -51,24 +57,16 @@ cd "${DIR}" || exit 1
 PLUGIN_URL="https://stable.dl.unraid.net/unraid-api/\&name;.plg"
 MAIN_TXZ="https://stable.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
 API_TGZ="https://stable.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
-NGHTTP3_TXZ="https://stable.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 # Check if PR is set, use a different path if so
 if [[ -n "${PR}" ]]; then
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/unraid-api-${API_VERSION}.tgz"
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${plugin}.plg"
-  NGHTTP3_TXZ="https://preview.dl.unraid.net/unraid-api/pr/${PR}/${NGHTTP3_FILENAME}"
 elif [[ "${env}" == "staging" ]]; then
   PLUGIN_URL="https://preview.dl.unraid.net/unraid-api/\&name;.plg"
   MAIN_TXZ="https://preview.dl.unraid.net/unraid-api/${plugin}-${version}.txz"
   API_TGZ="https://preview.dl.unraid.net/unraid-api/unraid-api-${API_VERSION}.tgz"
-  NGHTTP3_TXZ="https://preview.dl.unraid.net/unraid-api/${NGHTTP3_FILENAME}"
 fi
-
-# Hardcoded to deal with the new -2 release breaking legacy Unraid versions
-NODEJS_FILENAME="nodejs-20.18.0-x86_64-1.txz"
-NODEJS_TXZ="https://stable.dl.unraid.net/unraid-api/dependencies/${NODEJS_FILENAME}"
-NODEJS_SHA256="332f22a2a6722e9fad92b8d1eeaded228a6499b7335b2b54ee99c55b4fe49742"
 
 # update plg file
 sed -i -E "s#(ENTITY name\s*)\".*\"#\1\"${plugin}\"#g" "${plgfile}"
@@ -79,22 +77,13 @@ sed -i -E "s#(ENTITY SHA256\s*)\".*\"#\1\"${sha256}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY MAIN_TXZ\s*)\".*\"#\1\"${MAIN_TXZ}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_TGZ\s*)\".*\"#\1\"${API_TGZ}\"#g" "${plgfile}"
 
-# update node versions
-sed -i -E "s#(ENTITY NODEJS_FILENAME\s*)\".*\"#\1\"${NODEJS_FILENAME}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODEJS_SHA256\s*)\".*\"#\1\"${NODEJS_SHA256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NODEJS_TXZ\s*)\".*\"#\1\"${NODEJS_TXZ}\"#g" "${plgfile}"
-
-# update nghttp3 versions
-sed -i -E "s#(ENTITY NGHTTP3_FILENAME\s*)\".*\"#\1\"${NGHTTP3_FILENAME}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_SHA256\s*)\".*\"#\1\"${NGHTTP3_SHA256}\"#g" "${plgfile}"
-sed -i -E "s#(ENTITY NGHTTP3_TXZ\s*)\".*\"#\1\"${NGHTTP3_TXZ}\"#g" "${plgfile}"
 
 # set from environment vars
 sed -i -E "s#(ENTITY API_version\s*)\".*\"#\1\"${API_VERSION}\"#g" "${plgfile}"
 sed -i -E "s#(ENTITY API_SHA256\s*)\".*\"#\1\"${API_SHA256}\"#g" "${plgfile}"
 
-# validate that all ENTITY values were replaced
-required_entities=("name" "env" "version" "pluginURL" "SHA256" "MAIN_TXZ" "API_TGZ" "NODEJS_FILENAME" "NODEJS_SHA256" "NODEJS_TXZ" "NGHTTP3_FILENAME" "NGHTTP3_SHA256" "NGHTTP3_TXZ" "API_version" "API_SHA256")
+# validate that all ENTITY values are present
+required_entities=("name" "env" "version" "pluginURL" "SHA256" "MAIN_TXZ" "API_TGZ" "NODEJS_FILENAME" "NODEJS_SHA256" "NODEJS_TXZ" "API_version" "API_SHA256")
 validation_failed=false
 for entity in "${required_entities[@]}"; do
   entity_value=$(grep -oP "ENTITY ${entity} \"\K[^\"]*" "${plgfile}" || echo "")

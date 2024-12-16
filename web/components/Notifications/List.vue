@@ -28,7 +28,7 @@ watch(props, () => {
   canLoadMore.value = true;
 });
 
-const { result, error, fetchMore } = useQuery(getNotifications, () => ({
+const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
     limit: props.pageSize,
@@ -69,20 +69,26 @@ async function onLoadMore() {
 </script>
 
 <template>
-  <div v-if="notifications?.length === 0" class="h-full flex flex-col items-center justify-center gap-3">
-    <CheckIcon class="h-10 text-green-600" />
-    {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}
-  </div>
   <!-- The horizontal padding here adjusts for the scrollbar offset -->
   <div
     v-if="notifications?.length > 0"
     v-infinite-scroll="[onLoadMore, { canLoadMore: () => canLoadMore }]"
-    class="divide-y divide-gray-200 overflow-y-auto pl-7 pr-4 h-full"
+    class="divide-y divide-gray-200 overflow-y-auto h-full pl-7"
   >
     <NotificationsItem
       v-for="notification in notifications"
       :key="notification.id"
       v-bind="notification"
     />
+    <div v-if="loading" class="py-5 grid place-content-center">
+      <LoadingSpinner />
+    </div>
   </div>
+
+  <LoadingError v-else :loading="loading" :error="error" @retry="refetch">
+    <div v-if="notifications?.length === 0" class="contents">
+      <CheckIcon class="h-10 text-green-600 translate-y-3" />
+      {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}
+    </div>
+  </LoadingError>
 </template>

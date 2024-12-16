@@ -2,7 +2,9 @@ import { Args, Mutation, Query, ResolveField, Resolver, Subscription } from '@ne
 
 import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 
-import type {
+import { AppError } from '@app/core/errors/app-error';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import {
     NotificationData,
     NotificationFilter,
     NotificationOverview,
@@ -73,8 +75,8 @@ export class NotificationsResolver {
     }
 
     @Mutation()
-    public async deleteAllNotifications(): Promise<NotificationOverview> {
-        return this.notificationsService.deleteAllNotifications();
+    public async deleteArchivedNotifications(): Promise<NotificationOverview> {
+        return this.notificationsService.deleteNotifications(NotificationType.ARCHIVE);
     }
 
     @Mutation()

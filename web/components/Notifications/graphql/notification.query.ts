@@ -68,9 +68,9 @@ export const deleteNotification = graphql(/* GraphQL */ `
   }
 `);
 
-export const deleteAllNotifications = graphql(/* GraphQL */ `
+export const deleteArchivedNotifications = graphql(/* GraphQL */ `
   mutation DeleteAllNotifications {
-    deleteAllNotifications {
+    deleteArchivedNotifications {
       archive {
         total
       }
@@ -81,14 +81,18 @@ export const deleteAllNotifications = graphql(/* GraphQL */ `
   }
 `);
 
-export const unreadOverview = graphql(/* GraphQL */ `
+export const notificationsOverview = graphql(/* GraphQL */ `
   query Overview {
     notifications {
+      id
       overview {
         unread {
           info
           warning
           alert
+          total
+        }
+        archive {
           total
         }
       }

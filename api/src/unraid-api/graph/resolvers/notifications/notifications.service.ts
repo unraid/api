@@ -292,30 +292,31 @@ export class NotificationsService {
     }
 
     /**
-     * Deletes all notifications from disk, but preserves
-     * notification directories.
+     * Deletes all notifications of a specific type and resets their overview stats.
      *
-     * Resets the notification overview to all zeroes.
+     * @param type - The type of notifications to delete (UNREAD or ARCHIVE)
+     * @remarks Ensures the notifications directory exists before emptying it
+     */
+    public async deleteNotifications(type: NotificationType) {
+        await emptyDir(this.paths()[type]);
+        NotificationsService.overview[type.toLowerCase()] = {
+            alert: 0,
+            info: 0,
+            warning: 0,
+            total: 0,
+        };
+        return this.getOverview();
+    }
+
+    /**
+     * Deletes all notifications from disk while preserving the directory structure.
+     * Resets overview stats to zero.
+     *
+     * @returns The updated notification overview stats
      */
     public async deleteAllNotifications() {
-        const { UNREAD, ARCHIVE } = this.paths();
-        // ensures the directory exists before deleting
-        await emptyDir(ARCHIVE);
-        await emptyDir(UNREAD);
-        NotificationsService.overview = {
-            unread: {
-                alert: 0,
-                info: 0,
-                warning: 0,
-                total: 0,
-            },
-            archive: {
-                alert: 0,
-                info: 0,
-                warning: 0,
-                total: 0,
-            },
-        };
+        await this.deleteNotifications(NotificationType.ARCHIVE);
+        await this.deleteNotifications(NotificationType.UNREAD);
         return this.getOverview();
     }
 
@@ -700,7 +701,7 @@ export class NotificationsService {
     }
 
     private parseNotificationDateToIsoDate(unixStringSeconds: string | undefined): Date | null {
-        const timeStamp = Number(unixStringSeconds)
+        const timeStamp = Number(unixStringSeconds);
         if (unixStringSeconds && !Number.isNaN(timeStamp)) {
             return new Date(timeStamp * 1_000);
         }
