@@ -7,6 +7,8 @@ import { useActivationCodeStore } from "~/store/activationCode";
 import { usePurchaseStore } from "~/store/purchase";
 import type { ButtonProps } from "~/types/ui/button";
 
+import ActivationPartnerLogo from "~/components/Activation/PartnerLogo.vue";
+
 export interface Props {
   t: ComposerTranslation;
 }
@@ -14,9 +16,7 @@ export interface Props {
 const props = defineProps<Props>();
 
 const activationCodeStore = useActivationCodeStore();
-const { partnerLogo, partnerName, partnerUrl, showModal } = storeToRefs(
-  activationCodeStore
-);
+const { partnerLogo, partnerName, showModal } = storeToRefs(activationCodeStore);
 const purchaseStore = usePurchaseStore();
 
 const title = computed<string>(() =>
@@ -101,10 +101,7 @@ onUnmounted(() => {
     max-width="max-w-800px"
   >
     <template v-if="partnerLogo" #header>
-      <a v-if="partnerUrl" :href="partnerUrl">
-        <img :src="partnerLogo" class="w-full max-h-8" />
-      </a>
-      <img v-else :src="partnerLogo" class="w-full max-h-8" />
+      <ActivationPartnerLogo />
     </template>
 
     <template #main>
