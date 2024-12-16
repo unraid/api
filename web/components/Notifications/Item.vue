@@ -11,8 +11,6 @@ import {
 import { useMutation } from '@vue/apollo-composable';
 import type { NotificationFragmentFragment } from '~/composables/gql/graphql';
 import { NotificationType } from '~/composables/gql/graphql';
-import { format } from 'date-fns';
-import { enGB, enUS } from 'date-fns/locale';
 import {
   archiveNotification as archiveMutation,
   deleteNotification as deleteMutation,
