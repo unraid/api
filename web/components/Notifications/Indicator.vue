@@ -40,7 +40,7 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
 
 <template>
   <div class="relative">
-    <BellIcon class="w-6 h-6" />
+    <BellIcon class="w-6 h-6 text-header-text-primary" />
     <div
       v-if="indicatorLevel === 'UNREAD'"
       class="absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800 bg-unraid-green"
