@@ -1,12 +1,6 @@
 <script lang="ts" setup>
 import {
-  ArrowPathIcon,
-  ArrowTopRightOnSquareIcon,
-  BellAlertIcon,
-  CheckCircleIcon,
   ExclamationTriangleIcon,
-  InformationCircleIcon,
-  XCircleIcon,
 } from '@heroicons/vue/24/solid';
 import { serverState } from '~/_data/serverState';
 import type { SendPayloads } from '~/store/callback';
