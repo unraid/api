@@ -1,4 +1,10 @@
+import { BadRequestException, ExecutionContext, Logger, UnauthorizedException } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
+
 import strftime from 'strftime';
+
+import { UserAccount } from './graphql/generated/api/types';
+import { FastifyRequest } from './types/fastify';
 
 export function notNull<T>(value: T): value is NonNullable<T> {
     return value !== null;
@@ -167,4 +173,73 @@ export function formatDatetime(
         formatted += ' ' + strftime(timeFormat, date);
     }
     return formatted;
+}
+
+/**
+ * Retrieves the request object from the execution context.
+ *
+ * @param ctx - Execution context
+ * @returns Request object
+ */
+export function getRequest(ctx: ExecutionContext) {
+    const contextType = ctx.getType<'http' | 'graphql'>();
+    let request: (FastifyRequest & { user?: UserAccount }) | null = null;
+
+    if (contextType === 'http') {
+        request = ctx.switchToHttp().getRequest();
+    } else if (contextType === 'graphql') {
+        request = GqlExecutionContext.create(ctx).getContext().req;
+    }
+
+    if (!request) {
+        throw new BadRequestException(
+            `Unsupported execution context type: ${contextType}. Only HTTP and GraphQL contexts are supported.`
+        );
+    }
+
+    return request;
+}
+
+/**
+ * Standardized error handler for auth operations that converts any error
+ * into an UnauthorizedException with proper logging and redacts API keys.
+ *
+ * @param logger - Logger instance to use for error logging
+ * @param operation - Description of the operation that failed
+ * @param error - The caught error
+ * @param context - Additional context information (e.g., user ID, API key)
+ * @throws UnauthorizedException
+ */
+export function handleAuthError(
+    logger: Logger,
+    operation: string,
+    error: unknown,
+    context?: Record<string, string>
+): never {
+    // Sanitize context by creating a deep clone
+    const sanitizedContext = context ? structuredClone(context) : {};
+
+    if (sanitizedContext) {
+        updateObject(sanitizedContext, (obj) => {
+            for (const [key, value] of Object.entries(obj)) {
+                if (typeof value === 'string' && key.toLowerCase().includes('key')) {
+                    (obj as any)[key] = '[REDACTED]';
+                }
+            }
+        });
+    }
+
+    const contextStr = Object.keys(sanitizedContext || {}).length
+        ? ` ${JSON.stringify(sanitizedContext)}`
+        : '';
+
+    logger.error(`${operation} ${contextStr}`, error);
+
+    if (error instanceof UnauthorizedException) {
+        throw error;
+    }
+    // Use generic message for unknown errors to prevent information leakage
+    const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
+
+    throw new UnauthorizedException(`${operation}: ${errorMessage}`);
 }

@@ -39,23 +39,50 @@ export type AccessUrlInput = {
   type: URL_TYPE;
 };
 
+export type AddPermissionInput = {
+  action: Scalars['String']['input'];
+  possession: Scalars['String']['input'];
+  resource: Resource;
+  role: Role;
+};
+
+export type AddRoleForApiKeyInput = {
+  apiKeyId: Scalars['ID']['input'];
+  role: Role;
+};
+
+export type AddRoleForUserInput = {
+  role: Role;
+  userId: Scalars['ID']['input'];
+};
+
 export type AllowedOriginInput = {
   origins: Array<Scalars['String']['input']>;
 };
 
 export type ApiKey = {
   __typename?: 'ApiKey';
+  createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
-  expiresAt: Scalars['Long']['output'];
-  key: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  scopes: Scalars['JSON']['output'];
+  roles: Array<Role>;
 };
 
 export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
+};
+
+export type ApiKeyWithSecret = {
+  __typename?: 'ApiKeyWithSecret';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  key: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export type ArrayType = Node & {
@@ -318,6 +345,12 @@ export enum ContainerState {
   RUNNING = 'RUNNING'
 }
 
+export type CreateApiKeyInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  roles: Array<Role>;
+};
+
 export type Devices = {
   __typename?: 'Devices';
   gpu?: Maybe<Array<Maybe<Gpu>>>;
@@ -563,7 +596,7 @@ export type Me = UserAccount & {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions?: Maybe<Scalars['JSON']['output']>;
-  roles: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export enum MemoryFormFactor {
@@ -616,10 +649,11 @@ export type Mount = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Create a new API key */
-  addApikey?: Maybe<ApiKey>;
   /** Add new disk to array */
   addDiskToArray?: Maybe<ArrayType>;
+  addPermission: Scalars['Boolean']['output'];
+  addRoleForApiKey: Scalars['Boolean']['output'];
+  addRoleForUser: Scalars['Boolean']['output'];
   /** Add a new user */
   addUser?: Maybe<User>;
   archiveAll: NotificationOverview;
@@ -631,6 +665,7 @@ export type Mutation = {
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createApiKey: ApiKeyWithSecret;
   createNotification: Notification;
   /** Deletes all archived notifications on server. */
   deleteArchivedNotifications: NotificationOverview;
@@ -638,8 +673,6 @@ export type Mutation = {
   /** Delete a user */
   deleteUser?: Maybe<User>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  /** Get an existing API key */
-  getApiKey?: Maybe<ApiKey>;
   login?: Maybe<Scalars['String']['output']>;
   mountArrayDisk?: Maybe<Disk>;
   /** Pause parity check */
@@ -649,6 +682,7 @@ export type Mutation = {
   recalculateOverview: NotificationOverview;
   /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
   removeDiskFromArray?: Maybe<ArrayType>;
+  removeRoleFromApiKey: Scalars['Boolean']['output'];
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
@@ -665,19 +699,26 @@ export type Mutation = {
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
-  /** Update an existing API key */
-  updateApikey?: Maybe<ApiKey>;
-};
-
-
-export type MutationaddApikeyArgs = {
-  input?: InputMaybe<updateApikeyInput>;
-  name: Scalars['String']['input'];
 };
 
 
 export type MutationaddDiskToArrayArgs = {
   input?: InputMaybe<arrayDiskInput>;
+};
+
+
+export type MutationaddPermissionArgs = {
+  input: AddPermissionInput;
+};
+
+
+export type MutationaddRoleForApiKeyArgs = {
+  input: AddRoleForApiKeyInput;
+};
+
+
+export type MutationaddRoleForUserArgs = {
+  input: AddRoleForUserInput;
 };
 
 
@@ -711,6 +752,11 @@ export type MutationconnectSignInArgs = {
 };
 
 
+export type MutationcreateApiKeyArgs = {
+  input: CreateApiKeyInput;
+};
+
+
 export type MutationcreateNotificationArgs = {
   input: NotificationData;
 };
@@ -732,12 +778,6 @@ export type MutationenableDynamicRemoteAccessArgs = {
 };
 
 
-export type MutationgetApiKeyArgs = {
-  input?: InputMaybe<authenticateInput>;
-  name: Scalars['String']['input'];
-};
-
-
 export type MutationloginArgs = {
   password: Scalars['String']['input'];
   username: Scalars['String']['input'];
@@ -751,6 +791,11 @@ export type MutationmountArrayDiskArgs = {
 
 export type MutationremoveDiskFromArrayArgs = {
   input?: InputMaybe<arrayDiskInput>;
+};
+
+
+export type MutationremoveRoleFromApiKeyArgs = {
+  input: RemoveRoleFromApiKeyInput;
 };
 
 
@@ -786,12 +831,6 @@ export type MutationunmountArrayDiskArgs = {
 
 export type MutationunreadNotificationArgs = {
   id: Scalars['String']['input'];
-};
-
-
-export type MutationupdateApikeyArgs = {
-  input?: InputMaybe<updateApikeyInput>;
-  name: Scalars['String']['input'];
 };
 
 export type Network = Node & {
@@ -995,8 +1034,8 @@ export type ProfileModel = {
 
 export type Query = {
   __typename?: 'Query';
-  /** Get all API keys */
-  apiKeys?: Maybe<Array<Maybe<ApiKey>>>;
+  apiKey?: Maybe<ApiKey>;
+  apiKeys: Array<ApiKey>;
   /** An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks. */
   array: ArrayType;
   cloud?: Maybe<Cloud>;
@@ -1039,6 +1078,11 @@ export type Query = {
   vars?: Maybe<Vars>;
   /** Virtual machines */
   vms?: Maybe<Vms>;
+};
+
+
+export type QueryapiKeyArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1136,6 +1180,52 @@ export type RemoteAccess = {
   port?: Maybe<Scalars['Port']['output']>;
 };
 
+export type RemoveRoleFromApiKeyInput = {
+  apiKeyId: Scalars['ID']['input'];
+  role: Role;
+};
+
+/** Available resources for permissions */
+export enum Resource {
+  API_KEY = 'api_key',
+  ARRAY = 'array',
+  CLOUD = 'cloud',
+  CONFIG = 'config',
+  CONNECT = 'connect',
+  CRASH_REPORTING_ENABLED = 'crash_reporting_enabled',
+  CUSTOMIZATIONS = 'customizations',
+  DASHBOARD = 'dashboard',
+  DISK = 'disk',
+  DISPLAY = 'display',
+  DOCKER = 'docker',
+  FLASH = 'flash',
+  INFO = 'info',
+  LOGS = 'logs',
+  ME = 'me',
+  NETWORK = 'network',
+  NOTIFICATIONS = 'notifications',
+  ONLINE = 'online',
+  OS = 'os',
+  OWNER = 'owner',
+  PERMISSION = 'permission',
+  REGISTRATION = 'registration',
+  SERVERS = 'servers',
+  SERVICES = 'services',
+  SHARE = 'share',
+  VARS = 'vars',
+  VMS = 'vms',
+  WELCOME = 'welcome'
+}
+
+/** Available roles for API keys and users */
+export enum Role {
+  ADMIN = 'admin',
+  GUEST = 'guest',
+  MY_SERVERS = 'my_servers',
+  NOTIFIER = 'notifier',
+  UPC = 'upc'
+}
+
 export type Server = {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
@@ -1199,7 +1289,6 @@ export type Share = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  apikeys?: Maybe<Array<Maybe<ApiKey>>>;
   array: ArrayType;
   config: Config;
   display?: Maybe<Display>;
@@ -1357,14 +1446,14 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
-  roles: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  roles: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export type Vars = Node & {
@@ -1603,12 +1692,6 @@ export type Welcome = {
   message: Scalars['String']['output'];
 };
 
-export type addApiKeyInput = {
-  key?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  userId?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type addUserInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -1620,10 +1703,6 @@ export type arrayDiskInput = {
   id: Scalars['ID']['input'];
   /** The slot for the disk */
   slot?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type authenticateInput = {
-  password: Scalars['String']['input'];
 };
 
 export type deleteUserInput = {
@@ -1645,11 +1724,6 @@ export enum registrationType {
   TRIAL = 'TRIAL',
   UNLEASHED = 'UNLEASHED'
 }
-
-export type updateApikeyInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  expiresAt: Scalars['Long']['input'];
-};
 
 export type usersInput = {
   slim?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1734,9 +1808,13 @@ export type ResolversInterfaceTypes<_RefType extends Record<string, unknown>> = 
 export type ResolversTypes = ResolversObject<{
   AccessUrl: ResolverTypeWrapper<AccessUrl>;
   AccessUrlInput: AccessUrlInput;
+  AddPermissionInput: AddPermissionInput;
+  AddRoleForApiKeyInput: AddRoleForApiKeyInput;
+  AddRoleForUserInput: AddRoleForUserInput;
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ResolverTypeWrapper<ApiKey>;
   ApiKeyResponse: ResolverTypeWrapper<ApiKeyResponse>;
+  ApiKeyWithSecret: ResolverTypeWrapper<ApiKeyWithSecret>;
   Array: ResolverTypeWrapper<ArrayType>;
   ArrayCapacity: ResolverTypeWrapper<ArrayCapacity>;
   ArrayDisk: ResolverTypeWrapper<ArrayDisk>;
@@ -1761,6 +1839,7 @@ export type ResolversTypes = ResolversObject<{
   ContainerPort: ResolverTypeWrapper<ContainerPort>;
   ContainerPortType: ContainerPortType;
   ContainerState: ContainerState;
+  CreateApiKeyInput: CreateApiKeyInput;
   DateTime: ResolverTypeWrapper<Scalars['DateTime']['output']>;
   Devices: ResolverTypeWrapper<Devices>;
   Disk: ResolverTypeWrapper<Disk>;
@@ -1817,6 +1896,9 @@ export type ResolversTypes = ResolversObject<{
   RegistrationState: RegistrationState;
   RelayResponse: ResolverTypeWrapper<RelayResponse>;
   RemoteAccess: ResolverTypeWrapper<RemoteAccess>;
+  RemoveRoleFromApiKeyInput: RemoveRoleFromApiKeyInput;
+  Resource: Resource;
+  Role: Role;
   Server: ResolverTypeWrapper<Server>;
   ServerStatus: ServerStatus;
   Service: ResolverTypeWrapper<Service>;
@@ -1843,14 +1925,11 @@ export type ResolversTypes = ResolversObject<{
   WAN_ACCESS_TYPE: WAN_ACCESS_TYPE;
   WAN_FORWARD_TYPE: WAN_FORWARD_TYPE;
   Welcome: ResolverTypeWrapper<Welcome>;
-  addApiKeyInput: addApiKeyInput;
   addUserInput: addUserInput;
   arrayDiskInput: arrayDiskInput;
-  authenticateInput: authenticateInput;
   deleteUserInput: deleteUserInput;
   mdState: mdState;
   registrationType: registrationType;
-  updateApikeyInput: updateApikeyInput;
   usersInput: usersInput;
 }>;
 
@@ -1858,9 +1937,13 @@ export type ResolversTypes = ResolversObject<{
 export type ResolversParentTypes = ResolversObject<{
   AccessUrl: AccessUrl;
   AccessUrlInput: AccessUrlInput;
+  AddPermissionInput: AddPermissionInput;
+  AddRoleForApiKeyInput: AddRoleForApiKeyInput;
+  AddRoleForUserInput: AddRoleForUserInput;
   AllowedOriginInput: AllowedOriginInput;
   ApiKey: ApiKey;
   ApiKeyResponse: ApiKeyResponse;
+  ApiKeyWithSecret: ApiKeyWithSecret;
   Array: ArrayType;
   ArrayCapacity: ArrayCapacity;
   ArrayDisk: ArrayDisk;
@@ -1877,6 +1960,7 @@ export type ResolversParentTypes = ResolversObject<{
   ContainerHostConfig: ContainerHostConfig;
   ContainerMount: ContainerMount;
   ContainerPort: ContainerPort;
+  CreateApiKeyInput: CreateApiKeyInput;
   DateTime: Scalars['DateTime']['output'];
   Devices: Devices;
   Disk: Disk;
@@ -1923,6 +2007,7 @@ export type ResolversParentTypes = ResolversObject<{
   Registration: Registration;
   RelayResponse: RelayResponse;
   RemoteAccess: RemoteAccess;
+  RemoveRoleFromApiKeyInput: RemoveRoleFromApiKeyInput;
   Server: Server;
   Service: Service;
   SetupRemoteAccessInput: SetupRemoteAccessInput;
@@ -1942,12 +2027,9 @@ export type ResolversParentTypes = ResolversObject<{
   VmDomain: VmDomain;
   Vms: Vms;
   Welcome: Welcome;
-  addApiKeyInput: addApiKeyInput;
   addUserInput: addUserInput;
   arrayDiskInput: arrayDiskInput;
-  authenticateInput: authenticateInput;
   deleteUserInput: deleteUserInput;
-  updateApikeyInput: updateApikeyInput;
   usersInput: usersInput;
 }>;
 
@@ -1960,17 +2042,27 @@ export type AccessUrlResolvers<ContextType = Context, ParentType extends Resolve
 }>;
 
 export type ApiKeyResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKey'] = ResolversParentTypes['ApiKey']> = ResolversObject<{
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
   description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
-  expiresAt?: Resolver<ResolversTypes['Long'], ParentType, ContextType>;
-  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  scopes?: Resolver<ResolversTypes['JSON'], ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
 export type ApiKeyResponseResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKeyResponse'] = ResolversParentTypes['ApiKeyResponse']> = ResolversObject<{
   error?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   valid?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
+}>;
+
+export type ApiKeyWithSecretResolvers<ContextType = Context, ParentType extends ResolversParentTypes['ApiKeyWithSecret'] = ResolversParentTypes['ApiKeyWithSecret']> = ResolversObject<{
+  createdAt?: Resolver<ResolversTypes['DateTime'], ParentType, ContextType>;
+  description?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
+  id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
+  key?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2311,7 +2403,7 @@ export type MeResolvers<ContextType = Context, ParentType extends ResolversParen
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   permissions?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
-  roles?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2346,8 +2438,10 @@ export type MountResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type MutationResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Mutation'] = ResolversParentTypes['Mutation']> = ResolversObject<{
-  addApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationaddApikeyArgs, 'name'>>;
   addDiskToArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationaddDiskToArrayArgs>>;
+  addPermission?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationaddPermissionArgs, 'input'>>;
+  addRoleForApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationaddRoleForApiKeyArgs, 'input'>>;
+  addRoleForUser?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationaddRoleForUserArgs, 'input'>>;
   addUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationaddUserArgs, 'input'>>;
   archiveAll?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationarchiveAllArgs>>;
   archiveNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationarchiveNotificationArgs, 'id'>>;
@@ -2356,18 +2450,19 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   clearArrayDiskStatistics?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType, RequireFields<MutationclearArrayDiskStatisticsArgs, 'id'>>;
   connectSignIn?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationconnectSignInArgs, 'input'>>;
   connectSignOut?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType>;
+  createApiKey?: Resolver<ResolversTypes['ApiKeyWithSecret'], ParentType, ContextType, RequireFields<MutationcreateApiKeyArgs, 'input'>>;
   createNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationcreateNotificationArgs, 'input'>>;
   deleteArchivedNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   deleteNotification?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, RequireFields<MutationdeleteNotificationArgs, 'id' | 'type'>>;
   deleteUser?: Resolver<Maybe<ResolversTypes['User']>, ParentType, ContextType, RequireFields<MutationdeleteUserArgs, 'input'>>;
   enableDynamicRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationenableDynamicRemoteAccessArgs, 'input'>>;
-  getApiKey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationgetApiKeyArgs, 'name'>>;
   login?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationloginArgs, 'password' | 'username'>>;
   mountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationmountArrayDiskArgs, 'id'>>;
   pauseParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   reboot?: Resolver<Maybe<ResolversTypes['String']>, ParentType, ContextType>;
   recalculateOverview?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType>;
   removeDiskFromArray?: Resolver<Maybe<ResolversTypes['Array']>, ParentType, ContextType, Partial<MutationremoveDiskFromArrayArgs>>;
+  removeRoleFromApiKey?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationremoveRoleFromApiKeyArgs, 'input'>>;
   resumeParityCheck?: Resolver<Maybe<ResolversTypes['JSON']>, ParentType, ContextType>;
   setAdditionalAllowedOrigins?: Resolver<Array<ResolversTypes['String']>, ParentType, ContextType, RequireFields<MutationsetAdditionalAllowedOriginsArgs, 'input'>>;
   setupRemoteAccess?: Resolver<ResolversTypes['Boolean'], ParentType, ContextType, RequireFields<MutationsetupRemoteAccessArgs, 'input'>>;
@@ -2379,7 +2474,6 @@ export type MutationResolvers<ContextType = Context, ParentType extends Resolver
   unarchiveNotifications?: Resolver<ResolversTypes['NotificationOverview'], ParentType, ContextType, Partial<MutationunarchiveNotificationsArgs>>;
   unmountArrayDisk?: Resolver<Maybe<ResolversTypes['Disk']>, ParentType, ContextType, RequireFields<MutationunmountArrayDiskArgs, 'id'>>;
   unreadNotification?: Resolver<ResolversTypes['Notification'], ParentType, ContextType, RequireFields<MutationunreadNotificationArgs, 'id'>>;
-  updateApikey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<MutationupdateApikeyArgs, 'name'>>;
 }>;
 
 export type NetworkResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Network'] = ResolversParentTypes['Network']> = ResolversObject<{
@@ -2559,7 +2653,8 @@ export type ProfileModelResolvers<ContextType = Context, ParentType extends Reso
 }>;
 
 export type QueryResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Query'] = ResolversParentTypes['Query']> = ResolversObject<{
-  apiKeys?: Resolver<Maybe<Array<Maybe<ResolversTypes['ApiKey']>>>, ParentType, ContextType>;
+  apiKey?: Resolver<Maybe<ResolversTypes['ApiKey']>, ParentType, ContextType, RequireFields<QueryapiKeyArgs, 'id'>>;
+  apiKeys?: Resolver<Array<ResolversTypes['ApiKey']>, ParentType, ContextType>;
   array?: Resolver<ResolversTypes['Array'], ParentType, ContextType>;
   cloud?: Resolver<Maybe<ResolversTypes['Cloud']>, ParentType, ContextType>;
   config?: Resolver<ResolversTypes['Config'], ParentType, ContextType>;
@@ -2659,7 +2754,6 @@ export type ShareResolvers<ContextType = Context, ParentType extends ResolversPa
 }>;
 
 export type SubscriptionResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Subscription'] = ResolversParentTypes['Subscription']> = ResolversObject<{
-  apikeys?: SubscriptionResolver<Maybe<Array<Maybe<ResolversTypes['ApiKey']>>>, "apikeys", ParentType, ContextType>;
   array?: SubscriptionResolver<ResolversTypes['Array'], "array", ParentType, ContextType>;
   config?: SubscriptionResolver<ResolversTypes['Config'], "config", ParentType, ContextType>;
   display?: SubscriptionResolver<Maybe<ResolversTypes['Display']>, "display", ParentType, ContextType>;
@@ -2778,7 +2872,7 @@ export type UserResolvers<ContextType = Context, ParentType extends ResolversPar
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   password?: Resolver<Maybe<ResolversTypes['Boolean']>, ParentType, ContextType>;
-  roles?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
   __isTypeOf?: IsTypeOfResolverFn<ParentType, ContextType>;
 }>;
 
@@ -2787,7 +2881,7 @@ export type UserAccountResolvers<ContextType = Context, ParentType extends Resol
   description?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
   id?: Resolver<ResolversTypes['ID'], ParentType, ContextType>;
   name?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
-  roles?: Resolver<ResolversTypes['String'], ParentType, ContextType>;
+  roles?: Resolver<Array<ResolversTypes['Role']>, ParentType, ContextType>;
 }>;
 
 export type VarsResolvers<ContextType = Context, ParentType extends ResolversParentTypes['Vars'] = ResolversParentTypes['Vars']> = ResolversObject<{
@@ -2988,6 +3082,7 @@ export type Resolvers<ContextType = Context> = ResolversObject<{
   AccessUrl?: AccessUrlResolvers<ContextType>;
   ApiKey?: ApiKeyResolvers<ContextType>;
   ApiKeyResponse?: ApiKeyResponseResolvers<ContextType>;
+  ApiKeyWithSecret?: ApiKeyWithSecretResolvers<ContextType>;
   Array?: ArrayResolvers<ContextType>;
   ArrayCapacity?: ArrayCapacityResolvers<ContextType>;
   ArrayDisk?: ArrayDiskResolvers<ContextType>;

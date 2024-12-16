@@ -40,6 +40,7 @@ export const initialState: SliceState = {
         wanport: '',
         upnpEnabled: '',
         apikey: '',
+        localApiKey: '',
         email: '',
         username: '',
         avatar: '',
@@ -71,8 +72,8 @@ export const initialState: SliceState = {
 } as const;
 
 export const loginUser = createAsyncThunk<
-    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username' | 'apikey'>,
-    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username' | 'apikey'>,
+    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username' | 'apikey'| 'localApiKey'>,
+    Pick<MyServersConfig['remote'], 'email' | 'avatar' | 'username' | 'apikey'| 'localApiKey'>,
     { state: RootState }
 >('config/login-user', async (userInfo) => {
     logger.info('Logging in user: %s', userInfo.username);
@@ -301,6 +302,7 @@ export const config = createSlice({
             merge(state, {
                 remote: {
                     apikey: action.payload.apikey,
+                    localApiKey: action.payload.localApiKey,
                     email: action.payload.email,
                     username: action.payload.username,
                     avatar: action.payload.avatar,
@@ -312,6 +314,7 @@ export const config = createSlice({
             merge(state, {
                 remote: {
                     apikey: '',
+                    localApiKey: '',
                     avatar: '',
                     email: '',
                     username: '',

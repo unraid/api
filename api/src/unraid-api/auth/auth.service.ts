@@ -1,29 +1,223 @@
-import { type UserAccount } from '@app/graphql/generated/api/types';
-import { UsersService } from '@app/unraid-api/auth/users.service';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+
+import { AuthZService } from 'nest-authz';
+
+import type { UserAccount } from '@app/graphql/generated/api/types';
+import { Role } from '@app/graphql/generated/api/types';
+import { handleAuthError } from '@app/utils';
+
+import { ApiKeyService } from './api-key.service';
 import { CookieService } from './cookie.service';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
+
     constructor(
-        @Inject('USERS_SERVICE') private usersService: UsersService,
-        @Inject('COOKIE_SERVICE') private cookieService: CookieService
+        private cookieService: CookieService,
+        private apiKeyService: ApiKeyService,
+        private authzService: AuthZService
     ) {}
 
-    async validateUser(apiKey: string): Promise<UserAccount> {
-        const user = this.usersService.findOne(apiKey);
-        if (user) {
-            return user;
+    async validateApiKeyCasbin(apiKey: string): Promise<UserAccount> {
+        try {
+            const apiKeyEntity = await this.apiKeyService.findByKey(apiKey);
+
+            if (!apiKeyEntity) {
+                throw new UnauthorizedException('Invalid API key');
+            }
+
+            apiKeyEntity.roles ??= [];
+
+            await this.syncApiKeyRoles(apiKeyEntity.id, apiKeyEntity.roles);
+            this.logger.debug(
+                `Validating API key with roles: ${JSON.stringify(
+                    await this.authzService.getRolesForUser(apiKeyEntity.id)
+                )}`
+            );
+
+            return {
+                id: apiKeyEntity.id,
+                name: apiKeyEntity.name,
+                description: apiKeyEntity.description ?? `API Key ${apiKeyEntity.name}`,
+                roles: apiKeyEntity.roles,
+            };
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to validate API key', error);
         }
-        console.log('Invalid User');
-        throw new UnauthorizedException('Invalid API key');
     }
 
-    async validateCookies(cookies: object): Promise<UserAccount> {
-        if (await this.cookieService.hasValidAuthCookie(cookies)) {
-            return this.usersService.getSessionUser();
+    async validateCookiesCasbin(cookies: object): Promise<UserAccount> {
+        try {
+            if (!(await this.cookieService.hasValidAuthCookie(cookies))) {
+                throw new UnauthorizedException('No user session found');
+            }
+
+            const user = await this.getSessionUser();
+
+            if (!user) {
+                throw new UnauthorizedException('Invalid user session');
+            }
+
+            // Sync the user's roles before checking them
+            await this.syncUserRoles(user.id, user.roles);
+
+            // Now get the updated roles
+            const existingRoles = await this.authzService.getRolesForUser(user.id);
+            this.logger.debug(`User ${user.id} has roles: ${existingRoles}`);
+
+            return user;
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to validate session', error);
         }
-        console.log('No user session found');
-        throw new UnauthorizedException('No user session found');
+    }
+
+    public async syncApiKeyRoles(apiKeyId: string, roles: string[]): Promise<void> {
+        try {
+            // Get existing roles and convert to Set
+            const existingRolesSet = new Set(await this.authzService.getRolesForUser(apiKeyId));
+            const newRolesSet = new Set(roles);
+
+            // Calculate roles to add (in new roles but not in existing)
+            const rolesToAdd = roles.filter((role) => !existingRolesSet.has(role));
+
+            // Calculate roles to remove (in existing but not in new)
+            const rolesToRemove = Array.from(existingRolesSet).filter((role) => !newRolesSet.has(role));
+
+            // Perform role updates
+            await Promise.all([
+                ...rolesToAdd.map((role) => this.authzService.addRoleForUser(apiKeyId, role)),
+                ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(apiKeyId, role)),
+            ]);
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to sync roles for API key', error, { apiKeyId });
+        }
+    }
+
+    public async addRoleToUser(userId: string, role: Role): Promise<boolean> {
+        if (!userId || !role) {
+            throw new UnauthorizedException('User ID and role are required');
+        }
+
+        try {
+            const hasRole = await this.authzService.hasRoleForUser(userId, role);
+
+            if (hasRole) {
+                return true;
+            }
+
+            await this.authzService.addRoleForUser(userId, role);
+
+            return true;
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to add role to user', error, { userId, role });
+        }
+    }
+
+    public async addRoleToApiKey(apiKeyId: string, role: Role): Promise<boolean> {
+        if (!apiKeyId || !role) {
+            throw new UnauthorizedException('API key ID and role are required');
+        }
+
+        const apiKey = await this.apiKeyService.findById(apiKeyId);
+
+        if (!apiKey) {
+            throw new UnauthorizedException('API key not found');
+        }
+
+        try {
+            if (!apiKey.roles.includes(role)) {
+                const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
+
+                if (!apiKeyWithSecret) {
+                    throw new UnauthorizedException('API key not found with secret');
+                }
+
+                apiKeyWithSecret.roles.push(role);
+                await this.apiKeyService.saveApiKey(apiKeyWithSecret);
+                await this.authzService.addRoleForUser(apiKeyId, role);
+            }
+
+            return true;
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to add role to API key', error, { apiKeyId, role });
+        }
+    }
+
+    public async removeRoleFromApiKey(apiKeyId: string, role: Role): Promise<boolean> {
+        if (!apiKeyId || !role) {
+            throw new UnauthorizedException('API key ID and role are required');
+        }
+
+        const apiKey = await this.apiKeyService.findById(apiKeyId);
+
+        if (!apiKey) {
+            throw new UnauthorizedException('API key not found');
+        }
+
+        try {
+            const apiKeyWithSecret = await this.apiKeyService.findByIdWithSecret(apiKeyId);
+
+            if (!apiKeyWithSecret) {
+                throw new UnauthorizedException('API key not found with secret');
+            }
+
+            apiKeyWithSecret.roles = apiKeyWithSecret.roles.filter((r) => r !== role);
+            await this.apiKeyService.saveApiKey(apiKeyWithSecret);
+            await this.authzService.deleteRoleForUser(apiKeyId, role);
+
+            return true;
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to remove role from API key', error, {
+                apiKeyId,
+                role,
+            });
+        }
+    }
+
+    private async syncUserRoles(userId: string, roles: Role[]): Promise<void> {
+        try {
+            // Get existing roles and convert to Set
+            const existingRolesSet = new Set(
+                (await this.authzService.getRolesForUser(userId)).map((role) => role as Role)
+            );
+            const newRolesSet = new Set(roles);
+
+            // Calculate roles to add (in new roles but not in existing)
+            const rolesToAdd = roles.filter((role) => !existingRolesSet.has(role));
+
+            // Calculate roles to remove (in existing but not in new)
+            const rolesToRemove = Array.from(existingRolesSet).filter((role) => !newRolesSet.has(role));
+
+            // Perform role updates
+            await Promise.all([
+                ...rolesToAdd.map((role) => this.authzService.addRoleForUser(userId, role)),
+                ...rolesToRemove.map((role) => this.authzService.deleteRoleForUser(userId, role)),
+            ]);
+
+            this.logger.debug(
+                `Synced roles for user ${userId}. Added: ${rolesToAdd.join(
+                    ','
+                )}, Removed: ${rolesToRemove.join(',')}`
+            );
+        } catch (error: unknown) {
+            handleAuthError(this.logger, 'Failed to sync roles for user', error, { userId });
+        }
+    }
+
+    /**
+     * Returns a user object representing a session.
+     * Note: Does NOT perform validation.
+     *
+     * @returns a service account that represents the user session (i.e. a webgui user).
+     */
+    async getSessionUser(): Promise<UserAccount> {
+        this.logger.debug('getSessionUser called!');
+        return {
+            id: '-1',
+            description: 'UPC service account',
+            name: 'upc',
+            roles: [Role.UPC],
+        };
     }
 }

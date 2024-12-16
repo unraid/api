@@ -1,16 +1,20 @@
-import {
-    getAllowedOrigins,
-    getExtraOrigins,
-} from '@app/common/allowed-origins';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import type {
+    Cloud,
+    ConnectSignInInput,
+    RemoteAccess,
+    SetupRemoteAccessInput,
+} from '@app/graphql/generated/api/types';
+import { getAllowedOrigins, getExtraOrigins } from '@app/common/allowed-origins';
 import {
     DynamicRemoteAccessType,
+    Resource,
     WAN_ACCESS_TYPE,
     WAN_FORWARD_TYPE,
-    type ConnectSignInInput,
-    type SetupRemoteAccessInput,
 } from '@app/graphql/generated/api/types';
-import type { Cloud, RemoteAccess } from '@app/graphql/generated/api/types';
-
 import { connectSignIn } from '@app/graphql/resolvers/mutation/connect/connect-sign-in';
 import { checkApi } from '@app/graphql/resolvers/query/cloud/check-api';
 import { checkCloud } from '@app/graphql/resolvers/query/cloud/check-cloud';
@@ -18,16 +22,14 @@ import { checkMinigraphql } from '@app/graphql/resolvers/query/cloud/check-minig
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 import { getters, store } from '@app/store/index';
 import { logoutUser } from '@app/store/modules/config';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
 
 @Resolver('Cloud')
 export class CloudResolver {
     @Query()
-    @UseRoles({
-        resource: 'cloud',
-        action: 'read',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.CLOUD,
+        possession: AuthPossession.ANY,
     })
     public async cloud(): Promise<Cloud> {
         const minigraphql = checkMinigraphql();
@@ -47,42 +49,38 @@ export class CloudResolver {
             error:
                 `${apiKey.error ? `API KEY: ${apiKey.error}` : ''}${
                     cloud.error ? `NETWORK: ${cloud.error}` : ''
-                }${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` ||
-                null,
+                }${minigraphql.error ? `CLOUD: ${minigraphql.error}` : ''}` || null,
         };
     }
 
     @Query()
-    @UseRoles({
-        resource: 'connect',
-        action: 'read',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.CONNECT,
+        possession: AuthPossession.ANY,
     })
     public async remoteAccess(): Promise<RemoteAccess> {
         const hasWanAccess = getters.config().remote.wanaccess === 'yes';
         const dynamicRemoteAccessSettings: RemoteAccess = {
             accessType: hasWanAccess
-                ? getters.config().remote.dynamicRemoteAccessType !==
-                  DynamicRemoteAccessType.DISABLED
+                ? getters.config().remote.dynamicRemoteAccessType !== DynamicRemoteAccessType.DISABLED
                     ? WAN_ACCESS_TYPE.DYNAMIC
                     : WAN_ACCESS_TYPE.ALWAYS
                 : WAN_ACCESS_TYPE.DISABLED,
             forwardType: getters.config().remote.upnpEnabled
                 ? WAN_FORWARD_TYPE.UPNP
                 : WAN_FORWARD_TYPE.STATIC,
-            port: getters.config().remote.wanport
-                ? Number(getters.config().remote.wanport)
-                : null,
+            port: getters.config().remote.wanport ? Number(getters.config().remote.wanport) : null,
         };
 
         return dynamicRemoteAccessSettings;
     }
 
     @Query()
-    @UseRoles({
-        resource: 'connect',
-        action: 'read',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.CONNECT,
+        possession: AuthPossession.ANY,
     })
     public async extraAllowedOrigins(): Promise<Array<string>> {
         const extraOrigins = getExtraOrigins();
@@ -91,44 +89,37 @@ export class CloudResolver {
     }
 
     @Mutation()
-    @UseRoles({
-        resource: 'connect',
-        action: 'update',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.CONNECT,
+        possession: AuthPossession.ANY,
     })
-    public async connectSignIn(
-        @Args('input') input: ConnectSignInInput
-    ): Promise<boolean> {
+    public async connectSignIn(@Args('input') input: ConnectSignInInput): Promise<boolean> {
         /**
          * @todo Move to service
          */
-        return connectSignIn(input);
+        return await connectSignIn(input);
     }
 
     @Mutation()
-    @UseRoles({
-        resource: 'connect',
-        action: 'update',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.CONNECT,
+        possession: AuthPossession.ANY,
     })
     public async connectSignOut() {
-        await store.dispatch(
-            logoutUser({ reason: 'Manual Sign Out Using API' })
-        );
+        await store.dispatch(logoutUser({ reason: 'Manual Sign Out Using API' }));
         return true;
     }
 
     @Mutation()
-    @UseRoles({
-        resource: 'connect',
-        action: 'update',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
+        resource: Resource.CONNECT,
+        possession: AuthPossession.ANY,
     })
-    public async setupRemoteAccess(
-        @Args('input') input: SetupRemoteAccessInput
-    ): Promise<boolean> {
+    public async setupRemoteAccess(@Args('input') input: SetupRemoteAccessInput): Promise<boolean> {
         await store.dispatch(setupRemoteAccessThunk(input)).unwrap();
         return true;
     }
-
 }

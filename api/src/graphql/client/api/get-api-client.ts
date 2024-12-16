@@ -1,17 +1,13 @@
-import {
-    ApolloClient,
-    HttpLink,
-    InMemoryCache,
-    split,
-} from '@apollo/client/core/index.js';
+import { ApolloClient, HttpLink, InMemoryCache, split } from '@apollo/client/core/index.js';
 import { onError } from '@apollo/client/link/error/index.js';
-import { getInternalApiAddress } from '@app/consts';
-import WebSocket from 'ws';
-import { fetch } from 'cross-fetch';
-import { getMainDefinition } from '@apollo/client/utilities/index.js';
-import { graphqlLogger } from '@app/core/log';
 import { GraphQLWsLink } from '@apollo/client/link/subscriptions/index.js';
+import { getMainDefinition } from '@apollo/client/utilities/index.js';
+import { fetch } from 'cross-fetch';
 import { createClient } from 'graphql-ws';
+import WebSocket from 'ws';
+
+import { getInternalApiAddress } from '@app/consts';
+import { graphqlLogger } from '@app/core/log';
 import { getters } from '@app/store/index';
 
 const getWebsocketWithHeaders = () => {
@@ -27,18 +23,15 @@ const getWebsocketWithHeaders = () => {
     };
 };
 
-export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
+export const getApiApolloClient = ({ localApiKey }: { localApiKey: string }) => {
     const nginxPort = getters?.emhttp()?.nginx?.httpPort ?? 80;
-    graphqlLogger.debug(
-        'Internal GraphQL URL: %s',
-        getInternalApiAddress(true, nginxPort)
-    );
+    graphqlLogger.debug('Internal GraphQL URL: %s', getInternalApiAddress(true, nginxPort));
     const httpLink = new HttpLink({
         uri: getInternalApiAddress(true, nginxPort),
         fetch,
         headers: {
             Origin: '/var/run/unraid-cli.sock',
-            'x-api-key': upcApiKey,
+            'x-api-key': localApiKey,
             'Content-Type': 'application/json',
         },
     });
@@ -49,7 +42,7 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
             webSocketImpl: getWebsocketWithHeaders(),
             url: getInternalApiAddress(false, nginxPort),
             connectionParams: () => {
-                return { 'x-api-key': upcApiKey };
+                return { 'x-api-key': localApiKey };
             },
         })
     );
@@ -57,10 +50,7 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
     const splitLink = split(
         ({ query }) => {
             const definition = getMainDefinition(query);
-            return (
-                definition.kind === 'OperationDefinition' &&
-                definition.operation === 'subscription'
-            );
+            return definition.kind === 'OperationDefinition' && definition.operation === 'subscription';
         },
         wsLink,
         httpLink
@@ -68,10 +58,7 @@ export const getApiApolloClient = ({ upcApiKey }: { upcApiKey: string }) => {
 
     const errorLink = onError(({ networkError }) => {
         if (networkError) {
-            graphqlLogger.warn(
-                '[GRAPHQL-CLIENT] NETWORK ERROR ENCOUNTERED %o',
-                networkError
-            );
+            graphqlLogger.warn('[GRAPHQL-CLIENT] NETWORK ERROR ENCOUNTERED %o', networkError);
         }
     });
 
