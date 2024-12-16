@@ -72,8 +72,7 @@ const reformattedTimestamp = computed(() => {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    hour12:
-      ['AM', 'PM'].includes(props.formattedTimestamp ?? 'AM')
+    hour12: ['AM', 'PM'].some(period => (props.formattedTimestamp ?? 'AM').includes(period))
   }).format(new Date(props.timestamp ?? new Date()));
   return reformattedDate;
 });
