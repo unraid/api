@@ -9,7 +9,7 @@ const { partnerLogo, partnerUrl } = storeToRefs(useActivationCodeStore());
 
 <template>
   <template v-if="partnerLogo">
-    <a v-if="partnerUrl" :href="partnerUrl" class="opacity-100 hover:opacity-75 focus:opacity-75">
+    <a v-if="partnerUrl" :href="partnerUrl" class="opacity-100 hover:opacity-75 focus:opacity-75" target="_blank" rel="noopener noreferrer">
       <ActivationPartnerLogoImg />
     </a>
     <ActivationPartnerLogoImg v-else />
