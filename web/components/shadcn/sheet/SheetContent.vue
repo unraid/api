@@ -35,11 +35,6 @@ const delegatedProps = computed(() => {
   return delegated;
 });
 const forwarded = useForwardPropsEmits(delegatedProps, emits);
-
-watch(forwarded.value, (newval) => {
-  console.log(newval);
-});
-
 </script>
 
 <template>
