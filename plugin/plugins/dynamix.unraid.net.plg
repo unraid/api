@@ -909,21 +909,22 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     # Set the case model icon, if we haven't done it once already
     if ! grep -q "case" "$ACTIVATION_SETUP_FLAG"; then
       CASE_MODEL_CFG="/boot/config/plugins/dynamix/case-model.cfg"
+      CUSTOM_CASE_FILE_NAME="case-model.png"
       # if the system has a custom icon already set, we need to skip this step
       # First preference is to use a custom icon, if it exists in the activation/assets dir
       # Second preference is to use an included icon with the system that's been specified in the activation json
       CURRENT_CASE_MODEL=$(cat $CASE_MODEL_CFG 2>/dev/null || true)
       # If CURRENT_CASE_MODEL === "case-model.png" then a custom icon has already been set and we should skip this step
-      if [[ -n "$CURRENT_CASE_MODEL" && "$CURRENT_CASE_MODEL" != "case-model.png" ]]; then
-        PARTNER_CASE_MODEL="$PARTNER_ASSETS_DIR/case-model.png" # for custom image
+      if [[ -n "$CURRENT_CASE_MODEL" && "$CURRENT_CASE_MODEL" != "$CUSTOM_CASE_FILE_NAME" ]]; then
+        PARTNER_CASE_MODEL="$PARTNER_ASSETS_DIR/$CUSTOM_CASE_FILE_NAME" # for custom image
         PARTNER_CASE_ICON=$(jq -r '.caseIcon // empty' "$ACTIVATION_JSON" 2>/dev/null || true); # for included with system icon
         if [[ -f "$PARTNER_CASE_MODEL" ]]; then
-          cp -f "$PARTNER_CASE_MODEL" "$WEBGUI_IMAGES_DIR/case-model.png"
+          cp -f "$PARTNER_CASE_MODEL" "$WEBGUI_IMAGES_DIR/$CUSTOM_CASE_FILE_NAME"
           if [[ $? -ne 0 ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
           else
-            echo -n "$PARTNER_CASE_MODEL" > $CASE_MODEL_CFG # set the custom icon in the config file
-            echo "case: $PARTNER_CASE_MODEL" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
+            echo -n "$CUSTOM_CASE_FILE_NAME" > $CASE_MODEL_CFG # set the custom icon in the config file
+            echo "case: $CUSTOM_CASE_FILE_NAME" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
           fi
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo -n "$PARTNER_CASE_ICON" > $CASE_MODEL_CFG # set the parsed icon name in the config file
