@@ -898,11 +898,31 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       # Iterate over the DISPLAY_PARAMS array and update the config file
       for key in "${!DISPLAY_PARAMS[@]}"; do
         value=${DISPLAY_PARAMS[$key]}
-        sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ {
-          s/^($key=).*/\1\"$value\"/
-          t
-          a$key=\"$value\"
-        }" "$CONFIG_FILE"
+
+        awk -v section="$CONFIG_SECTION" -v key="$key" -v value="$value" '
+        BEGIN { in_section = 0; key_found = 0 }
+        /^\[.*\]$/ { 
+          if (in_section && !key_found) {
+            # Append the key-value pair before leaving the section
+            print key "=" "\"" value "\""
+          }
+          in_section = ($0 == "[" section "]")
+          key_found = 0
+        }
+        {
+          if (in_section && $0 ~ "^" key "=") {
+            print key "=" "\"" value "\""
+            key_found = 1
+            next
+          }
+        }
+        { print }
+        END {
+          if (in_section && !key_found) {
+            # Append key-value pair at the end of the section if not found
+            print key "=" "\"" value "\""
+          }
+        }' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
       done
     fi
 
