@@ -16,6 +16,7 @@ export interface ActivationCodeData {
   partnerUrl?: string;
   showBannerGradient?: 'yes';
   sysModel?: string;
+  theme?: 'azure' | 'black' | 'gray' | 'white';
 }
 
 export const useActivationCodeStore = defineStore('activationCode', () => {

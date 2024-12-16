@@ -882,6 +882,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       HEADER_META_COLOR=$(jq -r '.headermetacolor // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
       HEADER_BG_COLOR=$(jq -r '.background // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
       HEADER_SHOW_BANNER_GRADIENT=$(jq -r '.showBannerGradient // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
+      WEBGUI_THEME=$(jq -r '.theme // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
 
       # Initialize array for parameters
       declare -A DISPLAY_PARAMS
@@ -891,6 +892,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       [[ -n $HEADER_META_COLOR ]] && DISPLAY_PARAMS["headermetacolor"]=${HEADER_META_COLOR//\#/}
       [[ -n $HEADER_BG_COLOR ]] && DISPLAY_PARAMS["background"]=${HEADER_BG_COLOR//\#/}
       [[ -n $HEADER_SHOW_BANNER_GRADIENT ]] && DISPLAY_PARAMS["showBannerGradient"]=$HEADER_SHOW_BANNER_GRADIENT
+      [[ -n $WEBGUI_THEME ]] && DISPLAY_PARAMS["theme"]=$WEBGUI_THEME
       DISPLAY_PARAMS["banner"]="image"
 
       CONFIG_FILE="/boot/config/plugins/dynamix/dynamix.cfg"
