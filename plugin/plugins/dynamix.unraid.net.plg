@@ -166,12 +166,7 @@ version=
 source /etc/unraid-version
 
 # Undo some activation / partner setup
-if [ -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove ]; then
-  echo
-  echo "⚠️ Do not close this window yet, restoring some settings"
-  echo
-  source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete --debug
-fi
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete
 
 echo
 echo "⚠️ Do not close this window yet"
@@ -533,12 +528,7 @@ mv "$TMP_FILE" "$FILE"
 echo "Removed notification-bell-related lines from $FILE"
 
 # Activation and partner setup
-if [ -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup ]; then
-  echo
-  echo "⚠️ Do not close this window yet, configuring some settings"
-  echo
-  source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
-fi
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
 # patch: showchanges, starting with 6.11.0-rc1
 #        ShowChanges.php, in 6.10
