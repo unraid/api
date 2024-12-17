@@ -43,7 +43,15 @@ export default defineConfig(({ mode }) => {
                 'class-transformer/storage',
                 'unicorn-magic',
             ],
-            include: ['@nestjs/common', '@nestjs/core', 'reflect-metadata', 'fastify'],
+            include: [
+                '@nestjs/common',
+                '@nestjs/core',
+                '@nestjs/platform-express',
+                'reflect-metadata',
+                'fastify',
+                'passport',
+                'passport-custom',
+            ],
         },
         build: {
             sourcemap: true,
@@ -55,9 +63,11 @@ export default defineConfig(({ mode }) => {
                 },
                 output: {
                     entryFileNames: '[name].js',
-                    format: 'es', // Change the format to 'es' to support top-level await
+                    format: 'es',
+                    interop: 'auto',
                 },
                 preserveEntrySignatures: 'strict',
+                external: ['class-validator', 'class-transformer', /^@nestjs\/.*/],
             },
             modulePreload: false,
             minify: false,
@@ -65,7 +75,9 @@ export default defineConfig(({ mode }) => {
             commonjsOptions: {
                 transformMixedEsModules: true,
                 include: [/node_modules/, /fastify/],
-                exclude: ['cpu-features'],
+                exclude: ['cpu-features', 'class-validator', 'class-transformer'],
+                requireReturnsDefault: true,
+                strictRequires: true,
             },
         },
         server: {
