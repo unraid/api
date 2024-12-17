@@ -1,17 +1,12 @@
-import {
-  type ApolloClient as ApolloClientType,
-  type NormalizedCacheObject,
-} from "@apollo/client";
-import { ArrowPathIcon } from "@heroicons/vue/24/solid";
+import { type ApolloClient as ApolloClientType, type NormalizedCacheObject } from '@apollo/client';
+import { ArrowPathIcon } from '@heroicons/vue/24/solid';
+import { WebguiUnraidApiCommand } from '~/composables/services/webgui';
+import { client } from '~/helpers/create-apollo-client';
+import { useErrorsStore } from '~/store/errors';
+import { useServerStore } from '~/store/server';
+import type { UserProfileLink } from '~/types/userProfile';
 // import { logErrorMessages } from '@vue/apollo-util';
-import { defineStore, createPinia, setActivePinia } from "pinia";
-import type { UserProfileLink } from "~/types/userProfile";
-
-import { WebguiUnraidApiCommand } from "~/composables/services/webgui";
-import { useErrorsStore } from "~/store/errors";
-import { useServerStore } from "~/store/server";
-
-import { client } from "~/helpers/create-apollo-client";
+import { createPinia, defineStore, setActivePinia } from 'pinia';
 
 /**
  * @see https://stackoverflow.com/questions/73476371/using-pinia-with-vue-js-web-components
@@ -19,33 +14,50 @@ import { client } from "~/helpers/create-apollo-client";
  */
 setActivePinia(createPinia());
 
-export const useUnraidApiStore = defineStore("unraidApi", () => {
+export const useUnraidApiStore = defineStore('unraidApi', () => {
   const errorsStore = useErrorsStore();
   const serverStore = useServerStore();
-  const unraidApiClient = ref<ApolloClientType<NormalizedCacheObject> | null>(
-    client
-  );
+  const unraidApiClient = ref<ApolloClientType<NormalizedCacheObject> | null>(client);
 
   // const unraidApiErrors = ref<any[]>([]);
-  const unraidApiStatus = ref<
-    "connecting" | "offline" | "online" | "restarting"
-  >("offline");
+  const unraidApiStatus = ref<'connecting' | 'offline' | 'online' | 'restarting'>('offline');
   const prioritizeCorsError = ref(false); // Ensures we don't overwrite this specific error message with a non-descriptive network error message
+
+  const offlineError = computed(() => {
+    if (unraidApiStatus.value === 'offline') {
+      return new Error('The Unraid API is currently offline.');
+    }
+  });
+  // maintains an error in global store while api is offline
+  watch(
+    offlineError,
+    (error) => {
+      const errorId = 'unraidApiOffline';
+      if (error) {
+        errorsStore.setError({
+          heading: 'Warning: API is offline!',
+          message: error.message,
+          ref: errorId,
+          level: 'warning',
+          type: 'unraidApiState',
+        });
+      } else {
+        errorsStore.removeErrorByRef(errorId);
+      }
+    },
+    { immediate: true }
+  );
 
   const unraidApiRestartAction = computed((): UserProfileLink | undefined => {
     const { connectPluginInstalled, stateDataError } = serverStore;
-    if (
-      unraidApiStatus.value !== "offline" ||
-      !connectPluginInstalled ||
-      stateDataError
-    ) {
+    if (unraidApiStatus.value !== 'offline' || !connectPluginInstalled || stateDataError) {
       return undefined;
     }
     return {
       click: () => restartUnraidApiClient(),
       emphasize: true,
       icon: ArrowPathIcon,
-      text: "Restart unraid-api",
+      text: 'Restart unraid-api',
     };
   });
 
@@ -62,32 +74,32 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
       // (wsLink.value as any).subscriptionClient.close(); // needed if we start using subscriptions
     }
     unraidApiClient.value = null;
-    unraidApiStatus.value = "offline";
+    unraidApiStatus.value = 'offline';
   };
   /**
    * Can both start and restart the unraid-api depending on it's current status
    */
   const restartUnraidApiClient = async () => {
-    const command = unraidApiStatus.value === "offline" ? "start" : "restart";
-    unraidApiStatus.value = "restarting";
+    const command = unraidApiStatus.value === 'offline' ? 'start' : 'restart';
+    unraidApiStatus.value = 'restarting';
     try {
       await WebguiUnraidApiCommand({
         csrf_token: serverStore.csrf,
         command,
       });
     } catch (error) {
-      let errorMessage = "Unknown error";
-      if (typeof error === "string") {
+      let errorMessage = 'Unknown error';
+      if (typeof error === 'string') {
         errorMessage = error.toUpperCase();
       } else if (error instanceof Error) {
         errorMessage = error.message;
       }
       errorsStore.setError({
-        heading: "Error: unraid-api restart",
+        heading: 'Error: unraid-api restart',
         message: errorMessage,
-        level: "error",
-        ref: "restartUnraidApiClient",
-        type: "request",
+        level: 'error',
+        ref: 'restartUnraidApiClient',
+        type: 'request',
       });
     }
   };
@@ -95,6 +107,7 @@ export const useUnraidApiStore = defineStore("unraidApi", () => {
   return {
     unraidApiClient,
     unraidApiStatus,
+    offlineError,
     prioritizeCorsError,
     unraidApiRestartAction,
     closeUnraidApiClient,
