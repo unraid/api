@@ -72,7 +72,10 @@ export const defaultColors: Record<string, ThemeVariables> = {
     '--header-text-secondary': '#999999',
     '--header-background-color': '#1c1b1b',
   },
-};
+} as const;
+
+export const DARK_THEMES = ['black', 'azure'] as const;
+
 
 export const useThemeStore = defineStore('theme', () => {
   // State
@@ -81,7 +84,7 @@ export const useThemeStore = defineStore('theme', () => {
   const activeColorVariables = ref<ThemeVariables>(defaultColors.light);
   // Getters
   const darkMode = computed(
-    () => (theme.value?.name === 'black' || theme.value?.name === 'azure') ?? false
+    () => DARK_THEMES.includes(theme.value?.name as (typeof DARK_THEMES)[number]) ?? false
   );
   // used to swap the UPC text color when using the azure or gray theme
   const bannerGradient = computed(() => {
