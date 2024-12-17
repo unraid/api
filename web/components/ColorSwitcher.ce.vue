@@ -4,7 +4,7 @@ import Label from '~/components/shadcn/label/Label.vue';
 import { defaultColors, useThemeStore, type Theme } from '~/store/theme';
 
 const themeStore = useThemeStore();
-const { darkMode, theme } = toRefs(themeStore);
+const { darkMode } = toRefs(themeStore);
 
 const setDarkMode = ref<boolean>(false);
 const setGradient = ref<boolean>(false);
@@ -32,7 +32,9 @@ const textPrimaryToSet = computed(() => {
   if (textPrimary.value) {
     return textPrimary.value;
   }
-  return darkMode.value ? defaultColors.dark.headerTextPrimary : defaultColors.light.headerTextPrimary;
+  return darkMode.value
+    ? defaultColors.dark['--headerTextPrimary']
+    : defaultColors.light['--headerTextPrimary'];
 });
 
 const textSecondaryToSet = computed(() => {
@@ -40,8 +42,8 @@ const textSecondaryToSet = computed(() => {
     return textSecondary.value;
   }
   return darkMode.value
-    ? defaultColors.dark.headerTextSecondary
-    : defaultColors.light.headerTextSecondary;
+    ? defaultColors.dark['--header-text-secondary']
+    : defaultColors.light['--header-text-secondary'];
 });
 
 const bgColorToSet = computed(() => {
@@ -49,23 +51,34 @@ const bgColorToSet = computed(() => {
     return bgColor.value;
   }
   return darkMode.value
-    ? defaultColors.dark.headerBackgroundColor
-    : defaultColors.light.headerBackgroundColor;
+    ? defaultColors.dark['--header-background']
+    : defaultColors.light['--header-background'];
 });
 
-watch([setDarkMode, bgColorToSet, textSecondaryToSet, textPrimaryToSet], (newVal) => {
-  console.log(newVal);
-  const themeToSet: Theme = {
-    banner: setBanner.value,
-    bannerGradient: setGradient.value,
-    descriptionShow: setDescription.value,
-    textColor: textPrimaryToSet.value,
-    metaColor: textSecondaryToSet.value,
-    bgColor: bgColorToSet.value,
-    name: setDarkMode.value ? 'black' : 'light',
-  };
-  themeStore.setTheme(themeToSet);
-});
+watch(
+  [
+    setDarkMode,
+    bgColorToSet,
+    textSecondaryToSet,
+    textPrimaryToSet,
+    setDescription,
+    setBanner,
+    setGradient,
+  ],
+  (newVal) => {
+    console.log(newVal);
+    const themeToSet: Theme = {
+      banner: setBanner.value,
+      bannerGradient: setGradient.value,
+      descriptionShow: setDescription.value,
+      textColor: textPrimaryToSet.value,
+      metaColor: textSecondaryToSet.value,
+      bgColor: bgColorToSet.value,
+      name: setDarkMode.value ? 'black' : 'light',
+    };
+    themeStore.setTheme(themeToSet);
+  }
+);
 </script>
 
 <template>
