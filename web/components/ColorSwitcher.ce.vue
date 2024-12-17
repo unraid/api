@@ -2,27 +2,17 @@
 import Input from '~/components/shadcn/input/Input.vue';
 import Label from '~/components/shadcn/label/Label.vue';
 import { defaultColors, useThemeStore, type Theme } from '~/store/theme';
+import { useToggle } from '@vueuse/core';
 
 const themeStore = useThemeStore();
 const { darkMode } = toRefs(themeStore);
 
-const setDarkMode = ref<boolean>(false);
-const setGradient = ref<boolean>(false);
-const setDescription = ref<boolean>(true);
-const setBanner = ref<boolean>(true);
 
-const toggleSwitch = (value: boolean) => {
-  setDarkMode.value = value;
-};
-const toggleGradient = (value: boolean) => {
-  setGradient.value = value;
-};
-const toggleDescription = (value: boolean) => {
-  setDescription.value = value;
-};
-const toggleBanner = (value: boolean) => {
-  setBanner.value = value;
-};
+const [setDarkMode, toggleDarkMode] = useToggle(false);
+const [setGradient, toggleGradient] = useToggle(false);
+const [setDescription, toggleDescription] = useToggle(true);
+const [setBanner, toggleBanner] = useToggle(true);
+
 
 const textPrimary = ref<string>('');
 const textSecondary = ref<string>('');
@@ -32,9 +22,7 @@ const textPrimaryToSet = computed(() => {
   if (textPrimary.value) {
     return textPrimary.value;
   }
-  return darkMode.value
-    ? defaultColors.dark['--headerTextPrimary']
-    : defaultColors.light['--headerTextPrimary'];
+  return darkMode.value ? defaultColors.dark['--headerTextPrimary'] : defaultColors.light['--headerTextPrimary'];
 });
 
 const textSecondaryToSet = computed(() => {
@@ -91,7 +79,7 @@ watch(
     <Label for="header-background">Header Background Color</Label>
     <Input id="header-background" v-model="bgColor" />
     <Label for="dark-mode">Dark Mode</Label>
-    <Switch id="dark-mode" :checked="setDarkMode" @update:checked="toggleSwitch" />
+    <Switch id="dark-mode" :checked="setDarkMode" @update:checked="toggleDarkMode" />
     <Label for="gradient">Gradient</Label>
     <Switch id="gradient" :checked="setGradient" @update:checked="toggleGradient" />
     <Label for="description">Description</Label>
