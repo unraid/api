@@ -867,7 +867,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     WEBGUI_BANNER_OG="$WEBGUI_IMAGES_DIR/banner.png"
     WEBGUI_BANNER_BK="$WEBGUI_BANNER_OG-"
 
-    # On uninstall of the PLG the default banner is reverted. So we won't rely on the setup flag. Instead whether the backup file doesn't exist.
+    # Check if we have a partner banner and if we haven't already backed up the original banner
     if [[ -f "$PARTNER_BANNER" && ! -f "$WEBGUI_BANNER_BK" ]]; then
       cp -f "$WEBGUI_BANNER_OG" "$WEBGUI_BANNER_BK" 2>/dev/null
       if [[ $? -ne 0 ]]; then
@@ -877,7 +877,10 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       if [[ $? -ne 0 ]]; then
         echo "⚠️ Warning: Failed to replace the original banner with the partner banner."
       fi
+    fi
 
+    # Set the display settings, if we haven't done it once already
+    if ! grep -q "display" "$ACTIVATION_SETUP_FLAG"; then
       HEADER_TEXT_COLOR=$(jq -r '.header // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
       HEADER_META_COLOR=$(jq -r '.headermetacolor // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
       HEADER_BG_COLOR=$(jq -r '.background // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
@@ -926,6 +929,8 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           }
         }' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
       done
+
+      echo "display" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
     fi
 
     # Set the case model icon, if we haven't done it once already
