@@ -12,17 +12,6 @@ import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
 
 export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean> => {
     if (getters.emhttp().status === FileLoadStatus.LOADED) {
-        const result =
-            NODE_ENV === 'development'
-                ? API_KEY_STATUS.API_KEY_VALID
-                : await validateApiKeyWithKeyServer({
-                      apiKey: input.apiKey,
-                      flashGuid: getters.emhttp().var.flashGuid,
-                  });
-        if (result !== API_KEY_STATUS.API_KEY_VALID) {
-            throw new Error(`Validating API Key Failed with Error: ${result}`);
-        }
-
         const userInfo = input.idToken ? decodeJwt(input.idToken) : (input.userInfo ?? null);
 
         if (
