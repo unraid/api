@@ -18,18 +18,23 @@
 # 2. Run the script with the delete flag to self-delete, should be done in the plugin's removal script:
 #    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete
 #
+# 3. Run the script and remove the setup flag after completion for a fresh state:
+#    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --remove-setup-flag
+#
 # Prerequisites:
 # - The setup flag file must exist at "/boot/config/activation/.setup".
 #
 # Options:
 # --delete   Deletes the script itself and an adjacent "activate_code_setup" file.
 # --debug    Enables debug mode to display additional information.
+# --remove-setup-flag  Removes the setup flag after the script completes.
 #
 # -----------------------------------------------------------------------------
 
 # Default flags
 DEBUG_MODE=false
 SELF_DELETE=false
+REMOVE_SETUP_FLAG=false
 # Check for flags
 for arg in "$@"; do
   case $arg in
@@ -38,6 +43,9 @@ for arg in "$@"; do
       ;;
     --delete)
       SELF_DELETE=true
+      ;;
+    --remove-setup-flag)
+      REMOVE_SETUP_FLAG=true
       ;;
     *)
       # You can optionally handle other arguments if needed
@@ -94,6 +102,12 @@ if [[ -f "$ACTIVATION_SETUP_FLAG" ]]; then
       sed -i -E "/\[$CONFIG_SECTION\]/,/^\[/ s/^($CONFIG_KEY=).*/\1$CONFIG_NEW_VALUE/" "$CONFIG_FILE"
       debug_echo "Display banner configuration set to no"
     fi
+  fi
+
+  if [[ $REMOVE_SETUP_FLAG == true ]]; then
+    debug_echo "Removing setup flag"
+    rm -f "$ACTIVATION_SETUP_FLAG"
+    debug_echo "Setup flag removed"
   fi
 
   if [[ $SELF_DELETE == true ]]; then
