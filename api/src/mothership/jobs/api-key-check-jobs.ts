@@ -1,6 +1,5 @@
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { keyServerLogger } from '@app/core/log';
-import { validateApiKeyWithKeyServer } from '@app/mothership/api-key/validate-api-key-with-keyserver';
 import { type RootState, type AppDispatch } from '@app/store/index';
 import { setApiKeyState } from '@app/store/modules/apikey';
 import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
@@ -37,24 +36,7 @@ export const apiKeyCheckJob = async (
             dispatch(setApiKeyState(API_KEY_STATUS.API_KEY_VALID));
             return true;
         }
-
-        const validationResponse = await validateApiKeyWithKeyServer({
-            flashGuid: state.emhttp.var.flashGuid,
-            apiKey: state.config.remote.apikey,
-        });
-        switch (validationResponse) {
-            case API_KEY_STATUS.API_KEY_VALID:
-                keyServerLogger.info('Stopping API Key Job as Keyserver Marked API Key Valid');
-                dispatch(setApiKeyState(validationResponse));
-                return true;
-            case API_KEY_STATUS.API_KEY_INVALID:
-                await dispatch(logoutUser({ reason: 'Invalid API Key' }));
-                return false;
-            default:
-                keyServerLogger.info('Request failed with status:', validationResponse);
-                dispatch(setApiKeyState(validationResponse));
-                throw new Error('Keyserver Failure, must retry');
-        }
+        return true;
     } else {
         keyServerLogger.warn('State Data Has Not Fully Loaded, this should not be possible');
         dispatch(setApiKeyState(API_KEY_STATUS.NO_API_KEY));
