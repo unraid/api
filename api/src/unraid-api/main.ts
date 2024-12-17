@@ -2,8 +2,6 @@ import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 
-import 'reflect-metadata';
-
 import fastifyCookie from '@fastify/cookie';
 import Fastify from 'fastify';
 import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
