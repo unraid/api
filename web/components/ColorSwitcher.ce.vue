@@ -71,12 +71,12 @@ watch([setDarkMode, bgColorToSet, textSecondaryToSet, textPrimaryToSet], (newVal
 <template>
   <div class="flex flex-col gap-2 border-solid border-2 p-2 border-r-2">
     <h1 class="text-lg">Color Theme Customization</h1>
-    <Label for="primary-text-color">Header Primary Text Color</Label>
-    <Input id="primary-text-color" v-model="textPrimary" />
-    <Label for="primary-text-color">Header Secondary Text Color</Label>
-    <Input id="primary-text-color" v-model="textSecondary" />
-    <Label for="primary-text-color">Header Background Color</Label>
-    <Input id="primary-text-color" v-model="bgColor" />
+    <Label for="header-primary-text">Header Primary Text Color</Label>
+    <Input id="header-primary-text" v-model="textPrimary" />
+    <Label for="header-secondary-text">Header Secondary Text Color</Label>
+    <Input id="header-secondary-text" v-model="textSecondary" />
+    <Label for="header-background">Header Background Color</Label>
+    <Input id="header-background" v-model="bgColor" />
     <Label for="dark-mode">Dark Mode</Label>
     <Switch id="dark-mode" @update:checked="toggleSwitch" />
     <Label for="gradient">Gradient</Label>
