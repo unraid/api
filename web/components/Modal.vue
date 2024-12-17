@@ -2,6 +2,7 @@
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import type { ComposerTranslation } from 'vue-i18n';
+import { cn } from '~/components/shadcn/utils';
 
 export interface Props {
   centerContent?: boolean;
@@ -16,6 +17,7 @@ export interface Props {
   title?: string;
   titleInMain?: boolean;
   headerJustifyCenter?: boolean;
+  overlayColor?: string;
   overlayOpacity?: string;
   modalVerticalCenter?: boolean | string;
 }
@@ -31,6 +33,7 @@ const props = withDefaults(defineProps<Props>(), {
   title: '',
   titleInMain: false,
   headerJustifyCenter: true,
+  overlayColor: 'bg-black',
   overlayOpacity: 'bg-opacity-80',
   modalVerticalCenter: true,
 });
@@ -85,8 +88,7 @@ const computedVerticalCenter = computed<string>(() => {
           leave-to="opacity-0"
         >
           <div
-            class="fixed inset-0 z-0 bg-black transition-opacity"
-            :class="overlayOpacity"
+            :class="cn('fixed inset-0 z-0 transition-opacity', overlayColor, overlayOpacity)"
             :title="t('Click to close modal')"
             @click="closeModal"
           />
