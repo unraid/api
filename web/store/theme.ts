@@ -83,7 +83,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   const activeColorVariables = ref<ThemeVariables>(defaultColors.light);
   // Getters
-  const darkMode = computed(
+  const darkMode = computed<boolean>(
     () => DARK_THEMES.includes(theme.value?.name as (typeof DARK_THEMES)[number]) ?? false
   );
   // used to swap the UPC text color when using the azure or gray theme
