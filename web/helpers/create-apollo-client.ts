@@ -45,7 +45,7 @@ const errorLink = onError(({ graphQLErrors, networkError }: any) => {
       console.error('[GraphQL error]', error);
       const errorMsg = error.error?.message ?? error.message;
       if (errorMsg?.includes('offline')) {
-        // @todo restart the api
+        // @todo restart the api, but make sure not to trigger infinite loop
       }
       return error.message;
     });
