@@ -33,9 +33,9 @@ export const apiKeyCheckJob = async (
 
         if (['development'].includes(NODE_ENV)) {
             keyServerLogger.debug('In dev environment, marking API Key as Valid');
-            dispatch(setApiKeyState(API_KEY_STATUS.API_KEY_VALID));
-            return true;
         }
+        
+        dispatch(setApiKeyState(API_KEY_STATUS.API_KEY_VALID));
         return true;
     } else {
         keyServerLogger.warn('State Data Has Not Fully Loaded, this should not be possible');
