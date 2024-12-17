@@ -47,21 +47,26 @@
 #
 # -----------------------------------------------------------------------------
 
+# Default flags
+DEBUG_MODE=false
+# Check for flags
+for arg in "$@"; do
+  case $arg in
+    --debug)
+      DEBUG_MODE=true
+      ;;
+    *)
+      # You can optionally handle other arguments if needed
+      ;;
+  esac
+done
+
 # Debug function
 debug_echo() {
   if [[ $DEBUG_MODE == true ]]; then
     echo "[DEBUG] [activation_code_setup]: $1"
   fi
 }
-
-# Check for debug flag
-DEBUG_MODE=false
-for arg in "$@"; do
-  if [[ $arg == "--debug" ]]; then
-    DEBUG_MODE=true
-    break
-  fi
-done
 
 ACTIVATION_DIR="/boot/config/activation"
 

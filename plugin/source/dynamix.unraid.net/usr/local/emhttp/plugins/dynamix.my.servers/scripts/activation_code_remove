@@ -27,26 +27,30 @@
 #
 # -----------------------------------------------------------------------------
 
+# Default flags
+DEBUG_MODE=false
+SELF_DELETE=false
+# Check for flags
+for arg in "$@"; do
+  case $arg in
+    --debug)
+      DEBUG_MODE=true
+      ;;
+    --delete)
+      SELF_DELETE=true
+      ;;
+    *)
+      # You can optionally handle other arguments if needed
+      ;;
+  esac
+done
+
 # Debug function
 debug_echo() {
   if [[ $DEBUG_MODE == true ]]; then
     echo "[DEBUG] [activation_code_remove]: $1"
   fi
 }
-
-# Check for flags
-DEBUG_MODE=false
-SELF_DELETE=false
-for arg in "$@"; do
-  if [[ $arg == "--debug" ]]; then
-    DEBUG_MODE=true
-    break
-  fi
-  if [[ $arg == "--delete" ]]; then
-    SELF_DELETE=true
-    break
-  fi
-done
 
 ACTIVATION_DIR="/boot/config/activation"
 ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"

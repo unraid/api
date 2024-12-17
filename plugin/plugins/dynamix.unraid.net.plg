@@ -869,7 +869,12 @@ version=
 source /etc/unraid-version
 
 # Undo some activation / partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete --debug
+if [ -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove ]; then
+  echo
+  echo "⚠️ Do not close this window yet, restoring some settings"
+  echo
+  source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete --debug
+fi
 
 echo
 echo "✅ Uninstall is complete, it is safe to close this window"
