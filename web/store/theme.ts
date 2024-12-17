@@ -18,73 +18,67 @@ export interface Theme {
   textColor: string;
 }
 
-interface ColorMode {
-  headerTextPrimary: string;
-  headerTextSecondary: string;
-  headerBackgroundColor: string;
+interface ThemeVariables {
+  [key: string]: string;
 }
 
-export const defaultColors: Record<string, ColorMode> = {
+export const defaultColors: Record<string, ThemeVariables> = {
   dark: {
-    headerTextPrimary: '#1c1c1c',
-    headerBackgroundColor: '#f2f2f2',
-    headerTextSecondary: '#999999',
+    '--background': '0 0% 3.9%',
+    '--foreground': '0 0% 98%',
+    '--muted': '0 0% 14.9%',
+    '--muted-foreground': '0 0% 63.9%',
+    '--popover': '0 0% 3.9%',
+    '--popover-foreground': '0 0% 98%',
+    '--card': '0 0% 14.9%',
+    '--card-foreground': '0 0% 98%',
+    '--border': '0 0% 14.9%',
+    '--input': '0 0% 14.9%',
+    '--primary': '24 100% 50%',
+    '--primary-foreground': '0 0% 98%',
+    '--secondary': '0 0% 14.9%',
+    '--secondary-foreground': '0 0% 98%',
+    '--accent': '0 0% 14.9%',
+    '--accent-foreground': '0 0% 98%',
+    '--destructive': '0 62.8% 30.6%',
+    '--destructive-foreground': '0 0% 98%',
+    '--ring': '0 0% 83.1%',
+    '--header-text-primary': '#1c1c1c',
+    '--header-text-secondary': '#999999',
+    '--header-background-color': '#f2f2f2',
   },
   light: {
-    headerTextPrimary: '#f2f2f2',
-    headerBackgroundColor: '#1c1b1b',
-    headerTextSecondary: '#999999',
+    '--background': '0 0% 100%',
+    '--foreground': '0 0% 3.9%',
+    '--muted': '0 0% 96.1%',
+    '--muted-foreground': '0 0% 45.1%',
+    '--popover': '0 0% 100%',
+    '--popover-foreground': '0 0% 3.9%',
+    '--card': '0 0% 100%',
+    '--card-foreground': '0 0% 3.9%',
+    '--border': '0 0% 89.8%',
+    '--input': '0 0% 89.8%',
+    '--primary': '24 100% 50%',
+    '--primary-foreground': '0 0% 98%',
+    '--secondary': '0 0% 96.1%',
+    '--secondary-foreground': '0 0% 9%',
+    '--accent': '0 0% 96.1%',
+    '--accent-foreground': '0 0% 9%',
+    '--destructive': '0 84.2% 60.2%',
+    '--destructive-foreground': '0 0% 98%',
+    '--ring': '0 0% 3.9%',
+    '--radius': '0.5rem',
+    '--header-text-primary': '#f2f2f2',
+    '--header-text-secondary': '#999999',
+    '--header-background-color': '#1c1b1b',
   },
-};
-
-const lightVariables = {
-  '--background': '0 0% 100%',
-  '--foreground': '0 0% 3.9%',
-  '--muted': '0 0% 96.1%',
-  '--muted-foreground': '0 0% 45.1%',
-  '--popover': '0 0% 100%',
-  '--popover-foreground': '0 0% 3.9%',
-  '--card': '0 0% 100%',
-  '--card-foreground': '0 0% 3.9%',
-  '--border': '0 0% 89.8%',
-  '--input': '0 0% 89.8%',
-  '--primary': '24 100% 50%',
-  '--primary-foreground': '0 0% 98%',
-  '--secondary': '0 0% 96.1%',
-  '--secondary-foreground': '0 0% 9%',
-  '--accent': '0 0% 96.1%',
-  '--accent-foreground': '0 0% 9%',
-  '--destructive': '0 84.2% 60.2%',
-  '--destructive-foreground': '0 0% 98%',
-  '--ring': '0 0% 3.9%',
-  '--radius': '0.5rem',
-};
-
-const darkVariables = {
-  '--background': '0 0% 3.9%',
-  '--foreground': '0 0% 98%',
-  '--muted': '0 0% 14.9%',
-  '--muted-foreground': '0 0% 63.9%',
-  '--popover': '0 0% 3.9%',
-  '--popover-foreground': '0 0% 98%',
-  '--card': '0 0% 14.9%',
-  '--card-foreground': '0 0% 98%',
-  '--border': '0 0% 14.9%',
-  '--input': '0 0% 14.9%',
-  '--primary': '24 100% 50%',
-  '--primary-foreground': '0 0% 98%',
-  '--secondary': '0 0% 14.9%',
-  '--secondary-foreground': '0 0% 98%',
-  '--accent': '0 0% 14.9%',
-  '--accent-foreground': '0 0% 98%',
-  '--destructive': '0 62.8% 30.6%',
-  '--destructive-foreground': '0 0% 98%',
-  '--ring': '0 0% 83.1%',
 };
 
 export const useThemeStore = defineStore('theme', () => {
   // State
   const theme = ref<Theme | undefined>();
+
+  const activeColorVariables = ref<ThemeVariables>(defaultColors.light);
   // Getters
   const darkMode = computed(
     () => (theme.value?.name === 'black' || theme.value?.name === 'azure') ?? false
@@ -102,40 +96,36 @@ export const useThemeStore = defineStore('theme', () => {
   const setTheme = (data: Theme) => {
     theme.value = data;
   };
-  const setCssVars = () => {
-    const body = document.body;
 
-    let { headerTextPrimary, headerTextSecondary, headerBackgroundColor } = darkMode.value
-      ? defaultColors.dark
-      : defaultColors.light;
+  const setCssVars = () => {
+    const customColorVariables = structuredClone(defaultColors);
+    const body = document.body;
+    const selectedMode = darkMode.value ? 'dark' : 'light';
+
     // overwrite with hex colors set in webGUI @ /Settings/DisplaySettings
     if (theme.value?.textColor) {
-      headerTextPrimary = theme.value?.textColor;
-    }
-    if (theme.value?.bgColor) {
-      headerBackgroundColor = theme.value.bgColor;
-      body.style.setProperty('--color-customgradient-start', hexToRgba(headerBackgroundColor, 0));
-      body.style.setProperty('--color-customgradient-end', hexToRgba(headerBackgroundColor, 0.7));
+      customColorVariables[selectedMode]['--header-text-primary'] = theme.value.textColor;
     }
     if (theme.value?.metaColor) {
-      headerTextSecondary = theme.value?.metaColor;
+      customColorVariables[selectedMode]['--header-text-secondary'] = theme.value.metaColor;
+    }
+    if (theme.value?.bgColor) {
+      customColorVariables[selectedMode]['--header-background-color'] = theme.value.bgColor;
+
+      body.style.setProperty('--color-customgradient-start', hexToRgba(theme.value.bgColor, 0));
+      body.style.setProperty('--color-customgradient-end', hexToRgba(theme.value.bgColor, 0.7));
     }
 
-    body.style.setProperty('--header-text-primary', headerTextPrimary);
-    body.style.setProperty('--header-text-secondary', headerTextSecondary);
-    body.style.setProperty('--header-background-color', headerBackgroundColor);
-    
+    Object.entries(customColorVariables[selectedMode]).forEach(([key, value]) => {
+      body.style.setProperty(key, value);
+    });
     if (darkMode.value) {
-      Object.entries(darkVariables).forEach(([key, value]) => {
-        body.style.setProperty(key, value);
-      });
       document.body.classList.add('dark');
     } else {
-      Object.entries(lightVariables).forEach(([key, value]) => {
-        body.style.setProperty(key, value);
-      });
       document.body.classList.remove('dark');
     }
+
+    activeColorVariables.value = customColorVariables[selectedMode];
   };
 
   watch(theme, () => {
@@ -144,6 +134,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   return {
     // state
+    activeColorVariables,
     bannerGradient,
     darkMode,
     theme,
