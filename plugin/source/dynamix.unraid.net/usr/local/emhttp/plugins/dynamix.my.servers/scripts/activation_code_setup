@@ -179,6 +179,8 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         }' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
       done
 
+      # Add what changed to the .setup flag file
+      echo "display" >> "$ACTIVATION_SETUP_FLAG"
       debug_echo "Display settings updated"
     else
       debug_echo "Skipping display settings setup, flag already set"

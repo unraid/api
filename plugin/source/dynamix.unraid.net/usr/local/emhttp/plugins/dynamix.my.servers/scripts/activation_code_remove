@@ -27,9 +27,6 @@
 #
 # -----------------------------------------------------------------------------
 
-ACTIVATION_DIR="/boot/config/activation"
-ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"
-
 # Debug function
 debug_echo() {
   if [[ $DEBUG_MODE == true ]]; then
@@ -47,8 +44,12 @@ for arg in "$@"; do
   fi
   if [[ $arg == "--delete" ]]; then
     SELF_DELETE=true
+    break
   fi
 done
+
+ACTIVATION_DIR="/boot/config/activation"
+ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"
 
 debug_echo "Checking for setup flag at $ACTIVATION_SETUP_FLAG"
 
