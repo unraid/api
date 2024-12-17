@@ -533,7 +533,12 @@ mv "$TMP_FILE" "$FILE"
 echo "Removed notification-bell-related lines from $FILE"
 
 # Activation and partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
+if [ -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup ]; then
+  echo
+  echo "⚠️ Do not close this window yet, configuring some settings"
+  echo
+  source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
+fi
 
 # patch: showchanges, starting with 6.11.0-rc1
 #        ShowChanges.php, in 6.10
@@ -739,7 +744,10 @@ echo
 echo "⚠️ Do not close this window yet"
 echo
 
-# Use myservers.cfg values to help prevent conflicts when installing
+# Activation and partner setup
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
+
+# Use myservers.cfg values to help prevent conflicts when installing# Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
 # shellcheck disable=SC1090
 source <(grep 'email\|apikey="unraid_' "${CFG}" 2>/dev/null)
