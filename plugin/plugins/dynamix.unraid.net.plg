@@ -527,9 +527,6 @@ grep -Ev "id='bell'|#bell" "$FILE" > "$TMP_FILE"
 mv "$TMP_FILE" "$FILE"
 echo "Removed notification-bell-related lines from $FILE"
 
-# Activation and partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
-
 # patch: showchanges, starting with 6.11.0-rc1
 #        ShowChanges.php, in 6.10
 # search text:       $valid = ['/var/tmp/','/tmp/plugins/'];
@@ -735,7 +732,7 @@ echo "⚠️ Do not close this window yet"
 echo
 
 # Activation and partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
 # Use myservers.cfg values to help prevent conflicts when installing# Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
