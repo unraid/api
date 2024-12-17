@@ -78,13 +78,13 @@ watch([setDarkMode, bgColorToSet, textSecondaryToSet, textPrimaryToSet], (newVal
     <Label for="header-background">Header Background Color</Label>
     <Input id="header-background" v-model="bgColor" />
     <Label for="dark-mode">Dark Mode</Label>
-    <Switch id="dark-mode" @update:checked="toggleSwitch" />
+    <Switch id="dark-mode" :checked="setDarkMode" @update:checked="toggleSwitch" />
     <Label for="gradient">Gradient</Label>
-    <Switch id="gradient" @update:checked="toggleGradient" />
+    <Switch id="gradient" :checked="setGradient" @update:checked="toggleGradient" />
     <Label for="description">Description</Label>
-    <Switch id="description" @update:checked="toggleDescription" />
+    <Switch id="description" :checked="setDescription" @update:checked="toggleDescription" />
     <Label for="banner">Banner</Label>
-    <Switch id="banner" @update:checked="toggleBanner" />
+    <Switch id="banner" :checked="setBanner" @update:checked="toggleBanner" />
   </div>
 </template>
 
