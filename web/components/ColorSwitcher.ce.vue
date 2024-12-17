@@ -53,8 +53,7 @@ watch(
     setBanner,
     setGradient,
   ],
-  (newVal) => {
-    console.log(newVal);
+  () => {
     const themeToSet: Theme = {
       banner: setBanner.value,
       bannerGradient: setGradient.value,
