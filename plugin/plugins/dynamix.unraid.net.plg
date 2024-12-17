@@ -165,6 +165,14 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
+# Undo some activation / partner setup
+if [ -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove ]; then
+  echo
+  echo "⚠️ Do not close this window yet, restoring some settings"
+  echo
+  source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete --debug
+fi
+
 echo
 echo "⚠️ Do not close this window yet"
 echo
@@ -524,6 +532,9 @@ grep -Ev "id='bell'|#bell" "$FILE" > "$TMP_FILE"
 mv "$TMP_FILE" "$FILE"
 echo "Removed notification-bell-related lines from $FILE"
 
+# Activation and partner setup
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
+
 # patch: showchanges, starting with 6.11.0-rc1
 #        ShowChanges.php, in 6.10
 # search text:       $valid = ['/var/tmp/','/tmp/plugins/'];
@@ -837,9 +848,6 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-# Activation and partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup --debug
-
 # start background process to install/start the api and flash backup
 echo
 if [ -f /var/local/emhttp/var.ini ]; then
@@ -867,14 +875,6 @@ exit 0
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
-
-# Undo some activation / partner setup
-if [ -f /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove ]; then
-  echo
-  echo "⚠️ Do not close this window yet, restoring some settings"
-  echo
-  source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete --debug
-fi
 
 echo
 echo "✅ Uninstall is complete, it is safe to close this window"
