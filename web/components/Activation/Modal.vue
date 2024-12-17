@@ -97,7 +97,8 @@ onUnmounted(() => {
     :title="title"
     :title-in-main="!!partnerLogo"
     :description="description"
-    overlay-opacity="bg-opacity-90"
+    overlay-color="bg-background"
+    overlay-opacity="bg-opacity-100"
     max-width="max-w-800px"
   >
     <template v-if="partnerLogo" #header>
