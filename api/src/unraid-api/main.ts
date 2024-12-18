@@ -1,23 +1,25 @@
+import type { NestFastifyApplication } from '@nestjs/platform-fastify';
 import { NestFactory } from '@nestjs/core';
-import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
-import { AppModule } from './app/app.module';
-import Fastify from 'fastify';
-import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
+import { FastifyAdapter } from '@nestjs/platform-fastify';
 
-import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter';
-import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
-import { PORT } from '@app/environment';
-import { type FastifyInstance } from 'fastify';
-import { type Server, type IncomingMessage, type ServerResponse } from 'http';
-import { apiLogger } from '@app/core/log';
 import fastifyCookie from '@fastify/cookie';
+import Fastify from 'fastify';
+import { LoggerErrorInterceptor, Logger as PinoLogger } from 'nestjs-pino';
+
+import type { FastifyInstance } from '@app/types/fastify';
+import { apiLogger } from '@app/core/log';
+import { PORT } from '@app/environment';
+import { GraphQLExceptionsFilter } from '@app/unraid-api/exceptions/graphql-exceptions.filter';
+import { HttpExceptionFilter } from '@app/unraid-api/exceptions/http-exceptions.filter';
+
+import { AppModule } from './app/app.module';
 import { configureFastifyCors } from './app/cors';
 import { CookieService } from './auth/cookie.service';
 
 export async function bootstrapNestServer(): Promise<NestFastifyApplication> {
-    const server: FastifyInstance<Server, IncomingMessage, ServerResponse> = Fastify({
+    const server = Fastify({
         logger: false,
-    });
+    }) as FastifyInstance;
 
     apiLogger.debug('Creating Nest Server');
 

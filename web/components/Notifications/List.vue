@@ -4,6 +4,7 @@ import { useQuery } from '@vue/apollo-composable';
 import { vInfiniteScroll } from '@vueuse/components';
 import { useFragment } from '~/composables/gql/fragment-masking';
 import type { Importance, NotificationType } from '~/composables/gql/graphql';
+import { useUnraidApiStore } from '~/store/unraidApi';
 import { getNotifications, NOTIFICATION_FRAGMENT } from './graphql/notification.query';
 
 /**
@@ -28,6 +29,7 @@ watch(props, () => {
   canLoadMore.value = true;
 });
 
+const { offlineError } = useUnraidApiStore();
 const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications, () => ({
   filter: {
     offset: 0,
@@ -36,10 +38,6 @@ const { result, error, loading, fetchMore, refetch } = useQuery(getNotifications
     importance: props.importance,
   },
 }));
-
-watch(error, (newVal) => {
-  console.log('[getNotifications] error:', newVal);
-});
 
 const notifications = computed(() => {
   if (!result.value?.notifications.list) return [];
@@ -85,7 +83,7 @@ async function onLoadMore() {
     </div>
   </div>
 
-  <LoadingError v-else :loading="loading" :error="error" @retry="refetch">
+  <LoadingError v-else :loading="loading" :error="offlineError ?? error" @retry="refetch">
     <div v-if="notifications?.length === 0" class="contents">
       <CheckIcon class="h-10 text-green-600 translate-y-3" />
       {{ `No ${props.importance?.toLowerCase() ?? ''} notifications to see here!` }}

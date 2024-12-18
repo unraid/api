@@ -1,9 +1,11 @@
+import { Query, Resolver } from '@nestjs/graphql';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
 import { bootTimestamp } from '@app/common/dashboard/boot-timestamp';
 import { API_VERSION } from '@app/environment';
-import { DynamicRemoteAccessType, Service } from '@app/graphql/generated/api/types';
+import { DynamicRemoteAccessType, Resource, Service } from '@app/graphql/generated/api/types';
 import { store } from '@app/store/index';
-import { Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
 
 @Resolver('Services')
 export class ServicesResolver {
@@ -34,19 +36,16 @@ export class ServicesResolver {
             },
             version: API_VERSION,
         };
-    }
+    };
 
     @Query('services')
-    @UseRoles({
-        resource: 'services',
-        action: 'read',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.SERVICES,
+        possession: AuthPossession.ANY,
     })
     public services(): Service[] {
         const dynamicRemoteAccess = this.getDynamicRemoteAccessService();
-        return [
-            this.getApiService(),
-            ...(dynamicRemoteAccess ? [dynamicRemoteAccess] : []),
-        ];
+        return [this.getApiService(), ...(dynamicRemoteAccess ? [dynamicRemoteAccess] : [])];
     }
 }

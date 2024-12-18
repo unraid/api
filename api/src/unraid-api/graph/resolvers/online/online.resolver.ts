@@ -1,13 +1,16 @@
 import { Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { Resource } from '@app/graphql/generated/api/types';
 
 @Resolver()
 export class OnlineResolver {
     @Query()
-    @UseRoles({
-        resource: 'online',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.ONLINE,
+        possession: AuthPossession.ANY,
     })
     public async online() {
         return true;

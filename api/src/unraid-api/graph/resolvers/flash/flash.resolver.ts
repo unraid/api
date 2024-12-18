@@ -1,14 +1,17 @@
-import { getters } from '@app/store/index';
 import { Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { Resource } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store/index';
 
 @Resolver()
 export class FlashResolver {
     @Query()
-    @UseRoles({
-        resource: 'flash',
-        action: 'read',
-        possession: 'own',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.FLASH,
+        possession: AuthPossession.ANY,
     })
     public async flash() {
         const emhttp = getters.emhttp();

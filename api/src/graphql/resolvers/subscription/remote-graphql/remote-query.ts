@@ -1,9 +1,7 @@
+import type { RemoteGraphQLEventFragmentFragment } from '@app/graphql/generated/client/graphql';
 import { remoteQueryLogger } from '@app/core/log';
 import { getApiApolloClient } from '@app/graphql/client/api/get-api-client';
-import {
-    RemoteGraphQLEventType,
-    type RemoteGraphQLEventFragmentFragment,
-} from '@app/graphql/generated/client/graphql';
+import { RemoteGraphQLEventType } from '@app/graphql/generated/client/graphql';
 import { SEND_REMOTE_QUERY_RESPONSE } from '@app/graphql/mothership/mutations';
 import { parseGraphQLQuery } from '@app/graphql/resolvers/subscription/remote-graphql/remote-graphql-helpers';
 import { GraphQLClient } from '@app/mothership/graphql-client';
@@ -14,12 +12,19 @@ export const executeRemoteGraphQLQuery = async (
 ) => {
     remoteQueryLogger.debug({ query: data }, 'Executing remote query');
     const client = GraphQLClient.getInstance();
-    const apiKey = getters.config().remote.apikey;
+    const localApiKey = getters.config().remote.localApiKey;
+
+    if (!localApiKey) {
+        throw new Error('Local API key is missing');
+    }
+
+    const apiKey = localApiKey;
     const originalBody = data.body;
+
     try {
         const parsedQuery = parseGraphQLQuery(originalBody);
         const localClient = getApiApolloClient({
-            upcApiKey: apiKey,
+            localApiKey: apiKey,
         });
         remoteQueryLogger.trace({ query: parsedQuery.query }, '[DEVONLY] Running query');
         const localResult = await localClient.query({

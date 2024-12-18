@@ -1,17 +1,14 @@
+import type { CanActivate, ExecutionContext } from '@nestjs/common';
+import type { GqlContextType } from '@nestjs/graphql';
+import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
+import { GqlExecutionContext } from '@nestjs/graphql';
+import { AuthGuard } from '@nestjs/passport';
+
+import { type Observable } from 'rxjs';
+
 import { apiLogger } from '@app/core/log';
 import { ServerHeaderStrategy } from '@app/unraid-api/auth/header.strategy';
-import { IS_PUBLIC_KEY } from '@app/unraid-api/auth/public.decorator';
-import {
-    type ExecutionContext,
-    Injectable,
-    type CanActivate,
-    UnauthorizedException,
-    Logger,
-} from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
-import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql';
-import { AuthGuard } from '@nestjs/passport';
-import { type Observable } from 'rxjs';
+
 import { UserCookieStrategy } from './cookie.strategy';
 
 @Injectable()
@@ -26,7 +23,7 @@ export class GraphqlAuthGuard
 
     handleRequest<UserAccount>(err, user: UserAccount | null, info, context) {
         if (err) {
-            console.log('Error in handleRequest', err);
+            this.logger.error('Error in handleRequest', err);
             throw err;
         }
         if (!user) {

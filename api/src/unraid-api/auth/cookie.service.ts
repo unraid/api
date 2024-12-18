@@ -1,8 +1,9 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { join } from 'path';
+
 import { fileExists } from '@app/core/utils/files/file-exists';
 import { getters } from '@app/store';
 import { batchProcess } from '@app/utils';
-import { Injectable, Inject } from '@nestjs/common';
-import { join } from 'path';
 
 /** token for dependency injection of a session cookie options object */
 export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
@@ -10,6 +11,9 @@ export const SESSION_COOKIE_CONFIG = 'SESSION_COOKIE_CONFIG';
 type SessionCookieConfig = {
     namePrefix: string;
     sessionDir: string;
+    secure: boolean;
+    httpOnly: boolean;
+    sameSite: 'lax' | 'strict' | 'none';
 };
 
 @Injectable()
@@ -22,7 +26,13 @@ export class CookieService {
      * @returns new SessionCookieOptions with `namePrefix: 'unraid_', sessionDir: '/var/lib/php'`
      */
     static defaultOpts(): SessionCookieConfig {
-        return { namePrefix: 'unraid_', sessionDir: getters.paths()['auth-sessions'] };
+        return {
+            namePrefix: 'unraid_',
+            sessionDir: getters.paths()['auth-sessions'],
+            secure: true,
+            httpOnly: true,
+            sameSite: 'lax',
+        };
     }
 
     /**

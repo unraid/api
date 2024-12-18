@@ -1,25 +1,25 @@
-import { readFileSync } from "fs";
-import { parse } from "dotenv";
-import removeConsole from "vite-plugin-remove-console";
+import { readFileSync } from 'fs';
+import { parse } from 'dotenv';
+import removeConsole from 'vite-plugin-remove-console';
 
-const envConfig = parse(readFileSync(".env"));
-console.log("\n");
-console.log("==============================");
-console.log("========= ENV VALUES =========");
-console.log("==============================");
+const envConfig = parse(readFileSync('.env'));
+console.log('\n');
+console.log('==============================');
+console.log('========= ENV VALUES =========');
+console.log('==============================');
 for (const k in envConfig) {
   process.env[k] = envConfig[k];
   console.log(`[${k}]`, process.env[k]);
 }
-console.log("==============================");
-console.log("\n");
+console.log('==============================');
+console.log('\n');
 
 /**
  * Used to avoid redeclaring variables in the webgui codebase.
  * @see alt solution https://github.com/terser/terser/issues/1001, https://github.com/terser/terser/pull/1038
  */
 function terserReservations(inputStr: string) {
-  const combinations = ["ace"];
+  const combinations = ['ace'];
 
   // Add 1-character combinations
   for (let i = 0; i < inputStr.length; i++) {
@@ -36,8 +36,7 @@ function terserReservations(inputStr: string) {
   return combinations;
 }
 
-const charsToReserve =
-  "_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+const charsToReserve = '_$abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({

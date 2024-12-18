@@ -1,28 +1,27 @@
-import { store } from '@app/store/index';
 import { Logger } from '@nestjs/common';
 import { Args, Mutation, Query, ResolveField, Resolver } from '@nestjs/graphql';
+
 import { GraphQLError } from 'graphql';
-import { UseRoles } from 'nest-access-control';
-import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
-import {
-    ConnectResolvers,
-    type DynamicRemoteAccessStatus,
-    DynamicRemoteAccessType,
-    type EnableDynamicRemoteAccessInput,
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import type {
+    DynamicRemoteAccessStatus,
+    EnableDynamicRemoteAccessInput,
 } from '@app/graphql/generated/api/types';
-import {
-    setAllowedRemoteAccessUrl,
-} from '@app/store/modules/dynamic-remote-access';
+import { ConnectResolvers, DynamicRemoteAccessType } from '@app/graphql/generated/api/types';
+import { RemoteAccessController } from '@app/remoteAccess/remote-access-controller';
+import { store } from '@app/store/index';
+import { setAllowedRemoteAccessUrl } from '@app/store/modules/dynamic-remote-access';
 
 @Resolver('Connect')
 export class ConnectResolver implements ConnectResolvers {
     protected logger = new Logger(ConnectResolver.name);
 
     @Query('connect')
-    @UseRoles({
+    @UsePermissions({
+        action: AuthActionVerb.READ,
         resource: 'connect/dynamic-remote-access',
-        action: 'read',
-        possession: 'own',
+        possession: AuthPossession.ANY,
     })
     public connect() {
         return {};
@@ -30,7 +29,7 @@ export class ConnectResolver implements ConnectResolvers {
 
     @ResolveField()
     public id() {
-        return 'connect'
+        return 'connect';
     }
 
     @ResolveField()
@@ -45,10 +44,10 @@ export class ConnectResolver implements ConnectResolvers {
     }
 
     @Mutation()
-    @UseRoles({
+    @UsePermissions({
+        action: AuthActionVerb.UPDATE,
         resource: 'connect/dynamic-remote-access',
-        action: 'update',
-        possession: 'own',
+        possession: AuthPossession.ANY,
     })
     public async enableDynamicRemoteAccess(
         @Args('input') dynamicRemoteAccessInput: EnableDynamicRemoteAccessInput
@@ -57,10 +56,7 @@ export class ConnectResolver implements ConnectResolvers {
         const state = store.getState();
 
         const { dynamicRemoteAccessType } = state.config.remote;
-        if (
-            !dynamicRemoteAccessType ||
-            dynamicRemoteAccessType === DynamicRemoteAccessType.DISABLED
-        ) {
+        if (!dynamicRemoteAccessType || dynamicRemoteAccessType === DynamicRemoteAccessType.DISABLED) {
             throw new GraphQLError('Dynamic Remote Access is not enabled.', {
                 extensions: { code: 'FORBIDDEN' },
             });
@@ -74,14 +70,9 @@ export class ConnectResolver implements ConnectResolvers {
                 dispatch: store.dispatch,
             });
             return true;
-        } else if (
-            controller.getRunningRemoteAccessType() ===
-            DynamicRemoteAccessType.DISABLED
-        ) {
+        } else if (controller.getRunningRemoteAccessType() === DynamicRemoteAccessType.DISABLED) {
             if (dynamicRemoteAccessInput.url) {
-                store.dispatch(
-                    setAllowedRemoteAccessUrl(dynamicRemoteAccessInput.url)
-                );
+                store.dispatch(setAllowedRemoteAccessUrl(dynamicRemoteAccessInput.url));
             }
             controller.beginRemoteAccess({
                 getState: store.getState,
