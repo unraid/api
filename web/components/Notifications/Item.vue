@@ -100,7 +100,7 @@ const reformattedTimestamp = computed<string>(() => {
         class="shrink-0 flex flex-row items-baseline justify-end gap-2 mt-1"
         :title="formattedTimestamp ?? reformattedTimestamp"
       >
-        <p class="text-gray-500 text-sm">{{ reformattedTimestamp }}</p>
+        <p class="text-secondary-foreground text-sm">{{ reformattedTimestamp }}</p>
       </div>
     </header>
 
