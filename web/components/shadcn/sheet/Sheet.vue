@@ -10,14 +10,16 @@ const getViewport = (): string => {
   return document.querySelector('meta[name="viewport"]')?.getAttribute('content') ?? 'width=1300';
 };
 const updateViewport = (viewport: string): void => {
-  const meta = document.querySelector('meta[name="viewport"]');
-  if (meta) {
-    meta.setAttribute('content', viewport);
-  } else {
-    const meta = document.createElement('meta');
-    meta.name = 'viewport';
-    meta.content = viewport;
-    document.head.appendChild(meta);
+  if (window.innerWidth < 500) {
+    const meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute('content', viewport);
+    } else {
+      const meta = document.createElement('meta');
+      meta.name = 'viewport';
+      meta.content = viewport;
+      document.head.appendChild(meta);
+    }
   }
 };
 
