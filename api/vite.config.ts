@@ -1,6 +1,8 @@
+
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
+import swc from 'unplugin-swc';
 import { VitePluginNode } from 'vite-plugin-node';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -26,9 +28,35 @@ export default defineConfig(({ mode }) => {
                       adapter: 'nest',
                       appPath: 'src/index.ts',
                       tsCompiler: 'swc',
+                      swcOptions: {
+                            jsc: {
+                                parser: {
+                                    syntax: 'typescript',
+                                    decorators: true,
+                                },
+                                target: 'es2024',
+                                transform: {
+                                    legacyDecorator: true,
+                                    decoratorMetadata: true,
+                                },
+                            },
+                      },
                       initAppOnBoot: true,
                   })
                 : []),
+            swc.vite({
+                jsc: {
+                    parser: {
+                        syntax: 'typescript',
+                        decorators: true,
+                    },
+                    target: 'es2024',
+                    transform: {
+                        legacyDecorator: true,
+                        decoratorMetadata: true,
+                    },
+                },
+            }),
         ],
         define: {
             // Allows vite to preserve process.env variables and not hardcode them
@@ -43,7 +71,15 @@ export default defineConfig(({ mode }) => {
                 'class-transformer/storage',
                 'unicorn-magic',
             ],
-            include: ['@nestjs/common', '@nestjs/core', 'reflect-metadata', 'fastify'],
+            include: [
+                '@nestjs/common',
+                '@nestjs/core',
+                '@nestjs/platform-express',
+                'reflect-metadata',
+                'fastify',
+                'passport',
+                'passport-custom',
+            ],
         },
         build: {
             sourcemap: true,
@@ -55,17 +91,46 @@ export default defineConfig(({ mode }) => {
                 },
                 output: {
                     entryFileNames: '[name].js',
-                    format: 'es', // Change the format to 'es' to support top-level await
+                    format: 'es',
+                    interop: 'auto',
                 },
                 preserveEntrySignatures: 'strict',
+                external: [
+                    'class-validator',
+                    'class-transformer',
+                    /^@nestjs\/.*/,
+                    'reflect-metadata',
+                    'rxjs',
+                    'fastify',
+                    '@fastify/cors',
+                    '@fastify/cookie',
+                    'passport',
+                    'passport-custom',
+                    'passport-http-header-strategy',
+                    'casbin',
+                    'nest-authz',
+                    'nest-access-control',
+                    '@nestjs/passport',
+                    'passport-http-header-strategy',
+                    'accesscontrol',
+                ],
             },
             modulePreload: false,
             minify: false,
             target: 'node20',
             commonjsOptions: {
                 transformMixedEsModules: true,
-                include: [/node_modules/, /fastify/],
-                exclude: ['cpu-features'],
+                include: [/node_modules/, /fastify/, /reflect-metadata/],
+                exclude: [
+                    'cpu-features',
+                    '@nestjs',
+                    'rxjs',
+                    'passport',
+                    'passport-custom',
+                    'passport-http-header-strategy',
+                ],
+                requireReturnsDefault: 'preferred',
+                strictRequires: true,
             },
         },
         server: {
