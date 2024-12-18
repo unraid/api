@@ -22,7 +22,7 @@
         "test": "vitest run --pool=forks",
         "coverage": "vitest run --pool=forks --coverage",
         "release": "standard-version",
-        "dev": "NODE_ENV=development nodemon --ext ts,gql --ignore \"dist/\" --ignore \"dev/\" --signal SIGKILL --exec \"vite --mode=development\"",
+        "dev": "nodemon --ext ts,gql --ignore \"dist/\" --ignore \"dev/\" --signal SIGKILL --exec \"vite\"",
         "container:build": "./scripts/dc.sh build dev",
         "container:start": "./scripts/dc.sh run --rm --service-ports dev",
         "container:test": "./scripts/dc.sh run --rm builder npm run test",
