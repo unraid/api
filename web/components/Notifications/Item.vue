@@ -64,16 +64,18 @@ const mutationError = computed(() => {
   return archive.error?.message ?? deleteNotification.error?.message;
 });
 
-const reformattedTimestamp = computed(() => {
+const reformattedTimestamp = computed<string>(() => {
+  if (!props.timestamp) return '';
   const userLocale = navigator.language ?? 'en-US'; // Get the user's browser language (e.g., 'en-US', 'fr-FR')
 
   const reformattedDate = new Intl.DateTimeFormat(userLocale, {
+    localeMatcher: 'best fit',
     month: 'short',
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-    hour12: ['AM', 'PM'].some(period => (props.formattedTimestamp ?? 'AM').includes(period))
-  }).format(new Date(props.timestamp ?? new Date()));
+    hour12: ['AM', 'PM'].some((period) => (props.formattedTimestamp ?? 'AM').includes(period)),
+  }).format(new Date(props.timestamp));
   return reformattedDate;
 });
 </script>
@@ -81,7 +83,9 @@ const reformattedTimestamp = computed(() => {
 <template>
   <div class="group/item relative py-5 flex flex-col gap-2 text-base">
     <header class="flex flex-row items-baseline justify-between gap-2 -translate-y-1">
-      <h3 class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold overflow-x-hidden">
+      <h3
+        class="tracking-normal flex flex-row items-baseline gap-2 uppercase font-bold overflow-x-hidden"
+      >
         <!-- the `translate` compensates for extra space added by the `svg` element when rendered -->
         <component
           :is="icon.component"
