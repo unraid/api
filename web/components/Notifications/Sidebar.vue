@@ -58,9 +58,13 @@ const overview = computed(() => {
         <Button variant="link" size="sm" class="p-0 h-auto"> Edit Settings </Button>
         </a>
       </SheetHeader>
-      <Tabs default-value="unread" class="flex flex-1 flex-col min-h-0">
+      <Tabs 
+        default-value="unread" 
+        class="flex flex-1 flex-col min-h-0"
+        aria-label="Notification filters"
+      >
       <div class="flex flex-row justify-between items-center flex-wrap gap-5 px-6">
-        <TabsList class="flex">
+        <TabsList class="flex" aria-label="Filter notifications by status">
         <TabsTrigger value="unread">
           Unread <span v-if="overview">({{ overview.unread.total }})</span>
         </TabsTrigger>
