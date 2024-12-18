@@ -1,22 +1,21 @@
-import ipRegex from 'ip-regex';
-import readLine from 'readline';
-import { setEnv } from '@app/cli/set-env';
-import { isUnraidApiRunning } from '@app/core/utils/pm2/unraid-api-running';
-import { cliLogger } from '@app/core/log';
-import { getters, store } from '@app/store';
 import { stdout } from 'process';
-import { loadConfigFile } from '@app/store/modules/config';
-import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
-import {
-    getCloudDocument,
-    getServersDocument,
-    type getServersQuery,
-    type getCloudQuery,
-} from '../../graphql/generated/api/operations';
-import { MinigraphStatus } from '@app/graphql/generated/api/types';
-import { API_VERSION } from '@app/environment';
-import { loadStateFiles } from '@app/store/modules/emhttp';
+import readLine from 'readline';
+
 import { ApolloClient, ApolloQueryResult, NormalizedCacheObject } from '@apollo/client/core/index.js';
+import ipRegex from 'ip-regex';
+
+import { setEnv } from '@app/cli/set-env';
+import { cliLogger } from '@app/core/log';
+import { isUnraidApiRunning } from '@app/core/utils/pm2/unraid-api-running';
+import { API_VERSION } from '@app/environment';
+import { MinigraphStatus } from '@app/graphql/generated/api/types';
+import { getters, store } from '@app/store';
+import { loadConfigFile } from '@app/store/modules/config';
+import { loadStateFiles } from '@app/store/modules/emhttp';
+
+import type { getCloudQuery, getServersQuery } from '../../graphql/generated/api/operations';
+import { getApiApolloClient } from '../../graphql/client/api/get-api-client';
+import { getCloudDocument, getServersDocument } from '../../graphql/generated/api/operations';
 
 type CloudQueryResult = NonNullable<ApolloQueryResult<getCloudQuery>['data']['cloud']>;
 type ServersQueryResultServer = NonNullable<ApolloQueryResult<getServersQuery>['data']['servers']>[0];
@@ -263,7 +262,7 @@ export const report = async (...argv: string[]) => {
         const { config, emhttp } = store.getState();
         if (!config.upc.apikey) throw new Error('Missing UPC API key');
 
-        const client = getApiApolloClient({ upcApiKey: config.upc.apikey });
+        const client = getApiApolloClient({ localApiKey: config.remote.localApiKey || '' });
         // Fetch the cloud endpoint
         const cloud = await getCloudData(client);
 
@@ -288,7 +287,7 @@ export const report = async (...argv: string[]) => {
                 environment: process.env.ENVIRONMENT ?? 'THIS_WILL_BE_REPLACED_WHEN_BUILT',
                 nodeVersion: process.version,
             },
-            apiKey: isApiKeyValid ? 'valid' : cloud?.apiKey.error ?? 'invalid',
+            apiKey: isApiKeyValid ? 'valid' : (cloud?.apiKey.error ?? 'invalid'),
             ...(servers ? { servers } : {}),
             myServers: {
                 status: config?.remote?.username ? 'authenticated' : 'signed out',
@@ -304,7 +303,7 @@ export const report = async (...argv: string[]) => {
                 status: cloud?.minigraphql.status ?? MinigraphStatus.PRE_INIT,
                 timeout: cloud?.minigraphql.timeout ?? null,
                 error:
-                    cloud?.minigraphql.error ?? !cloud?.minigraphql.status ? 'API Disconnected' : null,
+                    (cloud?.minigraphql.error ?? !cloud?.minigraphql.status) ? 'API Disconnected' : null,
             },
             cloud: {
                 status: cloud?.cloud.status ?? 'error',

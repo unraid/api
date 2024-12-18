@@ -1,19 +1,22 @@
-import { getters } from '@app/store/index';
 import { Query, Resolver } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { Resource } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store/index';
 
 @Resolver()
 export class VarsResolver {
     @Query()
-    @UseRoles({
-        resource: 'vars',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.VARS,
+        possession: AuthPossession.ANY,
     })
     public async vars() {
         return {
             id: 'vars',
-            ...getters.emhttp().var ?? {},
-        }
+            ...(getters.emhttp().var ?? {}),
+        };
     }
 }

@@ -1,8 +1,12 @@
 import { type CorsOptions } from '@nestjs/common/interfaces/external/cors-options.interface';
-import { apiLogger } from '@app/core/log';
-import { getAllowedOrigins } from '@app/common/allowed-origins';
-import { BYPASS_CORS_CHECKS } from '@app/environment';
+
 import { GraphQLError } from 'graphql';
+
+import { getAllowedOrigins } from '@app/common/allowed-origins';
+import { apiLogger } from '@app/core/log';
+import { BYPASS_CORS_CHECKS } from '@app/environment';
+import { FastifyRequest } from '@app/types/fastify';
+
 import { type CookieService } from '../auth/cookie.service';
 
 /**
@@ -64,7 +68,7 @@ export const configureFastifyCors =
      * @param req the request object
      * @param callback the callback to call with the CORS options
      */
-    (req: any, callback: (error: Error | null, options: CorsOptions) => void) => {
+    (req: FastifyRequest, callback: (error: Error | null, options: CorsOptions) => void) => {
         const { cookies } = req;
         if (typeof cookies === 'object') {
             service.hasValidAuthCookie(cookies).then((isValid) => {

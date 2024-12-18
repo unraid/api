@@ -20,14 +20,13 @@ const props = defineProps<{ t: ComposerTranslation; }>();
 const dropdownStore = useDropdownStore();
 const { dropdownVisible } = storeToRefs(dropdownStore);
 const { errors } = storeToRefs(useErrorsStore());
-const { connectPluginInstalled, rebootType, registered, state, stateData } = storeToRefs(useServerStore());
+const { rebootType, state, stateData } = storeToRefs(useServerStore());
 const { available: osUpdateAvailable } = storeToRefs(useUpdateOsStore());
 
 const showErrorIcon = computed(() => errors.value.length || stateData.value.error);
 
 const text = computed((): string => {
   if ((stateData.value.error) && state.value !== 'EEXPIRED') { return props.t('Fix Error'); }
-  if (!registered.value && connectPluginInstalled.value) { return props.t('Sign In'); }
   return '';
 });
 
@@ -37,13 +36,11 @@ const title = computed((): string => {
   if (showErrorIcon.value) { return props.t('Learn more about the error'); }
   return dropdownVisible.value ? props.t('Close Dropdown') : props.t('Open Dropdown');
 });
-
-// const hideAvatar = computed(() => state.value === 'PRO' && !connectPluginInstalled.value);
 </script>
 
 <template>
   <button
-    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity"
+    class="group text-18px border-0 relative flex flex-row justify-end items-center h-full gap-x-8px opacity-100 hover:opacity-75 focus:opacity-75 transition-opacity text-header-text-primary"
     :title="title"
     @click="dropdownStore.dropdownToggle()"
   >

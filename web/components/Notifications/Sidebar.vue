@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/shadcn/sheet';
 import { useMutation, useQuery } from '@vue/apollo-composable';
+import { Button } from '@/components/shadcn/button';
 // eslint-disable-next-line @typescript-eslint/consistent-type-imports -- false positive :(
 import { Importance, NotificationType } from '~/composables/gql/graphql';
 import {
   archiveAllNotifications,
-  deleteAllNotifications,
+  deleteArchivedNotifications,
   notificationsOverview,
 } from './graphql/notification.query';
 
 const { mutate: archiveAll, loading: loadingArchiveAll } = useMutation(archiveAllNotifications);
-const { mutate: deleteAll, loading: loadingDeleteAll } = useMutation(deleteAllNotifications);
+const { mutate: deleteArchives, loading: loadingDeleteAll } = useMutation(deleteArchivedNotifications);
 const { teleportTarget, determineTeleportTarget } = useTeleport();
 const importance = ref<Importance | undefined>(undefined);
 
@@ -20,11 +21,11 @@ const confirmAndArchiveAll = async () => {
   }
 };
 
-const confirmAndDeleteAll = async () => {
+const confirmAndDeleteArchives = async () => {
   if (
-    confirm('This will permanently delete all notifications currently on your Unraid server. Continue?')
+    confirm('This will permanently delete all archived notifications currently on your Unraid server. Continue?')
   ) {
-    await deleteAll();
+    await deleteArchives();
   }
 };
 
@@ -50,7 +51,7 @@ const overview = computed(() => {
     <!-- We remove the horizontal padding from the container to keep the NotificationList's scrollbar in the right place -->
     <SheetContent
       :to="teleportTarget"
-      class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0 bg-[#f2f2f2]"
+      class="w-full max-w-[100vw] sm:max-w-[540px] h-screen px-0"
     >
       <div class="flex flex-col h-full gap-5">
         <SheetHeader class="ml-1 px-6 flex items-baseline gap-1">
@@ -90,7 +91,7 @@ const overview = computed(() => {
                 variant="link"
                 size="sm"
                 class="text-foreground hover:text-destructive transition-none"
-                @click="confirmAndDeleteAll"
+                @click="confirmAndDeleteArchives"
               >
                 Delete All
               </Button>

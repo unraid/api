@@ -1,21 +1,21 @@
-import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
+import { Query, Resolver, Subscription } from '@nestjs/graphql';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import type { Registration } from '@app/graphql/generated/api/types';
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import { getKeyFile } from '@app/core/utils/misc/get-key-file';
-import {
-    registrationType,
-    type Registration,
-} from '@app/graphql/generated/api/types';
+import { registrationType, Resource } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store/index';
 import { FileLoadStatus } from '@app/store/types';
-import { Query, Resolver, Subscription } from '@nestjs/graphql';
-import { UseRoles } from 'nest-access-control';
 
 @Resolver()
 export class RegistrationResolver {
     @Query()
-    @UseRoles({
-        resource: 'registration',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.REGISTRATION,
+        possession: AuthPossession.ANY,
     })
     public async registration() {
         const emhttp = getters.emhttp();
@@ -31,12 +31,8 @@ export class RegistrationResolver {
             type: emhttp.var.regTy,
             state: emhttp.var.regState,
             // Based on https://github.com/unraid/dynamix.unraid.net/blob/c565217fa8b2acf23943dc5c22a12d526cdf70a1/source/dynamix.unraid.net/usr/local/emhttp/plugins/dynamix.my.servers/include/state.php#L64
-            expiration: (
-                1_000 * (isTrial || isExpired ? Number(emhttp.var.regTm2) : 0)
-            ).toString(),
-            updateExpiration: emhttp.var.regExp
-                ? (Number(emhttp.var.regExp) * 1_000).toString()
-                : null,
+            expiration: (1_000 * (isTrial || isExpired ? Number(emhttp.var.regTm2) : 0)).toString(),
+            updateExpiration: emhttp.var.regExp ? (Number(emhttp.var.regExp) * 1_000).toString() : null,
             keyFile: {
                 location: emhttp.var.regFile,
                 contents: await getKeyFile(),
@@ -46,10 +42,10 @@ export class RegistrationResolver {
     }
 
     @Subscription('registration')
-    @UseRoles({
-        resource: 'registration',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.REGISTRATION,
+        possession: AuthPossession.ANY,
     })
     public registrationSubscription() {
         return createSubscription(PUBSUB_CHANNEL.REGISTRATION);

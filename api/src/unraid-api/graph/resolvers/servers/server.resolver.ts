@@ -1,16 +1,19 @@
 import { Query, Resolver, Subscription } from '@nestjs/graphql';
-import { getLocalServer } from '@app/graphql/schema/utils';
+
+import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
+
+import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
+import { Resource } from '@app/graphql/generated/api/types';
 import { type Server } from '@app/graphql/generated/client/graphql';
-import { UseRoles } from 'nest-access-control';
-import { PUBSUB_CHANNEL, createSubscription } from '@app/core/pubsub';
+import { getLocalServer } from '@app/graphql/schema/utils';
 
 @Resolver()
 export class ServerResolver {
     @Query()
-    @UseRoles({
-        resource: 'server',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.SERVERS,
+        possession: AuthPossession.ANY,
     })
     public async server(): Promise<Server | null> {
         return getLocalServer()[0];
@@ -18,20 +21,20 @@ export class ServerResolver {
 
     @Resolver('servers')
     @Query()
-    @UseRoles({
-        resource: 'server',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.SERVERS,
+        possession: AuthPossession.ANY,
     })
     public async servers(): Promise<Server[]> {
         return getLocalServer();
     }
 
     @Subscription('server')
-    @UseRoles({
-        resource: 'server',
-        action: 'read',
-        possession: 'any',
+    @UsePermissions({
+        action: AuthActionVerb.READ,
+        resource: Resource.SERVERS,
+        possession: AuthPossession.ANY,
     })
     public async serversSubscription() {
         return createSubscription(PUBSUB_CHANNEL.SERVERS);

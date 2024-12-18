@@ -78,14 +78,13 @@ const updateOsStatus = computed(() => {
       <UiBadge
         color="custom"
         :icon="InformationCircleIcon"
-        icon-styles="text-gamma"
+        icon-styles="text-header-text-secondary"
         size="14px"
-        class="text-gamma group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
+        class="text-header-text-secondary group-hover:text-orange-dark group-focus:text-orange-dark group-hover:underline group-focus:underline"
       >
         {{ osVersion }}
       </UiBadge>
     </button>
-
     <component
       :is="updateOsStatus.href ? 'a' : 'button'"
       v-if="updateOsStatus"

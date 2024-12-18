@@ -43,23 +43,50 @@ export type AccessUrlInput = {
   type: URL_TYPE;
 };
 
+export type AddPermissionInput = {
+  action: Scalars['String']['input'];
+  possession: Scalars['String']['input'];
+  resource: Resource;
+  role: Role;
+};
+
+export type AddRoleForApiKeyInput = {
+  apiKeyId: Scalars['ID']['input'];
+  role: Role;
+};
+
+export type AddRoleForUserInput = {
+  role: Role;
+  userId: Scalars['ID']['input'];
+};
+
 export type AllowedOriginInput = {
   origins: Array<Scalars['String']['input']>;
 };
 
 export type ApiKey = {
   __typename?: 'ApiKey';
+  createdAt: Scalars['DateTime']['output'];
   description?: Maybe<Scalars['String']['output']>;
-  expiresAt: Scalars['Long']['output'];
-  key: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  scopes: Scalars['JSON']['output'];
+  roles: Array<Role>;
 };
 
 export type ApiKeyResponse = {
   __typename?: 'ApiKeyResponse';
   error?: Maybe<Scalars['String']['output']>;
   valid: Scalars['Boolean']['output'];
+};
+
+export type ApiKeyWithSecret = {
+  __typename?: 'ApiKeyWithSecret';
+  createdAt: Scalars['DateTime']['output'];
+  description?: Maybe<Scalars['String']['output']>;
+  id: Scalars['ID']['output'];
+  key: Scalars['String']['output'];
+  name: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export type ArrayType = Node & {
@@ -322,6 +349,12 @@ export enum ContainerState {
   Running = 'RUNNING'
 }
 
+export type CreateApiKeyInput = {
+  description?: InputMaybe<Scalars['String']['input']>;
+  name: Scalars['String']['input'];
+  roles: Array<Role>;
+};
+
 export type Devices = {
   __typename?: 'Devices';
   gpu?: Maybe<Array<Maybe<Gpu>>>;
@@ -567,7 +600,7 @@ export type Me = UserAccount & {
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
   permissions?: Maybe<Scalars['JSON']['output']>;
-  roles: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export enum MemoryFormFactor {
@@ -620,10 +653,11 @@ export type Mount = {
 
 export type Mutation = {
   __typename?: 'Mutation';
-  /** Create a new API key */
-  addApikey?: Maybe<ApiKey>;
   /** Add new disk to array */
   addDiskToArray?: Maybe<ArrayType>;
+  addPermission: Scalars['Boolean']['output'];
+  addRoleForApiKey: Scalars['Boolean']['output'];
+  addRoleForUser: Scalars['Boolean']['output'];
   /** Add a new user */
   addUser?: Maybe<User>;
   archiveAll: NotificationOverview;
@@ -635,13 +669,14 @@ export type Mutation = {
   clearArrayDiskStatistics?: Maybe<Scalars['JSON']['output']>;
   connectSignIn: Scalars['Boolean']['output'];
   connectSignOut: Scalars['Boolean']['output'];
+  createApiKey: ApiKeyWithSecret;
   createNotification: Notification;
+  /** Deletes all archived notifications on server. */
+  deleteArchivedNotifications: NotificationOverview;
   deleteNotification: NotificationOverview;
   /** Delete a user */
   deleteUser?: Maybe<User>;
   enableDynamicRemoteAccess: Scalars['Boolean']['output'];
-  /** Get an existing API key */
-  getApiKey?: Maybe<ApiKey>;
   login?: Maybe<Scalars['String']['output']>;
   mountArrayDisk?: Maybe<Disk>;
   /** Pause parity check */
@@ -651,6 +686,7 @@ export type Mutation = {
   recalculateOverview: NotificationOverview;
   /** Remove existing disk from array. NOTE: The array must be stopped before running this otherwise it'll throw an error. */
   removeDiskFromArray?: Maybe<ArrayType>;
+  removeRoleFromApiKey: Scalars['Boolean']['output'];
   /** Resume parity check */
   resumeParityCheck?: Maybe<Scalars['JSON']['output']>;
   setAdditionalAllowedOrigins: Array<Scalars['String']['output']>;
@@ -667,19 +703,26 @@ export type Mutation = {
   unmountArrayDisk?: Maybe<Disk>;
   /** Marks a notification as unread. */
   unreadNotification: Notification;
-  /** Update an existing API key */
-  updateApikey?: Maybe<ApiKey>;
-};
-
-
-export type MutationaddApikeyArgs = {
-  input?: InputMaybe<updateApikeyInput>;
-  name: Scalars['String']['input'];
 };
 
 
 export type MutationaddDiskToArrayArgs = {
   input?: InputMaybe<arrayDiskInput>;
+};
+
+
+export type MutationaddPermissionArgs = {
+  input: AddPermissionInput;
+};
+
+
+export type MutationaddRoleForApiKeyArgs = {
+  input: AddRoleForApiKeyInput;
+};
+
+
+export type MutationaddRoleForUserArgs = {
+  input: AddRoleForUserInput;
 };
 
 
@@ -713,6 +756,11 @@ export type MutationconnectSignInArgs = {
 };
 
 
+export type MutationcreateApiKeyArgs = {
+  input: CreateApiKeyInput;
+};
+
+
 export type MutationcreateNotificationArgs = {
   input: NotificationData;
 };
@@ -734,12 +782,6 @@ export type MutationenableDynamicRemoteAccessArgs = {
 };
 
 
-export type MutationgetApiKeyArgs = {
-  input?: InputMaybe<authenticateInput>;
-  name: Scalars['String']['input'];
-};
-
-
 export type MutationloginArgs = {
   password: Scalars['String']['input'];
   username: Scalars['String']['input'];
@@ -753,6 +795,11 @@ export type MutationmountArrayDiskArgs = {
 
 export type MutationremoveDiskFromArrayArgs = {
   input?: InputMaybe<arrayDiskInput>;
+};
+
+
+export type MutationremoveRoleFromApiKeyArgs = {
+  input: RemoveRoleFromApiKeyInput;
 };
 
 
@@ -788,12 +835,6 @@ export type MutationunmountArrayDiskArgs = {
 
 export type MutationunreadNotificationArgs = {
   id: Scalars['String']['input'];
-};
-
-
-export type MutationupdateApikeyArgs = {
-  input?: InputMaybe<updateApikeyInput>;
-  name: Scalars['String']['input'];
 };
 
 export type Network = Node & {
@@ -997,8 +1038,8 @@ export type ProfileModel = {
 
 export type Query = {
   __typename?: 'Query';
-  /** Get all API keys */
-  apiKeys?: Maybe<Array<Maybe<ApiKey>>>;
+  apiKey?: Maybe<ApiKey>;
+  apiKeys: Array<ApiKey>;
   /** An Unraid array consisting of 1 or 2 Parity disks and a number of Data disks. */
   array: ArrayType;
   cloud?: Maybe<Cloud>;
@@ -1041,6 +1082,11 @@ export type Query = {
   vars?: Maybe<Vars>;
   /** Virtual machines */
   vms?: Maybe<Vms>;
+};
+
+
+export type QueryapiKeyArgs = {
+  id: Scalars['ID']['input'];
 };
 
 
@@ -1138,6 +1184,52 @@ export type RemoteAccess = {
   port?: Maybe<Scalars['Port']['output']>;
 };
 
+export type RemoveRoleFromApiKeyInput = {
+  apiKeyId: Scalars['ID']['input'];
+  role: Role;
+};
+
+/** Available resources for permissions */
+export enum Resource {
+  ApiKey = 'api_key',
+  Array = 'array',
+  Cloud = 'cloud',
+  Config = 'config',
+  Connect = 'connect',
+  CrashReportingEnabled = 'crash_reporting_enabled',
+  Customizations = 'customizations',
+  Dashboard = 'dashboard',
+  Disk = 'disk',
+  Display = 'display',
+  Docker = 'docker',
+  Flash = 'flash',
+  Info = 'info',
+  Logs = 'logs',
+  Me = 'me',
+  Network = 'network',
+  Notifications = 'notifications',
+  Online = 'online',
+  Os = 'os',
+  Owner = 'owner',
+  Permission = 'permission',
+  Registration = 'registration',
+  Servers = 'servers',
+  Services = 'services',
+  Share = 'share',
+  Vars = 'vars',
+  Vms = 'vms',
+  Welcome = 'welcome'
+}
+
+/** Available roles for API keys and users */
+export enum Role {
+  Admin = 'admin',
+  Guest = 'guest',
+  MyServers = 'my_servers',
+  Notifier = 'notifier',
+  Upc = 'upc'
+}
+
 export type Server = {
   __typename?: 'Server';
   apikey: Scalars['String']['output'];
@@ -1201,7 +1293,6 @@ export type Share = {
 
 export type Subscription = {
   __typename?: 'Subscription';
-  apikeys?: Maybe<Array<Maybe<ApiKey>>>;
   array: ArrayType;
   config: Config;
   display?: Maybe<Display>;
@@ -1359,14 +1450,14 @@ export type User = UserAccount & {
   name: Scalars['String']['output'];
   /** If the account has a password set */
   password?: Maybe<Scalars['Boolean']['output']>;
-  roles: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export type UserAccount = {
   description: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
-  roles: Scalars['String']['output'];
+  roles: Array<Role>;
 };
 
 export type Vars = Node & {
@@ -1605,12 +1696,6 @@ export type Welcome = {
   message: Scalars['String']['output'];
 };
 
-export type addApiKeyInput = {
-  key?: InputMaybe<Scalars['String']['input']>;
-  name?: InputMaybe<Scalars['String']['input']>;
-  userId?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type addUserInput = {
   description?: InputMaybe<Scalars['String']['input']>;
   name: Scalars['String']['input'];
@@ -1622,10 +1707,6 @@ export type arrayDiskInput = {
   id: Scalars['ID']['input'];
   /** The slot for the disk */
   slot?: InputMaybe<Scalars['Int']['input']>;
-};
-
-export type authenticateInput = {
-  password: Scalars['String']['input'];
 };
 
 export type deleteUserInput = {
@@ -1647,11 +1728,6 @@ export enum registrationType {
   Trial = 'TRIAL',
   Unleashed = 'UNLEASHED'
 }
-
-export type updateApikeyInput = {
-  description?: InputMaybe<Scalars['String']['input']>;
-  expiresAt: Scalars['Long']['input'];
-};
 
 export type usersInput = {
   slim?: InputMaybe<Scalars['Boolean']['input']>;
@@ -1697,7 +1773,7 @@ export type DeleteNotificationMutation = { __typename?: 'Mutation', deleteNotifi
 export type DeleteAllNotificationsMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type DeleteAllNotificationsMutation = { __typename?: 'Mutation', deleteAllNotifications: { __typename?: 'NotificationOverview', archive: { __typename?: 'NotificationCounts', total: number }, unread: { __typename?: 'NotificationCounts', total: number } } };
+export type DeleteAllNotificationsMutation = { __typename?: 'Mutation', deleteArchivedNotifications: { __typename?: 'NotificationOverview', archive: { __typename?: 'NotificationCounts', total: number }, unread: { __typename?: 'NotificationCounts', total: number } } };
 
 export type OverviewQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -1757,7 +1833,7 @@ export const NotificationsDocument = {"kind":"Document","definitions":[{"kind":"
 export const ArchiveNotificationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ArchiveNotification"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archiveNotification"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"FragmentSpread","name":{"kind":"Name","value":"NotificationFragment"}}]}}]}},{"kind":"FragmentDefinition","name":{"kind":"Name","value":"NotificationFragment"},"typeCondition":{"kind":"NamedType","name":{"kind":"Name","value":"Notification"}},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"title"}},{"kind":"Field","name":{"kind":"Name","value":"subject"}},{"kind":"Field","name":{"kind":"Name","value":"description"}},{"kind":"Field","name":{"kind":"Name","value":"importance"}},{"kind":"Field","name":{"kind":"Name","value":"link"}},{"kind":"Field","name":{"kind":"Name","value":"type"}},{"kind":"Field","name":{"kind":"Name","value":"timestamp"}},{"kind":"Field","name":{"kind":"Name","value":"formattedTimestamp"}}]}}]} as unknown as DocumentNode<ArchiveNotificationMutation, ArchiveNotificationMutationVariables>;
 export const ArchiveAllNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ArchiveAllNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archiveAll"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<ArchiveAllNotificationsMutation, ArchiveAllNotificationsMutationVariables>;
 export const DeleteNotificationDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteNotification"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"id"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"String"}}}},{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"type"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"NotificationType"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteNotification"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"id"},"value":{"kind":"Variable","name":{"kind":"Name","value":"id"}}},{"kind":"Argument","name":{"kind":"Name","value":"type"},"value":{"kind":"Variable","name":{"kind":"Name","value":"type"}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteNotificationMutation, DeleteNotificationMutationVariables>;
-export const DeleteAllNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteAllNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteAllNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteAllNotificationsMutation, DeleteAllNotificationsMutationVariables>;
+export const DeleteAllNotificationsDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"DeleteAllNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"deleteArchivedNotifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]} as unknown as DocumentNode<DeleteAllNotificationsMutation, DeleteAllNotificationsMutationVariables>;
 export const OverviewDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"query","name":{"kind":"Name","value":"Overview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"notifications"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"id"}},{"kind":"Field","name":{"kind":"Name","value":"overview"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"unread"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"info"}},{"kind":"Field","name":{"kind":"Name","value":"warning"}},{"kind":"Field","name":{"kind":"Name","value":"alert"}},{"kind":"Field","name":{"kind":"Name","value":"total"}}]}},{"kind":"Field","name":{"kind":"Name","value":"archive"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"total"}}]}}]}}]}}]}}]} as unknown as DocumentNode<OverviewQuery, OverviewQueryVariables>;
 export const ConnectSignInDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"ConnectSignIn"},"variableDefinitions":[{"kind":"VariableDefinition","variable":{"kind":"Variable","name":{"kind":"Name","value":"input"}},"type":{"kind":"NonNullType","type":{"kind":"NamedType","name":{"kind":"Name","value":"ConnectSignInInput"}}}}],"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignIn"},"arguments":[{"kind":"Argument","name":{"kind":"Name","value":"input"},"value":{"kind":"Variable","name":{"kind":"Name","value":"input"}}}]}]}}]} as unknown as DocumentNode<ConnectSignInMutation, ConnectSignInMutationVariables>;
 export const SignOutDocument = {"kind":"Document","definitions":[{"kind":"OperationDefinition","operation":"mutation","name":{"kind":"Name","value":"SignOut"},"selectionSet":{"kind":"SelectionSet","selections":[{"kind":"Field","name":{"kind":"Name","value":"connectSignOut"}}]}}]} as unknown as DocumentNode<SignOutMutation, SignOutMutationVariables>;
