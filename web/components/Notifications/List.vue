@@ -80,7 +80,7 @@ async function onLoadMore() {
     <div v-if="loading" class="py-5 grid place-content-center">
       <LoadingSpinner />
     </div>
-    <div v-if="!canLoadMore" class="py-5 grid place-content-center text-gray-500">
+    <div v-if="!canLoadMore" class="py-5 grid place-content-center text-secondary-foreground">
       You've reached the end...
     </div>
   </div>
