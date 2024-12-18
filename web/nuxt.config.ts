@@ -146,6 +146,10 @@ export default defineNuxtConfig({
            name: "UnraidWanIpCheck",
            path: "@/components/WanIpCheck.ce",
          },
+         {
+           name: "UnraidWelcomeModal",
+           path: "@/components/WelcomeModal.ce",
+         },
        ],
      },
    ],
