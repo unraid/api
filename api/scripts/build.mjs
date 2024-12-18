@@ -33,7 +33,8 @@ try {
         '.env.staging',
         'tsconfig.json',
         'codegen.yml',
-        'ecosystem.config.json'
+        'ecosystem.config.json',
+        'vite.config.ts',
     ]
 
     for (const file of files) {
