@@ -67,7 +67,17 @@ class ActivationCodeExtractor {
      * 
      * @return array
      */
-    public function getData(): array {
+    public function getData($asJson = false, $asJsonForHtmlAttr = false): array {
         return $this->data;
+    }
+
+    /**
+     * Retrieve the activation code data as JSON string with converted special characters to HTML entities
+     *
+     * @return string
+     */
+    public function getDataForHtmlAttr(): string {
+        $json = json_encode($this->getData());
+        return htmlspecialchars($json, ENT_QUOTES, 'UTF-8');
     }
 }
