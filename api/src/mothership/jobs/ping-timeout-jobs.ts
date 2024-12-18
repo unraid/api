@@ -1,3 +1,5 @@
+import { Cron, Expression, Initializer } from '@reflet/cron';
+
 import { KEEP_ALIVE_INTERVAL_MS, ONE_MINUTE_MS } from '@app/consts';
 import { minigraphLogger, mothershipLogger, remoteAccessLogger } from '@app/core/log';
 import { DynamicRemoteAccessType, MinigraphStatus } from '@app/graphql/generated/api/types';
@@ -6,25 +8,21 @@ import { setGraphqlConnectionStatus } from '@app/store/actions/set-minigraph-sta
 import { store } from '@app/store/index';
 import { setRemoteAccessRunningType } from '@app/store/modules/dynamic-remote-access';
 import { clearSubscription } from '@app/store/modules/remote-graphql';
-import { Cron, Expression, Initializer } from '@reflet/cron';
 
 export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
     @Cron.PreventOverlap
     @Cron(Expression.EVERY_MINUTE)
     @Cron.Start
     async checkForPingTimeouts() {
-        const state = store.getState()
+        const state = store.getState();
         if (!isAPIStateDataFullyLoaded(state)) {
-            mothershipLogger.warn(
-                'State data not fully loaded, but job has been started'
-            );
+            mothershipLogger.warn('State data not fully loaded, but job has been started');
             return;
         }
 
         // Check for ping timeouts in remote graphql events
         const subscriptionsToClear = state.remoteGraphQL.subscriptions.filter(
-            (subscription) =>
-                Date.now() - subscription.lastPing > KEEP_ALIVE_INTERVAL_MS
+            (subscription) => Date.now() - subscription.lastPing > KEEP_ALIVE_INTERVAL_MS
         );
         if (subscriptionsToClear.length > 0) {
             mothershipLogger.debug(
@@ -36,9 +34,7 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
             );
         }
 
-        subscriptionsToClear.forEach((sub) =>
-            store.dispatch(clearSubscription(sub.sha256))
-        );
+        subscriptionsToClear.forEach((sub) => store.dispatch(clearSubscription(sub.sha256)));
 
         // Check for ping timeouts in mothership
         if (
@@ -61,13 +57,10 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
         // Check for ping timeouts from mothership events
         if (
             state.minigraph.selfDisconnectedSince &&
-            Date.now() - state.minigraph.selfDisconnectedSince >
-                KEEP_ALIVE_INTERVAL_MS &&
+            Date.now() - state.minigraph.selfDisconnectedSince > KEEP_ALIVE_INTERVAL_MS &&
             state.minigraph.status === MinigraphStatus.CONNECTED
         ) {
-            minigraphLogger.error(
-                `SELF DISCONNECTION EVENT NEVER CLEARED, SOCKET MUST BE RECONNECTED`
-            );
+            minigraphLogger.error(`SELF DISCONNECTION EVENT NEVER CLEARED, SOCKET MUST BE RECONNECTED`);
             store.dispatch(
                 setGraphqlConnectionStatus({
                     status: MinigraphStatus.PING_FAILURE,
@@ -77,12 +70,33 @@ export class PingTimeoutJobs extends Initializer<typeof PingTimeoutJobs> {
         }
 
         // Check for ping timeouts in remote access
-        if (state.dynamicRemoteAccess.lastPing && Date.now() - state.dynamicRemoteAccess.lastPing > ONE_MINUTE_MS) {
-            remoteAccessLogger.error(
-                `NO PINGS RECEIVED IN 1 MINUTE, REMOTE ACCESS MUST BE DISABLED`
-            );
+        if (
+            state.dynamicRemoteAccess.lastPing &&
+            Date.now() - state.dynamicRemoteAccess.lastPing > ONE_MINUTE_MS
+        ) {
+            remoteAccessLogger.error(`NO PINGS RECEIVED IN 1 MINUTE, REMOTE ACCESS MUST BE DISABLED`);
             store.dispatch(setRemoteAccessRunningType(DynamicRemoteAccessType.DISABLED));
-            
         }
     }
 }
+
+let pingTimeoutJobs: ReturnType<typeof PingTimeoutJobs.init<PingTimeoutJobs>> | null = null;
+
+export const initPingTimeoutJobs = (): boolean => {
+    if (!pingTimeoutJobs) {
+        pingTimeoutJobs = PingTimeoutJobs.init();
+    }
+    pingTimeoutJobs.startAll();
+    return pingTimeoutJobs.get('checkForPingTimeouts').running ?? false;
+};
+
+export const stopPingTimeoutJobs = () => {
+    minigraphLogger.trace('Stopping Ping Timeout Jobs');
+    if (!pingTimeoutJobs) {
+        minigraphLogger.warn('PingTimeoutJobs Handler not found.');
+        return;
+    } 
+    pingTimeoutJobs.stopAll();
+    pingTimeoutJobs.clear();
+    pingTimeoutJobs = null;
+};

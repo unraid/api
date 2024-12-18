@@ -8,7 +8,6 @@ import { cache } from '@app/store/modules/cache';
 import { docker } from '@app/store/modules/docker';
 import { upnp } from '@app/store/modules/upnp';
 import { listenerMiddleware } from '@app/store/listeners/listener-middleware';
-import { apiKeyReducer } from '@app/store/modules/apikey';
 import { dynamicRemoteAccessReducer } from '@app/store/modules/dynamic-remote-access';
 import { remoteGraphQLReducer } from '@app/store/modules/remote-graphql';
 import { dynamix } from '@app/store/modules/dynamix';
@@ -16,7 +15,6 @@ import { notificationReducer } from '@app/store/modules/notifications';
 
 export const store = configureStore({
     reducer: {
-        apiKey: apiKeyReducer,
         config: configReducer,
         dynamicRemoteAccess: dynamicRemoteAccessReducer,
         minigraph: mothership.reducer,
@@ -40,7 +38,6 @@ export type RootState = ReturnType<typeof store.getState>;
 export type AppDispatch = typeof store.dispatch;
 
 export const getters = {
-    apiKey: () => store.getState().apiKey,
     cache: () => store.getState().cache,
     config: () => store.getState().config,
     docker: () => store.getState().docker,

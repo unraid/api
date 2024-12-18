@@ -22,7 +22,6 @@ import {
 import { logoutUser } from '@app/store/modules/config';
 import { RetryLink } from '@apollo/client/link/retry/index.js';
 import { ErrorLink } from '@apollo/client/link/error/index.js';
-import { isApiKeyValid } from '@app/store/getters/index';
 import { buildDelayFunction } from '@app/mothership/utils/delay-function';
 import { WebSocket } from 'ws';
 
@@ -68,7 +67,7 @@ export class GraphQLClient {
      * @returns ApolloClient instance or null, if state is not valid
      */
     public static getInstance(): ApolloClient<NormalizedCacheObject> | null {
-        const isStateValid = isAPIStateDataFullyLoaded() && isApiKeyValid();
+        const isStateValid = isAPIStateDataFullyLoaded();
         if (!isStateValid) {
             minigraphLogger.error(
                 'GraphQL Client is not valid. Returning null for instance'
@@ -85,7 +84,7 @@ export class GraphQLClient {
      * @returns Apollo Instance (if creation was possible)
      */
     public static createSingletonInstance = () => {
-        const isStateValid = isAPIStateDataFullyLoaded() && isApiKeyValid();
+        const isStateValid = isAPIStateDataFullyLoaded();
 
         if (!GraphQLClient.instance && isStateValid) {
             minigraphLogger.debug('Creating a new Apollo Client Instance');

@@ -17,8 +17,7 @@ interface MothershipWebsocketHeaders extends OutgoingHttpHeaders {
 
 export const getMothershipWebsocketHeaders = (state = store.getState()): MothershipWebsocketHeaders | OutgoingHttpHeaders => {
 	const { config, emhttp } = state;
-
-	if (isAPIStateDataFullyLoaded(state) && isApiKeyValid(state)) {
+	if (isAPIStateDataFullyLoaded(state)) {
 		const headers: MothershipWebsocketHeaders = {
 			'x-api-key': config.remote.apikey,
 			'x-flash-guid': emhttp.var.flashGuid,
@@ -29,7 +28,6 @@ export const getMothershipWebsocketHeaders = (state = store.getState()): Mothers
 		logger.debug('Mothership websocket headers: %o', headers);
 		return headers;
 	}
-
 	return {};
 };
 
@@ -43,7 +41,7 @@ interface MothershipConnectionParams extends Record<string, unknown> {
 
 export const getMothershipConnectionParams = (state = store.getState()): MothershipConnectionParams | Record<string, unknown> => {
 	const { config, emhttp } = state;
-	if (isAPIStateDataFullyLoaded(state) && isApiKeyValid(state)) {
+	if (isAPIStateDataFullyLoaded(state)) {
 		return {
 			clientType: ClientType.API,
 			apiKey: config.remote.apikey,
