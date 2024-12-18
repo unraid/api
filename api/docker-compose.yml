@@ -17,7 +17,7 @@ x-volumes: &volumes
   - ./.env.staging:/app/.env.staging
   - ./.env.test:/app/.env.test
   - ./.env.development:/app/.env.development
-  - ./codegen.yml:/app/codegen.yml
+  - ./codegen.ts:/app/codegen.ts
   - ./fix-array-type.cjs:/app/fix-array-type.cjs
   - /var/run/docker.sock:/var/run/docker.sock
   - ./unraid-api.js:/app/unraid-api.js

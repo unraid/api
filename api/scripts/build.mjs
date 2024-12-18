@@ -32,7 +32,7 @@ try {
         '.env.production',
         '.env.staging',
         'tsconfig.json',
-        'codegen.yml',
+        'codegen.ts',
         'ecosystem.config.json',
         'vite.config.ts',
     ]

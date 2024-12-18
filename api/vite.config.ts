@@ -92,13 +92,10 @@ export default defineConfig(({ mode }) => {
             target: 'node20',
             commonjsOptions: {
                 transformMixedEsModules: true,
-                include: [/node_modules/, /fastify/],
+                include: [/node_modules/, /fastify/, /reflect-metadata/],
                 exclude: [
                     'cpu-features',
-                    'class-validator',
-                    'class-transformer',
                     '@nestjs',
-                    'reflect-metadata',
                     'rxjs',
                     'passport',
                     'passport-custom',
