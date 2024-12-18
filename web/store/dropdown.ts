@@ -22,7 +22,7 @@ export const useDropdownStore = defineStore('dropdown', () => {
   const serverStore = useServerStore();
   const activationCodeStore = useActivationCodeStore();
   const { guid, state } = storeToRefs(serverStore);
-  const { showModal: showActivationModal } = storeToRefs(activationCodeStore);
+  const { showActivationModal } = storeToRefs(activationCodeStore);
   const autoShowDropdown = computed(() => state.value === 'ENOKEYFILE' && !showActivationModal.value);
 
   watch(autoShowDropdown, (newVal) => {

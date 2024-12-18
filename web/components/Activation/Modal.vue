@@ -16,7 +16,7 @@ export interface Props {
 const props = defineProps<Props>();
 
 const activationCodeStore = useActivationCodeStore();
-const { partnerLogo, partnerName, showModal } = storeToRefs(activationCodeStore);
+const { partnerLogo, partnerName, showActivationModal } = storeToRefs(activationCodeStore);
 const purchaseStore = usePurchaseStore();
 
 const title = computed<string>(() =>
@@ -77,7 +77,7 @@ onMounted(() => {
     }
 
     if (sequenceIndex === keySequence.length) {
-      activationCodeStore.setModalHidden(true);
+      activationCodeStore.setActivationModalHidden(true);
       window.location.href = "/Tools/Registration";
     }
   });
@@ -90,9 +90,9 @@ onUnmounted(() => {
 
 <template>
   <Modal
-    v-if="showModal"
+    v-if="showActivationModal"
     :t="t"
-    :open="showModal"
+    :open="showActivationModal"
     :show-close-x="false"
     :title="title"
     :title-in-main="!!partnerLogo"

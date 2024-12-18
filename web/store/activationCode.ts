@@ -33,9 +33,9 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
   const partnerLogo = computed<string | null>(() => data.value?.partnerLogoFileType ? `/webGui/images/partner-logo.${data.value.partnerLogoFileType}` : null);
 
   const sessionKey = 'activationCodeModalHidden';
-  const modalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');
-  const setModalHidden = (value: boolean) => modalHidden.value = value;
-  watch(modalHidden, (newVal) => {
+  const activationModalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');
+  const setActivationModalHidden = (value: boolean) => activationModalHidden.value = value;
+  watch(activationModalHidden, (newVal) => {
     return newVal ? sessionStorage.setItem(sessionKey, 'true') : sessionStorage.removeItem(sessionKey);
   });
   /**
@@ -45,7 +45,7 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
    * 3. we're not on the registration page
    * 4. it's not been manually hidden
    */
-  const showModal = computed<boolean>(() => {
+  const showActivationModal = computed<boolean>(() => {
     if (!data.value) {
       return false;
     }
@@ -56,7 +56,7 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
     const isFreshInstall = state.value === 'ENOKEYFILE';
     const noCallbackData = !callbackData.value;
 
-    return isFreshInstall && noCallbackData && !modalHidden.value;
+    return isFreshInstall && noCallbackData && !activationModalHidden.value;
   });
 
   return {
@@ -64,8 +64,8 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
     partnerName,
     partnerUrl,
     partnerLogo,
-    showModal,
+    showActivationModal,
     setData,
-    setModalHidden,
+    setActivationModalHidden,
   };
 });
