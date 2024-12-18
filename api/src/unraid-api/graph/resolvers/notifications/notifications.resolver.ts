@@ -5,9 +5,9 @@ import { AuthActionVerb, AuthPossession, UsePermissions } from 'nest-authz';
 import { AppError } from '@app/core/errors/app-error';
 import { createSubscription, PUBSUB_CHANNEL } from '@app/core/pubsub';
 import {
-    NotificationData,
-    NotificationFilter,
-    NotificationOverview,
+    type NotificationData,
+    type NotificationFilter,
+    type NotificationOverview,
     NotificationType,
     Resource,
 } from '@app/graphql/generated/api/types';
