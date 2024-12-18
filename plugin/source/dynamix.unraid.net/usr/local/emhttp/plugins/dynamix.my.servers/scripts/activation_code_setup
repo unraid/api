@@ -105,12 +105,14 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       cp "$AUTH_REQUEST_FILE" "${AUTH_REQUEST_FILE}.bak"
       debug_echo "Backup of $AUTH_REQUEST_FILE created at ${AUTH_REQUEST_FILE}.bak"
 
-      awk -v files_to_add="$(printf "%s\n" "${FILES_TO_ADD[@]}" | awk '{printf "\x27%s\x27,\n", $0}')" '
+      # prepending items to the array as appending them to the end of the array was causing issues with trying to detect the last item with or without a comma
+      awk -v files_to_add="$(printf "%s\n" "${FILES_TO_ADD[@]}" | awk '{printf "  \x27%s\x27,\n", $0}')" '
         BEGIN { added = 0 }
-        /\$arrWhitelist\s*=\s*\[/ { print; added = 1; next }
-        added && /\];/ {
-          printf "%s", files_to_add
-          added = 0
+        /\$arrWhitelist\s*=\s*\[/ {
+          print $0
+          print files_to_add
+          added = 1
+          next
         }
         { print }
       ' "$AUTH_REQUEST_FILE" > "${AUTH_REQUEST_FILE}.tmp"
