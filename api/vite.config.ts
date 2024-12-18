@@ -1,6 +1,8 @@
+
 import { viteCommonjs } from '@originjs/vite-plugin-commonjs';
 import nodeResolve from '@rollup/plugin-node-resolve';
 import nodeExternals from 'rollup-plugin-node-externals';
+import swc from 'unplugin-swc';
 import { VitePluginNode } from 'vite-plugin-node';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import tsconfigPaths from 'vite-tsconfig-paths';
@@ -26,9 +28,35 @@ export default defineConfig(({ mode }) => {
                       adapter: 'nest',
                       appPath: 'src/index.ts',
                       tsCompiler: 'swc',
+                      swcOptions: {
+                            jsc: {
+                                parser: {
+                                    syntax: 'typescript',
+                                    decorators: true,
+                                },
+                                target: 'es2024',
+                                transform: {
+                                    legacyDecorator: true,
+                                    decoratorMetadata: true,
+                                },
+                            },
+                      },
                       initAppOnBoot: true,
                   })
                 : []),
+            swc.vite({
+                jsc: {
+                    parser: {
+                        syntax: 'typescript',
+                        decorators: true,
+                    },
+                    target: 'es2024',
+                    transform: {
+                        legacyDecorator: true,
+                        decoratorMetadata: true,
+                    },
+                },
+            }),
         ],
         define: {
             // Allows vite to preserve process.env variables and not hardcode them
