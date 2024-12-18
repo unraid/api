@@ -67,7 +67,7 @@ class ActivationCodeExtractor {
      * 
      * @return array
      */
-    public function getData($asJson = false, $asJsonForHtmlAttr = false): array {
+    public function getData(): array {
         return $this->data;
     }
 
