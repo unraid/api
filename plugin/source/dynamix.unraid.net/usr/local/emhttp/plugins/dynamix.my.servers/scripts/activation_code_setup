@@ -108,7 +108,6 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     debug_echo "Found ${#JS_FILES[@]} .js files in $WEB_COMPS_DIR"
 
     FILES_TO_ADD=(
-      "/webGui/images/partner-logo.png"
       "/webGui/images/partner-logo.svg"
     )
     FILES_TO_ADD+=("${JS_FILES[@]}")

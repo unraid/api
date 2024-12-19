@@ -11,7 +11,7 @@ export interface ActivationCodeData {
   comment?: string;
   header?: string;
   headermetacolor?: string;
-  partnerLogoFileType?: 'png' | 'svg';
+  partnerLogo?: boolean;
   partnerName?: string;
   partnerUrl?: string;
   showBannerGradient?: 'yes';
@@ -30,7 +30,7 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
   const code = computed<string | null>(() => data.value?.code || null);
   const partnerName = computed<string | null>(() => data.value?.partnerName || null);
   const partnerUrl = computed<string | null>(() => data.value?.partnerUrl || null);
-  const partnerLogo = computed<string | null>(() => data.value?.partnerLogoFileType ? `/webGui/images/partner-logo.${data.value.partnerLogoFileType}` : null);
+  const partnerLogo = computed<string | null>(() => data.value?.partnerLogo ? `/webGui/images/partner-logo.svg` : null);
 
   const sessionKey = 'activationCodeModalHidden';
   const activationModalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');

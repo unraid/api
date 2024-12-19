@@ -26,6 +26,7 @@ class ActivationCodeExtractor {
      *     sysModel?: string,
      *     comment?: string,
      *     caseIcon: string,
+     *     partnerLogo?: boolean,
      *     header?: string,
      *     headermetacolor?: string,
      *     background?: string,
