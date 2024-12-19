@@ -1,8 +1,11 @@
 #!/bin/bash
 
-# Bash script to sync files using rsync with named flag parameters
+# Bash script to sync local activation code directory to the correct location on the Unraid server's boot device
 
 # Usage: ./sync_files.sh --local-directory <local_directory> [--remote-user <remote_user>] [--remote-host <remote_host>] [--remote-path <remote_path>]
+
+# Example usage 0
+# ./plugin/scripts/rsync-activation-dir.sh --local-directory /Users/zack/Downloads/activation_code_pdfs_12_19_2024_1436
 
 # Path to store the last used remote host
 state_file="$HOME/.deploy_state"
