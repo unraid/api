@@ -734,7 +734,7 @@ echo
 # Activation and partner setup
 source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
-# Use myservers.cfg values to help prevent conflicts when installing# Use myservers.cfg values to help prevent conflicts when installing
+# Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
 # shellcheck disable=SC1090
 source <(grep 'email\|apikey="unraid_' "${CFG}" 2>/dev/null)
