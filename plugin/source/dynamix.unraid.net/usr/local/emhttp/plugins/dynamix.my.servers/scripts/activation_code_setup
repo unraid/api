@@ -81,8 +81,20 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
   PARTNER_ASSETS_DIR="$ACTIVATION_DIR/assets"
   WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
 
+  ACTIVATION_JSON_VALID=false
   if [[ -f "$ACTIVATION_JSON" ]]; then
-    debug_echo "Activation JSON found at $ACTIVATION_JSON"
+    debug_echo "Activation JSON found at $ACTIVATION_JSON, validating..."
+    # Validate the JSON file
+    if jq -e . >/dev/null 2>&1 <<<"$ACTIVATION_JSON"; then
+      ACTIVATION_JSON_VALID=true
+      debug_echo "Activation JSON is valid"
+    else
+      debug_echo "Activation JSON is not valid, skipping setup"
+    fi
+  fi
+
+  if [[ "$ACTIVATION_JSON_VALID" == true ]]; then
+    debug_echo "Activation JSON is valid, proceeding with setup"
     # create the setup flag file to prevent re-running this setup
     touch "$ACTIVATION_SETUP_FLAG"
 
