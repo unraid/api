@@ -36,6 +36,14 @@ a[href="/Tools/Downgrade"] .icon-update:before {
     display: inline-block; /* required otherwise the rotation won't work */
     rotate: 180deg;
 }
+/* overriding #header .logo svg */
+#header .logo .partner-logo svg,
+#header .logo .partner-logo img {
+    width: auto;
+    height: 30px;
+    display: block;
+    margin: 25px 0 8px 0;
+}
 </style>
 <?php
 require_once("$docroot/plugins/dynamix.my.servers/include/web-components-extractor.php");
