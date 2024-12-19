@@ -89,7 +89,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       ACTIVATION_JSON_VALID=true
       debug_echo "Activation JSON is valid"
     else
-      debug_echo "Activation JSON is not valid, skipping setup"
+      echo "⚠️ Warning: Activation JSON is not valid, skipping setup"
     fi
   fi
 
