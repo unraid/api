@@ -1,0 +1,42 @@
+"""
+Available resources for permissions
+"""
+enum Resource {
+    apikey
+    array
+    cloud
+    config
+    connect
+    connect__remote_access
+    customizations
+    dashboard
+    disk
+    display
+    docker
+    flash
+    info
+    logs
+    me
+    network
+    notifications
+    online
+    os
+    owner
+    permission
+    registration
+    servers
+    services
+    share
+    vars
+    vms
+    welcome
+}
+
+"""
+Available roles for API keys and users
+"""
+enum Role {
+    admin
+    connect
+    guest
+}

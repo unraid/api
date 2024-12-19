@@ -1,0 +1,10 @@
+{
+  "createdAt": "2024-12-19T16:49:56.848Z",
+  "description": "API key for Connect user",
+  "id": "d166bf8b-3615-444a-8932-c460b2132ba3",
+  "key": "3a4e2332891e879d2ac8c3f25ef03a7b54f70b62cd6c5a08a86189cdd19ba203",
+  "name": "Connect",
+  "roles": [
+    "admin"
+  ]
+}

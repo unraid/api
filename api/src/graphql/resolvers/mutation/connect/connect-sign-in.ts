@@ -1,7 +1,6 @@
 import { decodeJwt } from 'jose';
 
 import type { ConnectSignInInput } from '@app/graphql/generated/api/types';
-import { Role } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store/index';
 import { loginUser } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
@@ -30,11 +29,7 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
             if (localApiKeyFromConfig == '') {
                 const apiKeyService = new ApiKeyService();
                 // Create local API key
-                const localApiKey = await apiKeyService.create(
-                    `LOCAL_KEY_${userInfo.preferred_username.toUpperCase()}`,
-                    `Local API key for Connect user ${userInfo.email}`,
-                    [Role.ADMIN]
-                );
+                const localApiKey = await apiKeyService.createLocalConnectApiKey();
 
                 if (!localApiKey?.key) {
                     throw new Error('Failed to create local API key');
