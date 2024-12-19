@@ -85,7 +85,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
   if [[ -f "$ACTIVATION_JSON" ]]; then
     debug_echo "Activation JSON found at $ACTIVATION_JSON, validating..."
     # Validate the JSON file
-    if jq -e . >/dev/null 2>&1 <<<"$ACTIVATION_JSON"; then
+    if jq empty "$ACTIVATION_JSON" 2>/dev/null; then
       ACTIVATION_JSON_VALID=true
       debug_echo "Activation JSON is valid"
     else
