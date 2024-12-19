@@ -1,6 +1,12 @@
 import { expect, test } from 'vitest';
 
+
+
 import { store } from '@app/store';
+
+
+
+
 
 test('Before init returns default values for all fields', async () => {
     const state = store.getState().config;
@@ -74,7 +80,7 @@ test('After init returns values from cfg file for all fields', async () => {
                 dynamicRemoteAccessType: 'DISABLED',
                 email: 'test@example.com',
                 idtoken: '',
-                localApiKey: '',
+                localApiKey: '426b62b4d51e441fa97a93dfa1259920390a6eb61bd8675db0caa18dd0e414e9',
                 refreshtoken: '',
                 regWizTime: '1611175408732_0951-1653-3509-FBA155FA23C0',
                 upnpEnabled: 'no',
@@ -127,7 +133,7 @@ test('updateUserConfig merges in changes to current state', async () => {
                 dynamicRemoteAccessType: 'DISABLED',
                 email: 'test@example.com',
                 idtoken: '',
-                localApiKey: '',
+                localApiKey: '426b62b4d51e441fa97a93dfa1259920390a6eb61bd8675db0caa18dd0e414e9',
                 refreshtoken: '',
                 regWizTime: '1611175408732_0951-1653-3509-FBA155FA23C0',
                 upnpEnabled: 'no',

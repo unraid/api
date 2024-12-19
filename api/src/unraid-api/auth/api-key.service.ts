@@ -55,7 +55,7 @@ export class ApiKeyService implements OnModuleInit {
         if (/^[\p{L}\p{N} ]+$/u.test(name)) {
             return name;
         } else {
-            throw new GraphQLError('API key name must be alphanumeric and can only contain spaces');
+            throw new GraphQLError('API key name must be alphanumeric + spaces');
         }
     }
 
@@ -189,7 +189,7 @@ export class ApiKeyService implements OnModuleInit {
         try {
             const files = await readdir(this.basePath);
 
-            for (const file of files) {
+            for (const file of (files ?? [])) {
                 if (!file.endsWith('.json')) continue;
 
                 try {
@@ -233,7 +233,7 @@ export class ApiKeyService implements OnModuleInit {
             }
 
             this.logger.error(`Failed to read API key storage: ${error}`);
-            throw new GraphQLError('Authentication system unavailable');
+            throw new GraphQLError('Authentication system unavailable - please see logs');
         }
     }
 
