@@ -40,7 +40,7 @@ a[href="/Tools/Downgrade"] .icon-update:before {
 #header .logo .partner-logo svg,
 #header .logo .partner-logo img {
     width: auto;
-    height: 30px;
+    height: 28px;
     display: block;
     margin: 25px 0 8px 0;
 }
