@@ -313,21 +313,27 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       debug_echo "Checking server identification"
       VAR_INI="/usr/local/emhttp/state/var.ini"
       # If there's not a set system model or comment (aka description), we'll attempt to set it from activation json
+      CURRENT_NAME=$(awk -F "=" '/NAME/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
       CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
       CURRENT_COMMENT=$(awk -F "=" '/COMMENT/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
 
-      if [[ -z "$CURRENT_SYS_MODEL" || -z "$CURRENT_COMMENT" ]]; then
+      if [[ -z "$CURRENT_SYS_MODEL" || -z "$CURRENT_COMMENT" || "$CURRENT_NAME" == "Tower" ]]; then
+        PARTNER_SERVER_NAME=$(jq -r '.serverName // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
         PARTNER_SYS_MODEL=$(jq -r '.sysModel // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
         PARTNER_COMMENT=$(jq -r '.comment // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
         # Sanitize strings to remove quotes and backslashes
+        PARTNER_SERVER_NAME=${PARTNER_SERVER_NAME//["\\"]/}
         PARTNER_SYS_MODEL=${PARTNER_SYS_MODEL//["\\"]/}
         PARTNER_COMMENT=${PARTNER_COMMENT//["\\"]/}
 
+        debug_echo "Partner server name: $PARTNER_SERVER_NAME"
         debug_echo "Partner system model: $PARTNER_SYS_MODEL"
         debug_echo "Partner comment: $PARTNER_COMMENT"
 
         declare -A IDENT_PARAMS
-
+        if [[ -n "$PARTNER_SERVER_NAME" ]]; then
+          IDENT_PARAMS["NAME"]=$PARTNER_SERVER_NAME
+        fi
         if [[ -n "$PARTNER_SYS_MODEL" ]]; then
           IDENT_PARAMS["SYS_MODEL"]=$PARTNER_SYS_MODEL
         fi
