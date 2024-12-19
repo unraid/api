@@ -41,8 +41,6 @@ a[href="/Tools/Downgrade"] .icon-update:before {
     fill: var(--header-text-primary);
     width: auto;
     height: 28px;
-    display: block;
-    margin: 25px 0 8px 0;
 }
 </style>
 <?php
