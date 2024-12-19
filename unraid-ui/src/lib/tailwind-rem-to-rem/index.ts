@@ -1,7 +1,8 @@
-import { scaleRemFactor } from "./utils";
+import { scaleRemFactor } from "../utils";
 
 import defaultTheme from "tailwindcss/defaultTheme";
 import plugin from "tailwindcss/plugin";
+
 export default plugin.withOptions(
   () => {
     return function () {

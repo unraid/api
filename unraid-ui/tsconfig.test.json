@@ -12,5 +12,6 @@
       "@testing-library/vue"
     ]
   },
-  "include": ["src/**/*.test.ts", "src/**/*.vue", "src/**/*.ts", "test/**/*.ts"]
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "**/*.copy.vue", "**/*copy.vue"]
 }

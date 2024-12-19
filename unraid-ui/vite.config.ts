@@ -15,13 +15,18 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "UnraidUI",
+      name: "Unraid UI",
       formats: ["es"],
       fileName: "index",
     },
+    cssCodeSplit: true,
     rollupOptions: {
       external: ["vue"],
       output: {
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === "style.css") return "style.css";
+          return "assets/[name]-[hash][extname]";
+        },
         globals: {
           vue: "Vue",
         },
@@ -32,7 +37,9 @@ export default defineConfig({
     alias: {
       "@": resolve(__dirname, "./src"),
       "@/components": resolve(__dirname, "./src/components"),
+      "@/composables": resolve(__dirname, "./src/composables"),
       "@/lib": resolve(__dirname, "./src/lib"),
+      "@/styles": resolve(__dirname, "./src/styles"),
       "@/types": resolve(__dirname, "./src/types"),
     },
   },
