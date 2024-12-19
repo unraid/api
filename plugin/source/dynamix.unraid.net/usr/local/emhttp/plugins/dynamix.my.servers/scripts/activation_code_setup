@@ -92,7 +92,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     # We first need to add files to allow them to be requested without authentication
     AUTH_REQUEST_FILE="/usr/local/emhttp/auth-request.php"
     WEB_COMPS_DIR="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components/_nuxt/"
-    mapfile -t JS_FILES < <(find "$WEB_COMPS_DIR" -type f -name "*.js" | sed 's|^|/|' | sed 's|//|/|g')
+    mapfile -t JS_FILES < <(find "$WEB_COMPS_DIR" -type f -name "*.js" | sed 's|/usr/local/emhttp||') # modifying the path to be relative to the webgui's webroot
     debug_echo "Found ${#JS_FILES[@]} .js files in $WEB_COMPS_DIR"
 
     FILES_TO_ADD=(
@@ -181,6 +181,34 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       fi
     else
       debug_echo "Skipping partner banner setup"
+    fi
+
+    #
+    # Inject the partner logo in DefaultPageLayout
+    #
+    DEFAULT_PAGE_LAYOUT_FILE="/usr/local/emhttp/plugins/dynamix/include/DefaultPageLayout.php"
+    # shellcheck disable=SC2016
+    WEBGUI_LOGO_STRING_FIND='<a href="https://unraid.net" target="_blank"><?readfile("$docroot/webGui/images/UN-logotype-gradient.svg")?></a>'
+    # shellcheck disable=SC2016
+    PARTNER_LOGO_STRING_REPLACE='<?include "$docroot/plugins/dynamix.my.servers/include/partner-logo.php"?>'
+    # if a backup of the original layout doesn't already exist, then we'll create it.
+    if [[ ! -f "${DEFAULT_PAGE_LAYOUT_FILE}-" ]]; then
+      cp -f "$DEFAULT_PAGE_LAYOUT_FILE" "${DEFAULT_PAGE_LAYOUT_FILE}-"
+      debug_echo "Backup of $DEFAULT_PAGE_LAYOUT_FILE created at ${DEFAULT_PAGE_LAYOUT_FILE}-"
+    fi
+
+    debug_echo "Injecting partner logo into $DEFAULT_PAGE_LAYOUT_FILE"
+    sed -i "s|$WEBGUI_LOGO_STRING_FIND|$PARTNER_LOGO_STRING_REPLACE|" "$DEFAULT_PAGE_LAYOUT_FILE"
+
+    if [[ $? -eq 0 ]]; then
+      php -l "$DEFAULT_PAGE_LAYOUT_FILE" 2>/dev/null
+      if [[ $? -eq 0 ]]; then
+        debug_echo "Successfully injected partner logo into $DEFAULT_PAGE_LAYOUT_FILE"
+      else
+        debug_echo "Failed to inject partner logo into $DEFAULT_PAGE_LAYOUT_FILE, syntax error"
+      fi
+    else
+      debug_echo "Failed to inject partner logo into $DEFAULT_PAGE_LAYOUT_FILE, awk error"
     fi
 
     # Set the display settings, if we haven't done it once already
