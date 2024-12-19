@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { ButtonVariants } from "./Button.variants";
+import { ButtonVariants } from "./button.variants";
 import { cn } from "@/lib/utils";
 
 interface Props {

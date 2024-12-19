@@ -15,48 +15,26 @@ describe("Button", () => {
 
   it("renders with different variants", () => {
     const { rerender } = render(Button, {
-      props: {
-        variant: "destructive",
-      },
-      slots: {
-        default: "Delete",
-      },
+      props: { variant: "destructive" },
+      slots: { default: "Delete" },
     });
-
-    let button = screen.getByRole("button");
 
     rerender({
-      props: {
-        variant: "outline",
-      },
-      slots: {
-        default: "Delete",
-      },
+      props: { variant: "outline" },
+      slots: { default: "Delete" },
     });
-    button = screen.getByRole("button");
   });
 
   it("renders with different sizes", () => {
     const { rerender } = render(Button, {
-      props: {
-        size: "sm",
-      },
-      slots: {
-        default: "Small Button",
-      },
+      props: { size: "sm" },
+      slots: { default: "Small Button" },
     });
-
-    let button = screen.getByRole("button");
 
     rerender({
-      props: {
-        size: "lg",
-      },
-      slots: {
-        default: "Small Button",
-      },
+      props: { size: "lg" },
+      slots: { default: "Small Button" },
     });
-    button = screen.getByRole("button");
   });
 
   it("accepts and applies additional classes", () => {
