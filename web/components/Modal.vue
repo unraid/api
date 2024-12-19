@@ -89,7 +89,7 @@ const computedVerticalCenter = computed<string>(() => {
         >
           <div
             :class="cn('fixed inset-0 z-0 transition-opacity', overlayColor, overlayOpacity)"
-            :title="t('Click to close modal')"
+            :title="showCloseX ? t('Click to close modal') : undefined"
             @click="closeModal"
           />
         </TransitionChild>
