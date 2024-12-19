@@ -145,14 +145,13 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
     fi
 
     # copy the logo into a location that the webgui can access
-    PARTNER_LOGO=$(find "$PARTNER_ASSETS_DIR" -type f \( -name "logo.png" -o -name "logo.svg" \) -print -quit)
-    if [[ -n "$PARTNER_LOGO" ]]; then
-      # Extract the file extension from the found logo
-      EXTENSION="${PARTNER_LOGO##*.}"
-      debug_echo "Partner logo found at $PARTNER_LOGO with extension $EXTENSION"
+    PARTNER_LOGO="$PARTNER_ASSETS_DIR/logo.svg"
+    if [[ -f "$PARTNER_LOGO" ]]; then
+      debug_echo "Partner logo found"
       # symlink the file to the correct destination with the correct extension
-      ln -sf "$PARTNER_LOGO" "$WEBGUI_IMAGES_DIR/partner-logo.$EXTENSION"
-      debug_echo "Partner logo symlinked to $WEBGUI_IMAGES_DIR/partner-logo.$EXTENSION"
+      LINK_DEST="$WEBGUI_IMAGES_DIR/partner-logo.svg"
+      ln -sf "$PARTNER_LOGO" "$LINK_DEST"
+      debug_echo "Partner logo symlinked to $LINK_DEST"
     else
       debug_echo "No partner logo found"
     fi

@@ -37,8 +37,8 @@ a[href="/Tools/Downgrade"] .icon-update:before {
     rotate: 180deg;
 }
 /* overriding #header .logo svg */
-#header .logo .partner-logo svg,
-#header .logo .partner-logo img {
+#header .logo .partner-logo svg {
+    fill: var(--header-text-primary);
     width: auto;
     height: 28px;
     display: block;

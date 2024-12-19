@@ -85,9 +85,9 @@ if [[ -f "$ACTIVATION_SETUP_FLAG" ]]; then
   # Remove the partner logo symbolic link if it exists
   WEBGUI_IMAGES_DIR="/usr/local/emhttp/webGui/images"
 
-  PARTNER_LOGO=$(find "$WEBGUI_IMAGES_DIR" -type l -name "partner-logo.*" -print -quit)
-  debug_echo "Partner logo found at $PARTNER_LOGO"
-  if [[ -L $PARTNER_LOGO ]]; then
+  PARTNER_LOGO="$WEBGUI_IMAGES_DIR/partner-logo.svg"
+  debug_echo "Checking for partner logo at $PARTNER_LOGO"
+  if [[ -L "$PARTNER_LOGO" ]]; then
     rm -f "$PARTNER_LOGO"
     debug_echo "Partner logo symbolic link removed"
   fi
