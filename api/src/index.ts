@@ -31,6 +31,7 @@ import { setupRegistrationKeyWatch } from '@app/store/watch/registration-watch';
 import { StateManager } from '@app/store/watch/state-watch';
 import { setupVarRunWatch } from '@app/store/watch/var-run-watch';
 import { bootstrapNestServer } from '@app/unraid-api/main';
+import { createLocalApiKeyForConnectIfNecessary } from '@app/mothership/utils/create-local-connect-api-key';
 
 import { setupNewMothershipSubscription } from './mothership/subscribe-to-mothership';
 
@@ -86,6 +87,8 @@ try {
 
     // Start listening to dynamix config file changes
     setupDynamixConfigWatch();
+
+    await createLocalApiKeyForConnectIfNecessary();
 
     // Disabled until we need the access token to work
     // TokenRefresh.init();

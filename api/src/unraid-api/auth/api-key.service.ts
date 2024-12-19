@@ -3,20 +3,29 @@ import crypto from 'crypto';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+
+
 import { ensureDir } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
+
+
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
+
+
+
+
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
     private readonly logger = new Logger(ApiKeyService.name);
     protected readonly basePath: string;
     protected readonly keyFile: (id: string) => string;
+    protected memoryApiKeys = new Map<string, ApiKeyWithSecret>();
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
     constructor() {
@@ -34,6 +43,8 @@ export class ApiKeyService implements OnModuleInit {
             throw new GraphQLError('Failed to initialize API key storage');
         }
         this.logger.verbose(`Using API key base path: ${this.basePath}`);
+
+        // @todo setup file watch to reload keys
     }
 
     async onModuleInit() {
@@ -41,13 +52,18 @@ export class ApiKeyService implements OnModuleInit {
     }
 
     private sanitizeName(name: string): string {
-        return name.replace(/[^a-zA-Z0-9-_]/g, '_').toUpperCase();
+        if (/^[\p{L}\p{N} ]+$/u.test(name)) {
+            return name;
+        } else {
+            throw new GraphQLError('API key name must be alphanumeric and can only contain spaces');
+        }
     }
 
     async create(
         name: string,
         description: string | undefined,
-        roles: Role[]
+        roles: Role[],
+        overwrite: boolean = false
     ): Promise<ApiKeyWithSecret> {
         const trimmedName = name?.trim();
         const sanitizedName = this.sanitizeName(trimmedName);
@@ -63,19 +79,24 @@ export class ApiKeyService implements OnModuleInit {
         if (roles.some((role) => !ApiKeyService.validRoles.has(role))) {
             throw new GraphQLError('Invalid role specified');
         }
-
-        const apiKey: ApiKeyWithSecret = {
+        const apiKey: Partial<ApiKeyWithSecret> = (await this.findByField('name', sanitizedName)) ?? {
             id: uuidv4(),
             key: this.generateApiKey(),
             name: sanitizedName,
-            description,
-            roles,
-            createdAt: new Date().toISOString(),
         };
 
-        await this.saveApiKey(apiKey);
+        if (!overwrite && apiKey.createdAt) {
+            throw new GraphQLError('API key name already exists, use overwrite flag to update');
+        }
 
-        return apiKey;
+        apiKey.description = description;
+        apiKey.roles = roles;
+        // Update createdAt date
+        apiKey.createdAt = new Date().toISOString();
+
+        await this.saveApiKey(apiKey as ApiKeyWithSecret);
+
+        return apiKey as ApiKeyWithSecret;
     }
 
     async findAll(): Promise<ApiKey[]> {
@@ -162,12 +183,11 @@ export class ApiKeyService implements OnModuleInit {
         }
     }
 
-    async findByKey(key: string): Promise<ApiKeyWithSecret | null> {
-        if (!key) return null;
+    async findByField(field: keyof ApiKeyWithSecret, value: string): Promise<ApiKeyWithSecret | null> {
+        if (!value) return null;
 
         try {
             const files = await readdir(this.basePath);
-            const keyBuffer1 = Buffer.from(key);
 
             for (const file of files) {
                 if (!file.endsWith('.json')) continue;
@@ -187,14 +207,14 @@ export class ApiKeyService implements OnModuleInit {
                     }
 
                     const apiKey = ApiKeyWithSecretSchema().parse(parsedContent);
-                    const keyBuffer2 = Buffer.from(apiKey.key);
 
-                    if (
-                        keyBuffer1.length === keyBuffer2.length &&
-                        crypto.timingSafeEqual(keyBuffer1, keyBuffer2)
-                    ) {
+                    if (field === 'key') {
+                        if (crypto.timingSafeEqual(Buffer.from(apiKey[field]), Buffer.from(value))) {
+                            apiKey.roles = apiKey.roles.map((role) => role || Role.GUEST);
+                            return apiKey;
+                        }
+                    } else if (apiKey[field] === value) {
                         apiKey.roles = apiKey.roles.map((role) => role || Role.GUEST);
-
                         return apiKey;
                     }
                 } catch (error) {
@@ -203,7 +223,6 @@ export class ApiKeyService implements OnModuleInit {
                     }
 
                     this.logger.error(`Error processing API key file ${file}: ${error}`);
-                    throw new GraphQLError('Authentication system error');
                 }
             }
 
@@ -216,6 +235,10 @@ export class ApiKeyService implements OnModuleInit {
             this.logger.error(`Failed to read API key storage: ${error}`);
             throw new GraphQLError('Authentication system unavailable');
         }
+    }
+
+    async findByKey(key: string): Promise<ApiKeyWithSecret | null> {
+        return this.findByField('key', key);
     }
 
     async findOneByKey(apiKey: string): Promise<UserAccount | null> {
@@ -247,11 +270,22 @@ export class ApiKeyService implements OnModuleInit {
         return crypto.randomBytes(32).toString('hex');
     }
 
+    public async createLocalConnectApiKey(): Promise<ApiKeyWithSecret> {
+        return await this.create('Connect', 'API key for Connect user', [Role.ADMIN], true);
+    }
+
     public async saveApiKey(apiKey: ApiKeyWithSecret): Promise<void> {
         try {
             const validatedApiKey = ApiKeyWithSecretSchema().parse(apiKey);
 
-            await writeFile(this.keyFile(validatedApiKey.id), JSON.stringify(validatedApiKey, null, 2));
+            const sortedApiKey = Object.keys(validatedApiKey)
+                .sort()
+                .reduce((acc, key) => {
+                    acc[key] = validatedApiKey[key];
+                    return acc;
+                }, {} as ApiKeyWithSecret);
+
+            await writeFile(this.keyFile(validatedApiKey.id), JSON.stringify(sortedApiKey, null, 2));
         } catch (error: unknown) {
             if (error instanceof ZodError) {
                 this.logger.error('Invalid API key structure', error.errors);
