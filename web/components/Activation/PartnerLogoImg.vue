@@ -13,5 +13,5 @@ const { darkMode } = storeToRefs(useThemeStore());
 </script>
 
 <template>
-  <img v-if="partnerLogo" :src="partnerLogo" class="w-full max-h-8" :class="{ 'invert': darkMode }" />
+  <img v-if="partnerLogo" :src="partnerLogo" class="w-72" :class="{ 'invert': darkMode }" />
 </template>
