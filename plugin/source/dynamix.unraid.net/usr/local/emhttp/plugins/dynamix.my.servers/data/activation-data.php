@@ -17,7 +17,9 @@ extract(parse_plugin_cfg('dynamix',true));
 require_once "$docroot/plugins/dynamix.my.servers/include/activation-code-extractor.php";
 
 $activationCodeExtractor = new ActivationCodeExtractor();
-
-header('Content-type: application/json');
-
-echo json_encode($activationCodeExtractor->getData());
+?>
+<pre>
+<?php
+$activationCodeExtractor->debug();
+?>
+</pre>
