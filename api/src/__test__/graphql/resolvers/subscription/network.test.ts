@@ -58,15 +58,15 @@ test('getUrlForServer - field exists, ssl yes, port empty', () => {
 	expect(result).toMatchInlineSnapshot('"https://192.168.1.1/"');
 });
 
-test('getUrlForServer - field exists, ssl auto', () => {
+test('getUrlForServer - field exists, ssl auto', async () => {
 	const getResult = async () => getUrlForServer({
 		nginx: { lanIp: '192.168.1.1', sslEnabled: true, sslMode: 'auto', httpPort: 123, httpsPort: 445 } as const as Nginx,
 		field: 'lanIp',
 	});
-	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Cannot get IP Based URL for field: "lanIp" SSL mode auto]`);
+	await expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: Cannot get IP Based URL for field: "lanIp" SSL mode auto]`);
 });
 
-test('getUrlForServer - field does not exist, ssl disabled', () => {
+test('getUrlForServer - field does not exist, ssl disabled', async () => {
 	const getResult = async () => getUrlForServer(
 		{
 			nginx: { lanIp: '192.168.1.1', sslEnabled: false, sslMode: 'no' } as const as Nginx,
@@ -76,7 +76,7 @@ test('getUrlForServer - field does not exist, ssl disabled', () => {
 			// @ts-expect-error Field doesn't exist
 			field: 'idontexist',
 		});
-	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: IP URL Resolver: Could not resolve any access URL for field: "idontexist", is FQDN?: false]`);
+	await expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: IP URL Resolver: Could not resolve any access URL for field: "idontexist", is FQDN?: false]`);
 });
 
 test('getUrlForServer - FQDN - field exists, port non-empty', () => {
@@ -104,13 +104,13 @@ test.each([
 	expect(result.toString()).toBe('https://my-fqdn.unraid.net/');
 });
 
-test('getUrlForServer - field does not exist, ssl disabled', () => {
+test('getUrlForServer - field does not exist, ssl disabled', async () => {
 	const getResult = async () => getUrlForServer({ nginx:
 		{ lanFqdn: 'my-fqdn.unraid.net' } as const as Nginx,
 	ports: { portSsl: '', port: '', defaultUrl: new URL('https://my-default-url.unraid.net') },
 	// @ts-expect-error Field doesn't exist
 	field: 'idontexist' });
-	void expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: IP URL Resolver: Could not resolve any access URL for field: "idontexist", is FQDN?: false]`);
+	await expect(getResult).rejects.toThrowErrorMatchingInlineSnapshot(`[Error: IP URL Resolver: Could not resolve any access URL for field: "idontexist", is FQDN?: false]`);
 });
 
 test('integration test, loading nginx ini and generating all URLs', async () => {
