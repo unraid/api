@@ -727,13 +727,6 @@ if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.ser
   echo "env=\"${PLGTYPE}\"">/boot/config/plugins/dynamix.my.servers/env
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
-
-# Activation and partner setup
-source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
-
 # Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
 # shellcheck disable=SC1090
@@ -842,6 +835,15 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     done
     echo "♻️ Reverted to stock web component files"
 fi
+
+echo
+echo "⚠️ Do not close this window yet"
+echo
+
+#
+# Activation and partner setup
+# - Must come after the web component timestamp check to avoid potentially targeting the wrong JS during this setup
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
 # start background process to install/start the api and flash backup
 echo
