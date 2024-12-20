@@ -3,22 +3,14 @@ import crypto from 'crypto';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-
-
 import { ensureDir } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
-
-
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
-
-
-
-
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
@@ -79,15 +71,17 @@ export class ApiKeyService implements OnModuleInit {
         if (roles.some((role) => !ApiKeyService.validRoles.has(role))) {
             throw new GraphQLError('Invalid role specified');
         }
-        const apiKey: Partial<ApiKeyWithSecret> = (await this.findByField('name', sanitizedName)) ?? {
+
+        const existingKey = await this.findByField('name', sanitizedName);
+        if (!overwrite && existingKey) {
+            throw new GraphQLError('API key name already exists, use overwrite flag to update');
+        }
+        const apiKey: Partial<ApiKeyWithSecret> = {
             id: uuidv4(),
             key: this.generateApiKey(),
             name: sanitizedName,
+            ...(existingKey ?? {}),
         };
-
-        if (!overwrite && apiKey.createdAt) {
-            throw new GraphQLError('API key name already exists, use overwrite flag to update');
-        }
 
         apiKey.description = description;
         apiKey.roles = roles;
@@ -189,7 +183,7 @@ export class ApiKeyService implements OnModuleInit {
         try {
             const files = await readdir(this.basePath);
 
-            for (const file of (files ?? [])) {
+            for (const file of files ?? []) {
                 if (!file.endsWith('.json')) continue;
 
                 try {
