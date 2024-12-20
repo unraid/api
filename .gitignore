@@ -24,6 +24,7 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+unraid-ui/node_modules/
 
 # TypeScript v1 declaration files
 typings/
@@ -64,6 +65,7 @@ test/__temp__/*
 
 # Built files
 dist
+unraid-ui/storybook-static
 
 # Typescript
 typescript
@@ -74,7 +76,7 @@ typescript
 # Github actions
 RELEASE_NOTES.md
 
-# Docker Deploy Folder 
+# Docker Deploy Folder
 deploy/*
 !deploy/.gitkeep
 
