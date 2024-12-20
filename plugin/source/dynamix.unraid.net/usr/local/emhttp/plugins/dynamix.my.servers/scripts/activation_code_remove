@@ -23,7 +23,7 @@
 #    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --debug --remove-setup-flag
 #
 # Prerequisites:
-# - The setup flag file must exist at "/boot/config/activation/.setup".
+# - The setup flag file must exist at "/boot/config/activation/.done".
 #
 # Options:
 # --delete   Deletes the script itself and related script & php files.
@@ -62,7 +62,7 @@ debug_echo() {
 }
 
 ACTIVATION_DIR="/boot/config/activation"
-ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"
+ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.done"
 
 debug_echo "Checking for setup flag at $ACTIVATION_SETUP_FLAG"
 

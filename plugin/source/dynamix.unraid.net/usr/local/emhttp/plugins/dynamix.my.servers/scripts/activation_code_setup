@@ -74,7 +74,7 @@ debug_echo "Checking for activation directory at $ACTIVATION_DIR"
 
 if [[ -d "$ACTIVATION_DIR" ]]; then
   debug_echo "Activation directory found"
-  ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.setup"
+  ACTIVATION_SETUP_FLAG="$ACTIVATION_DIR/.done"
   ACTIVATION_JSON_EXTENSION=".activationcode"
   # get the first file in the dir that matches the extension, later parsed as JSON for specific values
   ACTIVATION_JSON=$(find "$ACTIVATION_DIR" -maxdepth 1 -type f -name "*$ACTIVATION_JSON_EXTENSION" | head -n 1)
@@ -275,7 +275,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         }' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
       done
 
-      # Add what changed to the .setup flag file
+      # Add what changed to the .done flag file
       echo "display" >> "$ACTIVATION_SETUP_FLAG"
       debug_echo "Display settings updated"
     else
@@ -303,16 +303,16 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
             echo "⚠️ Warning: Failed to replace the original case model icon with the custom icon."
           else
             echo -n "$CUSTOM_CASE_FILE_NAME" > $CASE_MODEL_CFG # set the custom icon in the config file
-            echo "case: $CUSTOM_CASE_FILE_NAME" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
+            echo "case: $CUSTOM_CASE_FILE_NAME" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .done flag file
             debug_echo "Custom case model set"
           fi
         elif [[ -n "$PARTNER_CASE_ICON" ]]; then
           echo -n "$PARTNER_CASE_ICON" > $CASE_MODEL_CFG # set the parsed icon name in the config file
-          echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
+          echo "case: $PARTNER_CASE_ICON" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .done flag file
           debug_echo "Case model set to $PARTNER_CASE_ICON"
         fi
       else
-        echo "case: skipped, already custom" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .setup flag file
+        echo "case: skipped, already custom" >> "$ACTIVATION_SETUP_FLAG" # add what changed to the .done flag file
         debug_echo "Skipping case model setup, already set as custom icon"
       fi
     else
@@ -388,7 +388,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
           debug_echo "System identification updated"
           echo "✅ Identification updated: $EM_CMD"
 
-          # Add what changed to the .setup flag file
+          # Add what changed to the .done flag file
           echo "identity: $EM_CMD" >> "$ACTIVATION_SETUP_FLAG"
         fi
       fi
