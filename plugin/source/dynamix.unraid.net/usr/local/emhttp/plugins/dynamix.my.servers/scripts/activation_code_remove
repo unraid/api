@@ -14,18 +14,19 @@
 # Usage:
 # 1. Run the script for testing:
 #    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove
+#    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --debug
 #
 # 2. Run the script with the delete flag to self-delete, should be done in the plugin's removal script:
 #    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --delete
 #
 # 3. Run the script and remove the setup flag after completion for a fresh state:
-#    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --remove-setup-flag
+#    ./usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove --debug --remove-setup-flag
 #
 # Prerequisites:
 # - The setup flag file must exist at "/boot/config/activation/.setup".
 #
 # Options:
-# --delete   Deletes the script itself and an adjacent "activate_code_setup" file.
+# --delete   Deletes the script itself and related script & php files.
 # --debug    Enables debug mode to display additional information.
 # --remove-setup-flag  Removes the setup flag after the script completes.
 #
@@ -125,15 +126,20 @@ if [[ -f "$ACTIVATION_SETUP_FLAG" ]]; then
   fi
 
   if [[ $SELF_DELETE == true ]]; then
-    debug_echo "Deleting activation code script files"
-    REMOVE_SCRIPT_FILE="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove"
-    SETUP_SCRIPT_FILE="/usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup"
+    debug_echo "Deleting activation code related setup and php files"
+    FILES_TO_DELETE=(
+      "/usr/local/emhttp/plugins/dynamix.my.servers/data/activation-data.php"
+      "/usr/local/emhttp/plugins/dynamix.my.servers/include/activation-code-extractor.php"
+      "/usr/local/emhttp/plugins/dynamix.my.servers/include/partner-logo.php"
+      "/usr/local/emhttp/plugins/dynamix.my.servers/include/welcome-modal.php"
+      "/usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove"
+      "/usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup"
+    )
 
-    rm -f "$REMOVE_SCRIPT_FILE"
-    debug_echo "Deleted $REMOVE_SCRIPT_FILE deleted"
-
-    rm -f "$SETUP_SCRIPT_FILE"
-    debug_echo "Delete $SETUP_SCRIPT_FILE"
+    for file in "${FILES_TO_DELETE[@]}"; do
+      rm -f "$file"
+      debug_echo "Deleted $file"
+    done
   fi
 
   debug_echo "Removal complete"
