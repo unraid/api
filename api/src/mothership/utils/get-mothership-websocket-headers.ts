@@ -3,7 +3,6 @@ import { API_VERSION } from '@app/environment';
 import { ClientType } from '@app/graphql/generated/client/graphql';
 import { isAPIStateDataFullyLoaded } from '@app/mothership/graphql-client';
 import { store } from '@app/store';
-import { isApiKeyValid } from '@app/store/getters/index';
 
 import { type OutgoingHttpHeaders } from 'node:http2';
 

@@ -2,7 +2,6 @@ import { decodeJwt } from 'jose';
 
 import type { ConnectSignInInput } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
-import { API_KEY_STATUS } from '@app/mothership/api-key/api-key-types';
 import { getters, store } from '@app/store/index';
 import { loginUser } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
