@@ -15,18 +15,6 @@ const computedStyleClasses = computed(() => {
   let textSize = "";
   let iconSize = "";
   switch (props.color) {
-    case "alpha":
-      colorClasses =
-        "bg-alpha text-white group-hover:opacity-75 group-focus:opacity-75";
-      break;
-    case "beta":
-      colorClasses =
-        "bg-beta text-white group-hover:opacity-75 group-focus:opacity-75";
-      break;
-    case "gamma":
-      colorClasses =
-        "bg-gamma text-white group-hover:opacity-75 group-focus:opacity-75";
-      break;
     case "red":
       colorClasses =
         "bg-unraid-red text-white group-hover:bg-orange-dark group-focus:bg-orange-dark";

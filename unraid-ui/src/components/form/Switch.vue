@@ -29,7 +29,7 @@ const checked = ref(false);
       >
         <span
           v-show="!checked"
-          class="absolute z-0 inset-0 opacity-10 bg-beta"
+          class="absolute z-0 inset-0 opacity-10 bg-primary"
         />
         <span
           :class="checked ? 'translate-x-[26px]' : 'translate-x-[2px]'"
