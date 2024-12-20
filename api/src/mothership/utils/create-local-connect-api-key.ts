@@ -11,12 +11,11 @@ export const createLocalApiKeyForConnectIfNecessary = async () => {
     }
 
     const { remote } = getters.config();
-    const service = new ApiKeyService();
+    const apiKeyService = new ApiKeyService();
     // If the remote API Key is set and the local key is either not set or not found on disk, create a key
-    if (remote.apikey && (!remote.localApiKey || !(await service.findByKey(remote.localApiKey)))) {
+    if (remote.apikey && (!remote.localApiKey || !(await apiKeyService.findByKey(remote.localApiKey)))) {
         minigraphLogger.debug('Creating local API key for Connect');
         // Create local API key
-        const apiKeyService = new ApiKeyService();
         const localApiKey = await apiKeyService.createLocalConnectApiKey();
 
         if (localApiKey?.key) {
