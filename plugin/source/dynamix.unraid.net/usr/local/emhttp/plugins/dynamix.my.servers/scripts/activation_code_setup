@@ -319,7 +319,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       debug_echo "Skipping case model setup, flag already set"
     fi
 
-    # Set the server model and description if we haven't already done it once
+    # Set the server name, model, and description if we haven't already done it once
     if ! grep -q "identity" "$ACTIVATION_SETUP_FLAG"; then
       debug_echo "Checking server identification"
       VAR_INI="/usr/local/emhttp/state/var.ini"
@@ -328,7 +328,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
       CURRENT_SYS_MODEL=$(awk -F "=" '/SYS_MODEL/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
       CURRENT_COMMENT=$(awk -F "=" '/COMMENT/ {print $2}' $VAR_INI 2>/dev/null | tr -d '"')
 
-      if [[ -z "$CURRENT_SYS_MODEL" || -z "$CURRENT_COMMENT" || "$CURRENT_NAME" == "Tower" ]]; then
+      if [[ -z "$CURRENT_SYS_MODEL" || -z "$CURRENT_COMMENT" || "$CURRENT_COMMENT" == "Media server" || "$CURRENT_NAME" == "Tower" ]]; then
         PARTNER_SERVER_NAME=$(jq -r '.serverName // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
         PARTNER_SYS_MODEL=$(jq -r '.sysModel // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
         PARTNER_COMMENT=$(jq -r '.comment // empty' "$ACTIVATION_JSON" 2>/dev/null || true)
@@ -355,6 +355,7 @@ if [[ -d "$ACTIVATION_DIR" ]]; then
         if [[ ${#IDENT_PARAMS[@]} -gt 0 ]]; then
           echo "⏳ Please wait...updating system identification"
 
+          # @todo - This may not be needed, double check if emhttp is updating the ident.cfg file
           for key in "${!IDENT_PARAMS[@]}"; do
             value=${IDENT_PARAMS[$key]}
             CONFIG_FILE="/boot/config/ident.cfg"
