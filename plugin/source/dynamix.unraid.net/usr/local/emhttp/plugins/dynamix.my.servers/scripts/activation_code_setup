@@ -13,8 +13,12 @@
 # - Verifies if the activation directory and setup flag exist before proceeding.
 # - Updates partner logos, banners, and other visual assets in the system.
 # - Configures system display settings (e.g., theme, colors) based on activation JSON.
-# - Sets server identification (model and description) if not already configured.
+# - Sets server identification (name, model, and description) if not already configured.
 # - Creates a setup flag to prevent re-execution of tasks.
+#
+# Prerequisites:
+# - Ensure that the activation directory exists at "/boot/config/activation".
+# - The script requires `jq` for JSON parsing. Install it if not already available.
 #
 # Usage:
 # 1. Run the script normally:
@@ -23,18 +27,14 @@
 # 2. Run the script with debug statements:
 #    ./activation_code_setup --debug
 #
-# Prerequisites:
-# - Ensure that the activation directory exists at "/boot/config/activation".
-# - The script requires `jq` for JSON parsing. Install it if not already available.
-#
 # Options:
 # --debug    Enables debug mode to display additional information.
 #
 # Files Used:
 # - Activation JSON: A configuration file with `.activationcode` extension, located in
 #   the activation directory.
-# - Partner assets: Logos and banners located in the "assets" subdirectory of the 
-#   activation directory.
+# - Partner assets: Logo, banner, and case model located in the "assets" subdirectory
+#   of the activation directory.
 # - System configuration files such as:
 #   - `/boot/config/plugins/dynamix/dynamix.cfg`
 #   - `/boot/config/plugins/dynamix/case-model.cfg`
