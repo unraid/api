@@ -4,8 +4,8 @@
   "typescript": true,
   "tsConfigPath": "./tsconfig.json",
   "tailwind": {
-    "config": "tailwind.config.js",
-    "css": "src/styles/globals.css",
+    "config": "./tailwind.config.js",
+    "css": "./src/styles/globals.css",
     "baseColor": "slate",
     "cssVariables": true,
     "prefix": ""

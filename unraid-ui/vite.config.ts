@@ -16,16 +16,22 @@ export default defineConfig({
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
       name: "Unraid UI",
-      formats: ["es"],
+      formats: ["es", "umd"],
       fileName: "index",
     },
     cssCodeSplit: true,
+    minify: true,
+    sourcemap: true,
     rollupOptions: {
       external: ["vue"],
       output: {
         assetFileNames: (assetInfo) => {
-          if (assetInfo.name === "style.css") return "style.css";
-          return "assets/[name]-[hash][extname]";
+          if (
+            typeof assetInfo.source === "string" &&
+            assetInfo.source.includes("style.css")
+          )
+            return "css/style.[hash].css";
+          return "assets/[name].[hash][extname]";
         },
         globals: {
           vue: "Vue",

@@ -33,7 +33,7 @@ describe("Button", () => {
 
     rerender({
       props: { size: "lg" },
-      slots: { default: "Small Button" },
+      slots: { default: "Large Button" },
     });
   });
 

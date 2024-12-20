@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ShieldExclamationIcon } from "@heroicons/vue/24/solid";
+import LoadingSpinner from "./Spinner.vue";
 import { cn } from "@/lib/utils";
 
 /**
