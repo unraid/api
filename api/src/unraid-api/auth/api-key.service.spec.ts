@@ -154,7 +154,7 @@ describe('ApiKeyService', () => {
             const saveSpy = vi.spyOn(apiKeyService, 'saveApiKey');
 
             await expect(apiKeyService.create('', 'desc', [Role.GUEST])).rejects.toThrow(
-                'API key name must be alphanumeric + spaces'
+                'API key name must contain only letters, numbers, and spaces (Unicode letters are supported)'
             );
 
             await expect(apiKeyService.create('name', 'desc', [])).rejects.toThrow(

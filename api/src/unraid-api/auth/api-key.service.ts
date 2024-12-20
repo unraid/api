@@ -3,14 +3,22 @@ import crypto from 'crypto';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
+
+
 import { ensureDir } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
+
+
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
+
+
+
+
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
@@ -47,7 +55,9 @@ export class ApiKeyService implements OnModuleInit {
         if (/^[\p{L}\p{N} ]+$/u.test(name)) {
             return name;
         } else {
-            throw new GraphQLError('API key name must be alphanumeric + spaces');
+            throw new GraphQLError(
+                'API key name must contain only letters, numbers, and spaces (Unicode letters are supported)'
+            );
         }
     }
 
