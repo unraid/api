@@ -5,7 +5,6 @@ import { AUTHZ_ENFORCER, AuthZModule } from 'nest-authz';
 
 import { getRequest } from '@app/utils';
 
-import { ApiKeyService } from './api-key.service';
 import { AuthService } from './auth.service';
 import { BASE_POLICY, CASBIN_MODEL } from './casbin';
 import { CasbinModule } from './casbin/casbin.module';
@@ -13,6 +12,7 @@ import { CasbinService } from './casbin/casbin.service';
 import { CookieService, SESSION_COOKIE_CONFIG } from './cookie.service';
 import { UserCookieStrategy } from './cookie.strategy';
 import { ServerHeaderStrategy } from './header.strategy';
+import { ApiKeyModule } from '@app/unraid-api/api-key/api-key.module';
 
 @Module({
     imports: [
@@ -47,10 +47,10 @@ import { ServerHeaderStrategy } from './header.strategy';
                 }
             },
         }),
+        ApiKeyModule,
     ],
     providers: [
         AuthService,
-        ApiKeyService,
         ServerHeaderStrategy,
         UserCookieStrategy,
         CookieService,
@@ -61,7 +61,6 @@ import { ServerHeaderStrategy } from './header.strategy';
     ],
     exports: [
         AuthService,
-        ApiKeyService,
         PassportModule,
         ServerHeaderStrategy,
         UserCookieStrategy,

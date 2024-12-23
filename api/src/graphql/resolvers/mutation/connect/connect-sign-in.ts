@@ -1,10 +1,14 @@
+import * as cacheManager from 'cache-manager';
 import { decodeJwt } from 'jose';
 
 import type { ConnectSignInInput } from '@app/graphql/generated/api/types';
 import { getters, store } from '@app/store/index';
 import { loginUser } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { ApiKeyService } from '@app/unraid-api/api-key/api-key.service';
+
+const cache = cacheManager.createCache(cacheManager.memoryStore());
+
 
 export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean> => {
     if (getters.emhttp().status === FileLoadStatus.LOADED) {
@@ -27,7 +31,7 @@ export const connectSignIn = async (input: ConnectSignInInput): Promise<boolean>
             let localApiKeyToUse = localApiKeyFromConfig;
 
             if (localApiKeyFromConfig == '') {
-                const apiKeyService = new ApiKeyService();
+                const apiKeyService = new ApiKeyService(cache);
                 // Create local API key
                 const localApiKey = await apiKeyService.createLocalConnectApiKey();
 

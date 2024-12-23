@@ -1,8 +1,11 @@
+import * as cacheManager from 'cache-manager';
 import { minigraphLogger } from '@app/core/log';
 import { getters, store } from '@app/store/index';
 import { updateUserConfig } from '@app/store/modules/config';
 import { FileLoadStatus } from '@app/store/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { ApiKeyService } from '@app/unraid-api/api-key/api-key.service';
+
+const cache = cacheManager.createCache(cacheManager.memoryStore());
 
 export const createLocalApiKeyForConnectIfNecessary = async () => {
     if (getters.config().status !== FileLoadStatus.LOADED) {
@@ -11,7 +14,7 @@ export const createLocalApiKeyForConnectIfNecessary = async () => {
     }
 
     const { remote } = getters.config();
-    const apiKeyService = new ApiKeyService();
+    const apiKeyService = new ApiKeyService(cache);
     // If the remote API Key is set and the local key is either not set or not found on disk, create a key
     if (remote.apikey && (!remote.localApiKey || !(await apiKeyService.findByKey(remote.localApiKey)))) {
         minigraphLogger.debug('Creating local API key for Connect');

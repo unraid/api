@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ApiKey, ApiKeyWithSecret, UserAccount } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
 
-import { ApiKeyService } from './api-key.service';
+import { ApiKeyService } from '../api-key/api-key.service';
 import { AuthService } from './auth.service';
 import { CookieService } from './cookie.service';
 

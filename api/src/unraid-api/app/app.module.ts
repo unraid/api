@@ -11,6 +11,7 @@ import { AuthModule } from '@app/unraid-api/auth/auth.module';
 import { CronModule } from '@app/unraid-api/cron/cron.module';
 import { GraphModule } from '@app/unraid-api/graph/graph.module';
 import { RestModule } from '@app/unraid-api/rest/rest.module';
+import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
     imports: [
@@ -20,6 +21,7 @@ import { RestModule } from '@app/unraid-api/rest/rest.module';
                 autoLogging: false,
             },
         }),
+        CacheModule.register(),
         AuthModule,
         CronModule,
         GraphModule,

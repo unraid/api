@@ -2,23 +2,19 @@ import { Logger } from '@nestjs/common';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 
-
-
+import * as cacheManager from 'cache-manager';
 import { ensureDir } from 'fs-extra';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
-
-
 
 import type { ApiKey, ApiKeyWithSecret } from '@app/graphql/generated/api/types';
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { Role } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
-
-
 import { ApiKeyService } from './api-key.service';
 
+const cache = cacheManager.createCache(cacheManager.memoryStore());
 
 vi.mock('fs/promises', async () => ({
     readdir: vi.fn(),
@@ -89,7 +85,7 @@ describe('ApiKeyService', () => {
         // Mock ensureDir
         vi.mocked(ensureDir).mockResolvedValue();
 
-        apiKeyService = new ApiKeyService();
+        apiKeyService = new ApiKeyService(cache);
         await apiKeyService.initialize();
 
         vi.spyOn(apiKeyService as any, 'generateApiKey').mockReturnValue('test-api-key');
@@ -113,7 +109,7 @@ describe('ApiKeyService', () => {
     describe('initialization', () => {
         it('should ensure directory exists', async () => {
             vi.mocked(ensureDir).mockResolvedValue();
-            const service = new ApiKeyService();
+            const service = new ApiKeyService(cache);
 
             await service.initialize();
 

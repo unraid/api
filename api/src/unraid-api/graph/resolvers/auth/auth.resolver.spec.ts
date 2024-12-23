@@ -1,14 +1,19 @@
+import * as cacheManager from 'cache-manager';
 import { newEnforcer } from 'casbin';
 import { AuthActionVerb, AuthPossession, AuthZService } from 'nest-authz';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+
+
 import type { ApiKey } from '@app/graphql/generated/api/types';
 import { ApiKeyWithSecret, Resource, Role } from '@app/graphql/generated/api/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { ApiKeyService } from '@app/unraid-api/api-key/api-key.service';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 import { CookieService } from '@app/unraid-api/auth/cookie.service';
 
 import { AuthResolver } from './auth.resolver';
+
+const cache = cacheManager.createCache(cacheManager.memoryStore());
 
 describe('AuthResolver', () => {
     let resolver: AuthResolver;
@@ -39,7 +44,7 @@ describe('AuthResolver', () => {
 
         const enforcer = await newEnforcer();
 
-        apiKeyService = new ApiKeyService();
+        apiKeyService = new ApiKeyService(cache);
         authzService = new AuthZService(enforcer);
         cookieService = new CookieService();
         authService = new AuthService(cookieService, apiKeyService, authzService);

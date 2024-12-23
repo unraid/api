@@ -1,34 +1,30 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Cache, CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Inject, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import crypto from 'crypto';
 import { readdir, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
-
-
 
 import { ensureDir } from 'fs-extra';
 import { GraphQLError } from 'graphql';
 import { v4 as uuidv4 } from 'uuid';
 import { ZodError } from 'zod';
 
-
-
 import { ApiKeySchema, ApiKeyWithSecretSchema } from '@app/graphql/generated/api/operations';
 import { ApiKey, ApiKeyWithSecret, Role, UserAccount } from '@app/graphql/generated/api/types';
 import { getters } from '@app/store';
 
-
-
-
+const CACHE_KEY_API = 'API_KEY' as const;
+const CACHE_KEY_CACHE_TTL_MS = 1000 * 60 * 5; // 5 minutes
+type API_KEY_MAP = { [id: string]: ApiKey };
 
 @Injectable()
 export class ApiKeyService implements OnModuleInit {
     private readonly logger = new Logger(ApiKeyService.name);
     protected readonly basePath: string;
     protected readonly keyFile: (id: string) => string;
-    protected memoryApiKeys = new Map<string, ApiKeyWithSecret>();
     private static readonly validRoles: Set<Role> = new Set(Object.values(Role));
 
-    constructor() {
+    constructor(@Inject(CACHE_MANAGER) private cacheManager: Cache) {
         this.basePath = getters.paths()['auth-keys'];
         this.keyFile = (id: string) => join(this.basePath, `${id}.json`);
     }
@@ -105,8 +101,14 @@ export class ApiKeyService implements OnModuleInit {
 
     async findAll(): Promise<ApiKey[]> {
         try {
+            const cachedApiKeys = await this.cacheManager.get<ApiKey[]>(CACHE_KEY_API);
+
+            if (cachedApiKeys) {
+                return cachedApiKeys;
+            }
+
             const files = await readdir(this.basePath);
-            const apiKeys: ApiKey[] = [];
+            const apiKeys: { [id: string]: ApiKey } = {};
 
             for (const file of files) {
                 if (file.endsWith('.json')) {
@@ -114,7 +116,7 @@ export class ApiKeyService implements OnModuleInit {
                         const content = await readFile(join(this.basePath, file), 'utf8');
                         const apiKey = ApiKeySchema().parse(JSON.parse(content));
 
-                        apiKeys.push(apiKey);
+                        apiKeys[apiKey.id] = apiKey;
                     } catch (error) {
                         if (error instanceof ZodError) {
                             this.logger.error(`Invalid API key structure in file ${file}`, error.errors);
@@ -125,8 +127,8 @@ export class ApiKeyService implements OnModuleInit {
                     }
                 }
             }
-
-            return apiKeys;
+            await this.cacheManager.set(CACHE_KEY_API, apiKeys, CACHE_KEY_CACHE_TTL_MS);
+            return Object.values(apiKeys);
         } catch (error) {
             this.logger.error(`Failed to read API key directory: ${error}`);
             throw new GraphQLError('Failed to list API keys');
@@ -135,6 +137,15 @@ export class ApiKeyService implements OnModuleInit {
 
     async findById(id: string): Promise<ApiKey | null> {
         try {
+            const cachedKeys = await this.cacheManager.get<ApiKey[]>(CACHE_KEY_API);
+
+            if (cachedKeys) {
+                const key = cachedKeys.find((k) => k.id === id);
+                if (key) {
+                    return key;
+                }
+            }
+
             const content = await readFile(this.keyFile(id), 'utf8');
 
             try {

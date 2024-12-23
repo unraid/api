@@ -19,9 +19,10 @@ import { RegistrationResolver } from './registration/registration.resolver';
 import { ServerResolver } from './servers/server.resolver';
 import { VarsResolver } from './vars/vars.resolver';
 import { VmsResolver } from './vms/vms.resolver';
+import { ApiKeyModule } from '@app/unraid-api/api-key/api-key.module';
 
 @Module({
-    imports: [AuthModule],
+    imports: [AuthModule, ApiKeyModule],
     providers: [
         ArrayResolver,
         AuthResolver,

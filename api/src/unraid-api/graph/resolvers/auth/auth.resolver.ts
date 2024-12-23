@@ -13,7 +13,7 @@ import type {
     RemoveRoleFromApiKeyInput,
 } from '@app/graphql/generated/api/types';
 import { Resource, Role } from '@app/graphql/generated/api/types';
-import { ApiKeyService } from '@app/unraid-api/auth/api-key.service';
+import { ApiKeyService } from '@app/unraid-api/api-key/api-key.service';
 import { GraphqlAuthGuard } from '@app/unraid-api/auth/auth.guard';
 import { AuthService } from '@app/unraid-api/auth/auth.service';
 
@@ -29,7 +29,7 @@ export class AuthResolver {
     @Query()
     @UsePermissions({
         action: AuthActionVerb.READ,
-        resource: Resource.API_KEY,
+        resource: Resource.APIKEY,
         possession: AuthPossession.ANY,
     })
     async apiKeys(): Promise<ApiKey[]> {
@@ -39,7 +39,7 @@ export class AuthResolver {
     @Query()
     @UsePermissions({
         action: AuthActionVerb.READ,
-        resource: Resource.API_KEY,
+        resource: Resource.APIKEY,
         possession: AuthPossession.ANY,
     })
     async apiKey(@Args('id') id: string): Promise<ApiKey | null> {
@@ -49,7 +49,7 @@ export class AuthResolver {
     @Mutation()
     @UsePermissions({
         action: AuthActionVerb.CREATE,
-        resource: Resource.API_KEY,
+        resource: Resource.APIKEY,
         possession: AuthPossession.ANY,
     })
     async createApiKey(
@@ -83,7 +83,7 @@ export class AuthResolver {
     @Mutation()
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
-        resource: Resource.API_KEY,
+        resource: Resource.APIKEY,
         possession: AuthPossession.ANY,
     })
     async addRoleForApiKey(
@@ -96,7 +96,7 @@ export class AuthResolver {
     @Mutation()
     @UsePermissions({
         action: AuthActionVerb.UPDATE,
-        resource: Resource.API_KEY,
+        resource: Resource.APIKEY,
         possession: AuthPossession.ANY,
     })
     async removeRoleFromApiKey(
