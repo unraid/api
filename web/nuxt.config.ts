@@ -101,6 +101,10 @@ export default defineNuxtConfig({
             path: '@/components/Auth.ce',
           },
           {
+            name: 'CallbackHandler',
+            path: '@/components/CallbackHandler.ce',
+          },
+          {
             name: 'UnraidConnectSettings',
             path: '@/components/ConnectSettings/ConnectSettings.ce',
           },
