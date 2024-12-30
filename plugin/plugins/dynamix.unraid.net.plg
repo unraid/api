@@ -371,6 +371,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /etc/rc.d/rc.unraid-api
   rm -f /etc/rc.d/rc.flash_backup
   rm -f /usr/local/sbin/unraid-api
+  rm -f /usr/local/bin/unraid-api
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
   rm -f /etc/rc.d/rc6.d/K10_flash_backup
@@ -857,6 +858,8 @@ unraid_binary_path="/usr/local/bin/unraid-api"
 # Install unraid-api
 rm -rf "${api_base_directory}"
 mkdir -p "${api_base_directory}"
+# Create log directory (PM2 will not start without it)
+mkdir -p /var/log/unraid-api
 tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
@@ -870,6 +873,8 @@ else
   echo "Note: ${flash}/webComps/unraid.min.js is missing"
 fi
 npm link "${api_base_directory}" --force
+# Create symlink to unraid-api binary (to allow usage elsewhere)
+ln -sf /usr/local/bin/unraid-api /usr/local/sbin/unraid-api
 # bail if expected file does not exist
 [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
