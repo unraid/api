@@ -64,6 +64,7 @@ try {
 
     await $`npm prune --omit=dev`;
     await $`npm install --omit=dev`;
+    await $`npm install github:unraid/libvirt`;
 
     // Now we'll pack everything in the pre-pack directory
     await $`tar -czf ../unraid-api-${deploymentVersion}.tgz .`;
