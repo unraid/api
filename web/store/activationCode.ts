@@ -1,4 +1,5 @@
 import { defineStore, createPinia, setActivePinia } from 'pinia';
+import { ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY } from '~/consts';
 import { useServerStore } from '~/store/server';
 import { useCallbackActionsStore } from '~/store/callbackActions';
 
@@ -32,11 +33,10 @@ export const useActivationCodeStore = defineStore('activationCode', () => {
   const partnerUrl = computed<string | null>(() => data.value?.partnerUrl || null);
   const partnerLogo = computed<string | null>(() => data.value?.partnerLogo ? `/webGui/images/partner-logo.svg` : null);
 
-  const sessionKey = 'activationCodeModalHidden';
-  const activationModalHidden = ref<boolean>(sessionStorage.getItem(sessionKey) === 'true');
+  const activationModalHidden = ref<boolean>(sessionStorage.getItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY) === 'true');
   const setActivationModalHidden = (value: boolean) => activationModalHidden.value = value;
   watch(activationModalHidden, (newVal) => {
-    return newVal ? sessionStorage.setItem(sessionKey, 'true') : sessionStorage.removeItem(sessionKey);
+    return newVal ? sessionStorage.setItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY, 'true') : sessionStorage.removeItem(ACTIVATION_CODE_MODAL_HIDDEN_STORAGE_KEY);
   });
   /**
    * Should only see this if
