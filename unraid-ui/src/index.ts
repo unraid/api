@@ -3,7 +3,7 @@ import { cn, scaleRemFactor } from "@/lib/utils";
 
 // Components
 import { Badge } from "@/components/common/badge";
-import { Button, ButtonVariants } from "@/components/common/button";
+import { Button, buttonVariants } from "@/components/common/button";
 import { CardWrapper, PageContainer } from "@/components/layout";
 import {
   DropdownMenu,
@@ -24,6 +24,7 @@ import {
 import { Bar, Error, Spinner } from "@/components/common/loading";
 import { Input } from "@/components/form/input";
 import { Label } from "@/components/form/label";
+import { Lightswitch } from "@/components/form/lightswitch";
 import {
   Select,
   SelectContent,
@@ -37,11 +38,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/form/select";
-import {
-  Switch,
-  SwitchHeadlessUI,
-  Lightswitch,
-} from "@/components/form/switch";
+import { Switch, SwitchHeadlessUI } from "@/components/form/switch";
 import {
   Tabs,
   TabsList,
@@ -74,7 +71,7 @@ export {
   Bar,
   Badge,
   Button,
-  ButtonVariants,
+  buttonVariants,
   CardWrapper,
   cn,
   DropdownMenu,

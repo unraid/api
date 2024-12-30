@@ -1,5 +1,2 @@
-import Switch from "./Switch.vue";
-import SwitchHeadlessUI from "./SwitchHeadlessUI.vue";
-import Lightswitch from "./Lightswitch.vue";
-
-export { Switch, SwitchHeadlessUI, Lightswitch };
+export { default as Switch } from "./Switch.vue";
+export { default as SwitchHeadlessUI } from "./SwitchHeadlessUI.vue";
