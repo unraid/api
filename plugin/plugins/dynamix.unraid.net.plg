@@ -324,7 +324,9 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
   # uninstall the api
-  /etc/rc.d/rc.unraid-api uninstall &>/dev/null
+  rm -rf /usr/local/unraid-api
+  rm -rf /var/log/unraid-api/
+  rm -f /var/run/unraid-api.sock
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
@@ -837,13 +839,22 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-# start background process to install/start the api and flash backup
+# Install the API
+# unraid-api-handler flash="/boot/config/plugins/dynamix.my.servers"
+[[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
+[[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env" env=production
+# shellcheck disable=SC1091
+source "${flash}/env"
+# Install the API to /usr/local/unraid-api
+api_base_directory="/usr/local/unraid-api"
+unraid_binary_path="/usr/local/bin/unraid-api"
+
+# start background process to start flash backup
 echo
 if [ -f /var/local/emhttp/var.ini ]; then
   # the system has fully booted, emhttpd and nginx are running
-  echo "Installing and starting the Unraid API"
   echo "Starting flash backup (if enabled)"
-  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
+  echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
 # else
   # the system is booting, emhttpd will install the api and start rc.flash_backup. rc.nginx will start the api.
   # nothing to do here
