@@ -4,6 +4,12 @@ import type { PluginAPI } from 'tailwindcss/types/config';
 
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
+  content: [
+    './components/**/*.{js,vue,ts}',
+    './layouts/**/*.vue',
+    './pages/**/*.vue',
+    '../unraid-ui/src/**/*.{vue,ts}',
+  ],
   darkMode: ['selector'],
   safelist: [
     'dark',
