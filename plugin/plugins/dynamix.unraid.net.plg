@@ -875,6 +875,7 @@ fi
 npm link "${api_base_directory}" --force
 # Create symlink to unraid-api binary (to allow usage elsewhere)
 ln -sf /usr/local/bin/unraid-api /usr/local/sbin/unraid-api
+ln -sf /usr/local/bin/unraid-api /usr/bin/unraid-api
 # bail if expected file does not exist
 [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
