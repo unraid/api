@@ -873,18 +873,21 @@ npm link "${api_base_directory}" --force
 # bail if expected file does not exist
 [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
-${unraid_binary_path} start
-
-# start background process to start flash backup
-echo
-if [ -f /var/local/emhttp/var.ini ]; then
-  # the system has fully booted, emhttpd and nginx are running
-  echo "Starting flash backup (if enabled)"
-  echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
-# else
-  # the system is booting, emhttpd will install the api and start rc.flash_backup. rc.nginx will start the api.
-  # nothing to do here
-fi
+# Start a background process to wait for /var/local/emhttp/var.ini
+( timeout=30 elapsed=0
+  while (( elapsed < timeout )); do
+    if [ -f /var/local/emhttp/var.ini ]; then
+      logger "Starting flash backup (if enabled)"
+      echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
+      logger "Starting Unraid API"
+      ${unraid_binary_path} start
+      exit 0
+    fi
+    sleep 1
+    (( elapsed++ ))
+  done
+  echo "Timeout waiting for /var/local/emhttp/var.ini"
+) &
 
 echo
 echo "✅ Installation is complete, it is safe to close this window"
