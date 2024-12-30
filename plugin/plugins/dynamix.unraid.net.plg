@@ -839,8 +839,9 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-# Install the API
-# unraid-api-handler flash="/boot/config/plugins/dynamix.my.servers"
+# Install the API (previously in rc.d script)
+
+flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
 [[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env" env=production
 # shellcheck disable=SC1091
@@ -848,6 +849,38 @@ source "${flash}/env"
 # Install the API to /usr/local/unraid-api
 api_base_directory="/usr/local/unraid-api"
 unraid_binary_path="/usr/local/bin/unraid-api"
+# Ensure installation tgz exists
+[[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
+# Stop old process
+[[ -f "${unraid_binary_path}" ]] && ${unraid_binary_path} stop
+# Install unraid-api
+rm -rf "${api_base_directory}"
+mkdir -p "${api_base_directory}"
+tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
+# Copy env file
+cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
+# Copy wc files from flash
+if [ -f "${flash}/webComps/unraid.min.js" ]; then
+  rm -rf /usr/local/emhttp/webGui/webComps
+  mkdir -p /usr/local/emhttp/webGui/webComps
+  cp ${flash}/webComps/* /usr/local/emhttp/webGui/webComps
+else
+  # not fatal, previous version of unraid.min.js should still exist in /usr/local/emhttp/webGui/webComps
+  echo "Note: ${flash}/webComps/unraid.min.js is missing"
+fi
+cd "${api_base_directory}" && npm link --force
+# bail if expected file does not exist
+[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
+# if nginx is running, start the api. if not, it will be started by rc.nginx
+if /etc/rc.d/rc.nginx status &>/dev/null; then 
+  # Start new process
+  ${unraid_binary_path} start
+  # Note: do not run another unraid-api command until you see "UNRAID API started successfully!" in syslog
+  sleep 3
+  echo "unraid-api installed and started"
+else
+  echo "unraid-api installed"
+fi
 
 # start background process to start flash backup
 echo
