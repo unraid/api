@@ -4,27 +4,6 @@ import ButtonComponent from "../../../src/components/common/button/Button.vue";
 const meta = {
   title: "Components/Common",
   component: ButtonComponent,
-  tags: ["autodocs"],
-  argTypes: {
-    variant: {
-      description: "Style variant of the button",
-      control: "select",
-      defaultValue: "primary",
-    },
-    size: {
-      description: "Size of the button",
-      control: "select",
-      defaultValue: "md",
-    },
-    class: {
-      description: "Additional CSS classes",
-      control: "text",
-    },
-    default: {
-      description: "Button content (slot)",
-      control: "text",
-    },
-  },
 } satisfies Meta<typeof ButtonComponent>;
 
 export default meta;

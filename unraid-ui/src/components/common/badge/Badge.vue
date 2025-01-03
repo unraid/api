@@ -1,14 +1,23 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import type { UiBadgeProps } from "@/types/badge";
+import type { Component } from "vue";
 import { badgeVariants } from "./badge.variants";
 
-const props = withDefaults(defineProps<UiBadgeProps>(), {
+export interface BadgeProps {
+  variant?: "red" | "yellow" | "green" | "blue" | "indigo" | "purple" | 
+    "pink" | "orange" | "black" | "white" | "transparent" | "current" | "gray";
+  size?: "xs" | "sm" | "md" | "lg" | "xl" | "2xl";
+  icon?: Component;
+  iconRight?: Component;
+  iconStyles?: string;
+}
+
+const props = withDefaults(defineProps<BadgeProps>(), {
   variant: "gray",
+  size: "md",
   icon: undefined,
   iconRight: undefined,
   iconStyles: "",
-  size: "md",
 });
 
 const badgeClasses = computed(() => {
