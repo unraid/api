@@ -11,6 +11,7 @@ import { useThemeStore } from '~/store/theme';
 import type { Server } from '~/types/server';
 import 'tailwindcss/tailwind.css';
 import '~/assets/main.css';
+import { devConfig } from '~/helpers/env';
 
 export interface Props {
   server?: Server | string;
@@ -92,6 +93,12 @@ onBeforeMount(() => {
     console.warn('A valid keyfile and USB Flash boot device are required to check for key renewals, key replacement eligibiliy, and OS update availability.');
   }
 });
+
+onMounted(() => {
+  if (devConfig.VITE_MOCK_USER_SESSION) {
+    document.cookie = 'unraid_session_cookie=mock-user-session';
+  }
+})
 </script>
 
 <template>

@@ -1,0 +1,4 @@
+export const devConfig = {
+  /** Flag for mocking a user session during development via an unsecure cookie */
+  VITE_MOCK_USER_SESSION: import.meta.env.VITE_MOCK_USER_SESSION === 'true',
+};
