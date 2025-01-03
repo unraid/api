@@ -23,7 +23,7 @@ export class CookieService {
     ) {}
 
     /**
-     * @returns new SessionCookieOptions with `namePrefix: 'unraid_', sessionDir: '/var/lib/php'`
+     * @returns new SessionCookieOptions with e.g. `namePrefix: 'unraid_', sessionDir: '/var/lib/php'`
      */
     static defaultOpts(): SessionCookieConfig {
         return {
