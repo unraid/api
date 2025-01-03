@@ -80,9 +80,11 @@ test('it creates a MEMORY config with NO OPTIONAL values', () => {
 
 test('it creates a FLASH config with OPTIONAL values', () => {
     const basicConfig = cloneDeep(initialState);
+	// 2fa & t2fa should be ignored
     basicConfig.remote['2Fa'] = 'yes';
     basicConfig.local['2Fa'] = 'yes';
     basicConfig.local.showT2Fa = 'yes';
+
     basicConfig.api.extraOrigins = 'myextra.origins';
     basicConfig.remote.upnpEnabled = 'yes';
     basicConfig.connectionStatus.upnpStatus = 'Turned On';
@@ -93,15 +95,11 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 		    "extraOrigins": "myextra.origins",
 		    "version": "",
 		  },
-		  "local": {
-		    "2Fa": "yes",
-		    "showT2Fa": "yes",
-		  },
+		  "local": {},
 		  "notifier": {
 		    "apikey": "",
 		  },
 		  "remote": {
-		    "2Fa": "yes",
 		    "accesstoken": "",
 		    "apikey": "",
 		    "avatar": "",
@@ -125,6 +123,7 @@ test('it creates a FLASH config with OPTIONAL values', () => {
 
 test('it creates a MEMORY config with OPTIONAL values', () => {
     const basicConfig = cloneDeep(initialState);
+	// 2fa & t2fa should be ignored
     basicConfig.remote['2Fa'] = 'yes';
     basicConfig.local['2Fa'] = 'yes';
     basicConfig.local.showT2Fa = 'yes';
@@ -142,15 +141,11 @@ test('it creates a MEMORY config with OPTIONAL values', () => {
 		    "minigraph": "PRE_INIT",
 		    "upnpStatus": "Turned On",
 		  },
-		  "local": {
-		    "2Fa": "yes",
-		    "showT2Fa": "yes",
-		  },
+		  "local": {},
 		  "notifier": {
 		    "apikey": "",
 		  },
 		  "remote": {
-		    "2Fa": "yes",
 		    "accesstoken": "",
 		    "allowedOrigins": "/var/run/unraid-notifications.sock, /var/run/unraid-php.sock, /var/run/unraid-cli.sock, https://connect.myunraid.net, https://connect-staging.myunraid.net, https://dev-my.myunraid.net:4000",
 		    "apikey": "",
