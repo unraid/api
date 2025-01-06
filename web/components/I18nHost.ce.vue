@@ -1,8 +1,8 @@
 <script lang="ts" setup>
+import en_US from '~/locales/en_US.json';
 import { provide } from 'vue';
 import { createI18n, I18nInjectionKey } from 'vue-i18n';
 
-import en_US from '~/locales/en_US.json';
 // import ja from '~/locales/ja.json';
 
 const defaultLocale = 'en_US'; // ja, en_US
@@ -26,6 +26,7 @@ if (windowLocaleData) {
   }
 }
 
+const parser = new DOMParser();
 const i18n = createI18n<false>({
   legacy: false, // must set to `false`
   locale: nonDefaultLocale ? parsedLocale : defaultLocale,
@@ -34,7 +35,14 @@ const i18n = createI18n<false>({
     en_US,
     // ja,
     ...(nonDefaultLocale ? parsedMessages : {}),
-  }
+  },
+  /** safely decodes html-encoded symbols like &amp; and &apos; */
+  postTranslation(translated) {
+    if (typeof translated !== 'string') return translated;
+    // parseFromString interprets the string as HTML, then textContent reads the decoded text
+    const decoded = parser.parseFromString(translated, 'text/html').documentElement.textContent;
+    return decoded ?? translated;
+  },
 });
 
 provide(I18nInjectionKey, i18n);
