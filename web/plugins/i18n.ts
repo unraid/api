@@ -1,6 +1,7 @@
 import { createI18n } from 'vue-i18n';
 
-import en_US from '@/locales/en_US.json';  
+import en_US from '@/locales/en_US.json'; 
+import { createHtmlEntityDecoder } from '~/helpers/i18n-utils';
 
 export default defineNuxtPlugin(({ vueApp }) => {
   const i18n = createI18n({
@@ -11,6 +12,7 @@ export default defineNuxtPlugin(({ vueApp }) => {
     messages: {
       en_US,  
     },
+    postTranslation: createHtmlEntityDecoder(),
   });
 
   vueApp.use(i18n);
