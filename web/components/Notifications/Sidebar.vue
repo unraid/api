@@ -39,13 +39,32 @@ const overview = computed(() => {
   }
   return result.value.notifications.overview;
 });
+
+/** whether user has viewed their notifications */
+const hasSeenNotifications = ref(false);
+
+// renews unseen state when new notifications arrive
+watch(
+  () => overview.value?.unread,
+  (newVal, oldVal) => {
+    if (!newVal || !oldVal) return;
+    if (newVal.total > oldVal.total) {
+      hasSeenNotifications.value = false;
+    }
+  }
+);
+
+const prepareToViewNotifications = () => {
+  determineTeleportTarget();
+  hasSeenNotifications.value = true;
+};
 </script>
 
 <template>
   <Sheet>
-    <SheetTrigger @click="determineTeleportTarget">
+    <SheetTrigger @click="prepareToViewNotifications">
       <span class="sr-only">Notifications</span>
-      <NotificationsIndicator :overview="overview" />
+      <NotificationsIndicator :overview="overview" :seen="hasSeenNotifications" />
     </SheetTrigger>
     <SheetContent
       :to="teleportTarget"
