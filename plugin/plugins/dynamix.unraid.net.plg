@@ -451,6 +451,7 @@ echo
 # skip: do not perform any action if there is a manifest version difference
 preserveFilesDirs=(
   "move:/usr/local/emhttp/plugins/dynamix/Registration.page:preventDowngrade"
+  "copy:/usr/local/emhttp/plugins/dynamix/Notifications.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page:preventDowngrade"
@@ -536,6 +537,19 @@ for FILE in "${FILES[@]}"; do
     sed -i '/$valid = \[/c$valid = ['"'/var/tmp/'"','"'/tmp/plugins/'"','"'/boot/previous'"'];' "$FILE"
   fi
 done
+
+# patch: Notifications.page
+#
+# Remove date and time format settings from Notification Settings
+# search text:       _(Date format)_:
+# search text:       _(Time format)_:
+
+FILE=/usr/local/emhttp/plugins/dynamix/Notifications.page
+TMP_FILE=$(mktemp)
+cp "$FILE" "$TMP_FILE"
+sed -i '/_(Date format)_:/,/:notifications_date_format_help:/d' $TMP_FILE
+sed -i '/_(Time format)_:/,/:notifications_time_format_help:/d' $TMP_FILE
+mv "$TMP_FILE" "$FILE"
 
 # remove keys.limetechnology.com from hosts file
 # brings older versions of Unraid in sync with 6.12.12
