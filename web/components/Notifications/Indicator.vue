@@ -3,7 +3,7 @@ import { BellIcon, ExclamationTriangleIcon, ShieldExclamationIcon } from '@heroi
 import { cn } from '~/components/shadcn/utils';
 import { Importance, type OverviewQuery } from '~/composables/gql/graphql';
 
-const props = defineProps<{ overview?: OverviewQuery['notifications']['overview'] }>();
+const props = defineProps<{ overview?: OverviewQuery['notifications']['overview'], seen?: boolean }>();
 
 const indicatorLevel = computed(() => {
   if (!props.overview?.unread) {
@@ -42,12 +42,12 @@ const icon = computed<{ component: Component; color: string } | null>(() => {
   <div class="relative">
     <BellIcon class="w-6 h-6 text-header-text-primary" />
     <div
-      v-if="indicatorLevel === 'UNREAD'"
+      v-if="!seen && indicatorLevel === 'UNREAD'"
       class="absolute top-0 right-0 size-2.5 rounded-full border border-neutral-800 bg-unraid-green"
     />
     <component
       :is="icon.component"
-      v-else-if="icon && indicatorLevel"
+      v-else-if="!seen && icon && indicatorLevel"
       :class="cn('absolute -top-1 -right-1 size-4 rounded-full', icon.color)"
     />
   </div>
