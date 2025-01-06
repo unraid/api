@@ -40,8 +40,9 @@
     "tailwindcss-animate": "^1.0.7"
   },
   "devDependencies": {
-    "@storybook/addon-controls": "^8.4.7",
-    "@storybook/addon-postcss": "^2.0.0",
+    "@storybook/addon-essentials": "^8.4.7",
+    "@storybook/addon-interactions": "^8.4.7",
+    "@storybook/addon-links": "^8.4.7",
     "@storybook/vue3-vite": "^8.4.7",
     "@tailwindcss/typography": "^0.5.15",
     "@testing-library/vue": "^8.0.0",

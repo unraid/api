@@ -1,28 +1,12 @@
 import type { StorybookConfig } from "@storybook/vue3-vite";
-import { resolve } from "path";
-import { mergeConfig } from "vite";
+import { dirname, join } from "path";
 
 const config: StorybookConfig = {
   stories: ["../stories/**/*.stories.@(js|jsx|ts|tsx)"],
   addons: [
     "@storybook/addon-links",
     "@storybook/addon-essentials",
-    "@storybook/addon-interactions",
-    "@storybook/addon-controls",
-    {
-      name: "@storybook/addon-postcss",
-      options: {
-        postcssLoaderOptions: {
-          implementation: require("postcss"),
-        },
-      },
-    },
-    {
-      name: "@storybook/addon-styling",
-      options: {
-        postCss: true,
-      },
-    },
+    "@storybook/addon-interactions"
   ],
   framework: {
     name: "@storybook/vue3-vite",
@@ -33,26 +17,27 @@ const config: StorybookConfig = {
   docs: {
     autodocs: "tag",
   },
-  viteFinal: async (config) => {
-    return mergeConfig(config, {
+  async viteFinal(config) {
+    return {
+      ...config,
       resolve: {
         alias: {
-          "@": resolve(__dirname, "../src"),
-          "@/components": resolve(__dirname, "../src/components"),
-          "@/lib": resolve(__dirname, "../src/lib"),
+          "@": join(dirname(new URL(import.meta.url).pathname), "../src"),
+          "@/components": join(dirname(new URL(import.meta.url).pathname), "../src/components"),
+          "@/lib": join(dirname(new URL(import.meta.url).pathname), "../src/lib"),
         },
       },
       css: {
         postcss: {
           plugins: [
-            require('tailwindcss')({
-              config: './tailwind.config.ts'
+            (await import("tailwindcss")).default({
+              config: "./tailwind.config.ts",
             }),
-            require('autoprefixer'),
+            (await import("autoprefixer")).default,
           ],
         },
       },
-    });
+    };
   },
 };
 
