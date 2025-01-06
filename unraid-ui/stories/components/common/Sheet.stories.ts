@@ -50,7 +50,7 @@ export const Sheet: Story = {
                 Make changes to your profile here. Click save when you're done.
               </SheetDescription>
             </SheetHeader>
-            <div class="my-6">Sheet content goes here...</div>
+            <div class="py-6">Sheet content goes here...</div>
             <SheetFooter>
               <Button variant="outline">Cancel</Button>
               <Button>Save changes</Button>

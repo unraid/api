@@ -6,7 +6,11 @@ import animate from "tailwindcss-animate";
 import remToRem from "./src/lib/tailwind-rem-to-rem";
 
 export default <Partial<Config>>{
-  content: ["./src/components/**/*.{js,vue,ts}", "./src/composables/**/*.vue"],
+  content: [
+    "./src/components/**/*.{js,vue,ts}",
+    "./src/composables/**/*.{js,vue,ts}",
+    "./stories/**/*.stories.{js,ts,jsx,tsx,mdx}"
+  ],
   darkMode: ["selector"],
   safelist: [
     "dark",

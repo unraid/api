@@ -3,7 +3,7 @@ import { resolve } from "path";
 import { mergeConfig } from "vite";
 
 const config: StorybookConfig = {
-  stories: ["../stories/**/*.stories.@(js|mjs|ts)"],
+  stories: ["../stories/**/*.stories.@(js|jsx|ts|tsx)"],
   addons: [
     "@storybook/addon-links",
     "@storybook/addon-essentials",
@@ -15,6 +15,12 @@ const config: StorybookConfig = {
         postcssLoaderOptions: {
           implementation: require("postcss"),
         },
+      },
+    },
+    {
+      name: "@storybook/addon-styling",
+      options: {
+        postCss: true,
       },
     },
   ],
@@ -37,7 +43,14 @@ const config: StorybookConfig = {
         },
       },
       css: {
-        postcss: "./postcss.config.js",
+        postcss: {
+          plugins: [
+            require('tailwindcss')({
+              config: './tailwind.config.ts'
+            }),
+            require('autoprefixer'),
+          ],
+        },
       },
     });
   },

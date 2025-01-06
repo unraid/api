@@ -31,7 +31,7 @@ const emits = defineEmits<DialogContentEmits>();
 const sheetClass = computed(() => {
   return cn(
     sheetVariants({ side: props.side, padding: props.padding }),
-    props.class
+    props.class,
   );
 });
 
