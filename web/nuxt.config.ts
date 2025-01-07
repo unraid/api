@@ -1,5 +1,7 @@
 import { readFileSync } from 'fs';
 import { parse } from 'dotenv';
+import removeConsole from 'vite-plugin-remove-console';
+
 const envConfig = parse(readFileSync('.env'));
 console.log('\n');
 console.log('==============================');
@@ -64,6 +66,12 @@ export default defineNuxtConfig({
   //   typeCheck: true
   // },
   vite: {
+    plugins: [
+      !process.env.VITE_ALLOW_CONSOLE_LOGS &&
+        removeConsole({
+          includes: ['log', 'warn', 'error', 'info', 'debug'],
+        }),
+    ],
     build: {
       minify: 'terser',
       terserOptions: {
