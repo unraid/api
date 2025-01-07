@@ -137,6 +137,11 @@ jobs:
       - name: Build unraid-ui
         run: cd ../unraid-ui && npm run build
 
+      - name: Link unraid-ui
+        run: |
+          cd ../unraid-ui && npm link
+          cd ../web && npm link @unraid/ui
+
       - name: Installing node deps
         run: npm install
 
