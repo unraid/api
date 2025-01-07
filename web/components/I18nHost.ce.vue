@@ -2,10 +2,7 @@
 import { provide } from 'vue';
 import { createI18n, I18nInjectionKey } from 'vue-i18n';
 
-import { disableProductionConsoleLogs } from '~/helpers/functions';
-
-import en_US from '~/locales/en_US.json';  
-disableProductionConsoleLogs();
+import en_US from '~/locales/en_US.json';
 // import ja from '~/locales/ja.json';
 
 const defaultLocale = 'en_US'; // ja, en_US
