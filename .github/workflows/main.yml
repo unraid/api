@@ -134,6 +134,9 @@ jobs:
       - name: Install unraid-ui dependencies
         run: cd ../unraid-ui && npm install
 
+      - name: Build unraid-ui
+        run: cd ../unraid-ui && npm run build
+
       - name: Installing node deps
         run: npm install
 
