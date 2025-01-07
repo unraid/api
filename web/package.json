@@ -38,7 +38,9 @@
     "lodash-es": "^4.17.21",
     "nuxt": "^3.11.2",
     "nuxt-custom-elements": "^2.0.0-beta.18",
-    "terser": "^5.31.0"
+    "terser": "^5.31.0",
+    "vite-plugin-remove-console": "^2.2.0",
+    "vue-tsc": "^2.2.0"
   },
   "dependencies": {
     "@apollo/client": "^3.10.4",
