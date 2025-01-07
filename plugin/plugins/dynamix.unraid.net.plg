@@ -863,15 +863,6 @@ mkdir -p /var/log/unraid-api
 tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
 # Copy env file
 cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
-# Copy wc files from flash
-if [ -f "${flash}/webComps/unraid.min.js" ]; then
-  rm -rf /usr/local/emhttp/webGui/webComps
-  mkdir -p /usr/local/emhttp/webGui/webComps
-  cp ${flash}/webComps/* /usr/local/emhttp/webGui/webComps
-else
-  # not fatal, previous version of unraid.min.js should still exist in /usr/local/emhttp/webGui/webComps
-  echo "Note: ${flash}/webComps/unraid.min.js is missing"
-fi
 npm link "${api_base_directory}" --force
 # Create symlink to unraid-api binary (to allow usage elsewhere)
 ln -sf /usr/local/bin/unraid-api /usr/local/sbin/unraid-api
