@@ -8,18 +8,17 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
-import { storeToRefs } from 'pinia';
-
-import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
+import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 import useDateTimeHelper from '~/composables/dateTime';
+import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
 import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { ButtonProps } from '~/types/ui/button';
+import { storeToRefs } from 'pinia';
+import { Badge } from 'unraid-ui';
 import type { ComposerTranslation } from 'vue-i18n';
-
-import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 
 export interface Props {
   downgradeNotAvailable?: boolean;
@@ -42,16 +41,15 @@ const serverStore = useServerStore();
 const updateOsStore = useUpdateOsStore();
 const updateOsActionsStore = useUpdateOsActionsStore();
 
-const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } = storeToRefs(serverStore);
+const { dateTimeFormat, osVersion, rebootType, rebootVersion, regExp, regUpdatesExpired } =
+  storeToRefs(serverStore);
 const { available, availableWithRenewal } = storeToRefs(updateOsStore);
 const { ineligibleText, rebootTypeText, status } = storeToRefs(updateOsActionsStore);
 
 const updateAvailable = computed(() => available.value || availableWithRenewal.value);
 
-const {
-  outputDateTimeReadableDiff: readableDiffRegExp,
-  outputDateTimeFormatted: formattedRegExp,
-} = useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
+const { outputDateTimeReadableDiff: readableDiffRegExp, outputDateTimeFormatted: formattedRegExp } =
+  useDateTimeHelper(dateTimeFormat.value, props.t, true, regExp.value);
 
 const regExpOutput = computed(() => {
   if (!regExp.value) {
@@ -67,16 +65,16 @@ const regExpOutput = computed(() => {
   };
 });
 
-const showRebootButton = computed(() => rebootType.value === 'downgrade' || rebootType.value === 'update');
+const showRebootButton = computed(
+  () => rebootType.value === 'downgrade' || rebootType.value === 'update'
+);
 
 const checkButton = computed((): ButtonProps => {
   if (showRebootButton.value || props.showExternalDowngrade) {
     return {
       btnStyle: 'outline',
       click: () => {
-        props.showExternalDowngrade
-          ? accountStore.downgradeOs()
-          : accountStore.updateOs();
+        props.showExternalDowngrade ? accountStore.downgradeOs() : accountStore.updateOs();
       },
       icon: ArrowTopRightOnSquareIcon,
       text: props.t('More options'),
@@ -124,9 +122,9 @@ const checkButton = computed((): ButtonProps => {
           :title="t('View release notes')"
           @click="updateOsActionsStore.viewReleaseNotes(t('{0} Release Notes', [osVersion]))"
         >
-          <UiBadge :icon="InformationCircleIcon" class="underline">
+          <Badge :icon="InformationCircleIcon" variant="gray" size="md">
             {{ t('Current Version {0}', [osVersion]) }}
-          </UiBadge>
+          </Badge>
         </button>
 
         <a
@@ -135,60 +133,49 @@ const checkButton = computed((): ButtonProps => {
           class="group"
           :title="t('Learn more and fix')"
         >
-          <UiBadge
-            :color="'yellow'"
+          <Badge
+            variant="yellow"
             :icon="ExclamationTriangleIcon"
             :title="regExpOutput?.text"
             class="underline"
           >
             {{ t('Key ineligible for future releases') }}
-          </UiBadge>
+          </Badge>
         </a>
-        <UiBadge
+        <Badge
           v-else-if="ineligibleText && availableWithRenewal"
-          :color="'yellow'"
+          variant="yellow"
           :icon="ExclamationTriangleIcon"
           :title="regExpOutput?.text"
         >
           {{ t('Key ineligible for {0}', [availableWithRenewal]) }}
-        </UiBadge>
+        </Badge>
 
-        <UiBadge
-          v-if="status === 'checking'"
-          :color="'orange'"
-          :icon="BrandLoadingWhite"
-        >
+        <Badge v-if="status === 'checking'" variant="orange" :icon="BrandLoadingWhite">
           {{ t('Checking...') }}
-        </UiBadge>
+        </Badge>
         <template v-else>
-          <UiBadge
+          <Badge
             v-if="rebootType === ''"
-            :color="updateAvailable ? 'orange' : 'green'"
+            :variant="updateAvailable ? 'orange' : 'green'"
             :icon="updateAvailable ? BellAlertIcon : CheckCircleIcon"
           >
-            {{ (available
-              ? t('Unraid {0} Available', [available])
-              : (availableWithRenewal
-                ? t('Up-to-date with eligible releases')
-                : t('Up-to-date')))
+            {{
+              available
+                ? t('Unraid {0} Available', [available])
+                : availableWithRenewal
+                  ? t('Up-to-date with eligible releases')
+                  : t('Up-to-date')
             }}
-          </UiBadge>
-          <UiBadge
-            v-else
-            :color="'yellow'"
-            :icon="ExclamationTriangleIcon"
-          >
+          </Badge>
+          <Badge v-else variant="yellow" :icon="ExclamationTriangleIcon">
             {{ t(rebootTypeText) }}
-          </UiBadge>
+          </Badge>
         </template>
 
-        <UiBadge
-          v-if="downgradeNotAvailable"
-          :color="'gray'"
-          :icon="XCircleIcon"
-        >
+        <Badge v-if="downgradeNotAvailable" variant="gray" :icon="XCircleIcon">
           {{ t('No downgrade available') }}
-        </UiBadge>
+        </Badge>
       </div>
 
       <div class="inline-flex flex-col flex-shrink-0 gap-16px flex-grow items-center md:items-end">
@@ -196,7 +183,11 @@ const checkButton = computed((): ButtonProps => {
           <BrandButton
             btn-style="fill"
             :icon="ArrowPathIcon"
-            :text="rebootType === 'downgrade' ? t('Reboot Now to Downgrade to {0}', [rebootVersion]) : t('Reboot Now to Update to {0}', [rebootVersion])"
+            :text="
+              rebootType === 'downgrade'
+                ? t('Reboot Now to Downgrade to {0}', [rebootVersion])
+                : t('Reboot Now to Update to {0}', [rebootVersion])
+            "
             @click="updateOsActionsStore.rebootServer()"
           />
         </span>

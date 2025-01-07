@@ -1,8 +1,19 @@
+// Styles
+import "./styles/index.css";
+
 // Lib
 import { cn, scaleRemFactor } from "@/lib/utils";
 
 // Components
 import { Badge } from "@/components/common/badge";
+import { 
+  BrandButton, 
+  brandButtonVariants, 
+  BrandLoading, 
+  BrandLoadingWhite, 
+  BrandLogo, 
+  BrandLogoConnect 
+} from "@/components/brand";
 import { Button, buttonVariants } from "@/components/common/button";
 import { CardWrapper, PageContainer } from "@/components/layout";
 import {
@@ -70,6 +81,12 @@ import useTeleport from "@/composables/useTeleport";
 export {
   Bar,
   Badge,
+  BrandButton,
+  brandButtonVariants,
+  BrandLoading,
+  BrandLoadingWhite,
+  BrandLogo,
+  BrandLogoConnect,
   Button,
   buttonVariants,
   CardWrapper,

@@ -85,6 +85,7 @@
     "semver": "^7.6.3",
     "tailwind-merge": "^2.5.5",
     "vue-i18n": "^10.0.5",
+    "unraid-ui": "file:../unraid-ui",
     "wretch": "^2.11.0"
   },
   "overrides": {

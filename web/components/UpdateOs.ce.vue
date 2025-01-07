@@ -15,15 +15,14 @@ else
   echo "Third party plugins found - PLEASE CHECK YOUR UNRAID NOTIFICATIONS AND WAIT FOR THE MESSAGE THAT IT IS SAFE TO REBOOT!"
 fi
  */
-import { storeToRefs } from 'pinia';
-import { useI18n } from 'vue-i18n';
-
 import { WEBGUI_TOOLS_UPDATE } from '~/helpers/urls';
 import { useAccountStore } from '~/store/account';
 import { useServerStore } from '~/store/server';
+import { storeToRefs } from 'pinia';
+import { useI18n } from 'vue-i18n';
 
-import 'tailwindcss/tailwind.css';
-import '~/assets/main.css';
+// import 'tailwindcss/tailwind.css';
+// import '~/assets/main.css';
 
 const { t } = useI18n();
 
@@ -46,7 +45,9 @@ const subtitle = computed(() => {
 });
 
 /** when we're not prompting for reboot /Tools/Update will automatically send the user to account.unraid.net/server/update-os */
-const showLoader = computed(() => window.location.pathname === WEBGUI_TOOLS_UPDATE.pathname && rebootType.value === '');
+const showLoader = computed(
+  () => window.location.pathname === WEBGUI_TOOLS_UPDATE.pathname && rebootType.value === ''
+);
 
 onBeforeMount(() => {
   if (showLoader.value) {
@@ -66,16 +67,13 @@ onBeforeMount(() => {
       :subtitle="subtitle"
       :t="t"
     />
-    <UpdateOsThirdPartyDrivers
-      v-if="rebootType === 'thirdPartyDriversDownloading'"
-      :t="t"
-    />
+    <UpdateOsThirdPartyDrivers v-if="rebootType === 'thirdPartyDriversDownloading'" :t="t" />
   </UiPageContainer>
 </template>
 
 <style lang="postcss">
-@tailwind base;
-@tailwind components;
+/* Import unraid-ui globals first */
+@import 'unraid-ui/styles';
 
 .unraid_mark_2,
 .unraid_mark_4 {
@@ -124,6 +122,4 @@ onBeforeMount(() => {
     transform: translateY(0);
   }
 }
-
-@tailwind utilities;
 </style>

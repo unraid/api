@@ -1,11 +1,14 @@
 import 'dotenv/config';
 import type { Config } from 'tailwindcss';
 import type { PluginAPI } from 'tailwindcss/types/config';
+import unraidUiConfig from '../unraid-ui/tailwind.config';
 
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
+  presets: [unraidUiConfig],
   content: [
     './components/**/*.{js,vue,ts}',
+    './components/**/*.ce.{js,vue,ts}',
     './layouts/**/*.vue',
     './pages/**/*.vue',
     '../unraid-ui/src/**/*.{vue,ts}',

@@ -1,24 +1,20 @@
 <script lang="ts" setup>
-import {
-  ExclamationTriangleIcon,
-} from '@heroicons/vue/24/solid';
+import { ExclamationTriangleIcon } from '@heroicons/vue/24/solid';
 import { serverState } from '~/_data/serverState';
+import BrandButton from '~/components/Brand/Button.vue';
 import type { SendPayloads } from '~/store/callback';
-import type { UiBadgePropsColor } from '~/types/ui/badge';
 import type { ButtonStyle } from '~/types/ui/button';
 import AES from 'crypto-js/aes';
-import BrandButton from '~/components/Brand/Button.vue';
+import { Badge } from 'unraid-ui';
+
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
 });
 
 useHead({
-  meta: [
-    { name: 'viewport',
-    content: 'width=1300', }
-]
-})
+  meta: [{ name: 'viewport', content: 'width=1300' }],
+});
 
 const valueToMakeCallback = ref<SendPayloads | undefined>();
 const callbackDestination = ref<string>('');
@@ -59,35 +55,6 @@ onMounted(() => {
     'forUpc'
   );
 });
-
-const badgeColors = [
-  'black',
-  'white',
-  'red',
-  'yellow',
-  'green',
-  'blue',
-  'indigo',
-  'purple',
-  'pink',
-  'orange',
-  'transparent',
-  'current',
-  'gray',
-  'custom',
-] as UiBadgePropsColor[];
-
-const buttonColors = [
-  'black',
-  'fill',
-  'gray',
-  'outline',
-  'outline-black',
-  'outline-white',
-  'underline',
-  'underline-hover-red',
-  'white',
-] as ButtonStyle[];
 </script>
 
 <template>
@@ -162,17 +129,53 @@ const buttonColors = [
             </code>
           </div>
           <div class="bg-background">
-          <hr class="border-black dark:border-white" />
-          <h2 class="text-xl font-semibold font-mono">Legacy Badge Components</h2>
-            <template v-for="color in badgeColors" :key="color">
-              <UiBadge size="14px" :icon="ExclamationTriangleIcon" :color="color">{{ color }}</UiBadge>
+            <hr class="border-black dark:border-white" />
+            <h2 class="text-xl font-semibold font-mono">Legacy Badge Components</h2>
+            <template
+              v-for="color in [
+                'black',
+                'white',
+                'red',
+                'yellow',
+                'green',
+                'blue',
+                'indigo',
+                'purple',
+                'pink',
+                'orange',
+                'transparent',
+                'current',
+                'gray',
+              ]"
+              :key="color"
+            >
+              <Badge size="sm" :icon="ExclamationTriangleIcon" :variant="color">{{ color }}</Badge>
             </template>
           </div>
-           <div class="bg-background">
-          <hr class="border-black dark:border-white" />
-          <h2 class="text-xl font-semibold font-mono">Legacy Button Components</h2>
-            <template v-for="color in buttonColors" :key="color">
-              <BrandButton type="button" size="14px" :icon="ExclamationTriangleIcon" :btn-style="color as ButtonStyle">{{ color }}</BrandButton>
+          <div class="bg-background">
+            <hr class="border-black dark:border-white" />
+            <h2 class="text-xl font-semibold font-mono">Legacy Button Components</h2>
+            <template
+              v-for="color in [
+                'black',
+                'fill',
+                'gray',
+                'outline',
+                'outline-black',
+                'outline-white',
+                'underline',
+                'underline-hover-red',
+                'white',
+              ]"
+              :key="color"
+            >
+              <BrandButton
+                type="button"
+                size="14px"
+                :icon="ExclamationTriangleIcon"
+                :btn-style="color as ButtonStyle"
+                >{{ color }}</BrandButton
+              >
             </template>
           </div>
         </div>

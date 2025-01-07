@@ -1,7 +1,7 @@
 import { cva } from "class-variance-authority";
 
 export const badgeVariants = cva(
-  "inline-flex items-center rounded-full font-semibold leading-none transition-all duration-200 ease-in-out",
+  "inline-flex items-center rounded-full font-semibold leading-none transition-all duration-200 ease-in-out unraid-ui-badge-test",
   {
     variants: {
       variant: {
@@ -16,7 +16,7 @@ export const badgeVariants = cva(
         black: "bg-black text-white hover:bg-gray-800",
         white: "bg-white text-black hover:bg-gray-100",
         transparent: "bg-transparent text-black hover:bg-gray-100",
-        current: "bg-current text-black hover:bg-gray-100",
+        current: "bg-current text-current hover:bg-gray-100",
         gray: "bg-gray-200 text-gray-800 hover:bg-gray-300",
       },
       size: {
