@@ -126,8 +126,13 @@ jobs:
         uses: actions/setup-node@v4
         with:
           cache: "npm"
-          cache-dependency-path: "web/package-lock.json"
+          cache-dependency-path: |
+            web/package-lock.json
+            unraid-ui/package-lock.json
           node-version-file: "web/.nvmrc"
+
+      - name: Install unraid-ui dependencies
+        run: cd ../unraid-ui && npm install
 
       - name: Installing node deps
         run: npm install

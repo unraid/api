@@ -36,8 +36,7 @@
     "lucide-vue-next": "^0.468.0",
     "radix-vue": "^1.9.11",
     "shadcn-vue": "^0.11.3",
-    "tailwind-merge": "^2.5.5",
-
+    "tailwind-merge": "^2.5.5"
   },
   "devDependencies": {
     "@storybook/addon-essentials": "^8.4.7",
