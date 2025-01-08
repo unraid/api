@@ -18,6 +18,9 @@ export class UserCookieStrategy extends PassportStrategy(Strategy, strategyName)
     }
 
     public validate = async (req: CustomRequest): Promise<any> => {
-        return this.authService.validateCookiesCasbin(req.cookies);
+        return (
+            this.authService.validateCsrfToken(req.headers['x-csrf-token']) &&
+            this.authService.validateCookiesCasbin(req.cookies)
+        );
     };
 }
