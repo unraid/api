@@ -1187,7 +1187,7 @@ export type RemoveRoleFromApiKeyInput = {
 
 /** Available resources for permissions */
 export enum Resource {
-  APIKEY = 'apikey',
+  API_KEY = 'api_key',
   ARRAY = 'array',
   CLOUD = 'cloud',
   CONFIG = 'config',

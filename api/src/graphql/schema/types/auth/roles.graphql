@@ -2,7 +2,7 @@
 Available resources for permissions
 """
 enum Resource {
-    apikey
+    api_key
     array
     cloud
     config
