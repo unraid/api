@@ -52,7 +52,7 @@ export const mothership = createSlice({
     extraReducers(builder) {
         builder.addCase(setGraphqlConnectionStatus, (state, action) => {
             minigraphLogger.debug(
-                'GraphQL Connection Status: ',
+                'GraphQL Connection Status: %o',
                 action.payload
             );
             state.status = action.payload.status;

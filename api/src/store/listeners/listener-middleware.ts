@@ -30,11 +30,11 @@ export const addAppListener = addListener as TypedAddListener<RootState, AppDisp
 export const startMiddlewareListeners = () => {
     // Begin listening for events
     enableLocalApiKeyListener();
+    enableMothershipJobsListener();
     enableConfigFileListener('flash')();
     enableConfigFileListener('memory')();
     enableUpnpListener();
     enableVersionListener();
-    enableMothershipJobsListener();
     enableDynamicRemoteAccessListener();
     enableArrayEventListener();
     enableWanAccessChangeListener();
