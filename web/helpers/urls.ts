@@ -24,6 +24,17 @@ const WEBGUI_TOOLS_UPDATE = new URL('/Tools/Update', WEBGUI);
 const OS_RELEASES = new URL(import.meta.env.VITE_OS_RELEASES ?? 'https://releases.unraid.net/os');
 
 const DOCS_RELEASE_NOTES = new URL('/go/release-notes/', DOCS);
+
+/**
+ * @param version - An Unraid OS version string (x.x.x-suffix). 
+ *   Suffix indicates special releases, such as RCs or betas.
+ * @returns A URL object pointing to the release notes for the specified Unraid OS version.
+ */
+const getReleaseNotesUrl = (version: string): URL => {
+  const osVersion = version.split('-')[0];
+  return new URL(`/unraid-os/release-notes/${osVersion}`, DOCS);
+}
+
 const DOCS_REGISTRATION_LICENSING = new URL('/go/faq-licensing/', DOCS);
 const DOCS_REGISTRATION_REPLACE_KEY = new URL('/go/changing-the-flash-device/', DOCS);
 
@@ -48,6 +59,7 @@ export {
   OS_RELEASES,
   DOCS,
   DOCS_RELEASE_NOTES,
+  getReleaseNotesUrl,
   DOCS_REGISTRATION_LICENSING,
   DOCS_REGISTRATION_REPLACE_KEY,
   WEBGUI,

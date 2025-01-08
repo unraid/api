@@ -324,7 +324,9 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   # forcibly stop older clients
   kill -9 `pidof unraid-api` &>/dev/null
   # uninstall the api
-  /etc/rc.d/rc.unraid-api uninstall &>/dev/null
+  rm -rf /usr/local/unraid-api
+  rm -rf /var/log/unraid-api/
+  rm -f /var/run/unraid-api.sock
   # uninstall the main source package
   [[ -f "/var/log/packages/${MAINNAME}" ]] && removepkg --terse "${MAINNAME}"
   # restore stock files
@@ -369,6 +371,7 @@ if [ -e /etc/rc.d/rc.unraid-api ]; then
   rm -f /etc/rc.d/rc.unraid-api
   rm -f /etc/rc.d/rc.flash_backup
   rm -f /usr/local/sbin/unraid-api
+  rm -f /usr/local/bin/unraid-api
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net
   rm -rf /usr/local/emhttp/plugins/dynamix.unraid.net.staging
   rm -f /etc/rc.d/rc6.d/K10_flash_backup
@@ -451,6 +454,7 @@ echo
 # skip: do not perform any action if there is a manifest version difference
 preserveFilesDirs=(
   "move:/usr/local/emhttp/plugins/dynamix/Registration.page:preventDowngrade"
+  "copy:/usr/local/emhttp/plugins/dynamix/Notifications.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix/include/UpdateDNS.php:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Downgrade.page:preventDowngrade"
   "move:/usr/local/emhttp/plugins/dynamix.plugin.manager/Update.page:preventDowngrade"
@@ -536,6 +540,19 @@ for FILE in "${FILES[@]}"; do
     sed -i '/$valid = \[/c$valid = ['"'/var/tmp/'"','"'/tmp/plugins/'"','"'/boot/previous'"'];' "$FILE"
   fi
 done
+
+# patch: Notifications.page
+#
+# Remove date and time format settings from Notification Settings
+# search text:       _(Date format)_:
+# search text:       _(Time format)_:
+
+FILE=/usr/local/emhttp/plugins/dynamix/Notifications.page
+TMP_FILE=$(mktemp)
+cp "$FILE" "$TMP_FILE"
+sed -i '/_(Date format)_:/,/:notifications_date_format_help:/d' $TMP_FILE
+sed -i '/_(Time format)_:/,/:notifications_time_format_help:/d' $TMP_FILE
+mv "$TMP_FILE" "$FILE"
 
 # remove keys.limetechnology.com from hosts file
 # brings older versions of Unraid in sync with 6.12.12
@@ -837,17 +854,52 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     echo "♻️ Reverted to stock web component files"
 fi
 
-# start background process to install/start the api and flash backup
-echo
-if [ -f /var/local/emhttp/var.ini ]; then
-  # the system has fully booted, emhttpd and nginx are running
-  echo "Installing and starting the Unraid API"
-  echo "Starting flash backup (if enabled)"
-  echo "/etc/rc.d/rc.unraid-api install; /etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
-# else
-  # the system is booting, emhttpd will install the api and start rc.flash_backup. rc.nginx will start the api.
-  # nothing to do here
-fi
+# Install the API (previously in rc.d script)
+echo "Extracting and installing the Unraid API"
+
+flash="/boot/config/plugins/dynamix.my.servers"
+[[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
+[[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
+env=production
+# shellcheck disable=SC1091
+source "${flash}/env"
+# Install the API to /usr/local/unraid-api
+api_base_directory="/usr/local/unraid-api"
+unraid_binary_path="/usr/local/bin/unraid-api"
+# Ensure installation tgz exists
+[[ ! -f "${flash}/unraid-api.tgz" ]] && echo "Missing unraid-api.tgz" && exit 1
+# Stop old process
+[[ -f "${unraid_binary_path}" ]] && ${unraid_binary_path} stop
+# Install unraid-api
+rm -rf "${api_base_directory}"
+mkdir -p "${api_base_directory}"
+# Create log directory (PM2 will not start without it)
+mkdir -p /var/log/unraid-api
+tar -C "${api_base_directory}" -xzf "${flash}/unraid-api.tgz" --strip 1
+# Copy env file
+cp "${api_base_directory}/.env.${env}" "${api_base_directory}/.env"
+npm link "${api_base_directory}" --force
+# Create symlink to unraid-api binary (to allow usage elsewhere)
+ln -sf /usr/local/bin/unraid-api /usr/local/sbin/unraid-api
+ln -sf /usr/local/bin/unraid-api /usr/bin/unraid-api
+# bail if expected file does not exist
+[[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
+
+# Start a background process to wait for /var/local/emhttp/var.ini
+( timeout=30 elapsed=0
+  while (( elapsed < timeout )); do
+    if [ -f /var/local/emhttp/var.ini ]; then
+      logger "Starting flash backup (if enabled)"
+      echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
+      logger "Starting Unraid API"
+      ${unraid_binary_path} start
+      exit 0
+    fi
+    sleep 1
+    (( elapsed++ ))
+  done
+  echo "Timeout waiting for /var/local/emhttp/var.ini"
+) &
 
 echo
 echo "✅ Installation is complete, it is safe to close this window"

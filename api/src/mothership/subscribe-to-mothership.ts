@@ -1,20 +1,15 @@
 import { minigraphLogger, mothershipLogger } from '@app/core/log';
-import { GraphQLClient } from './graphql-client';
-import { store } from '@app/store';
-
-import {
-    EVENTS_SUBSCRIPTION,
-    RemoteGraphQL_Fragment,
-} from '@app/graphql/mothership/subscriptions';
-
-import { ClientType } from '@app/graphql/generated/client/graphql';
-import { notNull } from '@app/utils';
 import { useFragment } from '@app/graphql/generated/client/fragment-masking';
+import { ClientType } from '@app/graphql/generated/client/graphql';
+import { EVENTS_SUBSCRIPTION, RemoteGraphQL_Fragment } from '@app/graphql/mothership/subscriptions';
+import { store } from '@app/store';
 import { handleRemoteGraphQLEvent } from '@app/store/actions/handle-remote-graphql-event';
-import {
-    setSelfDisconnected,
-    setSelfReconnected,
-} from '@app/store/modules/minigraph';
+import { setSelfDisconnected, setSelfReconnected } from '@app/store/modules/minigraph';
+import { notNull } from '@app/utils';
+
+import { GraphQLClient } from './graphql-client';
+import { initPingTimeoutJobs, PingTimeoutJobs } from './jobs/ping-timeout-jobs';
+import { getMothershipConnectionParams } from './utils/get-mothership-websocket-headers';
 
 export const subscribeToEvents = async (apiKey: string) => {
     minigraphLogger.info('Subscribing to Events');
@@ -29,15 +24,9 @@ export const subscribeToEvents = async (apiKey: string) => {
     });
     eventsSub.subscribe(async ({ data, errors }) => {
         if (errors) {
-            mothershipLogger.error(
-                'GraphQL Error with events subscription: %s',
-                errors.join(',')
-            );
+            mothershipLogger.error('GraphQL Error with events subscription: %s', errors.join(','));
         } else if (data) {
-            mothershipLogger.trace(
-                { events: data.events },
-                'Got events from mothership'
-            );
+            mothershipLogger.trace({ events: data.events }, 'Got events from mothership');
 
             for (const event of data.events?.filter(notNull) ?? []) {
                 switch (event.__typename) {
@@ -71,15 +60,10 @@ export const subscribeToEvents = async (apiKey: string) => {
                     }
 
                     case 'RemoteGraphQLEvent': {
-                        const eventAsRemoteGraphQLEvent = useFragment(
-                            RemoteGraphQL_Fragment,
-                            event
-                        );
+                        const eventAsRemoteGraphQLEvent = useFragment(RemoteGraphQL_Fragment, event);
                         // No need to check API key here anymore
 
-                        void store.dispatch(
-                            handleRemoteGraphQLEvent(eventAsRemoteGraphQLEvent)
-                        );
+                        void store.dispatch(handleRemoteGraphQLEvent(eventAsRemoteGraphQLEvent));
                         break;
                     }
 
@@ -89,4 +73,17 @@ export const subscribeToEvents = async (apiKey: string) => {
             }
         }
     });
+};
+
+export const setupNewMothershipSubscription = async (state = store.getState()) => {
+    await GraphQLClient.clearInstance();
+    if (getMothershipConnectionParams(state)?.apiKey) {
+        minigraphLogger.trace('Creating Graphql client');
+        const client = GraphQLClient.createSingletonInstance();
+        if (client) {
+            minigraphLogger.trace('Connecting to mothership');
+            await subscribeToEvents(state.config.remote.apikey);
+            initPingTimeoutJobs();
+        }
+    }
 };

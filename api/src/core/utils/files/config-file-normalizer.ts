@@ -38,15 +38,11 @@ export const getWriteableConfig = <T extends ConfigType>(
             version: api?.version ?? initialState.api.version,
             extraOrigins: api?.extraOrigins ?? initialState.api.extraOrigins,
         },
-        local: {
-            ...(local?.['2Fa'] === 'yes' ? { '2Fa': local['2Fa'] } : {}),
-            ...(local?.showT2Fa === 'yes' ? { showT2Fa: local.showT2Fa } : {}),
-        },
+        local: {},
         notifier: {
             apikey: notifier.apikey ?? initialState.notifier.apikey,
         },
         remote: {
-            ...(remote?.['2Fa'] === 'yes' ? { '2Fa': remote['2Fa'] } : {}),
             wanaccess: remote.wanaccess ?? initialState.remote.wanaccess,
             wanport: remote.wanport ?? initialState.remote.wanport,
             ...(remote.upnpEnabled ? { upnpEnabled: remote.upnpEnabled } : {}),
