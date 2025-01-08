@@ -125,18 +125,18 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Make Built Node Artifact
-        run: |
-          mkdir unraid-ui
-          mv dist/ unraid-ui/dist/
-          mv package.json unraid-ui/package.json
-          ls unraid-ui
+      # - name: Make Built Node Artifact
+      #   run: |
+      #     mkdir unraid-ui
+      #     mv dist/ unraid-ui/dist/
+      #     mv package.json unraid-ui/package.json
+      #     ls unraid-ui
 
-      - name: Upload Artifact to Github
-        uses: actions/upload-artifact@v4
-        with:
-          name: unraid-ui
-          path: unraid-ui/unraid-ui/
+      # - name: Upload Artifact to Github
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: unraid-ui
+      #     path: unraid-ui/unraid-ui/
 
   build-web:
     needs: [build-unraid-ui]
@@ -168,18 +168,18 @@ jobs:
             web/package-lock.json
           node-version-file: "web/.nvmrc"
 
-      - name: Remove Existing Unraid UI folder
-        run: |
-          rm -r ../unraid-ui
+      # - name: Remove Existing Unraid UI folder
+      #   run: |
+      #     rm -r ../unraid-ui
 
-      - name: Download Artifact for Unraid UI
-        uses: actions/download-artifact@v4
-        with:
-          name: unraid-ui
-          path: ../unraid-ui
+      # - name: Download Artifact for Unraid UI
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: unraid-ui
+      #     path: ../unraid-ui
 
-      - name: LS Unraid UI
-        run: ls ../unraid-ui
+      # - name: LS Unraid UI
+      #   run: ls ../unraid-ui
 
       - name: Installing node deps
         run: npm install
