@@ -62,7 +62,7 @@ const initialState = {
     'log-base': resolvePath('/var/log/unraid-api/' as const),
     'var-run': '/var/run' as const,
     // contains sess_ files that correspond to authenticated user sessions
-    'auth-sessions': '/var/lib/php' as const,
+    'auth-sessions': process.env.PATHS_AUTH_SESSIONS ?? '/var/lib/php',
     'auth-keys': resolvePath(
         process.env.PATHS_AUTH_KEY ?? ('/boot/config/plugins/dynamix.my.servers/keys' as const)
     ),
