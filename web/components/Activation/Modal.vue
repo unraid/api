@@ -16,17 +16,13 @@ export interface Props {
 const props = defineProps<Props>();
 
 const activationCodeStore = useActivationCodeStore();
-const { partnerLogo, partnerName, showActivationModal } = storeToRefs(activationCodeStore);
+const { partnerLogo, showActivationModal } = storeToRefs(activationCodeStore);
 const purchaseStore = usePurchaseStore();
 
-const title = computed<string>(() =>
-  partnerName.value
-    ? props.t(`Welcome to your new {0} system, powered by Unraid!`, [partnerName.value])
-    : props.t("Welcome to Unraid!")
-);
+const title = computed<string>(() => props.t("Let's activate your Unraid license!"));
 const description = computed<string>(() =>
   props.t(
-    `To get started, let's activate your license and create an Unraid.net Account to provide access to account features like key management and support.`
+    `Start by creating an Unraid.net account — this will let you manage your license and access support. Once that's done, we'll guide you through a quick checkout process to register your license and install your key.`
   )
 );
 const docsButtons = computed<ButtonProps[]>(() => {
@@ -100,6 +96,8 @@ onUnmounted(() => {
     overlay-color="bg-background"
     overlay-opacity="bg-opacity-100"
     max-width="max-w-800px"
+    :modal-vertical-center="false"
+    :disable-shadow="true"
   >
     <template v-if="partnerLogo" #header>
       <ActivationPartnerLogo />

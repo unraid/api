@@ -34,6 +34,26 @@ const description = computed<string>(() =>
 const showModal = ref<boolean>(true);
 const dropdownHide = () => { showModal.value = false; };
 
+watchEffect(() => {
+  /** 
+   * A necessary workaround for how the webgui handles font-size.
+   * There's not a shared CSS file between /login and any of the authenticated webgui pages.
+   * Which has lead to font-size differences.
+   * The authed webgui pages have CSS of `html { font-size: 62.5%; }` which makes REMs act as if the base font-size is 10px.
+   * The /login page doesn't do this.
+   * So we'll target the HTML element and toggle the font-size to be 62.5% when the modal is open and 100% when it's closed.
+   * */
+  const $confirmPasswordField = window.document.querySelector('#confirmPassword');
+
+  if ($confirmPasswordField) {
+    if (showModal.value) {
+      window.document.documentElement.style.setProperty('font-size', '62.5%');
+    } else {
+      window.document.documentElement.style.setProperty('font-size', '100%');
+    }
+  }
+});
+
 onBeforeMount(() => {
   if (!props.server) {
     throw new Error('Server data not present');
@@ -61,6 +81,8 @@ onBeforeMount(() => {
       overlay-color="bg-background"
       overlay-opacity="bg-opacity-100"
       max-width="max-w-800px"
+      :disable-shadow="true"
+      :modal-vertical-center="false"
       @close="dropdownHide"
     >
       <template v-if="partnerLogo" #header>

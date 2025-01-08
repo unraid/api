@@ -141,7 +141,7 @@ const buttonColors = [
           <ModalsCe />
           <hr class="border-black dark:border-white" />
           <h3 class="text-lg font-semibold font-mono">WelcomeModalCe</h3>
-          <WelcomeModalCe :data="serverState?.activationCodeData ?? undefined" />
+          <WelcomeModalCe :server="serverState ?? undefined" />
           <hr class="border-black dark:border-white" />
           <h3 class="text-lg font-semibold font-mono">Test Callback Builder</h3>
           <div class="flex flex-col justify-end gap-8px">

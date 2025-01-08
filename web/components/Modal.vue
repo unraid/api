@@ -20,6 +20,7 @@ export interface Props {
   overlayColor?: string;
   overlayOpacity?: string;
   modalVerticalCenter?: boolean | string;
+  disableShadow?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   centerContent: true,
@@ -36,6 +37,7 @@ const props = withDefaults(defineProps<Props>(), {
   overlayColor: 'bg-black',
   overlayOpacity: 'bg-opacity-80',
   modalVerticalCenter: true,
+  disableShadow: false,
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -106,11 +108,12 @@ const computedVerticalCenter = computed<string>(() => {
           <div
             :class="[
               maxWidth,
+              disableShadow ? 'shadow-none border-none' : 'shadow-xl',
               error ? 'shadow-unraid-red/30 border-unraid-red/10' : '',
               success ? 'shadow-green-600/30 border-green-600/10' : '',
-              !error && !success ? 'shadow-orange/10 border-white/10' : '',
+              !error && !success && !disableShadow ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-16px text-foreground bg-background text-left relative z-10 flex flex-col justify-around border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
+            class="text-16px text-foreground bg-background text-left relative z-10 flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-4px pr-4px hidden sm:block">
               <button
@@ -143,8 +146,11 @@ const computedVerticalCenter = computed<string>(() => {
 
             <div
               v-if="$slots['main'] || description"
-              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto shadow-inner"
-              :class="centerContent && 'text-center'"
+              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto"
+              :class="[
+                centerContent && 'text-center',
+                !disableShadow && 'shadow-inner',
+              ]"
             >
               <div class="flex flex-col gap-y-12px">
                 <h1 v-if="title && titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
