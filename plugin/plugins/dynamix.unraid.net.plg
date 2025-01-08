@@ -845,7 +845,8 @@ echo "Extracting and installing the Unraid API"
 
 flash="/boot/config/plugins/dynamix.my.servers"
 [[ ! -d "${flash}" ]] && echo "Please reinstall the Unraid Connect plugin" && exit 1
-[[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env" env=production
+[[ ! -f "${flash}/env" ]] && echo 'env=production' >"${flash}/env"
+env=production
 # shellcheck disable=SC1091
 source "${flash}/env"
 # Install the API to /usr/local/unraid-api
