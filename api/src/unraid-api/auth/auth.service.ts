@@ -4,6 +4,7 @@ import { AuthZService } from 'nest-authz';
 
 import type { UserAccount } from '@app/graphql/generated/api/types';
 import { Role } from '@app/graphql/generated/api/types';
+import { getters } from '@app/store';
 import { handleAuthError } from '@app/utils';
 
 import { ApiKeyService } from './api-key.service';
@@ -203,6 +204,10 @@ export class AuthService {
         } catch (error: unknown) {
             handleAuthError(this.logger, 'Failed to sync roles for user', error, { userId });
         }
+    }
+
+    public validateCsrfToken(token?: string): boolean {
+        return Boolean(token) && token === getters.emhttp().var.csrfToken;
     }
 
     /**
