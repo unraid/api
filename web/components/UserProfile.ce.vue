@@ -95,7 +95,7 @@ onBeforeMount(() => {
 });
 
 onMounted(() => {
-  if (devConfig.VITE_MOCK_USER_SESSION) {
+  if (devConfig.VITE_MOCK_USER_SESSION && devConfig.NODE_ENV === 'development') {
     document.cookie = 'unraid_session_cookie=mock-user-session';
   }
 })
