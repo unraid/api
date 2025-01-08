@@ -5,15 +5,11 @@ interface MyServersConfig extends Record<string, unknown> {
         version: string;
         extraOrigins: string;
     };
-    local: {
-        '2Fa'?: string;
-        showT2Fa?: string;
-    };
+    local: {};
     notifier: {
         apikey: string;
     };
     remote: {
-        '2Fa'?: string;
         wanaccess: string;
         wanport: string;
         upnpEnabled?: string;
@@ -38,12 +34,7 @@ export interface MyServersConfigWithMandatoryHiddenFields extends MyServersConfi
     api: {
         extraOrigins: string;
     };
-    local: MyServersConfig['local'] & {
-        '2Fa': string;
-        showT2Fa: string;
-    };
     remote: MyServersConfig['remote'] & {
-        '2Fa': string;
         upnpEnabled: string;
         dynamicRemoteAccessType: DynamicRemoteAccessType;
     };
