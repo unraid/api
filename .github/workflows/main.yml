@@ -125,18 +125,28 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Make Built Node Artifact
+      # - name: Make Built Node Artifact
+      #   run: |
+      #     mkdir unraid-ui
+      #     mv dist/ unraid-ui/dist/
+      #     mv package.json unraid-ui/package.json
+      #     ls unraid-ui
+
+      # - name: Upload Artifact to Github
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: unraid-ui
+      #     path: unraid-ui/unraid-ui/
+
+      - name: Prepare Package
         run: |
-          mkdir -p dist-package
-          cp -r dist dist-package/
-          cp package.json dist-package/
-          cp tailwind.config.ts dist-package/
+          cp package.json dist/
 
       - name: Upload Artifact to Github
         uses: actions/upload-artifact@v4
         with:
           name: unraid-ui
-          path: dist-package/
+          path: dist/
 
   build-web:
     needs: [build-unraid-ui]
@@ -181,18 +191,18 @@ jobs:
       # - name: LS Unraid UI
       #   run: ls ../unraid-ui
 
-      - name: Download UI Package
+      - name: Remove Existing Unraid UI folder
+        run: |
+          rm -r ../unraid-ui
+
+      - name: Download Artifact for Unraid UI
         uses: actions/download-artifact@v4
         with:
           name: unraid-ui
           path: ../unraid-ui
 
-      - name: Debug UI Package
-        run: |
-          echo "Contents of ../unraid-ui:"
-          ls -la ../unraid-ui
-          echo "Contents of ../unraid-ui/dist:"
-          ls -la ../unraid-ui/dist
+      - name: LS Unraid UI
+        run: ls ../unraid-ui
 
       - name: Installing node deps
         run: npm install
