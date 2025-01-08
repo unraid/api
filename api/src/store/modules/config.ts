@@ -37,7 +37,6 @@ export const initialState: SliceState = {
     status: FileLoadStatus.UNLOADED,
     nodeEnv: NODE_ENV,
     remote: {
-        '2Fa': '',
         wanaccess: '',
         wanport: '',
         upnpEnabled: '',
@@ -53,10 +52,7 @@ export const initialState: SliceState = {
         allowedOrigins: '',
         dynamicRemoteAccessType: DynamicRemoteAccessType.DISABLED,
     },
-    local: {
-        showT2Fa: '',
-        '2Fa': '',
-    },
+    local: {},
     api: {
         extraOrigins: '',
         version: '',
