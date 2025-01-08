@@ -125,18 +125,18 @@ jobs:
       - name: Build
         run: npm run build
 
-      # - name: Make Built Node Artifact
-      #   run: |
-      #     mkdir unraid-ui
-      #     mv dist/ unraid-ui/dist/
-      #     mv package.json unraid-ui/package.json
-      #     ls unraid-ui
+      - name: Make Built Node Artifact
+        run: |
+          mkdir -p dist-package
+          cp -r dist dist-package/
+          cp package.json dist-package/
+          cp tailwind.config.ts dist-package/
 
-      # - name: Upload Artifact to Github
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: unraid-ui
-      #     path: unraid-ui/unraid-ui/
+      - name: Upload Artifact to Github
+        uses: actions/upload-artifact@v4
+        with:
+          name: unraid-ui-package
+          path: dist-package/
 
   build-web:
     needs: [build-unraid-ui]
@@ -181,9 +181,21 @@ jobs:
       # - name: LS Unraid UI
       #   run: ls ../unraid-ui
 
+      - name: Download UI Package
+        uses: actions/download-artifact@v4
+        with:
+          name: unraid-ui-package
+          path: ../unraid-ui
+
+      - name: Debug UI Package
+        run: |
+          echo "Contents of ../unraid-ui:"
+          ls -la ../unraid-ui
+          echo "Contents of ../unraid-ui/dist:"
+          ls -la ../unraid-ui/dist
+
       - name: Installing node deps
         run: npm install
-
 
       - name: Lint files
         continue-on-error: true

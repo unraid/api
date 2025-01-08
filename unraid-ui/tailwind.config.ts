@@ -1,9 +1,7 @@
-import "dotenv/config";
 import type { Config } from "tailwindcss";
 import type { PluginAPI } from "tailwindcss/types/config";
 import typography from "@tailwindcss/typography";
 import animate from "tailwindcss-animate";
-import remToRem from "./src/lib/tailwind-rem-to-rem";
 
 export default <Partial<Config>>{
   content: [
@@ -269,10 +267,6 @@ export default <Partial<Config>>{
   },
   plugins: [
     typography,
-    animate,
-    remToRem({
-      baseFontSize: 16,
-      newFontSize: Number(process.env.VITE_TAILWIND_BASE_FONT_SIZE) || 10,
-    }),
+    animate
   ],
 };

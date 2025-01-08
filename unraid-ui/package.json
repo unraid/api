@@ -13,7 +13,7 @@
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && cp tailwind.config.ts dist/",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
