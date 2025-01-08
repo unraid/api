@@ -1,12 +1,6 @@
 import { expect, test } from 'vitest';
 
-
-
 import { store } from '@app/store';
-
-
-
-
 
 test('Before init returns default values for all fields', async () => {
     const state = store.getState().config;
