@@ -220,9 +220,9 @@ export class AuthService {
         this.logger.debug('getSessionUser called!');
         return {
             id: '-1',
-            description: 'UPC service account',
-            name: 'upc',
-            roles: [Role.UPC],
+            description: 'Session receives administrator permissions',
+            name: 'admin',
+            roles: [Role.ADMIN],
         };
     }
 }
