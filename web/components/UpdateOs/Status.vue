@@ -8,6 +8,7 @@ import {
   InformationCircleIcon,
   XCircleIcon,
 } from '@heroicons/vue/24/solid';
+import { Badge } from '@unraid/ui';
 import BrandLoadingWhite from '~/components/Brand/LoadingWhite.vue';
 import useDateTimeHelper from '~/composables/dateTime';
 import { WEBGUI_TOOLS_REGISTRATION } from '~/helpers/urls';
@@ -17,7 +18,6 @@ import { useUpdateOsStore } from '~/store/updateOs';
 import { useUpdateOsActionsStore } from '~/store/updateOsActions';
 import type { ButtonProps } from '~/types/ui/button';
 import { storeToRefs } from 'pinia';
-import { Badge } from 'unraid-ui';
 import type { ComposerTranslation } from 'vue-i18n';
 
 export interface Props {

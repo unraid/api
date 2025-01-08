@@ -76,11 +76,12 @@
       "import": "./dist/index.js",
       "require": "./dist/index.cjs"
     },
-    "./styles": "./src/styles/index.css",
+    "./styles": "./dist/style.css",
     "./styles/*": "./src/styles/*",
-    "./tailwindConfig": {
-      "types": "./tailwind.config.ts",
-      "import": "./tailwind.config.ts"
+    "./tailwind.config": {
+      "types": "./dist/tailwind.config.d.ts",
+      "import": "./dist/tailwind.config.js",
+      "default": "./dist/tailwind.config.js"
     }
   }
 }
