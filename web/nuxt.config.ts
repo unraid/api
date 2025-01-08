@@ -75,12 +75,10 @@ export default defineNuxtConfig({
     build: {
       minify: 'terser',
       terserOptions: {
-        mangle: process.env.VITE_ALLOW_CONSOLE_LOGS
-          ? false
-          : {
-              reserved: terserReservations(charsToReserve),
-              toplevel: true,
-            },
+        mangle: {
+          reserved: terserReservations(charsToReserve),
+          toplevel: true,
+        },
       },
     },
   },
