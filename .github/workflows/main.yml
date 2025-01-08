@@ -117,7 +117,7 @@ jobs:
           cache: "npm"
           cache-dependency-path: |
             unraid-ui/package-lock.json
-          node-version-file: "unraid-ui/.nvmrc"
+          node-version-file: ".nvmrc"
 
       - name: Install dependencies
         run: npm install
@@ -139,6 +139,7 @@ jobs:
           path: unraid-ui/unraid-ui/
 
   build-web:
+    needs: [build-unraid-ui]
     name: Build Web App
     environment:
       name: production
