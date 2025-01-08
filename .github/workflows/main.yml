@@ -135,7 +135,7 @@ jobs:
       - name: Upload Artifact to Github
         uses: actions/upload-artifact@v4
         with:
-          name: unraid-ui-package
+          name: unraid-ui
           path: dist-package/
 
   build-web:
@@ -184,7 +184,7 @@ jobs:
       - name: Download UI Package
         uses: actions/download-artifact@v4
         with:
-          name: unraid-ui-package
+          name: unraid-ui
           path: ../unraid-ui
 
       - name: Debug UI Package
