@@ -1,4 +1,5 @@
 import { writeFile } from 'fs/promises';
+
 import { fileExists } from '@app/core/utils/files/file-exists';
 
 export const setupLogRotation = async () => {
@@ -8,12 +9,13 @@ export const setupLogRotation = async () => {
         await writeFile(
             '/etc/logrotate.d/unraid-api',
             `
-            /var/log/unraid-api/*.log {
-                rotate 1
-                missingok
-                size 5M
-            }
-        `,
+/var/log/unraid-api/*.log {
+    rotate 1
+    missingok
+    size 5M
+    su root root
+}
+`,
             { mode: '644' }
         );
     }
