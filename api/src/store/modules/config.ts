@@ -25,6 +25,8 @@ import { PUBSUB_CHANNEL, pubsub } from '@app/core/pubsub';
 import { isEqual } from 'lodash-es';
 import { setupRemoteAccessThunk } from '@app/store/actions/setup-remote-access';
 import { NODE_ENV } from '@app/environment';
+import { GraphQLClient } from '@app/mothership/graphql-client';
+import { stopPingTimeoutJobs } from '@app/mothership/jobs/ping-timeout-jobs';
 
 export type SliceState = {
     status: FileLoadStatus;
@@ -105,6 +107,8 @@ export const logoutUser = createAsyncThunk<
     };
     // Publish to owner endpoint
     await pubsub.publish(PUBSUB_CHANNEL.OWNER, { owner });
+    stopPingTimeoutJobs();
+    await GraphQLClient.clearInstance();
 });
 
 /**
