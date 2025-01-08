@@ -8,7 +8,8 @@
   "types": "./dist/index.d.ts",
   "sideEffects": false,
   "files": [
-    "dist"
+    "dist",
+    "tailwind.config.ts"
   ],
   "scripts": {
     "dev": "vite",
@@ -76,6 +77,10 @@
       "require": "./dist/index.cjs"
     },
     "./styles": "./src/styles/index.css",
-    "./styles/*": "./src/styles/*"
+    "./styles/*": "./src/styles/*",
+    "./tailwindConfig": {
+      "types": "./tailwind.config.ts",
+      "import": "./tailwind.config.ts"
+    }
   }
 }

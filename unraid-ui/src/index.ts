@@ -1,6 +1,9 @@
 // Styles
 import "./styles/index.css";
 
+// Config
+import tailwindConfig from "../tailwind.config";
+
 // Lib
 import { cn, scaleRemFactor } from "@/lib/utils";
 
@@ -50,12 +53,6 @@ import {
   SelectValue,
 } from "@/components/form/select";
 import { Switch, SwitchHeadlessUI } from "@/components/form/switch";
-import {
-  Tabs,
-  TabsList,
-  TabsTrigger,
-  TabsContent,
-} from "@/components/common/tabs";
 import { ScrollArea, ScrollBar } from "@/components/common/scroll-area";
 import {
   Sheet,
@@ -67,6 +64,12 @@ import {
   SheetTitle,
   SheetDescription,
 } from "@/components/common/sheet";
+import {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "@/components/common/tabs";
 import {
   Tooltip,
   TooltipContent,
@@ -134,6 +137,7 @@ export {
   Spinner,
   Switch,
   SwitchHeadlessUI,
+  tailwindConfig,
   Lightswitch,
   Tabs,
   TabsList,

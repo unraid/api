@@ -3,41 +3,61 @@ import { defineConfig } from "vite";
 import { resolve } from "path";
 import vue from "@vitejs/plugin-vue";
 import dts from "vite-plugin-dts";
+import tailwindcss from 'tailwindcss'
 
 export default defineConfig({
   plugins: [
     vue(),
     dts({
       insertTypesEntry: true,
-      include: ["src/**/*.ts", "src/**/*.vue"],
+      include: ["src/**/*.ts", "src/**/*.vue", "tailwind.config.ts"],
+      outDir: "dist",
+      rollupTypes: true,
+      copyDtsFiles: true
     }),
   ],
-  build: {
-    lib: {
-      entry: resolve(__dirname, "src/index.ts"),
-      name: "Unraid UI",
-      formats: ["es", "umd"],
-      fileName: "index",
+  css: {
+    postcss: {
+      plugins: [tailwindcss()],
     },
-    cssCodeSplit: true,
-    minify: true,
-    sourcemap: true,
+  },
+  build: {
+    cssCodeSplit: false,
     rollupOptions: {
-      external: ["vue"],
+      external: ["vue", "tailwindcss"],
+      input: {
+        index: resolve(__dirname, "src/index.ts"),
+        tailwind: resolve(__dirname, "tailwind.config.ts")
+      },
+      preserveEntrySignatures: "allow-extension",
       output: {
-        assetFileNames: (assetInfo) => {
-          if (
-            typeof assetInfo.source === "string" &&
-            assetInfo.source.includes("style.css")
-          )
-            return "css/style.[hash].css";
-          return "assets/[name].[hash][extname]";
-        },
+        exports: "named",
         globals: {
           vue: "Vue",
+          tailwindcss: "tailwindcss"
         },
-      },
+        format: "es",
+        preserveModules: true,
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'style.css') {
+            return 'style.css';
+          }
+          return '[name][extname]';
+        },
+        entryFileNames: (chunkInfo) => {
+          if (chunkInfo.name.includes('.vue')) {
+            return '[name]';
+          } else if (chunkInfo.name === 'tailwind') {
+            return '[name].config.js';
+          } else {
+            return '[name].js';
+          }
+        }
+      }
     },
+    target: "esnext",
+    sourcemap: true,
+    minify: false
   },
   resolve: {
     alias: {
@@ -46,7 +66,7 @@ export default defineConfig({
       "@/composables": resolve(__dirname, "./src/composables"),
       "@/lib": resolve(__dirname, "./src/lib"),
       "@/styles": resolve(__dirname, "./src/styles"),
-      "@/types": resolve(__dirname, "./src/types"),
+      "@/types": resolve(__dirname, "./src/types")
     },
   },
   test: {
