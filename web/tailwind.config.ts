@@ -2,6 +2,10 @@ import 'dotenv/config';
 import tailwindConfig from '@unraid/ui/tailwind.config';
 import type { Config } from 'tailwindcss';
 import type { PluginAPI } from 'tailwindcss/types/config';
+import typography from '@tailwindcss/typography';
+import tailwindanimate from 'tailwindcss-animate';
+import remToRem from './utils/tailwind-rem-to-rem';
+
 
 // @ts-expect-error - just trying to get this to build @fixme
 export default <Partial<Config>>{
@@ -270,17 +274,16 @@ export default <Partial<Config>>{
     },
   },
   plugins: [
-    require('@tailwindcss/typography'),
-    require('tailwindcss-animate'),
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    require('./utils/tailwind-rem-to-rem').default({
+    typography,
+    tailwindanimate,
+    remToRem({
       baseFontSize: 16,
       /**
        * The font size where the web components will be rendered in production.
        * Required due to the webgui using the 62.5% font-size "trick".
        * Set an env to 16 for local development and 10 for everything else.
        */
-      newFontSize: process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10,
+      newFontSize: Number(process.env.VITE_TAILWIND_BASE_FONT_SIZE ?? 10),
     }),
   ],
 };

@@ -146,7 +146,7 @@ onMounted(() => {
                 'transparent',
                 'current',
                 'gray',
-              ]"
+              ] as Array<UIBadgePropsColor>"
               :key="color"
             >
               <Badge size="sm" :icon="ExclamationTriangleIcon" :variant="color">{{ color }}</Badge>

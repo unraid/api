@@ -46,7 +46,7 @@ export default defineConfig({
         },
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.name.includes('.vue')) {
-            return '[name]';
+            return '[name].js';
           } else if (chunkInfo.name === 'tailwind') {
             return '[name].config.js';
           } else {

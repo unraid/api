@@ -422,7 +422,7 @@ const showUpdateEligibility = computed(() => {
 
 <style lang="postcss">
 /* Import unraid-ui globals first */
-@import 'unraid-ui/styles';
+@import '@unraid/ui/styles';
 
 .unraid_mark_2,
 .unraid_mark_4 {
