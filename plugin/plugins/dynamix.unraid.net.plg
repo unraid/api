@@ -417,6 +417,24 @@ appendTextIfMissing() {
   fi
 }
 
+# Debug log for env variable
+echo "PLGTYPE: ${PLGTYPE}"
+
+# Debug log for SCRIPT_HOME
+echo "SCRIPT_HOME (if previously set): ${SCRIPT_HOME}"
+
+# Set the script prefix based on environment
+if [[ "${PLGTYPE}" == "staging" ]]; then
+    PLUGIN_NAMESPACE="dynamix.unraid.net.staging"
+else
+    PLUGIN_NAMESPACE="dynamix.unraid.net"
+fi
+
+# Set the script home path
+SCRIPT_HOME="/usr/local/emhttp/plugins/${PLUGIN_NAMESPACE}"
+. "${SCRIPT_HOME}/script_loader.sh"
+echo "Loaded script_loader.sh"
+
 version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
