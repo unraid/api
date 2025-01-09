@@ -5,7 +5,6 @@ import BrandButton from '~/components/Brand/Button.vue';
 import type { SendPayloads } from '~/store/callback';
 import type { ButtonStyle } from '~/types/ui/button';
 import AES from 'crypto-js/aes';
-import { Badge } from '@unraid/ui';
 
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
@@ -127,30 +126,6 @@ onMounted(() => {
             <code>
               <pre>{{ callbackDestination }}</pre>
             </code>
-          </div>
-          <div class="bg-background">
-            <hr class="border-black dark:border-white" />
-            <h2 class="text-xl font-semibold font-mono">Legacy Badge Components</h2>
-            <template
-              v-for="color in [
-                'black',
-                'white',
-                'red',
-                'yellow',
-                'green',
-                'blue',
-                'indigo',
-                'purple',
-                'pink',
-                'orange',
-                'transparent',
-                'current',
-                'gray',
-              ] as Array<UIBadgePropsColor>"
-              :key="color"
-            >
-              <Badge size="sm" :icon="ExclamationTriangleIcon" :variant="color">{{ color }}</Badge>
-            </template>
           </div>
           <div class="bg-background">
             <hr class="border-black dark:border-white" />
