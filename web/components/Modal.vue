@@ -2,6 +2,7 @@
 import { TransitionChild, TransitionRoot } from '@headlessui/vue';
 import { XMarkIcon } from '@heroicons/vue/24/outline';
 import type { ComposerTranslation } from 'vue-i18n';
+import { cn } from '~/components/shadcn/utils';
 
 export interface Props {
   centerContent?: boolean;
@@ -14,6 +15,13 @@ export interface Props {
   t: ComposerTranslation;
   tallContent?: boolean;
   title?: string;
+  titleInMain?: boolean;
+  headerJustifyCenter?: boolean;
+  overlayColor?: string;
+  overlayOpacity?: string;
+  modalVerticalCenter?: boolean | string;
+  disableShadow?: boolean;
+  disableOverlayClose?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   centerContent: true,
@@ -25,6 +33,13 @@ const props = withDefaults(defineProps<Props>(), {
   success: false,
   tallContent: false,
   title: '',
+  titleInMain: false,
+  headerJustifyCenter: true,
+  overlayColor: 'bg-black',
+  overlayOpacity: 'bg-opacity-80',
+  modalVerticalCenter: true,
+  disableShadow: false,
+  disableOverlayClose: false,
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -40,8 +55,16 @@ const closeModal = () => {
   emit('close');
 };
 
-const ariaLablledById = computed((): string|undefined => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
-
+const ariaLablledById = computed<string|undefined>(() => props.title ? `ModalTitle-${Math.random()}`.replace('0.', '') : undefined);
+const computedVerticalCenter = computed<string>(() => {
+  if (props.tallContent) {
+    return 'items-start sm:items-center';
+  }
+  if (typeof props.modalVerticalCenter === 'string') {
+    return props.modalVerticalCenter;
+  }
+  return props.modalVerticalCenter ? 'items-center' : 'items-start';
+});
 </script>
 
 <template>
@@ -56,10 +79,7 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
     >
       <div
         class="fixed inset-0 flex min-h-screen w-screen justify-center p-8px sm:p-16px overflow-y-auto"
-        :class="{
-          'items-start sm:items-center': tallContent,
-          'items-center': !tallContent,
-        }"
+        :class="computedVerticalCenter"
       >
         <TransitionChild
           appear
@@ -72,9 +92,9 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           leave-to="opacity-0"
         >
           <div
-            class="fixed inset-0 z-0 bg-black bg-opacity-80 transition-opacity"
-            :title="t('Click to close modal')"
-            @click="closeModal"
+            :class="cn('fixed inset-0 z-0 transition-opacity', overlayColor, overlayOpacity)"
+            :title="showCloseX ? t('Click to close modal') : undefined"
+            @click="!disableOverlayClose ? closeModal : undefined"
           />
         </TransitionChild>
         <TransitionChild
@@ -90,11 +110,12 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
           <div
             :class="[
               maxWidth,
+              disableShadow ? 'shadow-none border-none' : 'shadow-xl',
               error ? 'shadow-unraid-red/30 border-unraid-red/10' : '',
               success ? 'shadow-green-600/30 border-green-600/10' : '',
-              !error && !success ? 'shadow-orange/10 border-white/10' : '',
+              !error && !success && !disableShadow ? 'shadow-orange/10 border-white/10' : '',
             ]"
-            class="text-16px text-foreground bg-muted dark:bg-background text-left relative z-10 flex flex-col justify-around border-2 border-solid shadow-xl transform overflow-hidden rounded-lg transition-all sm:w-full"
+            class="text-16px text-foreground bg-background text-left relative z-10 flex flex-col justify-around border-2 border-solid transform overflow-hidden rounded-lg transition-all sm:w-full"
           >
             <div v-if="showCloseX" class="absolute z-20 right-0 top-0 pt-4px pr-4px hidden sm:block">
               <button
@@ -111,13 +132,13 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
               class="relative z-0 grid items-start gap-2 p-16px md:p-24px rounded-t"
               :class="{
                 'sm:pr-40px': showCloseX,
-                'justify-between': $slots['header'],
-                'justify-center': !$slots['header'],
+                'justify-between': !headerJustifyCenter,
+                'justify-center': headerJustifyCenter,
               }"
             >
               <div class="absolute -z-10 inset-0 opacity-10 bg-card" />
               <template v-if="!$slots['header']">
-                <h1 v-if="title" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
+                <h1 v-if="title && !titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
                   {{ title }}
                   <slot name="headerTitle" />
                 </h1>
@@ -127,10 +148,19 @@ const ariaLablledById = computed((): string|undefined => props.title ? `ModalTit
 
             <div
               v-if="$slots['main'] || description"
-              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto shadow-inner"
-              :class="centerContent && 'text-center'"
+              class="relative max-h-[65vh] tall:max-h-[75vh] flex flex-col gap-y-16px sm:gap-y-24px p-16px md:p-24px overflow-y-auto"
+              :class="[
+                centerContent && 'text-center',
+                !disableShadow && 'shadow-inner',
+              ]"
             >
-              <h2 v-if="description" class="text-18px sm:text-20px opacity-75" v-html="description" />
+              <div class="flex flex-col gap-y-12px">
+                <h1 v-if="title && titleInMain" :id="ariaLablledById" class="text-center text-20px sm:text-24px font-semibold flex flex-wrap justify-center gap-x-4px">
+                    {{ title }}
+                    <slot name="headerTitle" />
+                </h1>
+                <h2 v-if="description" class="text-18px sm:text-20px opacity-75" v-html="description" />
+              </div>
               <div v-if="$slots['main']">
                 <slot name="main" />
               </div>

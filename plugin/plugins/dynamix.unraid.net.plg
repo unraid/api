@@ -165,6 +165,9 @@ version=
 # shellcheck disable=SC1091
 source /etc/unraid-version
 
+# Undo some activation / partner setup
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_remove
+
 echo
 echo "⚠️ Do not close this window yet"
 echo
@@ -741,10 +744,6 @@ if [ "${PLGTYPE}" = "production" ] || [ ! -f /boot/config/plugins/dynamix.my.ser
   echo "env=\"${PLGTYPE}\"">/boot/config/plugins/dynamix.my.servers/env
 fi
 
-echo
-echo "⚠️ Do not close this window yet"
-echo
-
 # Use myservers.cfg values to help prevent conflicts when installing
 CFG=/boot/config/plugins/dynamix.my.servers/myservers.cfg
 # shellcheck disable=SC1090
@@ -838,9 +837,9 @@ preventDowngradeAction() {
 }
 
 # Extract "ts" values from both files
-    plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
-    backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
-    plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
+plgWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components"
+backupWebComponentPath="/usr/local/emhttp/plugins/dynamix.my.servers/unraid-components-"
+plgManifestTs=$(extract_ts "$plgWebComponentPath/manifest.json")
 webguiManifestTs=$(extract_ts "$backupWebComponentPath/manifest.json")
 
 # Compare the "ts" values and return the file path of the higher value
@@ -853,6 +852,14 @@ if [[ "$webguiManifestTs" -gt "$plgManifestTs" ]]; then
     done
     echo "♻️ Reverted to stock web component files"
 fi
+
+echo
+echo "⚠️ Do not close this window yet"
+echo
+
+# Activation and partner setup
+# - Must come after the web component timestamp check to avoid potentially targeting the wrong JS during this setup
+source /usr/local/emhttp/plugins/dynamix.my.servers/scripts/activation_code_setup
 
 # Install the API (previously in rc.d script)
 echo "Extracting and installing the Unraid API"
@@ -885,21 +892,10 @@ ln -sf /usr/local/bin/unraid-api /usr/bin/unraid-api
 # bail if expected file does not exist
 [[ ! -f "${api_base_directory}/package.json" ]] && echo "unraid-api install failed" && exit 1
 
-# Start a background process to wait for /var/local/emhttp/var.ini
-( timeout=30 elapsed=0
-  while (( elapsed < timeout )); do
-    if [ -f /var/local/emhttp/var.ini ]; then
-      logger "Starting flash backup (if enabled)"
-      echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
-      logger "Starting Unraid API"
-      ${unraid_binary_path} start
-      exit 0
-    fi
-    sleep 1
-    (( elapsed++ ))
-  done
-  echo "Timeout waiting for /var/local/emhttp/var.ini"
-) &
+logger "Starting flash backup (if enabled)"
+echo "/etc/rc.d/rc.flash_backup start" | at -M now &>/dev/null
+logger "Starting Unraid API"
+${unraid_binary_path} start
 
 echo
 echo "✅ Installation is complete, it is safe to close this window"

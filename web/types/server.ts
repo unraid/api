@@ -1,6 +1,7 @@
 import type { Config, PartialCloudFragment } from '~/composables/gql/graphql';
 import type { Theme } from '~/store/theme';
 import type { UserProfileLink } from '~/types/userProfile';
+import type { ActivationCodeData } from '~/store/activationCode';
 
 export type ServerState = 'BASIC'
   | 'PLUS'
@@ -66,6 +67,7 @@ export interface ServerStateArray {
 }
 
 export interface Server {
+  activationCodeData?: ActivationCodeData;
   apiKey?: string;
   apiVersion?: string;
   array?: ServerStateArray;
@@ -151,6 +153,7 @@ export interface ServerAccountCallbackSendPayload {
 export type ServerKeyTypeForPurchase = 'Basic' | 'Plus' | 'Pro' | 'Starter' | 'Trial' | 'Unleashed';
 
 export interface ServerPurchaseCallbackSendPayload {
+  activationCodeData?: ActivationCodeData;
   apiVersion?: string;
   connectPluginVersion?: string;
   deviceCount: number;
@@ -163,12 +166,13 @@ export interface ServerPurchaseCallbackSendPayload {
   osVersionBranch?: ServerOsVersionBranch;
   registered: boolean;
   regExp?: number;
+  regTy?: string;
   regUpdatesExpired?: boolean;
   state: ServerState;
   site: string;
 }
 
-export type ServerStateDataKeyActions = 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'renew' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
+export type ServerStateDataKeyActions = 'activate' | 'purchase' | 'redeem' | 'upgrade' | 'recover' | 'renew' | 'replace' | 'trialExtend' | 'trialStart' | 'updateOs';
 
 export type ServerStateDataAccountActions = 'signIn' | 'signOut' | 'troubleshoot';
 

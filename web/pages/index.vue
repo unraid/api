@@ -4,10 +4,10 @@ import {
 } from '@heroicons/vue/24/solid';
 import { serverState } from '~/_data/serverState';
 import type { SendPayloads } from '~/store/callback';
+import type { UiBadgePropsColor } from '~/types/ui/badge';
+import type { ButtonStyle } from '~/types/ui/button';
 import AES from 'crypto-js/aes';
 import BrandButton from '~/components/Brand/Button.vue';
-import type { ButtonStyle } from '~/types/ui/button';
-import type { UiBadgePropsColor } from '~/types/ui/badge';
 const { registerEntry } = useCustomElements();
 onBeforeMount(() => {
   registerEntry('UnraidComponents');
@@ -60,7 +60,34 @@ onMounted(() => {
   );
 });
 
+const badgeColors = [
+  'black',
+  'white',
+  'red',
+  'yellow',
+  'green',
+  'blue',
+  'indigo',
+  'purple',
+  'pink',
+  'orange',
+  'transparent',
+  'current',
+  'gray',
+  'custom',
+] as UiBadgePropsColor[];
 
+const buttonColors = [
+  'black',
+  'fill',
+  'gray',
+  'outline',
+  'outline-black',
+  'outline-white',
+  'underline',
+  'underline-hover-red',
+  'white',
+] as ButtonStyle[];
 </script>
 
 <template>
@@ -113,6 +140,10 @@ onMounted(() => {
           <h3 class="text-lg font-semibold font-mono">ModalsCe</h3>
           <ModalsCe />
           <hr class="border-black dark:border-white" />
+          <h3 class="text-lg font-semibold font-mono">WelcomeModalCe</h3>
+          <!-- <WelcomeModalCe :server="serverState ?? undefined" /> -->
+          Uncomment the WelcomeModalCe component to test it.
+          <hr class="border-black dark:border-white" />
           <h3 class="text-lg font-semibold font-mono">Test Callback Builder</h3>
           <div class="flex flex-col justify-end gap-8px">
             <p>
@@ -133,14 +164,14 @@ onMounted(() => {
           <div class="bg-background">
           <hr class="border-black dark:border-white" />
           <h2 class="text-xl font-semibold font-mono">Legacy Badge Components</h2>
-            <template v-for="color in ['black', 'white', 'red', 'yellow', 'green', 'blue', 'indigo', 'purple', 'pink', 'orange', 'transparent', 'current', 'gray', 'custom']" :key="color">
-              <UiBadge size="14px" :icon="ExclamationTriangleIcon" :color="color as UiBadgePropsColor">{{ color }}</UiBadge>
+            <template v-for="color in badgeColors" :key="color">
+              <UiBadge size="14px" :icon="ExclamationTriangleIcon" :color="color">{{ color }}</UiBadge>
             </template>
           </div>
            <div class="bg-background">
           <hr class="border-black dark:border-white" />
           <h2 class="text-xl font-semibold font-mono">Legacy Button Components</h2>
-            <template v-for="color in ['black', 'fill', 'gray', 'outline', 'outline-black', 'outline-white', 'underline', 'underline-hover-red', 'white',]" :key="color">
+            <template v-for="color in buttonColors" :key="color">
               <BrandButton type="button" size="14px" :icon="ExclamationTriangleIcon" :btn-style="color as ButtonStyle">{{ color }}</BrandButton>
             </template>
           </div>
