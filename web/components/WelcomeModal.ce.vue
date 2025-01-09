@@ -83,6 +83,7 @@ onBeforeMount(() => {
       max-width="max-w-800px"
       :disable-shadow="true"
       :modal-vertical-center="false"
+      :disable-overlay-close="true"
       @close="dropdownHide"
     >
       <template v-if="partnerLogo" #header>

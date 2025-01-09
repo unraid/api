@@ -21,6 +21,7 @@ export interface Props {
   overlayOpacity?: string;
   modalVerticalCenter?: boolean | string;
   disableShadow?: boolean;
+  disableOverlayClose?: boolean;
 }
 const props = withDefaults(defineProps<Props>(), {
   centerContent: true,
@@ -38,6 +39,7 @@ const props = withDefaults(defineProps<Props>(), {
   overlayOpacity: 'bg-opacity-80',
   modalVerticalCenter: true,
   disableShadow: false,
+  disableOverlayClose: false,
 });
 watchEffect(() => {
   // toggle body scrollability
@@ -92,7 +94,7 @@ const computedVerticalCenter = computed<string>(() => {
           <div
             :class="cn('fixed inset-0 z-0 transition-opacity', overlayColor, overlayOpacity)"
             :title="showCloseX ? t('Click to close modal') : undefined"
-            @click="closeModal"
+            @click="!disableOverlayClose ? closeModal : undefined"
           />
         </TransitionChild>
         <TransitionChild
